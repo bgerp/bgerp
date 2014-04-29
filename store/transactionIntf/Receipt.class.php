@@ -70,7 +70,7 @@ class store_transactionIntf_Receipt
         $rec->state = 'active';
         
         if ($this->class->save($rec)) {
-            $this->class->invoke('Activation', array($rec));
+            $this->class->invoke('AfterActivation', array($rec));
         }
         
         // Нотификация към пораждащия документ, че нещо във веригата му от породени документи се е променило.
@@ -182,7 +182,7 @@ class store_transactionIntf_Receipt
                 
                 'debit' => array(
                     '4530', 
-                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                    'quantity' => $vatAmount, // Количество продукт в основната му мярка
                 ),
             );
         }

@@ -1,7 +1,7 @@
 <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
 	<tbody>
 		<tr>
-			<td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Доставчик|*</b></td>
+			<td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Получател|*</b></td>
 		    <td class="cell" rowspan="3" align="center" width="30%">
 		        <div class='invoiceTitle' style='margin-bottom: 5px;'><span id='invType'>[#type#]</span></div>
 		        <div class='invInfo'>|Номер|* </div>
@@ -25,19 +25,20 @@
                   <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
                <!--ET_END state-->
 		    </td>
-		    <td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Получател|*</b> </td>
+		    <td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Доставчик|*</b> </td>
 		</tr>           
 		<tr>
 		    <td class="cell">
-		        <b>[#contragentName#]</b><br>
-				<br>
-		         [#contragentCountryId#]<!--ET_BEGIN contragentPlace-->, [#contragentPCode#]
-                 [#contragentPlace#]<!--ET_END contragentPlace--><!--ET_BEGIN contragentAddress-->, [#contragentAddress#] <!--ET_END contragentAddress-->
+		         <b>[#MyCompany#]</b><br>
+                 <br>
+                 [#MyAddress#] <br>
 		    </td>
 		    <td class="cell">
-		         <b>[#MyCompany#]</b><br>
-				 <br>
-		         [#MyAddress#] <br>
+		     <b>[#contragentName#]</b><br>
+                <br>
+                 [#contragentCountryId#]<!--ET_BEGIN contragentPlace-->, [#contragentPCode#]
+                 [#contragentPlace#]<!--ET_END contragentPlace--><!--ET_BEGIN contragentAddress-->, [#contragentAddress#] <!--ET_END contragentAddress-->
+		       
 		    </td>
 		</tr>
 		<tr>

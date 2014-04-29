@@ -243,6 +243,8 @@ class cash_Pko extends core_Master
     		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
     		 	}
     		 }
+    	} else {
+    		$defaultOperation = 'customer2case';
     	}
     	
     	// Поставяме стойности по подразбиране

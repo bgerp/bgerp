@@ -16,15 +16,6 @@ class callcenter_Talks extends core_Master
     
     
     /**
-     * Допустимото отклонение в секуди при регистриране на обажданията
-     * 
-     * @example - 1 час
-     */
-    const DEVIATION_BETWEEN_TIMES = 3600;
-    
-    
-    
-    /**
      * Заглавие на модела
      */
     var $title = 'Разговори';
@@ -175,7 +166,7 @@ class callcenter_Talks extends core_Master
             $duration = dt::secsBetween($rec->endTime, $rec->answerTime);
             
             // Ако има
-            if ($duration) {
+            if ($duration && $duration > 0) {
                 
                 // Добавяме към записа
                 $rec->duration = $duration;
@@ -402,6 +393,8 @@ class callcenter_Talks extends core_Master
      */
     function act_RegisterCall()
     {
+        $conf = core_Packs::getConfig('callcenter');
+        
         // Масив с грешките
         $errArr = array();
         
@@ -427,7 +420,7 @@ class callcenter_Talks extends core_Master
             $deviationSecs = abs(dt::secsBetween($now, $startTime));
             
             // Ако разликата е над допустимите
-            if (($deviationSecs) && ($deviationSecs > static::DEVIATION_BETWEEN_TIMES)) {
+            if (($deviationSecs) && ($deviationSecs > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
                 
                 // Инстанция на класа
                 $TimeInst = cls::get('type_Time');
@@ -571,6 +564,8 @@ class callcenter_Talks extends core_Master
      */
     function act_RegisterEndCall()
     {
+        $conf = core_Packs::getConfig('callcenter');
+        
         // Масив с грешките
         $errArr = array();
         
@@ -623,7 +618,7 @@ class callcenter_Talks extends core_Master
                 $deviationsSecAnswEnd = dt::secsBetween($endTime, $answerTime);
                 
                 // Ако разликата е над допустимите
-                if (($deviationsSecAnswEnd) && ($deviationsSecAnswEnd > static::DEVIATION_BETWEEN_TIMES)) {
+                if (($deviationsSecAnswEnd) && ($deviationsSecAnswEnd > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
                     
                     // Разликата във вербален вид
                     $deviationAnswEndVerbal = $TimeInst->toVerbal($deviationsSecAnswEnd);
@@ -658,7 +653,7 @@ class callcenter_Talks extends core_Master
                 $deviationSecsAnsw = abs(dt::secsBetween($now, $answerTime));
             
                 // Ако разликата е над допустимите
-                if (($deviationSecsAnsw) && ($deviationSecsAnsw > static::DEVIATION_BETWEEN_TIMES)) {
+                if (($deviationSecsAnsw) && ($deviationSecsAnsw > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
                     
                     // Разликата във вербален вид
                     $deviationAnswVerbal = $TimeInst->toVerbal($deviationSecsAnsw);
@@ -678,7 +673,7 @@ class callcenter_Talks extends core_Master
                 $deviationSecsEnd = abs(dt::secsBetween($now, $endTime));
                 
                 // Ако разликата е над допустимите
-                if (($deviationSecsEnd) && ($deviationSecsEnd > static::DEVIATION_BETWEEN_TIMES)) {
+                if (($deviationSecsEnd) && ($deviationSecsEnd > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
                     
                     // Разликата във вербален вид
                     $deviationEndVerbal = $TimeInst->toVerbal($deviationSecsEnd);
@@ -1578,6 +1573,80 @@ class callcenter_Talks extends core_Master
                 
                 $res .= "<li><font color='green'>Бяха съкратение времената на {$cnt} {$word} - {$changetTalksStr}</font></li>";
             }
+        }
+        
+        // Ако има отговорени разговори с вкарани лоши данни
+        
+        // Всички отговорени разговори с некоректни времена за endTime или answerTime
+        $nQuery = static::getQuery();
+        $unixNull = date("Y-m-d h:i:s", 0);
+        $nQuery->where("#dialStatus = 'ANSWERED'");
+        $nQuery->where("#endTime <= '{$unixNull}'");
+        $nQuery->orWhere("#answerTime <= '{$unixNull}'");
+        
+        while ($nRec = $nQuery->fetch()) {
+            
+            // Флаг, дали да се записва
+            $save = FALSE;
+            
+            // Ако времето на отговор е лошо
+            if ($nRec->answerTime <= $unixNull) {
+                
+                // Ако все пак има подадено време на край
+                if ($nRec->endTime > $unixNull) {
+                    
+                    // От крайното време определяме началото
+                    $nRec->answerTime = dt::removeSecs($conf->CALLCENTER_MAX_CALL_DURATION, $nRec->endTime);
+                    
+                    // Вдигаме флага
+                    $save = TRUE;
+                } else {
+                    
+                    // Ако няма време на край, тогава използваме началото за позвъняване за начало на разговора
+                    $nRec->answerTime = $nRec->startTime;
+                }
+            }
+            
+            // Ако времето за край на разговора е лошо
+            if ($nRec->endTime <= $unixNull) {
+                
+                // Ако има добро време на начало на позвъняване
+                if ($nRec->answerTime > $unixNull) {
+                    
+                    // Определяме времето за край на разговора
+                    $nRec->endTime = dt::addSecs($conf->CALLCENTER_MAX_CALL_DURATION, $nRec->answerTime);
+                    
+                    // Вдигаме флага
+                    $save = TRUE;
+                }
+            }
+            
+            // Ако флага е вдигнат
+            if ($save) {
+                
+                // Записваме 
+                static::save($nRec);
+                
+                // Добавяме в масива
+                $nChangedTalksArr[$nRec->id] = $nRec->id;
+            }
+        }
+        
+        // Ако има промение разговори
+        if ($nChangedTalksArr) {
+            
+            // Броя на променените разговори
+            $cnt = count($nChangedTalksArr);
+            
+            if ($cnt == 1) {
+                $word = 'разговор';
+            } else { 
+                $word = 'разговорa';
+            }
+            
+            $changetTalksStr = implode(', ', $nChangedTalksArr);
+            
+            $res .= "<li><font color='green'>Бяха променени времената на {$cnt} {$word} - {$changetTalksStr}</font></li>";
         }
     }
     

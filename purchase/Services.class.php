@@ -567,7 +567,7 @@ class purchase_Services extends core_Master
         $rec->state = 'active';
         
         if ($this->save($rec)) {
-            $this->invoke('Activation', array($rec));
+            $this->invoke('AfterActivation', array($rec));
         }
         
         // Нотификация към пораждащия документ, че нещо във веригата му от породени документи се е променило.
@@ -635,7 +635,7 @@ class purchase_Services extends core_Master
 		                
 		                'debit' => array(
 		                    '4530', 
-		                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+		                    'quantity' => $vatAmount, // Количество продукт в основната му мярка
 		                ),
 		            );
 	        	}

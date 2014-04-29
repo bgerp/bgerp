@@ -140,7 +140,7 @@ class sales_TransactionSourceImpl
         $rec->state = 'active';
         
         if ($this->class->save($rec)) {
-            $this->class->invoke('Activation', array($rec));
+            $this->class->invoke('AfterActivation', array($rec));
         }
     }
     
@@ -249,7 +249,7 @@ class sales_TransactionSourceImpl
                 
                 'credit' => array(
                     '4530', 
-                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                    'quantity' => $vatAmount, // Количество продукт в основната му мярка
                 ),
             );
         }

@@ -945,7 +945,7 @@ class purchase_Invoices extends core_Master
        
         $entries = array();
     	$debitAccId  = '4531';
-	    $creditAccId = '401';
+	    $creditAccId = '4530';
         
     	if(isset($cloneRec->vatAmount)){
         	$entries[] = array(
@@ -953,8 +953,6 @@ class purchase_Invoices extends core_Master
                 
                 'credit' => array(
                     $creditAccId, // дебитната сметка
-                        array($contragentClass, $contragentId),
-                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($cloneRec->date)),
                     'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
                 ),
                 
