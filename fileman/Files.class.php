@@ -79,12 +79,6 @@ class fileman_Files extends core_Master
     
     
     /**
-     * Да не се защитава id' то
-     */
-    var $protectId = FALSE;
-    
-    
-    /**
      * 
      */
     var $listFields = 'name, bucketId, createdOn, createdBy';
@@ -150,46 +144,6 @@ class fileman_Files extends core_Master
             
             $rec->id = $existingRec->id;
         }
-    }
-    
-    
-    /**
-     * Сингъла на файловете
-     */
-    function act_Single()
-    {
-        // Манипулатора на файла
-        $fh = Request::get('id');
-        
-        // Очакваме да има подаден манипулатор на файла
-        expect($fh, 'Липсва манупулатора на файла');
-        
-        // Ескейпваме манипулатора
-        $fh = $this->db->escape($fh);
-
-        // Записа за съответния файл
-        $fRec = fileman_Files::fetchByFh($fh);
-        
-        // Очакваме да има такъв запис
-        expect($fRec, 'Няма такъв запис.');
-        
-        // Ако няма сингъл права за документа
-        if (!fileman_Files::haveRightFor('single')) {
-            
-            // Редиректва към свалянето на документа
-            return new Redirect(array('fileman_Download', 'Download', 'fh' => $fh));
-        }
-        
-        // Обновяваме лога за използване на файла
-        fileman_Log::updateLogInfo($fRec, 'preview');
-        
-        // Задаваме id' то на файла да е самото id, а не манупулатора на файла
-        Request::push(array('id' => $fRec->id));
-        
-        // Заглавието на таба
-        $this->title = "|*" . static::getVerbal($fRec, 'name');
-        
-        return parent::act_Single();
     }
     
     
@@ -711,7 +665,7 @@ class fileman_Files extends core_Master
             $mvc,
             'editFile',
             'id' => $rec->fileHnd,
-            'ret_url' => array($mvc, 'single', $rec->fileHnd)
+            'ret_url' => TRUE
         );
             
         // Създаваме линка
@@ -746,34 +700,14 @@ class fileman_Files extends core_Master
      */
     function act_EditFile()
     {
-        // Проверяваме дали екшъна е субмитнат
-        if (Request::get('Cmd')) {
-            
-            // id' то на записа
-            $id = Request::get('id', 'int');
-            
-            // Очакваме да има id
-            expect($id);
-            
-            // Вземаме записите за файла
-            $fRec = fileman_Files::fetch($id);
-        } else {
-            
-            // Манипулатора на файла
-            $fh = Request::get('id');
-    
-            // Очакваме да има подаден манипулатор на файла
-            expect($fh, 'Липсва манупулатора на файла');
-            
-            // Ескейпваме манипулатора
-            $fh = $this->db->escape($fh);
-    
-            // Записа за съответния файл
-            $fRec = fileman_Files::fetchByFh($fh);
-            
-            // Задаваме id' то да сочи id' то на записа
-            Request::push(array('id' => $fRec->id));
-        }
+        // id' то на записа
+        $id = Request::get('id', 'int');
+        
+        // Очакваме да има id
+        expect($id);
+        
+        // Вземаме записите за файла
+        $fRec = fileman_Files::fetch($id);
         
         // Очакваме да има такъв запис
         expect($fRec, 'Няма такъв запис.');
@@ -1107,38 +1041,16 @@ class fileman_Files extends core_Master
     /**
      * Преобразува линка към single' на файла richtext линк
      * 
-     * @param string $fileHnd - Манипулатора на файла
+     * @param integer $id - id на записа
      * 
      * @return string $res - Линка в richText формат
      */
-    function getVerbalLinkFromClass($fileHnd)
+    function getVerbalLinkFromClass($id)
     {
-        return fileman_Download::getDownloadLink($fileHnd);
-    }
-    
-    
-    /**
-     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
-     */
-    function unprotectId($id)
-    {
-        // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
-        if (mb_strlen($id) > FILEMAN_HANDLER_LEN) {
-            
-            // Променлива, в която държим старото състояние
-            $old = $this->protectId;
-            
-            // Задаваме да се защитава
-            $this->protectId = TRUE;
-            
-            // Вземаме id' to
-            $id = $this->unprotectId_($id);
-
-            // Връщаме стойността
-            $this->protectId = $old;
-        }
+        $rec = static::fetch($id);
+        $fileHnd = $rec->fileHnd;
         
-        return $id;
+        return fileman_Download::getDownloadLink($fileHnd);
     }
     
     
@@ -1211,5 +1123,63 @@ class fileman_Files extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Интерфейсна функция
+     * От манипулатора на файла връща id на записа
+     * 
+     * @param string
+     * @see core_Mvc::unprotectId_()
+     */
+    function unprotectId($id)
+    {
+        // Това е хак, за някои случаи когато има манипулатори, които са защитени допълнителни (в стари системи)
+        // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
+        if (mb_strlen($id) > FILEMAN_HANDLER_LEN) {
+            
+            // Променлива, в която държим старото състояние
+            $old = $this->protectId;
+            
+            // Задаваме да се защитава
+            $this->protectId = TRUE;
+            
+            // Вземаме id' to
+            $id = $this->unprotectId_($id);
 
+            // Връщаме стойността
+            $this->protectId = $old;
+        }
+        
+        // Вземаме записа
+        $rec = static::fetchByFh($id);
+        
+        if ($rec) {
+            $id = $rec->id;
+        }
+        
+        return $id;
+    }
+    
+    
+    /**
+     * Интерфейсна функция
+     * Ако е подадено число за id го преобразува в манипулатор
+     * 
+     * @see core_Mvc::protectId()
+     */
+    function protectId($id)
+    {   
+        // Ако е подадено id на запис
+        if (is_numeric($id)) {
+            
+            // Вземаме записа
+            $rec = static::fetch($id);
+            
+            // Вместо id използваме манипулатора на файла
+            $id = $rec->fileHnd;
+        }
+        
+        return $id;
+    }
 }

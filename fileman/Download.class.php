@@ -449,7 +449,12 @@ class fileman_Download extends core_Manager {
         $fRec = fileman_Files::fetchByFh($fh);
         
         //Проверяваме дали сме отркили записа
-        if(!$fRec) return FALSE;
+        if(!$fRec) {
+            
+            sleep(2);
+            
+            return FALSE;
+        }
         
 		// Дали файла го има? Ако го няма, вместо линк, връщаме името му
 		$path = fileman_Files::fetchByFh($fh, 'path');

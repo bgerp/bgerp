@@ -23,6 +23,11 @@ class gps_Log extends core_Manager
     public $title = 'GPS';
     
     /**
+     * Заглавие
+     */
+    public $canList = 'gps, admin, ceo';
+    
+    /**
      * Плъгини за зареждане
      *
      * var string|array
@@ -84,6 +89,23 @@ class gps_Log extends core_Manager
         $trackerId = Request::get('trackerId', 'varchar');
         $data = Request::get('data', 'varchar');
         $remoteIp = Request::get('remoteIp', 'varchar');
+        
+        // Проверяваме дали скоростта е нула
+        $dataArr = self::parseGPSData($data);
+        if (($dataArr['speed']-0.01) < 0) {
+            // Проверяваме последния запис от този тракер, дали е с нулева скорост. Ако - да - не го записваме
+            $query = $this->getQuery();
+            $query->show('data');
+            $query->where(array("#trackerId = '[#1#]'", $trackerId));
+            $query->orderBy('#createdOn','DESC');
+            $query->limit(1);
+            $rec = $query->fetch();
+            $recData = self::parseGPSData($rec->data); 
+            if (is_array($recData) && ($recData['speed'] -0.01) < 0) {
+                // Не го записваме
+                exit;
+            }
+        }
         
         // Махаме порта от IP адреса
         $remoteIp = substr($remoteIp, 0, strpos($remoteIp, ':'));

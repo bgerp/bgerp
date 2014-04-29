@@ -30,7 +30,7 @@ defIfNot('STATUS_IDLE_TIME', 3);
  * @license   GPL 3
  * @since     v 0.1
  */
-class status_Setup
+class status_Setup extends core_ProtoSetup 
 {
     
     

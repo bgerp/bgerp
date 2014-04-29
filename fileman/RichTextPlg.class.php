@@ -94,15 +94,29 @@ class fileman_RichTextPlg extends core_Plugin
         
         $link = fileman_Download::getDownloadLink($fh, $title);
         
-        if (is_object($link)) {
-            $content = $link->getContent();
+        if ($link) {
+            if (is_object($link)) {
+                $content = $link->getContent();
+            } else {
+                $content = $link;
+            }
         } else {
-            $content = $link;
+            $content = $this->mvc->getNotAccessMsg();
         }
+        
         $this->mvc->_htmlBoard[$place] = $content;
         $res = "[#{$place}#]";
         
         return  $res;
+    }
+
+    
+    /**
+     * Съобщението, което ще се показва ако нямаме достъп до обекта
+     */
+    static function on_AfterGetNotAccessMsg($mvc, $res)
+    {
+        $res = tr('Липсващ обект');
     }
     
     
@@ -166,7 +180,7 @@ class fileman_RichTextPlg extends core_Plugin
                 if (($params !== FALSE) && (strtolower($params['Ctr']) == 'fileman_files' && strtolower($params['Act']) == 'single' && $params['id'])) {
                     
                     // Вземаме данните за файла
-                    $fRec = fileman_Files::fetchByFh($params['id']);
+                    $fRec = fileman_Files::fetch($params['id']);
 
                     // Добавяме в масивa
                     $files[$fRec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');

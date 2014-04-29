@@ -695,7 +695,7 @@ class fileman_webdrv_Generic extends core_Manager
         try {
             
             // Инстанция на архива
-            $zip = static::getArchiveInst($fRec);
+            $zip = self::getArchiveInst($fRec);
         } catch (Exception $e) {
             
             // Ако възникне exception
@@ -712,7 +712,7 @@ class fileman_webdrv_Generic extends core_Manager
         if ($path) {
             
             // Създаваме линк от пътя, който да сочи към предишната директория
-            $link = ht::createLink($path, static::getBackFolderLinkInArchive());
+            $link = ht::createLink($path, self::getBackFolderLinkInArchive());
             
             // Иконата на файла
             $sbfIcon = sbf('/img/16/back16.png',"");
@@ -732,13 +732,16 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Вземаме всики директории и файлове в текущада директория на архива
-        $filesArr = static::getFilesInArchive($zipContentArr, $path);
+        $filesArr = self::getFilesInArchive($zipContentArr, $path);
+        
+        // Размерите на файловете
+        $fileSizesArr = self::getFileSizesInArchive($zipContentArr);
         
         // Подговаме стринга с папките
-        $dirsStr = static::prepareDirsInArchive((array)$filesArr['dirs'], $path);
+        $dirsStr = self::prepareDirsInArchive((array)$filesArr['dirs'], $path);
         
         // Подготвяме стринга с файловете
-        $filesStr = static::prepareFilesInArchive((array)$filesArr['files'], $fRec->fileHnd);
+        $filesStr = self::prepareFilesInArchive((array)$filesArr['files'], $fRec->fileHnd, $fileSizesArr);
         
         // Ако има папки
         if ($dirsStr) {
@@ -784,7 +787,7 @@ class fileman_webdrv_Generic extends core_Manager
         try {
             
             // Опитваме се да вземем манипулатора на файла
-            $fh = static::uploadFileFromArchive($rec, Request::get('index', 'int'));
+            $fh = self::uploadFileFromArchive($rec, Request::get('index', 'int'));
             
             // Ако всичко е ОК, редиректваме към сингъла на файла
             return new Redirect(array('fileman_Files', 'single', $fh, '#' => 'fileDetail'));
@@ -811,7 +814,14 @@ class fileman_webdrv_Generic extends core_Manager
     static function uploadFileFromArchive($fRec, $index)
     {
         // Инстанция на архива
-        $zip = static::getArchiveInst($fRec);
+        $zip = self::getArchiveInst($fRec);
+        
+        $conf = core_Packs::getConfig('fileman');
+        
+        $stat = $zip->statIndex($index);
+        
+        // Очакваме размера да е в допустимите граници
+        expect($stat['size'] < $conf->FILEINFO_MAX_ARCHIVE_LEN, tr('Размера след разархивиране е над допустимия'));
         
         // Вземаме съдържанието на файла
         $fileContent = $zip->getFromIndex($index);
@@ -860,7 +870,7 @@ class fileman_webdrv_Generic extends core_Manager
         $depth = 0;
         
         // Обхождаме масива с всички директории и файлове в архива
-        foreach ($zipContentArr as $zipContent) {
+        foreach ((array)$zipContentArr as $zipContent) {
             
             // Създаваме масив с всички директории и поддиректории
             $filesArr[$zipContent['index']] = (explode('/', $zipContent['name']));
@@ -914,6 +924,30 @@ class fileman_webdrv_Generic extends core_Manager
     
     
     /**
+     * Връща размера на файловете
+     * 
+     * @param array $zipContentArr - Масив с всички файлове и директории в архива
+     * 
+     * @return array
+     */
+    static function getFileSizesInArchive($zipContentArr) 
+    {
+        
+        // Масив с размерите на файловете
+        $sizesArr = array();
+        
+        // Обхождаме масива с всички директории и файлове в архива
+        foreach ((array)$zipContentArr as $zipContent) {
+            
+            // Добавяме размера след разархивиране
+            $sizesArr[$zipContent['index']] = $zipContent['size'];
+        }
+        
+        return $sizesArr;
+    }
+    
+    
+    /**
      * Подготвя стринга с папките
      * 
      * @param array $filesArr - Масив с всики директории и файлове в текущада директория на архива
@@ -958,9 +992,12 @@ class fileman_webdrv_Generic extends core_Manager
      * 
      * @param array $filesArr - Масив с всики директории и файлове в текущада директория на архива
      * @param string $fileHnd - Манипулатора на архива
+     * @param array $sizeContentArr - Масив с размерите на файла
      */
-    static function prepareFilesInArchive($filesArr, $fileHnd)
+    static function prepareFilesInArchive($filesArr, $fileHnd, $sizeContentArr=NULL)
     {
+        $conf = core_Packs::getConfig('fileman');
+        
         // Обхождаме вски файлове в текущата директория
         foreach ($filesArr as $file => $index) {
             
@@ -978,8 +1015,15 @@ class fileman_webdrv_Generic extends core_Manager
             // Иконата в SBF директорията
             $sbfIcon = sbf($icon,"");
             
+            // Ако размера след разархивиране е под допустимия
+            if ($sizeContentArr[$index] < $conf->FILEINFO_MAX_ARCHIVE_LEN) {
+                $url = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fileHnd, 'index' => $index);
+            } else {
+                $url = FALSE;
+            }
+            
             // Създаваме линк, който сочи към екшън за абсорбиране на файла
-            $link = ht::createLink($file, array('fileman_webdrv_Archive', 'absorbFileInArchive', $fileHnd, 'index' => $index), NULL, array('target'=>'_blank'));
+            $link = ht::createLink($file, $url, NULL, array('target'=>'_blank'));
             
             // Създаваме стринга
             $fileStr = "<span class='linkWithIcon' style='background-image:url($sbfIcon);'>{$link}</span>";
@@ -1024,10 +1068,10 @@ class fileman_webdrv_Generic extends core_Manager
     static function getArchiveInst($fRec)
     {
         // Ако не сме създали инстанция преди
-        if (!static::$archiveInst[$fRec->fileHnd]) {
+        if (!self::$archiveInst[$fRec->fileHnd]) {
             
             // Проверяваме големината на архива
-            static::checkArchiveLen($fRec->dataId);
+            self::checkArchiveLen($fRec->dataId);
             
             // Пътя до архива
             $filePath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
@@ -1044,11 +1088,11 @@ class fileman_webdrv_Generic extends core_Manager
             // Очакваме да няма грешки при отварянето
             expect(($open === TRUE), 'Възникна грешка при отварянето на файла.', TRUE);
             
-            static::$archiveInst[$fRec->fileHnd] = $zip;
+            self::$archiveInst[$fRec->fileHnd] = $zip;
         } else {
             
             // Вземаме инстанцията от предишното генерa
-            $zip = static::$archiveInst[$fRec->fileHnd];
+            $zip = self::$archiveInst[$fRec->fileHnd];
         }
     
         return $zip;
@@ -1076,8 +1120,8 @@ class fileman_webdrv_Generic extends core_Manager
             $fileSizeInst = cls::get('fileman_FileSize');
             
             // Създаваме съобщение за грешка
-            $text = "Архива е много голям: " . fileman_Data::getVerbal($dataRec, 'fileLen');
-            $text .= "\nДопустимият размер е: " . $fileSizeInst->toVerbal($conf->FILEINFO_MIN_FILE_LEN_BARCODE);
+            $text = tr("Архива е много голям|*: ") . fileman_Data::getVerbal($dataRec, 'fileLen');
+            $text .= "\n" . tr("Допустимият размер е|*: ") . $fileSizeInst->toVerbal($conf->FILEINFO_MIN_FILE_LEN_BARCODE);
             
             // Очакваме да не сме влезли тука
             expect(FALSE, $text);

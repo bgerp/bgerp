@@ -64,6 +64,8 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
      */
     static function getArchiveInst($fRec)
     {
+        // Проверяваме големината на архива
+        static::checkArchiveLen($fRec->dataId);
         
         // Връщаме инстанцията
         return cls::get('archive_Adapter', $fRec->fileHnd);
@@ -77,8 +79,17 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
      */
     static function getArchiveContent($fRec, $path = NULL) 
     {
-        // Инстанция на класа
-        $inst = static::getArchiveInst($fRec);
+        try {
+            // Инстанция на класа
+            $inst = static::getArchiveInst($fRec);
+        } catch (Exception $e) {
+            
+            // Ако възникне exception
+            $debug = $e->getDebug();
+            
+            // Връщаме грешката
+            return $debug[1];
+        }
         
         // URL' то където да сочат файловете
         $url = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fRec->fileHnd, 'index' => 1);
@@ -104,14 +115,23 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
      */
     static function uploadFileFromArchive($fRec, $index)
     {
-        // Вземаме инстанция на архива
-        $archive = static::getArchiveInst($fRec);
+        try {
+            // Инстанция на класа
+            $inst = static::getArchiveInst($fRec);
+        } catch (Exception $e) {
+            
+            // Ако възникне exception
+            $debug = $e->getDebug();
+            
+            // Връщаме грешката
+            return $debug[1];
+        }
         
         // Качваме съответния файл
-        $fh = $archive->getFile($index);
+        $fh = $inst->getFile($index);
         
         // Изтриваме временните файлове
-        $archive->deleteTempPath();
+        $inst->deleteTempPath();
         
         // Връщаме манипулатора на файла
         return $fh;
