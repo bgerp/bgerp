@@ -427,10 +427,14 @@ class doc_DocumentPlg extends core_Plugin
                 $folderId = doc_UnsortedFolders::forceCoverAndFolder($unRec, $bForce);
             }
 			
+            if(!$userId) {
+                $userId = core_Users::getCurrent();
+            }
+
             // Ако текущия потребител няма права за тази папка, или тя не е определена до сега,
             // То 'Unsorted' папката е дефолт папката на потребителя, ако има потребител
             if((!$folderId || !doc_Folders::haveRightFor('single', $folderId)) && $userId) {
-                $folderId = doc_Folders::getDefaultFolder($userId);
+                $folderId = doc_Folders::getDefaultFolder($userId); 
             }
         }
     }
