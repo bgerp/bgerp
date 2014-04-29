@@ -83,7 +83,7 @@ class vislog_Referer extends core_Manager {
         
         if($rec->referer) {
             
-            $parts = parse_url($rec->referer);
+            $parts = @parse_url($rec->referer);
             
             $localHost = $_SERVER['SERVER_NAME'];
             
@@ -141,7 +141,7 @@ class vislog_Referer extends core_Manager {
         $rec = self::fetch(array("#ip = '[#1#]' AND #createdOn = '[#2#]'", $ip, $time));
 
         if($rec) {
-            $parse = parse_url($rec->referer);
+            $parse = @parse_url($rec->referer);
             
             $res = str_replace('www.', '', strtolower($parse['host']));
 
