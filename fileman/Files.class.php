@@ -1041,12 +1041,15 @@ class fileman_Files extends core_Master
     /**
      * Преобразува линка към single' на файла richtext линк
      * 
-     * @param string $fileHnd - Манипулатора на файла
+     * @param integer $id - id на записа
      * 
      * @return string $res - Линка в richText формат
      */
-    function getVerbalLinkFromClass($fileHnd)
+    function getVerbalLinkFromClass($id)
     {
+        $rec = static::fetch($id);
+        $fileHnd = $rec->fileHnd;
+        
         return fileman_Download::getDownloadLink($fileHnd);
     }
     
