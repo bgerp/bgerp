@@ -83,14 +83,15 @@ class gps_ListenerControl extends core_Manager
      */
     public function act_ListenerControl()
     {
-        if (self::isStarted()) {
-            self::Stop();
-        } else {
+        $cmd = Request::get('cmd');
+        if ($cmd == 'start') {
             self::Start();
+        } else {
+            self::Stop();
         }
         $res  = "<li>Статус: " . (self::isStarted()?'<font color=green>Стартиран</font>':'<font color=red>Спрян</font>'). "</li>";
-        $res .= "<li><a href=''>Стартиране</a></li>";
-        $res .= "<li><a href=''>Спиране</a></li>";
+        $res .= "<li><a href='?cmd=start'>Стартиране</a></li>";
+        $res .= "<li><a href='?cmd=stop'>Спиране</a></li>";
         
         return ($res);
     }
@@ -134,10 +135,10 @@ class gps_ListenerControl extends core_Manager
     private static function Stop()
     {
         $query = self::getQuery();
-        $rec = $query->fetch();
         
-        posix_kill($rec->pid, 9);
-        
+        if ($rec = $query->fetch()) {
+            posix_kill($rec->pid, 9);
+        }
         $query->where("1=1");
         $query->delete();
         
