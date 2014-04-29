@@ -97,7 +97,7 @@ class bgerp_Portal extends core_Manager
         $taskTitle = str_replace(' ', '&nbsp;', $taskTitle);
 
         $tasksTpl = new ET('<div class="clearfix21 portal" style="background-color:#fffff0;margin-bottom:25px;">
-            <div class="legend" style="background-color:#ffd;">' . $taskTitle . '&nbsp;' . crm_Profiles::createLink() . '&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]</div>
+            <div class="legend" style="background-color:#ffd;">' . $taskTitle . '&nbsp;' . crm_Profiles::createLink() . '&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#RЕМ_BTN#]</div>
             [#TASKS#]
             </div>');
         
@@ -112,6 +112,12 @@ class bgerp_Portal extends core_Manager
 		$addUrl = array('cal_Tasks', 'SwitchByTo');
 		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => $switchTitle, 'id' => 'switchTasks'));
         $tasksTpl->append($addBtn, 'SWITCH_BTN');
+        
+        // Бутон за смяна от <-> към
+        $img = sbf('img/16/rem-plus.png');
+		$addUrl = array('cal_Reminders', 'add', 'ret_url' => TRUE);
+		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => tr('Добавяне на ново Напомняне')));
+        $tasksTpl->append($addBtn, 'RЕМ_BTN');
        
         $tasksTpl->append(cal_Tasks::renderPortal(), 'TASKS');
 
