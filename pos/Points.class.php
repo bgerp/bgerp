@@ -38,7 +38,7 @@ class pos_Points extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, name, caseId';
+    var $listFields = 'tools=Пулт, name, caseId, report=Отчет';
     
     
     /**
@@ -165,18 +165,40 @@ class pos_Points extends core_Master {
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'single'), NULL, 'title=Отваряне на точката,ef_icon=img/16/forward16.png,target=_blank');
+    	if($data->rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
+    		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'single'), NULL, 'title=Отваряне на точката,ef_icon=img/16/forward16.png,target=_blank');
+    	}
     }
     
     
     /**
      * Обработка по вербалното представяне на данните
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
     		$urlArr = toUrl(array('pos_Receipts', 'Terminal'));
     		$row->currentPlg .= ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на точката,class=pos-open-btn,ef_icon=img/16/forward16.png');
+    	}
+    	
+    	$row->caseId = cash_Cases::getHyperlink($rec->caseId, TRUE);
+    	
+    	if($fields['-single']){
+    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    		$row->policyId = price_Lists::getHyperlink($rec->policyId, TRUE);
+    	}
+    	
+    	if($fields['-list']){
+    		$cu = core_Users::getCurrent();
+    		if(pos_Receipts::fetch("#pointId = {$rec->id} AND #createdBy = {$cu} AND #state = 'active'")){
+    			if($repId = pos_Reports::fetchField("#pointId = {$rec->id} AND #cashier = {$cu} AND #state='draft'")){
+    				$reportUrl = array('pos_Reports', 'single', $repId);
+    			} else {
+    				$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id);
+    			}
+    			
+    			$row->report = ht::createBtn('Отчет', $reportUrl, NULL, TRUE, 'title=Направи отчет,ef_icon=img/16/report.png');
+    		}
     	}
     }
     
@@ -194,4 +216,25 @@ class pos_Points extends core_Master {
 			$data->query->where("#cashier = {$cu}");
 		}
 	}
+	
+	
+	/**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    static function on_AfterPrepareListRows($mvc, &$data)
+    {
+        $rows = &$data->rows;
+        if(!count($rows)) return;
+        
+        $hideReportColumn = TRUE;
+        foreach ($rows as $row){
+        	if($row->report){
+        		$hideReportColumn = FALSE;
+        	}
+        }
+        
+        if($hideReportColumn){
+        	 unset($data->listFields['report']);
+        }
+    }
 }

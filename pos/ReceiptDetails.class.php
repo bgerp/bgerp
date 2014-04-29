@@ -121,7 +121,7 @@ class pos_ReceiptDetails extends core_Detail {
     function act_setDiscount()
     {
     	if(!$recId = Request::get('recId', 'int')){
-    		core_Statuses::newStatus('Не е избран ред !', 'error');
+    		core_Statuses::newStatus(tr('|Не е избран ред|* !'), 'error');
     		return array();
     	}
     	
@@ -133,9 +133,15 @@ class pos_ReceiptDetails extends core_Detail {
     	if(!$this->haveRightFor('edit', $rec)) return array();
     	
     	$discount = Request::get('amount');
+    	$this->fields['discountPercent']->type->params['Max']=1;
     	$discount = $this->fields['discountPercent']->type->fromVerbal($discount);
     	if(!isset($discount)){
-    		core_Statuses::newStatus('Не е въведено валидна процентна отстъпка !', 'error');
+    		core_Statuses::newStatus(tr('|Не е въведено валидна процентна отстъпка|* !'), 'error');
+    		return array();
+    	}
+    	
+    	if($discount > 1){
+    		core_Statuses::newStatus(tr('|Отстъпката не може да е над|* 100% !'), 'error');
     		return array();
     	}
     	
@@ -148,7 +154,7 @@ class pos_ReceiptDetails extends core_Detail {
     		
     		return $this->returnResponse($rec->receiptId);
     	} else {
-    		core_Statuses::newStatus('Проблем при задаване на отстъпка !', 'error');
+    		core_Statuses::newStatus(tr('|Проблем при задаване на отстъпка|* !'), 'error');
     	}
     	
     	return array();
@@ -285,7 +291,12 @@ class pos_ReceiptDetails extends core_Detail {
     	$rec = new stdClass();
     	$rec->receiptId = $recId;
     	$rec->action = "payment|{$type}";
-    	$rec->amount = $amount;
+    	if(($receipt->paid + $amount) > $receipt->total){
+    		$rec->amount = $receipt->total - $receipt->paid;
+    		$rec->value = $amount - $rec->amount;
+    	} else {
+    		$rec->amount = $amount;
+    	}
     	
     	// Запис на плащанетo
     	if($this->save($rec)){
@@ -429,6 +440,8 @@ class pos_ReceiptDetails extends core_Detail {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$varchar = cls::get('type_Varchar');
+    	$Double = cls::get('type_Double');
+    	$Double->params['smartRound'] = TRUE;
     	$receiptDate = $mvc->Master->fetchField($rec->receiptId, 'createdOn');
     	$row->currency = acc_Periods::getBaseCurrencyCode($receiptDate);
     	
@@ -719,6 +732,8 @@ class pos_ReceiptDetails extends core_Detail {
     			$obj->storeId = $storeId;
     			$obj->param   = $rec->param;
     		} else {
+    			if(!$rec->amount) continue;
+    			
     			$obj->action = 'payment';
     			list(, $obj->value) = explode('|', $rec->action);
     			$obj->pack = NULL;

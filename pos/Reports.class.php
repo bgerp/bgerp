@@ -111,7 +111,7 @@ class pos_Reports extends core_Master {
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title=Заглавие, pointId, cashier, total, paid, change, productCount, state, createdOn, createdBy';
+    var $listFields = 'id, title=Заглавие, pointId, cashier, total, paid, state, createdOn, createdBy';
     
     
 	/**
@@ -131,14 +131,12 @@ class pos_Reports extends core_Master {
      */
     function description()
     {
-    	$this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка, width=9em, mandatory');
+    	$this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка, width=9em, mandatory,silent');
     	$this->FLD('cashier', 'user(roles=pos|ceo)', 'caption=Касиер, width=9em');
     	$this->FLD('paid', 'double(decimals=2)', 'caption=Сума->Платено, input=none, value=0, summary=amount');
-    	$this->FLD('change', 'double(decimals=2)', 'caption=Сума->Ресто, input=none, value=0, summary=amount');
     	$this->FLD('total', 'double(decimals=2)', 'caption=Сума->Продадено, input=none, value=0, summary=amount');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена)', 'caption=Състояние,input=none,width=8em');
     	$this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
-    	$this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0, summary=quantity');
     }
     
     
@@ -149,7 +147,6 @@ class pos_Reports extends core_Master {
     { 
     	$data->form->setDefault('cashier', core_Users::getCurrent());
     	$data->form->setDefault('pointId', pos_Points::getCurrent());
-    	$data->form->setReadOnly('pointId');
     }
     
     
@@ -251,7 +248,7 @@ class pos_Reports extends core_Master {
     	$reportData = $this->fetchData($rec->pointId, $rec->cashier);
     	
     	$rec->details = $reportData;
-    	$rec->productCount = $rec->change = $rec->total = $rec->paid = 0;
+    	$rec->total = $rec->paid = 0;
     	if(count($reportData['receiptDetails'])){
 		    foreach($reportData['receiptDetails'] as $index => $detail) {
 		    	list($action) = explode('|', $index);
@@ -260,12 +257,6 @@ class pos_Reports extends core_Master {
 		    	($action == 'sale') ? $rec->total += $detail->amount : $rec->paid += $detail->amount;
 		    }
    	 	}
-   	 	
-   	 	foreach($reportData['receipts'] as $receipt) {
-   	 		$rec->productCount += $receipt->products;
-   	 	}
-   	 	
-   	 	$rec->change = $rec->paid - $rec->total;
     }
     
     
@@ -438,7 +429,7 @@ class pos_Reports extends core_Master {
     	while($rec = $query->fetch()) {
 	    	
     		// запомняме кои бележки сме обиколили
-    		$receipts[] = (object)array('id' => $rec->id, 'products' => $rec->productCount);
+    		$receipts[] = (object)array('id' => $rec->id);
     		
     		// Добавяме детайлите на бележката
 	    	$data = pos_ReceiptDetails::fetchReportData($rec->id);

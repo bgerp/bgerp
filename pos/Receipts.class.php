@@ -299,7 +299,7 @@ class pos_Receipts extends core_Master {
     function updateReceipt($id)
     {
     	expect($rec = $this->fetch($id));
-    	$rec->total = $rec->paid = $rec->change = $rec->productCount = 0;
+    	$rec->change = $rec->total = $rec->paid =  $rec->productCount = 0;
     	
     	$dQuery = $this->pos_ReceiptDetails->getQuery();
     	$dQuery->where("#receiptId = {$id}");
@@ -313,6 +313,7 @@ class pos_Receipts extends core_Master {
     				break;
     			case 'payment':
     				$rec->paid += $dRec->amount;
+    				$rec->change += $dRec->value;
     				break;
     			case 'client':
     				
@@ -326,7 +327,6 @@ class pos_Receipts extends core_Master {
     		}
     	}
     	
-    	$rec->change = $rec->paid - $rec->total;
     	$rec->change = ($rec->change > 0) ? $rec->change : 0;
     	
     	$this->save($rec);

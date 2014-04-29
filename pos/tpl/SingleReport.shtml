@@ -31,11 +31,6 @@
 				<td><b>[#storeId#]</b></td>
 			</tr>
 			<tr>
-				<td>|Продукти|*:</td>
-				<td></td>
-				<td class = 'summary-right'><b>[#productCount#]</b></td>
-			</tr>
-			<tr>
 				<td>|Продадено|*:</td>
 				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
 				<td class = 'summary-right'><b>[#total#]</b></td>
@@ -44,11 +39,6 @@
 				<td>|Платено|*:</td>
 				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
 				<td class = 'summary-right'><b>[#paid#]</b></td>
-			</tr>
-			<tr>
-				<td>|Ресто|*:</td>
-				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
-				<td class = 'summary-right'><b>[#change#]</b></td>
 			</tr>
 		</table>
 	<span>|Създаден на|* <b>[#createdDate#]</b> |от|* <b>[#createdBy#]</b></span>
