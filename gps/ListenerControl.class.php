@@ -65,7 +65,7 @@ class gps_ListenerControl extends core_Manager
         $Cron = cls::get('core_Cron');
     
         $rec = new stdClass();
-        $rec->systemId = "gps_WatchDog";
+        $rec->systemId = "gpsWatchDog";
         $rec->description = "Грижа приемача на данни да е пуснат";
         $rec->controller = "gps_ListenerControl";
         $rec->action = "WatchDog";
