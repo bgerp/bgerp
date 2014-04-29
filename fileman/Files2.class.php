@@ -756,31 +756,6 @@ class fileman_Files2 extends core_Master
     
     
     /**
-     * Използва identify от ImageMagic пакета за определяне на коректното разширение на файла
-     * 
-     * @param string $path - Пътя до файла
-     * 
-     * @return string - Разширението на файла
-     */
-    static function identifyFileExt($path)
-    {
-        // Очакваме да е валиден път
-        expect(static::isCorrectPath($path));
-        
-        // Вземаме конфигурацията
-        $conf = core_Packs::getConfig('fileman');
-        
-        // Изпълняваме командата
-        $ext = exec("{$conf->FILEMAN_IDENTIFY_FILE_COMMAND} -format \"%m\" \"{$path}\"", $a, $b);
-        
-        // Разширението в долен регистър
-        $ext = strtolower($ext);
-        
-        return $ext;
-    }
-    
-    
-    /**
      * Връща времето на последната модификация на файла
      * 
      * @param string $path - Пътя до файла

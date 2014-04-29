@@ -37,7 +37,7 @@ class fileman_SetExtensionPlg2 extends core_Plugin
         if (!fileman_Files::getExt($inputFileName)) {
             
             // Разширението на файла
-            $ext = fileman::identifyFileExt($dataRec->path);
+            $mvc->invoke('identifyFileExt', array(&$ext, $dataRec->path));
             
             // Ако има разширение
             if ($ext) {
