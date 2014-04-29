@@ -1312,31 +1312,4 @@ class type_Richtext extends type_Blob
         
         return $params;
     }
-    
-    
-    /**
-     * Съобщението, което ще се показва ако нямаме достъп до обекта
-     */
-    static function getNotAccessMsg()
-    {
-        $text = tr('Липсващ обект');
-        if (Mode::is('text', 'plain')) {
-            
-            // 
-            $str = $text;
-            
-        } else {
-            // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-            
-            // Иконата за линка
-            $sbfIcon = sbf('img/16/link_break.png','"', $isAbsolute);
-            
-            // Съобщението
-            $str = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$text} </span>"; 
-                
-        }
-        
-        return $str;
-    }
 }
