@@ -1076,8 +1076,8 @@ class fileman_webdrv_Generic extends core_Manager
             $fileSizeInst = cls::get('fileman_FileSize');
             
             // Създаваме съобщение за грешка
-            $text = "Архива е много голям: " . fileman_Data::getVerbal($dataRec, 'fileLen');
-            $text .= "\nДопустимият размер е: " . $fileSizeInst->toVerbal($conf->FILEINFO_MIN_FILE_LEN_BARCODE);
+            $text = tr("Архива е много голям|*: ") . fileman_Data::getVerbal($dataRec, 'fileLen');
+            $text .= "\n" . tr("Допустимият размер е|*: ") . $fileSizeInst->toVerbal($conf->FILEINFO_MIN_FILE_LEN_BARCODE);
             
             // Очакваме да не сме влезли тука
             expect(FALSE, $text);
