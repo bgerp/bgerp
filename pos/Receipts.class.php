@@ -320,9 +320,9 @@ class pos_Receipts extends core_Master {
     				
     				// "Клиент" : записваме в бележката информацията за контрагента
 	    			$contragentRec = explode("|", $dRec->param);
-	    			$rec->contragentId = $contragentRec[0];
+	    			$rec->contragentObjectId = $contragentRec[0];
 	    			$Class = $contragentRec[1];
-	    			$rec->contragentClassId = $Class::getClassId();
+	    			$rec->contragentClass = $Class::getClassId();
 	    			$rec->contragentName = $Class::getTitleById($contragentRec[0]);
 	    			$hasClient = TRUE;
     				break;
