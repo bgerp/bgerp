@@ -280,24 +280,23 @@ class price_ListDocs extends core_Master
 			}
     	}
     	
-    	// Обхождаме данните и намираме колко е максималния бройд есетични знаци
+    	// Обхождаме данните и намираме колко е максималния брой десетични знаци
     	$maxDecP = $maxDecM = 0;
 	    foreach ($data->rec->products->recs as $groupId => $products1){
 			foreach ($products1 as $index => $dRec){
 				if($dRec->priceM){
-					$mDecNum = strlen(substr(strrchr($dRec->priceM, "."), 1));
+					$price = price_Helper::roundPrice($dRec->priceM, 4);
+					$mDecNum = strlen(substr(strrchr($price, "."), 1));
 					$maxDecM = ($mDecNum > $maxDecM) ? $mDecNum : $maxDecM;
 				}
-					
+				
 				if($dRec->priceP){
-					$pDecNum = strlen(substr(strrchr($dRec->priceP, "."), 1));
+					$price = price_Helper::roundPrice($dRec->priceP, 4);
+					$pDecNum = strlen(substr(strrchr($price, "."), 1));
 					$maxDecP = ($pDecNum > $maxDecP) ? $pDecNum : $maxDecP;
 				}
 			}
 	    }
-    	
-    	$maxDecM = min($maxDecM, 4);
-    	$maxDecP = min($maxDecP, 4);
     	
     	// Подравняваме сумите да са с еднакъв брой цифри след десетичния знак
     	$Double = cls::get('type_Double');
@@ -394,7 +393,6 @@ class price_ListDocs extends core_Master
     		
     		// Изчисляваме цената за продукта в основна мярка
     		$product->priceM = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
-    		$product->priceM = price_Helper::roundPrice($product->priceM);
     		
     		$productInfo = cat_Products::getProductInfo($product->productId);
     		
@@ -456,7 +454,7 @@ class price_ListDocs extends core_Master
     	$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packagingRec->packagingId, $rec->date);
     	if(!$price) return;
     	
-    	$clone->priceP  = price_Helper::roundPrice($packagingRec->quantity * $price);
+    	$clone->priceP  = $packagingRec->quantity * $price;
     	$clone->perPack = $packagingRec->quantity;
     	$clone->eanCode = $packagingRec->eanCode;
     	$clone->code    = ($packagingRec->customCode) ? $packagingRec->customCode : $product->code;
