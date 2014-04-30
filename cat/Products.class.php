@@ -197,8 +197,7 @@ class cat_Products extends core_Master {
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
 		$this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info,width=15em');
-        $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=EAN,width=15em');
-		$this->FLD('info', 'richtext(bucket=Notes)', 'caption=Детайли');
+        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Детайли');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
        	$this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
@@ -241,16 +240,14 @@ class cat_Products extends core_Master {
                 $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
             }
            
-        	foreach(array('eanCode', 'code') as $code) {
-    			if($rec->$code) {
+        	if($rec->code) {
     				
-    				// Проверяваме дали има продукт с такъв код (като изключим текущия)
-	    			$check = $mvc->checkIfCodeExists($rec->$code);
-	    			if($check && ($check->productId != $rec->id)
-	    				|| ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
-	    				$form->setError($code, 'Има вече артикул с такъв код!');
-			        }
-    			}
+    			// Проверяваме дали има продукт с такъв код (като изключим текущия)
+	    		$check = $mvc->checkIfCodeExists($rec->code);
+	    		if($check && ($check->productId != $rec->id)
+	    			|| ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
+	    			$form->setError('code', 'Има вече артикул с такъв код!');
+			       }
     		}
         }
                 
@@ -649,7 +646,6 @@ class cat_Products extends core_Master {
     		// Проверяваме имали продукт с такъв код
     		$query = static::getQuery();
     		$query->where(array("#code = '[#1#]'", $code));
-    		$query->orWhere(array("#eanCode = '[#1#]'", $code));
     		if($rec = $query->fetch()) {
     			
     			$res->productId = $rec->id;
