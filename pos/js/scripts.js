@@ -6,10 +6,7 @@ function posActions() {
 		$(window).resize( function() {
 			calculateWidth();
 		});
-	}
-		
-	
-	
+	}	
 	
 	// Засветяване на избрания ред и запис в хидън поле
 	$(".pos-sale").live("click", function() {
@@ -235,6 +232,7 @@ function calculateWidth(){
 	$('#single-receipt').css('width', maxColWidth);
 	$('.tabs-holder-content').css('width', maxColWidth);
 	$('#tools-wide-holder').css('left', maxColWidth + 50);
+	$('.narrow #pos-products ').css('maxWidth', maxColWidth-180);
 	
 	var comboWidth = maxColWidth - 30;
 	$('.tabs-holder-content .chzn-container').css('width',comboWidth);
@@ -248,7 +246,6 @@ function calculateWidth(){
 	scrollRecieptBottom();
 	
 }
-
 
 function scrollRecieptBottom(){
 	var el = $('.scrolling-vertical');

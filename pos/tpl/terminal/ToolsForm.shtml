@@ -4,21 +4,21 @@
 	<div class='input-field'>[#INPUT_FLD#]</div>
 	<div class='clearfix21'></div>
 	<div class='num-keyboard'>
-	<input class="buttonForm button numPad" type="button" value="1"></input>
-	<input class="buttonForm button numPad" type="button" value="2"></input>
+	<input class="buttonForm numPad" type="button" value="1"></input>
+	<input class="buttonForm numPad" type="button" value="2"></input>
 	<input class="buttonForm button numPad" type="button" value="3"></input>
 	<br />
-	<input class="buttonForm button numPad" type="button" value="4"></input>
-	<input class="buttonForm button numPad" type="button" value="5"></input>
-	<input class="buttonForm button numPad" type="button" value="6"></input>
+	<input class="buttonForm numPad" type="button" value="4"></input>
+	<input class="buttonForm numPad" type="button" value="5"></input>
+	<input class="buttonForm numPad" type="button" value="6"></input>
 	<br />
-	<input class="buttonForm button numPad" type="button" value="7"></input>
-	<input class="buttonForm button numPad" type="button" value="8"></input>
-	<input class="buttonForm button numPad" type="button" value="9"></input>
+	<input class="buttonForm numPad" type="button" value="7"></input>
+	<input class="buttonForm numPad" type="button" value="8"></input>
+	<input class="buttonForm numPad" type="button" value="9"></input>
 	<br />
-	<input class="buttonForm button numPad" type="button" value="."></input>
-	<input class="buttonForm button numPad" type="button" value="0"></input>
-	<input class="buttonForm button numBack" type="button" value="<<"></input>
+	<input class="buttonForm numPad" type="button" value="."></input>
+	<input class="buttonForm numPad" type="button" value="0"></input>
+	<input class="buttonForm numBack" type="button" value="<<"></input>
 	</div>
 	<div class='tools-btn'>
 	[#FIRST_TOOLS_ROW#]
@@ -44,24 +44,24 @@
 <div class='input-field'>[#INPUT_PAYMENT#]</div>
 <div class='clearfix21'></div>
 <div class='num-keyboard'>
-	<input class="buttonForm button numPad" type="button" value="1"></input>
-	<input class="buttonForm button numPad" type="button" value="2"></input>
-	<input class="buttonForm button numPad" type="button" value="3"></input>
+	<input class="buttonForm numPad" type="button" value="1"></input>
+	<input class="buttonForm numPad" type="button" value="2"></input>
+	<input class="buttonForm numPad" type="button" value="3"></input>
 	<br />
-	<input class="buttonForm button numPad" type="button" value="4"></input>
-	<input class="buttonForm button numPad" type="button" value="5"></input>
-	<input class="buttonForm button numPad" type="button" value="6"></input>
+	<input class="buttonForm numPad" type="button" value="4"></input>
+	<input class="buttonForm numPad" type="button" value="5"></input>
+	<input class="buttonForm numPad" type="button" value="6"></input>
 	<br />
-	<input class="buttonForm button numPad" type="button" value="7"></input>
-	<input class="buttonForm button numPad" type="button" value="8"></input>
-	<input class="buttonForm button numPad" type="button" value="9"></input>
+	<input class="buttonForm  numPad" type="button" value="7"></input>
+	<input class="buttonForm  numPad" type="button" value="8"></input>
+	<input class="buttonForm  numPad" type="button" value="9"></input>
 	<br />
-	<input class="buttonForm button numPad" type="button" value="."></input>
-	<input class="buttonForm button numPad" type="button" value="0"></input>
-	<input class="buttonForm button numBack" type="button" value="<<"></input>
+	<input class="buttonForm  numPad" type="button" value="."></input>
+	<input class="buttonForm numPad" type="button" value="0"></input>
+	<input class="buttonForm numBack" type="button" value="<<"></input>
 </div>
-<div class='narrow-possition'>
-<div class='payment-type'>[#PAYMENT_TYPE#]</div>
-<div class='close-btn'>[#CLOSE_BTNS#]</div>
+<div class='colum-btn'>
+[#PAYMENT_TYPE#]
+[#CLOSE_BTNS#]
 </div>
 <!--ET_END PAYMENTS_BLOCK-->

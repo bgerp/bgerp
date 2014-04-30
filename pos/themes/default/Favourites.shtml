@@ -9,7 +9,8 @@
 		<!--ET_END CAT-->
 		<div class='clearfix21'></div>
 	</div>
-	<div id='pos-products'>
+	<div id='pos-products' class='scrolling-holder'>
+	<div>
 		<!--ET_BEGIN ITEM-->
 		[#ITEM#]
 			<div class='pos-product' data-id='[#productId#]' data-url = '[#url#]' data-cat='[#catId#]' title='Добавете [#name#]'>
@@ -22,5 +23,6 @@
 			</div>
 		<!--ET_END ITEM-->
 		<div class='clearfix21'></div>
+	</div>
 	</div>
 </div>

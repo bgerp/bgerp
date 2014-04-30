@@ -1,4 +1,4 @@
-.single-receipt-wrapper{
+.wide .single-receipt-wrapper{
 	border: 1px solid #bbb;
 	background: #ffffff;
 	-moz-border-radius: 5px;
@@ -8,14 +8,21 @@
 	padding:15px;
 	position:relative;
 	1min-height:700px;
+	
+}
+.narrow .single-receipt-wrapper{
+	background: #ffffff;
 }
 
 #single-receipt{
 	display:inline-block;
 }
+.wide#single-receipt{ 
+	min-width:300px;
+}
 
 .wide  #tools-holder .tabs-holder-content{
-	min-width: 450px;
+	min-width: 300px;
 }
 .narrow #single-receipt{
     display:block;
@@ -40,9 +47,16 @@
 	overflow-y:auto;
 	overflow-x:hidden;
 	border-top: 1px solid #000;
+	  box-shadow: 4px 4px 4px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
 }
 #receipt-header {
-	background-color: rgb(221, 221, 221);
+	background: -moz-linear-gradient(top,  rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(241,241,241,1)), color-stop(100%,rgba(221,221,221,1)));
+background: -webkit-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+background: -o-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+background: -ms-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+background: linear-gradient(to bottom,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
 }
 
 #receipt-title {
@@ -110,10 +124,25 @@
 	text-align:center;
 }
 
-.receipt-sale {
-	background-color: #f1f1f1;
-}
+.receipt-sale, .gradient {
+background: rgb(241,241,241);
+background: -moz-linear-gradient(top,  rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(241,241,241,1)), color-stop(100%,rgba(221,221,221,1)));
+background: -webkit-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+background: -o-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+background: -ms-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+background: linear-gradient(to bottom,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
 
+	
+}
+.gradient{
+	width: 100%;
+}
+.gradient td{
+	border:none !important;
+	padding:2px 5px !important;
+}
 #receipt-details-form {
 	margin-top:15px;
 }
@@ -171,9 +200,15 @@ input.error {
 }
 
 #receipt-info{
-	padding-top:30px;
-	background-color:rgb(221,221,221);
-	border-collapse:collapse;
+	background: rgb(241,241,241);
+background: -moz-linear-gradient(top,  rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(241,241,241,1)), color-stop(100%,rgba(221,221,221,1)));
+background: -webkit-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+background: -o-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+background: -ms-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+background: linear-gradient(to bottom,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
+
 	border:1px solid #000;
 }
 
@@ -290,9 +325,6 @@ form #point {
 	margin-left:4px !important;
 }
 
-.doc_Containers table.listTable.listTable > tbody > tr > td:first-child  {
-	width:62%;
-}
 
 .narrow .doc_Containers table.listTable.listTable > tbody > tr > td:first-child{
 	width:auto;
@@ -334,8 +366,12 @@ form #point {
 }
 
 
-
-
+.pos-del-btn{
+	position: relative;
+	top:3px;
+	margin-left: 5px;
+	cursor: pointer;
+}
 
 .pos-hightligted{
 	background-color:rgba(255,255,0,0.3);
@@ -343,14 +379,15 @@ form #point {
 
 .num-keyboard{
 	float: left;
-	width: 25%;
+	width: 24%;
 	min-width: 170px !important;
 }
 .numPad, .numBack{
 	width: 26% !important;
 	height: 43px;
 	margin-bottom: 7px !important;
-	margin-right: 9px !important;
+	margin-right: 4px !important;
+	margin-left:3px !important;
 	padding-left: 5px !important;
 	padding-right: 5px !important;
 	text-align: center;
@@ -383,7 +420,7 @@ form #point {
 	margin-left: 5%;
 	min-width: 95px;
 }
-.payment-type .button, .close-btn .button , .tools-btn .button{
+.colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.disabledBtn:hover{
 	width: 100%;
 	height: 43px;
     margin-bottom: 7px !important;
@@ -392,14 +429,59 @@ form #point {
     padding-right: 3px;
     text-align: center;
     font-size: 0.9em !important;
-    border: solid 1px #888;
+    color: #333 !important;
+    font-weight: normal;
+    background-color: #EEE;
+	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #EEE), color-stop(100%, #CCC));
+	background-image: -webkit-linear-gradient(top, #EEE, #CCC);
+	background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
+	background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
+	background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
+	background-image: linear-gradient(top, #eeeeee, #cccccc);
+	border: 1px solid #CCC !important;
+	border-bottom: 1px solid #BBB !important;
+	border-radius: 3px;
+	color: #333;
+	font: bold 11px/1 "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
+	padding: 8px 0;
+	text-align: center;
+	text-shadow: 0 1px 0 #EEE;
+	box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+.colum-btn .button:hover , .tools-btn .button:hover, .wide #tools-form form[method="post"] input[type="submit"]:hover{
+	background-color: #DDD;
+	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #DDD), color-stop(100%, #BBB));
+	background-image: -webkit-linear-gradient(top, #DDD, #BBB);
+	background-image: -moz-linear-gradient(top, #dddddd, #bbbbbb);
+	background-image: -ms-linear-gradient(top, #dddddd, #bbbbbb);
+	background-image: -o-linear-gradient(top, #dddddd, #bbbbbb);
+	background-image: linear-gradient(top, #dddddd, #bbbbbb);
+	border: 1px solid #BBB;
+	border-bottom: 1px solid #999;
+	cursor: pointer;
+	text-shadow: 0 1px 0 #DDD;
 }
 
 .disabledBtn{
 	border: solid 1px #bbb;
+	opacity: 0.5;
+}
+.disabledBtn:hover{
+    background-color: #EEE !important;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #EEE), color-stop(100%, #CCC)) !important;
+    background-image: -webkit-linear-gradient(top, #EEE, #CCC) !important;
+    background-image: -moz-linear-gradient(top, #eeeeee, #cccccc) !important;
+    background-image: -ms-linear-gradient(top, #eeeeee, #cccccc) !important;
+    background-image: -o-linear-gradient(top, #eeeeee, #cccccc) !important;
+    background-image: linear-gradient(top, #eeeeee, #cccccc) !important;
+    border: 1px solid #CCC !important;
+    border-bottom: 1px solid #BBB !important;
+    color: #333;
+        cursor: auto !important;
+    font: bold 11px/1 "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
 }
 .narrow .num-keyboard{
-	min-width: 150px !important
+	min-width: 176px !important
 }
 .narrow .numPad,.narrow .numBack{
 	font-size: 0.9em !important;
@@ -407,31 +489,30 @@ form #point {
 	margin: 0;
 }
 
-@media handheld, only screen and (max-width:360px) { 
-	.narrow .narrow-possition{
-		position: absolute;
-		right: 15px;
-		top: 15px;
-		width: 90px;
+.colum-btn{
+		float:left;
+		min-width: 90px;
+		width: 17%;
+		margin-top: -50px;
 	}
-	.narrow .payment-type, .narrow .close-btn,.narrow  .tools-btn{
-	    width: 10%;
-	    margin: 0;
-	}
+.payment-type, .close-btn, .tools-btn{
+	    margin: 0 ;
 }
+
 
 .close-btn .button{
 	font-size: 1.07em;
 }
 .input-field{
 	float: left;
-	margin-bottom: 20px;
-	width: 47%;
-    min-width: 170px !important;
+	margin-left:4px;
+	margin-bottom: 10px;
+	width: 21.5%;
+    min-width: 158px !important;
 }
 .narrow .input-field{
 	width: 30%;
-	min-width: 145px !important;
+	min-width: 140px !important;
 }
 .input-field input[type=text]{
 	width: 100%;
@@ -441,21 +522,21 @@ form #point {
 	border-radius: 4px;
 	box-shadow: inset 0 0 10px rgba(0,0,0,0.25), 2px 2px 2px rgba(0,0,0,0.2);
 }
+.narrow .input-field input[type=text]{
+    height:1.8em;
+}
 /*tabs */
 
 .tabs-holder-content {
     1border:1px solid #ccc;
     background-image: url("../terminal/patern.jpg");
     position: relative;
-    height:290px;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
+    height:280px;
+    box-shadow: 4px 4px 4px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
     border-radius: 5px;
 
 }
 
-.wide .tabs-holder-content {
-	 width:500px;
-}
 .narrow .tabs-holder-content{
 	width: 100%;
 }
@@ -466,7 +547,7 @@ form #point {
 }
 
 .pos-tabs{
-	margin: 20px 0 0 0; 
+	margin: 20px 0 0 3px; 
 	padding: 0;
 }
 
@@ -486,21 +567,29 @@ form #point {
 	padding:9px 15px;
 	display:inline-block;
 	border-radius:5px 5px 0px 0px;
-	background: -moz-linear-gradient(top,  #ffffff 0%, #f1f1f1 50%, #efefef 51%, #d3d3d3 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(50%,#f1f1f1), color-stop(51%,#efefef), color-stop(100%,#d3d3d3));
-	background: -webkit-linear-gradient(top,  #ffffff 0%,#f1f1f1 50%,#efefef 51%,#d3d3d3 100%);
-	background: -o-linear-gradient(top,  #ffffff 0%,#f1f1f1 50%,#efefef 51%,#d3d3d3 100%);
-	background: -ms-linear-gradient(top,  #ffffff 0%,#f1f1f1 50%,#efefef 51%,#d3d3d3 100%);
-	background: linear-gradient(to bottom,  #ffffff 0%,#f1f1f1 50%,#efefef 51%,#d3d3d3 100%);
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#d3d3d3',GradientType=0 );
+	background: rgb(221,221,221);
+	background: -moz-linear-gradient(top,  rgba(221,221,221,1) 1%, rgba(112,112,112,1) 100%, rgba(112,112,112,1) 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(1%,rgba(221,221,221,1)), color-stop(100%,rgba(112,112,112,1)), color-stop(100%,rgba(112,112,112,1)));
+	background: -webkit-linear-gradient(top,  rgba(221,221,221,1) 1%,rgba(112,112,112,1) 100%,rgba(112,112,112,1) 100%);
+	background: -o-linear-gradient(top,  rgba(221,221,221,1) 1%,rgba(112,112,112,1) 100%,rgba(112,112,112,1) 100%);
+	background: -ms-linear-gradient(top,  rgba(221,221,221,1) 1%,rgba(112,112,112,1) 100%,rgba(112,112,112,1) 100%);
+	background: linear-gradient(to bottom,  rgba(221,221,221,1) 1%,rgba(112,112,112,1) 100%,rgba(112,112,112,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dddddd', endColorstr='#707070',GradientType=0 );
+    box-shadow: 2px -1px 3px rgba(0,0,0,0.5), inset 0 0 25px rgba(0,0,0,0.4);
 	font-size:16px;
-	color:#4c4c4c;
+	color:#fff;
 	text-decoration:none;
 	transition:all linear 0.1s;
 	border-left: 1px solid #ccc;
 	border-bottom:#ccc;
-	box-shadow: 2px -1px 3px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.1);
+	
  }
+ .pos-tabs a:hover, .pos-tabs li.active a, .pos-tabs li.active a:hover {
+    text-shadow: none;
+    color:#4c4c4c;
+    box-shadow: 2px -1px 3px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.1);
+    background-image: url("../terminal/patern.jpg");
+}
 .narrow .pos-tabs a{
 	padding:4px 5px;
 	font-size: 0.9em;
@@ -509,11 +598,7 @@ form #point {
 	text-decoration:none;
 }
 
-.pos-tabs a:hover, .pos-tabs li.active a, .pos-tabs li.active a:hover {
-	background:#d3d3d3; 
-	color:#4c4c4c;
-	box-shadow: 2px -1px 3px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.4);
-}
+
 
 .tab-content {
     padding:15px;
@@ -538,6 +623,13 @@ form #point {
 #tools-search .chzn-container{
     1max-width: 380px;
     max-width: 100%;
+}
+
+.narrow #pos-products{
+    max-width: 100%;
+    overflow-y: hidden;
+    max-height: 215px;
+    overflow-x: auto;
 }
  
 #tools-search .chzn-container .chzn-drop{
