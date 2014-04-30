@@ -59,7 +59,13 @@ class acc_plg_DealsChooseOperation extends core_Plugin
 	    	$options = $mvc->getContoOptions($rec->id);
 	    	if(count($options)){
 	    		$data->toolbar->removeBtn('btnConto');
-	    		$data->toolbar->addBtn('Активиране', array($mvc, 'chooseAction', $rec->id), "id=btnConto", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
+	    		
+		    	// Проверка на счетоводния период, ако има грешка я показваме
+	        	if(!acc_plg_Contable::checkPeriod($rec->valior, &$error)){
+	        		$error = ",error={$error}";
+	        	}
+	        	
+	    		$data->toolbar->addBtn('Активиране', array($mvc, 'chooseAction', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
 	    	}
 	    }
     }
@@ -78,6 +84,7 @@ class acc_plg_DealsChooseOperation extends core_Plugin
     		$id = Request::get('id', 'int');
 	    	expect($rec = $mvc->fetch($id));
 	    	expect($rec->state == 'draft');
+	    	expect(acc_plg_Contable::checkPeriod($rec->valior, &$error), $error);
 	    	$curStoreId = store_Stores::getCurrent('id', FALSE);
 	    	$curCaseId  = cash_Cases::getCurrent('id', FALSE);
 	    	
