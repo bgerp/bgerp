@@ -67,4 +67,16 @@ class doc_ContragentDataIntf
     {
         return $this->class->shouldChargeVat($id);
     }
+    
+    
+    /**
+     * Форсира контрагент в дадена група
+     * 
+     * @param int $id -ид на продукт
+     * @param varchar $groupSysId - sysId на група
+     */
+    public function forceGroup($id, $groupSysId)
+    {
+    	return $this->class->forceGroup($id, $groupSysId);
+    }
 }
