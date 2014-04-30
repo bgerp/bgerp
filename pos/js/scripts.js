@@ -71,12 +71,27 @@ function posActions() {
 	});
 	
 	// Модифициране на количество
-	$("#tools-modify").live("click", function() {
+	$(".tools-modify").live("click", function() {
 		var inpVal = $("input[name=ean]").val();
 		var rowVal = $("input[name=rowId]").val();
 		
 		var url = $(this).attr("data-url");
 		var data = {recId:rowVal, amount:inpVal};
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj, data);
+		$("input[name=ean]").val("");
+	});
+	
+	// Добавяне на клиентска карта
+	$("#tools-addclient").live("click", function() {
+		var inpVal = $("input[name=ean]").val();
+		var rowVal = $("input[name=receiptId]").val();
+
+		var url = $(this).attr("data-url");
+		var data = {receiptId:rowVal, ean:inpVal};
 		
 		resObj = new Object();
 		resObj['url'] = url;

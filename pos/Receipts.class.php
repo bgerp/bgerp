@@ -301,6 +301,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetch($id));
     	$rec->change = $rec->total = $rec->paid =  $rec->productCount = 0;
     	
+    	$hasClient = FALSE;
     	$dQuery = $this->pos_ReceiptDetails->getQuery();
     	$dQuery->where("#receiptId = {$id}");
     	while($dRec = $dQuery->fetch()){
@@ -323,8 +324,16 @@ class pos_Receipts extends core_Master {
 	    			$Class = $contragentRec[1];
 	    			$rec->contragentClassId = $Class::getClassId();
 	    			$rec->contragentName = $Class::getTitleById($contragentRec[0]);
+	    			$hasClient = TRUE;
     				break;
     		}
+    	}
+    	
+    	// Ако няма въведен клиент от потребителя
+    	if(!$hasClient){
+    		$rec->contragentName = tr('Анонимен Клиент');
+	    	$rec->contragentClass = core_Classes::getId('crm_Persons');
+	    	$rec->contragentObjectId = pos_Points::defaultContragent($rec->pointId);
     	}
     	
     	$rec->change = ($rec->change > 0) ? $rec->change : 0;
@@ -549,10 +558,12 @@ class pos_Receipts extends core_Master {
     	
     	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
     	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
+    	$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
     	$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => 'buttonForm')), 'FIRST_TOOLS_ROW');
-    	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => 'buttonForm', 'id' => 'tools-modify', 'data-url' => $modQUrl)), 'FIRST_TOOLS_ROW');
-    	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => 'buttonForm', 'id' => 'tools-modify', 'data-url' => $discUrl)), 'FIRST_TOOLS_ROW');
-    
+    	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => 'buttonForm tools-modify', 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
+    	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => 'buttonForm tools-modify', 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
+    	$block->append("<br />" . ht::createFnBtn('Кл. карта', NULL, NULL, array('class' => 'buttonForm', 'id' => 'tools-addclient', 'data-url' => $addClient, 'title' => 'Въведи клиентска карта')), 'FIRST_TOOLS_ROW');
+    	
     	return $block;
     }
     

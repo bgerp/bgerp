@@ -169,4 +169,20 @@ class pos_Cards extends core_Manager {
         
         return $tpl;
     }
+    
+    
+    /**
+     * Връща контрагента отговарящ на номера на картата
+     * 
+     * @param varchar $number - номер на карта
+     * @return core_ObjectReference - референция към контрагента
+     */
+    public static function getContragent($number)
+    {
+    	if($rec = static::fetch(array("#number = '[#1#]'", $number))){
+    		return new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+    	}
+    	
+    	return FALSE;
+    }
 }
