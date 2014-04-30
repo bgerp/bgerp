@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Покупки
@@ -59,7 +59,7 @@ class purchase_Purchases extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canConto = 'ceo,sales,acc';
+    public $canConto = 'ceo,purchase,acc';
     
     
     /**
@@ -1125,4 +1125,15 @@ class purchase_Purchases extends core_Master
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
+     
+     
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+    	//Ако потребителя не е в група доставчици го включваме
+    	$rec = $mvc->fetchRec($rec);
+    	cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, 'suppliers');
+    }
 }
