@@ -58,12 +58,11 @@
 	<div class='scrolling-holder'>
 		<table border='1' class = 'norm-table' width='100%'>
 		<tr>
+			<th style='width:380px !important'>|Продукт|*</th>
 			<th>|Код|*</th>
 			<!--ET_BEGIN showEAN-->
 			<th>|ЕАН|*[#showEAN#]</th>
 			<!--ET_END showEAN-->
-			<th style='width:380px !important'>|Продукт|*</th>
-			
 			<th>|Опаковка|*</th>
 			<th>|Цена|*</th>
 		</tr>
@@ -73,12 +72,12 @@
 		<tr><td colspan = '7' class='pricelist-group-label'><b>[#GROUP_NAME#]</b></td></tr>
 		<!--ET_BEGIN ROW-->
 		<tr>
+			<td>[#productId#]</td>
 			<td class = 'product-code-style'>[#code#]</td>
 			<!--ET_BEGIN eanCode-->
 			<td class = 'product-code-style'>[#eanCode#]</td>
 			<!--ET_END eanCode-->
-			<td>[#productId#]</td>
-			<td class='norm-row-cell'>[#pack#]</td>
+			<td class='norm-row-cell'><span style = "font-size:0.9em">[#pack#]</span></td>
 			<td align='right'>[#priceP#]</td>
 		</tr>
 		<!--ET_END ROW-->

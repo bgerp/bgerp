@@ -370,7 +370,6 @@ class price_ListDocs extends core_Master
 		    	$rec->details->products[$productRec->id] = (object)array(
 		    								   'productId' => $productRec->id,
 	    									   'code'      => $productRec->code,
-	    									   'eanCode'   => $productRec->eanCode,
 	    									   'measureId' => $productRec->measureId,
 		    								   'vat'       => cat_Products::getVat($productRec->id, $rec->date),
 	    									   'pack'      => NULL,
@@ -415,6 +414,7 @@ class price_ListDocs extends core_Master
     						if($count == 0){
 				    			$exRec = &$product;
 				    			$exRec->pack = $object->pack;
+				    			$exRec->eanCode = $object->eanCode;
 				    			$exRec->perPack = $object->perPack;
 				    			$exRec->priceP = $object->priceP;
 				    			$rec->details->recs[] = $exRec;
@@ -456,8 +456,7 @@ class price_ListDocs extends core_Master
     	
     	$clone->priceP  = $packagingRec->quantity * $price;
     	$clone->perPack = $packagingRec->quantity;
-    	$clone->eanCode = $packagingRec->eanCode;
-    	$clone->code    = ($packagingRec->customCode) ? $packagingRec->customCode : $product->code;
+    	$clone->eanCode = ($packagingRec->eanCode) ? $packagingRec->eanCode : NULL;
     	$clone->pack    = $packagingRec->packagingId;
     		
     	return $clone;
