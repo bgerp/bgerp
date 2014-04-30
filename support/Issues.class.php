@@ -640,4 +640,53 @@ class support_Issues extends core_Master
         
     	return array('support_IssueIntf');
     }
+    
+    
+	/**
+     * След подготовка на тулбара на единичен изглед.
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param object $data
+	 */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        // Ако документа е активен
+    	if($data->rec->state == 'active'){
+    		
+    	    // URL за бутоните
+    	    $url = array(
+    	                    'Ctr' => $mvc,
+							'Act' => 'add',
+    						'threadId' => $data->rec->threadId,
+    						'ret_url' => TRUE);
+    	    
+    	    // Добавя бутон за добавяне на коригиращи действия
+    	    $Correction = cls::get('support_Corrections');
+    	    $url['Ctr'] = $Correction;
+    		if($Correction->haveRightFor('add')){
+    			$data->toolbar->addBtn('Корекция', $url, "ef_icon={$Correction->singleIcon}, row=2");
+    		}
+    		
+    		// Добавя бутон за добавяне на превантивни действия
+    	    $Prevention = cls::get('support_Preventions');
+    	    $url['Ctr'] = $Prevention;
+    	    if($Prevention->haveRightFor('add')){
+    			$data->toolbar->addBtn('Превенция', $url, "ef_icon={$Prevention->singleIcon}, row=2");
+    		}
+    		
+    		// // Добавя бутон за добавяне на оценка на сигнала
+    		$Rating = cls::get('support_Ratings');
+    	    $url['Ctr'] = $Rating;
+    	    if($Rating->haveRightFor('add')){
+    			$data->toolbar->addBtn('Оценка', $url, "ef_icon={$Rating->singleIcon}, row=2");
+    		}
+            
+    		// Добавя бутон за добавяне на резолюция на сигнала
+    		$Resolution = cls::get('support_Resolutions');
+    	    $url['Ctr'] = $Resolution;
+    	    if($Resolution->haveRightFor('add')){
+    			$data->toolbar->addBtn('Резолюция', $url, "ef_icon={$Resolution->singleIcon}, row=2");
+    		}
+    	}
+    }
 }
