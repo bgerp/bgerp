@@ -76,6 +76,11 @@ class core_Plugins extends core_Manager
      */
     static function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active', $force = FALSE)
     {
+        if ($res = static::stopUnusedPlugin($plugin, $class)) {
+            
+            return $res;
+        }
+        
         $status = static::setupPlugin($name, $plugin, $class, $cover, $state, $force);
 
         if($status === 0) {
@@ -85,12 +90,12 @@ class core_Plugins extends core_Manager
         } else {
             $res = "<li style='color:green;'><b>{$name}</b>: Плъгинът <b>{$plugin}</b> беше закачен към <b>{$class}</b> ({$cover}, {$state}) </li>";
         }
-
+        
         return $res;
 
     }
-
-
+    
+    
     /**
      * Инсталира нов плъгин, към определен клас
      */
@@ -207,6 +212,69 @@ class core_Plugins extends core_Manager
         $query = self::getQuery();
         $preffix = $pack . "_";
         $query->delete(array("#class LIKE '[#1#]%' OR #plugin LIKE '[#1#]%'", $preffix));
+    }
+    
+    
+    /**
+     * Ако липсва кода на плъгина или класа, да не се спира съответния плъгин
+     * 
+     * @param string $plugin
+     * @param string $class
+     * 
+     * @return string
+     */
+    static function stopUnusedPlugin($plugin, $class)
+    {
+        $pluginLoad = cls::load($plugin, TRUE);
+        $classLoad = cls::load($class, TRUE);
+        
+        // Ако не може да се зареди плъгина или класа
+        if (!$pluginLoad || !$classLoad){
+            
+            $cnt = 0;
+            $str = '';
+            
+            // Всички плъгини, които не са спряни
+            // с липсващ код на класа или на плъгина
+            $query = static::getQuery();
+            $query->where("#state != 'stopped'");
+            
+            if (!$pluginLoad) {
+                $query->where(array("#plugin = '[#1#]'", $plugin));
+            } elseif (!$classLoad) {
+                $query->where(array("#class = '[#1#]'", $class));
+            }
+            
+            
+            while ($rec = $query->fetch()) {
+                
+                // Сменяме  състоянието
+                $rec->state = 'stopped';
+                static::save($rec, 'state');
+                $cnt++;
+            }
+            
+            if (!$pluginLoad) {
+                $str = "'{$plugin}'";
+            }
+            
+            if (!$classLoad) {
+                if ($str) {
+                    $str .= ' и ';
+                }
+                $str .= "класът '{$class}'";
+            }
+            
+            if ($cnt) {
+                $res = "<li style='color:red;'>Спрян е плъгинът '{$plugin}', защото липсва {$str}</li>";
+            } else {
+                $res = "<li style='color:red;'>Не е закачен плъгинът '{$plugin}', защото липсва {$str}</li>";
+            }
+            
+            return $res;
+        }
+        
+        return FALSE;
     }
 
 
