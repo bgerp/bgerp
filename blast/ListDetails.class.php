@@ -21,7 +21,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools, plg_Select,expert_Plugin, plg_Created, plg_Sorting, plg_State';
+    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools, plg_Select,expert_Plugin, plg_Created, plg_Sorting, plg_State, plg_PrevAndNext';
     
     
     /**
@@ -118,8 +118,8 @@ class blast_ListDetails extends core_Detail
      * Преди подготвяне на едит формата
      */
     static function on_BeforePrepareEditForm($mvc, &$res, $data)
-    {
-        if($id = Request::get('id', 'int')) {
+    { 
+        if($id = Request::get('id', 'int')) {  
             expect($rec = $mvc->fetch($id));
             expect($masterRec = $mvc->Master->fetch($rec->listId));
         } elseif($masterKey = Request::get($mvc->masterKey, 'int')) {
@@ -331,11 +331,7 @@ class blast_ListDetails extends core_Detail
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      */
     static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
-    {
-        if($action == 'edit' || $action == 'add') {
-            $roles = 'blast,ceo';
-        }
-        
+    {        
         // Ако листа не е използван никъде тогава може да се изтрива
         if ($action == 'delete') {
             
