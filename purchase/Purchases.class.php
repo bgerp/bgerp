@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Покупки
@@ -59,7 +59,7 @@ class purchase_Purchases extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canConto = 'ceo,sales,acc';
+    public $canConto = 'ceo,purchase,acc';
     
     
     /**
@@ -192,8 +192,8 @@ class purchase_Purchases extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)', 'caption=Плащане->Начин,salecondSysId=paymentMethodPurchase');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс');
-        $this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Банкова сметка');
-        $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
+        $this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка');
+        $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->От каса');
         
         // Наш персонал
         $this->FLD('dealerId', 'user(rolesForAll=purchase|ceo,allowEmpty,roles=ceo|purchase)', 'caption=Наш персонал->Закупчик');
@@ -1125,4 +1125,15 @@ class purchase_Purchases extends core_Master
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
+     
+     
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+    	//Ако потребителя не е в група доставчици го включваме
+    	$rec = $mvc->fetchRec($rec);
+    	cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, 'suppliers');
+    }
 }

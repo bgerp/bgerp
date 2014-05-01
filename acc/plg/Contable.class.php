@@ -116,16 +116,9 @@ class acc_plg_Contable extends core_Plugin
 
         if ($mvc->haveRightFor('conto', $rec)) {
 
-        	// Ако документа е в бъдещ/затворен или несъществуващ период, бутона става не-активен
-        	$docPeriod = acc_Periods::fetchByDate($rec->valior);
-        	if($docPeriod){
-	        	if($docPeriod->state == 'closed'){
-	        		$error = ",error=Не може да се контира в затворения сч. период \'{$docPeriod->title}\'";
-	        	} elseif($docPeriod->state == 'draft'){
-	        		$error = ",error=Не може да се контира в бъдещия сч. период \'{$docPeriod->title}\'";
-	        	}
-        	} else {
-        		$error = ",error=Не може да се контира в несъществуващ сч. период";
+        	// Проверка на счетоводния период, ако има грешка я показваме
+        	if(!self::checkPeriod($rec->valior, &$error)){
+        		$error = ",error={$error}";
         	}
 			
         	$caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
@@ -166,6 +159,29 @@ class acc_plg_Contable extends core_Plugin
     	}
     }
     
+    
+    /**
+     * Ф-я проверяваща периода в който е датата и връща съобщение за грешка
+     * 
+     * @param date $valior - дата
+     * @param mixed $error - съобщение за грешка, NULL ако няма
+     * @return boolean
+     */
+    public static function checkPeriod($valior, &$error)
+    {
+    	$docPeriod = acc_Periods::fetchByDate($valior);
+        if($docPeriod){
+	        if($docPeriod->state == 'closed'){
+	        	$error = "Не може да се контира в затворения сч. период \'{$docPeriod->title}\'";
+	        } elseif($docPeriod->state == 'draft'){
+	        	$error = "Не може да се контира в бъдещия сч. период \'{$docPeriod->title}\'";
+	        }
+        } else {
+        	$error = "Не може да се контира в несъществуващ сч. период";
+        }
+        
+        return ($error) ? FALSE : TRUE;
+    }
     
     /**
      * Метод връщащ урл-то за контиране на документа.

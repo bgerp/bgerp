@@ -60,7 +60,6 @@ class cat_products_Detail extends core_Detail
     {
     	$query = static::getQuery();
     	$query->where(array("#eanCode = '[#1#]'", $code));
-    	$query->orWhere(array("#customCode = '[#1#]'", $code));
     	$result = $query->fetch();
          
         return $result;

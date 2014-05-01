@@ -36,17 +36,16 @@ abstract class price_Helper
 	
 	/**
      * Умно закръгляне на цена
-     * @param double $price  - цена, която ще се закръгля
-     * @return double $price - закръглената цена
+     * 
+     * @param double $price   - цена, която ще се закръгля
+     * @param int $minDigits  - минимален брой значещи цифри
+     * @return double $price  - закръглената цена
      */
-	public static function roundPrice($price)
+	public static function roundPrice($price, $minDigits = 7)
 	{
-	    // Минимален брой значещи знаци
-	    defIfNot('PRICE_MIN_DIGITS', 7);
-	    
 	    // Плаваща прецизност
-	    $precision =  max(2, PRICE_MIN_DIGITS - round(log10($price)));
-	
+	    $precision =  max(2, $minDigits - round(log10($price)));
+		
 	    // Изчисляваме закръглената цена
 	    $price = round($price, $precision);
 		

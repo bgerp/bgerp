@@ -33,7 +33,7 @@ class cat_products_Packagings extends cat_products_Detail
      */
     var $listFields = 'code=Код, packagingId, quantity=К-во, netWeight=, tareWeight=, weight=Тегло, 
         sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, 
-        eanCode=, customCode=,tools=Пулт';
+        eanCode=,tools=Пулт';
     
     
     /**
@@ -81,7 +81,6 @@ class cat_products_Packagings extends cat_products_Detail
         $this->FLD('sizeHeight', 'cat_type_Size', 'caption=Габарит->Височина');
         $this->FLD('sizeDepth', 'cat_type_Size', 'caption=Габарит->Дълбочина');
         $this->FLD('eanCode', 'gs1_TypeEan', 'caption=Код->EAN');
-        $this->FLD('customCode', 'varchar(64)', 'caption=Код->Вътрешен');
         
         $this->setDbUnique('productId,packagingId');
     }
@@ -95,22 +94,20 @@ class cat_products_Packagings extends cat_products_Detail
     	if ($form->isSubmitted()){
     		$rec = &$form->rec;
     		
-    		foreach(array('eanCode', 'customCode') as $code) {
-    			if($rec->$code) {
+    		if($rec->eanCode) {
     				
-    				// Проверяваме дали има продукт с такъв код (като изключим текущия)
-	    			$check = $mvc->Master->checkIfCodeExists($rec->$code);
-	    			if($check && ($check->productId != $rec->productId)
-	    				 || ($check->productId == $rec->productId && $check->packagingId != $rec->packagingId)) {
-	    				$form->setError($code, 'Има вече продукт с такъв код!');
-			        }
-    			}
+    			// Проверяваме дали има продукт с такъв код (като изключим текущия)
+	    		$check = $mvc->Master->checkIfCodeExists($rec->eanCode);
+	    		if($check && ($check->productId != $rec->productId)
+	    			|| ($check->productId == $rec->productId && $check->packagingId != $rec->packagingId)) {
+	    			$form->setError('eanCode', 'Има вече продукт с такъв код!');
+			    }
+    		}
     			
-    			// Ако за този продукт има друга основна опаковка, тя става не основна
-    			if($rec->isBase == 'yes' && $packRec = static::fetch("#productId = {$rec->productId} AND #isBase = 'yes'")){
-    				$packRec->isBase = 'no';
-    				static::save($packRec);
-    			}
+    		// Ако за този продукт има друга основна опаковка, тя става не основна
+    		if($rec->isBase == 'yes' && $packRec = static::fetch("#productId = {$rec->productId} AND #isBase = 'yes'")){
+    			$packRec->isBase = 'no';
+    			static::save($packRec);
     		}
     	}
     }
@@ -268,9 +265,6 @@ class cat_products_Packagings extends cat_products_Detail
     	
     	if($rec->eanCode){
     		$row->code = tr("|EAN|*:") . $row->eanCode . "<br />";
-    	}
-    	if($rec->customCode){
-    		$row->code .= tr("Вътрешен") . ": " . $row->customCode;
     	}
     	if($rec->netWeight){
     		$row->weight = tr("|Нето|*: ") . $row->netWeight . "<br />";

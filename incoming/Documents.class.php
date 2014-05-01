@@ -95,7 +95,7 @@ class incoming_Documents extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'incoming_Wrapper, plg_RowTools, doc_DocumentPlg, 
+    var $loadList = 'incoming_Wrapper, plg_RowTools, doc_DocumentPlg, doc_plg_BusinessDoc,doc_DocumentIntf,
          plg_Printing, plg_Sorting, plg_Search, doc_ActivatePlg, bgerp_plg_Blank';
     
     
@@ -516,4 +516,30 @@ class incoming_Documents extends core_Master
         
         return $this->renderWrapping($tpl);
     }
+    
+    
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интерфейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('doc_ContragentDataIntf');
+    }
+    
+    
+	 /**
+     * Може ли документ-оферта да се добави в посочената папка?
+     * Документи-оферта могат да се добавят само в папки с корица контрагент.
+     *
+     * @param $folderId int ид на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+        $coverClass = doc_Folders::fetchCoverClassName($folderId);
+    
+        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+ 
 }
