@@ -533,23 +533,11 @@ class fileman_Download extends core_Manager {
                 // Ако линка е в iframe да се отваря в родителския(главния) прозорец
                 $attr['target'] = "_parent";
                 
-                //Ако сме в режим "Тесен"
-                if (Mode::is('screenMode', 'narrow')) {
+                //Заместваме &nbsp; с празен интервал
+                $size =  str_ireplace('&nbsp;', ' ', $size);
                     
-                    //Ако големината на файла е по - голяма от константата
-                    if ($fileLen >= $conf->LINK_NARROW_MIN_FILELEN_SHOW) {
-                        
-                        //След името на файла добавяме размера в скоби
-                        $nameFix = $nameFix . "&nbsp;({$size})";     
-                    }
-                } else {
-                    
-                    //Заместваме &nbsp; с празен интервал
-                    $size =  str_ireplace('&nbsp;', ' ', $size);
-                    
-                    //Добавяме към атрибута на линка информация за размера
-                    $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер:|* {$size}");
-                }
+                //Добавяме към атрибута на линка информация за размера
+                $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер:|* {$size}");
                 
                 //Генерираме връзката 
                 $url  = static::generateUrl($fh);
