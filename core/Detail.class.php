@@ -76,15 +76,15 @@ class core_Detail extends core_Manager
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
-        // Подготвяме лентата с инструменти
-        $this->prepareListToolbar($data);
-     
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
         // Подготвяме вербалните стойности за редовете
         $this->prepareListRows($data);
      
+        // Подготвяме лентата с инструменти
+        $this->prepareListToolbar($data);
+
         return $data;
     }
     
