@@ -117,7 +117,7 @@ class acc_plg_Contable extends core_Plugin
         if ($mvc->haveRightFor('conto', $rec)) {
 
         	// Проверка на счетоводния период, ако има грешка я показваме
-        	if(!self::checkPeriod($rec->valior, &$error)){
+        	if(!self::checkPeriod($rec->valior, $error)){
         		$error = ",error={$error}";
         	}
 			

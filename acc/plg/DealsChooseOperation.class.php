@@ -61,7 +61,7 @@ class acc_plg_DealsChooseOperation extends core_Plugin
 	    		$data->toolbar->removeBtn('btnConto');
 	    		
 		    	// Проверка на счетоводния период, ако има грешка я показваме
-	        	if(!acc_plg_Contable::checkPeriod($rec->valior, &$error)){
+	        	if(!acc_plg_Contable::checkPeriod($rec->valior, $error)){
 	        		$error = ",error={$error}";
 	        	}
 	        	
@@ -84,7 +84,7 @@ class acc_plg_DealsChooseOperation extends core_Plugin
     		$id = Request::get('id', 'int');
 	    	expect($rec = $mvc->fetch($id));
 	    	expect($rec->state == 'draft');
-	    	expect(acc_plg_Contable::checkPeriod($rec->valior, &$error), $error);
+	    	expect(acc_plg_Contable::checkPeriod($rec->valior, $error), $error);
 	    	$curStoreId = store_Stores::getCurrent('id', FALSE);
 	    	$curCaseId  = cash_Cases::getCurrent('id', FALSE);
 	    	
