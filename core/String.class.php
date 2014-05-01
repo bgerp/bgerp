@@ -435,6 +435,9 @@ class core_String
      */
     static function limitLen($str, $maxLen)
     {
+        if(Mode::is('screenMode', 'narrow')) {
+            $maxLen = round($maxLen/1.25);
+        }
         if(mb_strlen($str) > $maxLen) {
             if($maxLen > 20) {
                 $remain = (int) ($maxLen - 5) / 2;
