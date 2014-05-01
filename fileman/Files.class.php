@@ -1182,4 +1182,25 @@ class fileman_Files extends core_Master
         
         return $id;
     }
+    
+    
+    /**
+     * бързФикс 
+     * TODO
+     * @see core_Master::act_Single()
+     */
+    function act_Single()
+    {
+        $id = Request::get('id', 'int');
+        $rec = static::fetch($id);
+        
+        $fh = $rec->fileHnd;
+        
+        if (!fileman_Files::haveRightFor('single', $rec)) {
+            
+            return new Redirect(array('fileman_Download', 'Download', 'fh' => $fh));
+        }
+        
+        return parent::act_Single();
+    }
 }
