@@ -22,7 +22,9 @@ class plg_PrevAndNext extends core_Plugin
     {
         $mvc->doWithSelected = arr::make($mvc->doWithSelected, TRUE);
         $mvc->doWithSelected['edit'] = 'Редактиране';
-        $mvc->doWithSelected['browse'] = 'Преглед';
+        if(cls::isSubclass($mvc, 'core_Master')) {
+            $mvc->doWithSelected['browse'] = 'Преглед'; 
+        }
     }
 
     /**
@@ -39,9 +41,9 @@ class plg_PrevAndNext extends core_Plugin
             $Cmd = Request::get('Cmd');
             
             if (isset($Cmd['save_n_prev'])) {
-                $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->prevId, 'PrevAndNext' => 'on');
+                $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->prevId, 'PrevAndNext' => 'on', 'ret_url' => getRetUrl());
             } elseif (isset($Cmd['save_n_next'])) {
-                $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->nextId, 'PrevAndNext' => 'on');
+                $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->nextId, 'PrevAndNext' => 'on', 'ret_url' => getRetUrl());
             }
         }
     }
@@ -78,6 +80,9 @@ class plg_PrevAndNext extends core_Plugin
 	            
 	        }
         	
+            if(!is_object($data)) {
+                $data = new stdClass();
+            }
 	        expect($data->rec = $mvc->fetch($id));
 	            
 	        // Трябва да има $rec за това $id
@@ -130,7 +135,32 @@ class plg_PrevAndNext extends core_Plugin
 
         return $selArr[$selNeighbourId];
     }
+ 
     
+    /**
+     * Преди подготовката на формата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_BeforePrepareEditForm($mvc, $data)
+    {
+        if($sel = Request::get('Selected')) {
+
+            // Превръщаме в масив, списъка с избраниуте id-та
+            $selArr = arr::make($sel);
+             
+            // Зареждаме id-то на първия запис за редактиране
+            expect(ctype_digit($id = $selArr[0]));
+            
+            Request::push(array('id' => $id));            
+        } 
+    }
+
+
+
+
     
     /**
      * Подготовка на формата
@@ -196,6 +226,8 @@ class plg_PrevAndNext extends core_Plugin
             } else {
                 $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=fright btn-disabled noicon,disabled,order=30');
             }
+
+            $data->form->setHidden('ret_url', Request::get('ret_url'));
         }
     }
 
