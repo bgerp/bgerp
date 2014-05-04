@@ -276,11 +276,6 @@ class type_Richtext extends type_Blob
         // Обработваме елемента [li]
         $html = preg_replace_callback("/\[li](.*?)((<br>)|(\n)|($))/is", array($this, '_catchLi'), $html);
         
-
-        // Обработваме хипервръзките, зададени в явен вид
-        $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
-
-        
         // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[bQuote(=([a-zA-Z0-9]+))?\](.*?)\[\/bQuote\]/s", array($this, '_catchBQuote'), $html);
         $from = array("[bQuote]", "[/bQuote]");
@@ -291,6 +286,9 @@ class type_Richtext extends type_Blob
         }
         $html = str_replace($from, $to, $html);
         
+        // Обработваме хипервръзките, зададени в явен вид
+        $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
+       
         if(!Mode::is('text', 'plain')) {
             
             // Заменяме обикновените интервали в началото на всеки ред, с непрекъсваеми такива
