@@ -26,6 +26,9 @@ class page_InternalFooter extends core_ET {
         if(EF_USSERS_EMAIL_AS_NICK) {
             list($nick,) = explode('@', $nick);
         }
+
+        $isGet = strtoupper($_SERVER['REQUEST_METHOD']) == 'GET';
+
         if(Mode::is('screenMode', 'narrow')) {
             if($nick) {
                 $this->append(ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Изход на " . $nick)));
@@ -33,11 +36,13 @@ class page_InternalFooter extends core_ET {
             }
             $this->append("<a href='#top'>" . tr('Горе') . "</a>");
             
-            $this->append("&nbsp;|&nbsp;");
-            $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => toUrl(getCurrentUrl() + array('Cmd' => 'refresh'), 'local') )));
+            if($isGet) {
+                $this->append("&nbsp;|&nbsp;");
+                $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE)));
             
-            // Добавяме превключване между езиците
-            $this->addLgChange();
+                // Добавяме превключване между езиците
+                $this->addLgChange();
+            }
 
             $this->append("&nbsp;|&nbsp;");
             $this->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), NULL, array('title' => tr('Страницата е заредена на') . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
@@ -49,16 +54,18 @@ class page_InternalFooter extends core_ET {
             
             $this->append('&nbsp;');
             $this->append(dt::mysql2verbal(dt::verbal2mysql()));
-      
-            $this->append(" | ");
-            $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => toUrl(getCurrentUrl() + array('Cmd' => 'refresh'), 'local'))));
             
+            if($isGet) {
+                $this->append(" | ");
+                $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE)));
+            
+            
+                // Добавяме превключване между езиците
+                $this->addLgChange();
+            }
             // Добавяме кода, за определяне параметрите на браузъра
             $Browser = cls::get('core_Browser');
             $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
-            
-            // Добавяме превключване между езиците
-            $this->addLgChange();
 
             // Добавя бутон за калкулатора
             $this->append('&nbsp;|&nbsp;');
@@ -86,7 +93,7 @@ class page_InternalFooter extends core_ET {
  
         if(count($langArr)) {
             foreach($langArr as $lg => $title) {
-                $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => toUrl(getCurrentUrl() + array('Cmd' => 'refresh'), 'local')));
+                $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => TRUE));
                 $lg{0} = strtoupper($lg{0});
                 $this->append("&nbsp;|&nbsp;<a href='{$url}' title='{$title}'>{$lg}</a>");
             }
