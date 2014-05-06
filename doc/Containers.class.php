@@ -1552,14 +1552,14 @@ class doc_Containers extends core_Manager
             if ($rec->state == 'draft') {
                 
                 // Съобщение
-                $message = "|Чернови документи";
+                $message = "|Имате създадени, но не активирани документи";
                 
                 // Линк, където ще сочи нотификацията
                 $customUrl = array('doc_Search', 'state' => 'draft', 'author' => $firstTeamAuthor);
             } else {
                 
                 // Съобщение
-                $message = "|Активирани но неизпратени имейли";
+                $message = "|Активирани, но неизпратени имейли";
                 
                 // Линк, където ще сочи нотификацията
                 $customUrl = array('doc_Search', 'state' => 'active', 'docClass' => $outgoingsClassId, 'author' => $firstTeamAuthor);

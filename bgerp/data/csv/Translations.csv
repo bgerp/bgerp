@@ -193,7 +193,8 @@ en,Коментар,Comment
 en,Коментари,Comments
 en,Контакти,Contacts
 en,Копие на,Copy of
-en,Копие,Clone
+en,Копие,Copy
+en,Копие към,Copy to
 en,Кош,Bin
 en,Крон,Cron
 en,Кутии,Inboxes
@@ -1230,7 +1231,7 @@ en,добавяне на файл,adding new file
 en,Качване,Upload
 en,Поправка,Repair
 en,Стойност по по_acbfc,Default value
-en,Настройки на п_d317c,Package settings
+en,Настройки на пакета,Settings for package
 en,файл,file
 en,Прикачване на _4ad50,Attach a file
 en,линк,link

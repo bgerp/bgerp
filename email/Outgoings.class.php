@@ -158,7 +158,7 @@ class email_Outgoings extends core_Master
         
         //Данни за адресата
         $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%');
-        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие,  width=100%');
+        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%');
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData');
         $this->FLD('attn', 'varchar', 'caption=Адресат->Лице,oldFieldName=attentionOf,class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData');
@@ -511,7 +511,7 @@ class email_Outgoings extends core_Master
         $form->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
         $form->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
         $form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,class=long-input,formOrder=2', array('attr' => array('data-role' => 'list')));
-        $form->FNC('emailsCc', 'emails', 'input,caption=Копие,class=long-input,formOrder=3', array('attr' => array('data-role' => 'list' )));
+        $form->FNC('emailsCc', 'emails', 'input,caption=Копие до,class=long-input,formOrder=3', array('attr' => array('data-role' => 'list' )));
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Изпрати', 'send', 'id=save', 'ef_icon = img/16/move.png');
@@ -1005,6 +1005,10 @@ class email_Outgoings extends core_Master
             
             $emailTo = Request::get('emailto');
             
+            if(strpos($emailTo, 'fax.man')) {
+                $mvc->singleTitle = "Факс";
+            }
+
             $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', $emailTo);
             $emailTo = str_replace('mailto:', '', $emailTo);
     
@@ -1815,7 +1819,7 @@ class email_Outgoings extends core_Master
             // Ако домейн частта показва, че е факс
             if ($domain == 'fax.man') {
                 
-                // Добавяме в масива с факосе
+                // Добавяме в масива с факовсе
                 $arr['fax'][$email] = $email;
             } else {
                 
