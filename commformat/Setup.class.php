@@ -74,7 +74,7 @@ class commformat_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-        $html .= $Plugins->installPlugin('Форматиране на комуникацията', 'communicationformat_Plugin', 'type_Richtext', 'private');
+        $html .= $Plugins->installPlugin('Форматиране на комуникацията', 'commformat_Plugin', 'type_Richtext', 'private');
         
         return $html;
     }
@@ -92,7 +92,7 @@ class commformat_Setup extends core_ProtoSetup
         
         // Премахваме от type_Date полета
         $Plugins->deinstallPlugin('commformat_Plugin');
-        $html .= "<li>Премахнати са всички инсталации на 'communicationformat_Plugin'";
+        $html .= "<li>Премахнати са всички инсталации на 'commformat_Plugin'";
         
         return $html;
     }
