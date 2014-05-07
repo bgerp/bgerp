@@ -41,6 +41,11 @@ class page_InternalLayout extends core_ET
         if(Mode::get("checkNativeSupport")){
         	$this->replace('narrow-scroll', "HAS_SCROLL_SUPPORT");
         }
+
+        // Ако сме в широк изглед извикваме функцията за мащабиране
+        if(Mode::is('screenMode', 'wide')){
+        	$this->append("scaleViewport();", "START_SCRIPTS");
+        }
         
         // Опаковките и главното съдържание заемат екрана до долу
         $this->append("runOnLoad(setMinHeight);", "JQRUN");
