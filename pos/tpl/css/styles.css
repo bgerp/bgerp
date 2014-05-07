@@ -540,7 +540,7 @@ form #point {
     1border:1px solid #ccc;
     background-image: url("../terminal/patern.jpg");
     position: relative;
-    max-height:280px;
+    min-height:280px;
     box-shadow: 4px 4px 4px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
     border-radius: 5px;
 
@@ -638,8 +638,13 @@ form #point {
 .narrow #pos-products{
     max-width: 100%;
     overflow-y: hidden !important;
-    max-height: 185px;
+    height: 185px;
     overflow-x: auto;
+    padding-bottom:5px;
+}
+
+.narrow #pos-products>div{
+	height: 170px;
 }
 
 .narrow #pos-products::-webkit-scrollbar {
