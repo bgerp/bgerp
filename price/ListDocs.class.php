@@ -279,40 +279,6 @@ class price_ListDocs extends core_Master
     		 	$count++;
 			}
     	}
-    	
-    	// Обхождаме данните и намираме колко е максималния брой десетични знаци
-    	$maxDecP = $maxDecM = 0;
-	    foreach ($data->rec->products->recs as $groupId => $products1){
-			foreach ($products1 as $index => $dRec){
-				if($dRec->priceM){
-					$price = price_Helper::roundPrice($dRec->priceM, 4);
-					$mDecNum = strlen(substr(strrchr($price, "."), 1));
-					$maxDecM = ($mDecNum > $maxDecM) ? $mDecNum : $maxDecM;
-				}
-				
-				if($dRec->priceP){
-					$price = price_Helper::roundPrice($dRec->priceP, 4);
-					$pDecNum = strlen(substr(strrchr($price, "."), 1));
-					$maxDecP = ($pDecNum > $maxDecP) ? $pDecNum : $maxDecP;
-				}
-			}
-	    }
-    	
-    	// Подравняваме сумите да са с еднакъв брой цифри след десетичния знак
-    	$Double = cls::get('type_Double');
-    	foreach ($data->rec->products->rows as $groupId => &$products2){
-			foreach ($products2 as $index => &$pRec){
-				if($pRec->priceM){
-					$Double->params['decimals'] = $maxDecM;
-					$pRec->priceM = $Double->toVerbal($recs[$groupId][$index]->priceM);
-				}
-				
-				if($pRec->priceP){
-					$Double->params['decimals'] = $maxDecP;
-					$pRec->priceP = $Double->toVerbal($recs[$groupId][$index]->priceP);
-				}
-			}
-    	}
     }
     
     
@@ -523,6 +489,48 @@ class price_ListDocs extends core_Master
     }
     
     
+    /**
+     * Подравняване на цените
+     */
+    private function alignPrices(&$data)
+    {
+    	// Обхождаме данните и намираме колко е максималния брой десетични знаци
+    	$maxDecP = $maxDecM = 0;
+	    foreach ($data->rec->products->recs as $groupId => $products1){
+			foreach ($products1 as $index => $dRec){
+				if($dRec->priceM){
+					core_Math::roundNumber($dRec->priceM, $maxDecM, 4);
+				}
+				
+				if($dRec->priceP){
+					core_Math::roundNumber($dRec->priceP, $maxDecP, 4);
+				}
+			}
+	    }
+    	
+    	// Подравняваме сумите да са с еднакъв брой цифри след десетичния знак
+    	$Double = cls::get('type_Double');
+    	
+    	foreach ($data->rec->products->rows as $groupId => &$products2){
+			foreach ($products2 as $index => &$row){
+				$rec = $data->rec->products->recs[$groupId][$index];
+				if($row->priceM){
+					$Double->params['decimals'] = $maxDecM;
+					$rec->priceM = core_Math::roundNumber($rec->priceM, $maxDecM);
+					$row->priceM = $Double->toVerbal($rec->priceM);
+					
+				}
+				
+				if($row->priceP){
+					$Double->params['decimals'] = $maxDecP;
+					$rec->priceP = core_Math::roundNumber($rec->priceP, $maxDecP);
+					$row->priceP = $Double->toVerbal($rec->priceP);
+				}
+			}
+    	}
+    }
+    
+    
 	/**
      * Рендиране на "Детайлите" на ценоразписа
      */
@@ -530,6 +538,8 @@ class price_ListDocs extends core_Master
     {
     	$rec = &$data->rec;
     	$detailTpl = $tpl->getBlock("GROUP");
+    	
+    	$this->alignPrices($data);
     	
     	if($rec->products->rows){
     		
