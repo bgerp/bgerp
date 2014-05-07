@@ -19,10 +19,12 @@ class bgerp_plg_File extends core_Plugin
      * Прихващаме генерирането на имейл.
      * Ако мода е xhtml, тогава сработва и прекъсва по нататъшното изпълнение на функцията.
      */
-    function on_BeforeGenerateUrl($mvc, &$res, $fh)
+    static function on_BeforeGenerateUrl($mvc, &$res, $fh, $isAbsolute)
     {
+        $mode = Mode::get('text');
+        
         // Ако не се изпраща имейла, да не сработва
-        if (!Mode::is('text', 'xhtml')) return ;
+        if ($mode != 'xhtml' && $mode != 'plain') return ;
         
         // Действието
         $action = log_Documents::getAction();
@@ -35,7 +37,7 @@ class bgerp_plg_File extends core_Plugin
         $name = fileman_Files::fetchByFh($fh, 'name');
 
         //Генерираме връзката 
-        $res = toUrl(array('F', 'S', doc_DocumentPlg::getMidPlace(), 'n' => $name), TRUE);
+        $res = toUrl(array('F', 'S', doc_DocumentPlg::getMidPlace(), 'n' => $name), $isAbsolute);
 
         return FALSE;
     }
