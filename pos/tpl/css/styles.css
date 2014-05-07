@@ -9,10 +9,7 @@
 	position:relative;
 	1min-height:700px;
 }
-body{
-   min-width:600px; // suppose you want minimun width of 1000px
-   _width: expression( document.body.clientWidth > 600 ? "600px" : "auto" ); /* sets max-width for IE */
-}
+
 .narrow .single-receipt-wrapper{
 	background: #ffffff;
 }
