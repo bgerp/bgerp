@@ -2040,9 +2040,7 @@ pre.rich-text {
     color: #000;
     line-height: 120%;
     border: solid 1px $gray3;
-}
-
-pre.rich-text {
+    white-space: normal;
 	overflow: auto; 
 	font-size: 0.97em;
 }
