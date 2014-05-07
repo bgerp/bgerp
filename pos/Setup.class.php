@@ -64,6 +64,7 @@ class pos_Setup extends core_ProtoSetup
         	'pos_Favourites',
         	'pos_FavouritesCategories',
         	'pos_Reports',
+    		'pos_Stocks',
         	'pos_Payments',
     		'pos_Cards',
         );
