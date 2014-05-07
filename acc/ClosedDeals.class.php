@@ -161,6 +161,8 @@ abstract class acc_ClosedDeals extends core_Master
     	// Първия документ в треда трябва да е активиран
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
+    	if(!$firstDoc) return FALSE;
+    	
     	// Може да се добавя само към ниша с първи документ имащ 'bgerp_DealAggregatorIntf'
     	if(!$firstDoc->haveInterface('bgerp_DealAggregatorIntf')) return FALSE;
     	
