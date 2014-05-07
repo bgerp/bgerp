@@ -39,7 +39,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals, doc_plg_HidePrices, acc_plg_DpInvoice';
+    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals2, doc_plg_HidePrices, acc_plg_DpInvoice';
     
     
     /**

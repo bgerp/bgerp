@@ -69,8 +69,8 @@ abstract class price_Helper
         @$arr['noVat'] = $price / $rate;
 		@$arr['withVat'] = ($price * (1 + $vat)) / $rate;
 		
-		$arr['noVat'] = static::roundPrice($arr['noVat']);
-		$arr['withVat'] = static::roundPrice($arr['withVat']);
+		$arr['noVat'] = $arr['noVat'];
+		$arr['withVat'] = $arr['withVat'];
 		
         return (object)$arr;
 	}
@@ -98,7 +98,7 @@ abstract class price_Helper
 			$arr['vatAmount'] = ($arr['amount'] - $arr['discount']) * $vat;
 		}
 		
-		$arr['amount'] = currency_Currencies::round($arr['amount'], $currencyCode);
+		$arr['amount'] = $arr['amount'];
 	
 		return (object)$arr;
 	}
@@ -156,9 +156,9 @@ abstract class price_Helper
 		}
 		
 		$masterRec->_total           = new stdClass();
-        $masterRec->_total->amount   = currency_Currencies::round($amount, $rec->$map['currencyId']);
-        $masterRec->_total->vat      = currency_Currencies::round($amountVat, $rec->$map['currencyId']);
-        $masterRec->_total->discount = currency_Currencies::round($discount, $rec->$map['currencyId']);
+        $masterRec->_total->amount   = $amount;
+        $masterRec->_total->vat      = $amountVat;
+        $masterRec->_total->discount = $discount;
 	}
 	
 	

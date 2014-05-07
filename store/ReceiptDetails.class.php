@@ -35,7 +35,7 @@ class store_ReceiptDetails extends core_Detail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering, 
-                        plg_AlignDecimals, doc_plg_HidePrices';
+                        plg_AlignDecimals2, doc_plg_HidePrices';
     
     
     /**

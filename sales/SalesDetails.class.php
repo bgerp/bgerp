@@ -41,7 +41,7 @@ class sales_SalesDetails extends core_Detail
      * var string|array
      */
     public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, 
-                        plg_AlignDecimals, doc_plg_HidePrices';
+                        plg_AlignDecimals2, doc_plg_HidePrices';
     
     
     /**
@@ -256,50 +256,6 @@ class sales_SalesDetails extends core_Detail
         
         $map = ($data->masterData->fromProforma) ? array('alwaysHideVat' => TRUE) : array();
         price_Helper::fillRecs($recs, $salesRec, $map);
-    }
-    
-    
-    /**
-     * След подготовка на записите от базата данни
-     */
-    public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
-    {
-        $rows = $data->rows;
-        
-        // Скриваме полето "мярка" 
-        $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
-        
-        // Флаг дали има отстъпка
-        $haveDiscount = FALSE;
-        
-        if(count($data->rows)) {
-            foreach ($data->rows as $i => &$row) {
-                $rec = $data->recs[$i];
-                
-                $haveDiscount = $haveDiscount || !empty($rec->discount);
-    			
-                if (empty($rec->packagingId)) {
-                    if ($rec->uomId) {
-                        $row->packagingId = $row->uomId;
-                    } else {
-                        $row->packagingId = '???';
-                    }
-                } else {
-                    $shortUomName = cat_UoM::getShortName($rec->uomId);
-                    $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
-                	$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
-                }
-                
-                $quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
-                $quantity->placeObject($row);
-                $quantity->removeBlocks();
-                $row->quantity = $quantity;
-            }
-        }
-
-        if(!$haveDiscount) {
-            unset($data->listFields['discount']);
-        }
     }
     
     
@@ -528,5 +484,52 @@ class sales_SalesDetails extends core_Detail
             
             unset($data->toolbar->buttons['btnAdd']);
         }
+    }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+    	$recs = &$data->recs;
+    	$rows = &$data->rows;
+    	
+    	if(!count($recs)) return;
+    	
+    	// Скриване на полето "мярка" 
+        $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
+        
+        // Флаг дали има отстъпка
+        $haveDiscount = FALSE;
+        
+        if(count($data->rows)) {
+            foreach ($data->rows as $i => &$row) {
+                $rec = $data->recs[$i];
+                
+                $haveDiscount = $haveDiscount || !empty($rec->discount);
+    			
+                if (empty($rec->packagingId)) {
+                	$row->packagingId = ($rec->uomId) ? $row->uomId : $row->packagingId;
+                } else {
+                    $shortUomName = cat_UoM::getShortName($rec->uomId);
+                    $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
+                	$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
+                }
+                
+                $quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
+                $quantity->placeObject($row);
+                if($row->packQuantityDelivered == 0){
+                	$quantity->removeBlock('packQuantityDelivered');
+                }
+                $row->quantity = $quantity;
+                
+            }
+        }
+		
+        if(!$haveDiscount) {
+            unset($data->listFields['discount']);
+        }
+    	
     }
 }

@@ -34,7 +34,7 @@ class purchase_PurchasesDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, doc_plg_HidePrices, plg_AlignDecimals,Policy=purchase_PurchaseLastPricePolicy';
+    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, doc_plg_HidePrices, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy';
     
     
     /**
@@ -213,9 +213,9 @@ class purchase_PurchasesDetails extends core_Detail
     
     
     /**
-     * След подготовка на записите от базата данни
+     * Преди рендиране на таблицата
      */
-    public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $rows = $data->rows;
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
@@ -246,7 +246,9 @@ class purchase_PurchasesDetails extends core_Detail
                 
                 $row->quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
                 $row->quantity->placeObject($row);
-                $row->quantity->removeBlocks(); 
+            	if($row->packQuantityDelivered == 0){
+                	$row->quantity->removeBlock('packQuantityDelivered');
+                } 
             }
         }
 
