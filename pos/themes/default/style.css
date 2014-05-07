@@ -48,10 +48,9 @@
 
 #pos-products {
 	margin-top:5px;
-	padding:0 7px;
+	padding:0 4px;
 }
 .wide #pos-products {
-	max-height: 200px;
     overflow-y: auto;	
 }
 .pos-product{
@@ -67,6 +66,15 @@
 	margin-top:5px;
 	margin-bottom:5px;
 	box-shadow:0px 1px 3px rgba(0,0,0,0.8);
+}
+
+.narrow .pos-product{
+	width: 80px;
+    height: 80px;
+}
+.narrow .pos-product img{
+	width: 80px;
+    height: 80px;
 }
 .pos-product img{
 	border-radius: 3px;

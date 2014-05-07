@@ -4,11 +4,14 @@
 	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
 	border-radius: 5px;
-	margin:10px;
-	padding:15px;
+	margin: 5px;
+    padding: 10px;
 	position:relative;
 	1min-height:700px;
-	
+}
+body{
+   min-width:600px; // suppose you want minimun width of 1000px
+   _width: expression( document.body.clientWidth > 600 ? "600px" : "auto" ); /* sets max-width for IE */
 }
 .narrow .single-receipt-wrapper{
 	background: #ffffff;
@@ -17,12 +20,12 @@
 #single-receipt{
 	display:inline-block;
 }
-.wide#single-receipt{ 
-	min-width:300px;
+.wide #single-receipt{ 
+	min-width:295px;
 }
 
 .wide  #tools-holder .tabs-holder-content{
-	min-width: 300px;
+	min-width: 295px;
 }
 .narrow #single-receipt{
     display:block;
@@ -37,6 +40,7 @@
 #receipt-table {
 	border-collapse:collapse;
 	width:100%;
+	
 }
 #receipt-table td, #receipt-table th{
 	padding:5px;
@@ -47,16 +51,16 @@
 	overflow-y:auto;
 	overflow-x:hidden;
 	border-top: 1px solid #000;
-	  box-shadow: 4px 4px 4px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
+	box-shadow: 4px 4px 4px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
 }
 #receipt-header {
 	background: -moz-linear-gradient(top,  rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
-background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(241,241,241,1)), color-stop(100%,rgba(221,221,221,1)));
-background: -webkit-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-background: -o-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-background: -ms-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-background: linear-gradient(to bottom,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(241,241,241,1)), color-stop(100%,rgba(221,221,221,1)));
+	background: -webkit-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	background: -o-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	background: -ms-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	background: linear-gradient(to bottom,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
 }
 
 #receipt-title {
@@ -72,7 +76,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', end
 
 #receipt-number {
 	font-style:italic;
-	font-size:18px;
 }
 
 #receipt-date {
@@ -125,24 +128,25 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', end
 }
 
 .receipt-sale, .gradient {
-background: rgb(241,241,241);
-background: -moz-linear-gradient(top,  rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
-background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(241,241,241,1)), color-stop(100%,rgba(221,221,221,1)));
-background: -webkit-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-background: -o-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-background: -ms-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-background: linear-gradient(to bottom,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
-
-	
+	background: rgb(241,241,241);
+	background: -moz-linear-gradient(top,  rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(241,241,241,1)), color-stop(100%,rgba(221,221,221,1)));
+	background: -webkit-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	background: -o-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	background: -ms-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	background: linear-gradient(to bottom,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
 }
+
 .gradient{
 	width: 100%;
 }
+
 .gradient td{
 	border:none !important;
 	padding:2px 5px !important;
 }
+
 #receipt-details-form {
 	margin-top:15px;
 }
@@ -201,14 +205,13 @@ input.error {
 
 #receipt-info{
 	background: rgb(241,241,241);
-background: -moz-linear-gradient(top,  rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
-background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(241,241,241,1)), color-stop(100%,rgba(221,221,221,1)));
-background: -webkit-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-background: -o-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-background: -ms-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-background: linear-gradient(to bottom,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
-
+	background: -moz-linear-gradient(top,  rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(241,241,241,1)), color-stop(100%,rgba(221,221,221,1)));
+	background: -webkit-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	background: -o-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	background: -ms-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	background: linear-gradient(to bottom,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
 	border:1px solid #000;
 }
 
@@ -382,6 +385,7 @@ form #point {
 	width: 24%;
 	min-width: 170px !important;
 }
+
 .numPad, .numBack{
 	width: 26% !important;
 	height: 43px;
@@ -397,6 +401,7 @@ form #point {
 	border-bottom:black 2px solid !important;
 	border-top:2px #303030 solid !important;
 }
+
 .numPad:hover, .numBack:hover{
 	border-top:black 2px solid !important;
 	border-bottom:#303030 2px solid !important;
@@ -409,10 +414,12 @@ form #point {
 	float: left;
 	width: 17%;
 }
+
 .buttonForm{
 	height: 43px;
     margin-bottom: 7px ;
 }
+
 .payment-type, .close-btn, .tools-btn{
 	float: left;
 	width: 17%;
@@ -442,7 +449,7 @@ form #point {
 	border-bottom: 1px solid #BBB !important;
 	border-radius: 3px;
 	color: #333;
-	font: bold 11px/1 "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
+	font: bold 10px/1 Arial, sans-serif;
 	padding: 8px 0;
 	text-align: center;
 	text-shadow: 0 1px 0 #EEE;
@@ -466,6 +473,7 @@ form #point {
 	border: solid 1px #bbb;
 	opacity: 0.5;
 }
+
 .disabledBtn:hover{
     background-color: #EEE !important;
     background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #EEE), color-stop(100%, #CCC)) !important;
@@ -476,13 +484,13 @@ form #point {
     background-image: linear-gradient(top, #eeeeee, #cccccc) !important;
     border: 1px solid #CCC !important;
     border-bottom: 1px solid #BBB !important;
-    color: #333;
-        cursor: auto !important;
-    font: bold 11px/1 "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
+    cursor: auto !important;
 }
+
 .narrow .num-keyboard{
 	min-width: 176px !important
 }
+
 .narrow .numPad,.narrow .numBack{
 	font-size: 0.9em !important;
 	width: 23% !important;
@@ -490,19 +498,20 @@ form #point {
 }
 
 .colum-btn{
-		float:left;
-		min-width: 90px;
-		width: 17%;
-		margin-top: -50px;
-	}
+	float:left;
+	min-width: 90px;
+	width: 17%;
+	margin-top: -50px;
+}
+
 .payment-type, .close-btn, .tools-btn{
 	    margin: 0 ;
 }
 
-
 .close-btn .button{
 	font-size: 1.07em;
 }
+
 .input-field{
 	float: left;
 	margin-left:4px;
@@ -510,10 +519,12 @@ form #point {
 	width: 21.5%;
     min-width: 158px !important;
 }
+
 .narrow .input-field{
 	width: 30%;
 	min-width: 140px !important;
 }
+
 .input-field input[type=text]{
 	width: 100%;
 	height: 2.1em;
@@ -522,16 +533,17 @@ form #point {
 	border-radius: 4px;
 	box-shadow: inset 0 0 10px rgba(0,0,0,0.25), 2px 2px 2px rgba(0,0,0,0.2);
 }
+
 .narrow .input-field input[type=text]{
     height:1.8em;
 }
-/*tabs */
 
+/*tabs */
 .tabs-holder-content {
     1border:1px solid #ccc;
     background-image: url("../terminal/patern.jpg");
     position: relative;
-    height:280px;
+    max-height:280px;
     box-shadow: 4px 4px 4px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
     border-radius: 5px;
 
@@ -582,23 +594,23 @@ form #point {
 	transition:all linear 0.1s;
 	border-left: 1px solid #ccc;
 	border-bottom:#ccc;
-	
- }
- .pos-tabs a:hover, .pos-tabs li.active a, .pos-tabs li.active a:hover {
+}
+ 
+.pos-tabs a:hover, .pos-tabs li.active a, .pos-tabs li.active a:hover {
     text-shadow: none;
     color:#4c4c4c;
     box-shadow: 2px -1px 3px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.1);
     background-image: url("../terminal/patern.jpg");
 }
+
 .narrow .pos-tabs a{
 	padding:4px 5px;
 	font-size: 0.9em;
 }
+
 .pos-tabs a:hover {
 	text-decoration:none;
 }
-
-
 
 .tab-content {
     padding:15px;
@@ -611,9 +623,10 @@ form #point {
 }
 
 #tools-wide-holder{
-	left: 600px;
+	right: 20px;
 	position: fixed;
-	top: 25px;
+	top: 8px;
+	min-width:
 }
 
 #tools-search select{
@@ -627,11 +640,22 @@ form #point {
 
 .narrow #pos-products{
     max-width: 100%;
-    overflow-y: hidden;
-    max-height: 215px;
+    overflow-y: hidden !important;
+    max-height: 185px;
     overflow-x: auto;
 }
- 
+
+.narrow #pos-products::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+}
+
+.narrow #pos-products::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, .2);
+}
+
 #tools-search .chzn-container .chzn-drop{
 	1max-width: 378px;
 	max-width: 100%;
@@ -640,4 +664,8 @@ form #point {
 #tools-search .chzn-container-single .chzn-search input{
 	1width: 358px;
 	max-width: 100%;
+}
+
+.tools-wide-select-content{
+	min-width: 256px;
 }

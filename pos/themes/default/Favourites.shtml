@@ -1,5 +1,10 @@
 <div class=''>
 	<div id='pos-producy-categories'>
+	  <div class="pos-product-category active"  title="Изберете категория">
+                <span class="pos-span-name">
+                   всички
+                </span>
+            </div>
 		<!--ET_BEGIN CAT-->
 			<div class='pos-product-category' data-id='[#id#]' title='Изберете категория'>
 			 	<span class='pos-span-name'>
@@ -11,6 +16,7 @@
 	</div>
 	<div id='pos-products' class='scrolling-holder'>
 	<div>
+	 
 		<!--ET_BEGIN ITEM-->
 		[#ITEM#]
 			<div class='pos-product' data-id='[#productId#]' data-url = '[#url#]' data-cat='[#catId#]' title='Добавете [#name#]'>

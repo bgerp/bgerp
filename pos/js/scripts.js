@@ -1,12 +1,18 @@
 function posActions() {
 
-	$('#pos-producy-categories .pos-product-category').first().addClass('active');
+	//$('#pos-producy-categories .pos-product-category').first().addClass('active');
 	if($('body').hasClass('wide')){
 		calculateWidth();
 		$(window).resize( function() {
 			calculateWidth();
 		});
-	}	
+	} 
+		
+	
+	var width = parseInt($('.pos-product').length) * 45 + 45;
+
+	$('.narrow #pos-products > div').css('width',width);
+	//$('.narrow #pos-products > div').css('width','100');
 	
 	// Засветяване на избрания ред и запис в хидън поле
 	$(".pos-sale").live("click", function() {
@@ -71,27 +77,12 @@ function posActions() {
 	});
 	
 	// Модифициране на количество
-	$(".tools-modify").live("click", function() {
+	$("#tools-modify").live("click", function() {
 		var inpVal = $("input[name=ean]").val();
 		var rowVal = $("input[name=rowId]").val();
 		
 		var url = $(this).attr("data-url");
 		var data = {recId:rowVal, amount:inpVal};
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		getEfae().process(resObj, data);
-		$("input[name=ean]").val("");
-	});
-	
-	// Добавяне на клиентска карта
-	$("#tools-addclient").live("click", function() {
-		var inpVal = $("input[name=ean]").val();
-		var rowVal = $("input[name=receiptId]").val();
-
-		var url = $(this).attr("data-url");
-		var data = {receiptId:rowVal, ean:inpVal};
 		
 		resObj = new Object();
 		resObj['url'] = url;
@@ -182,28 +173,34 @@ function posActions() {
 		getEfae().process(resObj, data);
 		scrollRecieptBottom();
 	});
-	
+
 	// Скриване на бързите бутони спрямо избраната категория
 	$(".pos-product-category[data-id='']").addClass('active');
 	$('.pos-product-category').live("click", function(event) {
 		var value = $(this).attr("data-id");
 		
 		$(this).addClass('active').siblings().removeClass('active');
-				
+		
+		var counter = 0;
 		if(value) {
 			var nValue = "|" + value + "|";
 			
 			$("div.pos-product[data-cat !*= '"+nValue+"']").each(function() {
 				$(this).hide();
 			});
+			
 			$("div.pos-product[data-cat *= '"+nValue+"']").each(function() {
 				$(this).show();
+				counter++;
 			});
 		} else {
 			$("div.pos-product").each(function() {
 				$(this).show();
+				counter++;
 			});
 		}
+		var width = parseInt(counter*45);
+		$('.narrow #pos-products > div').css('width',width);
 	});
 	
 	// При клик на бутон изтрива запис от бележката
@@ -244,12 +241,19 @@ function calculateWidth(){
 	var usefulWidth = winWidth - totalOffset;
 	
 	var maxColWidth = parseInt(usefulWidth/2) - 10;
+	var comboWidth = maxColWidth - 40;
+	if(maxColWidth < 285) {
+		maxColWidth = 245;
+	}
+	
 	$('#single-receipt').css('width', maxColWidth);
 	$('.tabs-holder-content').css('width', maxColWidth);
-	$('#tools-wide-holder').css('left', maxColWidth + 50);
-	$('.narrow #pos-products ').css('maxWidth', maxColWidth-180);
 	
-	var comboWidth = maxColWidth - 30;
+	$('.tools-wide-select-content').css('width', maxColWidth);
+
+	$('.tools-wide-select-content').css('maxHeight', winHeight-85);
+	$('.wide #pos-products').css('maxHeight', winHeight-155);
+	
 	$('.tabs-holder-content .chzn-container').css('width',comboWidth);
 	$('.tabs-holder-content .chzn-container .chzn-drop').css('width',comboWidth - 2 );
 	$('.tabs-holder-content .chzn-container-single .chzn-search input').css('width',comboWidth - 12);
