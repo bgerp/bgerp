@@ -20,7 +20,11 @@ function runOnLoad(functionName)
 }
 
 
-
+function check(){
+	$(window).resize( function() {
+		scaleViewport();
+	});
+}
 
 // Функция за лесно селектиране на елементи
 function get$()
@@ -1087,7 +1091,30 @@ function setMinHeight()
 	}
 }
 
+/**
+ * мащабиране на страницата при touch устройства с по-голяма ширина 
+ */
+function scaleViewport(){
+	if(is_touch_device())
+    {
+		var pageWidth = $(window).width();
+		var customWidth = 1024;
+		if(pageWidth > customWidth ){
+			var scaleFactor = pageWidth/customWidth;
+            $('meta[name=viewport]').remove();
+            $('head').append('<meta name="viewport" content="width='+ customWidth + ', initial-scale=' +scaleFactor+ '">');
+            $('body').css('maxWidth',customWidth);
+    	} 
+    }
+}
 
+
+function is_touch_device() {
+	  return 'ontouchstart' in window // works on most browsers 
+	      || 'onmsgesturechange' in window; // works on ie10
+	};
+	
+	
 /**
  * Задава минимална височина на контента във външната част
  */
