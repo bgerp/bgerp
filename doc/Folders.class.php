@@ -692,7 +692,7 @@ class doc_Folders extends core_Master
             $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, $userId);
         }
         
-        if ($emailOptions[$inboxId]) {
+        if ($emailOptions && $emailOptions[$inboxId]) {
             
             $inboxRec = email_Inboxes::fetch($inboxId);
             
