@@ -1185,19 +1185,29 @@ class fileman_Files extends core_Master
     
     
     /**
-     * бързФикс 
-     * TODO
+     * При разглеждане на сингъла на файла
+     * Ако е нерегистриран потребител, да редиректне към свалянето на файла
+     * 
      * @see core_Master::act_Single()
      */
     function act_Single()
     {
+        // id на записа
         $id = Request::get('id', 'int');
+        
+        // Записава
         $rec = static::fetch($id);
         
+        // Очакваме да има такъв запис
+        expect($rec);
+        
+        // Манипулатор на файла
         $fh = $rec->fileHnd;
         
+        // Ако няма права за сингъла на файла
         if (!fileman_Files::haveRightFor('single', $rec)) {
             
+            // Да се свали файла
             return new Redirect(array('fileman_Download', 'Download', 'fh' => $fh));
         }
         
