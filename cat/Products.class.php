@@ -903,9 +903,10 @@ class cat_Products extends core_Master {
 	/**
      * Връща масив със всички опаковки, в които може да участва един продукт
      */
-    public static function getPacks($productId)
+    public function getPacks($productId)
     {
-    	$options = array('' => '');
+    	expect($rec = $this->fetch($productId));
+    	$options = array('' => $this->getVerbal($rec, 'measureId'));
     	
     	$query = cat_products_Packagings::getQuery();
     	$query->where("#productId = {$productId}");

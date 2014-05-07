@@ -347,7 +347,7 @@ class techno_Specifications extends core_Manager {
     /**
      * Връща опаковките в които се предлага даден продукт
      */
-	public static function getPacks($productId)
+	public function getPacks($productId)
     {
     	$TechnoClass = static::getDriver($productId);
     	

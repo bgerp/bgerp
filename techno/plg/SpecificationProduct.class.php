@@ -290,7 +290,9 @@ class techno_plg_SpecificationProduct extends core_Plugin
     function on_AfterGetPacks($mvc, &$res, $productId)
     {
     	if(empty($res)){
-    		$res = array('' => '');
+    		$pInfo = $mvc->getProductInfo($productId);
+    		$measureId = cat_UoM::getTitleById($pInfo->productRec->measureId);
+    		$res = array('' => $measureId);
     	}
     }
     
