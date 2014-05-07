@@ -70,7 +70,13 @@ class blast_Lists extends core_Master
      * Кой може да го отхвърли?
      */
     var $canReject = 'blast,ceo,admin';
-    
+
+	    
+    /**
+     * Кой може да го възстанови?
+     */
+    var $canRestore = 'blast,ceo,admin';
+        
     
     /**
 	 * Кой може да го разглежда?

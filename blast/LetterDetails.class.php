@@ -39,7 +39,13 @@ class blast_LetterDetails extends core_Detail
      * Кой може да го отхвърли?
      */
     var $canReject = 'blast,ceo';
-    
+
+	    
+    /**
+     * Кой може да го възстанови?
+     */
+    var $canRestore = 'blast,ceo';
+        
     
     /**
      * Кой може да го изтрие?
