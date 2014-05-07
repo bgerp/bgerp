@@ -1750,4 +1750,43 @@ class doc_DocumentPlg extends core_Plugin
         $fieldsArr['folderId'] = TRUE;
         $fieldsArr['originId'] = TRUE;
     }
+    
+    
+    /**
+     * Генериране на searchKeywords когато плъгинът е ново-инсталиран на модел в който е имало записи
+     */
+    function on_AfterSetupMVC($mvc, &$res)
+    {
+    	$plugins = $mvc->getPlugins();
+    	
+    	// Ако мениджъра има закачен 'plg_Search'
+    	if(isset($plugins['plg_Search'])){
+    		$i = 0;
+    		$query = $mvc->getQuery();
+    		$query->show('searchKeywords');
+    		
+    		// Извличаме всички записи
+    		while($rec = $query->fetch()){
+    			
+    			// Хендлъра на документа
+    			$handle = $mvc->getHandle($rec->id);
+    			$handle = plg_Search::normalizeText($handle);
+    			
+    			// Ако хендлъра не е включен към ключовите думи, се добавят
+	    		if (strpos($rec->searchKeywords, $handle) === false) {
+	    			$rec->searchKeywords .= " " . $handle;
+	    			try{
+	    				$mvc->save_($rec, 'searchKeywords');
+	    				$i++;
+	    			}catch(Exception $e) {
+            			continue;
+            		}
+				}
+    		}
+    		
+	    	if($i) {
+	            $res .= "<li style='color:green;'>Добавени са хендлърите към ключовите думи за {$i} записа.</li>";
+	        }
+    	}
+    }
 }
