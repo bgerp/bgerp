@@ -511,17 +511,17 @@ class fileman_Download extends core_Manager {
         // Ако има данни за файла и съществува
         if (($fRec->dataId) && file_exists($path)) {
             
+            //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml
+            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+            
+            //Генерираме връзката 
+            $url  = static::generateUrl($fh, $isAbsolute);
+            
             // Ако сме в текстов режим
             if(Mode::is('text', 'plain')) {
                 
-                //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml
-                $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-                
-                //Линк към файла
-                $link = toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute);
-                
                 //Добаваме линка към файла
-                $link = "{$linkFileTitlePlain}$name ( $link )";
+                $link = "{$linkFileTitlePlain}$name ( $url )";
             } else {
                 
                 //Големината на файла в байтове
@@ -538,9 +538,6 @@ class fileman_Download extends core_Manager {
                     
                 //Добавяме към атрибута на линка информация за размера
                 $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер:|* {$size}");
-                
-                //Генерираме връзката 
-                $url  = static::generateUrl($fh);
                 
                 $attr['rel'] = 'nofollow';
                 
@@ -571,13 +568,10 @@ class fileman_Download extends core_Manager {
     /**
      * Прекъсваема функция за генериране на URL от манипулатор на файл
      */
-    static function generateUrl_($fh)
+    static function generateUrl_($fh, $isAbsolute)
     {
-        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
         //Генерираме връзката 
-        $url = toUrl(array('fileman_Files', 'Single', $fh), $isAbsolute);
+        $url = toUrl(array('fileman_Files', 'single', $fh), $isAbsolute);
         
         return $url;
     }
