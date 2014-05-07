@@ -1487,19 +1487,21 @@ class doc_DocumentPlg extends core_Plugin
         
     
     /**
-     * @todo Чака за документация...
+     * След извличане на ключовите думи
      */
     function on_AfterGetSearchKeywords($mvc, &$res, $id)
     {
-        if ($res) {
+       	$rec = $mvc->fetchRec($id);
+    	
+    	if ($res) {
+    		
+    		// Ако има ид, добавяме хендлъра към ключовите думи
+            if($rec->id){
+            	$handle = $mvc->getHandle($rec->id);
+            	$res .= " " . plg_Search::normalizeText($handle);
+            }
             
             return;
-        }
-        
-        if(is_object($id)) {
-            $rec = $id;
-        } else {
-            $rec = $mvc->fetch($id);
         }
         
         $res = plg_Search::getKeywords($mvc, $rec);
