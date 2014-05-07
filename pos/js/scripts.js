@@ -9,10 +9,10 @@ function posActions() {
 	} 
 		
 	
-	var width = parseInt($('.pos-product').length) * 45 + 45;
+	var width = (parseInt($('.pos-product').length)+1) * 45 ;
 
 	$('.narrow #pos-products > div').css('width',width);
-	//$('.narrow #pos-products > div').css('width','100');
+	
 	
 	// Засветяване на избрания ред и запис в хидън поле
 	$(".pos-sale").live("click", function() {
@@ -214,7 +214,7 @@ function posActions() {
 				counter++;
 			});
 		}
-		var width = parseInt(counter*45);
+		var width = parseInt((counter+1) * 45 );
 		$('.narrow #pos-products > div').css('width',width);
 	});
 	
