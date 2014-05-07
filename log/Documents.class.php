@@ -1822,10 +1822,10 @@ class log_Documents extends core_Manager
                 
                 $wordings = array(
                     static::ACTION_SEND    => array('изпр', 'изпр'),
-                    static::ACTION_RECEIVE => array('п', 'п'),
+                    static::ACTION_RECEIVE => array('пол', 'пол'),
                     static::ACTION_RETURN  => array('вр', 'вр'),
                     static::ACTION_PRINT   => array('отп', 'отп'),
-                    static::ACTION_OPEN   => array('в', 'в'),
+                    static::ACTION_OPEN   => array('виж', 'виж'),
                     static::ACTION_DOWNLOAD => array('св', 'св'),
                     static::ACTION_CHANGE => array('пром', 'пром'),
                     static::ACTION_FORWARD => array('преп', 'преп'),
