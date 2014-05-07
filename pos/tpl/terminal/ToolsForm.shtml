@@ -4,21 +4,21 @@
 	<div class='input-field'>[#INPUT_FLD#]</div>
 	<div class='clearfix21'></div>
 	<div class='num-keyboard'>
-	<input class="buttonForm numPad" type="button" value="1"></input>
-	<input class="buttonForm numPad" type="button" value="2"></input>
-	<input class="buttonForm button numPad" type="button" value="3"></input>
+	<input class="buttonForm numPad" type="button" value="1"/>
+	<input class="buttonForm numPad" type="button" value="2"/>
+	<input class="buttonForm button numPad" type="button" value="3"/>
 	<br />
-	<input class="buttonForm numPad" type="button" value="4"></input>
-	<input class="buttonForm numPad" type="button" value="5"></input>
-	<input class="buttonForm numPad" type="button" value="6"></input>
+	<input class="buttonForm numPad" type="button" value="4"/>
+	<input class="buttonForm numPad" type="button" value="5"/>
+	<input class="buttonForm numPad" type="button" value="6"/>
 	<br />
-	<input class="buttonForm numPad" type="button" value="7"></input>
-	<input class="buttonForm numPad" type="button" value="8"></input>
-	<input class="buttonForm numPad" type="button" value="9"></input>
+	<input class="buttonForm numPad" type="button" value="7"/>
+	<input class="buttonForm numPad" type="button" value="8"/>
+	<input class="buttonForm numPad" type="button" value="9"/>
 	<br />
-	<input class="buttonForm numPad" type="button" value="."></input>
-	<input class="buttonForm numPad" type="button" value="0"></input>
-	<input class="buttonForm numBack" type="button" value="<<"></input>
+	<input class="buttonForm numPad" type="button" value="."/>
+	<input class="buttonForm numPad" type="button" value="0"/>
+	<input class="buttonForm numBack" type="button" value="<<"/>
 	</div>
 	<div class='tools-btn'>
 	[#FIRST_TOOLS_ROW#]
@@ -29,13 +29,13 @@
 <!--ET_END TAB_TOOLS-->
 
 <!--ET_BEGIN CHOOSE_DIV-->
-
 [#CHOOSE_DIV#]
 
 <!--ET_END CHOOSE_DIV-->
 
 <!--ET_BEGIN SEARCH_DIV-->
-
+[#KEYBOARDS#]
+<input class="" type="text" id='select-input-pos' name='select-input-pos'/>
 [#SEARCH_DIV#]
 
 <!--ET_END SEARCH_DIV-->
@@ -44,21 +44,21 @@
 <div class='input-field'>[#INPUT_PAYMENT#]</div>
 <div class='clearfix21'></div>
 <div class='num-keyboard'>
-	<input class="buttonForm numPad" type="button" value="1"></input>
-	<input class="buttonForm numPad" type="button" value="2"></input>
-	<input class="buttonForm numPad" type="button" value="3"></input>
+	<input class="buttonForm numPad" type="button" value="1"/>
+	<input class="buttonForm numPad" type="button" value="2"/>
+	<input class="buttonForm numPad" type="button" value="3"/>
 	<br />
-	<input class="buttonForm numPad" type="button" value="4"></input>
-	<input class="buttonForm numPad" type="button" value="5"></input>
-	<input class="buttonForm numPad" type="button" value="6"></input>
+	<input class="buttonForm numPad" type="button" value="4"/>
+	<input class="buttonForm numPad" type="button" value="5"/>
+	<input class="buttonForm numPad" type="button" value="6"/>
 	<br />
-	<input class="buttonForm  numPad" type="button" value="7"></input>
-	<input class="buttonForm  numPad" type="button" value="8"></input>
-	<input class="buttonForm  numPad" type="button" value="9"></input>
+	<input class="buttonForm  numPad" type="button" value="7"/>
+	<input class="buttonForm  numPad" type="button" value="8"/>
+	<input class="buttonForm  numPad" type="button" value="9"/>
 	<br />
-	<input class="buttonForm  numPad" type="button" value="."></input>
-	<input class="buttonForm numPad" type="button" value="0"></input>
-	<input class="buttonForm numBack" type="button" value="<<"></input>
+	<input class="buttonForm  numPad" type="button" value="."/>
+	<input class="buttonForm numPad" type="button" value="0"/>
+	<input class="buttonForm numBack" type="button" value="<<"/>
 </div>
 <div class='colum-btn'>
 [#PAYMENT_TYPE#]

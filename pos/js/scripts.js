@@ -238,11 +238,36 @@ function posActions() {
 		var currentAttrValue= $(this).attr('href');
 
 		$('.tab-content' + currentAttrValue).show().siblings().hide();
-		console.log(currentAttrValue);
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
 
 		e.preventDefault();
 	}); 
+	
+	// Смяна на текущата клавиатура
+	$('.keyboard-change-btn').on('click',function(e) {
+		var currentAttrValue = $(this).attr('data-klang');
+		$('.keyboard#' + currentAttrValue).show().siblings().hide();
+	}); 
+	
+	// Попълване на символи от клавиатурата
+	$('.keyboard-btn').live("click", function() {
+		var currentAttrValue = $(this).val();
+		
+		if(currentAttrValue == 'SPACE'){
+			currentAttrValue = ' ';
+		}
+		var inpVal = $("#select-input-pos").val();
+		inpVal += currentAttrValue;
+		$("#select-input-pos").val(inpVal);
+	}); 
+	
+	// Триене на символи от формата за търсене
+	$(".keyboard-back-btn").live("click", function() {
+		var inpValLength = $("#select-input-pos").val().length;
+		var newVal = $("#select-input-pos").val().substr(0, inpValLength-1);
+		
+		$("#select-input-pos").val(newVal);
+	});
 }
 
 function calculateWidth(){

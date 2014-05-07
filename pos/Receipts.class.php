@@ -577,6 +577,8 @@ class pos_Receipts extends core_Master {
     {
     	expect($rec = $this->fetchRec($id));
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('SEARCH_DIV');
+    	$keyboardsTpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
+    	$block->replace($keyboardsTpl, 'KEYBOARDS');
     	
     	$formChoose = cls::get('core_Form');
     	$formChoose->view = 'horizontal';
