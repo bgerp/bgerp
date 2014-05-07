@@ -58,7 +58,7 @@ class bgerp_F extends core_Manager
         if (!$fh = array_search($name, $linkedFiles)) {
             
             // Обхождаме масива с файловете в документа
-            foreach ($linkedFiles as $fh => $name) {
+            foreach ($linkedFiles as $fh => $dummy) {
                 
                 // Вземаме записа
                 $fRec = fileman_Files::fetchByFh($fh);
