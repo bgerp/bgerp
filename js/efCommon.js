@@ -20,12 +20,6 @@ function runOnLoad(functionName)
 }
 
 
-function check(){
-	$(window).resize( function() {
-		scaleViewport();
-	});
-}
-
 // Функция за лесно селектиране на елементи
 function get$()
 {
