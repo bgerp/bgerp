@@ -686,16 +686,32 @@ class doc_Folders extends core_Master
         $rec->inCharge = $userId;
         $rec->access = 'private';
 
-        $corpAccRec = email_Accounts::getCorporateAcc();
-
-        if($corpAccRec) {
-            $rec->email = "{$nick}@{$corpAccRec->domain}";
-            $rec->accountId = $corpAccRec->id;
+        // Ако има избрана кутия по подразбиране
+        if ($inboxId = crm_Personalization::getInboxId($userId)) {
+            
+            $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, $userId);
+        }
+        
+        if ($emailOptions[$inboxId]) {
+            
+            $inboxRec = email_Inboxes::fetch($inboxId);
+            
+            $rec->email = $inboxRec->email;
+            $rec->accountId = $inboxRec->accountId;
             $folderId = email_Inboxes::forceCoverAndFolder($rec);
         } else {
-            $rec->name = "Документите на {$nick}";
-            $folderId = doc_UnsortedFolders::forceCoverAndFolder($rec);
-        }
+            
+            $corpAccRec = email_Accounts::getCorporateAcc();
+            
+            if($corpAccRec) {
+                $rec->email = "{$nick}@{$corpAccRec->domain}";
+                $rec->accountId = $corpAccRec->id;
+                $folderId = email_Inboxes::forceCoverAndFolder($rec);
+            } else {
+                $rec->name = "Документите на {$nick}";
+                $folderId = doc_UnsortedFolders::forceCoverAndFolder($rec);
+            }
+        } 
 
         return $folderId;
     }
