@@ -539,9 +539,9 @@ class price_ListDocs extends core_Master
     	$rec = &$data->rec;
     	$detailTpl = $tpl->getBlock("GROUP");
     	
-    	$this->alignPrices($data);
-    	
     	if($rec->products->rows){
+    		
+    		$this->alignPrices($data);
     		
     		foreach ($rec->products->rows as $groupId => $products){
     			if(count($products) != 0){
