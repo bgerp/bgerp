@@ -59,6 +59,11 @@ class blast_ListDetails extends core_Detail
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'blast,ceo,admin';
+
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'blast,ceo,admin';
     
 	
     /**
