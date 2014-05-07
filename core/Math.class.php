@@ -29,7 +29,11 @@ class core_Math
      */
 	public static function roundNumber($number, &$fractionalLen = 0, $significantDigits = NULL)
 	{
-        if($significantDigits === NULL) {
+        if(!$fractionalLen){
+        	$fractionalLen = 0;
+        }
+		
+		if($significantDigits === NULL) {
             
             // Вземаме конфигурацията на пакета ef	    
             $conf = core_Packs::getConfig('core');
@@ -39,13 +43,13 @@ class core_Math
 	    
 	    // Плаваща, лимитирана от долу прецизност
 	    $precision =  max($fractionalLen, round($significantDigits - log10($number)));
-	
+		
 	    // Закръгляваме
 	    $number = round($number, $precision);
-        
-        // Дължината на дробната част
-        $thisFractionalLen = strlen(strstr($number, '.'));
-        
+	    
+	    // Дължината на дробната част
+        $thisFractionalLen = strlen(substr(strrchr($number, "."), 1));
+       
         if($thisFractionalLen > $fractionalLen) {
             
             // Записваме новата по-голяма част
@@ -55,9 +59,8 @@ class core_Math
 
             // Падваме с 0-ли отдясно
             $number = str_pad($number, $fractionalLen, "0", STR_PAD_RIGHT);
-
-        }
-		
+		}
+	    
 	    return $number;
 	}
 }
