@@ -739,8 +739,8 @@ class pos_ReceiptDetails extends core_Detail {
     		if($rec->productId) {
     			$obj->action  = 'sale';
     			$obj->pack    = ($rec->value) ?  $rec->value : NULL;
-    			$pInfo = cat_Products::getProductInfo($rec->productId, 1);
-    			$obj->quantityInPack = ($info->packagingRec) ? $info->packagingRec->quantity : 1;
+    			$pInfo = cat_Products::getProductInfo($rec->productId, $obj->pack);
+    			$obj->quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
     			$obj->value   = $rec->productId;
     			$obj->storeId = $storeId;
     			$obj->param   = $rec->param;

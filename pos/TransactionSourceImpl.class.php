@@ -89,7 +89,7 @@ class pos_TransactionSourceImpl
     	
     	foreach ($products as $product) {
     		
-    		$product->totalQuantity = currency_Currencies::round($product->quantity * $product->quantityInPack);
+    		$product->totalQuantity = round($product->quantity * $product->quantityInPack, 2);
     		$totalAmount   = currency_Currencies::round($product->amount);
     		if($product->param){
     			$totalVat[$product->contragentClassId ."|". $product->contragentId] += $product->param * $product->amount;
