@@ -706,7 +706,7 @@ class core_App
             $pre .= $params['Act'] . '/';
         }
 
-        if ($params['id']) {//bp($params['id']);
+        if ($params['id']) {
             $pre .= urlencode($params['id']) . '/';
         }
 
@@ -776,7 +776,7 @@ class core_App
         if ($params['#']) {
             $url1 .= '#' . $params['#'];
         }
-if ($preParamsArr) bp($url1);
+        
         return $url1;
     }
 
