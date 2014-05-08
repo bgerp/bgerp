@@ -85,16 +85,8 @@ class bgerp_F extends core_Manager
         // Записваме, ако не е записоно, че файла е отворено от ip
         log_Documents::opened($rec->containerId, $mid);
         
-        // Ако имаме права
-        if (fileman_Files::haveRightFor('single', $fRec)) {
-            
-            // URL към single'а на файла
-            $url = toUrl(array('fileman_Files', 'single', $fh), TRUE);
-        } else {
-            
-            // URL за сваляне
-            $url = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), TRUE);    
-        }
+        // В зависимост от това дали има права за разгреждане - линк към сингъла или за сваляне
+        $url = fileman_Download::generateUrl($fh, TRUE);
         
         // Записваме в лога за файлове, информация за свалянето
         log_Documents::downloaded($mid, $fh);
