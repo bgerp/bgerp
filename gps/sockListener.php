@@ -25,55 +25,30 @@ fwrite(STDOUT, "OK|" . getmypid());
 do {
     $string = stream_socket_recvfrom($socket, 149, 0, $peer);
 
-    $res[] = $string;
+    // Ако са данни различни от команда ги пращаме към bgERP-a
+    $url = "http://{$domain}/gps_Log/Log/?";
+    $trackerData = splitData($string);
     
-    // Ако има външна команда
-    switch ($string) {
-        case "STOP!":
-            stream_socket_sendto($socket, "STOP!_OK", 0, $peer);
-            //stream_socket_sendto($socket, EOF, 0, $peer); 
-            $string = FALSE;
-        break;
-        case "STARTED?":
-            stream_socket_sendto($socket, "STARTED?_OK", 0, $peer);
-            array_pop($res); // Вадим командата
-        break;
-        case "GET!":
-            foreach ($res as $data) {
-                if ($data == "GET!") {
-                    $data .= "_OK";
-                }
-                stream_socket_sendto($socket, $data, 0, $peer);
-            }
-            unset($res);
-//            stream_socket_sendto($socket, EOF, 0, $peer);
-        break;
-        default : // Ако са данни различни от команда ги пращаме към bgERP-a
-            $url = "http://{$domain}/gps_Log/Log/?";
-            $trackerData = splitData($string);
-            
-            if ($trackerData['CRC'] != crc16($trackerData['allData'])) {
-                // Гласим параметрите за URL-то да пратят грешка
-                $trackerData['ID'] = 'CRC Error';
-                $trackerData['data'] = '';
-            }
-            
-            $params = array('trackerId'=>$trackerData['ID'],
-                    'data'=>$trackerData['data'],
-                    'remoteIp'=>$peer);
-            
-            $url .= http_build_query($params);
-            //fwrite(STDOUT, $url);
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_TIMEOUT,1);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-            $ans = curl_exec($ch);
-            curl_close($ch);
-             
-            //return ($ans);            
+    if ($trackerData['CRC'] != crc16($trackerData['allData'])) {
+        // Гласим параметрите за URL-то да пратят грешка
+        $trackerData['ID'] = 'CRC Error';
+        $trackerData['data'] = '';
     }
+    
+    $params = array('trackerId'=>$trackerData['ID'],
+            'data'=>$trackerData['data'],
+            'remoteIp'=>$peer);
+    
+    $url .= http_build_query($params);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_TIMEOUT,1);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+    $ans = curl_exec($ch);
+    curl_close($ch);
+
 } while ($string !== false);
 
 
@@ -81,7 +56,7 @@ function splitData($string)
 {
     $res = array();
 
-    $res['start'] = substr($string, 0, 2); // Винаги трябва да е $$
+    $res['start'] = substr($string, 0, 2); // Винаги трябва да е $$ за този модел
     $res['L'] = toHex(substr($string, 2, 2)); // Дължина на целия пакет данни
     $res['ID'] = toHex(substr($string, 4, 6)); // Последното от ID-то е винаги ff - и го прескачаме
     $res['CMD'] = toHex(substr($string, 11, 3)); // Команда
