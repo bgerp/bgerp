@@ -47,7 +47,7 @@ class plg_AlignDecimals2 extends core_Plugin
     	foreach ($recs as $id => &$rec){
 			foreach ($decFields as $fName){
 				$Double->params['decimals'] = ${"{$fName}FracLen"};
-				$rec->$fName = core_Math::roundNumber($rec->$fName, &${"{$fName}FracLen"});
+				$rec->$fName = core_Math::roundNumber($rec->$fName, ${"{$fName}FracLen"});
 				$rows[$id]->$fName = $Double->toVerbal($rec->$fName);
 			}
 		}
