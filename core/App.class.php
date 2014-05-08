@@ -584,9 +584,14 @@ class core_App
     /**
      * Създава URL от параметрите
      *
-     * $param string $type Може да бъде relative|absolute|internal
+     * @param array $params
+     * @param string $type Може да бъде relative|absolute|internal
+     * @param boolean $protect
+     * @param array $preParamsArr - Масив с имената на параметрите, които да се добавят в pre, вместо като GET
+     * 
+     * @return string
      */
-    public static function toUrl($params = array(), $type = NULL, $protect = TRUE)
+    public static function toUrl($params = array(), $type = NULL, $protect = TRUE, $preParamsArr = array())
     {
         if(!$params) $params = array();
         
@@ -701,12 +706,37 @@ class core_App
             $pre .= $params['Act'] . '/';
         }
 
-        if ($params['id']) {
+        if ($params['id']) {//bp($params['id']);
             $pre .= urlencode($params['id']) . '/';
         }
 
         unset($params['Ctr'], $params['App'], $params['Act'], $params['id']);
-
+        
+        // Ако е сетнат масива
+        if ($preParamsArr) {
+            
+            // Обхождаме всички параметри
+            foreach ($preParamsArr as $param) {
+                
+                // Ако има стойност
+                if (isset($params[$param])) {
+                    
+                    // Ако не отоговаря на регулярния израз, да се остави за GET
+                    // [^A-Za-z0-9_\-\.]
+                    if (preg_match('/[^\w\-\.]/', $params[$param])) {
+                        
+                        continue;   
+                    }
+                    
+                    // Добавяме към стринга
+                    $pre .= urlencode($param) . '/' . urlencode($params[$param]) . '/';
+                    
+                    // Премахваме от масива
+                    unset($params[$param]);
+                }
+            }
+        }
+        
         foreach ($params as $name => $value) {
 
             if ($name == '#') continue;
@@ -728,7 +758,7 @@ class core_App
                 }
             }
         }
-
+        
         switch($type) {
             case 'local' :
                 $url1 = ltrim($pre . $url, '/');
@@ -746,7 +776,7 @@ class core_App
         if ($params['#']) {
             $url1 .= '#' . $params['#'];
         }
-
+if ($preParamsArr) bp($url1);
         return $url1;
     }
 
@@ -1294,11 +1324,16 @@ function sbf($rPath, $qt = '"', $absolute = FALSE)
 /**
  * Създава URL от параметрите
  *
- * $param string $type Може да бъде relative|absolute|internal
+ * @param array $params
+ * @param string $type Може да бъде relative|absolute|internal
+ * @param boolean $protect
+ * @param array $preParamsArr - Масив с имената на параметрите, които да се добавят в pre вместо, като GET
+ * 
+ * @return string
  */
-function toUrl($params = array(), $type = 'relative', $protect = TRUE)
+function toUrl($params = array(), $type = 'relative', $protect = TRUE, $preParamsArr = array())
 {
-    return core_App::toUrl($params, $type, $protect);
+    return core_App::toUrl($params, $type, $protect, $preParamsArr);
 }
 
 
