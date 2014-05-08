@@ -537,7 +537,7 @@ class fileman_Download extends core_Manager {
                 $size =  str_ireplace('&nbsp;', ' ', $size);
                     
                 //Добавяме към атрибута на линка информация за размера
-                $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер:|* {$size}");
+                $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер|*: {$size}");
                 
                 $attr['rel'] = 'nofollow';
                 
@@ -570,8 +570,15 @@ class fileman_Download extends core_Manager {
      */
     static function generateUrl_($fh, $isAbsolute)
     {
-        //Генерираме връзката 
-        $url = toUrl(array('fileman_Files', 'single', $fh), $isAbsolute);
+        $rec = fileman_Files::fetchByFh($fh);
+        
+        if (fileman_Files::haveRightFor('single', $rec)) {
+            //Генерираме връзката 
+            $url = toUrl(array('fileman_Files', 'single', $fh), $isAbsolute);
+        } else {
+            //Генерираме връзката за сваляне
+            $url = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), $isAbsolute);
+        }
         
         return $url;
     }
