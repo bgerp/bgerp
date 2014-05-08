@@ -731,7 +731,11 @@ class pos_Receipts extends core_Master {
     	$this->requireRightFor('close', $rec);
     	
     	$rec->state = 'active';
-    	$this->save($rec);
+    	if($this->save($rec)){
+    		
+    		// Обновяваме складовите наличностти
+    		pos_Stocks::updateStocks($rec->id);
+    	}
     	
     	// Ако не трябва да се прави фактура редирект към новата бележка
     	if(empty($makeInvoice)){

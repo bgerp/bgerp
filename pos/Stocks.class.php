@@ -3,7 +3,7 @@
 
 
 /**
- * Модел Складови наличностти
+ * Модел "Складови наличностти"
  *
  *
  * @category  bgerp
@@ -19,52 +19,58 @@ class pos_Stocks extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = 'Складови наличностти';
+    public $title = 'Складови наличностти';
     
     
     /**
      * Дали може да бъде само в началото на нишка
      */
-    var $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = TRUE;
     
     
     /**
      * Плъгини за зареждане
      */
-   var $loadList = 'pos_Wrapper,plg_Sorting';
+    public $loadList = 'pos_Wrapper,plg_Sorting';
     
 
     /**
 	 *  Брой елементи на страница 
 	 */
-    var $listItemsPerPage = "40";
+    public $listItemsPerPage = "40";
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'pos, ceo';
+    public $canRead = 'pos, ceo';
  
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'no_one';
+    public $canWrite = 'no_one';
     
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo, pos';
+	public $canList = 'ceo, pos';
 	
 	
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'productId,storeId,quantity,lastUpdated,state';
+    public $listFields = 'productId,storeId,quantity,lastUpdated,state';
     
 	
+    /**
+     * Работен кеш
+     */
+    static $cache = array();
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -72,7 +78,7 @@ class pos_Stocks extends core_Manager {
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
-        $this->FLD('quantity', 'double', 'caption=Количество->Общо');
+        $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
         $this->FLD('lastUpdated', 'datetime(format=smartTime)', 'caption=Последен ъпдейт,input=none');
         $this->FLD('state', 'enum(active=Активирано,closed=Затворено)', 'caption=Състояние,input=none');
         
@@ -121,19 +127,8 @@ class pos_Stocks extends core_Manager {
     		// Ако няма точка за склада - пропускаме записа
     		if(!in_array($storeId, $storesArr)) continue;
     		
-    		$rec = (object)array('storeId'   => $storeId,
-    							 'productId' => $productId,
-    							 'quantity'  => $amount,
-    		);
-    		
-    		
-    		// Ако има съществуващ запис се обновява количеството му
-	    	$exRec = static::fetch("#productId = {$productId} AND #storeId = {$storeId}");
-	    	if($exRec){
-	    		$exRec->quantity = $rec->quantity;
-	    		$rec = $exRec;
-	    	}
-	    	
+    		$rec = (object)array('storeId'   => $storeId, 'productId' => $productId, 'quantity'  => $amount,);
+    	
 	    	// Обновяване на датата за ъпдейт
 	    	$rec->lastUpdated = $date;
 	    	
@@ -144,6 +139,108 @@ class pos_Stocks extends core_Manager {
 	    	static::save($rec);
     	}
     	
+    	// Приспада количествата от не-отчетените бележки
+    	static::applyPosStocks();
+    }
+    
+    
+    /**
+     * След взимане на количествата от баланса, отчитаме всички не-отчетени бележки
+     */
+    private function applyPosStocks()
+    {
+    	// Намираме всички активирани бележки
+    	$activeReceipts = array();
+    	$receiptDetailsQuery = pos_ReceiptDetails::getQuery();
+    	$receiptDetailsQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+    	$receiptDetailsQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
+    	$receiptDetailsQuery->where("#state = 'active'");
+    	$receiptDetailsQuery->where("#action LIKE '%sale%'");
+    	$receiptDetailsQuery->show("state,productId,pointId,quantity,value,receiptId");
     	
+    	// За всяка активирана бележка, трупаме я в масив
+    	while($dRec = $receiptDetailsQuery->fetch()){
+    		$dRec->storeId = pos_Points::fetchField($dRec->pointId, 'storeId');
+    		if(!static::$cache[$dRec->productId][$dRec->value]){
+    			static::$cache[$dRec->productId][$dRec->value] = cat_Products::getProductInfo($dRec->productId, $dRec->value);
+    		}
+    		$info = static::$cache[$dRec->productId][$dRec->value];
+    		$dRec->quantityInPack = ($info->packagingRec) ? $info->packagingRec->quantity : 1;
+    		$activeReceipts[] = $dRec;
+    	}
+    	
+    	// Ако няма не-отчетени бележки, не правим нищо
+    	if(!count($activeReceipts)) return;
+    	
+    	// За всеки запис, форсираме го
+    	foreach ($activeReceipts as $receiptRec){
+    		static::forceRec($receiptRec);
+    	}
+    }
+    
+    
+    /**
+     * Форсира запис в модела
+     */
+    private static function forceRec($receiptRec) 
+    {
+    	// Ако има запис за този продукт и склад, обновява се ако няма се създава
+    	if(!$rec = static::fetch("#storeId = '{$receiptRec->storeId}' AND #productId = '{$receiptRec->productId}'")){
+    		$rec = new stdClass();
+    		$rec->storeId     = $receiptRec->storeId;
+    		$rec->productId   = $receiptRec->productId;
+    		$rec->lastUpdated = dt::now();
+    	}
+    	
+    	$rec->quantity -= $receiptRec->quantity * $receiptRec->quantityInPack;
+    	$rec->state = ($rec->quantity) ? 'active' : 'closed';
+    	
+    	static::save($rec);
+    }
+    
+    
+    /**
+     * Изважда к-та на продуктите от една бележка от склада, извиква се при активиране на бележка
+     */
+    public static function updateStocks($receiptId)
+    {
+    	expect($rec = pos_Receipts::fetch($receiptId));
+    	$storeId = pos_Points::fetchField($rec->pointId, 'storeId');
+    	$products = pos_Receipts::getProducts($receiptId);
+    	
+    	// Форсираме записи за всички продукти от тази бележка
+    	foreach ($products as $prRec){
+    		$prRec->storeId = $storeId;
+    		static::forceRec($prRec);
+    	}
+    }
+    
+    
+	/**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
+    	$row->productId = cat_Products::getHyperLink($rec->productId, TRUE);
+    }
+    
+    
+    /**
+     * Връща количеството на даден продукт, на дадена точка
+     * 
+     * @param int $productId - ид на продукт
+     * @param int $pointId - ид на точка
+     * @return double - количеството на продукта в склада на точката
+     */
+    public static function getQuantity($productId, $pointId)
+    {
+    	$storeId = pos_Points::fetchField($pointId, 'storeId');
+    	
+    	return static::fetchField("#storeId = '{$storeId}' AND #productId = '{$pointId}'", 'quantity');
     }
 }
