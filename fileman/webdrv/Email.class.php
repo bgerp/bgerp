@@ -264,7 +264,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $filesArr = keylist::toArray($filesKeyList);
         
         foreach ($filesArr as $keyD => $dummy) {
-            $filesStr .= fileman_Download::getDownloadLinkById($keyD) . "\n";
+            $filesStr .= fileman_Files::getLinkById($keyD) . "\n";
         }
 
         // Връщаме стринга
@@ -307,7 +307,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         
         // Обхождаме всички файлове и вземаме линк за сваляне
         foreach ($allFiles as $keyD => $dummy) {
-            $filesStr .= fileman_Download::getDownloadLinkById($keyD) . "\n";
+            $filesStr .= fileman_Files::getLinkById($keyD) . "\n";
         }
         
         // Връщаме стринга

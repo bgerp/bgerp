@@ -492,12 +492,8 @@ class fileman_Files extends core_Master
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
         try {
-		
-			$row->name = $mvc->Download->getDownloadLink($rec->fileHnd);
-		
-        } catch(core_Exception_Expect $e) {
-             
-        }
+			$row->name = static::getLink($rec->fileHnd);
+        } catch(core_Exception_Expect $e) { }
     }
     
     
@@ -1050,7 +1046,7 @@ class fileman_Files extends core_Master
         $rec = static::fetch($id);
         $fileHnd = $rec->fileHnd;
         
-        return fileman_Download::getDownloadLink($fileHnd);
+        return static::getLink($fileHnd);
     }
     
     
@@ -1181,5 +1177,163 @@ class fileman_Files extends core_Master
         }
         
         return $id;
+    }
+    
+    
+    /**
+     * Ако имаме права за сваляне връща html <а> линк за сваляне на файла.
+     */
+    static function getLink($fh, $title=NULL)
+    {
+    	$conf = core_Packs::getConfig('fileman');
+    	
+        //Намираме записа на файла
+        $fRec = static::fetchByFh($fh);
+        
+        //Проверяваме дали сме отркили записа
+        if(!$fRec) {
+            
+            sleep(2);
+            
+            return FALSE;
+        }
+        
+		// Дали файла го има? Ако го няма, вместо линк, връщаме името му
+		$path = static::fetchByFh($fh, 'path');
+        
+		// Тримваме титлата
+		$title = trim($title);
+
+		// Ако сме подали
+		if ($title) {
+		    
+		    // Използваме него за име
+		    $name = $title;
+		    
+		    // Обезопасяваме името
+		    $name = core_Type::escape($name);
+		} else {
+		    
+		    // Ако не е подадено, използваме името на файла
+		    
+		    //Името на файла
+            $name = static::getVerbal($fRec, 'name');
+		}
+        
+        //Разширението на файла
+        $ext = static::getExt($fRec->name);
+        
+        //Иконата на файла, в зависимост от разширението на файла
+        $icon = "fileman/icons/{$ext}.png";
+        
+        //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
+        if (!is_file(getFullPath($icon))) {
+            $icon = "fileman/icons/default.png";
+        }
+        
+        // Икона на линка
+        $attr['ef_icon'] = $icon;
+        
+        // Клас на връзката
+        $attr['class'] = 'file';
+
+        // Ограничаваме максиманата дължина на името на файла
+        $nameFix = str::limitLen($name, 32);
+
+        if($nameFix != $name) {
+            $attr['title'] = $name;
+        }
+
+        //Инстанция на класа
+        $FileSize = cls::get('fileman_FileSize');
+        
+        // Титлата пред файла в plain режим
+        $linkFileTitlePlain = tr('Файл') . ": ";
+        
+        // Ако има данни за файла и съществува
+        if (($fRec->dataId) && file_exists($path)) {
+            
+            //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml
+            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+            
+            //Генерираме връзката 
+            $url  = static::generateUrl($fh, $isAbsolute);
+            
+            // Ако сме в текстов режим
+            if(Mode::is('text', 'plain')) {
+                
+                //Добаваме линка към файла
+                $link = "{$linkFileTitlePlain}$name ( $url )";
+            } else {
+                
+                //Големината на файла в байтове
+                $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
+                
+                //Преобразуваме големината на файла във вербална стойност
+                $size = $FileSize->toVerbal($fileLen);
+    
+                // Ако линка е в iframe да се отваря в родителския(главния) прозорец
+                $attr['target'] = "_parent";
+                
+                //Заместваме &nbsp; с празен интервал
+                $size =  str_ireplace('&nbsp;', ' ', $size);
+                    
+                //Добавяме към атрибута на линка информация за размера
+                $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер|*: {$size}");
+                
+                $attr['rel'] = 'nofollow';
+                
+                $link = ht::createLink($nameFix, $url, NULL, $attr);
+            }
+        } else {
+            
+            // Ако няма файл
+            
+            // Ако сме в текстов режим
+            if(Mode::is('text', 'plain')) {
+                
+                // Линка 
+                $link = $linkFileTitlePlain . $name;
+            } else {
+                if(!file_exists($path)) {
+    				$attr['style'] .= ' color:red;';
+    			}
+                //Генерираме името с иконата
+                $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$nameFix} </span>";
+            }
+        }
+        
+        return $link;
+    }
+    
+    
+    /**
+     * Прекъсваема функция за генериране на URL от манипулатор на файл
+     */
+    static function generateUrl_($fh, $isAbsolute)
+    {
+        $rec = static::fetchByFh($fh);
+        
+        if (static::haveRightFor('single', $rec)) {
+            
+            //Генерираме връзката 
+            $url = toUrl(array('fileman_Files', 'single', $fh), $isAbsolute);
+        } else {
+            //Генерираме връзката за сваляне
+            $url = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), $isAbsolute);
+        }
+        
+        return $url;
+    }
+    
+    
+    /**
+     * Връща линк за сваляне, според ID-то
+     */
+    static function getLinkById($id)
+    {
+        $fh = static::fetchField($id, 'fileHnd');
+        
+        return static::getLink($fh);
     }
 }

@@ -92,7 +92,7 @@ class fileman_RichTextPlg extends core_Plugin
         $fh = $match['fileHnd'];
         $place = $this->mvc->getPlace();
         
-        $link = fileman_Download::getDownloadLink($fh, $title);
+        $link = fileman_Files::getLink($fh, $title);
         
         if ($link) {
             if (is_object($link)) {

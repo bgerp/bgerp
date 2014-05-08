@@ -29,11 +29,9 @@ class fileman_FileType extends type_Varchar {
      */
     function toVerbal($fh)
     {
-        $Download = cls::get('fileman_Download');
-        
         if(!$fh) return "";
         
-        return $Download->getDownloadLink($fh);
+        return fileman_Files::getLink($fh);
     }
     
     
