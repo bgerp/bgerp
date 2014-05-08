@@ -37,7 +37,7 @@ class bgerp_plg_File extends core_Plugin
         $name = fileman_Files::fetchByFh($fh, 'name');
 
         //Генерираме връзката 
-        $res = toUrl(array('F', 'S', doc_DocumentPlg::getMidPlace(), 'n' => $name), $isAbsolute);
+        $res = toUrl(array('F', 'S', doc_DocumentPlg::getMidPlace(), 'n' => $name), $isAbsolute, TRUE, array('n'));
 
         return FALSE;
     }
