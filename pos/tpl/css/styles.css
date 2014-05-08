@@ -417,6 +417,43 @@ form #point {
     margin-bottom: 7px ;
 }
 
+.keyboard-btn, .keyboard-back-btn{
+	background: #303030 !important;
+	border-bottom: #000 2px solid !important;
+	border-top: 2px #303030 solid !important;
+	color: #fff !important;
+	min-width: 42px;
+	margin: 2px !important;
+	border-radius: 4px !important;
+	font-size: 1.1em !important;
+}
+.keyboard-row{
+	clear:both;
+	padding: 2px 0;
+}
+.keyboard-btn:hover, .keyboard-back-btn:hover{
+	border-top: #000 2px solid !important;
+	border-bottom: #303030 2px solid !important;
+	background: #505050 !important;
+	box-shadow: inset 0 0 50px #000;
+}
+.keyboard-change-btn{
+	background-color: #666 !important;
+	border-bottom: #505050 2px solid !important;
+    border-top: 2px #505050 solid !important;
+}
+
+.keyboard-change-btn:hover{
+    background: #505050 !important;
+    box-shadow: inset 0 0 50px #444 !important;
+}
+.keyboard-row{
+	white-space: nowrap;
+}
+
+#select-input-pos{
+	width: 100%;
+}
 .payment-type, .close-btn, .tools-btn{
 	float: left;
 	width: 17%;
@@ -522,15 +559,19 @@ form #point {
 	min-width: 140px !important;
 }
 
-.input-field input[type=text]{
+.input-field input[type=text], #select-input-pos{
 	width: 100%;
 	height: 2.1em;
 	font-size: 1.2em;
 	border: 1px solid #aaa;
 	border-radius: 4px;
 	box-shadow: inset 0 0 10px rgba(0,0,0,0.25), 2px 2px 2px rgba(0,0,0,0.2);
-}
 
+
+}
+ #select-input-pos{
+    margin: 20px 0;
+}
 .narrow .input-field input[type=text]{
     height:1.8em;
 }
@@ -669,5 +710,64 @@ form #point {
 }
 
 .tools-wide-select-content{
-	min-width: 256px;
+	min-width: 304px;
+}
+
+@media handheld, only screen and (max-width: 1600px) { 
+    .keyboard{
+       font-size:1em !important;
+    }
+    .keyboard-btn, .keyboard-back-btn{
+       min-width: 35px;
+    }
+}
+
+@media handheld, only screen and (max-width: 1400px) { 
+    .keyboard{
+       font-size:0.9em !important;
+    }
+    .keyboard-btn, .keyboard-back-btn{
+       min-width: 30px;
+       margin: 2px !important;
+    }
+}
+
+@media handheld, only screen and (max-width: 1200px) { 
+    .keyboard{
+       font-size:0.8em !important;
+    }
+    .keyboard-btn, .keyboard-back-btn{
+       min-width: 28px;
+       margin: 0 !important;
+    }
+}
+
+@media handheld, only screen and (max-width: 1000px) { 
+    .keyboard{
+       font-size:0.7em !important;
+    }
+    .keyboard-btn, .keyboard-back-btn{
+       min-width: 26px;
+       margin: 0 !important;
+    }
+}
+
+@media handheld, only screen and (max-width: 900px) { 
+    .keyboard{
+       font-size:0.6em !important;
+    }
+    .keyboard-btn, .keyboard-back-btn{
+       min-width: 24px;
+       margin: 0 !important;
+    }
+}
+
+@media handheld, only screen and (max-width: 800px) { 
+	.keyboard{
+	   font-size:0.5em !important;
+	}
+	.keyboard-btn, .keyboard-back-btn{
+	   min-width: 20px;
+	   margin: 0 !important;
+	}
 }
