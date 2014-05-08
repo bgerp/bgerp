@@ -677,7 +677,7 @@ class email_Incomings extends core_Master
                     $row->files = '';
                     
                     foreach ($vals as $keyD) {
-                        $row->files .= fileman_Download::getDownloadLinkById($keyD);
+                        $row->files .= fileman_Files::getLinkById($keyD);
                     }
                 } else {
                     $row->files = '';

@@ -180,7 +180,7 @@ class doc_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Вътрешни линкове в RichText', 'bgerp_plg_InternalLinkReplacement', 'type_Richtext', 'private');
         
         // Променя линка за сваляне на файла
-        $html .= $Plugins->installPlugin('Линкове за сваляне', 'bgerp_plg_File', 'fileman_Download', 'private');
+        $html .= $Plugins->installPlugin('Линкове на файлове след изпращане', 'bgerp_plg_File', 'fileman_Files', 'private');
         
         // Плъгин за работа с файлове в документите
         $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');

@@ -237,7 +237,7 @@ class doc_Files extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Името на файла да е линк към singле' a му
-        $row->fileHnd = fileman_Download::getDownloadLink($rec->fileHnd);
+        $row->fileHnd = fileman_Files::getLink($rec->fileHnd);
         
         // Документа
         $doc = doc_Containers::getDocument($rec->containerId);
