@@ -521,7 +521,7 @@ function getSelectedText(textarea)
 }
 
 // Редактор за BBCode текст: селектира ...
-function s(text1, text2, textarea, newLine, multiline, maxOneLine)
+function s(text1, text2, textarea, newLine, multiline, maxOneLine, everyLine)
 {	
 	if (typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange)
 	{					
@@ -540,7 +540,7 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine)
 				text1 = '[code=text]';
 			}
 			
-			if (previousChar !="\n"  && position != 0  && newLine){
+			if (previousChar !="\n"  && position != 0  && newLine && caretPos.text == ''){
 				text1 = "\n" + text1;
 			}	
 			
@@ -550,10 +550,13 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine)
 				}
 				text2 = "\n" + text2;
 			}
-			
 		}
-	
-		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text1 + caretPos.text + text2 + ' ' : text1 + caretPos.text + text2;
+		if(caretPos.text != '' && caretPos.text.indexOf("\n") && everyLine){
+			var temp = caretPos.text.replace(/\n/g, text2 + "\n" + text1);
+			caretPos.text = text1 + temp + text2 ;
+		} else {
+			caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text1 + caretPos.text + text2 + ' ' : text1 + caretPos.text + text2;
+		}
 		
 		if (temp_length == 0)
 		{
@@ -597,6 +600,9 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine)
 			text1 = "`";
 			text2 = "`";
 		} else{
+			if(selection != '' && selection.indexOf("\n") && everyLine){
+				selection = selection.replace(/\n/g, text2 + "\n" + text1);
+			}
 			
 			if(selection != '' && selection.indexOf("\n") == -1 && text2 == '[/code]') {
 				text1 = '[code=text]';
