@@ -86,7 +86,7 @@ class bgerp_F extends core_Manager
         log_Documents::opened($rec->containerId, $mid);
         
         // В зависимост от това дали има права за разгреждане - линк към сингъла или за сваляне
-        $url = fileman_Download::generateUrl($fh, TRUE);
+        $url = fileman_Download::generateUrl_($fh, TRUE);
         
         // Записваме в лога за файлове, информация за свалянето
         log_Documents::downloaded($mid, $fh);
