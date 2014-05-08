@@ -25,13 +25,23 @@ class gps_ListenerControl extends core_Manager
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,admin,gps';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,admin,gps';
+    public $canEdit = 'no_one';
+    
+    /**
+     * Кой има право да добавя?
+     */
+    public $canAdd = 'no_one';
+    
+    /**
+     * Кой има право да трие?
+     */
+    public $canDelete = 'no_one';
     
     /**
      * Кой може да го види?
@@ -44,7 +54,14 @@ class gps_ListenerControl extends core_Manager
      * var string|array
      */
     public $loadList = 'gps_Wrapper';    
-    
+
+    /**
+     * Полета за показване
+     *
+     * var string|array
+     */
+    public $listFields = 'pid';
+        
     /**
      * Описание на модела
      */
@@ -76,27 +93,44 @@ class gps_ListenerControl extends core_Manager
     
     }
     
-    
     /**
-     * Входна точка за спиране и пускане на листенер-а
+     * Ако няма записи не вади таблицата
      *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
      */
     public function act_ListenerControl()
     {
+
         $cmd = Request::get('cmd');
+        
         if ($cmd == 'start') {
             self::Start();
-        } else {
+        } elseif ($cmd == 'stop') {
             self::Stop();
         }
-        $res  = "<li>Статус: " . (self::isStarted()?'<font color=green>Стартиран</font>':'<font color=red>Спрян</font>'). "</li>";
-        $res .= "<li><a href='?cmd=start'>Стартиране</a></li>";
-        $res .= "<li><a href='?cmd=stop'>Спиране</a></li>";
         
-        return ($res);
+        redirect(array('gps_listenerControl'));
+    }
+
+    
+    /**
+     * Ако няма записи не вади таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    static function on_AfterRenderListTable($mvc, &$res, $data)
+    {
+        if (self::isStarted()) {
+            $data->toolbar->addBtn('Спиране', array('gps_listenerControl', 'listenerControl', 'cmd'=>'stop'), array('class' => 'btn-close'));
+        } else {
+            $data->toolbar->addBtn('Стартиране', array('gps_listenerControl', 'listenerControl', 'cmd'=>'start'), array('class' => 'btn-open'));
+        }
     }
     
-
     /**
      * Пуска листенер-а
      *
@@ -119,8 +153,9 @@ class gps_ListenerControl extends core_Manager
             $pid = exec(sprintf("%s > /dev/null 2>&1 & echo $!", $cmd));
             $rec->pid = $pid;
             $rec->data = $cmd;
+            $listenerControl = cls::get('gps_listenerControl');
             
-            $this->save($rec);  
+            $listenerControl->save($rec);  
         }
         
         return ($pid);

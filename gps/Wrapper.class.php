@@ -27,7 +27,7 @@ class gps_Wrapper extends plg_ProtoWrapper
     {
 
         $this->TAB('gps_Log', 'Точки', 'ceo,admin,gps');
-        $this->TAB(array('gps_ListenerControl', 'ListenerControl'), 'Контрол', 'admin,gps');
+        $this->TAB('gps_ListenerControl', 'Контрол', 'admin,gps');
         $this->TAB('gps_Trackers', 'Автомобили', 'ceo,admin,gps');
         
         $this->title = 'Мониторинг';
