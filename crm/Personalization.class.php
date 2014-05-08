@@ -186,8 +186,13 @@ class crm_Personalization extends core_Detail
         // id на потребителя, за този профил
         $userId = crm_Profiles::fetchField($form->rec->profileId, 'userId');
         
-        // Имейлите за този профил
-        $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, $userId);
+        try {
+            // Имейлите за този профил
+            $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, $userId);
+            
+        } catch (Exception $e) {
+            $emailOptions[] = '';
+        }
         
         // Задаваме опциите за съответния потребител
         $form->setOptions('inbox', $emailOptions);
