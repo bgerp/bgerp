@@ -520,7 +520,17 @@ function getSelectedText(textarea)
 	return selectedText;
 }
 
-// Редактор за BBCode текст: селектира ...
+
+/**
+ * Редактор за BBCode текст: селектира ...
+ * 
+ * @param text1 - текст, който се добавя в преди селектирания текст
+ * @param text2 - текст, който се добавя в след селектирания текст
+ * @param newLine - дали селектирания текст трябва да премине на нов ред
+ * @param multiline - дали началния текст, селектирания текст, крайния текст трябва да са на отделни редове
+ * @param maxOneLine - максимален брой символи за едноредов код
+ * @param everyLine - дали при селектиран текст обграждащите текстове се отнасят за всеки ред
+ */
 function s(text1, text2, textarea, newLine, multiline, maxOneLine, everyLine)
 {	
 	if (typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange)
