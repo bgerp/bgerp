@@ -329,23 +329,20 @@ function calculateWidth(){
 	var usefulWidth = winWidth - totalOffset;
 	
 	var maxColWidth = parseInt(usefulWidth/2) - 10;
-	var comboWidth = maxColWidth - 40;
 	if(maxColWidth < 285) {
 		maxColWidth = 245;
 	}
 	
+	//задаване на ширина на двете колони
 	$('#single-receipt').css('width', maxColWidth);
 	$('.tabs-holder-content').css('width', maxColWidth);
-	
 	$('.tools-wide-select-content').css('width', maxColWidth);
 
+	//максимална височина на дясната колона и на елементите й
 	$('.tools-wide-select-content').css('maxHeight', winHeight-85);
 	$('.wide #pos-products').css('maxHeight', winHeight-155);
 	
-	$('.tabs-holder-content .chzn-container').css('width',comboWidth);
-	$('.tabs-holder-content .chzn-container .chzn-drop').css('width',comboWidth - 2 );
-	$('.tabs-holder-content .chzn-container-single .chzn-search input').css('width',comboWidth - 12);
-	
+	//максимална височина на бележката
 	var downPanelHeight = parseInt($('#tools-holder').outerHeight());
 	$('.scrolling-vertical').css('maxHeight', winHeight -  totalOffset - downPanelHeight -30);
 	$('.scrolling-vertical').scrollTo = $('.scrolling-vertical').scrollHeight;
