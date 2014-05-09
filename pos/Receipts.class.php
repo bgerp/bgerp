@@ -377,7 +377,7 @@ class pos_Receipts extends core_Master {
 		// Можем да контираме бележки само когато те са чернови и платената
 		// сума е по-голяма или равна на общата или общата сума е <= 0
 		if($action == 'close' && isset($rec->id)) {
-			if($rec->total == 0 || $rec->paid < $rec->total) {
+			if($rec->total == 0 || round($rec->paid, 2) < round($rec->total, 2)) {
 				$res = 'no_one';
 			}
 		}
