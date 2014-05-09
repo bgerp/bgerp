@@ -242,7 +242,9 @@ function posActions() {
 
 		$('.tab-content' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
-
+		if($('body').hasClass('wide')){
+			calculateWidth();
+		}
 		e.preventDefault();
 	}); 
 	
@@ -341,6 +343,10 @@ function calculateWidth(){
 	//максимална височина на дясната колона и на елементите й
 	$('.tools-wide-select-content').css('maxHeight', winHeight-85);
 	$('.wide #pos-products').css('maxHeight', winHeight-155);
+	
+	//височина за таблицата с резултате
+	var searchTopHeight = parseInt($('.search-top-holder').height());
+	$('#pos-search-result-table').css('maxHeight', winHeight - searchTopHeight - 120);
 	
 	//максимална височина на бележката
 	var downPanelHeight = parseInt($('#tools-holder').outerHeight());

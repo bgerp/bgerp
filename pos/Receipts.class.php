@@ -861,7 +861,7 @@ class pos_Receipts extends core_Master {
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
     		$addUrl = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
-    		$row->addBtn = ht::createElement('img', array('src' => sbf('img/16/add.png', ''), 
+    		$row->addBtn = ht::createElement('img', array('src' => sbf('img/24/add.png', ''), 
     													   'class' => 'pos-add-res-btn', 'data-recId' => $data->rec->id,
     													   'data-url' => $addUrl, 'data-productId' => $obj->productId));
     	}

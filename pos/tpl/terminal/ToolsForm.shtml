@@ -34,8 +34,10 @@
 <!--ET_END CHOOSE_DIV-->
 
 <!--ET_BEGIN SEARCH_DIV-->
+<div class='search-top-holder'>
 [#KEYBOARDS#]
 [#INPUT_SEARCH#]
+</div>
 <div id='pos-search-result-table'>
 </div>
 
