@@ -792,7 +792,7 @@ class pos_Receipts extends core_Master {
 	    $data = new stdClass();
 	    $data->rec = $rec;
 	    $data->searchString = $searchString;
-	    	
+	    $data->baseCurrency = acc_Periods::getBaseCurrencyCode();
 	    $this->prepareSearchData($data);
 	    	
 	    return $this->renderSearchResultTable($data);
@@ -854,32 +854,33 @@ class pos_Receipts extends core_Master {
 			$values = NULL;
 			foreach ($params as $pId){
 				if($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")){
-					$row->productId .= " &nbsp;" .cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
+					$row->productId .= " &nbsp;" . cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
 				}
 			}
 		}
     	
     	$row->price = $Double->toVerbal($obj->price * (1 + $obj->vat));
-    	$row->price = $row->price;
+    	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
     	$row->stock = $Double->toVerbal($obj->stock);
     	
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
     		$addUrl = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
     		$row->addBtn = ht::createElement('img', array('src' => sbf('img/24/add.png', ''), 
-    													   'class' => 'pos-add-res-btn', 'data-recId' => $data->rec->id,
-    													   'data-url' => $addUrl, 'data-productId' => $obj->productId));
+    													  'class' => 'pos-add-res-btn', 'data-recId' => $data->rec->id,
+    													  'data-url' => $addUrl, 'data-productId' => $obj->productId));
     	}
     	
     	if($obj->stock < 0){
-    		$isRed = 'color:red';	
+    		$row->stock = "<span style='color:red'>$row->stock</span>";	
     	}
     	
-    	$row->stock = "<span style='{$isRed}'>$row->stock</span>";
+    	$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
     	if($obj->photo && !Mode::is('screenMode', 'narrow')) {
     		$thumb = new img_Thumb($obj->photo, 64, 64);
     		$arr = array();
     		$row->photo = "<div class='pos-search-pic'>" . $thumb->createImg($arr) . "</div>";
+    		$data->showImg = TRUE;
     	}
     	
     	return $row;
@@ -898,8 +899,10 @@ class pos_Receipts extends core_Master {
     	$fSet->FNC('stock', 'double', 'tdClass=pos-stock-field');
     	
     	$table = cls::get('core_TableView', array('mvc' => $fSet));
-    	
     	$fields = arr::make('photo=Снимка,productId=Продукт,price=Цена,stock=Наличност,addBtn=Добави');
+    	if(!$data->showImg){
+    		unset($fields['photo']);
+    	}
     	
     	return $table->get($data->rows, $fields)->getContent();
     }
