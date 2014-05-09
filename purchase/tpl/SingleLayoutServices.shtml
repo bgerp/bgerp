@@ -80,14 +80,6 @@
                                 <td>[#locationId#]</td>
                             </tr>
                         <!--ET_END locationId-->
-                        <!--ET_BEGIN currencyId-->
-                            <tr>
-                                <td class='quiet nowrap' align=right width=1%>|Валута|*: </td>
-                                <td><span class='cCode'>[#currencyId#]</span></td>
-                            </tr>
-                        <!--ET_END currencyId--> 
-                        
-                        
                         </table>
                        <!--ET_BEGIN note-->      
 	                        <hr>
