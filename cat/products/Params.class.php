@@ -105,16 +105,16 @@ class cat_products_Params extends cat_products_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$paramRec = cat_Params::fetch($rec->paramId);
-        if($paramRec->type != 'enum'){
-              $Type = cls::get(cat_Params::$typeMap[$paramRec->type]);
-              $row->paramValue = $Type->toVerbal($rec->paramValue);
-        }
-        
-        if($paramRec->type != 'percent'){
-              $row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
-        }
-       
+    	if($paramRec = cat_Params::fetch($rec->paramId)){
+	    	if($paramRec->type != 'enum'){
+	           $Type = cls::get(cat_Params::$typeMap[$paramRec->type]);
+	           $row->paramValue = $Type->toVerbal($rec->paramValue);
+	        }
+	        
+	        if($paramRec->type != 'percent'){
+	           $row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
+	        }
+    	}
     }
     
     
