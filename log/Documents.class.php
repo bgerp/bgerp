@@ -1564,7 +1564,7 @@ class log_Documents extends core_Manager
         static::pushAction($rec);
         
         // Добавяме запис в лога
-        $msg = tr("Свален файл|*: ") . fileman_Download::getDownloadLink($fh);
+        $msg = tr("Свален файл|*: ") . fileman_Download::getDownloadUrl($fh);
         
         core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
 
