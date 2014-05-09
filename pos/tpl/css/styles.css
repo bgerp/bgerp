@@ -742,9 +742,11 @@ form #point {
 }
 
 .wide #pos-search-result-table tr td:first-child{
-	width: 80px;
 	verical-align: middle;
 	text-align: center;
+}
+.pos-search-pic{
+	width: 80px;
 }
 
 #pos-search-result-table tr:nth-child(even) td {
