@@ -713,6 +713,7 @@ form #point {
 .tools-wide-select-content{
 	min-width: 304px;
 }
+
 #pos-search-result-table{
 	overflow-y:auto;
 	box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2) ,inset 0 0 20px rgba(0, 0, 0, 0.1);
@@ -737,13 +738,16 @@ form #point {
 .narrow #pos-search-result-table td{
 	height: 34px;
 }
+#pos-search-result-table tr td:last-child{
+	width: 1%;
+}
 
 #pos-search-result-table .linkWithIcon{
 	font-weight: bold;
 }
 
 .pos-add-res-btn{
-	margin: 0 5px;   
+	margin: 0 10px;   
 }
 
 .pos-add-res-btn:hover{
