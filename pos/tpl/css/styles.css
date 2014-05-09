@@ -742,6 +742,10 @@ form #point {
 	width: 1%;
 }
 
+.pos-photo-field{
+    width: 80px;
+}
+
 #pos-search-result-table .linkWithIcon{
 	font-weight: bold;
 }
@@ -756,7 +760,7 @@ form #point {
 }
 
 .pos-search-pic{
-	width: 80px;
+    width: 80px;
 	display: table-cell;
 	verical-align: middle;
 	text-align: center;
