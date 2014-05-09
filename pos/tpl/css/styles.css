@@ -733,20 +733,29 @@ form #point {
 	background-color: #fff;
 	height: 64px;
 }
+
+.narrow #pos-search-result-table td{
+	height: 34px;
+}
+
 #pos-search-result-table .linkWithIcon{
 	font-weight: bold;
 }
+
+.pos-add-res-btn{
+	margin: 0 5px;   
+}
+
 .pos-add-res-btn:hover{
 	cursor: pointer;
 	opacity:0.8;
 }
 
-.wide #pos-search-result-table tr td:first-child{
-	verical-align: middle;
-	text-align: center;
-}
 .pos-search-pic{
 	width: 80px;
+	display: table-cell;
+	verical-align: middle;
+	text-align: center;
 }
 
 #pos-search-result-table tr:nth-child(even) td {
