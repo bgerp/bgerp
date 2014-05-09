@@ -611,14 +611,17 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine, everyLine)
 			text2 = "`";
 		} else{
 			if(selection != '' && selection.indexOf("\n") && everyLine){
-				selection = selection.replace(/\n/g, text2 + "\n" + text1);
+				var startLine = begin.lastIndexOf("\n") + 1;
+				beginPosition = startLine ;
+				var tempSel =  textarea.value.substr(startLine, endPosition);
+				selection = tempSel.replace(/\n/g, text2 + "\n" + text1);
 			}
 			
 			if(selection != '' && selection.indexOf("\n") == -1 && text2 == '[/code]') {
 				text1 = '[code=text]';
 			}
 			
-			if (begin.charAt(begin.length-1) != "\n" && begin != '' && newLine) {
+			if (begin.charAt(begin.length-1) != "\n" && begin != '' && newLine && selection == '') {
 				text1 = "\n" + text1;
 			}
 			
