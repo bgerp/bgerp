@@ -875,11 +875,10 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$row->stock = "<span style='float:right;padding:0px 5px;{$isRed}'>$row->stock</span>";
-    	if($obj->photo) {
+    	if($obj->photo && !Mode::is('screenMode', 'narrow')) {
     		$thumb = new img_Thumb($obj->photo, 64, 64);
     		$arr = array();
     		$row->photo = "<div class='pos-search-pic'>" . $thumb->createImg($arr) . "</div>";
-    		$data->showImg = TRUE;
     	}
     	
     	return $row;
