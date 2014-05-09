@@ -141,11 +141,13 @@ class pos_Receipts extends core_Master {
     		// Ако не е зададено Ид, намираме кой е последно добавената бележка
 	    	$cu = core_Users::getCurrent();
     		$query = static::getQuery();
+    		$posId = pos_Points::getCurrent();
 	    	$query->where("#createdBy = {$cu}");
+	    	$query->where("#pointId = {$posId}");
 	    	$query->where("#state = 'draft'");
 	    	$query->orderBy("#createdOn", "DESC");
 	    	if($rec = $query->fetch()) {
-	    			
+	    		
 	    		return Redirect(array($mvc, 'terminal', $rec->id));
 	    	}
     		
@@ -874,7 +876,7 @@ class pos_Receipts extends core_Master {
     	if($obj->photo) {
     		$thumb = new img_Thumb($obj->photo, 64, 64);
     		$arr = array();
-    		$row->photo = $thumb->createImg($arr);
+    		$row->photo = "<div class='pos-search-pic'>" . $thumb->createImg($arr) . "</div>";
     		$data->showImg = TRUE;
     	}
     	

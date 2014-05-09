@@ -23,12 +23,6 @@ class pos_Stocks extends core_Manager {
     
     
     /**
-     * Дали може да бъде само в началото на нишка
-     */
-    public $onlyFirstInThread = TRUE;
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'pos_Wrapper,plg_Sorting,plg_StyleNumbers';

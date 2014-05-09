@@ -345,7 +345,6 @@ class pos_Reports extends core_Master {
     		$row->ROW_ATTR['class'] = 'report-sale';
     		$info = cat_Products::getProductInfo($obj->value, $obj->pack);
     		$row->pack = ($obj->pack) ? cat_Packagings::getTitleById($obj->pack) : cat_UoM::getTitleById($info->productRec->measureId);
-    		$icon = sbf("img/16/wooden-box.png");
     		$row->value = cat_Products::getHyperlink($obj->value, TRUE);
     		$obj->amount *= 1 + $obj->param;
     	} else {
@@ -358,6 +357,7 @@ class pos_Reports extends core_Master {
     		unset($row->quantity);
     	}
     	
+    	$row->value = "<span style='white-space:nowrap;'>{$row->value}</span>";
     	$row->client = "<span style='white-space:nowrap;'>" . cls::get($obj->contragentClassId)->getHyperLink($obj->contragentId, TRUE) . "</span>";
     	$row->amount = "<span style='float:right'>" . $double->toVerbal($obj->amount) . "</span>"; 
     	
