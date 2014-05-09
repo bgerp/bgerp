@@ -233,14 +233,14 @@ class pos_TransactionSourceImpl
                     '501', // Сметка "501. Каси"
                         array('cash_Cases', $posRec->caseId),         // Перо 1 - Каса
                         array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                    'quantity' => $payment->amount, // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($payment->amount), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($payment->contragentClassId, $payment->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => $payment->amount, // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($payment->amount), // "брой пари" във валутата на продажбата
                 ),
             );
         }
