@@ -515,14 +515,13 @@ class price_ListDocs extends core_Master
 			foreach ($products2 as $index => &$row){
 				$rec = $data->rec->products->recs[$groupId][$index];
 				if($row->priceM){
-					$Double->params['decimals'] = $maxDecM;
+					$Double->params['decimals'] = max(2, $maxDecM);
 					$rec->priceM = core_Math::roundNumber($rec->priceM, $maxDecM);
 					$row->priceM = $Double->toVerbal($rec->priceM);
-					
 				}
 				
 				if($row->priceP){
-					$Double->params['decimals'] = $maxDecP;
+					$Double->params['decimals'] = max(2, $maxDecP);
 					$rec->priceP = core_Math::roundNumber($rec->priceP, $maxDecP);
 					$row->priceP = $Double->toVerbal($rec->priceP);
 				}
