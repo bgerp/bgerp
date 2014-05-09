@@ -712,7 +712,23 @@ form #point {
 .tools-wide-select-content{
 	min-width: 304px;
 }
-
+#pos-search-result-table table{
+	width: 100%;
+	
+}
+#pos-search-result-table th{
+	display: none;
+}
+#pos-search-result-table td{
+	border-left: none;
+	border-right: none;
+	background-color: #fff;
+}
+#pos-search-result-table tr td:first-child{
+	width: 64px;
+	verical-align: middle;
+	text-align: center;
+}
 @media handheld, only screen and (max-width: 1600px) { 
     .keyboard{
        font-size:1em !important;
