@@ -237,7 +237,7 @@ function posActions() {
 	});
 	
 	// Скриване на табовете
-	$('.pos-tabs a ').live("click", function() {
+	$('.pos-tabs a ').live("click", function(e) {
 		var currentAttrValue= $(this).attr('href');
 
 		$('.tab-content' + currentAttrValue).show().siblings().hide();
