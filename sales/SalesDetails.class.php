@@ -293,7 +293,7 @@ class sales_SalesDetails extends core_Detail
         
         if (empty($rec->id)) {
         	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
-			$data->form->setOptions('productId', $products);
+			$data->form->setOptions('productId', array('' => ' ') + $products);
         	
         } else {
             // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме

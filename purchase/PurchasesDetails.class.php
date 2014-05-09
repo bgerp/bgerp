@@ -286,6 +286,7 @@ class purchase_PurchasesDetails extends core_Detail
         
         if (empty($rec->id)) {
         	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
+        	$products = array('' => ' ') + $products;
         } else {
         	$products = array($rec->productId => $products[$rec->productId]);
         }
