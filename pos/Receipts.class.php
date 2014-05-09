@@ -585,8 +585,10 @@ class pos_Receipts extends core_Master {
     {
     	expect($rec = $this->fetchRec($id));
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('SEARCH_DIV');
-    	$keyboardsTpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
-    	$block->replace($keyboardsTpl, 'KEYBOARDS');
+    	if(!Mode::is('screenMode', 'narrow')){
+    		$keyboardsTpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
+    		$block->replace($keyboardsTpl, 'KEYBOARDS');
+    	}
     	
     	$searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
     	$inpFld = ht::createTextInput('select-input-pos', '', array('id' => 'select-input-pos', 'data-url' => $searchUrl));
@@ -890,8 +892,7 @@ class pos_Receipts extends core_Master {
     private function renderSearchResultTable(&$data)
     {
     	$table = cls::get('core_TableView');
-    	$fArr = arr::make('productId=Продукт,price=Цена,stock=Наличност,addBtn=Добави');
-    	$fields = ($data->showImg) ? array('photo' => ' ') + $fArr : $fArr;
+    	$fields = arr::make('photo=Снимка,productId=Продукт,price=Цена,stock=Наличност,addBtn=Добави');
     	
     	return $table->get($data->rows, $fields)->getContent();
     }
