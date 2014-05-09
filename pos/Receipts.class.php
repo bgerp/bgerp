@@ -827,6 +827,7 @@ class pos_Receipts extends core_Master {
     		if(empty($price->price)) continue;
     		
     		$obj = (object)array('productId' => $id, 
+    							 'measureId' => $pRec->measureId,
     							 'price'     => $price->price, 
     							 'photo'     => $pRec->photo,
     							 'vat'	     => $Products->getVat($id),
@@ -859,7 +860,7 @@ class pos_Receipts extends core_Master {
 		}
     	
     	$row->price = $Double->toVerbal($obj->price * (1 + $obj->vat));
-    	$row->price = "<span style='float:right; padding:0px 5px'>$row->price</span>";
+    	$row->price = $row->price;
     	$row->stock = $Double->toVerbal($obj->stock);
     	
     	$obj->receiptId = $data->rec->id;
@@ -874,7 +875,7 @@ class pos_Receipts extends core_Master {
     		$isRed = 'color:red';	
     	}
     	
-    	$row->stock = "<span style='float:right;padding:0px 5px;{$isRed}'>$row->stock</span>";
+    	$row->stock = "<span style='{$isRed}'>$row->stock</span>";
     	if($obj->photo && !Mode::is('screenMode', 'narrow')) {
     		$thumb = new img_Thumb($obj->photo, 64, 64);
     		$arr = array();
@@ -890,7 +891,14 @@ class pos_Receipts extends core_Master {
      */
     private function renderSearchResultTable(&$data)
     {
-    	$table = cls::get('core_TableView');
+    	$fSet = cls::get('core_FieldSet');
+    	$fSet->FNC('photo', 'varchar', 'tdClass=pos-photo-field');
+    	$fSet->FNC('productId', 'varchar', 'tdClass=pos-product-field');
+    	$fSet->FNC('price', 'double', 'tdClass=pos-price-field');
+    	$fSet->FNC('stock', 'double', 'tdClass=pos-stock-field');
+    	
+    	$table = cls::get('core_TableView', array('mvc' => $fSet));
+    	
     	$fields = arr::make('photo=Снимка,productId=Продукт,price=Цена,stock=Наличност,addBtn=Добави');
     	
     	return $table->get($data->rows, $fields)->getContent();
