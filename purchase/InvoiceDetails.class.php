@@ -111,11 +111,11 @@ class purchase_InvoiceDetails extends core_Detail
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $this->FLD('price', 'double', 'caption=Цена, input=none');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
-		$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
+		$this->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$this->FLD('discount', 'percent', 'input=none,caption=Отстъпка');
 		
 		// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
-        $this->FNC('packPrice', 'double', 'caption=Цена,input=none');
+        $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input=none');
 		
 		$this->setDbUnique('invoiceId, productId, packagingId');
 	}

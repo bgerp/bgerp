@@ -140,13 +140,13 @@ class store_ShipmentOrderDetails extends core_Detail
         // Цена за единица продукт в основна мярка
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         
-        $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none');
+        $this->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
         $this->FNC('packQuantity', 'double(Min=0,decimals=2)', 'caption=К-во,input=input,mandatory', 'tdClass=small-field');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
-        $this->FNC('packPrice', 'double', 'caption=Цена,input=none');
+        $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input=none');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none');
     }
