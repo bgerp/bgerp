@@ -235,6 +235,9 @@ class pos_Stocks extends core_Manager {
     {
     	$storeId = pos_Points::fetchField($pointId, 'storeId');
     	
-    	return static::fetchField("#storeId = '{$storeId}' AND #productId = '{$productId}'", 'quantity');
+    	$quantity = static::fetchField("#storeId = '{$storeId}' AND #productId = '{$productId}'", 'quantity');
+    	$quantity = ($quantity) ? $quantity : 0;
+    	
+    	return $quantity;
     }
 }
