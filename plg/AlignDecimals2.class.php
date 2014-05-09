@@ -46,7 +46,15 @@ class plg_AlignDecimals2 extends core_Plugin
 		$Double = cls::get('type_Double');
     	foreach ($recs as $id => &$rec){
 			foreach ($decFields as $fName){
-				$Double->params['decimals'] = ${"{$fName}FracLen"};
+				$Type = $mvc->fields[$fName]->type;
+				setIfNot($Type->params['minDecimals'], 0);
+                setIfNot($Type->params['maxDecimals'], 6);
+				
+                $optDecimals = min(
+                    $Type->params['maxDecimals'],
+                    max($Type->params['minDecimals'], ${"{$fName}FracLen"})
+                );
+				$Double->params['decimals'] = $optDecimals;
 				$rec->$fName = core_Math::roundNumber($rec->$fName, ${"{$fName}FracLen"});
 				$rows[$id]->$fName = $Double->toVerbal($rec->$fName);
 			}
