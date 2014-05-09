@@ -11,6 +11,8 @@ function posActions() {
 	
 	var width = (parseInt($('.pos-product').length)+1) * 45 ;
 
+	
+	
 	$('.narrow #pos-products > div').css('width',width);
 	
 	
@@ -234,7 +236,8 @@ function posActions() {
 		}
 	});
 	
-	$('.pos-tabs a ').on('click',function(e) {
+	// Скриване на табовете
+	$('.pos-tabs a ').live("click", function() {
 		var currentAttrValue= $(this).attr('href');
 
 		$('.tab-content' + currentAttrValue).show().siblings().hide();
@@ -244,7 +247,7 @@ function posActions() {
 	}); 
 	
 	// Смяна на текущата клавиатура
-	$('.keyboard-change-btn').on('click',function(e) {
+	$('.keyboard-change-btn').live("click", function() {
 		var currentAttrValue = $(this).attr('data-klang');
 		$('.keyboard#' + currentAttrValue).show().siblings().hide();
 	}); 
@@ -252,13 +255,24 @@ function posActions() {
 	// Попълване на символи от клавиатурата
 	$('.keyboard-btn').live("click", function() {
 		var currentAttrValue = $(this).val();
+		var isChangeBtn = $(this).attr('data-klang');
 		
 		if(currentAttrValue == 'SPACE'){
 			currentAttrValue = ' ';
 		}
+		
+		// Ако е натиснат бутон за смяна на език, не правим нищо
+		if(isChangeBtn != undefined) {
+			return;
+		}
+		
 		var inpVal = $("#select-input-pos").val();
 		inpVal += currentAttrValue;
 		$("#select-input-pos").val(inpVal);
+		
+		// Задействаме евент 'keyup' в инпут полето
+		var e = jQuery.Event("keyup");
+		$("#select-input-pos").trigger(e);
 	}); 
 	
 	// Триене на символи от формата за търсене
@@ -267,8 +281,42 @@ function posActions() {
 		var newVal = $("#select-input-pos").val().substr(0, inpValLength-1);
 		
 		$("#select-input-pos").val(newVal);
+		var e = jQuery.Event("keyup");
+		$("#select-input-pos").trigger(e);
+	});
+	
+	var timeout;
+	
+	// След въвеждане на стойност, прави заявка по Ajax
+	$("#select-input-pos").keyup(function() {
+		//console.log('up');
+		var inpVal = $("#select-input-pos").val();
+		var receiptId = $("input[name=receiptId]").val();
+		
+		var url = $(this).attr("data-url");
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		//clearTimeout(timeout);
+		//timeout = setTimeout(function(){
+			//console.log('vikam',url);
+			getEfae().process(resObj, {searchString:inpVal,receiptId:receiptId});
+		//}, 500);
+	});
+	
+	// Добавяне на продукт от резултатите за търсене
+	$('.pos-add-res-btn').live("click", function() {
+		var receiptId = $(this).attr("data-recId");
+		var url = $(this).attr("data-url");
+		var productId = $(this).attr("data-productId");
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		getEfae().process(resObj, {receiptId:receiptId,productId:productId});
 	});
 }
+
 
 function calculateWidth(){
 	var winWidth = parseInt($(window).width());
@@ -299,7 +347,6 @@ function calculateWidth(){
 	$('.tabs-holder-content .chzn-container-single .chzn-search input').css('width',comboWidth - 12);
 	
 	var downPanelHeight = parseInt($('#tools-holder').outerHeight());
-	console.log(winHeight -  totalOffset - downPanelHeight);
 	$('.scrolling-vertical').css('maxHeight', winHeight -  totalOffset - downPanelHeight -30);
 	$('.scrolling-vertical').scrollTo = $('.scrolling-vertical').scrollHeight;
 	scrollRecieptBottom();

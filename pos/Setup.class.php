@@ -7,6 +7,12 @@ defIfNot('POS_PRODUCTS_DEFAULT_THEME', 'pos_DefaultTheme');
 
 
 /**
+ *  Параметри на продукти, които да се показват при търсене
+ */
+defIfNot('POS_RESULT_PRODUCT_PARAMS', '');
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -51,7 +57,8 @@ class pos_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     		'POS_PRODUCTS_DEFAULT_THEME' => array ('class(interface=pos_ThemeIntf,select=title)', 'caption=Tемата по-подразбиране за пос терминала->Тема'),
-        );
+        	'POS_RESULT_PRODUCT_PARAMS'  => array("keylist(mvc=cat_Params,select=name)", 'caption=Параметри за показване търсене на продукт->Параметри,columns=2'),
+    );
     
 
     /**

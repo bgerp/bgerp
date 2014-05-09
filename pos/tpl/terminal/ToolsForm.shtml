@@ -35,8 +35,9 @@
 
 <!--ET_BEGIN SEARCH_DIV-->
 [#KEYBOARDS#]
-<input class="" type="text" id='select-input-pos' name='select-input-pos'/>
-[#SEARCH_DIV#]
+[#INPUT_SEARCH#]
+<div id='pos-search-result-table'>
+</div>
 
 <!--ET_END SEARCH_DIV-->
 

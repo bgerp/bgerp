@@ -456,7 +456,6 @@ class pos_ReceiptDetails extends core_Detail {
     	return array();
     }
     
-    
     /**
      * Подготвя детайла на бележката
      */

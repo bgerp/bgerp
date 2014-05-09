@@ -103,6 +103,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * При търсене до колко продукта да се показват в таба
+     */
+    public $maxSearchProducts = 20;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -580,17 +586,9 @@ class pos_Receipts extends core_Master {
     	$keyboardsTpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
     	$block->replace($keyboardsTpl, 'KEYBOARDS');
     	
-    	$formChoose = cls::get('core_Form');
-    	$formChoose->view = 'horizontal';
-    	$formChoose->formAttr['id'] = 'searchForm';
-    	$formChoose->method = 'POST';
-    	$formChoose->action = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
-    	$formChoose->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input,placeholder=Продукт');
-    	$formChoose->setOptions('productId', cat_Products::getByProperty('canSell'));
-    	$formChoose->FLD('receiptId', 'key(mvc=pos_Receipts)', 'input=hidden');
-	    $formChoose->rec->receiptId = $rec->id;
-    	$formChoose->toolbar->addSbBtn('Търси', 'save', 'ef_icon = img/16/funnel.png');
-    	$block->replace($formChoose->renderHtml(), 'SEARCH_DIV');
+    	$searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
+    	$inpFld = ht::createTextInput('select-input-pos', '', array('id' => 'select-input-pos', 'data-url' => $searchUrl));
+    	$block->replace($inpFld, 'INPUT_SEARCH');
     	
     	return $block;
     }
@@ -754,5 +752,145 @@ class pos_Receipts extends core_Master {
     	
     	// Редирект към създаването на нова фактура;
     	return redirect(array('sales_Invoices', 'add', 'folderId' => $folderId, 'docType' => $this->getClassId(), 'docId' => $id));
+    }
+    
+    
+	/**
+     * Връща таблицата с намерените резултати за търсене
+     */
+	function act_getSearchResults()
+    {
+    	if($searchString = Request::get('searchString')){
+    		if(!$id = Request::get('receiptId')) return array();
+    	
+	    	if(!$rec = $this->fetch($id)) return array();
+	    	
+	    	$html = $this->getResultsTable($searchString, $rec);
+	    } else {
+    		$html = ' ';
+    	}
+    	
+    	// Ще реплесйнем и добавим таблицата с резултатите
+		$resObj = new stdClass();
+		$resObj->func = "html";
+		$resObj->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => TRUE);
+        
+        return array($resObj);
+    }
+    
+    
+    /**
+     * Връща таблицата с продукти отговарящи на определен стринг
+     */
+    public function getResultsTable($string, $rec)
+    {
+    	$searchString = plg_Search::normalizeText($string);
+	    $data = new stdClass();
+	    $data->rec = $rec;
+	    $data->searchString = $searchString;
+	    	
+	    $this->prepareSearchData($data);
+	    	
+	    return $this->renderSearchResultTable($data);
+    }
+    
+    
+    /**
+     * Подготвя данните от резултатите за търсене
+     */
+    private function prepareSearchData(&$data)
+    {
+    	$data->rows = array();
+    	$count = 0;
+    	$conf = core_Packs::getConfig('pos');
+    	$data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
+    	
+    	// Намираме всички продаваеми продукти
+    	$sellable = cat_Products::getByProperty('canSell');
+    	if(!count($sellable)) return;
+    	
+    	$Products = cls::get('cat_Products');
+    	foreach ($sellable as $id => $name){
+    		
+    		// Показваме само до определена бройка
+    		if($count >= $this->maxSearchProducts) break;
+    		
+    		// Ако продукта не отговаря на търсения стринг, го пропускаме
+    		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
+    		$price = $Products->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId());
+    		
+    		// Ако няма цена също го пропускаме
+    		if(empty($price->price)) continue;
+    		
+    		$obj = (object)array('productId' => $id, 
+    							 'price'     => $price->price, 
+    							 'photo'     => $pRec->photo,
+    							 'vat'	     => $Products->getVat($id),
+    							 'stock'     => pos_Stocks::getQuantity($id, $data->rec->pointId));
+    		
+    		// Обръщаме реда във вербален вид
+    		$data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
+    		$count++;
+    	}
+    }
+    
+    
+    /**
+     * Връща вербалното представяне на един ред от резултатите за търсене
+     */
+    private function getVerbalSearchResult($obj, &$data)
+    {
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	$row = new stdClass();
+    	$row->productId = cat_Products::getHyperLink($obj->productId, TRUE);
+		if($data->showParams){
+			$params = keylist::toArray($data->showParams);
+			$values = NULL;
+			foreach ($params as $pId){
+				if($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")){
+					$row->productId .= " &nbsp;" .cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
+				}
+			}
+		}
+    	
+    	$row->price = $Double->toVerbal($obj->price * (1 + $obj->vat));
+    	$row->price = "<span style='float:right; padding:0px 5px'>$row->price</span>";
+    	$row->stock = $Double->toVerbal($obj->stock);
+    	
+    	$obj->receiptId = $data->rec->id;
+    	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
+    		$addUrl = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
+    		$row->addBtn = ht::createElement('img', array('src' => sbf('img/16/add.png', ''), 
+    													   'class' => 'pos-add-res-btn', 'data-recId' => $data->rec->id,
+    													   'data-url' => $addUrl, 'data-productId' => $obj->productId));
+    	}
+    	
+    	if($obj->stock < 0){
+    		$isRed = 'color:red';	
+    	}
+    	
+    	$row->stock = "<span style='float:right;padding:0px 5px;{$isRed}'>$row->stock</span>";
+    	if($obj->photo) {
+    		$thumb = new img_Thumb($obj->photo, 64, 64);
+    		$arr = array();
+    		$row->photo = $thumb->createImg($arr);
+    		$data->showImg = TRUE;
+    	}
+    	
+    	return $row;
+    }
+    
+    
+    /**
+     * Рендира таблицата с резултатите от търсенето
+     */
+    private function renderSearchResultTable(&$data)
+    {
+    	$table = cls::get('core_TableView');
+    	$fArr = arr::make('productId=Продукт,price=Цена,stock=Наличност,addBtn=Добави');
+    	$fields = ($data->showImg) ? array('photo' => ' ') + $fArr : $fArr;
+    	
+    	return $table->get($data->rows, $fields)->getContent();
     }
 }

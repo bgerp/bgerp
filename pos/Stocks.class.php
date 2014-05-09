@@ -31,7 +31,7 @@ class pos_Stocks extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'pos_Wrapper,plg_Sorting';
+    public $loadList = 'pos_Wrapper,plg_Sorting,plg_StyleNumbers';
     
 
     /**
@@ -241,6 +241,6 @@ class pos_Stocks extends core_Manager {
     {
     	$storeId = pos_Points::fetchField($pointId, 'storeId');
     	
-    	return static::fetchField("#storeId = '{$storeId}' AND #productId = '{$pointId}'", 'quantity');
+    	return static::fetchField("#storeId = '{$storeId}' AND #productId = '{$productId}'", 'quantity');
     }
 }
