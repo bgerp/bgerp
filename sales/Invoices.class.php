@@ -1013,6 +1013,7 @@ class sales_Invoices extends core_Master
         if($rec->type != 'invoice') {
         	$origin = static::getOrigin($rec);
         	$type = static::getVerbal($rec, 'type');
+        	if(!$origin) return $result;
         	$result->reason = "{$type} към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
         }
         
