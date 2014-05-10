@@ -357,7 +357,11 @@ form #point {
 	display:inline-block;
 	margin-top:2px;
 }
-
+.name-product{
+	font-size: 1.1em;
+	line-height: 1.5;
+	padding: 2px 5px !important;
+}
 @media print{
 	.single-receipt-wrapper{
 		border:none;
