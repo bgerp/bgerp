@@ -183,7 +183,9 @@ class acc_plg_DpInvoice extends core_Plugin
         		}
         	}
         	
-        	$rec->dpAmount = $rec->dpAmount * $rec->rate;
+        	if($rec->dpOperation){
+        		$rec->dpAmount = $rec->dpAmount * $rec->rate;
+        	}
         }
     }
     
