@@ -331,7 +331,7 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
-     * Изтрива запис от бележката
+     * Изтриване на запис от бележката
      */
     function act_DeleteRec()
     {
