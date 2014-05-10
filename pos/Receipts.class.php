@@ -67,6 +67,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Кой може да променя?
+     */
+    var $canTerminal = 'pos, ceo';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'ceo,pos';
@@ -232,6 +238,11 @@ class pos_Receipts extends core_Master {
     		$data->toolbar->addBtn('Всички', array($mvc, 'list', 'ret_url' => TRUE),
     							   'ef_icon=img/16/application_view_list.png, order=18');    
     	}
+    	
+    	if($mvc->haveRightFor('terminal', $data->rec)){
+    		$data->toolbar->addBtn('Терминал', array($mvc, 'Terminal', $data->rec->id, 'ret_url' => TRUE),
+    				'ef_icon=img/16/forward16.png, order=18,target=_blank');
+    	}
     }
     
     
@@ -365,6 +376,13 @@ class pos_Receipts extends core_Master {
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
+		// Само черновите бележки могат да се редактират в терминала
+		if($action == 'terminal' && isset($rec)) {
+			if($rec->state != 'draft'){
+				$res = 'no_one';
+			}
+		}
+		
 		// Никой неможе да редактира бележка
 		if($action == 'edit') {
 			$res = 'no_one';
@@ -397,13 +415,13 @@ class pos_Receipts extends core_Master {
      * Екшън за създаване на бележка
      */
     function act_Terminal()
-    {   
-    	$this->requireRightFor('single');
+    { 
+    	$this->requireRightFor('terminal');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	
-    	// Имамели достъп до сингъла на бележката
-    	$this->requireRightFor('single', $rec);
+    	// Имаме ли достъп до сингъла на бележката
+    	$this->requireRightFor('terminal', $rec);
     	
     	// Лейаут на терминала
     	$tpl = getTplFromFile("pos/tpl/terminal/Layout.shtml");

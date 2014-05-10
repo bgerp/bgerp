@@ -508,6 +508,9 @@ class pos_ReceiptDetails extends core_Detail {
     	switch($action->type) {
     		case "sale":
     			$mvc->renderSale($rec, $row, $receiptDate, $fields);
+    			if($fields['-list']){
+    				$row->quantity = $row->value;
+    			}
     			break;
     		case "payment":
     			$row->actionValue = pos_Payments::getTitleById($action->value);
