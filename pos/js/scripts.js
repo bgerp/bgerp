@@ -1,18 +1,21 @@
 function posActions() {
 
-	//$('#pos-producy-categories .pos-product-category').first().addClass('active');
+	// Забраняване на скалирането, за да избегнем забавяне
+	if(is_touch_device()){
+		 $('meta[name=viewport]').remove();
+		 $('meta').attr('name', 'viewport').attr('content', 'width=device-width, user-scalable=no').appendTo('head');
+	}
+	
+	// Извикване на функцията за преизчисления на размерите на елементите
 	if($('body').hasClass('wide')){
 		calculateWidth();
 		$(window).resize( function() {
 			calculateWidth();
 		});
 	} 
-		
 	
-	var width = (parseInt($('.pos-product').length)+1) * 45 ;
-
-	
-	
+	// Ширина на контейнера на бързите бутони в мобилен
+	var width = (parseInt($('.pos-product').length) + 1) * 45 ;
 	$('.narrow #pos-products > div').css('width',width);
 	
 	
@@ -344,7 +347,7 @@ function calculateWidth(){
 	$('.tools-wide-select-content').css('maxHeight', winHeight-85);
 	$('.wide #pos-products').css('maxHeight', winHeight-155);
 	
-	//височина за таблицата с резултате
+	//височина за таблицата с резултатите
 	var searchTopHeight = parseInt($('.search-top-holder').height());
 	$('#pos-search-result-table').css('maxHeight', winHeight - searchTopHeight - 120);
 	
@@ -356,9 +359,9 @@ function calculateWidth(){
 	
 }
 
+// скролиране на бележката до долу
 function scrollRecieptBottom(){
 	var el = $('.scrolling-vertical');
-	
 	setTimeout(function(){el.scrollTop( el.get(0).scrollHeight );},500);
 	
 }
