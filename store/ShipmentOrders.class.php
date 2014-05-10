@@ -358,11 +358,6 @@ class store_ShipmentOrders extends core_Master
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
-    	
-    	if($rec->state == 'active' && sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-    		$originId = doc_Threads::getFirstContainerId($rec->threadId);
-	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
-	    }
 	}
     
     

@@ -336,8 +336,6 @@ class store_Receipts extends core_Master
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
-    	
-    	
     }
     
     
@@ -352,11 +350,6 @@ class store_Receipts extends core_Master
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
-    	
-    	if($rec->state == 'active' && purchase_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-    		$originId = doc_Threads::getFirstContainerId($rec->threadId);
-	    	$data->toolbar->addBtn("Вх. фактура", array('purchase_Invoices', 'add', 'originId' => $originId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на входяща фактура,order=9.9993');
-	    }
 	}
     
     
