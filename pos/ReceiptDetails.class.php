@@ -370,7 +370,7 @@ class pos_ReceiptDetails extends core_Detail {
     	if(!$receiptId = Request::get('receiptId', 'int')) return array();
     	
     	// Трябва да можем да добавяме към нея
-    	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId)))  return array();
+    	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId))) return array();
     	
     	// Запис на продукта
     	$rec = new stdClass();
@@ -390,7 +390,7 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Трябва да е подаден код или ид на продукт
     	if(!$rec->productId && !$rec->ean){
-    		core_Statuses::newStatus(tr('|Не е посочен продукт|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Не е избран артикул|* !'), 'error');
     		return array();
     	}
     	
@@ -399,13 +399,13 @@ class pos_ReceiptDetails extends core_Detail {
     		
     	// Ако не е намерен продукт
 	    if(!$rec->productId) {
-	    	core_Statuses::newStatus(tr('|Няма такъв продукт в системата или той не е продаваем|* !'), 'error');
+	    	core_Statuses::newStatus(tr('|Няма такъв продукт в системата, или той не е продаваем|* !'), 'error');
 	    	return array();
 	    }
 
 	    // Ако няма цена
 	    if(!$rec->price) {
-	    	core_Statuses::newStatus(tr('|Артикула няма цена|* !'), 'error');
+	    	core_Statuses::newStatus(tr('|Артикулът няма цена|* !'), 'error');
 	    	return array();
 	    }
 	    	
@@ -423,7 +423,7 @@ class pos_ReceiptDetails extends core_Detail {
 		
 		// Добавяне/обновяване на продукта
     	if($this->save($rec)){
-    		core_Statuses::newStatus(tr('|Артикула е добавен успешно|* !'));
+    		core_Statuses::newStatus(tr('|Артикулът е добавен успешно|* !'));
     		
     		return $this->returnResponse($rec->receiptId);
     	} else {
@@ -465,15 +465,16 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Добавяне/обновяване на продукта
     	if($this->save($rec)){
-    		core_Statuses::newStatus(tr('|Артикула е добавен успешно|* !'));
+    		core_Statuses::newStatus(tr('|Картата е добавена успешно|* !'));
     		
     		return $this->returnResponse($rec->receiptId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при добавяне на артикул|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Проблем при добавяне на карта|* !'), 'error');
     	}
 		
     	return array();
     }
+    
     
     /**
      * Подготвя детайла на бележката
@@ -636,9 +637,9 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	$rec->productId = $product->productId;
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
-    	$policyId = pos_Points::fetchField($receiptRec->pointId, 'policyId');
-    	$price = new stdClass();
-    	$price->price = price_ListRules::getPrice($policyId, $product->productId, $product->packagingId, $receiptRec->valior);
+    	
+    	$Policy = cls::get('price_ListToCustomers');
+    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->valior);
     	
     	$rec->price = $price->price;
     	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);

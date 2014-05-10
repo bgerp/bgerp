@@ -258,7 +258,6 @@ class pos_Receipts extends core_Master {
     public static function getProducts($id, $count = FALSE)
     {
     	expect($rec = static::fetch($id), 'Несъществуваща бележка');
-    	$policyId = price_ListToCustomers::getClassId();
     	
     	$products = array();
     	$totalQuantity = 0;
@@ -282,14 +281,14 @@ class pos_Receipts extends core_Master {
 	    	
 	    	$totalQuantity += $rec->quantity;
 	    	$products[] = (object) array(
-	    		'classId' => cat_Products::getClassId(),
-	    		'productId' => $rec->productId,
-		    	'price' => $rec->price,
-	    	    'packagingId' => $packagingId,
+	    		'classId'        => cat_Products::getClassId(),
+	    		'productId'      => $rec->productId,
+		    	'price'          => $rec->price,
+	    	    'packagingId'    => $packagingId,
 	    	    'quantityInPack' => $quantityInPack,
-	    		'vatPrice' => $rec->price * $rec->param,
-	    	    'uomId' => $info->productRec->measureId,
-		    	'quantity' => $rec->quantity);
+	    		'vatPrice'       => $rec->price * $rec->param,
+	    	    'uomId' 		 => $info->productRec->measureId,
+		    	'quantity'       => $rec->quantity);
 	    }
 	    
     	if($count){
