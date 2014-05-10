@@ -195,11 +195,11 @@ class pos_Reports extends core_Master {
     {
     	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     	$row->title = "Отчет за POS продажба №{$rec->id}";
+    	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
     	
     	if($fields['-single']) {
     		$pointRec = pos_Points::fetch($rec->pointId);
-    		$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
-	    	$row->storeId = store_Stores::getHyperLink($pointRec->storeId, TRUE);
+    		$row->storeId = store_Stores::getHyperLink($pointRec->storeId, TRUE);
 	    	$row->caseId = cash_Cases::getHyperLink($pointRec->caseId, TRUE);
 	    	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	}
