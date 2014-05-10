@@ -853,7 +853,7 @@ class log_Documents extends core_Manager
                     $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
                     
                     // Превръщаме манипулатора, в линк за сваляне
-                    $row->fileHnd = fileman_Download::getDownloadLink($fh);
+                    $row->fileHnd = fileman_Files::getLink($fh);
                     
                     // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
                     $row->ip = $row->from ? $row->from : $row->ip;
@@ -1564,7 +1564,7 @@ class log_Documents extends core_Manager
         static::pushAction($rec);
         
         // Добавяме запис в лога
-        $msg = tr("Свален файл|*: ") . fileman_Download::getDownloadUrl($fh);
+        $msg = tr("Свален файл|*: ") . fileman_Files::getLink($fh);
         
         core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
 
