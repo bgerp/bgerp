@@ -373,8 +373,8 @@ form #point {
 	cursor: pointer;
 }
 
-.pos-hightligted{
-	background-color:rgba(255,255,0,0.3);
+.pos-hightligted, .pos-hightligted td{
+	background:rgba(255,255,0,0.3) !important;
 }
 
 .num-keyboard{
@@ -427,10 +427,12 @@ form #point {
 	border-radius: 4px !important;
 	font-size: 1.1em !important;
 }
+
 .keyboard-row{
 	clear:both;
 	padding: 2px 0;
 }
+
 .keyboard-btn:hover, .keyboard-back-btn:hover{
 	border-top: #000 2px solid !important;
 	border-bottom: #303030 2px solid !important;
@@ -571,8 +573,12 @@ form #point {
 
 
 }
- #select-input-pos{
+.wide #select-input-pos{
     margin: 20px 0;
+}
+
+.narrow  #select-input-pos{
+    margin: 0 0 10px;
 }
 
 .narrow .input-field input[type=text]{
@@ -745,13 +751,23 @@ form #point {
 .pos-photo-field{
     width: 80px;
 }
-
+.narrow .pos-product-field{
+	font-size: 0.9em;
+}
+.narrow .pos-price-field, .narrow  .pos-stock-field{
+    font-size: 0.8em;
+    width: 1%;
+}
 #pos-search-result-table .linkWithIcon{
 	font-weight: bold;
 }
 
 .pos-add-res-btn{
 	margin: 0 10px;   
+}
+.narrow .pos-add-res-btn{
+    margin: 0 2px;  
+    width: 16px; 
 }
 
 .pos-add-res-btn:hover{

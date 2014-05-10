@@ -312,6 +312,9 @@ function posActions() {
 	
 	// Добавяне на продукт от резултатите за търсене
 	$('.pos-add-res-btn').live("click", function() {
+		var elemRow = $(this).closest('tr');
+		$(elemRow).addClass('pos-hightligted');
+		setTimeout(function(){$(elemRow).removeClass('pos-hightligted');},1000);
 		var receiptId = $(this).attr("data-recId");
 		var url = $(this).attr("data-url");
 		var productId = $(this).attr("data-productId");
@@ -363,5 +366,4 @@ function calculateWidth(){
 function scrollRecieptBottom(){
 	var el = $('.scrolling-vertical');
 	setTimeout(function(){el.scrollTop( el.get(0).scrollHeight );},500);
-	
 }
