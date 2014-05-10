@@ -115,8 +115,8 @@ class dec_Declarations extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'typeId, doc, declaratorName';
-
-     
+    
+    
     /**
      * Стратегии за дефолт стойностти
      */
@@ -500,6 +500,10 @@ class dec_Declarations extends core_Master
      */
     public static function canAddToThread($threadId)
     {
+    	// Ако няма ориджин в урл-то, документа не може да се добави към нишката
+    	$originId = Request::get('originId');
+    	if(empty($originId)) return FALSE;
+    	
     	if(sales_Invoices::fetch("#threadId = {$threadId} AND #state = 'active'")){
     		return TRUE;
     	}
