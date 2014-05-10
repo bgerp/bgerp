@@ -1,8 +1,8 @@
 <!--ET_BEGIN sale-->
-<tr data-id='[#id#]' class='pos-sale' [#lastRow#]>
+<tr data-id='[#id#]' class='pos-sale [#lastRow#]' >
 	<td colspan='3' class='receipt-sale'><span class='code'>[#code#]</span> - [#productId#] [#DEL_BTN#]&nbsp;&nbsp;[#perPack#] [#uomId#]</td>
 </tr>
-<tr [#lastRow#] data-code='[#code#]'class='pos-sale' data-id='[#id#]'>
+<tr  data-code='[#code#]'class='pos-sale [#lastRow#]' data-id='[#id#]'>
 	<td class='receipt-quantity'><span class='quantity'>[#quantity#]</span> <!--ET_BEGIN packagingId--> &nbsp;[#value#]<!--ET_END packagingId--></td>
 	<td class='receipt-price'>[#price#] 
 	<!--ET_BEGIN discountPercent-->

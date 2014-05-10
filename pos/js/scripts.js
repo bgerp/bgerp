@@ -23,6 +23,7 @@ function posActions() {
 	$(".pos-sale").live("click", function() {
 		var id = $(this).attr("data-id");
 		$(".pos-sale td").removeClass('pos-hightligted');
+		$(".pos-sale").removeClass('pos-hightligted');
 		$('[data-id="'+ id +'"] td').addClass('pos-hightligted');
 		$("input[name=rowId]").val(id);
 	});

@@ -374,7 +374,7 @@ form #point {
 }
 
 .pos-hightligted, .pos-hightligted td{
-	background:rgba(255,255,0,0.3) !important;
+	background:#ffffcd !important;
 }
 
 .num-keyboard{
@@ -743,6 +743,9 @@ form #point {
 
 .narrow #pos-search-result-table td{
 	height: 34px;
+}
+#pos-search-result-table tr{
+	background: #fff !important;
 }
 #pos-search-result-table tr td:last-child{
 	width: 1%;

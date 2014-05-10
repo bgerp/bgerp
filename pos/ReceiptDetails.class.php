@@ -100,7 +100,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    		$rowTpl = clone(${"{$action->type}Tpl"});
 	    		$rowTpl->placeObject($row);
 	    		if($lastRow == $row->id) {
-	    			$rowTpl->replace("id='last-row'", 'lastRow');
+	    			$rowTpl->replace("pos-hightligted", 'lastRow');
 	    			unset($lastRow);
 	    			Mode::setPermanent('lastAdded', NULL);
 	    		}
