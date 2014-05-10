@@ -344,7 +344,9 @@ class pos_Receipts extends core_Master {
 	    	$rec->contragentObjectId = pos_Points::defaultContragent($rec->pointId);
     	}
     	
-    	$rec->change = ($rec->change < 0 || $rec->paid < $rec->total) ? 0 :  $rec->change;
+    	$diff = round($rec->total - $rec->paid, 2);
+    	$rec->change = ($diff != 0) ? 0 :  $rec->change;
+    	$rec->total = round($rec->total, 2);
     	
     	$this->save($rec);
     }

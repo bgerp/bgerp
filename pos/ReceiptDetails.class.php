@@ -280,8 +280,27 @@ class pos_ReceiptDetails extends core_Detail {
 	    	return array();
     	}
     	
-    	// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
+    	// Не може да се плати, ако нищо не е продадено
+    	if(!$receipt->total){
+    		core_Statuses::newStatus(tr('|Не може да платите, когато нищо не е продадено|* !'), 'error');
+	    	return array();
+    	}
+    	
     	$diff = abs($receipt->paid - $receipt->total);
+    	
+    	// Ако всичко равни не можем да правим плащане
+    	if($diff == 0){
+    		core_Statuses::newStatus(tr('|Не може да направите плащане, когато всички е платено|* !'), 'error');
+	    	return array();
+    	}
+    	
+    	// Ако всичко равни не можем да правим плащане
+    	if($receipt->paid - $receipt->total > 0){
+    		core_Statuses::newStatus(tr('|Не може да направите плащане, когато платеното е повече от продаденото|* !'), 'error');
+	    	return array();
+    	}
+    	
+    	// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
     	if(!pos_Payments::returnsChange($type) && (string)$amount > (string)$diff){
     		core_Statuses::newStatus(tr('|Не може с този платежен метод да се плати по-голяма сума от общата|* !'), 'error');
 	    	return array();
@@ -292,10 +311,10 @@ class pos_ReceiptDetails extends core_Detail {
     	$rec->receiptId = $recId;
     	$rec->action = "payment|{$type}";
     	if(($receipt->paid + $amount) > $receipt->total){
-    		$rec->amount = $receipt->total - $receipt->paid;
-    		$rec->value = $amount - $rec->amount;
+    		$rec->amount = round($receipt->total - $receipt->paid, 2);
+    		$rec->value = round($amount - $rec->amount, 2);
     	} else {
-    		$rec->amount = $amount;
+    		$rec->amount = round($amount, 2);
     	}
     	
     	// Запис на плащанетo
