@@ -90,7 +90,7 @@
 	left:0px;
 	bottom:0px;
 	font-size:0.8em;
-	max-height:32px;
+	max-height:17px;
 	display:block;
 	overflow:hidden;
 	text-align:center;
@@ -101,6 +101,8 @@
 	font-weight:bold;
 	padding:2px;
 	background:rgba(0,0,0,0.6);
+	-webkit-transition: all .5s ease;
+    transition: all .5s ease;
 }
 
 .pos-product-title:hover {
@@ -109,22 +111,17 @@
 
 .pos-product-price {
 	position:absolute;
-	left:2px;
-	top:2px;
-	width:60px;
-	text-align:center;
+	left:0px;
+	top:0px;
 	height:15px;
-	font-size:0.75em;
+	font-size:0.7em;
 	display:block;
-	color:white;
-	text-shadow:1px 0px 1px #000000;
+	color:#fff;
+	text-shadow:0px 0px 3px #000;
 	z-index:2;
 	font-weight:bold;
-	padding:1px 0px;
-	-webkit-border-radius: 2px;
-	-moz-border-radius: 2px;
-	border-radius: 2px;
-	background:rgba(242, 136, 145, 0.9);
+	padding:1px 2px;
+	background: rgba(0,0,0,0.5);
 }
 
 .pos-product-base-currency{
