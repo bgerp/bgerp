@@ -681,7 +681,7 @@ class cash_Pko extends core_Master
      */
     function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-    	// Документа неможе да се създава  в нова нишка, ако е възоснова на друг
+    	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
     	if(!empty($data->form->toolbar->buttons['btnNewThread'])){
     		$data->form->toolbar->removeBtn('btnNewThread');
     	}

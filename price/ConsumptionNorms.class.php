@@ -189,7 +189,7 @@ class price_ConsumptionNorms extends core_Master {
     	$detailQuery->where("#normId = {$data->rec->id}");
     	if($detailQuery->count()){
     		
-    		// Неможе да се изчислява цената на продукт, ако няма съставки
+    		// Не може да се изчислява цената на продукт, ако няма съставки
     		$data->toolbar->addBtn('Изчисли', array($mvc, 'calcPrice', $data->rec->id), NULL, 'ef_icon=img/16/calculator.png');
     	}
     	
@@ -231,7 +231,7 @@ class price_ConsumptionNorms extends core_Master {
     	
     	if($rec->id){
     		
-    		// При редакция се подсигуряваме че неможе продукт
+    		// При редакция се подсигуряваме че не може продукт
     		// който е съставка на нормата да се добави като нейн начален
 	    	$this->getChildren($rec->productId, $children, TRUE);
 	    } else {
@@ -640,7 +640,7 @@ class price_ConsumptionNorms extends core_Master {
 			if(!$rec || $query->count() == 0){
 				
 				// Ако не сме създали още Разходна норма или няма
-				// съставки никой неможе да активира
+				// съставки никой не може да активира
 				$res = 'no_one';
 			}
 		}

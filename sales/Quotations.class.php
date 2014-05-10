@@ -447,11 +447,11 @@ class sales_Quotations extends core_Master
     	if($action == 'activate'){
     		if(!$rec->id) {
     			
-    			// Ако документа се създава, то неможе да се активира
+    			// Ако документа се създава, то не може да се активира
     			$res = 'no_one';
     		} else {
     			
-    			// Ако няма задължителни продукти/услуги неможе да се активира
+    			// Ако няма задължителни продукти/услуги не може да се активира
     			$detailQuery = $mvc->sales_QuotationsDetails->getQuery();
     			$detailQuery->where("#quotationId = {$rec->id}");
     			$detailQuery->where("#optional = 'no'");
@@ -604,7 +604,7 @@ class sales_Quotations extends core_Master
     
     /**
      * Помощна ф-я за връщане на всички продукти от офертата.
-     * Ако има вариации на даден продукт и неможе да се
+     * Ако има вариации на даден продукт и не може да се
      * изчисли общата сума ф-ята връща NULL
      * @param int $id - ид на оферта
      * @param double $total - обща сума на продуктите

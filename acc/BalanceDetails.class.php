@@ -157,7 +157,7 @@ class acc_BalanceDetails extends core_Detail
         	
         	foreach ($rows as $id => $row){
         		
-        		// Ако потребителя неможе да вижда записа него показваме
+        		// Ако потребителя не може да вижда записа него показваме
         		if(!$mvc->canReadRecord($recs[$id])){
         			unset($rows[$id]);
         		}
@@ -516,7 +516,7 @@ class acc_BalanceDetails extends core_Detail
         if($form->isSubmitted()){
         	foreach (range(1,3) as $i){
         		if($form->rec->{"grouping{$i}"} && $form->rec->{"feat{$i}"}){
-        			$form->setError("grouping{$i},feat{$i}", "Неможе да са избрани едновременно перо и свойтво за една позиция");
+        			$form->setError("grouping{$i},feat{$i}", "Не може да са избрани едновременно перо и свойтво за една позиция");
         		}
         	}
         }
@@ -528,11 +528,7 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * 
-     * Enter description here ...
-     * @param unknown_type $i
-     * @param unknown_type $listRec
-     * @param unknown_type $form
+     * Подготвя полетата за филтриране
      */
     private function setGroupingForField($i, $listRec, &$form)
     {

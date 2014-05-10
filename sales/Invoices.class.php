@@ -1198,7 +1198,7 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * Документа неможе да се активира ако има детайл с количество 0
+     * Документа не може да се активира ако има детайл с количество 0
      */
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {

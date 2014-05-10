@@ -284,7 +284,7 @@ class purchase_InvoiceDetails extends core_Detail
     			if($masterRec->state != 'draft' || $masterRec->isFull == 'yes'){
     				$res = 'no_one';
     			} else {
-    				// При начисляване на авансово плащане неможе да се добавят други продукти
+    				// При начисляване на авансово плащане не може да се добавят други продукти
     				if($masterRec->dpOperation == 'accrued'){
     					$res = 'no_one';
     				}

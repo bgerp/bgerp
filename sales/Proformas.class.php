@@ -295,7 +295,7 @@ class sales_Proformas extends core_Master
      */
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	// От лист изгледа неможе да се добавя проформа
+    	// От лист изгледа не може да се добавя проформа
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     	}

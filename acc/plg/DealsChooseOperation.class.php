@@ -186,7 +186,7 @@ class acc_plg_DealsChooseOperation extends core_Plugin
     		// ... и има избран склад, и потребителя може да се логне в него
 	    	if(isset($rec->shipmentStoreId) && store_Stores::haveRightFor('select', $rec->shipmentStoreId)){
 	    		
-	    		// Ако има очаквано авансово плащане, неможе да се експедира на момента
+	    		// Ако има очаквано авансово плащане, не може да се експедира на момента
 	    		if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
 	    			$hasDp = TRUE;
 	    		}

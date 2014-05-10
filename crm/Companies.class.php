@@ -392,7 +392,7 @@ class crm_Companies extends core_Master
             $data->form->setField('groupList', array('maxColumns' => 2));    
         }
         
-        // Неможе да се променят номенклатурите от формата
+        // Не може да се променят номенклатурите от формата
     	if($form->fields['lists']){
         	$form->setField('lists', 'input=none');
         }

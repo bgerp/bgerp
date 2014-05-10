@@ -722,7 +722,7 @@ class marketing_Inquiries extends core_Master
     	// Кога може да се създава лице
     	if($action == 'makeperson' && isset($rec)){
     		
-    		// Ако корицата не е на фирма или състоянието не е активно никой неможе
+    		// Ако корицата не е на фирма или състоянието не е активно никой не може
     		$cover = doc_Folders::getCover($rec->folderId);
     		if(!$cover->instance instanceof crm_Companies || $rec->state != 'active'){
     			$res = 'no_one';

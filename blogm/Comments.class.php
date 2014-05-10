@@ -244,8 +244,7 @@ class blogm_Comments extends core_Detail {
 	
 	
 	/**
-	 *  Ако статията неможе да бъде коментираме, премахваме правото за добавяне на 
-	 *  нов коментар
+	 *  Ако статията не може да бъде коментираме, премахваме правото за добавяне на нов коментар
 	 */
 	static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{   

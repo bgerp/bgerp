@@ -363,7 +363,7 @@ class sales_Sales extends core_Master
         
         if ($form->rec->id){
         	
-        	// Неможе да се сменя ДДС-то ако има вече детайли
+        	// Не може да се сменя ДДС-то ако има вече детайли
         	if($mvc->sales_SalesDetails->fetch("#saleId = {$form->rec->id}")){
         		foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
         			$form->setReadOnly($fld);
@@ -720,7 +720,7 @@ class sales_Sales extends core_Master
 	    		$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата");
 	    	} else {
 	    		
-	    		// Ако разликата е над допустимата но потребителя има права 'sales', той вижда бутона но неможе да го използва
+	    		// Ако разликата е над допустимата но потребителя има права 'sales', той вижда бутона но не може да го използва
 	    		if(!sales_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('sales')){
 	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата,error=Нямате право да приключите продажба с разлика над допустимото");
 	    		}

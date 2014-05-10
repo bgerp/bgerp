@@ -432,7 +432,7 @@ class acc_Items extends core_Manager
     			$options = core_Classes::getOptionsByInterface($intName);
 	    		
     			// Ако е само един наличния мениджър и той има 'autoList' с тази
-    			// номенклатура, неможе да се добавя перо от тук.
+    			// номенклатура, не може да се добавя перо от тук.
     			if(count($options) == 1){
 	    			$Class = cls::get(reset($options));
 	    			if(isset($Class->autoList) && $Class->autoList == $listRec->systemId){

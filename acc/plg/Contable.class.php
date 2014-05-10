@@ -236,7 +236,7 @@ class acc_plg_Contable extends core_Plugin
         	// Който може да възстановява, той може и да реконтира
         	$requiredRoles = $mvc->getRequiredRoles('restore', $rec);
         	
-        	// Неможе да се реконтират само активни и приключени документи
+        	// Не може да се реконтират само активни и приключени документи
         	if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected')) {
                 $requiredRoles = 'no_one';
             }
@@ -263,7 +263,7 @@ class acc_plg_Contable extends core_Plugin
                     $requiredRoles = 'no_one';
                 } else {
                 	
-                	// Ако потрбеителя неможе да контира документа, неможе и да го оттегля
+                	// Ако потребителя не може да контира документа, не може и да го оттегля
                 	if(!haveRole($mvc->getRequiredRoles('conto'))){
                 		$requiredRoles = 'no_one';
                 	}
@@ -271,7 +271,7 @@ class acc_plg_Contable extends core_Plugin
             }
         } elseif ($action == 'restore') {
         	
-        	// Ако потрбеителя неможе да контира документа, неможе и да го възстановява
+        	// Ако потрбеителя не може да контира документа, не може и да го възстановява
             if(!haveRole($mvc->getRequiredRoles('conto'))){
                 $requiredRoles = 'no_one';
             }

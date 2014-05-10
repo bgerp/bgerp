@@ -195,7 +195,7 @@ class bank_OwnAccounts extends core_Master {
         $data->form->setOptions('bankAccountId', $optionAccounts);
         $data->form->setSuggestions('titulars', $titulars);
     	
-        // Номера на сметката неможе да се променя ако редактираме, за смяна на
+        // Номера на сметката не може да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts
         if($data->form->rec->id) {
         	$data->form->setReadOnly('bankAccountId');
@@ -254,7 +254,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Проверка дали може да се добавя банкова сметка в ownAccounts(Ако броя
      * на собствените сметки отговаря на броя на сметките на Моята компания в
-     * bank_Accounts то неможем да добавяме нова сметка от този мениджър
+     * bank_Accounts то не можем да добавяме нова сметка от този мениджър
      * @return boolean TRUE/FALSE - можем ли да добавяме нова сметка
      */
     function canAddOwnAccount()

@@ -285,7 +285,7 @@ class bank_CashWithdrawOrders extends core_Master
      */
 	public static function canAddToThread($threadId)
     {
-    	// Ако няма ориджин в урл-то, документа неможе да се добави към нишката
+    	// Ако няма ориджин в урл-то, документа не може да се добави към нишката
     	$originId = Request::get('originId');
     	if(empty($originId)) return FALSE;
     	
