@@ -513,11 +513,16 @@ class pos_ReceiptDetails extends core_Detail {
     			$row->actionValue = pos_Payments::getTitleById($action->value);
     			if($fields['-list']){
     				$row->productId = tr('Плащане') . ": " . $row->actionValue;
+    				unset($row->quantity);
     			}
     			break;
     		case "client":
     			$clientArr = explode("|", $rec->param);
     			$row->clientName = $clientArr[1]::getTitleById($clientArr[0]);
+    			if($fields['-list']){
+    				$row->productId =  tr('Клиент') . ": " . $row->clientName;
+    				unset($row->quantity);
+    			} 
     			break;
     	}
     	

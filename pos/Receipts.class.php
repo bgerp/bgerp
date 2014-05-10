@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -19,7 +19,7 @@ class pos_Receipts extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'bgerp_DealAggregatorIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl';
+    var $interfaces = 'bgerp_DealAggregatorIntf';
     
     
     /**
@@ -201,7 +201,7 @@ class pos_Receipts extends core_Master {
     	if($fields['-list']){
     		$row->title = "{$mvc->singleTitle} №{$row->id}";
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
-    	}elseif($fields['-single']){
+    	} elseif($fields['-single']){
     		$row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
     		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
     		$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
@@ -568,7 +568,7 @@ class pos_Receipts extends core_Master {
     	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
     	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
     	$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
-    	$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => 'buttonForm')), 'FIRST_TOOLS_ROW');
+    	$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => 'buttonForm', 'title' => 'Добави продукт')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => 'buttonForm tools-modify', 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => 'buttonForm tools-modify', 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('Кл. карта', NULL, NULL, array('class' => 'buttonForm', 'id' => 'tools-addclient', 'data-url' => $addClient, 'title' => 'Въведи клиентска карта')), 'FIRST_TOOLS_ROW');
