@@ -1,9 +1,0 @@
-[#action#]
-[#ean#]
-[#quantity#]
-[#packagingId#]
-
-<div class="clearfix21" style='height:10px;'></div>
-<div class='buttons-row'>[#FIRST_ROW#]</div>
-<div class='buttons-row'>[#SECOND_ROW#]</div>
-<div class='buttons-row'>[#THIRD_ROW#]</div>
