@@ -28,6 +28,12 @@
 						      [#PAYMENTS#]
 						   </div>
 						<!--ET_END PAYMENTS_BLOCK-->
+						
+						<!--ET_BEGIN DRAFTS-->
+						   <div class='tab-content' id = 'tools-drafts'>
+						      [#DRAFTS#]
+						   </div>
+						<!--ET_END DRAFTS-->
 					</div>
 				<!--ET_END TOOLS-->
 				</div>
@@ -40,17 +46,23 @@
 	<ul id ='tools-wide-tabs' class='pos-tabs'>[#TABS_WIDE#]</ul>
 	<!--ET_BEGIN WIDE_RIGHT_PANEL-->[#WIDE_RIGHT_PANEL#]
 	<div class='tools-wide-select-content tabs-holder-content'>
-	               <!--ET_BEGIN CHOOSE_DIV_WIDE-->
-                    <div class='tab-content active' id = 'tools-choose'>
-                        [#CHOOSE_DIV_WIDE#] 
-                    </div>
-                    <!--ET_END CHOOSE_DIV_WIDE-->
+	         <!--ET_BEGIN CHOOSE_DIV_WIDE-->
+             <div class='tab-content active' id = 'tools-choose'>
+                [#CHOOSE_DIV_WIDE#] 
+             </div>
+             <!--ET_END CHOOSE_DIV_WIDE-->
+             
+             <!--ET_BEGIN SEARCH_DIV_WIDE-->
+             <div class='tab-content' id = 'tools-search'>
+                 [#SEARCH_DIV_WIDE#]
+             </div>
+             <!--ET_END SEARCH_DIV_WIDE-->
                     
-                    <!--ET_BEGIN SEARCH_DIV_WIDE-->
-                    <div class='tab-content' id = 'tools-search'>
-                        [#SEARCH_DIV_WIDE#]
-                    </div>
-                    <!--ET_END SEARCH_DIV_WIDE-->
+             <!--ET_BEGIN DRAFTS_WIDE-->
+                 <div class='tab-content' id = 'tools-drafts'>
+                    [#DRAFTS_WIDE#]
+                 </div>
+             <!--ET_END DRAFTS_WIDE-->
 	</div>
 	<!--ET_END WIDE_RIGHT_PANEL-->
 </div>

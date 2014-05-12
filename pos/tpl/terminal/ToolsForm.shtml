@@ -69,3 +69,7 @@
 </div>
 <div class='clearfix21'></div>
 <!--ET_END PAYMENTS_BLOCK-->
+
+<!--ET_BEGIN DRAFTS-->
+[#DRAFTS#]
+<!--ET_END DRAFTS-->

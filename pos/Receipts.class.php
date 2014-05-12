@@ -440,9 +440,11 @@ class pos_Receipts extends core_Master {
     		
     		// Добавяне на табовете показващи се в широк изглед отстрани
 	    	if(!Mode::is('screenMode', 'narrow')){
-	    		$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li>";
+	    		$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts'>Чернови</a></li>";
 	    		$tpl->replace($this->getSelectFavourites(), 'CHOOSE_DIV_WIDE');
 	    		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV_WIDE');
+	    		$tpl->append($this->renderDraftsTab($id), 'DRAFTS_WIDE');
+	    		
 	    		$tpl->replace($tab, 'TABS_WIDE');
 	    	}
     	}
@@ -501,6 +503,8 @@ class pos_Receipts extends core_Master {
     
     /**
      * Подготовка и рендиране на бележка
+     * 
+     * @return core_ET $tpl - шаблон
      */
     private function renderReceipt($data)
     {
@@ -520,6 +524,7 @@ class pos_Receipts extends core_Master {
      * Рендиране на табовете под бележката
      * 
      * @param int $id - ид на бележка
+     * @return core_ET $tpl - шаблон
      */
 	public function getTools($id)
     {
@@ -527,7 +532,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	
     	// Рендиране на пулта
-    	$tab = "<li class='active'><a href='#tools-form'>Пулт</a></li>";
+    	$tab = "<li class='active'><a href='#tools-form'>Пулт</a></li><li><a href='#tools-payment'>Плащане</a></li>";
     	$tpl->append($this->renderToolsTab($id), 'TAB_TOOLS');
     	
     	// Ако сме в тесен режим
@@ -538,14 +543,14 @@ class pos_Receipts extends core_Master {
     		
     		// Добавяне на таба с избор
     		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
-    		$tab .= "<li><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li>";
+    		$tab .= "<li><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts'>Чернови</a></li>";
+    	
+    		// Добавяне на таба с черновите
+    		$tpl->append($this->renderDraftsTab($id), 'DRAFTS');
     	}
     	
     	// Добавяне на таба за плащане
     	$tpl->append($this->renderPaymentTab($id), 'PAYMENTS');
-    	
-    	// Добавяне на заглавията на табовете
-    	$tab .= "<li><a href='#tools-payment'>Плащане</a></li>";
     	$tpl->append($tab, 'TABS');
     	
    		return $tpl;
@@ -554,6 +559,7 @@ class pos_Receipts extends core_Master {
     
     /**
      * Рендира бързите бутони
+     * @return core_ET $block - шаблон
      */
     public function getSelectFavourites()
     {
@@ -572,6 +578,7 @@ class pos_Receipts extends core_Master {
      * Рендиране на таба с пулта
      * 
      * @param int $id - ид на бележка
+     * @return core_ET $block - шаблон
      */
 	public function renderToolsTab($id)
     {
@@ -599,6 +606,7 @@ class pos_Receipts extends core_Master {
      * Рендиране на таба за търсене на продукт
      * 
      * @param int $id -ид на бележка
+     * @return core_ET $block - шаблон
      */
     public function renderChooseTab($id)
     {
@@ -612,6 +620,35 @@ class pos_Receipts extends core_Master {
     	$searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
     	$inpFld = ht::createTextInput('select-input-pos', '', array('id' => 'select-input-pos', 'data-url' => $searchUrl));
     	$block->replace($inpFld, 'INPUT_SEARCH');
+    	
+    	return $block;
+    }
+    
+    
+    /**
+     * Рендиране на таба с черновите
+     * 
+     * @param int $id -ид на бележка
+     * @return core_ET $block - шаблон
+     */
+    public function renderDraftsTab($id)
+    {
+    	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
+    	$pointId = pos_Points::getCurrent('id');
+    	
+    	// Намираме всички чернови бележки и ги добавяме като линк
+    	$query = $this->getQuery();
+    	$query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$id}");
+    	while($rec = $query->fetch()){
+    		$date = $this->getVerbal($rec, 'valior');
+    		$row = ht::createLink("№{$rec->id} / {$date}", array('pos_Receipts', 'Terminal', $rec->id));
+    		$row = "<div>{$row}</div>";
+    		$block->append($row);
+    	}
+    	
+    	if(!$query->count()){
+    		$block->append("<div class='pos-no-result'>" . tr('Няма чернови') . "</div>");
+    	}
     	
     	return $block;
     }
