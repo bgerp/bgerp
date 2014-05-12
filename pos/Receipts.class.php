@@ -420,7 +420,7 @@ class pos_Receipts extends core_Master {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	
-    	// Имаме ли достъп до сингъла на бележката
+    	// Имаме ли достъп до терминала
     	$this->requireRightFor('terminal', $rec);
     	
     	// Лейаут на терминала
@@ -783,11 +783,14 @@ class pos_Receipts extends core_Master {
      */
 	function act_getSearchResults()
     {
+    	$this->requireRightFor('terminal');
+    	
     	if($searchString = Request::get('searchString')){
     		if(!$id = Request::get('receiptId')) return array();
     	
 	    	if(!$rec = $this->fetch($id)) return array();
 	    	
+	    	$this->requireRightFor('terminal', $rec);
 	    	$html = $this->getResultsTable($searchString, $rec);
 	    } else {
     		$html = ' ';
