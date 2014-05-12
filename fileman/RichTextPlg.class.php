@@ -179,11 +179,15 @@ class fileman_RichTextPlg extends core_Plugin
                 // Ако е файл от fileman
                 if (($params !== FALSE) && (strtolower($params['Ctr']) == 'fileman_files' && strtolower($params['Act']) == 'single' && $params['id'])) {
                     
-                    // Вземаме данните за файла
-                    $fRec = fileman_Files::fetch($params['id']);
-
-                    // Добавяме в масивa
-                    $files[$fRec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
+                    // Ако е id
+                    if (is_numeric($params['id'])) {
+                        
+                        // Вземаме данните за файла
+                        $fRec = fileman_Files::fetch($params['id']);
+    
+                        // Добавяме в масивa
+                        $files[$fRec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
+                    }
                 }
             }
         }
