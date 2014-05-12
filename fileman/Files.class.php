@@ -1130,9 +1130,6 @@ class fileman_Files extends core_Master
      */
     function unprotectId($id)
     {
-        // Ако е подадено число, да не се ескейпва
-        if (is_numeric($id)) return FALSE;
-        
         // Това е хак, за някои случаи когато има манипулатори, които са защитени допълнителни (в стари системи)
         // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
         if (mb_strlen($id) > FILEMAN_HANDLER_LEN) {
@@ -1150,14 +1147,13 @@ class fileman_Files extends core_Master
             $this->protectId = $old;
         }
         
-        // Вземаме записа
+        // Вземаме записа от манипулатора на файла
         $rec = static::fetchByFh($id);
         
-        if ($rec) {
-            $id = $rec->id;
-        }
+        // Ако няма запис
+        if (!$rec) return FALSE;
         
-        return $id;
+        return $rec->id;
     }
     
     
