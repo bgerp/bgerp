@@ -633,12 +633,13 @@ class pos_Receipts extends core_Master {
      */
     public function renderDraftsTab($id)
     {
+    	$rec = $this->fetchRec($id);
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
     	$pointId = pos_Points::getCurrent('id');
     	
     	// Намираме всички чернови бележки и ги добавяме като линк
     	$query = $this->getQuery();
-    	$query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$id}");
+    	$query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
     	while($rec = $query->fetch()){
     		$date = $this->getVerbal($rec, 'valior');
     		$row = ht::createLink("№{$rec->id} / {$date}", array('pos_Receipts', 'Terminal', $rec->id));
