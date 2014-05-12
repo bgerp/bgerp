@@ -37,14 +37,14 @@ class newsbar_News extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'newsbar_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    var $loadList = 'newsbar_Wrapper, plg_Created, plg_State2, plg_RowTools, newsbar_Plugin';
     
     
    
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,news,startTime,endTime,state';
+    var $listFields = '✍,news,startTime,endTime,lang,color,transparency,state';
 
 
     /**
@@ -73,6 +73,9 @@ class newsbar_News extends core_Master
 		$this->FLD('news', 'richtext(rows=2)', 'caption=Новина,mandatory');
 		$this->FLD('startTime', 'datetime', 'caption=Показване на новината->Начало, mandatory');
 		$this->FLD('endTime', 'datetime', 'caption=Показване на новината->Край,mandatory');
+		$this->FLD('lang', 'varchar(3), allowEmpty=true', 'caption=Показване на новината->Език,mandatory');
+		$this->FLD('color', 'color_Type', 'caption=Фон->Цвят,mandatory,unit=rgb');
+		$this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Фон->Прозрачност,mandatory');
 		
     }
     
@@ -84,22 +87,24 @@ class newsbar_News extends core_Master
     {
     	// Правим заявка към базата
     	$query = static::getQuery();
-    	$query->orderBy('startTime'); 
+    	
+    	
     	$nowTime = dt::now();
-		$topNews = $query->fetchAll("#state = 'active' AND #startTime <= '{$nowTime}' AND  #endTime >= '{$nowTime}'");
+    	$lg = cms_Content::getLang();
 
-        if(!count($topNews)) return;
-       
-		foreach($topNews as $news){
-		
-			$link .= $news->news . " | ";
+        $query->groupBy('RAND()');
+    	$query->limit(1);
 
-		}
+    	$query->where("#state = 'active'");
+    	$query->where("#startTime <= '{$nowTime}' AND  #endTime >= '{$nowTime}'");
+		$query->where("#lang = 0 OR #lang = '{$lg}'");
 		
-		$newLink = substr($link, 0, strlen($link)-2);
+        $news = $query->fetch();
+
+		$newLink = substr($news->news, 0, strlen($link)-2);
        
 		// Връщаме стринг от всички новини
-		return $newLink;
+		return (object) array('news' => $newLink, 'color' => $news->color, 'transparency'=> $news->transparency);
     }
 
     
@@ -142,4 +147,44 @@ class newsbar_News extends core_Master
 	        }
     	}
     }
+    
+	
+	/**
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     */
+    static function on_AfterPrepareEditForm($mvc, $data)
+    {
+        $form = &$data->form;
+        $rec  = &$form->rec;
+        
+        $arr = array ('0' => "");
+        $form->setOptions('lang', $arr+cms_Content::getLangsArr());
+
+        $progressArr[''] = '';
+
+        for($i = 0; $i <= 100; $i += 10) {
+            if($rec->transparency > ($i/100)) continue;
+            $p = $i . ' %';
+            $progressArr[$p] = $p;
+        }
+        $form->setSuggestions('transparency', $progressArr);
+       
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    static function on_AfterPrepareListRows($mvc, &$res)
+    {
+        $rows = &$res->rows;
+        $recs = &$res->recs;
+        
+        foreach ($recs as $id => $rec) {
+        	if ($rec->lang == '0') { 
+        		$rows[$id]->lang = " ";
+        	}
+        }
+    }
+
 }

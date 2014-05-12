@@ -22,15 +22,18 @@ class newsbar_Plugin extends core_Plugin
     {
        // взимаме всички нови новини
        $str = newsbar_News::getTopNews();
-       
+
        if($str) {
            $convertText = cls::get('type_Richtext');
-           $barNews = $convertText->toVerbal($str);
+           $barNews = $convertText->toVerbal($str->news);
            
-           $html = "<div class='newsbar'>
-            <marquee scrollamount='4'><b style='opacity:1;'>$barNews</b></marquee>
-            </div><div class='clearfix21'></div>";
+           $html = new ET("<div class='newsbar' style='opacity:[#transparency#];background-color:[#color#];'>
+            <marquee scrollamount='4'><b>$barNews</b></marquee>
+            </div><div class='clearfix21'></div>");
            
+           $html->replace($str->color, 'color');
+           $html->replace($str->transparency, 'transparency');
+     
            $invoker->appendOnce($html, 'PAGE_HEADER');
        }
     }
