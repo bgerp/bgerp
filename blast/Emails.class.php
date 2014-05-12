@@ -932,6 +932,8 @@ class blast_Emails extends core_Master
         // Тялото на съобщението
         $body = $this->getEmailBody($emailRec, $detId);
         
+        $body->text = core_ET::unEscape($body->text);
+        
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
 
@@ -1336,7 +1338,9 @@ class blast_Emails extends core_Master
             
                 //Тялото на съобщението
                 $body = $this->getEmailBody($nRec, $id, TRUE);
-
+                
+                $body->text = core_ET::unEscape($body->text);
+                
                 //Извикваме функцията за изпращане на имейли
                 $status = email_Sent::sendOne(
                     $boxFrom,
@@ -1564,8 +1568,6 @@ class blast_Emails extends core_Master
         
         // Вземаме тялото на имейла
         $res = static::getDocumentBody($rec->id, 'plain', $options);
-        
-        $res = core_ET::unEscape($res);
         
         // За да вземем mid'а който се предава на $options
         $rec->__mid = $options->rec->__mid;
