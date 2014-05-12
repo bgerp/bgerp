@@ -60,7 +60,7 @@ class acc_type_Account extends type_Key
     
         // Ако има зададени интерфейси на аналитичностите
         if($regInterfaces){
-        	static::filterSuggestions($regInterfaces, options);
+        	static::filterSuggestions($regInterfaces, $options);
         }
     	
         $this->options = $options;
