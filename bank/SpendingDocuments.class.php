@@ -263,36 +263,39 @@ class bank_SpendingDocuments extends core_Master
     	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
         if($origin->haveInterface('bgerp_DealAggregatorIntf')){
     		 $dealInfo = $origin->getAggregateDealInfo();
-    		 $amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
-    		 $amount = ($amount <= 0) ? 0 : $amount;
+    		 
+    		 if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
+    		 	$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 	$amount = ($amount <= 0) ? 0 : $amount;
     		 	
-    		 // Ако операциите на документа не са позволени от интерфейса, те се махат
-    		 foreach ($options as $index => $op){
-    		 	if(!in_array($index, $dealInfo->allowedPaymentOperations)){
-    		 		unset($options[$index]);
+    		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
+    		 	foreach ($options as $index => $op){
+    		 		if(!in_array($index, $dealInfo->allowedPaymentOperations)){
+    		 			unset($options[$index]);
+    		 		}
+    		 	}
+    		 	
+    		 	$form->defaultOperation = $this->getDefaultOperation($dealInfo);
+    		 	if($form->defaultOperation == 'bank2supplierAdvance'){
+    		 		$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
+    		 	}
+    		 	 
+    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
+    		 	$form->rec->tempRate = $dealInfo->shipped->rate;
+    		 	 
+    		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_SALE){
+    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 	
+    		 		// Ако има банкова сметка по подразбиране
+    		 		if($bankId = $dealInfo->agreed->payment->bankAccountId){
+    		 			$bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id');
+    		 			if($bankId){
+    		 				// Ако потребителя има права, логва се тихо
+    		 				bank_OwnAccounts::selectSilent($bankId);
+    		 			}
+    		 		}
     		 	}
     		 }
-    		 	
-    		 $form->defaultOperation = $this->getDefaultOperation($dealInfo);
-        	 if($form->defaultOperation == 'bank2supplierAdvance'){
-    		 		$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
-    		 }
-    		 
-    		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
-    		 $form->rec->tempRate = $dealInfo->shipped->rate;
-    		 
-    		 if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_SALE){
-    		 	$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
-    		 	
-    		 	// Ако има банкова сметка по подразбиране
-	    		if($bankId = $dealInfo->agreed->payment->bankAccountId){
-	    		 	$bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id');
-	    		 	if($bankId){
-	    		 		// Ако потребителя има права, логва се тихо
-	    		 		bank_OwnAccounts::selectSilent($bankId);
-	    		 	}
-	    		 }
-    		 } 
     	}
     }
     

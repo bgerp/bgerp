@@ -214,35 +214,38 @@ class cash_Rko extends core_Master
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
     		 	$dealInfo = $origin->getAggregateDealInfo();
-    		 	$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
-    		 	if($amount <= 0) {
-    		 		$amount = 0;
-    		 	}
     		 	
-    		 	$defaultOperation = $mvc->getDefaultOperation($dealInfo);
-    		 	if($defaultOperation == 'case2supplierAdvance'){
-    		 		$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
-    		 	}
-    		 	
-    		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
-    		 	foreach ($options as $index => $op){
-    		 		if(!in_array($index, $dealInfo->allowedPaymentOperations)){
-    		 			unset($options[$index]);
+    		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
+    		 		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 		if($amount <= 0) {
+    		 			$amount = 0;
     		 		}
-    		 	}
-    		 	
-    		 	if($caseId = $dealInfo->agreed->payment->caseId){
-    		 		$cashRec = cash_Cases::fetch($caseId);
-	    		 	
-    		 		// Ако потребителя има права, логва се тихо
-    		 		cash_Cases::selectSilent($caseId);
-    		 	}
-    		 	
-    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
-    		 	$form->rec->tempRate = $dealInfo->shipped->rate;
-    		 	
-    		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_SALE){
-    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 		
+    		 		$defaultOperation = $mvc->getDefaultOperation($dealInfo);
+    		 		if($defaultOperation == 'case2supplierAdvance'){
+    		 			$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
+    		 		}
+    		 		
+    		 		// Ако операциите на документа не са позволени от интерфейса, те се махат
+    		 		foreach ($options as $index => $op){
+    		 			if(!in_array($index, $dealInfo->allowedPaymentOperations)){
+    		 				unset($options[$index]);
+    		 			}
+    		 		}
+    		 		
+    		 		if($caseId = $dealInfo->agreed->payment->caseId){
+    		 			$cashRec = cash_Cases::fetch($caseId);
+    		 			 
+    		 			// Ако потребителя има права, логва се тихо
+    		 			cash_Cases::selectSilent($caseId);
+    		 		}
+    		 		
+    		 		$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
+    		 		$form->rec->tempRate = $dealInfo->shipped->rate;
+    		 		
+    		 		if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_SALE){
+    		 			$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 		}
     		 	}
     		 }
     	}  else {
