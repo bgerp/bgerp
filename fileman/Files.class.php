@@ -1130,6 +1130,9 @@ class fileman_Files extends core_Master
      */
     function unprotectId($id)
     {
+        // Да не се приемат числа
+        expect(!is_numeric($id));
+        
         // Това е хак, за някои случаи когато има манипулатори, които са защитени допълнителни (в стари системи)
         // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
         if (mb_strlen($id) > FILEMAN_HANDLER_LEN) {
