@@ -364,7 +364,7 @@ class email_Outgoings extends core_Master
             $rec->__mid = NULL;
             $rec->html = static::getEmailHtml($rec, $lg, $emailCss);
             $rec->text = static::getEmailText($rec, $lg);
-        
+            
             // Генериране на прикачените документи
             $rec->documentsFh = array();
             foreach ($docsArr as $attachDoc) {
@@ -384,7 +384,7 @@ class email_Outgoings extends core_Master
                 //Записваме прикачените файлове
                 $rec->documents = keylist::fromArray($documents);
             }
-    
+            
             // ... и накрая - изпращане.
             $status = email_Sent::sendOne(
                 $options->boxFrom,
@@ -916,6 +916,8 @@ class email_Outgoings extends core_Master
         $text    = $textTpl->getContent();
         
         core_Lg::pop();
+        
+        $text = core_ET::unEscape($text);
         
         return $text;
     }

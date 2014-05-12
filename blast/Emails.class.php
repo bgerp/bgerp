@@ -1565,6 +1565,8 @@ class blast_Emails extends core_Master
         // Вземаме тялото на имейла
         $res = static::getDocumentBody($rec->id, 'plain', $options);
         
+        $res = core_ET::unEscape($res);
+        
         // За да вземем mid'а който се предава на $options
         $rec->__mid = $options->rec->__mid;
         
