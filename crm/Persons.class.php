@@ -512,8 +512,12 @@ class crm_Persons extends core_Master
                 }
             }
         }
-
-        $row->country = $mvc->getVerbal($rec, 'country');
+        
+        $ownCompany = crm_Companies::fetchOurCompany();
+        if ($ownCompany->country != $rec->country) {
+        	$row->country = $mvc->getVerbal($rec, 'country');
+        }
+        
         $pCode = $mvc->getVerbal($rec, 'pCode');
         $place = $mvc->getVerbal($rec, 'place');
         $address = $mvc->getVerbal($rec, 'address');
@@ -525,10 +529,12 @@ class crm_Persons extends core_Master
             $canSingle = static::haveRightFor('single', $rec);
             
             $row->nameList = $row->name;
-
-            $row->addressBox = $row->country;
-            $row->addressBox .= ($pCode || $place) ? "<br>" : "";
-
+            
+            if ($row->country) {
+                $row->addressBox = $row->country;
+                $row->addressBox .= ($pCode || $place) ? "<br>" : "";
+            }
+            
             $row->addressBox .= $pCode ? "{$pCode} " : "";
             $row->addressBox .= $place;
 
