@@ -1151,7 +1151,12 @@ class fileman_Files extends core_Master
         $rec = static::fetchByFh($id);
         
         // Ако няма запис
-        if (!$rec) return FALSE;
+        if (!$rec) {
+            
+            sleep(2);
+            
+            return FALSE;
+        }
         
         return $rec->id;
     }
