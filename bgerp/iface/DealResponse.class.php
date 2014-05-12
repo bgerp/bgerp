@@ -14,6 +14,7 @@ class bgerp_iface_DealResponse
 {
     const TYPE_PURCHASE = 'purchase';
     const TYPE_SALE     = 'sale';
+    const TYPE_DEAL     = 'deal';
     
     /**
      * Тип на сделката
