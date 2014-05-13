@@ -45,12 +45,12 @@ function posActions() {
 		
 		inpVal += val;
 		$("input[name=ean]").val(inpVal);
+		$("input[name=ean]").focus();
 	});
 	
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', "#tools-payment .numPad", function(e){
 		var val = $(this).val();
-		
 		var inpVal = $("input[name=paysum]").val();
 		if(val == '.'){
 			if(inpVal.length == 0){
@@ -64,6 +64,7 @@ function posActions() {
 		
 		inpVal += val;
 		$("input[name=paysum]").val(inpVal);
+		$("input[name=paysum]").focus();
 	});
 	
 	// Триене на числа в пулта
@@ -72,6 +73,8 @@ function posActions() {
 		var newVal = $("input[name=ean]").val().substr(0, inpValLength-1);
 		
 		$("input[name=ean]").val(newVal);
+		$("input[name=ean]").focus();
+		
 	});
 	
 	// Триене на числа при плащанията
@@ -80,6 +83,7 @@ function posActions() {
 		var newVal = $("input[name=paysum]").val().substr(0, inpValLength-1);
 		
 		$("input[name=paysum]").val(newVal);
+		$("input[name=paysum]").focus();
 	});
 	
 	// Модифициране на количество
@@ -270,6 +274,7 @@ function posActions() {
 		var inpVal = $("#select-input-pos").val();
 		inpVal += currentAttrValue;
 		$("#select-input-pos").val(inpVal);
+		$("#select-input-pos").focus();
 		
 		// Задействаме евент 'keyup' в инпут полето
 		var e = jQuery.Event("keyup");
@@ -282,6 +287,7 @@ function posActions() {
 		var newVal = $("#select-input-pos").val().substr(0, inpValLength-1);
 		
 		$("#select-input-pos").val(newVal);
+		$("#select-input-pos").focus();
 		var e = jQuery.Event("keyup");
 		$("#select-input-pos").trigger(e);
 	});
