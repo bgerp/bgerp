@@ -16,18 +16,6 @@ defIfNot('BASE_CURRENCY_CODE', 'BGN');
 
 
 /**
- * Начален номер на фактурите
- */
-defIfNot('ACC_INV_MIN_NUMBER', '0');
-
-
-/**
- * Краен номер на фактурите
- */
-defIfNot('ACC_INV_MAX_NUMBER', '10000000');
-
-
-/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
