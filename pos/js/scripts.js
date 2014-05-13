@@ -241,14 +241,19 @@ function posActions() {
 	});
 	
 	// Скриване на табовете
-	$('.pos-tabs a ').live("click", function(e) {
+	$('.pos-tabs a ').on("click", function(e) {
 		var currentAttrValue= $(this).attr('href');
-
+		//var thisEl = $(this);
+		
 		$('.tab-content' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
 		if($('body').hasClass('wide')){
 			calculateWidth();
 		}
+		
+		//if(currentAttrValue == '#tools-drafts') {
+			//$(thisEl).magnificPopup();
+		//}
 		e.preventDefault();
 	}); 
 	

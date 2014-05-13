@@ -440,7 +440,8 @@ class pos_Receipts extends core_Master {
     		
     		// Добавяне на табовете показващи се в широк изглед отстрани
 	    	if(!Mode::is('screenMode', 'narrow')){
-	    		$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts'>Чернови</a></li>";
+	    		$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
+	    		$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts' data-url='{$DraftsUrl}'>Бележки</a></li>";//$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='{$DraftsUrl}' data-url='{$DraftsUrl}'>Чернови</a></li>";
 	    		$tpl->replace($this->getSelectFavourites(), 'CHOOSE_DIV_WIDE');
 	    		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV_WIDE');
 	    		$tpl->append($this->renderDraftsTab($id), 'DRAFTS_WIDE');
@@ -464,6 +465,10 @@ class pos_Receipts extends core_Master {
     	jquery_Jquery::enable($tpl);
 	    $tpl->push('pos/tpl/css/styles.css', 'CSS');
 	    $tpl->push('pos/js/scripts.js', 'JS');
+
+	   // $tpl->push('pos/js/jquery.magnific-popup.js', 'JS');
+	   // $tpl->push('pos/tpl/css/magnific-popup.css', 'CSS');
+
 	    jquery_Jquery::run($tpl, "posActions();");
 	    
 	    $conf = core_Packs::getConfig('pos');
@@ -540,6 +545,8 @@ class pos_Receipts extends core_Master {
     		
     		// Добавяне на таба с бързите бутони
     		$tpl->append($this->getSelectFavourites(), 'CHOOSE_DIV');
+    		
+    		$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
     		
     		// Добавяне на таба с избор
     		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
@@ -626,6 +633,22 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Екшън за показване на черновите бележки
+     */
+ 	function act_ShowDrafts()
+    {
+    	$this->requireRightFor('terminal');
+    	expect($id = Request::get('id'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('terminal', $rec);
+    	
+    	Mode::set('wrapper', 'page_Empty');
+    	
+    	return $this->renderDraftsTab($id)->getContent() . '<div class="clearfix21"></div>';
+    } 
+    
+    
+    /**
      * Рендиране на таба с черновите
      * 
      * @param int $id -ид на бележка
@@ -642,8 +665,7 @@ class pos_Receipts extends core_Master {
     	$query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
     	while($rec = $query->fetch()){
     		$date = $this->getVerbal($rec, 'valior');
-    		$row = ht::createLink("№{$rec->id} / {$date}", array('pos_Receipts', 'Terminal', $rec->id));
-    		$row = "<div>{$row}</div>";
+    		$row = ht::createLink("№{$rec->id} / {$date}", array('pos_Receipts', 'Terminal', $rec->id),NULL, array('class'=>'pos-notes'));
     		$block->append($row);
     	}
     	

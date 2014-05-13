@@ -623,7 +623,9 @@ form #point {
 	float:left;
 	list-style:none;
 }
-
+.narrow .pos-tabs li{
+	margin:0;
+}
 .pos-tabs a {
 	padding:9px 15px;
 	display:inline-block;
@@ -653,7 +655,7 @@ form #point {
 }
 
 .narrow .pos-tabs a{
-	padding:4px 5px;
+	padding:4px;
 	font-size: 0.9em;
 }
 
@@ -798,6 +800,17 @@ form #point {
 	background: -ms-linear-gradient(top, rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
 	background: linear-gradient(to bottom, #F1F1F1 0%,#DDD 100%);
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
+}
+.ow-overlay {
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+
+  background: #424242;
+  opacity: 0.8;
 }
 
 @media handheld, only screen and (max-width: 1600px) { 

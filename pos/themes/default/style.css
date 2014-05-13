@@ -4,7 +4,7 @@
 	left:600px;
 }
 
-.pos-product-category {
+.pos-product-category, .pos-notes {
 	padding: 0.1em 0.5em 0.4em;
 	margin:0px 8px 5px 0;
 	max-width:90px;
@@ -27,8 +27,11 @@
     border-radius: 10px;
     text-shadow: 1px 1px 0px rgba(0, 0, 0, 1)
 }
-
-.pos-product-category:hover, .pos-product-category.active {
+.pos-notes {
+	color: #fff !important;
+	font-weight: bold;
+}
+.pos-product-category:hover, .pos-product-category.active, .pos-notes:hover {
 	cursor: pointer;
 	color: #fff;
 	background: rgba(50,50,50,0.8);
@@ -40,6 +43,9 @@
     -moz-box-shadow: inset 0px -3px 1px rgba(255, 255, 255, 1), inset 0 0px 3px rgba(0, 0, 0, 0.9).none;
     box-shadow: inset 0px -3px 1px #F1F1F1, inset 0 0px 3px rgba(0, 0, 0, 0.9),none;
 
+}
+.narrow .pos-notes{
+	max-width:70px;
 }
 
 #pos-producy-categories {
