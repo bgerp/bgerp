@@ -129,24 +129,6 @@ class deals_Deals extends core_Master
     
     
     /**
-     * Детайла, на модела
-     */
-    //public $details = 'AccReports=acc_ReportDetails' ;
-    
-    
-    /**
-     * По кои сметки ще се правят справки
-     */
-    //public $balanceRefAccounts = '501';
-    
-    
-    /**
-     * По кой итнерфейс ще се групират сметките
-     */
-    //public $balanceRefGroupBy = 'cash_CaseAccRegIntf';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -156,6 +138,8 @@ class deals_Deals extends core_Master
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Име');
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
     	$this->FLD('contragentId', 'int', 'input=hidden');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
+    	$this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=4em');
     	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнителno->Описание');
     	
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)','caption=Статус, input=none');
@@ -179,6 +163,28 @@ class deals_Deals extends core_Master
     	
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
     	$form->setReadOnly('contragentName');
+    	
+    	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
+    }
+    
+    
+    /**
+     * Проверка и валидиране на формата
+     */
+    function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if ($form->isSubmitted()){
+    		$rec  = &$form->rec;
+    		if(!$rec->currencyRate){
+    			// Изчисляваме курса към основната валута ако не е дефиниран
+    			$rec->currencyRate = round(currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL), 4);
+    			
+    		} else {
+    			if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, dt::now(), $rec->currencyId, NULL)){
+    				$form->setWarning('currencyRate', $msg);
+    			}
+    		}
+    	}
     }
     
     
@@ -219,7 +225,6 @@ class deals_Deals extends core_Master
     	$data->masterMvc = cls::get('cash_Cases');
     	$data->masterId = $data->rec->id;
     	
-    	//$mvc->AccReports->prepareAccReports($data);
     	$mvc->getHistory($data);
     }
     
@@ -231,18 +236,18 @@ class deals_Deals extends core_Master
     {
     	$rec = $this->fetchRec($data->rec->id);
     	
-    	$accId = '501';
-    	$item = acc_Items::fetchItem(cash_Cases::getClassId(), 1);
+    	//$accId = '501';
+    	//$item = acc_Items::fetchItem(cash_Cases::getClassId(), 1);
+    	//$rec->createdOn = NULL;
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
     	
-    	$rec->createdOn = NULL;
-    	
+    	$item = acc_Items::fetchItem($this->getClassId(), $rec->id);
     	$blAmount = 0;
     	
     	// Ако документа е перо
     	if($item){
     		$data->history = array();
-    		$Double = cls::get('type_Double');
-    		$Double->params['decimals'] = 2;
     		
     		// Намираме от журнала записите, където участва перото от датата му на създаване до сега
     		$jQuery = acc_JournalDetails::getQuery();
@@ -266,12 +271,12 @@ class deals_Deals extends core_Master
     			} catch(Exception $e){
     				$row->docId = "<span style='color:red'>" . tr('Проблем при показването') . "</span>";
     			}
+    			
+    			$jRec->amount /= $rec->currencyRate;
     			if($jRec->debitItem1 == $item->id){
-    				$row->debitQ = $Double->toVerbal($jRec->debitQuantity);
     				$row->debitA = $Double->toVerbal($jRec->amount);
     				$blAmount += $jRec->amount;
     			} elseif($jRec->creditItem1 == $item->id){
-    				$row->creditQ = $Double->toVerbal($jRec->creditQuantity);
     				$row->creditA = $Double->toVerbal($jRec->amount);
     				$blAmount -= $jRec->amount;
     			}
@@ -298,18 +303,13 @@ class deals_Deals extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-    	//$tpl->replace($mvc->AccReports->renderAccReports($data), 'DETAILS'); return ;
-    	
     	$fieldSet = new core_FieldSet();
     	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field');
-    	$fieldSet->FLD('debitQ', 'double');
     	$fieldSet->FLD('debitA', 'double');
-    	$fieldSet->FLD('creditQ', 'double');
     	$fieldSet->FLD('creditA', 'double');
-    		
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
-    	$fields = 'docId=Документ,debitQ=Дебит->К-во,debitA=Дебит->Сума,creditQ=Кредит->К-во,creditA=Кредит->Сума';
+    	$fields = "docId=Документ,debitA=Дебит->Сума ({$data->row->currencyId}),creditA=Кредит->Сума ({$data->row->currencyId})";
     	$tpl->append($table->get($data->history, $fields), 'DETAILS');
     	
     	if($data->pager){

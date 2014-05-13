@@ -21,7 +21,7 @@
 		</tr>
 		<tr>
 			<td>|Крайно салдо|*</td>
-			<td>[#blAmount#] <span class='cCode'>[#baseCurrencyId#]</span></td>
+			<td>[#blAmount#] <span class='cCode'>[#currencyId#]</span></td>
 		</tr>
 		<!--ET_BEGIN description-->
 		<tr>
