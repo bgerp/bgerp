@@ -140,9 +140,7 @@ class email_FaxSent extends core_Manager
         $faxHtml = $Email->getEmailHtml($data->rec, $lg);
         
         //Текстовата част на факса
-        $faxText = $Email->getEmailText($data->rec, $lg);
-        $faxText = html_entity_decode($faxText, ENT_QUOTES, 'UTF-8');
-        $faxText = core_ET::unEscape($faxText);
+        $faxText = core_ET::unEscape($Email->getEmailText($data->rec, $lg));
         
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
