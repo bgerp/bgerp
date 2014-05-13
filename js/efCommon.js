@@ -1252,10 +1252,10 @@ function saveSelectedTextToSession(handle, onlyHandle)
 	if (typeof sessionStorage === "undefined") return ;
 	
 	// Вземаме избрания текст
-	var selText = getSelText();
+	var selText = getEO().getSavedSelText();
 	
 	// Ако има избран текст
-	if (selText.focusOffset != selText.anchorOffset) {
+	if (selText) {
 		
 		// Ако има подадено id
 		if (handle) {
@@ -1300,7 +1300,7 @@ function getSelText()
 	        txt = document.getSelection();
 	    }
 	    else if (document.selection.createRange)
-	    {    
+	    {
     		txt = document.selection.createRange();
     	}
     } catch(err) {
@@ -2063,7 +2063,7 @@ function Experta()
 	Experta.prototype.sSelText='';
 	
 	// Време на извикване
-	Experta.prototype.saveSelTextTimeout=1200;
+	Experta.prototype.saveSelTextTimeout=200;
 	
 	// Време на извикване в textarea
 	Experta.prototype.saveSelTextareaTimeout=400;
