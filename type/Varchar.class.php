@@ -94,7 +94,7 @@ class type_Varchar extends core_Type {
     {
         $value = parent::toVerbal_($value);
         
-        if (mode::is('text', 'plain')) {
+        if (Mode::is('text', 'plain')) {
             $value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
         }
         
