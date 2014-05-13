@@ -101,10 +101,10 @@ class newsbar_News extends core_Master
 		
         $news = $query->fetch();
 
-		$newLink = substr($news->news, 0, strlen($link)-2);
-       
+		//$newLink = substr($news->news, 0, strlen($link)-2);
+		       
 		// Връщаме стринг от всички новини
-		return (object) array('news' => $newLink, 'color' => $news->color, 'transparency'=> $news->transparency);
+		return (object) array('news' => $news->news, 'color' => $news->color, 'transparency'=> $news->transparency);
     }
 
     
