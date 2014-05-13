@@ -73,7 +73,7 @@ class newsbar_News extends core_Master
 		$this->FLD('news', 'richtext(rows=2)', 'caption=Новина,mandatory');
 		$this->FLD('startTime', 'datetime', 'caption=Показване на новината->Начало, mandatory');
 		$this->FLD('endTime', 'datetime', 'caption=Показване на новината->Край,mandatory');
-		$this->FLD('lang', 'varchar(3), allowEmpty=true', 'caption=Показване на новината->Език,mandatory');
+		$this->FLD('lang', 'varchar(4), allowEmpty=true', 'caption=Показване на новината->Език,mandatory');
 		$this->FLD('color', 'color_Type', 'caption=Фон->Цвят,mandatory,unit=rgb');
 		$this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Фон->Прозрачност,mandatory');
 		
@@ -97,7 +97,7 @@ class newsbar_News extends core_Master
 
     	$query->where("#state = 'active'");
     	$query->where("#startTime <= '{$nowTime}' AND  #endTime >= '{$nowTime}'");
-		$query->where("#lang = 0 OR #lang = '{$lg}'");
+		$query->where("#lang = 'none' OR #lang = '{$lg}'");
 		
         $news = $query->fetch();
 
@@ -157,7 +157,7 @@ class newsbar_News extends core_Master
         $form = &$data->form;
         $rec  = &$form->rec;
         
-        $arr = array ('0' => "");
+        $arr = array ('none' => "");
         $form->setOptions('lang', $arr+cms_Content::getLangsArr());
 
         $progressArr[''] = '';
@@ -181,7 +181,7 @@ class newsbar_News extends core_Master
         $recs = &$res->recs;
         
         foreach ($recs as $id => $rec) {
-        	if ($rec->lang == '0') { 
+        	if ($rec->lang == 'none') { 
         		$rows[$id]->lang = " ";
         	}
         }
