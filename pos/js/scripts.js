@@ -20,7 +20,7 @@ function posActions() {
 	
 	
 	// Засветяване на избрания ред и запис в хидън поле
-	$(".pos-sale").live("click", function() {
+	$(document.body).on('click', ".pos-sale", function(e){
 		var id = $(this).attr("data-id");
 		$(".pos-sale td").removeClass('pos-hightligted');
 		$(".pos-sale").removeClass('pos-hightligted');
@@ -29,7 +29,7 @@ function posActions() {
 	});
 	
 	// Използване на числата за въвеждане в пулта
-	$("#tools-form .numPad").live("click", function() {
+	$(document.body).on('click', "#tools-form .numPad", function(e){
 		var val = $(this).val();
 		
 		var inpVal = $("input[name=ean]").val();
@@ -48,7 +48,7 @@ function posActions() {
 	});
 	
 	// Използване на числата за въвеждане на суми за плащания
-	$("#tools-payment .numPad").live("click", function() {
+	$(document.body).on('click', "#tools-payment .numPad", function(e){
 		var val = $(this).val();
 		
 		var inpVal = $("input[name=paysum]").val();
@@ -67,7 +67,7 @@ function posActions() {
 	});
 	
 	// Триене на числа в пулта
-	$("#tools-form .numBack").live("click", function() {
+	$(document.body).on('click', "#tools-form .numBack", function(e){
 		var inpValLength = $("input[name=ean]").val().length;
 		var newVal = $("input[name=ean]").val().substr(0, inpValLength-1);
 		
@@ -75,7 +75,7 @@ function posActions() {
 	});
 	
 	// Триене на числа при плащанията
-	$("#tools-payment .numBack").live("click", function() {
+	$(document.body).on('click', "#tools-payment .numBack", function(e){
 		var inpValLength = $("input[name=paysum]").val().length;
 		var newVal = $("input[name=paysum]").val().substr(0, inpValLength-1);
 		
@@ -83,7 +83,7 @@ function posActions() {
 	});
 	
 	// Модифициране на количество
-	$(".tools-modify").live("click", function() {
+	$(document.body).on('click', ".tools-modify", function(e){
 		var inpVal = $("input[name=ean]").val();
 		var rowVal = $("input[name=rowId]").val();
 		
@@ -98,7 +98,7 @@ function posActions() {
 	});
 	
 	// Добавяне на клиентска карта
-	$("#tools-addclient").live("click", function() {
+	$(document.body).on('click', "#tools-addclient", function(e){
 		var inpVal = $("input[name=ean]").val();
 		var rowVal = $("input[name=receiptId]").val();
 
@@ -113,7 +113,7 @@ function posActions() {
 	});
 	
 	// Добавя продукт при събмит на формата
-	$("#toolsForm").on("submit",function(event){
+	$("#toolsForm").on("submit", function(event){
 	    var url = $("#toolsForm").attr("action");
 		var code = $("input[name=ean]").val();
 		var receiptId = $("input[name=receiptId]").val();
@@ -130,7 +130,7 @@ function posActions() {
 	});
 	
 	// Добавя продукт от комбо бокса
-	$("#searchForm").on("submit",function(event){
+	$("#searchForm").on("submit", function(event){
 		var url = $("#searchForm").attr("action");
 		var productId = $("#searchForm select[name=productId]").val();
 		var receiptId = $("#searchForm input[name=receiptId]").val();
@@ -146,7 +146,7 @@ function posActions() {
 	});
 	
 	// Направата на плащане след натискане на бутон
-	$(".paymentBtn").live("click", function() {
+	$(document.body).on('click', ".paymentBtn", function(e){
 		var url = $(this).attr("data-url");
 		var type = $(this).attr("data-type");
 		var amount = $("input[name=paysum]").val();
@@ -163,7 +163,7 @@ function posActions() {
 	});
 	
 	// Бутоните за приключване приключват бележката
-	$(".closeBtns").live("click", function(event) {
+	$(document.body).on('click', ".closeBtns", function(e){
 		var url = $(this).attr("data-url");
 		var receiptId = $("input[name=receiptId]").val();
 		
@@ -181,7 +181,7 @@ function posActions() {
 	});
 	
 	// Добавяне на продукти от бързите бутони
-	$('.pos-product').live("click", function(event) {
+	$(document.body).on('click', ".pos-product", function(e){
 		var url = $(this).attr("data-url");
 		var productId = $(this).attr("data-id");
 		var receiptId = $("input[name=receiptId]").val();
@@ -197,7 +197,7 @@ function posActions() {
 
 	// Скриване на бързите бутони спрямо избраната категория
 	$(".pos-product-category[data-id='']").addClass('active');
-	$('.pos-product-category').live("click", function(event) {
+	$(document.body).on('click', ".pos-product-category", function(e){
 		var value = $(this).attr("data-id");
 		
 		$(this).addClass('active').siblings().removeClass('active');
@@ -225,7 +225,7 @@ function posActions() {
 	});
 	
 	// При клик на бутон изтрива запис от бележката
-	$('.pos-del-btn').live("click", function(event) {
+	$(document.body).on('click', ".pos-del-btn", function(e){
 		var warning = $(this).attr("data-warning");
 		var url = $(this).attr("data-url");
 		var recId = $(this).attr("data-recId");
@@ -241,9 +241,8 @@ function posActions() {
 	});
 	
 	// Скриване на табовете
-	$('.pos-tabs a ').on("click", function(e) {
+	$(document.body).on('click', ".pos-tabs a ", function(e){
 		var currentAttrValue= $(this).attr('href');
-		//var thisEl = $(this);
 		
 		$('.tab-content' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
@@ -258,13 +257,13 @@ function posActions() {
 	}); 
 	
 	// Смяна на текущата клавиатура
-	$('.keyboard-change-btn').live("click", function() {
+	$(document.body).on('click', ".keyboard-change-btn", function(e){
 		var currentAttrValue = $(this).attr('data-klang');
 		$('.keyboard#' + currentAttrValue).show().siblings().hide();
 	}); 
 	
 	// Попълване на символи от клавиатурата
-	$('.keyboard-btn').live("click", function() {
+	$(document.body).on('click', ".keyboard-btn", function(e){
 		var currentAttrValue = $(this).val();
 		var isChangeBtn = $(this).attr('data-klang');
 		
@@ -287,7 +286,7 @@ function posActions() {
 	}); 
 	
 	// Триене на символи от формата за търсене
-	$(".keyboard-back-btn").live("click", function() {
+	$(document.body).on('click', ".keyboard-back-btn", function(e){
 		var inpValLength = $("#select-input-pos").val().length;
 		var newVal = $("#select-input-pos").val().substr(0, inpValLength-1);
 		
@@ -317,7 +316,7 @@ function posActions() {
 	});
 	
 	// Добавяне на продукт от резултатите за търсене
-	$('.pos-add-res-btn').live("click", function() {
+	$(document.body).on('click', ".pos-add-res-btn", function(e){
 		var elemRow = $(this).closest('tr');
 		$(elemRow).addClass('pos-hightligted');
 		setTimeout(function(){$(elemRow).removeClass('pos-hightligted');},1000);
