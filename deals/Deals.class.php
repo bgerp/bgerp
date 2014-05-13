@@ -378,6 +378,9 @@ class deals_Deals extends core_Master
     	
     	$result->allowedPaymentOperations = $this->allowedPaymentOperations;
     	
+    	$result->paid->currency = $rec->currencyId;
+    	$result->paid->rate = $rec->currencyRate;
+    	
     	return $result;
     }
     
