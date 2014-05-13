@@ -243,16 +243,11 @@ function posActions() {
 	// Скриване на табовете
 	$(document.body).on('click', ".pos-tabs a ", function(e){
 		var currentAttrValue= $(this).attr('href');
-		
 		$('.tab-content' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
 		if($('body').hasClass('wide')){
 			calculateWidth();
 		}
-		
-		//if(currentAttrValue == '#tools-drafts') {
-			//$(thisEl).magnificPopup();
-		//}
 		e.preventDefault();
 	}); 
 	
@@ -266,10 +261,6 @@ function posActions() {
 	$(document.body).on('click', ".keyboard-btn", function(e){
 		var currentAttrValue = $(this).val();
 		var isChangeBtn = $(this).attr('data-klang');
-		
-		if(currentAttrValue == 'SPACE'){
-			currentAttrValue = ' ';
-		}
 		
 		// Ако е натиснат бутон за смяна на език, не правим нищо
 		if(isChangeBtn != undefined) {

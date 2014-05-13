@@ -46,7 +46,7 @@
 			<input class="keyboard-btn" type="button" value="B"/>
 			<input class="keyboard-btn" type="button" value="N"/>
 			<input class="keyboard-btn" type="button" value="M"/>
-			<input class="keyboard-btn keyboard-space-btn" type="button" value="SPACE" />
+			<input class="keyboard-btn keyboard-space-btn" type="button" value=" " />
 		</div>
 	</div>
 	<div id='keyboard-bg' class = 'keyboard' style='display:none'>
@@ -101,7 +101,7 @@
 			<input class="keyboard-btn" type="button" value="Р"/>
 			<input class="keyboard-btn" type="button" value="Л"/>
 			<input class="keyboard-btn" type="button" value="Б"/>
-			<input class="keyboard-btn keyboard-space-btn" type="button" value=" SPACE " />
+			<input class="keyboard-btn keyboard-space-btn" type="button" value=" " />
 		</div>
 	</div>
 	<div id='keyboard-ph' class = 'keyboard' style='display:none'>
@@ -154,7 +154,7 @@
 			<input class="keyboard-btn" type="button" value="Б"/>
 			<input class="keyboard-btn" type="button" value="Н"/>
 			<input class="keyboard-btn" type="button" value="М"/>
-			<input class="keyboard-btn keyboard-space-btn" type="button" value="SPACE" />
+			<input class="keyboard-btn keyboard-space-btn" type="button" value=" " />
 		</div>
 	</div>
 </div>
