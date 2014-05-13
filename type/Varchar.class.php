@@ -83,4 +83,21 @@ class type_Varchar extends core_Type {
 
         return $value;
     }
+    
+    
+    /**
+     * В plain режим декодва HTML ентитлите
+     * 
+     * @see core_Type::toVerbal_()
+     */
+    function toVerbal_($value)
+    {
+        $value = parent::toVerbal_($value);
+        
+        if (mode::is('text', 'plain')) {
+            $value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+        }
+        
+        return $value;
+    }
 }
