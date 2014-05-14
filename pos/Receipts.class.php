@@ -716,9 +716,9 @@ class pos_Receipts extends core_Master {
 	    }
 	    
 	    $disClass = ($contoUrl) ? '' : 'disabledBtn';
-	    $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass}", 'id' => 'btn-close','title' => $hint)), 'CLOSE_BTNS');
+	    $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-close','title' => $hint)), 'CLOSE_BTNS');
 	    $disClass = ($confInvUrl) ? '' : 'disabledBtn';
-	    $block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => "{$disClass}", 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
+	    $block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
     	
 	    return $block;
     }
