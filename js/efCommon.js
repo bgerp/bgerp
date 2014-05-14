@@ -281,7 +281,7 @@ function setInnerHtml(element, html)
  * Проверява дали зададената опция е съществува в посочения с id селект
  */
 function isOptionExists(selectId, option)
-{   console.log(selectId + ' - ' + option);
+{
 	for (i = 0; i < document.getElementById(selectId).length; ++i){
 		if (document.getElementById(selectId).options[i].value == option){
 
@@ -2065,7 +2065,7 @@ function Experta()
 	Experta.prototype.sSelText='';
 	
 	// Време на извикване
-	Experta.prototype.saveSelTextTimeout=200;
+	Experta.prototype.saveSelTextTimeout=500;
 	
 	// Време на извикване в textarea
 	Experta.prototype.saveSelTextareaTimeout=400;
