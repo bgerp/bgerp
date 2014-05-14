@@ -517,7 +517,7 @@ class acc_Lists extends core_Manager {
         $form->setAction('acc_Lists', 'lists');
         $form->FLD('classId', 'varchar', 'input=hidden,silent');
         $form->FLD('objectId', 'int', 'input=hidden,silent');
-        $form->FLD('ret_url', 'varchar', 'input=hidden,silent');
+        $form->FLD('ret_url', 'varchar(1024)', 'input=hidden,silent');
         $form->FLD('lists', 'keylist', 'caption=Номенклатури');
         
         $form->input(null, true);

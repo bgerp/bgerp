@@ -199,7 +199,7 @@ class acc_ArticleDetails extends core_Detail
         $form->FLD('articleId', 'int', 'input=hidden');
         $form->setHidden('articleId', $data->masterId);
         
-        $form->FLD('ret_url', 'varchar', 'input=hidden');
+        $form->FLD('ret_url', 'varchar(1024)', 'input=hidden');
         $form->setHidden('ret_url', toUrl(getCurrentUrl(), 'local'));
         
         $form->title = 'Нов запис в журнала';
