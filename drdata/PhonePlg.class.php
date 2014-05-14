@@ -21,13 +21,14 @@ class drdata_PhonePlg extends core_Plugin
      * За определяне на държавата на даден номер използва държавата от записа.
      * $mvc->phoneCountryField - Полета, в което се записва държавата
      * $mvc->phoneFields - Полетата, които ще се преобразуват
+     * Ако не са дефинирани, ще се използват всички, които са drdata_PhoneType
      * 
      * @param core_Mvc $mvc
      * @param string $tel
      * @param object $rec
      * @param string $field
      */
-    static function on_BeforeGetVerbal($mvc, &$phone, &$rec, $field=NULL)
+    static function on_BeforeGetVerbal(&$mvc, &$phone, &$rec, $field=NULL)
     {
         // Ако не е подадено име на поле
         if (!$field) return ;
@@ -41,14 +42,45 @@ class drdata_PhonePlg extends core_Plugin
         // Ако полето е празно
         if (!$rec->{$field}) return ;
         
-        // Името на полетата за номерата
-        $phoneFields = ($mvc->phoneFields) ? $mvc->phoneFields : 'tel, fax, mobile';
-        
-        // Масив с имената на полетата
-        $phoneFieldsArr = arr::make($phoneFields, TRUE);
+        // Ако не е дефинирано преди
+        // За да не се взема всеки път
+        if (is_null($mvc->phoneFields)) {
+            
+            // Маси с данните
+            $mvc->phoneFields = array();
+            
+            // Обхождаме всички полета
+            foreach ($mvc->fields as $fieldName => $mvcField) {
+                
+                // Ако са инстанция за телефони
+                if ($mvcField->type instanceof drdata_PhoneType) {
+                    
+                    // Добавяме в масива
+                    $mvc->phoneFields[$fieldName] = $mvcField->type;
+                }
+            }
+        } elseif (!is_array($mvc->phoneFields)) {
+            
+            // За случаи когато полетата са дефинирани в модела, като стринг -  за да не се вземат всички полета
+            
+            // Масив със зададените полета
+            $fieldsArr = arr::make($mvc->phoneFields);
+            
+            // Името на полето
+            $mvc->phoneFields = array();
+            
+            // Добавяме името в полето
+            foreach ($fieldsArr as $fieldName) {
+                
+                if (!$mvc->fields[$fieldName] || 
+                    (!$mvc->fields[$fieldName]->type instanceof drdata_PhoneType)) continue;
+                    
+                $mvc->phoneFields[$fieldName] = $mvc->fields[$fieldName]->type;
+            }
+        }
         
         // Ако полета, за което се прави обработката не съществува в масива
-        if (!$phoneFieldsArr[$field]) return ;
+        if (!$mvc->phoneFields[$field]) return ;
         
         // Запис за държавата
         $countryRec = drdata_Countries::fetch($rec->{$countryField});
@@ -57,10 +89,10 @@ class drdata_PhonePlg extends core_Plugin
         if (!$countryRec || !$countryRec->telCode) return ;
 
         // Инстанция на класа
-        $PhoneTypeInst = cls::get('drdata_PhoneType');
+        $PhoneTypeInst = $mvc->phoneFields[$field];
         
         // Вземаме стойността, която е зададена
-        $countryPhoneCode = $PhoneTypeInst->params['countryPhoneCode'];
+//        $countryPhoneCode = $PhoneTypeInst->params['countryPhoneCode'];
         
         // Задаваме новата сойност
         $PhoneTypeInst->params['countryPhoneCode'] = $countryRec->telCode;
@@ -69,7 +101,7 @@ class drdata_PhonePlg extends core_Plugin
         $phone = $PhoneTypeInst->toVerbal($rec->{$field});
         
         // Връщаме старата стойност
-        $PhoneTypeInst->params['countryPhoneCode'] = $countryPhoneCode;
+//        $PhoneTypeInst->params['countryPhoneCode'] = $countryPhoneCode;
         
         return FALSE;
     }
