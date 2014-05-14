@@ -95,19 +95,13 @@ class deals_Deals extends core_Master
     /**
      * Групиране на документите
      */ 
-    public $newBtnGroup = "4.9|Финанси";
+    public $newBtnGroup = "4.1|Финанси";
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
     public $singleLayoutFile = 'deals/tpl/SingleLayoutDeals.shtml';
-    
-    
-    /**
-     * Позволени операции в платежните документи
-     */
-    public $allowedPaymentOperations = array();
     
     
     /**
@@ -129,12 +123,23 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Позволени операции на последващите платежни документи
+     */
+    public $allowedPaymentOperations = array(
+    		'test1' => array('title' => 'Тестово ПКО', 'debit' => '501', 'credit' => '9999'),
+    		'test2' => array('title' => 'Тестово РКО', 'debit' => '9999', 'credit' => '501'),
+    		'test3' => array('title' => 'Тестово ПБО', 'debit' => '503', 'credit' => '9999'),
+    		'test4' => array('title' => 'Тестово РБО', 'debit' => '9999', 'credit' => '503'),
+    		);
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,mandatory,width=100%');
-    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf, allowEmpty,select=)', 'caption=Сметка,mandatory');
+    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf)', 'caption=Сметка,mandatory');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Име');
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
     	$this->FLD('contragentId', 'int', 'input=hidden');
@@ -211,8 +216,28 @@ class deals_Deals extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
+    	$rec = $data->rec;
+    	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
+    	}
+    	
+    	if($rec->state == 'active'){
+    		if(cash_Pko::haveRightFor('add')){
+    			$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер');
+    		}
+    		
+    		if(bank_IncomeDocuments::haveRightFor('add')){
+    			$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
+    		}
+    		
+    		if(cash_Rko::haveRightFor('add')){
+    			$data->toolbar->addBtn("РКО", array('cash_Rko', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_add.png,title=Създаване на нов разходен касов ордер');
+    		}
+    		
+    		if(bank_SpendingDocuments::haveRightFor('add')){
+    			$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
+    		}
     	}
     }
     
@@ -235,10 +260,12 @@ class deals_Deals extends core_Master
     private function getHistory(&$data)
     {
     	$rec = $this->fetchRec($data->rec->id);
+    	$accId = $rec->accountId;
     	
     	//$accId = '501';
     	//$item = acc_Items::fetchItem(cash_Cases::getClassId(), 1);
     	//$rec->createdOn = NULL;
+    	
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	
@@ -251,7 +278,7 @@ class deals_Deals extends core_Master
     		
     		// Намираме от журнала записите, където участва перото от датата му на създаване до сега
     		$jQuery = acc_JournalDetails::getQuery();
-    		acc_JournalDetails::filterQuery($jQuery, $rec->createdOn, dt::now(), $accId, $item->id, 144);
+    		acc_JournalDetails::filterQuery($jQuery, $rec->createdOn, dt::now(), $accId, $item->id);
     		
     		$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
     		$Pager->itemsCount = $jQuery->count();
@@ -350,7 +377,7 @@ class deals_Deals extends core_Master
     	$title = static::getRecTitle($rec);
     
     	$row = (object)array(
-    			'title'    => $this->singleTitle . "№{$rec->id}",
+    			'title'    => $this->singleTitle . " №{$rec->id}",
     			'authorId' => $rec->createdBy,
     			'author'   => $this->getVerbal($rec, 'createdBy'),
     			'state'    => $rec->state,
@@ -376,12 +403,33 @@ class deals_Deals extends core_Master
     
     	$result->dealType = bgerp_iface_DealResponse::TYPE_DEAL;
     	
-    	$result->allowedPaymentOperations = $this->allowedPaymentOperations;
+    	$result->allowedPaymentOperations = $this->getAllowedOperations($rec);
     	
     	$result->paid->currency = $rec->currencyId;
     	$result->paid->rate = $rec->currencyRate;
     	
     	return $result;
+    }
+    
+    
+    /**
+     * Връща позволените операции за последващите документи
+     */
+    private function getAllowedOperations($rec)
+    {
+    	expect(count($this->allowedPaymentOperations));
+    	$sysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
+    	
+    	$operations = $this->allowedPaymentOperations;
+    	
+    	// От зададените операции премахва онези в които не участва сметката на сделката
+    	foreach ($operations as $index => $op){
+    		if($op['credit'] != $sysId && $op['debit'] != $sysId){
+    			unset($operations[$index]);
+    		}
+    	}
+    	
+    	return $operations;
     }
     
     
@@ -422,7 +470,11 @@ class deals_Deals extends core_Master
     			$dState = $d->rec('state');
     			
     			// Игнорираме черновите и оттеглените документи
-    			if ($dState == 'draft' || $dState == 'rejected') return;
+    			if ($dState == 'draft' || $dState == 'rejected') {
+                	
+    				// Игнорираме черновите и оттеглените документи
+                	continue;
+            	}
     		
     			if ($d->haveInterface('bgerp_DealIntf')) {
     				$dealInfo = $d->getDealInfo();
