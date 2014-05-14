@@ -42,7 +42,7 @@ class bgerp_plg_Groups extends core_Plugin
             $form = cls::get('core_Form');
             $form->FNC('id', 'int', 'input=hidden,silent');
             $form->FNC('Selected', 'text', 'input=hidden,silent');
-            $form->FNC('ret_url', 'varchar', 'input=hidden,silent');
+            $form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
             $form->input(NULL, 'silent');
             $rec = $form->rec;
 

@@ -301,7 +301,7 @@ class email_FaxSent extends core_Manager
         $data->form->FNC('faxTo', 'drdata_PhoneType', 'input,caption=До,mandatory,width=785px');
         
         // Добавяме поле за URL за връщане, за да работи бутона "Отказ"
-        $data->form->FNC('ret_url', 'varchar', 'input=hidden,silent');
+        $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
         
         // Подготвяме лентата с инструменти на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save','ef_icon = img/16/move.png');
