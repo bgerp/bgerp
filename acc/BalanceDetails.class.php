@@ -303,7 +303,7 @@ class acc_BalanceDetails extends core_Detail
             if (!isset($r)) {
             	foreach (range(1, 3) as $i){
             		if(strpos($f[$i], 'entryId-') === false){
-            			$r->{"grouping{$i}"} = $f[$i];
+            			$r["grouping{$i}"] = $f[$i];
             		}
             	}
             	
@@ -312,21 +312,21 @@ class acc_BalanceDetails extends core_Detail
             
             // За всички позиции за които няма стойства показваме перата им
             foreach (range(1, 3) as $i){
-            	if(!isset($r->{"grouping{$i}"})){
-            		$r->{"ent{$i}Id"} = $rec->{"ent{$i}Id"};
+            	if(!isset($r["grouping{$i}"])){
+            		$r["ent{$i}Id"] = $rec->{"ent{$i}Id"};
             	}
             }
             
             // Групиране на данните
-            $r->balanceId       = $rec->balanceId;
-            $r->baseQuantity   += $rec->baseQuantity;
-            $r->baseAmount     += $rec->baseAmount;
-            $r->debitQuantity  += $rec->debitQuantity;
-            $r->debitAmount    += $rec->debitAmount;
-            $r->creditQuantity += $rec->creditQuantity;
-            $r->creditAmount   += $rec->creditAmount;
-            $r->blQuantity     += $rec->blQuantity;
-            $r->blAmount       += $rec->blAmount;
+            $r['balanceId']       = $rec->balanceId;
+            $r['baseQuantity']   += $rec->baseQuantity;
+            $r['baseAmount']     += $rec->baseAmount;
+            $r['debitQuantity']  += $rec->debitQuantity;
+            $r['debitAmount']    += $rec->debitAmount;
+            $r['creditQuantity'] += $rec->creditQuantity;
+            $r['creditAmount']   += $rec->creditAmount;
+            $r['blQuantity']     += $rec->blQuantity;
+            $r['blAmount']       += $rec->blAmount;
         }
        
         unset($data->listFields['history']);
@@ -335,14 +335,13 @@ class acc_BalanceDetails extends core_Detail
         // Конвертираме групираните записи към вербални стойности
         $data->rows = array();
         foreach ($data->recs as $rec) {
+        	$rec = (object)$rec;
             $data->rows[] = $this->recToVerbal($rec, $data->listFields);
         }
-    }
+    } 
     
     
     /**
-     * Подготовка за обобщен баланс на синтетичните сметки
-     *
      * @param StdClass $data
      */
     private function prepareOverviewBalance($data)
