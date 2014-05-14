@@ -441,7 +441,7 @@ class pos_Receipts extends core_Master {
     		// Добавяне на табовете показващи се в широк изглед отстрани
 	    	if(!Mode::is('screenMode', 'narrow')){
 	    		$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
-	    		$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts' data-url='{$DraftsUrl}'>Бележки</a></li>";//$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='{$DraftsUrl}' data-url='{$DraftsUrl}'>Чернови</a></li>";
+	    		$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts' data-url='{$DraftsUrl}'>Бележки</a></li>";
 	    		$tpl->replace($this->getSelectFavourites(), 'CHOOSE_DIV_WIDE');
 	    		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV_WIDE');
 	    		$tpl->append($this->renderDraftsTab($id), 'DRAFTS_WIDE');
@@ -930,16 +930,8 @@ class pos_Receipts extends core_Master {
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	$row = new stdClass();
-    	$row->productId = cat_Products::getHyperLink($obj->productId, TRUE);
-		if($data->showParams){
-			$params = keylist::toArray($data->showParams);
-			$values = NULL;
-			foreach ($params as $pId){
-				if($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")){
-					$row->productId .= " &nbsp;" . cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
-				}
-			}
-		}
+    	
+		
     	
     	$row->price = $Double->toVerbal($obj->price * (1 + $obj->vat));
     	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
@@ -948,10 +940,19 @@ class pos_Receipts extends core_Master {
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
     		$addUrl = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
-    		$row->addBtn = ht::createElement('img', array('src' => sbf('img/24/add.png', ''), 
-    													  'class' => 'pos-add-res-btn', 'data-recId' => $data->rec->id,
-    													  'data-url' => $addUrl, 'data-productId' => $obj->productId));
     	}
+    	$row->productId = "<span class='pos-add-res-btn' data-recId='{$data->rec->id}' data-url='{$addUrl}' data-productId='{$obj->productId}'>" . cat_Products::getTitleById($obj->productId) . "</span>";
+    	if($data->showParams){
+    		$params = keylist::toArray($data->showParams);
+    		$values = NULL;
+    		foreach ($params as $pId){
+    			if($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")){
+    				$row->productId .= " &nbsp;" . cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
+    			}
+    		}
+    	}
+    	$singImg = ht::createElement('img', array('src' => sbf('img/16/anchor-image.png', '')));
+    	$row->singleBtn = ht::createLink($singImg, array('cat_Products', 'single', $obj->productId), FALSE, array('target'=>'_blank', 'class'=>'singleProd'));
     	
     	if($obj->stock < 0){
     		$row->stock = "<span style='color:red'>$row->stock</span>";	
@@ -981,7 +982,7 @@ class pos_Receipts extends core_Master {
     	$fSet->FNC('stock', 'double', 'tdClass=pos-stock-field');
     	
     	$table = cls::get('core_TableView', array('mvc' => $fSet));
-    	$fields = arr::make('photo=Снимка,productId=Продукт,price=Цена,stock=Наличност,addBtn=Добави');
+    	$fields = arr::make('photo=Снимка,productId=Продукт,price=Цена,stock=Наличност,singleBtn=Добави');
     	if(!$data->showImg){
     		unset($fields['photo']);
     	}

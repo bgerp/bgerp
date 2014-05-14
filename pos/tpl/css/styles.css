@@ -772,11 +772,8 @@ form #point {
 }
 
 .pos-add-res-btn{
-	margin: 0 10px;   
-}
-.narrow .pos-add-res-btn{
-    margin: 0 2px;  
-    width: 16px; 
+	font-weight: bold;  
+	color:#333; 
 }
 
 .pos-add-res-btn:hover{
@@ -784,6 +781,9 @@ form #point {
 	opacity:0.8;
 }
 
+.singleProd{
+	margin: 0 2px;
+}
 .pos-search-pic{
     width: 80px;
 	display: table-cell;

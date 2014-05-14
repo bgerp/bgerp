@@ -32,6 +32,7 @@
 						<!--ET_BEGIN DRAFTS-->
 						   <div class='tab-content' id = 'tools-drafts'>
 						      [#DRAFTS#]
+						      <div class='clearfix21'></div>
 						   </div>
 						<!--ET_END DRAFTS-->
 					</div>
@@ -61,6 +62,7 @@
              <!--ET_BEGIN DRAFTS_WIDE-->
                  <div class='tab-content' id = 'tools-drafts'>
                     [#DRAFTS_WIDE#]
+                      <div class='clearfix21'></div>
                  </div>
              <!--ET_END DRAFTS_WIDE-->
 	</div>
