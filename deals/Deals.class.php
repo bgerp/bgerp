@@ -488,9 +488,9 @@ class deals_Deals extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$self = cls::get(__CLASS__);
+    	$name = static::recToVerbal($rec, 'dealName')->dealName;
     
-    	return $self->singleTitle . " №{$rec->id}";
+    	return $name;
     }
     
     
@@ -507,9 +507,8 @@ class deals_Deals extends core_Master
     	if ($rec = self::fetch($objectId)) {
     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
     		$result = (object)array(
-    				'num' => $rec->id,
+    				'num' => $objectId,
     				'title' => static::getRecTitle($objectId),
-    				'uomId' => $rec->measureId,
     				'features' => array('Контрагент' => $contragentName)
     		);
     	}
