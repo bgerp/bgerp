@@ -152,6 +152,21 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Позволени операции на последващите платежни документи
+     */
+    public $allowedPaymentOperations = array(
+    		'customer2caseAdvance' => array('title' => 'Авансово плащане от Клиент', 'debit' => '501', 'credit' => '412'),
+    		'customer2bankAdvance' => array('title' => 'Авансово плащане от Клиент', 'debit' => '503', 'credit' => '412'),
+    		'customer2case'        => array('title' => 'Плащане от Клиент', 'debit' => '501', 'credit' => '411'),
+    		'customer2bank'        => array('title' => 'Плащане от Клиент', 'debit' => '503', 'credit' => '411'),
+    		'case2customer'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '501'),
+    		'bank2customer'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '503'),
+    		'caseAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '501'),
+    		'bankAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '503'),
+    		);
+    		
+    		
+    /**
      * Опашка от записи за записване в on_Shutdown
      */
     protected $updated = array();
@@ -900,26 +915,14 @@ class sales_Sales extends core_Master
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
-        $allowedPaymentOperations = array('customer2caseAdvance',
-		        						  'customer2bankAdvance',
-		        						  'customer2case',
-		        						  'customer2bank',
-		        						  'case2customer',
-		        						  'bank2customer',
-		        						  'caseAdvance2customer',
-		        						  'bankAdvance2customer');
-        
-        // Ако платежния метод няма авансова част, авансовите операции 
-        // не са позволени за платежните документи
-        $allowedPaymentOperations = array_combine($allowedPaymentOperations, $allowedPaymentOperations);
+        $allowedPaymentOperations = $this->allowedPaymentOperations;
        
         if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
         	unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'],$allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
         } else {
         	// Колко е очакваното авансово плащане
         	$downPayment = cond_PaymentMethods::getDownpayment($rec->paymentMethodId, $rec->amountDeal);
-			
-        }
+		}
         
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;

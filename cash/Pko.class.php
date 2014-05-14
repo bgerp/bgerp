@@ -32,7 +32,7 @@ class cash_Pko extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc, acc_plg_Contable,
+    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank,
                      bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues';
@@ -138,9 +138,14 @@ class cash_Pko extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'currencyId' 	 => 'lastDocUser|lastDoc',
     	'depositor'      => 'lastDocUser|lastDoc',
     );
+    
+    
+    /**
+     * Основна сч. сметка
+     */
+    public $baseAccountSysId = '501';
     
     
     /**
@@ -148,7 +153,7 @@ class cash_Pko extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory');
+    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,width=100%,mandatory');
     	
     	// Платена сума във валута, определена от полето `currencyId`
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=30%,summary=amount');
@@ -165,11 +170,11 @@ class cash_Pko extends core_Master
         $this->FLD('contragentPcode', 'varchar(255)', 'input=hidden');
         $this->FLD('contragentCountry', 'varchar(255)', 'input=hidden');
     	$this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
-    	$this->FLD('creditAccount', 'acc_type_Account()', 'input=none');
-    	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
+    	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
+    	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
     	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс,width=6em');
-    	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em');
+    	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em,input=hidden');
     	$this->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -204,48 +209,46 @@ class cash_Pko extends core_Master
     	$form->setDefault('contragentId', $contragentId);
         $form->setDefault('contragentClassId', $contragentClassId);
     	
-        $options = acc_Operations::getPossibleOperations(get_called_class());
-        $options = acc_Operations::filter($options, $contragentClassId);
-    	
+        expect($origin = $mvc->getOrigin($form->rec));
+        expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
+        $dealInfo = $origin->getAggregateDealInfo();
+        expect(count($dealInfo->allowedPaymentOperations));
+        
+        $options = $mvc->getOperations($dealInfo->allowedPaymentOperations);
+        expect(count($options));
+        
         // Използваме помощната функция за намиране името на контрагента
-    	if(empty($form->rec->id) && $origin = $mvc->getOrigin($form->rec)) {
+    	if(empty($form->rec->id)) {
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
-    		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
-    		 	$dealInfo = $origin->getAggregateDealInfo();
     		 	
     		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-	    		 	$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
-	    		 	if($amount <= 0) {
-	    		 		$amount = 0;
-	    		 	}
-	    		 	
-	    		 	$defaultOperation = $mvc->getDefaultOperation($dealInfo);
-	    		 	if($defaultOperation == 'customer2caseAdvance'){
-	    		 		$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
-	    		 	}
-	    		 	
-	    		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
-	    		 	foreach ($options as $index => $op){
-	    		 		if(!in_array($index, $dealInfo->allowedPaymentOperations)){
-	    		 			unset($options[$index]);
-	    		 		}
-	    		 	}
-	    		 	
-	    		 	if($caseId = $dealInfo->agreed->payment->caseId){
-	    		 		$cashRec = cash_Cases::fetch($caseId);
-		    		 	
-	    		 		// Ако потребителя има права, логва се тихо
-	    		 		cash_Cases::selectSilent($caseId);
-	    		 	}
-    		 	
-    		 		$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
-    		 		$form->rec->tempRate = $dealInfo->shipped->rate;
-    		 		
-    		 		if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_PURCHASE){
-    		 			$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 		if($amount <= 0) {
+    		 			$amount = 0;
+    		 		}
+    		 		 
+    		 		$defaultOperation = $mvc->getDefaultOperation($dealInfo);
+    		 		if($defaultOperation == 'customer2caseAdvance'){
+    		 			$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
     		 		}
     		 	}
-    		 }
+	    		 	
+	    		if($caseId = $dealInfo->agreed->payment->caseId){
+	    		 	$cashRec = cash_Cases::fetch($caseId);
+		    		 	
+	    		 	// Ако потребителя има права, логва се тихо
+	    		 	cash_Cases::selectSilent($caseId);
+	    		}
+    		 	
+	    		$cId = ($dealInfo->shipped->currency) ? $dealInfo->shipped->currency : $dealInfo->paid->currency;
+    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($cId);
+    		 	
+    		 	$rate = ($dealInfo->shipped->rate) ? $dealInfo->shipped->rate : $dealInfo->paid->rate;
+    		 	$form->rec->rate = $rate;
+    		 		
+    		 	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
+    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 	}
     	} else {
     		$defaultOperation = 'customer2case';
     	}
@@ -264,9 +267,27 @@ class cash_Pko extends core_Master
     	$form->setReadOnly('peroCase', cash_Cases::getCurrent());
     	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
     	
-    	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['tempRate'].value ='';"));
+    	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
 
+    
+    /**
+     * Връща платежните операции
+     */
+    private function getOperations($operations)
+    {
+    	$options = array();
+    	
+    	// Оставяме само тези операции в коитос е дебитира основната сметка на документа
+    	foreach ($operations as $sysId => $op){
+    		if($op['debit'] == $this->baseAccountSysId){
+    			$options[$sysId] = $op['title'];
+    		}
+    	}
+    	
+    	return $options;
+    }
+    
     
 	/**
      * Помощна ф-я връщаща дефолт операцията за документа
@@ -283,7 +304,7 @@ class cash_Pko extends core_Master
     		} else {
     			$defaultOperation = 'supplier2case';
     		}
-    	} else {
+    	} elseif($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
     		if(isset($agreed->downpayment)){
     			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'customer2caseAdvance' : 'customer2case';
     		} else {
@@ -304,11 +325,14 @@ class cash_Pko extends core_Master
     		
     		$rec = &$form->rec;
 	    	
-    		// Коя е дебитната и кредитната сметка
-	        $operation = acc_Operations::fetchBySysId($rec->operationSysId);
+    		$origin = $mvc->getOrigin($form->rec);
+    		$dealInfo = $origin->getAggregateDealInfo();
     		
-	        $rec->debitAccount = $operation->debitAccount;
-    		$rec->creditAccount = $operation->creditAccount;
+    		// Коя е дебитната и кредитната сметка
+	        $operation = $dealInfo->allowedPaymentOperations[$rec->operationSysId];
+    		
+	        $rec->debitAccount = $operation['debit'];
+    		$rec->creditAccount = $operation['credit'];
     		
     		$contragentData = doc_Folders::getContragentData($rec->folderId);
 	    	$rec->contragentCountry = $contragentData->country;
@@ -518,10 +542,7 @@ class cash_Pko extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        // Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
-        $cover = doc_Folders::getCover($folderId);
-        
-        return $cover->haveInterface('doc_ContragentDataIntf');
+        return FALSE;
     }
     
     
@@ -540,14 +561,12 @@ class cash_Pko extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	
-    	$res = cls::haveInterface('doc_ContragentDataIntf', $coverClass);
-    	if($res){
-    		if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState != 'active')){
-    			$res = FALSE;
-    		}
+    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
+    		
+    		return TRUE;
     	}
 		
-    	return $res;
+    	return FALSE;
     }
     
     
@@ -687,6 +706,17 @@ class cash_Pko extends core_Master
     	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
     	if(!empty($data->form->toolbar->buttons['btnNewThread'])){
     		$data->form->toolbar->removeBtn('btnNewThread');
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$data->toolbar->removeBtn('btnAdd');
     	}
     }
 }

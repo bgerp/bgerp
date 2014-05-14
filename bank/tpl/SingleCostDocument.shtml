@@ -86,17 +86,6 @@
                             </td>
                         </tr>
                     </table>
-                    <table border='1px' cellpadding='2' class="no-border-top">
-                        <tr>
-                            <td colspan='2'>
-                            <table border='0'>
-                            <tr>
-                                <td class='notes' style='height: auto; padding-bottom: 5px;'><span style='display:inline-block; width: 100px;'>|Операция|*:</span>&nbsp;[#operationSysId#]</td>
-                            </tr>
-                            </table>
-                        </tr>
-                       
-                    </table>
             </div>
     </div>
     <!--ET_BEGIN DETAILS-->
