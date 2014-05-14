@@ -612,8 +612,10 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine, everyLine)
 		} else{
 			if(selection != '' && selection.indexOf("\n") && everyLine){
 				var startLine = begin.lastIndexOf("\n") + 1;
-				beginPosition = startLine ;
-				var tempSel =  textarea.value.substr(startLine, endPosition);
+				//Стринга от новия ред до маркирания ред
+				var beforeSel = begin.substr(startLine,beginPosition) ;
+				var tempSel =  beforeSel + selection;
+				beginPosition = startLine;
 				selection = tempSel.replace(/\n/g, text2 + "\n" + text1);
 			}
 			
