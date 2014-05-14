@@ -169,6 +169,7 @@ class deals_Deals extends core_Master
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
     	$form->setReadOnly('contragentName');
     	
+    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     }
     
