@@ -414,8 +414,7 @@ class bank_IncomeDocuments extends core_Master
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->state == 'draft') {
-	    	$operation = acc_Operations::fetchBySysId($data->rec->operationSysId);
-	    	if(bank_PaymentOrders::haveRightFor('add') && acc_Lists::getPosition($operation->creditAccount, 'crm_ContragentAccRegIntf')) {
+	    	if(bank_PaymentOrders::haveRightFor('add') && acc_Lists::getPosition($data->rec->creditAccId, 'crm_ContragentAccRegIntf')) {
 	    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на ново платежно нареждане');
 	    	}
 	    	
@@ -467,6 +466,37 @@ class bank_IncomeDocuments extends core_Master
     	// Извличаме записа
         expect($rec = self::fetchRec($id));
         
+        $origin = self::getOrigin($rec);
+        $dealInfo = $origin->getAggregateDealInfo();
+        
+        $debitArr = array(
+                        $rec->debitAccId,
+                            array('bank_OwnAccounts', $rec->ownAccount),
+                            array('currency_Currencies', $rec->currencyId),
+                        'quantity' => $rec->amount,
+                    );
+        
+        // Ако пораждащия документ е покупка или продажба
+        if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
+        	$creditArr = array(
+                        $rec->creditAccId,
+                            array($rec->contragentClassId, $rec->contragentId),
+                            array('currency_Currencies', $rec->currencyId),
+                        'quantity' => $rec->amount,
+                    );
+        	 
+        } else {
+        	 
+        	// Ако е към финансова сделка
+        	$creditArr = array(
+        			$rec->creditAccId, // кредитна сметка
+        			array($origin->className, $origin->that), // Перо финансова сделка
+        			array('currency_Currencies', $rec->currencyId),
+        			'quantity' => $rec->amount,
+        	);
+        }
+        
+        
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason' => $rec->reason,   // основанието за ордера
@@ -474,30 +504,11 @@ class bank_IncomeDocuments extends core_Master
             'entries' => array( 
                 array(
                     'amount' => $rec->amount * $rec->rate,
-                    
-                    'debit' => array(
-                        $rec->debitAccId,
-                            array('bank_OwnAccounts', $rec->ownAccount),
-                            array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $rec->amount,
-                    ),
-                    
-                    'credit' => array(
-                        $rec->creditAccId,
-                            array($rec->contragentClassId, $rec->contragentId),
-                            array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $rec->amount,
-                    ),
+                    'debit' => $debitArr,
+                    'credit' => $creditArr,
                 )
             )
         );
-        
-    	// Ако дебитната сметка не поддържа втора номенклатура, премахваме
-        // от масива второто перо на кредитната сметка
-    	$cAcc = acc_Accounts::getRecBySystemId($rec->creditAccId);
-        if(!$cAcc->groupId2){
-        	unset($result->entries[0]['credit'][2]);
-        }
         
         return $result;
     }
@@ -677,5 +688,16 @@ class bank_IncomeDocuments extends core_Master
 	static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$tpl->push('bank/tpl/css/styles.css', 'CSS');
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(__CLASS__);
+    
+    	return $self->singleTitle . " №$rec->id";
     }
 }

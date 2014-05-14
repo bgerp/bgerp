@@ -412,13 +412,12 @@ class bank_SpendingDocuments extends core_Master
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->state == 'draft') {
-	    	$operation = acc_Operations::fetchBySysId($data->rec->operationSysId);
-	    	
+    		
 	    	// Ако дебитната сметка е за работа с контрагент слагаме бутон за
 	    	// платежно нареждане ако е подочетно лице генерираме нареждане разписка
-	    	if(bank_PaymentOrders::haveRightFor('add') && acc_Lists::getPosition($operation->debitAccount, 'crm_ContragentAccRegIntf')) {
+	    	if(bank_PaymentOrders::haveRightFor('add') && acc_Lists::getPosition($data->rec->debitAccId, 'crm_ContragentAccRegIntf')) {
 	    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на ново платежно нареждане');
-	    	} elseif(bank_CashWithdrawOrders::haveRightFor('add') && acc_Lists::getPosition($operation->debitAccount, 'crm_PersonAccRegIntf')) {
+	    	} elseif(bank_CashWithdrawOrders::haveRightFor('add') && acc_Lists::getPosition($data->rec->creditAccId, 'crm_PersonAccRegIntf')) {
 	    		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на ново нареждане разписка');
 	    	}
     	}
@@ -466,6 +465,36 @@ class bank_SpendingDocuments extends core_Master
     	// Извличаме записа
         expect($rec = self::fetchRec($id));
         
+        $origin = self::getOrigin($rec);
+        $dealInfo = $origin->getAggregateDealInfo();
+        
+        $creditArr =  array(
+                        $rec->creditAccId,
+                            array('bank_OwnAccounts', $rec->ownAccount),
+                            array('currency_Currencies', $rec->currencyId),
+                        'quantity' => $rec->amount,
+                    );
+        
+        // Ако пораждащия документ е покупка или продажба
+        if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
+        	$debitArr = array(
+                        $rec->debitAccId,
+                            array($rec->contragentClassId, $rec->contragentId),
+                            array('currency_Currencies', $rec->currencyId),
+                        'quantity' => $rec->amount,
+                    );
+        
+        } else {
+        
+        	// Ако е към финансова сделка
+        	$debitArr = array(
+        			$rec->debitAccId, // кредитна сметка
+        			array($origin->className, $origin->that), // Перо финансова сделка
+        			array('currency_Currencies', $rec->currencyId),
+        			'quantity' => $rec->amount,
+        	);
+        }
+        
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason' => $rec->reason,   // основанието за ордера
@@ -473,20 +502,8 @@ class bank_SpendingDocuments extends core_Master
             'entries' => array(
                 array(
                     'amount' => $rec->amount * $rec->rate,
-                    
-                    'debit' => array(
-                        $rec->debitAccId,
-                            array($rec->contragentClassId, $rec->contragentId),
-                            array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $rec->amount,
-                    ),
-                    
-                    'credit' => array(
-                        $rec->creditAccId,
-                            array('bank_OwnAccounts', $rec->ownAccount),
-                            array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $rec->amount,
-                    ),
+                    'debit' => $debitArr,
+                    'credit' => $creditArr,
                 ),
             )
         );
@@ -667,5 +684,16 @@ class bank_SpendingDocuments extends core_Master
             $ref = new core_ObjectReference($mvc, $id);
             $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
         }
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(__CLASS__);
+    
+    	return $self->singleTitle . " №$rec->id";
     }
 }

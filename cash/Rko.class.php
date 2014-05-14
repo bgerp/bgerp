@@ -443,6 +443,36 @@ class cash_Rko extends core_Master
        	// Извличаме записа
         expect($rec = self::fetchRec($id));
         
+        $origin = self::getOrigin($rec);
+        $dealInfo = $origin->getAggregateDealInfo();
+        
+        $creditArr =  array(
+                        $rec->creditAccount, // кредитна сметка
+                            array('cash_Cases', $rec->peroCase), // перо каса
+                            array('currency_Currencies', $rec->currencyId), // перо валута
+                        'quantity' => $rec->amount,
+                    );
+        
+        // Ако пораждащия документ е покупка или продажба
+        if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
+        	$debitArr = array(
+                        $rec->debitAccount, // дебитната сметка
+                            array($rec->contragentClassId, $rec->contragentId),  // перо контрагент
+                            array('currency_Currencies', $rec->currencyId),      // перо валута
+                        'quantity' => $rec->amount,
+                    );
+        	 
+        } else {
+        	 
+        	// Ако е към финансова сделка
+        	$debitArr = array(
+        			$rec->debitAccount, // кредитна сметка
+        			array($origin->className, $origin->that), // Перо финансова сделка
+        			array('currency_Currencies', $rec->currencyId),
+        			'quantity' => $rec->amount,
+        	);
+        }
+        
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason'  => $rec->reason,   // основанието за ордера
@@ -450,31 +480,11 @@ class cash_Rko extends core_Master
             'entries' => array(
                 array(
                     'amount' => $rec->rate * $rec->amount,	// равностойноста на сумата в основната валута
-                    
-                    'debit' => array(
-                        $rec->debitAccount, // дебитната сметка
-                            array($rec->contragentClassId, $rec->contragentId),  // перо контрагент
-                            array('currency_Currencies', $rec->currencyId),      // перо валута
-                        'quantity' => $rec->amount,
-                    ),
-                    
-                    'credit' => array(
-                        $rec->creditAccount, // кредитна сметка
-                            array('cash_Cases', $rec->peroCase), // перо каса
-                            array('currency_Currencies', $rec->currencyId), // перо валута
-                        'quantity' => $rec->amount,
-                    ),
+                    'debit' => $debitArr,
+                    'credit' => $creditArr,
                 ),
             )
         );
-        
-        // Ако дебитната сметка не поддържа втора номенклатура, премахваме
-        // от масива второто перо на кредитната сметка
-    	$dAcc = acc_Accounts::getRecBySystemId($rec->debitAccount);
-    	
-        if(!$dAcc->groupId2){
-        	unset($result->entries[0]['debit'][2]);
-        }
         
         return $result;
     }
@@ -512,13 +522,24 @@ class cash_Rko extends core_Master
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = $this->singleTitle . " №{$id}";
+        $row->title = static::getRecTitle($rec);
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
 		$row->recTitle = $rec->reason;
 		
         return $row;
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(__CLASS__);
+    	 
+    	return $self->singleTitle . " №$rec->id";
     }
     
     

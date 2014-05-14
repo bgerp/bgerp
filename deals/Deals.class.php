@@ -260,11 +260,8 @@ class deals_Deals extends core_Master
     private function getHistory(&$data)
     {
     	$rec = $this->fetchRec($data->rec->id);
-    	$accId = $rec->accountId;
-    	
-    	//$accId = '501';
-    	//$item = acc_Items::fetchItem(cash_Cases::getClassId(), 1);
-    	//$rec->createdOn = NULL;
+    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
+    	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
     	
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
@@ -278,7 +275,7 @@ class deals_Deals extends core_Master
     		
     		// Намираме от журнала записите, където участва перото от датата му на създаване до сега
     		$jQuery = acc_JournalDetails::getQuery();
-    		acc_JournalDetails::filterQuery($jQuery, $rec->createdOn, dt::now(), $accId, $item->id);
+    		acc_JournalDetails::filterQuery($jQuery, $createdOn, dt::today(), $accSysId, $item->id);
     		
     		$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
     		$Pager->itemsCount = $jQuery->count();
@@ -308,12 +305,11 @@ class deals_Deals extends core_Master
     				$blAmount -= $jRec->amount;
     			}
     		
-    			$count++;
-    			
     			// Ще показваме реда, само ако отговаря на текущата страница
     			if(empty($data->pager) || ($count >= $start && $count <= $end)){
     				$data->history[] = $row;
     			}
+    			$count++;
     		}
     	}
     	
@@ -336,7 +332,7 @@ class deals_Deals extends core_Master
     	$fieldSet->FLD('creditA', 'double');
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
-    	$fields = "docId=Документ,debitA=Дебит->Сума ({$data->row->currencyId}),creditA=Кредит->Сума ({$data->row->currencyId})";
+    	$fields = "docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
     	$tpl->append($table->get($data->history, $fields), 'DETAILS');
     	
     	if($data->pager){
@@ -484,6 +480,69 @@ class deals_Deals extends core_Master
     	}
     	
     	return $aggregateInfo;
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(__CLASS__);
+    
+    	return $self->singleTitle . " №{$rec->id}";
+    }
+    
+    
+    /**
+     * Перо в номенклатурите, съответстващо на този продукт
+     *
+     * Част от интерфейса: acc_RegisterIntf
+     */
+    static function getItemRec($objectId)
+    {
+    	$result = NULL;
+    	$self = cls::get(__CLASS__);
+    
+    	if ($rec = self::fetch($objectId)) {
+    		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+    		$result = (object)array(
+    				'num' => $rec->id,
+    				'title' => static::getRecTitle($objectId),
+    				'uomId' => $rec->measureId,
+    				'features' => array('Контрагент' => $contragentName)
+    		);
+    	}
+    
+    	return $result;
+    }
+    
+    
+    /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+    	$self = cls::get(__CLASS__);
+    	$self->recTitleTpl = NULL;
+    	 
+    	if ($rec = self::fetch($objectId)) {
+    		$result = $self->getHyperlink($objectId);
+    	} else {
+    		$result = '<i>' . tr('неизвестно') . '</i>';
+    	}
+    
+    	return $result;
+    }
+    
+    
+    /**
+     * @see acc_RegisterIntf::itemInUse()
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
     }
     
     
