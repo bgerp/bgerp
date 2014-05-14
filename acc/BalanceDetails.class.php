@@ -342,6 +342,8 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Подготовка за обобщен баланс на синтетичните сметки
+     *  
      * @param StdClass $data
      */
     private function prepareOverviewBalance($data)
