@@ -91,14 +91,6 @@ class marketing_Inquiries extends core_Master
     
     
     /**
-     * Кои полета да се използват за телефонни номера
-     * 
-     * @see drdata_PhonePlg
-     */
-    var $phoneFields = 'tel';
-    
-    
-    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'powerUser';
