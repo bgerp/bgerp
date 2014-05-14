@@ -135,7 +135,7 @@ class bank_IncomeDocuments extends core_Master
     /**
      * Основна сч. сметка
      */
-    public $baseAccountSysId = '503';
+    public static $baseAccountSysId = '503';
     
     
     /**
@@ -274,7 +274,7 @@ class bank_IncomeDocuments extends core_Master
     		 
     	expect(count($dealInfo->allowedPaymentOperations));
     		
-    	$options = $this->getOperations($dealInfo->allowedPaymentOperations);
+    	$options = static::getOperations($dealInfo->allowedPaymentOperations);
     	expect(count($options));
     		
     	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
@@ -311,13 +311,13 @@ class bank_IncomeDocuments extends core_Master
     /**
      * Връща платежните операции
      */
-    private function getOperations($operations)
+    private static function getOperations($operations)
     {
     	$options = array();
     	 
     	// Оставяме само тези операции в коитос е дебитира основната сметка на документа
     	foreach ($operations as $sysId => $op){
-    		if($op['debit'] == $this->baseAccountSysId){
+    		if($op['debit'] == static::$baseAccountSysId){
     			$options[$sysId] = $op['title'];
     		}
     	}
@@ -594,7 +594,11 @@ class bank_IncomeDocuments extends core_Master
     	
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
     		
-    		return TRUE;
+    		// Ако няма позволени операции за документа не може да се създава
+    		$dealInfo = $firstDoc->getAggregateDealInfo();
+    		$options = self::getOperations($dealInfo->allowedPaymentOperations);
+    			
+    		return count($options) ? TRUE : FALSE;
     	}
 		
     	return FALSE;

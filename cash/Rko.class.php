@@ -150,7 +150,7 @@ class cash_Rko extends core_Master
     /**
      * Основна сч. сметка
      */
-    public $baseAccountSysId = '501';
+    public static $baseAccountSysId = '501';
     
     
     /**
@@ -215,7 +215,7 @@ class cash_Rko extends core_Master
         $dealInfo = $origin->getAggregateDealInfo();
         expect(count($dealInfo->allowedPaymentOperations));
         
-        $options = $mvc->getOperations($dealInfo->allowedPaymentOperations);
+        $options = self::getOperations($dealInfo->allowedPaymentOperations);
         expect(count($options));
         
     	// Използваме помощната функция за намиране името на контрагента
@@ -277,13 +277,13 @@ class cash_Rko extends core_Master
     /**
      * Връща платежните операции
      */
-    private function getOperations($operations)
+    private static function getOperations($operations)
     {
-    	$options = array();
-    	 
+    	$options = array(); 
+    	
     	// Оставяме само тези операции в коитос е дебитира основната сметка на документа
     	foreach ($operations as $sysId => $op){
-    		if($op['credit'] == $this->baseAccountSysId){
+    		if($op['credit'] == static::$baseAccountSysId){
     			$options[$sysId] = $op['title'];
     		}
     	}
@@ -584,7 +584,11 @@ class cash_Rko extends core_Master
     	
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
     		
-    		return TRUE;
+    		// Ако няма позволени операции за документа не може да се създава
+    		$dealInfo = $firstDoc->getAggregateDealInfo();
+    		$options = self::getOperations($dealInfo->allowedPaymentOperations);
+    			
+    		return count($options) ? TRUE : FALSE;
     	}
 		
     	return FALSE;

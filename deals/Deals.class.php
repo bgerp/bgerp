@@ -126,10 +126,14 @@ class deals_Deals extends core_Master
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(
-    		'test1' => array('title' => 'Тестово ПКО', 'debit' => '501', 'credit' => '9999'),
-    		'test2' => array('title' => 'Тестово РКО', 'debit' => '9999', 'credit' => '501'),
-    		'test3' => array('title' => 'Тестово ПБО', 'debit' => '503', 'credit' => '9999'),
-    		'test4' => array('title' => 'Тестово РБО', 'debit' => '9999', 'credit' => '503'),
+    		'shortTermLoansBankCredit' => array('title' => 'Краткосрочен банков кредит', 'debit' => '503', 'credit' => '1511'),
+    		'shortTermLoansBankOverdraft' => array('title' => 'Kраткосрочни заеми - овърдрафт', 'debit' => '503', 'credit' => '1513'),
+    		'shortTermLoansBankPersons' => array('title' => 'Краткосрочен заем от свързани лица', 'debit' => '503', 'credit' => '1514'),
+    		'shortTermLoansCasePersons' => array('title' => 'Краткосрочен заем от свързани лица', 'debit' => '501', 'credit' => '1514'),
+    		'longTermLoansBankCredit' => array('title' => 'Дългосрочен банков кредит', 'debit' => '503', 'credit' => '1521'),
+    		'longTermLoansOverdraft' => array('title' => 'Дългосрочни заеми - овърдрафт', 'debit' => '503', 'credit' => '1523'),
+    		'longTermLoansBankPersons' => array('title' => 'Дългосрочен заем от свързани лица', 'debit' => '503', 'credit' => '1524'),
+    		'longTermLoansCasePersons' => array('title' => 'Дългосрочен заем от свързани лица', 'debit' => '501', 'credit' => '1524'),
     		);
     
     
@@ -224,19 +228,19 @@ class deals_Deals extends core_Master
     	}
     	
     	if($rec->state == 'active'){
-    		if(cash_Pko::haveRightFor('add')){
+    		if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     			$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер');
     		}
     		
-    		if(bank_IncomeDocuments::haveRightFor('add')){
+    		if(bank_IncomeDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     			$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
     		}
     		
-    		if(cash_Rko::haveRightFor('add')){
+    		if(cash_Rko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     			$data->toolbar->addBtn("РКО", array('cash_Rko', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_add.png,title=Създаване на нов разходен касов ордер');
     		}
     		
-    		if(bank_SpendingDocuments::haveRightFor('add')){
+    		if(bank_SpendingDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     			$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
     		}
     	}
