@@ -833,9 +833,15 @@ class acc_Items extends core_Manager
     	if(count($items)){
     		$query->notIn('id', $items);
     	}
-    	$query->show('id');
+    	$query->show('id,state');
     	
+    	// Дали е документ
+    	$isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
     	while ($cRec = $query->fetch()){
+    		
+    		// Ако е документ и е чернова, не може да стане перо
+    		if($isDoc && $cRec->state == 'draft') continue;
+    		
     		$options[$cRec->id] = $Class::getTitleById($cRec->id);
     	}
     	
