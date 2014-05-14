@@ -389,7 +389,7 @@ class store_ShipmentOrders extends core_Master
         	$form->setField('isFull', 'input=none');
         	
             // ... проверяваме предхождащия за bgerp_DealIntf
-            $origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId);
+            expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
             expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
             	
             /* @var $dealInfo bgerp_iface_DealResponse */
