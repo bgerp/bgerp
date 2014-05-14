@@ -46,7 +46,7 @@ class sales_Proformas extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, Sale=sales_Sales,
-                    doc_plg_BusinessDoc, doc_plg_HidePrices, doc_ActivatePlg';
+                    doc_plg_HidePrices, doc_ActivatePlg';
     
     
     /**

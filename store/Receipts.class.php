@@ -38,7 +38,7 @@ class store_Receipts extends core_Master
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, store_DocumentWrapper, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_plg_BusinessDoc, store_plg_Document';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, store_plg_Document';
 
     
     /**
@@ -587,16 +587,6 @@ class store_Receipts extends core_Master
         }
         
         return $result;
-    }
-    
-    
-	/**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('doc_ContragentDataIntf');
     }
     
     
