@@ -23,6 +23,8 @@ class drdata_Address extends core_MVC
      */
     static function textToLines($text)
     {
+        $res = array();
+        
         $text = str_replace(array("\r\n", "\n\r", "\r"), array("\n", "\n", "\n"), trim($text));
         
         $lines = explode("\n", $text);
@@ -399,6 +401,8 @@ class drdata_Address extends core_MVC
      * @param $text string текста за конвертиране
      * @param $assumed array масив с предварително очаквани данни за контрагента
      * @param $avoid array масив с данни за контрагенти, които не би трябвало да са сред извлечените
+     * 
+     * @return stdClass
      */
     function extractContact($text, $assumed = array(), $avoid = array())
     {
@@ -410,8 +414,10 @@ class drdata_Address extends core_MVC
                 $avoid[] = trim($l, "\r");
             }
         }
-
+        
         $lines = self::textToLines($text);
+        
+        if (!$lines) return new stdClass();
         
         static $regards, $companyTypes, $companyWords, $givenNames, $addresses, $titles, $regards, $noStart;
         
@@ -455,7 +461,9 @@ class drdata_Address extends core_MVC
                 "marketing|направление|operation|assistenz|търговски|експорт|импорт|логистика|dep\." .
                 "|depart\.|manager|buyer|Direktorius|officer|support|обслужване|managing|executive|изпълнителен|" .
                 "директор|отдел|department|изпълнителен|управител|специалист|мениджър|отдел|Корпоративни Клиенти)/ui", $line)) {*/
-
+        
+        $res = array();
+        
         foreach($lines as $id => $l) {
             
             $aL = preg_replace("/[ \t]+/", ' ', $aL);
