@@ -4,7 +4,7 @@
 	left:600px;
 }
 
-.pos-product-category, .pos-notes {
+.pos-product-category {
 	padding: 0.1em 0.5em 0.4em;
 	margin:0px 8px 5px 0;
 	max-width:90px;
@@ -27,11 +27,8 @@
     border-radius: 10px;
     text-shadow: 1px 1px 0px rgba(0, 0, 0, 1)
 }
-.pos-notes {
-	color: #fff !important;
-	font-weight: bold;
-}
-.pos-product-category:hover, .pos-product-category.active, .pos-notes:hover {
+
+.pos-product-category:hover, .pos-product-category.active{
 	cursor: pointer;
 	color: #fff;
 	background: rgba(50,50,50,0.8);
