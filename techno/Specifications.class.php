@@ -535,9 +535,14 @@ class techno_Specifications extends core_Manager {
      */
     public function getBasePackInfo($id)
     {
-    	$TechnoClass = static::getDriver($id);
+    	try{
+    		$TechnoClass = static::getDriver($id);
+    		$res = $TechnoClass->getBasePackInfo();
+    	} catch(Exception $e){
+    		$res = (object)array('name' => NULL, 'quantity' => 1);
+    	}
     	
-    	return $TechnoClass->getBasePackInfo();
+    	return $res;
     }
     
     
