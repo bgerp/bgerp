@@ -120,7 +120,12 @@ class callcenter_Setup extends core_ProtoSetup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-
+        
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Прикачаме плъгина
+        $html .= $Plugins->forcePlugin('Линкове към централа', 'callcenter_LinkPlg', 'drdata_PhoneType', 'private');
         
         //инсталиране на кофата
 //        $Bucket = cls::get('fileman_Buckets');
