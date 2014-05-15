@@ -17,6 +17,7 @@ class callcenter_LinkPlg extends core_Plugin
     
     /**
      * Прихваща извикването на getLink
+     * Замества линковете към централата
      * 
      * @param core_Mvc $mvc
      * @param string $resUrl
