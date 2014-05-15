@@ -263,7 +263,7 @@ class acc_Items extends core_Manager
     /**
      * Извиква се преди подготовката на титлата в списъчния изглед
      */
-    static function on_AfterPrepareListTitle($mvc, $data, $data)
+    static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
         $listId = $mvc->getCurrentListId();
         $listRec = $mvc->Lists->fetch($listId);
