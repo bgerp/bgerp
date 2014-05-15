@@ -50,7 +50,7 @@ class price_ListRules extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_LastUsedKeys, plg_SaveAndNew';
+    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_LastUsedKeys, plg_SaveAndNew, bgerp_plg_Import';
                     
  
     /**
@@ -419,7 +419,7 @@ class price_ListRules extends core_Detail
      */
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->removeBtn('*'); 
+ //       $data->toolbar->removeBtn('*'); 
         $data->toolbar->addBtn('Стойност', array($mvc, 'add', 'type' => 'value', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
         if($data->masterData->rec->parent) {
             $data->toolbar->addBtn('Марж', array($mvc, 'add', 'type' => 'discount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
