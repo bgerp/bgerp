@@ -66,13 +66,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_saveAndNew, plg_Created';
-
-    
-    /**
-     * Поле за търсене
-     */
-    var $searchFields = 'number, type';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_saveAndNew, plg_Created';
     
     
     /**
@@ -369,6 +363,9 @@ class callcenter_Numbers extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        // Поле за търсене по номера
+//        $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
+        
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
         
@@ -377,9 +374,23 @@ class callcenter_Numbers extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'number';
         
-        $data->listFilter->input('search', 'silent');
+        $data->listFilter->input('number', 'silent');
+        
+        // Ако има филтър
+        if($filter = $data->listFilter->rec) {
+        
+            // Ако се търси по номера
+            if ($number = $filter->number) {
+                
+                // Премахваме нулите и + от началото на номера
+                $number = ltrim($number, '0+');
+                
+                // Търсим във външните и вътрешните номера
+                $data->query->where(array("#number LIKE '%[#1#]'", $number));
+            }
+        }
     }
     
     
