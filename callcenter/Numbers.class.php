@@ -364,7 +364,7 @@ class callcenter_Numbers extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Поле за търсене по номера
-//        $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
+        $data->listFilter->FNC('numberSearch', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
         
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
@@ -374,15 +374,15 @@ class callcenter_Numbers extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'number';
+        $data->listFilter->showFields = 'numberSearch';
         
-        $data->listFilter->input('number', 'silent');
+        $data->listFilter->input('numberSearch', 'silent');
         
         // Ако има филтър
         if($filter = $data->listFilter->rec) {
         
             // Ако се търси по номера
-            if ($number = $filter->number) {
+            if ($number = $filter->numberSearch) {
                 
                 // Премахваме нулите и + от началото на номера
                 $number = ltrim($number, '0+');
