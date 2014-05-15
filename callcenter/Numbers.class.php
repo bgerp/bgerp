@@ -125,8 +125,11 @@ class callcenter_Numbers extends core_Manager
                 // Ако имаме права за сингъла на записа
                 if ($class->haveRightFor('single', $cardRec)) {
                     
+                    // Вербалната стойност
+                    $name = $class->getVerbal($cardRec, 'name');
+                    
                     // Линк към сингъла
-                    $card = ht::createLink($cardRec->name, array($class, 'single', $rec->contragentId)) ;
+                    $card = ht::createLink($name, array($class, 'single', $rec->contragentId)) ;
                 } else {
                     
                     // Вземам линк към профила на отговорника
