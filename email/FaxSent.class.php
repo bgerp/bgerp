@@ -91,6 +91,36 @@ class email_FaxSent extends core_Manager
     
     
     /**
+     * Връща имейла на факс номера
+     * 
+     * @param string $number
+     * 
+     * @return string
+     */
+    static function getFaxMail($number)
+    {
+        $faxMail = $number . '@fax.man';
+        
+        return $faxMail;
+    }
+    
+    
+    /**
+     * URL, което ще се използва за създаване на факс
+     * 
+     * @param string $fax
+     * 
+     * @return array - Масив s URL-то, което ще се използва за създаване на факс
+     */
+    static function getAddFaxUrl($fax)
+    {
+        $urlArr = array('email_Outgoings', 'add', 'emailto' => $fax);
+        
+        return $urlArr;
+    }
+    
+    
+    /**
      * Екшън за изпращане на факс
      */
     function act_Send()
