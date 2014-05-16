@@ -118,7 +118,7 @@ class callcenter_SMS extends core_Master
     {
         $this->FLD('service', 'class(interface=callcenter_SentSMSIntf, select=title)', 'caption=Услуга, mandatory');
         $this->FLD('sender', 'varchar(255)', 'caption=Изпращач');
-        $this->FLD('mobileNum', 'drdata_PhoneType', 'caption=Получател->Номер, mandatory');
+        $this->FLD('mobileNum', 'drdata_PhoneType', 'caption=Получател->Номер, mandatory, silent');
         $this->FLD('mobileNumData', 'key(mvc=callcenter_Numbers)', 'caption=Получател->Контакт, input=none');
         $this->FLD('text', 'text', 'caption=Текст, mandatory');
         
@@ -571,7 +571,7 @@ class callcenter_SMS extends core_Master
     static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         // Премахваме бутона за запис
-        $data->form->toolbar->removeBtn('Запис');
+        $data->form->toolbar->removeBtn('save');
         
         // Ако имаме права за добавяне
         if (static::haveRightFor('add')) {
