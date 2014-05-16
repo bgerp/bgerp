@@ -45,7 +45,9 @@ function posActions() {
 		
 		inpVal += val;
 		$("input[name=ean]").val(inpVal);
-		$("input[name=ean]").focus();
+		if($('body').hasClass('wide')){
+			$("input[name=ean]").focus();
+		}
 	});
 	
 	// Използване на числата за въвеждане на суми за плащания
@@ -64,7 +66,9 @@ function posActions() {
 		
 		inpVal += val;
 		$("input[name=paysum]").val(inpVal);
-		$("input[name=paysum]").focus();
+		if($('body').hasClass('wide')){
+			$("input[name=paysum]").focus();
+		}
 	});
 	
 	// Триене на числа в пулта
@@ -73,8 +77,9 @@ function posActions() {
 		var newVal = $("input[name=ean]").val().substr(0, inpValLength-1);
 		
 		$("input[name=ean]").val(newVal);
-		$("input[name=ean]").focus();
-		
+		if($('body').hasClass('wide')){
+			$("input[name=ean]").focus();
+		}
 	});
 	
 	// Триене на числа при плащанията
@@ -83,7 +88,9 @@ function posActions() {
 		var newVal = $("input[name=paysum]").val().substr(0, inpValLength-1);
 		
 		$("input[name=paysum]").val(newVal);
-		$("input[name=paysum]").focus();
+		if($('body').hasClass('wide')){
+			$("input[name=paysum]").focus();
+		}
 	});
 	
 	// Модифициране на количество
