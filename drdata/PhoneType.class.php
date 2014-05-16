@@ -68,8 +68,12 @@ class drdata_PhoneType extends type_Varchar {
                 if(!Mode::is('text', 'plain')) {
             		$title = str_replace(' ', '&nbsp;', $t->original);
         		}
-        
-                $res->append(ht::createLink($title, "tel:00" . $value, NULL, $attr));
+        		//bp($this);
+        		if($this->params['type'] != 'fax') { 
+                	$res->append(ht::createLink($title, "tel:00" . $value, NULL, $attr));
+        		} else {
+        			$res->append(ht::createLink($title, NULL, NULL, $attr));       			
+        		}
 
                 if($t->internal) {
                     $res->append(tr('вътр.') . $t->internal) ;
