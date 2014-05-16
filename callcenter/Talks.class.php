@@ -78,7 +78,7 @@ class callcenter_Talks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_RefreshRows, plg_GroupByDate';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_RefreshRows, plg_GroupByDate, callcenter_ListOperationsPlg';
     
 
     /**
@@ -1288,8 +1288,6 @@ class callcenter_Talks extends core_Master
     	
 		// Добавяме CSS
 		$tpl->push('callcenter/css/callSummary.css', 'CSS');
-		
-    	return $tpl;
     }
     
     

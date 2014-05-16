@@ -66,7 +66,14 @@ class callcenter_Numbers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_saveAndNew, plg_Created';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_saveAndNew, plg_Created, callcenter_ListOperationsPlg';
+    
+    
+    /**
+     * Полето, което ще се използва за търсене по номер
+     * @see callcenter_ListOperationsPlg
+     */
+    var $numberField = 'numberSearch';
     
     
     /**
