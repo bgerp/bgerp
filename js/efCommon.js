@@ -281,7 +281,7 @@ function setInnerHtml(element, html)
  * Проверява дали зададената опция е съществува в посочения с id селект
  */
 function isOptionExists(selectId, option)
-{   console.log(selectId + ' - ' + option);
+{
 	for (i = 0; i < document.getElementById(selectId).length; ++i){
 		if (document.getElementById(selectId).options[i].value == option){
 
@@ -612,8 +612,10 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine, everyLine)
 		} else{
 			if(selection != '' && selection.indexOf("\n") && everyLine){
 				var startLine = begin.lastIndexOf("\n") + 1;
-				beginPosition = startLine ;
-				var tempSel =  textarea.value.substr(startLine, endPosition);
+				//Стринга от новия ред до маркирания ред
+				var beforeSel = begin.substr(startLine,beginPosition) ;
+				var tempSel =  beforeSel + selection;
+				beginPosition = startLine;
 				selection = tempSel.replace(/\n/g, text2 + "\n" + text1);
 			}
 			
@@ -1252,10 +1254,10 @@ function saveSelectedTextToSession(handle, onlyHandle)
 	if (typeof sessionStorage === "undefined") return ;
 	
 	// Вземаме избрания текст
-	var selText = getSelText();
+	var selText = getEO().getSavedSelText();
 	
 	// Ако има избран текст
-	if (selText.focusOffset != selText.anchorOffset) {
+	if (selText) {
 		
 		// Ако има подадено id
 		if (handle) {
@@ -1300,7 +1302,7 @@ function getSelText()
 	        txt = document.getSelection();
 	    }
 	    else if (document.selection.createRange)
-	    {    
+	    {
     		txt = document.selection.createRange();
     	}
     } catch(err) {
@@ -2063,7 +2065,7 @@ function Experta()
 	Experta.prototype.sSelText='';
 	
 	// Време на извикване
-	Experta.prototype.saveSelTextTimeout=1200;
+	Experta.prototype.saveSelTextTimeout=500;
 	
 	// Време на извикване в textarea
 	Experta.prototype.saveSelTextareaTimeout=400;

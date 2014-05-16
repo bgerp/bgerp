@@ -727,8 +727,11 @@ class type_Richtext extends type_Blob
         // Кода между апострофите
         $code = $match['text'];
         
+        // Тримваме текста
+        $code = trim($code);
+        
         // Ако е празен стринг
-        if(!($code = trim($code))) return $match[0];
+        if(!strlen($code)) return $match[0];
         
         // Добавяме кода в блок
         $code1 = "<span class='oneLineCode'>{$code}</span>";
