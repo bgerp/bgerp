@@ -20,6 +20,18 @@ defIfNot('BGERP_OWN_COMPANY_ID', 1);
 
 
 /**
+ * Хипервръзки за телефоните -> Desktop устройства
+ */
+defIfNot('CRM_TEL_LINK_WIDE', 'yes');
+
+
+/**
+ * Хипервръзки за телефоните -> Mobile устройства
+ */
+defIfNot('CRM_TEL_LINK_NARROW', 'yes');
+
+
+/**
  * Клас 'crm_Setup' -
  *
  *
@@ -83,6 +95,8 @@ class crm_Setup extends core_ProtoSetup
             'crm_ext_CourtReg',
             'crm_Profiles',
             'crm_Locations',
+            'crm_Formatter',
+    
         );
     
 
@@ -99,6 +113,21 @@ class crm_Setup extends core_ProtoSetup
             array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', "crm, user"),
         );
  
+            
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        
+             'CRM_TEL_LINK_WIDE'   => array ('enum(none=Няма,
+                                                   yes=Да,)', 'caption=Хипервръзки за телефоните->Desktop'),
+    		 
+    		 'CRM_TEL_LINK_NARROW'   => array ('enum(none=Няма,
+                                                   yes=Да,)', 'caption=Хипервръзки за телефоните->Mobile'),
+    
+             );
+             
+             
     /**
      * Скрипт за инсталиране
      */
