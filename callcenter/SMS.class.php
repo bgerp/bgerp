@@ -72,7 +72,7 @@ class callcenter_SMS extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows,plg_AutoFilter';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows,plg_AutoFilter, callcenter_ListOperationsPlg';
     
     
     /**
@@ -96,7 +96,7 @@ class callcenter_SMS extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'sender, mobileNum, text';
+    var $searchFields = 'sender, text';
     
     
     /**
@@ -457,6 +457,9 @@ class callcenter_SMS extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
+        // Поле за търсене по номера
+        $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
+        
         // Ако имаме статуси
         if ($typeOptions = &$data->listFilter->getField('status')->type->options) {
             
@@ -475,9 +478,9 @@ class callcenter_SMS extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search, usersSearch, status';
+        $data->listFilter->showFields = 'search, number, usersSearch, status';
         
-        $data->listFilter->input('search,usersSearch, status', 'silent');
+        $data->listFilter->input('search, usersSearch, number, status', 'silent');
         
     	// Последно получените и изпратени и да са първи
         $data->query->orderBy('#createdOn', 'DESC');
@@ -491,6 +494,16 @@ class callcenter_SMS extends core_Master
         
         // Ако има филтър
         if($filter = $data->listFilter->rec) {
+            
+            // Ако се търси по номера
+            if ($number = $filter->number) {
+                
+                // Премахваме нулите и + от началото на номера
+                $number = ltrim($number, '0+');
+                
+                // Търсим в номерата на изпратените съобщения
+                $data->query->where(array("#mobileNum LIKE '%[#1#]'", $number));
+            }
             
             // Ако филтъра е по потребители
             if($filter->usersSearch) {
