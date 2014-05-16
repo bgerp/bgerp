@@ -38,12 +38,14 @@ class core_Browser extends core_Manager
         Mode::setPermanent('checkNativeSupport', Request::get('scroll', 'int'));
         Mode::setPermanent('getUserAgent', Request::get('browserCheck'));
    
-        $this->render1x1gif();
-       
+           
         if($w > 1000 && !Mode::is("ScreenModeFromScreenSize")) {
             Mode::setPermanent('screenMode', 'wide');
             Mode::setPermanent("ScreenModeFromScreenSize");
         }
+
+        $this->render1x1gif();
+
         die;
     }
     
@@ -55,6 +57,7 @@ class core_Browser extends core_Manager
     function act_NoJS()
     {
         Mode::setPermanent('javascript', 'no');
+
         $this->render1x1gif();
         
         die;
@@ -76,6 +79,7 @@ class core_Browser extends core_Manager
     function act_SetWideScreen()
     {
         Mode::setPermanent('screenMode', 'wide');
+
         followRetUrl();
     }
     
@@ -86,6 +90,7 @@ class core_Browser extends core_Manager
     function act_SetNarrowScreen()
     {
         Mode::setPermanent('screenMode', 'narrow');
+
         followRetUrl();
     }
     
@@ -96,29 +101,33 @@ class core_Browser extends core_Manager
      */
     function renderBrowserDetectingCode_()
     {
-        if (!Mode::is('javascript', 'no')) {
-            $url = toUrl(array(
-                    $this,
-                    'noJs',
-                    rand(1, 1000000000)
-                ));
-            $code .= '<noscript><span class="checkBrowser"><img src="' . $url . '" width="1" height="1"></span></noscript>';
-        }
-        
-        if (!Mode::is('javascript', 'yes')) {
-            $url = toUrl(array(
-                    $this,
-                    'js',
-                    rand(1, 1000000000)
-                ));
-            $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1"></span><script src=' . sbf("js/overthrow-detect.js") . ' type="text/javascript"></script><script type="text/javascript"><!-- 
-            var winW = 630, winH = 460; if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
-            winH = document.body.offsetHeight; } if (document.compatMode=="CSS1Compat" && document.documentElement && 
-            document.documentElement.offsetWidth ) { winW = document.documentElement.offsetWidth;
-            winH = document.documentElement.offsetHeight; } if (window.innerWidth && window.innerHeight) {
-            winW = window.innerWidth; winH = window.innerHeight;}  var brdet=document.getElementById("brdet"); 
-            brdet.src="' . $url . '?w=" + screen.width + "&h=" + screen.height + "&winH=" + winH + "&winW=" + winW + "&scroll=" + checkNativeSupport() + "&browserCheck=" + getUserAgent();
-            //--> </script>';
+        $code = '';
+
+        if(!self::detectBot()) {
+            if (!Mode::is('javascript', 'no')) {
+                $url = toUrl(array(
+                        $this,
+                        'noJs',
+                        rand(1, 1000000000)
+                    ));
+                $code .= '<noscript><span class="checkBrowser"><img src="' . $url . '" width="1" height="1"></span></noscript>';
+            }
+            
+            if (!Mode::is('javascript', 'yes')) {
+                $url = toUrl(array(
+                        $this,
+                        'js',
+                        rand(1, 1000000000)
+                    ));
+                $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1"></span><script src=' . sbf("js/overthrow-detect.js") . ' type="text/javascript"></script><script type="text/javascript"><!-- 
+                var winW = 630, winH = 460; if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
+                winH = document.body.offsetHeight; } if (document.compatMode=="CSS1Compat" && document.documentElement && 
+                document.documentElement.offsetWidth ) { winW = document.documentElement.offsetWidth;
+                winH = document.documentElement.offsetHeight; } if (window.innerWidth && window.innerHeight) {
+                winW = window.innerWidth; winH = window.innerHeight;}  var brdet=document.getElementById("brdet"); 
+                brdet.src="' . $url . '?w=" + screen.width + "&h=" + screen.height + "&winH=" + winH + "&winW=" + winW + "&scroll=" + checkNativeSupport() + "&browserCheck=" + getUserAgent();
+                //--> </script>';
+            }
         }
         
         return $code;
@@ -129,8 +138,9 @@ class core_Browser extends core_Manager
      * Изпраща към клиента едно пикселен gif
      */
     function render1x1gif()
-    {
-        header("Content-type:  image/gif");
+    {   
+        header("X-Robots-Tag: noindex", TRUE);
+        header("Content-Type:  image/gif");
         header("Expires: Wed, 11 Nov 1998 11:11:11 GMT");
         header("Cache-Control: no-cache");
         header("Cache-Control: must-revalidate");

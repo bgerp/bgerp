@@ -91,10 +91,12 @@ class core_Mode
         // Запис в статичната памет
         static::set($name, $value);
         
-        // Запис в сесията
-        $pMode = core_Session::get(EF_MODE_SESSION_VAR);
-        $pMode[$name] = $value;
-        core_Session::set(EF_MODE_SESSION_VAR, $pMode);
+        // Запис в сесията, ако потребителския агент не е бот
+        if(!core_Browser::detectBot()) {
+            $pMode = core_Session::get(EF_MODE_SESSION_VAR);
+            $pMode[$name] = $value;
+            core_Session::set(EF_MODE_SESSION_VAR, $pMode);
+        }
     }
     
     
