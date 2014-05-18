@@ -98,7 +98,6 @@ class price_History extends core_Manager
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис, autoFilter');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent, autoFilter');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'caption=Опаковка, autoFilter');
         $this->FLD('price', 'double(decimals=5)', 'caption=Цена');
     }
 
@@ -118,11 +117,11 @@ class price_History extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $form->showFields = 'listId, productId, packagingId';
+        $form->showFields = 'listId, productId';
         
         $form->fields['productId']->mandatory = FALSE;
         
-        $form->input('listId, productId, packagingId', 'silent');
+        $form->input('listId, productId', 'silent');
 		
         if($form->rec->listId){
         	$data->query->where(array("#listId = '{$form->rec->listId}'"));
@@ -132,9 +131,6 @@ class price_History extends core_Manager
         	$data->query->where(array("#productId = '{$form->rec->productId}'"));
         }
         
-    	if($form->rec->packagingId){
-        	$data->query->where(array("#packagingId = '{$form->rec->packagingId}'"));
-        }
     }
     
     
@@ -222,13 +218,7 @@ class price_History extends core_Manager
         
         if(!$validFrom) return;
         
-        $cond = "#listId = {$listId} AND #validFrom = '{$validFrom}' AND #productId = {$productId} AND #packagingId";
-
-        if($packagingId) {
-           $cond .= " = {$packagingId}";
-        } else {
-            $cond .= " IS NULL";
-        }
+        $cond = "#listId = {$listId} AND #validFrom = '{$validFrom}' AND #productId = {$productId}";
 
         $price = self::fetchField($cond, 'price');
 
@@ -239,7 +229,7 @@ class price_History extends core_Manager
     /**
      * Записва кеш за цената на продукта
      */
-    static function setPrice($price, $listId, $datetime, $productId, $packagingId = NULL)
+    static function setPrice($price, $listId, $datetime, $productId)
     {
         $validFrom = self::canonizeTime($datetime);
         
@@ -249,7 +239,6 @@ class price_History extends core_Manager
         $rec->listId      = $listId;
         $rec->validFrom   = $validFrom;
         $rec->productId   = $productId;
-        $rec->packagingId = $packagingId;
         $rec->price       = $price;
         self::save($rec);
 

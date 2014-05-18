@@ -161,7 +161,11 @@ class price_ListRules extends core_Detail
      */
     static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
     {  
-        // echo "<li> $listId, $productId, $packagingId = NULL, $datetime ";
+        // Проверка, дали цената я няма в кеша
+        if($price = price_History::getPrice($listId, $datetime, $productId)) {
+
+            return $price;
+        }
 
         price_ListToCustomers::canonizeTime($datetime);
 
@@ -247,7 +251,7 @@ class price_ListRules extends core_Detail
         $price = round($price, 10);
 
         // Записваме току-що изчислената цена в историята;
-        price_History::setPrice($price, $listId, $datetime, $productId, $packagingId);
+        price_History::setPrice($price, $listId, $datetime, $productId);
 
         return $price;
     }
