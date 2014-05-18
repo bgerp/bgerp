@@ -64,8 +64,8 @@ class crm_Personalization extends core_Detail
     {
         $this->FLD('profileId', 'key(mvc=crm_Profiles)', 'input=hidden,silent');
         $this->FLD('inbox', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Основен имейл->Кутия,hint=Кутия по подразбиране');
-        $this->FLD('signature', 'text', 'caption=Писмо->Подпис');
-        $this->FLD('header', 'text', 'caption=Писмо->Привет');
+        $this->FLD('signature', 'text', 'caption=Изходящ имейл->Подпис');
+        $this->FLD('header', 'text', 'caption=Изходящ имейл->Привет');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Български');
         $this->FLD('logoEn', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Английски');
 
