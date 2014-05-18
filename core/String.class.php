@@ -235,21 +235,35 @@ class core_String
     
     
     /**
-     * @todo Чака за документация...
+     * Допълва стринг с хеш, уникален за дадения стринг и за текущата конфигурация на системата (EF_SALT)
+     * 
+     * @param   string    $str        Стринга, който ще бъде допълван
+     * @param   int       $length     Дължина на частта за допълване
+     * @param   string    $moreSalt   Допълнителна сол за защита
+     *
+     * @return  string   Допълнения стринг
      */
-    static function addHash($str, $length = 4)
+    static function addHash($str, $length = 4, $moreSalt = '')
     {
         
-        return $str . "_" . substr(md5(EF_SALT . $str), 0, $length);
+        return $str . "_" . substr(md5(EF_SALT . $moreSalt . $str), 0, $length);
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Проверка, дали даден стринг преди това е бил допълван с функцията addHash
+     * Връща оригиналния, не-допълван стирнг
+     * 
+     * @param   string    $str        Защитеният чрез addHash стринг
+     * @param   int       $length     Дължина на частта за допълване
+     * @param   string    $moreSalt   Допълнителна сол за защита
+     *
+     * @return  string               Оригиналния стринг или FALSE в случай на несъответствие
      */
-    static function checkHash($str, $length = 4)
+    static function checkHash($str, $length = 4, $moreSalt = '')
     {
-        if ($str == str::addHash(substr($str, 0, strlen($str) - $length - 1), $length) && substr($str, -1 - $length, 1) == "_") {
+        if ($str == str::addHash(substr($str, 0, strlen($str) - $length - 1), $length, $moreSalt) && substr($str, -1 - $length, 1) == "_") {
+
             return substr($str, 0, strlen($str) - $length - 1);
         }
         
