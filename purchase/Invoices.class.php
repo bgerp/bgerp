@@ -46,7 +46,7 @@ class purchase_Invoices extends core_Master
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,acc_plg_DpInvoice,
-                    doc_plg_BusinessDoc, doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
+                    doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
     
     
     /**
@@ -1052,16 +1052,6 @@ class purchase_Invoices extends core_Master
         }
         
         return $result;
-    }
-    
-    
-	/**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('doc_ContragentDataIntf');
     }
     
     

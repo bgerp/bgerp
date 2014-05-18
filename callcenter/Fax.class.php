@@ -60,19 +60,13 @@ class callcenter_Fax extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_RefreshRows, plg_Created';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_RefreshRows, plg_Created, callcenter_ListOperationsPlg';
     
     
     /**
      * 
      */
     var $refreshRowsTime = 15000;
-    
-    
-    /**
-     * Поле за търсене
-     */
-    var $searchFields = 'faxNum';
     
     
     /**
@@ -262,6 +256,9 @@ class callcenter_Fax extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        // Поле за търсене по номера
+        $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
+        
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
@@ -273,9 +270,9 @@ class callcenter_Fax extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search,usersSearch';
+        $data->listFilter->showFields = 'number,usersSearch';
         
-        $data->listFilter->input('search,usersSearch', 'silent');
+        $data->listFilter->input('number,usersSearch', 'silent');
         
     	// Ако не е избран потребител по подразбиране
         if(!$data->listFilter->rec->usersSearch) {
@@ -289,6 +286,16 @@ class callcenter_Fax extends core_Manager
         
         // Ако има филтър
         if($filter = $data->listFilter->rec) {
+            
+            // Ако се търси по номера
+            if ($number = $filter->number) {
+                
+                // Премахваме нулите и + от началото на номера
+                $number = ltrim($number, '0+');
+                
+                // Търсим във факсовете
+                $data->query->where(array("#faxNum LIKE '%[#1#]'", $number));
+            }
             
             // Ако филтъра е по потребители
             if($filter->usersSearch) {

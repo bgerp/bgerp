@@ -232,8 +232,8 @@ class crm_Companies extends core_Master
         
         // Комуникации
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
-        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData,silent');
-        $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,class=contactData,silent');
+        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Телефони,class=contactData,silent');
+        $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Факс,class=contactData,silent');
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData');
         
         // Данъчен номер на фирмата
@@ -598,7 +598,7 @@ class crm_Companies extends core_Master
         $vat = $vatType->toVerbal($rec->vatId);
         $row->vat = $vat;
         
-        $row->title .= "<div style='display:inline-block;float:right;margin-left:10px;'>№ {$currentId}</div>";
+        $row->title .= "<div class='number-block' style='display:inline; float:right;'>{$currentId}</div>";
         
         if ($rec->vatId) {
         	unset($row->uicId);

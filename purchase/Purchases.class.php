@@ -165,6 +165,21 @@ class purchase_Purchases extends core_Master
     
     
     /**
+     * Позволени операции на последващите платежни документи
+     */
+    public $allowedPaymentOperations = array(
+    		'case2supplierAdvance' => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '501'),
+    		'bank2supplierAdvance' => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '503'),
+    		'case2supplier' => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '501'),
+    		'bank2supplier' => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '503'),
+    		'supplier2case' => array('title' => 'Връщане от Доставчик', 'debit' => '501', 'credit' => '401'),
+    		'supplier2bank' => array('title' => 'Връщане от Доставчик', 'debit' => '503', 'credit' => '401'),
+    		'supplierAdvance2case' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '501', 'credit' => '402'),
+    		'supplierAdvance2bank' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '503', 'credit' => '402'),
+    		);
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -694,29 +709,20 @@ class purchase_Purchases extends core_Master
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_PURCHASE;
         
-        $allowedPaymentOperations = array('case2supplierAdvance',
-		        						  'bank2supplierAdvance',
-		        						  'bank2supplier',
-		        						  'case2supplier',
-		        						  'supplier2bank',
-		        						  'supplier2case',
-        								  'case2supplierAdvance',
-		        						  'bank2supplierAdvance',
-        								  'supplierAdvance2case');
+        $allowedPaymentOperations = $this->allowedPaymentOperations;
         
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
-        $allowedPaymentOperations = array_combine($allowedPaymentOperations, $allowedPaymentOperations);
         if($rec->paymentMethodId){
         	if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
         		unset($allowedPaymentOperations['case2supplierAdvance'], 
         			  $allowedPaymentOperations['bank2supplierAdvance'],
         		      $allowedPaymentOperations['supplierAdvance2case'],
-        		      $allowedPaymentOperations['bank2supplierAdvance']);
+        			  $allowedPaymentOperations['supplierAdvance2bank']);
         	} else {
         		// Колко е очакваното авансово плащане
         		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
-        		$downPayment = $paymentRec->downpayment * $rec->amountDeal;
+        		$downPayment = round($paymentRec->downpayment * $rec->amountDeal, 4);
         	}
         }
        

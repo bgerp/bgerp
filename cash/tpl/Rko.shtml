@@ -51,17 +51,16 @@
 					<table border='1px' cellpadding='0' class="pko-notes">
 						<tr>
 							<td colspan='2'>
-							<table border='0'>
+							<table border='0' style='width:100%'>
 							<tr>
 								<td colspan='2' id='notes' style='height: auto; padding:10px'>
-	                                <span class='quiet'>|Операция|*:</span>&nbsp; [#operationSysId#]
 	                                <!--ET_BEGIN notes-->
 	                                <div class='richtext-holder'><span class='quiet'>|Бележки|*:</span> &nbsp;&nbsp;&nbsp;[#notes#]</div>
 	                                <!--ET_END notes-->
 	                            </td>
 								<td style='vertical-align:middle !important'>
 								<!--ET_BEGIN equals-->
-									<div id ='misc'>
+									<div id ='misc' style='float:right'>
 									<span class='labels'>|Курс|*:</span> &nbsp;&nbsp;<b>[#rate#]</b><br>
 									<div style='margin-top:7px;'>
 									<span class='labels'>|Равностойност|*:</span>

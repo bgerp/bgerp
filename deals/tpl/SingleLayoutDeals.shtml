@@ -1,0 +1,38 @@
+[#SingleToolbar#]
+<div class='document'>
+
+	<!--ET_BEGIN header-->
+		<div class='header [#STATE_CLASS#]'>
+			<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+		</div>
+	<!--ET_END header-->
+	<table class='styled-table'>
+		<tr>
+			<td>|Наименование|*</td>
+			<td>[#dealName#]</td>
+		</tr>
+		<tr>
+			<td>|Сметка|*</td>
+			<td>[#accountId#]</td>
+		</tr>
+		<tr>
+			<td>|Контрагент|*</td>
+			<td>[#contragentName#]</td>
+		</tr>
+		<tr>
+			<td>|Крайно салдо|*</td>
+			<td>[#blAmount#] <span class='cCode'>[#currencyId#]</span></td>
+		</tr>
+		<!--ET_BEGIN description-->
+		<tr>
+			<td>|Описание|*</td>
+			<td>[#description#]</td>
+		</tr>
+		<!--ET_END description-->
+	</table>
+	
+	<!--ET_BEGIN DETAILS-->
+	[#DETAILS#]
+	<!--ET_END DETAILS-->
+	[#PAGER#]
+</div>

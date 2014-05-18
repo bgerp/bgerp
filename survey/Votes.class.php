@@ -239,13 +239,13 @@ class survey_Votes extends core_Manager {
 	/**
      * Извиква се преди подготовката на титлата в списъчния изглед
      */
-    static function on_AfterPrepareListTitle($mvc, $data, $data)
+    static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
     	$surveyId = Request::get('surveyId', 'int');
     	if(isset($surveyId)) {
     		if($surveyTitleRec = survey_Surveys::fetch($surveyId)) {
     			$title = survey_Surveys::getVerbal($surveyTitleRec, 'title');
-    			$data->title = "Гласуване за |* <font color=green>{$title}</font>";
+    			$data->title = "Гласуване за|* <font color=green>{$title}</font>";
     		}
     	}
     }

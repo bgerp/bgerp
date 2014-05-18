@@ -66,13 +66,14 @@ class callcenter_Numbers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_saveAndNew, plg_Created';
-
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_saveAndNew, plg_Created, callcenter_ListOperationsPlg';
+    
     
     /**
-     * Поле за търсене
+     * Полето, което ще се използва за търсене по номер
+     * @see callcenter_ListOperationsPlg
      */
-    var $searchFields = 'number, type';
+    var $numberField = 'numberSearch';
     
     
     /**
@@ -131,8 +132,11 @@ class callcenter_Numbers extends core_Manager
                 // Ако имаме права за сингъла на записа
                 if ($class->haveRightFor('single', $cardRec)) {
                     
+                    // Вербалната стойност
+                    $name = $class->getVerbal($cardRec, 'name');
+                    
                     // Линк към сингъла
-                    $card = ht::createLink($cardRec->name, array($class, 'single', $rec->contragentId)) ;
+                    $card = ht::createLink($name, array($class, 'single', $rec->contragentId)) ;
                 } else {
                     
                     // Вземам линк към профила на отговорника
@@ -369,6 +373,9 @@ class callcenter_Numbers extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        // Поле за търсене по номера
+        $data->listFilter->FNC('numberSearch', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
+        
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
         
@@ -377,9 +384,23 @@ class callcenter_Numbers extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'numberSearch';
         
-        $data->listFilter->input('search', 'silent');
+        $data->listFilter->input('numberSearch', 'silent');
+        
+        // Ако има филтър
+        if($filter = $data->listFilter->rec) {
+        
+            // Ако се търси по номера
+            if ($number = $filter->numberSearch) {
+                
+                // Премахваме нулите и + от началото на номера
+                $number = ltrim($number, '0+');
+                
+                // Търсим във външните и вътрешните номера
+                $data->query->where(array("#number LIKE '%[#1#]'", $number));
+            }
+        }
     }
     
     

@@ -46,7 +46,7 @@ class sales_Proformas extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, Sale=sales_Sales,
-                    doc_plg_BusinessDoc, doc_plg_HidePrices, doc_ActivatePlg';
+                    doc_plg_HidePrices, doc_ActivatePlg';
     
     
     /**
@@ -221,10 +221,11 @@ class sales_Proformas extends core_Master
     {
     	// Показване на името и бика на банката, ако има б. сметка
     	if($rec->bankAccountId){
-	    	$Varchar = cls::get('type_Varchar');
-	    	$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
-	    	$row->bank = $Varchar->toVerbal($ownAcc->bank);
-	    	$row->bic = $Varchar->toVerbal($ownAcc->bic);
+	    	$ownAcc = bank_Accounts::fetch($rec->bankAccountId);
+	    	$accRow = bank_Accounts::recToVerbal($ownAcc);
+	    	$row->bank = $accRow->bank;
+	    	$row->bic = $accRow->bic;
+	    	$rec->bankAccountId = $accRow->iban;
 	    }
     	
 	    $row->header = "{$this->singleTitle} #<b>{$this->abbr}{$rec->id}</b> ({$row->state})" ;

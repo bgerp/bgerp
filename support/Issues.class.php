@@ -134,7 +134,7 @@ class support_Issues extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'componentId, typeId, description';
+    var $searchFields = 'componentId, typeId, description, title';
     
     
     /**

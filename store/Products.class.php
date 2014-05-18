@@ -112,7 +112,13 @@ class store_Products extends core_Manager
     		return;
     	}
     	
-    	return $rec->name = cls::get($rec->classId)->getTitleById($rec->productId);
+    	try{
+    		$name = $rec->name = cls::get($rec->classId)->getTitleById($rec->productId);
+    	} catch(Exception $e){
+    		$name = tr('Проблем при показването');
+    	}
+    	
+    	return $rec->name = $name;
     }
     
     

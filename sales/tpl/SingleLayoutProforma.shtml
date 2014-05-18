@@ -148,13 +148,12 @@
                                 <!--ET_BEGIN paymentAfterInvoice-->
                                 <div><span class='quiet'>|Окончателно|*:</span> &nbsp;[#paymentAfterInvoice#] |до|* [#deadlineForBalancePayment#]</div>
                                 <!--ET_END paymentAfterInvoice-->
-		                       <!--ET_END paymentInfo-->
+		                        <!--ET_END paymentInfo-->
 		                        
-		                        <!--ET_BEGIN accountId-->
+		                        <!--ET_BEGIN bankAccountId-->
                                 <hr>
 		                        <div>
-		                       
-			                        <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
+		                       	<span class='quiet'>|Банкова с-ка|*:</span> [#bankAccountId#]
 			                        <div class="smallData">
 			                        <!--ET_BEGIN bank-->
 			                        <div>[#bank#]
@@ -164,7 +163,7 @@
 			                        <!--ET_END bic-->
 			                        </div>
 				                </div>
-		                        <!--ET_END accountId-->
+		                        <!--ET_END bankAccountId-->
 		                        
 		                      <!--ET_BEGIN deliveryInfo-->
 		                      [#deliveryInfo#]

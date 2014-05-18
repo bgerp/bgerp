@@ -79,8 +79,8 @@ class crm_Persons extends core_Master
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Import, drdata_PhonePlg';
-
-
+    
+    
     /**
      * Полета, които се показват в листови изглед
      */
@@ -127,14 +127,6 @@ class crm_Persons extends core_Master
      * По кои сметки ще се правят справки
      */
     public $balanceRefAccounts = '401,402,403,404,405,406,409,411,412,413,414,415,419';
-    
-    
-    /**
-     * Кои полета да се използват за телефонни номера
-     * 
-     * @see drdata_PhonePlg
-     */
-    var $phoneFields = 'tel, fax, mobile, buzTel, buzFax';
     
     
     /**

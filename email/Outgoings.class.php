@@ -241,7 +241,7 @@ class email_Outgoings extends core_Master
         $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div><div class='scrolling-holder'>[#EMAIL_HTML#]<pre class=\"document\" style=\"width:95%; white-space: pre-wrap;\">[#EMAIL_TEXT#]</pre></div></div>");
        
         $preview->append($this->getEmailHtml($data->rec, $lg) , 'EMAIL_HTML');
-        $preview->append(core_Type::escape($this->getEmailText($data->rec, $lg)) , 'EMAIL_TEXT');
+        $preview->append(core_Type::escape(core_ET::unEscape($this->getEmailText($data->rec, $lg))) , 'EMAIL_TEXT');
         
         $tpl->append($preview);
 
@@ -364,7 +364,9 @@ class email_Outgoings extends core_Master
             $rec->__mid = NULL;
             $rec->html = static::getEmailHtml($rec, $lg, $emailCss);
             $rec->text = static::getEmailText($rec, $lg);
-        
+            $rec->text = core_ET::unEscape($rec->text);
+            
+            
             // Генериране на прикачените документи
             $rec->documentsFh = array();
             foreach ($docsArr as $attachDoc) {
@@ -384,7 +386,7 @@ class email_Outgoings extends core_Master
                 //Записваме прикачените файлове
                 $rec->documents = keylist::fromArray($documents);
             }
-    
+            
             // ... и накрая - изпращане.
             $status = email_Sent::sendOne(
                 $options->boxFrom,

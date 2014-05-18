@@ -74,7 +74,7 @@
                     <!--ET_END deliveryTime-->
                     <!--ET_BEGIN storeId-->
                         <tr>
-                            <td class='quiet' align="right">|От склад|*:</td>
+                            <td class='quiet' align="right">|В склад|*:</td>
                             <td>[#storeId#]</td>
                         </tr>
                     <!--ET_END storeId-->

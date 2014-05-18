@@ -78,7 +78,7 @@ class callcenter_Talks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_RefreshRows, plg_GroupByDate';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_RefreshRows, plg_GroupByDate, callcenter_ListOperationsPlg';
     
 
     /**
@@ -103,12 +103,6 @@ class callcenter_Talks extends core_Master
      * Икона по подразбиране за единичния обект
      */
     var $singleIcon = 'img/16/incoming.png';
-
-    
-    /**
-     * Поле за търсене
-     */
-    var $searchFields = 'externalNum, internalNum';
     
     
     /**
@@ -1017,7 +1011,10 @@ class callcenter_Talks extends core_Master
     {
         // Използваме собсвен лейаут за тъсене
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('callcenter/tpl/TalksFilterForm.shtml')));
-    
+        
+        // Поле за търсене по номера
+        $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
+        
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
@@ -1077,10 +1074,10 @@ class callcenter_Talks extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search, usersSearch, dialStatusType, from, to';
+        $data->listFilter->showFields = 'number, usersSearch, dialStatusType, from, to';
         
         // Инпутваме заявката
-        $data->listFilter->input('search, usersSearch, dialStatusType, from, to', 'silent');
+        $data->listFilter->input('number, usersSearch, dialStatusType, from, to', 'silent');
         
         // Ако не е избран потребител по подразбиране
         if(!$data->listFilter->rec->usersSearch) {
@@ -1094,6 +1091,17 @@ class callcenter_Talks extends core_Master
         
         // Ако има филтър
         if($filter = $data->listFilter->rec) {
+            
+            // Ако се търси по номера
+            if ($number = $filter->number) {
+                
+                // Премахваме нулите и + от началото на номера
+                $number = ltrim($number, '0+');
+                
+                // Търсим във външните и вътрешните номера
+                $data->query->where(array("#externalNum LIKE '%[#1#]'", $number));
+                $data->query->orWhere(array("#internalNum LIKE '%[#1#]'", $number));
+            }
             
             // Ако филтъра е по потребители
             if($filter->usersSearch) {
@@ -1280,8 +1288,6 @@ class callcenter_Talks extends core_Master
     	
 		// Добавяме CSS
 		$tpl->push('callcenter/css/callSummary.css', 'CSS');
-		
-    	return $tpl;
     }
     
     

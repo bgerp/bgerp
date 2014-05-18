@@ -91,6 +91,36 @@ class email_FaxSent extends core_Manager
     
     
     /**
+     * Връща имейла на факс номера
+     * 
+     * @param string $number
+     * 
+     * @return string
+     */
+    static function getFaxMail($number)
+    {
+        $faxMail = $number . '@fax.man';
+        
+        return $faxMail;
+    }
+    
+    
+    /**
+     * URL, което ще се използва за създаване на факс
+     * 
+     * @param string $fax
+     * 
+     * @return array - Масив s URL-то, което ще се използва за създаване на факс
+     */
+    static function getAddFaxUrl($fax)
+    {
+        $urlArr = array('email_Outgoings', 'add', 'emailto' => $fax);
+        
+        return $urlArr;
+    }
+    
+    
+    /**
      * Екшън за изпращане на факс
      */
     function act_Send()
@@ -140,7 +170,7 @@ class email_FaxSent extends core_Manager
         $faxHtml = $Email->getEmailHtml($data->rec, $lg);
         
         //Текстовата част на факса
-        $faxText = $Email->getEmailText($data->rec, $lg);
+        $faxText = core_ET::unEscape($Email->getEmailText($data->rec, $lg));
         
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
@@ -301,7 +331,7 @@ class email_FaxSent extends core_Manager
         $data->form->FNC('faxTo', 'drdata_PhoneType', 'input,caption=До,mandatory,width=785px');
         
         // Добавяме поле за URL за връщане, за да работи бутона "Отказ"
-        $data->form->FNC('ret_url', 'varchar', 'input=hidden,silent');
+        $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
         
         // Подготвяме лентата с инструменти на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save','ef_icon = img/16/move.png');

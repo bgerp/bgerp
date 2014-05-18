@@ -12,7 +12,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Интерфейс за дълготрайни активи
+ * @title     Интерфейс за финансови сделки
  */
 class deals_DealsAccRegIntf extends acc_RegisterIntf
 {
