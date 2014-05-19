@@ -46,11 +46,8 @@ class callcenter_ListOperationsPlg extends core_Plugin
         // Ако има права за изпращане на факс
         if (email_FaxSent::haveRightFor('send')) {
             
-            // Имейла на факс номера
-            $fax = email_FaxSent::getFaxMail($number);
-            
             // URL, където да сочи бутона за нов факс
-            $urlArr = email_FaxSent::getAddFaxUrl($fax);
+            $urlArr = email_FaxSent::getAddFaxUrl($number);
             $urlArr['ret_url'] = TRUE;
             $data->faxLink = ht::createBtn('Факс', $urlArr, FALSE, FALSE, array('ef_icon' => '/img/16/fax.png'));
         }
