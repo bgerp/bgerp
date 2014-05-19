@@ -1552,7 +1552,7 @@ class doc_Containers extends core_Manager
             if ($rec->state == 'draft') {
                 
                 // Съобщение
-                $message = "|Имате създадени, но не активирани документи";
+                $message = "|Имате създадени, но неактивирани документи";
                 
                 // Линк, където ще сочи нотификацията
                 $customUrl = array('doc_Search', 'state' => 'draft', 'author' => $firstTeamAuthor);
