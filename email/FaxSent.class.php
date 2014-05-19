@@ -114,7 +114,7 @@ class email_FaxSent extends core_Manager
      */
     static function getAddFaxUrl($fax)
     {
-        $urlArr = array('email_Outgoings', 'add', 'emailto' => $fax);
+        $urlArr = array('email_Outgoings', 'add', 'faxto' => $fax);
         
         return $urlArr;
     }
