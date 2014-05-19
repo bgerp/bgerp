@@ -30,11 +30,9 @@ class efax_Sender
 	/**
 	 * Интерфейсния метод за изпращане на факс
 	 */
-	function sendFax($data, $faxТо)
+	function sendFax($rec, $faxТо)
 	{
 	    $conf = core_Packs::getConfig('efax');
-        
-        $rec = $data->rec;
         
         //Очаква да има факс на изпращача
         expect(($faxSender = $conf->EFAX_SENDER_BOX), 'Не сте дефинирали факс на изпращача.');
