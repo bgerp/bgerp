@@ -157,12 +157,12 @@ class email_Outgoings extends core_Master
         $this->FLD('body', 'richtext(rows=15,bucket=Postings, appendQuote)', 'caption=Съобщение,mandatory');
         
         //Данни за адресата
-        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%');
+        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent');
         $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%');
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData');
         $this->FLD('attn', 'varchar', 'caption=Адресат->Лице,oldFieldName=attentionOf,class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData');
-        $this->FLD('fax', 'varchar', 'caption=Адресат->Факс,class=contactData');
+        $this->FLD('fax', 'drdata_PhoneType', 'caption=Адресат->Факс,class=contactData, silent');
         $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData');
         $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код,class=pCode');
         $this->FLD('place', 'varchar', 'caption=Адресат->Град/с,class=contactData');
@@ -423,7 +423,7 @@ class email_Outgoings extends core_Master
         
         // Ако има успешно изпращане
         if ($success) {
-            $msg = tr('Успешно изпратено до|*: ') . implode(', ', $success);
+            $msg = 'Успешно изпратено до|*: ' . implode(', ', $success);
             $statusType = 'notice';
             
             // Добавяме статус
@@ -451,7 +451,7 @@ class email_Outgoings extends core_Master
         
         // Ако има провалено изпращане
         if ($failure) {
-            $msg = tr('Грешка при изпращане до|*: ') . implode(', ', $failure);
+            $msg = 'Грешка при изпращане до|*: ' . implode(', ', $failure);
             $statusType = 'warning';   
             
             // Добавяме статус
@@ -808,15 +808,32 @@ class email_Outgoings extends core_Master
     {
         if ($form->isSubmitted()) {
             $mvc->flagSendIt = ($form->cmd == 'sending');
+            $mvc->flagSendItFax = ($form->cmd == 'sendingFax');
             
-            if ($mvc->flagSendIt) {
+            if ($mvc->flagSendIt || $mvc->flagSendItFax) {
                 $form->rec->state = 'active';
                 
                 $mvc->invoke('Activation', array($form->rec));
                 
-                //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
-                if (!trim($form->rec->email)) {
-                    $form->setError('email', "За да изпратите имейла, трябва да попълните полето|* <b>|Адресат->Имейл|*</b>.");    
+                // Ако се създава факс и се изпраща директно
+                if ($mvc->flagSendItFax) {
+                    
+                    // Ако има услуга за изпращане на факс
+                    if (email_FaxSent::haveRightFor('send', $form->rec)) {
+                        
+                        // Ако няма въведен факс номер
+                        if (!trim($form->rec->fax)) {
+                            //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
+                            $form->setError('fax', "За да изпратите факс, трябва да попълните полето|* <b>|Адресат|*->|Факс|*</b>.");    
+                        }
+                    } else {
+                        
+                        // 
+                        $form->setError('fax', "Нямате зададена услуга за изпращане на факс");    
+                    }
+                } else if (!trim($form->rec->email)) {
+                    //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
+                    $form->setError('email', "За да изпратите имейла, трябва да попълните полето|* <b>|Адресат|*->|Имейл|*</b>.");    
                 }
             }
         }
@@ -828,7 +845,7 @@ class email_Outgoings extends core_Master
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if ($mvc->flagSendIt) {
+        if ($mvc->flagSendIt || $mvc->flagSendItFax) {
             
             $options = array();
             
@@ -876,12 +893,27 @@ class email_Outgoings extends core_Master
             $options['encoding'] = 'utf-8';
             $options['emailsTo'] = $rec->email;
             $options['emailsCc'] = $rec->emailCc;
-
-            static::_send($rec, (object)$options, $lg);
+            
+            // Ако ще се праща по имейл
+            if ($mvc->flagSendIt) {
+                
+                // Изпращаме по имейл
+                static::_send($rec, (object)$options, $lg);
+            } else if ($mvc->flagSendItFax) {
+                
+                // Услуга за изпращане
+                $options['service'] = email_FaxSent::getAutoSendIntf();
+                
+                // Факсовете, до които да се прати
+                $options['faxTo'] = $rec->fax;
+                
+                // Изпращаме факса
+                email_FaxSent::_send($rec, (object)$options, $lg);
+            }
         }
         
-        // Ако активираме или директно изпращаме имейла
-        if ($rec->__activation || $mvc->flagSendIt) {
+        // Ако активираме или директно изпращаме имейла или факс
+        if ($rec->__activation || $mvc->flagSendIt || $mvc->flagSendItFax) {
             
             // Ако има id
             if ($rec->id) {
@@ -984,11 +1016,24 @@ class email_Outgoings extends core_Master
         // Ако се препраща
         $forward = Request::get('forward');
         
-        // Добавяме бутона изпрати
-        $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10'), 'ef_icon = img/16/move.png');
-                
         //Зареждаме нужните променливи от $data->form->rec
         $originId = $rec->originId;
+        
+        $faxTo = Request::get('faxto');
+        $emailTo = Request::get('emailto');
+        
+        // Ако ще се създава факс
+        if ($faxTo || strpos($emailTo, 'fax.man') || (!$rec->email && $rec->fax)) {
+            $mvc->singleTitle = "Факс";
+            
+            // Добавяме бутона изпрати
+            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', array('order'=>'10'), 'ef_icon = img/16/fax2.png');
+        } else {
+            
+            // Добавяме бутона изпрати
+            $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10'), 'ef_icon = img/16/move.png');
+        
+        }
         
         // Ако не редактираме и не клонираме
         if (!($rec->id) && !(Request::get('clone'))) {
@@ -1004,13 +1049,6 @@ class email_Outgoings extends core_Master
                 $emptyReqFolder = TRUE;    
             }
             
-            
-            $emailTo = Request::get('emailto');
-            
-            if(strpos($emailTo, 'fax.man')) {
-                $mvc->singleTitle = "Факс";
-            }
-
             $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', $emailTo);
             $emailTo = str_replace('mailto:', '', $emailTo);
     
@@ -1242,6 +1280,13 @@ class email_Outgoings extends core_Master
             
             // Попълваме полето Адресат->Имейл със съответния имейл
             $rec->email = $emailTo;     
+        }
+        
+        // Ако създаваме факс до конкретен номер
+        if ($faxTo) {
+            
+            // Попълваме полето Адресат->Факс със съответния факс
+            $rec->fax = $faxTo;
         }
         
         // Всички имейли от река
@@ -1770,9 +1815,10 @@ class email_Outgoings extends core_Master
             
             // Броя на факсовете
             $faxCount = count($faxAndEmailsArr['fax']);
+            $emailCount = count($faxAndEmailsArr['email']);
             
             // Ако има факс номер и имаме права за изпращане на факс
-            if (($faxCount) && (email_FaxSent::haveRightFor('send'))) {
+            if ((email_FaxSent::haveRightFor('send') && (($faxCount)) || ($data->rec->fax && !$emailCount))) {
                 
                 // Бутона за изпращане да сочи към екшъна за изпращане на факсове
                 $data->toolbar->addBtn('Изпращане', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'ef_icon = img/16/email_go.png');    
