@@ -18,8 +18,8 @@ class email_SentFaxIntf
     /**
      * Метод за изпращане на факсове
      */
-    function sendFax($data, $fax)
+    function sendFax($rec, $fax)
     {
-        return $this->class->sendFax($data, $fax);
+        return $this->class->sendFax($rec, $fax);
     }
 }
