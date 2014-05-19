@@ -175,112 +175,7 @@ class email_FaxSent extends core_Manager
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
             
-            //Услугата за изпращане на факс
-            $service = $data->form->rec->service;
-            
-            // Инстанция на услугата
-            $instance = cls::getInterface('email_SentFaxIntf', $service);
-            
-            //Вземаме всички избрани файлове
-            $data->rec->attachmentsFh = type_Set::toArray($data->form->rec->attachmentsSet);
-            
-            //Ако имамем прикачени файлове
-            if (count($data->rec->attachmentsFh)) {
-                
-                //Вземаме id'тата на файловете вместо манупулатора име
-                $attachments = fileman_Files::getIdFromFh($data->rec->attachmentsFh);
-
-                //Записваме прикачените файлове
-                $data->rec->attachments = keylist::fromArray($attachments);
-            }
-            
-            // Генерираме списък с документи, избрани за прикачане
-            $docsArr = email_Outgoings::getAttachedDocuments($data->form->rec);
-            
-            //Всички факс номера
-            $faxToArr = static::faxToArray($data->form->rec->faxTo);
-            
-//            $emailCss = getFileContent('css/email.css'); //TODO
-            $success  = $failure = array(); // списъци с изпратени и проблемни получатели
-            
-            // Инстанция на log_Documents за да работи on_Shutdown
-            cls::get('log_Documents');
-            
-            // Обхождаме масива
-            foreach ($faxToArr as $faxToA) {
-                
-                // Вземаме факс номера
-                $faxTo = $faxToA['faxNum'];
-                
-                // Оригиналния факс номер
-                $originalFaxTo = $faxToA['original'];
-                
-                // Пушваме екшъна
-                log_Documents::pushAction(
-                    array(
-                        'containerId' => $data->rec->containerId,
-                        'threadId'    => $data->rec->threadId,
-                        'action'      => log_Documents::ACTION_FAX, 
-                        'data'        => (object)array(
-                            'service' => $service,
-                            'faxTo'   => $originalFaxTo,
-                            'sendedBy'   => core_Users::getCurrent(),
-                        )
-                    )
-                );
-                
-                // Подготовка на текста на писмото (HTML & plain text)
-                $data->rec->__mid = NULL;
-//                $data->rec->html = $faxHtml //TODO не е нужно, защото HTML частта се добавя като прикачен файл
-                $data->rec->text = $faxText;
-                
-                // Генериране на прикачените документи
-                $data->rec->documentsFh = array();
-                
-                foreach ($docsArr as $attachDoc) {
-                    // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-                    // файл със съдържанието на документа в желания формат
-                    $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-                    
-                    $data->rec->documentsFh += $fhArr;
-                }
-                
-                // .. ако имаме прикачени документи ...
-                if (count($data->rec->documentsFh)) {
-                    //Вземаме id'тата на файловете вместо манипулаторите
-                    $documents = fileman_Files::getIdFromFh($data->rec->documentsFh);
-                
-                    //Записваме прикачените файлове
-                    $data->rec->documents = keylist::fromArray($documents);
-                }
-                
-                // ... и накрая - изпращане. 
-                $status = $instance->sendFax($data, $faxTo);
-                
-                if ($status) {
-                    
-                    callcenter_Fax::saveSend($originalFaxTo, $data->rec->containerId);
-                    
-                    // Правим запис в лога
-                    $Email->log('Send fax to ' . $faxTo, $data->rec->id);
-                    $success[] = $faxTo;
-                } else {
-                    $Email->log('Unable to send fax to ' . $faxTo, $data->rec->id);
-                    $failure[] = $faxTo;
-                }
-            }
-
-            // Създаваме съобщение, в зависимост от състоянието на изпращане
-            if (empty($failure)) {
-                $msg = tr('Успешно изпратено до|*: ') . implode(', ', $success);
-                $statusType = 'notice';
-            } else {
-                $msg = tr('Грешка при изпращане до|*: ') . implode(', ', $failure);
-                $statusType = 'warning';
-            }
-            
-            // Добавяме статус
-            status_Messages::newStatus($msg, $statusType);
+            static::_send($data->rec, $data->form->rec, $lg);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -313,6 +208,149 @@ class email_FaxSent extends core_Manager
     
     
     /**
+     * Изпраща факс
+     * 
+     * @param object $rec
+     * @param object $options
+     * @param string $lg
+     */
+    public static function _send($rec, $options, $lg)
+    {
+        // Инстанция на класа
+        $Email = cls::get('email_Outgoings');
+        
+        //Услугата за изпращане на факс
+        $service = $options->service;
+        
+        // Инстанция на услугата
+        $instance = cls::getInterface('email_SentFaxIntf', $service);
+        
+        //Вземаме всички избрани файлове
+        $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
+        
+        //Ако имамем прикачени файлове
+        if (count($rec->attachmentsFh)) {
+            
+            //Вземаме id'тата на файловете вместо манупулатора име
+            $attachments = fileman_Files::getIdFromFh($rec->attachmentsFh);
+
+            //Записваме прикачените файлове
+            $rec->attachments = keylist::fromArray($attachments);
+        }
+        
+        // Генерираме списък с документи, избрани за прикачане
+        $docsArr = email_Outgoings::getAttachedDocuments($options);
+        
+        //Всички факс номера
+        $faxToArr = static::faxToArray($options->faxTo);
+        
+//        $emailCss = getFileContent('css/email.css'); //TODO
+        $success  = $failure = array(); // списъци с изпратени и проблемни получатели
+        
+        // Инстанция на log_Documents за да работи on_Shutdown
+        cls::get('log_Documents');
+        
+        // Обхождаме масива
+        foreach ($faxToArr as $faxToA) {
+            
+            // Вземаме факс номера
+            $faxTo = $faxToA['faxNum'];
+            
+            // Оригиналния факс номер
+            $originalFaxTo = $faxToA['original'];
+            
+            // Пушваме екшъна
+            log_Documents::pushAction(
+                array(
+                    'containerId' => $rec->containerId,
+                    'threadId'    => $rec->threadId,
+                    'action'      => log_Documents::ACTION_FAX, 
+                    'data'        => (object)array(
+                        'service' => $service,
+                        'faxTo'   => $originalFaxTo,
+                        'sendedBy'   => core_Users::getCurrent(),
+                    )
+                )
+            );
+            
+            // Подготовка на текста на писмото (HTML & plain text)
+            $rec->__mid = NULL;
+            
+            //HTML частта на факса
+//            $faxHtml = $Email->getEmailHtml($rec, $lg);
+            
+            //Текстовата част на факса
+            $faxText = core_ET::unEscape($Email->getEmailText($rec, $lg));
+            
+//            $rec->html = $faxHtml //TODO не е нужно, защото HTML частта се добавя като прикачен файл
+            $rec->text = $faxText;
+            
+            // Генериране на прикачените документи
+            $rec->documentsFh = array();
+            
+            foreach ($docsArr as $attachDoc) {
+                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                // файл със съдържанието на документа в желания формат
+                $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                
+                $rec->documentsFh += $fhArr;
+            }
+            
+            // .. ако имаме прикачени документи ...
+            if (count($rec->documentsFh)) {
+                //Вземаме id'тата на файловете вместо манипулаторите
+                $documents = fileman_Files::getIdFromFh($rec->documentsFh);
+            
+                //Записваме прикачените файлове
+                $rec->documents = keylist::fromArray($documents);
+            }
+            
+            // ... и накрая - изпращане. 
+            $status = $instance->sendFax($rec, $faxTo);
+            
+            if ($status) {
+                
+                callcenter_Fax::saveSend($originalFaxTo, $rec->containerId);
+                
+                // Правим запис в лога
+                $Email->log('Send fax to ' . $faxTo, $rec->id);
+                $success[] = $faxTo;
+            } else {
+                $Email->log('Unable to send fax to ' . $faxTo, $rec->id);
+                $failure[] = $faxTo;
+            }
+        }
+
+        // Създаваме съобщение, в зависимост от състоянието на изпращане
+        if (empty($failure)) {
+            $msg = 'Успешно изпратено до|*: ' . implode(', ', $success);
+            $statusType = 'notice';
+        } else {
+            $msg = 'Грешка при изпращане до|*: ' . implode(', ', $failure);
+            $statusType = 'warning';
+        }
+        
+        // Добавяме статус
+        status_Messages::newStatus($msg, $statusType);
+    }
+    
+    
+    /**
+     * Връща интерфейс, който ще се ползва за изпращане на факс
+     * 
+     * @return integer
+     */
+    public static function getAutoSendIntf()
+    {
+        $optionsArr = core_Classes::getOptionsByInterface('email_SentFaxIntf');
+        
+        reset($optionsArr);
+        
+        return key($optionsArr);
+    }
+    
+    
+    /**
      * Подготовка на формата за изпращане
      * 
      * @param stdClass $data - Данните за формата
@@ -324,7 +362,7 @@ class email_FaxSent extends core_Manager
         $id = Request::get('id', 'int');
         
         $data->form = $this->getForm();
-        $data->form->setAction(array($mvc, 'send'));
+        $data->form->setAction(array($this, 'send'));
         $data->form->title = 'Изпращане на факс';
         
         $data->form->FNC('service', 'class(interface=email_SentFaxIntf, select=title)', 'input,caption=Услуга');
