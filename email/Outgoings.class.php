@@ -823,8 +823,11 @@ class email_Outgoings extends core_Master
                         
                         // Ако няма въведен факс номер
                         if (!trim($form->rec->fax)) {
-                            //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
-                            $form->setError('fax', "За да изпратите факс, трябва да попълните полето|* <b>|Адресат|*->|Факс|*</b>.");    
+                            
+                            if (stripos($rec->email, '@fax.man')) {
+                                //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
+                                $form->setError('fax', "За да изпратите факс, трябва да попълните полето|* <b>|Адресат|*->|Факс|*</b>.");
+                            }    
                         }
                     } else {
                         
@@ -906,6 +909,16 @@ class email_Outgoings extends core_Master
                 
                 // Факсовете, до които да се прати
                 $options['faxTo'] = $rec->fax;
+                
+                $emailArr = type_Emails::toArray($rec->email);
+                
+                foreach ($emailArr as $email) {
+                    if (stripos($email, '@fax.man')) {
+                        list($faxNum, $domain) = explode('@', $email, 2);
+                        $options['faxTo'] .= ', ' . $faxNum;
+                    }
+                }
+                $options['faxTo'] = ltrim($options['faxTo'], ', ');
                 
                 // Изпращаме факса
                 email_FaxSent::_send($rec, (object)$options, $lg);
@@ -1023,7 +1036,7 @@ class email_Outgoings extends core_Master
         $emailTo = Request::get('emailto');
         
         // Ако ще се създава факс
-        if ($faxTo || strpos($emailTo, 'fax.man') || (!$rec->email && $rec->fax)) {
+        if ($faxTo || stripos($emailTo, 'fax.man') || (!$rec->email && $rec->fax) || stripos($rec->email, '@fax.man')) {
             $mvc->singleTitle = "Факс";
             
             // Добавяме бутона изпрати
