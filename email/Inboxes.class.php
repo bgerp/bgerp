@@ -520,7 +520,7 @@ class email_Inboxes extends core_Master
      * Връща списък с [id на кутия] => имейл от които текущия потребител може да изпраща писма от папката
      * Първия имейл е най-предпочитания
      */
-    static function getFromEmailOptions($folderId, $userId=NULL)
+    static function getFromEmailOptions($folderId=FALSE, $userId=NULL, $personalOnly=FALSE)
     {
         $options = array();
         
@@ -528,7 +528,8 @@ class email_Inboxes extends core_Master
             $userId = core_Users::getCurrent();
         }
         
-        if ($folderId) {
+        // Ако е подадена папка и не е зададено да се показват само персоналните
+        if ($folderId && !$personalOnly) {
             // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
             $rec = self::fetch("#folderId = {$folderId} && #state = 'active'");
             if($rec && email_Accounts::canSendEmail($rec->accountId)) {
@@ -541,7 +542,7 @@ class email_Inboxes extends core_Master
          
         if($corpAccRec && email_Accounts::canSendEmail($corpAccRec->id)) {
              
-            // 2. Корпоративния на потребителя и oбщия корпоративен
+            // 2a. Корпоративния на потребителя 
             
             $userEmail = email_Inboxes::getUserEmail($userId);
 
@@ -549,10 +550,16 @@ class email_Inboxes extends core_Master
                 $options[$rec->id] = $rec->email;
             }
             
-            $rec = self::fetch("#email = '{$corpAccRec->email}' && #state = 'active'");
-                            
-            if($rec) {
-                $options[$rec->id] = $rec->email;
+            // Ако не е зададено да се показват само персоналните
+            if (!$personalOnly) {
+                
+                // 2a. Oбщия корпоративен
+                
+                $rec = self::fetch("#email = '{$corpAccRec->email}' && #state = 'active'");
+                                
+                if($rec) {
+                    $options[$rec->id] = $rec->email;
+                }
             }
             
             //2a. Корпоративния на потребителя
@@ -563,9 +570,13 @@ class email_Inboxes extends core_Master
         // 3а. Имейлите, на които сме inCharge
         // 3b. Имейлите, които ни са споделени
         $query = self::getQuery();
-        $query->where("#inCharge = {$userId} OR #shared LIKE '%|{$userId}|%'");
-        $query->where("#state = 'active'");
+        $query->where("#inCharge = {$userId}");
         
+        // Ако не е зададено да се показват само персоналните
+        if (!$personalOnly) {
+            $query->orWhere("#shared LIKE '%|{$userId}|%'");
+        }
+        $query->where("#state = 'active'");
         $inChargeEmailArr = array();
         $sharedEmailArr = array();
         
@@ -590,7 +601,7 @@ class email_Inboxes extends core_Master
         // Вече трябва да има открита поне една кутия
 
         expect(count($options), 'Липсват възможности за изпращане на писма. Настройте поне една сметка в Документи->Имейли->Сметки');
-
+        
         return $options;
     }
 
