@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_PhoneType' - тип за телефонен(ни) номера
  *
@@ -14,9 +13,59 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class drdata_PhoneType extends type_Varchar {
-
-
+class drdata_PhoneType extends type_Varchar
+{
+    
+    
+    /**
+     * Връща подадения номер като стринг като пълен номер
+     * 
+     * @param string $number - Номера
+     * 
+     * @return string $numStr - Номера в пълен формат
+     */
+    public static function getNumberStr($number)
+    {
+        // Вземаме номера
+        $numArr = drdata_PhoneType::toArray($number);
+        
+        // Ако не е валиден номер
+        if (!$numArr || !count($numArr)) {
+            
+            return $number;
+        }
+        
+        foreach ($numArr as $num) {
+            
+            // Вземаме пълния стринг за номера
+            $numStr = static::getNumStrFromObj($num);
+            
+            $resNumStr .= ($resNumStr) ? ', ' . $numStr : $numStr;
+        }
+        
+        return $resNumStr;
+    }
+    
+    
+    /**
+     * Връща пълния номер от подадени обект
+     * 
+     * @param object $numObj - Обект, генериран от drdata_PhoneType
+     * 
+     * @return string $callerNumStr - Стринг с пълния номер
+     */
+    public static function getNumStrFromObj($numObj, $phoneCodeBefore='+')
+    {
+        // Ако не е обект, връщаме
+        if (!is_object($numObj)) return $numObj;
+        
+        // Генерираме пълния номер
+        $callerNumStr = $phoneCodeBefore . $numObj->countryCode . $numObj->areaCode . $numObj->number;
+        
+        return $callerNumStr;
+    }
+    
+    
     /**
      * Оправя телефонните номера
      */
