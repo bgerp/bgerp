@@ -198,6 +198,9 @@ input.error {
 
 .receipt-payment {
 	background-color:#d1ffda;
+	font-size: 1.1em;
+	line-height: 1.5;
+	padding: 2px 5px !important;
 }
 
 #receipt-info{
