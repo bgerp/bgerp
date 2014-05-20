@@ -23,8 +23,9 @@ class drdata_PhoneType extends type_Varchar
      * @param string $number - Номера
      * 
      * @return string $numStr - Номера в пълен формат
+     * @return mixed $arrayKey - Ако трябва дас е връща само един от номерата
      */
-    public static function getNumberStr($number)
+    public static function getNumberStr($number, $arrayKey=FALSE)
     {
         // Вземаме номера
         $numArr = drdata_PhoneType::toArray($number);
@@ -35,12 +36,17 @@ class drdata_PhoneType extends type_Varchar
             return $number;
         }
         
-        foreach ($numArr as $num) {
-            
-            // Вземаме пълния стринг за номера
-            $numStr = static::getNumStrFromObj($num);
-            
-            $resNumStr .= ($resNumStr) ? ', ' . $numStr : $numStr;
+        // Ако ще се връщат всички номера
+        if ($arrayKey === FALSE) {
+            foreach ($numArr as $num) {
+                
+                // Вземаме пълния стринг за номера
+                $numStr = static::getNumStrFromObj($num);
+                
+                $resNumStr .= ($resNumStr) ? ', ' . $numStr : $numStr;
+            }
+        } else {
+            $resNumStr = static::getNumStrFromObj($numArr[$arrayKey]);
         }
         
         return $resNumStr;
