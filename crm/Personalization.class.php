@@ -63,11 +63,11 @@ class crm_Personalization extends core_Detail
     public function description()
     {
         $this->FLD('profileId', 'key(mvc=crm_Profiles)', 'input=hidden,silent');
-        $this->FLD('inbox', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Основен имейл->Кутия,hint=Кутия по подразбиране');
-        $this->FLD('signature', 'text', 'caption=Изходящ имейл->Подпис');
-        $this->FLD('header', 'text', 'caption=Изходящ имейл->Привет');
-        $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Български');
-        $this->FLD('logoEn', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Английски');
+        $this->FLD('inbox', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Основен имейл->Кутия,hint=Кутия по подразбиране за изпращане на писма');
+        $this->FLD('header', 'text', 'caption=Изходящ имейл->Привет', array('hint' => 'Текст, който ще се използва за приветствие в писмата'));
+        $this->FLD('signature', 'text', 'caption=Изходящ имейл->Подпис', array('hint' => 'Текст, който ще се използва за подпис на писмата'));
+        $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Български', array('hint' => 'Лого, което ще се използва в бланките на документите'));
+        $this->FLD('logoEn', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Английски', array('hint' => 'Лого, което ще се използва в бланките на документите на английски'));
 
         $this->setDbUnique('profileId');
     }
