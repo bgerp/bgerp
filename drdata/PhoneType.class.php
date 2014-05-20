@@ -64,12 +64,10 @@ class drdata_PhoneType extends type_Varchar {
                 } elseif(($t->country != 'Unknown') && $t->country) {
                     $attr['title'] = "{$t->country}";
                 }
-
-                if(!Mode::is('text', 'plain')) {
-            		$title = str_replace(' ', '&nbsp;', $t->original);
-        		}
-        		//bp($this);
-        		if($this->params['type'] != 'fax') { 
+                
+                $title = $t->original;
+                
+        		if($this->params['type'] != 'fax') {
                 	$res->append(ht::createLink($title, "tel:00" . $value, NULL, $attr));
         		} else {
         			$res->append(ht::createLink($title, NULL, NULL, $attr));       			
