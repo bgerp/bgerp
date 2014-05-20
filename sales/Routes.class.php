@@ -221,14 +221,14 @@ class sales_Routes extends core_Manager {
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 		$data->listFilter->FNC('user', 'user(roles=sales,allowEmpty)', 'input,caption=Търговец,width=15em,placeholder=Потребител,silent');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,width=6em,silent');
-		if($mvc->haveRightFor('write')){
-			$data->listFilter->setDefault('user', core_Users::getCurrent());
-		}
+
         $data->listFilter->showFields = 'user, date';
-		$data->listFilter->input();
+		
+        $data->listFilter->input();
 		
 		$data->query->orderBy("#state");
-    	if($date = $data->listFilter->rec->date){
+		
+    	if ($data->listFilter->rec->date) {
     			
     		// Изчисляваме дните между датата от модела и търсената
     		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$date}')");
@@ -240,10 +240,10 @@ class sales_Routes extends core_Manager {
     		$data->query->orWhere("MOD(#dif, (7 * #repeatWeeks)) = 0");
     	}
     	
-    	if($salesmanId = $data->listFilter->rec->user){
+    	if ($data->listFilter->rec->user) {
     			
     		// Филтриране по продавач
-    		$data->query->where(array("#salesmanId = [#1#]", $salesmanId));
+    		$data->query->where(array("#salesmanId = [#1#]", $data->listFilter->rec->user));
     	}
 	}
 	
