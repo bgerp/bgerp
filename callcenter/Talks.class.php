@@ -504,8 +504,8 @@ class callcenter_Talks extends core_Master
         $nRec->internalData = type_Keylist::fromArray($dRecIdArr);
         
         // Добавяме останалите променливи
-        $nRec->externalNum = callcenter_Numbers::getNumberStr($externalNum);
-        $nRec->internalNum = callcenter_Numbers::getNumberStr($internalNum);
+        $nRec->externalNum = drdata_PhoneType::getNumberStr($externalNum);
+        $nRec->internalNum = drdata_PhoneType::getNumberStr($internalNum);
         $nRec->uniqId = $uniqId;
         $nRec->startTime = $startTime;
         

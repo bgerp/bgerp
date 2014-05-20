@@ -243,7 +243,7 @@ class callcenter_Numbers extends core_Manager
                 foreach ($numberDetArr as $numberDetObj) {
                     
                     // Вземаме номера, като стринг
-                    $numStr = static::getNumStrFromObj($numberDetObj);
+                    $numStr = drdata_PhoneType::getNumStrFromObj($numberDetObj);
                     
                     // Ако е бил записан
                     if ($numRec = $existRecsArr[$numStr]) {
@@ -424,51 +424,6 @@ class callcenter_Numbers extends core_Manager
         }
     }
     
-    /**
-     * Връща подадения номер като стринг като пълен номер
-     * 
-     * @param string $number - Номера
-     * 
-     * @return string $numStr - Номера в пълен формат
-     */
-    static function getNumberStr($number)
-    {
-        // Вземаме номера
-        $numArr = drdata_PhoneType::toArray($number);
-        
-        // Ако има номер
-        if ($numArr[0]) {
-            
-            // Връща пълния номер от подадени обект
-            $numStr = static::getNumStrFromObj($numArr[0]);
-        } else {
-            
-            // Връщаме подадени стринг
-            $numStr = $number;
-        }
-        
-        return $numStr;
-    }
-    
-    
-    /**
-     * Връща пълния номер от подадени обект
-     * 
-     * @param object $numObj - Обект, генериран от drdata_PhoneType
-     * 
-     * @return string $callerNumStr - Стринг с пълния номер
-     */
-    static function getNumStrFromObj($numObj)
-    {
-        // Ако не е обект, връщаме
-        if (!is_object($numObj)) return $numObj;
-        
-        // Генерираме пълния номер
-        $callerNumStr = '+' . $numObj->countryCode . $numObj->areaCode . $numObj->number;
-        
-        return $callerNumStr;
-    }
-    
     
 	/**
      * При спиране на скрипта
@@ -492,7 +447,7 @@ class callcenter_Numbers extends core_Manager
                 } else {
                     
                     // Вземаме пълния номер
-                    $numStr = static::getNumberStr($rec->number);
+                    $numStr = drdata_PhoneType::getNumberStr($rec->number);
                 }
                 
                 // Обновяваме записите в Централата
@@ -516,7 +471,7 @@ class callcenter_Numbers extends core_Manager
                 } else {
                     
                     // Вземаме пълния номер
-                    $numStr = static::getNumberStr($rec->number);
+                    $numStr = drdata_PhoneType::getNumberStr($rec->number);
                 }
                 
                 // Обновяваме записите в Централата
@@ -543,7 +498,7 @@ class callcenter_Numbers extends core_Manager
         $res = array();
         
         // Вземаме номера, на инициатора
-        $numStr = static::getNumberStr($number);
+        $numStr = drdata_PhoneType::getNumberStr($number);
         
         // Вземаме последния номер, който сме регистрирали
         $query = static::getQuery();

@@ -34,7 +34,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         if (!($numberArr = drdata_PhoneType::toArray($number))) return ;
         
         // Вземаме стринга от номер
-        $number = callcenter_Numbers::getNumStrFromObj($numberArr[0]);
+        $number = drdata_PhoneType::getNumStrFromObj($numberArr[0], '+');
         $number = drdata_PhoneType::escape($number);
         
         // Променяме полето за заглавеи
