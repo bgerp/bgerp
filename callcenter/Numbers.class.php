@@ -447,7 +447,7 @@ class callcenter_Numbers extends core_Manager
                 } else {
                     
                     // Вземаме пълния номер
-                    $numStr = drdata_PhoneType::getNumberStr($rec->number);
+                    $numStr = drdata_PhoneType::getNumberStr($rec->number, 0);
                 }
                 
                 // Обновяваме записите в Централата
@@ -471,7 +471,7 @@ class callcenter_Numbers extends core_Manager
                 } else {
                     
                     // Вземаме пълния номер
-                    $numStr = drdata_PhoneType::getNumberStr($rec->number);
+                    $numStr = drdata_PhoneType::getNumberStr($rec->number, 0);
                 }
                 
                 // Обновяваме записите в Централата
@@ -498,7 +498,7 @@ class callcenter_Numbers extends core_Manager
         $res = array();
         
         // Вземаме номера, на инициатора
-        $numStr = drdata_PhoneType::getNumberStr($number);
+        $numStr = drdata_PhoneType::getNumberStr($number, 0);
         
         // Вземаме последния номер, който сме регистрирали
         $query = static::getQuery();

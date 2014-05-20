@@ -236,7 +236,7 @@ class callcenter_SMS extends core_Master
         $params['function'] = 'update';
         
         // Вземаме информация за номера
-        $rec->mobileNum = drdata_PhoneType::getNumberStr($rec->mobileNum);
+        $rec->mobileNum = drdata_PhoneType::getNumberStr($rec->mobileNum, 0);
         
         // Изпращаме SMS'a
         $sendStatusArr = $service->sendSMS($rec->mobileNum, $rec->text, $rec->sender, $params);

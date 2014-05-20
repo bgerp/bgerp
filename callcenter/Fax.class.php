@@ -95,7 +95,7 @@ class callcenter_Fax extends core_Manager
     static function saveSend($faxNum, $cid)
     {
         // Вземаме целия номер
-        $faxNum = drdata_PhoneType::getNumberStr($faxNum);
+        $faxNum = drdata_PhoneType::getNumberStr($faxNum, 0);
         
         // Вземаме записа за номера
         $extRecArr = callcenter_Numbers::getRecForNum($faxNum);
