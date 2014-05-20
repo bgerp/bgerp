@@ -14,13 +14,13 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class gps_Trackers extends core_Manager
+class gps_Vehicles extends core_Manager
 {
     
     /**
      * Заглавие
      */
-    public $title = 'Trackers';
+    public $title = 'Vehicles';
     
     /**
      * Плъгини за зареждане
@@ -34,7 +34,7 @@ class gps_Trackers extends core_Manager
      *
      * var string|array
      */
-    public $listFields = 'trackerId, data, createdOn';
+    public $listFields = 'trackerId, make, model, number';
     
     /**
      * Описание на модела
@@ -42,7 +42,9 @@ class gps_Trackers extends core_Manager
     function description()
     {
         $this->FLD('trackerId', 'varchar(12)', 'caption=Тракер Id');
-        $this->FLD('data', 'blob', 'caption=gps данни');
+        $this->FLD('make', 'varchar(12)', 'caption=марка');
+        $this->FLD('model', 'varchar(12)', 'caption=модел');
+        $this->FLD('number', 'varchar(10)', 'caption=рег. номер');
     }
     
     

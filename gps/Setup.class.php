@@ -88,8 +88,8 @@ class gps_Setup extends core_ProtoSetup
     public $managers = array(
             'gps_Log',
             'gps_ListenerControl',
-            'gps_Trackers'
-        );
+            'gps_Vehicles'
+    );
 
     /**
      * Роли за достъп до модула
