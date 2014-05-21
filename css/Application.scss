@@ -2089,7 +2089,7 @@ fieldset.sharing-history {
 
 .narrow .webdrvFieldset img {
 	height: auto;
-	width: 100%;
+	max-width: 100%;
 }
 
 .narrow .webdrvFieldset div {
@@ -2593,11 +2593,6 @@ div.location.public {
 	height: 1.3em;
 }
 
-@-moz-document url-prefix() { 
-	.portal-filter .hFormField input {
-		top: -2px;
-	}
-}
 
 .narrow .portal-filter input {
 	height: 1.2em;
