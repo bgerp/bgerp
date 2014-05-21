@@ -740,10 +740,10 @@ class store_Receipts extends core_Master
     {
     	$tplArr[] = array('name' => 'Складова разписка', 
     					  'content' => 'store/tpl/SingleLayoutReceipt.shtml', 'lang' => 'bg', 
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Складова разписка с цени', 
     					  'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
     	$skipped = $added = $updated = 0;
     	foreach ($tplArr as $arr){

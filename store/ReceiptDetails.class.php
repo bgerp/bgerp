@@ -77,7 +77,7 @@ class store_ReceiptDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, packQuantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, packQuantity, packPrice, discount, amount, weight, volume';
     
         
     /**
