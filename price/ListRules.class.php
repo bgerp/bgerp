@@ -162,10 +162,8 @@ class price_ListRules extends core_Detail
     static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
     {  
         // Проверка, дали цената я няма в кеша
-        if($price = price_History::getPrice($listId, $datetime, $productId)) {
-
-            return $price;
-        }
+    	$price = price_History::getPrice($listId, $datetime, $productId);
+        if(isset($price)) return $price;
 
         price_ListToCustomers::canonizeTime($datetime);
 
