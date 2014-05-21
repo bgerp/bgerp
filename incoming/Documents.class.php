@@ -247,18 +247,6 @@ class incoming_Documents extends core_Master
             // Файла да е само за четене
 //            $data->form->setReadOnly('fileHnd'); // TODO след като се промени core_FieldSet
         }
-        
-        // Ако създаваме нов и не е сканиран
-        if ((!$data->form->rec->id) && (!$scanned)) {
-
-            // Вземаме от сесията id' то на текущата папка
-            $currFolderId = Mode::get('lastfolderId');
-            if ($currFolderId) {
-                
-                // Задаваме id' то на текущата папка
-                $data->form->rec->folderId = $currFolderId;
-            }
-        }
     }
     
     
@@ -520,6 +508,7 @@ class incoming_Documents extends core_Master
     
     /**
      * В кои корици може да се вкарва документа
+     * 
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getAllowedFolders()
@@ -529,8 +518,8 @@ class incoming_Documents extends core_Master
     
     
 	 /**
-     * Може ли документ-оферта да се добави в посочената папка?
-     * Документи-оферта могат да се добавят само в папки с корица контрагент.
+     * Може ли входящ документ да се добави в посочената папка?
+     * Входящи документи могат да се добавят само в папки с корица контрагент.
      *
      * @param $folderId int ид на папката
      * @return boolean
