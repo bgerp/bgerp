@@ -235,6 +235,7 @@ class crm_Persons extends core_Master
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 
             'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent');
+        $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData');
         $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,class=contactData');
@@ -446,8 +447,8 @@ class crm_Persons extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Промяна на данните от таблицата
      *
@@ -502,6 +503,10 @@ class crm_Persons extends core_Master
                         $row->image = "<img class=\"hgsImage\" src=" . $imgUrl . " alt='no image'>";
                     }
                 }
+            }
+            
+            if($rec->buzLocationId){
+            	$row->buzLocationId = crm_Locations::getHyperLink($rec->buzLocationId, TRUE);
             }
         }
         
@@ -1669,6 +1674,20 @@ class crm_Persons extends core_Master
     	// Не може да се променят номенклатурите от формата
     	if($form->fields['lists']){
         	$form->setField('lists', 'input=none');
+        }
+        
+        if(empty($form->rec->buzCompanyId)){
+        	$form->setReadOnly('buzLocationId');
+        }
+        
+        $form->addAttr('buzCompanyId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['buzLocationId'].value ='';this.form.submit();"));
+    	
+        if($form->rec->buzCompanyId){
+        	$locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
+			$form->setOptions('buzLocationId', $locations);
+			if(!count($locations)){
+				$form->setReadOnly('buzLocationId');
+			}
         }
     }
     
