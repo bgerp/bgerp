@@ -979,7 +979,7 @@ class crm_Persons extends core_Master
             $query = $data->query;
         }
 
-        while($rec = $query->fetch()) { ;
+        while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel');
             $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
@@ -987,6 +987,12 @@ class crm_Persons extends core_Master
             if(!$row->buzTel) $row->buzTel = $row->tel;
 
             if(!$row->buzEmail) $row->buzEmail = $row->email;
+        }
+        
+        if(crm_Persons::haveRightFor('add') && crm_Companies::haveRightFor('edit', $data->masterId)){
+        	$img = sbf('img/16/add.png');
+		    $addUrl = array('crm_Persons', 'add', 'buzCompanyId' => $data->masterId, 'ret_url' => TRUE);
+		    $data->addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond')); 
         }
     }
 
@@ -996,38 +1002,50 @@ class crm_Persons extends core_Master
      */
     function renderCompanyExpandData($data)
     {
-        if(!count($data->rows)) return '';
-
         $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Представители') . "</legend>
+                            <legend class='groupTitle'>" . tr('Представители') . " [#BTN#]</legend>
                                 <div class='groupList clearfix21'>
                                  [#persons#]
                             </div>
                             <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt-->
                          </fieldset>");
-
-        foreach($data->rows as $row) {
-            $tpl->append("<div>", 'persons');
-
-            $tpl->append("<div style='font-weight:bold;'>{$row->name}</div>", 'persons');
-
-            if($row->mobile) {
-                $tpl->append("<div class='mobile'>{$row->mobile}</div>", 'persons');
-            }
-
-            if($row->buzTel) {
-                $tpl->append("<div class='telephone'>{$row->buzTel}</div>", 'persons');
-            }
-
-            if($row->buzEmail) {
-                $tpl->append("<div class='email'>{$row->buzEmail}</div>", 'persons');
-            }
-
-            $tpl->append("</div>", 'persons');
-
-            if ($i ++ % 2 == 1) {
-                $tpl->append("<div class='clearfix21'></div>", 'persons');
-            }
+		
+        if($data->addBtn){
+        	$tpl->replace($data->addBtn, 'BTN');
+        }
+        
+        if(count($data->rows)){
+        	foreach($data->rows as $id => $row) {
+        		$tpl->append("<div>", 'persons');
+        	
+        		if(crm_Persons::haveRightFor('edit', $id)){
+        			$editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
+        			$editLink = ht::createLink($editImg, array($this, 'edit', $id, 'ret_url' => TRUE), NULL, "id=edt{$id},title=Редактиране на " . mb_strtolower($this->singleTitle));
+        			$row->name .= " {$editLink}";
+        		}
+        		
+        		$tpl->append("<div style='font-weight:bold;'>{$row->name}</div>", 'persons');
+        		
+        		if($row->mobile) {
+        			$tpl->append("<div class='mobile'>{$row->mobile}</div>", 'persons');
+        		}
+        	
+        		if($row->buzTel) {
+        			$tpl->append("<div class='telephone'>{$row->buzTel}</div>", 'persons');
+        		}
+        	
+        		if($row->buzEmail) {
+        			$tpl->append("<div class='email'>{$row->buzEmail}</div>", 'persons');
+        		}
+        	
+        		$tpl->append("</div>", 'persons');
+        	
+        		if ($i ++ % 2 == 1) {
+        			$tpl->append("<div class='clearfix21'></div>", 'persons');
+        		}
+        	}
+        } else {
+        	$tpl->append(tr('Няма записи'), 'persons');
         }
 
         return $tpl;
