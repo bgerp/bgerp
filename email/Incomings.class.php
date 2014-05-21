@@ -644,6 +644,10 @@ class email_Incomings extends core_Master
      */
     static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
     {
+        if (!is_object($rec) && is_numeric($rec)) {
+            $rec = $mvc->fetch($rec);
+        }
+        
         $rec->textPart = trim($rec->textPart);
 
         if(empty($rec->toEml)) {
