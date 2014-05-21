@@ -1592,4 +1592,24 @@ class email_Incomings extends core_Master
             return "img/16/email-attach.png";
         }
     }
+    
+    
+    /**
+     * Разширява query-то в doc_DocumentPlg, като добавя и имейла от който е получен
+     * 
+     * @param integer $folderId
+     * @param array $params
+     * 
+     * @return core_Query
+     */
+    public static function getSameFirstDocumentsQuery_($folderId, $params=array())
+    {
+        $query = static::getQuery();
+        
+        if ($params['fromEml']) {
+            $query->where(array("LOWER(#fromEml) = LOWER('[#1#]')", $params['fromEml']));
+        }
+        
+        return $query;
+    }
 }

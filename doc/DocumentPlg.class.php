@@ -1789,4 +1789,27 @@ class doc_DocumentPlg extends core_Plugin
 	        }
     	}
     }
+    
+    
+    /**
+     * Добавя в условието да се извличат всички документи, които са начало на нишка,
+     * не са отхвърлени и са от съответната папка
+     * Извиква се при извикване на GetSameFirstDocumentsQuery
+     * 
+     * @param core_Mvc $mvc - Инстанция на класа
+     * @param core_Query $query - Резултатния обект
+     * @param integer $folderId - id на папката
+     * @param array $params - Масив с допълнителни параметри
+     */
+    public static function on_AfterGetSameFirstDocumentsQuery($mvc, &$query, $folderId, $params=array())
+    {
+        if (!$query) {
+            $query = $mvc->getQuery();
+        }
+        
+        $query->where(array("#folderId = '[#1#]'", $folderId));
+        $query->where("#state != 'rejected'");
+        $query->EXT("firstContainerId", 'doc_threads', "externalName=firstContainerId");
+        $query->where("#firstContainerId = #containerId");
+    }
 }

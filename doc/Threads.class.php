@@ -479,9 +479,9 @@ class doc_Threads extends core_Manager
             if($moveRest == 'yes') {
                 $doc = doc_Containers::getDocument($threadRec->firstContainerId);
                 $msgRec = $doc->fetch();
-                $msgQuery = email_Incomings::getQuery();
+                $msgQuery = email_Incomings::getSameFirstDocumentsQuery($threadRec->folderId, array('fromEml' => $msgRec->fromEml));
                 
-                while($mRec = $msgQuery->fetch("#folderId = {$threadRec->folderId} AND #state != 'rejected' AND LOWER(#fromEml) = LOWER('{$msgRec->fromEml}')")) {
+                while($mRec = $msgQuery->fetch()) {
                     $selArr[] = $mRec->threadId;
                 }
             } else {
@@ -513,8 +513,14 @@ class doc_Threads extends core_Manager
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
             
-            $message = "|*{$successCnt} |нишки от|* {$folderFromRow->title} |са преместени в|* {$folderToRow->title}";
-
+            if ($successCnt) {
+                if ($successCnt == 1) {
+                    $message = "|*{$successCnt} |нишка от|* {$folderFromRow->title} |е преместена в|* {$folderToRow->title}";
+                } else {
+                    $message = "|*{$successCnt} |нишки от|* {$folderFromRow->title} |са преместени в|* {$folderToRow->title}";
+                }
+            }
+            
             if($errCnt) {
                 $message .= "<br> |възникнаха|* {$errCnt} |грешки";
                 $exp->redirectMsgType = 'error';
@@ -652,20 +658,24 @@ class doc_Threads extends core_Manager
         $threadRec = doc_Threads::fetch($threadId);
         $folderRec = doc_Folders::fetch($threadRec->folderId);
         $folderFromRow = doc_Folders::recToVerbal($folderRec);
-        $coverClassName = cls::getClassName($folderRec->coverClass);
         
-        if($coverClassName == 'doc_UnsortedFolders' || TRUE) {
+        $doc = doc_Containers::getDocument($threadRec->firstContainerId);
+        
+        if($doc->className == 'email_Incomings') {
             
-            $doc = doc_Containers::getDocument($threadRec->firstContainerId);
+            $msgRec = $doc->fetch();
             
-            if($doc->className == 'email_Incomings') {
-                $msgRec = $doc->fetch();
-                $msgQuery = email_Incomings::getQuery();
-                $sameEmailMsgCnt =
-                $msgQuery->count("#folderId = {$folderRec->id} AND #state != 'rejected' AND LOWER(#fromEml) = LOWER('{$msgRec->fromEml}')") - 1;
-                
-                if($sameEmailMsgCnt > 0) {
-                    $res = tr("|Желаете ли и останалите|* {$sameEmailMsgCnt} |имейл-а от|* {$msgRec->fromEml}, |намиращи се в|* {$folderFromRow->title} |също да бъдат преместени|*?");
+            $msgQuery = email_Incomings::getSameFirstDocumentsQuery($folderRec->id, array('fromEml' => $msgRec->fromEml));
+            
+            $sameEmailMsgCnt = $msgQuery->count() - 1;
+            
+            $msgRow = $doc->recToVerbal($msgRec);
+            
+            if($sameEmailMsgCnt > 0) {
+                if ($sameEmailMsgCnt == 1) {
+                    $res = tr("|Желаете ли и останалата|* {$sameEmailMsgCnt} |нишка, започваща с входящ имейл от|* {$msgRow->fromEml}, |намираща се в|* {$folderFromRow->title} |също да бъде преместена|*?");
+                } else {
+                    $res = tr("|Желаете ли и останалите|* {$sameEmailMsgCnt} |нишки, започващи с входящ имейл от|* {$msgRow->fromEml}, |намираща се в|* {$folderFromRow->title} |също да бъдат преместени|*?");
                 }
             }
         }
