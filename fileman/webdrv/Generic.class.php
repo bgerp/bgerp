@@ -787,7 +787,7 @@ class fileman_webdrv_Generic extends core_Manager
         try {
             
             // Опитваме се да вземем манипулатора на файла
-            $fh = self::uploadFileFromArchive($rec, Request::get('index', 'int'));
+            $fh = static::uploadFileFromArchive($rec, Request::get('index', 'int'));
             
             // Ако всичко е ОК, редиректваме към сингъла на файла
             return new Redirect(array('fileman_Files', 'single', $fh, '#' => 'fileDetail'));
