@@ -317,6 +317,7 @@ class price_ListDocs extends core_Master
     private function prepareProducts(&$data)
     {
     	$rec = &$data->rec;
+    	$data->rec->date .= ' 23:59:59';
     	$customerProducts = price_GroupOfProducts::getAllProducts($data->rec->date); 
     	
     	if($customerProducts){
