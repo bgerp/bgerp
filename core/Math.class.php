@@ -58,7 +58,9 @@ class core_Math
         } elseif($thisFractionalLen < $fractionalLen) {
 
             // Падваме с 0-ли отдясно
-            $number = str_pad($number, $fractionalLen, "0", STR_PAD_RIGHT);
+            if(floor($number) != $number){
+            	$number = str_pad($number, $fractionalLen, "0", STR_PAD_RIGHT);
+            }
 		}
 	    
 	    return $number;
