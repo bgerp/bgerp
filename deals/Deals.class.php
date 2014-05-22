@@ -203,15 +203,21 @@ class deals_Deals extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
+    	
     	if($fields['-single']){
     		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
     	}
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$lastBalance = acc_Balances::getLastBalance();
+    		if(acc_Balances::haveRightFor('single', $lastBalance)){
+    			$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
+    			$row->accountId = ht::createLink($row->accountId, $accUrl);
+    		}
     	}
     	
-    	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     }
     
