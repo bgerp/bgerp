@@ -3,7 +3,9 @@
 
 
 /**
- * Модел "Складови наличностти"
+ * Модел "Складови наличностти", Показва текущите наличностти на продукта в склада на точката.
+ * Синхронизира данните извлечени от счетоводството с тези на неотчетените бележки да показва приблизително
+ * актуални резултати
  *
  *
  * @category  bgerp
@@ -106,13 +108,13 @@ class pos_Stocks extends core_Manager {
     	
     	// Изпразваме таблицата
     	$self = cls::get(get_called_class());
-    	$self->db->query("TRUNCATE TABLE `{$self->dbTableName}`");
     	
     	// За всеки запис извлечен от счетоводството
     	foreach ($all as $index => $amount){
     		
     		// Задаване на стойности на записа
     		list($storeId, $classId, $productId) = explode('|', $index);
+    		
     		expect($storeId, $classId, $productId);
     		
     		// Ако продукта е спецификация - пропускаме го
@@ -121,8 +123,15 @@ class pos_Stocks extends core_Manager {
     		// Ако няма точка за склада - пропускаме записа
     		if(!in_array($storeId, $storesArr)) continue;
     		
+    		// Променят се количествата само при нужда
     		$rec = (object)array('storeId'   => $storeId, 'productId' => $productId, 'quantity'  => $amount,);
-    	
+    		$exRec = static::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+    		if($exRec){
+    			if($exRec->quantity == $rec->quantity) continue;
+    			$exRec->quantity = $rec->quantity;
+    			$rec = $exRec;
+    		}
+    		
 	    	// Обновяване на датата за ъпдейт
 	    	$rec->lastUpdated = $date;
 	    	
@@ -141,10 +150,11 @@ class pos_Stocks extends core_Manager {
     /**
      * След взимане на количествата от баланса, отчитаме всички не-отчетени бележки
      */
-    private function applyPosStocks()
+    private static function applyPosStocks()
     {
     	// Намираме всички активирани бележки
     	$activeReceipts = array();
+    	
     	$receiptDetailsQuery = pos_ReceiptDetails::getQuery();
     	$receiptDetailsQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
     	$receiptDetailsQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
