@@ -1003,7 +1003,7 @@ class crm_Persons extends core_Master
     function renderCompanyExpandData($data)
     {
         $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Представители') . " [#BTN#]</legend>
+                            <legend class='groupTitle'>" . tr('Представители') . "[#BTN#]</legend>
                                 <div class='groupList clearfix21'>
                                  [#persons#]
                             </div>
