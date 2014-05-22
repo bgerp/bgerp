@@ -209,7 +209,7 @@ class store_Products extends core_Manager
 	        		$pInfo = $ProductMan->getProductInfo($rec->productId);
 	        		$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
 	        	} catch(Exception $e){
-	        		$measureShortName = tr("Проблем при извличането");
+	        		$measureShortName = tr("???");
 	        	}
 	        	
 		        if($rec->quantityNotOnPallets > 0){
