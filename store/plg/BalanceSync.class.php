@@ -13,6 +13,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @see 	  acc_Balances
  */
 class store_plg_BalanceSync extends core_Plugin
 {
@@ -26,8 +27,11 @@ class store_plg_BalanceSync extends core_Plugin
 		// Извличане на данните за склада от баланса
 		$all = self::prepareStoreData();
 		
-		// Синхронизиране на складовите продукти с тези от баланса
+		// Синхронизиране на складовите продукти с тези от баланса (@see store_Products)
 		store_Products::sync($all);
+		
+		// Синхронизиране на pos наличностите с тези от баланса (@see pos_Stocks)
+		pos_Stocks::sync($all);
 	}
 	
 	
@@ -43,7 +47,7 @@ class store_plg_BalanceSync extends core_Plugin
 		$conf = core_Packs::getConfig('store');
 		$storeAccs = keylist::toArray($conf->STORE_ACC_ACCOUNTS);
 		 
-		// Филриране да се показват само записите от зададените сметки
+		// Филтриране да се показват само записите от зададените сметки
 		$dQuery = acc_BalanceDetails::getQuery();
 		foreach ($storeAccs as $sysId){
 			$dQuery->orWhere("#accountId = {$sysId}");
