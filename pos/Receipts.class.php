@@ -355,7 +355,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$diff = round($rec->paid - $rec->total, 2);
-    	$rec->change = ($diff <= 0) ? 0 :  $diff;
+    	$rec->change = ($diff <= 0) ? 0 : $diff;
     	$rec->total = round($rec->total, 2);
     	
     	$this->save($rec);
@@ -406,6 +406,15 @@ class pos_Receipts extends core_Master {
 			$period = acc_Periods::fetchByDate($rec->valior);
 			if($period->state == 'closed') {
 				$res = 'no_one';
+			}
+		}
+		
+		// Можели да бъде направено плащане по бележката
+		if($action == 'pay' && isset($rec)){
+			if(!$rec->total || ($rec->total && $rec->paid >= $rec->total)){
+				$res = 'no_one';
+			} else {
+				$res = $mvc->pos_ReceiptDetails->getRequiredRoles('add', (object)array('receiptId' => $rec->id));
 			}
 		}
 	}
@@ -687,12 +696,18 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
 
-    	$payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
+    	if($this->haveRightFor('pay', $rec)){
+    		$payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
+    	}
+    	
     	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;')) . "<br />", 'INPUT_PAYMENT');
+    	
+    	$disClass = ($payUrl) ? '' : 'disabledBtn';
     	$payments = pos_Payments::fetchSelected();
 	    foreach($payments as $payment) {
-	    	$attr = array('class' => 'actionBtn paymentBtn', 'data-type' => "$payment->id", 'data-url' => $payUrl);
+	    	$attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "$payment->id", 'data-url' => $payUrl);
 	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
+	    	//$block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
 	    }
 	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable

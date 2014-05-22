@@ -262,8 +262,8 @@ class pos_ReceiptDetails extends core_Detail {
     	// Трябва да е избрана бележка
     	if(!$recId = Request::get('receiptId', 'int')) return array();
     	
-    	// Можем ли да добавяме към бележката
-    	if(!$this->haveRightFor('add', (object)array('receiptId' => $recId)))  return array();
+    	// Можем ли да направим плащане към бележката
+    	if(!$this->Master->haveRightFor('pay', $recId)) return array();
     	
     	// Трябва да има избран запис на бележка
     	if(!$receipt = $this->Master->fetch($recId)) return array();
@@ -280,25 +280,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    	return array();
     	}
     	
-    	// Не може да се плати, ако нищо не е продадено
-    	if(!$receipt->total){
-    		core_Statuses::newStatus(tr('|Не може да платите, когато нищо не е продадено|* !'), 'error');
-	    	return array();
-    	}
-    	
     	$diff = abs($receipt->paid - $receipt->total);
-    	
-    	// Ако всичко равни не можем да правим плащане
-    	if($diff == 0){
-    		core_Statuses::newStatus(tr('|Не може да направите плащане, когато всички е платено|* !'), 'error');
-	    	return array();
-    	}
-    	
-    	// Ако всичко равни не можем да правим плащане
-    	if($receipt->paid - $receipt->total > 0){
-    		core_Statuses::newStatus(tr('|Не може да направите плащане|* !'), 'error');
-	    	return array();
-    	}
     	
     	// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
     	if(!pos_Payments::returnsChange($type) && (string)$amount > (string)$diff){
@@ -311,9 +293,11 @@ class pos_ReceiptDetails extends core_Detail {
     	$rec->receiptId = $recId;
     	$rec->action = "payment|{$type}";
     	$rec->amount = $amount;
+    	
+    	// Отбелязваме че на това плащане ще има ресто
     	$paid = $receipt->paid + $amount;
     	if(($paid) > $receipt->total){
-    		$rec->value = round($paid - $receipt->total, 2);
+    		$rec->value = 'change';
     	}
     	
     	// Запис на плащанетo
@@ -772,7 +756,10 @@ class pos_ReceiptDetails extends core_Detail {
     			$obj->param   = $rec->param;
     		} else {
     			if(!$rec->amount) continue;
-    			$rec->amount -= $rec->value;
+    			if($rec->value == 'change'){
+    				$rec->amount -= $masterRec->change;
+    			}
+    			
     			$obj->action = 'payment';
     			list(, $obj->value) = explode('|', $rec->action);
     			$obj->pack = NULL;

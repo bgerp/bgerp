@@ -159,6 +159,11 @@ function posActions() {
 	// Направата на плащане след натискане на бутон
 	$(document.body).on('click', ".paymentBtn", function(e){
 		var url = $(this).attr("data-url");
+		
+		if(!url){
+			return;
+		}
+		
 		var type = $(this).attr("data-type");
 		var amount = $("input[name=paysum]").val();
 		var receiptId = $("input[name=receiptId]").val();
