@@ -675,7 +675,7 @@ class doc_Threads extends core_Manager
                 if ($sameEmailMsgCnt == 1) {
                     $res = tr("|Желаете ли и останалата|* {$sameEmailMsgCnt} |нишка, започваща с входящ имейл от|* {$msgRow->fromEml}, |намираща се в|* {$folderFromRow->title} |също да бъде преместена|*?");
                 } else {
-                    $res = tr("|Желаете ли и останалите|* {$sameEmailMsgCnt} |нишки, започващи с входящ имейл от|* {$msgRow->fromEml}, |намираща се в|* {$folderFromRow->title} |също да бъдат преместени|*?");
+                    $res = tr("|Желаете ли и останалите|* {$sameEmailMsgCnt} |нишки, започващи с входящ имейл от|* {$msgRow->fromEml}, |намиращи се в|* {$folderFromRow->title} |също да бъдат преместени|*?");
                 }
             }
         }
