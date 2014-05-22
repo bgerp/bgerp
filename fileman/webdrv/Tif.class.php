@@ -33,7 +33,7 @@ class fileman_webdrv_Tif extends fileman_webdrv_ImageT
         
         $tabsArr['barcodes'] = new stdClass();
         $tabsArr['barcodes']->title = 'Баркодове';
-        $tabsArr['barcodes']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("Баркодове") . "</legend> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>";
+        $tabsArr['barcodes']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Баркодове") . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>";
         $tabsArr['barcodes']->order = 6;
 
         return $tabsArr;

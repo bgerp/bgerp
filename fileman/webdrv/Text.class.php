@@ -60,7 +60,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         $tabsArr['text'] = (object) 
 			array(
 				'title' => 'Текст',
-				'html'  => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("Текст") . "</legend> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
+				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
 				'order' => 4,
 			);
         

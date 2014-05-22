@@ -44,7 +44,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         // Таб за преглед
 		$tabsArr['preview'] = new stdClass();
         $tabsArr['preview']->title = 'Преглед';
-        $tabsArr['preview']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("Преглед") . "</legend> {$preview} </fieldset></div>";
+        $tabsArr['preview']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'> {$preview} </div></div>";
         $tabsArr['preview']->order = 2;
         
         // URL за показване на текстовата част на файловете
@@ -53,7 +53,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         // Таб за текстовата част
 		$tabsArr['text'] = new stdClass();
         $tabsArr['text']->title = 'Текст';
-        $tabsArr['text']->html = "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("Текст") . "</legend><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></fieldset></iframe></div>";
+        $tabsArr['text']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></div></iframe></div>";
         $tabsArr['text']->order = 4;
         
         return $tabsArr;
@@ -321,7 +321,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $bgImg = sbf('fileman/img/Preview_background.jpg');
         
         // Създаваме шаблон за preview на изображението
-        $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto; display:table;'>[#THUMB_IMAGE#]</div></div>");
+        $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
         
         //Създаваме тумбнаил с параметрите
         $thumbnailImg = thumbnail_Thumbnail::getImg($fRec->fileHnd, $size, $attr);

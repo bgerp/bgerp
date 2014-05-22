@@ -45,8 +45,8 @@ class fileman_webdrv_Generic extends core_Manager
         $tabsArr['info'] = (object) 
 			array(
 				'title' => 'Информация',
-				'html'  => "<div class='webdrvTabBody'><fieldset  class='webdrvFieldset'><legend>" . tr("Мета информация") . "</legend>
-					<iframe src='{$infoUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></fieldset></div>",
+				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Мета информация") . "</div>
+					<iframe src='{$infoUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
 				'order' => 1,
 			);
         
@@ -174,7 +174,7 @@ class fileman_webdrv_Generic extends core_Manager
             $bgImg = sbf('fileman/img/Preview_background.jpg');
             
             // Създаваме шаблон за preview на изображението
-            $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto; display:table;'>[#THUMB_IMAGE#]</div></div>");
+            $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
             
             foreach ($jpgArr as $jpgFh) {
                 
@@ -787,7 +787,7 @@ class fileman_webdrv_Generic extends core_Manager
         try {
             
             // Опитваме се да вземем манипулатора на файла
-            $fh = static::uploadFileFromArchive($rec, Request::get('index', 'int'));
+            $fh = self::uploadFileFromArchive($rec, Request::get('index', 'int'));
             
             // Ако всичко е ОК, редиректваме към сингъла на файла
             return new Redirect(array('fileman_Files', 'single', $fh, '#' => 'fileDetail'));
@@ -1151,19 +1151,19 @@ class fileman_webdrv_Generic extends core_Manager
             
             // HTML частта, ако не е включен JS
             $htmlPart = "<div class='webdrvTabBody'>
-            				<fieldset class='webdrvFieldset'><legend>" . tr("HTML изглед") . "</legend>
+            				<div class='webdrvFieldset'><div class='legend'>" . tr("HTML изглед") . "</div>
                 				<iframe src='{$htmlUrl}' SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
-                			</fieldset>
+                			</div>
             			</div>";    
         } else {
             
             // HTML частта, ако е включен JS
             $htmlTpl = new ET("
             					<div class='webdrvTabBody'>
-                    				<fieldset class='webdrvFieldset'><legend>" . tr("HTML изглед") . "</legend>
+                    				<div class='webdrvFieldset'><div class='legend'>" . tr("HTML изглед") . "</div>
                     					<iframe id=[#SANITIZEID#] SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
                     					[#SANITIZEJS#]
-                					</fieldset>
+                					</div>
                 				</div>
             				");
             

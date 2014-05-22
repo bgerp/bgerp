@@ -54,7 +54,7 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
 		$tabsArr['video'] = (object) 
 			array(
 				'title'   => 'Видео',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>" . tr("Видео") . "</legend>{$videoTpl}</fieldset></div>",
+				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Видео") . "</div>{$videoTpl}</div></div>",
 				'order' => 2,
 				'tpl' => $videoTpl,
 			);

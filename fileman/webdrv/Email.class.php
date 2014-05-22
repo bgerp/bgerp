@@ -110,7 +110,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             $tabsArr['text'] = (object) 
     			array(
     				'title' => 'Текст',
-    				'html'  => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>" . tr("Текстовата част на имейла") . "</legend>{$textPart}</fieldset></div>",
+    				'html'  => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='webdrvFieldset'><div class='legend'>" . tr("Текстовата част на имейла") . "</div>{$textPart}</div></div>",
     				'order' => 4,
     			);    
         }
@@ -122,7 +122,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     		$tabsArr['files'] = (object) 
     			array(
     				'title'   => 'Файлове',
-    				'html'    => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>" . tr("Прикачените файлове") . "</legend>{$filesStr}</fieldset></div>",
+    				'html'    => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='webdrvFieldset'><div class='legend'>" . tr("Прикачените файлове") . "</div>{$filesStr}</div></div>",
     				'order' => 5,
     			);
 	    }
@@ -131,7 +131,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 		$tabsArr['headers'] = (object) 
 			array(
 				'title'   => 'Хедъри',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>" . tr("Хедърите на имейла") . "</legend>{$headersStr}</fieldset></div>",
+				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Хедърите на имейла") . "</div>{$headersStr}</div></div>",
 				'order' => 8,
 			);
 			
@@ -139,7 +139,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $tabsArr['source'] = (object) 
 			array(
 				'title'   => 'Сорс',
-				'html'    => "<div class='webdrvTabBody'><fieldset class='webdrvFieldset'><legend>" . tr("Изходен код на имейла") . "</legend>{$sourceShow}</fieldset></div>",
+				'html'    => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Изходен код на имейла") . "</div>{$sourceShow}</div></div>",
 				'order' => 9,
 			);
 			

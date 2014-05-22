@@ -52,7 +52,7 @@ class fileman_webdrv_Audio extends fileman_webdrv_Media
 		$tabsArr['audio'] = (object) 
 			array(
 				'title'   => 'Аудио',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><fieldset class='webdrvFieldset'><legend>" . tr("Аудио") . "</legend>{$audioTpl}</fieldset></div>",
+				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Аудио") . "</div>{$audioTpl}</div></div>",
 				'order' => 2,
 				'tpl' => $audioTpl,
 			);
