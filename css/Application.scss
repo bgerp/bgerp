@@ -2046,7 +2046,7 @@ fieldset.sharing-history {
 .wide .webdrvFieldset {
 	min-height: 620px;
 	border: 1px solid #ccc;
-	padding: 5px 10px 10px;
+	padding: 15px 10px 10px;
 	@include border-radius(5px);
 	box-shadow: 0 0 5px rgba(0,0,0,0.2) inset;
 	> div {
@@ -2070,8 +2070,14 @@ fieldset.sharing-history {
 		font-family: monospace "courier new";
 	}
 }
+.webdrvFieldset{
+	position:relative;
+}
 
-.webdrvFieldset legend {
+.webdrvFieldset .legend {
+	position: absolute;
+	top:-10px;
+	left: 10px;
 	background-color: #fff;
 	padding: 0 5px;
 	margin: 0px 15px;
@@ -2081,7 +2087,12 @@ fieldset.sharing-history {
 	overflow-x: auto !important;
 	_overflow: auto !important;
 }
-	
+
+.webdrvFieldset .dtree{
+	overflow-x: auto;
+	max-width:100%;
+}	
+
 .narrow .email-source {
 	white-space: pre-wrap;
 	font-family: monospace "courier new";
@@ -2099,7 +2110,7 @@ fieldset.sharing-history {
 .narrow .webdrvFieldset {
 	min-height: 300px;
 	height: 100%;
-	padding: 5px;
+	padding: 20px 10px 10px;
 	border: 1px solid #ccc;
 	@include border-radius(5px);
 	box-shadow: 0 0 5px rgba(0,0,0,0.2) inset;
@@ -2593,11 +2604,6 @@ div.location.public {
 	height: 1.3em;
 }
 
-@-moz-document url-prefix() { 
-	.portal-filter .hFormField input {
-		top: -2px;
-	}
-}
 
 .narrow .portal-filter input {
 	height: 1.2em;
