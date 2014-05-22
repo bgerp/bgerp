@@ -109,6 +109,10 @@ class store_Setup extends core_ProtoSetup
     		core_Roles::delete("#role = 'masterStore'");
     	}
     	
+    	// Закачане на плъгина за прехвърляне на собственотст на системни папки към core_Users
+    	$Plugins = cls::get('core_Plugins');
+    	$html .= $Plugins->installPlugin('Синхронизиране на складовите наличностти', 'store_plg_BalanceSync', 'acc_Balances', 'private');
+    	
         // Добавяне на роля за старши складажия
         $html .= core_Roles::addRole('store', 'storeWorker') ? "<li style='color:green'>Добавена е роля <b>store</b> наследяваща <b>storeWorker</b></li>" : '';
     	$html .= core_Roles::addRole('storeMaster', 'store') ? "<li style='color:green'>Добавена е роля <b>storeMaster</b> наследяваща <b>store</b></li>" : '';

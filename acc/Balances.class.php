@@ -213,68 +213,6 @@ class acc_Balances extends core_Master
         
         return $balanceId;
     }
-
-
-    /**
-     * Извиква се след изчислението на края на баланса, извлича информацията
-     * за моментното състояние на склада
-     */
-    private function extractStoreData()
-    {
-    	// Извличане на данните за склада от баланса
-    	$all = $this->prepareStoreData();
-    	
-    	// Синхронизиране на складовите продукти с тези от баланса
-    	store_Products::sync($all);
-    }
-    
-    
-    /**
-     * Извлича информацията нужна за ъпдейт на склада
-     */
-    private function prepareStoredata()
-    {
-    	$all = array();
-    	$balanceRec = $this->getLastBalance();
-    	
-    	// Извличане на сметките по които ще се ситематизират данните
-    	$conf = core_Packs::getConfig('store');
-    	$storeAccs = keylist::toArray($conf->STORE_ACC_ACCOUNTS);
-    	
-    	// Филриране да се показват само записите от зададените сметки
-    	$dQuery = acc_BalanceDetails::getQuery();
-    	foreach ($storeAccs as $sysId){
-    		$dQuery->orWhere("#accountId = {$sysId}");
-    	}
-    	
-    	$dQuery->where("#balanceId = {$balanceRec->id}");
-    	
-    	while($rec = $dQuery->fetch()){
-    		if($rec->ent1Id){
-    			
-    			// Перо 'Склад'
-	    		$storeItem = acc_Items::fetch($rec->ent1Id);
-	    		
-	    		// Перо 'Артикул'
-	    		$pItem = acc_Items::fetch($rec->ent2Id);
-	    		
-	    		// Съмаризиране на информацията за артикул / склад
-	    		$index = $storeItem->objectId . "|" . $pItem->classId . "|" . $pItem->objectId;
-	    		if(empty($all[$index])){
-	    			
-	    			// Ако няма такъв продукт в масива, се записва
-	    			$all[$index] = $rec->blQuantity;
-	    		} else {
-	    			
-	    			// Ако го има добавяме количеството на записа
-	    			$all[$index] += $rec->blQuantity;
-	    		}
-    		}
-    	}
-    	
-    	// Връщане на групираните крайни суми
-    	return $all;
-    }
     
     
     /**
@@ -358,8 +296,17 @@ class acc_Balances extends core_Master
             }
         }
         
-        $this->extractStoreData();
-        acc_Journal::clearDrafts();
+        $data = new stdClass();
+        $this->invoke('AfterRecalcBalances', array($data));
+    }
+    
+    
+    /**
+     * След изчисляване на баланса синхронизира складовите наличностти
+     */
+    public static function on_AfterRecalcBalances(acc_Balances $mvc, &$data)
+    {
+    	acc_Journal::clearDrafts();
     }
     
     
