@@ -132,11 +132,11 @@ class sales_Routes extends core_Manager {
     	$varchar = cls::get("type_Varchar");
     	$locQuery = crm_Locations::getQuery();
     	$locQuery->where("#state != 'rejected'");
-    	if($locId = Request::get('locationId', 'int')){
+    	if ($locId = Request::get('locationId', 'int')) {
     		$locQuery->where("#id = {$locId}");
     	}	
     	
-    	while($locRec = $locQuery->fetch()){
+    	while ($locRec = $locQuery->fetch()) {
         	$locRec = crm_Locations::fetch($locRec->id);
         	$contragentCls = cls::get($locRec->contragentCls);
         	$contagentName =  $contragentCls->fetchField($locRec->contragentId, 'name');
@@ -164,15 +164,15 @@ class sales_Routes extends core_Manager {
     private function getDefaultSalesman($rec)
     {
     	// Ако имаме локация
-    	if($rec->locationId){
+    	if ($rec->locationId) {
     		$query = $this->getQuery();
     		$query->orderBy('#id', 'DESC');
     		$query->where("#locationId = {$rec->locationId}");
     		$lastRec = $query->fetch();
-    		if($lastRec){
+    		if ($lastRec) {
     			
     			// Ако има последен запис за тази локация
-	    		if(self::haveRightFor('add', NULL, $lastRec->salesmanId)) {
+	    		if (self::haveRightFor('add', NULL, $lastRec->salesmanId)) {
 		            // ... има право да създава продажби
 		            return $lastRec->salesmanId;
         		}
@@ -197,12 +197,13 @@ class sales_Routes extends core_Manager {
     	$query->orderBy('#id', 'DESC');
     	$query->where("#createdBy = {$currentUserId}");
     	$lastRoute = $query->fetch();
-    	if($lastRoute){
+    	if ($lastRoute) {
+    	    
     		return $lastRoute->salesmanId;
     	}
     	
     	// Текущия потребител ако има права
-    	if(self::haveRightFor('add', NULL, $currentUserId)) {
+    	if (self::haveRightFor('add', NULL, $currentUserId)) {
             // ... има право да създава продажби
             return $currentUserId;
         }
@@ -256,7 +257,7 @@ class sales_Routes extends core_Manager {
     	$locIcon = sbf("img/16/location_pin.png");
     	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
     	$locationState = crm_Locations::fetchField($rec->locationId, 'state');
-    	if($locationState == 'rejected' || $rec->state == 'rejected'){
+    	if ($locationState == 'rejected' || $rec->state == 'rejected') {
     		$row->ROW_ATTR['class'] .= ' state-rejected';
     	}
     }
@@ -282,9 +283,9 @@ class sales_Routes extends core_Manager {
     	$query->where("#state != 'rejected'");
     	
     	$results = array();
-     	while ($rec = $query->fetch()){
+     	while ($rec = $query->fetch()) {
             $data->masterData->row->haveRoutes = TRUE;
-    		if($data->masterData->rec->state != 'rejected'){
+    		if ($data->masterData->rec->state != 'rejected') {
                 $nextVisit = $this->calcNextVisit($rec);
     			if($nextVisit === FALSE) continue;
                 $routeArr['nextVisit'] = $nextVisit;
@@ -296,7 +297,7 @@ class sales_Routes extends core_Manager {
     		$results[] = (object)$routeArr;
     	}
     		
-    	if($this->haveRightFor('add', (object)(array('locationId' => $data->masterData->rec->id)))){
+    	if ($this->haveRightFor('add', (object)(array('locationId' => $data->masterData->rec->id)))) {
 	    	$data->addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
     	}
     	
@@ -314,15 +315,15 @@ class sales_Routes extends core_Manager {
     	$nowTs = dt::mysql2timestamp(dt::now());
     	$interval = 24 * 60 * 60 * 7;
 
-    	if(!$rec->dateFld) return FALSE;
+    	if (!$rec->dateFld) return FALSE;
 
     	$startTs = dt::mysql2timestamp($rec->dateFld);
     	$diff = $nowTs - $startTs;
-    	if($diff < 0){
+    	if ($diff < 0) {
     		$nextStartTimeTs = $startTs;
     	} else {
-    		if(!$rec->repeatWeeks){
-                if($rec->dateFld == date('Y-m-d')) {
+    		if (!$rec->repeatWeeks) {
+                if ($rec->dateFld == date('Y-m-d')) {
                     return dt::mysql2verbal($rec->dateFld, "d.m.Y D");
                 } else {
     			    return FALSE;
@@ -348,7 +349,7 @@ class sales_Routes extends core_Manager {
     	$tpl = getTplFromFile("crm/tpl/ContragentDetail.shtml");
     	$title = $this->title;
     	
-    	if($data->addUrl){
+    	if ($data->addUrl) {
 	    	$img = sbf('img/16/add.png');
 	    	$title .= ht::createLink(' ', $data->addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute')); 
 	    }
@@ -368,21 +369,21 @@ class sales_Routes extends core_Manager {
      */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'edit' && $rec->id) {
-			if($rec->state == 'rejected'){
+		if ($action == 'edit' && $rec->id) {
+			if ($rec->state == 'rejected') {
 				$res = 'no_one';
 			}
 		}
 		
-		if($action == 'restore' && $rec->id){
+		if ($action == 'restore' && $rec->id) {
 			$locationState = crm_Locations::fetchField($rec->locationId, 'state');
-			if($locationState == 'rejected'){
+			if ($locationState == 'rejected') {
 				$res = 'no_one';
 			}
 		}
 		
-		if($action == 'add' && isset($rec->locationId)){
-			if(crm_Locations::fetchField($rec->locationId, 'state') == 'rejected'){
+		if ($action == 'add' && isset($rec->locationId)) {
+			if (crm_Locations::fetchField($rec->locationId, 'state') == 'rejected') {
 				$res = 'no_one';
 			}
 		}
@@ -399,7 +400,7 @@ class sales_Routes extends core_Manager {
 		$locationState = crm_Locations::fetchField($locationId, 'state');
 		$query = $this->getQuery();
 		$query->where("#locationId = {$locationId}");
-		while($rec = $query->fetch()){
+		while ($rec = $query->fetch()) {
 			($locationState == 'rejected') ? $state = $locationState : $state = 'active';
 			$rec->state = $state;
 			$this->save($rec);
