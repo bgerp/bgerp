@@ -150,7 +150,6 @@ class pos_Favourites extends core_Manager {
 	    	$query->where("#state = 'active'");
 	    	while($rec = $query->fetch()){
 	    		$obj = $this->prepareProductObject($rec);
-		    	$obj->code = $varchar->toVerbal($obj->code);
 		    	$obj->name = $varchar->toVerbal($obj->name);
 		    	$obj->productId = $rec->productId;
 		    	$obj->packagingId = $rec->packagingId;
@@ -198,14 +197,7 @@ class pos_Favourites extends core_Manager {
     	$arr['name'] = $productRec->name;
     	$arr['catId'] = $rec->catId;
         $obj = new stdClass();
-    	if($packRec) {
-    		$obj->quantity = $packRec->quantity;
-    		($packRec->customCode) ? $code = $packRec->customCode : $code = $packRec->eanCode;
-    	} else {
-    		$obj->quantity = 1;
-    		($productRec->code) ? $code = $productRec->code : $code = $productRec->eanCode;
-    	}
-    	$arr['code'] = $code;
+    	$obj->quantity = ($packRec) ? $packRec->quantity : 1;
     	
     	if(empty($rec->image)){
     		
@@ -272,13 +264,13 @@ class pos_Favourites extends core_Manager {
 		$attr = array('isAbsolute' => FALSE, 'qt' => '');
         $size = array(80, 'max' => TRUE);
     	foreach($products as $row) {
+    		$row->url = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
     		if($row->image){
     			$imageUrl = thumbnail_Thumbnail::getLink($row->image, $size, $attr);
     			$row->image = ht::createElement('img', array('src' => $imageUrl, 'width'=>'90px', 'height'=>'90px'));
     		}
     			
     		$rowTpl = clone($blockTpl);
-    		$rowTpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrency');
     		$rowTpl->placeObject($row);
     		$rowTpl->removeBlocks();
     		$rowTpl->append2master();

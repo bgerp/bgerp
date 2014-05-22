@@ -1,0 +1,75 @@
+<!--ET_BEGIN TAB_TOOLS-->
+
+	<form method='POST' action='[#ACT1#]' id='toolsForm'>
+	<div class='input-field'>[#INPUT_FLD#]</div>
+	<div class='clearfix21'></div>
+	<div class='num-keyboard'>
+	<input class="buttonForm numPad" type="button" value="1"/>
+	<input class="buttonForm numPad" type="button" value="2"/>
+	<input class="buttonForm button numPad" type="button" value="3"/>
+	<br />
+	<input class="buttonForm numPad" type="button" value="4"/>
+	<input class="buttonForm numPad" type="button" value="5"/>
+	<input class="buttonForm numPad" type="button" value="6"/>
+	<br />
+	<input class="buttonForm numPad" type="button" value="7"/>
+	<input class="buttonForm numPad" type="button" value="8"/>
+	<input class="buttonForm numPad" type="button" value="9"/>
+	<br />
+	<input class="buttonForm numPad" type="button" value="."/>
+	<input class="buttonForm numPad" type="button" value="0"/>
+	<input class="buttonForm numBack" type="button" value="<<"/>
+	</div>
+	<div class='tools-btn'>
+	[#FIRST_TOOLS_ROW#]
+	</div>
+</form>
+<div class='clearfix21'></div>
+
+<!--ET_END TAB_TOOLS-->
+
+<!--ET_BEGIN CHOOSE_DIV-->
+[#CHOOSE_DIV#]
+
+<!--ET_END CHOOSE_DIV-->
+
+<!--ET_BEGIN SEARCH_DIV-->
+<div class='search-top-holder'>
+[#KEYBOARDS#]
+[#INPUT_SEARCH#]
+</div>
+<div id='pos-search-result-table'>
+</div>
+
+<!--ET_END SEARCH_DIV-->
+
+<!--ET_BEGIN PAYMENTS_BLOCK-->
+<div class='input-field'>[#INPUT_PAYMENT#]</div>
+<div class='clearfix21'></div>
+<div class='num-keyboard'>
+	<input class="buttonForm numPad" type="button" value="1"/>
+	<input class="buttonForm numPad" type="button" value="2"/>
+	<input class="buttonForm numPad" type="button" value="3"/>
+	<br />
+	<input class="buttonForm numPad" type="button" value="4"/>
+	<input class="buttonForm numPad" type="button" value="5"/>
+	<input class="buttonForm numPad" type="button" value="6"/>
+	<br />
+	<input class="buttonForm  numPad" type="button" value="7"/>
+	<input class="buttonForm  numPad" type="button" value="8"/>
+	<input class="buttonForm  numPad" type="button" value="9"/>
+	<br />
+	<input class="buttonForm  numPad" type="button" value="."/>
+	<input class="buttonForm numPad" type="button" value="0"/>
+	<input class="buttonForm numBack" type="button" value="<<"/>
+</div>
+<div class='colum-btn'>
+[#PAYMENT_TYPE#]
+[#CLOSE_BTNS#]
+</div>
+<div class='clearfix21'></div>
+<!--ET_END PAYMENTS_BLOCK-->
+
+<!--ET_BEGIN DRAFTS-->
+[#DRAFTS#]
+<!--ET_END DRAFTS-->

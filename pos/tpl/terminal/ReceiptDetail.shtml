@@ -1,0 +1,26 @@
+<!--ET_BEGIN sale-->
+<tr data-id='[#id#]' class='pos-sale [#lastRow#]' >
+	<td colspan='3' class='receipt-sale name-product'><span class='code'>[#code#]</span> - [#productId#] [#DEL_BTN#]&nbsp;&nbsp;[#perPack#] [#uomId#]</td>
+</tr>
+<tr  data-code='[#code#]'class='pos-sale [#lastRow#]' data-id='[#id#]'>
+	<td class='receipt-quantity'><span class='quantity'>[#quantity#]</span> <!--ET_BEGIN packagingId--> &nbsp;[#value#]<!--ET_END packagingId--></td>
+	<td class='receipt-price'>[#price#] 
+	<!--ET_BEGIN discountPercent-->
+	 (<span class='receipt-discount-td'> [#discountPercent#] </span>)
+	<!--ET_END discountPercent-->
+	</td>
+	<td class='receipt-amount'><span class='sale-amount'>[#amount#]</span></td>
+</tr>
+<!--ET_END sale-->
+
+<!--ET_BEGIN payment-->
+<tr [#lastRow#]>
+	<td colspan='3' class='receipt-payment'>|Плащане|* [#actionValue#]: &nbsp;&nbsp;[#amount#] [#DEL_BTN#]</td>
+</tr>
+<!--ET_END payment-->
+
+<!--ET_BEGIN client-->
+<tr [#lastRow#]>
+	<td colspan='3' class='receipt-client'>|Клиент|*: &nbsp;&nbsp;[#clientName#] [#DEL_BTN#]</td>
+</tr>
+<!--ET_END client-->

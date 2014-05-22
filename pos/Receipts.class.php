@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -19,7 +19,7 @@ class pos_Receipts extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'acc_TransactionSourceIntf, bgerp_DealAggregatorIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl';
+    var $interfaces = 'bgerp_DealAggregatorIntf';
     
     
     /**
@@ -33,7 +33,7 @@ class pos_Receipts extends core_Master {
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary,
     				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,
-                     acc_plg_Contable,plg_Modified';
+                     plg_Modified';
 
     
     /**
@@ -67,6 +67,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Кой може да променя?
+     */
+    var $canTerminal = 'pos, ceo';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'ceo,pos';
@@ -83,18 +89,6 @@ class pos_Receipts extends core_Master {
      */
     var $canEdit = 'pos, ceo';
     
-	
-	/**
-     * Файл с шаблон за единичен изглед на статия
-     */
-    var $singleLayoutFile = 'pos/tpl/SingleReceipt.shtml';
-    
-    
-    /**
-     * Кой може да го контира?
-     */
-    var $canConto = 'pos,ceo';
-    
     
     /**
 	 * Полета които да са достъпни след изтриване на дъска
@@ -107,6 +101,18 @@ class pos_Receipts extends core_Master {
 	 */
 	var $searchFields = 'contragentName';
 	
+	
+    /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    public $singleLayoutFile = 'pos/tpl/SingleLayoutReceipt.shtml';
+    
+    
+    /**
+     * При търсене до колко продукта да се показват в таба
+     */
+    public $maxSearchProducts = 20;
+    
     
     /**
      * Описание на модела
@@ -136,18 +142,20 @@ class pos_Receipts extends core_Master {
     public static function on_BeforeAction($mvc, &$res, $action)
     {
     	$id = Request::get('id', 'int');
-    	if($action == 'single' && !$id) {
+    	if($action == 'terminal' && !$id) {
     		
-    			// Ако не е зададено Ид, намираме кой е последно добавената бележка
-	    		$cu = core_Users::getCurrent();
-    			$query = static::getQuery();
-	    		$query->where("#createdBy = {$cu}");
-	    		$query->where("#state = 'draft'");
-	    		$query->orderBy("#createdOn", "DESC");
-	    		if($rec = $query->fetch()) {
-	    			
-	    			return Redirect(array($mvc, 'single', $rec->id));
-	    		}
+    		// Ако не е зададено Ид, намираме кой е последно добавената бележка
+	    	$cu = core_Users::getCurrent();
+    		$query = static::getQuery();
+    		$posId = pos_Points::getCurrent();
+	    	$query->where("#createdBy = {$cu}");
+	    	$query->where("#pointId = {$posId}");
+	    	$query->where("#state = 'draft'");
+	    	$query->orderBy("#createdOn", "DESC");
+	    	if($rec = $query->fetch()) {
+	    		
+	    		return Redirect(array($mvc, 'terminal', $rec->id));
+	    	}
     		
 	    	// Ако няма последно добавена бележка създаваме нова
     		return Redirect(array($mvc, 'new'));
@@ -163,7 +171,7 @@ class pos_Receipts extends core_Master {
     {
     	$id = $this->createNew();
     	
-    	return Redirect(array($this, 'single', $id));
+    	return Redirect(array($this, 'terminal', $id));
     }
     
     
@@ -199,6 +207,13 @@ class pos_Receipts extends core_Master {
     	if($fields['-list']){
     		$row->title = "{$mvc->singleTitle} №{$row->id}";
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
+    	} elseif($fields['-single']){
+    		$row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
+    		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
+    		$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
+    		$row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), TRUE);
+    		$row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), TRUE);
+    		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	}
     	
     	if($rec->state != 'draft'){
@@ -223,6 +238,11 @@ class pos_Receipts extends core_Master {
     		$data->toolbar->addBtn('Всички', array($mvc, 'list', 'ret_url' => TRUE),
     							   'ef_icon=img/16/application_view_list.png, order=18');    
     	}
+    	
+    	if($mvc->haveRightFor('terminal', $data->rec)){
+    		$data->toolbar->addBtn('Терминал', array($mvc, 'Terminal', $data->rec->id, 'ret_url' => TRUE),
+    				'ef_icon=img/16/forward16.png, order=18,target=_blank');
+    	}
     }
     
     
@@ -238,28 +258,7 @@ class pos_Receipts extends core_Master {
     }
     
     
-    /**
-     * Пушваме css и js файловете
-     */
-    static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {	
-    	if(!Request::get('ajax_mode')) {
-	    	jquery_Jquery::enable($tpl);
-	    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
-	    	$tpl->push('pos/js/scripts.js', 'JS');
-	    	jquery_Jquery::run($tpl, "posActions();");
-	    	$conf = core_Packs::getConfig('pos');
-        	$ThemeClass = cls::get($conf->POS_PRODUCTS_DEFAULT_THEME);
-        	$tpl->push($ThemeClass->getStyleFile(), 'CSS');
-	    	
-	    	if($data->products->arr) {
-	    		$tpl->replace(pos_Favourites::renderPosProducts($data->products), 'PRODUCTS');
-	    	}
-    	}
-    }
-    
-    
-    /**
+	/**
      * Извлича информацията за всички продукти които са продадени чрез
      * тази бележки, във вид подходящ за контирането
      * @param int id - ид на бележката
@@ -270,7 +269,6 @@ class pos_Receipts extends core_Master {
     public static function getProducts($id, $count = FALSE)
     {
     	expect($rec = static::fetch($id), 'Несъществуваща бележка');
-    	$policyId = price_ListToCustomers::getClassId();
     	
     	$products = array();
     	$totalQuantity = 0;
@@ -294,14 +292,14 @@ class pos_Receipts extends core_Master {
 	    	
 	    	$totalQuantity += $rec->quantity;
 	    	$products[] = (object) array(
-	    		'classId' => cat_Products::getClassId(),
-	    		'productId' => $rec->productId,
-		    	'price' => $rec->price,
-	    	    'packagingId' => $packagingId,
+	    		'classId'        => cat_Products::getClassId(),
+	    		'productId'      => $rec->productId,
+		    	'price'          => $rec->price,
+	    	    'packagingId'    => $packagingId,
 	    	    'quantityInPack' => $quantityInPack,
-	    		'vatPrice' => $rec->price * $rec->param,
-	    	    'uomId' => $info->productRec->measureId,
-		    	'quantity' => $rec->quantity);
+	    		'vatPrice'       => $rec->price * $rec->param,
+	    	    'uomId' 		 => $info->productRec->measureId,
+		    	'quantity'       => $rec->quantity);
 	    }
 	    
     	if($count){
@@ -313,90 +311,54 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * Ъпдейтва бележката след като и се създаде нов детайл
-     * @param stdClass $detailRec - запис от pos_ReceiptDetails
+     * Ъпдейтване на бележката
+     * @param int $id - на бележката
      */
-    function updateReceipt($detailRec)
+    function updateReceipt($id)
     {
-    	expect($rec = $this->fetch($detailRec->receiptId));
-    	$action = explode("|", $detailRec->action);
-    	switch($action[0]) {
-    		case 'sale':
-    			
-    			// "Продажба" : преизчисляваме общата стойност на бележката
-    			$rec->total = $this->countTotal($rec->id);
-    			$rec->productCount = pos_Receipts::getProducts($rec->id, TRUE);
-    			$change = $rec->paid - $rec->total;
-    			$rec->change = ($change > 0) ? $change : 0;
-    			
-    			break;
-    		case 'payment':
-    			
-    			// "Плащане" : преизчисляваме платеното до сега и рестото
-    			$rec->paid = $this->countPaidAmount($rec->id);
-    			$change = $rec->paid - $rec->total;
-    			$rec->change = ($change > 0) ? $change : 0;
-    			
-    			break;
-    		case 'client':
-    			
-    			// "Клиент" : записваме в бележката информацията за контрагента
-    			$contragentRec = explode("|", $detailRec->param);
-    			$rec->contragentId = $contragentRec[0];
-    			$class = $contragentRec[1];
-    			$rec->contragentClassId = $class::getClassId();
-    			$rec->contragentName = $class::getTitleById($contragentRec[0]);
-    			break;
-    		case 'discount':
-    			if($action[1] == 'sum'){
+    	expect($rec = $this->fetch($id));
+    	$rec->change = $rec->total = $rec->paid =  $rec->productCount = 0;
+    	
+    	$hasClient = FALSE;
+    	$dQuery = $this->pos_ReceiptDetails->getQuery();
+    	$dQuery->where("#receiptId = {$id}");
+    	while($dRec = $dQuery->fetch()){
+    		$action = explode("|", $dRec->action);
+    		switch($action[0]) {
+    			case 'sale':
+    				$vat = cat_Products::getVat($dRec->productId, $rec->createdOn);
+    				$rec->total += $dRec->quantity * $dRec->price * (1 - $dRec->discountPercent) * (1 + $vat);
+    				$rec->productCount += $dRec->quantity;
+    				break;
+    			case 'payment':
+    				$rec->paid += $dRec->amount;
+    				$rec->change += $dRec->value;
+    				break;
+    			case 'client':
     				
-    				// Ако отстъпката е сума намаляваме общата сума с отстъпката
-    				$rec->total -= $detailRec->ean;
-    			}
-    			break;
+    				// "Клиент" : записваме в бележката информацията за контрагента
+	    			$contragentRec = explode("|", $dRec->param);
+	    			$rec->contragentObjectId = $contragentRec[0];
+	    			$Class = $contragentRec[1];
+	    			$rec->contragentClass = $Class::getClassId();
+	    			$rec->contragentName = $Class::getTitleById($contragentRec[0]);
+	    			$hasClient = TRUE;
+    				break;
+    		}
     	}
+    	
+    	// Ако няма въведен клиент от потребителя
+    	if(!$hasClient){
+    		$rec->contragentName = tr('Анонимен Клиент');
+	    	$rec->contragentClass = core_Classes::getId('crm_Persons');
+	    	$rec->contragentObjectId = pos_Points::defaultContragent($rec->pointId);
+    	}
+    	
+    	$diff = round($rec->total - $rec->paid, 2);
+    	$rec->change = ($diff != 0) ? 0 :  $rec->change;
+    	$rec->total = round($rec->total, 2);
     	
     	$this->save($rec);
-    }
-    
-    
-    /**
-     * Изчислява всичко платено до момента
-     * @param int $id - запис от модела
-     * @return double $paid - платената сума до момента
-     */
-    function countPaidAmount($id)
-    {
-    	$paid = 0;
-    	$query = pos_ReceiptDetails::getQuery();
-    	$query->where("#receiptId = {$id}");
-    	$query->where("#action LIKE '%payment%'");
-    	while($dRec = $query->fetch()) {
-    		$paid += $dRec->amount;
-    	}
-    	
-    	return $paid;
-    }
-    
-    
-    /**
-     * Изчислява дължимата сума
-     * @param int $id
-     * @return double $total;
-     */
-    function countTotal($id)
-    {
-    	$total = 0;
-    	$query = pos_ReceiptDetails::getQuery();
-    	$date = $this->fetchField($id, 'createdOn');
-    	$query->where("#receiptId = {$id}");
-    	$query->where("#action LIKE '%sale%'");
-    	while($dRec = $query->fetch()) {
-    		$vat = cat_Products::getVat($dRec->productId, $date);
-    		$total += $dRec->amount + ($dRec->amount * $vat);
-    	}
-    	
-    	return $total;
     }
     
     
@@ -414,25 +376,32 @@ class pos_Receipts extends core_Master {
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
+		// Само черновите бележки могат да се редактират в терминала
+		if($action == 'terminal' && isset($rec)) {
+			if($rec->state != 'draft'){
+				$res = 'no_one';
+			}
+		}
+		
 		// Никой неможе да редактира бележка
 		if($action == 'edit') {
 			$res = 'no_one';
 		}
 		
 		// Никой неможе да изтрива активирана или затворена бележка
-		if($action == 'delete' && isset($rec) && $rec->state != 'draft') {
+		if($action == 'delete' && isset($rec)) {
 			$res = 'no_one';
 		}
 		
 		// Можем да контираме бележки само когато те са чернови и платената
 		// сума е по-голяма или равна на общата или общата сума е <= 0
-		if($action == 'conto' && isset($rec->id)) {
-			if($rec->total == 0 || $rec->paid < $rec->total) {
+		if($action == 'close' && isset($rec->id)) {
+			if($rec->total == 0 || round($rec->paid, 2) < round($rec->total, 2)) {
 				$res = 'no_one';
 			}
 		}
 		
-		// Немогат да се оттеглявт бележки в затворен сч. период
+		// Немогат да се оттеглят бележки в затворен сч. период
 		if($action == 'reject'){
 			$period = acc_Periods::fetchByDate($rec->valior);
 			if($period->state == 'closed') {
@@ -441,59 +410,317 @@ class pos_Receipts extends core_Master {
 		}
 	}
     
-	
+    
     /**
-     * Предефиниране на наследения метод act_Single
+     * Екшън за създаване на бележка
      */
-    function act_Single()
-    {   
-        $this->requireRightFor('single');
-    	$id = Request::get('id', 'int');
-        if(!$id) {
-        	$id = Request::get('receiptId', 'int');
-        }
-        $data = new stdClass();
-        expect($data->rec = $this->fetch($id));
-        
-        $this->requireRightFor('single', $data->rec);
-        $this->prepareSingle($data);
-    	if(!Mode::is('printing') && !Mode::is('screenMode', 'narrow') && $data->rec->state == 'draft') {
-    		$data->products = pos_Favourites::prepareProducts();
+    function act_Terminal()
+    { 
+    	$this->requireRightFor('terminal');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	
+    	// Имаме ли достъп до терминала
+    	$this->requireRightFor('terminal', $rec);
+    	
+    	// Лейаут на терминала
+    	$tpl = getTplFromFile("pos/tpl/terminal/Layout.shtml");
+    	Mode::set('wrapper', 'page_Empty');
+    	
+    	// Добавяме бележката в изгледа
+    	$receiptTpl = $this->getReceipt($rec);
+    	$tpl->replace($receiptTpl, 'RECEIPT');
+    	
+    	// Ако сме чернова, добавяме пултовете
+    	if($rec->state == 'draft'){
+    		
+    		// Добавяне на табовете под бележката
+    		$toolsTpl = $this->getTools($rec);
+    		$tpl->replace($toolsTpl, 'TOOLS');
+    		
+    		// Добавяне на табовете показващи се в широк изглед отстрани
+	    	if(!Mode::is('screenMode', 'narrow')){
+	    		$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
+	    		$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts' data-url='{$DraftsUrl}'>Бележки</a></li>";
+	    		$tpl->replace($this->getSelectFavourites(), 'CHOOSE_DIV_WIDE');
+	    		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV_WIDE');
+	    		$tpl->append($this->renderDraftsTab($id), 'DRAFTS_WIDE');
+	    		
+	    		$tpl->replace($tab, 'TABS_WIDE');
+	    	}
     	}
     	
-        if($dForm = $data->pos_ReceiptDetails->form) {
-            $rec = $dForm->input();
-            $Details = cls::get('pos_ReceiptDetails');
-			$Details->invoke('AfterInputEditForm', array($dForm));
-			
-        	// Ако формата е успешно изпратена - запис, лог, редирект
-            $ean = Request::get('ean');
-			if ($dForm->isSubmitted() && isset($ean)) {
-            	
-            	if($Details->haveRightFor('add', (object) array('receiptId' => $data->rec->id))) {
-	            	
-            		// Записваме данните
-	            	$id = $Details->save($rec);
-	                $Details->log('add', $id);
-	                
-	                return new Redirect(array($this, 'Single', $data->rec->id, "ajax_mode" => Request::get("ajax_mode")));
-            	}
-            }
-        }
-        
-        Mode::set('wrapper', 'page_Empty');
-        $tpl = $this->renderSingle($data);
-        if($posPoint = pos_Points::getCurrent('id', FALSE)){
-        	$tpl->append(pos_Points::fetchField(pos_Points::getCurrent(), 'name'), 'PAGE_TITLE');
-        }
-        
-        if(Request::get('ajax_mode')){
-        	echo json_encode($tpl->getContent());
-        	shutdown();
-        }
-        $this->log('Single: ' . ($data->log ? $data->log : tr($data->title)), $id);
-        
-        return $tpl;
+    	// Вкарване на css и js файлове
+    	$this->pushFiles($tpl);
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Вкарване на css и js файлове
+     */
+    private function pushFiles(&$tpl)
+    {
+    	jquery_Jquery::enable($tpl);
+	    $tpl->push('pos/tpl/css/styles.css', 'CSS');
+	    $tpl->push('pos/js/scripts.js', 'JS');
+
+	   // $tpl->push('pos/js/jquery.magnific-popup.js', 'JS');
+	   // $tpl->push('pos/tpl/css/magnific-popup.css', 'CSS');
+
+	    jquery_Jquery::run($tpl, "posActions();");
+	    
+	    $conf = core_Packs::getConfig('pos');
+        $ThemeClass = cls::get($conf->POS_PRODUCTS_DEFAULT_THEME);
+        $tpl->push($ThemeClass->getStyleFile(), 'CSS');
+    }
+    
+    
+    /**
+     * Подготовка и рендиране на бележка
+     * 
+     * @param int $id - ид на бележка
+     * @return core_ET $tpl - шаблона
+     */
+    public function getReceipt($id)
+    {
+    	expect($rec = $this->fetchRec($id));
+    	
+    	$data = new stdClass();
+    	$data->rec = $rec;
+    	$this->prepareReceipt($data);
+    	$tpl = $this->renderReceipt($data);
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Подготовка на бележка
+     */
+    private function prepareReceipt(&$data)
+    {
+    	$data->row = $this->recToverbal($data->rec);
+    	$data->details = $this->pos_ReceiptDetails->prepareReceiptDetails($data->rec->id);
+    }
+    
+    
+    /**
+     * Подготовка и рендиране на бележка
+     * 
+     * @return core_ET $tpl - шаблон
+     */
+    private function renderReceipt($data)
+    {
+    	// Слагане на мастър данните
+    	$tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
+    	$tpl->placeObject($data->row);
+    	
+    	// Слагане на детайлите на бележката
+    	$detailsTpl = $this->pos_ReceiptDetails->renderReceiptDetail($data->details);
+    	$tpl->append($detailsTpl, 'DETAILS');
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Рендиране на табовете под бележката
+     * 
+     * @param int $id - ид на бележка
+     * @return core_ET $tpl - шаблон
+     */
+	public function getTools($id)
+    {
+    	$tpl = new ET("");
+    	expect($rec = $this->fetchRec($id));
+    	
+    	// Рендиране на пулта
+    	$tab = "<li class='active'><a href='#tools-form'>Пулт</a></li><li><a href='#tools-payment'>Плащане</a></li>";
+    	$tpl->append($this->renderToolsTab($id), 'TAB_TOOLS');
+    	
+    	// Ако сме в тесен режим
+    	if(Mode::is('screenMode', 'narrow')){
+    		
+    		// Добавяне на таба с бързите бутони
+    		$tpl->append($this->getSelectFavourites(), 'CHOOSE_DIV');
+    		
+    		$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
+    		
+    		// Добавяне на таба с избор
+    		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
+    		$tab .= "<li><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts'>Чернови</a></li>";
+    	
+    		// Добавяне на таба с черновите
+    		$tpl->append($this->renderDraftsTab($id), 'DRAFTS');
+    	}
+    	
+    	// Добавяне на таба за плащане
+    	$tpl->append($this->renderPaymentTab($id), 'PAYMENTS');
+    	$tpl->append($tab, 'TABS');
+    	
+   		return $tpl;
+    }
+    
+    
+    /**
+     * Рендира бързите бутони
+     * @return core_ET $block - шаблон
+     */
+    public function getSelectFavourites()
+    {
+    	$products = pos_Favourites::prepareProducts();
+    	$tpl = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('CHOOSE_DIV');
+    	
+    	if($products->arr) {
+    		$tpl->append(pos_Favourites::renderPosProducts($products), 'CHOOSE_DIV');
+	    }
+    	
+	    return $tpl;
+    }
+    
+	
+    /**
+     * Рендиране на таба с пулта
+     * 
+     * @param int $id - ид на бележка
+     * @return core_ET $block - шаблон
+     */
+	public function renderToolsTab($id)
+    {
+    	expect($rec = $this->fetchRec($id));
+    	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
+    	
+    	$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
+    	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
+    	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
+    	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'size' => '4em')), 'INPUT_FLD');
+    	
+    	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
+    	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
+    	$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
+    	$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => 'buttonForm', 'title' => 'Добави продукт')), 'FIRST_TOOLS_ROW');
+    	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => 'buttonForm tools-modify', 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
+    	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => 'buttonForm tools-modify', 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
+    	$block->append("<br />" . ht::createFnBtn('Кл. карта', NULL, NULL, array('class' => 'buttonForm', 'id' => 'tools-addclient', 'data-url' => $addClient, 'title' => 'Въведи клиентска карта')), 'FIRST_TOOLS_ROW');
+    	
+    	return $block;
+    }
+    
+    
+    /**
+     * Рендиране на таба за търсене на продукт
+     * 
+     * @param int $id -ид на бележка
+     * @return core_ET $block - шаблон
+     */
+    public function renderChooseTab($id)
+    {
+    	expect($rec = $this->fetchRec($id));
+    	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('SEARCH_DIV');
+    	if(!Mode::is('screenMode', 'narrow')){
+    		$keyboardsTpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
+    		$block->replace($keyboardsTpl, 'KEYBOARDS');
+    	}
+    	
+    	$searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
+    	$inpFld = ht::createTextInput('select-input-pos', '', array('id' => 'select-input-pos', 'data-url' => $searchUrl));
+    	$block->replace($inpFld, 'INPUT_SEARCH');
+    	
+    	return $block;
+    }
+    
+    
+    /**
+     * Екшън за показване на черновите бележки
+     */
+ 	function act_ShowDrafts()
+    {
+    	$this->requireRightFor('terminal');
+    	expect($id = Request::get('id'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('terminal', $rec);
+    	
+    	Mode::set('wrapper', 'page_Empty');
+    	
+    	return $this->renderDraftsTab($id)->getContent() . '<div class="clearfix21"></div>';
+    } 
+    
+    
+    /**
+     * Рендиране на таба с черновите
+     * 
+     * @param int $id -ид на бележка
+     * @return core_ET $block - шаблон
+     */
+    public function renderDraftsTab($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
+    	$pointId = pos_Points::getCurrent('id');
+    	
+    	// Намираме всички чернови бележки и ги добавяме като линк
+    	$query = $this->getQuery();
+    	$query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
+    	while($rec = $query->fetch()){
+    		$date = $this->getVerbal($rec, 'valior');
+    		$row = ht::createLink("№{$rec->id} / {$date}", array('pos_Receipts', 'Terminal', $rec->id),NULL, array('class'=>'pos-notes'));
+    		$block->append($row);
+    	}
+    	
+    	if(!$query->count()){
+    		$block->append("<div class='pos-no-result'>" . tr('Няма чернови') . "</div>");
+    	}
+    	
+    	return $block;
+    }
+    
+    
+    /**
+     * Рендиране на таба за плащане
+     * 
+     * @param int $id -ид на бележка
+     */
+	public function renderPaymentTab($id)
+    {
+    	expect($rec = $this->fetchRec($id));
+    	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
+
+    	$payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
+    	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;')) . "<br />", 'INPUT_PAYMENT');
+    	$payments = pos_Payments::fetchSelected();
+	    foreach($payments as $payment) {
+	    	$attr = array('class' => 'actionBtn paymentBtn', 'data-type' => "$payment->id", 'data-url' => $payUrl);
+	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
+	    }
+	    
+	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
+	    if ($this->haveRightFor('close', $rec)) {
+	    	$contoUrl = array('pos_Receipts', 'close', $rec->id);
+	    	$hint = tr("Приключи продажбата");
+	    	$hintInv = tr("Приключи и издай фактура");
+	    	
+	        if($client = $this->pos_ReceiptDetails->hasClient($rec->id)){
+	        	$contragentClass = cls::get($client->class);
+    			$folderId = $contragentClass->forceCoverAndFolder($client->id, FALSE);
+    			if(doc_Folders::haveRightToFolder($folderId)){
+    				$confInvUrl = $contoUrl;
+	        		$confInvUrl['makeInvoice'] = TRUE;
+    			} else {
+    				$hintInv = tr("Не може да издадете фактура, защото нямате достъп до папката на клиента");
+    			}
+	        }
+	    } else {
+	    	$hint = $hintInv = tr("Не може да приключите бележката, докато не е платена");
+	    }
+	    
+	    $disClass = ($contoUrl) ? '' : 'disabledBtn';
+	    $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-close','title' => $hint)), 'CLOSE_BTNS');
+	    $disClass = ($confInvUrl) ? '' : 'disabledBtn';
+	    $block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
+    	
+	    return $block;
     }
     
     
@@ -503,17 +730,6 @@ class pos_Receipts extends core_Master {
     static function getLink($id)
     {
     	return static::recToVerbal(static::fetchRec($id), 'id,title,-list')->title;
-    }
-    
-     
-    /**
-     * Изтриваме детайлите ако се изтрие мастъра
-     */
-    function on_AfterDelete($mvc, &$res, $query)
-    {
-        foreach($query->getDeletedRecs() as $rec) {
-        	$mvc->pos_ReceiptDetails->delete("#receiptId = {$rec->id}");
-        }
     }
     
     
@@ -557,7 +773,7 @@ class pos_Receipts extends core_Master {
             $p->classId     = $productManId;
             $p->productId   = $pr->productId;
             $p->packagingId = $pr->packagingId;
-            //$p->discount    = $dRec->discount;
+            $p->discount    = $dRec->discountPercent;
             $p->quantity    = $pr->quantity;
             $p->price       = $pr->price;
             $p->uomId       = $pr->uomId;
@@ -584,7 +800,7 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * Контира документа и ако е зададено пренасочва към създаването на нова фактура
+     * Активира документа и ако е зададено пренасочва към създаването на нова фактура
      */
     function act_Close()
     {
@@ -593,8 +809,14 @@ class pos_Receipts extends core_Master {
     	expect($rec->state == 'draft');
     	$makeInvoice = Request::get('makeInvoice', 'int');
     	
-    	// Контиране на документа
-    	$this->conto($id);
+    	$this->requireRightFor('close', $rec);
+    	
+    	$rec->state = 'active';
+    	if($this->save($rec)){
+    		
+    		// Обновяваме складовите наличностти
+    		pos_Stocks::updateStocks($rec->id);
+    	}
     	
     	// Ако не трябва да се прави фактура редирект към новата бележка
     	if(empty($makeInvoice)){
@@ -613,5 +835,158 @@ class pos_Receipts extends core_Master {
     	
     	// Редирект към създаването на нова фактура;
     	return redirect(array('sales_Invoices', 'add', 'folderId' => $folderId, 'docType' => $this->getClassId(), 'docId' => $id));
+    }
+    
+    
+	/**
+     * Връща таблицата с намерените резултати за търсене
+     */
+	function act_getSearchResults()
+    {
+    	$this->requireRightFor('terminal');
+    	
+    	if($searchString = Request::get('searchString')){
+    		if(!$id = Request::get('receiptId')) return array();
+    	
+	    	if(!$rec = $this->fetch($id)) return array();
+	    	
+	    	$this->requireRightFor('terminal', $rec);
+	    	$html = $this->getResultsTable($searchString, $rec);
+	    } else {
+    		$html = ' ';
+    	}
+    	
+    	// Ще реплесйнем и добавим таблицата с резултатите
+		$resObj = new stdClass();
+		$resObj->func = "html";
+		$resObj->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => TRUE);
+        
+        return array($resObj);
+    }
+    
+    
+    /**
+     * Връща таблицата с продукти отговарящи на определен стринг
+     */
+    public function getResultsTable($string, $rec)
+    {
+    	$searchString = plg_Search::normalizeText($string);
+	    $data = new stdClass();
+	    $data->rec = $rec;
+	    $data->searchString = $searchString;
+	    $data->baseCurrency = acc_Periods::getBaseCurrencyCode();
+	    $this->prepareSearchData($data);
+	    	
+	    return $this->renderSearchResultTable($data);
+    }
+    
+    
+    /**
+     * Подготвя данните от резултатите за търсене
+     */
+    private function prepareSearchData(&$data)
+    {
+    	$data->rows = array();
+    	$count = 0;
+    	$conf = core_Packs::getConfig('pos');
+    	$data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
+    	
+    	// Намираме всички продаваеми продукти
+    	$sellable = cat_Products::getByProperty('canSell');
+    	if(!count($sellable)) return;
+    	
+    	$Products = cls::get('cat_Products');
+    	foreach ($sellable as $id => $name){
+    		
+    		// Показваме само до определена бройка
+    		if($count >= $this->maxSearchProducts) break;
+    		
+    		// Ако продукта не отговаря на търсения стринг, го пропускаме
+    		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
+    		$price = $Products->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId());
+    		
+    		// Ако няма цена също го пропускаме
+    		if(empty($price->price)) continue;
+    		
+    		$obj = (object)array('productId' => $id, 
+    							 'measureId' => $pRec->measureId,
+    							 'price'     => $price->price, 
+    							 'photo'     => $pRec->photo,
+    							 'vat'	     => $Products->getVat($id),
+    							 'stock'     => pos_Stocks::getQuantity($id, $data->rec->pointId));
+    		
+    		// Обръщаме реда във вербален вид
+    		$data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
+    		$count++;
+    	}
+    }
+    
+    
+    /**
+     * Връща вербалното представяне на един ред от резултатите за търсене
+     */
+    private function getVerbalSearchResult($obj, &$data)
+    {
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	$row = new stdClass();
+    	
+		
+    	
+    	$row->price = $Double->toVerbal($obj->price * (1 + $obj->vat));
+    	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
+    	$row->stock = $Double->toVerbal($obj->stock);
+    	
+    	$obj->receiptId = $data->rec->id;
+    	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
+    		$addUrl = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
+    	}
+    	$row->productId = "<span class='pos-add-res-btn' data-recId='{$data->rec->id}' data-url='{$addUrl}' data-productId='{$obj->productId}'>" . cat_Products::getTitleById($obj->productId) . "</span>";
+    	if($data->showParams){
+    		$params = keylist::toArray($data->showParams);
+    		$values = NULL;
+    		foreach ($params as $pId){
+    			if($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")){
+    				$row->productId .= " &nbsp;" . cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
+    			}
+    		}
+    	}
+    	$singImg = ht::createElement('img', array('src' => sbf('img/16/anchor-image.png', '')));
+    	$row->singleBtn = ht::createLink($singImg, array('cat_Products', 'single', $obj->productId), FALSE, array('target'=>'_blank', 'class'=>'singleProd'));
+    	
+    	if($obj->stock < 0){
+    		$row->stock = "<span style='color:red'>$row->stock</span>";	
+    	}
+    	
+    	$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
+    	if($obj->photo && !Mode::is('screenMode', 'narrow')) {
+    		$thumb = new img_Thumb($obj->photo, 64, 64);
+    		$arr = array();
+    		$row->photo = "<div class='pos-search-pic'>" . $thumb->createImg($arr) . "</div>";
+    		$data->showImg = TRUE;
+    	}
+    	
+    	return $row;
+    }
+    
+    
+    /**
+     * Рендира таблицата с резултатите от търсенето
+     */
+    private function renderSearchResultTable(&$data)
+    {
+    	$fSet = cls::get('core_FieldSet');
+    	$fSet->FNC('photo', 'varchar', 'tdClass=pos-photo-field');
+    	$fSet->FNC('productId', 'varchar', 'tdClass=pos-product-field');
+    	$fSet->FNC('price', 'double', 'tdClass=pos-price-field');
+    	$fSet->FNC('stock', 'double', 'tdClass=pos-stock-field');
+    	
+    	$table = cls::get('core_TableView', array('mvc' => $fSet));
+    	$fields = arr::make('photo=Снимка,productId=Продукт,price=Цена,stock=Наличност,singleBtn=Добави');
+    	if(!$data->showImg){
+    		unset($fields['photo']);
+    	}
+    	
+    	return $table->get($data->rows, $fields)->getContent();
     }
 }

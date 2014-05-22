@@ -1,6 +1,6 @@
 <?php
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа pos_Receipts
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа pos_eports
  *
  * @category  bgerp
  * @package   pos
@@ -15,7 +15,7 @@
 class pos_TransactionSourceImpl
 {
     /**
-     * @var pos_Receipts
+     * @var pos_Reports
      */
     public $class;
     
@@ -28,23 +28,42 @@ class pos_TransactionSourceImpl
         $rec = $this->class->fetchRec($id);
         $posRec = pos_Points::fetch($rec->pointId);
     	$entries = array();
-        $totalVat = 0;
+        $totalVat = array();
+        
+        $paymentsArr = $productsArr = array();
+    	if(!$rec->details){
+    		$this->class->extractData($rec);
+    	}
     	
-    	$products = ($rec->id) ? pos_Receipts::getProducts($rec->id) : array();
+    	if(count($rec->details['receiptDetails'])){
+    		foreach ($rec->details['receiptDetails'] as $dRec){
+    			if($dRec->action == 'sale'){
+    				$productsArr[] = $dRec;
+    			} elseif($dRec->action == 'payment'){
+    				$paymentsArr[] = $dRec;
+    			}
+    		}
+    	}
     	
     	// Генериране на записите
-        $entries = array_merge($entries, $this->getTakingPart($rec, $products, $totalVat, $posRec));
+        $entries = array_merge($entries, $this->getTakingPart($rec, $productsArr, $totalVat, $posRec));
+        
+        $entries = array_merge($entries, $this->getPaymentPart($rec, $paymentsArr, $posRec));
         
         // Начисляване на ддс ако има
-        if($totalVat){
+        if(count($totalVat)){
         	$entries = array_merge($entries, $this->getVatPart($rec, $totalVat, $posRec));
         }
         
         $transaction = (object)array(
-            'reason'  => 'Бележка за продажба №' . $rec->id,
+            'reason'  => 'Отчет за POS продажба №' . $rec->id,
             'valior'  => $rec->createdOn,
             'entries' => $entries, 
         );
+        
+        if(empty($rec->id)){
+        	unset($rec->details);
+        }
         
         return $transaction;
     }
@@ -53,13 +72,11 @@ class pos_TransactionSourceImpl
     /**
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
-     *    Dt: 501. Каси  (Каси, Валута)
+     *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
      *    
-     *    Ct: 701. Приходи от POS продажби                    (Стоки и Продукти)
-     *    	  703. Приходи от продажби на услуги 		      (Клиент, Услуга)
-     *    	  706. Приходи от продажба на суровини/материали  (Клиент, Суровини и материали)
-     * 
-     * Експедиране (ако артикула не е услуга @see getDeliveryPart)
+     *    Ct: 701  - Приходи от продажби на Стоки и Продукти  (Клиенти, Стоки и Продукти)
+     *    	  703  - Приходи от продажба на услуги 			  (Клиенти, Услуги)
+     *        706  - Приходи от продажба на Суровини и Материали (Клиенти, Суровини и материали)
      * 
      * @param stdClass $rec    - записа
      * @param array $products  - продуктите
@@ -68,15 +85,18 @@ class pos_TransactionSourceImpl
      */
     protected function getTakingPart($rec, $products, &$totalVat, $posRec)
     {
-    	$entries = array();
+    	$entries = $tmpVat = array();
     	
     	foreach ($products as $product) {
-    		$product->totalQuantity = currency_Currencies::round($product->quantity * $product->quantityInPack);
-    		$totalAmount   = currency_Currencies::round($product->totalQuantity * $product->price);
-    		$totalVat     += $product->vatPrice;
-	    	
-    		$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
-    		$pInfo = cat_Products::getProductInfo($product->productId);
+    		
+    		$product->totalQuantity = round($product->quantity * $product->quantityInPack, 2);
+    		$totalAmount   = currency_Currencies::round($product->amount);
+    		if($product->param){
+    			$totalVat[$product->contragentClassId ."|". $product->contragentId] += $product->param * $product->amount;
+    		}
+    		
+	    	$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
+    		$pInfo = cat_Products::getProductInfo($product->value);
     		$storable = isset($pInfo->meta['canStore']);
     		$convertable = isset($pInfo->meta['canConvert']);
     		
@@ -84,16 +104,16 @@ class pos_TransactionSourceImpl
     		$creditAccId = ($storable) ? (($convertable) ? '706' : '701') : '703';
     		$credit = array(
 	              $creditAccId, 
-	                    array($rec->contragentClass, $rec->contragentObjectId), // Перо 1 - Клиент
-	                    array('cat_Products', $product->productId), // Перо 2 - Артикул
+	                    array($product->contragentClassId, $product->contragentId), // Перо 1 - Клиент
+	                    array('cat_Products', $product->value), // Перо 2 - Артикул
 	              'quantity' => $product->totalQuantity, // Количество продукт в основната му мярка
 	        );
 	        
     		$entries[] = array(
 	        'amount' => $totalAmount, // Стойност на продукта за цялото количество, в основна валута
 	        'debit' => array(
-	            '501',  
-	                array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
+	            '411',  
+	                array($product->contragentClassId, $product->contragentId), // Перо 1 - Каса
 	                array('currency_Currencies', $currencyId), // Перо 3 - Валута
 	            'quantity' => $totalAmount), // "брой пари" във валутата на продажбата
 	        
@@ -104,7 +124,7 @@ class pos_TransactionSourceImpl
 	    		$entries = array_merge($entries, $this->getDeliveryPart($rec, $product, $posRec, $convertable));
 	    	}
     	}
-    	
+        
     	return $entries;
     }
     
@@ -128,7 +148,6 @@ class pos_TransactionSourceImpl
     protected function getDeliveryPart($rec, $product, $posRec, $convertable)
     {
         $entries = array();
-        $pInfo = cat_Products::getProductInfo($product->productId);
         $creditAccId = ($convertable) ? '302' : '321';
         $debitAccId = ($convertable) ? '706' : '701';
         
@@ -136,14 +155,14 @@ class pos_TransactionSourceImpl
 	    $entries[] = array(
 			 'debit' => array(
 			       $debitAccId,
-			       		array($rec->contragentClass, $rec->contragentObjectId), // Перо 1 - Клиент
-			            array('cat_Products', $product->productId), // Перо 1 - Продукт
+			       		array($product->contragentClassId, $product->contragentId), // Перо 1 - Клиент
+			            array('cat_Products', $product->value), // Перо 1 - Продукт
 		           'quantity' => $product->totalQuantity),
 			        
 			 'credit' => array(
 			        $creditAccId,
 			            array('store_Stores', $posRec->storeId), // Перо 1 - Склад
-			            array('cat_Products', $product->productId), // Перо 1 - Продукт
+			            array('cat_Products', $product->value), // Перо 1 - Продукт
 		            'quantity' => $product->totalQuantity),
 		);
 		
@@ -165,23 +184,68 @@ class pos_TransactionSourceImpl
     protected function getVatPart($rec, $totalVat, $posRec)
     {
     	$entries = array();
-    	$entries[] = array(
-	         'amount' => currency_Currencies::round($totalVat), // равностойноста на сумата в основната валута
+    	foreach ($totalVat as $index => $value){
+    		$contragentArr = explode("|", $index);
+    		
+    		$entries[] = array(
+	         'amount' => currency_Currencies::round($value), // равностойноста на сумата в основната валута
 	            
 	         'debit' => array(
 	              '411',  
-	            	 array($rec->contragentClass, $rec->contragentObjectId), // Перо 1 - Клиент
+	            	 $contragentArr, // Перо 1 - Клиент
 	            	 array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->createdOn)), // Валута в основна мярка
-	              'quantity' => currency_Currencies::round($totalVat), 
+	              'quantity' => currency_Currencies::round($value), 
 	            ),
 	            
 	        'credit' => array(
 	              '4532',  
-	              'quantity' => currency_Currencies::round($totalVat),
+	              'quantity' => currency_Currencies::round($value),
 	            )
 	    	);
+    	}
 	    	
 	    return $entries;
+    }
+    
+    
+	/**
+     * Помощен метод - генерира платежната част от транзакцията за продажба (ако има)
+     * 
+     *    Dt: 501. Каси                  (Каса, Валута)
+     *        
+     *    Ct: 411. Вземания от клиенти   (Клиент, Валута)
+     *    
+     * @param stdClass $rec
+     * @return array
+     */
+    protected function getPaymentPart($rec, $paymentsArr, $posRec)
+    {
+        $entries = array();
+        
+        // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
+        $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
+        
+        foreach ($paymentsArr as $payment) {
+        	$entries[] = array(
+                'amount' => currency_Currencies::round($payment->amount), // В основна валута
+                
+                'debit' => array(
+                    '501', // Сметка "501. Каси"
+                        array('cash_Cases', $posRec->caseId),         // Перо 1 - Каса
+                        array('currency_Currencies', $currencyId), // Перо 2 - Валута
+                    'quantity' => currency_Currencies::round($payment->amount), // "брой пари" във валутата на продажбата
+                ),
+                
+                'credit' => array(
+                    '411', // Сметка "411. Вземания от клиенти"
+                        array($payment->contragentClassId, $payment->contragentId), // Перо 1 - Клиент
+                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
+                    'quantity' => currency_Currencies::round($payment->amount), // "брой пари" във валутата на продажбата
+                ),
+            );
+        }
+            
+        return $entries;
     }
     
     
@@ -193,6 +257,9 @@ class pos_TransactionSourceImpl
         $rec = $this->class->fetchRec($id);
         $rec->state = 'active';
         
-        return $this->class->save($rec);
+        $id = $this->class->save($rec);
+        $this->class->invoke('AfterActivation', array($rec));
+        
+        return $id;
     }
 }

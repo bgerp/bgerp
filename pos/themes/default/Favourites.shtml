@@ -1,5 +1,10 @@
-<div class='pos-bar-holder'>
+<div class=''>
 	<div id='pos-producy-categories'>
+	  <div class="pos-product-category active"  title="Изберете категория">
+                <span class="pos-span-name">
+                   всички
+                </span>
+            </div>
 		<!--ET_BEGIN CAT-->
 			<div class='pos-product-category' data-id='[#id#]' title='Изберете категория'>
 			 	<span class='pos-span-name'>
@@ -9,18 +14,21 @@
 		<!--ET_END CAT-->
 		<div class='clearfix21'></div>
 	</div>
-	<div id='pos-products'>
+	<div id='pos-products' class='scrolling-holder'>
+	<div>
+	 
 		<!--ET_BEGIN ITEM-->
 		[#ITEM#]
-			<div class='pos-product' data-code='[#code#]' data-cat='[#catId#]' title='Добавете [#name#]'>
+			<div class='pos-product' data-id='[#productId#]' data-url = '[#url#]' data-cat='[#catId#]' title='Добавете [#name#]'>
 				<!--ET_BEGIN image-->
 					[#image#]
 				<!--ET_END image-->
 				<span class='pos-product-title'>[#name#]</span>
 				<span class='pos-product-price'>[#price#] 
-				<span class='pos-product-base-currency'>[#baseCurrency#]</span>
 				</span>
 			</div>
 		<!--ET_END ITEM-->
+		<div class='clearfix21'></div>
+	</div>
 	</div>
 </div>
