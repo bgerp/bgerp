@@ -115,10 +115,11 @@ class crm_Locations extends core_Master {
             storage=Склад,
             factory=Фабрика,
             other=Друг)', 'caption=Тип,mandatory,width=15.4em');
-        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава');
-        $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city');
-        $this->FLD('pCode', 'varchar(16)', 'caption=П. код');
-        $this->FLD('address', 'varchar(255)', 'caption=Адрес');
+        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава,class=contactData');
+        $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
+        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
+        $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
+        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
         $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код,width=15.4em');
         $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
@@ -288,9 +289,10 @@ class crm_Locations extends core_Master {
         if(count($data->rows)) {
             
             foreach($data->rows as $id => $row) {
-                $tpl->append("<div>", 'content');
-                $tpl->append("{$row->title}, {$row->type} {$row->tools}", 'content');
-                $tpl->append("</div>", 'content');
+            	$block = new ET("<div>[#title#], [#type#] <!--ET_BEGIN tel-->, [#tel#]<!--ET_END tel--> [#tools#]</div>");
+            	$block->placeObject($row);
+            	$block->removeBlocks();
+                $tpl->append($block, 'content');
             }
         } else {
             $tpl->append(tr("Все още няма локации"), 'content');
@@ -386,34 +388,6 @@ class crm_Locations extends core_Master {
         }
         
         return $locationRecs;
-    }
-
-
-    /**
-     * За NULL-ява празните gln и gpsCoords
-     */
-    function on_BeforeSetupMvc($mvc, &$res) 
-    {
-        if($mvc->db->tableExists($mvc->dbTableName)) {
-            $query = $mvc->getQuery();
-            while($rec = $query->fetch()) {
-                
-                $saveFlag = FALSE;
-                
-                if($rec->gln === '') {
-                    $rec->gln = NULL;
-                    $saveFlag = TRUE;
-                }
-                 if($rec->gpsCoords === '') {
-                    $rec->gpsCoords = NULL;
-                    $saveFlag = TRUE;
-                }
-
-                if($saveFlag) {
-                    $mvc->save($rec);
-                }
-            }
-        }
     }
     
     
