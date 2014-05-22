@@ -84,6 +84,12 @@ class store_Products extends core_Manager
     
     
     /**
+     * Работен кеш
+     */
+    private static $cache = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -96,7 +102,6 @@ class store_Products extends core_Manager
         $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden');
         $this->FNC('makePallets', 'varchar(255)', 'caption=Палетиране');
         $this->FNC('name', 'varchar(255)', 'caption=Продукт');
-        $this->FLD('lastUpdated', 'datetime(format=smartTime)', 'caption=Последен ъпдейт,input=none');
         $this->FLD('state', 'enum(active=Активирано,closed=Затворено)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, classId, storeId');
@@ -200,8 +205,12 @@ class store_Products extends core_Manager
 	        	$rec = &$recs[$id];
 	        	
 	        	$ProductMan = cls::get($rec->classId);
-		    	$pInfo = $ProductMan->getProductInfo($rec->productId);
-		        $measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
+	        	try{
+	        		$pInfo = $ProductMan->getProductInfo($rec->productId);
+	        		$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
+	        	} catch(Exception $e){
+	        		$measureShortName = tr("Проблем при извличането");
+	        	}
 	        	
 		        if($rec->quantityNotOnPallets > 0){
 		        	$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
@@ -266,18 +275,25 @@ class store_Products extends core_Manager
     		// Ако има съществуващ запис се обновява количеството му
 	    	$exRec = static::fetch("#productId = {$productId} AND #classId = {$classId} AND #storeId = {$storeId}");
 	    	if($exRec){
+	    		// Ъпдейтваме количеството само ако има промяна
+	    		if($exRec->quantity == $rec->quantity) {
+	    			
+	    			// Записваме в кеша ид-то на съществуващия запис и продължаваме напред
+	    			static::$cache[$exRec->id] = $exRec->id;
+	    			continue;
+	    		}
 	    		$exRec->quantity = $rec->quantity;
 	    		$rec = $exRec;
 	    	}
-	    	
-	    	// Обновяване на датата за ъпдейт
-	    	$rec->lastUpdated = $date;
 	    	
 	    	// Ако количеството е 0, състоянието е затворено
 	    	$rec->state = ($rec->quantity) ? 'active' : 'closed';
 	    	
 	    	// Обновяване на записа
 	    	static::save($rec);
+	    	
+	    	// Записваме в кеша ид-то добавения запис
+	    	static::$cache[$rec->id] = $rec->id;
     	}
     	
     	// Ъпдейт на к-та на продуктите, имащи запис но липсващи в счетоводството
@@ -293,10 +309,9 @@ class store_Products extends core_Manager
      */
     private static function updateMissingProducts($date)
     {
-    	// Всички продукти, които не са били обновени с последния ъпдейт,
-    	// са тези, които не идват от баланса
+    	// Всички записи, които са останали но не идват от баланса
     	$query = static::getQuery();
-    	$query->where("#lastUpdated != '{$date}'");
+    	$query->notIn('id', static::$cache);
     	
     	// За всеки запис
     	while($rec = $query->fetch()){
@@ -304,7 +319,6 @@ class store_Products extends core_Manager
     		// К-то им се занулява и състоянието се затваря
     		$rec->state       = 'closed';
     		$rec->quantity    = 0;
-    		$rec->lastUpdated = $date;
     		
     		// Обновяване на записа
     		static::save($rec);
