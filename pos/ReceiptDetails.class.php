@@ -296,7 +296,7 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Ако всичко равни не можем да правим плащане
     	if($receipt->paid - $receipt->total > 0){
-    		core_Statuses::newStatus(tr('|Не може да направите плащане, когато платеното е повече от продаденото|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Не може да направите плащане|* !'), 'error');
 	    	return array();
     	}
     	
@@ -310,11 +310,10 @@ class pos_ReceiptDetails extends core_Detail {
     	$rec = new stdClass();
     	$rec->receiptId = $recId;
     	$rec->action = "payment|{$type}";
-    	if(($receipt->paid + $amount) > $receipt->total){
-    		$rec->amount = round($receipt->total - $receipt->paid, 2);
-    		$rec->value = round($amount - $rec->amount, 2);
-    	} else {
-    		$rec->amount = round($amount, 2);
+    	$rec->amount = $amount;
+    	$paid = $receipt->paid + $amount;
+    	if(($paid) > $receipt->total){
+    		$rec->value = round($paid - $receipt->total, 2);
     	}
     	
     	// Запис на плащанетo
@@ -773,7 +772,7 @@ class pos_ReceiptDetails extends core_Detail {
     			$obj->param   = $rec->param;
     		} else {
     			if(!$rec->amount) continue;
-    			
+    			$rec->amount -= $rec->value;
     			$obj->action = 'payment';
     			list(, $obj->value) = explode('|', $rec->action);
     			$obj->pack = NULL;
