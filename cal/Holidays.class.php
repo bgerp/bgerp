@@ -476,7 +476,7 @@ class cal_Holidays extends core_Master
     /**
      * Форма за търсене по дадена ключова дума
      */
-    static function on_AfterPrepareListFilter($mvs, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->showFields = 'search, base, type';
         $data->listFilter->view = 'horizontal';

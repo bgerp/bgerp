@@ -113,7 +113,7 @@ class vislog_History extends core_Manager {
      * Извиква се след подготовката на toolbar-а за табличния изглед
      * Форма за търсене по дадена ключова дума
      */
-    static function on_AfterPrepareListFilter($mvs, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->showFields = 'ip'; //, HistoryResourceId';
         $data->listFilter->view = 'horizontal';
