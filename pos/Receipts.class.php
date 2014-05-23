@@ -674,9 +674,9 @@ class pos_Receipts extends core_Master {
     	while($rec = $query->fetch()){
     		$date = dt::mysql2verbal($rec->createdOn, $mask = "H:i");
     		$between = dt::daysBetween($now, $rec->valior);
-    		$between = ($between != 0) ? " <span style='color:black'>(-$between)</span>" : NULL;
+    		$between = ($between != 0) ? " <span>-$between</span>" : NULL;
     		
-    		$row = ht::createLink("№{$rec->id} / {$date}$between", array('pos_Receipts', 'Terminal', $rec->id), NULL, array('class'=>'pos-notes'));
+    		$row = ht::createLink("№{$rec->id} <br> {$date}$between", array('pos_Receipts', 'Terminal', $rec->id), NULL, array('class'=>'pos-notes'));
     		$block->append($row);
     	}
     	
