@@ -148,6 +148,8 @@ class deals_Deals extends core_Master
     		'longTermLoansBankOverdraft'     => array('title' => 'Погасена главница по дългосрочен овърдрафт', 'debit' => '1523', 'credit' => '503'),
     		'longTermLoansBankPersons'       => array('title' => 'Получени дългосрочни заеми - от свързани лица', 'debit' => '1524', 'credit' => '503'),
     		'longTermLoansCasePersons'       => array('title' => 'Платена главница по дългосрочен заем от свързани лица', 'debit' => '1524', 'credit' => '501'),
+    		'catchObligations'       		 => array('title' => 'Прихващане на Задължения', 'debit' => '401', 'credit' => '406'),
+    		'catchTakings'                   => array('title' => 'Прихващане на Вземания', 'debit' => '406', 'credit' => '411'),
     		);
     
     
