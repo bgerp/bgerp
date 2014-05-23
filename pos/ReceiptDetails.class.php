@@ -723,6 +723,14 @@ class pos_ReceiptDetails extends core_Detail {
 			
 			if($masterRec->state != 'draft') {
 				$res = 'no_one';
+			} else {
+				
+				// Не може да се изтрива продукт, ако има направено плащане
+				if($action == 'delete' && $rec->productId){
+					if($masterRec->paid){
+						$res = 'no_one';
+					}
+				}
 			}
 		}
 	}
