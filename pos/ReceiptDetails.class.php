@@ -532,6 +532,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$Double->params['decimals'] = 2;
     	
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
+    	$perPack = ($productInfo->packagingRec->quantity) ? $productInfo->packagingRec->quantity : 1;
     	
     	$vat = cat_Products::getVat($rec->productId, $receiptDate);
     	$rec->price = $rec->price * (1 - $rec->discountPercent);
@@ -545,7 +546,10 @@ class pos_ReceiptDetails extends core_Detail {
     	$row->code = $Varchar->toVerbal($productInfo->productRec->code);
     	$row->uomId = cat_UoM::getShortName($productInfo->productRec->measureId);
     	
-    	$row->perPack = $Double->toVerbal($productInfo->packagingRec->quantity);
+    	if($perPack != 1){
+    		$row->perPack = $Double->toVerbal($perPack);
+    	}
+    	
     	if($rec->value) {
     		$row->value = cat_Packagings::getTitleById($rec->value);
     	} else {
@@ -632,9 +636,9 @@ class pos_ReceiptDetails extends core_Detail {
     	$Policy = cls::get('price_ListToCustomers');
     	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->valior);
     	
-    	$rec->price = $price->price;
+    	$rec->price = $price->price * $perPack;
     	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);
-    	$rec->amount = $rec->price * $rec->quantity * $perPack;	
+    	$rec->amount = $rec->price * $rec->quantity;	
     }
     
     
@@ -768,7 +772,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$obj->contragentClassId = $rec->contragentClsId;
     		$obj->contragentId      = $rec->contragentId;
     		$obj->quantity          = $rec->quantity;
-    		$obj->amount            = $rec->amount * (1 - $rec->discountPercent);
+    		$obj->amount            = ($rec->amount) * (1 - $rec->discountPercent);
     		$obj->date              = $masterRec->createdOn;
     		
     		$result[] = $obj;
