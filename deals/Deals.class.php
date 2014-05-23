@@ -159,8 +159,8 @@ class deals_Deals extends core_Master
     public function description()
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,mandatory,width=100%');
-    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf)', 'caption=Сметка,mandatory');
-    	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Име');
+    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf, allowEmpty)', 'caption=Сметка,mandatory');
+    	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
     	$this->FLD('contragentId', 'int', 'input=hidden');
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
@@ -223,15 +223,17 @@ class deals_Deals extends core_Master
     	
     	if($fields['-single']){
     		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
+    		$row->contragentName = cls::get($rec->contragentClassId)->getHyperLink($rec->contragentId, TRUE);
     	}
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		$lastBalance = acc_Balances::getLastBalance();
-    		if(acc_Balances::haveRightFor('single', $lastBalance)){
-    			$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
-    			$row->accountId = ht::createLink($row->accountId, $accUrl);
-    		}
+    	}
+    	
+    	$lastBalance = acc_Balances::getLastBalance();
+    	if(acc_Balances::haveRightFor('single', $lastBalance)){
+    		$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
+    		$row->accountId = ht::createLink($row->accountId, $accUrl);
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -419,7 +421,7 @@ class deals_Deals extends core_Master
     	$title = static::getRecTitle($rec);
     
     	$row = (object)array(
-    			'title'    => $this->singleTitle . " №{$rec->id}",
+    			'title'    => $this->singleTitle . " \"$title\"",
     			'authorId' => $rec->createdBy,
     			'author'   => $this->getVerbal($rec, 'createdBy'),
     			'state'    => $rec->state,
@@ -442,9 +444,8 @@ class deals_Deals extends core_Master
     	$rec = self::fetchRec($id);
     
     	$result = new bgerp_iface_DealResponse();
-    
-    	$result->dealType = bgerp_iface_DealResponse::TYPE_DEAL;
     	
+    	$result->dealType = bgerp_iface_DealResponse::TYPE_DEAL;
     	$result->allowedPaymentOperations = $this->getAllowedOperations($rec);
     	
     	$result->paid->currency = $rec->currencyId;
@@ -499,7 +500,7 @@ class deals_Deals extends core_Master
     	$dealDocuments = $this->getDescendants($dealRec->id);
     
     	// Извличаме dealInfo от самата сделка
-    	/* @var $saleDealInfo bgerp_iface_DealResponse */
+    	/* @var $dealDealInfo bgerp_iface_DealResponse */
     	$dealDealInfo = $this->getDealInfo($dealRec->id);
     
     	// dealInfo-то на самата сделка е база, в/у която се натрупват някой от аспектите
