@@ -492,14 +492,14 @@ class pos_ReceiptDetails extends core_Detail {
     		case "sale":
     			$mvc->renderSale($rec, $row, $receiptDate, $fields);
     			if($fields['-list']){
-    				$row->quantity = $row->value;
+    				$row->quantity = ($rec->value) ? $row->quantity : $row->quantity;
     			}
     			break;
     		case "payment":
     			$row->actionValue = pos_Payments::getTitleById($action->value);
     			if($fields['-list']){
     				$row->productId = tr('Плащане') . ": " . $row->actionValue;
-    				unset($row->quantity);
+    				unset($row->quantity,$row->value);
     			}
     			break;
     		case "client":
