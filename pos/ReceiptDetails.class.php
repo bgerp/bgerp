@@ -434,6 +434,12 @@ class pos_ReceiptDetails extends core_Detail {
     	// Трябва да можем да добавяме към нея
     	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId)))  return array();
     	
+    	// Трябва да няма добавен клиент досега
+    	if($this->hasClient($receiptId)){
+    		core_Statuses::newStatus(tr('|Има вече въведена клиентска карта|* !'), 'error');
+    		return array();
+    	}
+    	
     	// Ако няма клиент оговарящ на картата
     	if(!$Contragent = pos_Cards::getContragent($number)) {
     		core_Statuses::newStatus(tr('|Няма контрагент с такава карта|* !'), 'error');
@@ -679,7 +685,6 @@ class pos_ReceiptDetails extends core_Detail {
     public function hasClient($receiptId)
     {
     	$query = $this->getQuery();
-    	$query->where(array("#receiptId = [#1#]", $receiptId));
     	$query->where(array("#receiptId = [#1#]", $receiptId));
     	$query->where("#action = 'client|ccard'");
     	$query->orderBy("#id", "DESC");
