@@ -45,7 +45,7 @@ class pos_Receipts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title=Заглавие, contragentName, total, paid, change, productCount, state , createdOn, createdBy';
+    var $listFields = 'id, title=Заглавие, contragentName, total, paid, change, state , createdOn, createdBy';
     
     
     /**
@@ -132,7 +132,6 @@ class pos_Receipts extends core_Master {
             'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Затворен)', 
             'caption=Статус, input=none'
         );
-        $this->FLD('productCount', 'int', 'caption=Продукти, input=none, value=0,summary=quantity');
     }
     
     
@@ -317,7 +316,7 @@ class pos_Receipts extends core_Master {
     function updateReceipt($id)
     {
     	expect($rec = $this->fetch($id));
-    	$rec->change = $rec->total = $rec->paid =  $rec->productCount = 0;
+    	$rec->change = $rec->total = $rec->paid = 0;
     	
     	$hasClient = FALSE;
     	$dQuery = $this->pos_ReceiptDetails->getQuery();
@@ -328,7 +327,6 @@ class pos_Receipts extends core_Master {
     			case 'sale':
     				$vat = cat_Products::getVat($dRec->productId, $rec->createdOn);
     				$rec->total += $dRec->quantity * $dRec->price * (1 - $dRec->discountPercent) * (1 + $vat);
-    				$rec->productCount += $dRec->quantity;
     				break;
     			case 'payment':
     				$rec->paid += $dRec->amount;
