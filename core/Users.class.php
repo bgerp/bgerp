@@ -830,7 +830,7 @@ class core_Users extends core_Manager
             
             // Добавяме съответното статус съобщение
             $text = "|Последно логване от|* {$userRec->lastLoginIp} |преди|* {$time}";
-            core_Statuses::newStatus($text, 'warning');
+            core_Statuses::newStatus($text);
         }
     }
     
