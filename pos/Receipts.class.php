@@ -668,13 +668,17 @@ class pos_Receipts extends core_Master {
     	$rec = $this->fetchRec($id);
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
     	$pointId = pos_Points::getCurrent('id');
+    	$now = dt::today();
     	
     	// Намираме всички чернови бележки и ги добавяме като линк
     	$query = $this->getQuery();
     	$query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
     	while($rec = $query->fetch()){
-    		$date = $this->getVerbal($rec, 'valior');
-    		$row = ht::createLink("№{$rec->id} / {$date}", array('pos_Receipts', 'Terminal', $rec->id),NULL, array('class'=>'pos-notes'));
+    		$date = dt::mysql2verbal($rec->createdOn, $mask = "H:i");
+    		$between = dt::daysBetween($now, $rec->valior);
+    		$between = ($between != 0) ? " <span style='color:black'>(-$between)</span>" : NULL;
+    		
+    		$row = ht::createLink("№{$rec->id} / {$date}$between", array('pos_Receipts', 'Terminal', $rec->id), NULL, array('class'=>'pos-notes'));
     		$block->append($row);
     	}
     	
