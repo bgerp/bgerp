@@ -265,7 +265,7 @@ class acc_ReportDetails extends core_Manager
     	} else {
     		
     		// Ако няма какво да се показва
-    		$tpl->append(tr("Няма справки"), 'CONTENT');
+    		$tpl->append(tr("Няма записи"), 'CONTENT');
     	}
     	
     	// Връщане на шаблона
