@@ -462,6 +462,7 @@
 }
 
 .pos-notes span{
+	margin-left: 5px;
 	color: #ccc;
 	font-weight: normal;
 }
@@ -601,6 +602,7 @@
 	transition:all linear 0.1s;
 	border-left: 1px solid #ccc;
 	border-bottom:#ccc;
+	outline: none;
 }
  
 .pos-tabs a:hover, .pos-tabs .active a, .pos-tabs .active a:hover {
