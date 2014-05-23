@@ -984,7 +984,7 @@ class crm_Persons extends core_Master
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel,buzLocationId');
             $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
             if($rec->buzLocationId){
-            	$row->name .= " -{$row->buzLocationId}";
+            	$row->name .= " - {$row->buzLocationId}";
             }
             
             if(!$row->buzTel) $row->buzTel = $row->tel;
