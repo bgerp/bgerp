@@ -1019,7 +1019,7 @@ class crm_Persons extends core_Master
         
         if(count($data->rows)){
         	foreach($data->rows as $id => $row) {
-        		$tpl->append("<div>", 'persons');
+        		$tpl->append("<div style='margin-bottom:10px'>", 'persons');
         	
         		if(crm_Persons::haveRightFor('edit', $id)){
         			$editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
