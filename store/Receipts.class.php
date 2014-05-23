@@ -738,12 +738,12 @@ class store_Receipts extends core_Master
      */
     private function setTemplates(&$res)
     {
-    	$tplArr[] = array('name' => 'Складова разписка', 
+    	$tplArr1[] = array('name' => 'Складова разписка', 
     					  'content' => 'store/tpl/SingleLayoutReceipt.shtml', 'lang' => 'bg', 
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Складова разписка с цени', 
     					  'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
     	$skipped = $added = $updated = 0;
     	foreach ($tplArr as $arr){
