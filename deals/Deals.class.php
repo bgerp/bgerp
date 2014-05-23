@@ -126,14 +126,22 @@ class deals_Deals extends core_Master
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(
-    		'shortTermLoansBankCredit' => array('title' => 'Краткосрочен банков кредит', 'debit' => '503', 'credit' => '1511'),
-    		'shortTermLoansBankOverdraft' => array('title' => 'Kраткосрочни заеми - овърдрафт', 'debit' => '503', 'credit' => '1513'),
-    		'shortTermLoansBankPersons' => array('title' => 'Краткосрочен заем от свързани лица', 'debit' => '503', 'credit' => '1514'),
-    		'shortTermLoansCasePersons' => array('title' => 'Краткосрочен заем от свързани лица', 'debit' => '501', 'credit' => '1514'),
-    		'longTermLoansBankCredit' => array('title' => 'Дългосрочен банков кредит', 'debit' => '503', 'credit' => '1521'),
-    		'longTermLoansOverdraft' => array('title' => 'Дългосрочни заеми - овърдрафт', 'debit' => '503', 'credit' => '1523'),
-    		'longTermLoansBankPersons' => array('title' => 'Дългосрочен заем от свързани лица', 'debit' => '503', 'credit' => '1524'),
-    		'longTermLoansCasePersons' => array('title' => 'Дългосрочен заем от свързани лица', 'debit' => '501', 'credit' => '1524'),
+    		'shortTermLoansBankCredit'       => array('title' => 'Краткосрочен банков кредит', 'debit' => '503', 'credit' => '1511'),
+    		'shortTermLoansBankOverdraft'    => array('title' => 'Kраткосрочни заеми - овърдрафт', 'debit' => '503', 'credit' => '1513'),
+    		'shortTermLoansBankPersons'      => array('title' => 'Краткосрочен заем от свързани лица', 'debit' => '503', 'credit' => '1514'),
+    		'shortTermLoansCasePersons'      => array('title' => 'Краткосрочен заем от свързани лица', 'debit' => '501', 'credit' => '1514'),
+    		'longTermLoansBankCredit'        => array('title' => 'Дългосрочен банков кредит', 'debit' => '503', 'credit' => '1521'),
+    		'longTermLoansOverdraft'         => array('title' => 'Дългосрочни заеми - овърдрафт', 'debit' => '503', 'credit' => '1523'),
+    		'longTermLoansBankPersons'       => array('title' => 'Дългосрочен заем от свързани лица', 'debit' => '503', 'credit' => '1524'),
+    		'longTermLoansCasePersons'       => array('title' => 'Дългосрочен заем от свързани лица', 'debit' => '501', 'credit' => '1524'),
+    		'paidShortTermLoanBankCredit'    => array('title' => 'Платена главница по краткосрочен банков кредит', 'debit' => '1511', 'credit' => '503'),
+    		'paidShortTermLoanBankOverdraft' => array('title' => 'Погасена главница по краткосрочен овърдрафт', 'debit' => '1513', 'credit' => '503'),
+    		'paidShortTermLoansBankPersons'  => array('title' => 'Платена главница по краткосрочен заем от свързани лица', 'debit' => '1514', 'credit' => '503'),
+    		'paidShortTermLoansCasePersons'  => array('title' => 'Платена главница по краткосрочен заем от свързани лица', 'debit' => '1514', 'credit' => '501'),
+    		'paidLongTermLoanBankCredit'     => array('title' => 'Платена главница по дългосрочен банков кредит', 'debit' => '1521', 'credit' => '503'),
+    		'longTermLoansBankOverdraft'     => array('title' => 'Погасена главница по дългосрочен овърдрафт', 'debit' => '1523', 'credit' => '503'),
+    		'longTermLoansBankPersons'       => array('title' => 'Получени дългосрочни заеми - от свързани лица', 'debit' => '1524', 'credit' => '503'),
+    		'longTermLoansCasePersons'       => array('title' => 'Платена главница по дългосрочен заем от свързани лица', 'debit' => '1524', 'credit' => '501'),
     		);
     
     
