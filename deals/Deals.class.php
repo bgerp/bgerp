@@ -67,6 +67,12 @@ class deals_Deals extends core_Master
 	 */
 	public $canSingle = 'ceo,deals';
     
+	
+	/**
+	 * Кой може да променя състоянието
+	 */
+    public $canChangestate = 'ceo, deals';
+    
     
     /**
      * Документа продажба може да бъде само начало на нишка
@@ -159,7 +165,7 @@ class deals_Deals extends core_Master
     	$this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=4em');
     	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнителno->Описание');
     	
-    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)','caption=Статус, input=none');
+    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Статус, input=none');
     	
     	$this->setDbUnique('dealName');
     }
@@ -256,6 +262,25 @@ class deals_Deals extends core_Master
     		
     		if(bank_SpendingDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     			$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
+    		}
+    	}
+    	
+    	if($mvc->haveRightFor('changeState', $rec)){
+    		$title = ($rec->state == 'active') ? 'Приключване' : 'Отваряне';
+    		$icon = ($rec->state == 'active') ? 'img/16/lock.png' : 'img/16/lock_unlock.png';
+    		$data->toolbar->addBtn($title, array($mvc, 'toggleState', $rec->id), "ef_icon={$icon},title={$title} на финансова сделка");
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'changestate' && isset($rec)){
+    		if($rec->state != 'active' && $rec->state != 'closed'){
+    			$res = 'no_one';
     		}
     	}
     }
@@ -556,6 +581,23 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Екшън за затваряне на финансова сделка
+     */
+    public function act_ToggleState()
+    {
+    	$this->requireRightFor('changeState');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('changeState', $rec);
+    	
+    	$rec->state = ($rec->state == 'active') ? 'closed' : 'active';
+    	$this->save($rec);
+    	
+    	Redirect(array($this, 'single', $id));
+    }
+    
+    
+    /**
      * @see acc_RegisterIntf::itemInUse()
      * @param int $objectId
      */
@@ -573,5 +615,23 @@ class deals_Deals extends core_Master
     	expect($id = Request::get('id', 'int'));
     	$info = $this->getAggregateDealInfo($id);
     	bp($info->allowedPaymentOperations,$info->paid);
+    }
+    
+    
+    /**
+     * Поставя изискване да се селектират само активните записи
+     */
+    function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    {
+    	$where .= ($where ? " AND " : "") . " #state = 'active'";
+    }
+    
+    
+    /**
+     * Подрежда по state, за да могат затворените да са отзад
+     */
+    function on_BeforePrepareListFilter($mvc, &$res, $data)
+    {
+    	$data->query->orderBy('#state');
     }
 }
