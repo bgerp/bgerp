@@ -49,6 +49,7 @@ class price_Setup extends core_ProtoSetup
             'price_Lists',
             'price_ListToCustomers',
             'price_ListRules',
+            'migrate::priceHistoryTruncate',
             'price_History',
         	'price_ConsumptionNorms',
         	'price_ConsumptionNormDetails',
@@ -69,7 +70,7 @@ class price_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "price, ceo"),
         );
-
+    
     
     /**
      * Де-инсталиране на пакета
@@ -92,5 +93,15 @@ class price_Setup extends core_ProtoSetup
     	$html .= price_ListRules::setup();
     	
     	return $html;
+    }
+
+    /**
+     * Миграция, която изтрива таблицата price_History
+     * за да може да се постави уникален индекс
+     */
+    function priceHistoryTruncate()
+    {
+        $history = cls::get('price_History');
+        $history->db->query("TRUNCATE TABLE `{$history->dbTableName}`");
     }
 }
