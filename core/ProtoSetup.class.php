@@ -102,10 +102,37 @@ class core_ProtoSetup
             $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         }
         
+        // Вземаме името на пакета
+        list ($packName, ) = explode("_", cls::getClassName($this), 2);
         
         // Създаване моделите в базата данни
         $instances = array();
         foreach (arr::make($this->managers) as $manager) {
+
+            // Ако менидръжит е миграция - изпълняваме я еднократно
+            if(stripos($manager, 'migrate::') === 0) {
+                list($migrate, $method) = explode('::', $manager);
+                
+                // Ключ в настойките на пакета `core` под който се пази изпълнението на миграцията
+                $key = "migration_{$packName}_{$method}";
+
+                if(!core_Packs::getConfigKey('core', $key)) {
+                    try {
+                        $res = call_user_func(array($this, $method));
+                        core_Packs::setConfig('core', array($key => TRUE));
+                        if($res) {
+                            $html .= $res;
+                        } else {
+                            $html .= "<li style='color:green;'>Миграцията {$packName}::{$method} беше приложена успешно</li>";
+                        }
+                    } catch(Exception $е) {
+                        $html .= "<li style='color:red;'>Миграцията {$packName}::{$method} не беше успешна</li>";
+                    }
+                }
+
+                continue;
+            }
+
             if($manager == 'core_Plugins' && $PluginsGlobal) {
                 $instances[$manager] = $PluginsGlobal;
             } else {
@@ -117,8 +144,6 @@ class core_ProtoSetup
             $html .= $instances[$manager]->setupMVC();
         }
         
-        // името на пакета
-        list ($packName, ) = explode("_", cls::getClassName($this), 2);
         
         // конфигурацията на пакета
         $conf = core_Packs::getConfig($packName);
@@ -210,9 +235,6 @@ class core_ProtoSetup
             }
         }
 
-//      if(Request::get('pack')) {
-//         $html .= $this->loadSetupData();
-//      }
         
         return $html;
     }
