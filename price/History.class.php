@@ -39,7 +39,7 @@ class price_History extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, listId, validFrom, productId, packagingId, price';
+    var $listFields = 'id, listId, validFrom, productId, price';
     
     
     /**
