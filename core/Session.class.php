@@ -222,7 +222,7 @@ class core_Session {
             @session_unset();
             @session_destroy();
             unset($_SESSION);
-            unset($_COOKIES);
+            unset($_COOKIE);
         }
     }
     
@@ -243,7 +243,7 @@ class core_Session {
             ini_set('session.use_only_cookies', 1);
             @session_start();
             
-            $_SESSION['session_is_valid'] = time();
+//            $_SESSION['session_is_valid'] = time();
 
             
             $this->_started = TRUE;

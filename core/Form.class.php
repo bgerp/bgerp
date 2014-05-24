@@ -1040,9 +1040,9 @@ class core_Form extends core_FieldSet
     function isSubmitted()
     {
         $status = $this->cmd && $this->cmd != 'refresh' && !$this->gotErrors();
-
+        
         if($status) {
-            expect($this->getMethod() == $_SERVER['REQUEST_METHOD']);
+            expect($this->getMethod() == $_SERVER['REQUEST_METHOD'], $this->getMethod(), $_SERVER['REQUEST_METHOD']);
         }
 
         return $status;

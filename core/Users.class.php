@@ -720,13 +720,13 @@ class core_Users extends core_Manager
     /**
      * Зарежда записа за текущия потребител в сесията
      */
-    static function loginUser($id)
+    static function loginUser($id, $refresh=FALSE)
     {
         $Users = cls::get('core_Users');
         
-        $Users->invoke('beforeLogin', array(&$id));
-        
         $userRec = $Users->fetch($id);
+        
+        $Users->invoke('beforeLogin', array(&$userRec, $refresh));
         
         if(!$userRec) $userRec = new stdClass();
         
@@ -802,9 +802,36 @@ class core_Users extends core_Manager
             self::save($userRec, 'lastActivityTime');
         }
 
-        $Users->invoke('afterLogin', array(&$userRec));
+        $Users->invoke('afterLogin', array(&$userRec, $refresh));
         
         return $userRec;
+    }
+    
+    
+    /**
+     * Извиква се след логване на потребителя в системата
+     * 
+     * @param core_Mvc $mvc
+     * @param object $userRec
+     * @param boolean $refresh
+     */
+    function on_AfterLogin($mvc, &$userRec, $refresh)
+    {
+        // Ако не се логва, а се рефрешва потребителя
+        if ($refresh) return ;
+        
+        // Ако се е логнат от различно IP
+        if ($userRec->lastLoginIp && ($userRec->lastLoginIp != $mvc->getRealIpAddr())) {
+            
+            // Времето, когато се е логнал
+            $time = dt::secsBetween(dt::now(), $userRec->lastLoginTime);
+            $TimeInst = cls::get('type_Time');
+            $time = $TimeInst->toVerbal($time);
+            
+            // Добавяме съответното статус съобщение
+            $text = "|Последно логване от|* {$userRec->lastLoginIp} |преди|* {$time}";
+            core_Statuses::newStatus($text);
+        }
     }
     
     
@@ -869,9 +896,9 @@ class core_Users extends core_Manager
         if (!$currentUserRec) return;
         
         $refreshTime = dt::mysql2timestamp($currentUserRec->refreshTime);
-
+        
         if (abs(time() - $refreshTime) > EF_USER_REC_REFRESH_TIME || (time() - $currentUserRec->lastHitUT > 3 * EF_USER_REC_REFRESH_TIME)) {
-            Users::loginUser($currentUserRec->id);
+            Users::loginUser($currentUserRec->id, TRUE);
         }
     }
     
@@ -1150,7 +1177,7 @@ class core_Users extends core_Manager
      */
     static function getRealIpAddr()
     {
-         
+        
         return $_SERVER['REMOTE_ADDR'];
     }
     
