@@ -463,8 +463,11 @@
 
 .pos-notes span{
 	margin-left: 5px;
-	color: #ccc;
+	color: #fff;
 	font-weight: normal;
+	padding: 0 2px;
+	background: #1a5407;
+	border: 1px solid #0f3a00;
 }
 
 .pos-notes:hover{
