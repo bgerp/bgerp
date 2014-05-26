@@ -713,7 +713,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetLink($mvc, &$link, $id, $maxLength = FALSE, $attr = array())
     {
-        $iconStyle = 'background-image:url(' . sbf($mvc->getIcon(), '') . ');';
+        $iconStyle = 'background-image:url(' . sbf($mvc->getIcon($id), '') . ');';
         $url       = array($mvc, 'single', $id);
         if($attr['Q']) {
             $url['Q'] = $attr['Q'];
