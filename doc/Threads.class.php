@@ -311,7 +311,7 @@ class doc_Threads extends core_Manager
         $docRow = $docProxy->getDocumentRow();
         
         $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
+        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
 
         if(mb_strlen($docRow->title) > self::maxLenTitle) {
             $attr['title'] = $docRow->title;
@@ -1402,7 +1402,7 @@ class doc_Threads extends core_Manager
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
         // Иконата на нишката
-        $sbfIcon = sbf($docProxy->getIcon(), '"', $isAbsolute);
+        $sbfIcon = sbf($docProxy->getIcon($docProxy->that), '"', $isAbsolute);
         
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
