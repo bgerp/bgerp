@@ -464,4 +464,18 @@ class deals_CatchDocument extends core_Master
     	 
     	return $result;
     }
+    
+    
+    /**
+     * Извиква се след изчисляването на необходимите роли за това действие
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'restore' && isset($rec)){
+    		$dealState = deals_Deals::fetchField($rec->dealId, 'state');
+    		if($dealState != 'active'){
+    			$res = 'no_one';
+    		}
+    	}
+    }
 }
