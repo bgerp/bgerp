@@ -598,7 +598,7 @@ class crm_Companies extends core_Master
         $vat = $vatType->toVerbal($rec->vatId);
         $row->vat = $vat;
         
-        $row->title .= "<div class='number-block' style='display:inline; float:right;'>{$currentId}</div>";
+        $row->titleNumber = "<div class='number-block' style='display:inline'>{$currentId}</div>";
         
         if ($rec->vatId) {
         	unset($row->uicId);
