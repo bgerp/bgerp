@@ -74,8 +74,8 @@ class newsbar_News extends core_Master
 		$this->FLD('startTime', 'datetime', 'caption=Показване на новината->Начало, mandatory');
 		$this->FLD('endTime', 'datetime', 'caption=Показване на новината->Край,mandatory');
 		$this->FLD('lang', 'varchar(4), allowEmpty=true', 'caption=Показване на новината->Език,mandatory');
-		$this->FLD('color', 'color_Type', 'caption=Фон->Цвят,mandatory,unit=rgb');
-		$this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Фон->Прозрачност,mandatory');
+		$this->FLD('color', 'color_Type', 'caption=Фон->Цвят,unit=rgb');
+		$this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Фон->Прозрачност');
 		
     }
     
@@ -100,7 +100,7 @@ class newsbar_News extends core_Master
 		$query->where("#lang = 'none' OR #lang = '{$lg}'");
 		
         $news = $query->fetch();
-
+        
 		//$newLink = substr($news->news, 0, strlen($link)-2);
 		       
 		// Връщаме стринг от всички новини
@@ -168,7 +168,14 @@ class newsbar_News extends core_Master
             $progressArr[$p] = $p;
         }
         $form->setSuggestions('transparency', $progressArr);
+        
+        if (!$rec->color) {
+        	$form->setDefault('color', '#000000');
+        }
        
+        if (!$rec->transparency) { 
+        	$form->setDefault('transparency', 0.5);
+        }
     }
     
     

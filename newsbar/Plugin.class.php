@@ -22,8 +22,8 @@ class newsbar_Plugin extends core_Plugin
     {
        // взимаме всички нови новини
        $str = newsbar_News::getTopNews();
-
-       if($str) {
+      
+       if($str->news !== NULL && $str->color !== NULL && $str->transparency !== NULL) { 
            $convertText = cls::get('type_Richtext');
            $barNews = $convertText->toVerbal($str->news);
            
