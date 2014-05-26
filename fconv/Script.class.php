@@ -249,6 +249,8 @@ class fconv_Script
             $shell = $shellName;    
         }
         
+        core_Manager::log("Стартиран скрипт: " . $this->script);
+        
         pclose(popen($shell, "r"));
     }
     
