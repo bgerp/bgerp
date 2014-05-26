@@ -97,7 +97,7 @@ class newsbar_News extends core_Master
 
     	$query->where("#state = 'active'");
     	$query->where("#startTime <= '{$nowTime}' AND  #endTime >= '{$nowTime}'");
-		$query->where("#lang = 'none' OR #lang = '{$lg}'");
+		$query->where("#lang = '{$lg}'");
 		
         $news = $query->fetch();
         
@@ -106,6 +106,7 @@ class newsbar_News extends core_Master
 		// Връщаме стринг от всички новини
 		return (object) array('news' => $news->news, 'color' => $news->color, 'transparency'=> $news->transparency);
     }
+    
     
     /**
      * Превръщане на цвят от 16-тичен към RGB
@@ -177,8 +178,8 @@ class newsbar_News extends core_Master
         $form = &$data->form;
         $rec  = &$form->rec;
         
-        $arr = array ('none' => "");
-        $form->setOptions('lang', $arr+cms_Content::getLangsArr());
+        $form->setDefault('lang', cms_Content::getLang());
+        $form->setOptions('lang', cms_Content::getLangsArr());
 
         $progressArr[''] = '';
 
@@ -213,8 +214,7 @@ class newsbar_News extends core_Master
         	}
         }
     }
-    
-    
+       
 
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -244,5 +244,4 @@ class newsbar_News extends core_Master
         $row->news->replace($rec->transparency, 'transparency');
         $row->news->replace($forIE, 'ie');
     }
-
 }
