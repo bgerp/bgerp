@@ -181,7 +181,7 @@ class bgerp_Recently extends core_Manager
                 $threadRec = doc_Threads::fetch($docRec->threadId);
                 $state     = $threadRec->state;
             } catch (core_exception_Expect $ex) {
-                $row->title = "Проблемен контейнер № {$rec->objectId}";
+                $row->title = "Проблемен контейнер|* № {$rec->objectId}";
             }
         }
 
