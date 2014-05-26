@@ -124,6 +124,12 @@ class doc_Files extends core_Manager
         // Обхождаме всички линкнати файлове        
         foreach ($linked as $fh => $name) {
             
+            // Данните за файла
+            $dataId = fileman_Files::fetchByFh($fh, 'dataId');
+            
+            // Ако няма данни, да не се записва
+            if (!$dataId) continue;
+            
             // Ако файла е бил записан
             if ($savedFh[$fh]) {
                 
@@ -138,7 +144,7 @@ class doc_Files extends core_Manager
             $nRec->folderId = $folderId;
             $nRec->threadId = $threadId;
             $nRec->fileHnd = $fh;
-            $nRec->dataId = fileman_Files::fetchByFh($fh, 'dataId');
+            $nRec->dataId = $dataId;
             
             static::save($nRec, NULL, 'IGNORE');
         }
