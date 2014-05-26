@@ -124,17 +124,17 @@ class doc_Folders extends core_Master
     /**
      * Връща линк към документа
      */
-    function getLink($id, $maxLength = FALSE, $attr = array())
+    static function getLink($id, $maxLength = FALSE, $attr = array())
     {
-        $rec = doc_Folders::fetch($id);
-        $haveRight = doc_Folders::haveRightFor('single', $rec);
+        $rec = static::fetch($id);
+        $haveRight = static::haveRightFor('single', $rec);
         
-        $iconStyle = 'background-image:url(' . doc_Folders::getIconImg($rec, $haveRight) . ');';
+        $iconStyle = 'background-image:url(' . static::getIconImg($rec, $haveRight) . ');';
         $url = array('doc_Folders', 'single', $id);
         
-        $title = doc_Folders::getVerbal($rec, 'title');
+        $title = static::getVerbal($rec, 'title');
         
-        if(!doc_Folders::haveRightFor('single', $id)) {
+        if(!static::haveRightFor('single', $id)) {
             $url =  array();
         }
         
