@@ -81,7 +81,7 @@ class doc_RichTextPlg extends core_Plugin
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
-            $sbfIcon = sbf($doc->getIcon(), '"', $isAbsolute);
+            $sbfIcon = sbf($doc->getIcon($doc->that), '"', $isAbsolute);
             
             $title = substr($docName, 1);
             
