@@ -83,8 +83,8 @@ class doc_FilesPlg extends core_Plugin
         // Обхождаме всички извлечени резултати
         while ($fRec = $query->fetch()) {
             
-            // Ако нямаме права за листване на записа продължаваме
-            if (!doc_Files::haveRightFor('list', $fRec)) continue;
+            // Ако нямаме права за разглеждане на записа
+            if (!doc_Files::haveRightFor('info', $fRec)) continue;
             
             // Ако сме обходили съответния контейнер, прескачаме
             if ($containerArr[$fRec->containerId]) continue;
@@ -105,52 +105,45 @@ class doc_FilesPlg extends core_Plugin
             $docRow = $doc->getDocumentRow();
             
             // Атрибутеите на линка
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
             $attr['title'] = tr('Документ') . ': ' . $docRow->title;
             
             // Документа да е линк към single' а на документа
-            $documentLink = ht::createLink(str::limitLen($docRow->title, 35), array($doc, 'single', $doc->that), NULL, $attr);
+            $documentLink = $doc->getLink(35, $attr);
             
             // id' то на контейнера на пъривя документ
             $firstContainerId = doc_Threads::fetchField($fRec->threadId, 'firstContainerId');
             
-            // Ако има първи контейнер
-            if (($firstContainerId) && (!$threadArr[$fRec->threadId])) {
+            if ($firstContainerId != $fRec->containerId) {
                 
-                // Първия документ в нишката
-                $docProxy = doc_Containers::getDocument($firstContainerId);
-                
-                // Полетата на документа във вербален вид
-                $docProxyRow = $docProxy->getDocumentRow();
-                
-                // Атрибутеите на линка
-                $attr['class'] = 'linkWithIcon';
-                $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
-                $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;
-                
-                // Темата да е линк към single' а на първиа документ документа
-                $threadLink = ht::createLink(str::limitLen($docProxyRow->title, 35), array($docProxy, 'single', $docProxy->that), NULL, $attr);    
-                
-                // Отбелязваме, че сме отработили нишката
-                $threadArr[$fRec->threadId] = $threadLink;
-            } else {
-                
-                // Вземаме от масива, в който сме генерирали
-                $threadLink = $threadArr[$fRec->threadId];
+                // Ако има първи контейнер
+                if (!$threadArr[$fRec->threadId]) {
+                    
+                    // Първия документ в нишката
+                    $docProxy = doc_Containers::getDocument($firstContainerId);
+                    
+                    // Полетата на документа във вербален вид
+                    $docProxyRow = $docProxy->getDocumentRow();
+                    
+                    // Атрибутеите на линка
+                    $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;
+                    
+                    // Темата да е линк към single' а на първиа документ документа
+                    $threadLink = $docProxy->getLink(35, $attr);    
+                    
+                    // Отбелязваме, че сме отработили нишката
+                    $threadArr[$fRec->threadId] = $threadLink;
+                } else {
+                    
+                    // Вземаме от масива, в който сме генерирали
+                    $threadLink = $threadArr[$fRec->threadId];
+                }
             }
             
             // Ако не сме минавали от папката
             if (!$folderArr[$fRec->folderId]) {
                 
-                // Записите за съответната папка
-                $folderRec = doc_Folders::fetch($fRec->folderId);
-                
-                // Записите във вербален вид
-                $folderRow = doc_Folders::recToVerbal($folderRec);
-                
                 // Линка към папката
-                $folderLink = $folderRow->title;   
+                $folderLink = doc_Folders::getLink($fRec->folderId, 35);   
 
                 // Отбелязваме, че сме отработили папката
                 $folderArr[$fRec->folderId] = $folderLink;
@@ -161,7 +154,13 @@ class doc_FilesPlg extends core_Plugin
             }
             
             // Създаваме стринга за съответния път
-            $str = "{$documentLink} « {$threadLink} « {$folderLink}";
+            $str = "{$documentLink}";
+            
+            if ($threadLink) {
+                $str .= " « {$threadLink}";
+            }
+            
+            $str .= " « {$folderLink}";
             
             // Добавяме към ресурса
             $res .= ($res) ? ("\n") . $str : $str;
