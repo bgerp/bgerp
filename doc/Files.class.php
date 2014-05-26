@@ -28,9 +28,16 @@ class doc_Files extends core_Manager
     
     
     /**
+     * Кой има право за вземане на информация
+     */
+    var $canInfo = 'powerUser';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     var $canList = 'powerUser';
+    
     
     
     /**
@@ -173,8 +180,8 @@ class doc_Files extends core_Manager
         // Обхождаме всички записи
         foreach ($data->recs as $id => $rec) {
             
-            // Ако нямаме права за треда
-            if (!doc_Threads::haveRightFor('single', $rec->threadId)) unset($data->recs[$id]);
+            // Ако нямаме права
+            if (!$mvc->haveRightFor('info', $rec)) unset($data->recs[$id]);
         }
     }
 
@@ -328,6 +335,20 @@ class doc_Files extends core_Manager
                 $requiredRoles = 'no_one';   
             }
         }
+        
+        if ($action == 'info' && $rec) {
+            
+            if (!is_object($rec)) {
+                $rec = $mvc->fetch($rec);
+            }
+            
+            $docProxy = doc_Containers::getDocument($rec->containerId);
+            
+            // Ако няма права за сингъла на документа
+            if (!$docProxy->instance->haveRightFor('single', $docProxy->that)) {
+                $requiredRoles = 'no_one';
+            }
+        } 
     }
 
     
