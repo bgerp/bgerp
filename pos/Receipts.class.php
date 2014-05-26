@@ -61,6 +61,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Кой може да приключи бележка?
+     */
+    var $canClose = 'ceo, pos';
+    
+    
+    /**
      * Кой може да променя?
      */
     var $canAdd = 'pos, ceo';
