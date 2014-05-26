@@ -290,47 +290,12 @@ class deals_CatchDocument extends core_Master
     {
     	// Извличаме записа
     	expect($rec = self::fetchRec($id));
-    	
-    	switch($rec->operationSysId){
-    		case "debitFactoring":
-    			$debitArr = array($rec->debitAccount,
-    								array('deals_Deals', $rec->dealId),
-    								array('currency_Currencies', $rec->currencyId),
-        						'quantity' => $rec->amount);
-    			
-    			$creditArr = array($rec->creditAccount,
-			    					array($rec->contragentClassId, $rec->contragentId),
-			        				array('currency_Currencies', $rec->currencyId),
-        						'quantity' => $rec->amount);
-    			break;
-    			
-    		case "creditFactoring":
-    			$debitArr = array($rec->debitAccount,
-    					array($rec->contragentClassId, $rec->contragentId),
-    					array('currency_Currencies', $rec->currencyId),
-    					'quantity' => $rec->amount);
-    					
-    			$creditArr = array($rec->creditAccount,
-    					array('deals_Deals', $rec->dealId),
-    					array('currency_Currencies', $rec->currencyId),
-    					'quantity' => $rec->amount);
-    			break;
-    			
-    		case "clientFactoring":
-    			$debitArr = array($rec->debitAccount,
-    					array('deals_Deals', $rec->dealId),
-    					array('currency_Currencies', $rec->currencyId),
-    					'quantity' => $rec->amount);
-    			
-    			$creditArr = array($rec->creditAccount,
-    					array($rec->contragentClassId, $rec->contragentId),
-    					array('currency_Currencies', $rec->currencyId),
-    					'quantity' => $rec->amount);
-    			break;
-    			
-    		default:
-    			// Не бива да се стига до тук
-    			expect(FALSE);
+    	if($rec->operationSysId == 'creditFactoring'){
+    		$debitFirstArr  = array($rec->contragentClassId, $rec->contragentId);
+    		$creditFirstArr = array('deals_Deals', $rec->dealId);
+    	} else {
+    		$debitFirstArr  = array('deals_Deals', $rec->dealId);
+    		$creditFirstArr = array($rec->contragentClassId, $rec->contragentId);
     	}
     	
     	// Подготвяме информацията която ще записваме в Журнала
@@ -340,8 +305,15 @@ class deals_CatchDocument extends core_Master
     			'entries' => array(
     					array(
     						'amount' => $rec->rate * $rec->amount,	// равностойноста на сумата в основната валута
-    						'debit' => $debitArr,
-    						'credit' => $creditArr,
+    						'debit' => array($rec->debitAccount,
+    										$debitFirstArr,
+    										array('currency_Currencies', $rec->currencyId),
+    										'quantity' => $rec->amount),
+    							
+    						'credit' => array($rec->creditAccount,
+    										$creditFirstArr,
+    										array('currency_Currencies', $rec->currencyId),
+    										'quantity' => $rec->amount),
     				)
     		)
     	);
