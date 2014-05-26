@@ -713,7 +713,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetLink($mvc, &$link, $id, $maxLength = FALSE, $attr = array())
     {
-        $iconStyle = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
+        $iconStyle = 'background-image:url(' . sbf($mvc->getIcon(), '') . ');';
         $url       = array($mvc, 'single', $id);
         if($attr['Q']) {
             $url['Q'] = $attr['Q'];
@@ -736,6 +736,10 @@ class doc_DocumentPlg extends core_Plugin
         
         $attr['class'] .= ' linkWithIcon';
         $attr['style'] .= $iconStyle;
+        
+        if ($rec->state == 'rejected') {
+            $attr['class'] .= ' state-rejected';
+        }
 
         $link = ht::createLink("{$row->title}", $url, NULL, $attr);
     }
