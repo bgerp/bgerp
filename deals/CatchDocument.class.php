@@ -4,6 +4,7 @@
 
 /**
  * Документ за "Прихващания"
+ * Могат да се добавят към нишки на покупки, продажби и финансови сделки
  *
  *
  * @category  bgerp
@@ -20,19 +21,19 @@ class deals_CatchDocument extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public  $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
    
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Прихващания";
+    public $title = "Прихващания";
     
     
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, deals_Wrapper, plg_Sorting, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
                      plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues';
     
@@ -40,37 +41,37 @@ class deals_CatchDocument extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, valior, name, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
+    public $listFields = "tools=Пулт, valior, name, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo, deals';
+	public $canList = 'ceo, deals';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo, deals';
+	public $canSingle = 'ceo, deals';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Прихващане';
+    public $singleTitle = 'Прихващане';
     
     
     /**
@@ -82,56 +83,56 @@ class deals_CatchDocument extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Cdc";
+    public $abbr = "Cdc";
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'deals, ceo';
+    public $canRead = 'deals, ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'deals, ceo';
+    public $canWrite = 'deals, ceo';
     
     
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'deals, ceo';
+    public $canConto = 'deals, ceo';
     
     
     /**
      * Кой може да го оттегля
      */
-    var $canRevert = 'deals, ceo';
+    public $canRevert = 'deals, ceo';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'deals/tpl/SingleLayoutCatchDocument.shtml';
+    public $singleLayoutFile = 'deals/tpl/SingleLayoutCatchDocument.shtml';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    //var $searchFields = 'number, valior, contragentName, reason';
+    public $searchFields = 'name, operationName, folderId, dealId';
 
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.5|Финанси";
+    public $newBtnGroup = "4.5|Финанси";
     
     
     /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	//'depositor'      => 'lastDocUser|lastDoc',
+    	'operationSysId'  => 'lastDocUser|lastDoc',
     );
     
     
@@ -187,7 +188,6 @@ class deals_CatchDocument extends core_Master
     	// Използваме помощната функция за намиране името на контрагента
     	if(empty($form->rec->id)) {
     		 $form->setDefault('description', "Към документ #{$origin->getHandle()}");
-    		 
     		 $cId = ($dealInfo->shipped->currency) ? $dealInfo->shipped->currency : $dealInfo->paid->currency;
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($cId);
     		 
@@ -226,7 +226,6 @@ class deals_CatchDocument extends core_Master
     		} else {
     			$form->setOptions('dealId', $deals);
     		}
-    		
     	}
     	
     	if ($form->isSubmitted()){
