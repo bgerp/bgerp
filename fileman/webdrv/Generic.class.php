@@ -28,6 +28,12 @@ class fileman_webdrv_Generic extends core_Manager
     
     
     /**
+     * Брой на документи, които да се показват в мета информацията, за "Съдържа се в:"
+     */
+    static $metaInfoDocLimit = 20;
+    
+    
+    /**
      * Връща всички табове, които ги има за съответния файл
      * 
      * @param object $fRec - Записите за файла
@@ -327,7 +333,7 @@ class fileman_webdrv_Generic extends core_Manager
         try {
 		    
 		    // Опитваме се да вземем, документите, в които се използва файла
-		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec);    
+		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec, static::$metaInfoDocLimit);    
 		} catch (Exception $e) {}
 		
 		// Ако сме намерили някой файлове, където се използва
