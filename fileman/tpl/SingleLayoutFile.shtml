@@ -1,19 +1,15 @@
 [#SingleToolbar#]
 
 <div class='filesContainer' style='margin: 10px 0px 5px -1px;'>
-	<table class='top-table' width='100%' cellspacing='5' style='width:auto;'>
 	
-		<!--ET_BEGIN fileName--><tr><td colspan='2'><b style='word-break:break-word'>[#fileName#]</b></td></tr><!--ET_END fileName-->
+		<!--ET_BEGIN fileName-->
+		   <b style='word-wrap:break-word; display:block; margin-bottom: 15px;padding-top:10px;'>[#fileName#]</b>
+		<!--ET_END fileName-->
 		
 		<!--ET_BEGIN versions-->          
-			<tr>
-			    <td align='right' width='auto' >|Версии|*:</td>
-			    <td>[#versions#]</td>
-			</tr>
+			|Версии|*: [#versions#]
 		<!--ET_END versions-->
 		
-	</table>
-	
 	<!--ET_BEGIN fileDetail-->          
 		    <div id="fileDetail">[#fileDetail#]</div>
 	<!--ET_END fileDetail-->
