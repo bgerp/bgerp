@@ -56,8 +56,9 @@ class doc_FilesPlg extends core_Plugin
      * @param core_Mvc $mvc - 
      * @param string $res - Променливата, в която се записва
      * @param fileman_Files $rec - Записите за файла
+     * @param integer $limit - Брой записи, които да се показват
      */
-    function on_AfterGetDocumentsWithFile($mvc, &$res, $rec)
+    function on_AfterGetDocumentsWithFile($mvc, &$res, $rec, $limit=FALSE)
     {
         // Ако не е обект, а е подаден id
         if (!is_object($rec)) {
@@ -76,9 +77,11 @@ class doc_FilesPlg extends core_Plugin
         $query->where("#dataId = '{$rec->dataId}'");
         
         // Как да са подредени резултатите
-        $query->orderBy('folderId', 'ASC');
-        $query->orderBy('threadId', 'ASC');
-        $query->orderBy('containerId', 'ASC');
+        $query->orderBy('id', 'DESC');
+        
+        if ($limit) {
+            $limit = $query->limit($limit);
+        }
         
         // Обхождаме всички извлечени резултати
         while ($fRec = $query->fetch()) {
