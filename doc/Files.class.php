@@ -252,12 +252,10 @@ class doc_Files extends core_Manager
         $docRow = $doc->getDocumentRow();
         
         // Атрибутеите на линка
-        $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($doc->getIcon()) . ');';
         $attr['title'] = $docRow->title;
         
         // Документа да е линк към single' а на документа
-        $row->threadId = ht::createLink(str::limitLen($docRow->title,35), array($doc, 'single', $doc->that), NULL, $attr);
+        $row->threadId = $doc->getLink(35, $attr);
         
         // id' то на контейнера на пъривя документ
         $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
@@ -271,17 +269,15 @@ class doc_Files extends core_Manager
             $docProxyRow = $docProxy->getDocumentRow();
             
             // Атрибутеите на линка
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
             $attr['title'] = tr('Първи документ|*: ') . $docProxyRow->title;
             
             // Темата да е линк към single' а на първиа документ документа
-            $firstContainerLink = ht::createLink(str::limitLen($docProxyRow->title,35), array($docProxy, 'single', $docProxy->that), NULL, $attr);
-            $row->threadId = $row->threadId . " « " . $firstContainerLink;    
+            $firstContainerLink = $docProxy->getLink(35, $attr);
+            $row->threadId = $row->threadId . " « " . $firstContainerLink; 
         }
         $fRec = fileman_Files::fetchByFh($rec->fileHnd);
         
-        $row->date = fileman_Files::getVerbal($fRec, 'createdOn');;
+        $row->date = fileman_Files::getVerbal($fRec, 'createdOn');
     }
     
     
