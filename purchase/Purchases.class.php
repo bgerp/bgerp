@@ -176,7 +176,8 @@ class purchase_Purchases extends core_Master
     		'supplier2bank' => array('title' => 'Връщане от Доставчик', 'debit' => '503', 'credit' => '401'),
     		'supplierAdvance2case' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '501', 'credit' => '402'),
     		'supplierAdvance2bank' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '503', 'credit' => '402'),
-    		);
+    		'creditFactoring' => array('title' => 'Прихващане на Задължения', 'debit' => '401', 'credit' => '406'),
+    );
     
     
     /**
