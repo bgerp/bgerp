@@ -640,4 +640,31 @@ class deals_Deals extends core_Master
     {
     	$data->query->orderBy('#state');
     }
+    
+    
+    /**
+     * След оттеглянето на сделката се оттеглят и всички прихващащи документи, които я използват
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	$count = 0;
+    	$dQuery = deals_CatchDocument::getQuery();
+    	$dQuery->where("#dealId = {$rec->id}");
+    	$dQuery->where("#state = 'active'");
+    	while($dRec = $dQuery->fetch()){
+    		deals_CatchDocument::reject($dRec);
+    		$count++;
+    	}
+    	
+    	if($count){
+    		$msg = tr("|Оттеглени са |* {$count} |прихващащи документи|*");
+    		core_Statuses::newStatus($msg);
+    	}
+    }
 }
