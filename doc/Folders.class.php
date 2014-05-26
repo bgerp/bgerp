@@ -122,6 +122,36 @@ class doc_Folders extends core_Master
     
     
     /**
+     * Връща линк към документа
+     */
+    function getLink($id, $maxLength = FALSE, $attr = array())
+    {
+        $rec = doc_Folders::fetch($id);
+        $haveRight = doc_Folders::haveRightFor('single', $rec);
+        
+        $iconStyle = 'background-image:url(' . doc_Folders::getIconImg($rec, $haveRight) . ');';
+        $url = array('doc_Folders', 'single', $id);
+        
+        $title = doc_Folders::getVerbal($rec, 'title');
+        
+        if(!doc_Folders::haveRightFor('single', $id)) {
+            $url =  array();
+        }
+        
+        $attr['class'] .= ' linkWithIcon';
+        $attr['style'] .= $iconStyle;
+        
+        if ($rec->state == 'rejected') {
+            $attr['class'] .= ' state-rejected';
+        }
+
+        $link = ht::createLink($title, $url, NULL, $attr);
+        
+        return $link;
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
