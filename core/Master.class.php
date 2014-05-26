@@ -516,7 +516,7 @@ class core_Master extends core_Manager
         }
         
         // Иконата
-        $img = sbf($me->getIcon(), '"', $absolute);
+        $img = sbf($me->getIcon($id), '"', $absolute);
         
         // Вземаме линка
         $link = ht::createLink($name, $url, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon'));
