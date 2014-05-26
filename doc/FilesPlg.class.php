@@ -106,7 +106,7 @@ class doc_FilesPlg extends core_Plugin
             
             // Атрибутеите на линка
             $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon()) . ');';
+            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
             $attr['title'] = tr('Документ') . ': ' . $docRow->title;
             
             // Документа да е линк към single' а на документа
@@ -126,7 +126,7 @@ class doc_FilesPlg extends core_Plugin
                 
                 // Атрибутеите на линка
                 $attr['class'] = 'linkWithIcon';
-                $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
+                $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
                 $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;
                 
                 // Темата да е линк към single' а на първиа документ документа
@@ -216,7 +216,7 @@ class doc_FilesPlg extends core_Plugin
             
             // Атрибутеите на линка
             $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon()) . ');';
+            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
             $attr['title'] = tr('Документ') . ': ' . $docRow->title;
             
             // Документа да е линк към single' а на документа
@@ -240,7 +240,7 @@ class doc_FilesPlg extends core_Plugin
                 
                 // Атрибутеите на линка
                 $attr['class'] = 'linkWithIcon';
-                $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
+                $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($doc->that)) . ');';
                 $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;
                 
                 // Темата да е линк към single' а на първиа документ документа
