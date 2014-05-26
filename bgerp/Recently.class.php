@@ -152,7 +152,7 @@ class bgerp_Recently extends core_Manager
                 $row->title = $folderRow->title;
                 $state = $folderRec->state;
             } catch (core_exception_Expect $ex) {
-                $row->title = "Проблемна папка № {$rec->objectId}";
+                $row->title = tr("Проблемна папка|* № {$rec->objectId}");
             }
         } elseif ($rec->type == 'document') {
             
@@ -181,7 +181,7 @@ class bgerp_Recently extends core_Manager
                 $threadRec = doc_Threads::fetch($docRec->threadId);
                 $state     = $threadRec->state;
             } catch (core_exception_Expect $ex) {
-                $row->title = "Проблемен контейнер|* № {$rec->objectId}";
+                $row->title = tr("Проблемен контейнер|* № {$rec->objectId}");
             }
         }
 
