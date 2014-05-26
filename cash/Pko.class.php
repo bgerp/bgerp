@@ -174,7 +174,6 @@ class cash_Pko extends core_Master
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
     	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс,width=6em');
-    	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em,input=hidden');
     	$this->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -342,13 +341,8 @@ class cash_Pko extends core_Master
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
 		    if(!$rec->rate){
-		    	if($rec->tempRate){
-		    		$rec->rate = $rec->tempRate;
-		    	} else {
-		    		
-		    		// Изчисляваме курса към основната валута ако не е дефиниран
-		    		$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
-		    	}
+		    	// Изчисляваме курса към основната валута ако не е дефиниран
+		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
 		    } else {
 		    	if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
 		    		$form->setWarning('rate', $msg);
