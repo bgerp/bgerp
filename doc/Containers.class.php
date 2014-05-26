@@ -1363,7 +1363,7 @@ class doc_Containers extends core_Manager
             
             // Атрибутеите на линка
             $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon()) . ');';
+            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
             $attr['title'] = tr('Документ') . ': ' . $docRow->title;
             
             // Документа да е линк към single' а на документа
