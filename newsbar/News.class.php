@@ -75,7 +75,7 @@ class newsbar_News extends core_Master
 		$this->FLD('endTime', 'datetime', 'caption=Показване на новината->Край,mandatory');
 		$this->FLD('lang', 'varchar(4), allowEmpty=true', 'caption=Показване на новината->Език,mandatory');
 		$this->FLD('color', 'color_Type', 'caption=Фон->Цвят,unit=rgb');
-		$this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Фон->Прозрачност');
+		$this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Фон->Непрозрачност');
 		
     }
     
@@ -106,6 +106,26 @@ class newsbar_News extends core_Master
 		// Връщаме стринг от всички новини
 		return (object) array('news' => $news->news, 'color' => $news->color, 'transparency'=> $news->transparency);
     }
+    
+    /**
+     * Превръщане на цвят от 16-тичен към RGB
+     */
+	static function hex2rgb($hex) {
+	   $hex = str_replace("#", "", $hex);
+	
+	   if(strlen($hex) == 3) {
+	      $r = hexdec(substr($hex,0,1).substr($hex,0,1));
+	      $g = hexdec(substr($hex,1,1).substr($hex,1,1));
+	      $b = hexdec(substr($hex,2,1).substr($hex,2,1));
+	   } else {
+	      $r = hexdec(substr($hex,0,2));
+	      $g = hexdec(substr($hex,2,2));
+	      $b = hexdec(substr($hex,4,2));
+	   }
+	   $rgb = array($r, $g, $b);
+	   
+	   return $rgb; 
+	}
 
     
  	/**
@@ -192,6 +212,37 @@ class newsbar_News extends core_Master
         		$rows[$id]->lang = " ";
         	}
         }
+    }
+    
+    
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$rgb = static::hex2rgb($rec->color);
+    	$hexTransparency = dechex($rec->transparency * 255);
+        $forIE = "#". $hexTransparency. str_replace("#", "", $rec->color);
+    	
+    	$row->news = new ET ("<div class='newsbar' style='background-color: rgb([#r#], [#g#], [#b#]); 
+            										   background-color: rgba([#r#], [#g#], [#b#], [#transparency#]);
+           											   background:transparent \0; 
+                          filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]);
+                          -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]) ';
+                          zoom: 1;'>
+            <b>$rec->news</b>
+            </div><div class='clearfix21'></div>");
+    	
+    	$row->news->replace($rgb[0], 'r');
+        $row->news->replace($rgb[1], 'g');
+        $row->news->replace($rgb[2], 'b');
+        $row->news->replace($rec->transparency, 'transparency');
+        $row->news->replace($forIE, 'ie');
     }
 
 }
