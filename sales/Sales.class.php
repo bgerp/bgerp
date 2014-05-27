@@ -163,8 +163,8 @@ class sales_Sales extends core_Master
     		'bank2customer'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '503'),
     		'caseAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '501'),
     		'bankAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '503'),
-    		'debitFactoring'       => array('title' => 'Прихващане на Вземания', 'debit' => '406', 'credit' => '411'),
-    		'clientFactoring'      => array('title' => 'Факторинг - отписване на Вземане', 'debit' => '414', 'credit' => '411'),
+    		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '411'),
+    		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '411', 'credit' => '*'),
     		);
     		
     		
