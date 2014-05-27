@@ -1619,6 +1619,32 @@ efae.prototype.run = function()
 
 
 /**
+ * Връща броя на записите в обекта
+ * 
+ * @param object subscribedObj - Обект, който да се преброи
+ * 
+ * @return integer
+ */
+efae.prototype.getObjectKeysCnt = function(subscribedObj)
+{
+	// Ако не е дефинир
+	// За IE < 9
+	if (!Object.keys) {
+		var keys = [];
+		for (var i in subscribedObj) {
+			if (subscribedObj.hasOwnProperty(i)) {
+				keys.push(i);
+			}
+		}
+	} else {
+		var keys = Object.keys(subscribedObj);
+	}
+	
+	return keys.length;
+}
+
+
+/**
  * Извиква URL, който стартира абонираните URL-та на които им е дошло времето да се стартират
  * и рендира функциите от резултата
  * 
@@ -1628,7 +1654,7 @@ efae.prototype.run = function()
 efae.prototype.process = function(subscribedObj, otherData)
 {
 	// Ако няма URL, което трябва да се извика, връщаме
-	if (!Object.keys(subscribedObj).length) return;
+	if (!this.getObjectKeysCnt(subscribedObj)) return;
 	
 	// URL-то, което да се вика
 	var efaeUrl = this.getUrl();
@@ -1750,7 +1776,7 @@ efae.prototype.getSubscribed = function()
 	resObj = new Object();
 	
 	// Броя на елементите
-	var cnt = Object.keys(this.subscribedArr).length;
+	var cnt = this.getObjectKeysCnt(this.subscribedArr);
 	
 	// Ако няма елементи, няма нужда да се изпълнява
 	if (!cnt) return resObj;
