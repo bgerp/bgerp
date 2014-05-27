@@ -355,6 +355,11 @@ class pos_ReceiptDetails extends core_Detail {
     	// Трябва да можем да добавяме към нея
     	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId))) return array();
     	
+    	if($this->Master->fetchField($receiptId, 'paid')){
+    		core_Statuses::newStatus(tr('|Не може да се добавя продукт, ако има направено плащане|* !'), 'error');
+    		return array();
+    	}
+    	
     	// Запис на продукта
     	$rec = new stdClass();
     	$rec->receiptId = $receiptId;
@@ -640,7 +645,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
     	
     	$Policy = cls::get('price_ListToCustomers');
-    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->valior);
+    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->createdOn);
     	
     	$rec->price = $price->price * $perPack;
     	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);
