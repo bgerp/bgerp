@@ -73,6 +73,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Кой може да плати?
+     */
+    var $canPay = 'pos, ceo';
+    
+    
+    /**
      * Кой може да променя?
      */
     var $canTerminal = 'pos, ceo';
@@ -417,8 +423,6 @@ class pos_Receipts extends core_Master {
 		if($action == 'pay' && isset($rec)){
 			if(!$rec->total || ($rec->total && $rec->paid >= $rec->total)){
 				$res = 'no_one';
-			} else {
-				$res = $mvc->pos_ReceiptDetails->getRequiredRoles('add', (object)array('receiptId' => $rec->id));
 			}
 		}
 	}
@@ -478,11 +482,7 @@ class pos_Receipts extends core_Master {
     	jquery_Jquery::enable($tpl);
 	    $tpl->push('pos/tpl/css/styles.css', 'CSS');
 	    $tpl->push('pos/js/scripts.js', 'JS');
-
-	   // $tpl->push('pos/js/jquery.magnific-popup.js', 'JS');
-	   // $tpl->push('pos/tpl/css/magnific-popup.css', 'CSS');
-
-	    jquery_Jquery::run($tpl, "posActions();");
+		jquery_Jquery::run($tpl, "posActions();");
 	    
 	    $conf = core_Packs::getConfig('pos');
         $ThemeClass = cls::get($conf->POS_PRODUCTS_DEFAULT_THEME);
@@ -605,18 +605,29 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
     	
-    	$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
+    	// Ако можем да добавяме към бележката
+    	if($this->pos_ReceiptDetails->haveRightFor('add', (object)array('receiptId' => $rec->id))){
+    		$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
+    		$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
+    		$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
+    		$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
+    	} else {
+    		$disClass = 'disabledBtn';
+    	}
+    	
     	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'size' => '4em')), 'INPUT_FLD');
     	
-    	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
-    	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
-    	$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
-    	$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => 'buttonForm', 'title' => 'Добави продукт')), 'FIRST_TOOLS_ROW');
-    	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => 'buttonForm tools-modify', 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
-    	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => 'buttonForm tools-modify', 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
-    	$block->append("<br />" . ht::createFnBtn('Кл. карта', NULL, NULL, array('class' => 'buttonForm', 'id' => 'tools-addclient', 'data-url' => $addClient, 'title' => 'Въведи клиентска карта')), 'FIRST_TOOLS_ROW');
+    	if(!$disClass){
+    		$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => "buttonForm", 'title' => 'Добави продукт')), 'FIRST_TOOLS_ROW');
+    	} else {
+    		$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm")), 'FIRST_TOOLS_ROW');
+    	}
+    	
+    	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
+    	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
+    	$block->append("<br />" . ht::createFnBtn('Кл. карта', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'tools-addclient', 'data-url' => $addClient, 'title' => 'Въведи клиентска карта')), 'FIRST_TOOLS_ROW');
     	
     	return $block;
     }
@@ -715,7 +726,6 @@ class pos_Receipts extends core_Master {
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "$payment->id", 'data-url' => $payUrl);
 	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
-	    	//$block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
 	    }
 	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable

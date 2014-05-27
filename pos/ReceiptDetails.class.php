@@ -130,7 +130,7 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	
     	// Трябва да може да се редактира записа
-    	if(!$this->haveRightFor('edit', $rec)) return array();
+    	if(!$this->haveRightFor('add', $rec)) return array();
     	
     	$discount = Request::get('amount');
     	$this->fields['discountPercent']->type->params['Max']=1;
@@ -189,6 +189,7 @@ class pos_ReceiptDetails extends core_Detail {
     	// Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
         	$receiptTpl = $this->Master->getReceipt($receiptId);
+        	$toolsTpl = $this->Master->renderToolsTab($receiptId);
 		    $paymentTpl = $this->Master->renderPaymentTab($receiptId);
 		    	
 		    // Ще реплейснем само бележката
@@ -201,7 +202,12 @@ class pos_ReceiptDetails extends core_Detail {
 			$resObj1->func = "html";
 			$resObj1->arg = array('id' => 'tools-payment', 'html' => $paymentTpl->getContent(), 'replace' => TRUE);
         	
-        	return array($resObj, $resObj1);
+			// Ще реплесйнем и пулта
+			$resObj2 = new stdClass();
+			$resObj2->func = "html";
+			$resObj2->arg = array('id' => 'toolsForm', 'html' => $toolsTpl->getContent(), 'replace' => TRUE);
+			
+        	return array($resObj, $resObj1, $resObj2);
         } else {
         	
         	// Ако не сме в Ajax режим пренасочваме към терминала
@@ -225,7 +231,7 @@ class pos_ReceiptDetails extends core_Detail {
     	if(!$rec = $this->fetch($recId)) return array();
     	
     	// Трябва да може да се редактира записа
-    	if(!$this->haveRightFor('edit', $rec)) return array();
+    	if(!$this->haveRightFor('add', $rec)) return array();
     	
     	$quantityId = Request::get('amount');
     	
@@ -352,13 +358,13 @@ class pos_ReceiptDetails extends core_Detail {
     	// Трябва да има такава бележка
     	if(!$receiptId = Request::get('receiptId', 'int')) return array();
     	
-    	// Трябва да можем да добавяме към нея
-    	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId))) return array();
-    	
     	if($this->Master->fetchField($receiptId, 'paid')){
     		core_Statuses::newStatus(tr('|Не може да се добавя продукт, ако има направено плащане|* !'), 'error');
     		return array();
     	}
+    	
+    	// Трябва да можем да добавяме към нея
+    	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId))) return array();
     	
     	// Запис на продукта
     	$rec = new stdClass();
@@ -728,15 +734,15 @@ class pos_ReceiptDetails extends core_Detail {
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
-		if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->receiptId)) {
+		if(($action == 'add' || $action == 'delete') && isset($rec->receiptId)) {
 			$masterRec = $mvc->Master->fetch($rec->receiptId);
 			
 			if($masterRec->state != 'draft') {
 				$res = 'no_one';
 			} else {
 				
-				// Не може да се изтрива продукт, ако има направено плащане
-				if($action == 'delete' && $rec->productId){
+				// Ако редактираме/добавяме/изтриваме ред с продукт, проверяваме имали направено плащане
+				if(!($action == 'delete' && !$rec->productId)){
 					if($masterRec->paid){
 						$res = 'no_one';
 					}

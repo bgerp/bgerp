@@ -99,6 +99,11 @@ function posActions() {
 		var rowVal = $("input[name=rowId]").val();
 		
 		var url = $(this).attr("data-url");
+		
+		if(!url){
+			return;
+		}
+		
 		var data = {recId:rowVal, amount:inpVal};
 		
 		resObj = new Object();
@@ -126,12 +131,16 @@ function posActions() {
 	// Добавя продукт при събмит на формата
 	$("#toolsForm").on("submit", function(event){
 	    var url = $("#toolsForm").attr("action");
+	    if(!url){
+			return;
+		}
 		var code = $("input[name=ean]").val();
 		var receiptId = $("input[name=receiptId]").val();
 		var data = {receiptId:receiptId, ean:code};
 		
 		resObj = new Object();
 		resObj['url'] = url;
+		
 		getEfae().process(resObj, data);
 	
 		$("input[name=ean]").val("");
@@ -199,6 +208,11 @@ function posActions() {
 	// Добавяне на продукти от бързите бутони
 	$(document.body).on('click', ".pos-product", function(e){
 		var url = $(this).attr("data-url");
+		
+		if(!url){
+			return;
+		}
+		
 		var productId = $(this).attr("data-id");
 		var receiptId = $("input[name=receiptId]").val();
 		
