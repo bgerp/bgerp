@@ -1404,6 +1404,9 @@ class doc_DocumentPlg extends core_Plugin
                     array(
                         'action' => log_Documents::ACTION_PDF,
                         'containerId' => $mvc->getContainer($id)->id,
+                        'data'        => (object)array(
+                            'sendedBy'   => core_Users::getCurrent(),
+                        )
                     )
                 );
                 
