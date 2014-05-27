@@ -1720,41 +1720,39 @@ efae.prototype.process = function(subscribedObj, otherData)
 	  		  dataType: 'json'
 			}).done(function(res) {
 				
-				// Ако има резултат
-				if (res.length) {
-					
-					// Обхождаме всички получени данни
-				    for (n in res) {
-				    	
-				    	// Фунцкцията, която да се извика
-				    	func = res[n].func;
-				    	
-				    	// Аргументи на функцията
-				    	arg = res[n].arg;
-				    	
-				    	// Ако няма функция
-			    		if (!func) {
-			    			
-			    			// Изкарваме грешката в лога
-			    			getEO().log('Не е подадена функция');
-			    			
-			    			continue;
-			    		}
-			    		
-			    		// Името на функцията с префикаса
-			    		func = thisEfaeInst.renderPrefix + func;
-			    		
-			    		try {
-			    			
-			    			// Извикваме функцията
-			    			window[func](arg);
-			    		} catch(err) {
-			    			
-			    			// Ако възникне грешка
-			    			getEO().log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
-			    		}
-				    }
-				}
+				var n = res.length;
+				
+				// Обхождаме всички получени данни
+				for (var i = 0; i < n; ++i) {
+			    	
+			    	// Фунцкцията, която да се извика
+			    	func = res[i].func;
+			    	
+			    	// Аргументи на функцията
+			    	arg = res[i].arg;
+			    	
+			    	// Ако няма функция
+		    		if (!func) {
+		    			
+		    			// Изкарваме грешката в лога
+		    			getEO().log('Не е подадена функция');
+		    			
+		    			continue;
+		    		}
+		    		
+		    		// Името на функцията с префикаса
+		    		func = thisEfaeInst.renderPrefix + func;
+		    		
+		    		try {
+		    			
+		    			// Извикваме функцията
+		    			window[func](arg);
+		    		} catch(err) {
+		    			
+		    			// Ако възникне грешка
+		    			getEO().log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
+		    		}
+			    }
 			    
 			}).fail(function(res) {
 				
