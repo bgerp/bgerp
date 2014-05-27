@@ -205,7 +205,7 @@ class cond_PaymentMethods extends core_Master
         
         if(count($planArr)){
         	$Double = cls::get('type_Double');
-        	$Double->params['smartRound'] = 'smartRound';
+        	$Double->params['decimals'] = 2;
         	$Date = cls::get('type_Date');
         	
 	        foreach($planArr as $key => &$value){
@@ -219,19 +219,6 @@ class cond_PaymentMethods extends core_Master
 	        
 	        $data->paymentPlan = $planArr;
         }
-    }
-    
-    
-    /**
-     * Рендиране на условията за плащане
-     */
-    public static function renderPaymentPlan($paymentArr) 
-    {
-    	if(count($paymentArr)){
-    		$tpl = getTplFromFile('cond/tpl/PaymentPlanBlock.shtml');
-    		
-    		return $tpl->placeArray($paymentArr);
-    	}
     }
     
     
