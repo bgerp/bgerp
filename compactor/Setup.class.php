@@ -43,8 +43,8 @@ class compactor_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        'COMPACTOR_JS_FILES' => array ('varchar', 'caption=CSS файлове->Път до файлове'),                
-        'COMPACTOR_CSS_FILES' => array ('varchar', 'caption=JS файлове->Път до файлове'),                
+        'COMPACTOR_JS_FILES' => array ('varchar', 'caption=JS файлове->Път до файлове'),                
+        'COMPACTOR_CSS_FILES' => array ('varchar', 'caption=CSS файлове->Път до файлове'),                
     );
     
     
