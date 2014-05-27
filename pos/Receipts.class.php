@@ -870,7 +870,7 @@ class pos_Receipts extends core_Master {
     	
     	if($searchString = Request::get('searchString')){
     		if(!$id = Request::get('receiptId')) return array();
-    	
+    		
 	    	if(!$rec = $this->fetch($id)) return array();
 	    	
 	    	$this->requireRightFor('terminal', $rec);
@@ -898,6 +898,7 @@ class pos_Receipts extends core_Master {
 	    $data->rec = $rec;
 	    $data->searchString = $searchString;
 	    $data->baseCurrency = acc_Periods::getBaseCurrencyCode();
+	    
 	    $this->prepareSearchData($data);
 	    	
 	    return $this->renderSearchResultTable($data);
@@ -926,7 +927,7 @@ class pos_Receipts extends core_Master {
     		
     		// Ако продукта не отговаря на търсения стринг, го пропускаме
     		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
-    		$price = $Products->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId());
+    		$price = $Products->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), NULL, NULL, $data->rec->createdOn);
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;
@@ -954,7 +955,6 @@ class pos_Receipts extends core_Master {
     	$Double->params['decimals'] = 2;
     	$row = new stdClass();
     	
-		
     	
     	$row->price = $Double->toVerbal($obj->price * (1 + $obj->vat));
     	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
