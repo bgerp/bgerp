@@ -58,6 +58,8 @@ class compactor_Plugin extends core_Plugin
         
         foreach ((array)$sArr as $ePath) {
             
+            $error = FALSE;
+            
             // Ако има такъв файл
             if ($f = getFullPath($ePath)) {
                 
@@ -89,13 +91,23 @@ class compactor_Plugin extends core_Plugin
                     $time = core_Os::getLastModified(dirname($f));
                 } else {
                     
-                    // Ако файла не съществува, го добавяме към CSS файловете
-                    $cssArr[] = $ePath;
+                    // Вдигаме флага
+                    $error = TRUE;
                 }
             }
             
-            // Добавяме името на времето към стринга за име на файл
-            $nameStr .= $ePath . $time;
+            // Ако възникне грешка
+            if ($error) {
+                
+                // Ако файла не съществува, го добавяме към CSS файловете
+                $cssArr[] = $ePath;
+                
+                // Записваме грешката в лога
+                core_Logs::add(get_called_class(), NULL, "Грешка при определяне на пътя на '{$ePath}'");
+            } else {
+                // Добавяме името на времето към стринга за име на файл
+                $nameStr .= $ePath . $time;
+            }
         }
         
         // Ако няма име
@@ -325,6 +337,10 @@ class compactor_Plugin extends core_Plugin
 	    // Съдържанието на файла
 	    $content = @file_get_contents(sbf($path, '', TRUE));
 	    
+	    if ($content === FALSE) {
+	        core_Logs::add(get_called_class(), NULL, "Грешка при извличане на съдържание от '{$path}'");
+	    }
+	    
 	    // Ако е зададено да се преобразуват локоалните линкове от съдържанието в абсолютни
 	    if ($changePath) {
 	        
@@ -358,9 +374,13 @@ class compactor_Plugin extends core_Plugin
         $pattern = '/(\.\.\/)+(.)+((\.css)+|(\.jpg)+|(\.jpeg)+|(\.png)+|(\.gif)+)+/i';
         
         // Заместваме локалните линкове към файловете с абсолютни
-	    $text = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
+	    $textChanged = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
         
-	    return $text;
+	    if (!$textChanged && $text) {
+	        core_Logs::add(get_called_class(), NULL, "Грешка при извикване на регулярен израз: " . preg_last_error());
+	    }
+	    
+	    return $textChanged;
 	}
 	
 	
