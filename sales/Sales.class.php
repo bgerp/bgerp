@@ -794,6 +794,11 @@ class sales_Sales extends core_Master
     		$fromProforma = ($data->fromProforma) ? TRUE : FALSE;
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, $fromProforma, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
+    		
+    		if($rec->paymentMethodId) {
+    			$total = $rec->_total->amount- $rec->_total->discount;
+    			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
+    		}
     	}
     }
     
@@ -1144,12 +1149,16 @@ class sales_Sales extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     		$tpl->removeBlock('STATISTIC_BAR');
     		$tpl->removeBlock('shareLog');
+    	}
+    	
+    	if($data->paymentPlan){
+    		$tpl->placeObject($data->paymentPlan);
     	}
     }
     

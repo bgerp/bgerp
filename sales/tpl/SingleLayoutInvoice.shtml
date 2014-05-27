@@ -57,9 +57,10 @@
 		                        </div>
 		                        <!--ET_END deadline-->
 		                        
-		                        <!--ET_BEGIN PAYMENT_PLAN-->
-		                        [#PAYMENT_PLAN#]
-		                        <!--ET_END PAYMENT_PLAN-->
+		                        <!--ET_BEGIN deadlineForBalancePayment-->
+								<div><span class='quiet'>|Окончателно до|*: </span>[#deadlineForBalancePayment#]</div>
+								<!--ET_END deadlineForBalancePayment-->
+		                        
 		                        <hr>
 		                        <!--ET_BEGIN accountId-->
 		                        <div>

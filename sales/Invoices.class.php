@@ -653,7 +653,7 @@ class sales_Invoices extends core_Master
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     	
     	if($data->paymentPlan){
-    		$tpl->replace(cond_PaymentMethods::renderPaymentPlan($data->paymentPlan), 'PAYMENT_PLAN');
+    		$tpl->placeObject($data->paymentPlan);
     	}
     }
     

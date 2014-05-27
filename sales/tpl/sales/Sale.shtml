@@ -59,7 +59,32 @@
 	                            <td class='quiet nowrap' align="right" width=1%>|Плащане|*: </td>
 	                            <td>[#paymentMethodId#]</td>
                             </tr>
-	                        <!--ET_END paymentMethodId-->
+                           <!--ET_END paymentMethodId-->
+	                        
+	                        <!--ET_BEGIN downpayment-->
+	                        <tr>
+	                            <td class='quiet nowrap' align="right" width=1%>|Авансово|*: </td>
+	                            <td>[#downpayment#]</td>
+                            </tr>
+	                        <!--ET_END downpayment-->
+	                        <!--ET_BEGIN paymentBeforeShipping-->
+	                        <tr>
+	                            <td class='quiet nowrap' align="right" width=1%>|Преди експедиция|*: </td>
+	                            <td>[#paymentBeforeShipping#]</td>
+                            </tr>
+	                        <!--ET_END paymentBeforeShipping-->
+	                        <!--ET_BEGIN paymentOnDelivery-->
+	                        <tr>
+	                            <td class='quiet nowrap' align="right" width=1%>|При получаване|*: </td>
+	                            <td>[#paymentOnDelivery#]</td>
+                            </tr>
+	                        <!--ET_END paymentOnDelivery-->
+	                         <!--ET_BEGIN paymentAfterInvoice-->
+	                        <tr>
+	                            <td class='quiet nowrap' align="right" width=1%>|Окончателно|*: </td>
+	                            <td>[#paymentAfterInvoice#]  |до|* [#deadlineForBalancePayment#]</td>
+                            </tr>
+	                        <!--ET_END paymentAfterInvoice-->
 	                        
 	                        <!--ET_BEGIN currencyId-->
 	                        <tr>

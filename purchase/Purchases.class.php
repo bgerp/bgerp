@@ -354,6 +354,11 @@ class purchase_Purchases extends core_Master
     	if(empty($data->noTotal)){
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	
+    		if($rec->paymentMethodId) {
+    			$total = $rec->_total->amount- $rec->_total->discount;
+    			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
+    		}
     	}
     }
     
@@ -620,6 +625,10 @@ class purchase_Purchases extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     		$tpl->removeBlock('STATISTIC_BAR');
+    	}
+    	
+    	if($data->paymentPlan){
+    		$tpl->placeObject($data->paymentPlan);
     	}
     }
     
