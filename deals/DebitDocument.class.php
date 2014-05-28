@@ -180,18 +180,21 @@ class deals_DebitDocument extends core_Master
     	expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
     	$dealInfo = $origin->getAggregateDealInfo();
     	expect(count($dealInfo->allowedPaymentOperations));
-    	$form->dealInfo = $dealInfo;
     	
+    	// Показваме само тези финансови операции в които е засегнат контрагента
+    	$options = deals_Deals::fetchDealOptions($dealInfo->involvedContragents);
+    	expect(count($options));
+    	$form->setOptions('dealId', $options);
+    	
+    	$form->dealInfo = $dealInfo;
     	$form->setDefault('operationSysId', 'debitDeals');
     	
     	// Използваме помощната функция за намиране името на контрагента
     	if(empty($form->rec->id)) {
     		 $form->setDefault('description', "Към документ #{$origin->getHandle()}");
-    		 $cId = ($dealInfo->shipped->currency) ? $dealInfo->shipped->currency : $dealInfo->paid->currency;
-    		 $form->rec->currencyId = currency_Currencies::getIdByCode($cId);
     		 
-    		 $rate = ($dealInfo->shipped->rate) ? $dealInfo->shipped->rate : $dealInfo->paid->rate;
-    		 $form->rec->rate = $rate;
+    		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
+    		 $form->rec->rate = $dealInfo->agreed->rate;
     	}
     	
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
@@ -307,16 +310,19 @@ class deals_DebitDocument extends core_Master
     public static function canAddToThread($threadId)
     {
     	$threadRec = doc_Threads::fetch($threadId);
-    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	 
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	 
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
-    			
-    		// Ако няма позволени операции за документа не може да се създава
+    		
     		$dealInfo = $firstDoc->getAggregateDealInfo();
     		
+    		// Ако няма финансови сделки в които  замесен контрагента, не може да се създава
+    		$options = deals_Deals::fetchDealOptions($dealInfo->involvedContragents);
+    		if(!count($options)) return FALSE;
+    		
+    		// Ако няма позволени операции за документа не може да се създава
     		return isset($dealInfo->allowedPaymentOperations['debitDeals']) ? TRUE : FALSE;
     	}
     

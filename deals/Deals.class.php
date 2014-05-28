@@ -35,7 +35,7 @@ class deals_Deals extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg';
+    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
@@ -83,7 +83,7 @@ class deals_Deals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,dealName,accountId,folderId,state,createdOn';
+    public $listFields = 'tools=Пулт,dealName,folderId,state,createdOn,createdBy';
     
 
     /**
@@ -125,7 +125,7 @@ class deals_Deals extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'dealName, accountId, description';
+    public $searchFields = 'dealName, accountId, description, folderId';
     
     
     /**
@@ -145,15 +145,23 @@ class deals_Deals extends core_Master
     public function description()
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,mandatory,width=100%');
-    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf, allowEmpty)', 'caption=Сметка,mandatory');
+    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf, allowEmpty)', 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
-    	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
-    	$this->FLD('contragentId', 'int', 'input=hidden');
+    	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
     	$this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=4em');
-    	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнителno->Описание');
     	
-    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Статус, input=none');
+    	$this->FLD('companyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Втори контрагент->Фирма,input');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Втори контрагент->Лице,input');
+    	
+    	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
+    	$this->FLD('contragentId', 'int', 'input=hidden');
+    	
+    	$this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
+    	$this->FLD('secondContragentId', 'int', 'input=none');
+    	
+    	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнителno->Описание');
+    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Състояние, input=none');
     	
     	$this->setDbUnique('dealName');
     }
@@ -165,6 +173,7 @@ class deals_Deals extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$rec = &$form->rec;
     	
     	$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
@@ -187,6 +196,26 @@ class deals_Deals extends core_Master
     {
     	if ($form->isSubmitted()){
     		$rec  = &$form->rec;
+    		
+    		if($rec->companyId && $rec->personId){
+    			$form->setError('companyId,personId', 'Моля изберете само един втори контрагент');
+    		}
+    		
+    		if($rec->companyId){
+    			$rec->secondContragentClassId = crm_Companies::getClassId();
+    			$rec->secondContragentId = $rec->companyId;
+    		}
+    		
+    		if($rec->personId){
+    			$rec->secondContragentClassId = crm_Persons::getClassId();
+    			$rec->secondContragentId = $rec->personId;
+    		}
+    		
+    		if(empty($rec->companyId) && empty($rec->personId)){
+    			$rec->secondContragentClassId = NULL;
+    			$rec->secondContragentId = NULL;
+    		}
+    		
     		if(!$rec->currencyRate){
     			// Изчисляваме курса към основната валута ако не е дефиниран
     			$rec->currencyRate = round(currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL), 4);
@@ -210,6 +239,10 @@ class deals_Deals extends core_Master
     	if($fields['-single']){
     		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
     		$row->contragentName = cls::get($rec->contragentClassId)->getHyperLink($rec->contragentId, TRUE);
+    		
+    		if($rec->secondContragentClassId){
+    			$row->secondContragentId = cls::get($rec->secondContragentClassId)->getHyperLink($rec->secondContragentId, TRUE);
+    		}
     	}
     	
     	if($fields['-list']){
@@ -272,6 +305,11 @@ class deals_Deals extends core_Master
     		if($rec->state != 'active' && $rec->state != 'closed'){
     			$res = 'no_one';
     		}
+    	}
+    	
+    	// При създаване на сделка, тя не може да се активира
+    	if($action == 'activate' && empty($rec)){
+    		$res = 'no_one';
     	}
     }
     
@@ -435,9 +473,16 @@ class deals_Deals extends core_Master
     	
     	$result->dealType = bgerp_iface_DealResponse::TYPE_DEAL;
     	$result->allowedPaymentOperations = $this->getAllowedOperations($rec);
+    	$result->involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
+    	if($rec->secondContragentClassId){
+    		$result->involvedContragents[] = (object)array('classId' => $rec->secondContragentClassId, 'id' => $rec->secondContragentId);
+    	}
     	
     	$result->paid->currency = $rec->currencyId;
     	$result->paid->rate = $rec->currencyRate;
+    	
+    	$result->agreed->currency = $rec->currencyId;
+    	$result->agreed->rate = $rec->currencyRate;
     	
     	return $result;
     }
@@ -611,16 +656,7 @@ class deals_Deals extends core_Master
     	requireRole('debug');
     	expect($id = Request::get('id', 'int'));
     	$info = $this->getAggregateDealInfo($id);
-    	bp($info->allowedPaymentOperations,$info->paid);
-    }
-    
-    
-    /**
-     * Поставя изискване да се селектират само активните записи
-     */
-    function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
-    {
-    	$where .= ($where ? " AND " : "") . " #state = 'active'";
+    	bp($info);
     }
     
     
@@ -662,5 +698,23 @@ class deals_Deals extends core_Master
     	 
     	deals_DebitDocument::restoreAll($rec->id);
     	deals_CreditDocument::restoreAll($rec->id);
+    }
+    
+    
+    /**
+     * Връща опции на всички сделки в които са замесени посочените контрагенти
+     * 
+     * @param array $involvedContragents - масив от обекти с 'classId' и 'id'
+     */
+    public static function fetchDealOptions($involvedContragents)
+    {
+    	$where = "#state = 'active' && (";
+    	foreach ($involvedContragents as $i => $contragent){
+    		if($i) $where .= " OR ";
+    		$where .= "((#contragentClassId = '{$contragent->classId}' && #contragentId = '{$contragent->id}') || (#secondContragentClassId IS NOT NULL && #secondContragentClassId = '{$contragent->classId}' && #secondContragentId = '{$contragent->id}'))";
+    	}
+    	$where .= ")";
+    	
+    	return static::makeArray4Select($select, $where);
     }
 }

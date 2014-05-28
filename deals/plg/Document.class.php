@@ -97,10 +97,17 @@ class deals_plg_Document extends core_Plugin
 		$count = $query->count();
 		
 		while($rec = $query->fetch()){
-			$mvc->reject($rec->id);
+			
+			try{
+				$mvc->reject($rec->id);
+			} catch(Exception $e){
+				$mvc->log("Проблем с оттеглянето на {$mvc->singleTitle}, {$rec->id}");
+			}
 		}
 		
-		core_Statuses::newStatus(tr("|Оттеглени са|* {$count} {$mvc->title}"));
+		if($count){
+			core_Statuses::newStatus(tr("|Оттеглени са|* {$count} {$mvc->title}"));
+		}
 	}
 	
 	
@@ -115,9 +122,15 @@ class deals_plg_Document extends core_Plugin
 		
 		$count = $query->count();
 		while($rec = $query->fetch()){
-			$mvc->restore($rec->id);
+			try{
+				$mvc->restore($rec->id);
+			} catch(Exception $e){
+				$mvc->log("Проблем с възстановяване на {$mvc->singleTitle}, {$rec->id}");
+			}
 		}
 		
-		core_Statuses::newStatus(tr("|Възстановени са|* {$count} {$mvc->title}"));
+		if($count){
+			core_Statuses::newStatus(tr("|Възстановени са|* {$count} {$mvc->title}"));
+		}
 	}
 }
