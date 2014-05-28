@@ -946,11 +946,16 @@ class pos_Receipts extends core_Master {
     							 'measureId' => $pRec->measureId,
     							 'price'     => $price->price, 
     							 'photo'     => $pRec->photo,
-    							 'vat'	     => $Products->getVat($id),
-    							 'stock'     => pos_Stocks::getQuantity($id, $data->rec->pointId));
+    							 'vat'	     => $Products->getVat($id));
+    		
+    		$pInfo = cat_Products:: getProductInfo($id);
+    		if(isset($pInfo->meta['canStore'])){
+    			$obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
+    		}
     		
     		// Обръщаме реда във вербален вид
     		$data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
+    		
     		$count++;
     	}
     }
@@ -964,7 +969,6 @@ class pos_Receipts extends core_Master {
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	$row = new stdClass();
-    	
     	
     	$row->price = $Double->toVerbal($obj->price * (1 + $obj->vat));
     	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
@@ -991,7 +995,10 @@ class pos_Receipts extends core_Master {
     		$row->stock = "<span style='color:red'>$row->stock</span>";	
     	}
     	
-    	$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
+    	if($rec->stock){
+    		$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
+    	}
+    	
     	if($obj->photo && !Mode::is('screenMode', 'narrow')) {
     		$thumb = new img_Thumb($obj->photo, 64, 64);
     		$arr = array();
