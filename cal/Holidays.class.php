@@ -133,7 +133,7 @@ class cal_Holidays extends core_Master
 										AL=Албания,
 										DZ=Алжир,
 										AO=Ангола,
-										АТ=Ангуила,
+										AI=Ангуила,
 										AD=Андора,
 										AR=Аржентина,
 										AM=Армения,
