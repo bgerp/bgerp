@@ -808,7 +808,14 @@
 	   margin: 0 !important;
 	}
 }
-
+@media handheld, only screen and (max-width: 640px) {
+	.wide #tools-wide-holder{
+	   display: none;
+	}
+	.wide #single-receipt, .wide #tools-holder .tabs-holder-content{
+	   width: 100% !important;
+	}
+}
 @media print{
     .single-receipt-wrapper{
         border:none;
