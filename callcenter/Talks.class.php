@@ -1757,6 +1757,10 @@ class callcenter_Talks extends core_Master
         // Вземаме абсолютния линк
         $url = toUrl($urlArr, 'absolute');
         
+        // Фикс за Reload
+        // TODO може да се премахне
+        $url = str_ireplace('reload.bgerp.com/callcenter_Talks/mockup', 'reload1.bgerp.com/callcenter_Talks/mockup', $url);
+        
         // Извикваме линка
         exec("wget -q --spider --no-check-certificate '{$url}'");
     }
