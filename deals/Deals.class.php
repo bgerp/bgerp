@@ -644,18 +644,23 @@ class deals_Deals extends core_Master
     {
     	$rec = $mvc->fetchRec($id);
     	
-    	$count = 0;
-    	$dQuery = deals_CatchDocument::getQuery();
-    	$dQuery->where("#dealId = {$rec->id}");
-    	$dQuery->where("#state = 'active'");
-    	while($dRec = $dQuery->fetch()){
-    		deals_CatchDocument::reject($dRec);
-    		$count++;
-    	}
-    	
-    	if($count){
-    		$msg = tr("|Оттеглени са|* {$count} |прихващащи документи|*");
-    		core_Statuses::newStatus($msg);
-    	}
+    	deals_DebitDocument::rejectAll($rec->id);
+    	deals_CreditDocument::rejectAll($rec->id);
+    }
+    
+    
+    /**
+     * След възстановяването на сделка се възстановяват всички документи, които я използват
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	 
+    	deals_DebitDocument::restoreAll($rec->id);
+    	deals_CreditDocument::restoreAll($rec->id);
     }
 }

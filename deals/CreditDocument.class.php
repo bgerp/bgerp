@@ -34,7 +34,7 @@ class deals_CreditDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools, deals_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
+                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, deals_plg_Document,
                      plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
     
     
@@ -223,39 +223,6 @@ class deals_CreditDocument extends core_Master
     
     
     /**
-     *  Обработки по вербалното представяне на данните
-     */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-    	$row->number = static::getHandle($rec->id);
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}
-    	
-    	if($fields['-single']){
-    		$row->dealId = deals_Deals::getHyperLink($rec->dealId, TRUE);
-    		
-    		// Показваме заглавието само ако не сме в режим принтиране
-    		if(!Mode::is('printing')){
-    			$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-    		}
-    		
-    		$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
-    		
-    		if($baseCurrencyId != $rec->currencyId) {
-    			$Double = cls::get('type_Double');
-    			$Double->params['decimals'] = 2;
-    			$rec->amountBase = round($rec->amount * $rec->rate, 2);
-    			$row->amountBase = $Double->toVerbal($rec->amountBase);
-    			$row->baseCurrency = currency_Currencies::getCodeById($baseCurrencyId);
-    		} else {
-    			unset($row->rate);
-    		}
-    	}
-    }
-    
-    
-    /**
      *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      *  Създава транзакция която се записва в Журнала, при контирането
      */
@@ -323,29 +290,6 @@ class deals_CreditDocument extends core_Master
     	$row->recTitle = $name;
     
     	return $row;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
-    }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-    	return FALSE;
     }
     
     
@@ -435,19 +379,5 @@ class deals_CreditDocument extends core_Master
     	$result->paid->rate 	= $rec->rate;
     	 
     	return $result;
-    }
-    
-    
-    /**
-     * Извиква се след изчисляването на необходимите роли за това действие
-     */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {
-    	if($action == 'restore' && isset($rec)){
-    		$dealState = deals_Deals::fetchField($rec->dealId, 'state');
-    		if($dealState != 'active'){
-    			$res = 'no_one';
-    		}
-    	}
     }
 }
