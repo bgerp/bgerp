@@ -79,14 +79,14 @@ class acc_Setup extends core_ProtoSetup
             'acc_JournalDetails',
         	'acc_Operations',
     		'acc_OpenDeals',
-    		'acc_Features',
+    		'acc_Features'
         );
     
 
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'acc';
+    var $roles = 'acc, accMaster';
 
     
     /**
@@ -106,8 +106,6 @@ class acc_Setup extends core_ProtoSetup
         // Добавяне на класа за репорти
     	core_Classes::add('acc_ReportDetails');
     	
-    	$html = parent::install();
-
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'RecalcBalances';
@@ -127,10 +125,7 @@ class acc_Setup extends core_ProtoSetup
             $html .= "<li>Отпреди Cron е бил нагласен да преизчислява баланси</li>";
         }
 		
-        // Добавяне на роля за старши касиер
-        $html .= core_Roles::addRole('accMaster', 'acc') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
-        
-        $html .= $this->loadSetupData();
+    	$html = parent::install();
 
         return $html;
     }

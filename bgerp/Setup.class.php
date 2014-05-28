@@ -160,12 +160,12 @@ class bgerp_Setup {
                     try {
                         $html .= $Packs->setupPack($p);
                         $isSetup[$p] = TRUE;
+                        unset($haveErrorP[$p]);
                     } catch(core_exception_Expect $exp) {
-                        $html = $html . "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}</h3>";
-                        //$html .= $exp->getAsHtml();
                         $force = TRUE; 
                         $Packs->alreadySetup[$p . $force] = FALSE;
                         $haveError = TRUE;
+                        $haveErrorP[$p] .= "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage(). " " .date('H:i:s')."</h3>";
                     }
                  }
             }
@@ -178,15 +178,17 @@ class bgerp_Setup {
                         try {
                             $packsInst[$p]->loadSetupData();
                             $isLoad[$p] = TRUE;
+                            unset($haveErrorP[$p]);
                         } catch(core_exception_Expect $exp) {
-                            $html = $html . "<h3 style='color:red'>Грешка при зареждане данните на пакета {$p}</h3>";
                             $haveError = TRUE;
-                            //$html .= $exp->getAsHtml();
+                            $haveErrorP[$p] .= "<h3 style='color:red'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " .date('H:i:s')."</h3>";
                         }
                     }
                 }
             }
-        } while ($haveError && ($loop<5));
+        } while (is_array($haveErrorP) && ($loop<5));
+
+        $html .= implode("\n", $haveErrorP);
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на бележките
         $Bucket = cls::get('fileman_Buckets');
