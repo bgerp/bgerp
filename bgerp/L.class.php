@@ -152,23 +152,39 @@ class bgerp_L extends core_Manager
                 
                 // Ако е изпратен
                 if ($action->action == log_Documents::ACTION_SEND) {
+                    
+                    // Активатора и последния модифицирал на изпратения документ
+                    if (!$activatedBy) {
+                        
+                        $sendContainerRec = doc_Containers::fetch($action->containerId);
+                        $activatedBy = $sendContainerRec->activatedBy;
+                    }
+                    
                     if ($action->data->detId) {
                         $options['__toDetId'] = $action->data->detId;
                     }
                     $options['__toEmail'] = $action->data->to;
-                    
-                    if ($action->data->sendedBy > 0) {
-                        $options['__userId'] = $action->data->sendedBy;
-                    }
                 }
-
+                
+                // Ако има изпратено от
+                if ($action->data->sendedBy > 0 && !$options['__userId']) {
+                    $options['__userId'] = $action->data->sendedBy;
+                }
+                
                 // Ако е принтиран
                 if ($action->action == log_Documents::ACTION_PRINT) {
                     $options['__toListId'] = $action->data->toListId;
                     
-                    if ($action->createdBy > 0) {
+                    if ($action->createdBy > 0 && !$options['__userId']) {
                         $options['__userId'] = $action->createdBy;
                     }
+                }
+            }
+            
+            // Ако няма потребител или е системата - за бласт
+            if (!$options['__userId'] || $options['__userId'] <= 0) {
+                if ($activatedBy > 0) {
+                    $options['__userId'] = $activatedBy;
                 }
             }
             

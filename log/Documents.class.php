@@ -1300,11 +1300,31 @@ class log_Documents extends core_Manager
             
             // Вземаме от парент записа id то на изпращача
             $fParent = $parent;
+            
+            // Ако е изпратен
+            if ($fParent->action == static::ACTION_SEND) {
+                $sendedAction = $fParent;
+            }
             while ($fParent->parentId) {
                 $fParent = static::fetch($fParent->parentId);
+                
+                // Ако е изпратен
+                if (!$sendedAction && $fParent->action == static::ACTION_SEND) {
+                    $sendedAction = $fParent;
+                }
             }
             if ($fParent->data->sendedBy > 0) {
                 $sendedBy = $fParent->data->sendedBy;
+            }
+            
+            // Ако е изпратен или е системата - за бласт
+            if ($sendedAction && (!$sendedBy || $sendedBy <= 0)) {
+                
+                // Използваме активатора на документа
+                $sendContainerRec = doc_Containers::fetch($sendedAction->containerId);
+                if ($sendContainerRec->activatedBy && $sendContainerRec->activatedBy > 0) {
+                    $sendedBy = $sendContainerRec->activatedBy;
+                }
             }
             
             $linkedDocs = $midDoc->getLinkedDocuments($sendedBy);
