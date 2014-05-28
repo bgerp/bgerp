@@ -323,6 +323,8 @@ class deals_Deals extends core_Master
     			$end = $data->pager->rangeEnd - 1;
     			
     			$row = new stdClass();
+    			$row->valior = dt::mysql2verbal($jRec->valior, 'd.m.Y');
+    			
     			try{
     				$DocType = cls::get($jRec->docType);
     				$row->docId = $DocType->getHyperLink($jRec->docId, TRUE);
@@ -366,7 +368,7 @@ class deals_Deals extends core_Master
     	$fieldSet->FLD('creditA', 'double');
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
-    	$fields = "docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
+    	$fields = "valior=Вальор,docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
     	$tpl->append($table->get($data->history, $fields), 'DETAILS');
     	
     	if($data->pager){
