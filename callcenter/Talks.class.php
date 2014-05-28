@@ -1722,6 +1722,11 @@ class callcenter_Talks extends core_Master
 //            'outgoing' => 'outgoing',
         );
         
+        // Ако е изходящо обаждане
+        if (Request::get('outgoing')) {
+            $urlArr['outgoing'] = 'outgoing';
+        }
+        
         // Вземаме абсолютния линк
         $url = toUrl($urlArr, 'absolute');
         
@@ -1739,6 +1744,11 @@ class callcenter_Talks extends core_Master
             'uniqueId' => $uniqId,
 //            'outgoing' => 'outgoing'
         );
+        
+        // Ако е изходящо обаждане
+        if (Request::get('outgoing')) {
+            $urlArr['outgoing'] = 'outgoing';
+        }
         
         // Вземаме абсолютния линк
         $url = toUrl($urlArr, 'absolute');
