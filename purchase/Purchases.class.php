@@ -739,6 +739,7 @@ class purchase_Purchases extends core_Master
        
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
+        $result->involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->downpayment            = ($downPayment) ? $downPayment : NULL;

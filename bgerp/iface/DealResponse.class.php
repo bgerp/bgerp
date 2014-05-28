@@ -31,6 +31,13 @@ class bgerp_iface_DealResponse
     
     
     /**
+     * Кои са замесените контрагенти в сделката
+     * всяки контрагент е масив с полето 'classId' и 'id'
+     */
+    public $involvedContragents = array();
+    
+    
+    /**
      * Информация за запитване
      * 
      * @var bgerp_iface_DealAspect
