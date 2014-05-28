@@ -156,11 +156,19 @@ class bgerp_L extends core_Manager
                         $options['__toDetId'] = $action->data->detId;
                     }
                     $options['__toEmail'] = $action->data->to;
+                    
+                    if ($action->data->sendedBy > 0) {
+                        $options['__userId'] = $action->data->sendedBy;
+                    }
                 }
 
                 // Ако е принтиран
                 if ($action->action == log_Documents::ACTION_PRINT) {
                     $options['__toListId'] = $action->data->toListId;
+                    
+                    if ($action->createdBy > 0) {
+                        $options['__userId'] = $action->createdBy;
+                    }
                 }
             }
             
