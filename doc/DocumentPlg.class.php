@@ -1571,16 +1571,12 @@ class doc_DocumentPlg extends core_Plugin
     */
     function on_AfterGetLinkedFiles($mvc, &$res, $rec)
     {
-        if (is_object($rec)) {
-            $id = $rec->id;
-        } else {
-            $id = $rec;
+        if (!is_object($rec)) {
+            $rec = $mvc->fetch($rec);
         }
-        // Вземаме документа
-        $data = $mvc->prepareDocument($id);
-
+        
         // Намираме прикачените файлове
-        $res = array_merge(fileman_RichTextPlg::getFiles($data->rec->body), (array)$res);
+        $res = array_merge(fileman_RichTextPlg::getFiles($rec->body), (array)$res);
     }
     
     
@@ -1593,11 +1589,10 @@ class doc_DocumentPlg extends core_Plugin
         
         core_Users::sudo($userId);
         
-        // Вземаме документа
-        $data = $mvc->prepareDocument($id);
+        $rec = $mvc->fetch($id);
         
         // Намираме прикачените документи
-        $attachedDocs = doc_RichTextPlg::getAttachedDocs($data->rec->body);
+        $attachedDocs = doc_RichTextPlg::getAttachedDocs($rec->body);
         if (count($attachedDocs)) {
             $attachedDocs = array_keys($attachedDocs);
             $attachedDocs = array_combine($attachedDocs, $attachedDocs);    
