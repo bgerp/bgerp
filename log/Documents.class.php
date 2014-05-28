@@ -1298,7 +1298,16 @@ class log_Documents extends core_Manager
             $requestedDoc = doc_Containers::getDocument($cid);
             $midDoc       = doc_Containers::getDocument($parent->containerId);
             
-            $linkedDocs = $midDoc->getLinkedDocuments();
+            // Вземаме от парент записа id то на изпращача
+            $fParent = $parent;
+            while ($fParent->parentId) {
+                $fParent = static::fetch($fParent->parentId);
+            }
+            if ($fParent->data->sendedBy > 0) {
+                $sendedBy = $fParent->data->sendedBy;
+            }
+            
+            $linkedDocs = $midDoc->getLinkedDocuments($sendedBy);
             
             // свързан ли е?
             expect(isset($linkedDocs[$requestedDoc->getHandle()]));
