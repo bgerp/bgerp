@@ -947,9 +947,11 @@ class doc_DocumentPlg extends core_Plugin
         Mode::push('text', $mode);
         
         if (!Mode::is('text', 'html')) {
-            
+            if (!$userId = $options->__userId) {
+                $userId = $mvc->getContainer($id)->activatedBy;
+            }
             // Временна промяна на текущия потребител на този, който е активирал документа
-            $bExitSudo = core_Users::sudo($mvc->getContainer($id)->activatedBy);
+            $bExitSudo = core_Users::sudo($userId);
         }
         
         // Ако възникне изключение
@@ -1008,8 +1010,11 @@ class doc_DocumentPlg extends core_Plugin
         Mode::push('text', $mode);
         
         if (!Mode::is('text', 'html')) {
+            if (!$userId = $options->__userId) {
+                $userId = $mvc->getContainer($id)->activatedBy;
+            }
             // Временна промяна на текущия потребител на този, който е активирал документа
-            $bExitSudo = core_Users::sudo($mvc->getContainer($id)->activatedBy);
+            $bExitSudo = core_Users::sudo($userId);
         }
         
         // Ако възникне изключение
@@ -1579,9 +1584,14 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
-    public static function on_AfterGetLinkedDocuments($mvc, &$res, $id)
+    public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL)
     {
-        core_Users::sudo($mvc->getContainer($id)->activatedBy);
+        
+        if (!$userId) {
+            $userId = $mvc->getContainer($id)->activatedBy;
+        }
+        
+        core_Users::sudo($userId);
         
         // Вземаме документа
         $data = $mvc->prepareDocument($id);
