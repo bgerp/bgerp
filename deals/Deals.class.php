@@ -374,7 +374,9 @@ class deals_Deals extends core_Master
     			if($jRec->debitItem1 == $item->id){
     				$row->debitA = $Double->toVerbal($jRec->amount);
     				$blAmount += $jRec->amount;
-    			} elseif($jRec->creditItem1 == $item->id){
+    			}
+    			
+    			if($jRec->creditItem1 == $item->id){
     				$row->creditA = $Double->toVerbal($jRec->amount);
     				$blAmount -= $jRec->amount;
     			}
