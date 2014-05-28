@@ -3,7 +3,7 @@
 
 
 /**
- * Документ за "Прихващания"
+ * Документ за "Прихващане на вземания"
  * Могат да се добавят към нишки на покупки, продажби и финансови сделки
  *
  *
@@ -14,10 +14,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_CatchDocument extends core_Master
+class deals_DebitDocument extends core_Master
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'deals_CatchDocument';
+	
+	
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -27,7 +33,7 @@ class deals_CatchDocument extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Прихващания";
+    public $title = "Прихващане на вземания";
     
     
     /**
@@ -35,7 +41,7 @@ class deals_CatchDocument extends core_Master
      */
     public $loadList = 'plg_RowTools, deals_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
-                     plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues';
+                     plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
     
     
     /**
@@ -71,7 +77,7 @@ class deals_CatchDocument extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    public $singleTitle = 'Прихващане';
+    public $singleTitle = 'Прихващане на взeмане';
     
     
     /**
@@ -83,7 +89,7 @@ class deals_CatchDocument extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Cdc";
+    public $abbr = "Cdd";
     
     
     /**
@@ -113,13 +119,13 @@ class deals_CatchDocument extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    public $singleLayoutFile = 'deals/tpl/SingleLayoutCatchDocument.shtml';
+    public $singleLayoutFile = 'deals/tpl/SingleLayoutDebitDocument.shtml';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, operationName, folderId, dealId';
+    public $searchFields = 'name, folderId, dealId';
 
     
     /**
@@ -129,19 +135,11 @@ class deals_CatchDocument extends core_Master
     
     
     /**
-     * Стратегии за дефолт стойностти
-     */
-    public static $defaultStrategies = array(
-    	'operationSysId'  => 'lastDocUser|lastDoc',
-    );
-    
-    
-    /**
      * Описание на модела
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,width=100%,mandatory,silent');
+    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
     	$this->FLD('name', 'varchar(255)', 'caption=Име,mandatory,width=100%');
     	$this->FLD('dealId', 'key(mvc=deals_Deals,select=dealName,allowEmpty)', 'mandatory,caption=Сделка,width=100%');
@@ -149,7 +147,6 @@ class deals_CatchDocument extends core_Master
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
     	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс,width=6em');
     	$this->FLD('description', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
-    	$this->FLD('operationName', 'varchar(255)', 'input=none');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
@@ -185,10 +182,7 @@ class deals_CatchDocument extends core_Master
     	expect(count($dealInfo->allowedPaymentOperations));
     	$form->dealInfo = $dealInfo;
     	
-    	$options = self::getOperations($dealInfo->allowedPaymentOperations);
-    	expect(count($options));
-    	
-    	$form->fields['operationSysId']->type = cls::get('type_Enum', array('options' => array('' => ' ') + $options));
+    	$form->setDefault('operationSysId', 'debitDeals');
     	
     	// Използваме помощната функция за намиране името на контрагента
     	if(empty($form->rec->id)) {
@@ -198,17 +192,9 @@ class deals_CatchDocument extends core_Master
     		 
     		 $rate = ($dealInfo->shipped->rate) ? $dealInfo->shipped->rate : $dealInfo->paid->rate;
     		 $form->rec->rate = $rate;
-    	} else {
-    		$form->setReadOnly('operationSysId');
     	}
     	
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
-    	
-    	if(!$form->rec->operationSysId){
-    		$form->setReadOnly('dealId');
-    	}
-    	
-    	$form->addAttr('operationSysId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['dealId'].value ='';this.form.submit();"));
     }
     
     
@@ -218,27 +204,14 @@ class deals_CatchDocument extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = &$form->rec;
-    	$operation = $form->dealInfo->allowedPaymentOperations[$rec->operationSysId];
-    	
-    	if($rec->operationSysId){
-    		$dAccId = acc_Accounts::getRecBySystemId($operation['debit']);
-    		$cAccId = acc_Accounts::getRecBySystemId($operation['credit']);
-    		
-    		$deals = deals_Deals::makeArray4Select($select, "(#accountId = {$dAccId->id} || #accountId = {$cAccId->id}) AND #state = 'active'");
-    		if(!count($deals)){
-    			$form->setError('dealId', 'Няма финансови сделки, по които може да се направи оепрацията');
-    			$form->setReadOnly('dealId');
-    		} else {
-    			$form->setOptions('dealId', $deals);
-    		}
-    	}
     	
     	if ($form->isSubmitted()){
-    		// Коя е дебитната и кредитната сметка
+    		$operation = $form->dealInfo->allowedPaymentOperations[$rec->operationSysId];
+    		$debitAcc = deals_Deals::fetchField($rec->dealId, 'accountId');
     		
-    		$rec->debitAccount = $operation['debit'];
+    		// Коя е дебитната и кредитната сметка
+    		$rec->debitAccount = acc_Accounts::fetchRec($debitAcc)->systemId;
     		$rec->creditAccount = $operation['credit'];
-    		$rec->operationName = $form->dealInfo->allowedPaymentOperations[$rec->operationSysId]['title'];
     		acc_Periods::checkDocumentDate($form, 'valior');
     		
     		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
@@ -268,7 +241,7 @@ class deals_CatchDocument extends core_Master
     		
     		// Показваме заглавието само ако не сме в режим принтиране
     		if(!Mode::is('printing')){
-    			$row->header = $row->operationName . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+    			$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     		}
     		
     		$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
@@ -294,17 +267,20 @@ class deals_CatchDocument extends core_Master
     {
     	// Извличаме записа
     	expect($rec = self::fetchRec($id));
-    	if($rec->operationSysId == 'creditFactoring'){
-    		$debitFirstArr  = array($rec->contragentClassId, $rec->contragentId);
-    		$creditFirstArr = array('deals_Deals', $rec->dealId);
+    	
+    	expect($origin = static::getOrigin($rec));
+    	$dealInfo = $origin->getAggregateDealInfo();
+    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_DEAL){
+    		$creditFirstArr = array('deals_Deals', $origin->that);
     	} else {
-    		$debitFirstArr  = array('deals_Deals', $rec->dealId);
     		$creditFirstArr = array($rec->contragentClassId, $rec->contragentId);
     	}
     	
+    	$debitFirstArr  = array('deals_Deals', $rec->dealId);
+    	
     	// Подготвяме информацията която ще записваме в Журнала
     	$result = (object)array(
-    			'reason' => $rec->reason, // основанието за ордера
+    			'reason' => $rec->name, // основанието за ордера
     			'valior' => $rec->valior,   // датата на ордера
     			'entries' => array(
     					array(
@@ -331,9 +307,9 @@ class deals_CatchDocument extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$name = static::getVerbal($rec, 'operationName');
+    	$self = cls::get(__CLASS__);
     	
-    	return "{$name} №{$rec->id}";
+    	return "{$self->singleTitle} №{$rec->id}";
     }
     
     
@@ -343,9 +319,8 @@ class deals_CatchDocument extends core_Master
     function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
-    	$name = $this->getVerbal($rec, 'operationName');
     	$row = new stdClass();
-    	$row->title = $name . " №{$id}";
+    	$row->title = $this->singleTitle . " №{$id}";
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
@@ -397,30 +372,11 @@ class deals_CatchDocument extends core_Master
     			
     		// Ако няма позволени операции за документа не може да се създава
     		$dealInfo = $firstDoc->getAggregateDealInfo();
-    		$options = self::getOperations($dealInfo->allowedPaymentOperations);
-    		 
-    		return count($options) ? TRUE : FALSE;
+    		
+    		return isset($dealInfo->allowedPaymentOperations['debitDeals']) ? TRUE : FALSE;
     	}
     
     	return FALSE;
-    }
-    
-    
-    /**
-     * Връща платежните операции
-     */
-    private static function getOperations($operations)
-    {
-    	$options = array();
-    	
-    	// Оставяме само тези операции в коитос е дебитира основната сметка на документа
-    	foreach ($operations as $sysId => $op){
-    		if($op['debit'] == '406' || $op['credit'] == '406' || $op['debit'] == '414'|| $op['credit'] == '414'){
-    			$options[$sysId] = $op['title'];
-    		}
-    	}
-    	
-    	return $options;
     }
     
     
@@ -481,7 +437,6 @@ class deals_CatchDocument extends core_Master
     	$result->paid->amount          = $rec->amount * $rec->rate;
     	$result->paid->currency        = currency_Currencies::getCodeById($rec->currencyId);
     	$result->paid->rate 	       = $rec->rate;
-    	$result->paid->operationSysId  = $rec->operationSysId;
     	 
     	return $result;
     }

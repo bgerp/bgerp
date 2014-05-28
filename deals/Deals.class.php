@@ -2,7 +2,7 @@
 /**
  * Клас 'deals_Deals'
  *
- * Мениджър за Финансови сделки
+ * Мениджър за финансови сделки
  *
  *
  * @category  bgerp
@@ -131,29 +131,12 @@ class deals_Deals extends core_Master
     /**
      * Позволени операции на последващите платежни документи
      */
-    public $allowedPaymentOperations = array(
-    		'shortTermLoansBankCredit'       => array('title' => 'Краткосрочен банков кредит', 'debit' => '503', 'credit' => '1511'),
-    		'shortTermLoansBankOverdraft'    => array('title' => 'Kраткосрочни заеми - овърдрафт', 'debit' => '503', 'credit' => '1513'),
-    		'shortTermLoansBankPersons'      => array('title' => 'Краткосрочен заем от свързани лица', 'debit' => '503', 'credit' => '1514'),
-    		'shortTermLoansCasePersons'      => array('title' => 'Краткосрочен заем от свързани лица', 'debit' => '501', 'credit' => '1514'),
-    		'longTermLoansBankCredit'        => array('title' => 'Дългосрочен банков кредит', 'debit' => '503', 'credit' => '1521'),
-    		'longTermLoansOverdraft'         => array('title' => 'Дългосрочни заеми - овърдрафт', 'debit' => '503', 'credit' => '1523'),
-    		'longTermLoansBankPersons'       => array('title' => 'Дългосрочен заем от свързани лица', 'debit' => '503', 'credit' => '1524'),
-    		'longTermLoansCasePersons'       => array('title' => 'Дългосрочен заем от свързани лица', 'debit' => '501', 'credit' => '1524'),
-    		'paidShortTermLoanBankCredit'    => array('title' => 'Платена главница по краткосрочен банков кредит', 'debit' => '1511', 'credit' => '503'),
-    		'paidShortTermLoanBankOverdraft' => array('title' => 'Погасена главница по краткосрочен овърдрафт', 'debit' => '1513', 'credit' => '503'),
-    		'paidShortTermLoansBankPersons'  => array('title' => 'Платена главница по краткосрочен заем от свързани лица', 'debit' => '1514', 'credit' => '503'),
-    		'paidShortTermLoansCasePersons'  => array('title' => 'Платена главница по краткосрочен заем от свързани лица', 'debit' => '1514', 'credit' => '501'),
-    		'paidLongTermLoanBankCredit'     => array('title' => 'Платена главница по дългосрочен банков кредит', 'debit' => '1521', 'credit' => '503'),
-    		'longTermLoansBankOverdraft'     => array('title' => 'Погасена главница по дългосрочен овърдрафт', 'debit' => '1523', 'credit' => '503'),
-    		'longTermLoansBankPersons'       => array('title' => 'Получени дългосрочни заеми - от свързани лица', 'debit' => '1524', 'credit' => '503'),
-    		'longTermLoansCasePersons'       => array('title' => 'Платена главница по дългосрочен заем от свързани лица', 'debit' => '1524', 'credit' => '501'),
-    		'creditFactoring'                => array('title' => 'Прихващане на Задължения', 'debit' => '401', 'credit' => '406'),
-    		'debitFactoring'                 => array('title' => 'Прихващане на Вземания', 'debit' => '406', 'credit' => '411'),
-    		'clientFactoring'                => array('title' => 'Факторинг - отписване на Вземане', 'debit' => '414', 'credit' => '411'),
-    		'caseFactoring'                  => array('title' => 'Плащане по Факторинг', 'debit' => '501', 'credit' => '414'),
-    		'bankFactoring'                  => array('title' => 'Плащане по Факторинг', 'debit' => '503', 'credit' => '414'),
-    );
+    private $allowedPaymentOperations = array(
+    		'debitDealCase'      => array('title' => 'Приход по финансова сделка', 'debit' => '501', 'credit' => '*'),
+    		'debitDealBank'      => array('title' => 'Приход по финансова сделка', 'debit' => '503', 'credit' => '*'),
+    		'creditDealCase'     => array('title' => 'Разход по финансова сделка', 'debit' => '*', 'credit' => '501'),
+    		'creditDealBank'     => array('title' => 'Разход по финансова сделка', 'debit' => '*', 'credit' => '503'),
+	);
     
     
     /**
@@ -468,12 +451,18 @@ class deals_Deals extends core_Master
     	
     	$operations = $this->allowedPaymentOperations;
     	
-    	// От зададените операции премахва онези в които не участва сметката на сделката
-    	foreach ($operations as $index => $op){
-    		if($op['credit'] != $sysId && $op['debit'] != $sysId){
-    			unset($operations[$index]);
+    	// На местата с '*' добавяме сметката на сделката
+    	foreach ($operations as $index => &$op){
+    		if($op['debit'] == '*'){
+    			$op['debit'] = $sysId;
+    		}
+    		if($op['credit'] == '*'){
+    			$op['credit'] = $sysId;
     		}
     	}
+    	
+    	$operations['debitDeals'] = array('title' => 'Приход по финансова сделка', 'debit' => '*', 'credit' => $sysId);
+    	$operations['creditDeals'] = array('title' => 'Разход по финансова сделка', 'debit' => $sysId, 'credit' => '*');
     	
     	return $operations;
     }
@@ -663,7 +652,7 @@ class deals_Deals extends core_Master
     	}
     	
     	if($count){
-    		$msg = tr("|Оттеглени са |* {$count} |прихващащи документи|*");
+    		$msg = tr("|Оттеглени са|* {$count} |прихващащи документи|*");
     		core_Statuses::newStatus($msg);
     	}
     }
