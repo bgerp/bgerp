@@ -1659,21 +1659,26 @@ class callcenter_Talks extends core_Master
     
     /**
      * Екшън за тестване
-     * Генерира обаждане
+     * Генерира "фалшиви" обаждане
      */
     function act_Mockup()
     {
+        requireRole('admin');
+        
         // Вземам конфигурационните данни
         $conf = core_Packs::getConfig('callcenter');
         
         // Текущото време - времето на позвъняване
         $startTime = dt::now();
         
-        // Масив със статусите
-        $staturArr = array('NO ANSWER', 'FAILED', 'BUSY', 'ANSWERED', 'UNKNOWN', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED');
-        
-        // Избираме един случаен стату
-        $status = $staturArr[rand(0, 10)];
+        if (!$status = Request::get('status')) {
+            
+            // Масив със статусите
+            $staturArr = array('NO ANSWER', 'FAILED', 'BUSY', 'ANSWERED', 'UNKNOWN', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED');
+            
+            // Избираме един случаен стату
+            $status = $staturArr[rand(0, 10)];
+        }
         
         // Ако е отговорен
         if ($status == 'ANSWERED') {
@@ -1685,7 +1690,7 @@ class callcenter_Talks extends core_Master
             $answerTime = $unixTime + rand(3, 7);
             
             // Времето на края на разговора
-            $endTime = $unixTime + rand(22, 88);
+            $endTime = $unixTime + rand(22, 388);
             
             // Преобразуваме ги в mySQL формат
             $myAnswerTime = dt::timestamp2Mysql($answerTime);
@@ -1695,14 +1700,24 @@ class callcenter_Talks extends core_Master
         // Генерираме рандом чило за уникалното id
         $uniqId = rand();
         
+        // Вътрешен номер
+        if (!$extension = Request::get('extension')) {
+            $extension = 540;
+        }
+        
+        // Позвъняващ
+        if (!$callerId = Request::get('callerId')) {
+            $callerId = 539;
+        }
+        
         // Масив за линка
         $urlArr = array(
             'Ctr' => 'callcenter_Talks',
             'Act' => 'RegisterCall',
             'p' => $conf->CALLCENTER_PROTECT_KEY,
             'starttime' => $startTime,
-            'extension' => '540', // Вътрешен номер
-            'callerId' => '539', // Позвъняващ
+            'extension' => $extension, // Вътрешен номер
+            'callerId' => $callerId, // Позвъняващ
             'uniqueId' => $uniqId,
 //            'outgoing' => 'outgoing',
         );
