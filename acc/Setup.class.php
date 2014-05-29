@@ -86,7 +86,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'acc, accMaster';
+    var $roles = 'acc';
 
     
     /**
@@ -125,6 +125,9 @@ class acc_Setup extends core_ProtoSetup
             $html .= "<li>Отпреди Cron е бил нагласен да преизчислява баланси</li>";
         }
 		
+        // Добавяне на роля за старши касиер
+        $html .= core_Roles::addRole('accMaster', 'acc') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
+        
     	$html = parent::install();
 
         return $html;
