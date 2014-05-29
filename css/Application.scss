@@ -1077,7 +1077,10 @@ pre.document {
 	border: 1px solid #000;
 	max-width: 400px !important;
 	div {
-		padding-bottom: 2px;
+	   padding-bottom: 2px;
+	}
+	.cellRow{
+	   padding-bottom: 4px;
 	}
 }
 
