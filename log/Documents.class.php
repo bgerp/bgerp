@@ -221,6 +221,7 @@ class log_Documents extends core_Manager
         $this->FNC('from', 'user', 'input=none');
         $this->FNC('ip', 'ip', 'input=none');
         $this->FNC('toEmail', 'emails', 'input=none');
+        $this->FNC('fromEmail', 'key(mvc=email_Inboxes, select=email)', 'input=none');
         $this->FNC('cc', 'emails', 'input=none');
         $this->FNC('faxTo', 'drdata_PhoneType', 'input=none');
         $this->FNC('service', 'class(interface=email_SentFaxIntf, select=title)', 'input=none');
@@ -671,6 +672,7 @@ class log_Documents extends core_Manager
             	'toEmail' => $rec->data->to,
                 'cc' => $rec->data->cc,
                 'returnedOn' => $rec->returnedOn,
+                'fromEmail' => $rec->data->from,
             );
             
             // Ако е факс
@@ -712,6 +714,11 @@ class log_Documents extends core_Manager
                 
                 // Добавяме към имейлите
                 $row->emails .= "<br />" . tr("Kп") . ": {$row->cc}";
+            }
+            
+            // Добавяме имейла от който е изпратен
+            if ($row->fromEmail && $rec->data->sendedBy) {
+                $row->emails = $row->fromEmail . " -> " . $row->emails;
             }
             
             // Ако имаме факс номер
