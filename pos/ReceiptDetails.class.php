@@ -417,7 +417,9 @@ class pos_ReceiptDetails extends core_Detail {
 		
 		// Добавяне/обновяване на продукта
     	if($this->save($rec)){
-    		core_Statuses::newStatus(tr('|Артикулът е добавен успешно|* !'));
+    		if(Mode::is('screenMode', 'wide')){
+    			core_Statuses::newStatus(tr('|Артикулът е добавен успешно|* !'));
+    		}
     		
     		return $this->returnResponse($rec->receiptId);
     	} else {
