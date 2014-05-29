@@ -1,5 +1,6 @@
 function posActions() {
 
+	var pageWidth = parseInt($(window).width());
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(is_touch_device()){
 		 $('meta[name=viewport]').remove();
@@ -300,8 +301,10 @@ function posActions() {
 		var inpVal = $("#select-input-pos").val();
 		inpVal += currentAttrValue;
 		$("#select-input-pos").val(inpVal);
-		$("#select-input-pos").focus();
 		
+		if(!((pageWidth > 800 && pageWidth < 1400) && is_touch_device())){
+			$("#select-input-pos").focus();
+		}
 		// Задействаме евент 'keyup' в инпут полето
 		var e = jQuery.Event("keyup");
 		$("#select-input-pos").trigger(e);
@@ -311,9 +314,10 @@ function posActions() {
 	$(document.body).on('click', ".keyboard-back-btn", function(e){
 		var inpValLength = $("#select-input-pos").val().length;
 		var newVal = $("#select-input-pos").val().substr(0, inpValLength-1);
-		
 		$("#select-input-pos").val(newVal);
-		$("#select-input-pos").focus();
+		if(!((pageWidth > 800 && pageWidth < 1400) && is_touch_device())){
+			$("#select-input-pos").focus();
+		}
 		var e = jQuery.Event("keyup");
 		$("#select-input-pos").trigger(e);
 	});
