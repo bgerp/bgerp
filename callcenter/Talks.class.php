@@ -740,11 +740,13 @@ class callcenter_Talks extends core_Master
             // id на потребител, който е от отговорниците за номера
             $userId = crm_Profiles::fetchField($intData->contragentId, 'userId');
             
+            // Ако са подадени данни за номера - няма запис в callcenter_Numbers
             if (is_array($externalData)) {
             
                 // Обхождаме всички външни номера / по принцип трябва да е един
                 foreach ((array)$externalData as $data) {
-                    
+                    $user = '';
+                    $number = '';
                     // Името на позвъняващия
                     $name = callcenter_Numbers::getCallerName($data->id, $userId);
                     
@@ -757,30 +759,25 @@ class callcenter_Talks extends core_Master
                         if ($extClass->haveRightFor('single', $data->contragentId, $userId)) {
                             
                             // Името да сочи към сингъла
-                            $number = ht::createLink($name, array($extClass, 'single', $data->contragentId));
+                            $user = ht::createLink($name, array($extClass, 'single', $data->contragentId));
                         }
                     }
                     
-                    // Ако нямаме права до сингъла
-                    if (!$number) {
-                        
-                        // Номера
-                        $number = $data->number;
-                        
-                        // Ако имамем достъп до сингъла на записа
-                        if (static::haveRightFor('single', $id, $userId)) {
-                            
-                            // Линка да сочи там
-                            $number = ht::createLink($number, array('callcenter_Talks', 'single', $id));
-                        } elseif (static::haveRightFor('list', NULL, $userId)) {
-                            
-                            // Ако имаме права за листване, но нямаме права до сингъла, линка до сочи към листовия изглед
-                            $number = ht::createLink($number, array('callcenter_Talks', 'list'));
-                        }
+                    $number = $data->number;
+                    
+                    // Ако има права за листване на централата, линка да сочи там
+                    if (static::haveRightFor('list', NULL, $userId)) {
+                        $number = ht::createLink($number, array('callcenter_Talks', 'list', 'number' => $data->number));
+                    }
+                    
+                    // Ако има права до сингъла на фирмата, линка да сочи там
+                    $numberStr = $number;
+                    if ($user) {
+                        $numberStr = $user . ' - ' . $number;
                     }
                     
                     // Масив с номерата
-                    $numbersArr[] = $number;
+                    $numbersArr[] = $numberStr;
                 }
             } else {
                 
@@ -788,20 +785,19 @@ class callcenter_Talks extends core_Master
                 if ($externalData) {
                     
                     $number = $externalData;
+                    
+                    // Ако има права за листване на централата, линка да сочи там
+                    if (static::haveRightFor('list', NULL, $userId)) {
+                        $number = ht::createLink($number, array('callcenter_Talks', 'list', 'number' => $number));
+                    }
                 } else {
                     
                     $number = tr('Скрит номер');
-                }
-                
-                // Ако имамем достъп до сингъла на записа
-                if (static::haveRightFor('single', $id, $userId)) {
                     
-                    // Линка да сочи там
-                    $number = ht::createLink($number, array('callcenter_Talks', 'single', $id));
-                } elseif (static::haveRightFor('list', NULL, $userId)) {
-                    
-                    // Ако имаме права за листване, но нямаме права до сингъла, линка до сочи към листовия изглед
-                    $number = ht::createLink($number, array('callcenter_Talks', 'list'));
+                    // Ако има права за листване на централата, линка да сочи там
+                    if (static::haveRightFor('list', NULL, $userId)) {
+                        $number = ht::createLink($number, array('callcenter_Talks', 'list'));
+                    }
                 }
                 
                 // Масив с номерата
