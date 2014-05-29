@@ -484,8 +484,9 @@
 }
 
 .narrow .pos-notes{
-	padding: 0.2em 0.5em;
-	font-size:0.75em;
+	padding: 0.3em 0.5em;
+	font-size:0.7em;
+	min-width: 70px;
 	box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset;
 }
 
@@ -616,8 +617,8 @@
 }
 
 .narrow .pos-tabs a{
-	padding:4px;
-	font-size: 0.9em;
+	padding:7px 13px;
+    font-size: 1em;
 }
 
 .pos-tabs a:hover {
@@ -814,6 +815,19 @@
 	}
 	.wide #single-receipt, .wide #tools-holder .tabs-holder-content{
 	   width: 100% !important;
+	}
+}
+@media handheld, only screen and (max-width: 533px) {
+    .narrow .pos-tabs>li>a{
+        padding:5px 4px;
+        font-size: 1em;
+    }
+}
+
+@media handheld, only screen and (max-width: 320px) {
+	.narrow .pos-tabs>li>a{
+	    padding:4px;
+	    font-size: 0.9em;
 	}
 }
 @media print{
