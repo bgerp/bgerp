@@ -694,7 +694,7 @@ class log_Documents extends core_Manager
             // Рендираме екшъна за виждане
             $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
 
-            // Полето за върнато и полуяено
+            // Полето за върнато и получено
             $row->returnedAndReceived = $row->receivedOn;
             
             // Ако има връщане
@@ -2005,32 +2005,39 @@ class log_Documents extends core_Manager
 
         $html = '';
         
-        if (!empty($rec->data->{$openActionName})) {
-            $firstOpen = reset($rec->data->{$openActionName});
-        }
-        
-        $_r = $rec->receivedOn;
-        
-        if (!empty($firstOpen) && (empty($date) || $firstOpen['on'] < $date)) {
-            $rec->receivedOn = $firstOpen['on'];
+        if ($rec->data->receivedOn && $rec->data->seenFromIp) {
+            $firstOpen['ip'] = $rec->data->seenFromIp;
+            $firstOpen['on'] = $rec->data->receivedOn;
         } else {
-            $rec->receivedOn = $date;
+            if (!empty($rec->data->{$openActionName})) {
+                $firstOpen = reset($rec->data->{$openActionName});
+            }
+            
+            $_r = $rec->receivedOn;
+            
+            if (!empty($firstOpen) && (empty($date) || $firstOpen['on'] < $date)) {
+                $rec->receivedOn = $firstOpen['on'];
+            } else {
+                $rec->receivedOn = $date;
+            }
         }
         
         $html .= static::getVerbal($rec, 'receivedOn');
         $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
         
         if (!empty($firstOpen)) {
-            $ip = vislog_History::decorateIp($firstOpen['ip'], $firstOpen['on']);
-            $html .= ' (' . $ip . ') ';
-            $html .= ht::createLink(
-                count($rec->data->{$openActionName}),
-                $linkArr,
-                FALSE,
-                array(
-                    'class' => 'badge',
-                )
-            );
+            $html .= vislog_History::decorateIp($firstOpen['ip'], $firstOpen['on']);
+            $cnt = count($rec->data->{$openActionName});
+            if ($cnt) {
+                $html .= ht::createLink(
+                    $cnt,
+                    $linkArr,
+                    FALSE,
+                    array(
+                        'class' => 'badge',
+                    )
+                );
+            }
         }
         
         $rec->receivedOn = $_r;
