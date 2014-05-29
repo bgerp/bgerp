@@ -121,7 +121,7 @@ class pos_ReceiptDetails extends core_Detail {
     function act_setDiscount()
     {
     	if(!$recId = Request::get('recId', 'int')){
-    		core_Statuses::newStatus(tr('|Не е избран ред|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Не е избран ред|*&nbsp;!'), 'error');
     		return array();
     	}
     	
@@ -136,12 +136,12 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->fields['discountPercent']->type->params['Max']=1;
     	$discount = $this->fields['discountPercent']->type->fromVerbal($discount);
     	if(!isset($discount)){
-    		core_Statuses::newStatus(tr('|Не е въведено валидна процентна отстъпка|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Не е въведено валидна процентна отстъпка|*&nbsp;!'), 'error');
     		return array();
     	}
     	
     	if($discount > 1){
-    		core_Statuses::newStatus(tr('|Отстъпката не може да е над|* 100% !'), 'error');
+    		core_Statuses::newStatus(tr('|Отстъпката не може да е над|* 100%&nbsp;!'), 'error');
     		return array();
     	}
     	
@@ -150,11 +150,11 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	if($this->save($rec)){
     		
-    		core_Statuses::newStatus('Успешно зададохте отстъпка !');
+    		core_Statuses::newStatus(tr('|Успешно зададохте отстъпка|*&nbsp;!'));
     		
     		return $this->returnResponse($rec->receiptId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при задаване на отстъпка|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Проблем при задаване на отстъпка|*&nbsp;!'), 'error');
     	}
     	
     	return array();
@@ -223,7 +223,7 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	// Трябва да има избран ред
     	if(!$recId = Request::get('recId', 'int')){
-    		core_Statuses::newStatus('Не е избран ред !', 'error');
+    		core_Statuses::newStatus(tr('|Не е избран ред|*&nbsp;!'), 'error');
     		return array();
     	}
     	
@@ -238,7 +238,7 @@ class pos_ReceiptDetails extends core_Detail {
     	// Трябва да е подадено валидно количество
     	$quantityId = $this->fields['quantity']->type->fromVerbal($quantityId);
     	if(!$quantityId){
-    		core_Statuses::newStatus(tr('|Не е въведено валидно количество|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Не е въведено валидно количество|*&nbsp;!'), 'error');
     		return array();
     	}
     	
@@ -249,11 +249,11 @@ class pos_ReceiptDetails extends core_Detail {
     	// Запис на новото количество
     	if($this->save($rec)){
     		
-    		core_Statuses::newStatus(tr('|Успешно променихте количеството|* !'));
+    		core_Statuses::newStatus(tr('|Успешно променихте количеството|*&nbsp;!'));
     		
     		return $this->returnResponse($rec->receiptId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при редакция на количество|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Проблем при редакция на количество|*&nbsp;!'), 'error');
     	}
     	
     	return array();
@@ -282,7 +282,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$amount = Request::get('amount');
     	$amount = $this->fields['amount']->type->fromVerbal($amount);
     	if(!$amount || $amount <= 0){
-    		core_Statuses::newStatus(tr('|Трябва да въведете положителна сума|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Трябва да въведете положителна сума|*&nbsp;!'), 'error');
 	    	return array();
     	}
     	
@@ -290,7 +290,7 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
     	if(!pos_Payments::returnsChange($type) && (string)$amount > (string)$diff){
-    		core_Statuses::newStatus(tr('|Не може с този платежен метод да се плати по-голяма сума от общата|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Не може с този платежен метод да се плати по-голяма сума от общата|*&nbsp;!'), 'error');
 	    	return array();
     	}
     	
@@ -308,11 +308,11 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Запис на плащанетo
     	if($this->save($rec)){
-    		core_Statuses::newStatus(tr('|Успешно направихте плащане|* !'));
+    		core_Statuses::newStatus(tr('|Успешно направихте плащане|*&nbsp;!'));
     		
     		return $this->returnResponse($recId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при плащане|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Проблем при плащане|*&nbsp;!'), 'error');
     	}
     	
     	return array();
@@ -336,14 +336,14 @@ class pos_ReceiptDetails extends core_Detail {
     	$receiptId = $rec->receiptId;
     	
     	if($this->delete($rec->id)){
-    		core_Statuses::newStatus('Успешно изтрихте реда !');
+    		core_Statuses::newStatus(tr('|Успешно изтрихте реда|*&nbsp;!'));
     		
     		// Ъпдейт на бележката след изтриването
     		$this->Master->updateReceipt($receiptId);
     		
     		return $this->returnResponse($receiptId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при изтриването на ред|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Проблем при изтриването на ред|*&nbsp;!'), 'error');
     	}
     	
     	return array();
@@ -359,7 +359,7 @@ class pos_ReceiptDetails extends core_Detail {
     	if(!$receiptId = Request::get('receiptId', 'int')) return array();
     	
     	if($this->Master->fetchField($receiptId, 'paid')){
-    		core_Statuses::newStatus(tr('|Не може да се добавя продукт, ако има направено плащане|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Не може да се добавя продукт, ако има направено плащане|*&nbsp;!'), 'error');
     		return array();
     	}
     	
@@ -384,7 +384,7 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Трябва да е подаден код или ид на продукт
     	if(!$rec->productId && !$rec->ean){
-    		core_Statuses::newStatus(tr('|Не е избран артикул|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Не е избран артикул|*&nbsp;!'), 'error');
     		return array();
     	}
     	
@@ -393,13 +393,13 @@ class pos_ReceiptDetails extends core_Detail {
     		
     	// Ако не е намерен продукт
 	    if(!$rec->productId) {
-	    	core_Statuses::newStatus(tr('|Няма такъв продукт в системата, или той не е продаваем|* !'), 'error');
+	    	core_Statuses::newStatus(tr('|Няма такъв продукт в системата, или той не е продаваем|*&nbsp;!'), 'error');
 	    	return array();
 	    }
 
 	    // Ако няма цена
 	    if(!$rec->price) {
-	    	core_Statuses::newStatus(tr('|Артикулът няма цена|* !'), 'error');
+	    	core_Statuses::newStatus(tr('|Артикулът няма цена|*&nbsp;!'), 'error');
 	    	return array();
 	    }
 	    	
@@ -418,12 +418,12 @@ class pos_ReceiptDetails extends core_Detail {
 		// Добавяне/обновяване на продукта
     	if($this->save($rec)){
     		if(Mode::is('screenMode', 'wide')){
-    			core_Statuses::newStatus(tr('|Артикулът е добавен успешно|* !'));
+    			core_Statuses::newStatus(tr('|Артикулът е добавен успешно|*&nbsp;!'));
     		}
     		
     		return $this->returnResponse($rec->receiptId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при добавяне на артикул|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Проблем при добавяне на артикул|*&nbsp;!'), 'error');
     	}
 		
     	return array();
@@ -440,7 +440,7 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Трябва да има въведен номер на карта
     	if(!$number = Request::get('ean')) {
-    		core_Statuses::newStatus(tr('|Не е подадена клиентска карта|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Не е подадена клиентска карта|*&nbsp;!'), 'error');
 	    	return array();
     	}
     	
@@ -449,13 +449,13 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Трябва да няма добавен клиент досега
     	if($this->hasClient($receiptId)){
-    		core_Statuses::newStatus(tr('|Има вече въведена клиентска карта|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Има вече въведена клиентска карта|*&nbsp;!'), 'error');
     		return array();
     	}
     	
     	// Ако няма клиент оговарящ на картата
     	if(!$Contragent = pos_Cards::getContragent($number)) {
-    		core_Statuses::newStatus(tr('|Няма контрагент с такава карта|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Няма контрагент с такава карта|*&nbsp;!'), 'error');
 	    	return array();
     	}
     	
@@ -467,11 +467,11 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Добавяне/обновяване на продукта
     	if($this->save($rec)){
-    		core_Statuses::newStatus(tr('|Картата е добавена успешно|* !'));
+    		core_Statuses::newStatus(tr('|Картата е добавена успешно|*&nbsp;!'));
     		
     		return $this->returnResponse($rec->receiptId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при добавяне на карта|* !'), 'error');
+    		core_Statuses::newStatus(tr('|Проблем при добавяне на карта|*&nbsp;!'), 'error');
     	}
 		
     	return array();
