@@ -40,8 +40,15 @@ class callcenter_ListOperationsPlg extends core_Plugin
         // Променяме полето за заглавеи
         $data->title = 'Номер|*: ' . $number;
         
+        // Икона за избиране
+        if ($numberArr[0]->mobile) {
+            $telIcon = '/img/16/mobile2.png';
+        } else {
+            $telIcon = '/img/16/telephone2.png';
+        }
+        
         // Добавяме бутон за избиране
-        $data->callLink = ht::createBtn('Избиране', "tel: {$number}", FALSE, FALSE, array('ef_icon' => '/img/16/telephone2.png', 'class' => 'out-btn'));
+        $data->callLink = ht::createBtn('Избиране', "tel: {$number}", FALSE, FALSE, array('ef_icon' => $telIcon, 'class' => 'out-btn'));
         
         // Ако има права за изпращане на факс
         if (email_FaxSent::haveRightFor('send')) {
