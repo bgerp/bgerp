@@ -144,7 +144,7 @@ class deals_Deals extends core_Master
      */
     public function description()
     {
-    	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,mandatory,width=100%');
+    	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,width=100%');
     	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf, allowEmpty)', 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
@@ -163,7 +163,21 @@ class deals_Deals extends core_Master
     	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнителno->Описание');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Състояние, input=none');
     	
-    	$this->setDbUnique('dealName');
+    	$this->FNC('detailedName', 'varchar', 'column=none');
+    	//$this->setDbUnique('dealName');
+    }
+    
+    
+    /**
+     * Име за избор
+     */
+    static function on_CalcDetailedName($mvc, &$rec) 
+    {
+     	if (!$rec->contragentName || !$rec->createdOn) return;
+     	
+     	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
+     	
+     	$rec->detailedName = $rec->id . "." . $rec->contragentName . "/ {$createdOn} / " . $rec->dealName;
     }
     
     
@@ -717,6 +731,6 @@ class deals_Deals extends core_Master
     	}
     	$where .= ")";
     	
-    	return static::makeArray4Select($select, $where);
+    	return static::makeArray4Select('detailedName', $where);
     }
 }

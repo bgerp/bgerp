@@ -27,7 +27,9 @@ class deals_plg_Document extends core_Plugin
 		}
 		 
 		if($fields['-single']){
-			$row->dealId = deals_Deals::getHyperLink($rec->dealId, TRUE);
+			if(deals_Deals::haveRightFor('single', $rec->dealId)){
+				$row->dealId = ht::createLink($row->dealId, array('deals_Deals', 'single', $rec->dealId));
+			}
 	
 			// Показваме заглавието само ако не сме в режим принтиране
 			if(!Mode::is('printing')){
