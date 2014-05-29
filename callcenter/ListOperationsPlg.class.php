@@ -41,7 +41,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         $data->title = 'Номер|*: ' . $number;
         
         // Добавяме бутон за избиране
-        $data->callLink = ht::createBtn('Избиране', "tel: {$number}", FALSE, FALSE, array('ef_icon' => '/img/16/telephone2.png'));
+        $data->callLink = ht::createBtn('Избиране', "tel: {$number}", FALSE, FALSE, array('ef_icon' => '/img/16/telephone2.png', 'class' => 'out-btn'));
         
         // Ако има права за изпращане на факс
         if (email_FaxSent::haveRightFor('send')) {
