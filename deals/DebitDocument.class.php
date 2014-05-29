@@ -341,11 +341,7 @@ class deals_DebitDocument extends core_Master
     	$rec->state = 'active';
     
     	if ($this->save($rec)) {
-    		// Нотифицираме origin-документа, че някой от веригата му се е променил
-    		if ($origin = $this->getOrigin($rec)) {
-    			$ref = new core_ObjectReference($this, $rec);
-    			$origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-    		}
+    		$this->notificateOrigin($rec);
     	}
     }
     
@@ -367,7 +363,7 @@ class deals_DebitDocument extends core_Master
     	// При продажба платеното се увеличава, ако е покупка се намалява
     	$origin = static::getOrigin($rec);
     	
-    	$sign = ($origin->className == 'purchase_Purchases') ? -1 : 1;
+    	$sign = ($origin->className == 'sales_Sales') ? 1 : -1;
     	
     	$result->paid->amount    = $sign * $rec->amount * $rec->rate;
     	$result->paid->currency  = currency_Currencies::getCodeById($rec->currencyId);
@@ -386,10 +382,6 @@ class deals_DebitDocument extends core_Master
      */
     public static function on_AfterReject($mvc, &$res, $id)
     {
-    	// Нотифицираме origin-документа, че някой от веригата му се е променил
-    	if ($origin = $mvc->getOrigin($id)) {
-    		$ref = new core_ObjectReference($mvc, $id);
-    		$origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-    	}
+    	$mvc->notificateOrigin($id);
     }
 }

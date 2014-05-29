@@ -145,6 +145,7 @@ class deals_Deals extends core_Master
     public function description()
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,width=100%');
+    	$this->FLD('blAmount', 'double(decimals=2)', 'input=none,notNull');
     	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf, allowEmpty)', 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
@@ -341,27 +342,36 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Връща филтрираната заявка, за това перо, ако е перо
+     */
+    private function getJournalQuery($rec, &$item)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
+    	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
+    	
+    	$item = acc_Items::fetchItem($this->getClassId(), $rec->id);
+    	if(!$item) return NULL;
+    	
+    	// Намираме от журнала записите, където участва перото от датата му на създаване до сега
+    	$jQuery = acc_JournalDetails::getQuery();
+    	acc_JournalDetails::filterQuery($jQuery, $createdOn, dt::today(), $accSysId, $item->id);
+    	
+    	return $jQuery;
+    }
+    
+    
+    /**
      * Връща хронологията от журнала, където участва документа като перо
      */
     private function getHistory(&$data)
     {
     	$rec = $this->fetchRec($data->rec->id);
-    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
-    	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
     	
-    	$Double = cls::get('type_Double');
-    	$Double->params['decimals'] = 2;
+    	$jQuery = $this->getJournalQuery($rec, $item);
     	
-    	$item = acc_Items::fetchItem($this->getClassId(), $rec->id);
-    	$blAmount = 0;
-    	
-    	// Ако документа е перо
-    	if($item){
+    	if($jQuery){
     		$data->history = array();
-    		
-    		// Намираме от журнала записите, където участва перото от датата му на създаване до сега
-    		$jQuery = acc_JournalDetails::getQuery();
-    		acc_JournalDetails::filterQuery($jQuery, $createdOn, dt::today(), $accSysId, $item->id);
     		
     		$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
     		$Pager->itemsCount = $jQuery->count();
@@ -374,40 +384,52 @@ class deals_Deals extends core_Master
     			$start = $data->pager->rangeStart;
     			$end = $data->pager->rangeEnd - 1;
     			
-    			$row = new stdClass();
-    			$row->valior = dt::mysql2verbal($jRec->valior, 'd.m.Y');
-    			
-    			try{
-    				$DocType = cls::get($jRec->docType);
-    				$row->docId = $DocType->getHyperLink($jRec->docId, TRUE);
-    			} catch(Exception $e){
-    				$row->docId = "<span style='color:red'>" . tr('Проблем при показването') . "</span>";
-    			}
-    			
     			$jRec->amount /= $rec->currencyRate;
     			if($jRec->debitItem1 == $item->id){
-    				$row->debitA = $Double->toVerbal($jRec->amount);
-    				$blAmount += $jRec->amount;
+    				$jRec->debitA = $jRec->amount;
     			}
     			
     			if($jRec->creditItem1 == $item->id){
-    				$row->creditA = $Double->toVerbal($jRec->amount);
-    				$blAmount -= $jRec->amount;
+    				$jRec->creditA = $jRec->amount;
     			}
     		
     			// Ще показваме реда, само ако отговаря на текущата страница
     			if(empty($data->pager) || ($count >= $start && $count <= $end)){
-    				$data->history[] = $row;
+    				$data->history[] = $this->getHistoryRow($jRec);
     			}
     			$count++;
     		}
     	}
+    }
+    
+    
+    /**
+     * Вербално представяне на ред от историята
+     */
+    private function getHistoryRow($jRec)
+    {
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
     	
-    	// Обръщаме във вербален вид изчисленото крайно салдо
-    	$data->row->blAmount = $Double->toVerbal($blAmount);
-    	if($blAmount < 0){
-    		$data->row->blAmount = "<span style='color:red'>{$data->row->blAmount}</span>";
+    	$row = new stdClass();
+    	$row->valior = dt::mysql2verbal($jRec->valior, 'd.m.Y');
+    	
+    	try{
+    		$DocType = cls::get($jRec->docType);
+    		$row->docId = $DocType->getHyperLink($jRec->docId, TRUE);
+    	} catch(Exception $e){
+    		$row->docId = "<span style='color:red'>" . tr('Проблем при показването') . "</span>";
     	}
+    	
+    	if($jRec->debitA){
+    		$row->debitA = $Double->toVerbal($jRec->debitA);
+    	}
+    	
+    	if($jRec->creditA){
+    		$row->creditA = $Double->toVerbal($jRec->creditA);
+    	}
+    	
+    	return $row;
     }
     
     
@@ -732,5 +754,29 @@ class deals_Deals extends core_Master
     	$where .= ")";
     	
     	return static::makeArray4Select('detailedName', $where);
+    }
+    
+    
+    /**
+     * След като се промени някой от наследниците: в това число и 
+     * ако някое орехвърляне в друга нишка засяга сделката преизчислява крайното салдо по сделката
+     */
+    public static function on_DescendantChanged($mvc, $dealRef, $descendantRef = NULL)
+    {
+    	$blAmount = 0;
+    	$rec = $dealRef->fetch();
+    	
+    	$jQuery = $mvc->getJournalQuery($rec, $item);
+    	while($jRec = $jQuery->fetch()){
+    		if($jRec->debitItem1 == $item->id){
+    			$blAmount += $jRec->amount;
+    		}
+    		if($jRec->creditItem1 == $item->id){
+    			$blAmount -= $jRec->amount;
+    		}
+    	}
+    	
+    	$rec->blAmount = $blAmount;
+    	$mvc->save($rec);
     }
 }
