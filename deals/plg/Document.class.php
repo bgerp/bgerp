@@ -135,4 +135,23 @@ class deals_plg_Document extends core_Plugin
 			core_Statuses::newStatus(tr("|Възстановени са|* {$count} {$mvc->title}"));
 		}
 	}
+	
+	
+	/**
+	 * Нотифицира пораждащия документ че е създадено ново прихващане, нотифицира също и другата замесена
+	 * сделка че има документ който я засяга
+	 */
+	public static function on_AfterNotificateOrigin($mvc, &$res, $id)
+	{
+		$rec = $mvc->fetchRec($id);
+		
+		// Нотифицираме origin-документа, че някой от веригата му се е променил
+		if ($origin = $mvc->getOrigin($rec)) {
+			$ref = new core_ObjectReference($mvc, $rec);
+			$origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
+		
+			$assocDeal = new core_ObjectReference('deals_Deals', $rec->dealId);
+			$assocDeal->getInstance()->invoke('DescendantChanged', array($assocDeal, $ref));
+		}
+	}
 }
