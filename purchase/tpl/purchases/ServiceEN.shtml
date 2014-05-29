@@ -54,41 +54,57 @@
                      
                    
                     <td class="topCell" valign="top" width='35%'>
-                       <table width=100%>
-                            <!--ET_BEGIN paymentMethodId-->
-                            <tr>
-                                <td class='quiet nowrap' width=1% align=right>Payment:</td>
-                                <td>[#paymentMethodId#]</td>
-                            </tr>
-                            <!--ET_END paymentMethodId-->
+                        <!--ET_BEGIN paymentMethodId-->
+                            <div class='cellRow'>
+                                <span class='quiet'>Payment: </span>
+                                [#paymentMethodId#]
+                            </div>
+                           <!--ET_END paymentMethodId-->
+                           
+                           <!--ET_BEGIN downpayment-->
+                            <div class='cellRow'>
+                                <span class='quiet'>Downpayment:</span> [#downpayment#]
+                            </div>
+                            <!--ET_END downpayment-->
+                            
+                            <!--ET_BEGIN paymentBeforeShipping-->
+                            <div class='cellRow'>
+                                <span class='quiet'>Before shipping:</span> [#paymentBeforeShipping#]
+                            </div>
+                            <!--ET_END paymentBeforeShipping-->
+                            
+                            <!--ET_BEGIN paymentOnDelivery-->
+                            <div class='cellRow'>
+                                <span class='quiet'>On delivery:</span> [#paymentOnDelivery#]
+                            </div>
+                            <!--ET_END paymentOnDelivery-->
+                            
+                            <!--ET_BEGIN paymentAfterInvoice-->
+                            <div class='cellRow'>
+                                <span class='quiet'>Finally: </span>[#paymentAfterInvoice#] due date [#deadlineForBalancePayment#]
+                            </div>
+                            <!--ET_END paymentAfterInvoice-->
                             
                             <!--ET_BEGIN currencyId-->
-                            <tr>
-                                <td class='quiet nowrap' width=1% align=right>Currency: </td>
-                                <td>[#currencyId#] [#currencyRateText#]</td>
-                            </tr>
+                            <div class='cellRow'>
+                                <span class='quiet'>Currency: </span>
+                                [#currencyId#] [#currencyRateText#]
+                            </div>
                             <!--ET_END currencyId-->
                             
                             <!--ET_BEGIN bankAccountId-->
-                            <tr>
-                               <td colspan=2> <hr></td>
-                            </tr>
-                            <tr>
-                               <td class='quiet nowrap' width=1% align=right>Bank account:</td>
-                               <td>[#bankAccountId#]</td>
-                            </tr>
+                            <hr>
+                            <div class='cellRow'>
+                                <span class='quiet'>Bank account: </span>[#bankAccountId#]
+                            </div> 
                             <!--ET_END bankAccountId-->
                             
                             <!--ET_BEGIN caseId-->
-                             <tr>
-                               <td colspan=2> <hr></td>
-                            </tr>
-                            <tr>
-                               <td class='quiet nowrap' width=1% align=right>Case:</td>
-                               <td>[#caseId#]</td>
-                            </tr>
+                            <hr>
+                            <div class='cellRow'>
+                                <span class='quiet'>Case: </span>[#caseId#]
+                            </div> 
                             <!--ET_END caseId-->
-                        </table>
                     </td>
                     <!--ET_BEGIN purchaseConditions-->
                          [#purchaseConditions#]
