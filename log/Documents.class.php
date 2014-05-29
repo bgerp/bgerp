@@ -700,15 +700,24 @@ class log_Documents extends core_Manager
             // Ако има връщане
             if ($row->returnedOn) {
                 
+                $returnedStr = '';
+                
                 // Ако има отворено
-                if ($rec->receivedOn) {
+                if ($rec->data->receivedOn) {
                     
                     // Добавяме нов ред
-                    $row->returnedAndReceived .= "<br />";
+                    $returnedStr = "<br />";
                 }
                 
                 // Добавяме го
-                $row->returnedAndReceived .=  tr("Върнато") . ": {$row->returnedOn}";
+                $returnedStr .= tr("Върнато") . ": {$row->returnedOn}";
+                
+                // Ip от което е върнато
+                if ($rec->data->returnedIp) {
+                    $returnedStr .= vislog_History::decorateIp($rec->data->returnedIp, $rec->data->returnedOn);
+                }
+                
+                $row->returnedAndReceived .=  $returnedStr;
             }
             
             // Имейлите До
@@ -1187,7 +1196,7 @@ class log_Documents extends core_Manager
     /**
      * Отбелязва имейла за върнат
      */
-    public static function returned($mid, $date = NULL)
+    public static function returned($mid, $date = NULL, $ip = NULL)
     {
         if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
             // Няма изпращане с такъв MID
@@ -1206,6 +1215,7 @@ class log_Documents extends core_Manager
         expect(is_object($sendRec->data), $sendRec);
     
         $sendRec->data->returnedOn = $date;
+        $sendRec->data->returnedIp = $ip;
     
         static::save($sendRec);
     
