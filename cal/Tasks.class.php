@@ -1068,10 +1068,13 @@ class cal_Tasks extends core_Master
     	    	            
     	    		// масив с шернатите потребители
     	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
-    	    		
-    	    		
-    		    	// масива със задачите
-    		    	$resTask[]=array( 
+    	    		    	    		
+    	    		if (type_Keylist::isIn(core_Users::getCurrent(), $rec->sharedUsers)) {
+
+		                $url = toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId));
+		                
+		                // масива със задачите
+    		    		$resTask[]=array( 
     			    					'taskId' => $rec->id,
     			    					'rowId' =>  keylist::toArray($rec->sharedUsers),
     		    						'timeline' => array (
@@ -1081,10 +1084,25 @@ class cal_Tasks extends core_Master
     		    		                
     			    					'color' => $colors[$v % 50],
     			    					'hint' => $rec->title,
-    			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId)),
+    			    					'url' => $url,
     		    						'progress' => $rec->progress
     			    				
     			    	);
+		            } else {
+		            	// масива със задачите
+    		    		$resTask[]=array( 
+    			    					'taskId' => $rec->id,
+    			    					'rowId' =>  keylist::toArray($rec->sharedUsers),
+    		    						'timeline' => array (
+    		    											'0' => array(
+    		                								'duration' => $timeDuration,  
+    		                								'startTime'=> dt::mysql2timestamp($rec->timeStart))),
+    		    		                
+    			    					'color' => $colors[$v % 50],
+    			    					'hint' => $rec->title,
+    			    					'progress' => $rec->progress
+    		    		);
+		            }
         		}
         	} 
         	
@@ -1142,7 +1160,7 @@ class cal_Tasks extends core_Master
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
 //bp($resTask, $res, dt::timestamp2mysql(1388527200), dt::timestamp2mysql(1393970399));
 
-	    $chart = gantt_Adapter::render_($res);
+	    $chart = gantt_Adapter::render($res);
 	//bp($chart);
 	
 	    return $chart;
