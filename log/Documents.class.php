@@ -2018,18 +2018,18 @@ class log_Documents extends core_Manager
         if ($rec->data->receivedOn && $rec->data->seenFromIp) {
             $firstOpen['ip'] = $rec->data->seenFromIp;
             $firstOpen['on'] = $rec->data->receivedOn;
+        }
+        
+        if (!empty($rec->data->{$openActionName})) {
+            $firstOpen = reset($rec->data->{$openActionName});
+        }
+        
+        $_r = $rec->receivedOn;
+        
+        if (!empty($firstOpen) && (empty($date) || $firstOpen['on'] < $date)) {
+            $rec->receivedOn = $firstOpen['on'];
         } else {
-            if (!empty($rec->data->{$openActionName})) {
-                $firstOpen = reset($rec->data->{$openActionName});
-            }
-            
-            $_r = $rec->receivedOn;
-            
-            if (!empty($firstOpen) && (empty($date) || $firstOpen['on'] < $date)) {
-                $rec->receivedOn = $firstOpen['on'];
-            } else {
-                $rec->receivedOn = $date;
-            }
+            $rec->receivedOn = $date;
         }
         
         $html .= static::getVerbal($rec, 'receivedOn');
