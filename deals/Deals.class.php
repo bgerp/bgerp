@@ -270,6 +270,9 @@ class deals_Deals extends core_Master
     		$row->accountId = ht::createLink($row->accountId, $accUrl);
     	}
     	
+    	$rec->blAmount /= $rec->currencyRate;
+    	$row->blAmount = $mvc->fields['blAmount']->type->toVerbal($rec->blAmount);
+    	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     }
     
@@ -485,7 +488,7 @@ class deals_Deals extends core_Master
     	$title = static::getRecTitle($rec);
     
     	$row = (object)array(
-    			'title'    => $this->singleTitle . " \"$title\"",
+    			'title'    => $this->singleTitle . " №{$title}",
     			'authorId' => $rec->createdBy,
     			'author'   => $this->getVerbal($rec, 'createdBy'),
     			'state'    => $rec->state,
@@ -604,17 +607,6 @@ class deals_Deals extends core_Master
     	}
     	
     	return $aggregateInfo;
-    }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$name = static::recToVerbal($rec, 'dealName')->dealName;
-    
-    	return $name;
     }
     
     
