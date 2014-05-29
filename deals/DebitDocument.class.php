@@ -366,10 +366,12 @@ class deals_DebitDocument extends core_Master
     	 
     	// При продажба платеното се увеличава, ако е покупка се намалява
     	$origin = static::getOrigin($rec);
-    	 
-    	$result->paid->amount          = $rec->amount * $rec->rate;
-    	$result->paid->currency        = currency_Currencies::getCodeById($rec->currencyId);
-    	$result->paid->rate 	       = $rec->rate;
+    	
+    	$sign = ($origin->className == 'purchase_Purchases') ? -1 : 1;
+    	
+    	$result->paid->amount    = $sign * $rec->amount * $rec->rate;
+    	$result->paid->currency  = currency_Currencies::getCodeById($rec->currencyId);
+    	$result->paid->rate 	 = $rec->rate;
     	 
     	return $result;
     }
