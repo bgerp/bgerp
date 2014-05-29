@@ -288,6 +288,11 @@ class log_Documents extends core_Manager
             // Линк към визитката
             $row->from = crm_Profiles::createLink($rec->from);
         }
+        
+        // Декорираме IP адреса
+        if ($rec->ip) {
+            $row->ip = vislog_History::decorateIp($rec->ip, $rec->time);
+        }
     }
     
     
@@ -756,7 +761,7 @@ class log_Documents extends core_Manager
             
             // Индикатор за състоянието
             $time = "<div>";
-            $time .= "<div class='stateIndicator {$state}'>";
+            $time .= "<div class='stateIndicator {$stateClass}'>";
             $time .= "</div> <div class='inline-date'>{$row->time}</div></div>";
             
             // Заместваме времето с индикатора и времето
@@ -2016,7 +2021,8 @@ class log_Documents extends core_Manager
         $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
         
         if (!empty($firstOpen)) {
-            $html .= ' (' . $firstOpen['ip'] . ') ';
+            $ip = vislog_History::decorateIp($firstOpen['ip'], $firstOpen['on']);
+            $html .= ' (' . $ip . ') ';
             $html .= ht::createLink(
                 count($rec->data->{$openActionName}),
                 $linkArr,
