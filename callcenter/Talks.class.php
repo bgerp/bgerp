@@ -108,7 +108,7 @@ class callcenter_Talks extends core_Master
     /**
      * 
      */
-    var $listFields = 'singleLink=-, externalData, externalNum, internalData, internalNum, startTime, duration';
+    var $listFields = 'externalData, externalNum, singleLink=-, internalNum, internalData, startTime, duration';
     
     
     /**
@@ -1385,7 +1385,7 @@ class callcenter_Talks extends core_Master
         if (mode::is('screenMode', 'narrow')) {
             
             // Променяме полетата, които ще се показват
-            $data->listFields = arr::make('singleLink=-, externalNum=Външен, internalNum=Вътрешен, startTime=Време');
+            $data->listFields = arr::make('externalNum=Външен, singleLink=-, internalNum=Вътрешен, startTime=Време');
         }
     }
     
