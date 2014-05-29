@@ -947,8 +947,13 @@ class doc_DocumentPlg extends core_Plugin
         Mode::push('text', $mode);
         
         if (!Mode::is('text', 'html')) {
+            
+            // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
             if (!$userId = $options->__userId) {
-                $userId = $mvc->getContainer($id)->activatedBy;
+                $userId = core_Users::getCurrent();
+                if ($userId <= 0) {
+                    $userId = $mvc->getContainer($id)->activatedBy;
+                }
             }
             // Временна промяна на текущия потребител на този, който е активирал документа
             $bExitSudo = core_Users::sudo($userId);
@@ -1010,8 +1015,12 @@ class doc_DocumentPlg extends core_Plugin
         Mode::push('text', $mode);
         
         if (!Mode::is('text', 'html')) {
+            // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
             if (!$userId = $options->__userId) {
-                $userId = $mvc->getContainer($id)->activatedBy;
+                $userId = core_Users::getCurrent();
+                if ($userId <= 0) {
+                    $userId = $mvc->getContainer($id)->activatedBy;
+                }
             }
             // Временна промяна на текущия потребител на този, който е активирал документа
             $bExitSudo = core_Users::sudo($userId);
@@ -1582,9 +1591,12 @@ class doc_DocumentPlg extends core_Plugin
     
     public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL)
     {
-        
+        // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
         if (!$userId) {
-            $userId = $mvc->getContainer($id)->activatedBy;
+            $userId = core_Users::getCurrent();
+            if ($userId <= 0) {
+                $userId = $mvc->getContainer($id)->activatedBy;
+            }
         }
         
         core_Users::sudo($userId);
