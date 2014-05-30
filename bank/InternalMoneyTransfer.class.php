@@ -131,12 +131,19 @@ class bank_InternalMoneyTransfer extends core_Master
     var $searchFields = 'valior, reason, creditBank, debitBank';
     
     
+    /**
+     * Позволени операции
+     */
+    public $allowedOperations = array('bank2case' => array('debit' => '501', 'credit' => '503'),
+    								  'bank2bank' => array('debit' => '503', 'credit' => '503'));
+    
+    
 	/**
      * Описание на модела
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory,silent');
+    	$this->FLD('operationSysId', 'enum(bank2bank=Вътрешен банков трансфер,bank2case=Захранване на каса)', 'caption=Операция,width=100%,mandatory,silent');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,width=6em,mandatory,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
@@ -208,14 +215,11 @@ class bank_InternalMoneyTransfer extends core_Master
     {
     	$form = cls::get('core_Form');
     	$form->method = 'GET';
-    	$form->FNC('operationSysId', 'customKey(mvc=acc_Operations, key=systemId, select=name)', 'input,caption=Операция');
+    	$form->FNC('operationSysId', 'enum(bank2bank=Вътрешен банков трансфер,bank2case=Захранване на каса)', 'input,caption=Операция');
     	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
-    	$form->title = 'Нов Вътрешен банков трансфер';
+    	$form->title = 'Нов вътрешен банков трансфер';
         $form->toolbar->addSbBtn('Напред', '', array('class'=>'fright'), 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')), 'ef_icon = img/16/close16.png');
-        
-        $options = acc_Operations::getPossibleOperations(get_called_class());
-        $form->setOptions('operationSysId', $options);
         
         $folderId = bank_OwnAccounts::forceCoverAndFolder(bank_OwnAccounts::getCurrent());
        	$form->setDefault('folderId', $folderId);
@@ -237,12 +241,6 @@ class bank_InternalMoneyTransfer extends core_Master
     	} else {
     		$operationSysId = $form->rec->operationSysId;
     	}
-    	
-    	$operation = acc_Operations::getOperationInfo($operationSysId);
-      
-    	// Трябва документа да поддържа тази операция
-    	$classId = core_Classes::fetchIdByName(get_called_class());
-    	expect($operation->documentSrc == $classId, 'Този документ не поддържа избраната операция');
         
         switch($operationSysId) {
         	case "bank2bank":
@@ -271,9 +269,8 @@ class bank_InternalMoneyTransfer extends core_Master
     		
     		$rec = &$form->rec;
     		
-		    $operation = acc_Operations::fetchbySysId($rec->operationSysId);
-    		$rec->debitAccId = $operation->debitAccount;
-    		$rec->creditAccId = $operation->creditAccount;
+    		$rec->debitAccId = $mvc->allowedOperations[$rec->operationSysId]['debit'];
+    		$rec->creditAccId = $mvc->allowedOperations[$rec->operationSysId]['credit'];
     		
     		// Проверяваме дали валутите на дебитната сметка съвпадат
     		// с тези на кредитната
@@ -370,7 +367,9 @@ class bank_InternalMoneyTransfer extends core_Master
     {
     	if($data->rec->state == 'draft') {
 	    	$rec = $data->rec;
-	    	$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
+	    	if(bank_CashWithdrawOrders::haveRightFor('add')){
+	    		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
+	    	}
 	    }
     }
     

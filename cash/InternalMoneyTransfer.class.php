@@ -131,12 +131,19 @@ class cash_InternalMoneyTransfer extends core_Master
     var $searchFields = 'reason,creditCase,debitBank,debitCase';
     
     
+    /**
+     * Позволени операции
+     */
+    public $allowedOperations = array('case2case' => array('debit' => '501', 'credit' => '501'),
+    							   'case2bank' => array('debit' => '503', 'credit' => '501'));
+    
+    
 	/**
      * Описание на модела
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'caption=Операция,width=100%,mandatory,silent');
+    	$this->FLD('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка)', 'caption=Операция,width=100%,mandatory,silent');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,width=6em,mandatory,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
@@ -208,14 +215,12 @@ class cash_InternalMoneyTransfer extends core_Master
     {
     	$form = cls::get('core_Form');
     	$form->method = 'GET';
-    	$form->FNC('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'input,caption=Операция');
+    	$form->FNC('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка)', 'input,caption=Операция');
     	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
-    	$form->title = 'Нов Вътрешен касов трансфер';
+    	$form->title = 'Нов вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')),  'ef_icon = img/16/close16.png');
         
-        $options = acc_Operations::getPossibleOperations(get_called_class());
-        $form->setOptions('operationSysId', $options);
        	$folderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
        	$form->setDefault('folderId', $folderId);
         
@@ -236,15 +241,8 @@ class cash_InternalMoneyTransfer extends core_Master
     	} else {
     		$operationSysId = $form->rec->operationSysId;
     	}
-    	
-    	$operation = acc_Operations::getOperationInfo($operationSysId);
-     
-    	// Трябва документа да поддържа тази операция
-    	$classId = core_Classes::fetchIdByName(get_called_class());
-    	expect($operation->documentSrc == $classId, 'Този документ не поддържа избраната операция');
         
-        
-    	switch($operationSysId) {
+        switch($operationSysId) {
         	case "case2case":
         		$form->setField("debitCase", "input");
         		break;
@@ -270,9 +268,8 @@ class cash_InternalMoneyTransfer extends core_Master
     		
     		$rec = &$form->rec;
     		
-		    $operation = acc_Operations::fetchBySysId($rec->operationSysId);
-    		$rec->debitAccId = $operation->debitAccount;
-    		$rec->creditAccId = $operation->creditAccount;
+    		$rec->debitAccId = $mvc->allowedOperations[$rec->operationSysId]['debit'];
+    		$rec->creditAccId = $mvc->allowedOperations[$rec->operationSysId]['credit'];
     		
     		// Проверяваме дали валутите на дебитната сметка съвпадат
     		// с тези на кредитната
