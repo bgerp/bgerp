@@ -67,12 +67,6 @@ class deals_Deals extends core_Master
 	 */
 	public $canSingle = 'ceo,deals';
     
-	
-	/**
-	 * Кой може да променя състоянието
-	 */
-    public $canChangestate = 'ceo, deals';
-    
     
     /**
      * Документа продажба може да бъде само начало на нишка
@@ -270,7 +264,7 @@ class deals_Deals extends core_Master
     		$row->accountId = ht::createLink($row->accountId, $accUrl);
     	}
     	
-    	$rec->blAmount /= $rec->currencyRate;
+    	@$rec->blAmount /= $rec->currencyRate;
     	$row->blAmount = $mvc->fields['blAmount']->type->toVerbal($rec->blAmount);
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -304,12 +298,10 @@ class deals_Deals extends core_Master
     		if(bank_SpendingDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     			$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
     		}
-    	}
-    	
-    	if($mvc->haveRightFor('changeState', $rec)){
-    		$title = ($rec->state == 'active') ? 'Приключване' : 'Отваряне';
-    		$icon = ($rec->state == 'active') ? 'img/16/lock.png' : 'img/16/lock_unlock.png';
-    		$data->toolbar->addBtn($title, array($mvc, 'toggleState', $rec->id), "ef_icon={$icon},title={$title} на финансова сделка");
+    		
+    		if(deals_ClosedDeals::haveRightFor('add')){
+    			$data->toolbar->addBtn('Приключване', array('deals_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), "ef_icon={$icon},title={$title} на финансова сделка");
+    		}
     	}
     }
     
@@ -319,12 +311,6 @@ class deals_Deals extends core_Master
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'changestate' && isset($rec)){
-    		if($rec->state != 'active' && $rec->state != 'closed'){
-    			$res = 'no_one';
-    		}
-    	}
-    	
     	// При създаване на сделка, тя не може да се активира
     	if($action == 'activate' && empty($rec)){
     		$res = 'no_one';
@@ -485,10 +471,9 @@ class deals_Deals extends core_Master
     public function getDocumentRow($id)
     {
     	expect($rec = $this->fetch($id));
-    	$title = static::getRecTitle($rec);
     
     	$row = (object)array(
-    			'title'    => $this->singleTitle . " №{$title}",
+    			'title'    => $this->singleTitle . " №{$rec->id}",
     			'authorId' => $rec->createdBy,
     			'author'   => $this->getVerbal($rec, 'createdBy'),
     			'state'    => $rec->state,
@@ -581,30 +566,11 @@ class deals_Deals extends core_Master
     
     	// Извличаме dealInfo от самата сделка
     	/* @var $dealDealInfo bgerp_iface_DealResponse */
-    	$dealDealInfo = $this->getDealInfo($dealRec->id);
-    
-    	// dealInfo-то на самата сделка е база, в/у която се натрупват някой от аспектите
-    	// на породените от нея платежни документи
-    	$aggregateInfo = clone $dealDealInfo;
+    	$aggregateInfo = $this->getDealInfo($dealRec->id);
     	
-    	if(count($dealDocuments)){
-    		/* @var $d core_ObjectReference */
-    		foreach ($dealDocuments as $d) {
-    			$dState = $d->rec('state');
-    			
-    			// Игнорираме черновите и оттеглените документи
-    			if ($dState == 'draft' || $dState == 'rejected') {
-                	
-    				// Игнорираме черновите и оттеглените документи
-                	continue;
-            	}
-    		
-    			if ($d->haveInterface('bgerp_DealIntf')) {
-    				$dealInfo = $d->getDealInfo();
-    				$aggregateInfo->paid->push($dealInfo->paid);
-    			}
-    		}
-    	}
+    	$aggregateInfo->paid->amount = $dealRec->blAmount;
+    	$aggregateInfo->paid->currency = $dealRec->currencyId;
+    	$aggregateInfo->paid->rate = $dealRec->currencyRate;
     	
     	return $aggregateInfo;
     }
@@ -634,6 +600,15 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+	    return static::recToVerbal($rec, 'dealName')->dealName;
+    }
+    	
+    	
+    /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
      * @param int $objectId
      */
@@ -649,23 +624,6 @@ class deals_Deals extends core_Master
     	}
     
     	return $result;
-    }
-    
-    
-    /**
-     * Екшън за затваряне на финансова сделка
-     */
-    public function act_ToggleState()
-    {
-    	$this->requireRightFor('changeState');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('changeState', $rec);
-    	
-    	$rec->state = ($rec->state == 'active') ? 'closed' : 'active';
-    	$this->save($rec);
-    	
-    	Redirect(array($this, 'single', $id));
     }
     
     
@@ -751,7 +709,7 @@ class deals_Deals extends core_Master
     
     /**
      * След като се промени някой от наследниците: в това число и 
-     * ако някое орехвърляне в друга нишка засяга сделката преизчислява крайното салдо по сделката
+     * ако някое прехвърляне в друга нишка засяга сделката преизчислява крайното салдо по сделката
      */
     public static function on_DescendantChanged($mvc, $dealRef, $descendantRef = NULL)
     {
@@ -759,6 +717,7 @@ class deals_Deals extends core_Master
     	$rec = $dealRef->fetch();
     	
     	$jQuery = $mvc->getJournalQuery($rec, $item);
+    	if(!$jQuery) return;
     	while($jRec = $jQuery->fetch()){
     		if($jRec->debitItem1 == $item->id){
     			$blAmount += $jRec->amount;

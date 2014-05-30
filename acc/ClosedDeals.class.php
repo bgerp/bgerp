@@ -169,15 +169,11 @@ abstract class acc_ClosedDeals extends core_Master
     	// Може да се добавя само към активирани документи
     	if($firstDoc->fetchField('state') != 'active') return FALSE;
 		
-    	$res = static::getDealInfo($threadId);
-    	
     	// Дали вече има такъв документ в нишката
     	$closedDoc = static::fetch("#threadId = {$threadId} AND #state != 'rejected'");
+    	if($closedDoc !== FALSE) return FALSE;
     	
-    	// Няма друг затварящ документ и няма продукти
-    	$result = $res && count($res->agreed->products) && $closedDoc === FALSE;
-    	
-    	return $result;
+    	return TRUE;
     }
 	
 	
@@ -339,6 +335,8 @@ abstract class acc_ClosedDeals extends core_Master
     		$docClassId = sales_Sales::getClassId();
     	} elseif(isset($plugins['purchase_Wrapper'])){
     		$docClassId = purchase_Purchases::getClassId();
+    	} elseif(isset($plugins['deals_Wrapper'])){
+    		$docClassId = deals_Deals::getClassId();
     	}
     	
     	if($docClassId){

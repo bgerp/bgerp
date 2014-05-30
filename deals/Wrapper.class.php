@@ -25,6 +25,7 @@ class deals_Wrapper extends plg_ProtoWrapper
         $this->TAB('deals_Deals', 'Сделки', 'deals, ceo');
         $this->TAB('deals_DebitDocument', 'Прехвърляне на взимания', 'deals, ceo');
         $this->TAB('deals_CreditDocument', 'Прехвърляне на задължения', 'deals, ceo');
+        $this->TAB('deals_ClosedDeals', 'Приключени сделки', 'deals, ceo');
         
         $this->title = 'Сделки';
     }
