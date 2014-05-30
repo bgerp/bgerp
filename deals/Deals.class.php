@@ -164,6 +164,22 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Може ли документ-продажба да се добави в посочената папка?
+     *
+     * Документи-финансови сделки могат да се добавят само в папки с корица контрагент.
+     *
+     * @param $folderId int ид на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	$coverClass = doc_Folders::fetchCoverClassName($folderId);
+    
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+    
+    
+    /**
      * Име за избор
      */
     static function on_CalcDetailedName($mvc, &$rec) 
