@@ -521,4 +521,15 @@ abstract class acc_ClosedDeals extends core_Master
         
         return $id;
     }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(get_called_class());
+    	
+    	return $self->singleTitle . " №{$rec->id}";
+    }
 }
