@@ -377,10 +377,8 @@ class cash_Pko extends core_Master
             );
     	
             if($rec->rate != 1) {
-            	$double = cls::get('type_Double');
-            	$double->params['decimals'] = 0;
 		   		$rec->equals = round($rec->amount * $rec->rate, 2);
-		   		$row->equals = $double->toVerbal($rec->equals);
+		   		$row->equals = $mvc->fields['amount']->type->toVerbal($rec->equals);
 		   		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
 		    } 
 		    
