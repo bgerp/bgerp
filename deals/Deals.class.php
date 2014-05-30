@@ -300,7 +300,7 @@ class deals_Deals extends core_Master
     		}
     		
     		if(deals_ClosedDeals::haveRightFor('add')){
-    			$data->toolbar->addBtn('Приключване', array('deals_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), "ef_icon={$icon},title={$title} на финансова сделка");
+    			$data->toolbar->addBtn('Приключване', array('deals_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), "ef_icon=img/16/closeDeal.png,title=Приключване на финансова сделка");
     		}
     	}
     }
