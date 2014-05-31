@@ -473,12 +473,6 @@ class acc_Journal extends core_Master
      }
      
      
-     function act_test(){
-     	$threadId = 3834;
-     	static::getEntries($threadId);
-     }
-     
-     
      /**
       * Метод извличащ всички записи от журнала, на документите от дадена нишка
       */
