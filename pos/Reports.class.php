@@ -446,25 +446,51 @@ class pos_Reports extends core_Master {
     }
 	
 	
-	/**
-	 * След като документа се активира, обновяваме
-	 * данните му и после затваряме всички бележки, които
-	 * включва
-	 */
-	public static function on_AfterActivation($mvc, &$rec)
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     * 
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	// Обновяваме информацията в репорта, ако има промени
-    	$mvc->extractData($rec);
-    	$count = 0;
-    	
-    	// Всяка бележка в репорта се "затваря"
-    	foreach($rec->details['receipts'] as $receiptRec){
-    		$receiptRec->state = 'closed';
-    		pos_Receipts::save($receiptRec);
-    		$count++;
+    	if($rec->state == 'active'){
+    		
+    		// Ако няма записани детайли извличаме актуалните
+    		if(!$rec->details){
+    			$mvc->extractData($rec);
+    		}
     	}
-    	
-    	core_Statuses::newStatus(tr("|Приключени са|* '{$count}' |бележки за продажба|*"));
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if($rec->state != 'draft'){
+    		if($rec->state == 'active'){
+    			$nextState = 'closed';
+    			$msg = 'Приключени';
+    		} else {
+    			$nextState = 'active';
+    			$msg = 'Активирани';
+    		}
+    		
+    		// Всяка бележка в репорта се "затваря"
+    		foreach($rec->details['receipts'] as $receiptRec){
+    			$receiptRec->state = $nextState;
+    			pos_Receipts::save($receiptRec);
+    			$count++;
+    		}
+    		
+    		core_Statuses::newStatus(tr("|{$msg} са|* '{$count}' |бележки за продажба|*"));
+    	}
     }
     
     
