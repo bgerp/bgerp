@@ -219,11 +219,11 @@ class type_Richtext extends type_Blob
 			$html = str_replace($replaceFrom, $replaceTo, $html);
 		}
 
-        // Даваме възможност други да правят обработки на текста
-        $this->invoke('BeforeCatchRichElements', array(&$html));
-
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]([\r\n]{0,2})/is", array($this, '_catchCode'), $html);
+        
+        // Даваме възможност други да правят обработки на текста
+        $this->invoke('BeforeCatchRichElements', array(&$html));
               
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
         $html = preg_replace_callback("/\[img(=([^#][^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
@@ -246,10 +246,8 @@ class type_Richtext extends type_Blob
         // Даваме възможност други да правят обработки на текста
         $this->invoke('AfterCatchRichElements', array(&$html));
 
-        
         // Обработваме имейлите, зададени в явен вид
         $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i", array($this, '_catchEmails'), $html);
-
         
         // Вземаме шаблона за намиране на текста, който ще се болдва
         $patternBold = static::getRichTextPatternForBold();
@@ -271,7 +269,6 @@ class type_Richtext extends type_Blob
         
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
-
 
         // Обработваме елемента [li]
         $html = preg_replace_callback("/\[li](.*?)((<br>)|(\n)|($))/is", array($this, '_catchLi'), $html);
@@ -583,23 +580,25 @@ class type_Richtext extends type_Blob
         }
 
         if(!trim($code)) return "";
+
         $lg = $match[2];
 
         if($lg && $lg != 'text') {
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
-            $code1 = "<pre class='rich-text code{$classLg}'><code>" . rtrim($code) . "</code></pre>"; 
+            $res = "<pre class='rich-text code{$classLg}'><code>[#{$place}#]</code></pre>"; 
         } else {
-            return "<pre class='rich-text'>" . rtrim($code) . "</pre>";
+           // $code = str_replace("\n", "<br>", $code);
+            $res = "<pre class='rich-text'>[#{$place}#]</pre>";
         }
         
-        $this->_htmlBoard[$place] = $code1;
+        $this->_htmlBoard[$place] = rtrim($code);
         
         // Инвокваме кода за highlight
         $this->invoke('AfterHighLightCode');
         
-        return "[#{$place}#]";
+        return $res;
     }
     
 
