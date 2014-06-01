@@ -699,6 +699,20 @@ function showImgFrame(name, visibility)
 }
 
 
+// Оцветява входен елемент в зависимост от оставащите символи за писане
+function  colorByLen(input, maxLen) 
+{
+	var rest = maxLen - input.value.length; 
+	var color = 'white'; 
+	if(rest <= 0) color = 'red'; 
+	if(rest == 1) color = '#ff4444'; 
+	if(rest == 2) color = '#ff8888'; 
+	if(rest == 3) color = '#ffcccc'; 
+	if(rest >= 4) color = '#ffffff'; 
+	input.style.backgroundColor = color;
+}
+
+
 // Конвертира Javascript обект към GET заявка
 function js2php(obj, path, new_path)
 {
@@ -822,6 +836,13 @@ function hideRichtextEditGroupsBlock()
 	}
 }
 
+
+/****************************************************************************************
+ *																				        *
+ *	Добавки за съвместимост със стари браузъри   										*
+ *																						*
+ ****************************************************************************************/
+
 if (!Array.prototype.forEach)
 {
   Array.prototype.forEach = function(fun /*, thisp*/)
@@ -838,6 +859,14 @@ if (!Array.prototype.forEach)
     }
   };
 }
+
+
+if(typeof String.prototype.trim !== 'function') {
+  String.prototype.trim = function() {
+    return this.replace(/^\s+|\s+$/g, ''); 
+  }
+}
+
 
 /****************************************************************************************
  *																				        *
