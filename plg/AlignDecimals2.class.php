@@ -43,7 +43,6 @@ class plg_AlignDecimals2 extends core_Plugin
 		}
 		
 		// Закръгляме сумата и я обръщаме във вербален вид
-		$Double = cls::get('type_Double');
     	foreach ($recs as $id => &$rec){
 			foreach ($decFields as $fName){
 				$Type = $mvc->fields[$fName]->type;
@@ -54,9 +53,9 @@ class plg_AlignDecimals2 extends core_Plugin
                     $Type->params['maxDecimals'],
                     max($Type->params['minDecimals'], ${"{$fName}FracLen"})
                 );
-				$Double->params['decimals'] = $optDecimals;
+				$Type->params['decimals'] = $optDecimals;
 				$rec->$fName = core_Math::roundNumber($rec->$fName, ${"{$fName}FracLen"});
-				$rows[$id]->$fName = $Double->toVerbal($rec->$fName);
+				$rows[$id]->$fName = $Type->toVerbal($rec->$fName);
 			}
 		}
     }

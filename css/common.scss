@@ -724,6 +724,10 @@ a.header:hover {
 	cursor: default !important;
 }
 
+.out-btn{
+	color: #080 !important;
+}
+
 .wide .noicon {
     padding-right: 3px !important; /* IE6 */
     padding-left: 3px !important; /* IE6 */
@@ -1859,7 +1863,9 @@ div.alphabet div.tab-page {
   color: #fff;
   background-color: #999;
   font-size: 0.84em;
-  padding: 1px 7px 2px; 
+  padding: 1px 7px 2px;
+  position: relative;
+  top: -2px; 
  }
 
 .index-category {

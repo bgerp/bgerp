@@ -110,7 +110,7 @@ class core_ProtoSetup
         foreach (arr::make($this->managers) as $manager) {
 
             // Ако менидръжит е миграция - изпълняваме я еднократно
-            if(stripos($manager, 'migrate::') === 0) {
+            if (stripos($manager, 'migrate::') === 0) {
                 list($migrate, $method) = explode('::', $manager);
                 
                 // Ключ в настойките на пакета `core` под който се пази изпълнението на миграцията
@@ -125,7 +125,7 @@ class core_ProtoSetup
                         } else {
                             $html .= "<li style='color:green;'>Миграцията {$packName}::{$method} беше приложена успешно</li>";
                         }
-                    } catch(Exception $е) {
+                    } catch (Exception $е) {
                         $html .= "<li style='color:red;'>Миграцията {$packName}::{$method} не беше успешна</li>";
                     }
                 }
@@ -250,6 +250,9 @@ class core_ProtoSetup
         $instances = array();
         $htmlRes = '';
         foreach (arr::make($this->managers) as $man) {
+            if (stripos($man, 'migrate::') === 0) {
+                continue;
+            }
             $instances[$man] = &cls::get($man);
             if(method_exists($instances[$man], 'loadSetupData')) {
                 $htmlRes .= $instances[$man]->loadSetupData();
