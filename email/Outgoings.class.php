@@ -508,7 +508,7 @@ class email_Outgoings extends core_Master
         $form->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
                                     cp1251=Windows Cyrillic|* (CP1251),
                                     koi8-r=Rus Cyrillic|* (KOI8-R),
-                                    cp2152=Western|* (CP1252),
+                                    cp1252=Western|* (CP1252),
                                     ascii=Латиница|* (ASCII))', 'caption=Знаци, formOrder=4');
         $form->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
         $form->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
