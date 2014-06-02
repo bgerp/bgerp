@@ -49,7 +49,7 @@ class cal_Holidays extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'powerUser';
+	var $canList = 'admin';
     
     
     /**
