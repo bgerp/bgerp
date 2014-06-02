@@ -352,9 +352,9 @@ class doc_DocumentPlg extends core_Plugin
             doc_Containers::update($containerId);
         }
         
-        if($rec->state != 'draft'){
-        	
-	    	$usedDocuments = $mvc->getUsedDocs($rec->id);
+        // Само при активиране и оттегляне, се обновяват използванията на документи в документа
+        if($rec->state == 'active' || $rec->state == 'rejected'){
+        	$usedDocuments = $mvc->getUsedDocs($rec->id);
 	    	if(count($usedDocuments)){
 	    		$Log = cls::get('log_Documents');
 	    		foreach($usedDocuments as $used){
