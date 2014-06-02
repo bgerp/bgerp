@@ -515,6 +515,14 @@ class cal_Tasks extends core_Master
 	            }*/
     	     }
          }
+         
+         if ($action == 'edit') { 
+         	if ($rec->id) {
+	         	if (!cal_Tasks::haveRightFor('single', $rec)) {
+	         		$requiredRoles = 'no_one'; 
+	         	}
+         	}
+         }
     }
     
     
