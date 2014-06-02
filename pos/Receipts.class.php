@@ -615,7 +615,7 @@ class pos_Receipts extends core_Master {
     		
     		//@TODO за тест
     		if(strpos($absUrl, 'localhost') !== FALSE ){
-    			$absUrl = str_replace('localhost', '11.0.0.94', $absUrl);
+    			$absUrl = str_replace('localhost', '', $absUrl);
     		}
     	} else {
     		$disClass = 'disabledBtn';
