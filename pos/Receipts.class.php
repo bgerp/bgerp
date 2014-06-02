@@ -611,7 +611,7 @@ class pos_Receipts extends core_Master {
     		$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
     		$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
     		$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
-    		$absUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'absolute');
+    		$absUrl = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'absolute');
     		
     		//@TODO за тест
     		if(strpos($absUrl, 'localhost') !== FALSE ){
