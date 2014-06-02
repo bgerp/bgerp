@@ -1252,31 +1252,6 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Връща всички външни за системата имейл адреси, които са свързани с даден тред:
-     * - тези на изпращачите на писма към него
-     * - тези към които са адресирани писма от треда
-     * - тези към които са изпратени писма от треда
-     */
-    static function getExternalEmails($id)
-    {
-        $result =
-        email_Incomings::getExternalEmails($id)
-        + email_Outgoings::getExternalEmails($id)
-        + email_Sent::getExternalEmails($id);
-        
-        $folderId = static::fetchField($id, 'folderId');
-        
-        $cd = doc_Folders::getContragentData($folderId);
-        
-        if ($cd && $cd->email) {
-            $result[$cd->email] = $cd->email;
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
      * Добавя към заявка необходимите условия, така че тя да връща само достъпните нишки.
      *
      * В резултат заявката ще селектира само достъпните за зададения потребител нишки които са

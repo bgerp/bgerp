@@ -1402,27 +1402,6 @@ class email_Incomings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    static function getExternalEmails($threadId)
-    {
-        /* @var $query core_Query */
-        $query = static::getQuery();
-        $query->where("#threadId = {$threadId}");
-        $query->show('fromEml');
-        
-        $result = array();
-        
-        while ($rec = $query->fetch()) {
-            if($eml = trim($rec->fromEml)) {
-                $result[$eml] = $eml;
-            }
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * @todo Чака за документация...
-     */
     function act_Update()
     {
         set_time_limit(3600);

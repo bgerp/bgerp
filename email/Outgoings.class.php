@@ -1894,28 +1894,6 @@ class email_Outgoings extends core_Master
     
     
     /**
-     * @todo Чака за документация...
-     */
-    static function getExternalEmails($threadId)
-    {
-        /* @var $query core_Query */
-        $query = static::getQuery();
-        $query->where("#threadId = {$threadId}");
-        $query->show('email');
-        
-        $result = array();
-        
-        while ($rec = $query->fetch()) {
-            if($eml = trim($rec->email)) {
-                $result[$eml] = $eml;
-            }
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
      * Намира предполагаемия езика на който трябва да отговорим
      * 
      * 1. Ако е отговор, гледаме езика на origin'а
