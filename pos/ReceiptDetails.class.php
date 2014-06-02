@@ -433,7 +433,8 @@ class pos_ReceiptDetails extends core_Detail {
 		// Добавяне/обновяване на продукта
     	if($this->save($rec)){
     		if(Mode::is('screenMode', 'wide')){
-    			core_Statuses::newStatus(tr('|Артикулът е добавен успешно|*!'));
+    			$msg = tr('Добавен/а') . " " . cat_Products::getVerbal(cat_Products::fetchField($rec->productId), 'name');
+    			core_Statuses::newStatus($msg);
     		}
     		
     		return $this->returnResponse($rec->receiptId);
@@ -605,7 +606,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$row->value .= " " . $row->perPack . " " . $row->uomId;
     		$row->productId = cat_Products::getHyperLink($rec->productId, TRUE);
     	} else {
-    		$row->productId = $Varchar->toVerbal($productInfo->productRec->name);
+    		$row->productId = cat_Products::getTitleById($rec->productId, TRUE);
     	}
     }
     
