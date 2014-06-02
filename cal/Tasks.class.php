@@ -1068,27 +1068,15 @@ class cal_Tasks extends core_Master
     	    	            
     	    		// масив с шернатите потребители
     	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
-    	    		    	    		
-    	    		if (type_Keylist::isIn(core_Users::getCurrent(), $rec->sharedUsers)) {
-
-		                $url = toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId));
-		                
-		                // масива със задачите
-    		    		$resTask[]=array( 
-    			    					'taskId' => $rec->id,
-    			    					'rowId' =>  keylist::toArray($rec->sharedUsers),
-    		    						'timeline' => array (
-    		    											'0' => array(
-    		                								'duration' => $timeDuration,  
-    		                								'startTime'=> dt::mysql2timestamp($rec->timeStart))),
-    		    		                
-    			    					'color' => $colors[$v % 50],
-    			    					'hint' => $rec->title,
-    			    					'url' => $url,
-    		    						'progress' => $rec->progress
-    			    				
-    			    	);
+    	    		
+    	    		// Ако имаме права за достъп до сингъла
+    	    		if (cal_Tasks::haveRightFor('single', $rec)) {
+    	    			// ще се сложи URL
+		           		$flagUrl = 'yes';
 		            } else {
+		            	$flagUrl = FALSE;
+		            }
+    	    		
 		            	// масива със задачите
     		    		$resTask[]=array( 
     			    					'taskId' => $rec->id,
@@ -1100,9 +1088,9 @@ class cal_Tasks extends core_Master
     		    		                
     			    					'color' => $colors[$v % 50],
     			    					'hint' => $rec->title,
+    		    						'url' =>  $flagUrl,
     			    					'progress' => $rec->progress
     		    		);
-		            }
         		}
         	} 
         	
@@ -1133,6 +1121,15 @@ class cal_Tasks extends core_Master
         	// правим помощен масив = на "rowId" от "resTasks"
         	for($i = 0; $i < count($resTask); $i++) { $j = 0;
         		$rowArr[] = $resTask[$i]['rowId'];
+        		
+        		// Проверка дали ще има URL
+        		if ($resTask[$i]['url'] == 'yes') {
+        			// Слагаме линк
+        			$resTask[$i]['url'] = toUrl(array('cal_Tasks', 'single' , $resTask[$i]['taskId']));
+        		} else {
+        			// няма да има линк
+        			unset ($resTask[$i]['url']);
+        		}
         	}
         	
         	if (is_array($rowArr)) {
