@@ -122,27 +122,27 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	if(!$recId = Request::get('recId', 'int')){
     		core_Statuses::newStatus(tr('|Не е избран ред|*!'), 'error');
-    		$this->returnError($recId);
+    		return $this->returnError($recId);
     	}
     	
     	if(!$rec = $this->fetch($recId)){
-    		$this->returnError($recId);
+    		return $this->returnError($recId);
     	}
     	
     	// Трябва да може да се редактира записа
-    	if(!$this->haveRightFor('add', $rec)) $this->returnError($recId);
+    	if(!$this->haveRightFor('add', $rec)) return $this->returnError($recId);
     	
     	$discount = Request::get('amount');
     	$this->fields['discountPercent']->type->params['Max']=1;
     	$discount = $this->fields['discountPercent']->type->fromVerbal($discount);
     	if(!isset($discount)){
     		core_Statuses::newStatus(tr('|Не е въведено валидна процентна отстъпка|*!'), 'error');
-    		$this->returnError($rec->receiptId);
+    		return $this->returnError($rec->receiptId);
     	}
     	
     	if($discount > 1){
     		core_Statuses::newStatus(tr('|Отстъпката не може да е над|* 100%!'), 'error');
-    		$this->returnError($rec->receiptId);
+    		return $this->returnError($rec->receiptId);
     	}
     	
     	// Записваме променената отстъпка
@@ -157,7 +157,7 @@ class pos_ReceiptDetails extends core_Detail {
     		core_Statuses::newStatus(tr('|Проблем при задаване на отстъпка|*!'), 'error');
     	}
     	
-    	$this->returnError($rec->receiptId);
+    	return $this->returnError($rec->receiptId);
     }
     
     
@@ -189,9 +189,9 @@ class pos_ReceiptDetails extends core_Detail {
     	if (Request::get('ajax_mode')) {
     		return array();
     	} else {
-    		expect($id, 'AAAAA');
+    		expect($id);
     		
-    		return redirect(array('pos_Receipts', 'terminal', $id));
+    		redirect(array('pos_Receipts', 'terminal', $id));
     	}
     }
     
@@ -239,14 +239,14 @@ class pos_ReceiptDetails extends core_Detail {
     	// Трябва да има избран ред
     	if(!$recId = Request::get('recId', 'int')){
     		core_Statuses::newStatus(tr('|Не е избран ред|*!'), 'error');
-    		$this->returnError($rec->receiptId);
+    		return $this->returnError($rec->receiptId);
     	}
     	
     	// Трябва да има такъв запис
-    	if(!$rec = $this->fetch($recId)) $this->returnError($rec->receiptId);
+    	if(!$rec = $this->fetch($recId)) return $this->returnError($rec->receiptId);
     	
     	// Трябва да може да се редактира записа
-    	if(!$this->haveRightFor('add', $rec)) $this->returnError($rec->receiptId);
+    	if(!$this->haveRightFor('add', $rec)) return $this->returnError($rec->receiptId);
     	
     	$quantityId = Request::get('amount');
     	
@@ -254,7 +254,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$quantityId = $this->fields['quantity']->type->fromVerbal($quantityId);
     	if(!$quantityId){
     		core_Statuses::newStatus(tr('|Не е въведено валидно количество|*!'), 'error');
-    		$this->returnError($rec->receiptId);
+    		return $this->returnError($rec->receiptId);
     	}
     	
     	// Преизчисляваме сумата
@@ -271,7 +271,7 @@ class pos_ReceiptDetails extends core_Detail {
     		core_Statuses::newStatus(tr('|Проблем при редакция на количество|*!'), 'error');
     	}
     	
-    	$this->returnError($rec->receiptId);
+    	return $this->returnError($rec->receiptId);
     }
     
     
@@ -281,24 +281,24 @@ class pos_ReceiptDetails extends core_Detail {
     function act_makePayment()
     {
     	// Трябва да е избрана бележка
-    	if(!$recId = Request::get('receiptId', 'int')) $this->returnError($recId);
+    	if(!$recId = Request::get('receiptId', 'int')) return $this->returnError($recId);
     	
     	// Можем ли да направим плащане към бележката
-    	if(!$this->Master->haveRightFor('pay', $recId)) $this->returnError($recId);
+    	if(!$this->Master->haveRightFor('pay', $recId)) return $this->returnError($recId);
     	
     	// Трябва да има избран запис на бележка
-    	if(!$receipt = $this->Master->fetch($recId)) $this->returnError($recId);
+    	if(!$receipt = $this->Master->fetch($recId)) return $this->returnError($recId);
     	
     	// Трябва да е подаден валидно ид на начин на плащане
     	$type = Request::get('type');
-    	if(!pos_Payments::fetch($type))  $this->returnError($recId);
+    	if(!pos_Payments::fetch($type))  return $this->returnError($recId);
     	
     	// Трябва да е подадена валидна сума
     	$amount = Request::get('amount');
     	$amount = $this->fields['amount']->type->fromVerbal($amount);
     	if(!$amount || $amount <= 0){
     		core_Statuses::newStatus(tr('|Трябва да въведете положителна сума|*!'), 'error');
-	    	$this->returnError($recId);
+	    	return $this->returnError($recId);
     	}
     	
     	$diff = abs($receipt->paid - $receipt->total);
@@ -306,7 +306,7 @@ class pos_ReceiptDetails extends core_Detail {
     	// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
     	if(!pos_Payments::returnsChange($type) && (string)$amount > (string)$diff){
     		core_Statuses::newStatus(tr('|Не може с този платежен метод да се плати по-голяма сума от общата|*!'), 'error');
-	    	$this->returnError($recId);
+	    	return $this->returnError($recId);
     	}
     	
     	// Подготвяме записа на плащането
@@ -330,7 +330,7 @@ class pos_ReceiptDetails extends core_Detail {
     		core_Statuses::newStatus(tr('|Проблем при плащане|*!'), 'error');
     	}
     	
-    	$this->returnError($recId);
+    	return $this->returnError($recId);
     }
     
     
@@ -340,13 +340,13 @@ class pos_ReceiptDetails extends core_Detail {
     function act_DeleteRec()
     {
     	// Трябва да има ид на ред за изтриване
-    	if(!$id = Request::get('recId', 'int')) $this->returnError($receiptId);
+    	if(!$id = Request::get('recId', 'int')) return $this->returnError($receiptId);
     	
     	// Трябва да има такъв запис
-    	if(!$rec = $this->fetch($id)) $this->returnError($receiptId);
+    	if(!$rec = $this->fetch($id)) return $this->returnError($receiptId);
     	
     	// Трябва да можем да изтриваме от бележката
-    	if(!$this->haveRightFor('delete', $rec))  $this->returnError($receiptId);
+    	if(!$this->haveRightFor('delete', $rec))  return $this->returnError($receiptId);
     	
     	$receiptId = $rec->receiptId;
     	
@@ -361,7 +361,7 @@ class pos_ReceiptDetails extends core_Detail {
     		core_Statuses::newStatus(tr('|Проблем при изтриването на ред|*!'), 'error');
     	}
     	
-    	$this->returnError($receiptId);
+    	return $this->returnError($receiptId);
     }
     
     
@@ -371,15 +371,15 @@ class pos_ReceiptDetails extends core_Detail {
     function act_addProduct()
     {
     	// Трябва да има такава бележка
-    	if(!$receiptId = Request::get('receiptId', 'int')) $this->returnError($receiptId);
+    	if(!$receiptId = Request::get('receiptId', 'int')) return $this->returnError($receiptId);
     	
     	if($this->Master->fetchField($receiptId, 'paid')){
     		core_Statuses::newStatus(tr('|Не може да се добавя продукт, ако има направено плащане|*!'), 'error');
-    		$this->returnError($receiptId);
+    		return $this->returnError($receiptId);
     	}
     	
     	// Трябва да можем да добавяме към нея
-    	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId))) $this->returnError($receiptId);
+    	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId))) return $this->returnError($receiptId);
     	
     	// Запис на продукта
     	$rec = new stdClass();
@@ -400,7 +400,7 @@ class pos_ReceiptDetails extends core_Detail {
     	// Трябва да е подаден код или ид на продукт
     	if(!$rec->productId && !$rec->ean){
     		core_Statuses::newStatus(tr('|Не е избран артикул|*!'), 'error');
-    		$this->returnError($receiptId);
+    		return $this->returnError($receiptId);
     	}
     	
     	// Намираме нужната информация за продукта
@@ -409,13 +409,13 @@ class pos_ReceiptDetails extends core_Detail {
     	// Ако не е намерен продукт
 	    if(!$rec->productId) {
 	    	core_Statuses::newStatus(tr('|Няма такъв продукт в системата, или той не е продаваем|*!'), 'error');
-	    	$this->returnError($receiptId);
+	    	return $this->returnError($receiptId);
 	    }
 
 	    // Ако няма цена
 	    if(!$rec->price) {
 	    	core_Statuses::newStatus(tr('|Артикулът няма цена|*!'), 'error');
-	    	$this->returnError($receiptId);
+	    	return $this->returnError($receiptId);
 	    }
 	    	
     	// Намираме дали този проект го има въведен 
@@ -441,7 +441,7 @@ class pos_ReceiptDetails extends core_Detail {
     		core_Statuses::newStatus(tr('|Проблем при добавяне на артикул|*!'), 'error');
     	}
 		
-    	$this->returnError($receiptId);
+    	return $this->returnError($receiptId);
     }
     
     
@@ -451,27 +451,27 @@ class pos_ReceiptDetails extends core_Detail {
     function act_addClientByCard()
     {
     	// Трябва да има такава бележка
-    	if(!$receiptId = Request::get('receiptId', 'int')) $this->returnError($receiptId);
+    	if(!$receiptId = Request::get('receiptId', 'int')) return $this->returnError($receiptId);
     	
     	// Трябва да има въведен номер на карта
     	if(!$number = Request::get('ean')) {
     		core_Statuses::newStatus(tr('|Не е подадена клиентска карта|*!'), 'error');
-	    	$this->returnError($receiptId);
+	    	return $this->returnError($receiptId);
     	}
     	
     	// Трябва да можем да добавяме към нея
-    	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId)))  $this->returnError($receiptId);
+    	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId)))  return $this->returnError($receiptId);
     	
     	// Трябва да няма добавен клиент досега
     	if($this->hasClient($receiptId)){
     		core_Statuses::newStatus(tr('|Има вече въведена клиентска карта|*!'), 'error');
-    		$this->returnError($receiptId);
+    		return $this->returnError($receiptId);
     	}
     	
     	// Ако няма клиент оговарящ на картата
     	if(!$Contragent = pos_Cards::getContragent($number)) {
     		core_Statuses::newStatus(tr('|Няма контрагент с такава карта|*!'), 'error');
-	    	$this->returnError($receiptId);
+	    	return $this->returnError($receiptId);
     	}
     	
     	// Запис на продукта
@@ -489,7 +489,7 @@ class pos_ReceiptDetails extends core_Detail {
     		core_Statuses::newStatus(tr('|Проблем при добавяне на карта|*!'), 'error');
     	}
 		
-    	$this->returnError($receiptId);
+    	return $this->returnError($receiptId);
     }
     
     
