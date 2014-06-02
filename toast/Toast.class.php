@@ -121,7 +121,7 @@ class toast_Toast extends core_Plugin
             $timeOut += (!$timeOut) ? 1 : 1000;
             
             // Ако статусите за показване са повече от 3 или текста е дълъг
-            if (($countArr > 3) || (mb_strlen($val['text']) > 150)) {
+            if (($countArr > 3) || (mb_strlen(strip_tags($val['text'])) > 150)) {
                 
                 // Статусите да са лепкави (да не се премахват след определено време от екрана)
                 $sticky = TRUE;
