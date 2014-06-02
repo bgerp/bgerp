@@ -621,9 +621,15 @@ class pos_Receipts extends core_Master {
     		$disClass = 'disabledBtn';
     	}
     	
+    	// Ако има последно добавен продукт, записваме ид-то на записа в скрито поле
+    	if($lastRow = Mode::get('lastAdded')){
+    		$value = $lastRow;
+    		Mode::setPermanent('lastAdded', NULL);
+    	}
+    	
     	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
-    	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'size' => '4em')), 'INPUT_FLD');
+    	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
     	
     	if(!$disClass){
     		$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => "buttonForm", 'title' => 'Добави продукт')), 'FIRST_TOOLS_ROW');

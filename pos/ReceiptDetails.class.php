@@ -101,8 +101,6 @@ class pos_ReceiptDetails extends core_Detail {
 	    		$rowTpl->placeObject($row);
 	    		if($lastRow == $row->id) {
 	    			$rowTpl->replace("pos-hightligted", 'lastRow');
-	    			unset($lastRow);
-	    			Mode::setPermanent('lastAdded', NULL);
 	    		}
 	    		$rowTpl->removeBlocks();
 	    		$tpl->append($rowTpl);
