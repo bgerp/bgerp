@@ -611,6 +611,12 @@ class pos_Receipts extends core_Master {
     		$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
     		$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
     		$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
+    		$absUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'absolute');
+    		
+    		//@TODO за тест
+    		if(strpos($absUrl, 'localhost') !== FALSE ){
+    			$absUrl = str_replace('localhost', '11.0.0.94', $absUrl);
+    		}
     	} else {
     		$disClass = 'disabledBtn';
     	}
