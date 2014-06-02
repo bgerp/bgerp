@@ -122,71 +122,81 @@ class bgerp_Setup {
                   callcenter,social,hyphen,distro,dec,status,phpmailer";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
-        if(defined('EF_PRIVATE_PATH')) {
+        if (defined('EF_PRIVATE_PATH')) {
             $packs .= ',' . strtolower(basename(EF_PRIVATE_PATH));
         }
         
         // Добавяме допълнителните пакети, само при първоначален Setup
         $Folders = cls::get('doc_Folders');
-        if(!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
+        if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
             $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen,help,toast,compactor";
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();
             
-            while($pRec = $pQuery->fetch()) {
+            while ($pRec = $pQuery->fetch()) {
                 if(!$packs[$pRec->name]) {
                     $packs[$pRec->name] = $pRec->name;
                 }
             }
         }
 
-    	if(Request::get('SHUFFLE')){
+    	if (Request::get('SHUFFLE')) {
         	
         	// Ако е зададен параметър shuffle  в урл-то разбуркваме пакетите
-        	if(!is_array($packs)){
+        	if (!is_array($packs)) {
         		$packs = arr::make($packs);
 	        }
 	        shuffle($packs);
 	        $packs = implode(',', $packs);
         }
-        
+
+        $haveError = array();
         do {
-            $haveError = FALSE;
             $loop++;
             // Извършваме инициализирането на всички включени в списъка пакети
-            foreach(arr::make($packs) as $p) {
-                if(cls::load($p . '_Setup', TRUE) && !$isSetup[$p]) {
+            foreach (arr::make($packs) as $p) {
+                if (cls::load($p . '_Setup', TRUE) && !$isSetup[$p]) {
                     try {
                         $html .= $Packs->setupPack($p);
                         $isSetup[$p] = TRUE;
-                    } catch(core_exception_Expect $exp) {
-                        $html = $html . "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}</h3>";
-                        //$html .= $exp->getAsHtml();
+                        // Махаме грешките, които са възникнали, но все пак
+                        // са се поправили в не дебъг режим
+                        if (!isDebug()) {
+                            unset($haveError[$p]);
+                        }
+                    } catch (core_exception_Expect $exp) {
                         $force = TRUE; 
                         $Packs->alreadySetup[$p . $force] = FALSE;
-                        $haveError = TRUE;
+                        //$haveError = TRUE;
+                        $haveError[$p] .= "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage(). " " .date('H:i:s')."</h3>";
                     }
                  }
             }
         
             // Извършваме инициализирането на всички включени в списъка пакети
-            foreach(arr::make($packs) as $p) {
-                if(cls::load($p . '_Setup', TRUE) && !$isLoad[$p]) {
+            foreach (arr::make($packs) as $p) {
+                if (cls::load($p . '_Setup', TRUE) && !$isLoad[$p]) {
                     $packsInst[$p] = cls::get($p . '_Setup');
-                    if(method_exists($packsInst[$p], 'loadSetupData')) {
+                    if (method_exists($packsInst[$p], 'loadSetupData')) {
                         try {
                             $packsInst[$p]->loadSetupData();
                             $isLoad[$p] = TRUE;
-                        } catch(core_exception_Expect $exp) {
-                            $html = $html . "<h3 style='color:red'>Грешка при зареждане данните на пакета {$p}</h3>";
-                            $haveError = TRUE;
-                            //$html .= $exp->getAsHtml();
+                            // Махаме грешките, които са възникнали, но все пак са се поправили
+                            // в не дебъг режим
+                            if (!isDebug()) {
+                                unset($haveError[$p]);
+                            }
+                         } catch(core_exception_Expect $exp) {
+                            //$haveError = TRUE;
+                            $haveError[$p] .= "<h3 style='color:red'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " .date('H:i:s')."</h3>";
                         }
                     }
                 }
             }
-        } while ($haveError && ($loop<5));
+        } while (!empty($haveError) && ($loop<5));
+
+        $html .= implode("\n", $haveError);
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на бележките
         $Bucket = cls::get('fileman_Buckets');

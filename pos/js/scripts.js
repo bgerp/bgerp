@@ -1,5 +1,6 @@
 function posActions() {
 
+	var pageWidth = parseInt($(window).width());
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(is_touch_device()){
 		 $('meta[name=viewport]').remove();
@@ -99,6 +100,11 @@ function posActions() {
 		var rowVal = $("input[name=rowId]").val();
 		
 		var url = $(this).attr("data-url");
+		
+		if(!url){
+			return;
+		}
+		
 		var data = {recId:rowVal, amount:inpVal};
 		
 		resObj = new Object();
@@ -126,12 +132,16 @@ function posActions() {
 	// Добавя продукт при събмит на формата
 	$("#toolsForm").on("submit", function(event){
 	    var url = $("#toolsForm").attr("action");
+	    if(!url){
+			return;
+		}
 		var code = $("input[name=ean]").val();
 		var receiptId = $("input[name=receiptId]").val();
 		var data = {receiptId:receiptId, ean:code};
 		
 		resObj = new Object();
 		resObj['url'] = url;
+		
 		getEfae().process(resObj, data);
 	
 		$("input[name=ean]").val("");
@@ -199,6 +209,11 @@ function posActions() {
 	// Добавяне на продукти от бързите бутони
 	$(document.body).on('click', ".pos-product", function(e){
 		var url = $(this).attr("data-url");
+		
+		if(!url){
+			return;
+		}
+		
 		var productId = $(this).attr("data-id");
 		var receiptId = $("input[name=receiptId]").val();
 		
@@ -286,8 +301,10 @@ function posActions() {
 		var inpVal = $("#select-input-pos").val();
 		inpVal += currentAttrValue;
 		$("#select-input-pos").val(inpVal);
-		$("#select-input-pos").focus();
 		
+		if(!((pageWidth > 800 && pageWidth < 1400) && is_touch_device())){
+			$("#select-input-pos").focus();
+		}
 		// Задействаме евент 'keyup' в инпут полето
 		var e = jQuery.Event("keyup");
 		$("#select-input-pos").trigger(e);
@@ -297,9 +314,10 @@ function posActions() {
 	$(document.body).on('click', ".keyboard-back-btn", function(e){
 		var inpValLength = $("#select-input-pos").val().length;
 		var newVal = $("#select-input-pos").val().substr(0, inpValLength-1);
-		
 		$("#select-input-pos").val(newVal);
-		$("#select-input-pos").focus();
+		if(!((pageWidth > 800 && pageWidth < 1400) && is_touch_device())){
+			$("#select-input-pos").focus();
+		}
 		var e = jQuery.Event("keyup");
 		$("#select-input-pos").trigger(e);
 	});

@@ -176,7 +176,9 @@ class purchase_Purchases extends core_Master
     		'supplier2bank' => array('title' => 'Връщане от Доставчик', 'debit' => '503', 'credit' => '401'),
     		'supplierAdvance2case' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '501', 'credit' => '402'),
     		'supplierAdvance2bank' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '503', 'credit' => '402'),
-    		);
+    		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '401'),
+    		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '401', 'credit' => '*'),
+    );
     
     
     /**
@@ -309,12 +311,12 @@ class purchase_Purchases extends core_Master
 	    		}
 	    	}
     		
-	    	if (store_Receipts::haveRightFor('add') && store_Receipts::canAddToThread($data->rec->threadId)) {
+	    	if (store_Receipts::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
 	    		$receiptUrl = array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
 	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/shipment.png,title=Засклаждане на артикулите в склада,order=9.21');
 	        }
 	    	
-    		if(store_Receipts::haveRightFor('add') && purchase_Services::canAddToThread($data->rec->threadId)) {
+    		if(store_Receipts::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
     			$serviceUrl = array('purchase_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
 	            $data->toolbar->addBtn('Приемане', $serviceUrl, 'ef_icon = img/16/shipment.png,title=Покупка на услуги,order=9.22');
 	        }
@@ -352,6 +354,11 @@ class purchase_Purchases extends core_Master
     	if(empty($data->noTotal)){
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	
+    		if($rec->paymentMethodId) {
+    			$total = $rec->_total->amount- $rec->_total->discount;
+    			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
+    		}
     	}
     }
     
@@ -619,6 +626,10 @@ class purchase_Purchases extends core_Master
     		$tpl->removeBlock('header');
     		$tpl->removeBlock('STATISTIC_BAR');
     	}
+    	
+    	if($data->paymentPlan){
+    		$tpl->placeObject($data->paymentPlan);
+    	}
     }
     
     
@@ -728,6 +739,7 @@ class purchase_Purchases extends core_Master
        
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
+        $result->involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->downpayment            = ($downPayment) ? $downPayment : NULL;

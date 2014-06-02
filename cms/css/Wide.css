@@ -111,20 +111,12 @@ body{
     font-size:0.9em; 
     padding-top:12px; 
     padding-bottom:10px; 
-    color:white; 
+    left: 0;
+    z-index: 100;
 }
 
 .newsbar .richtext{
-    color:#fff;
     line-height:1.1em;
-}
-
-.newsbar .richtext a{
-    color: #fff;
-}
-
-.newsbar .richtext a:hover{
-    color: #F90;
 }
 
 .narrow .newsbar{

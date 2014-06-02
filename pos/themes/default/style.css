@@ -110,6 +110,10 @@
     transition: all .5s ease;
 }
 
+.narrow .pos-product-title {
+    max-height:14px;
+}
+
 .pos-product-title:hover {
 	max-height:88px;
 }

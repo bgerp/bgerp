@@ -72,12 +72,14 @@ class email_Returned extends core_Manager
         }
         
         $mid = $matches[1];
-
+        
         // Намираме датата на писмото
         $date = $mime->getSendingTime();
-            
-        $isReturnedMail = log_Documents::returned($mid, $date);
-
+        
+        $ip = $mime->getSenderIp();
+        
+        $isReturnedMail = log_Documents::returned($mid, $date, $ip);
+        
         if($isReturnedMail) {
             $rec = new stdClass();
             // Само първите 100К от писмото

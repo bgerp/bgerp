@@ -28,9 +28,16 @@ class doc_Files extends core_Manager
     
     
     /**
+     * Кой има право за вземане на информация
+     */
+    var $canInfo = 'powerUser';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     var $canList = 'powerUser';
+    
     
     
     /**
@@ -124,6 +131,12 @@ class doc_Files extends core_Manager
         // Обхождаме всички линкнати файлове        
         foreach ($linked as $fh => $name) {
             
+            // Данните за файла
+            $dataId = fileman_Files::fetchByFh($fh, 'dataId');
+            
+            // Ако няма данни, да не се записва
+            if (!$dataId) continue;
+            
             // Ако файла е бил записан
             if ($savedFh[$fh]) {
                 
@@ -138,7 +151,7 @@ class doc_Files extends core_Manager
             $nRec->folderId = $folderId;
             $nRec->threadId = $threadId;
             $nRec->fileHnd = $fh;
-            $nRec->dataId = fileman_Files::fetchByFh($fh, 'dataId');
+            $nRec->dataId = $dataId;
             
             static::save($nRec, NULL, 'IGNORE');
         }
@@ -167,8 +180,8 @@ class doc_Files extends core_Manager
         // Обхождаме всички записи
         foreach ($data->recs as $id => $rec) {
             
-            // Ако нямаме права за треда
-            if (!doc_Threads::haveRightFor('single', $rec->threadId)) unset($data->recs[$id]);
+            // Ако нямаме права
+            if (!$mvc->haveRightFor('info', $rec)) unset($data->recs[$id]);
         }
     }
 
@@ -246,12 +259,10 @@ class doc_Files extends core_Manager
         $docRow = $doc->getDocumentRow();
         
         // Атрибутеите на линка
-        $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($doc->getIcon()) . ');';
         $attr['title'] = $docRow->title;
         
         // Документа да е линк към single' а на документа
-        $row->threadId = ht::createLink(str::limitLen($docRow->title,35), array($doc, 'single', $doc->that), NULL, $attr);
+        $row->threadId = $doc->getLink(35, $attr);
         
         // id' то на контейнера на пъривя документ
         $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
@@ -265,17 +276,15 @@ class doc_Files extends core_Manager
             $docProxyRow = $docProxy->getDocumentRow();
             
             // Атрибутеите на линка
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
             $attr['title'] = tr('Първи документ|*: ') . $docProxyRow->title;
             
             // Темата да е линк към single' а на първиа документ документа
-            $firstContainerLink = ht::createLink(str::limitLen($docProxyRow->title,35), array($docProxy, 'single', $docProxy->that), NULL, $attr);
-            $row->threadId = $row->threadId . " « " . $firstContainerLink;    
+            $firstContainerLink = $docProxy->getLink(35, $attr);
+            $row->threadId = $row->threadId . " « " . $firstContainerLink; 
         }
         $fRec = fileman_Files::fetchByFh($rec->fileHnd);
         
-        $row->date = fileman_Files::getVerbal($fRec, 'createdOn');;
+        $row->date = fileman_Files::getVerbal($fRec, 'createdOn');
     }
     
     
@@ -326,6 +335,20 @@ class doc_Files extends core_Manager
                 $requiredRoles = 'no_one';   
             }
         }
+        
+        if ($action == 'info' && $rec) {
+            
+            if (!is_object($rec)) {
+                $rec = $mvc->fetch($rec);
+            }
+            
+            $docProxy = doc_Containers::getDocument($rec->containerId);
+            
+            // Ако няма права за сингъла на документа
+            if (!$docProxy->instance->haveRightFor('single', $docProxy->that)) {
+                $requiredRoles = 'no_one';
+            }
+        } 
     }
 
     

@@ -163,6 +163,8 @@ class sales_Sales extends core_Master
     		'bank2customer'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '503'),
     		'caseAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '501'),
     		'bankAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '503'),
+    		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '411'),
+    		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '411', 'credit' => '*'),
     		);
     		
     		
@@ -742,13 +744,13 @@ class sales_Sales extends core_Master
 	    	}
     		
     		// Ако протокол може да се добавя към треда и не се експедира на момента
-    		if (sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
+    		if (sales_Services::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Пр. услуги', $serviceUrl, 'ef_icon = img/16/shipment.png,title=Продажба на услуги,order=9.22');
 	        }
 	        
 	        // Ако ЕН може да се добавя към треда и не се експедира на момента
-	    	if (store_ShipmentOrders::haveRightFor('add') && store_ShipmentOrders::canAddToThread($rec->threadId)) {
+	    	if (store_ShipmentOrders::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
 	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/shipment.png,title=Експедиране на артикулите от склада,order=9.21');
 	        }
@@ -792,6 +794,11 @@ class sales_Sales extends core_Master
     		$fromProforma = ($data->fromProforma) ? TRUE : FALSE;
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, $fromProforma, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
+    		
+    		if($rec->paymentMethodId) {
+    			$total = $rec->_total->amount- $rec->_total->discount;
+    			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
+    		}
     	}
     }
     
@@ -926,6 +933,7 @@ class sales_Sales extends core_Master
         
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
+        $result->involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->downpayment            = ($downPayment) ? $downPayment : NULL;
@@ -1142,12 +1150,16 @@ class sales_Sales extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     		$tpl->removeBlock('STATISTIC_BAR');
     		$tpl->removeBlock('shareLog');
+    	}
+    	
+    	if($data->paymentPlan){
+    		$tpl->placeObject($data->paymentPlan);
     	}
     }
     

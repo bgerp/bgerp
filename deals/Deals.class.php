@@ -35,7 +35,7 @@ class deals_Deals extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg';
+    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
@@ -67,12 +67,6 @@ class deals_Deals extends core_Master
 	 */
 	public $canSingle = 'ceo,deals';
     
-	
-	/**
-	 * Кой може да променя състоянието
-	 */
-    public $canChangestate = 'ceo, deals';
-    
     
     /**
      * Документа продажба може да бъде само начало на нишка
@@ -83,7 +77,7 @@ class deals_Deals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,dealName,accountId,folderId,state,createdOn';
+    public $listFields = 'tools=Пулт,dealName,folderId,state,createdOn,createdBy';
     
 
     /**
@@ -125,32 +119,18 @@ class deals_Deals extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'dealName, accountId, description';
+    public $searchFields = 'dealName, accountId, description, folderId';
     
     
     /**
      * Позволени операции на последващите платежни документи
      */
-    public $allowedPaymentOperations = array(
-    		'shortTermLoansBankCredit'       => array('title' => 'Краткосрочен банков кредит', 'debit' => '503', 'credit' => '1511'),
-    		'shortTermLoansBankOverdraft'    => array('title' => 'Kраткосрочни заеми - овърдрафт', 'debit' => '503', 'credit' => '1513'),
-    		'shortTermLoansBankPersons'      => array('title' => 'Краткосрочен заем от свързани лица', 'debit' => '503', 'credit' => '1514'),
-    		'shortTermLoansCasePersons'      => array('title' => 'Краткосрочен заем от свързани лица', 'debit' => '501', 'credit' => '1514'),
-    		'longTermLoansBankCredit'        => array('title' => 'Дългосрочен банков кредит', 'debit' => '503', 'credit' => '1521'),
-    		'longTermLoansOverdraft'         => array('title' => 'Дългосрочни заеми - овърдрафт', 'debit' => '503', 'credit' => '1523'),
-    		'longTermLoansBankPersons'       => array('title' => 'Дългосрочен заем от свързани лица', 'debit' => '503', 'credit' => '1524'),
-    		'longTermLoansCasePersons'       => array('title' => 'Дългосрочен заем от свързани лица', 'debit' => '501', 'credit' => '1524'),
-    		'paidShortTermLoanBankCredit'    => array('title' => 'Платена главница по краткосрочен банков кредит', 'debit' => '1511', 'credit' => '503'),
-    		'paidShortTermLoanBankOverdraft' => array('title' => 'Погасена главница по краткосрочен овърдрафт', 'debit' => '1513', 'credit' => '503'),
-    		'paidShortTermLoansBankPersons'  => array('title' => 'Платена главница по краткосрочен заем от свързани лица', 'debit' => '1514', 'credit' => '503'),
-    		'paidShortTermLoansCasePersons'  => array('title' => 'Платена главница по краткосрочен заем от свързани лица', 'debit' => '1514', 'credit' => '501'),
-    		'paidLongTermLoanBankCredit'     => array('title' => 'Платена главница по дългосрочен банков кредит', 'debit' => '1521', 'credit' => '503'),
-    		'longTermLoansBankOverdraft'     => array('title' => 'Погасена главница по дългосрочен овърдрафт', 'debit' => '1523', 'credit' => '503'),
-    		'longTermLoansBankPersons'       => array('title' => 'Получени дългосрочни заеми - от свързани лица', 'debit' => '1524', 'credit' => '503'),
-    		'longTermLoansCasePersons'       => array('title' => 'Платена главница по дългосрочен заем от свързани лица', 'debit' => '1524', 'credit' => '501'),
-    		'catchObligations'       		 => array('title' => 'Прихващане на Задължения', 'debit' => '401', 'credit' => '406'),
-    		'catchTakings'                   => array('title' => 'Прихващане на Вземания', 'debit' => '406', 'credit' => '411'),
-    		);
+    private $allowedPaymentOperations = array(
+    		'debitDealCase'      => array('title' => 'Приход по финансова сделка', 'debit' => '501', 'credit' => '*'),
+    		'debitDealBank'      => array('title' => 'Приход по финансова сделка', 'debit' => '503', 'credit' => '*'),
+    		'creditDealCase'     => array('title' => 'Разход по финансова сделка', 'debit' => '*', 'credit' => '501'),
+    		'creditDealBank'     => array('title' => 'Разход по финансова сделка', 'debit' => '*', 'credit' => '503'),
+	);
     
     
     /**
@@ -158,18 +138,57 @@ class deals_Deals extends core_Master
      */
     public function description()
     {
-    	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,mandatory,width=100%');
-    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf, allowEmpty)', 'caption=Сметка,mandatory');
+    	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,width=100%');
+    	$this->FLD('blAmount', 'double(decimals=2)', 'input=none,notNull');
+    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf, allowEmpty)', 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
-    	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
-    	$this->FLD('contragentId', 'int', 'input=hidden');
+    	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
     	$this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=4em');
+    	
+    	$this->FLD('companyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Втори контрагент->Фирма,input');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Втори контрагент->Лице,input');
+    	
+    	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
+    	$this->FLD('contragentId', 'int', 'input=hidden');
+    	
+    	$this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
+    	$this->FLD('secondContragentId', 'int', 'input=none');
+    	
     	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнителno->Описание');
+    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Състояние, input=none');
     	
-    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Статус, input=none');
-    	
-    	$this->setDbUnique('dealName');
+    	$this->FNC('detailedName', 'varchar', 'column=none');
+    	//$this->setDbUnique('dealName');
+    }
+    
+    
+    /**
+     * Може ли документ-продажба да се добави в посочената папка?
+     *
+     * Документи-финансови сделки могат да се добавят само в папки с корица контрагент.
+     *
+     * @param $folderId int ид на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	$coverClass = doc_Folders::fetchCoverClassName($folderId);
+    
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+    
+    
+    /**
+     * Име за избор
+     */
+    static function on_CalcDetailedName($mvc, &$rec) 
+    {
+     	if (!$rec->contragentName || !$rec->createdOn) return;
+     	
+     	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
+     	
+     	$rec->detailedName = $rec->id . "." . $rec->contragentName . "/ {$createdOn} / " . $rec->dealName;
     }
     
     
@@ -179,6 +198,7 @@ class deals_Deals extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$rec = &$form->rec;
     	
     	$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
@@ -201,6 +221,26 @@ class deals_Deals extends core_Master
     {
     	if ($form->isSubmitted()){
     		$rec  = &$form->rec;
+    		
+    		if($rec->companyId && $rec->personId){
+    			$form->setError('companyId,personId', 'Моля изберете само един втори контрагент');
+    		}
+    		
+    		if($rec->companyId){
+    			$rec->secondContragentClassId = crm_Companies::getClassId();
+    			$rec->secondContragentId = $rec->companyId;
+    		}
+    		
+    		if($rec->personId){
+    			$rec->secondContragentClassId = crm_Persons::getClassId();
+    			$rec->secondContragentId = $rec->personId;
+    		}
+    		
+    		if(empty($rec->companyId) && empty($rec->personId)){
+    			$rec->secondContragentClassId = NULL;
+    			$rec->secondContragentId = NULL;
+    		}
+    		
     		if(!$rec->currencyRate){
     			// Изчисляваме курса към основната валута ако не е дефиниран
     			$rec->currencyRate = round(currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL), 4);
@@ -224,6 +264,10 @@ class deals_Deals extends core_Master
     	if($fields['-single']){
     		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
     		$row->contragentName = cls::get($rec->contragentClassId)->getHyperLink($rec->contragentId, TRUE);
+    		
+    		if($rec->secondContragentClassId){
+    			$row->secondContragentId = cls::get($rec->secondContragentClassId)->getHyperLink($rec->secondContragentId, TRUE);
+    		}
     	}
     	
     	if($fields['-list']){
@@ -235,6 +279,9 @@ class deals_Deals extends core_Master
     		$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
     		$row->accountId = ht::createLink($row->accountId, $accUrl);
     	}
+    	
+    	@$rec->blAmount /= $rec->currencyRate;
+    	$row->blAmount = $mvc->fields['blAmount']->type->toVerbal($rec->blAmount);
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     }
@@ -267,12 +314,10 @@ class deals_Deals extends core_Master
     		if(bank_SpendingDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     			$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
     		}
-    	}
-    	
-    	if($mvc->haveRightFor('changeState', $rec)){
-    		$title = ($rec->state == 'active') ? 'Приключване' : 'Отваряне';
-    		$icon = ($rec->state == 'active') ? 'img/16/lock.png' : 'img/16/lock_unlock.png';
-    		$data->toolbar->addBtn($title, array($mvc, 'toggleState', $rec->id), "ef_icon={$icon},title={$title} на финансова сделка");
+    		
+    		if(deals_ClosedDeals::haveRightFor('add')){
+    			$data->toolbar->addBtn('Приключване', array('deals_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), "ef_icon=img/16/closeDeal.png,title=Приключване на финансова сделка");
+    		}
     	}
     }
     
@@ -282,10 +327,9 @@ class deals_Deals extends core_Master
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'changestate' && isset($rec)){
-    		if($rec->state != 'active' && $rec->state != 'closed'){
-    			$res = 'no_one';
-    		}
+    	// При създаване на сделка, тя не може да се активира
+    	if($action == 'activate' && empty($rec)){
+    		$res = 'no_one';
     	}
     }
     
@@ -303,27 +347,36 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Връща филтрираната заявка, за това перо, ако е перо
+     */
+    private function getJournalQuery($rec, &$item)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
+    	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
+    	
+    	$item = acc_Items::fetchItem($this->getClassId(), $rec->id);
+    	if(!$item) return NULL;
+    	
+    	// Намираме от журнала записите, където участва перото от датата му на създаване до сега
+    	$jQuery = acc_JournalDetails::getQuery();
+    	acc_JournalDetails::filterQuery($jQuery, $createdOn, dt::today(), $accSysId, $item->id);
+    	
+    	return $jQuery;
+    }
+    
+    
+    /**
      * Връща хронологията от журнала, където участва документа като перо
      */
     private function getHistory(&$data)
     {
     	$rec = $this->fetchRec($data->rec->id);
-    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
-    	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
     	
-    	$Double = cls::get('type_Double');
-    	$Double->params['decimals'] = 2;
+    	$jQuery = $this->getJournalQuery($rec, $item);
     	
-    	$item = acc_Items::fetchItem($this->getClassId(), $rec->id);
-    	$blAmount = 0;
-    	
-    	// Ако документа е перо
-    	if($item){
+    	if($jQuery){
     		$data->history = array();
-    		
-    		// Намираме от журнала записите, където участва перото от датата му на създаване до сега
-    		$jQuery = acc_JournalDetails::getQuery();
-    		acc_JournalDetails::filterQuery($jQuery, $createdOn, dt::today(), $accSysId, $item->id);
     		
     		$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
     		$Pager->itemsCount = $jQuery->count();
@@ -336,36 +389,52 @@ class deals_Deals extends core_Master
     			$start = $data->pager->rangeStart;
     			$end = $data->pager->rangeEnd - 1;
     			
-    			$row = new stdClass();
-    			try{
-    				$DocType = cls::get($jRec->docType);
-    				$row->docId = $DocType->getHyperLink($jRec->docId, TRUE);
-    			} catch(Exception $e){
-    				$row->docId = "<span style='color:red'>" . tr('Проблем при показването') . "</span>";
-    			}
-    			
     			$jRec->amount /= $rec->currencyRate;
     			if($jRec->debitItem1 == $item->id){
-    				$row->debitA = $Double->toVerbal($jRec->amount);
-    				$blAmount += $jRec->amount;
-    			} elseif($jRec->creditItem1 == $item->id){
-    				$row->creditA = $Double->toVerbal($jRec->amount);
-    				$blAmount -= $jRec->amount;
+    				$jRec->debitA = $jRec->amount;
+    			}
+    			
+    			if($jRec->creditItem1 == $item->id){
+    				$jRec->creditA = $jRec->amount;
     			}
     		
     			// Ще показваме реда, само ако отговаря на текущата страница
     			if(empty($data->pager) || ($count >= $start && $count <= $end)){
-    				$data->history[] = $row;
+    				$data->history[] = $this->getHistoryRow($jRec);
     			}
     			$count++;
     		}
     	}
+    }
+    
+    
+    /**
+     * Вербално представяне на ред от историята
+     */
+    private function getHistoryRow($jRec)
+    {
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
     	
-    	// Обръщаме във вербален вид изчисленото крайно салдо
-    	$data->row->blAmount = $Double->toVerbal($blAmount);
-    	if($blAmount < 0){
-    		$data->row->blAmount = "<span style='color:red'>{$data->row->blAmount}</span>";
+    	$row = new stdClass();
+    	$row->valior = dt::mysql2verbal($jRec->valior, 'd.m.Y');
+    	
+    	try{
+    		$DocType = cls::get($jRec->docType);
+    		$row->docId = $DocType->getHyperLink($jRec->docId, TRUE);
+    	} catch(Exception $e){
+    		$row->docId = "<span style='color:red'>" . tr('Проблем при показването') . "</span>";
     	}
+    	
+    	if($jRec->debitA){
+    		$row->debitA = $Double->toVerbal($jRec->debitA);
+    	}
+    	
+    	if($jRec->creditA){
+    		$row->creditA = $Double->toVerbal($jRec->creditA);
+    	}
+    	
+    	return $row;
     }
     
     
@@ -380,7 +449,7 @@ class deals_Deals extends core_Master
     	$fieldSet->FLD('creditA', 'double');
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
-    	$fields = "docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
+    	$fields = "valior=Вальор,docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
     	$tpl->append($table->get($data->history, $fields), 'DETAILS');
     	
     	if($data->pager){
@@ -418,10 +487,9 @@ class deals_Deals extends core_Master
     public function getDocumentRow($id)
     {
     	expect($rec = $this->fetch($id));
-    	$title = static::getRecTitle($rec);
     
     	$row = (object)array(
-    			'title'    => $this->singleTitle . " \"$title\"",
+    			'title'    => $this->singleTitle . " №{$rec->id}",
     			'authorId' => $rec->createdBy,
     			'author'   => $this->getVerbal($rec, 'createdBy'),
     			'state'    => $rec->state,
@@ -447,9 +515,16 @@ class deals_Deals extends core_Master
     	
     	$result->dealType = bgerp_iface_DealResponse::TYPE_DEAL;
     	$result->allowedPaymentOperations = $this->getAllowedOperations($rec);
+    	$result->involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
+    	if($rec->secondContragentClassId){
+    		$result->involvedContragents[] = (object)array('classId' => $rec->secondContragentClassId, 'id' => $rec->secondContragentId);
+    	}
     	
     	$result->paid->currency = $rec->currencyId;
     	$result->paid->rate = $rec->currencyRate;
+    	
+    	$result->agreed->currency = $rec->currencyId;
+    	$result->agreed->rate = $rec->currencyRate;
     	
     	return $result;
     }
@@ -465,12 +540,18 @@ class deals_Deals extends core_Master
     	
     	$operations = $this->allowedPaymentOperations;
     	
-    	// От зададените операции премахва онези в които не участва сметката на сделката
-    	foreach ($operations as $index => $op){
-    		if($op['credit'] != $sysId && $op['debit'] != $sysId){
-    			unset($operations[$index]);
+    	// На местата с '*' добавяме сметката на сделката
+    	foreach ($operations as $index => &$op){
+    		if($op['debit'] == '*'){
+    			$op['debit'] = $sysId;
+    		}
+    		if($op['credit'] == '*'){
+    			$op['credit'] = $sysId;
     		}
     	}
+    	
+    	$operations['debitDeals'] = array('title' => 'Приход по финансова сделка', 'debit' => '*', 'credit' => $sysId);
+    	$operations['creditDeals'] = array('title' => 'Разход по финансова сделка', 'debit' => $sysId, 'credit' => '*');
     	
     	return $operations;
     }
@@ -501,43 +582,13 @@ class deals_Deals extends core_Master
     
     	// Извличаме dealInfo от самата сделка
     	/* @var $dealDealInfo bgerp_iface_DealResponse */
-    	$dealDealInfo = $this->getDealInfo($dealRec->id);
-    
-    	// dealInfo-то на самата сделка е база, в/у която се натрупват някой от аспектите
-    	// на породените от нея платежни документи
-    	$aggregateInfo = clone $dealDealInfo;
+    	$aggregateInfo = $this->getDealInfo($dealRec->id);
     	
-    	if(count($dealDocuments)){
-    		/* @var $d core_ObjectReference */
-    		foreach ($dealDocuments as $d) {
-    			$dState = $d->rec('state');
-    			
-    			// Игнорираме черновите и оттеглените документи
-    			if ($dState == 'draft' || $dState == 'rejected') {
-                	
-    				// Игнорираме черновите и оттеглените документи
-                	continue;
-            	}
-    		
-    			if ($d->haveInterface('bgerp_DealIntf')) {
-    				$dealInfo = $d->getDealInfo();
-    				$aggregateInfo->paid->push($dealInfo->paid);
-    			}
-    		}
-    	}
+    	$aggregateInfo->paid->amount = $dealRec->blAmount;
+    	$aggregateInfo->paid->currency = $dealRec->currencyId;
+    	$aggregateInfo->paid->rate = $dealRec->currencyRate;
     	
     	return $aggregateInfo;
-    }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$name = static::recToVerbal($rec, 'dealName')->dealName;
-    
-    	return $name;
     }
     
     
@@ -565,6 +616,15 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+	    return static::recToVerbal($rec, 'dealName')->dealName;
+    }
+    	
+    	
+    /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
      * @param int $objectId
      */
@@ -580,23 +640,6 @@ class deals_Deals extends core_Master
     	}
     
     	return $result;
-    }
-    
-    
-    /**
-     * Екшън за затваряне на финансова сделка
-     */
-    public function act_ToggleState()
-    {
-    	$this->requireRightFor('changeState');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('changeState', $rec);
-    	
-    	$rec->state = ($rec->state == 'active') ? 'closed' : 'active';
-    	$this->save($rec);
-    	
-    	Redirect(array($this, 'single', $id));
     }
     
     
@@ -617,16 +660,7 @@ class deals_Deals extends core_Master
     	requireRole('debug');
     	expect($id = Request::get('id', 'int'));
     	$info = $this->getAggregateDealInfo($id);
-    	bp($info->allowedPaymentOperations,$info->paid);
-    }
-    
-    
-    /**
-     * Поставя изискване да се селектират само активните записи
-     */
-    function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
-    {
-    	$where .= ($where ? " AND " : "") . " #state = 'active'";
+    	bp($info);
     }
     
     
@@ -636,5 +670,80 @@ class deals_Deals extends core_Master
     function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
     	$data->query->orderBy('#state');
+    }
+    
+    
+    /**
+     * След оттеглянето на сделката се оттеглят и всички прихващащи документи, които я използват
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	deals_DebitDocument::rejectAll($rec->id);
+    	deals_CreditDocument::rejectAll($rec->id);
+    }
+    
+    
+    /**
+     * След възстановяването на сделка се възстановяват всички документи, които я използват
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	 
+    	deals_DebitDocument::restoreAll($rec->id);
+    	deals_CreditDocument::restoreAll($rec->id);
+    }
+    
+    
+    /**
+     * Връща опции на всички сделки в които са замесени посочените контрагенти
+     * 
+     * @param array $involvedContragents - масив от обекти с 'classId' и 'id'
+     */
+    public static function fetchDealOptions($involvedContragents)
+    {
+    	$where = "#state = 'active' && (";
+    	foreach ($involvedContragents as $i => $contragent){
+    		if($i) $where .= " OR ";
+    		$where .= "((#contragentClassId = '{$contragent->classId}' && #contragentId = '{$contragent->id}') || (#secondContragentClassId IS NOT NULL && #secondContragentClassId = '{$contragent->classId}' && #secondContragentId = '{$contragent->id}'))";
+    	}
+    	$where .= ")";
+    	
+    	return static::makeArray4Select('detailedName', $where);
+    }
+    
+    
+    /**
+     * След като се промени някой от наследниците: в това число и 
+     * ако някое прехвърляне в друга нишка засяга сделката преизчислява крайното салдо по сделката
+     */
+    public static function on_DescendantChanged($mvc, $dealRef, $descendantRef = NULL)
+    {
+    	$blAmount = 0;
+    	$rec = $dealRef->fetch();
+    	
+    	$jQuery = $mvc->getJournalQuery($rec, $item);
+    	if(!$jQuery) return;
+    	while($jRec = $jQuery->fetch()){
+    		if($jRec->debitItem1 == $item->id){
+    			$blAmount += $jRec->amount;
+    		}
+    		if($jRec->creditItem1 == $item->id){
+    			$blAmount -= $jRec->amount;
+    		}
+    	}
+    	
+    	$rec->blAmount = $blAmount;
+    	$mvc->save($rec);
     }
 }

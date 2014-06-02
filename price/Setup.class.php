@@ -83,17 +83,6 @@ class price_Setup extends core_ProtoSetup
         return $res;
     }
     
-    /**
-     * Инициализране на началните данни
-     */
-    function loadSetupData()
-    {
-    	$html = parent::loadSetupData();
-    	
-    	$html .= price_ListRules::setup();
-    	
-    	return $html;
-    }
 
     /**
      * Миграция, която изтрива таблицата price_History

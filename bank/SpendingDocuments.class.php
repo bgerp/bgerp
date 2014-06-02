@@ -348,13 +348,13 @@ class bank_SpendingDocuments extends core_Master
 	   	 	}
 	   	 	
 	   	 	// Ако няма валутен курс, взимаме този от системата
-    		if(!$rec->rate && !$form->gotErrors()) {
-    			if($rec->tempRate){
-    				$rec->rate = $rec->tempRate;
-    			} else {
-    				$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-	    			$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
-    			}
+    		if(!$rec->rate) {
+    			$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+	    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+	    	} else {
+	    		if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
+	    			$form->setWarning('rate', $msg);
+	    		}
 	    	}
     	}
     }
@@ -378,9 +378,7 @@ class bank_SpendingDocuments extends core_Master
     			
 			    $period = acc_Periods::fetchByDate($rec->valior);
 			    $row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
-    		 	$double = cls::get('type_Double');
-	    		$double->params['decimals'] = 2;
-	    		$row->equals = $double->toVerbal($rec->amount * $rec->rate);
+	    		$row->equals = $mvc->fields['amount']->type->toVerbal($rec->amount * $rec->rate);
     		} else {
     			
     			unset($row->rate);

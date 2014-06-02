@@ -221,6 +221,7 @@ class log_Documents extends core_Manager
         $this->FNC('from', 'user', 'input=none');
         $this->FNC('ip', 'ip', 'input=none');
         $this->FNC('toEmail', 'emails', 'input=none');
+        $this->FNC('fromEmail', 'key(mvc=email_Inboxes, select=email)', 'input=none');
         $this->FNC('cc', 'emails', 'input=none');
         $this->FNC('faxTo', 'drdata_PhoneType', 'input=none');
         $this->FNC('service', 'class(interface=email_SentFaxIntf, select=title)', 'input=none');
@@ -286,6 +287,11 @@ class log_Documents extends core_Manager
             
             // Линк към визитката
             $row->from = crm_Profiles::createLink($rec->from);
+        }
+        
+        // Декорираме IP адреса
+        if ($rec->ip) {
+            $row->ip = vislog_History::decorateIp($rec->ip, $rec->time);
         }
     }
     
@@ -671,6 +677,7 @@ class log_Documents extends core_Manager
             	'toEmail' => $rec->data->to,
                 'cc' => $rec->data->cc,
                 'returnedOn' => $rec->returnedOn,
+                'fromEmail' => $rec->data->from,
             );
             
             // Ако е факс
@@ -687,21 +694,30 @@ class log_Documents extends core_Manager
             // Рендираме екшъна за виждане
             $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
 
-            // Полето за върнато и полуяено
+            // Полето за върнато и получено
             $row->returnedAndReceived = $row->receivedOn;
             
             // Ако има връщане
             if ($row->returnedOn) {
                 
+                $returnedStr = '';
+                
                 // Ако има отворено
-                if ($rec->receivedOn) {
+                if ($rec->data->receivedOn) {
                     
                     // Добавяме нов ред
-                    $row->returnedAndReceived .= "<br />";
+                    $returnedStr = "<br />";
                 }
                 
                 // Добавяме го
-                $row->returnedAndReceived .=  tr("Върнато") . ": {$row->returnedOn}";
+                $returnedStr .= tr("Върнато") . ": {$row->returnedOn}";
+                
+                // Ip от което е върнато
+                if ($rec->data->returnedIp) {
+                    $returnedStr .= vislog_History::decorateIp($rec->data->returnedIp, $rec->data->returnedOn);
+                }
+                
+                $row->returnedAndReceived .=  $returnedStr;
             }
             
             // Имейлите До
@@ -712,6 +728,11 @@ class log_Documents extends core_Manager
                 
                 // Добавяме към имейлите
                 $row->emails .= "<br />" . tr("Kп") . ": {$row->cc}";
+            }
+            
+            // Добавяме имейла от който е изпратен
+            if ($row->fromEmail && $rec->data->sendedBy) {
+                $row->emails = $row->fromEmail . " -> " . $row->emails;
             }
             
             // Ако имаме факс номер
@@ -749,7 +770,7 @@ class log_Documents extends core_Manager
             
             // Индикатор за състоянието
             $time = "<div>";
-            $time .= "<div class='stateIndicator {$state}'>";
+            $time .= "<div class='stateIndicator {$stateClass}'>";
             $time .= "</div> <div class='inline-date'>{$row->time}</div></div>";
             
             // Заместваме времето с индикатора и времето
@@ -1175,7 +1196,7 @@ class log_Documents extends core_Manager
     /**
      * Отбелязва имейла за върнат
      */
-    public static function returned($mid, $date = NULL)
+    public static function returned($mid, $date = NULL, $ip = NULL)
     {
         if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
             // Няма изпращане с такъв MID
@@ -1194,6 +1215,7 @@ class log_Documents extends core_Manager
         expect(is_object($sendRec->data), $sendRec);
     
         $sendRec->data->returnedOn = $date;
+        $sendRec->data->returnedIp = $ip;
     
         static::save($sendRec);
     
@@ -1298,7 +1320,36 @@ class log_Documents extends core_Manager
             $requestedDoc = doc_Containers::getDocument($cid);
             $midDoc       = doc_Containers::getDocument($parent->containerId);
             
-            $linkedDocs = $midDoc->getLinkedDocuments();
+            // Вземаме от парент записа id то на изпращача
+            $fParent = $parent;
+            
+            // Ако е изпратен
+            if ($fParent->action == static::ACTION_SEND) {
+                $sendedAction = $fParent;
+            }
+            while ($fParent->parentId) {
+                $fParent = static::fetch($fParent->parentId);
+                
+                // Ако е изпратен
+                if (!$sendedAction && $fParent->action == static::ACTION_SEND) {
+                    $sendedAction = $fParent;
+                }
+            }
+            if ($fParent->data->sendedBy > 0) {
+                $sendedBy = $fParent->data->sendedBy;
+            }
+            
+            // Ако е изпратен или е системата - за бласт
+            if ($sendedAction && (!$sendedBy || $sendedBy <= 0)) {
+                
+                // Използваме активатора на документа
+                $sendContainerRec = doc_Containers::fetch($sendedAction->containerId);
+                if ($sendContainerRec->activatedBy && $sendContainerRec->activatedBy > 0) {
+                    $sendedBy = $sendContainerRec->activatedBy;
+                }
+            }
+            
+            $linkedDocs = $midDoc->getLinkedDocuments($sendedBy);
             
             // свързан ли е?
             expect(isset($linkedDocs[$requestedDoc->getHandle()]));
@@ -1964,6 +2015,11 @@ class log_Documents extends core_Manager
 
         $html = '';
         
+        if ($rec->data->receivedOn && $rec->data->seenFromIp) {
+            $firstOpen['ip'] = $rec->data->seenFromIp;
+            $firstOpen['on'] = $rec->data->receivedOn;
+        }
+        
         if (!empty($rec->data->{$openActionName})) {
             $firstOpen = reset($rec->data->{$openActionName});
         }
@@ -1980,15 +2036,18 @@ class log_Documents extends core_Manager
         $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
         
         if (!empty($firstOpen)) {
-            $html .= ' (' . $firstOpen['ip'] . ') ';
-            $html .= ht::createLink(
-                count($rec->data->{$openActionName}),
-                $linkArr,
-                FALSE,
-                array(
-                    'class' => 'badge',
-                )
-            );
+            $html .= vislog_History::decorateIp($firstOpen['ip'], $firstOpen['on']);
+            $cnt = count($rec->data->{$openActionName});
+            if ($cnt) {
+                $html .= ht::createLink(
+                    $cnt,
+                    $linkArr,
+                    FALSE,
+                    array(
+                        'class' => 'badge',
+                    )
+                );
+            }
         }
         
         $rec->receivedOn = $_r;

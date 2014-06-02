@@ -180,9 +180,6 @@ class purchase_ClosedDeals extends acc_ClosedDeals
 	    			
 	    		if($res == 'no_one') return;
     			
-    			// Може да се добавя само към тред с покупка
-    			if($origin->instance instanceof sales_Sales) return $res = 'no_one';
-    			
 	    		// Ако разликата между доставеното/платеното е по голяма, се изисква
 	    		// потребителя да има по-големи права за да създаде документа
 	    		if(!self::isPurchaseDiffAllowed($originRec)){
@@ -277,5 +274,23 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	}
     	
     	return $entries;
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     */
+    public static function canAddToThread($threadId)
+    {
+    	// Можели да се добави към нишката
+    	$res = parent::canAddToThread($threadId);
+    	if(!$res) return FALSE;
+    	 
+    	$dealInfo = static::getDealInfo($threadId);
+    	 
+    	// Може само към нишка, породена от продажба
+    	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_PURCHASE) return FALSE;
+    	 
+    	return TRUE;
     }
 }

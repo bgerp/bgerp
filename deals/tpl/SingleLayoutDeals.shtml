@@ -19,6 +19,14 @@
 			<td>|Контрагент|*</td>
 			<td>[#contragentName#]</td>
 		</tr>
+		
+		<!--ET_BEGIN secondContragentId-->
+		<tr>
+			<td>|Втори контрагент|*</td>
+			<td>[#secondContragentId#]</td>
+		</tr>
+		<!--ET_END secondContragentId-->
+		
 		<tr>
 			<td>|Крайно салдо|*</td>
 			<td>[#blAmount#] <span class='cCode'>[#currencyId#]</span></td>

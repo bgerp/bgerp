@@ -515,6 +515,14 @@ class cal_Tasks extends core_Master
 	            }*/
     	     }
          }
+         
+         if ($action == 'edit') { 
+         	if ($rec->id) {
+	         	if (!cal_Tasks::haveRightFor('single', $rec)) {
+	         		$requiredRoles = 'no_one'; 
+	         	}
+         	}
+         }
     }
     
     
@@ -1069,9 +1077,16 @@ class cal_Tasks extends core_Master
     	    		// масив с шернатите потребители
     	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
     	    		
+    	    		// Ако имаме права за достъп до сингъла
+    	    		if (cal_Tasks::haveRightFor('single', $rec)) {
+    	    			// ще се сложи URL
+		           		$flagUrl = 'yes';
+		            } else {
+		            	$flagUrl = FALSE;
+		            }
     	    		
-    		    	// масива със задачите
-    		    	$resTask[]=array( 
+		            	// масива със задачите
+    		    		$resTask[]=array( 
     			    					'taskId' => $rec->id,
     			    					'rowId' =>  keylist::toArray($rec->sharedUsers),
     		    						'timeline' => array (
@@ -1081,10 +1096,9 @@ class cal_Tasks extends core_Master
     		    		                
     			    					'color' => $colors[$v % 50],
     			    					'hint' => $rec->title,
-    			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId)),
-    		    						'progress' => $rec->progress
-    			    				
-    			    	);
+    		    						'url' =>  $flagUrl,
+    			    					'progress' => $rec->progress
+    		    		);
         		}
         	} 
         	
@@ -1115,6 +1129,15 @@ class cal_Tasks extends core_Master
         	// правим помощен масив = на "rowId" от "resTasks"
         	for($i = 0; $i < count($resTask); $i++) { $j = 0;
         		$rowArr[] = $resTask[$i]['rowId'];
+        		
+        		// Проверка дали ще има URL
+        		if ($resTask[$i]['url'] == 'yes') {
+        			// Слагаме линк
+        			$resTask[$i]['url'] = toUrl(array('cal_Tasks', 'single' , $resTask[$i]['taskId']));
+        		} else {
+        			// няма да има линк
+        			unset ($resTask[$i]['url']);
+        		}
         	}
         	
         	if (is_array($rowArr)) {
@@ -1142,7 +1165,7 @@ class cal_Tasks extends core_Master
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
 //bp($resTask, $res, dt::timestamp2mysql(1388527200), dt::timestamp2mysql(1393970399));
 
-	    $chart = gantt_Adapter::render_($res);
+	    $chart = gantt_Adapter::render($res);
 	//bp($chart);
 	
 	    return $chart;

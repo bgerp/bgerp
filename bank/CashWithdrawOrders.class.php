@@ -295,12 +295,7 @@ class bank_CashWithdrawOrders extends core_Master
     	// Може да се добавя само към Разходен банков ордер
     	if(!($origin->instance instanceof bank_SpendingDocuments || $origin->instance instanceof bank_InternalMoneyTransfer)) return FALSE;
     	
-    	// В който е избрана операция за разплащане с подочетно лице
-    	$operationSysId = $origin->fetchField('operationSysId');
-    	$operation = acc_Operations::fetchBySysId($operationSysId);
-    	$hasAccPerson = acc_Lists::getPosition($operation->debitAccount, 'crm_PersonAccRegIntf');
-    	
-    	return $hasAccPerson;
+    	return TRUE;
     }
     
     

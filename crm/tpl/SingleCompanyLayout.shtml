@@ -4,8 +4,9 @@
     <div class="folder-cover [#STATE_CLASS#]">
        <div class="inner-folder">
         <div class="block_title [#STATE_CLASS#] special-title">
-            [#SingleIcon#] [#title#]
+            [#SingleIcon#] [#title#] [#titleNumber#]
         </div>
+       
         <!--ET_BEGIN image-->
         <div class="crmImage">
             <div>  

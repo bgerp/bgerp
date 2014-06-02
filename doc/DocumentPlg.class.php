@@ -352,9 +352,9 @@ class doc_DocumentPlg extends core_Plugin
             doc_Containers::update($containerId);
         }
         
-        if($rec->state != 'draft'){
-        	
-	    	$usedDocuments = $mvc->getUsedDocs($rec->id);
+        // Само при активиране и оттегляне, се обновяват използванията на документи в документа
+        if($rec->state == 'active' || $rec->state == 'rejected'){
+        	$usedDocuments = $mvc->getUsedDocs($rec->id);
 	    	if(count($usedDocuments)){
 	    		$Log = cls::get('log_Documents');
 	    		foreach($usedDocuments as $used){
@@ -713,7 +713,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetLink($mvc, &$link, $id, $maxLength = FALSE, $attr = array())
     {
-        $iconStyle = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
+        $iconStyle = 'background-image:url(' . sbf($mvc->getIcon($id), '') . ');';
         $url       = array($mvc, 'single', $id);
         if($attr['Q']) {
             $url['Q'] = $attr['Q'];
@@ -736,6 +736,10 @@ class doc_DocumentPlg extends core_Plugin
         
         $attr['class'] .= ' linkWithIcon';
         $attr['style'] .= $iconStyle;
+        
+        if ($rec->state == 'rejected') {
+            $attr['class'] .= ' state-rejected';
+        }
 
         $link = ht::createLink("{$row->title}", $url, NULL, $attr);
     }
@@ -944,8 +948,15 @@ class doc_DocumentPlg extends core_Plugin
         
         if (!Mode::is('text', 'html')) {
             
+            // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
+            if (!$userId = $options->__userId) {
+                $userId = core_Users::getCurrent();
+                if ($userId <= 0) {
+                    $userId = $mvc->getContainer($id)->activatedBy;
+                }
+            }
             // Временна промяна на текущия потребител на този, който е активирал документа
-            $bExitSudo = core_Users::sudo($mvc->getContainer($id)->activatedBy);
+            $bExitSudo = core_Users::sudo($userId);
         }
         
         // Ако възникне изключение
@@ -1004,8 +1015,15 @@ class doc_DocumentPlg extends core_Plugin
         Mode::push('text', $mode);
         
         if (!Mode::is('text', 'html')) {
+            // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
+            if (!$userId = $options->__userId) {
+                $userId = core_Users::getCurrent();
+                if ($userId <= 0) {
+                    $userId = $mvc->getContainer($id)->activatedBy;
+                }
+            }
             // Временна промяна на текущия потребител на този, който е активирал документа
-            $bExitSudo = core_Users::sudo($mvc->getContainer($id)->activatedBy);
+            $bExitSudo = core_Users::sudo($userId);
         }
         
         // Ако възникне изключение
@@ -1400,6 +1418,9 @@ class doc_DocumentPlg extends core_Plugin
                     array(
                         'action' => log_Documents::ACTION_PDF,
                         'containerId' => $mvc->getContainer($id)->id,
+                        'data'        => (object)array(
+                            'sendedBy'   => core_Users::getCurrent(),
+                        )
                     )
                 );
                 
@@ -1559,28 +1580,31 @@ class doc_DocumentPlg extends core_Plugin
     */
     function on_AfterGetLinkedFiles($mvc, &$res, $rec)
     {
-        if (is_object($rec)) {
-            $id = $rec->id;
-        } else {
-            $id = $rec;
+        if (!is_object($rec)) {
+            $rec = $mvc->fetch($rec);
         }
-        // Вземаме документа
-        $data = $mvc->prepareDocument($id);
-
+        
         // Намираме прикачените файлове
-        $res = array_merge(fileman_RichTextPlg::getFiles($data->rec->body), (array)$res);
+        $res = array_merge(fileman_RichTextPlg::getFiles($rec->body), (array)$res);
     }
     
     
-    public static function on_AfterGetLinkedDocuments($mvc, &$res, $id)
+    public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL)
     {
-        core_Users::sudo($mvc->getContainer($id)->activatedBy);
+        // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+            if ($userId <= 0) {
+                $userId = $mvc->getContainer($id)->activatedBy;
+            }
+        }
         
-        // Вземаме документа
-        $data = $mvc->prepareDocument($id);
+        core_Users::sudo($userId);
+        
+        $rec = $mvc->fetch($id);
         
         // Намираме прикачените документи
-        $attachedDocs = doc_RichTextPlg::getAttachedDocs($data->rec->body);
+        $attachedDocs = doc_RichTextPlg::getAttachedDocs($rec->body);
         if (count($attachedDocs)) {
             $attachedDocs = array_keys($attachedDocs);
             $attachedDocs = array_combine($attachedDocs, $attachedDocs);    

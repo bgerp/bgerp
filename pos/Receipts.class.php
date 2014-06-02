@@ -61,9 +61,21 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Кой може да приключи бележка?
+     */
+    var $canClose = 'ceo, pos';
+    
+    
+    /**
      * Кой може да променя?
      */
     var $canAdd = 'pos, ceo';
+    
+    
+    /**
+     * Кой може да плати?
+     */
+    var $canPay = 'pos, ceo';
     
     
     /**
@@ -411,8 +423,6 @@ class pos_Receipts extends core_Master {
 		if($action == 'pay' && isset($rec)){
 			if(!$rec->total || ($rec->total && $rec->paid >= $rec->total)){
 				$res = 'no_one';
-			} else {
-				$res = $mvc->pos_ReceiptDetails->getRequiredRoles('add', (object)array('receiptId' => $rec->id));
 			}
 		}
 	}
@@ -472,11 +482,7 @@ class pos_Receipts extends core_Master {
     	jquery_Jquery::enable($tpl);
 	    $tpl->push('pos/tpl/css/styles.css', 'CSS');
 	    $tpl->push('pos/js/scripts.js', 'JS');
-
-	   // $tpl->push('pos/js/jquery.magnific-popup.js', 'JS');
-	   // $tpl->push('pos/tpl/css/magnific-popup.css', 'CSS');
-
-	    jquery_Jquery::run($tpl, "posActions();");
+		jquery_Jquery::run($tpl, "posActions();");
 	    
 	    $conf = core_Packs::getConfig('pos');
         $ThemeClass = cls::get($conf->POS_PRODUCTS_DEFAULT_THEME);
@@ -599,18 +605,41 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
     	
-    	$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
+    	// Ако можем да добавяме към бележката
+    	if($this->pos_ReceiptDetails->haveRightFor('add', (object)array('receiptId' => $rec->id))){
+    		$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
+    		$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
+    		$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
+    		$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
+    		$absUrl = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'absolute');
+    		
+    		//@TODO за тест
+    		if(strpos($absUrl, 'localhost') !== FALSE ){
+    			$absUrl = str_replace('localhost', '', $absUrl);
+    		}
+    	} else {
+    		$disClass = 'disabledBtn';
+    	}
+    	
+    	// Ако има последно добавен продукт, записваме ид-то на записа в скрито поле
+    	if($lastRow = Mode::get('lastAdded')){
+    		$value = $lastRow;
+    		Mode::setPermanent('lastAdded', NULL);
+    	}
+    	
     	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
-    	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'size' => '4em')), 'INPUT_FLD');
+    	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
     	
-    	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
-    	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
-    	$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
-    	$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => 'buttonForm', 'title' => 'Добави продукт')), 'FIRST_TOOLS_ROW');
-    	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => 'buttonForm tools-modify', 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
-    	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => 'buttonForm tools-modify', 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
-    	$block->append("<br />" . ht::createFnBtn('Кл. карта', NULL, NULL, array('class' => 'buttonForm', 'id' => 'tools-addclient', 'data-url' => $addClient, 'title' => 'Въведи клиентска карта')), 'FIRST_TOOLS_ROW');
+    	if(!$disClass){
+    		$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => "buttonForm", 'title' => 'Добави продукт')), 'FIRST_TOOLS_ROW');
+    	} else {
+    		$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm")), 'FIRST_TOOLS_ROW');
+    	}
+    	
+    	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
+    	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
+    	$block->append("<br />" . ht::createFnBtn('Кл. карта', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'tools-addclient', 'data-url' => $addClient, 'title' => 'Въведи клиентска карта')), 'FIRST_TOOLS_ROW');
     	
     	return $block;
     }
@@ -709,7 +738,6 @@ class pos_Receipts extends core_Master {
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "$payment->id", 'data-url' => $payUrl);
 	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
-	    	//$block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
 	    }
 	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
@@ -864,7 +892,7 @@ class pos_Receipts extends core_Master {
     	
     	if($searchString = Request::get('searchString')){
     		if(!$id = Request::get('receiptId')) return array();
-    	
+    		
 	    	if(!$rec = $this->fetch($id)) return array();
 	    	
 	    	$this->requireRightFor('terminal', $rec);
@@ -892,6 +920,7 @@ class pos_Receipts extends core_Master {
 	    $data->rec = $rec;
 	    $data->searchString = $searchString;
 	    $data->baseCurrency = acc_Periods::getBaseCurrencyCode();
+	    
 	    $this->prepareSearchData($data);
 	    	
 	    return $this->renderSearchResultTable($data);
@@ -920,7 +949,7 @@ class pos_Receipts extends core_Master {
     		
     		// Ако продукта не отговаря на търсения стринг, го пропускаме
     		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
-    		$price = $Products->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId());
+    		$price = $Products->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), NULL, NULL, $data->rec->createdOn);
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;
@@ -929,11 +958,16 @@ class pos_Receipts extends core_Master {
     							 'measureId' => $pRec->measureId,
     							 'price'     => $price->price, 
     							 'photo'     => $pRec->photo,
-    							 'vat'	     => $Products->getVat($id),
-    							 'stock'     => pos_Stocks::getQuantity($id, $data->rec->pointId));
+    							 'vat'	     => $Products->getVat($id));
+    		
+    		$pInfo = cat_Products:: getProductInfo($id);
+    		if(isset($pInfo->meta['canStore'])){
+    			$obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
+    		}
     		
     		// Обръщаме реда във вербален вид
     		$data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
+    		
     		$count++;
     	}
     }
@@ -947,8 +981,6 @@ class pos_Receipts extends core_Master {
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	$row = new stdClass();
-    	
-		
     	
     	$row->price = $Double->toVerbal($obj->price * (1 + $obj->vat));
     	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
@@ -975,7 +1007,10 @@ class pos_Receipts extends core_Master {
     		$row->stock = "<span style='color:red'>$row->stock</span>";	
     	}
     	
-    	$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
+    	if($rec->stock){
+    		$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
+    	}
+    	
     	if($obj->photo && !Mode::is('screenMode', 'narrow')) {
     		$thumb = new img_Thumb($obj->photo, 64, 64);
     		$arr = array();

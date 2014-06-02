@@ -46,13 +46,4 @@ class bgerp_iface_DealPayment
      * @see cash_Cases
      */
     public $caseId;
-    
-    
-    /**
-     * Операция
-     * 
-     * @var int customKey(mvc=acc_Operations)
-     * @see acc_Operations
-     */
-    public $operationSysId;
 }

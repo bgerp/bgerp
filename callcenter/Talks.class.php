@@ -108,7 +108,7 @@ class callcenter_Talks extends core_Master
     /**
      * 
      */
-    var $listFields = 'singleLink=-, externalData, externalNum, internalData, internalNum, startTime, duration';
+    var $listFields = 'externalData, externalNum, singleLink=-, internalNum, internalData, startTime, duration';
     
     
     /**
@@ -740,11 +740,13 @@ class callcenter_Talks extends core_Master
             // id на потребител, който е от отговорниците за номера
             $userId = crm_Profiles::fetchField($intData->contragentId, 'userId');
             
+            // Ако са подадени данни за номера - няма запис в callcenter_Numbers
             if (is_array($externalData)) {
             
                 // Обхождаме всички външни номера / по принцип трябва да е един
                 foreach ((array)$externalData as $data) {
-                    
+                    $user = '';
+                    $number = '';
                     // Името на позвъняващия
                     $name = callcenter_Numbers::getCallerName($data->id, $userId);
                     
@@ -757,30 +759,25 @@ class callcenter_Talks extends core_Master
                         if ($extClass->haveRightFor('single', $data->contragentId, $userId)) {
                             
                             // Името да сочи към сингъла
-                            $number = ht::createLink($name, array($extClass, 'single', $data->contragentId));
+                            $user = ht::createLink($name, array($extClass, 'single', $data->contragentId));
                         }
                     }
                     
-                    // Ако нямаме права до сингъла
-                    if (!$number) {
-                        
-                        // Номера
-                        $number = $data->number;
-                        
-                        // Ако имамем достъп до сингъла на записа
-                        if (static::haveRightFor('single', $id, $userId)) {
-                            
-                            // Линка да сочи там
-                            $number = ht::createLink($number, array('callcenter_Talks', 'single', $id));
-                        } elseif (static::haveRightFor('list', NULL, $userId)) {
-                            
-                            // Ако имаме права за листване, но нямаме права до сингъла, линка до сочи към листовия изглед
-                            $number = ht::createLink($number, array('callcenter_Talks', 'list'));
-                        }
+                    $number = $data->number;
+                    
+                    // Ако има права за листване на централата, линка да сочи там
+                    if (static::haveRightFor('list', NULL, $userId)) {
+                        $number = ht::createLink($number, array('callcenter_Talks', 'list', 'number' => $data->number));
+                    }
+                    
+                    // Ако има права до сингъла на фирмата, линка да сочи там
+                    $numberStr = $number;
+                    if ($user) {
+                        $numberStr = $user . ' - ' . $number;
                     }
                     
                     // Масив с номерата
-                    $numbersArr[] = $number;
+                    $numbersArr[] = $numberStr;
                 }
             } else {
                 
@@ -788,20 +785,19 @@ class callcenter_Talks extends core_Master
                 if ($externalData) {
                     
                     $number = $externalData;
+                    
+                    // Ако има права за листване на централата, линка да сочи там
+                    if (static::haveRightFor('list', NULL, $userId)) {
+                        $number = ht::createLink($number, array('callcenter_Talks', 'list', 'number' => $number));
+                    }
                 } else {
                     
                     $number = tr('Скрит номер');
-                }
-                
-                // Ако имамем достъп до сингъла на записа
-                if (static::haveRightFor('single', $id, $userId)) {
                     
-                    // Линка да сочи там
-                    $number = ht::createLink($number, array('callcenter_Talks', 'single', $id));
-                } elseif (static::haveRightFor('list', NULL, $userId)) {
-                    
-                    // Ако имаме права за листване, но нямаме права до сингъла, линка до сочи към листовия изглед
-                    $number = ht::createLink($number, array('callcenter_Talks', 'list'));
+                    // Ако има права за листване на централата, линка да сочи там
+                    if (static::haveRightFor('list', NULL, $userId)) {
+                        $number = ht::createLink($number, array('callcenter_Talks', 'list'));
+                    }
                 }
                 
                 // Масив с номерата
@@ -1389,7 +1385,7 @@ class callcenter_Talks extends core_Master
         if (mode::is('screenMode', 'narrow')) {
             
             // Променяме полетата, които ще се показват
-            $data->listFields = arr::make('singleLink=-, externalNum=Външен, internalNum=Вътрешен, startTime=Време');
+            $data->listFields = arr::make('externalNum=Външен, singleLink=-, internalNum=Вътрешен, startTime=Време');
         }
     }
     
@@ -1659,21 +1655,26 @@ class callcenter_Talks extends core_Master
     
     /**
      * Екшън за тестване
-     * Генерира обаждане
+     * Генерира "фалшиви" обаждане
      */
     function act_Mockup()
     {
+        requireRole('admin');
+        
         // Вземам конфигурационните данни
         $conf = core_Packs::getConfig('callcenter');
         
         // Текущото време - времето на позвъняване
         $startTime = dt::now();
         
-        // Масив със статусите
-        $staturArr = array('NO ANSWER', 'FAILED', 'BUSY', 'ANSWERED', 'UNKNOWN', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED');
-        
-        // Избираме един случаен стату
-        $status = $staturArr[rand(0, 10)];
+        if (!$status = Request::get('status')) {
+            
+            // Масив със статусите
+            $staturArr = array('NO ANSWER', 'FAILED', 'BUSY', 'ANSWERED', 'UNKNOWN', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED', 'ANSWERED');
+            
+            // Избираме един случаен стату
+            $status = $staturArr[rand(0, 10)];
+        }
         
         // Ако е отговорен
         if ($status == 'ANSWERED') {
@@ -1685,7 +1686,7 @@ class callcenter_Talks extends core_Master
             $answerTime = $unixTime + rand(3, 7);
             
             // Времето на края на разговора
-            $endTime = $unixTime + rand(22, 88);
+            $endTime = $unixTime + rand(22, 388);
             
             // Преобразуваме ги в mySQL формат
             $myAnswerTime = dt::timestamp2Mysql($answerTime);
@@ -1695,20 +1696,39 @@ class callcenter_Talks extends core_Master
         // Генерираме рандом чило за уникалното id
         $uniqId = rand();
         
+        // Вътрешен номер
+        if (!$extension = Request::get('extension')) {
+            $extension = 540;
+        }
+        
+        // Позвъняващ
+        if (!$callerId = Request::get('callerId')) {
+            $callerId = 539;
+        }
+        
         // Масив за линка
         $urlArr = array(
             'Ctr' => 'callcenter_Talks',
             'Act' => 'RegisterCall',
             'p' => $conf->CALLCENTER_PROTECT_KEY,
             'starttime' => $startTime,
-            'extension' => '540', // Вътрешен номер
-            'callerId' => '539', // Позвъняващ
+            'extension' => $extension, // Вътрешен номер
+            'callerId' => $callerId, // Позвъняващ
             'uniqueId' => $uniqId,
 //            'outgoing' => 'outgoing',
         );
         
+        // Ако е изходящо обаждане
+        if (Request::get('outgoing')) {
+            $urlArr['outgoing'] = 'outgoing';
+        }
+        
         // Вземаме абсолютния линк
         $url = toUrl($urlArr, 'absolute');
+        
+        // Фикс за Reload
+        // TODO може да се премахне
+        $url = str_ireplace('reload.bgerp.com/callcenter_Talks/', 'reload1.bgerp.com/callcenter_Talks/', $url);
         
         // Извикваме линка
         exec("wget -q --spider --no-check-certificate '{$url}'");
@@ -1725,8 +1745,17 @@ class callcenter_Talks extends core_Master
 //            'outgoing' => 'outgoing'
         );
         
+        // Ако е изходящо обаждане
+        if (Request::get('outgoing')) {
+            $urlArr['outgoing'] = 'outgoing';
+        }
+        
         // Вземаме абсолютния линк
         $url = toUrl($urlArr, 'absolute');
+        
+        // Фикс за Reload
+        // TODO може да се премахне
+        $url = str_ireplace('reload.bgerp.com/callcenter_Talks/', 'reload1.bgerp.com/callcenter_Talks/', $url);
         
         // Извикваме линка
         exec("wget -q --spider --no-check-certificate '{$url}'");

@@ -218,8 +218,8 @@ class pos_Points extends core_Master {
 			
 			// Показват се само точките на която каса е касиер потребителя
 			$cu = core_Users::getCurrent();
-			$data->query->EXT('cashier', 'cash_Cases', 'externalKey=caseId');
-			$data->query->where("#cashier = {$cu}");
+			$data->query->EXT('cashier', 'cash_Cases', 'externalKey=caseId,externalName=cashiers');
+			$data->query->like("cashier", "|{$cu}|");
 		}
 	}
 	

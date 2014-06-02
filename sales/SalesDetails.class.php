@@ -403,7 +403,6 @@ class sales_SalesDetails extends core_Detail
                 	// Ако се обновява запис се взима цената от него, ако не от политиката
                 	$rec->price = ($pRec->price) ? $pRec->price : $policyInfo->price;
                 	$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
-                	$rec->discount = ($pRec->discount) ? $pRec->discount : $policyInfo->discount;
                 }
                 
             } else {

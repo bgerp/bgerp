@@ -53,41 +53,55 @@
                 <tr>
                  
                     <td class="topCell" valign="top" width='33%'>
-                       <table width=100%>
-                           <!--ET_BEGIN paymentMethodId-->
-                           <tr>
-                                <td class='quiet nowrap' align="right" width=1%>|Плащане|*: </td>
-                                <td>[#paymentMethodId#]</td>
-                            </tr>
-                            <!--ET_END paymentMethodId-->
+                       <!--ET_BEGIN paymentMethodId-->
+                           <div class='cellRow'>
+                                <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
+                            </div>
+                           <!--ET_END paymentMethodId-->
+                           
+                           <!--ET_BEGIN downpayment-->
+                            <div class='cellRow'>
+                                <span class='quiet'>|Авансово|*:</span> [#downpayment#]
+                            </div>
+                            <!--ET_END downpayment-->
+                            
+                            <!--ET_BEGIN paymentBeforeShipping-->
+                            <div class='cellRow'>
+                                <span class='quiet'>|Преди експедиция|*:</span> [#paymentBeforeShipping#]
+                            </div>
+                            <!--ET_END paymentBeforeShipping-->
+                            
+                            <!--ET_BEGIN paymentOnDelivery-->
+                            <div class='cellRow'>
+                                <span class='quiet'>|При получаване|*:</span> [#paymentOnDelivery#]
+                            </div>
+                            <!--ET_END paymentOnDelivery-->
+                            
+                            <!--ET_BEGIN paymentAfterInvoice-->
+                            <div class='cellRow'>
+                                <span class='quiet'>|Окончателно|*: </span>[#paymentAfterInvoice#]  |до|* [#deadlineForBalancePayment#]
+                            </div>
+                            <!--ET_END paymentAfterInvoice-->
                             
                             <!--ET_BEGIN currencyId-->
-                            <tr>
-                                <td class='quiet nowrap' align="right" width=1%>|Валута|*: </td>
-                                <td> [#currencyId#] [#currencyRateText#]</td>
-                            </tr>
+                            <div class='cellRow'>
+                                <span class='quiet'>|Валута|*: </span>[#currencyId#] [#currencyRateText#]
+                            </div>
                             <!--ET_END currencyId-->
                             
                             <!--ET_BEGIN bankAccountId-->
-                            <tr>
-                               <td colspan=2><hr></td>
-                            </tr>
-                            <tr>
-                                <td class='quiet nowrap' align="right" width=1%>|Банкова с-ка|*: </td>
-                                <td>[#bankAccountId#]</td>
-                            </tr> 
+                            <hr>
+                            <div class='cellRow'>
+                                <span class='quiet'>|Банкова с-ка|*: </span>[#bankAccountId#]
+                            </div> 
                             <!--ET_END bankAccountId-->
                             
                             <!--ET_BEGIN caseId-->
-                            <tr>
-                               <td colspan=2><hr></td>
-                            </tr>
-                            <tr>
-                                <td class='quiet nowrap' align="right" width=1%>|Каса|*: </td>
-                                <td>[#caseId#]</td>
-                            </tr> 
+                           <hr>
+                             <div class='cellRow'>
+                                <span class='quiet'>|Каса|*: </span>[#caseId#]
+                            </div> 
                             <!--ET_END caseId-->
-                        </table>
                     </td>
                     
                     <!--ET_BEGIN conditions-->
