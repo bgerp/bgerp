@@ -1117,10 +1117,10 @@ class email_Outgoings extends core_Master
                 if ($forward) {
                     
                     // Полето относно
-                    $rec->subject = 'FW: ' . $title;    
+                    $rec->subject = 'Fw: ' . $title;    
                 } else {
                     
-                    $rec->subject = 'RE: ' . $title;
+                    $rec->subject = 'Re: ' . $title;
                 }
             }
             
