@@ -24,17 +24,13 @@ class toast_Toast extends core_Plugin
      * 
      * @param object $mvc
      * @param core_ET $tpl
-     *  
-     * @return FALSE - За да не изпълняват други функции (show_)
      */
-    function on_BeforeSubscribe(&$mvc, &$tpl)
+    function on_AfterSubscribe(&$mvc, &$tpl)
     {
-        //Проверяваме дали е включн javascript'a.
-        //Ако не е връщаме TRUE, за да може да се изпълнят другите функции
-        if (!Mode::is('javascript', 'yes')) return TRUE;
-        
-        //Създаваме шаблона
-        $tpl = new ET();
+        if (!$tpl) {
+            //Създаваме шаблона
+            $tpl = new ET();
+        }
         
         //Вземаме текущата версия на външния пакет
         $conf = core_Packs::getConfig('toast');
@@ -46,44 +42,6 @@ class toast_Toast extends core_Plugin
         //Добавяме JS и CSS необходими за работа на статусите
         $tpl->push("toast/{$version}/javascript/jquery.toastmessage.js", 'JS');
         $tpl->push("toast/{$version}/resources/css/jquery.toastmessage.css", 'CSS');
-        
-        // Ако е регистриран потребител
-        if (haveRole('user')) {
-            
-            // Абонираме статус съобщенията
-            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5000);
-        }
-        
-        // Извлича статусите веднага след обновяване на страницата
-        core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'statusOnce', 0);
-        
-        // Връщаме FALSE за да не се изпълнява метода
-        return FALSE;
-    }
-    
-    
-    /**
-     * Екшън, който се вика по AJAX и показва статус съобщенията
-     */
-    function act_GetStatuses()
-    {
-        // Ако заявката е по AJAX
-        if (Request::get('ajax_mode')) {
-            
-            // Времето на отваряне на таба
-            $hitTime = Request::get('hitTime', 'int');
-            
-            // Време на бездействие
-            $idleTime = Request::get('idleTime', 'int');
-            
-            // Всички активни статуси за текущия потребител, след съответното време
-            $toastJs = static::getStatusesJS($hitTime, $idleTime);
-            
-            // Ако няма нищо за показване
-            if (!$toastJs) return array();
-            
-            return $toastJs;
-        }
     }
     
     
@@ -93,9 +51,9 @@ class toast_Toast extends core_Plugin
      * @param integer $hitTime - Timestamp на показване на страницата
      * @param integer $idleTime - Време на бездействие на съответния таб
      * 
-     * @return string - javascript за показване на статус съобщения
+     * @return boolean - FALSE за да не се изпълняват другите
      */
-    static function getStatusesJS($hitTime, $idleTime)
+    static function on_BeforeGetStatusesData($mvc, &$resStatus, $hitTime, $idleTime)
     {
         // Всички активни статуси за текущия потребител
         $notifArr = status_Messages::getStatuses($hitTime, $idleTime);
@@ -103,7 +61,6 @@ class toast_Toast extends core_Plugin
         // Броя на намерените статуси
         $countArr = count($notifArr);
         
-        // JS, който ще се вика
         $resStatus = array();
         
         foreach ($notifArr as $val) {
@@ -141,7 +98,7 @@ class toast_Toast extends core_Plugin
             $resStatus[] = $toastObj;
         }
         
-        return $resStatus;
+        return FALSE;
     }
         
     
