@@ -28,19 +28,37 @@ class core_String
      */
     static function utf2ascii($text)
     {
-        static $trans = array();
+        // Опитваме се да прихванем всички символи, които не са ASCII
+        // Ако е подаден текст, който е изцяло от неаски символи, ще има само едно извикване на колбек функцията
+        $me = get_called_class();
+        $text = preg_replace_callback('/([^\x00-\x7F]+)((\s|\W)*([^\x00-\x7F]+)*)*/iu', array($me, 'convertToAscii'), $text);
         
-        if (!count($trans)) {
+        return $text;
+    }
+    
+    
+    /**
+     * Калбек функция, която конвертира текста в ASCII
+     * 
+     * @param array $match
+     */
+    static function convertToAscii($match)
+    {
+        $text = $match[0];
+        
+        static $trans = array();
+        static $keys = array();
+        
+        if (!$trans || !$keys) {
             ob_start();
             require_once(dirname(__FILE__) . '/transliteration.inc.php');
             ob_end_clean();
             
             $trans = $code;
+            $keys = array_keys($trans);
         }
         
-        foreach ($trans as $alpha => $lat) {
-            $text = str_replace($alpha, $lat, $text);
-        }
+        $text = str_replace($keys, $trans, $text);
         
         preg_match_all('/[A-Z]{2,3}[a-z]/', $text, $matches);
         
@@ -51,7 +69,7 @@ class core_String
         
         return $text;
     }
-
+    
     
     /**
      * Прави първия символ на стринга главна буква (за многобайтови символи)
