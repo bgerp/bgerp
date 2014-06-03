@@ -219,7 +219,7 @@ class pos_ReceiptDetails extends core_Detail {
 			// Ще реплесйнем и пулта
 			$resObj2 = new stdClass();
 			$resObj2->func = "html";
-			$resObj2->arg = array('id' => 'toolsForm', 'html' => $toolsTpl->getContent(), 'replace' => TRUE);
+			$resObj2->arg = array('id' => 'tools-form', 'html' => $toolsTpl->getContent(), 'replace' => TRUE);
 			
         	return array($resObj, $resObj1, $resObj2);
         } else {
