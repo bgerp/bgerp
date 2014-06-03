@@ -82,12 +82,7 @@ class toast_Toast extends core_Plugin
             // Ако няма нищо за показване
             if (!$toastJs) return array();
             
-            // Добавяме резултата
-            $resObj = new stdClass();
-            $resObj->func = 'js';
-            $resObj->arg = $toastJs;
-            
-            return array($resObj);
+            return $toastJs;
         }
     }
     
@@ -109,13 +104,9 @@ class toast_Toast extends core_Plugin
         $countArr = count($notifArr);
         
         // JS, който ще се вика
-        $toastJS = '';
+        $resStatus = array();
         
-        // Обикаляме всички открити статуси
         foreach ($notifArr as $val) {
-            
-            // Типа на статуса
-            $toastType = $val['type'];
             
             // Всеки следващ статус със закъсенине + 1 секунди
             $timeOut += (!$timeOut) ? 1 : 1000;
@@ -135,17 +126,22 @@ class toast_Toast extends core_Plugin
                 $stayTime = static::getStayTime($val['type']);
             }
             
-            // Стойността да е число
-            $isSticky = (int)$sticky;
+            // Данни за показване на статус съобщение
+            $statusData = array();
+            $statusData['text'] = addslashes($val['text']);
+            $statusData['type'] = $val['type'];
+            $statusData['timeOut'] = $timeOut;
+            $statusData['isSticky'] = (int)$sticky;
+            $statusData['stayTime'] = $stayTime;
             
-            // Ескейпваме текста
-            $text = addslashes($val['text']);
+            $toastObj = new stdClass();
+            $toastObj->func = 'showToast';
+            $toastObj->arg = $statusData;
             
-            // Добавяме към JS
-            $toastJS .= "showToast({timeOut:{$timeOut}, text:'{$text}', isSticky:{$isSticky}, stayTime:{$stayTime}, type:'{$toastType}'});";
+            $resStatus[] = $toastObj;
         }
         
-        return $toastJS;
+        return $resStatus;
     }
         
     
