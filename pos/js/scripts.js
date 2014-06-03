@@ -395,6 +395,8 @@ function calculateWidth(){
 
 // скролиране на бележката до долу
 function scrollRecieptBottom(){
-	var el = $('.scrolling-vertical');
-	setTimeout(function(){el.scrollTop( el.get(0).scrollHeight );},500);
+	if($('body').hasClass('wide')){
+		var el = $('.scrolling-vertical');
+		setTimeout(function(){el.scrollTop( el.get(0).scrollHeight );},500);
+	}
 }
