@@ -136,8 +136,7 @@ function posActions() {
 			return;
 		}
 		var code = $("input[name=ean]").val();
-		var receiptId = $("input[name=receiptId]").val();
-		var data = {receiptId:receiptId, ean:code};
+		var data = {ean:code};
 		
 		resObj = new Object();
 		resObj['url'] = url;
