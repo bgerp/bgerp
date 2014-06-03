@@ -118,6 +118,8 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_setDiscount()
     {
+    	if(!$this->haveRightFor('add'))  return $this->returnError($recId);
+    	
     	if(!$recId = Request::get('recId', 'int')){
     		core_Statuses::newStatus(tr('|Не е избран ред|*!'), 'error');
     		return $this->returnError($recId);
@@ -187,7 +189,7 @@ class pos_ReceiptDetails extends core_Detail {
     	if (Request::get('ajax_mode')) {
     		return array();
     	} else {
-    		expect($id);
+    		if(!$id) redirect(array('pos_Receipts', 'list'));
     		
     		redirect(array('pos_Receipts', 'terminal', $id));
     	}
@@ -234,6 +236,8 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_setQuantity()
     {
+    	if(!$this->haveRightFor('add'))  return $this->returnError($rec->receiptId);
+    	
     	// Трябва да има избран ред
     	if(!$recId = Request::get('recId', 'int')){
     		core_Statuses::newStatus(tr('|Не е избран ред|*!'), 'error');
@@ -278,6 +282,8 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_makePayment()
     {
+    	if(!$this->haveRightFor('add'))  return $this->returnError($recId);
+    	
     	// Трябва да е избрана бележка
     	if(!$recId = Request::get('receiptId', 'int')) return $this->returnError($recId);
     	
@@ -337,6 +343,8 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_DeleteRec()
     {
+    	if(!$this->haveRightFor('delete'))  return $this->returnError($receiptId);
+    	
     	// Трябва да има ид на ред за изтриване
     	if(!$id = Request::get('recId', 'int')) return $this->returnError($receiptId);
     	
@@ -368,6 +376,8 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_addProduct()
     {
+    	if(!$this->haveRightFor('add'))  return $this->returnError($receiptId);
+    	
     	// Трябва да има такава бележка
     	if(!$receiptId = Request::get('receiptId', 'int')) return $this->returnError($receiptId);
     	
@@ -449,6 +459,8 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_addClientByCard()
     {
+    	if(!$this->haveRightFor('add'))  return $this->returnError($recId);
+    	
     	// Трябва да има такава бележка
     	if(!$receiptId = Request::get('receiptId', 'int')) return $this->returnError($receiptId);
     	
