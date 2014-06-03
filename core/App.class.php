@@ -715,6 +715,9 @@ class core_App
         // Ако е сетнат масива
         if ($preParamsArr) {
             
+            // [^A-Za-z0-9_\-\.]
+            $regExp = '/[^\w\-\.]/';
+            
             // Обхождаме всички параметри
             foreach ($preParamsArr as $param) {
                 
@@ -722,8 +725,7 @@ class core_App
                 if (isset($params[$param])) {
                     
                     // Ако не отоговаря на регулярния израз, да се остави за GET
-                    // [^A-Za-z0-9_\-\.]
-                    if (preg_match('/[^\w\-\.]/', $params[$param])) {
+                    if (preg_match($regExp, $param) || preg_match($regExp, $params[$param])) {
                         
                         continue;   
                     }
