@@ -465,6 +465,11 @@ class bank_SpendingDocuments extends core_Master
         
         $origin = self::getOrigin($rec);
         $dealInfo = $origin->getAggregateDealInfo();
+        $amount = round($rec->rate * $rec->amount, 2);
+        
+        // Дебита е винаги във валутата на пораждащия документ,
+        $debitCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
+        $debitQuantity = round($amount / $dealInfo->agreed->rate, 2);
         
         $creditArr =  array(
                         $rec->creditAccId,
@@ -478,8 +483,8 @@ class bank_SpendingDocuments extends core_Master
         	$debitArr = array(
                         $rec->debitAccId,
                             array($rec->contragentClassId, $rec->contragentId),
-                            array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $rec->amount,
+                            array('currency_Currencies', $debitCurrency),
+                        'quantity' => $debitQuantity,
                     );
         
         } else {
@@ -488,8 +493,8 @@ class bank_SpendingDocuments extends core_Master
         	$debitArr = array(
         			$rec->debitAccId, // кредитна сметка
         			array($origin->className, $origin->that), // Перо финансова сделка
-        			array('currency_Currencies', $rec->currencyId),
-        			'quantity' => $rec->amount,
+        			array('currency_Currencies', $debitCurrency),
+        			'quantity' => $debitQuantity,
         	);
         }
         
@@ -499,19 +504,12 @@ class bank_SpendingDocuments extends core_Master
             'valior' => $rec->valior,   // датата на ордера
             'entries' => array(
                 array(
-                    'amount' => $rec->amount * $rec->rate,
+                    'amount' => $amount,
                     'debit' => $debitArr,
                     'credit' => $creditArr,
                 ),
             )
         );
-        
-    	// Ако дебитната сметка не поддържа втора номенклатура, премахваме
-        // от масива второто перо на кредитната сметка
-    	$dAcc = acc_Accounts::getRecBySystemId($rec->debitAccId);
-        if(!$dAcc->groupId2){
-        	unset($result->entries[0]['debit'][2]);
-        }
         
         return $result;
     }

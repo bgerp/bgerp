@@ -443,6 +443,11 @@ class cash_Rko extends core_Master
         
         $origin = self::getOrigin($rec);
         $dealInfo = $origin->getAggregateDealInfo();
+        $amount = round($rec->rate * $rec->amount, 2);
+        
+        // Дебита е винаги във валутата на пораждащия документ,
+        $debitCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
+        $debitQuantity = round($amount / $dealInfo->agreed->rate, 2);
         
         $creditArr =  array(
                         $rec->creditAccount, // кредитна сметка
@@ -456,8 +461,8 @@ class cash_Rko extends core_Master
         	$debitArr = array(
                         $rec->debitAccount, // дебитната сметка
                             array($rec->contragentClassId, $rec->contragentId),  // перо контрагент
-                            array('currency_Currencies', $rec->currencyId),      // перо валута
-                        'quantity' => $rec->amount,
+                            array('currency_Currencies', $debitCurrency),      // перо валута
+                        'quantity' => $debitQuantity,
                     );
         	 
         } else {
@@ -466,8 +471,8 @@ class cash_Rko extends core_Master
         	$debitArr = array(
         			$rec->debitAccount, // кредитна сметка
         			array($origin->className, $origin->that), // Перо финансова сделка
-        			array('currency_Currencies', $rec->currencyId),
-        			'quantity' => $rec->amount,
+        			array('currency_Currencies', $debitCurrency),
+        			'quantity' => $debitQuantity,
         	);
         }
         
@@ -477,7 +482,7 @@ class cash_Rko extends core_Master
             'valior'  => $rec->valior,   // датата на ордера
             'entries' => array(
                 array(
-                    'amount' => $rec->rate * $rec->amount,	// равностойноста на сумата в основната валута
+                    'amount' => $amount,	// равностойноста на сумата в основната валута
                     'debit' => $debitArr,
                     'credit' => $creditArr,
                 ),
