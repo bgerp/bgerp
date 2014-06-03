@@ -172,4 +172,15 @@ class toast_Toast extends core_Plugin
         
         return $time;
     }
+    
+    
+    /**
+     * За съвместимост със старите версии
+     * 
+     * @todo Може да се премахне
+     */
+    function act_getStatuses()
+    {
+        
+    }
 }
