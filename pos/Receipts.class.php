@@ -607,19 +607,15 @@ class pos_Receipts extends core_Master {
     	
     	// Ако можем да добавяме към бележката
     	if($this->pos_ReceiptDetails->haveRightFor('add', (object)array('receiptId' => $rec->id))){
-    	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
-    	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
-    	$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
-    	$block->replace(toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'local'), 'ACT1');
-    	$absUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'absolute');
-
-    		
-    	//@TODO за тест
-    		if(strpos($absUrl, 'localhost') !== FALSE ){
-    			$absUrl = str_replace('localhost', '', $absUrl);
-    		}
+	    	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
+	    	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
+	    	$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
+	    	$block->replace(toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'local'), 'ACT1');
+	    	$absUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'absolute');
+	    	
     	} else {
     		$disClass = 'disabledBtn';
+    		$disabled = 'disabled';
     	}
     	
     	// Ако има последно добавен продукт, записваме ид-то на записа в скрито поле
@@ -627,7 +623,8 @@ class pos_Receipts extends core_Master {
     		$value = $lastRow;
     		Mode::setPermanent('lastAdded', NULL);
     	}
-    	
+    	$htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
+    	$block->append($htmlScan, 'FIRST_TOOLS_ROW');
     	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');

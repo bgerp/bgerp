@@ -183,7 +183,7 @@ class pos_ReceiptDetails extends core_Detail {
     /**
      * При грешка, ако е в Ajax режим, връща празен масив, иначе редиректва към бележката
      */
-    private function returnError($id)
+    public function returnError($id)
     {
     	if (Request::get('ajax_mode')) {
     		return array();
