@@ -79,7 +79,7 @@ class drdata_PhoneType extends type_Varchar
     {
         if(!$telNumber) return NULL;
         
-        if (Mode::is('text', 'plain')) {
+        if (Mode::is('text', 'plain') || Mode::is('text', 'pdf') || Mode::is('text', 'xhtml')) {
             
             return $telNumber;
         }
@@ -112,7 +112,7 @@ class drdata_PhoneType extends type_Varchar
                     $value .= '' . $t->number;
                 }
 
-                $attr = array();
+               /* $attr = array();
 
                 if(($t->country != 'Unknown') && ($t->area != 'Unknown') && $t->area && $t->country) {
                     $attr['title'] = "{$t->country}, {$t->area}";
@@ -120,19 +120,16 @@ class drdata_PhoneType extends type_Varchar
                     $attr['title'] = "{$t->country}";
                 }
                 
-                $title = $t->original;
+                $title = $t->original;*/
                 
-        		if($this->params['type'] != 'fax') {
-                	$res->append(ht::createLink($title, "tel:00" . $value, NULL, $attr));
-        		} else {
-        			$res->append(ht::createLink($title, NULL, NULL, $attr));       			
-        		}
+                //$res->append(ht::createLink($title, 'tel:00'. $value, NULL, $attr));
+                $res->append(self::getLink_($telNumber, $value, FALSE));
 
-                if($t->internal) {
+               /* if($t->internal) {
                     $res->append(tr('вътр.') . $t->internal) ;
                 }
 
-                $add = ", ";
+                $add = ", ";*/
             }
         }
 
@@ -162,5 +159,46 @@ class drdata_PhoneType extends type_Varchar
         $result = $Phones->parseTel($str, $code);
 
         return $result;
+    }
+    
+    
+    /**
+     * Превръщане на телефонните номера и факсове в линкове
+     * 
+     * @param varchar $verbal
+     * @param drdata_PhoneType $canonical
+     * @param boolean $isFax
+     */
+    public  function getLink_($verbal, $canonical, $isFax = FALSE)
+    {
+    	$res = new ET();
+        
+    	$parsedTel = static::toArray($verbal, $this->params);
+    	
+    	foreach($parsedTel as $t) {
+    		$attr = array();
+
+            if(($t->country != 'Unknown') && ($t->area != 'Unknown') && $t->area && $t->country) {
+            	$attr['title'] = "{$t->country}, {$t->area}";
+            } elseif(($t->country != 'Unknown') && $t->country) {
+            	$attr['title'] = "{$t->country}";
+            }
+                
+            $title = $t->original;
+            
+	    	if($isFax) {
+	        	$res->append(ht::createLink($title, NULL, NULL, $attr)); 
+	        } else {
+	           	$res->append(ht::createLink($title, "tel:00" . $canonical, NULL, $attr));     			
+	        }
+
+            if ($t->internal) {
+            	$res->append(tr('вътр.') . $t->internal) ;
+            }
+
+            $add = ", ";
+    	}
+
+        return $res;
     }
 }
