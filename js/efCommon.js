@@ -1937,6 +1937,57 @@ efae.prototype.resetTimeout = function()
 
 
 /**
+ * Функция, която показва toast съобщение с помощта на toast плъгина
+ * Може да се комбинира с efae
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.timeOut - след колко време да се покаже
+ * data.text - текст, който да се покаже
+ * data.isSticky - дали да се премахне или да остане на екрана след изтичане на времето
+ * data.stayTime - колко време да се задържи на екрана - в ms
+ * data.type - типа на статуса
+ */
+function render_showToast(data)
+{
+	if (typeof showToast != 'undefined') {
+		showToast({
+			timeOut: data.timeOut,
+			text: data.text,
+			isSticky: data.isSticky,
+			stayTime: data.stayTime,
+			type: data.type
+		});
+	}
+}
+
+
+/**
+ * Накара документа да флашне/светне
+ * Може да се комбинира с efae
+ * 
+ * @param integer docId - id на документа
+ */
+function render_flashDoc(docId)
+{
+	if (typeof flashDoc != 'undefined') {
+		flashDoc(docId);
+	}
+}
+
+
+/**
+ * Скролира до документа
+ * Може да се комбинира с efae
+ * 
+ * @param integer docId - id на документа
+ */
+function render_scrollTo(docId)
+{
+	getEO().scrollTo(docId);
+}
+
+
+/**
  * Функция, която добавя даден текст в съответния таг
  * Може да се комбинира с efae
  * 
@@ -1978,22 +2029,6 @@ function render_html(data)
 			idObj.append(html);
 		}
 	}
-}
-
-
-/**
- * Функция, която изпълнява подадения JS
- * Може да се комбинира с efae
- * 
- * @param string js - javascript, който да се изпълни
- */
-function render_js(js)
-{
-	// Ако няма JS, да не се изпуълнява
-	if ((typeof js == 'undefined') || !js) return ;
-	
-	// Изпълнявама функцията
-	eval(js);
 }
 
 
