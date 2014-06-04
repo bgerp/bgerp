@@ -186,7 +186,12 @@ class pos_ReceiptDetails extends core_Detail {
     public function returnError($id)
     {
     	if (Request::get('ajax_mode')) {
-    		return array();
+    		$hitTime = Request::get('hitTime', 'int');
+    		$idleTime = Request::get('idleTime', 'int');
+    		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+    		
+    		// Връщаме статусите ако има
+    		return (array)$statusData;
     	} else {
     		if(!$id) redirect(array('pos_Receipts', 'list'));
     		
@@ -196,7 +201,7 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
-     * Връщане на отговор
+     * Връщане на отговор, при успех
      */
     public function returnResponse($receiptId)
     {
@@ -221,7 +226,14 @@ class pos_ReceiptDetails extends core_Detail {
 			$resObj2->func = "html";
 			$resObj2->arg = array('id' => 'tools-form', 'html' => $toolsTpl->getContent(), 'replace' => TRUE);
 			
-        	return array($resObj, $resObj1, $resObj2);
+			// Показваме веднага и чакащите статуси
+			$hitTime = Request::get('hitTime', 'int');
+			$idleTime = Request::get('idleTime', 'int');
+			$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+        	
+			$res = array_merge(array($resObj, $resObj1, $resObj2), (array)$statusData);
+			
+			return $res;
         } else {
         	
         	// Ако не сме в Ajax режим пренасочваме към терминала
