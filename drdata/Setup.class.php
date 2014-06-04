@@ -25,6 +25,18 @@ defIfNot("DRDATA_AVOID_IN_EXT_ADDRESS", '');
 
 
 /**
+ * Хипервръзки за телефоните -> Desktop устройства
+ */
+defIfNot('TEL_LINK_WIDE', 'yes');
+
+
+/**
+ * Хипервръзки за телефоните -> Mobile устройства
+ */
+defIfNot('TEL_LINK_NARROW', 'yes');
+
+
+/**
  * class drdata_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -74,6 +86,12 @@ class drdata_Setup extends core_ProtoSetup
             'SENDER_EMAIL'  => array ('email', 'mandatory, caption=Настойки на проверителя на имейл адреси->`От` имейл'),
             'COUNTRY_PHONE_CODE'  => array ('int', 'mandatory, caption=Код на държава по подразбиране->Код'),
             'DRDATA_AVOID_IN_EXT_ADDRESS' => array('text', 'caption=Избягвани думи при извличане на адресни данни от текст->Стрингове'),
+    		'TEL_LINK_WIDE'   => array ('enum(none=Няма,
+                                                   yes=Да,)', 'caption=Хипервръзки за телефоните->Desktop'),
+    		 
+    		'TEL_LINK_NARROW'   => array ('enum(none=Няма,
+                                                   yes=Да,)', 'caption=Хипервръзки за телефоните->Mobile'),
+    
         );
 
         

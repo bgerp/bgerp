@@ -112,7 +112,7 @@ class drdata_PhoneType extends type_Varchar
                     $value .= '' . $t->number;
                 }
 
-               /* $attr = array();
+                $attr = array();
 
                 if(($t->country != 'Unknown') && ($t->area != 'Unknown') && $t->area && $t->country) {
                     $attr['title'] = "{$t->country}, {$t->area}";
@@ -120,16 +120,16 @@ class drdata_PhoneType extends type_Varchar
                     $attr['title'] = "{$t->country}";
                 }
                 
-                $title = $t->original;*/
+                $title = $t->original;
                 
                 //$res->append(ht::createLink($title, 'tel:00'. $value, NULL, $attr));
-                $res->append(self::getLink_($telNumber, $value, FALSE));
+                $res->append(self::getLink_($title, $value, FALSE, $attr));
 
-               /* if($t->internal) {
+                if($t->internal) {
                     $res->append(tr('вътр.') . $t->internal) ;
                 }
 
-                $add = ", ";*/
+                $add = ", ";
             }
         }
 
@@ -169,35 +169,22 @@ class drdata_PhoneType extends type_Varchar
      * @param drdata_PhoneType $canonical
      * @param boolean $isFax
      */
-    public  function getLink_($verbal, $canonical, $isFax = FALSE)
+    static public function getLink_($verbal, $canonical, $isFax = FALSE, $attr = array())
     {
-    	$res = new ET();
-        
-    	$parsedTel = static::toArray($verbal, $this->params);
+    	$conf = core_Packs::getConfig('drdata');
     	
-    	foreach($parsedTel as $t) {
-    		$attr = array();
-
-            if(($t->country != 'Unknown') && ($t->area != 'Unknown') && $t->area && $t->country) {
-            	$attr['title'] = "{$t->country}, {$t->area}";
-            } elseif(($t->country != 'Unknown') && $t->country) {
-            	$attr['title'] = "{$t->country}";
-            }
-                
-            $title = $t->original;
+    	$desktop = $conf->TEL_LINK_WIDE;
+    	$mobile = $conf->TEL_LINK_NARROW;
+        
+    	if ($desktop == 'yes' && Mode::is('screenMode', 'wide') || 
+    		$mobile == 'yes' && Mode::is('screenMode', 'narrow') ) {
             
-	    	if($isFax) {
-	        	$res->append(ht::createLink($title, NULL, NULL, $attr)); 
-	        } else {
-	           	$res->append(ht::createLink($title, "tel:00" . $canonical, NULL, $attr));     			
-	        }
-
-            if ($t->internal) {
-            	$res->append(tr('вътр.') . $t->internal) ;
-            }
-
-            $add = ", ";
-    	}
+			if($isFax) {
+		    	$res = ht::createLink($title, NULL, NULL, $attr); 
+		   	} else {
+		    	$res = ht::createLink($title, "tel:00" . $canonical, NULL, $attr);     			
+		   	}
+        }
 
         return $res;
     }
