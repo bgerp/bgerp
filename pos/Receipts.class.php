@@ -610,7 +610,7 @@ class pos_Receipts extends core_Master {
 	    	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
 	    	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
 	    	$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
-	    	$block->replace(toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'local'), 'ACT1');
+	    	$addUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'local');
 	    	$absUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'absolute');
 	    	
     	} else {
@@ -632,13 +632,7 @@ class pos_Receipts extends core_Master {
     	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
-    	
-    	if(!$disClass){
-    		$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => "buttonForm", 'title' => 'Добави продукт')), 'FIRST_TOOLS_ROW');
-    	} else {
-    		$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm")), 'FIRST_TOOLS_ROW');
-    	}
-    	
+    	$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl)), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('Кл. карта', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'tools-addclient', 'data-url' => $addClient, 'title' => 'Въведи клиентска карта')), 'FIRST_TOOLS_ROW');

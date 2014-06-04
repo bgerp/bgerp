@@ -129,12 +129,23 @@ function posActions() {
 		$("input[name=ean]").val("");
 	});
 	
+	$(document).keypress(function(e) {
+	    if(e.which == 13) {
+	    	var code = $("input[name=ean]").val();
+	    	if(!code) return;
+	    	
+	    	var event = jQuery.Event("click");
+			$("#addProductBtn").trigger(event);
+	    }
+	});
+	
 	// Добавя продукт при събмит на формата
-	$("#toolsForm").on("submit", function(event){
-	    var url = $("#toolsForm").attr("action");
+	$(document.body).on("click", '#addProductBtn', function(event){
+	    var url = $(this).attr("data-url");
 	    if(!url){
 			return;
 		}
+	    
 		var code = $("input[name=ean]").val();
 		var data = {ean:code};
 		
@@ -144,8 +155,6 @@ function posActions() {
 		getEfae().process(resObj, data);
 	
 		$("input[name=ean]").val("");
-		event.preventDefault();
-		scrollRecieptBottom();
 	    return false; 
 	});
 	
