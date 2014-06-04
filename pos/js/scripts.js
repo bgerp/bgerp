@@ -330,6 +330,7 @@ function posActions() {
 		$("#select-input-pos").trigger(e);
 	});
 	
+	// Време за изчакване
 	var timeout;
 	
 	// След въвеждане на стойност, прави заявка по Ajax
@@ -340,14 +341,16 @@ function posActions() {
 		
 		var url = $(this).attr("data-url");
 		
-		resObj = new Object();
-		resObj['url'] = url;
+		// След всяко натискане на бутон изчистваме времето на изчакване
+		clearTimeout(timeout);
 		
-		//clearTimeout(timeout);
-		//timeout = setTimeout(function(){
-			//console.log('vikam',url);
+		// Правим Ajax заявката като изтече време за изчакване
+		timeout = setTimeout(function(){
+			resObj = new Object();
+			resObj['url'] = url;
+			
 			getEfae().process(resObj, {searchString:inpVal,receiptId:receiptId});
-		//}, 500);
+		}, 800);
 	});
 	
 	// Добавяне на продукт от резултатите за търсене
