@@ -2053,6 +2053,21 @@ function render_notificationsCnt(data)
 
 
 /**
+ * Функция, която редиректва към определена страница, може да се
+ * използва с efae
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.url - URL към което да се пренасочи
+ */
+function render_redirect(data)
+{
+	var url = data.url;
+	
+	document.location = url;
+}
+
+
+/**
  * Променя броя на нотификациите в титлата на таба
  * 
  * @param cnt - броя на нотификациите
