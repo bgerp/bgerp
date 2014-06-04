@@ -106,7 +106,7 @@ class currency_Currencies extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, name, code, lastUpdate, lastRate, state, createdOn, createdBy";
+    var $listFields = "id, name, code, lastUpdate, lastRate, state";
     
     
     /**
