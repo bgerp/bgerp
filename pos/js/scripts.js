@@ -1,6 +1,7 @@
 function posActions() {
 
 	var pageWidth = parseInt($(window).width());
+	
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(is_touch_device()){
 		 $('meta[name=viewport]').remove();
@@ -129,13 +130,22 @@ function posActions() {
 		$("input[name=ean]").val("");
 	});
 	
+	// При натискане на бутон от клавиатурата, ако е 'ENTER'
 	$(document).keypress(function(e) {
 	    if(e.which == 13) {
+	    	
+	    	// И има попълнен продуктов код/баркод
 	    	var code = $("input[name=ean]").val();
 	    	if(!code) return;
 	    	
+	    	// Задейства 'click' събитие на бутона 'Код'
 	    	var event = jQuery.Event("click");
 			$("#addProductBtn").trigger(event);
+			
+			// Ако приложението не е отворено на таблет, слагаме фокус на полето за кода
+			if(!((pageWidth > 800 && pageWidth < 1400) && is_touch_device())){
+				$("input[name=ean]").focus();
+			}
 	    }
 	});
 	
