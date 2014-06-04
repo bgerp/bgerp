@@ -7,10 +7,12 @@
 		</div>
 	<!--ET_END header-->
 	<table class='styled-table'>
+	<!--ET_BEGIN dealName-->
 		<tr>
 			<td>|Наименование|*</td>
 			<td>[#dealName#]</td>
 		</tr>
+	<!--ET_END dealName-->
 		<tr>
 			<td>|Сметка|*</td>
 			<td>[#accountId#]</td>
