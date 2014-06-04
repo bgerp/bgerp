@@ -178,9 +178,11 @@ class toast_Toast extends core_Plugin
      * За съвместимост със старите версии
      * 
      * @todo Може да се премахне
+     * VI.14
      */
     function act_getStatuses()
     {
         
+        return array();
     }
 }
