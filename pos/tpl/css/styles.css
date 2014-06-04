@@ -284,9 +284,10 @@
 }
 
 .tools-btn{
-	margin-top: -50px !important;
+	margin-top: 1px;
 	float: left;
 	width: 17%;
+	position: relative;
 	
 }
 
@@ -345,7 +346,9 @@
 	min-width: 95px;
 }
 #webScan{
-	1visibility: hidden;
+	position: absolute;
+	top: -50px;
+	left: 0;
 }
 .colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input,
 .tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan{

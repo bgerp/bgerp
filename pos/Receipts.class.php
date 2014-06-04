@@ -623,8 +623,12 @@ class pos_Receipts extends core_Master {
     		$value = $lastRow;
     		Mode::setPermanent('lastAdded', NULL);
     	}
-    	$htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
-    	$block->append($htmlScan, 'FIRST_TOOLS_ROW');
+    	$browserInfo = Mode::get('getUserAgent');
+    	if(strrpos($browserInfo, "Android") > -1){
+    		$htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
+    		$block->append($htmlScan, 'FIRST_TOOLS_ROW');
+    	}
+    	
     	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
