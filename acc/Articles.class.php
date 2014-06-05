@@ -289,7 +289,7 @@ class acc_Articles extends core_Master
         $result = (object)array(
             'reason' => $rec->reason,
             'valior' => $rec->valior,
-            'totalAmount' => $rec->totalAmount,
+            'totalAmount' => round($rec->totalAmount, 2),
             'entries' => array()
         );
         
@@ -301,7 +301,7 @@ class acc_Articles extends core_Master
             
             while ($entry = $query->fetch("#articleId = {$rec->id}")) {
                 $result->entries[] = array(
-                    'amount' => $entry->amount,
+                    'amount' => round($entry->amount, 2),
                 
                     'debit' => array(
                         acc_Accounts::fetchField($entry->debitAccId, 'num'),
