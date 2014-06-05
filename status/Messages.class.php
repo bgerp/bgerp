@@ -231,6 +231,9 @@ class status_Messages extends core_Manager
         // Ако се вика по AJAX
         if (Request::get('ajax_mode')) {
             
+            // Ако се принтира
+            if (Request::get('Printing')) return array();
+            
             // Времето на отваряне на таба
             $hitTime = Request::get('hitTime', 'int');
             
