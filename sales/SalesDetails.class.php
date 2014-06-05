@@ -361,6 +361,7 @@ class sales_SalesDetails extends core_Detail
             
             // Определяне на цена, количество и отстъпка за опаковка
             $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
+            $priceAtDate .= " 23:59:59";
            
             if (empty($rec->packagingId)) {
                 // Покупка в основна мярка
