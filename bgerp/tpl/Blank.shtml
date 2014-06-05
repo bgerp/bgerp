@@ -1,12 +1,12 @@
-<table style="width: 100%; max-width: 900px; margin-bottom:5px;" cellspacing=0 cellpadding=0>
+<table style="width: 100%; margin-bottom:5px;" cellspacing=0 cellpadding=0>
 	<tr>
-	<td >
+	<td class='blankImage'>
 		<!--ET_BEGIN blankImage-->
 			[#blankImage#]
 		<!--ET_END blankImage-->
 	</td>
 	
-	<td align=right>
+	<td align=right valign="bottom" class='qrcode'>
 		<!--ET_BEGIN blankQr-->
 			[#blankQr#]
 		<!--ET_END blankQr-->
