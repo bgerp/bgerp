@@ -344,24 +344,13 @@ class purchase_PurchasesDetails extends core_Detail
             $productRef = new core_ObjectReference($ProductMan, $rec->productId);
             expect($productInfo = $productRef->getProductInfo());
            
-            // Определяне на цена, количество и отстъпка за опаковка
-            $policyInfo = $mvc->Policy->getPriceInfo(
-                $masterRec->contragentClassId, 
-                $masterRec->contragentId, 
-                $rec->productId,
-                $rec->classId,
-                $rec->packagingId,
-                $rec->packQuantity,
-                $masterRec->valior
-            );
-           
             if (empty($rec->packagingId)) {
                 // Покупка в основна мярка
                 $rec->quantityInPack = 1;
             } else {
                 // Покупка на опаковки
                 if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
-                    $form->setError('packagingId', "Артикула няма цена към дата|* '{$masterRec->date}'");
+                    $form->setError('packagingId', "Артикулът не поддържа избраната опаковка");
                     return;
                 }
                 
@@ -372,6 +361,16 @@ class purchase_PurchasesDetails extends core_Detail
             $vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
             
             if (!isset($rec->packPrice)) {
+            	// Определяне на цена, количество и отстъпка за опаковка
+            	$policyInfo = $mvc->Policy->getPriceInfo(
+            			$masterRec->contragentClassId,
+            			$masterRec->contragentId,
+            			$rec->productId,
+            			$rec->classId,
+            			$rec->packagingId,
+            			$rec->packQuantity,
+            			$masterRec->valior
+            	);
             	
             	// Ако няма последна покупна цена и не се обновява запис в текущата покупка
                 if (!isset($policyInfo->price) && empty($pRec)) {

@@ -362,16 +362,6 @@ class sales_SalesDetails extends core_Detail
             // Определяне на цена, количество и отстъпка за опаковка
             $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
            
-            $policyInfo = $ProductMan->getPriceInfo(
-                $masterRec->contragentClassId, 
-                $masterRec->contragentId, 
-                $rec->productId,
-                $rec->classId,
-                $rec->packagingId,
-                $rec->packQuantity,
-                $priceAtDate
-            );
-           
             if (empty($rec->packagingId)) {
                 // Покупка в основна мярка
                 $rec->quantityInPack = 1;
@@ -388,7 +378,17 @@ class sales_SalesDetails extends core_Detail
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             $vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
             
+            // Ако няма въведена цена
             if (!isset($rec->packPrice)) {
+            	$policyInfo = $ProductMan->getPriceInfo(
+            			$masterRec->contragentClassId,
+            			$masterRec->contragentId,
+            			$rec->productId,
+            			$rec->classId,
+            			$rec->packagingId,
+            			$rec->packQuantity,
+            			$priceAtDate
+            	);
             	
             	// Ако няма последна покупна цена и не се обновява запис в текущата покупка
                 if (!isset($policyInfo->price) && empty($pRec)) {
