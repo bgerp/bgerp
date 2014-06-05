@@ -24,9 +24,13 @@ class callcenter_LinkPlg extends core_Plugin
      * @param string $verbal
      * @param string $canonical
      * @param boolean $isFax
+     * @param array $attr
      */
-    function on_AfterGetLink($mvc, &$res, $verbal, $canonical, $isFax = FALSE)
+    static function on_AfterGetLink($mvc, &$res, $verbal, $canonical, $isFax = FALSE, $attr=array())
     {
+        // Ако пакета не е инсталиран - не би трябвало да се стига до тук, ако не е инсталиран
+//        if (!core_Packs::isInstalled('callcenter')) return ;
+        
         // Ако е факс
         if ($isFax) {
             
@@ -44,6 +48,6 @@ class callcenter_LinkPlg extends core_Plugin
         }
         
         // Резултатния линк
-        $res = ht::createLink($verbal, $url);
+        $res = ht::createLink($verbal, $url, NULL, $attr);
     }
 }
