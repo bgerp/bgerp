@@ -90,6 +90,14 @@ class acc_Items extends core_Manager
     
     
     /**
+     * Шаблон (ET) за заглавие на перо
+     *
+     * @var string
+     */
+    public $recTitleTpl = '[#title#] ( [#num#] )';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
