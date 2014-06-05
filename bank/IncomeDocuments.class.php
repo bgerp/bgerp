@@ -466,6 +466,11 @@ class bank_IncomeDocuments extends core_Master
         
         $origin = self::getOrigin($rec);
         $dealInfo = $origin->getAggregateDealInfo();
+        $amount = round($rec->rate * $rec->amount, 2);
+        
+        // Кредита е винаги във валутата на пораждащия документ,
+        $creditCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
+        $creditQuantity = round($amount / $dealInfo->agreed->rate, 2);
         
         $debitArr = array(
                         $rec->debitAccId,
@@ -479,8 +484,8 @@ class bank_IncomeDocuments extends core_Master
         	$creditArr = array(
                         $rec->creditAccId,
                             array($rec->contragentClassId, $rec->contragentId),
-                            array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $rec->amount,
+                            array('currency_Currencies', $creditCurrency),
+                        'quantity' => $creditQuantity,
                     );
         	 
         } else {
@@ -489,8 +494,8 @@ class bank_IncomeDocuments extends core_Master
         	$creditArr = array(
         			$rec->creditAccId, // кредитна сметка
         			array($origin->className, $origin->that), // Перо финансова сделка
-        			array('currency_Currencies', $rec->currencyId),
-        			'quantity' => $rec->amount,
+        			array('currency_Currencies', $creditCurrency),
+        			'quantity' => $creditQuantity,
         	);
         }
         
@@ -501,7 +506,7 @@ class bank_IncomeDocuments extends core_Master
             'valior' => $rec->valior,   // датата на ордера
             'entries' => array( 
                 array(
-                    'amount' => $rec->amount * $rec->rate,
+                    'amount' => $amount,
                     'debit' => $debitArr,
                     'credit' => $creditArr,
                 )

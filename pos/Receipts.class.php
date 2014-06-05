@@ -607,18 +607,15 @@ class pos_Receipts extends core_Master {
     	
     	// Ако можем да добавяме към бележката
     	if($this->pos_ReceiptDetails->haveRightFor('add', (object)array('receiptId' => $rec->id))){
-    		$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
-    		$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
-    		$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
-    		$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
-    		$absUrl = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'absolute');
-    		
-    		//@TODO за тест
-    		if(strpos($absUrl, 'localhost') !== FALSE ){
-    			$absUrl = str_replace('localhost', '', $absUrl);
-    		}
+	    	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
+	    	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
+	    	$addClient = toUrl(array('pos_ReceiptDetails', 'addClientByCard'), 'local');
+	    	$addUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'local');
+	    	$absUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'absolute');
+	    	
     	} else {
     		$disClass = 'disabledBtn';
+    		$disabled = 'disabled';
     	}
     	
     	// Ако има последно добавен продукт, записваме ид-то на записа в скрито поле
@@ -626,17 +623,16 @@ class pos_Receipts extends core_Master {
     		$value = $lastRow;
     		Mode::setPermanent('lastAdded', NULL);
     	}
+    	$browserInfo = Mode::get('getUserAgent');
+    	if(strrpos($browserInfo, "Android") !== FALSE){
+    		$htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
+    		$block->append($htmlScan, 'FIRST_TOOLS_ROW');
+    	}
     	
     	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
-    	
-    	if(!$disClass){
-    		$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => "buttonForm", 'title' => 'Добави продукт')), 'FIRST_TOOLS_ROW');
-    	} else {
-    		$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm")), 'FIRST_TOOLS_ROW');
-    	}
-    	
+    	$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl)), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('Кл. карта', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'tools-addclient', 'data-url' => $addClient, 'title' => 'Въведи клиентска карта')), 'FIRST_TOOLS_ROW');
@@ -845,6 +841,93 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Екшън добавящ продукт в бележката
+     */
+    function act_addProduct()
+    {
+    	if(!$this->pos_ReceiptDetails->haveRightFor('add'))  return $this->pos_ReceiptDetails->returnError($receiptId);
+    	
+    	// Трябва да има такава бележка
+    	if(!$receiptId = Request::get('id', 'int')) {
+    		if(!$receiptId = Request::get('receiptId', 'int')){
+    			return $this->pos_ReceiptDetails->returnError($receiptId);
+    		}
+    	}
+    	 
+    	if($this->fetchField($receiptId, 'paid')){
+    		core_Statuses::newStatus(tr('|Не може да се добавя продукт, ако има направено плащане|*!'), 'error');
+    		return $this->pos_ReceiptDetails->returnError($receiptId);
+    	}
+    	 
+    	// Трябва да можем да добавяме към нея
+    	if(!$this->pos_ReceiptDetails->haveRightFor('add', (object)array('receiptId' => $receiptId))) return $this->pos_ReceiptDetails->returnError($receiptId);
+    	 
+    	// Запис на продукта
+    	$rec = new stdClass();
+    	$rec->receiptId = $receiptId;
+    	$rec->action = 'sale|code';
+    	$rec->quantity = 1;
+    	 
+    	// Ако е зададен код на продукта
+    	if($ean = Request::get('ean')) {
+    		$rec->ean = $ean;
+    	}
+    	 
+    	// Ако е зададено ид на продукта
+    	if($productId = Request::get('productId', 'int')) {
+    		$rec->productId  = $productId;
+    	}
+    	 
+    	// Трябва да е подаден код или ид на продукт
+    	if(!$rec->productId && !$rec->ean){
+    		core_Statuses::newStatus(tr('|Не е избран артикул|*!'), 'error');
+    		return $this->pos_ReceiptDetails->returnError($receiptId);
+    	}
+    	 
+    	// Намираме нужната информация за продукта
+    	$this->pos_ReceiptDetails->getProductInfo($rec);
+    	
+    	// Ако не е намерен продукт
+    	if(!$rec->productId) {
+    		core_Statuses::newStatus(tr('|Няма такъв продукт в системата, или той не е продаваем|*!'), 'error');
+    		return $this->pos_ReceiptDetails->returnError($receiptId);
+    	}
+    
+    	// Ако няма цена
+    	if(!$rec->price) {
+    		core_Statuses::newStatus(tr('|Артикулът няма цена|*!'), 'error');
+    		return $this->pos_ReceiptDetails->returnError($receiptId);
+    	}
+    
+    	// Намираме дали този проект го има въведен
+    	$sameProduct = $this->pos_ReceiptDetails->findSale($rec->productId, $rec->receiptId, $rec->value);
+    	if($sameProduct) {
+    
+    		// Ако цената и опаковката му е същата като на текущия продукт,
+    		// не добавяме нов запис а ъпдейтваме стария
+    		$newQuantity = $rec->quantity + $sameProduct->quantity;
+    		$rec->quantity = $newQuantity;
+    		$rec->amount += $sameProduct->amount;
+    		$rec->id = $sameProduct->id;
+    	}
+    	
+    	// Добавяне/обновяване на продукта
+    	if($this->pos_ReceiptDetails->save($rec)){
+    		if(Mode::is('screenMode', 'wide')){
+    			$msg = tr('Добавен/а') . " " . cat_Products::getTitleById($rec->productId);
+    			core_Statuses::newStatus($msg);
+    		}
+    
+    		return $this->pos_ReceiptDetails->returnResponse($rec->receiptId);
+    	} else {
+    		core_Statuses::newStatus(tr('|Проблем при добавяне на артикул|*!'), 'error');
+    	}
+    	
+    	return $this->pos_ReceiptDetails->returnError($receiptId);
+    }
+    
+    
+    /**
      * Активира документа и ако е зададено пренасочва към създаването на нова фактура
      */
     function act_Close()
@@ -988,9 +1071,9 @@ class pos_Receipts extends core_Master {
     	
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
-    		$addUrl = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
+    		$addUrl = toUrl(array('pos_Receipts', 'addProduct', $data->rec->id), 'local');
     	}
-    	$row->productId = "<span class='pos-add-res-btn' data-recId='{$data->rec->id}' data-url='{$addUrl}' data-productId='{$obj->productId}'>" . cat_Products::getTitleById($obj->productId) . "</span>";
+    	$row->productId = "<span class='pos-add-res-btn' data-url='{$addUrl}' data-productId='{$obj->productId}'>" . cat_Products::getTitleById($obj->productId) . "</span>";
     	if($data->showParams){
     		$params = keylist::toArray($data->showParams);
     		$values = NULL;

@@ -26,7 +26,7 @@ class currency_Currencies extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper, acc_plg_Registry,
-                     CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
+                     plg_Sorting, plg_State2';
                      
     //var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper,
     //                 CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
@@ -106,7 +106,7 @@ class currency_Currencies extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, name, code, lastUpdate, lastRate, state, createdOn, createdBy";
+    var $listFields = "id, name, code, lastUpdate, lastRate, state";
     
     
     /**
@@ -136,7 +136,7 @@ class currency_Currencies extends core_Master {
         $this->FLD('code', 'varchar(3)', 'caption=Код,mandatory,width=60px');
         $this->FLD('lastUpdate', 'date', 'caption=Последно->обновяване, input=none');
         $this->FLD('lastRate', 'double', 'caption=Последно->курс, input=none');
-        $this->FLD('groups', 'keylist(mvc=currency_CurrencyGroups, select=name)', 'caption=Групи');
+        //$this->FLD('groups', 'keylist(mvc=currency_CurrencyGroups, select=name)', 'caption=Групи');
         
         $this->setDbUnique('code');
     }

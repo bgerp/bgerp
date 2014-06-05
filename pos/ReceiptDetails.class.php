@@ -180,14 +180,18 @@ class pos_ReceiptDetails extends core_Detail {
         }
     }
     
-    
     /**
      * При грешка, ако е в Ajax режим, връща празен масив, иначе редиректва към бележката
      */
-    private function returnError($id)
+    public function returnError($id)
     {
     	if (Request::get('ajax_mode')) {
-    		return array();
+    		$hitTime = Request::get('hitTime', 'int');
+    		$idleTime = Request::get('idleTime', 'int');
+    		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+    		
+    		// Връщаме статусите ако има
+    		return (array)$statusData;
     	} else {
     		if(!$id) redirect(array('pos_Receipts', 'list'));
     		
@@ -197,9 +201,9 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
-     * Връщане на отговор
+     * Връщане на отговор, при успех
      */
-    private function returnResponse($receiptId)
+    public function returnResponse($receiptId)
     {
     	// Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
@@ -220,9 +224,16 @@ class pos_ReceiptDetails extends core_Detail {
 			// Ще реплесйнем и пулта
 			$resObj2 = new stdClass();
 			$resObj2->func = "html";
-			$resObj2->arg = array('id' => 'toolsForm', 'html' => $toolsTpl->getContent(), 'replace' => TRUE);
+			$resObj2->arg = array('id' => 'tools-form', 'html' => $toolsTpl->getContent(), 'replace' => TRUE);
 			
-        	return array($resObj, $resObj1, $resObj2);
+			// Показваме веднага и чакащите статуси
+			$hitTime = Request::get('hitTime', 'int');
+			$idleTime = Request::get('idleTime', 'int');
+			$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+        	
+			$res = array_merge(array($resObj, $resObj1, $resObj2), (array)$statusData);
+			
+			return $res;
         } else {
         	
         	// Ако не сме в Ajax режим пренасочваме към терминала
@@ -367,89 +378,6 @@ class pos_ReceiptDetails extends core_Detail {
     		core_Statuses::newStatus(tr('|Проблем при изтриването на ред|*!'), 'error');
     	}
     	
-    	return $this->returnError($receiptId);
-    }
-    
-    
-    /**
-     * Екшън добавящ продукт в бележката
-     */
-    function act_addProduct()
-    {
-    	if(!$this->haveRightFor('add'))  return $this->returnError($receiptId);
-    	
-    	// Трябва да има такава бележка
-    	if(!$receiptId = Request::get('receiptId', 'int')) return $this->returnError($receiptId);
-    	
-    	if($this->Master->fetchField($receiptId, 'paid')){
-    		core_Statuses::newStatus(tr('|Не може да се добавя продукт, ако има направено плащане|*!'), 'error');
-    		return $this->returnError($receiptId);
-    	}
-    	
-    	// Трябва да можем да добавяме към нея
-    	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId))) return $this->returnError($receiptId);
-    	
-    	// Запис на продукта
-    	$rec = new stdClass();
-    	$rec->receiptId = $receiptId;
-    	$rec->action = 'sale|code';
-    	$rec->quantity = 1;
-    	
-    	// Ако е зададен код на продукта
-    	if($ean = Request::get('ean')) {
-    		$rec->ean = $ean;
-    	}
-    	
-    	// Ако е зададено ид на продукта
-    	if($productId = Request::get('productId', 'int')) {
-    		$rec->productId  = $productId;
-    	}
-    	
-    	// Трябва да е подаден код или ид на продукт
-    	if(!$rec->productId && !$rec->ean){
-    		core_Statuses::newStatus(tr('|Не е избран артикул|*!'), 'error');
-    		return $this->returnError($receiptId);
-    	}
-    	
-    	// Намираме нужната информация за продукта
-    	$this->getProductInfo($rec);
-    		
-    	// Ако не е намерен продукт
-	    if(!$rec->productId) {
-	    	core_Statuses::newStatus(tr('|Няма такъв продукт в системата, или той не е продаваем|*!'), 'error');
-	    	return $this->returnError($receiptId);
-	    }
-
-	    // Ако няма цена
-	    if(!$rec->price) {
-	    	core_Statuses::newStatus(tr('|Артикулът няма цена|*!'), 'error');
-	    	return $this->returnError($receiptId);
-	    }
-	    	
-    	// Намираме дали този проект го има въведен 
-		$sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value);
-		if($sameProduct) {
-				    				
-			// Ако цената и опаковката му е същата като на текущия продукт,
-			// не добавяме нов запис а ъпдейтваме стария
-			$newQuantity = $rec->quantity + $sameProduct->quantity;
-			$rec->quantity = $newQuantity;
-			$rec->amount += $sameProduct->amount;
-			$rec->id = $sameProduct->id;
-		}
-		
-		// Добавяне/обновяване на продукта
-    	if($this->save($rec)){
-    		if(Mode::is('screenMode', 'wide')){
-    			$msg = tr('Добавен/а') . " " . cat_Products::getVerbal(cat_Products::fetchField($rec->productId), 'name');
-    			core_Statuses::newStatus($msg);
-    		}
-    		
-    		return $this->returnResponse($rec->receiptId);
-    	} else {
-    		core_Statuses::newStatus(tr('|Проблем при добавяне на артикул|*!'), 'error');
-    	}
-		
     	return $this->returnError($receiptId);
     }
     
@@ -648,7 +576,7 @@ class pos_ReceiptDetails extends core_Detail {
      * и отстъпка спрямо клиента, и ценоразписа
      * @param stdClass $rec
      */
-    function getProductInfo(&$rec)
+    public function getProductInfo(&$rec)
     {
     	if($rec->ean){
 	    	if(!$product = cat_Products::getByCode($rec->ean)) {
