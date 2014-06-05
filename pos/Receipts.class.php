@@ -845,7 +845,7 @@ class pos_Receipts extends core_Master {
      */
     function act_addProduct()
     {
-    	if(!$this->pos_ReceiptDetails->haveRightFor('add'))  return $this->pos_ReceiptDetails->returnError($receiptId);
+    	$this->pos_ReceiptDetails->requireRightFor('add');
     	
     	// Трябва да има такава бележка
     	if(!$receiptId = Request::get('id', 'int')) {
@@ -860,7 +860,7 @@ class pos_Receipts extends core_Master {
     	}
     	 
     	// Трябва да можем да добавяме към нея
-    	if(!$this->pos_ReceiptDetails->haveRightFor('add', (object)array('receiptId' => $receiptId))) return $this->pos_ReceiptDetails->returnError($receiptId);
+    	$this->pos_ReceiptDetails->requireRightFor('add', (object)array('receiptId' => $receiptId));
     	 
     	// Запис на продукта
     	$rec = new stdClass();

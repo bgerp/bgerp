@@ -118,7 +118,7 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_setDiscount()
     {
-    	if(!$this->haveRightFor('add'))  return $this->returnError($recId);
+    	$this->requireRightFor('add');
     	
     	if(!$recId = Request::get('recId', 'int')){
     		core_Statuses::newStatus(tr('|Не е избран ред|*!'), 'error');
@@ -130,7 +130,7 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	
     	// Трябва да може да се редактира записа
-    	if(!$this->haveRightFor('add', $rec)) return $this->returnError($recId);
+    	$this->requireRightFor('add', $rec);
     	
     	$discount = Request::get('amount');
     	$this->fields['discountPercent']->type->params['Max']=1;
@@ -247,7 +247,7 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_setQuantity()
     {
-    	if(!$this->haveRightFor('add'))  return $this->returnError($rec->receiptId);
+    	$this->requireRightFor('add');
     	
     	// Трябва да има избран ред
     	if(!$recId = Request::get('recId', 'int')){
@@ -259,7 +259,7 @@ class pos_ReceiptDetails extends core_Detail {
     	if(!$rec = $this->fetch($recId)) return $this->returnError($rec->receiptId);
     	
     	// Трябва да може да се редактира записа
-    	if(!$this->haveRightFor('add', $rec)) return $this->returnError($rec->receiptId);
+    	$this->requireRightFor('add', $rec);
     	
     	$quantityId = Request::get('amount');
     	
@@ -293,13 +293,13 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_makePayment()
     {
-    	if(!$this->haveRightFor('add'))  return $this->returnError($recId);
+    	$this->requireRightFor('add');
     	
     	// Трябва да е избрана бележка
     	if(!$recId = Request::get('receiptId', 'int')) return $this->returnError($recId);
     	
     	// Можем ли да направим плащане към бележката
-    	if(!$this->Master->haveRightFor('pay', $recId)) return $this->returnError($recId);
+    	$this->Master->requireRightFor('pay', $recId);
     	
     	// Трябва да има избран запис на бележка
     	if(!$receipt = $this->Master->fetch($recId)) return $this->returnError($recId);
@@ -354,7 +354,7 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_DeleteRec()
     {
-    	if(!$this->haveRightFor('delete'))  return $this->returnError($receiptId);
+    	$this->requireRightFor('delete');
     	
     	// Трябва да има ид на ред за изтриване
     	if(!$id = Request::get('recId', 'int')) return $this->returnError($receiptId);
@@ -363,7 +363,7 @@ class pos_ReceiptDetails extends core_Detail {
     	if(!$rec = $this->fetch($id)) return $this->returnError($receiptId);
     	
     	// Трябва да можем да изтриваме от бележката
-    	if(!$this->haveRightFor('delete', $rec))  return $this->returnError($receiptId);
+    	$this->requireRightFor('delete', $rec);
     	
     	$receiptId = $rec->receiptId;
     	
@@ -387,7 +387,7 @@ class pos_ReceiptDetails extends core_Detail {
      */
     function act_addClientByCard()
     {
-    	if(!$this->haveRightFor('add'))  return $this->returnError($recId);
+    	$this->requireRightFor('add');
     	
     	// Трябва да има такава бележка
     	if(!$receiptId = Request::get('receiptId', 'int')) return $this->returnError($receiptId);
@@ -399,7 +399,7 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	
     	// Трябва да можем да добавяме към нея
-    	if(!$this->haveRightFor('add', (object)array('receiptId' => $receiptId)))  return $this->returnError($receiptId);
+    	$this->requireRightFor('add', (object)array('receiptId' => $receiptId));
     	
     	// Трябва да няма добавен клиент досега
     	if($this->hasClient($receiptId)){
