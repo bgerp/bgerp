@@ -310,7 +310,10 @@ class email_FaxSent extends core_Manager
             
             if ($status) {
                 
-                callcenter_Fax::saveSend($originalFaxTo, $rec->containerId);
+                // Ако е инсталиран пакета
+                if (core_Packs::isInstalled('callcenter')) {
+                    callcenter_Fax::saveSend($originalFaxTo, $rec->containerId);
+                }
                 
                 // Правим запис в лога
                 $Email->log('Send fax to ' . $faxTo, $rec->id);

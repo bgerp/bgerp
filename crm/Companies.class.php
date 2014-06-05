@@ -648,8 +648,13 @@ class crm_Companies extends core_Master
         // Вземаме id на класа
         $classId = static::getClassId();
         
+        // Ако е инсталиран пакета
+        if (core_Packs::isInstalled('callcenter')) {
+            $numArr = callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id, $rec->country);
+        }
+        
         // Добавяме в КЦ
-        return callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id, $rec->country);
+        return $numArr;
     }
     
     
