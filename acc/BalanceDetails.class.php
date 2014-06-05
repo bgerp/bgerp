@@ -318,6 +318,7 @@ class acc_BalanceDetails extends core_Detail
             }
             
             // Групиране на данните
+            $r['accountNum'] 		  = $rec->accountNum;
             $r['balanceId']       = $rec->balanceId;
             $r['baseQuantity']   += $rec->baseQuantity;
             $r['baseAmount']     += $rec->baseAmount;
@@ -329,7 +330,11 @@ class acc_BalanceDetails extends core_Detail
             $r['blAmount']       += $rec->blAmount;
         }
        
-        unset($data->listFields['history']);
+        // Ако има филтриране по свойства, не показваме бутона за хронология
+        if(count($groupedBy)){
+        	unset($data->listFields['history']);
+        }
+       
         $data->recs = $groupedRecs;
         
         // Конвертираме групираните записи към вербални стойности
