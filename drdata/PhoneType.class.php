@@ -123,7 +123,7 @@ class drdata_PhoneType extends type_Varchar
                 $title = $t->original;
                 
                 //$res->append(ht::createLink($title, 'tel:00'. $value, NULL, $attr));
-                $res->append(self::getLink_($title, $value, FALSE, $attr));
+                $res->append(self::getLink($title, $value, FALSE, $attr));
 
                 if($t->internal) {
                     $res->append(tr('вътр.') . $t->internal) ;
