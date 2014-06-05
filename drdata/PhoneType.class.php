@@ -180,9 +180,9 @@ class drdata_PhoneType extends type_Varchar
     		$mobile == 'yes' && Mode::is('screenMode', 'narrow') ) {
             
 			if($isFax) {
-		    	$res = ht::createLink($title, NULL, NULL, $attr); 
+		    	$res = ht::createLink($verbal, NULL, NULL, $attr); 
 		   	} else {
-		    	$res = ht::createLink($title, "tel:00" . $canonical, NULL, $attr);     			
+		    	$res = ht::createLink($verbal, "tel:00" . $canonical, NULL, $attr);     			
 		   	}
         }
 
