@@ -29,7 +29,7 @@ class bgerp_plg_Blank extends core_Plugin
             
             //Създаваме и заместваме логото на фирмата
             $logoPath = self::getCompanyLogoUrl();
-            $logo = "<img src=" . $logoPath . " alt='Logo'  width='750' height='100'>";
+            $logo = "<img src=" . $logoPath . " alt='Logo'  width='750' height='87'>";
 
             $blank->replace($logo, 'blankImage');
             
@@ -43,7 +43,7 @@ class bgerp_plg_Blank extends core_Plugin
             $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => doc_DocumentPlg::getMidPlace()), 'absolute');
              
             // Създаваме <img> елемент за QR баркода
-            $qrImg = ht::createElement('img', array('alt' => 'View doc', 'width' => 100, 'height' => 100, 'src' => $qrImgSrc));
+            $qrImg = ht::createElement('img', array('alt' => 'View doc', 'width' => 87, 'height' => 87, 'src' => $qrImgSrc));
             
             // URL за линка, който стои под QR кода
             $qrLinkUrl = toUrl(array('L', 'S', $cid, 'm' => doc_DocumentPlg::getMidPlace()), 'absolute');

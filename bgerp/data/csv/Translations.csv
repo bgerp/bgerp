@@ -430,7 +430,7 @@ en,Проверка на VAT _cab97,VAT number check
 en,МВР по страната,MVR in Bulgaria
 en,Град,City
 en,Сметка,Account
-en,Пулт,Pool
+en,Пулт,Tools
 en,Окръжни съдилища,District courts
 en,Редактиране на_b8ea,Record editing
 en,Градски съд,City court
@@ -1650,7 +1650,7 @@ en,Възможен е проблем със сървъра,There is possible pr
 en,Сгрешен домейн,Wrong domein
 en,Наистина ли имейла започва с, Are you sure that the email begins with
 en,Сървъра на, The server
-en,не отговаря. Проверете имейл-а, doesn't respond, Check the email
+en,"не отговаря. Проверете имейл-а", "doesn't respond, Check the email"
 en,Благодарим ви за запитването, Thank you for the inquiry
 en,бр., pcs
 en,Недопустими символи в число/израз,Inadmissible symbols in number/expression

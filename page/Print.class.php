@@ -36,6 +36,9 @@ class page_Print extends page_Html {
              background-color: white !important;
              DIV.background-image: none !important;
            }
+	       	#statuses, .toast-container{
+			   display: none !important;
+			}
          ", "STYLES");
         
         $this->push('js/efCommon.js', 'JS');
