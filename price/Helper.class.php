@@ -171,15 +171,15 @@ abstract class price_Helper
 	 * @param enum $chargeVat - ддс режима
 	 * @param boolean $invoice - дали документа е фактура
 	 * 
-	 * @return stdClass $arr - Масив с нужната информация за показване:
-	 * 		->value      - Стойността
-	 * 		->discount   - Отстъпката
-	 * 		->neto 		 - Нето (Стойност - отстъпка) // Показва се ако има отстъпка
-	 * 		->baseAmount - Данъчната основа // само при фактура се показва
-	 * 		->vat        - % ДДС // само при фактура или ако ддс-то се начислява отделно
-	 * 		->vatAmount  - Стойност на ДДС-то // само при фактура или ако ддс-то се начислява отделно
-	 * 		->total      - Крайната стойност
-	 * 		->sayWords   - крайната сума изписана с думи
+	 * @return stdClass $arr  - Масив с нужната информация за показване:
+	 * 		->value           - Стойността
+	 * 		->discountValue   - Отстъпката
+	 * 		->neto 		      - Нето (Стойност - отстъпка) // Показва се ако има отстъпка
+	 * 		->baseAmount      - Данъчната основа // само при фактура се показва
+	 * 		->vat             - % ДДС // само при фактура или ако ддс-то се начислява отделно
+	 * 		->vatAmount       - Стойност на ДДС-то // само при фактура или ако ддс-то се начислява отделно
+	 * 		->total           - Крайната стойност
+	 * 		->sayWords        - крайната сума изписана с думи
 	 * 
 	 */
 	public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = FALSE, $lang = 'bg')
@@ -192,7 +192,7 @@ abstract class price_Helper
 		$arr['value'] = $values['amount']; 						   // Стойноста е сумираната от показваното на всеки ред
 		
 		if($values['discount']){ 								// ако има отстъпка
-			$arr['discount'] = $values['discount'];
+			$arr['discountValue'] = $values['discount'];
 			$arr['discountCurrencyId'] = $currencyId; 			// Валутата на отстъпката е тази на документа
 			$arr['neto'] = $arr['value'] - $arr['discount']; 	// Стойността - отстъпката
 			$arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
