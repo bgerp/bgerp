@@ -432,7 +432,8 @@ class cash_Pko extends core_Master
        
         $origin = self::getOrigin($rec);
         $dealInfo = $origin->getAggregateDealInfo();
-       	
+       	$amount = round($rec->rate * $rec->amount, 2);
+        
         $debitArr = array(
         		$rec->debitAccount, // дебитната сметка
         		array('cash_Cases', $rec->peroCase),
@@ -440,13 +441,17 @@ class cash_Pko extends core_Master
         		'quantity' => $rec->amount,
         );
         
+        // Кредита е винаги във валутата на пораждащия документ,
+        $creditCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
+        $creditQuantity = round($amount / $dealInfo->agreed->rate, 2);
+        
         // Ако пораждащия документ е покупка или продажба
         if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
         	$creditArr = array(
         			$rec->creditAccount, // кредитна сметка
         			array($rec->contragentClassId, $rec->contragentId), // Перо контрагент
-        			array('currency_Currencies', $rec->currencyId),
-        			'quantity' => $rec->amount,
+        			array('currency_Currencies', $creditCurrency),
+        			'quantity' => $creditQuantity,
         	);
         	
         } else {
@@ -455,10 +460,12 @@ class cash_Pko extends core_Master
         	$creditArr = array(
         			$rec->creditAccount, // кредитна сметка
         			array($origin->className, $origin->that), // Перо финансова сделка
-        			array('currency_Currencies', $rec->currencyId),
-        			'quantity' => $rec->amount,
+        			array('currency_Currencies', $creditCurrency),
+        			'quantity' => $creditQuantity,
         	);
         }
+        
+        
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
@@ -466,7 +473,7 @@ class cash_Pko extends core_Master
             'valior' => $rec->valior,   // датата на ордера
             'entries' => array(
                 array(
-                    'amount' => $rec->rate * $rec->amount,	// равностойноста на сумата в основната валута
+                    'amount' => $amount,	// равностойноста на сумата в основната валута
                     'debit' => $debitArr,
                     'credit' => $creditArr,
                 )

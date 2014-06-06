@@ -68,7 +68,7 @@ class currency_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'currency_Currencies',
-            'currency_CurrencyGroups',
+            //'currency_CurrencyGroups',
             'currency_CurrencyRates',
             'currency_FinIndexes'
         );

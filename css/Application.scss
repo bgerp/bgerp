@@ -953,7 +953,7 @@ td.portal-date {
 	}
 	&.print-letter {
 		page-break-after: always;
-		max-width: 850px;
+		max-width: 840px;
 		float: none;
 		padding: 15px;
 		&:last-child {
@@ -2546,7 +2546,7 @@ div.location.public {
 }
 
 .blast-overflow {
-	max-width: 850px; 
+	max-width: 840px; 
 	overflow: auto; 
 }
 /*край на бласт*/
@@ -3545,6 +3545,16 @@ body.narrow {
 
 /*стилове за принтиране*/
 @media print{
+	.document{
+	   width: 98%;
+	}
+	.blankImage img, .qrcode img{
+        width: 100%;
+        height: auto !important;
+    }
+	.antetka{
+        width: 98% !important;
+	}
 	.richtext-question {
     	padding-left: 10px;
     	color: darken(#132c5c,10%);
@@ -3663,10 +3673,12 @@ body.narrow {
 			}
 		}
 	}
-	
 	.printing-page-break {
 	    page-break-after: always;
 	}
+	#statuses, .toast-container{
+       display: none;
+    }
 }
 
 .external {
@@ -3675,19 +3687,20 @@ body.narrow {
 
 .printing {
 	.docBgIcon {
-		padding: 0;
+		padding: 0 !important;
+		background-image: none !important;
 	}
 	.document {
+	    font-size: 0.97em;
 		border: none;
 		background: #ffffff;
 		@include no-shadow();
-		padding: 10px 25px 15px 25px;
-		margin-bottom: 20px;
+	    margin: 10px 0px 20px 1px;
+	    padding: 2px;
 		float: none;
-		margin-right: 10px;
-		margin-top: 10px;
 		min-width: 0px;
-		width: 850px;
+		max-width: 840px;
+		
 	}
 	.printing-title {
 		margin-bottom: 10px;
@@ -3718,6 +3731,23 @@ body.narrow {
 			    color:#000 !important;
 			}
 		}
+	}
+	.innerTable td{
+	   vertical-align: top;
+	} 
+	.antetka{
+	   border: none;
+	}
+    .linkWithIcon{
+       background-image: none !important;
+       padding-left: 0 !important;
+    }
+}
+
+.narrow .printing .document{
+	width: 850px;
+	.details{
+	   max-width: 100%;
 	}
 }
 

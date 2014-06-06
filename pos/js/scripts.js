@@ -1,6 +1,7 @@
 function posActions() {
 
 	var pageWidth = parseInt($(window).width());
+	
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(is_touch_device()){
 		 $('meta[name=viewport]').remove();
@@ -15,6 +16,7 @@ function posActions() {
 		});
 	} 
 	
+	
 	// Ширина на контейнера на бързите бутони в мобилен
 	var width = (parseInt($('.pos-product').length) + 1) * 45 ;
 	$('.narrow #pos-products > div').css('width',width);
@@ -28,6 +30,7 @@ function posActions() {
 		$('[data-id="'+ id +'"] td').addClass('pos-hightligted');
 		$("input[name=rowId]").val(id);
 	});
+	
 	
 	// Използване на числата за въвеждане в пулта
 	$(document.body).on('click', "#tools-form .numPad", function(e){
@@ -51,6 +54,7 @@ function posActions() {
 		}
 	});
 	
+	
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', "#tools-payment .numPad", function(e){
 		var val = $(this).val();
@@ -72,6 +76,7 @@ function posActions() {
 		}
 	});
 	
+	
 	// Триене на числа в пулта
 	$(document.body).on('click', "#tools-form .numBack", function(e){
 		var inpValLength = $("input[name=ean]").val().length;
@@ -83,6 +88,7 @@ function posActions() {
 		}
 	});
 	
+	
 	// Триене на числа при плащанията
 	$(document.body).on('click', "#tools-payment .numBack", function(e){
 		var inpValLength = $("input[name=paysum]").val().length;
@@ -93,6 +99,7 @@ function posActions() {
 			$("input[name=paysum]").focus();
 		}
 	});
+	
 	
 	// Модифициране на количество
 	$(document.body).on('click', ".tools-modify", function(e){
@@ -114,6 +121,7 @@ function posActions() {
 		$("input[name=ean]").val("");
 	});
 	
+	
 	// Добавяне на клиентска карта
 	$(document.body).on('click', "#tools-addclient", function(e){
 		var inpVal = $("input[name=ean]").val();
@@ -129,15 +137,36 @@ function posActions() {
 		$("input[name=ean]").val("");
 	});
 	
+	
+	// При натискане на бутон от клавиатурата, ако е 'ENTER'
+	$(document).keypress(function(e) {
+	    if(e.which == 13) {
+	    	
+	    	// И има попълнен продуктов код/баркод
+	    	var code = $("input[name=ean]").val();
+	    	if(!code) return;
+	    	
+	    	// Задейства 'click' събитие на бутона 'Код'
+	    	var event = jQuery.Event("click");
+			$("#addProductBtn").trigger(event);
+			
+			// Ако приложението не е отворено на таблет, слагаме фокус на полето за кода
+			if(!((pageWidth > 800 && pageWidth < 1400) && is_touch_device())){
+				$("input[name=ean]").focus();
+			}
+	    }
+	});
+	
+	
 	// Добавя продукт при събмит на формата
-	$("#toolsForm").on("submit", function(event){
-	    var url = $("#toolsForm").attr("action");
+	$(document.body).on("click", '#addProductBtn', function(event){
+	    var url = $(this).attr("data-url");
 	    if(!url){
 			return;
 		}
+	    
 		var code = $("input[name=ean]").val();
-		var receiptId = $("input[name=receiptId]").val();
-		var data = {receiptId:receiptId, ean:code};
+		var data = {ean:code};
 		
 		resObj = new Object();
 		resObj['url'] = url;
@@ -145,34 +174,15 @@ function posActions() {
 		getEfae().process(resObj, data);
 	
 		$("input[name=ean]").val("");
-		event.preventDefault();
-		scrollRecieptBottom();
 	    return false; 
 	});
 	
-	// Добавя продукт от комбо бокса
-	$("#searchForm").on("submit", function(event){
-		var url = $("#searchForm").attr("action");
-		var productId = $("#searchForm select[name=productId]").val();
-		var receiptId = $("#searchForm input[name=receiptId]").val();
-		var data = {receiptId:receiptId, productId:productId};
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		getEfae().process(resObj, data);
-		
-		event.preventDefault();
-		scrollRecieptBottom();
-	    return false;
-	});
 	
 	// Направата на плащане след натискане на бутон
 	$(document.body).on('click', ".paymentBtn", function(e){
 		var url = $(this).attr("data-url");
 		
-		if(!url){
-			return;
-		}
+		if(!url) return;
 		
 		var type = $(this).attr("data-type");
 		var amount = $("input[name=paysum]").val();
@@ -188,14 +198,13 @@ function posActions() {
 		scrollRecieptBottom();
 	});
 	
+	
 	// Бутоните за приключване приключват бележката
 	$(document.body).on('click', ".closeBtns", function(e){
 		var url = $(this).attr("data-url");
 		var receiptId = $("input[name=receiptId]").val();
 		
-		if(!url){
-			return;
-		}
+		if(!url) return;
 		
 		var data = {receipt:receiptId};
 		
@@ -206,13 +215,12 @@ function posActions() {
 		scrollRecieptBottom();
 	});
 	
+	
 	// Добавяне на продукти от бързите бутони
 	$(document.body).on('click', ".pos-product", function(e){
 		var url = $(this).attr("data-url");
 		
-		if(!url){
-			return;
-		}
+		if(!url) return;
 		
 		var productId = $(this).attr("data-id");
 		var receiptId = $("input[name=receiptId]").val();
@@ -226,6 +234,7 @@ function posActions() {
 		scrollRecieptBottom();
 	});
 
+	
 	// Скриване на бързите бутони спрямо избраната категория
 	$(".pos-product-category[data-id='']").addClass('active');
 	$(document.body).on('click', ".pos-product-category", function(e){
@@ -255,12 +264,14 @@ function posActions() {
 		$('.narrow #pos-products > div').css('width',width);
 	});
 	
+	
 	// При клик на бутон изтрива запис от бележката
 	$(document.body).on('click', ".pos-del-btn", function(e){
 		var warning = $(this).attr("data-warning");
 		var url = $(this).attr("data-url");
 		var recId = $(this).attr("data-recId");
 		if (!confirm(warning)){
+			
 			return false; 
 		} else {
 			
@@ -270,6 +281,7 @@ function posActions() {
 			getEfae().process(resObj, {recId:recId});
 		}
 	});
+	
 	
 	// Скриване на табовете
 	$(document.body).on('click', ".pos-tabs a ", function(e){
@@ -282,11 +294,13 @@ function posActions() {
 		e.preventDefault();
 	}); 
 	
+	
 	// Смяна на текущата клавиатура
 	$(document.body).on('click', ".keyboard-change-btn", function(e){
 		var currentAttrValue = $(this).attr('data-klang');
 		$('.keyboard#' + currentAttrValue).show().siblings().hide();
 	}); 
+	
 	
 	// Попълване на символи от клавиатурата
 	$(document.body).on('click', ".keyboard-btn", function(e){
@@ -310,6 +324,7 @@ function posActions() {
 		$("#select-input-pos").trigger(e);
 	}); 
 	
+	
 	// Триене на символи от формата за търсене
 	$(document.body).on('click', ".keyboard-back-btn", function(e){
 		var inpValLength = $("#select-input-pos").val().length;
@@ -322,25 +337,31 @@ function posActions() {
 		$("#select-input-pos").trigger(e);
 	});
 	
+	
+	// Време за изчакване
 	var timeout;
+	
 	
 	// След въвеждане на стойност, прави заявка по Ajax
 	$("#select-input-pos").keyup(function() {
-		//console.log('up');
+		
 		var inpVal = $("#select-input-pos").val();
 		var receiptId = $("input[name=receiptId]").val();
 		
 		var url = $(this).attr("data-url");
 		
-		resObj = new Object();
-		resObj['url'] = url;
+		// След всяко натискане на бутон изчистваме времето на изчакване
+		clearTimeout(timeout);
 		
-		//clearTimeout(timeout);
-		//timeout = setTimeout(function(){
-			//console.log('vikam',url);
+		// Правим Ajax заявката като изтече време за изчакване
+		timeout = setTimeout(function(){
+			resObj = new Object();
+			resObj['url'] = url;
+			
 			getEfae().process(resObj, {searchString:inpVal,receiptId:receiptId});
-		//}, 500);
+		}, 800);
 	});
+	
 	
 	// Добавяне на продукт от резултатите за търсене
 	$(document.body).on('click', ".pos-add-res-btn", function(e){
@@ -357,7 +378,7 @@ function posActions() {
 	});
 }
 
-
+// Калкулира ширината
 function calculateWidth(){
 	var winWidth = parseInt($(window).width());
 	var winHeight = parseInt($(window).height());
@@ -394,8 +415,10 @@ function calculateWidth(){
 	
 }
 
-// скролиране на бележката до долу
+// Скролиране на бележката до долу
 function scrollRecieptBottom(){
-	var el = $('.scrolling-vertical');
-	setTimeout(function(){el.scrollTop( el.get(0).scrollHeight );},500);
+	if($('body').hasClass('wide')){
+		var el = $('.scrolling-vertical');
+		setTimeout(function(){el.scrollTop( el.get(0).scrollHeight );},500);
+	}
 }

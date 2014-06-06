@@ -1,6 +1,4 @@
 <!--ET_BEGIN TAB_TOOLS-->
-
-	<form method='POST' action='[#ACT1#]' id='toolsForm'>
 	<div class='input-field'>[#INPUT_FLD#]</div>
 	<div class='clearfix21'></div>
 	<div class='num-keyboard'>
@@ -23,7 +21,6 @@
 	<div class='tools-btn'>
 	[#FIRST_TOOLS_ROW#]
 	</div>
-</form>
 <div class='clearfix21'></div>
 
 <!--ET_END TAB_TOOLS-->

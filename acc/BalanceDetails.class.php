@@ -318,6 +318,7 @@ class acc_BalanceDetails extends core_Detail
             }
             
             // Групиране на данните
+            $r['accountNum'] 	  = $rec->accountNum;
             $r['balanceId']       = $rec->balanceId;
             $r['baseQuantity']   += $rec->baseQuantity;
             $r['baseAmount']     += $rec->baseAmount;
@@ -329,7 +330,11 @@ class acc_BalanceDetails extends core_Detail
             $r['blAmount']       += $rec->blAmount;
         }
        
-        unset($data->listFields['history']);
+        // Ако има филтриране по свойства, не показваме бутона за хронология
+        if(count($groupedBy)){
+        	unset($data->listFields['history']);
+        }
+       
         $data->recs = $groupedRecs;
         
         // Конвертираме групираните записи към вербални стойности
@@ -534,15 +539,15 @@ class acc_BalanceDetails extends core_Detail
     private function setGroupingForField($i, $listRec, &$form)
     {
     	$form->formAttr['id'] = 'groupForm';
-    	$options = acc_Items::makeArray4Select('title', "#lists LIKE '%|{$listRec->id}|%' AND #state = 'active'");
+    	$options = acc_Items::makeArray4Select(NULL, "#lists LIKE '%|{$listRec->id}|%' AND #state = 'active'");
         static::$cache = array_merge(static::$cache, array_keys($options));
     	
     	$features = acc_Features::getFeatureOptions(array_keys($options));
         $features = array('' => '') + $features;
     	$options = array('' => '') + $options;
     	
-    	$form->FNC("grouping{$i}", 'key(mvc=acc_Items)', "silent,caption={$listRec->name},width=300px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
-        $form->FNC("feat{$i}", 'varchar', "silent,caption={$listRec->name}->Свойства,width=300px,input,class=balance-feat");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['grouping{$i}'].value ='';")));
+    	$form->FNC("grouping{$i}", 'key(mvc=acc_Items)', "silent,caption={$listRec->name},width=330px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
+        $form->FNC("feat{$i}", 'varchar', "silent,caption={$listRec->name}->Свойства,width=330px,input,class=balance-feat");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['grouping{$i}'].value ='';")));
         $form->setOptions("grouping{$i}", $options);
         $form->setOptions("feat{$i}", $features);
         $form->showFields .= "grouping{$i},";

@@ -77,7 +77,7 @@ class deals_Deals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,dealName,folderId,state,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,detailedName,folderId,state,createdOn,createdBy';
     
 
     /**
@@ -107,7 +107,7 @@ class deals_Deals extends core_Master
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'dealName';
+    public $rowToolsSingleField = 'detailedName';
     
     
     /**
@@ -188,7 +188,8 @@ class deals_Deals extends core_Master
      	
      	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
      	
-     	$rec->detailedName = $rec->id . "." . $rec->contragentName . "/ {$createdOn} / " . $rec->dealName;
+     	$rec->detailedName = $rec->id . "." . $rec->contragentName . " / {$createdOn} / " . $rec->dealName;
+     	$rec->detailedName = trim($rec->detailedName, '/ ');
     }
     
     
@@ -620,7 +621,7 @@ class deals_Deals extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-	    return static::recToVerbal($rec, 'dealName')->dealName;
+	    return static::recToVerbal($rec, 'detailedName')->detailedName;
     }
     	
     	
@@ -634,7 +635,14 @@ class deals_Deals extends core_Master
     	$self->recTitleTpl = NULL;
     	 
     	if ($rec = self::fetch($objectId)) {
-    		$result = $self->getHyperlink($objectId);
+    		$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
+    		$detailedName = $rec->contragentName . " / {$createdOn} / " . $rec->dealName;
+    		$detailedName = $self->fields['detailedName']->type->toVerbal($detailedName);
+    		if ($self->haveRightFor('single', $objectId)) {
+    			$detailedName = ht::createLink($detailedName, array($self, 'single', $objectId));
+    		}
+    		
+    		$result = $detailedName;
     	} else {
     		$result = '<i>' . tr('неизвестно') . '</i>';
     	}

@@ -237,6 +237,7 @@ class deals_DebitDocument extends core_Master
     {
     	// Извличаме записа
     	expect($rec = self::fetchRec($id));
+    	$amount = round($rec->rate * $rec->amount, 2);
     	
     	expect($origin = static::getOrigin($rec));
     	$dealInfo = $origin->getAggregateDealInfo();
@@ -246,7 +247,7 @@ class deals_DebitDocument extends core_Master
     		$creditFirstArr = array($rec->contragentClassId, $rec->contragentId);
     	}
     	
-    	$debitFirstArr  = array('deals_Deals', $rec->dealId);
+    	$dealRec = deals_Deals::fetch($rec->dealId);
     	
     	// Подготвяме информацията която ще записваме в Журнала
     	$result = (object)array(
@@ -254,16 +255,16 @@ class deals_DebitDocument extends core_Master
     			'valior' => $rec->valior,   // датата на ордера
     			'entries' => array(
     					array(
-    						'amount' => $rec->rate * $rec->amount,	// равностойноста на сумата в основната валута
+    						'amount' => $amount,	// равностойноста на сумата в основната валута
     						'debit' => array($rec->debitAccount,
-    										$debitFirstArr,
-    										array('currency_Currencies', $rec->currencyId),
-    										'quantity' => $rec->amount),
+    										array('deals_Deals', $rec->dealId),
+    										array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
+    										'quantity' => round($amount / $dealRec->currencyRate, 2)),
     							
     						'credit' => array($rec->creditAccount,
     										$creditFirstArr,
-    										array('currency_Currencies', $rec->currencyId),
-    										'quantity' => $rec->amount),
+    										array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
+    										'quantity' => round($amount / $dealInfo->agreed->rate, 2)),
     				)
     		)
     	);

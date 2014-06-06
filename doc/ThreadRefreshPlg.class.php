@@ -75,15 +75,15 @@ class doc_ThreadRefreshPlg extends core_Plugin
      * Извиква се преди изпълняването на екшън
      * 
      * @param core_Mvc $mvc
-     * @param mixed $res
+     * @param array $resStatus
      * @param string $action
      */
-    public static function on_BeforeAction($mvc, &$res, $action)
+    public static function on_BeforeAction($mvc, &$resStatus, $action)
     {
         // Ако екшъна не е за обновяване на редовете, да не се изпълнява
         if ($action != 'ajaxthreadrefresh') return ;
         
-        $res = array();
+        $resStatus = array();
         
         $ajaxMode = Request::get('ajax_mode');
         
@@ -113,7 +113,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $resObj->func = 'html';
         $resObj->arg = array('id'=>'rowsContainer', 'html' => $content, 'replace' => TRUE);
         
-        $res = array($resObj);
+        $resStatus[] = $resObj;
         
         // Масив с id-тата на всички променени документи
         $docsArr = Mode::get('REFRESH_DOCS_ARR');
@@ -122,31 +122,28 @@ class doc_ThreadRefreshPlg extends core_Plugin
         if ($docsArr) {
             foreach ((array)$docsArr as $docId) {
                 
-                // Скрипт, който кара новите документи да флашнат
-                $script .= "\n flashDoc('{$docId}');";
+                $flashDocObj = new stdClass();
+                $flashDocObj->func = 'flashDoc';
+                $flashDocObj->arg = $docId;
+                
+                $resStatus[] = $flashDocObj;
             }
             
             // Ако е зададено да се скролира до края на нишката
-            if (Mode::get('REFRESH_DOCS_SCROLL_TO_END')) {
-                
-                $script .= "\n getEO().scrollTo();";
-            } else {
+            if (!Mode::get('REFRESH_DOCS_SCROLL_TO_END')) {
                 
                 // id на полследния документ
                 reset($docsArr);
                 $docId = end($docsArr);
                 
-                // Скролираме до последно променения документ
-                $script .= "\n getEO().scrollTo('{$docId}');";
+                $scrollToDocId = $docId;
             }
-        
-            // Добавяме резултата
-            $resObjJs = new stdClass();
-            $resObjJs->func = 'js';
-            $resObjJs->arg = $script;
             
-            // Добавяме скрипта, към резултатния маси
-            $res[] = $resObjJs;
+            $scrollToObj = new stdClass();
+            $scrollToObj->func = 'scrollTo';
+            $scrollToObj->arg = $scrollToDocId;
+            
+            $resStatus[] = $scrollToObj;
         }
         
         // Добавяме в лога
