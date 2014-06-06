@@ -5,7 +5,7 @@
 /**
  * Пътя до външния код на chosen
  */
-defIfNot('CHOSEN_PATH', 'chosen/0.9.8');
+defIfNot('CHOSEN_PATH', 'chosen/1.1.0');
 
 
 /**

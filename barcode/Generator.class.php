@@ -4,7 +4,7 @@
 /**
  * Версията на пакета за генериране на баркодове
  */
-defIfNot('PHP_BARCODE_VERSION', '2.0.1');
+defIfNot('PHP_BARCODE_VERSION', '2.0.3');
 
 
 /**

@@ -4,7 +4,7 @@
 /**
  * Версия на JS компонента
  */
-defIfNot('AUTOSIZE_VERSION', 'v1.18.4');
+defIfNot('AUTOSIZE_VERSION', 'v1.18.9');
 
 
 /**
@@ -63,7 +63,8 @@ class autosize_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         
-           'AUTOSIZE_VERSION' => array ('enum(v1.18.4=v1.18.4)', 'mandatory, caption=Версията на програмата->Версия'),
+           'AUTOSIZE_VERSION' => array ('enum(v1.18.4=v1.18.4,
+           									  v1.18.9=v1.18.9)', 'mandatory, caption=Версията на програмата->Версия'),
            'AUTOSIZE_MAX_ROWS_WIDE' => array ('int', 'mandatory, caption=Максимална височина->Десктоп режим,unit=px'),
            'AUTOSIZE_MAX_ROWS_NARROW' => array ('int', 'mandatory, caption=Максимална височина->Мобилен режим,unit=px'),
              );

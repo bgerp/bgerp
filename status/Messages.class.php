@@ -209,9 +209,6 @@ class status_Messages extends core_Manager
     {
         $res = new ET();
         
-        // През колко цикъла да се викат статус съобщенията
-        $statusPeriodModul = haveRole('user') ? 6 : 100000;
-        
         // Ако е регистриран потребител
         if (haveRole('user')) {
             
@@ -234,6 +231,9 @@ class status_Messages extends core_Manager
         // Ако се вика по AJAX
         if (Request::get('ajax_mode')) {
             
+            // Ако се принтира
+            if (Request::get('Printing')) return array();
+            
             // Времето на отваряне на таба
             $hitTime = Request::get('hitTime', 'int');
             
@@ -241,17 +241,12 @@ class status_Messages extends core_Manager
             $idleTime = Request::get('idleTime', 'int');
             
             // Вземаме непоказаните статус съобщения
-            $html = static::getStatusesDiv($hitTime, $idleTime);
+            $statusesArr = static::getStatusesData($hitTime, $idleTime);
             
             // Ако няма нищо за показване
-            if (!$html) return array();
+            if (!$statusesArr) return array();
             
-            // Добавяме резултата
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id'=>'statuses', 'html' => $html, 'replace' => FALSE);
-            
-            return array($resObj);
+            return $statusesArr;
         }
     }
     
@@ -264,20 +259,29 @@ class status_Messages extends core_Manager
      * 
      * @return string - 'div' със статус съобщенията
      */
-    static function getStatusesDiv($hitTime, $idleTime)
+    static function getStatusesData_($hitTime, $idleTime)
     {
         // Всички статуси за текущия потребител преди времето на извикване на страницата
         $statusArr = static::getStatuses($hitTime, $idleTime);
         
-        $res = '';
+        $resStatus = array();
         
         foreach ($statusArr as $value) {
-
+            
+            $res = '';
+            
             // Записваме всеки статус в отделен div и класа се взема от типа на статуса
-            $res .= "<div class='statuses-{$value['type']}'> {$value['text']} </div>";
+            $res = "<div class='statuses-{$value['type']}'> {$value['text']} </div>";
+            
+            // Добавяме резултата
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id'=>'statuses', 'html' => $res, 'replace' => FALSE);
+            
+            $resStatus[] = $resObj;
         }
         
-        return $res;
+        return $resStatus;
     }
     
     

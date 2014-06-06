@@ -4,7 +4,7 @@
 /**
  * Версията на програмата
  */
-defIfNot("APACHE_TIKA_VERSION", '1.2');
+defIfNot("APACHE_TIKA_VERSION", '1.5');
 
 
 /**

@@ -24,17 +24,13 @@ class toast_Toast extends core_Plugin
      * 
      * @param object $mvc
      * @param core_ET $tpl
-     *  
-     * @return FALSE - За да не изпълняват други функции (show_)
      */
-    function on_BeforeSubscribe(&$mvc, &$tpl)
+    function on_AfterSubscribe(&$mvc, &$tpl)
     {
-        //Проверяваме дали е включн javascript'a.
-        //Ако не е връщаме TRUE, за да може да се изпълнят другите функции
-        if (!Mode::is('javascript', 'yes')) return TRUE;
-        
-        //Създаваме шаблона
-        $tpl = new ET();
+        if (!$tpl) {
+            //Създаваме шаблона
+            $tpl = new ET();
+        }
         
         //Вземаме текущата версия на външния пакет
         $conf = core_Packs::getConfig('toast');
@@ -46,49 +42,6 @@ class toast_Toast extends core_Plugin
         //Добавяме JS и CSS необходими за работа на статусите
         $tpl->push("toast/{$version}/javascript/jquery.toastmessage.js", 'JS');
         $tpl->push("toast/{$version}/resources/css/jquery.toastmessage.css", 'CSS');
-        
-        // Ако е регистриран потребител
-        if (haveRole('user')) {
-            
-            // Абонираме статус съобщенията
-            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5000);
-        }
-        
-        // Извлича статусите веднага след обновяване на страницата
-        core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'statusOnce', 0);
-        
-        // Връщаме FALSE за да не се изпълнява метода
-        return FALSE;
-    }
-    
-    
-    /**
-     * Екшън, който се вика по AJAX и показва статус съобщенията
-     */
-    function act_GetStatuses()
-    {
-        // Ако заявката е по AJAX
-        if (Request::get('ajax_mode')) {
-            
-            // Времето на отваряне на таба
-            $hitTime = Request::get('hitTime', 'int');
-            
-            // Време на бездействие
-            $idleTime = Request::get('idleTime', 'int');
-            
-            // Всички активни статуси за текущия потребител, след съответното време
-            $toastJs = static::getStatusesJS($hitTime, $idleTime);
-            
-            // Ако няма нищо за показване
-            if (!$toastJs) return array();
-            
-            // Добавяме резултата
-            $resObj = new stdClass();
-            $resObj->func = 'js';
-            $resObj->arg = $toastJs;
-            
-            return array($resObj);
-        }
     }
     
     
@@ -98,9 +51,9 @@ class toast_Toast extends core_Plugin
      * @param integer $hitTime - Timestamp на показване на страницата
      * @param integer $idleTime - Време на бездействие на съответния таб
      * 
-     * @return string - javascript за показване на статус съобщения
+     * @return boolean - FALSE за да не се изпълняват другите
      */
-    static function getStatusesJS($hitTime, $idleTime)
+    static function on_BeforeGetStatusesData($mvc, &$resStatus, $hitTime, $idleTime)
     {
         // Всички активни статуси за текущия потребител
         $notifArr = status_Messages::getStatuses($hitTime, $idleTime);
@@ -108,14 +61,9 @@ class toast_Toast extends core_Plugin
         // Броя на намерените статуси
         $countArr = count($notifArr);
         
-        // JS, който ще се вика
-        $toastJS = '';
+        $resStatus = array();
         
-        // Обикаляме всички открити статуси
         foreach ($notifArr as $val) {
-            
-            // Типа на статуса
-            $toastType = $val['type'];
             
             // Всеки следващ статус със закъсенине + 1 секунди
             $timeOut += (!$timeOut) ? 1 : 1000;
@@ -135,17 +83,22 @@ class toast_Toast extends core_Plugin
                 $stayTime = static::getStayTime($val['type']);
             }
             
-            // Стойността да е число
-            $isSticky = (int)$sticky;
+            // Данни за показване на статус съобщение
+            $statusData = array();
+            $statusData['text'] = addslashes($val['text']);
+            $statusData['type'] = $val['type'];
+            $statusData['timeOut'] = $timeOut;
+            $statusData['isSticky'] = (int)$sticky;
+            $statusData['stayTime'] = $stayTime;
             
-            // Ескейпваме текста
-            $text = addslashes($val['text']);
+            $toastObj = new stdClass();
+            $toastObj->func = 'showToast';
+            $toastObj->arg = $statusData;
             
-            // Добавяме към JS
-            $toastJS .= "showToast({timeOut:{$timeOut}, text:'{$text}', isSticky:{$isSticky}, stayTime:{$stayTime}, type:'{$toastType}'});";
+            $resStatus[] = $toastObj;
         }
         
-        return $toastJS;
+        return FALSE;
     }
         
     
@@ -218,5 +171,18 @@ class toast_Toast extends core_Plugin
         }
         
         return $time;
+    }
+    
+    
+    /**
+     * За съвместимост със старите версии
+     * 
+     * @todo Може да се премахне
+     * VI.14
+     */
+    function act_getStatuses()
+    {
+        
+        return array();
     }
 }

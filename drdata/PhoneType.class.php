@@ -79,7 +79,7 @@ class drdata_PhoneType extends type_Varchar
     {
         if(!$telNumber) return NULL;
         
-        if (Mode::is('text', 'plain')) {
+        if (Mode::is('text', 'plain') || Mode::is('text', 'pdf') || Mode::is('text', 'xhtml')) {
             
             return $telNumber;
         }
@@ -122,11 +122,8 @@ class drdata_PhoneType extends type_Varchar
                 
                 $title = $t->original;
                 
-        		if($this->params['type'] != 'fax') {
-                	$res->append(ht::createLink($title, "tel:00" . $value, NULL, $attr));
-        		} else {
-        			$res->append(ht::createLink($title, NULL, NULL, $attr));       			
-        		}
+                //$res->append(ht::createLink($title, 'tel:00'. $value, NULL, $attr));
+                $res->append(self::getLink($title, $value, FALSE, $attr));
 
                 if($t->internal) {
                     $res->append(tr('вътр.') . $t->internal) ;
@@ -162,5 +159,33 @@ class drdata_PhoneType extends type_Varchar
         $result = $Phones->parseTel($str, $code);
 
         return $result;
+    }
+    
+    
+    /**
+     * Превръщане на телефонните номера и факсове в линкове
+     * 
+     * @param varchar $verbal
+     * @param drdata_PhoneType $canonical
+     * @param boolean $isFax
+     */
+    static public function getLink_($verbal, $canonical, $isFax = FALSE, $attr = array())
+    {
+    	$conf = core_Packs::getConfig('drdata');
+    	
+    	$desktop = $conf->TEL_LINK_WIDE;
+    	$mobile = $conf->TEL_LINK_NARROW;
+        
+    	if ($desktop == 'yes' && Mode::is('screenMode', 'wide') || 
+    		$mobile == 'yes' && Mode::is('screenMode', 'narrow') ) {
+            
+			if($isFax) {
+		    	$res = ht::createLink($verbal, NULL, NULL, $attr); 
+		   	} else {
+		    	$res = ht::createLink($verbal, "tel:00" . $canonical, NULL, $attr);     			
+		   	}
+        }
+
+        return $res;
     }
 }
