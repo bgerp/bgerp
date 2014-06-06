@@ -159,6 +159,8 @@ class plg_UserReg extends core_Plugin
                     $rec->state = 'draft';
                     $mvc->save($rec);
                     
+                    core_LoginLog::add($rec->id, 'user_reg');
+                    
                     // Тук трябва да изпратим имейл на потребителя за активиране
                     $this->sendActivationLetter($rec);
                     
@@ -289,6 +291,13 @@ class plg_UserReg extends core_Plugin
                     $rec->ps5Enc = $pRec->passNewHash;
                     $rec->state = 'active';
                     $mvc->save($rec, 'state,ps5Enc');
+                    
+                    if ($act == 'activate') {
+                        core_LoginLog::add($rec->id, 'user_activate');
+                    } else {
+//                        core_LoginLog::add($rec->id, 'pass_change');
+                    }
+                    
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
                     // Добавяме права на потребителя - headquarter, contractor
                     core_Users::addRole($userId, 2);
@@ -332,6 +341,8 @@ class plg_UserReg extends core_Plugin
                 } else {
                     
                     $rec = $mvc->fetch($id);
+                    
+                    core_LoginLog::add($rec->id, 'pass_reset');
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
                     $this->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Reset your password', 'changePass');
