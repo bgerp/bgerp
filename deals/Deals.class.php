@@ -159,7 +159,6 @@ class deals_Deals extends core_Master
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Състояние, input=none');
     	
     	$this->FNC('detailedName', 'varchar', 'column=none');
-    	//$this->setDbUnique('dealName');
     }
     
     
@@ -340,9 +339,6 @@ class deals_Deals extends core_Master
      */
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$data->masterMvc = cls::get('cash_Cases');
-    	$data->masterId = $data->rec->id;
-    	
     	$mvc->getHistory($data);
     }
     
