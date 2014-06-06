@@ -357,7 +357,7 @@ class purchase_Purchases extends core_Master
     	
     		if($rec->paymentMethodId) {
     			$total = $rec->_total->amount- $rec->_total->discount;
-    			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
+    			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
     		}
     	}
     }
