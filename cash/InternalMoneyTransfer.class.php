@@ -338,6 +338,16 @@ class cash_InternalMoneyTransfer extends core_Master
 	    	if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	}
+	    	
+	    	$row->creditCase = cash_Cases::getHyperLink($rec->creditCase, TRUE);
+	    	
+	    	if($rec->debitCase){
+	    		$row->debitCase = cash_Cases::getHyperLink($rec->debitCase, TRUE);
+	    	}
+	    	
+	    	if($rec->debitBank){
+	    		$row->debitBank = bank_OwnAccounts::getHyperLink($rec->debitBank, TRUE);
+	    	}
     	}
     }
     
