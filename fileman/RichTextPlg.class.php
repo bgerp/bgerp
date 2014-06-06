@@ -136,7 +136,7 @@ class fileman_RichTextPlg extends core_Plugin
         }
 
         // Намираме всички линкове, които имат линкове към единичния изглед на файловете
-        preg_match_all(type_Richtext::getUrlPattern(), $rt, $matches);
+        preg_match_all(type_Richtext::URL_PATTERN, $rt, $matches);
         
         // Събирме двата масива
         $files += static::getFilesFromUrlMatches($matches);        
