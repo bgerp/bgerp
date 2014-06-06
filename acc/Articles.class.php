@@ -362,6 +362,7 @@ class acc_Articles extends core_Master
             $row->title .= ' (' . tr("чернова") . ')';
         } else {
             $row->title .= ' (' . $this->getVerbal($rec, 'totalAmount') . ' BGN' . ')';
+            $row->title = str_replace("&nbsp;", " ", $row->title);
         }
 
         $row->subTitle = type_Varchar::escape($rec->reason);
@@ -370,7 +371,7 @@ class acc_Articles extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
-        
+       
         return $row;
     }
     
