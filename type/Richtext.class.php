@@ -56,7 +56,7 @@ class type_Richtext extends type_Blob
     /**
      * Шаблон за намиране на линкове в текст
      */
-    // static $urlPattern = "#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i";
+    const URL_PATTERN = "/(((http(s?)|ftp(s?)):\/\/)|(www\.))([^<>\x{A0}\s]+)/i";
     
     
 	/**
@@ -290,7 +290,8 @@ class type_Richtext extends type_Blob
         $html = str_replace($from, $to, $html);
         
         // Обработваме хипервръзките, зададени в явен вид
-        $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
+        $html = preg_replace_callback(self::URL_PATTERN, array($this, '_catchUrls'), $html);
+
         // Обработваме имейлите, зададени в явен вид
         $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i", array($this, '_catchEmails'), $html);
 
@@ -308,33 +309,19 @@ class type_Richtext extends type_Blob
                     $newLine = TRUE;
                 } else {
                     if ($c == " ") {
-                        $c = $newLine ? ("&nbsp;") : (" ");
+                        $c = $newLine ? ("<nbsp>") : (" ");
                     } else {
                         $newLine = FALSE;
                     }
                 }
                 $out .= $c;
             }
-            
-            $st1 = '';
-            
-            $out = str_replace(array(
-                "\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>\n",
-                "\n&nbsp;&nbsp;&nbsp;&nbsp;<br>\n",
-                "\n&nbsp;&nbsp;&nbsp;<br>\n", 
-                "\n&nbsp;&nbsp;<br>\n", 
-                "\n&nbsp;<br>\n"), 
-                array("\n<br>\n", 
-                      "\n<br>\n", 
-                      "\n<br>\n",
-                      "\n<br>\n",
-                      "\n<br>\n"), $out);
-
-            $html = $out;
-            
-            $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $html);
+                        
+            $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $out);
         }
-        
+    
+        $html = str_replace('<nbsp>', '&nbsp;', $out);
+
         if(!Mode::is('text', 'plain')) {
             $html =  new ET("<div class=\"richtext\">{$html}</div>");
         } else {
@@ -378,20 +365,24 @@ class type_Richtext extends type_Blob
 
     function replaceTags($html)
     {
+        // Уникод UTF-8 символ за неприкъсваем интервал
+        $nbspUtf8 = chr(0xC2) . chr(0xA0);
+        $nbsp     = chr(0xA0);
+
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
-        $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
+        $from = array("\r\n", "\n\r", "\r", "\n", "\t", $nbspUtf8, '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
         // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
         
         $textMode = Mode::get('text');
         
         if($textMode != 'plain') { 
-            $to = array("\n", "\n", "\n", "<br>\n", "<span style='padding-left:3em'></span>", '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
+            $to = array("\n", "\n", "\n", "<br>\n", "<nbsp><nbsp><nbsp><nbsp>", '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } elseif(Mode::is('ClearFormat')) {
-           $to   = array("\n",   "\n",   "\n",  "\n", "    ", '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
+           $to   = array("\n",   "\n",   "\n",  "\n", "    ", $nbspUtf8, '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
             // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         } else {
-            $to   = array("\n",   "\n",   "\n",  "\n", "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
+            $to   = array("\n",   "\n",   "\n",  "\n", "    ", $nbspUtf8, '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
             // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
 
@@ -399,29 +390,8 @@ class type_Richtext extends type_Blob
 
         return $html;
     }
-    
-    
-    /**
-     * Връща шаблона за намиране на URL
-     * 
-     * @return pattern $urlPattern;
-     */
-    static function getUrlPattern()
-    {
-//        $rexProtocol = '(https?://)?';
-//        $rexDomain   = '((?:[-a-zA-Z0-9]{1,63}\.)+[-a-zA-Z0-9]{2,63}|(?:[0-9]{1,3}\.){3}[0-9]{1,3})';
-//        $rexPort     = '(:[0-9]{1,5})?';
-//        $rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
-//        $rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
-//        $rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
-//        $urlPattern = "&\\b({$rexProtocol}{$rexDomain}{$rexPort}{$rexPath}{$rexQuery}{$rexFragment}(?=[?.!,;:\"]?(\s|$)))&";
-        
-        $urlPattern = "/(((http(s?)|ftp(s?)):\/\/)|(www\.))([^\s<>]+)/";
-        
-        return $urlPattern;
-    }
-    
-    
+
+
     /**
      * Връща уникален стринг, който се използва за име на плейсхолдер
      */
@@ -974,9 +944,9 @@ class type_Richtext extends type_Blob
      * Прави субституция на хипервръзките
      */
     function _catchUrls($html)
-    {   
-        $html[0] = str_replace("&amp;", "&", $html[0]);
-        
+    {    
+        $html[0] = str_replace("&amp;", "&", $html[0]); 
+
         $url = rtrim($html[0], ',.;');
         
         if($tLen = (strlen($html[0]) - strlen($url))) {
