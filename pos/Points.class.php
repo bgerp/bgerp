@@ -193,7 +193,7 @@ class pos_Points extends core_Master {
     		if(pos_Reports::haveRightFor('add')){
     			
     			// Ако има чернова репорт за тази точка и този потребител слагаме бутон към сингъла му
-	    		if(pos_Receipts::fetch("#pointId = {$rec->id} AND #createdBy = {$cu} AND #state = 'active'")){
+	    		if(static::getCurrent() && pos_Receipts::fetch("#pointId = {$rec->id} AND #createdBy = {$cu} AND #state = 'active'")){
 	    			if($repId = pos_Reports::fetchField("#pointId = {$rec->id} AND #cashier = {$cu} AND #state='draft'")){
 	    				$reportUrl = array('pos_Reports', 'single', $repId);
 	    			} else {
