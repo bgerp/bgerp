@@ -433,31 +433,39 @@ class core_Users extends core_Manager
                 if(!$userRec) {
                     $userRec = new stdClass();
                 }
-
+                
                 if ($userRec->state == 'rejected') {
                     $form->setError('nick', 'Този потребител е деактивиран|*!');
                     $this->logLogin($inputs, 'missing_password');
+                    core_LoginLog::add($userRec->id, 'reject', $inputs->time);
                 } elseif ($userRec->state == 'blocked') {
                     $form->setError('nick', 'Този потребител е блокиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.');
                     $this->logLogin($inputs, 'blocked_user');
+                    core_LoginLog::add($userRec->id, 'block', $inputs->time);
                 } elseif ($userRec->state == 'draft') {
                     $form->setError('nick', 'Този потребител все още не е активиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за активация|*.');
                     $this->logLogin($inputs, 'draft_user');
+                    core_LoginLog::add($userRec->id, 'draft', $inputs->time);
                 } elseif (!$inputs->hash || $inputs->isEmptyPass) {
                     $form->setError('pass', 'Липсва парола!');
                     $this->logLogin($inputs, 'missing_password');
+                    core_LoginLog::add($userRec->id, 'missing_password', $inputs->time);
                 } elseif (!$inputs->pass && abs(time() - $inputs->time) > EF_USERS_LOGIN_DELAY) {  
                     $form->setError('pass', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
                     $this->logLogin($inputs, 'too_long_login');
+//                    core_LoginLog::add($userRec->id, 'error', $inputs->time);
                 } elseif ($userRec->lastLoginTime && abs(time() - dt::mysql2timestamp($userRec->lastLoginTime)) <  EF_USERS_LOGIN_DELAY) {
                     $form->setError('pass', 'Прекалено кратко време за ре-логване|*!<br>|Изчакайте и опитайте пак|*.');
                     $this->logLogin($inputs, 'too_fast_relogin');
+//                    core_LoginLog::add($userRec->id, 'error', $inputs->time);
                 } elseif (!$userRec->state) {
                     $form->setError('pass', $wrongLoginErr);
                     $this->logLogin($inputs, $wrongLoginLog);
+//                    core_LoginLog::add(NULL, 'wrong_username', $inputs->time);
                 } elseif (self::applyChallenge($userRec->ps5Enc, $inputs->time) != $inputs->hash) {
                     $form->setError('pass', $wrongLoginErr);
                     $this->logLogin($inputs, 'wrong_password');
+                    core_LoginLog::add($userRec->id, 'wrong_password', $inputs->time);
                 }
             } else {
                 // Ако в cookie е записано три последователни логвания от един и същ потребител, зареждаме му ник-а/имейл-а
@@ -474,6 +482,7 @@ class core_Users extends core_Manager
             if ($userRec->id && !$form->gotErrors()) {
                 $this->loginUser($userRec->id);
                 $this->logLogin($inputs, 'successful_login');
+                core_LoginLog::add($userRec->id, 'success', $inputs->time);
                 
                 // Подготовка и записване на cookie
                 $cookie->u[3] = $cookie->u[2];
@@ -594,6 +603,19 @@ class core_Users extends core_Manager
             $rolesArr[$userRoleId] = $userRoleId;
 
             $rec->roles = keylist::fromArray($rolesArr);
+        }
+        
+        // Стария запис
+        $exRec = $mvc->fetch($rec->id, '*', FALSE);
+        
+        // Ако е сменен ника
+        if ($exRec->nick != $rec->nick) {
+            core_LoginLog::add($rec->id, 'change_nick');
+        }
+        
+        // Ако е сменена паролата
+        if ($exRec->ps5Enc != $rec->ps5Enc) {
+            core_LoginLog::add($rec->id, 'pass_change');
         }
     }
 
@@ -762,6 +784,8 @@ class core_Users extends core_Manager
                     $userRec->lastLoginTime . " > " .
                     $sessUserRec->loginTime,
                     $userRec->id);
+                    
+                core_LoginLog::add($userRec->id, 'block');
             }
             
             $userRec->loginTime = $sessUserRec->loginTime;
