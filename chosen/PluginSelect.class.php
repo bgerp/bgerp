@@ -1,13 +1,6 @@
 <?php
 
 
-
-/**
- * Пътя до външния код на chosen
- */
-defIfNot('CHOSEN_PATH', 'chosen/0.9.8');
-
-
 /**
  * Клас 'chosen_Plugin' - избор на дата
  *
@@ -40,9 +33,10 @@ class chosen_PluginSelect extends core_Plugin
             return;
         }
     	
+        $conf = core_Packs::getConfig('chosen');
+        
         // Определяме при колко минимално опции ще правим chosen
         if(!$invoker->params['chosenMinItems']) {
-            $conf = core_Packs::getConfig('chosen');
             $minItems = $conf->CHOSEN_MIN_ITEMS;
         } else {
             $minItems = $invoker->params['chosenMinItems'];
@@ -59,8 +53,8 @@ class chosen_PluginSelect extends core_Plugin
         
         $JQuery = cls::get('jquery_Jquery');
         $JQuery->enable($tpl);
-        $tpl->push(CHOSEN_PATH . "/chosen.css", "CSS");
-        $tpl->push(CHOSEN_PATH . "/chosen.jquery.js", "JS");
+        $tpl->push($conf->CHOSEN_PATH . "/chosen.css", "CSS");
+        $tpl->push($conf->CHOSEN_PATH . "/chosen.jquery.js", "JS");
 
         if($invoker->params['allowEmpty']) {
             $allowEmpty = ", allow_single_deselect: true";

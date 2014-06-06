@@ -1,13 +1,6 @@
 <?php
 
 
-
-/**
- * Пътя до външния код на chosen
- */
-defIfNot('CHOSEN_PATH', 'chosen/1.1.0');
-
-
 /**
  * Клас 'chosen_Plugin' - избор на дата
  *
@@ -40,8 +33,8 @@ class chosen_Plugin extends core_Plugin
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
+        $conf = core_Packs::getConfig('chosen');
         if(!$invoker->params['chosenMinItems']) {
-            $conf = core_Packs::getConfig('chosen');
             $minItems = $conf->CHOSEN_MIN_ITEMS;
         } else {
             $minItems = $invoker->params['chosenMinItems'];
@@ -110,8 +103,8 @@ class chosen_Plugin extends core_Plugin
         $tpl->append("<input type='hidden' name='{$name}[chosen]' value=1>");
         $JQuery = cls::get('jquery_Jquery');
         $JQuery->enable($tpl);
-        $tpl->push(CHOSEN_PATH . "/chosen.css", "CSS");
-        $tpl->push(CHOSEN_PATH . "/chosen.jquery.js", "JS");
+        $tpl->push($conf->CHOSEN_PATH . "/chosen.css", "CSS");
+        $tpl->push($conf->CHOSEN_PATH . "/chosen.jquery.js", "JS");
         
         $JQuery->run($tpl, "$('.keylistChosen').data('placeholder', 'Избери...').chosen();");
         
