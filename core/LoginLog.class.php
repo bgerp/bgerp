@@ -78,7 +78,7 @@ class core_LoginLog extends core_Manager
     /**
      * 
      */
-    var $listFields = 'userId, status, ip, brid, time';
+    var $listFields = 'userId, status, ip, brid, time, createdOn, createdBy';
     
     
     /**
@@ -89,7 +89,20 @@ class core_LoginLog extends core_Manager
         $this->FLD('userId', 'user(select=nick)', 'caption=Потребител');
         $this->FLD('ip', 'ip', 'caption=IP');
         $this->FLD('brid', 'varchar', 'caption=BRID');
-        $this->FLD('status', 'enum(success, error, block, reject, draft, missing_password, wrong_password, pass_ret, pass_chg, user_reg)', 'caption=Статус');
+        $this->FLD('status', 'enum(
+        							success=Успешен,
+									error=Грешка,
+									block=Блокиран,
+									reject=Оттеглен,
+									draft=Чернова,
+									missing_password=Липсва парола,
+									wrong_password=Грешна парола,
+									pass_reset=Ресетване на парола,
+									pass_change=Промяна на парола,
+									user_reg=Регистриране,
+									user_activate=Активиране,
+									change_nick=Промяна на ник
+								  )', 'caption=Статус');
         $this->FLD('time', 'datetime()', 'caption=Време, input=none');
     }
     
