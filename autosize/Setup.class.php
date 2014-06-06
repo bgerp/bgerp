@@ -4,7 +4,7 @@
 /**
  * Версия на JS компонента
  */
-defIfNot('AUTOSIZE_VERSION', 'v1.18.9');
+defIfNot('AUTOSIZE_VERSION', 'v1.18.4');
 
 
 /**
