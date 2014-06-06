@@ -387,7 +387,17 @@ class core_Packs extends core_Manager
         }
         
         if ($conf->getConstCnt()) {
-            $row->config = ht::createLink(tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config"));
+
+            $cls = $rec->name . "_Setup";
+            $warn = '';
+            if (cls::load($cls, TRUE)) {
+                $setup = cls::get($cls);
+                if(method_exists($setup, 'checkConfig') && $setup->checkConfig()) {
+                    $warn = "<span  style='color:yellow; background-color:red; padding-left:3px; padding-right:3px; margin-right:5px;'>!</span>";
+                }
+            } 
+
+            $row->config = ht::createLink($warn . tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config"));
         }
 
         if ($conf->haveErrors()) {

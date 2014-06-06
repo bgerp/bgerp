@@ -264,6 +264,16 @@ class core_ProtoSetup
     
     
     /**
+     * Проверяваме дали всичко е сетнато, за да работи пакета
+     * Ако има грешки, връщаме текст
+     */
+    public function checkConfig()
+    {
+        return NULL;
+    }
+    
+    
+    /**
      * Де-инсталиране на пакета
      */
     function deinstall()
@@ -283,14 +293,11 @@ class core_ProtoSetup
         // името на пакета
         list ($packName, ) = explode("_", cls::getClassName($this), 2);
         
-        
         // три имена на променливи за менюто
         $position = strtoupper($packName). "_MENU_POSITION";
         $menuName = strtoupper($packName). "_MENU";
         $subMenu = strtoupper($packName). "_SUB_MENU";
-        $view = strtoupper($packName). "_VIEW";
-      
-        
+        $view = strtoupper($packName). "_VIEW";       
         
         // взимаме текущото зададено меню
         if (count($this->menuItems)) { 
@@ -311,13 +318,7 @@ class core_ProtoSetup
         			$this->configDescription[$menuName."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Меню');
         			$this->configDescription[$subMenu."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Подменю');
         			$this->configDescription[$view."_".$id] = array ('enum(yes=Да, no=Не),row=2', 'caption=Меню '.$numbMenu.'->Видимо,maxRadio=2');
-        			
-        			//$this->configData[$position] = array($m[0]);
-        			//$this->configData[$menuName] = array($m[1]);
-        			//$this->configData[$subMenu] = array($m[2]);
-        			
-        			//new core_ObjectConfiguration($this->configDescription, $this->configData);
-        			
+        			        			
         		}
         	}
         }
