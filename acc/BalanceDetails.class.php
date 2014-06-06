@@ -462,6 +462,15 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnPrint');
+    }
+    
+    
+    /**
      * Извиква се след рендиране на Toolbar-а
      */
     static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
