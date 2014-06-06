@@ -448,9 +448,11 @@ class price_ListDocs extends core_Master
     	$row->productId = cat_Products::getVerbal($rec->productId, 'name');
     	
     	if(!Mode::is('printing')){
-	    	$icon = sbf("img/16/wooden-box.png");
-	    	$url = array('cat_Products', 'single', $rec->productId);
-			$row->productId = ht::createLink($row->productId, $url, NULL, "style=background-image:url({$icon}),class=linkWithIcon");
+    		if(cat_Products::haveRightFor('single', $rec->productId)){
+    			$icon = sbf("img/16/wooden-box.png");
+    			$url = array('cat_Products', 'single', $rec->productId);
+    			$row->productId = ht::createLink($row->productId, $url, NULL, "style=background-image:url({$icon}),class=linkWithIcon");
+    		}
     	}
     	
     	foreach (array('priceP', 'priceM') as $priceFld) {

@@ -314,6 +314,6 @@ class pos_Favourites extends core_Manager {
     		$row->pointId = tr('Всички');
     	}
     	
-    	$row->productId = cat_Products::getHyperLink($rec->productId);
+    	$row->productId = cat_Products::getHyperLink($rec->productId, TRUE);
     }
 }
