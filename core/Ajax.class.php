@@ -229,7 +229,17 @@ class core_Ajax extends core_Mvc
     protected static function run(&$tpl)
     {
         // URL, което сочи към екшъна за извличане на данни по AJAX
-        $url = toUrl(array('core_Ajax', 'Get'));
+        $url = array('core_Ajax', 'Get');
+        
+        // Ако е в принт режим
+        if ($printing = Request::get('Printing')) {
+            // Добавяме в пареметрите
+            $url['Printing'] = $printing;
+        } else if (Mode::get('printing')) {
+            $url['Printing'] = 1;
+        }
+        
+        $url = toUrl($url);
         
         // Добавяме URL-то за сваляне на ajax
         $tpl->appendOnce("\n runOnLoad(function(){getEfae().setUrl('{$url}');});", 'SCRIPTS');

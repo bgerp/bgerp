@@ -163,6 +163,9 @@ class core_Setup {
         $Users = cls::get('core_Users');
         $html .= $Users->setupMVC();
         
+        $LoginLog = cls::get('core_LoginLog');
+        $html .= $LoginLog->setupMVC();
+        
         $Locks = cls::get('core_Locks');
         $html .= $Locks->setupMVC();
         

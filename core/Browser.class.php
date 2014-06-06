@@ -1,15 +1,14 @@
 <?php
 
 
-
 /**
  * Клас 'core_Browser' - Определя параметрите на потребителския браузър
  *
  *
  * @category  ef
  * @package   core
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinova <yyuseinov@gmail.com>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -22,6 +21,221 @@ class core_Browser extends core_Manager
      * Заглавие на мениджъра
      */
     var $title = 'Потребителски браузър';
+    
+    
+    /**
+     * 
+     */
+    const HASH_LENGTH = 6;
+    
+    
+    /**
+     * 
+     * 
+     * @param boolean $generate
+     */
+    static function getBrid($generate = TRUE)
+    {   
+        // brid от сесията
+        $brid = Mode::get('brid');
+        if ($brid) return $brid;
+        
+        // brid от кукитата
+        if ($bridC = $_COOKIE['brid']) {
+            
+            // Допълнителна сол за brid
+            $bridSalt = static::getBridSalt();
+            
+            // Проверяваме хеша дали е верене
+            $brid = str::checkHash($bridC, static::HASH_LENGTH, $bridSalt);
+            
+            if ($brid) {
+                
+                return $brid;
+            } else {
+                
+                // Ако не отговаря на хеша
+                
+                static::log('Грешен хеш за BRID: ' . $bridC);
+                
+//                return FALSE;
+            }
+        }
+        
+        // Ако е зададено да се генерира brid
+        if ($generate) {
+            
+            if (!$bridSalt) {
+                // Допълнителна сол за brid
+                $bridSalt = static::getBridSalt();
+            }
+            
+            // Генерира brid
+            $brid = static::generateBrid();
+            
+            // Записваме в сесията
+            Mode::setPermanent('brid', $brid);
+            
+            // Хешираме и записваме в кукутата
+            $bridHash = str::addHash($brid, static::HASH_LENGTH, $bridSalt);
+            setcookie("brid", $bridHash);
+            
+            return $brid;
+        }
+    }
+    
+    
+    /**
+     * Допълнителна сол за brid
+     * 
+     * @return string
+     */
+    static function getBridSalt_()
+    {
+        $os = static::getOSName();
+        $browser = static::getBrowserName();
+        $bridSalt = $os . '_' . $browser;
+        
+        return $bridSalt;
+    }
+    
+    
+    /**
+     * Генерира brid
+     * 
+     * @return string
+     */
+    static function generateBrid_()
+    {
+        $brid = str::getRand();
+        
+        return $brid;
+    }
+    
+    
+    /**
+     * Връща името на браузъра
+     * 
+     * @return string
+     */
+    static function getBrowserName_()
+    {
+        // Ако може да се използва browserCap
+        $browserCap = static::getBrowserCap();
+        
+        if ($browserCap) {
+            $browser = $browserCap->browser;
+        }
+        
+        if ($browser) return $browser;
+        
+        // Вземаме името на браузъра от HTTP_USER_AGENT
+        $userAgent = static::getUserAgent();
+        
+        if ($userAgent) {
+            list($browserInfo) = explode(' ', $userAgent);
+        }
+        
+        if ($browserInfo) {
+            list($browser) = explode('/', $browserInfo);
+        }
+        
+        if (!$browser) return 'Unknown';
+        
+        return $browser;
+    }
+    
+    
+    /**
+     * Връща името на операционната система, в която е стартиран браузъра
+     * 
+     * @return string
+     */
+    static function getOSName_()
+    {
+        // Ако може да се използва browserCap
+        $browserCap = static::getBrowserCap();
+        
+        if ($browserCap) {
+            $osPlatform = $browserCap->platform;
+        }
+        
+        return $osPlatform;
+        
+        // Вземаме ОС от HTTP_USER_AGENT
+        $userAgent = static::getUserAgent();
+        $osPlatform = "Unknown";
+        
+        $osArray = array(
+                            '/windows nt 6.3/i'     =>  'Windows 8.1',
+                            '/windows nt 6.2/i'     =>  'Windows 8',
+                            '/windows nt 6.1/i'     =>  'Windows 7',
+                            '/windows nt 6.0/i'     =>  'Windows Vista',
+                            '/windows nt 5.2/i'     =>  'Windows Server 2003/XP x64',
+                            '/windows nt 5.1/i'     =>  'Windows XP',
+                            '/windows xp/i'         =>  'Windows XP',
+                            '/windows nt 5.0/i'     =>  'Windows 2000',
+                            '/windows me/i'         =>  'Windows ME',
+                            '/win98/i'              =>  'Windows 98',
+                            '/win95/i'              =>  'Windows 95',
+                            '/win16/i'              =>  'Windows 3.11',
+                            '/macintosh|mac os x/i' =>  'Mac OS X',
+                            '/mac_powerpc/i'        =>  'Mac OS 9',
+                            '/linux/i'              =>  'Linux',
+                            '/ubuntu/i'             =>  'Ubuntu',
+                            '/iphone/i'             =>  'iPhone',
+                            '/ipod/i'               =>  'iPod',
+                            '/ipad/i'               =>  'iPad',
+                            '/android/i'            =>  'Android',
+                            '/blackberry/i'         =>  'BlackBerry',
+                            '/webos/i'              =>  'Mobile'
+                        );
+        
+        // Проверяваме регулярните изрази
+        foreach ($osArray as $regex => $value) { 
+    
+            if (preg_match($regex, $userAgent)) {
+                $osPlatform = $value;
+                break;
+            }
+        }
+        
+        return $osPlatform;
+    }
+    
+    
+    /**
+     * Връща $_SERVER['HTTP_USER_AGENT']
+     */
+    static function getUserAgent()
+    {
+        static $userAgent='';
+        if (!$userAgent) {
+            $userAgent = $_SERVER['HTTP_USER_AGENT'];
+        }
+        
+        return $userAgent;
+    }
+    
+    
+    /**
+     * Връща резултатата от get_browser();
+     * Трябва да е зададен пътя до browscap.ini файла в php.ini
+     */
+    static function getBrowserCap()
+    {
+        static $browser='';
+        
+        if (!$browser) {
+            
+            // Ако функцията съществува и е зададен пътя до browscap.ini файла в php.ini
+            if (function_exists('get_browser') && ini_get('browscap')) {
+                $browser = get_browser();
+            }
+        }
+        
+        return $browser;
+    }
     
     
     /**

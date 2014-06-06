@@ -76,6 +76,23 @@ class core_Packs extends core_Manager
     
     
     /**
+     * Дали пакета е инсталиран
+     * 
+     * @param string $name
+     * 
+     * @return id
+     */
+    static function isInstalled($name)
+    {
+        $rec = static::fetch(array("#name = '[#1#]'", $name));
+        
+        if (!$rec) return FALSE;
+        
+        return $rec->id;
+    }
+    
+    
+    /**
      * Начална точка за инсталиране на пакети
      */
     function act_Install()

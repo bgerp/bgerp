@@ -417,23 +417,32 @@ class core_App
      */
     public static function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'notice')
     { 
-
-        expect(ob_get_length() <= 3, ob_get_length(), ob_get_contents());
-
-        $url = static::toUrl($url, $absolute ? 'absolute' : 'relative');
-
-        if (isset($msg)) {
-            core_Statuses::newStatus($msg, $type);
-        }
-
-        header("Status: 302");
-        
-        // Забранява кеширането. Дали е необходимо тук?
-        header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
-        header('Pragma: no-cache'); // HTTP 1.0.
-        header('Expires: 0'); // Proxies.
-
-        header("Location: $url");
+    	expect(ob_get_length() <= 3, ob_get_length(), ob_get_contents());
+    	$url = static::toUrl($url, $absolute ? 'absolute' : 'relative');
+    	
+    	if(Request::get('ajax_mode')){
+    		
+    		// Ако сме в Ajax_mode редиректа става чрез Javascript-а
+    		$resObj = new stdClass();
+    		$resObj->func = "redirect";
+    		$resObj->arg = array('url' => $url);
+    			
+    		echo json_encode(array($resObj));
+    	} else {
+    		
+    		if (isset($msg)) {
+    			core_Statuses::newStatus($msg, $type);
+    		}
+    		
+    		header("Status: 302");
+    		
+    		// Забранява кеширането. Дали е необходимо тук?
+    		header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
+    		header('Pragma: no-cache'); // HTTP 1.0.
+    		header('Expires: 0'); // Proxies.
+    		
+    		header("Location: $url");
+    	}
 
         static::shutdown(FALSE);
     }
@@ -715,6 +724,9 @@ class core_App
         // Ако е сетнат масива
         if ($preParamsArr) {
             
+            // [^A-Za-z0-9_\-\.]
+            $regExp = '/[^\w\-\.]/';
+            
             // Обхождаме всички параметри
             foreach ($preParamsArr as $param) {
                 
@@ -722,8 +734,7 @@ class core_App
                 if (isset($params[$param])) {
                     
                     // Ако не отоговаря на регулярния израз, да се остави за GET
-                    // [^A-Za-z0-9_\-\.]
-                    if (preg_match('/[^\w\-\.]/', $params[$param])) {
+                    if (preg_match($regExp, $param) || preg_match($regExp, $params[$param])) {
                         
                         continue;   
                     }
@@ -1164,7 +1175,11 @@ class core_App
     public static function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В ПРИЛОЖЕНИЕТО')
     {
         $text = static::isDebug() ? $errorInfo : $errorTitle;
-
+        
+        if(Request::get('ajax_mode')) {
+        	core_Statuses::newStatus($text, 'error');
+        }
+		
         throw new core_exception_Expect($text, $debug, $errorTitle);
     }
 
