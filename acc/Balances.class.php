@@ -100,6 +100,12 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Кои полета да се показват в листовия изглед
+     */
+    var $listFields = 'id, periodId, lastCalculate';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -107,7 +113,6 @@ class acc_Balances extends core_Master
         $this->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,mandatory,autoFilter');
         $this->FLD('fromDate', 'date', 'input=none,caption=Период->от,column=none');
         $this->FLD('toDate', 'date', 'input=none,caption=Период->до,column=none');
-        $this->FLD('state', 'enum(draft=Горещ,active=Активен,rejected=Изтрит)', 'caption=Тип,input=none');
         $this->FLD('lastCalculate', 'datetime', 'input=none,caption=Последно изчисляване');
     }
     
@@ -296,6 +301,7 @@ class acc_Balances extends core_Master
             }
         }
         
+        // Пораждаме събитие, че баланса е бил преизчислен
         $data = new stdClass();
         $this->invoke('AfterRecalcBalances', array($data));
     }
