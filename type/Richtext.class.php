@@ -254,8 +254,6 @@ class type_Richtext extends type_Blob
         // Даваме възможност други да правят обработки на текста
         $this->invoke('AfterCatchRichElements', array(&$html));
 
-        // Обработваме имейлите, зададени в явен вид
-        $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i", array($this, '_catchEmails'), $html);
         
         // Вземаме шаблона за намиране на текста, който ще се болдва
         $patternBold = static::getRichTextPatternForBold();
@@ -293,7 +291,9 @@ class type_Richtext extends type_Blob
         
         // Обработваме хипервръзките, зададени в явен вид
         $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
-       
+        // Обработваме имейлите, зададени в явен вид
+        $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i", array($this, '_catchEmails'), $html);
+
         if(!Mode::is('text', 'plain')) {
             
             // Заменяме обикновените интервали в началото на всеки ред, с непрекъсваеми такива
@@ -330,22 +330,7 @@ class type_Richtext extends type_Blob
                       "\n<br>\n",
                       "\n<br>\n"), $out);
 
-            $lines = explode("<br>\n", $out);
-            $empty = 0;
-            
-            foreach($lines as $l) {
-                if(trim($l)) {
-                    $empty = 0;
-                } else {
-                    $empty++;
-                }
-                
-                if($empty <2) {
-                    $st1 .= $l . "<br>\n";
-                }
-            }
-            
-            $html = $st1;
+            $html = $out;
             
             $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $html);
         }
@@ -990,8 +975,10 @@ class type_Richtext extends type_Blob
      */
     function _catchUrls($html)
     {   
+        $html[0] = str_replace("&amp;", "&", $html[0]);
+        
         $url = rtrim($html[0], ',.;');
-
+        
         if($tLen = (strlen($html[0]) - strlen($url))) {
             $trim = substr($html[0], 0 - $tLen);
         }
@@ -1002,9 +989,9 @@ class type_Richtext extends type_Blob
         
         if(!stripos($url, '://')) return $url;
 
-        if( core_Url::isLocal($url, $rest) ) {
+        if(core_Url::isLocal($url, $rest)) {
             $result = $this->internalUrl($url, str::limitLen(decodeUrl($url), 120), $rest);
-        } else {
+        } else { 
             $result = $this->externalUrl($url, str::limitLen(decodeUrl($url), 120));
         }
 
