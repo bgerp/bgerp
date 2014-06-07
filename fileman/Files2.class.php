@@ -745,13 +745,24 @@ class fileman_Files2 extends core_Master
         $conf = core_Packs::getConfig('fileman');
         
         // Изпълняваме командата
-        $fileType = exec("{$conf->FILEMAN_FILE_COMMAND} --mime-type \"{$path}\"");
-        
+        $res = exec("{$conf->FILEMAN_FILE_COMMAND} --mime-type  \"{$path}\"");
+ 
         // Вземаме позицията на интервала
-        $spacePos = mb_strrpos($fileType, ': ') + 2;
+        list($p, $mime) = explode(' ', $res);
         
+        // Тримваме за всеки случай
+        $mime = strtolower(trim($mime));
+        
+        // Доуточняване, ако е изпълним файл, дали не е за MS Windows
+        if($mime == 'application/octet-stream') {
+            $res = exec("{$conf->FILEMAN_FILE_COMMAND} \"{$path}\"");
+            if(stripos($res, 'PE32 executable for MS Windows')) {
+                $mime = 'application/x-msdownload';
+            }
+        }
+
         // Връщаме mime типа
-        return mb_substr($fileType, $spacePos);
+        return $mime;
     }
     
     
