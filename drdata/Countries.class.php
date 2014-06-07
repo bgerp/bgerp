@@ -128,12 +128,35 @@ class drdata_Countries extends core_Manager {
     function getByIp($ip = NULL)
     {
         $cCode2 = drdata_IpToCountry::get($ip);
-        
-        $me = cls::get(__CLASS__);
-        
-        $id = $me->fetchField("#letterCode2 = '{$cCode2}'", 'id');
+                
+        $id = self::fetchField("#letterCode2 = '{$cCode2}'", 'id');
         
         return $id;
+    }
+
+
+    /**
+     * Връща името на държава на основния език
+     * 
+     * @param mixed mix id, 2 или 3 буквен
+     */
+    static function getCountryName($mix)
+    {
+        if(core_Lg::getDefaultLang() == 'bg') {
+            $field = 'commonNameBg';
+        } else {
+            $field = 'commonName';
+        }
+        if(is_numeric($mix)) {
+            $country = drdata_Countries::fetchField($mix, $field);
+        } elseif(strlen($mix) == 2) {
+            $country = drdata_Countries::fetchField(array("#letterCode2 = '[#1#]'", $mix), $field);
+        } else {
+            expect(strlen($mix) == 3);
+            $country = drdata_Countries::fetchField(array("#letterCode3 = '[#1#]'", $mix), $field);
+        }
+
+        return $country;
     }
     
     
@@ -145,40 +168,7 @@ class drdata_Countries extends core_Manager {
     {
         $rec->telCode = preg_replace('/[^0-9]+/', '', $rec->telCode);
     }
-    
-    
-    /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-        // Подготвяме пътя до файла с данните
-        $file = "drdata/data/countrylist.csv";
 
-        // Кои колонки ще вкарваме
-        $fields = array(
-            1 => "commonName",
-            2 => "commonNameBg",
-            3 => "formalName",
-            4 => "type",
-            6 => "sovereignty",
-            7 => "capital",
-            8 => "currencyCode",
-            9 => "currencyName",
-            10 => "telCode",
-            11 => "letterCode2",
-            12 => "letterCode3",
-            13 => "isoNumber",
-            14 => "domain"
-        );
-        
-        // Импортираме данните от CSV файла. 
-        // Ако той не е променян - няма да се импортират повторно
-        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-
-        // Записваме в лога вербалното представяне на резултата от импортирането
-        $res .= $cntObj->html;
-    }
 
     public static function getIdByName($country)
     {
@@ -366,182 +356,39 @@ class drdata_Countries extends core_Manager {
 
         return FALSE;
     }
-
-
-    function act_Test()
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
     {
-        $c = 'bulgaria';
+        // Подготвяме пътя до файла с данните
+        $file = "drdata/data/countrylist.csv";
 
-        bp(self::getIdByName($c));
-    }
-
-
- 
-
-
-    function act_GetRegExpr()
-    {
-
-
-        $canonicNames = array(
-            'malta' => "malta",
-            'austria' => "austria",
-            'germany' => "germany",
-            'france' => "france",
-            'sweden' => "sweden",
-            'switzerland' => "switzerland",
-            'italy' => "italy",
-            'netherlands' => "netherlands",
-            'greece' => "greece",
-            'uk and spain' => "united kingdom",
-            'macedonia' => "macedonia",
-            'cyprus' => "cyprus",
-            'the netherlands' => "netherlands",
-            'belgium' => "belgium",
-            'nederlands' => "netherlands",
-            'spain' => "spain",
-            'german' => "germany",
-            'latvia' => "latvia",
-            'norway' => "norway",
-            'denmark' => "denmark",
-            'denmark' => "denmark",
-            'skopje macedonia' => "macedonia",
-            'united kingdom' => "united kingdom",
-            'ireland' => "ireland",
-            'romania' => "romania",
-            'norway' => "norway",
-            'lithuania' => "lithuania",
-            'portugal' => "portugal",
-            'czech republic' => "czech republic",
-            'england' => "united kingdom",
-            'luxembourg' => "luxembourg",
-            'hungary' => "hungary",
-            'slovenia' => "slovenia",
-            'bosnia and hercegowina' => "bosnia and hercegowina",
-            'roamnia' => "romania",
-            'croatia' => "croatia",
-            'uk' => "united kingdom",
-            'estonia' => "estonia",
-            'untited kingdom' => "united kingdom",
-            'bosnia and herzegovina' => "bosnia and herzegovina",
-            'slovakia' => "slovakia",
-            'slovak republic' => "slovakia",
-            'finland' => "finland",
-            'sewden' => "sweden",
-            'italia' => "italy",
-            'yugoslavia' => "yugoslavia",
-            'monaco' => "monaco",
-            'slovakia' => "slovakia",
-            'scotland' => "scotland",
-            'ch' => "switzerland",
-            'belgique' => "belgium",
-            'uk' => "united kingdom",
-            'kosovo' => "kosovo",
-            'nederland' => "netherlands",
-            'slowakische republik' => "slovakia",
-            'italy' => "italy",
-            'hellas' => "greece",
-            'macedonia' => "macedonia",
-            'iceland' => "iceland",
-            'italia' => "italy",
-            'switerland' => "switzerland",
-            'mallorca - spain' => "spain",
-            'greeece' => "greece",
-            'north ireland' => "north ireland",
-            'serbia' => "serbia",
-            'españa' => "spain",
-            'malta' => "malta",
-            'slovak republic' => "slovakia",
-            'belgium' => "belgium",
-            'germany' => "germany",
-            'deutschland' => "germany",
-            'france' => "france",
-            'united kongdom' => "united kingdom",
-            'grèce' => "greece",
-            'holland' => "netherlands",
-            'andorra' => "andorra",
-            'belgium' => "belgium",
-            'italy' => "italy",
-            'cz' => "czech republic",
-            'san marino' => "san marino",
-            'gemany' => "germany",
-            'norvège' => "norway",
-            'lithuania' => "lithuania",
-            'ittaly' => "italy",
-            'finand' => "finland",
-            'spain' => "spain",
-            'greese' => "greece",
-            'slovenija' => "slovenia",
-            'latvia' => "latvia",
-            'ireland' => "ireland",
-            'czech  republic' => "",
-            'czech rep.' => "czech republic",
-            'swiss' => "switzerland",
-            'northern ireland' => "north ireland",
-            'netherlands' => "netherlands",
-            'estona' => "estonia",
-            'creece' => "greece",
-            'svitzerland' => "switzerland",
-            'switzerland' => "switzerland",
-            'latvijas' => "latvia",
-            'холандия' => "netherlands",
-            'македонија' => "macedonia",
-            'lituanie' => "lithuania",
-            'румъния' => "romaina",
-            'france' => "france",
-            'francе' => "france",
-            'yougoslavie' => "yugoslavia",
-            'danmark' => "denmark",
-            'united kingdom, england' => "united kingdom",
-            'greece' => "greece",
-            'iraland' => "ireland",
-            'builgaria and uk' => "united kingdom",
-            'portugal' => "portugal",
-            'norawy' => "norway",
-            'liechtenstein' => "liechtenstein",
-            'roumanie' => "romania",
-            'romania' => "romania",
-            'slowenia' => "slovenia",
-            'belgium.' => "belgium",
-            'luxemburg' => "luxembourg",
-            'slovenska republika' => "slovenia",
-            'svizzera' => "switzerland",
-            'slovaquie' => "slovakia",
-            'marseille france' => "france",
-            'marseillr france' => "france",
-            'chez republic' => "czech republic",
-            'deutschland' => "germany",
-            'greek' => "greece",
-            'espana' => "spain",
-            'lithuania' => "lithuania",
-            'macedonia' => "macedonia",
-            'swizerland' => "switzerland",
-            'makedonija' => "macedonia" 
+        // Кои колонки ще вкарваме
+        $fields = array(
+            1 => "commonName",
+            2 => "commonNameBg",
+            3 => "formalName",
+            4 => "type",
+            6 => "sovereignty",
+            7 => "capital",
+            8 => "currencyCode",
+            9 => "currencyName",
+            10 => "telCode",
+            11 => "letterCode2",
+            12 => "letterCode3",
+            13 => "isoNumber",
+            14 => "domain"
         );
+        
+        // Импортираме данните от CSV файла. 
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
 
-
-        $query = $this->getQuery();
-        while($rec = $query->fetch()) {
-            if($rec->commonName) {
-                $canonicNames[trim(strtolower(str::utf2ascii($rec->commonName)))] = TRUE;
-            }
-            if($rec->commonNameBg && ($rec->commonNameBg != $rec->commonName)) {
-                $canonicNames[$rec->commonNameBg] = TRUE;
-            }
-        }
-
-        ksort($canonicNames);
-
-        foreach($canonicNames as $key => $name) {
-            $regExp .= '|' . $key;
-        }
-
-        $from = array("'", ".");
-        $to = array("\\\'", "\\\.");
-
-        $regExp = str_replace($from, $to, $regExp);
-
-        bp($regExp);
-
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res .= $cntObj->html;
     }
+
 }
