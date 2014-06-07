@@ -223,8 +223,8 @@ class fileman_Get extends core_Manager {
 
             if(!$data) {
                 $data = @file_get_contents($rec->url);
-
             }
+
             foreach($http_response_header as $l) {
                 $hArr = explode(':', $l, 2);
                 if(isset($hArr[1])) {
@@ -256,7 +256,7 @@ class fileman_Get extends core_Manager {
                     if(!$ext) $ext = $exts[0];
                 }
             }
-
+ 
             $fileName = $headers['filename'];
              
             if(!$fileName) {
@@ -267,11 +267,19 @@ class fileman_Get extends core_Manager {
 
                 $fileName = decodeUrl($matches[0]);
             }
-            // bp($headers, $matches, $fPattern, $rec->url);
+            
+            // Ако URL-то завършва с нещо като име на файл, го вземаме
+            if(!$fileName) {
+                $fPattern = "/[=\/]([a-z0-9_\-]{0,40}\.([a-z]{2,4}))$/i";
+                preg_match($fPattern, $rec->url, $matches);
+                if(fileman_Mimes::getMimeByExt($matches[2])) {
+                    $fileName = $matches[1];
+                }
+            }
 
             if(!$fileName) {
                 $urlArr = parse_url($rec->url);
-                $fileName = $urlArr['host'];
+                $fileName = str_replace('.', '_', $urlArr['host']);
             }
 
             if(!$fileName) {
