@@ -41,7 +41,7 @@ defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '200M');
 /**
  * Път до gnu командата 'file'
  */
-defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files/GnuWin32/bin/file.exe"' : 'file');
+defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files (x86)/GnuWin32/bin/file.exe"' : 'file');
 
 
 /**

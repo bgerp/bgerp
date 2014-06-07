@@ -19,11 +19,8 @@ class fileman_SetExtensionPlg extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave($mvc, &$id, $rec)
+    function on_BeforeSaveDataId($mvc, $rec)
     {
-        // Ако редактираме файла, да не сработва
-        if ($rec->id) return ;
-        
         $fileHnd = $rec->fileHnd;
         $name = $rec->name;
         $bucket = $rec->bucketId;
@@ -32,7 +29,7 @@ class fileman_SetExtensionPlg extends core_Plugin
             
             return ;
         }
-        
+ 
         if (!empty($rec->dataId)) {
             $dataId = $rec->dataId;
         } else {
@@ -45,10 +42,10 @@ class fileman_SetExtensionPlg extends core_Plugin
         expect($dataId);
         
         $dataRec = fileman_Data::fetch(array("#id = '[#1#]'", $dataId));
-        
+     
         $fileMimeType = fileman::getMimeTypeFromFilePath($dataRec->path);
-        
-        $newName = fileman_mimes::addCorrectFileExt($name, $fileMimeType);
+
+        $newName = fileman_Mimes::addCorrectFileExt($name, $fileMimeType);
         
         if($newName != $name) {
             $newName = $mvc->getPossibleName($newName, $bucket);

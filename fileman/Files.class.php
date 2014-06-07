@@ -377,6 +377,9 @@ class fileman_Files extends core_Master
         $rec->dataId = $newDataId;
         $rec->state = 'active';
         
+        // Генерираме събитие преди съхраняването на записа с добавения dataId
+        $this->invoke('BeforeSaveDataId', array($rec));
+
         $this->save($rec);
         
         // Ако има запис
