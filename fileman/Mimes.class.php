@@ -111,28 +111,30 @@ class fileman_Mimes extends core_BaseClass {
     {
         expect($fileName);
 
-        if($mime) {
-            $extArr = self::getExtByMime($mime);
+        if(!$mime) return $fileName;
+
+        $extArr = self::getExtByMime($mime);
+
+        if(count($extArr)) {
             
-            if(count($extArr)) {
-                $ext = fileman_Files::getExt($fileName);
+            $ext = fileman_Files::getExt($fileName);
+            
+            $ext = mb_strtolower($ext);
+
+            if(!$ext || !in_array($ext, $extArr)) {
                 
-                $ext = mb_strtolower($ext);
-                if(!$ext || !in_array($ext, $extArr)) {
+                // TODO става много сложно
+                // Може да се направи само ако няма разширение да се променя, но това ще позволи качването на файлове със сгрешени разширения
+                
+                // Масив с разширенията, на които вярваме и няма да се променят, ако mimeto им е в $noTrustMimeArr
+                $trustExtArr = array('pdf', 'png', 'jpg', 'jpeg', 'doc', 'rar', 'zip', 'docx', 'txt');
+                
+                // Масив с mime типове
+                $noTrustMimeArr = array('application/octet-stream', 'application/x-httpd-php', 'text/x-c', 'text/x-c++', 'text/plain');
+                
+                if (!$ext || (!in_array($mime, $noTrustMimeArr)) && (!in_array($ext, $trustExtArr)) ) {
                     
-                    // TODO става много сложно
-                    // Може да се направи само ако няма разширение да се променя, но това ще позволи качването на файлове със сгрешени разширения
-                    
-                    // Масив с разширенията, на които вярваме и няма да се променят, ако mimeto им е в $noTrustMimeArr
-                    $trustExtArr = array('pdf', 'png', 'jpg', 'jpeg', 'doc', 'rar', 'zip', 'docx', 'txt');
-                    
-                    // Масив с mime типове
-                    $noTrustMimeArr = array('application/octet-stream', 'application/x-httpd-php', 'text/x-c', 'text/x-c++', 'text/plain');
-                    
-                    if (!$ext || (!in_array($mime, $noTrustMimeArr)) && (!in_array($ext, $trustExtArr)) ) {
-                        
-                        $fileName .= '.' . $extArr[0];    
-                    }
+                    $fileName .= '.' . $extArr[0];    
                 }
             }
         }
