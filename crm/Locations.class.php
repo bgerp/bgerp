@@ -290,7 +290,7 @@ class crm_Locations extends core_Master {
         if(count($data->rows)) {
             
             foreach($data->rows as $id => $row) {
-            	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, " . tr('телефон') . ": [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, " . tr('имейл') . ": [#email#]<!--ET_END email--> [#tools#]</div>");
+            	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, " . tr('тел') . ": [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, " . tr('имейл') . ": [#email#]<!--ET_END email--> [#tools#]</div>");
             	$block->placeObject($row);
             	$block->removeBlocks();
                 $tpl->append($block, 'content');
