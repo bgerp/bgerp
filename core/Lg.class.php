@@ -237,9 +237,20 @@ class core_Lg extends core_Manager
         $lg = Mode::get('lg');
         
         if (!$lg) {
-            $conf = core_Packs::getConfig('core');
-            $lg = $conf->EF_DEFAULT_LANGUAGE;
+            $lg = self::getDefaultLang();
         }
+        
+        return $lg;
+    }
+
+
+    /**
+     * Връща езика по подразбиране за системата
+     */
+    static function getDefaultLang()
+    {
+        $conf = core_Packs::getConfig('core');
+        $lg = $conf->EF_DEFAULT_LANGUAGE;
         
         return $lg;
     }

@@ -106,8 +106,6 @@ class core_Setup {
            'EF_DATE_NARROW_FORMAT'   => array ('varchar', 'caption=Формат по подразбиране за датата при мобилни екрани->Формат'),
          
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'), 
-
-           'EF_DEFAULT_LANGUAGE'   => array ('varchar', 'caption=Език по подразбиране->2-буквен код'),
     
            'EF_APP_TITLE'   => array ('varchar', 'caption=Наименование на приложението->Име'),
            
