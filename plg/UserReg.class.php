@@ -295,7 +295,7 @@ class plg_UserReg extends core_Plugin
                     if ($act == 'activate') {
                         core_LoginLog::add($rec->id, 'user_activate');
                     } else {
-//                        core_LoginLog::add($rec->id, 'pass_change');
+                        core_LoginLog::add($rec->id, 'pass_change');
                     }
                     
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
