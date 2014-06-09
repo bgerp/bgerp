@@ -141,7 +141,7 @@ class type_Keylist extends core_Type {
         
         // Определяме броя на колоните, ако не са зададени.
         $col = $this->params['columns'] ? $this->params['columns'] :
-        min(($this->params['maxColumns'] ? $this->params['maxColumns'] : 4),
+        min(($this->params['maxColumns'] ? $this->params['maxColumns'] : ((Mode::is('screenMode', 'wide')) ? 4 : 2)),
             round(sqrt(max(0, count($this->suggestions) + 1))));
         
         $i = 0; $html = ''; $trOpen = TRUE;
