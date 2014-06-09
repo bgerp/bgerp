@@ -85,7 +85,7 @@ class toast_Toast extends core_Plugin
             
             // Данни за показване на статус съобщение
             $statusData = array();
-            $statusData['text'] = addslashes($val['text']);
+            $statusData['text'] = $val['text'];
             $statusData['type'] = $val['type'];
             $statusData['timeOut'] = $timeOut;
             $statusData['isSticky'] = (int)$sticky;
