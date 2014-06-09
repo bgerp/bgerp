@@ -457,7 +457,7 @@ class marketing_Inquiries extends core_Master
     	
     	if (!Mode::is('text', 'plain') && !Mode::is('text', 'xhtml')){
     	    $row->email = "<div class='email'>{$row->email}</div>";
-    	    $row->ip = vislog_History::decorateIp($rec->ip, $rec->createdOn);
+    	    $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     	}
     	
     	if($fields['-list']){
