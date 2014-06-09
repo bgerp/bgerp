@@ -1324,7 +1324,13 @@ class core_Users extends core_Manager
         
         $rec->ps5Enc = $passHash;
         
-        return static::save($rec, 'ps5Enc');
+        $saved = static::save($rec, 'ps5Enc');
+        
+        if ($saved) {
+            core_LoginLog::add($userId, 'pass_change');
+        }
+        
+        return $saved;
     }
 
 
