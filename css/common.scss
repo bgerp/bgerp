@@ -608,13 +608,14 @@ select.combo {
 	margin: 3px 3px 3px 4px;
 	background-color: transparent;
 	outline: none;
+	vertical-align: middle;
 }
 
 input[type=radio] + label, input[type=checkbox] + label {
   color: $quiet-gray;
-  margin-bottom: 2px;
   background-color: transparent !important;
   display: inline-block;
+  vertical-align: baseline;
 }
 
 input[type=radio]:checked + label, input[type=checkbox]:checked + label {
@@ -1416,8 +1417,7 @@ div.hFormField {
 }
 
 .narrow .vertical .keylist input[type=checkbox], .narrow .vertical .keylist input[type=radio]{
-	vertical-align: top;
-    margin-top: 3px;
+	vertical-align: middle;
 }
 
 .vertical .formTable select {
