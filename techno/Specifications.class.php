@@ -177,14 +177,10 @@ class techno_Specifications extends core_Manager {
     	$query->orWhere("#common = 'yes'");
     	$query->where("#state = 'active'");
     	while($rec = $query->fetch()){
-    		try{
+    		if(cls::load($rec->docClassId, TRUE)){
     			$DocClass = cls::get($rec->docClassId);
-    			
     			if($DocClass->fetchField($rec->docId, 'state') != 'active') continue;
-    			
     			$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
-    		} catch(Exception $e){
-    			continue;
     		}
     	}
     	
