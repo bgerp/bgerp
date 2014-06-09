@@ -360,9 +360,8 @@ class sales_SalesDetails extends core_Detail
             expect($productInfo = $productRef->getProductInfo());
             
             // Определяне на цена, количество и отстъпка за опаковка
-            $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
-            $priceAtDate .= " 23:59:59";
-           
+            $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : dt::now();
+            
             if (empty($rec->packagingId)) {
                 // Покупка в основна мярка
                 $rec->quantityInPack = 1;
@@ -470,6 +469,7 @@ class sales_SalesDetails extends core_Detail
             $masterRec = $data->masterData->rec;
             $addUrl = $data->toolbar->buttons['btnAdd']->url;
             
+            //@TODO да проверява за поне една
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
             	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date);
