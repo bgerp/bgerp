@@ -844,7 +844,7 @@ class email_Outgoings extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Изпълнява се след запис на имейла, като дава възможност за моменталното му изпращане 
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {

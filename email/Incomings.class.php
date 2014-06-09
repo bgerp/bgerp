@@ -464,8 +464,8 @@ class email_Incomings extends core_Master
         $rec->textPart = $mime->textPart;
         
         // Запазване на допълнителни MIME-хедъри за нуждите на рутирането
-        $rec->inReplyTo      = $mime->getHeader('In-Reply-To');
-        $rec->bgerpSignature = $mime->getHeader('X-Bgerp-Thread');
+        $rec->inReplyTo   = $mime->getHeader('In-Reply-To');
+        $rec->bgerpThread = $mime->getHeader('X-Bgerp-Thread');
         
         // От коя сметка е получено писмото
         $rec->accId = $accId;
