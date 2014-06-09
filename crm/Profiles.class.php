@@ -274,13 +274,13 @@ class crm_Profiles extends core_Master
 	                // Правим запис в лога
 	                static::log('change_password');
 	                
-//             		if (EF_USSERS_EMAIL_AS_NICK) {
-//             		    $userId = core_Users::fetchField(array("#email = '[#1#]'", $form->rec->email));
-//                    } else {
-//                        $userId = core_Users::fetchField(array("#nick = '[#1#]'", $form->rec->nick));
-//                    }
-//	                
-//	                core_LoginLog::add($userId, 'pass_change');
+             		if (EF_USSERS_EMAIL_AS_NICK) {
+             		    $userId = core_Users::fetchField(array("#email = '[#1#]'", $form->rec->email));
+                    } else {
+                        $userId = core_Users::fetchField(array("#nick = '[#1#]'", $form->rec->nick));
+                    }
+	                
+	                core_LoginLog::add($userId, 'pass_change');
 	                
 	                // Редиректваме към предварително установения адрес
 	                return new Redirect(getRetUrl(), "Паролата е сменена успешно");
