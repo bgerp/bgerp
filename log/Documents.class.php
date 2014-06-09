@@ -291,7 +291,7 @@ class log_Documents extends core_Manager
         
         // Декорираме IP адреса
         if ($rec->ip) {
-            $row->ip = ' ' . vislog_History::decorateIp($rec->ip, $rec->time);
+            $row->ip = ' ' . type_Ip::decorateIp($rec->ip, $rec->time);
         }
     }
     
@@ -714,7 +714,7 @@ class log_Documents extends core_Manager
                 
                 // Ip от което е върнато
                 if ($rec->data->returnedIp) {
-                    $returnedStr .= ' ' . vislog_History::decorateIp($rec->data->returnedIp, $rec->data->returnedOn);
+                    $returnedStr .= ' ' . type_Ip::decorateIp($rec->data->returnedIp, $rec->data->returnedOn);
                 }
                 
                 $row->returnedAndReceived .=  $returnedStr;
@@ -2035,7 +2035,7 @@ class log_Documents extends core_Manager
         $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
         
         if (!empty($firstOpen)) {
-            $html .= ' ' . vislog_History::decorateIp($firstOpen['ip'], $firstOpen['on']);
+            $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on']);
             $cnt = count($rec->data->{$openActionName});
             if ($cnt) {
                 $html .= ht::createLink(
