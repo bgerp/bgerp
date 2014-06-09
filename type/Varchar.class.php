@@ -35,11 +35,17 @@ class type_Varchar extends core_Type {
     function renderInput_($name, $value = "", &$attr = array())
     {
         // Сигнализиране на потребителя, ако въведе по-дълъг текст от допустимото
-        setIfNot($size, $this->params['size'], $this->params[0]);
+        setIfNot($size, $this->params['size'], $this->params[0], $this->dbFieldLen);
+        
+        if (!$this->params['noTrim']) {
+            $attr['onblur'] .= "this.value = this.value.trim();";
+        }
+        
         if($size > 0) {
-             $attr['onblur'] .= "this.value = this.value.trim(); colorByLen(this, {$size}); if(this.value.length > {$size}) alert('" . 
-                 tr("Въведената стойност е над допустимите") . " $size " . tr('символа') . "');";
-             $attr['onkeyup'] .= "colorByLen(this, {$size});";
+            
+            $attr['onblur'] .= "colorByLen(this, {$size}); if(this.value.length > {$size}) alert('" . 
+                tr("Въведената стойност е над допустимите") . " $size " . tr('символа') . "');";
+            $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
         
         if($this->params['size']) {
