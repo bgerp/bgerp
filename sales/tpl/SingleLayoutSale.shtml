@@ -73,7 +73,7 @@
 		<!--ET_END STATISTIC_BAR-->
 			[#SINGLE_CONTENT#]
 		</div>
-	<div style = 'margin-top:10px'>
+	<div style = 'margin-top:10px'></div>
 	</div>
 	<!--ET_BEGIN DETAILS-->
 		<div class='details'>
@@ -81,12 +81,11 @@
 		</div>
 	<!--ET_END DETAILS-->
 	
-	</div>
+	
 	<!--ET_BEGIN shareLog-->
     	<div class='sharing-history clearfix21'>
         	<span class='sharing-history-title'>|Споделяне|*</span>
         	[#shareLog#]
     	</div>
     <!--ET_END shareLog-->
-</div>
 </div>
