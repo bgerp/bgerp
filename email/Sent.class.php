@@ -19,7 +19,7 @@ class email_Sent
     /**
      * Изпраща имейл
      */
-    static function sendOne($boxFrom, $emailsTo, $subject, $body, $options, $emailsCc=NULL)
+    static function sendOne($boxFrom, $emailsTo, $subject, $body, $options, $emailsCc = NULL)
     {
         if ($options['encoding'] == 'ascii') {
             $body->html = str::utf2ascii($body->html);
@@ -41,11 +41,9 @@ class email_Sent
             'charset'   => $options['encoding'],
         );
         
+        // Добавя манипулатора на нишката в събджекта на имейла, ако няма забрана да направи това
         if (empty($options['no_thread_hnd'])) {
-            $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
-            $handle = static::getThreadHandle($body->containerId);
-            $messageBase['headers']['X-Bgerp-Thread'] = "{$handle}; origin={$myDomain}";
-            $messageBase['subject'] = email_util_ThreadHandle::decorate($messageBase['subject'], $handle);
+            $messageBase['subject'] = email_ThreadHandles::decorateSubject($messageBase['subject'], $body->threadId);
         }
         
         $sentRec = (object)array(
@@ -68,9 +66,7 @@ class email_Sent
      * Подготвя за изпращане по имейл
      */
     protected static function prepareMessage($message, $sentRec, $isFax = NULL)
-    {
-        $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
-        
+    {        
         list($senderName, $senderDomain) = explode('@', $message->emailFrom, 2);
         
         expect(is_array($message->headers));
@@ -89,7 +85,7 @@ class email_Sent
             'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
         );
         
-        $message->messageId = email_util_ThreadHandle::makeMessageId($sentRec->mid);
+        $message->messageId = email_Router::createMessageIdFromMid($sentRec->mid);
         
         // Заместване на уникалния идентификатор на писмото с генерираната тук стойност
         $message->html = str_replace('[#mid#]', $sentRec->mid, $message->html);
@@ -194,16 +190,7 @@ class email_Sent
     }
 
 
-    /**
-     * @todo Чака за документация...
-     */
-    static function getThreadHandle($containerId)
-    {
-        $threadId = doc_Containers::fetchField($containerId, 'threadId');
-        
-        return doc_Threads::getHandle($threadId);
-    }
-    
+     
     
     /**
      * Вкарва всички статични изображения, като cid' ове

@@ -344,13 +344,13 @@ class email_Router extends core_Manager
         $rec->threadId = static::extractThreadFromReplyTo($rec);
         
         if (!$rec->threadId) {
-            $rec->threadId = static::extractThreadFromSubject($rec);
+            $rec->threadId = email_ThreadHandles::extractThreadFromSubject($rec->subject);
         }
         
         if ($rec->threadId) {
             if($rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId')) {
                 // Премахване на манипулатора на нишката от събджекта
-                static::stripThreadHandle($rec);
+                $rec->subject = email_ThreadHandles::stripSubject($rec->subject, $rec->threadId);
             } else {
                 // Зануляваме треда, защото съответстващата и папка не съществува
                 unset($rec->threadId);
@@ -373,7 +373,7 @@ class email_Router extends core_Manager
             return NULL;
         }
         
-        if (!($mid = email_util_ThreadHandle::extractMid($rec->inReplyTo))) {
+        if (!($mid = self::extractMidFromMessageId($rec->inReplyTo))) {
             return NULL;
         }
         
@@ -392,60 +392,38 @@ class email_Router extends core_Manager
         return $sentRec->threadId;
     }
     
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function stripThreadHandle($rec)
-    {
-        expect($rec->threadId);
-        
-        $threadHandle = doc_Threads::getHandle($rec->threadId);
-        
-        $rec->subject = email_util_ThreadHandle::strip($rec->subject, $threadHandle);
-    }
 
+    /**
+     * Генерира MesasgeID за имейл от mid
+     */
+    static function createMessageIdFromMid($mid)
+    {        
+        return "<" . str::addHash($mid, 8, 'MID') . ">";
+    }
+    
     
     /**
-     * Извлича нишката от 'Subject'-а
-     *
-     * @param stdClass $rec
-     * @return int първичен ключ на нишка или NULL
+     * Връща mid от MessageId на имейл
      */
-    protected static function extractThreadFromSubject($rec)
+    static function extractMidFromMessageId($messageId)
     {
-        $subject = $rec->subject;
-        
-        // Списък от манипулатори на нишки, за които е сигурно, че не са наши
-        $blackList = array();
-        
-        if ($rec->bgerpSignature) {
-            // Възможно е това писмо да идва от друга инстанция на BGERP.
-            list($foreignThread, $foreignDomain) = preg_split('/\s*;\s*/', $rec->bgerpSignature, 2);
+        $messageId = trim($messageId, ' <>');
+
+        $mid = str::checkHash($messageId, 8, 'MID');
+
+        // Deprecated, за съвмесимост със стария формат
+        if(!$mid && defined(BGERP_DEFAULT_EMAIL_DOMAIN)) {
+            $myDomain = preg_quote(BGERP_DEFAULT_EMAIL_DOMAIN, '/');
+            $regex    = "/^(.+)@{$myDomain}\.mid$/";
             
-            if ($foreignDomain != BGERP_DEFAULT_EMAIL_DOMAIN) {
-                // Да, друга инстанция;
-                $blackList[] = $foreignThread;
+            if (preg_match($regex, $messageId, $matches)) {
+                $mid = $matches[1];
             }
         }
-        
-        // Списък от манипулатори на нишка, които може и да са наши
-        $whiteList = email_util_ThreadHandle::extract($subject);
-        
-        // Махаме 'чуждите' манипулатори
-        $whiteList = array_diff($whiteList, $blackList);
-        
-        // Проверяваме останалите последователно 
-        foreach ($whiteList as $handle) {
-            if ($threadId = doc_Threads::getByHandle($handle)) {
-                break;
-            }
-        }
-        
-        return $threadId;
-    }
 
-    
+        return $mid;
+    }
+     
 
     /**
      * Рутира по правилото `From`
@@ -514,23 +492,8 @@ class email_Router extends core_Manager
         $folderId = NULL;
         
         $conf = core_Packs::getConfig('email');
-
-        /**
-         * @TODO: Идея: да направим клас email_Countries (или може би bgerp_Countries) наследник
-         * на drdata_Countries и този клас да стане корица на папка. Тогава този метод би
-         * изглеждал така:
-         *
-         * $folderId = email_Countries::forceCoverAndFolder(
-         *         (object)array(
-         *             'id' => $countryId
-         *         )
-         * );
-         *
-         * Това е по-ясно, а и зависимостта от константата EMAILІUNSORTABLE_COUNTRY отива на
-         * 'правилното' място.
-         */
         
-        $countryName = static::getCountryName($countryId);
+        $countryName = drdata_Countries::getCountryName($countryId);
         
 
         if (!empty($countryName)) {
@@ -545,18 +508,6 @@ class email_Router extends core_Manager
         return $folderId;
     }
     
-    
-    /**
-     * Връща името на държавата от която е пратен имейл-а
-     */
-    protected static function getCountryName($countryId)
-    {
-        if ($countryId) {
-            $countryName = drdata_Countries::fetchField($countryId, 'commonNameBg');
-        }
-        
-        return $countryName;
-    }
 
 
     /**
