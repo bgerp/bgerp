@@ -59,7 +59,27 @@ class type_IP extends type_Varchar {
     {
         if(empty($value)) return NULL;
         
+        self::decorateIp($value);
+        
         return $value;
+    }
+    
+    
+    /**
+     * Декорира ip адреса
+     * 
+     * @param IP $ip
+     * @param time $time
+     */
+    static function decorateIp($ip, $time = NULL)
+    {
+        $res = $ip;
+        
+        $me = cls::get(get_called_class());
+        
+        $me->invoke('AfterDecorateIp', array(&$res, $ip, $time));
+        
+        return $res;
     }
     
     
