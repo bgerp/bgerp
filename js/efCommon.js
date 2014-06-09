@@ -1254,6 +1254,15 @@ function setFormElementsWidth()
 
 
 /**
+ * Задава ширина на елементите от нишката в зависимост от ширината
+ */
+function setThreadElemWidth(){
+	var winWidth = parseInt($(window).width()) - 45;
+	$('.details').css('maxWidth',winWidth);
+	$('.scrolling-holder').css('maxWidth',winWidth );
+}
+
+/**
  * При натискане с мишката върху елемента, маркираме текста
  */
 function onmouseUpSelect()
