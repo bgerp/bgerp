@@ -43,7 +43,9 @@ class type_Password extends type_Varchar {
         if($value || $this->params['autocomplete'] == 'off') {
             $attr['autocomplete'] = 'off';
         }
-                
+        
+        $this->params['noTrim'] = 'noTrim';
+        
         return parent::renderInput_($name, $value, $attr);
     }
     
