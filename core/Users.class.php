@@ -858,8 +858,10 @@ class core_Users extends core_Manager
             $TimeInst = cls::get('type_Time');
             $time = $TimeInst->toVerbal($time);
             
+            $ip = type_Ip::decorateIp($userRec->lastLoginIp, $userRec->lastLoginTime);
+            
             // Добавяме съответното статус съобщение
-            $text = "|Последно логване от|* {$userRec->lastLoginIp} |преди|* {$time}";
+            $text = "|Последно логване от|* {$ip} |преди|* {$time}";
             core_Statuses::newStatus($text);
         }
     }
