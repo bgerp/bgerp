@@ -295,6 +295,7 @@ class core_Users extends core_Manager
             } else {
                 // Ако няма грешки, задаваме да се модифицира хеша в DB
                 $rec->ps5Enc = $rec->passNewHash;
+                $mvc->changePass = TRUE;
             }
         } else {
             if($recId) {
@@ -310,6 +311,13 @@ class core_Users extends core_Manager
         if($form->gotErrors()) {
             $rec->passNewHash   = '';
             $rec->passExHash = '';
+        } else {
+            if ($recId) {
+                $exRec  = self::fetch($recId);
+                if($rec->nick != $exRec->nick) {
+                    $mvc->changeNick = TRUE;
+                }
+            }
         }
         
         // Ако регистрираме първия потребител, добавяме му роля `admin`
@@ -605,19 +613,14 @@ class core_Users extends core_Manager
             $rec->roles = keylist::fromArray($rolesArr);
         }
         
-        if ($rec->id > 0) {
-            // Стария запис
-            $exRec = $mvc->fetch($rec->id, '*', FALSE);
-            
-            // Ако е сменен ника
-            if ($exRec->nick != $rec->nick) {
-                core_LoginLog::add($rec->id, 'change_nick');
-            }
-            
-            // Ако е сменена паролата
-            if ($exRec->ps5Enc != $rec->ps5Enc) {
-                core_LoginLog::add($rec->id, 'pass_change');
-            }
+        // Ако е сменен ника
+        if ($mvc->changeNick) {
+            core_LoginLog::add($rec->id, 'change_nick');
+        }
+        
+        // Ако е сменена паролата
+        if ($mvc->changePass) {
+            core_LoginLog::add($rec->id, 'pass_change');
         }
     }
 
