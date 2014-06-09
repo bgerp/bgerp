@@ -880,9 +880,11 @@ class core_Mvc extends core_FieldSet
                     if($indexes[$name]) {
                         $exFields = $indexes[$name][$indRec->type];
                         $exFieldsList = '';
-                        foreach($exFields as $exField => $true) {
-                            if($true) {
-                                $exFieldsList .= ($exFieldsList ? ',' : '') . $exField;
+                        if(is_array($exFields)) {
+                            foreach($exFields as $exField => $true) {
+                                if($true) {
+                                    $exFieldsList .= ($exFieldsList ? ',' : '') . $exField;
+                                }
                             }
                         }
                         
