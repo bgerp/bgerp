@@ -291,7 +291,7 @@ class log_Documents extends core_Manager
         
         // Декорираме IP адреса
         if ($rec->ip) {
-            $row->ip = vislog_History::decorateIp($rec->ip, $rec->time);
+            $row->ip = ' ' . vislog_History::decorateIp($rec->ip, $rec->time);
         }
     }
     
@@ -714,7 +714,7 @@ class log_Documents extends core_Manager
                 
                 // Ip от което е върнато
                 if ($rec->data->returnedIp) {
-                    $returnedStr .= vislog_History::decorateIp($rec->data->returnedIp, $rec->data->returnedOn);
+                    $returnedStr .= ' ' . vislog_History::decorateIp($rec->data->returnedIp, $rec->data->returnedOn);
                 }
                 
                 $row->returnedAndReceived .=  $returnedStr;
@@ -1160,7 +1160,30 @@ class log_Documents extends core_Manager
         return Mode::get('action');
     }
     
+    /**
+     * Случаен уникален идентификатор на документ
+     *
+     * @return string
+     */
+    protected static function generateMid()
+    {
+        do {
+            $mid = str::getRand('Aaaaaaaa');
+        } while (static::fetch("#mid = '{$mid}'", 'id'));
     
+        return $mid;
+    }
+
+
+    /**
+     * Извлича записа по подаден $mid
+     */
+    public static function fetchByMid($mid)
+    {
+        return static::fetch(array("#mid = '[#1#]'", $mid));
+    }
+
+
     /**
      * Достъпност на документ от не-идентифицирани посетители
      * 
@@ -1174,15 +1197,6 @@ class log_Documents extends core_Manager
         return static::fetch(array("#mid = '[#1#]' AND #containerId = [#2#]", $mid, $cid));
     }
     
-    
-    /**
-     * Извлича записа по подаден $mid
-     */
-    public static function fetchByMid($mid)
-    {
-        return static::fetch(array("#mid = '[#1#]'", $mid));
-    }
-
     
     /**
      * Извлича записа по подаден cid
@@ -1622,22 +1636,7 @@ class log_Documents extends core_Manager
         return $rec;
     }
     
-    
-    /**
-     * Случаен уникален идентификатор на документ
-     *
-     * @return string
-     */
-    protected static function generateMid()
-    {
-        do {
-            $mid = str::getRand('Aaaaaaaa');
-        } while (static::fetch("#mid = '{$mid}'", 'id'));
-    
-        return $mid;
-    }
-    
-    
+        
     /**
      * Изпълнява се преди всеки запис в модела
      * 
@@ -2036,7 +2035,7 @@ class log_Documents extends core_Manager
         $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
         
         if (!empty($firstOpen)) {
-            $html .= vislog_History::decorateIp($firstOpen['ip'], $firstOpen['on']);
+            $html .= ' ' . vislog_History::decorateIp($firstOpen['ip'], $firstOpen['on']);
             $cnt = count($rec->data->{$openActionName});
             if ($cnt) {
                 $html .= ht::createLink(
