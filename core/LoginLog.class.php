@@ -143,7 +143,7 @@ class core_LoginLog extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->ip){
-    	    $row->ip = vislog_History::decorateIp($rec->ip, $rec->createdOn);
+    	    $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     	}
     }
     
