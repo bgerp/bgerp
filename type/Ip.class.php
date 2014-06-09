@@ -59,6 +59,8 @@ class type_IP extends type_Varchar {
     {
         if(empty($value)) return NULL;
         
+        $time = $this->params['time'];
+        
         self::decorateIp($value);
         
         return $value;
