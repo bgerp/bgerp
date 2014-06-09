@@ -177,7 +177,7 @@ class core_Users extends core_Manager
             'caption=Състояние,notNull,default=draft');
         
         $this->FLD('lastLoginTime', 'datetime(format=smartTime)', 'caption=Последно->Логване,input=none');
-        $this->FLD('lastLoginIp', 'varchar(16)', 'caption=Последно->IP,input=none');
+        $this->FLD('lastLoginIp', 'type_Ip', 'caption=Последно->IP,input=none');
         $this->FLD('lastActivityTime', 'datetime(format=smartTime)', 'caption=Последно->Активност,input=none');
 
         $this->setDbUnique('nick');
@@ -552,7 +552,7 @@ class core_Users extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->lastLoginTime = $mvc->getVerbal($rec, 'lastLoginTime');
-        $row->lastLoginIp = $mvc->getVerbal($rec, 'lastLoginIp');
+        $row->lastLoginIp = type_IP::decorateIp($rec->lastLoginIp, $rec->lastLoginTime);
         $row->nick = $mvc->getVerbal($rec, 'nick');
         $row->email = $mvc->getVerbal($rec, 'email');
         $row->names = $mvc->getVerbal($rec, 'names');
@@ -566,11 +566,7 @@ class core_Users extends core_Manager
         
         $row->title->append("<div style='margin-top:4px;font-size:0.9em;'><i>{$row->email}</i></div>");
         
-        $row->last = ht::createLink($row->lastLoginIp,
-            "http://bgwhois.com/?query=" . $rec->lastLoginIp,
-            NULL,
-            array('target' => '_blank'
-            ));
+        $row->last = clone $row->lastLoginIp;
         
         $row->last->append("<br>");
         
