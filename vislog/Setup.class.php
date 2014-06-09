@@ -75,8 +75,25 @@ class vislog_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(3.5, 'Сайт', 'Лог', 'vislog_History', 'default', "admin, ceo, cms"),
         );
-
+    
+    
+	/**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+      	$html = parent::install();
         
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Прикачаме плъгина
+        $html .= $Plugins->forcePlugin('Декориране на IP', 'vislog_DecoratePlugin', 'type_Ip', 'private');
+        
+        return $html;
+    }
+    
+    
     /**
      * Де-инсталиране на пакета
      */
