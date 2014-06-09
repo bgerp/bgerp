@@ -366,7 +366,7 @@ class type_Richtext extends type_Blob
     function replaceTags($html)
     {
         // Уникод UTF-8 символ за неприкъсваем интервал
-        $nbspUtf8 = html_entity_decode('&nbsp;');
+        $nbspUtf8 = chr(0xC2) . chr(0xA0);
  
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         $from = array("\r\n", "\n\r", "\r", "\n", "\t", $nbspUtf8, '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
@@ -1292,7 +1292,7 @@ class type_Richtext extends type_Blob
         $empty = 0;
         $newRichText = '';
         foreach($lines as $l) {
-            if(trim(str_replace(array('[b]', '[/b]', '[i]', '[/i]', '[u]', '[/u]', html_entity_decode('&nbsp;')), array(), $l))) {
+            if(trim(str_replace(array('[b]', '[/b]', '[i]', '[/i]', '[u]', '[/u]', chr(0xC2) . chr(0xA0)), array(), $l))) {
                 $empty = 0;
             } else {
                 $empty++;
