@@ -300,7 +300,7 @@ class bgerp_Notifications extends core_Manager
         $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
         $data->query->orderBy("state,modifiedOn=DESC");
 
-        if(Mode::is('screenMode', 'narrow')) {
+        if(Mode::is('screenMode', 'narrow') && !Request::get('noticeSearch')) {
             $data->query->where("#state = 'active'");
         }
         
