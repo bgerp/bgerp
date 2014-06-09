@@ -366,9 +366,8 @@ class type_Richtext extends type_Blob
     function replaceTags($html)
     {
         // Уникод UTF-8 символ за неприкъсваем интервал
-        $nbspUtf8 = chr(0xC2) . chr(0xA0);
-        $nbsp     = chr(0xA0);
-
+        $nbspUtf8 = html_entity_decode('&nbsp;');
+ 
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         $from = array("\r\n", "\n\r", "\r", "\n", "\t", $nbspUtf8, '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
         // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
@@ -1276,6 +1275,35 @@ class type_Richtext extends type_Blob
         }
         
         return $params;
+    }
+
+
+    /**
+     * Премахва празните линии, които се срещат последователно и са повече от посочения параметър
+     *
+     * @param string $richText
+     * @param int    $maxLines
+     *
+     * @return string 
+     */
+    static function removeEmptyLines($richText, $maxEmptyLines = 2)
+    {
+        $lines = explode("\n", $richText);
+        $empty = 0;
+        $newRichText = '';
+        foreach($lines as $l) {
+            if(trim(str_replace(array('[b]', '[/b]', '[i]', '[/i]', '[u]', '[/u]', html_entity_decode('&nbsp;')), array(), $l))) {
+                $empty = 0;
+            } else {
+                $empty++;
+            }
+                        
+            if($empty <2) {
+                $newRichText .= $l . "\n";
+            }
+        }
+
+        return $newRichText;
     }
     
     
