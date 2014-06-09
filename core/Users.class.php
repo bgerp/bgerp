@@ -605,17 +605,19 @@ class core_Users extends core_Manager
             $rec->roles = keylist::fromArray($rolesArr);
         }
         
-        // Стария запис
-        $exRec = $mvc->fetch($rec->id, '*', FALSE);
-        
-        // Ако е сменен ника
-        if ($exRec->nick != $rec->nick) {
-            core_LoginLog::add($rec->id, 'change_nick');
-        }
-        
-        // Ако е сменена паролата
-        if ($exRec->ps5Enc != $rec->ps5Enc) {
-            core_LoginLog::add($rec->id, 'pass_change');
+        if ($rec->id > 0) {
+            // Стария запис
+            $exRec = $mvc->fetch($rec->id, '*', FALSE);
+            
+            // Ако е сменен ника
+            if ($exRec->nick != $rec->nick) {
+                core_LoginLog::add($rec->id, 'change_nick');
+            }
+            
+            // Ако е сменена паролата
+            if ($exRec->ps5Enc != $rec->ps5Enc) {
+                core_LoginLog::add($rec->id, 'pass_change');
+            }
         }
     }
 
