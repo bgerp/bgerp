@@ -566,7 +566,7 @@ class core_Users extends core_Manager
         
         $row->title->append("<div style='margin-top:4px;font-size:0.9em;'><i>{$row->email}</i></div>");
         
-        $row->last = clone $row->lastLoginIp;
+        $row->last = new ET($row->lastLoginIp);
         
         $row->last->append("<br>");
         
