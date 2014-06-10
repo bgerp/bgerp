@@ -4,7 +4,13 @@
 /**
  * 
  */
-defIfNot('ABBYYOCR_LANGUAGES', 'Bulgarian English');  
+defIfNot('ABBYYOCR_PATH', 'abbyyocr9');
+
+ 
+/**
+ * 
+ */
+defIfNot('ABBYYOCR_LANGUAGES', 'Bulgarian English');
 
 
 /**
