@@ -38,7 +38,7 @@ class price_ListDocs extends core_Master
      /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, doc_plg_TplManager,
+    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc';
     	
     
@@ -116,6 +116,18 @@ class price_ListDocs extends core_Master
     
     
     /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    var $singleLayoutFile = 'price/tpl/templates/ListDoc.shtml';
+    
+    
+    /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    var $singleLayoutFile2 = 'price/tpl/templates/ListDocWithoutUom.shtml';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -128,6 +140,7 @@ class price_ListDocs extends core_Master
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
+    	$this->FLD('showUoms', 'enum(no=Ценоразпис,yes=Ценоразпис с основна мярка)', 'caption=Шаблон,notNull,default=no');
     }
     
     
@@ -160,6 +173,8 @@ class price_ListDocs extends core_Master
     	$form->setDefault('policyId', $defaultList);
     	
     	$form->setDefault('currencyId', $mvc->getDefaultCurrency($form->rec));
+    	
+    	
     }
     
     
@@ -363,7 +378,7 @@ class price_ListDocs extends core_Master
     		$productInfo = cat_Products::getProductInfo($product->productId);
     		
     		// Ако има опаковки
-    		if(count($productInfo->packagings)){
+    		if($rec->showUoms == 'yes' && array_intersect_key($productInfo->packagings, $packArr) || (count($productInfo->packagings))){
     			$count = 0;
     			
     			// За всяка опаковка
@@ -397,7 +412,7 @@ class price_ListDocs extends core_Master
     			}
     		} else {
     			// Ако продукта няма опаковки и се показват всички опаковки добавяме го
-	    		if(!count($packArr) && $product->priceM){
+	    		if($rec->showUoms == 'yes' && $product->priceM){
 	    			$rec->details->recs[] = $product;
 	    		}
     		}
@@ -479,6 +494,16 @@ class price_ListDocs extends core_Master
     	$row->eanCode = $varchar->toVerbal($rec->eanCode);
     	
     	return $row;
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	$tplFile = ($data->rec->showUoms == 'yes') ? $this->singleLayoutFile : $this->singleLayoutFile2;
+    	$tpl = getTplFromFile($tplFile);
     }
     
     
@@ -742,32 +767,5 @@ class price_ListDocs extends core_Master
     		}
     	}
     	return FALSE;
-    }
-    
-    
-    /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$mvc->setTemplates($res);
-    }
-    
-    
-	/**
-     * Зарежда шаблоните на покупката в doc_TplManager
-     */
-    private function setTemplates(&$res)
-    {
-    	$tplArr[] = array('name' => 'Ценоразпис', 'content' => 'price/tpl/templates/ListDoc.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Ценоразпис без основна мярка', 'content' => 'price/tpl/templates/ListDocWithoutUom.shtml', 'lang' => 'bg');
-    	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за ценоразписи, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
 }
