@@ -30,8 +30,12 @@ class imagics_Identify extends core_Plugin
         // Вземаме конфигурацията
         $conf = core_Packs::getConfig('imagics');
         
+        $identifyCmd = $conf->IMAGICS_IDENTIFY_FILE_COMMAND;
+        
+        $identifyCmd = escapeshellcmd($identifyCmd);
+        
         // Изпълняваме командата
-        $ext = exec("{$conf->IMAGICS_IDENTIFY_FILE_COMMAND} -format \"%m\" \"{$path}\"", $a, $b);
+        $ext = exec("{$identifyCmd} -format \"%m\" \"{$path}\"", $a, $b);
         
         // Разширението в долен регистър
         $ext = strtolower($ext);
