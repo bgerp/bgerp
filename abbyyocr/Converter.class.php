@@ -166,12 +166,15 @@ class abbyyocr_Converter extends core_Manager
         // Задаваме параметрите
         $Script->setParam('LANGUAGE', $conf->ABBYYOCR_LANGUAGES, TRUE);
         
+        // Заместваме програмата с пътя от конфига
+        $Script->setProgram('abbyyocr9', $conf->ABBYYOCR_PATH);
+        
         // Добавяме към изпълнимия скрипт
         $lineExecStr = "abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]";
         
         // Скрипта, който ще конвертира
         $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath));
-
+        
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack($params['callBack']);
         
