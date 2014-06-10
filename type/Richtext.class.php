@@ -318,10 +318,10 @@ class type_Richtext extends type_Blob
             }
                         
             $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $out);
+            
+            $html = str_replace('<nbsp>', '&nbsp;', $html);
         }
     
-        $html = str_replace('<nbsp>', '&nbsp;', $html);
-
         if(!Mode::is('text', 'plain')) {
             $html =  new ET("<div class=\"richtext\">{$html}</div>");
         } else {
