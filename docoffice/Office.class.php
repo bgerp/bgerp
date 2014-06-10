@@ -107,11 +107,14 @@ class docoffice_Office
 
         if (!$pid) return ;
         
+        $pid = escapeshellarg($pid);
+        
         // Заключваме офис пакета
         static::lockOffice(100, 50);
 
         // Убиваме процеса
         $sh = "kill {$pid}";
+        
         exec($sh, $dummy, $res);
 
         // Ако всичко е минало както трябва
@@ -149,7 +152,7 @@ class docoffice_Office
         
         // Определяме името на офис пакета
         $baseName = basename(OFFICE_PACKET_PATH);
-        
+        $baseName = escapeshellarg($baseName);
         // Намираме process id' то на офис пакета
         $sh = "ps ux | grep {$baseName} | grep -v grep | awk '{ print $2 }' | head -1";
         $pid = exec($sh);
