@@ -432,7 +432,7 @@ class pos_Receipts extends core_Master {
 			$pointRec = pos_Points::fetch($rec->pointId);
 			
 			// Трябва точката да има драйвър, да има инсталирани драйвъри и бележката да е чернова
-			if($pointRec->driver && count(core_Classes::getOptionsByInterface('pos_FiscPrinterIntf')) && $rec->state == 'draft'){
+			if($pointRec->driver && array_key_exists($pointRec->driver, core_Classes::getOptionsByInterface('pos_FiscPrinterIntf')) && $rec->state == 'draft'){
 				$res = 'pos, ceo';
 			} else {
 				$res = 'no_one';
