@@ -70,9 +70,21 @@ class core_LoginLog extends core_Manager
     
     
     /**
+     * Името на полито, по което плъгина GroupByDate ще групира редовете
+     */
+    var $groupByDateField = 'createdOn';
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_SystemWrapper, plg_Created';
+    var $loadList = 'plg_SystemWrapper, plg_Created, plg_GroupByDate';
+    
+    
+    /**
+     * Кой може да види IP-то от последното логване
+     */
+    var $canViewlog = 'powerUser';
     
     
     /**
@@ -86,10 +98,10 @@ class core_LoginLog extends core_Manager
      */
     function description()
     {
-        $this->FLD('userId', 'user(select=nick)', 'caption=Потребител');
+        $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent');
         $this->FLD('ip', 'ip', 'caption=IP');
         $this->FLD('brid', 'varchar', 'caption=BRID');
-        $this->FLD('status', 'enum(
+        $this->FLD('status', 'enum( 
         							success=Успешен,
 									error=Грешка,
 									block=Блокиран,
@@ -102,7 +114,7 @@ class core_LoginLog extends core_Manager
 									user_reg=Регистриране,
 									user_activate=Активиране,
 									change_nick=Промяна на ник
-								  )', 'caption=Статус');
+								  )', 'caption=Статус, silent');
         $this->FLD('time', 'datetime()', 'caption=Време, input=none');
     }
     
@@ -133,6 +145,47 @@ class core_LoginLog extends core_Manager
     
     
     /**
+     * Връща последните записи в лога за съответния потребител
+     * 
+     * @param integer $userId
+     * @param integer $limit
+     * @param array $statusArr
+     * 
+     * @return array
+     */
+    static function getLastAttempts($userId=NULL, $limit=5, $statusArr=array()) 
+    {
+        // Ако не е подаден потребител
+        if ($userId == NULL) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $recsArr = array();
+        
+        // Всички записи за съответния потребител, подредени по дата
+        $query = static::getQuery();
+        $query->where("#userId = '{$userId}'");
+        $query->orderBy('createdOn', 'DESC');
+        
+        // Ако е зададен лимит
+        if ($limit) {
+            $query->limit($limit);
+        }
+        
+        // Ако е зададен масив със статуси
+        if ($statusArr) {
+            $query->orWhereArr('status', $statusArr);
+        }
+        
+        while ($rec = $query->fetch()) {
+            $recsArr[$rec->id] = $rec;
+        }
+        
+        return $recsArr;
+    }
+    
+    
+    /**
      * 
      * 
      * @param core_LoginLog $mvc
@@ -157,7 +210,65 @@ class core_LoginLog extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        // Сортиране на записите по num
+        // В хоризонтален вид
+        $data->listFilter->view = 'horizontal';
+        
+        // Добавяме бутон
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Ако имаме тип на обаждането
+        if ($statusOptions = &$data->listFilter->getField('status')->type->options) {
+            
+            // Добавяме в началото празен стринг за всички
+            $statusOptions = array('all' => '') + $statusOptions;
+            
+            // Избираме го по подразбиране
+            $data->listFilter->setDefault('status', 'all');
+        }
+        
+        // Кои полета да се показват
+        $data->listFilter->showFields = 'userId, status';
+        
+        // Инпутваме заявката
+        $data->listFilter->input('userId, status', 'silent');
+        
+        // Сортиране на записите по създаване
         $data->query->orderBy('createdOn', 'DESC');
+        
+        // Ако има филтър
+        if($filter = $data->listFilter->rec) {
+            
+            // Ако се търси по потребител
+            if ($filter->userId) {
+                $data->query->where(array("#userId = '[#1#]'", $filter->userId));
+            }
+            
+            // Ако се търси по статус
+            if ($filter->status && $filter->status != 'all') {
+                $data->query->where(array("#status = '[#1#]'", $filter->status));
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_LoginLog $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param object $rec
+     * @param id $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Текущия потребител може да си види записите от лога, admin и ceo могат на всичките
+        if ($action == 'viewlog') {
+            if ($rec && ($rec->userId != $userId)) {
+                if (!haveRole('ceo, admin')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
 }
