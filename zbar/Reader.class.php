@@ -26,7 +26,9 @@ class zbar_Reader
     {
         // Генерираме URL за сваляне на файл
         $downloadUrl = fileman_Download::getDownloadUrl($fh);
-
+        
+        $downloadUrl = escapeshellarg($downloadUrl);
+        
         // Изпълняваме командата за намиране на баркодове
         exec("zbarimg {$downloadUrl}", $allBarcodesArr, $errorCode);
         
