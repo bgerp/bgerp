@@ -323,6 +323,7 @@ class pos_Receipts extends core_Master {
     
     /**
      * Ъпдейтване на бележката
+     * 
      * @param int $id - на бележката
      */
     function updateReceipt($id)
@@ -422,6 +423,18 @@ class pos_Receipts extends core_Master {
 		// Можели да бъде направено плащане по бележката
 		if($action == 'pay' && isset($rec)){
 			if(!$rec->total || ($rec->total && $rec->paid >= $rec->total)){
+				$res = 'no_one';
+			}
+		}
+		
+		// Дали може да се принтира касова бележка
+		if($action == 'printreceipt'){
+			$pointRec = pos_Points::fetch($rec->pointId);
+			
+			// Трябва точката да има драйвър, да има инсталирани драйвъри и бележката да е чернова
+			if($pointRec->driver && count(core_Classes::getOptionsByInterface('pos_FiscPrinterIntf')) && $rec->state == 'draft'){
+				$res = 'pos, ceo';
+			} else {
 				$res = 'no_one';
 			}
 		}
@@ -736,6 +749,13 @@ class pos_Receipts extends core_Master {
 	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
 	    }
 	    
+	    // Ако може да се издаде касова бележка, активираме бутона
+	    if($this->haveRightFor('printReceipt', $rec)){
+	    	$recUrl = array($this, 'printReceipt', $rec->id);
+	    }
+	    $disClass = ($recUrl) ? '' : 'disabledBtn';
+	    $block->append(ht::createBtn('К. бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a')), 'PAYMENT_TYPE');
+	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
 	    if ($this->haveRightFor('close', $rec)) {
 	    	$contoUrl = array('pos_Receipts', 'close', $rec->id);
@@ -762,6 +782,22 @@ class pos_Receipts extends core_Master {
 	    $block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
     	
 	    return $block;
+    }
+    
+    
+    /**
+     * екшън за принтиране на касова белжка
+     */
+    public function act_printReceipt()
+    {
+    	expect(haveRole('pos, ceo'));
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('printReceipt', $rec);
+    	
+    	$Driver = cls::get(pos_Points::fetchField($rec->pointId, 'driver'));
+    	
+    	return $Driver->createFile($id);
     }
     
     
