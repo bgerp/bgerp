@@ -2,13 +2,13 @@
 
 
 /**
- * 
+ * Пътя до abbyyocr
  */
 defIfNot('ABBYYOCR_PATH', 'abbyyocr9');
 
  
 /**
- * 
+ * Езици за търсене
  */
 defIfNot('ABBYYOCR_LANGUAGES', 'Bulgarian English');
 
