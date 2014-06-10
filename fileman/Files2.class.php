@@ -744,8 +744,12 @@ class fileman_Files2 extends core_Master
         // Вземаме конфигурацията
         $conf = core_Packs::getConfig('fileman');
         
+        $fileCmd = $conf->FILEMAN_FILE_COMMAND;
+        
+        $fileCmd = escapeshellcmd($fileCmd);
+        
         // Изпълняваме командата
-        $res = exec("{$conf->FILEMAN_FILE_COMMAND} --mime-type  \"{$path}\"");
+        $res = exec("{$fileCmd} --mime-type  \"{$path}\"");
  
         // Вземаме позицията на интервала
         list($p, $mime) = explode(' ', $res);
@@ -755,7 +759,7 @@ class fileman_Files2 extends core_Master
         
         // Доуточняване, ако е изпълним файл, дали не е за MS Windows
         if($mime == 'application/octet-stream') {
-            $res = exec("{$conf->FILEMAN_FILE_COMMAND} \"{$path}\"");
+            $res = exec("{$fileCmd} \"{$path}\"");
             if(stripos($res, 'PE32 executable for MS Windows')) {
                 $mime = 'application/x-msdownload';
             }
