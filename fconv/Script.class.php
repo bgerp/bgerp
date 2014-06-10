@@ -104,7 +104,8 @@ class fconv_Script
     function setParam($placeHolder, $value=NULL, $escape=TRUE)
     {
         if ($escape) {
-            $this->params[$placeHolder] = escapeshellcmd($value);
+//            $this->params[$placeHolder] = escapeshellcmd($value);
+            $this->params[$placeHolder] = escapeshellarg($value);
         } else {
             $this->params[$placeHolder] = $value;
         }
