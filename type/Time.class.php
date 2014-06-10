@@ -43,9 +43,33 @@ class type_Time extends type_Varchar {
      * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
      */
     var $cellAttr = 'align="right"';
-   
-    // Стойности, означаващи 0, на момента, on time
+    
+    /**
+     * Стойности, означаващи 0, на момента, on time
+     */ 
     protected $zeroArr = array('na momenta', 'vednaga', 'on time');
+    
+    
+	/**
+	 * Функция за закръгляне към определени интервали от време, зависещи от прагове
+	 * 
+	 * @param integer $time
+	 * @param array $limitsToItervals
+	 * 
+	 * @return integer
+	 */
+    static function round($time, $limitsToItervals = array(864000 => 86400, 36000 => 3600, 600 => 60))
+    {
+        foreach($limitsToItervals as $limit => $interval) {
+            if ($time >= $limit) {
+                // Закръгляме времето
+                $time = round($time / $interval) * $interval;
+                break;
+            }
+        }
+        
+        return $time;
+    }
     
     
     /**
