@@ -54,7 +54,7 @@ class crm_Profiles extends core_Master
      */
     var $loadList = 'plg_Created,crm_Wrapper,plg_RowTools, plg_Printing, plg_Search, plg_Rejected';
 
-
+    
     /**
      * Кой  може да пише?
      */
@@ -95,6 +95,12 @@ class crm_Profiles extends core_Master
      * Полета за списъчния изглед
      */
     var $listFields = 'userId,personId,lastLoginTime=Последно логване';
+    
+    
+    /**
+     * Кой може да види IP-то от последното логване
+     */
+    var $canViewip = 'powerUser';
     
     
     /**
@@ -200,16 +206,56 @@ class crm_Profiles extends core_Master
 
                 // Премахваме информацията, която не трябва да се вижда от другите
                 unset($data->User->row->password);
-                unset($data->User->row->lastLoginIp);
             }
-
+            
             if($data->User->rec->state != 'active') {
                 $data->User->row->state = ht::createElement('span', array('class' => 'state-' . $data->User->rec->state, 'style' => 'padding:2px;'), $data->User->row->state);
             } else {
                 unset($data->User->row->state);
             }
+            
+            // Ако има права за виждане на IP-то на последно логване
+            if ($mvc->haveRightFor('viewip', $data->rec)) {
+                
+                // Ако има права за виждане на записите от лога
+                if (core_LoginLog::haveRightFor('viewlog')) {
+                    
+                    // Създаваме обекта
+                    $data->LoginLog = new stdClass();
+                    
+                    // Вземаме записите
+                    $data->LoginLog->recsArr = core_LoginLog::getLastAttempts($data->rec->userId, 5);
+                    
+                    // Вземаме вербалните стойности
+                    foreach ((array)$data->LoginLog->recsArr as $key => $logRec) {
+                        
+                        $data->LoginLog->rowsArr[$key] = core_LoginLog::recToVerbal($logRec);
+                        $data->LoginLog->rowsArr[$key]->logClass = 'loginLog-' . $logRec->status;
+                    }
+                    
+                    // Ако има роля admin
+                    if (core_LoginLog::haveRightFor('list')) {
+                        
+                        // id на потребитяля за търсене
+                        $userTeams = type_User::getUserFromTeams($data->rec->userId);
+                        reset($userTeams);
+                        $userId = key($userTeams);
+                        
+                        $attr['class'] = 'linkWithIcon';
+        		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
+        		        $attr['title'] = tr('Логин лог за потребителя');
+                        
+                        // URL за промяна
+                        $loginLogUrl = array('core_LoginLog', 'list', 'userId' => $userId, 'ret_url' => TRUE);
+                        
+                        // Създаме линка
+                        $data->LoginLog->row->loginLogLink = ht::createLink(tr("Още..."), $loginLogUrl, FALSE, $attr);  
+                    }
+                }
+            } else {
+                unset($data->User->row->lastLoginIp);
+            }
         }
-        
     }
     
     
@@ -229,7 +275,6 @@ class crm_Profiles extends core_Master
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        
         // Вземам шаблона за лицето
         $pTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfilePersonLayout.shtml')));
         
@@ -239,7 +284,6 @@ class crm_Profiles extends core_Master
         // Заместваме в шаблона
         $tpl->prepend($pTpl, 'personInfo');
         
-        
         // Вземаме шаблона за потребителя
         $uTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileUserLayout.shtml')));
         
@@ -248,6 +292,24 @@ class crm_Profiles extends core_Master
         
         // Заместваме в шаблона
         $tpl->prepend($uTpl, 'userInfo');
+        
+        if ($data->LoginLog && $data->LoginLog->rowsArr) {
+            // Вземаме шаблона за потребителя
+            $lTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileLoginLogLayout.shtml')));
+            
+            $logBlockTpl = $lTpl->getBlock('log');
+            
+            foreach ((array)$data->LoginLog->rowsArr as $rows) {
+                $logBlockTpl->placeObject($rows);
+                $logBlockTpl->append2Master();
+            }
+            
+            // Заместваме данните
+            $lTpl->append($data->LoginLog->row->loginLogLink, 'loginLogLink');
+            
+            // Заместваме в шаблона
+            $tpl->prepend($lTpl, 'loginLog');
+        }
     }
     
     
@@ -739,8 +801,15 @@ class crm_Profiles extends core_Master
         $data->query->orderBy("lastLoginTime", "DESC");
     }
     
+    
     /**
      * 
+     * 
+     * @param crm_Profiles $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param object $rec
+     * @param id $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
@@ -752,6 +821,15 @@ class crm_Profiles extends core_Master
                 
                 // Изискваме роля admin
                 $requiredRoles = 'admin';
+            }
+        }
+        
+        // Текущия потребител може да си види IP-то, admin и ceo могат на всичките
+        if ($action == 'viewip') {
+            if ($rec && ($rec->userId != $userId)) {
+                if (!haveRole('ceo, admin')) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
