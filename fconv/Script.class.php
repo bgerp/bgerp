@@ -75,7 +75,7 @@ class fconv_Script
             
             // Ако не е валиден файл, изписваме съобщение за грешка в лога
             if (!$isValid) {
-                core_Logs::log("core_Script: Файлът не съществува: '{$file}'" );
+                core_Logs::log("fconv_Script: Файлът не съществува: '{$file}'" );
             }
         }
     }
