@@ -852,7 +852,7 @@ class core_Users extends core_Manager
             $time = dt::secsBetween(dt::now(), $userRec->lastLoginTime);
             
             // Закръгляме времето, за да е по четимо
-            $time = static::roundStatusTime($time);
+            $time = type_Time::round($time);
 
             $TimeInst = cls::get('type_Time');
             $time = $TimeInst->toVerbal($time);
@@ -863,42 +863,6 @@ class core_Users extends core_Manager
             $text = "|Последно логване от|* {$ip} |преди|* {$time}";
             core_Statuses::newStatus($text);
         }
-    }
-    
-    
-    /**
-     * Закръгля подаденото време
-     * 
-     * @param integer $time
-     * 
-     * @return integer
-     */
-    static function roundStatusTime($time)
-    {
-        // 10 дни
-        $daysInterval = 864000;
-        
-        // 10 часа
-        $hoursInterval = 36000;
-        
-        // 10 минути
-        $minInterval = 600;
-        
-        // В зависимост от времето определяме интервала
-        if ($time >= $daysInterval) {
-            $interval = $daysInterval;
-        } else if ($time >= $hoursInterval) {
-            $interval = $hoursInterval; 
-        } else if ($time >= $minInterval) {
-            $interval = $minInterval;
-        } else {
-            $interval = 1;
-        }
-        
-        // Закръгляме времето
-        $time = round($time / $interval) * $interval;
-        
-        return $time;
     }
     
     
