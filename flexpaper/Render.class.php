@@ -76,7 +76,8 @@ class flexpaper_Render
         $Files = cls::get('fileman_Files');
         $fileName = $Files->fetchByFh($swfHnd, 'name');
         $filePath = $Files->fetchByFh($swfHnd, 'path');
-        $isSwf = exec("file --mime-type \"{$filePath}\"", $retValue, $isCorrect);
+        $filePath = escapeshellarg($filePath);
+        $isSwf = exec("file --mime-type {$filePath}", $retValue, $isCorrect);
         
         if ($isCorrect) {
             
