@@ -786,7 +786,7 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * екшън за принтиране на касова белжка
+     * Екшън за принтиране на касова белжка
      */
     public function act_printReceipt()
     {
@@ -1060,6 +1060,7 @@ class pos_Receipts extends core_Master {
     	$sellable = cat_Products::getByProperty('canSell');
     	if(!count($sellable)) return;
     	
+    	$Policy = cls::get('price_ListToCustomers');
     	$Products = cls::get('cat_Products');
     	foreach ($sellable as $id => $name){
     		
@@ -1068,7 +1069,8 @@ class pos_Receipts extends core_Master {
     		
     		// Ако продукта не отговаря на търсения стринг, го пропускаме
     		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
-    		$price = $Products->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), NULL, NULL, $data->rec->createdOn);
+    		
+    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), NULL, NULL, $data->rec->createdOn);
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;

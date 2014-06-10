@@ -359,7 +359,7 @@ function posActions() {
 			resObj['url'] = url;
 			
 			getEfae().process(resObj, {searchString:inpVal,receiptId:receiptId});
-		}, 800);
+		}, 700);
 	});
 	
 	
