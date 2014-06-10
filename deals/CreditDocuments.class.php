@@ -14,8 +14,13 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_CreditDocument extends core_Master
+class deals_CreditDocuments extends core_Master
 {
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'deals_CreditDocument';
 	
 	
     /**

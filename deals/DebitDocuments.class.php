@@ -14,14 +14,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_DebitDocument extends core_Master
+class deals_DebitDocuments extends core_Master
 {
     
     
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $oldClassName = 'deals_CatchDocument';
+	public $oldClassName = 'deals_DebitDocument';
 	
 	
     /**
