@@ -742,6 +742,7 @@ class pos_Receipts extends core_Master {
     	
     	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;')) . "<br />", 'INPUT_PAYMENT');
     	
+    	// Показваме всички активни методи за плащания
     	$disClass = ($payUrl) ? '' : 'disabledBtn';
     	$payments = pos_Payments::fetchSelected();
 	    foreach($payments as $payment) {
@@ -754,7 +755,7 @@ class pos_Receipts extends core_Master {
 	    	$recUrl = array($this, 'printReceipt', $rec->id);
 	    }
 	    $disClass = ($recUrl) ? '' : 'disabledBtn';
-	    $block->append(ht::createBtn('К. бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a')), 'PAYMENT_TYPE');
+	    $block->append(ht::createBtn('Касов бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка')), 'PAYMENT_TYPE');
 	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
 	    if ($this->haveRightFor('close', $rec)) {
