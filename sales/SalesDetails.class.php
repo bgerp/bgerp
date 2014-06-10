@@ -467,17 +467,16 @@ class sales_SalesDetails extends core_Detail
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
             $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
             $masterRec = $data->masterData->rec;
-            $addUrl = $data->toolbar->buttons['btnAdd']->url;
-            
-            //@TODO да проверява за поне една
+            //$addUrl = $data->toolbar->buttons['btnAdd']->url;
+            //unset($addUrl[0]);
+            //bp($addUrl);
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
-            	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date);
-                if(!count($products)){
+            	if(!$productMan->hasSellableProduct($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior)){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
                 
-            	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
+            	$data->toolbar->addBtn($productMan->singleTitle, array('sales_SalesDetails', 'add', 'saleId'=> $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
                     "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
             	unset($error);
             }

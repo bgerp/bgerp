@@ -166,11 +166,12 @@ class techno_Specifications extends core_Manager {
      * Това са всички спецификации от неговата папка, както и
      * всички общи спецификации (създадени в папка "Проект")
      */
-    function getProducts($customerClass, $customerId, $date = NULL)
+    function getProducts($customerClass, $customerId, $date = NULL, $limit = NULL)
     {
     	$Class = cls::get($customerClass);
     	$folderId = $Class->forceCoverAndFolder($customerId, FALSE);
     	
+    	$count = 0;
     	$products = array();
     	$query = $this->getQuery();
     	$query->where("#folderId = {$folderId}");
@@ -181,10 +182,23 @@ class techno_Specifications extends core_Manager {
     			$DocClass = cls::get($rec->docClassId);
     			if($DocClass->fetchField($rec->docId, 'state') != 'active') continue;
     			$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
+    			$count++;
+    			if(isset($limit) && $count >= $limit) break;
     		}
     	}
     	
     	return $products;
+    }
+    
+    
+    /**
+     * Дали има поне един продаваем продукт за клиента
+     */
+    public function hasSellableProduct($contragentClassId, $contragentId, $date)
+    {
+    	$sellable = $this->getProducts($contragentClassId, $contragentId, $date);
+    	
+    	return count($sellable);
     }
     
     

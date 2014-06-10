@@ -458,12 +458,14 @@ class cat_Products extends core_Master {
     /**
      * Връща масив от продукти отговарящи на зададени мета данни:
      * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
+     * 
      * @param mixed $properties - комбинация на горе посочените мета 
      * 							  данни или като масив или като стринг
+     * @param int $limit 		- колко опции да върне
      * @return array $products - продукти отговарящи на условието, ако не са
      * 							 зададени мета данни връща всички продукти
      */
-    public static function getByProperty($properties)
+    public static function getByProperty($properties, $limit = NULL)
     {
     	$products = array();
     	$metaArr = arr::make($properties);
@@ -481,7 +483,23 @@ class cat_Products extends core_Master {
     	// Премахват се тези продукти до които потребителя няма достъп
     	static::unsetUnavailableProducts($products);
     	
+    	// Ако е посочен лимит, връщаме първите $limit продукти
+    	if(isset($limit)){
+    		$products = array_slice($products, 0, $limit, TRUE);
+    	}
+    	
     	return $products;
+    }
+    
+    
+    /**
+     * Дали има поне един продаваем продукт за клиента
+     */
+    public function hasSellableProduct($contragentClassId, $contragentId, $date)
+    {
+    	$sellable = static::getByProperty('canSell', 1);
+    	
+    	return count($sellable);
     }
     
     
