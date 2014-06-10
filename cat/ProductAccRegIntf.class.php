@@ -103,10 +103,11 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
      * @param mixed $properties - комбинация на горе посочените мета 
      * 							  данни или като масив или като стринг
+     * @param int $limit      - лимит на показваните резултати
      * @return array $products - продукти отговарящи на условието, ако не са
      * 							 зададени мета данни връща всички продукти
      */
-    function getByProperty($properties)
+    function getByProperty($properties, $limit = NULL)
     {
     	return $this->class->getByProperty($properties);
     }

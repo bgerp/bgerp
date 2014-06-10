@@ -467,9 +467,7 @@ class sales_SalesDetails extends core_Detail
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
             $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
             $masterRec = $data->masterData->rec;
-            //$addUrl = $data->toolbar->buttons['btnAdd']->url;
-            //unset($addUrl[0]);
-            //bp($addUrl);
+            
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
             	if(!$productMan->hasSellableProduct($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior)){
