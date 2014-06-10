@@ -699,8 +699,8 @@ class email_Incomings extends core_Master
             $row->toBox = $row->toEml;
         }
         
-        if($rec->fromIp && $rec->country) {
-            $row->fromIp = vislog_History::decorateIp($rec->fromIp, $rec->createdOn);
+        if($rec->fromIp) {
+            $row->fromIp = type_Ip::decorateIp($rec->fromIp, $rec->createdOn);
         }
         
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
