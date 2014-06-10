@@ -1242,8 +1242,9 @@ function setFormElementsWidth()
 		}
 		$(this).css('maxWidth', parseInt((formElWidth - 25)/colsInRow));
 	});
-	
-	$('.formTable textarea').css('minWidth',formElWidth);
+	$('.formTable .richEdit').css('maxWidth',formElWidth);
+	$('.formTable .richEdit').css('display','block');
+	$('.formTable textarea').css('minWidth','100%');
 	$('.formTable input').not(':input[type=button], :input[type=submit], :input[type=reset], :input[type=radio],:input[type=checkbox]').css('maxWidth', formElWidth);
 	$('.formTable label').css('whiteSpace','pre-wrap');
 	$('.formTable select').css('maxWidth',formElWidth);
