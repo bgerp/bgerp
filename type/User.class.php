@@ -215,4 +215,41 @@ class type_User extends type_Key
         
         return $firstVal;
     }
+    
+    
+    /**
+     * Връща масив с групите със съответния потребители
+     * 
+     * @param integer $userId
+     * 
+     * @return array
+     * @see type_Users::getUserFromTeams
+     */
+    static function getUserFromTeams($userId=NULL)
+    {
+        $arr = array();
+        
+        // Ако не е подаден потребител
+        if (!$userId) {
+            
+            // Вземаме текущия
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Всички екипи, в които участва
+        $teams = core_Users::getUserRolesByType($userId, 'team');
+        $teams = keylist::toArray($teams);
+        
+        // Обхождаме екипите
+        foreach ($teams as $team) {
+            
+            // Група с потребителя
+            $user = $team . '_' . $userId;
+            
+            // Добавяме в масива
+            $arr[$user] = $user;
+        }
+        
+        return $arr;
+    } 
 }

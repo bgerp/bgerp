@@ -239,6 +239,7 @@ class type_Users extends type_Keylist
      * @param integer $userId
      * 
      * @return array
+     * @see type_User::getUserFromTeams
      */
     static function getUserFromTeams($userId=NULL)
     {
