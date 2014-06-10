@@ -84,11 +84,16 @@ class fconv_Script
     /**
      * Задаване на път до изпълнима външна програма
      */
-    function setProgram($name, $binPath)
+    function setProgram($name, $binPath, $escape=TRUE)
     {
         if (strpos($binPath, ' ')) {
             $binPath = '\"' . $binPath . '\"';
         }
+        
+        if ($escape) {
+            $binPath = escapeshellcmd($binPath);
+        }
+        
         $this->programs[$name] = $binPath;
     }
     
@@ -96,7 +101,7 @@ class fconv_Script
     /**
      * Задаване на друго общи за целия скрипт параметри
      */
-    function setParam($placeHolder, $value = NULL, $escape = FALSE)
+    function setParam($placeHolder, $value=NULL, $escape=TRUE)
     {
         if ($escape) {
             $this->params[$placeHolder] = escapeshellcmd($value);
