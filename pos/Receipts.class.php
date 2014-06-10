@@ -1020,12 +1020,17 @@ class pos_Receipts extends core_Master {
     		$html = ' ';
     	}
     	
-    	// Ще реплесйнем и добавим таблицата с резултатите
-		$resObj = new stdClass();
-		$resObj->func = "html";
-		$resObj->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => TRUE);
-        
-        return array($resObj);
+    	if(Request::get('ajax_mode')){
+    		// Ще реплесйнем и добавим таблицата с резултатите
+    		$resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => TRUE);
+    		
+    		return array($resObj);
+    		
+    	} else {
+    		Redirect(array($this, 'terminal', $rec->id));
+    	}
     }
     
     
