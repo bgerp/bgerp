@@ -86,12 +86,12 @@ class fconv_Script
      */
     function setProgram($name, $binPath, $escape=TRUE)
     {
-        if (strpos($binPath, ' ')) {
-            $binPath = '\"' . $binPath . '\"';
-        }
-        
         if ($escape) {
             $binPath = escapeshellcmd($binPath);
+        }
+        
+        if (strpos($binPath, ' ')) {
+            $binPath = '\"' . $binPath . '\"';
         }
         
         $this->programs[$name] = $binPath;
