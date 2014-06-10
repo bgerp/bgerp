@@ -300,7 +300,9 @@ class fconv_Script
             if (stristr(PHP_OS, 'WIN')) {
                 $copied = copy($filePath, $this->tempDir . $fileName);
             } else {
-                $copied = exec("ln -s \"{$filePath}\" \"{$this->tempDir}{$fileName}\"");
+                $filePath = escapeshellarg($filePath);
+                $copyPath = escapeshellarg($this->tempDir . $fileName);
+                $copied = exec("ln -s {$filePath} {$copyPath}");
             }
         }
         
