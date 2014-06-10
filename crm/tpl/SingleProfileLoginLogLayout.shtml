@@ -1,0 +1,14 @@
+<fieldset class="detail-info">
+
+	<legend class="groupTitle">|Логин лог|*<!--ET_BEGIN loginLogLink--> [#loginLogLink#]<!--ET_END loginLogLink--></legend>
+	
+	<div class="groupList">
+		<table>
+			<!--ET_BEGIN log-->
+					<tr>
+						<td class='[#logClass#]'>[#status#]: [#createdOn#] |от|* [#ip#]</td>
+					</tr>
+			<!--ET_END log-->
+		</table>
+	</div>
+</fieldset>
