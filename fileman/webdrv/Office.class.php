@@ -310,7 +310,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
     static function convertPdfToJpg($fileHnd, $params=array())
     {
         // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $Script = cls::get('fconv_Script');
         
         // Конфигурационните данни
         $conf = core_Packs::getConfig('fileman');
