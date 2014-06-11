@@ -140,7 +140,7 @@ class price_ListDocs extends core_Master
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
-    	$this->FLD('showUoms', 'enum(no=Ценоразпис,yes=Ценоразпис с основна мярка)', 'caption=Шаблон,notNull,default=no');
+    	$this->FLD('showUoms', 'enum(yes=Ценоразпис (пълен),no=Ценоразпис без основна мярка)', 'caption=Шаблон,notNull,default=yes');
     }
     
     
