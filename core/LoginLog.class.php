@@ -216,6 +216,8 @@ class core_LoginLog extends core_Manager
         
         $userId = FALSE;
         
+        $cnt = 0;
+        
         $conf = core_Packs::getConfig('core');
         
         // Ограничение на броя на дните
@@ -232,12 +234,9 @@ class core_LoginLog extends core_Manager
         $query->limit((int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE);
         $query->orderBy('createdOn', 'DESC');
         
-        // Ако има по - малко записи от лимита
-        if ($query->count() != (int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE) return FALSE;
-        
         // Ако е логнат само от един потребител
         while ($rec = $query->fetch()) {
-            
+            $cnt++;
             if ($userId === FALSE) {
                 $userId = $rec->userId;
             } else {
@@ -247,6 +246,9 @@ class core_LoginLog extends core_Manager
                 }
             }
         }
+        
+        // Ако има по - малко записи от лимита
+        if ($cnt < (int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE) return FALSE;
         
         return $userId;
     }
