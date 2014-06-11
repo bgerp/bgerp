@@ -64,6 +64,12 @@ defIfNot('CORE_LOGIN_TIMESTAMP_DEVIATION', 5400);
 
 
 /**
+ * Брой логвания от един и същи потребител, за показване на ника по подразбиране
+ */
+defIfNot('CORE_SUCCESS_LOGIN_AUTOCOMPLETE', 3);
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -120,6 +126,8 @@ class core_Setup {
            'PLG_SEACH_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи, от които ще се генерират ключови думи->Брой символи'),
            
            'CORE_LOGIN_TIMESTAMP_DEVIATION' => array ('time(suggestions=30 мин|1 час|90 мин|2 часа)', 'caption=Максималното отклоненение в таймстампа при логване в системата->Време'),
+           
+           'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array ('int', 'caption=Логвания от един и същи потребител, за показване на ника по подразбиране->Брой'),
     
         );
     

@@ -40,12 +40,6 @@ defIfNot('EF_USSERS_EMAIL_AS_NICK', FALSE);
 
 
 /**
- * Как да се казва променливата на cookieто
- */
-defIfNot('EF_USERS_COOKIE', 'uid');
-
-
-/**
  * Какво е минималното време в секунди, между хитовете от
  * два различни IP адреса, за да не бъде блокирана сметката
  */
@@ -393,12 +387,6 @@ class core_Users extends core_Manager
 
         $this->invoke('PrepareLoginForm', array(&$form));
         
-        // Декриприраме cookie
-        if ($cookie = $_COOKIE[EF_USERS_COOKIE]) {
-            $Crypt = cls::get('core_Crypt');
-            $cookie = $Crypt->decodeVar($cookie);
-        }
-        
         if (!$currentUserRec->state == 'active') {
             // Ако е зададено да се използва имейл-а за ник
             if (EF_USSERS_EMAIL_AS_NICK) {
@@ -467,9 +455,12 @@ class core_Users extends core_Manager
                     core_LoginLog::add($userRec->id, 'wrong_password', $inputs->time);
                 }
             } else {
-                // Ако в cookie е записано три последователни логвания от един и същ потребител, зареждаме му ник-а/имейл-а
-                if ($cookie->u[1] > 0 && ($cookie->u[1] == $cookie->u[2]) && ($cookie->u[1] == $cookie->u[3])) {
-                    $uId = (int) $cookie->u[1];
+                
+                // Връща id на потребителя, което ще се използва за попълване на ника или имейла
+                $uId = core_LoginLog::getUserIdForAutocomplete();
+                
+                // Ако има потребител
+                if ($uId) {
                     $assumeRec = $this->fetch($uId);
                     $inputs->email = $assumeRec->email;
                     $inputs->nick = $assumeRec->nick;
@@ -482,14 +473,6 @@ class core_Users extends core_Manager
                 $this->loginUser($userRec->id);
                 $this->logLogin($inputs, 'successful_login');
                 core_LoginLog::add($userRec->id, 'success', $inputs->time);
-                
-                // Подготовка и записване на cookie
-                $cookie->u[3] = $cookie->u[2];
-                $cookie->u[2] = $cookie->u[1];
-                $cookie->u[1] = $userRec->id;
-                $Crypt = cls::get('core_Crypt');
-                $cookie = $Crypt->encodeVar($cookie);
-                setcookie(EF_USERS_COOKIE, $cookie, time() + 60 * 60 * 24 * 30);
             } else {
                 // връщаме формата, като опресняваме времето
                 $inputs->time = time();

@@ -192,6 +192,46 @@ class core_LoginLog extends core_Manager
     
     
     /**
+     * Връща id на потребителя, който се е логва от този браузър
+     * 
+     * @return mixed
+     */
+    static function getUserIdForAutocomplete()
+    {
+        // id на браузъра
+        $brid = core_Browser::getBrid(FALSE);
+        
+        // Ако няма записано
+        if (!$brid) return FALSE;
+        
+        $userId = FALSE;
+        
+        $conf = core_Packs::getConfig('core');
+        
+        // Последния n на брой успешни логвания от този браузър
+        $query = static::getQuery();
+        $query->where("#status = 'success'");
+        $query->where("#brid = '{$brid}'");
+        $query->limit((int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE);
+        $query->orderBy('createdOn', 'DESC');
+        
+        // Ако е логнат само от един потребител
+        while ($rec = $query->fetch()) {
+            if ($userId === FALSE) {
+                $userId = $rec->userId;
+            } else {
+                if ($userId != $rec->userId) {
+                    
+                    return FALSE;
+                }
+            }
+        }
+        
+        return $userId;
+    }
+    
+    
+    /**
      * Връща последните записи в лога за съответния потребител
      * 
      * @param integer $userId
