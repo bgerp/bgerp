@@ -1127,8 +1127,8 @@ class pos_Receipts extends core_Master {
     			}
     		}
     	}
-    	$singImg = ht::createElement('img', array('src' => sbf('img/16/anchor-image.png', '')));
-    	$row->singleBtn = ht::createLink($singImg, array('cat_Products', 'single', $obj->productId), FALSE, array('target'=>'_blank', 'class'=>'singleProd'));
+    	
+    	$row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), NULL, array('target'=>'_blank', 'class'=>'singleProd'));
     	
     	if($obj->stock < 0){
     		$row->stock = "<span style='color:red'>$row->stock</span>";	
