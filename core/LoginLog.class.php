@@ -266,8 +266,17 @@ class core_LoginLog extends core_Manager
         
         $recsArr = array();
         
+        $conf = core_Packs::getConfig('core');
+        
+        // Ограничение на броя на дните
+        $daysLimit = (int)CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
+        
+        // Ограничаваме времето на търсене
+        $maxCreatedOn = dt::removeSecs($daysLimit);
+        
         // Всички записи за съответния потребител, подредени по дата
         $query = static::getQuery();
+        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
         $query->where("#userId = '{$userId}'");
         $query->orderBy('createdOn', 'DESC');
         
