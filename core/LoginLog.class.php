@@ -232,8 +232,12 @@ class core_LoginLog extends core_Manager
         $query->limit((int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE);
         $query->orderBy('createdOn', 'DESC');
         
+        // Ако има по - малко записи от лимита
+        if ($query->count() != (int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE) return FALSE;
+        
         // Ако е логнат само от един потребител
         while ($rec = $query->fetch()) {
+            
             if ($userId === FALSE) {
                 $userId = $rec->userId;
             } else {
