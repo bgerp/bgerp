@@ -16,16 +16,6 @@ defIfNot('EF_USERS_SESS_TIMEOUT', 3600);
 
 
 /**
- * Колко секунди може да е максимално разликата
- * във времето между времето изчислено при потребителя
- * и това във сървъра при логване. В нормален случай
- * това трябва да е повече от времето за http трансфер
- * на логин формата и заявката за логване
- */
-defIfNot('EF_USERS_LOGIN_DELAY', 10);
-
-
-/**
  * 'Подправка' за кодиране на паролите
  */
 defIfNot('EF_USERS_PASS_SALT', hash('sha256', (EF_SALTH . 'EF_USERS_PASS_SALT')));
@@ -458,14 +448,15 @@ class core_Users extends core_Manager
                     $form->setError('pass', 'Липсва парола!');
                     $this->logLogin($inputs, 'missing_password');
                     core_LoginLog::add($userRec->id, 'missing_password', $inputs->time);
-                } elseif (!$inputs->pass && abs(time() - $inputs->time) > EF_USERS_LOGIN_DELAY) {  
+//                } elseif (!$inputs->pass && !core_LoginLog::isTimestampCorrect($inputs->time)) {  
+                } elseif (!core_LoginLog::isTimestampCorrect($inputs->time)) {  
                     $form->setError('pass', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
-                    $this->logLogin($inputs, 'too_long_login');
-//                    core_LoginLog::add($userRec->id, 'error', $inputs->time);
-                } elseif ($userRec->lastLoginTime && abs(time() - dt::mysql2timestamp($userRec->lastLoginTime)) <  EF_USERS_LOGIN_DELAY) {
-                    $form->setError('pass', 'Прекалено кратко време за ре-логване|*!<br>|Изчакайте и опитайте пак|*.');
-                    $this->logLogin($inputs, 'too_fast_relogin');
-//                    core_LoginLog::add($userRec->id, 'error', $inputs->time);
+                    $this->logLogin($inputs, 'time_deviation');
+                    core_LoginLog::add($userRec->id, 'time_deviation', $inputs->time);
+                } elseif (core_LoginLog::isTimestampUsed($userRec->id, $inputs->time)) {
+                    $form->setError('pass', 'Грешка при логване|*!<br>|Опитайте пак|*.');
+                    $this->logLogin($inputs, 'used_timestamp');
+                    core_LoginLog::add($userRec->id, 'used_timestamp', $inputs->time);
                 } elseif (!$userRec->state) {
                     $form->setError('pass', $wrongLoginErr);
                     $this->logLogin($inputs, $wrongLoginLog);
