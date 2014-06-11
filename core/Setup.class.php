@@ -70,6 +70,13 @@ defIfNot('CORE_SUCCESS_LOGIN_AUTOCOMPLETE', 3);
 
 
 /**
+ * Колко време назад да се търси в историята за логовете
+ * 45 дни
+ */
+defIfNot('CORE_LOGIN_LOG_FETCH_DAYS_LIMIT', 3888000);
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -128,6 +135,8 @@ class core_Setup {
            'CORE_LOGIN_TIMESTAMP_DEVIATION' => array ('time(suggestions=30 мин|1 час|90 мин|2 часа)', 'caption=Максималното отклоненение в таймстампа при логване в системата->Време'),
            
            'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array ('int', 'caption=Логвания от един и същи потребител, за показване на ника по подразбиране->Брой'),
+           
+           'CORE_LOGIN_LOG_FETCH_DAYS_LIMIT' => array ('time(suggestions=1 месец|45 дни|2 месеца|3 месеца)', 'caption=Колко време назад да се търси в лога->Време'),
     
         );
     

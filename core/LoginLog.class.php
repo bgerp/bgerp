@@ -146,24 +146,6 @@ class core_LoginLog extends core_Manager
     
     
     /**
-     * Проверява дали timestamp-а е използван от съответния потребител за успешен вход
-     * 
-     * @param integer $userId
-     * @param integer $timestamp
-     * 
-     * @return boolean
-     */
-    static function isTimestampUsed($userId, $timestamp)
-    {
-        $rec = static::fetch(array("#userId = '[#1#]' AND #timestamp = '[#2#]' AND #status='success'", $userId, $timestamp));
-        
-        if ($rec) return TRUE;
-        
-        return FALSE;
-    }
-    
-    
-    /**
      * Проверява дали отклонението на подадения таймстамп е в границите на допустимото
      * 
      * @param integer $timestamp
@@ -192,6 +174,34 @@ class core_LoginLog extends core_Manager
     
     
     /**
+     * Проверява дали timestamp-а е използван от съответния потребител за успешен вход
+     * 
+     * @param integer $userId
+     * @param integer $timestamp
+     * 
+     * @return boolean
+     */
+    static function isTimestampUsed($userId, $timestamp)
+    {
+        $conf = core_Packs::getConfig('core');
+        $daysLimit = (int)CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
+        
+        // Ограничаваме времето на търсене
+        $maxCreatedOn = dt::removeSecs($daysLimit);
+        
+        $rec = static::fetch(array("
+        					#createdOn > '[#1#]' AND
+        					#userId = '[#2#]' AND
+        					#timestamp = '[#3#]' AND
+        					#status='success'", $maxCreatedOn, $userId, $timestamp));
+        
+        if ($rec) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
      * Връща id на потребителя, който се е логва от този браузър
      * 
      * @return mixed
@@ -208,8 +218,15 @@ class core_LoginLog extends core_Manager
         
         $conf = core_Packs::getConfig('core');
         
+        // Ограничение на броя на дните
+        $daysLimit = (int)CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
+        
+        // Ограничаваме времето на търсене
+        $maxCreatedOn = dt::removeSecs($daysLimit);
+        
         // Последния n на брой успешни логвания от този браузър
         $query = static::getQuery();
+        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
         $query->where("#status = 'success'");
         $query->where("#brid = '{$brid}'");
         $query->limit((int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE);
