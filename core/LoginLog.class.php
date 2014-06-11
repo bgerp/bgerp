@@ -90,7 +90,7 @@ class core_LoginLog extends core_Manager
     /**
      * 
      */
-    var $listFields = 'userId, status, ip, brid, time, createdOn, createdBy';
+    var $listFields = 'userId, status, ip, brid, createdOn, createdBy, timestamp';
     
     
     /**
@@ -115,7 +115,7 @@ class core_LoginLog extends core_Manager
 									user_activate=Активиране,
 									change_nick=Промяна на ник
 								  )', 'caption=Статус, silent');
-        $this->FLD('time', 'datetime()', 'caption=Време, input=none');
+        $this->FLD('timestamp', 'int', 'caption=Време, input=none');
     }
     
     
@@ -124,7 +124,7 @@ class core_LoginLog extends core_Manager
      * 
      * @param integer $userId
      * @param string $status
-     * @param time $time
+     * @param timestamp $time
      */
     static function add($userId, $status, $time=NULL)
     {
@@ -133,10 +133,7 @@ class core_LoginLog extends core_Manager
         $rec->ip = core_Users::getRealIpAddr();
         $rec->status = $status;
         $rec->brid = core_Browser::getBrid();
-        
-        if ($time) {
-            $rec->time = dt::timestamp2Mysql($time);
-        }
+        $rec->timestamp = $time;
         
         static::save($rec);
         
