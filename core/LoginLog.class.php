@@ -113,7 +113,9 @@ class core_LoginLog extends core_Manager
 									pass_change=Промяна на парола,
 									user_reg=Регистриране,
 									user_activate=Активиране,
-									change_nick=Промяна на ник
+									change_nick=Промяна на ник,
+									time_deviation=Отклонение във времето,
+									used_timestamp=Използван timestamp
 								  )', 'caption=Статус, silent');
         $this->FLD('timestamp', 'int', 'caption=Време, input=none');
         
@@ -140,6 +142,52 @@ class core_LoginLog extends core_Manager
         static::save($rec);
         
         return $rec->id;
+    }
+    
+    
+    /**
+     * Проверява дали timestamp-а е използван от съответния потребител за успешен вход
+     * 
+     * @param integer $userId
+     * @param integer $timestamp
+     * 
+     * @return boolean
+     */
+    static function isTimestampUsed($userId, $timestamp)
+    {
+        $rec = static::fetch(array("#userId = '[#1#]' AND #timestamp = '[#2#]' AND #status='success'", $userId, $timestamp));
+        
+        if ($rec) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Проверява дали отклонението на подадения таймстамп е в границите на допустимото
+     * 
+     * @param integer $timestamp
+     * 
+     * @return boolean
+     */
+    static function isTimestampCorrect($timestamp)
+    {
+        $conf = core_Packs::getConfig('core');
+        $maxDeviation = $conf->CORE_LOGIN_TIMESTAMP_DEVIATION;
+        
+        // Текущото време в таймстампа
+        $nowTimestamp = dt::nowTimestamp();
+        
+        // Разликата между текущото време и зададенот
+        $diff = abs($nowTimestamp - $timestamp);
+        
+        // Ако е в границите
+        if ($maxDeviation > $diff) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
     }
     
     
