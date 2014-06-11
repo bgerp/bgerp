@@ -57,6 +57,13 @@ defIfNot('PLG_SEACH_MAX_TEXT_LEN', 64000);
 
 
 /**
+ * Максималното отклоненение в таймстампа при логване в системата
+ * 1 час и 30 мин.
+ */
+defIfNot('CORE_LOGIN_TIMESTAMP_DEVIATION', 5400);
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -99,7 +106,6 @@ class core_Setup {
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        
                
            'EF_DATE_FORMAT'   => array ('varchar', 'caption=Формат по подразбиране за датата при широки екрани->Формат'),
     
@@ -112,6 +118,8 @@ class core_Setup {
            'EF_MAX_EXPORT_CNT' => array ('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
            
            'PLG_SEACH_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи, от които ще се генерират ключови думи->Брой символи'),
+           
+           'CORE_LOGIN_TIMESTAMP_DEVIATION' => array ('time(suggestions=30 мин|1 час|90 мин|2 часа)', 'caption=Максималното отклоненение в таймстампа при логване в системата->Време'),
     
         );
     
