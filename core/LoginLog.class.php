@@ -116,6 +116,8 @@ class core_LoginLog extends core_Manager
 									change_nick=Промяна на ник
 								  )', 'caption=Статус, silent');
         $this->FLD('timestamp', 'int', 'caption=Време, input=none');
+        
+        $this->setDbIndex('createdOn');
     }
     
     
