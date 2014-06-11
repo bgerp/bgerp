@@ -102,7 +102,7 @@ class core_LoginLog extends core_Manager
         $this->FLD('ip', 'ip', 'caption=IP');
         $this->FLD('brid', 'varchar', 'caption=BRID');
         $this->FLD('status', 'enum( 
-        							success=Успешен,
+        							success=Успешено логване,
 									error=Грешка,
 									block=Блокиран,
 									reject=Оттеглен,
