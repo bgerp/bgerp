@@ -184,7 +184,7 @@ class core_LoginLog extends core_Manager
     static function isTimestampUsed($userId, $timestamp)
     {
         $conf = core_Packs::getConfig('core');
-        $daysLimit = (int)CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
+        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
         $maxCreatedOn = dt::removeSecs($daysLimit);
@@ -221,7 +221,7 @@ class core_LoginLog extends core_Manager
         $conf = core_Packs::getConfig('core');
         
         // Ограничение на броя на дните
-        $daysLimit = (int)CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
+        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
         $maxCreatedOn = dt::removeSecs($daysLimit);
@@ -275,7 +275,7 @@ class core_LoginLog extends core_Manager
         $conf = core_Packs::getConfig('core');
         
         // Ограничение на броя на дните
-        $daysLimit = (int)CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
+        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
         $maxCreatedOn = dt::removeSecs($daysLimit);
