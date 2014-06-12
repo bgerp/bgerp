@@ -34,20 +34,22 @@ class callcenter_ListOperationsPlg extends core_Plugin
         if (!($numberArr = drdata_PhoneType::toArray($number))) return ;
         
         // Вземаме стринга от номер
-        $number = drdata_PhoneType::getNumStrFromObj($numberArr[0], '+');
-        $number = drdata_PhoneType::escape($number);
+        $numberDial = drdata_PhoneType::getNumStrFromObj($numberArr[0], '00');
+        $numberShow = drdata_PhoneType::getNumStrFromObj($numberArr[0], '+');
+        
+        $numberShow = drdata_PhoneType::escape($numberShow);
         
         // Променяме полето за заглавеи
-        $data->title = 'Номер|*: ' . $number;
+        $data->title = 'Номер|*: ' . $numberShow;
                 
         // Добавяме бутон за избиране
-        $data->callLink = ht::createBtn('Избиране', "tel: {$number}", FALSE, FALSE, array('ef_icon' => '/img/16/call.png', 'class' => 'out-btn'));
+        $data->callLink = ht::createBtn('Избиране', "tel: {$numberDial}", FALSE, FALSE, array('ef_icon' => '/img/16/call.png', 'class' => 'out-btn'));
         
         // Ако има права за изпращане на факс
         if (email_FaxSent::haveRightFor('send')) {
             
             // URL, където да сочи бутона за нов факс
-            $urlArr = email_FaxSent::getAddFaxUrl($number);
+            $urlArr = email_FaxSent::getAddFaxUrl($numberDial);
             $urlArr['ret_url'] = TRUE;
             $data->faxLink = ht::createBtn('Факс', $urlArr, FALSE, FALSE, array('ef_icon' => '/img/16/fax.png'));
         }
@@ -56,7 +58,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         if (callcenter_SMS::haveRightFor('add')) {
             
             // Бутон за СМС
-            $data->smsLink = ht::createBtn('SMS', array('callcenter_SMS', 'add', 'mobileNum' => $number, 'ret_url' => TRUE), FALSE, FALSE, array('ef_icon' => '/img/16/mobile2.png'));
+            $data->smsLink = ht::createBtn('SMS', array('callcenter_SMS', 'add', 'mobileNum' => $numberDial, 'ret_url' => TRUE), FALSE, FALSE, array('ef_icon' => '/img/16/mobile2.png'));
         }
     }
     
