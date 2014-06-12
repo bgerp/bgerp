@@ -8,9 +8,9 @@
 			<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 		</div>
 	<!--ET_END header-->
-	<table border='1' width='100%' cellpadding="10" class='border-table' style='margin-bottom:0px'>
+	<table border='1' width='100%' class='border-table' style='margin-bottom:0px'>
 		<tr>
-			<td rowspan='2' width = '60%' class='no-border-bottom'>
+			<td rowspan='2' width = '60%' class='no-border-bottom' style='padding-left:10px'>
 				<h2>
 					|АВАНСОВ ОТЧЕТ|* </br>
 					<div style='font-size:0.6em'>№:[#number#] / [#valior#]</div>
@@ -25,7 +25,7 @@
 			<td class=' no-border-bottom'>
 				<b>[#MyCompany#]</b><br>
 	            <br>
-	            [#MyAddress#] <br>
+	            <!--ET_BEGIN MyAddress-->[#MyAddress#] <br><!--ET_END MyAddress-->
 			</td>
 		</tr>
 	</table>

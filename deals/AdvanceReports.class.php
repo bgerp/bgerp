@@ -85,7 +85,7 @@ class deals_AdvanceReports extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'number,valior,name,folderId';
+    public $listFields = 'number,valior,currencyId, total,folderId,createdOn,createdBy';
 
     
    /**
@@ -133,7 +133,7 @@ class deals_AdvanceReports extends core_Master
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'number';
     
     
     /**
@@ -151,7 +151,7 @@ class deals_AdvanceReports extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name,valior,number,folderId';
+    public $searchFields = 'valior,number,folderId';
     
     
     /**
@@ -160,7 +160,6 @@ class deals_AdvanceReports extends core_Master
     public function description()
     {
     	$this->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
-    	$this->FLD("name", 'varchar(160)', 'caption=Име, mandatory,width=15em');
     	$this->FLD("valior", 'date()', 'caption=Дата, mandatory,width=6em');
     	$this->FLD("number", 'int', 'caption=Номер, mandatory,width=6em');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
@@ -226,15 +225,15 @@ class deals_AdvanceReports extends core_Master
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}
     		
+    	$rec->total /= $rec->rate;
+    	$row->total = $mvc->fields['total']->type->toVerbal($rec->total);
+    	
     	if($fields['-single']){
     
     		// Показваме заглавието само ако не сме в режим принтиране
     		if(!Mode::is('printing')){
     			$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>#{$mvc->abbr}{$row->id}</b>" . " ({$row->state})" ;
     		}
-    		
-    		$rec->total /= $rec->rate;
-    		$row->total = $mvc->fields['total']->type->toVerbal($rec->total);
     		
     		if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
     			unset($row->rate);
@@ -377,7 +376,7 @@ class deals_AdvanceReports extends core_Master
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
-    	$row->recTitle = $name;
+    	$row->recTitle = $row->title;
     
     	return $row;
     }
@@ -460,7 +459,7 @@ class deals_AdvanceReports extends core_Master
     	
     	// Подготвяме информацията която ще записваме в Журнала
     	$result = (object)array(
-    			'reason' => $rec->name, // основанието за ордера
+    			'reason' => static::getRecTitle($rec), // основанието за ордера
     			'valior' => $rec->valior,   // датата на ордера
     			'entries' => $entries);
     	
