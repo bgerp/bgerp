@@ -64,7 +64,7 @@ class deals_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'deals';
+    var $roles = 'deals,dealsMaster';
 
     
     /**
@@ -92,11 +92,9 @@ class deals_Setup extends core_ProtoSetup
      */
     function install()
     {
-    	// Добавяне на роля за старши касиер
-    	$msg = core_Roles::addRole('dealsMaster', 'deals') ? "<li style='color:green'>Добавена е роля <b>dealsMaster</b></li>" : '';
-    	
     	$html = parent::install();
-    	$html .= $msg;
+    	
+    	core_Roles::addRole('dealsMaster', 'deals');
     	
     	// @TODO миграция да се махне след като се разнесе
     	if($listRec = acc_Lists::fetchBySystemId('financialDeals')){
