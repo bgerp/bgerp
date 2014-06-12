@@ -71,7 +71,7 @@ class deals_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.3, 'Финанси', 'Сделки', 'deals_Deals', 'default', "deals, ceo"),
+            array(2.3, 'Финанси', 'Сделки', 'deals_Deals', 'default', "dealsMaster, ceo"),
         );
     
     
@@ -93,6 +93,9 @@ class deals_Setup extends core_ProtoSetup
     function install()
     {
     	$html = parent::install();
+    	
+    	// Добавяне на роля за старши касиер
+    	$html .= core_Roles::addRole('dealsMaster', 'cash') ? "<li style='color:green'>Добавена е роля <b>dealsMaster</b></li>" : '';
     	
     	// @TODO миграция да се махне след като се разнесе
     	if($listRec = acc_Lists::fetchBySystemId('financialDeals')){

@@ -59,7 +59,7 @@ class deals_Deals extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,deals';
+	public $canList = 'ceo,dealsMaster';
 
 
 	/**

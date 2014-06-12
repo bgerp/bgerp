@@ -17,9 +17,10 @@ class deals_WrapperPol extends deals_Wrapper
     function on_AfterRenderWrapping($mvc, &$tpl)
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
-		
-        $tabs->TAB('deals_AdvanceReports', 'Отчети');
-        $tabs->TAB('deals_Deals', 'Аванси', array('deals_Deals', 'listAdvances'));
+		if(haveRole('ceo,dealsMaster')){
+        	$tabs->TAB('deals_AdvanceReports', 'Отчети');
+        	$tabs->TAB('deals_Deals', 'Аванси', array('deals_Deals', 'listAdvances'));
+        }
         
         $tpl = $tabs->renderHtml($tpl, $mvc->className);
         $mvc->currentTab = 'ПОЛ';

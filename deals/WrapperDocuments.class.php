@@ -18,8 +18,10 @@ class deals_WrapperDocuments extends deals_Wrapper
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 		
-		$tabs->TAB('deals_DebitDocuments', 'Вземания');
-        $tabs->TAB('deals_CreditDocuments', 'Задължения');
+        if(haveRole('ceo,dealsMaster')){
+        	$tabs->TAB('deals_DebitDocuments', 'Вземания');
+        	$tabs->TAB('deals_CreditDocuments', 'Задължения');
+        }
         
         $tpl = $tabs->renderHtml($tpl, $mvc->className);
         $mvc->currentTab = 'Прехвърления';

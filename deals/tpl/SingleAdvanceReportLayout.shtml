@@ -22,7 +22,7 @@
 			<td class="cell custom-header-bg"><b>|Организация|*</b></td>
 		</tr>
 		<tr>
-			<td class=' no-border-bottom'>
+			<td class='no-border-bottom'>
 				<b>[#MyCompany#]</b><br>
 	            <br>
 	            <!--ET_BEGIN MyAddress-->[#MyAddress#] <br><!--ET_END MyAddress-->

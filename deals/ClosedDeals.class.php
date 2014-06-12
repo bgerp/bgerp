@@ -60,7 +60,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,deals';
+	public $canList = 'ceo,dealsMaster';
 
 
 	/**

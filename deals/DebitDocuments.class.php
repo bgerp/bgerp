@@ -59,7 +59,7 @@ class deals_DebitDocuments extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, deals';
+	public $canList = 'ceo, dealsMaster';
 
 
 	/**

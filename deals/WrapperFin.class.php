@@ -18,8 +18,10 @@ class deals_WrapperFin extends deals_Wrapper
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 		
-		$tabs->TAB('deals_Deals', 'Сделки');
-        $tabs->TAB('deals_ClosedDeals', 'Приключвания');
+        if(haveRole('ceo,dealsMaster')){
+        	$tabs->TAB('deals_Deals', 'Сделки');
+        	$tabs->TAB('deals_ClosedDeals', 'Приключвания');
+        }
         
         $tpl = $tabs->renderHtml($tpl, $mvc->className);
         $mvc->currentTab = 'Финансови';
