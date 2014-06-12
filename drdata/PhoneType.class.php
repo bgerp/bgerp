@@ -101,7 +101,7 @@ class drdata_PhoneType extends type_Varchar
                 $value = '';
 
                 if($t->countryCode) {
-                    $value .= '+' . $t->countryCode;
+                    $value .= $t->countryCode;
                 }
 
                 if($t->areaCode) {
