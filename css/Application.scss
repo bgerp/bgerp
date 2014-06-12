@@ -2987,6 +2987,12 @@ body.narrow {
     }
 }
 
+@media handheld , only screen and (max-width: 1024px) {
+    .document{
+        max-width: 52.5em;
+    }	
+}
+
 @media handheld , only screen and (max-width: 1000px) {
 	#cmsTop, #headerImg {
 		@include rounded(top, left, 0px);
