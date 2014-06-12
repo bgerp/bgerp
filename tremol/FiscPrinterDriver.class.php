@@ -31,7 +31,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
      * Шаблона на бележката
      */
     private static $tpl = '<?xml version="1.0" encoding="utf-8" ?>
-    					   <TremolFpServer Command="NonFiscal" Description="*** Описание в дневникa ***">
+    					   <TremolFpServer Command="Receipt" Description="*** Описание в дневникa ***">
 	    					   [#ITEMS#]
 		    					   <!--ET_BEGIN ITEM-->
 		    	  						[#ITEM#]<Item Description=\'[#name#]\' Price="[#price#]" Quantity="[#quantity#]" VatInfo="2" UnitName="[#measureId#]" <!--ET_BEGIN discount-->Discount="[#discount#]"<!--ET_END discount--> />
@@ -108,9 +108,9 @@ class tremol_FiscPrinterDriver extends core_Manager {
     	$row = new stdClass();
     	
     	if($type == 'sale'){
-    		$row->price = round($rec->price, 2);
+    		$row->price = round($rec->price * (1 + $rec->param), 2);
     		if($rec->discountPercent){
-    			$row->discount = round($rec->discountPercent, 2) . "%";
+    			$row->discount = (round($rec->discountPercent, 2) * 100) . "%";
     		}
     		$pRec = cat_Products::fetch($rec->productId);
     		$row->name = cat_Products::getVerbal($pRec, 'name');
