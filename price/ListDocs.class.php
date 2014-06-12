@@ -370,13 +370,16 @@ class price_ListDocs extends core_Master
     	if(!count($rec->details->products)) return;
     	$packArr = keylist::toArray($rec->packagings);
     	
+    	// Ако няма избрани опаковки, значи сме избрали всички
+    	if(!count($packArr)){
+    		$packArr = cat_Packagings::makeArray4Select('id');;
+    	}
+    	
     	foreach($rec->details->products as &$product){
     		
     		// Изчисляваме цената за продукта в основна мярка
     		$product->priceM = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
-    		
     		$productInfo = cat_Products::getProductInfo($product->productId);
-    		
     		
     		// Ако е пълен ценоразпис и има засичане на опаковките или е непълен и има опаковки
     		if(($rec->showUoms == 'yes' && array_intersect_key($productInfo->packagings, $packArr) || ($rec->showUoms == 'no' && count($productInfo->packagings)))){
