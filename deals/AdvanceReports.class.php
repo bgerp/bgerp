@@ -161,12 +161,14 @@ class deals_AdvanceReports extends core_Master
     {
     	$this->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
     	$this->FLD("valior", 'date()', 'caption=Дата, mandatory,width=6em');
-    	$this->FLD("number", 'int', 'caption=Номер, mandatory,width=6em');
+    	$this->FLD("number", 'int', 'caption=Номер,width=6em');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
     	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс,width=6em');
     	$this->FLD('total', 'double(decimals=2)', 'input=none,caption=Общо,notNull');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
+    
+    	$this->setDbUnique('number');
     }
     
     
@@ -212,6 +214,19 @@ class deals_AdvanceReports extends core_Master
     				$form->setWarning('rate', $msg);
     			}
     		}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	// Ако след запис, няма номер, тогава номера му става ид-то на документа
+    	if(!$rec->number){
+    		$rec->number = $rec->id;
+    		$mvc->save($rec);
     	}
     }
     
