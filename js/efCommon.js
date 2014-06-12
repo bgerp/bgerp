@@ -733,6 +733,14 @@ function js2php(obj, path, new_path)
 	return post_str.join('&');
 }
 
+function prepareContextMenu(){
+	 jQuery.each($('.more-btn'), function( i, val ) {
+			var el = $(this).parent().find('.modal-toolbar');
+			$(this).contextMenu('popup', el,{
+				'displayAround':'trigger'
+			});
+	 });
+}
 
 // Скрива или показва съдържанието на div (или друг) елемент
 function toggleDisplay(id)

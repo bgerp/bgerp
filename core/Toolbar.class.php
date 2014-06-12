@@ -230,13 +230,14 @@ class core_Toolbar extends core_BaseClass
             $rowId = $attr['id'];
             if(count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
             	count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')){
-	            $toolbar = new ET("<div class='clearfix21 toolbar' {$id}><div class='toolbar-first'>[#ROW0#][#ROW1#]</div>" . 
-	                "<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
-        	}
+	          	$toolbar = new ET("<div class='clearfix21 toolbar' {$id}><div class='toolbar-first'>[#ROW0#][#ROW1#]" .
+            	"<!--ET_BEGIN ROW2--><div class='modal-toolbar' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div></div>");
+            }
         	else{
         		$toolbar = new ET("<div class='clearfix21 toolbar'{$id}><div>[#ROW1#][#ROW2#]</div></div>");
         		$flag1row = TRUE;
         	}
+        	
             foreach ($this->buttons as $id => $btn) {
                 $attr = $btn->attr;
                 
@@ -267,14 +268,17 @@ class core_Toolbar extends core_BaseClass
                 
                 $btnCnt++;
             }
-            
+           
             if($flagRow2) {
-                // $toolbar->append("<a href=\"javascript:toggleDisplay('Row2_{$rowId}')\" style=\"font-weight:bold;\" class=\"linkWithIcon\"><img src=" . sbf('img/16/plus.png') . " /> </a>", "ROW0");
-				
-                $toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, 'ef_icon=img/16/toggle-expand.png, class=more-btn'), "ROW0");
+            	$toolbar->prepend(ht::createFnBtn('', "", NULL, 'ef_icon=img/16/menu.png, class=more-btn'), "ROW0");
+            	
+            	$JQuery = cls::get('jquery_Jquery');
+            	$JQuery->enable($toolbar);
+            	$toolbar->push('css/contextMenu.css', "CSS");
+            	$toolbar->push('js/contextMenu.js', "JS");
+            	$JQuery->run($toolbar,'prepareContextMenu();');
             }
-
-            
+         
     /*    } else {
             // Показваме селект меню
             $options['default'] = tr('Действие') . ' »';
