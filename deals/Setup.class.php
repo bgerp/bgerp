@@ -93,7 +93,7 @@ class deals_Setup extends core_ProtoSetup
     function install()
     {
     	// Добавяне на роля за старши касиер
-    	$msg = core_Roles::addRole('dealsMaster', 'cash') ? "<li style='color:green'>Добавена е роля <b>dealsMaster</b></li>" : '';
+    	$msg = core_Roles::addRole('dealsMaster', 'deals') ? "<li style='color:green'>Добавена е роля <b>dealsMaster</b></li>" : '';
     	
     	$html = parent::install();
     	$html .= $msg;
