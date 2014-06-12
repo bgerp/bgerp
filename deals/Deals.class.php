@@ -35,7 +35,7 @@ class deals_Deals extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, deals_WrapperFin, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
@@ -476,6 +476,14 @@ class deals_Deals extends core_Master
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->showFields = 'search';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    
+    	if($data->listFilter->rec->accountId){
+    		$data->query->where("#accountId = {$data->listFilter->rec->accountId}");
+    	} else {
+    		$exceptSysId = deals_AdvanceReports::$baseAccountSysId;
+    		$exceptId = acc_Accounts::getRecBySystemId($exceptSysId)->id;
+    		$data->query->where("#accountId != {$exceptId}");
+    	}
     }
     
     
@@ -762,5 +770,33 @@ class deals_Deals extends core_Master
     	
     	$rec->blAmount = $blAmount;
     	$mvc->save($rec);
+    }
+    
+    
+    /**
+     * Екшън показващ само финансовите сделки свързани с аванси
+     */
+    function act_ListAdvances()
+    {
+    	// Зареждаме нужната обвивка
+    	$this->load("deals_WrapperPol");
+    	
+    	// Подготвяме филтриращите параметри
+    	$accountRec = acc_Accounts::getRecBySystemId(deals_AdvanceReports::$baseAccountSysId);
+    	$params = array('Ctr' => $this, 'Act' => 'list', 'accountId' => $accountRec->id);
+    	
+    	// Връщаме резултата за лист изгледа, филтриран по сметка
+    	return Request::forward($params);
+    }
+    
+    
+    /**
+     *  Да зареждаме нормалната, обвивка ако не показваме филтриране по сметки
+     */
+    public static function on_BeforeAction($mvc, &$tpl, $action)
+    {
+    	if (empty(Request::get('accountId'))) {
+    		$mvc->load('deals_WrapperFin');
+    	}
     }
 }
