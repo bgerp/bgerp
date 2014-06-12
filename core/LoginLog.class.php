@@ -194,7 +194,7 @@ class core_LoginLog extends core_Manager
         					#createdOn > '[#1#]' AND
         					#userId = '[#2#]' AND
         					#timestamp = '[#3#]' AND
-        					#status='success'", $maxCreatedOn, $userId, $timestamp));
+        					(#status='success' OR #status='first_login')", $maxCreatedOn, $userId, $timestamp));
         
         if ($rec) return TRUE;
         
@@ -231,6 +231,7 @@ class core_LoginLog extends core_Manager
         $query = static::getQuery();
         $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
         $query->where("#status = 'success'");
+        $query->orWhere("#status = 'first_login'");
         $query->where("#brid = '{$brid}'");
         $query->limit((int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE);
         $query->orderBy('createdOn', 'DESC');
@@ -292,6 +293,48 @@ class core_LoginLog extends core_Manager
         }
         
         return TRUE;
+    }
+    
+    
+    /**
+     * Проверява дали потребителя се логва от достоверно IP/browser
+     * Ако няма първо логване в определен период и има успешно логване, тогава е достоверно
+     * 
+     * @param integer $userId
+     * @param IP $ip
+     * 
+     * @return boolean
+     */
+    static function isGoodLoginForUser($userId, $ip)
+    {
+        // Идентификатор на браузъра
+        $brid = core_Browser::getBrid();
+        
+        $conf = core_Packs::getConfig('core');
+        
+        // Ограничение на броя на дните
+        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT;
+        
+        // Ограничаваме времето на търсене
+        $maxCreatedOn = dt::removeSecs($daysLimit);
+        
+        // Дали има първо логване в зададения период
+        $rec = static::fetch(array("#createdOn > '[#1#]' AND
+        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
+        							#userId = '[#4#]' AND
+        							#status = 'first_login' 
+        							", $maxCreatedOn, $ip, $brid, $userId));
+        if ($rec) return FALSE;
+        
+        // Дали има успешно логване в зададения период
+        $rec = static::fetch(array("#createdOn > '[#1#]' AND
+        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
+        							#userId = '[#4#]' AND
+        							#status = 'success' 
+        							", $maxCreatedOn, $ip, $brid, $userId));
+        if ($rec) return TRUE;
+        
+        return FALSE;
     }
     
     
