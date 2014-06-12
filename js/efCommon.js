@@ -1267,6 +1267,7 @@ function setFormElementsWidth()
  */
 function setThreadElemWidth(){
 	var winWidth = parseInt($(window).width()) - 45;
+	$('.doc_Containers table.listTable td').css('maxWidth',winWidth + 8);
 	$('.details').css('maxWidth',winWidth);
 	$('.scrolling-holder').css('maxWidth',winWidth );
 }
