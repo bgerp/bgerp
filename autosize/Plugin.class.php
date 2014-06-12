@@ -39,7 +39,7 @@ class autosize_Plugin extends core_Plugin {
         $JQuery->enable($tpl);
         $tpl->push("autosize/" . $conf->AUTOSIZE_VERSION . "/jquery.autosize.min.js", "JS");
         
-        $maxRows = Mode::is('screenMode', 'narrow') ? $conf->AUTOSIZE_MAX_ROWS_NARROW : $conf->AUTOSIZE_MAX_ROWS_NARROW;
+        $maxRows = Mode::is('screenMode', 'narrow') ? $conf->AUTOSIZE_MAX_ROWS_NARROW : $conf->AUTOSIZE_MAX_ROWS_WIDE;
 
         //$tpl->append("\n    .autosize {max-height:{$maxRows}em;}", "STYLES");
 
