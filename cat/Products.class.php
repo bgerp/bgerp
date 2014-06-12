@@ -962,7 +962,7 @@ class cat_Products extends core_Master {
     {
     	$cache = array();
     	$tmp = array();
-    	$metas = array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture');
+    	$metas = array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'costs');
     	foreach($metas as $meta){
     		$catGroups = cat_Groups::getByMeta($meta);
     		$keylist = keylist::fromArray($catGroups);
