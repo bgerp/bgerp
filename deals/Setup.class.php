@@ -55,7 +55,9 @@ class deals_Setup extends core_ProtoSetup
             'deals_Deals',
     		'deals_DebitDocuments',
     		'deals_CreditDocuments',
-    		'deals_ClosedDeals'
+    		'deals_ClosedDeals',
+    		'deals_AdvanceReports',
+    		'deals_AdvanceReportDetails',
         );
 
         
@@ -91,7 +93,7 @@ class deals_Setup extends core_ProtoSetup
     function install()
     {
     	$html = parent::install();
-    
+    	
     	// @TODO миграция да се махне след като се разнесе
     	if($listRec = acc_Lists::fetchBySystemId('financialDeals')){
     		if(!$listRec->regInterfaceId){

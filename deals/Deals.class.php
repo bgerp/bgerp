@@ -35,7 +35,7 @@ class deals_Deals extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, deals_Wrapper, deals_WrapperFin, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
@@ -158,7 +158,7 @@ class deals_Deals extends core_Master
     	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнителno->Описание');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Състояние, input=none');
     	
-    	$this->FNC('detailedName', 'varchar', 'column=none');
+    	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
     }
     
     
@@ -380,26 +380,39 @@ class deals_Deals extends core_Master
     		$Pager->calc();
     		$data->pager = $Pager;
     		
+    		$recs = array();
     		// Извличаме всички записи, за да изчислим точно крайното салдо
     		$count = 0;
+    		
+    		// Групираме записите по документ
     		while($jRec = $jQuery->fetch()){
-    			$start = $data->pager->rangeStart;
-    			$end = $data->pager->rangeEnd - 1;
+    			$index = $jRec->docType . "|" . $jRec->docId;
+    			if(empty($recs[$index])){
+    				$recs[$index] = $jRec;
+    			}
+    			$r = &$recs[$index];
     			
     			$jRec->amount /= $rec->currencyRate;
     			if($jRec->debitItem1 == $item->id){
-    				$jRec->debitA = $jRec->amount;
+    				$r->debitA += $jRec->amount;
     			}
     			
     			if($jRec->creditItem1 == $item->id){
-    				$jRec->creditA = $jRec->amount;
+    				$r->creditA += $jRec->amount;
     			}
+    		}
     		
-    			// Ще показваме реда, само ако отговаря на текущата страница
-    			if(empty($data->pager) || ($count >= $start && $count <= $end)){
-    				$data->history[] = $this->getHistoryRow($jRec);
+    		// За всеки резултат, ако е в границите на пейджъра, го показваме
+    		if(count($recs)){
+    			$count = 0;
+    			foreach ($recs as $rec){
+    				$start = $data->pager->rangeStart;
+    				$end = $data->pager->rangeEnd - 1;
+    				if(empty($data->pager) || ($count >= $start && $count <= $end)){
+    					$data->history[] = $this->getHistoryRow($rec);
+    				}
+    				$count++;
     			}
-    			$count++;
     		}
     	}
     }
