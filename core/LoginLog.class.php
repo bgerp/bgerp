@@ -100,7 +100,7 @@ class core_LoginLog extends core_Manager
     {
         $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent');
         $this->FLD('ip', 'ip', 'caption=IP');
-        $this->FLD('brid', 'varchar', 'caption=BRID');
+        $this->FLD('brid', 'varchar(8)', 'caption=BRID');
         $this->FLD('status', 'enum( 
         							success=Успешено логване,
 									error=Грешка,
@@ -115,7 +115,8 @@ class core_LoginLog extends core_Manager
 									user_activate=Активиране,
 									change_nick=Промяна на ник,
 									time_deviation=Отклонение във времето,
-									used_timestamp=Използван timestamp
+									used_timestamp=Използван timestamp,
+									first_login=Първо логване
 								  )', 'caption=Статус, silent');
         $this->FLD('timestamp', 'int', 'caption=Време, input=none');
         
@@ -251,6 +252,46 @@ class core_LoginLog extends core_Manager
         if ($cnt < (int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE) return FALSE;
         
         return $userId;
+    }
+    
+        
+    /**
+     * Проверява дали дадения потребители се логва за първи път от съответното IP и браузър
+     * 
+     * @param integer $userId
+     * @param IP $ip
+     * 
+     * @return boolean
+     */
+    static function isFirstLogin($userId, $ip)
+    {
+        // Идентификатор на браузъра
+        $brid = core_Browser::getBrid();
+        
+        $conf = core_Packs::getConfig('core');
+        
+        // Ограничение на броя на дните
+        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
+        
+        // Ограничаваме времето на търсене
+        $maxCreatedOn = dt::removeSecs($daysLimit);
+        
+        // Вземаме всички успешни логвания (включтелно първите)
+        // За съответния потреибтел
+        // От това IP или този браузър
+        // Като лимитираме търсенето до константа
+        $rec = static::fetch(array("#createdOn > '[#1#]' AND
+        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
+        							#userId = '[#4#]' AND
+        							(#status = 'success' OR #status = 'first_login')", $maxCreatedOn, $ip, $brid, $userId));
+        
+        // Ако има някакъв запис, следователно не е първо логване
+        if ($rec) {
+            
+            return FALSE;
+        }
+        
+        return TRUE;
     }
     
     
