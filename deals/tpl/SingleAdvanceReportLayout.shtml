@@ -11,11 +11,9 @@
 	<table width='100%' class='border-table' style='margin-bottom:0px'>
 		<tr>
 			<td rowspan='2' width = '60%' class='no-border-bottom' style='padding-left:10px'>
-				<h2>
-					|АВАНСОВ ОТЧЕТ|* </br>
-					<div style='font-size:0.6em'>№:[#number#] / [#valior#]</div>
-				</h2>
-				<div style='vertical-align:bottom'>
+				<div class='document-title'>|АВАНСОВ ОТЧЕТ|*</div>
+				<div>№:[#number#] / [#valior#]</div>
+				<div style='margin:15px 0 3px 0;'>
 				|Общо|*: [#total#] <span class='cCode'>[#currencyId#]</span><!--ET_BEGIN rate-->, |при курс|* [#rate#]<!--ET_END rate-->
 				</div>
 			</td>
