@@ -813,6 +813,25 @@ td.portal-date {
 .detail-info.portal table.listTable { 
 	font-size:1em;
 }
+
+#bgerp_Recently_PortalTable td > div{
+    position: relative;
+}
+
+.portalAddDoc{
+    visibility: hidden;
+    position: absolute;
+    top: 50%;
+    right: 0px;
+    width: 20px;
+    height: 20px;
+    margin-top: -12px;
+    padding: 1px 2px !important;
+}
+
+#bgerp_Recently_PortalTable td:hover .portalAddDoc{
+    visibility: visible;
+}
 /*край на портал*/
 
 
