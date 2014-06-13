@@ -441,7 +441,7 @@ class core_Users extends core_Manager
                     $form->setError('pass', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
                     $this->logLogin($inputs, 'time_deviation');
                     core_LoginLog::add('time_deviation', $userRec->id, $inputs->time);
-                } elseif (core_LoginLog::isTimestampUsed($userRec->id, $inputs->time)) {
+                } elseif (core_LoginLog::isTimestampUsed($inputs->time, $userRec->id)) {
                     $form->setError('pass', 'Грешка при логване|*!<br>|Опитайте пак|*.');
                     $this->logLogin($inputs, 'used_timestamp');
                     core_LoginLog::add('used_timestamp', $userRec->id, $inputs->time);
