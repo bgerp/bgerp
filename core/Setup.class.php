@@ -76,6 +76,14 @@ defIfNot('CORE_SUCCESS_LOGIN_AUTOCOMPLETE', 3);
 defIfNot('CORE_LOGIN_LOG_FETCH_DAYS_LIMIT', 3888000);
 
 
+
+/**
+ * Колко време назад да се търси в лога за first_login
+ * 14 дни
+ */
+defIfNot('CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT', 1209600);
+
+
 /**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
@@ -137,6 +145,8 @@ class core_Setup {
            'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array ('int', 'caption=Логвания от един и същи потребител, за показване на ника по подразбиране->Брой'),
            
            'CORE_LOGIN_LOG_FETCH_DAYS_LIMIT' => array ('time(suggestions=1 месец|45 дни|2 месеца|3 месеца)', 'caption=Колко време назад да се търси в лога->Време'),
+           
+           'CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT' => array ('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Колко време назад да се търси в лога за first_login->Време'),
     
         );
     

@@ -423,36 +423,36 @@ class core_Users extends core_Manager
                 if ($userRec->state == 'rejected') {
                     $form->setError('nick', 'Този потребител е деактивиран|*!');
                     $this->logLogin($inputs, 'missing_password');
-                    core_LoginLog::add($userRec->id, 'reject', $inputs->time);
+                    core_LoginLog::add('reject', $userRec->id, $inputs->time);
                 } elseif ($userRec->state == 'blocked') {
                     $form->setError('nick', 'Този потребител е блокиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.');
                     $this->logLogin($inputs, 'blocked_user');
-                    core_LoginLog::add($userRec->id, 'block', $inputs->time);
+                    core_LoginLog::add('block', $userRec->id, $inputs->time);
                 } elseif ($userRec->state == 'draft') {
                     $form->setError('nick', 'Този потребител все още не е активиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за активация|*.');
                     $this->logLogin($inputs, 'draft_user');
-                    core_LoginLog::add($userRec->id, 'draft', $inputs->time);
+                    core_LoginLog::add('draft', $userRec->id, $inputs->time);
                 } elseif (!$inputs->hash || $inputs->isEmptyPass) {
                     $form->setError('pass', 'Липсва парола!');
                     $this->logLogin($inputs, 'missing_password');
-                    core_LoginLog::add($userRec->id, 'missing_password', $inputs->time);
+                    core_LoginLog::add('missing_password', $userRec->id, $inputs->time);
 //                } elseif (!$inputs->pass && !core_LoginLog::isTimestampCorrect($inputs->time)) {  
                 } elseif (!core_LoginLog::isTimestampCorrect($inputs->time)) {  
                     $form->setError('pass', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
                     $this->logLogin($inputs, 'time_deviation');
-                    core_LoginLog::add($userRec->id, 'time_deviation', $inputs->time);
-                } elseif (core_LoginLog::isTimestampUsed($userRec->id, $inputs->time)) {
+                    core_LoginLog::add('time_deviation', $userRec->id, $inputs->time);
+                } elseif (core_LoginLog::isTimestampUsed($inputs->time, $userRec->id)) {
                     $form->setError('pass', 'Грешка при логване|*!<br>|Опитайте пак|*.');
                     $this->logLogin($inputs, 'used_timestamp');
-                    core_LoginLog::add($userRec->id, 'used_timestamp', $inputs->time);
+                    core_LoginLog::add('used_timestamp', $userRec->id, $inputs->time);
                 } elseif (!$userRec->state) {
                     $form->setError('pass', $wrongLoginErr);
                     $this->logLogin($inputs, $wrongLoginLog);
-//                    core_LoginLog::add(NULL, 'wrong_username', $inputs->time);
+//                    core_LoginLog::add('wrong_username', NULL, $inputs->time);
                 } elseif (self::applyChallenge($userRec->ps5Enc, $inputs->time) != $inputs->hash) {
                     $form->setError('pass', $wrongLoginErr);
                     $this->logLogin($inputs, 'wrong_password');
-                    core_LoginLog::add($userRec->id, 'wrong_password', $inputs->time);
+                    core_LoginLog::add('wrong_password', $userRec->id, $inputs->time);
                 }
             } else {
                 
@@ -470,9 +470,9 @@ class core_Users extends core_Manager
             // Ако няма грешки, логваме потребителя
             // Ако има грешки, или липсва потребител изкарваме формата
             if ($userRec->id && !$form->gotErrors()) {
-                $this->loginUser($userRec->id);
+                $this->loginUser($userRec->id, $inputs);
                 $this->logLogin($inputs, 'successful_login');
-                core_LoginLog::add($userRec->id, 'success', $inputs->time);
+//                core_LoginLog::add('success', $userRec->id, $inputs->time);
             } else {
                 // връщаме формата, като опресняваме времето
                 $inputs->time = time();
@@ -585,12 +585,12 @@ class core_Users extends core_Manager
         
         // Ако е сменен ника
         if ($mvc->changeNick) {
-            core_LoginLog::add($rec->id, 'change_nick');
+            core_LoginLog::add('change_nick', $rec->id);
         }
         
         // Ако е сменена паролата
         if ($mvc->changePass) {
-            core_LoginLog::add($rec->id, 'pass_change');
+            core_LoginLog::add('pass_change', $rec->id);
         }
     }
 
@@ -717,13 +717,13 @@ class core_Users extends core_Manager
     /**
      * Зарежда записа за текущия потребител в сесията
      */
-    static function loginUser($id, $refresh=FALSE)
+    static function loginUser($id, $inputs=FALSE, $refresh=FALSE)
     {
         $Users = cls::get('core_Users');
         
         $userRec = $Users->fetch($id);
         
-        $Users->invoke('beforeLogin', array(&$userRec, $refresh));
+        $Users->invoke('beforeLogin', array(&$userRec, $inputs, $refresh));
         
         if(!$userRec) $userRec = new stdClass();
         
@@ -760,7 +760,7 @@ class core_Users extends core_Manager
                     $sessUserRec->loginTime,
                     $userRec->id);
                     
-                core_LoginLog::add($userRec->id, 'block');
+                core_LoginLog::add('block', $userRec->id);
             }
             
             $userRec->loginTime = $sessUserRec->loginTime;
@@ -801,7 +801,7 @@ class core_Users extends core_Manager
             self::save($userRec, 'lastActivityTime');
         }
 
-        $Users->invoke('afterLogin', array(&$userRec, $refresh));
+        $Users->invoke('afterLogin', array(&$userRec, $inputs, $refresh));
         
         return $userRec;
     }
@@ -814,29 +814,75 @@ class core_Users extends core_Manager
      * @param object $userRec
      * @param boolean $refresh
      */
-    function on_AfterLogin($mvc, &$userRec, $refresh)
+    function on_AfterLogin($mvc, &$userRec, $inputs, $refresh)
     {
         // Ако не се логва, а се рефрешва потребителя
         if ($refresh) return ;
         
-        // Ако се е логнат от различно IP
-        if ($userRec->lastLoginIp && ($userRec->lastLoginIp != $mvc->getRealIpAddr())) {
+        $currIp = $mvc->getRealIpAddr();
+        
+        // Ако е първо логване
+        if (core_LoginLog::isFirstLogin($currIp, $userRec->id)) {
             
-            // Времето, когато се е логнал
-            $time = dt::secsBetween(dt::now(), $userRec->lastLoginTime);
+            // Записваме в лога и връщаме
+            core_LoginLog::add('first_login', $userRec->id, $inputs->time);
             
-            // Закръгляме времето, за да е по четимо
-            $time = type_Time::round($time);
-
-            $TimeInst = cls::get('type_Time');
-            $time = $TimeInst->toVerbal($time);
-            
-            $ip = type_Ip::decorateIp($userRec->lastLoginIp, $userRec->lastLoginTime);
-            
-            // Добавяме съответното статус съобщение
-            $text = "|Последно логване от|* {$ip} |преди|* {$time}";
-            core_Statuses::newStatus($text);
+            return ;
         }
+        
+        // Ако се е логнат от различно IP
+        if ($userRec->lastLoginIp && ($userRec->lastLoginIp != $currIp)) {
+            
+            if (core_LoginLog::isGoodLoginForUser($currIp, $userRec->id)) {
+                
+                $arr = core_LoginLog::getLastLoginFromOtherIp($currIp, $userRec->id);
+                
+                $TimeInst = cls::get('type_Time');
+                
+                // Всички IP-та, от които се е логнало за първи път
+                foreach ((array)$arr['first_login'] as $loginRec) {
+                    
+                    // Времето, когато се е логнал
+                    $time = dt::secsBetween(dt::now(), $loginRec->createdOn);
+                    
+                    // Закръгляме времето, за да е по четимо
+                    $time = type_Time::round($time);
+                    
+                    // Вербално време
+                    $time = $TimeInst->toVerbal($time);
+                    
+                    // Вербално IP
+                    $ip = type_Ip::decorateIp($loginRec->ip, $loginRec->createdOn);
+                    
+                    // Добавяме съответното статус съобщение
+                    $text = "|Подозрително логване от|* {$ip} |преди|* {$time}";
+                    core_Statuses::newStatus($text, 'warning');
+                }
+                
+                // Всички успешни лования
+                foreach ((array)$arr['success'] as $loginRec) {
+                    
+                    // Времето, когато се е логнал
+                    $time = dt::secsBetween(dt::now(), $loginRec->createdOn);
+                    
+                    // Закръгляме времето, за да е по четимо
+                    $time = type_Time::round($time);
+                    
+                    // Вербално време
+                    $time = $TimeInst->toVerbal($time);
+                    
+                    // Вербално IP
+                    $ip = type_Ip::decorateIp($loginRec->ip, $loginRec->createdOn);
+                    
+                    // Добавяме съответното статус съобщение
+                    $text = "|Логване от|* {$ip} |преди|* {$time}";
+                    core_Statuses::newStatus($text, 'notice');
+                }
+            }
+        }
+        
+        // Записваме в лога успешното логване
+        core_LoginLog::add('success', $userRec->id, $inputs->time);
     }
     
     
@@ -903,7 +949,7 @@ class core_Users extends core_Manager
         $refreshTime = dt::mysql2timestamp($currentUserRec->refreshTime);
         
         if (abs(time() - $refreshTime) > EF_USER_REC_REFRESH_TIME || (time() - $currentUserRec->lastHitUT > 3 * EF_USER_REC_REFRESH_TIME)) {
-            Users::loginUser($currentUserRec->id, TRUE);
+            Users::loginUser($currentUserRec->id, FALSE, TRUE);
         }
     }
     
@@ -1264,7 +1310,7 @@ class core_Users extends core_Manager
         $saved = static::save($rec, 'ps5Enc');
         
         if ($saved) {
-            core_LoginLog::add($userId, 'pass_change');
+            core_LoginLog::add('pass_change', $userId);
         }
         
         return $saved;

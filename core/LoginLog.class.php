@@ -100,9 +100,9 @@ class core_LoginLog extends core_Manager
     {
         $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent');
         $this->FLD('ip', 'ip', 'caption=IP');
-        $this->FLD('brid', 'varchar', 'caption=BRID');
+        $this->FLD('brid', 'varchar(8)', 'caption=BRID');
         $this->FLD('status', 'enum( 
-        							success=Успешено логване,
+        							success=Успешно логване,
 									error=Грешка,
 									block=Блокиран,
 									reject=Оттеглен,
@@ -115,7 +115,8 @@ class core_LoginLog extends core_Manager
 									user_activate=Активиране,
 									change_nick=Промяна на ник,
 									time_deviation=Отклонение във времето,
-									used_timestamp=Използван timestamp
+									used_timestamp=Използван timestamp,
+									first_login=Първо логване
 								  )', 'caption=Статус, silent');
         $this->FLD('timestamp', 'int', 'caption=Време, input=none');
         
@@ -126,12 +127,17 @@ class core_LoginLog extends core_Manager
     /**
      * Записва в лога опитите за логване
      * 
-     * @param integer $userId
      * @param string $status
+     * @param integer $userId
      * @param timestamp $time
      */
-    static function add($userId, $status, $time=NULL)
+    static function add($status, $userId=NULL, $time=NULL)
     {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
         $rec = new stdClass();
         $rec->userId = $userId;
         $rec->ip = core_Users::getRealIpAddr();
@@ -176,13 +182,18 @@ class core_LoginLog extends core_Manager
     /**
      * Проверява дали timestamp-а е използван от съответния потребител за успешен вход
      * 
-     * @param integer $userId
      * @param integer $timestamp
+     * @param integer $userId
      * 
      * @return boolean
      */
-    static function isTimestampUsed($userId, $timestamp)
+    static function isTimestampUsed($timestamp, $userId=NULL)
     {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
         $conf = core_Packs::getConfig('core');
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
@@ -193,7 +204,7 @@ class core_LoginLog extends core_Manager
         					#createdOn > '[#1#]' AND
         					#userId = '[#2#]' AND
         					#timestamp = '[#3#]' AND
-        					#status='success'", $maxCreatedOn, $userId, $timestamp));
+        					(#status='success' OR #status='first_login')", $maxCreatedOn, $userId, $timestamp));
         
         if ($rec) return TRUE;
         
@@ -230,6 +241,7 @@ class core_LoginLog extends core_Manager
         $query = static::getQuery();
         $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
         $query->where("#status = 'success'");
+        $query->orWhere("#status = 'first_login'");
         $query->where("#brid = '{$brid}'");
         $query->limit((int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE);
         $query->orderBy('createdOn', 'DESC');
@@ -253,6 +265,172 @@ class core_LoginLog extends core_Manager
         return $userId;
     }
     
+        
+    /**
+     * Проверява дали дадения потребители се логва за първи път от съответното IP и браузър
+     * 
+     * @param IP $ip
+     * @param integer $userId
+     * 
+     * @return boolean
+     */
+    static function isFirstLogin($ip, $userId=NULL)
+    {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Идентификатор на браузъра
+        $brid = core_Browser::getBrid();
+        
+        $conf = core_Packs::getConfig('core');
+        
+        // Ограничение на броя на дните
+        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
+        
+        // Ограничаваме времето на търсене
+        $maxCreatedOn = dt::removeSecs($daysLimit);
+        
+        // Вземаме всички успешни логвания (включтелно първите)
+        // За съответния потреибтел
+        // От това IP или този браузър
+        // Като лимитираме търсенето до константа
+        $rec = static::fetch(array("#createdOn > '[#1#]' AND
+        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
+        							#userId = '[#4#]' AND
+        							(#status = 'success' OR #status = 'first_login')", $maxCreatedOn, $ip, $brid, $userId));
+        
+        // Ако има някакъв запис, следователно не е първо логване
+        if ($rec) {
+            
+            return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * Проверява дали потребителя се логва от достоверно IP/browser
+     * Ако няма първо логване в определен период и има успешно логване, тогава е достоверно
+     * 
+     * @param IP $ip
+     * @param integer $userId
+     * 
+     * @return boolean
+     */
+    static function isGoodLoginForUser($ip, $userId=NULL)
+    {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Идентификатор на браузъра
+        $brid = core_Browser::getBrid();
+        
+        $conf = core_Packs::getConfig('core');
+        
+        // Ограничение на броя на дните
+        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT;
+        
+        // Ограничаваме времето на търсене
+        $maxCreatedOn = dt::removeSecs($daysLimit);
+        
+        // Дали има първо логване в зададения период
+        $rec = static::fetch(array("#createdOn > '[#1#]' AND
+        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
+        							#userId = '[#4#]' AND
+        							#status = 'first_login' 
+        							", $maxCreatedOn, $ip, $brid, $userId));
+        if ($rec) return FALSE;
+        
+        // Дали има успешно логване в зададения период
+        $rec = static::fetch(array("#createdOn > '[#1#]' AND
+        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
+        							#userId = '[#4#]' AND
+        							#status = 'success' 
+        							", $maxCreatedOn, $ip, $brid, $userId));
+        if ($rec) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща масив с логваниято от съответния потребител, след последното му логване
+     * от съответното IP/brid
+     * 
+     * @param IP $ip
+     * @param integer $userId
+     * 
+     * @return array
+     * ['success']
+     * ['first_login']
+     */
+    static  function getLastLoginFromOtherIp($ip, $userId=NULL)
+    {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $resArr = array();
+        
+        // Идентификатор на браузъра
+        $brid = core_Browser::getBrid();
+        
+        $conf = core_Packs::getConfig('core');
+        
+        // Ограничение на броя на дните
+        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT;
+        
+        // Ограничаваме времето на търсене
+        $maxCreatedOn = dt::removeSecs($daysLimit);
+        
+        // Последното логване с това IP/браузър от този потребител
+        $query = static::getQuery();
+        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
+        $query->where(array("#ip = '[#1#]'", $ip));
+        $query->orWhere(array("#brid = '[#1#]'", $brid));
+        $query->where(array("#userId = '[#1#]'", $userId));
+        $query->where("#status = 'success'");
+        $query->orderBy('createdOn', 'DESC');
+        $query->limit(1);
+        
+        $rec = $query->fetch();
+        
+        if (!$rec) return ;
+        
+        $lastCreatedOn = $rec->createdOn;
+        
+        // Всички логвания от други IP'та/браузъри с този потребител
+        // След съответното време
+        $sQuery = static::getQuery();
+        $sQuery->where(array("#createdOn > '[#1#]'", $lastCreatedOn));
+        $sQuery->where(array("#ip != '[#1#]'", $ip));
+        $sQuery->where(array("#brid != '[#1#]'", $brid));
+        $sQuery->where(array("#userId = '[#1#]'", $userId));
+        $sQuery->where("#status = 'success'");
+        $sQuery->orWhere("#status = 'first_login'");
+        
+        while ($sRec = $sQuery->fetch()) {
+            
+            if (!$sRec->ip) continue;
+            
+            if ($ip == $sRec->ip) continue;
+            
+            // Ако е отбелязано в първо логване, да не се добавя в масива с успешни логвания
+            if ($sRec->status == 'success' && $resArr['first_login'][$sRec->ip]) continue;
+            
+            $resArr[$sRec->status][$sRec->ip] = $sRec;
+            
+        }
+        
+        return $resArr;
+    }
+    
     
     /**
      * Връща последните записи в лога за съответния потребител
@@ -266,7 +444,7 @@ class core_LoginLog extends core_Manager
     static function getLastAttempts($userId=NULL, $limit=5, $statusArr=array()) 
     {
         // Ако не е подаден потребител
-        if ($userId == NULL) {
+        if (!$userId) {
             $userId = core_Users::getCurrent();
         }
         

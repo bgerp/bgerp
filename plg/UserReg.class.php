@@ -159,7 +159,7 @@ class plg_UserReg extends core_Plugin
                     $rec->state = 'draft';
                     $mvc->save($rec);
                     
-                    core_LoginLog::add($rec->id, 'user_reg');
+                    core_LoginLog::add('user_reg', $rec->id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
                     $this->sendActivationLetter($rec);
@@ -293,9 +293,9 @@ class plg_UserReg extends core_Plugin
                     $mvc->save($rec, 'state,ps5Enc');
                     
                     if ($act == 'activate') {
-                        core_LoginLog::add($rec->id, 'user_activate');
+                        core_LoginLog::add('user_activate', $rec->id);
                     } else {
-                        core_LoginLog::add($rec->id, 'pass_change');
+                        core_LoginLog::add('pass_change', $rec->id);
                     }
                     
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
@@ -342,7 +342,7 @@ class plg_UserReg extends core_Plugin
                     
                     $rec = $mvc->fetch($id);
                     
-                    core_LoginLog::add($rec->id, 'pass_reset');
+                    core_LoginLog::add('pass_reset', $rec->id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
                     $this->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Reset your password', 'changePass');
