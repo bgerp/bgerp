@@ -515,7 +515,7 @@ class deals_Deals extends core_Master
     			'authorId' => $rec->createdBy,
     			'author'   => $this->getVerbal($rec, 'createdBy'),
     			'state'    => $rec->state,
-    			'recTitle' => $title,
+    			'recTitle' => $this->singleTitle . " №{$rec->id}",
     	);
     
     	return $row;
@@ -713,8 +713,8 @@ class deals_Deals extends core_Master
     {
     	$rec = $mvc->fetchRec($id);
     	
-    	deals_DebitDocument::rejectAll($rec->id);
-    	deals_CreditDocument::rejectAll($rec->id);
+    	deals_DebitDocuments::rejectAll($rec->id);
+    	deals_CreditDocuments::rejectAll($rec->id);
     }
     
     
@@ -729,8 +729,8 @@ class deals_Deals extends core_Master
     {
     	$rec = $mvc->fetchRec($id);
     	 
-    	deals_DebitDocument::restoreAll($rec->id);
-    	deals_CreditDocument::restoreAll($rec->id);
+    	deals_DebitDocuments::restoreAll($rec->id);
+    	deals_CreditDocuments::restoreAll($rec->id);
     }
     
     
