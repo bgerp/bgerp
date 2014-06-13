@@ -394,6 +394,8 @@ class core_LoginLog extends core_Manager
             
             if (!$sRec->ip) continue;
             
+            if ($ip == $sRec->ip) continue;
+            
             // Ако е отбелязано в първо логване, да не се добавя в масива с успешни логвания
             if ($sRec->status == 'success' && $resArr['first_login'][$sRec->ip]) continue;
             
