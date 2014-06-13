@@ -8,7 +8,7 @@
 			<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 		</div>
 	<!--ET_END header-->
-	<table border='1' width='100%' class='border-table' style='margin-bottom:0px'>
+	<table width='100%' class='border-table' style='margin-bottom:0px'>
 		<tr>
 			<td rowspan='2' width = '60%' class='no-border-bottom' style='padding-left:10px'>
 				<h2>
