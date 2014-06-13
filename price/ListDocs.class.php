@@ -336,6 +336,8 @@ class price_ListDocs extends core_Master
     	// Ако датата на ценоразписа е текущата, извличаме и текущото време
     	if($data->rec->date == dt::today()){
     		$data->rec->date = dt::now();
+    	} else {
+    		$data->rec->date .= ' 23:59:59';
     	}
     	
     	$customerProducts = price_GroupOfProducts::getAllProducts($data->rec->date); 
