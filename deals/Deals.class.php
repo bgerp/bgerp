@@ -795,8 +795,7 @@ class deals_Deals extends core_Master
      */
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
-    	$accId = Request::get('accountId');
-    	if (empty($accId)) {
+    	if (($action == 'list' || $action == 'default') && !Request::get('accountId')) {
     		$mvc->load('deals_WrapperFin');
     	}
     }
