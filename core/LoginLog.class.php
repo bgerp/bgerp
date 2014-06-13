@@ -127,12 +127,17 @@ class core_LoginLog extends core_Manager
     /**
      * Записва в лога опитите за логване
      * 
-     * @param integer $userId
      * @param string $status
+     * @param integer $userId
      * @param timestamp $time
      */
-    static function add($userId, $status, $time=NULL)
+    static function add($status, $userId=NULL, $time=NULL)
     {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
         $rec = new stdClass();
         $rec->userId = $userId;
         $rec->ip = core_Users::getRealIpAddr();
@@ -177,13 +182,18 @@ class core_LoginLog extends core_Manager
     /**
      * Проверява дали timestamp-а е използван от съответния потребител за успешен вход
      * 
-     * @param integer $userId
      * @param integer $timestamp
+     * @param integer $userId
      * 
      * @return boolean
      */
-    static function isTimestampUsed($userId, $timestamp)
+    static function isTimestampUsed($timestamp, $userId=NULL)
     {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
         $conf = core_Packs::getConfig('core');
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
@@ -259,13 +269,18 @@ class core_LoginLog extends core_Manager
     /**
      * Проверява дали дадения потребители се логва за първи път от съответното IP и браузър
      * 
-     * @param integer $userId
      * @param IP $ip
+     * @param integer $userId
      * 
      * @return boolean
      */
-    static function isFirstLogin($userId, $ip)
+    static function isFirstLogin($ip, $userId=NULL)
     {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
         // Идентификатор на браузъра
         $brid = core_Browser::getBrid();
         
@@ -300,13 +315,18 @@ class core_LoginLog extends core_Manager
      * Проверява дали потребителя се логва от достоверно IP/browser
      * Ако няма първо логване в определен период и има успешно логване, тогава е достоверно
      * 
-     * @param integer $userId
      * @param IP $ip
+     * @param integer $userId
      * 
      * @return boolean
      */
-    static function isGoodLoginForUser($userId, $ip)
+    static function isGoodLoginForUser($ip, $userId=NULL)
     {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
         // Идентификатор на браузъра
         $brid = core_Browser::getBrid();
         
@@ -349,8 +369,13 @@ class core_LoginLog extends core_Manager
      * ['success']
      * ['first_login']
      */
-    static  function getLastLoginFromOtherIp($ip, $userId)
+    static  function getLastLoginFromOtherIp($ip, $userId=NULL)
     {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
         $resArr = array();
         
         // Идентификатор на браузъра
@@ -419,7 +444,7 @@ class core_LoginLog extends core_Manager
     static function getLastAttempts($userId=NULL, $limit=5, $statusArr=array()) 
     {
         // Ако не е подаден потребител
-        if ($userId == NULL) {
+        if (!$userId) {
             $userId = core_Users::getCurrent();
         }
         
