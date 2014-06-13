@@ -308,7 +308,7 @@ class acc_Balances extends core_Master
     
     
     /**
-     * След изчисляване на баланса синхронизира складовите наличностти
+     * След изчисляване на баланса синхронизира складовите наличности
      */
     public static function on_AfterRecalcBalances(acc_Balances $mvc, &$data)
     {

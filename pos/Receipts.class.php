@@ -979,7 +979,7 @@ class pos_Receipts extends core_Master {
     	$rec->state = 'active';
     	if($this->save($rec)){
     		
-    		// Обновяваме складовите наличностти
+    		// Обновяваме складовите наличности
     		pos_Stocks::updateStocks($rec->id);
     	}
     	
