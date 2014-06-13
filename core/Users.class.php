@@ -822,7 +822,7 @@ class core_Users extends core_Manager
         $currIp = $mvc->getRealIpAddr();
         
         // Ако е първо логване
-        if (core_LoginLog::isFirstLogin($userRec->id, $currIp)) {
+        if (core_LoginLog::isFirstLogin($currIp, $userRec->id)) {
             
             // Записваме в лога и връщаме
             core_LoginLog::add('first_login', $userRec->id, $inputs->time);
@@ -833,7 +833,7 @@ class core_Users extends core_Manager
         // Ако се е логнат от различно IP
         if ($userRec->lastLoginIp && ($userRec->lastLoginIp != $currIp)) {
             
-            if (core_LoginLog::isGoodLoginForUser($userRec->id, $currIp)) {
+            if (core_LoginLog::isGoodLoginForUser($currIp, $userRec->id)) {
                 
                 $arr = core_LoginLog::getLastLoginFromOtherIp($currIp, $userRec->id);
                 
