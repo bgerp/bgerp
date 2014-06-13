@@ -342,7 +342,7 @@ class crm_Profiles extends core_Master
 //                        $userId = core_Users::fetchField(array("#nick = '[#1#]'", $form->rec->nick));
 //                    }
 //	                
-//	                core_LoginLog::add($userId, 'pass_change');
+//	                core_LoginLog::add('pass_change', $userId);
 	                
 	                // Редиректваме към предварително установения адрес
 	                return new Redirect(getRetUrl(), "Паролата е сменена успешно");
