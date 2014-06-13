@@ -25,7 +25,9 @@ class vislog_DecoratePlugin extends core_Plugin
 
             return $ip;
         }
-
+        
+        if (!strtolower(trim($ip))) return $ip;
+        
         if($cnt = vislog_History::count(array("#ip = '[#1#]'", $ip))) {
             if($time) {
                 $old = vislog_History::count(array("#ip = '[#1#]' AND #createdOn <= '[#2#]'", $ip, $time));

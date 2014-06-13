@@ -20,7 +20,7 @@ class store_plg_BalanceSync extends core_Plugin
 	
 	
 	/**
-	 * След изчисляване на баланса синхронизира складовите наличностти
+	 * След изчисляване на баланса синхронизира складовите наличности
 	 */
 	public static function on_AfterRecalcBalances(acc_Balances $mvc, &$data)
 	{

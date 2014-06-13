@@ -907,9 +907,12 @@ class doc_Containers extends core_Manager
         
         // Ако сме в нишка
         if ($rec->threadId) {
-            $text = tr('Добавяне на нов документ в нишката');
+        	$thRec = doc_Threads::fetch($rec->threadId);
+        	$title = doc_Threads::recToVerbal($thRec)->onlyTitle;
+        	$text = tr("Нов документ в") . " " . $title;
         } else {
-            $text = tr('Добавяне на нов документ (нишка) в папката');
+        	$folderRow = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            $text = tr("|Нова тема в |* {$folderRow}");
         }
         
         $tpl->append("\n<div class='listTitle'>" . $text . ":</div>");
@@ -1262,15 +1265,18 @@ class doc_Containers extends core_Manager
      */
     public static function rejectByThread($threadId)
     {
-        /* @var $query core_Query */
         $query = static::getQuery();
         
         $query->where("#threadId = {$threadId}");
         $query->where("#state <> 'rejected'");
         
         while ($rec = $query->fetch()) {
-            $doc = static::getDocument($rec);
-            $doc->reject();
+            try{
+            	$doc = static::getDocument($rec);
+            	$doc->reject();
+            } catch(Exception $e){
+            	continue;
+            }
         }
     }
     

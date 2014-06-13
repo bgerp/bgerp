@@ -35,7 +35,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'deals_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,
+    public $loadList = 'deals_Wrapper, deals_WrapperFin, acc_plg_Contable, plg_RowTools, plg_Sorting,
                     doc_DocumentPlg, doc_plg_HidePrices, acc_plg_Registry, plg_Search';
     
     
@@ -60,7 +60,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,deals';
+	public $canList = 'ceo,dealsMaster';
 
 
 	/**

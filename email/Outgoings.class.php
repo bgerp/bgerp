@@ -387,17 +387,31 @@ class email_Outgoings extends core_Master
                 $rec->documents = keylist::fromArray($documents);
             }
             
-            // ... и накрая - изпращане.
-            $status = email_Sent::sendOne(
-                $options->boxFrom,
-                $emailTo,
-                $rec->subject,
-                $rec,
-                array(
-                   'encoding' => $options->encoding
-                ),
-                $emailsCc
-            );
+            try {
+                // ... и накрая - изпращане.
+                $status = email_Sent::sendOne(
+                    $options->boxFrom,
+                    $emailTo,
+                    $rec->subject,
+                    $rec,
+                    array(
+                       'encoding' => $options->encoding
+                    ),
+                    $emailsCc
+                );
+            } catch (Exception $e) {
+                $status = FALSE;
+            }
+            
+            // Записваме историята
+            log_Documents::flushActions();
+            
+            // Ако възникне грешка при изпращане
+            if (!$status) {
+                
+                // Записваме имейла, като върнат
+                log_Documents::returned($rec->__mid);
+            }
             
             // Стринга с имейлите, до които е изпратено
             $allEmailsToStr = ($emailsCc) ? "{$emailTo}, $emailsCc": $emailTo;
@@ -416,9 +430,6 @@ class email_Outgoings extends core_Master
                 static::log('Unable to send to ' . $allEmailsToStr, $rec->id);
                 $failure[] = $allEmailsToStr;
             }
-            
-            // Записваме историята
-            log_Documents::flushActions();
         }
         
         // Ако има успешно изпращане

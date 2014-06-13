@@ -247,5 +247,37 @@ class price_History extends core_Manager
         return $rec;
     }
 
-
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+    	if(haveRole('admin,debug')){
+    		$data->toolbar->addBtn('Изтриване', array($mvc, 'Truncate', 'ret_url' => TRUE), 'ef_icon=img/16/sport_shuttlecock.png');
+    	}
+    }
+    
+    
+    /**
+     * Екшън за изтриване на всички кеширани цени
+     */
+    public function act_Truncate()
+    {
+    	requireRole('admin,debug');
+    	
+    	$this->truncate();
+    	core_Statuses::newStatus(tr('Успешно са изтрити кешираните цени!'));
+    	
+    	followRetUrl();
+    }
+    
+    
+    /**
+     * Изпразване на таблицата
+     */
+    public function truncate()
+    {
+    	$this->db->query("TRUNCATE TABLE `{$this->dbTableName}`");
+    }
  }

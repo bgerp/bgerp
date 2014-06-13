@@ -59,7 +59,7 @@ class deals_Deals extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,deals';
+	public $canList = 'ceo,dealsMaster';
 
 
 	/**
@@ -158,7 +158,7 @@ class deals_Deals extends core_Master
     	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнителno->Описание');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Състояние, input=none');
     	
-    	$this->FNC('detailedName', 'varchar', 'column=none');
+    	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
     }
     
     
@@ -315,6 +315,10 @@ class deals_Deals extends core_Master
     			$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
     		}
     		
+    		if(deals_AdvanceReports::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    			$data->toolbar->addBtn("Ав. отчет", array('deals_AdvanceReports', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/legend.png,title=Създаване на нов авансов отчет');
+    		}
+    		
     		if(deals_ClosedDeals::haveRightFor('add')){
     			$data->toolbar->addBtn('Приключване', array('deals_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), "ef_icon=img/16/closeDeal.png,title=Приключване на финансова сделка");
     		}
@@ -380,26 +384,39 @@ class deals_Deals extends core_Master
     		$Pager->calc();
     		$data->pager = $Pager;
     		
+    		$recs = array();
     		// Извличаме всички записи, за да изчислим точно крайното салдо
     		$count = 0;
+    		
+    		// Групираме записите по документ
     		while($jRec = $jQuery->fetch()){
-    			$start = $data->pager->rangeStart;
-    			$end = $data->pager->rangeEnd - 1;
+    			$index = $jRec->docType . "|" . $jRec->docId;
+    			if(empty($recs[$index])){
+    				$recs[$index] = $jRec;
+    			}
+    			$r = &$recs[$index];
     			
     			$jRec->amount /= $rec->currencyRate;
     			if($jRec->debitItem1 == $item->id){
-    				$jRec->debitA = $jRec->amount;
+    				$r->debitA += $jRec->amount;
     			}
     			
     			if($jRec->creditItem1 == $item->id){
-    				$jRec->creditA = $jRec->amount;
+    				$r->creditA += $jRec->amount;
     			}
+    		}
     		
-    			// Ще показваме реда, само ако отговаря на текущата страница
-    			if(empty($data->pager) || ($count >= $start && $count <= $end)){
-    				$data->history[] = $this->getHistoryRow($jRec);
+    		// За всеки резултат, ако е в границите на пейджъра, го показваме
+    		if(count($recs)){
+    			$count = 0;
+    			foreach ($recs as $rec){
+    				$start = $data->pager->rangeStart;
+    				$end = $data->pager->rangeEnd - 1;
+    				if(empty($data->pager) || ($count >= $start && $count <= $end)){
+    					$data->history[] = $this->getHistoryRow($rec);
+    				}
+    				$count++;
     			}
-    			$count++;
     		}
     	}
     }
@@ -463,6 +480,14 @@ class deals_Deals extends core_Master
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->showFields = 'search';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    
+    	if($data->listFilter->rec->accountId){
+    		$data->query->where("#accountId = {$data->listFilter->rec->accountId}");
+    	} else {
+    		$exceptSysId = deals_AdvanceReports::$baseAccountSysId;
+    		$exceptId = acc_Accounts::getRecBySystemId($exceptSysId)->id;
+    		$data->query->where("#accountId != {$exceptId}");
+    	}
     }
     
     
@@ -490,7 +515,7 @@ class deals_Deals extends core_Master
     			'authorId' => $rec->createdBy,
     			'author'   => $this->getVerbal($rec, 'createdBy'),
     			'state'    => $rec->state,
-    			'recTitle' => $title,
+    			'recTitle' => $this->singleTitle . " №{$rec->id}",
     	);
     
     	return $row;
@@ -688,8 +713,8 @@ class deals_Deals extends core_Master
     {
     	$rec = $mvc->fetchRec($id);
     	
-    	deals_DebitDocument::rejectAll($rec->id);
-    	deals_CreditDocument::rejectAll($rec->id);
+    	deals_DebitDocuments::rejectAll($rec->id);
+    	deals_CreditDocuments::rejectAll($rec->id);
     }
     
     
@@ -704,8 +729,8 @@ class deals_Deals extends core_Master
     {
     	$rec = $mvc->fetchRec($id);
     	 
-    	deals_DebitDocument::restoreAll($rec->id);
-    	deals_CreditDocument::restoreAll($rec->id);
+    	deals_DebitDocuments::restoreAll($rec->id);
+    	deals_CreditDocuments::restoreAll($rec->id);
     }
     
     
@@ -749,5 +774,33 @@ class deals_Deals extends core_Master
     	
     	$rec->blAmount = $blAmount;
     	$mvc->save($rec);
+    }
+    
+    
+    /**
+     * Екшън показващ само финансовите сделки свързани с аванси
+     */
+    function act_ListAdvances()
+    {
+    	// Зареждаме нужната обвивка
+    	$this->load("deals_WrapperPol");
+    	
+    	// Подготвяме филтриращите параметри
+    	$accountRec = acc_Accounts::getRecBySystemId(deals_AdvanceReports::$baseAccountSysId);
+    	$params = array('Ctr' => $this, 'Act' => 'list', 'accountId' => $accountRec->id);
+    	
+    	// Връщаме резултата за лист изгледа, филтриран по сметка
+    	return Request::forward($params);
+    }
+    
+    
+    /**
+     *  Да зареждаме нормалната, обвивка ако не показваме филтриране по сметки
+     */
+    public static function on_BeforeAction($mvc, &$tpl, $action)
+    {
+    	if (($action == 'list' || $action == 'default') && !Request::get('accountId')) {
+    		$mvc->load('deals_WrapperFin');
+    	}
     }
 }

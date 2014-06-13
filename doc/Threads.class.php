@@ -313,8 +313,8 @@ class doc_Threads extends core_Manager
         if(mb_strlen($docRow->title) > self::maxLenTitle) {
             $attr['title'] = $docRow->title;
         }
-
-        $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
+		
+        $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
             array('doc_Containers', 'list',
                 'threadId' => $rec->id,
                 'folderId' => $rec->folderId,

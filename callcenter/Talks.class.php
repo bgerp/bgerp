@@ -1730,8 +1730,10 @@ class callcenter_Talks extends core_Master
         // TODO може да се премахне
         $url = str_ireplace('reload.bgerp.com/callcenter_Talks/', 'reload1.bgerp.com/callcenter_Talks/', $url);
         
+        $url = escapeshellarg($url);
+        
         // Извикваме линка
-        exec("wget -q --spider --no-check-certificate '{$url}'");
+        exec("wget -q --spider --no-check-certificate {$url}");
         
         // Масив за линка
         $urlArr = array(
@@ -1757,8 +1759,10 @@ class callcenter_Talks extends core_Master
         // TODO може да се премахне
         $url = str_ireplace('reload.bgerp.com/callcenter_Talks/', 'reload1.bgerp.com/callcenter_Talks/', $url);
         
+        $url = escapeshellarg($url);
+        
         // Извикваме линка
-        exec("wget -q --spider --no-check-certificate '{$url}'");
+        exec("wget -q --spider --no-check-certificate {$url}");
     }
     
     

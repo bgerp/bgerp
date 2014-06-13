@@ -1341,19 +1341,30 @@ class blast_Emails extends core_Master
                 
                 $body->text = core_ET::unEscape($body->text);
                 
-                //Извикваме функцията за изпращане на имейли
-                $status = email_Sent::sendOne(
-                    $boxFrom,
-                    $emailTo,
-                    $body->subject,
-                    $body,
-                    array(
-                       'encoding' => $nRec->encoding,
-                       'no_thread_hnd' => TRUE
-                    )
-                );
+                try {
+                    //Извикваме функцията за изпращане на имейли
+                    $status = email_Sent::sendOne(
+                        $boxFrom,
+                        $emailTo,
+                        $body->subject,
+                        $body,
+                        array(
+                           'encoding' => $nRec->encoding,
+                           'no_thread_hnd' => TRUE
+                        )
+                    );
+                } catch (Exception $e) {
+                    $status = FALSE;
+                }
                 
                 log_Documents::flushActions();
+                
+                // Ако възникне грешка при изпращане
+                if (!$status) {
+                    
+                    // Записваме имейла, като върнат
+                    log_Documents::returned($body->__mid);
+                }
             }
             
             Mode::pop('currentUserRec');

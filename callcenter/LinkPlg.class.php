@@ -31,6 +31,8 @@ class callcenter_LinkPlg extends core_Plugin
         // Ако пакета не е инсталиран - не би трябвало да се стига до тук, ако не е инсталиран
 //        if (!core_Packs::isInstalled('callcenter')) return ;
         
+        $canonical = '+' . $canonical;
+        
         // Ако е факс
         if ($isFax) {
             
