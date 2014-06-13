@@ -1,0 +1,52 @@
+-----------------------------------------------
+System software for Tremol Fiscal Printer / ECR
+-----------------------------------------------
+
+Introduction
+============
+The system software for Tremol fiscal devices includes two modules: fp_exec and fp_server. Fp_exec is
+console program which controls the fiscal device and interprets commands stored in XML file. The result
+is returned as process exit code and optionally in XML output file. Fp_server is GUI for fp_exec. It
+gets XML command file from its incoming folder, runs fp_exec to process the file, and displays a log of
+operations. The POS software can use fp_exec directly or store the XML commands in fp_server's incoming
+folder. To setup and fiscalize the fiscal device you have to use RegFU from Windowssoftware pack.
+Fp_exec uses TinyXML library to parse XML files.
+
+
+System Requirements
+===================
+Linux, GTK+, USB or serial port
+
+
+Installation
+============
+Extract the files from archive. File fp_exec.conf must be accessible for reading and writing by fp_exec.
+"Port" entry contains the file name of serial or USB port used by the fiscal device.
+
+
+Format of fp_exec.conf
+======================
+The file fp_exec.conf contains configurable parameters for fp_exec and fp_server. Multiple fiscal devices
+or different profiles for single device are supported. The parameters are divided into separate sections
+enclosed in square brackets similarly to Windows .INI files. The default section is "TremolFP". To select
+different section, use "-d" or "--device_name" command line option for fp_exec. Fp_server global settings
+are stored in [fp_server] or in "GUI_..." keys for each device name.
+
+
+DISCLAIMER OF WARRANTY
+======================
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR OR THE AGENTS OF THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Technical Support
+=================
+
+Email: software@tremol.bg
+Web: http://www.tremol.bg
+
