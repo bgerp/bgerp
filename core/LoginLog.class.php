@@ -339,6 +339,73 @@ class core_LoginLog extends core_Manager
     
     
     /**
+     * Връща масив с логваниято от съответния потребител, след последното му логване
+     * от съответното IP/brid
+     * 
+     * @param IP $ip
+     * @param integer $userId
+     * 
+     * @return array
+     * ['success']
+     * ['first_login']
+     */
+    static  function getLastLoginFromOtherIp($ip, $userId)
+    {
+        $resArr = array();
+        
+        // Идентификатор на браузъра
+        $brid = core_Browser::getBrid();
+        
+        $conf = core_Packs::getConfig('core');
+        
+        // Ограничение на броя на дните
+        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT;
+        
+        // Ограничаваме времето на търсене
+        $maxCreatedOn = dt::removeSecs($daysLimit);
+        
+        // Последното логване с това IP/браузър от този потребител
+        $query = static::getQuery();
+        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
+        $query->where(array("#ip = '[#1#]'", $ip));
+        $query->orWhere(array("#brid = '[#1#]'", $brid));
+        $query->where(array("#userId = '[#1#]'", $userId));
+        $query->where("#status = 'success'");
+        $query->orderBy('createdOn', 'DESC');
+        $query->limit(1);
+        
+        $rec = $query->fetch();
+        
+        if (!$rec) return ;
+        
+        $lastCreatedOn = $rec->createdOn;
+        
+        // Всички логвания от други IP'та/браузъри с този потребител
+        // След съответното време
+        $sQuery = static::getQuery();
+        $sQuery->where(array("#createdOn > '[#1#]'", $lastCreatedOn));
+        $sQuery->where(array("#ip != '[#1#]'", $ip));
+        $sQuery->where(array("#brid != '[#1#]'", $brid));
+        $sQuery->where(array("#userId = '[#1#]'", $userId));
+        $sQuery->where("#status = 'success'");
+        $sQuery->orWhere("#status = 'first_login'");
+        
+        while ($sRec = $sQuery->fetch()) {
+            
+            if (!$sRec->ip) continue;
+            
+            // Ако е отбелязано в първо логване, да не се добавя в масива с успешни логвания
+            if ($sRec->status == 'success' && $resArr['first_login'][$sRec->ip]) continue;
+            
+            $resArr[$sRec->status][$sRec->ip] = $sRec;
+            
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Връща последните записи в лога за съответния потребител
      * 
      * @param integer $userId
