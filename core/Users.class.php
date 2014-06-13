@@ -470,9 +470,9 @@ class core_Users extends core_Manager
             // Ако няма грешки, логваме потребителя
             // Ако има грешки, или липсва потребител изкарваме формата
             if ($userRec->id && !$form->gotErrors()) {
-                $this->loginUser($userRec->id);
+                $this->loginUser($userRec->id, $inputs);
                 $this->logLogin($inputs, 'successful_login');
-                core_LoginLog::add($userRec->id, 'success', $inputs->time);
+//                core_LoginLog::add($userRec->id, 'success', $inputs->time);
             } else {
                 // връщаме формата, като опресняваме времето
                 $inputs->time = time();
@@ -717,13 +717,13 @@ class core_Users extends core_Manager
     /**
      * Зарежда записа за текущия потребител в сесията
      */
-    static function loginUser($id, $refresh=FALSE)
+    static function loginUser($id, $inputs=FALSE, $refresh=FALSE)
     {
         $Users = cls::get('core_Users');
         
         $userRec = $Users->fetch($id);
         
-        $Users->invoke('beforeLogin', array(&$userRec, $refresh));
+        $Users->invoke('beforeLogin', array(&$userRec, $inputs, $refresh));
         
         if(!$userRec) $userRec = new stdClass();
         
@@ -801,7 +801,7 @@ class core_Users extends core_Manager
             self::save($userRec, 'lastActivityTime');
         }
 
-        $Users->invoke('afterLogin', array(&$userRec, $refresh));
+        $Users->invoke('afterLogin', array(&$userRec, $inputs, $refresh));
         
         return $userRec;
     }
@@ -814,29 +814,75 @@ class core_Users extends core_Manager
      * @param object $userRec
      * @param boolean $refresh
      */
-    function on_AfterLogin($mvc, &$userRec, $refresh)
+    function on_AfterLogin($mvc, &$userRec, $inputs, $refresh)
     {
         // Ако не се логва, а се рефрешва потребителя
         if ($refresh) return ;
         
-        // Ако се е логнат от различно IP
-        if ($userRec->lastLoginIp && ($userRec->lastLoginIp != $mvc->getRealIpAddr())) {
+        $currIp = $mvc->getRealIpAddr();
+        
+        // Ако е първо логване
+        if (core_LoginLog::isFirstLogin($userRec->id, $currIp)) {
             
-            // Времето, когато се е логнал
-            $time = dt::secsBetween(dt::now(), $userRec->lastLoginTime);
+            // Записваме в лога и връщаме
+            core_LoginLog::add($userRec->id, 'first_login', $inputs->time);
             
-            // Закръгляме времето, за да е по четимо
-            $time = type_Time::round($time);
-
-            $TimeInst = cls::get('type_Time');
-            $time = $TimeInst->toVerbal($time);
-            
-            $ip = type_Ip::decorateIp($userRec->lastLoginIp, $userRec->lastLoginTime);
-            
-            // Добавяме съответното статус съобщение
-            $text = "|Последно логване от|* {$ip} |преди|* {$time}";
-            core_Statuses::newStatus($text);
+            return ;
         }
+        
+        // Ако се е логнат от различно IP
+        if ($userRec->lastLoginIp && ($userRec->lastLoginIp != $currIp)) {
+            
+            if (core_LoginLog::isGoodLoginForUser($userRec->id, $currIp)) {
+                
+                $arr = core_LoginLog::getLastLoginFromOtherIp($currIp, $userRec->id);
+                
+                $TimeInst = cls::get('type_Time');
+                
+                // Всички IP-та, от които се е логнало за първи път
+                foreach ((array)$arr['first_login'] as $loginRec) {
+                    
+                    // Времето, когато се е логнал
+                    $time = dt::secsBetween(dt::now(), $loginRec->createdOn);
+                    
+                    // Закръгляме времето, за да е по четимо
+                    $time = type_Time::round($time);
+                    
+                    // Вербално време
+                    $time = $TimeInst->toVerbal($time);
+                    
+                    // Вербално IP
+                    $ip = type_Ip::decorateIp($loginRec->ip, $loginRec->createdOn);
+                    
+                    // Добавяме съответното статус съобщение
+                    $text = "|Подозрително логване от|* {$ip} |преди|* {$time}";
+                    core_Statuses::newStatus($text, 'warning');
+                }
+                
+                // Всички успешни лования
+                foreach ((array)$arr['success'] as $loginRec) {
+                    
+                    // Времето, когато се е логнал
+                    $time = dt::secsBetween(dt::now(), $loginRec->createdOn);
+                    
+                    // Закръгляме времето, за да е по четимо
+                    $time = type_Time::round($time);
+                    
+                    // Вербално време
+                    $time = $TimeInst->toVerbal($time);
+                    
+                    // Вербално IP
+                    $ip = type_Ip::decorateIp($loginRec->ip, $loginRec->createdOn);
+                    
+                    // Добавяме съответното статус съобщение
+                    $text = "|Логване от|* {$ip} |преди|* {$time}";
+                    core_Statuses::newStatus($text, 'notice');
+                }
+            }
+        }
+        
+        // Записваме в лога успешното логване
+        core_LoginLog::add($userRec->id, 'success', $inputs->time);
     }
     
     
@@ -903,7 +949,7 @@ class core_Users extends core_Manager
         $refreshTime = dt::mysql2timestamp($currentUserRec->refreshTime);
         
         if (abs(time() - $refreshTime) > EF_USER_REC_REFRESH_TIME || (time() - $currentUserRec->lastHitUT > 3 * EF_USER_REC_REFRESH_TIME)) {
-            Users::loginUser($currentUserRec->id, TRUE);
+            Users::loginUser($currentUserRec->id, FALSE, TRUE);
         }
     }
     
