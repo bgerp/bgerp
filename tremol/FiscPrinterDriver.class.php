@@ -82,6 +82,17 @@ class tremol_FiscPrinterDriver extends core_Manager {
     		$contentTpl->append($block, 'ITEMS');
     	}
     	
+    	/*$newPayments = array();
+    	foreach ($payments as $p){
+    		list(, $type) = explode('|', $p->action);
+    		$code = pos_Payments::fetchField($type, 'code');
+    		if(empty($newPayments[$code])){
+    			$newPayments[$code] = (object)array('code' => $code);
+    		}
+    		$newPayments[$code]->amount += $p->amount;
+    	}
+    	bp($newPayments,$payments);*/
+    	
     	// Добавяме към шаблона направените плащания
     	$itemBlock = $contentTpl->getBlock('PAY');
     	foreach ($payments as $p){
@@ -120,7 +131,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
     		
     	} elseif($type == 'payment'){
     		list(, $type) = explode('|', $rec->action);
-    		$row->type = pos_Payments::getTitleById($type);
+    		$row->type = pos_Payments::fetchField($type, 'code');
     		$row->amount = round($rec->amount, 2);
     	}
     	
