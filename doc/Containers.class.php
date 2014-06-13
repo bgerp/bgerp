@@ -1262,15 +1262,18 @@ class doc_Containers extends core_Manager
      */
     public static function rejectByThread($threadId)
     {
-        /* @var $query core_Query */
         $query = static::getQuery();
         
         $query->where("#threadId = {$threadId}");
         $query->where("#state <> 'rejected'");
         
         while ($rec = $query->fetch()) {
-            $doc = static::getDocument($rec);
-            $doc->reject();
+            try{
+            	$doc = static::getDocument($rec);
+            	$doc->reject();
+            } catch(Exception $e){
+            	continue;
+            }
         }
     }
     
