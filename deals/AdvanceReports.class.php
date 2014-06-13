@@ -95,9 +95,9 @@ class deals_AdvanceReports extends core_Master
     
     
     /**
-     * Икона на единичния изглед
+     * Икона на единичния обект
      */
-    //public $singleIcon = 'img/16/shipment.png';
+    var $singleIcon = 'img/16/legend.png';
     
     
     /**
@@ -507,5 +507,26 @@ class deals_AdvanceReports extends core_Master
     	$tpl->append($handle, 'handle');
     
     	return $tpl->getContent();
+    }
+    
+    
+    /**
+     * Извиква се след изчисляването на необходимите роли за това действие
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	// Ако резултата е 'no_one' пропускане
+    	if($res == 'no_one') return;
+    	 
+    	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
+    	if($action == 'conto' && isset($rec)){
+    		$origin = $mvc->getOrigin($rec);
+    		if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
+    			$originState = $origin->fetchField('state');
+    			if($originState === 'closed'){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
     }
 }

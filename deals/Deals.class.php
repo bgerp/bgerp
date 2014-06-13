@@ -315,6 +315,10 @@ class deals_Deals extends core_Master
     			$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
     		}
     		
+    		if(deals_AdvanceReports::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    			$data->toolbar->addBtn("Ав. отчет", array('deals_AdvanceReports', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/legend.png,title=Създаване на нов авансов отчет');
+    		}
+    		
     		if(deals_ClosedDeals::haveRightFor('add')){
     			$data->toolbar->addBtn('Приключване', array('deals_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), "ef_icon=img/16/closeDeal.png,title=Приключване на финансова сделка");
     		}
