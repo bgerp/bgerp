@@ -2464,7 +2464,7 @@ Experta.prototype.addEvent = function(elem, event, func)
 Experta.prototype.scrollTo = function(id)
 {
 	// Ако е зададен id, скролваме до него
-	if (typeof id != 'undefined') {
+	if (id && (typeof id != 'undefined')) {
 		
 		el = get$(id);
 		
