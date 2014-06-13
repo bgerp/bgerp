@@ -23,7 +23,7 @@ class deals_Wrapper extends plg_ProtoWrapper
     function description()
     {
         $this->TAB('deals_Deals', 'Финансови', 'dealsMaster, ceo');
-        $this->TAB('deals_AdvanceReports', 'ПОЛ', 'dealsMaster, ceo');
+        $this->TAB(array('deals_Deals', 'listAdvances'), 'ПОЛ', 'dealsMaster, ceo');
         $this->TAB('deals_DebitDocuments', 'Прехвърления', 'dealsMaster, ceo');
         
         $this->title = 'Сделки';
