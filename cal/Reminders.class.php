@@ -332,8 +332,9 @@ class cal_Reminders extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$cu = core_Users::getCurrent();
 
+    	$cu = core_Users::getCurrent();
+    	
         // Добавяме поле във формата за търсене
        
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
@@ -348,9 +349,8 @@ class cal_Reminders extends core_Master
         
         $data->listFilter->input('selectedUsers', 'silent');
         
-    	
         $data->query->orderBy("#timeStart=ASC,#state=DESC");
-        
+
         if(!$data->listFilter->rec->selectedUsers) {
             $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
 	  	}
@@ -473,25 +473,26 @@ class cal_Reminders extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-
+        $now = dt::now();
+        
     	if ($data->rec->state == 'active') {
-            $data->toolbar->addBtn('Затваряне', array(
+            $data->toolbar->addBtn('Стоп', array(
                     $mvc,
                     'Stop',
                     $data->rec->id
                 ),
-                'ef_icon = img/16/alarm_clock_minus.png');
+                'ef_icon = img/16/media_playback_stop.png');
            //$data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'ef_icon = img/16/close16.png');
         }
         
-        if ($data->rec->state == 'closed') {
+        if ($data->rec->state == 'closed' && $data->rec->nextStartTime > $now) {
             //$data->toolbar->removeBtn("*");
-            $data->toolbar->addBtn('Активиране', array(
+            $data->toolbar->addBtn('Старт', array(
                     $mvc,
                     'Activate',
                     $data->rec->id
                 ),
-                'ef_icon = img/16/bell_clock2.png');
+                'ef_icon = img/16/media_playback_start.png');
         }
     }
 
