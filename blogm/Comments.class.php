@@ -42,7 +42,7 @@ class blogm_Comments extends core_Detail {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'name, email, web, articleId, comment=@, createdOn=Създаване';
+	var $listFields = 'name, email, web, ip, articleId, comment=@, createdOn=Създаване';
 	
 		
 	/**
@@ -93,6 +93,7 @@ class blogm_Comments extends core_Detail {
 		$this->FLD('comment', 'richtext(bucket=Notes)', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук');
   		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,rejected=Оттеглен)', 'caption=Състояние,mandatory');
   		$this->FLD('browserId', 'varchar(16)', 'caption=ID на браузър,input=none');
+        $this->FLD('ip', 'ip', 'caption=IP,input=none');
 	}
 
 
@@ -209,6 +210,8 @@ class blogm_Comments extends core_Detail {
                 $rec->state = ($artRec->commentsMode == 'enabled') ? 'active' : 'pending';
             }
 
+            $rec->ip = core_Users::getRealIpAddr();
+
             // Търсим browserId в сесията
             $rec->browserId = Mode::get('browserId');
         
@@ -240,6 +243,8 @@ class blogm_Comments extends core_Detail {
         if($data->masterMvc) {
             unset($data->listFields['articleId']);
         }
+
+        $data->query->orderBy('#createdOn', 'DESC');
     }
 	
 	
@@ -276,7 +281,7 @@ class blogm_Comments extends core_Detail {
         }
         
         // Могат да се изтриват само оттеглените
-        if($action == 'delete' && isset($rec) && $rec->state != 'rejected') {
+        if($action == 'delete' && isset($rec) && $rec->state != 'rejected' && ((!stripos($rec->comment, '<a ')) || $rec->state == 'active')) {
             $res = 'no_one'; 
         }
 	}
