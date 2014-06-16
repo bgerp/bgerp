@@ -430,16 +430,15 @@ class core_Form extends core_FieldSet
 	                $this->layout->append('$(window).resize(function(){setFormElementsWidth();});', "JQRUN");
                 }
             }
-
-            $JQuery = cls::get('jquery_Jquery');
-            $JQuery->enable( $this->layout);
-            $this->layout->push('js/submitAction.js', "JS");
-            $JQuery->run( $this->layout,"$('form').preventDoubleSubmission();", TRUE);;
             
             // Ако има зададен клас за формата, добавяме го
             if(isset($this->class)){
             	$this->layout->append($this->class, 'CLASS');
             }
+            
+            $JQuery = cls::get('jquery_Jquery');
+            $JQuery->enable( $this->layout);
+            $JQuery->run( $this->layout, "preventDoubleSubmission($('form:not(.js-allow-double-submission)'));", TRUE);
         }
         
         if (count($this->styles)) {
