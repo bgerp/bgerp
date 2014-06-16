@@ -92,7 +92,7 @@ class status_Messages extends core_Manager
         if (!Mode::get('hitTime')) {
             
             // Задаваме текущото време
-            Mode::set('hitTime', dt::nowTimestamp());
+            Mode::set('hitTime', dt::mysql2timestamp());
         }
         
         // Ако не подаден потребител, тогава използваме текущия

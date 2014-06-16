@@ -42,7 +42,7 @@ class editwatch_Plugin extends core_Plugin
         if (!Mode::get('hitTime')) {
             
             // Записваме времето на извикване
-            Mode::set('hitTime', dt::nowTimestamp());
+            Mode::set('hitTime', dt::mysql2timestamp());
         }
         
         // Времето на извикване на страницата
