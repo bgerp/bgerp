@@ -103,8 +103,11 @@ class core_DateTime
     /**
      * Превръща MySQL-ска data/време UNIX timestamp
      */
-    static function mysql2timestamp($mysqlDate)
+    static function mysql2timestamp($mysqlDate=NULL)
     {
+        if (!$mysqlDate) {
+            $mysqlDate = static::now();
+        }
         
         return strtotime($mysqlDate);
     }
