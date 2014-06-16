@@ -155,8 +155,8 @@ class store_plg_DocumentDetail extends core_Plugin
 	
 				// При редакция, ако е променена опаковката слагаме преудпреждение
 				if($rec->id){
-					$oldPack = $mvc->fetchField($rec->id, 'packagingId');
-					if($rec->packagingId != $oldPack){
+					$oldRec = $mvc->fetch($rec->id);
+            		if($oldRec && $rec->packagingId != $oldPack && trim($rec->packPrice) == trim($oldRec->packPrice)){
 						$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
 					}
 				}
