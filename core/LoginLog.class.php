@@ -495,6 +495,13 @@ class core_LoginLog extends core_Manager
         if ($rec->ip){
     	    $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     	}
+    	
+    	// В зависимост от статуса, добавяме клас на реда
+    	if ($rec->status == 'success') {
+    	    $row->ROW_ATTR['class'] = 'loginLog-success';
+    	} elseif ($rec->status) {
+    	    $row->ROW_ATTR['class'] = 'loginLog-other';
+    	}
     }
     
     
