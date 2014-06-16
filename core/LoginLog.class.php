@@ -78,7 +78,7 @@ class core_LoginLog extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_SystemWrapper, plg_LoginWrapper, plg_Created, plg_GroupByDate';
+    var $loadList = 'plg_SystemWrapper, plg_LoginWrapper, plg_Created, plg_GroupByDate, plg_AutoFilter';
     
     
     /**
@@ -98,26 +98,26 @@ class core_LoginLog extends core_Manager
      */
     function description()
     {
-        $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent');
+        $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent, autoFilter');
         $this->FLD('ip', 'ip', 'caption=IP');
         $this->FLD('brid', 'varchar(8)', 'caption=BRID');
-        $this->FLD('status', 'enum( 
+        $this->FLD('status', 'enum( all=,
         							success=Успешно логване,
+									first_login=Първо логване,
+									wrong_password=Грешна парола,
+									missing_password=Липсва парола,
+									pass_reset=Ресетване на парола,
+									pass_change=Промяна на парола,
+									change_nick=Промяна на ник,
+									time_deviation=Отклонение във времето,
+									used_timestamp=Използван timestamp,
 									error=Грешка,
 									block=Блокиран,
 									reject=Оттеглен,
 									draft=Чернова,
-									missing_password=Липсва парола,
-									wrong_password=Грешна парола,
-									pass_reset=Ресетване на парола,
-									pass_change=Промяна на парола,
 									user_reg=Регистриране,
-									user_activate=Активиране,
-									change_nick=Промяна на ник,
-									time_deviation=Отклонение във времето,
-									used_timestamp=Използван timestamp,
-									first_login=Първо логване
-								  )', 'caption=Статус, silent');
+									user_activate=Активиране
+								  )', 'caption=Статус, silent, autoFilter');
         $this->FLD('timestamp', 'int', 'caption=Време, input=none');
         
         $this->setDbIndex('createdOn');
@@ -513,15 +513,8 @@ class core_LoginLog extends core_Manager
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Ако имаме тип на обаждането
-        if ($statusOptions = &$data->listFilter->getField('status')->type->options) {
-            
-            // Добавяме в началото празен стринг за всички
-            $statusOptions = array('all' => '') + $statusOptions;
-            
-            // Избираме го по подразбиране
-            $data->listFilter->setDefault('status', 'all');
-        }
+        // Избираме го по подразбиране
+        $data->listFilter->setDefault('status', 'all');
         
         // Кои полета да се показват
         $data->listFilter->showFields = 'userId, status';
