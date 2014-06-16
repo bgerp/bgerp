@@ -84,6 +84,8 @@ class pos_Cards extends core_Manager {
     	$this->FLD('number', 'varchar(32)', 'caption=Номер, mandatory');
     	$this->FLD('contragentId', 'int', 'input=hidden,silent');
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,silent');
+    	
+    	$this->setDbUnique('number,contragentId,contragentClassId');
     }
     
     
@@ -103,11 +105,11 @@ class pos_Cards extends core_Manager {
     {
     	$Contragent = cls::get($rec->contragentClassId);
     	$row->contragentId = $Contragent->getHyperLink($rec->contragentId, TRUE);
+    	$row->contragentId = "<span style='float:left'>{$row->contragentId}</span>";
     }
     
     
 	/**
-     * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      */
     static function on_AfterPrepareListFilter($mvc, $data)
