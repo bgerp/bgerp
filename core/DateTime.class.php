@@ -621,7 +621,7 @@ class core_DateTime
 	/**
      * Премахва секунди от датата
      */
-    static function removeSecs($secs, $date = NULL)
+    static function subtractSecs($secs, $date = NULL)
     {
         $secs *= -1;
         
