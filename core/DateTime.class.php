@@ -114,24 +114,6 @@ class core_DateTime
     
     
     /**
-     * Текущия timestamp
-     *
-     * @return integer
-     */
-    static function nowTimestamp()
-    {
-        $date = static::verbal2mysql();
-        $timestamp = static::mysql2timestamp($date);
-        
-        // PHP вариант
-//        $dt = new DateTime();
-//        $timestamp = $dt->getTimestamp();
-        
-        return $timestamp;
-    }
-    
-    
-    /**
      * Превръща UNIX timestamp в MySQL-ска дата
      */
     static function timestamp2Mysql($t)
