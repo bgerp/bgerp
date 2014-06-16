@@ -499,7 +499,9 @@ class core_LoginLog extends core_Manager
     	// В зависимост от статуса, добавяме клас на реда
     	if ($rec->status == 'success') {
     	    $row->ROW_ATTR['class'] = 'loginLog-success';
-    	} elseif ($rec->status) {
+    	} elseif ($rec->status == 'first_login') {
+    	    $row->ROW_ATTR['class'] = 'loginLog-first_login';
+    	} else {
     	    $row->ROW_ATTR['class'] = 'loginLog-other';
     	}
     	
