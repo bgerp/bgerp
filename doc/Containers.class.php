@@ -640,7 +640,7 @@ class doc_Containers extends core_Manager
             
             // Вадим от текущото време, зададените секунди за търсене преди
             $notifConf = core_Packs::getConfig('bgerp');
-            $lastClosedOn = dt::removeSecs($notifConf->BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE);
+            $lastClosedOn = dt::subtractSecs($notifConf->BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE);
         }
         
         // Вземаме всички записи
@@ -1489,8 +1489,8 @@ class doc_Containers extends core_Manager
         
         // Масив с датите между които ще се извлича
         $dateRange = array();
-        $dateRange[0] = dt::removeSecs($conf->DOC_NOTIFY_FOR_INCOMPLETE_FROM, $now); 
-        $dateRange[1] = dt::removeSecs($conf->DOC_NOTIFY_FOR_INCOMPLETE_TO, $now); 
+        $dateRange[0] = dt::subtractSecs($conf->DOC_NOTIFY_FOR_INCOMPLETE_FROM, $now); 
+        $dateRange[1] = dt::subtractSecs($conf->DOC_NOTIFY_FOR_INCOMPLETE_TO, $now); 
         
         // Подреждаме масива
         sort($dateRange);

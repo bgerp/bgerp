@@ -1598,7 +1598,7 @@ class callcenter_Talks extends core_Master
                 if ($nRec->endTime > $unixNull) {
                     
                     // От крайното време определяме началото
-                    $nRec->answerTime = dt::removeSecs($conf->CALLCENTER_MAX_CALL_DURATION, $nRec->endTime);
+                    $nRec->answerTime = dt::subtractSecs($conf->CALLCENTER_MAX_CALL_DURATION, $nRec->endTime);
                     
                     // Вдигаме флага
                     $save = TRUE;
