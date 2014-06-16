@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ * Лог за всички логвания и действия с акаунтите
  *
  * @category  ef
  * @package   core
@@ -78,7 +78,7 @@ class core_LoginLog extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_SystemWrapper, plg_Created, plg_GroupByDate';
+    var $loadList = 'plg_SystemWrapper, plg_LoginWrapper, plg_Created, plg_GroupByDate';
     
     
     /**
