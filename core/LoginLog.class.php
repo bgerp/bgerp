@@ -164,7 +164,7 @@ class core_LoginLog extends core_Manager
         $maxDeviation = $conf->CORE_LOGIN_TIMESTAMP_DEVIATION;
         
         // Текущото време в таймстампа
-        $nowTimestamp = dt::nowTimestamp();
+        $nowTimestamp = dt::mysql2timestamp();
         
         // Разликата между текущото време и зададенот
         $diff = abs($nowTimestamp - $timestamp);
