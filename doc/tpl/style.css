@@ -1,7 +1,8 @@
 
 .accordian {
     margin-left: 0px;
-    width: 320px;  
+    display: inline-block;
+    min-width: 220px;  
 }
 
 .narrow .accordian{
@@ -10,6 +11,7 @@
 }
 
 .accordian ul{
+	margin:0;
 	padding-left:0;
 }
 
@@ -37,7 +39,7 @@ li.dimension{
 
 .dimension .button{
 	margin-left:0;
-	min-width:90%;
+	width: 100% !important;
 	margin-bottom: 0.3em;
 }
 

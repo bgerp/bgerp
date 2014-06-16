@@ -20,37 +20,6 @@ class doc_plg_TplManagerDetail extends core_Plugin
     
     
 	/**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
-    {
-    	$masterRec = $data->masterRec;
-    	$masterRec->template = $mvc->Master->getTemplate($masterRec->id);
-    	
-    	$toggleFields = doc_TplManager::fetchField($masterRec->template, 'toggleFields');
-    	if(count($toggleFields) && $toggleFields[$mvc->className] !== NULL){
-    		
-	    	// Полетата които трябва да се показват
-	    	$fields = arr::make($toggleFields[$mvc->className]);
-	    			
-	    	// Всички полета, които могат да се скриват/показват
-	    	$toggleFields = arr::make($mvc->toggleFields);
-	    	$intersect = array_intersect_key($data->form->selectFields(""), $toggleFields);
-	    				
-	    	// Ако някое от полетата не трябва да се показва, то се скрива от формата
-	    	foreach ($intersect as $k => $v){
-	    		if(!in_array($k, $fields) && empty($v->mandatory)){
-	    			$data->form->setField($k, 'input=none');
-	    		}
-	    	}
-    	}
-    }
-    
-    
-	/**
      * След преобразуване на записа в четим за хора вид
      */
     public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, &$rec)

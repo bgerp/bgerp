@@ -219,8 +219,6 @@ class purchase_Invoices extends core_Master
             'caption=Вид, input=hidden,silent'
         );
         
-        $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Тегло,notNull,default=yes');
-        
         $this->setDbUnique('folderId,number');
     }
     
@@ -290,12 +288,6 @@ class purchase_Invoices extends core_Master
         $rec->dealValue = $rec->_total->amount * $rec->rate;
         $rec->vatAmount = $rec->_total->vat * $rec->rate;
         $rec->discountAmount = $rec->_total->discount * $rec->rate;
-        
-        // Записване в кеш полето дали има още продукти за добавяне
-        $origin = $this->getOrigin($rec);
-		$dealAspect = $origin->getAggregateDealInfo()->shipped;
-		$invProducts = $this->getDealInfo($rec->id)->invoiced;
-		$rec->isFull = (!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'all')) ? 'yes' : 'no';
     	$this->save($rec);
     }
     
@@ -412,12 +404,6 @@ class purchase_Invoices extends core_Master
 	        } elseif(!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)){
 	        	$form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
 	        }
-			
-        	if(empty($rec->isFull)){
-        		
-        		// Сетване на кеш полето че ЕН-то не е запълнено
-        		$rec->isFull = 'no';
-        	}
         	
         	// Ако е ДИ или КИ
 	    	if($rec->type != 'invoice'){

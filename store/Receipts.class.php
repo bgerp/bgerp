@@ -169,8 +169,6 @@ class store_Receipts extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
-        
-        $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Запълнен ли е,notNull,default=yes');
     }
 
 
@@ -210,12 +208,6 @@ class store_Receipts extends core_Master
         $rec->amountDelivered = $amount * $rec->currencyRate;
         $rec->amountDeliveredVat = $rec->_total->vat * $rec->currencyRate;
         $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
-        
-         // Записване в кеш полето дали има още продукти за добавяне
-        $origin = $this->getOrigin($rec);
-		$dealAspect = $origin->getAggregateDealInfo()->agreed;
-		$invProducts = $this->getDealInfo($rec->id)->shipped;
-        $rec->isFull = (!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'storable')) ? 'yes' : 'no';
         
         $this->save($rec);
     }
@@ -415,12 +407,6 @@ class store_Receipts extends core_Master
         			}
         		}
         	}
-        	
-        	if(empty($rec->isFull)){
-        		
-        		// Сетване на кеш полето че ЕН-то не е запълнено
-        		$rec->isFull = 'no';
-        	}
         }
     }
     
@@ -482,8 +468,7 @@ class store_Receipts extends core_Master
     	// Ако началото на треда е активирана покупка
     	if(($firstDoc->instance() instanceof purchase_Purchases) && $docState == 'active'){
     		
-    		// Ако има поне един складируем продукт в покупката
-    		return $firstDoc->hasStorableProducts();
+    		return TRUE;
     	}
     	
     	return FALSE;

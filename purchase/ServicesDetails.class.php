@@ -35,7 +35,7 @@ class purchase_ServicesDetails extends core_Detail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, 
-                        plg_AlignDecimals2, doc_plg_HidePrices';
+                        plg_AlignDecimals2, doc_plg_HidePrices,Policy=purchase_PurchaseLastPricePolicy,store_plg_DocumentDetail';
     
     
     /**
@@ -101,8 +101,8 @@ class purchase_ServicesDetails extends core_Detail
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $this->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         $this->FNC('packQuantity', 'double(Min=0,decimals=2)', 'caption=К-во,input=input,mandatory');
-        $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input=none');
-        $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none');
+        $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
+        $this->FLD('discount', 'percent', 'caption=Отстъпка');
     }
 
 
@@ -150,21 +150,11 @@ class purchase_ServicesDetails extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if(($action == 'edit' || $action == 'delete') && isset($rec)){
+        if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
         	if($mvc->Master->fetchField($rec->shipmentId, 'state') != 'draft'){
         		$requiredRoles = 'no_one';
         	}
         }
-    	
-    	if($action == 'add' && isset($rec->shipmentId)){
-      		$masterRec = $mvc->Master->fetch($rec->shipmentId);
-		    $origin = $mvc->Master->getOrigin($masterRec);
-		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
-		    $invProducts = $mvc->Master->getDealInfo($rec->shipmentId)->shipped;
-    		if($masterRec->state != 'draft' || $masterRec->isFull == 'yes'){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
     }
 
 
@@ -227,63 +217,45 @@ class purchase_ServicesDetails extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $form = &$data->form;
-    	$origin = purchase_Services::getOrigin($data->masterRec, 'bgerp_DealIntf');
-        
-        $masterRec = $mvc->Master->fetch($form->rec->shipmentId);
-      	expect($origin = $mvc->Master->getOrigin($masterRec));
-      	$dealAspect = $origin->getAggregateDealInfo()->agreed;
-      	$invProducts = $mvc->Master->getDealInfo($form->rec->shipmentId)->shipped;
-      	$form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'services', $form->rec->productId, $form->rec->classId, $form->rec->packagingId));
+    	$form = &$data->form;
+    	$ProductManager = cls::get('cat_Products');
+         
+        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
+        $products = $ProductManager::getByProperty('canBuy');
+        $products2 = $ProductManager::getByProperty('canStore');
+        $products = array_diff_key($products, $products2);
+         
+        expect(count($products));
+        if (empty($rec->id)) {
+        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
+        	$data->form->setOptions('productId', array('' => ' ') + $products);
+        } else {
+        	$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+        }
     }
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
-     * @param core_Form $form
+     * След подготовка на лист тулбара
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
-    { 
-        if ($form->isSubmitted() && !$form->gotErrors()) {
-            
-            // Извличане на информация за продукта - количество в опаковка, единична цена
-            $rec = $form->rec;
-            
-            // Извличаме ид на политиката, кодирано в ид-то на продукта 
-            list($rec->classId, $rec->productId, $rec->packagingId) = explode('|', $rec->productId);
-			$rec->packagingId = ($rec->packagingId) ? $rec->packagingId : NULL;
-            
-            /* @var $origin bgerp_DealAggregatorIntf */
-            $origin = purchase_Services::getOrigin($rec->shipmentId, 'bgerp_DealIntf');
-            
-            /* @var $dealInfo bgerp_iface_DealResponse */
-            $dealInfo = $origin->getAggregateDealInfo();
-            
-            $aggreedProduct = $dealInfo->agreed->findProduct($rec->productId, $rec->classId, $rec->packagingId);
-            
-            if (!$aggreedProduct) {
-                $form->setError('productId', 'Продуктът не е наличен за експедиция');
-                return;
-            }
-            
-            $rec->price = $aggreedProduct->price;
-            $rec->uomId = $aggreedProduct->uomId;
-            
-            if (empty($rec->packagingId)) {
-                $rec->quantityInPack = 1;
-            } else {
-                // Извлича $productInfo, за да определи количеството единици продукт (в осн. мярка) в една опаковка
-                $productInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
-                $rec->quantityInPack = $productInfo->packagingRec->quantity;
-            }
-            
-            $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-           
-            if (empty($rec->discount)) {
-                $rec->discount = $aggreedProduct->discount;
-            }
-        }
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if (!empty($data->toolbar->buttons['btnAdd'])) {
+    		$masterRec = $data->masterData->rec;
+    		$ProductManager = cls::get('cat_Products');
+    		$products = $ProductManager::getByProperty('canBuy');
+    		$products2 = $ProductManager::getByProperty('canStore');
+    		$products = array_diff_key($products, $products2);
+    
+    		if(!count($products)){
+    			$error = "error=Няма продаваеми {$ProductManager->title}";
+    		}
+    
+    		$data->toolbar->addBtn($ProductManager->singleTitle, array($mvc, 'add', $mvc->masterKey => $masterRec->id, 'classId' => $ProductManager->getClassId(), 'ret_url' => TRUE),
+    				"id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+    		unset($error);
+    
+    		unset($data->toolbar->buttons['btnAdd']);
+    	}
     }
 }

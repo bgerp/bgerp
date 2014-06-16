@@ -334,16 +334,17 @@ class acc_plg_Contable extends core_Plugin
 	    $period = acc_Periods::fetchByDate($rec->valior);
 	    expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
 	    $cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
-        
+        $handle = $mvc->getHandle($rec->id);
+	    
 	    if(!empty($cRes)){
         	$action = ($rec->isContable == 'activate') ? "активиран" : "контиран";
-        	$cRes = "Документът е {$action} успешно";
+        	$cRes = "е {$action} успешно";
         } else {
-        	$cRes = 'Документът НЕ Е контиран';
+        	$cRes = 'НЕ Е контиран';
         }
         
 	    // Слагане на статус за потребителя
-	    status_Messages::newStatus(tr($cRes));
+	    status_Messages::newStatus("#{$handle} " . tr($cRes));
     }
     
     
