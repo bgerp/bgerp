@@ -61,7 +61,7 @@ class type_IP extends type_Varchar {
         
         $time = $this->params['time'];
         
-        self::decorateIp($value, $time);
+        $value = self::decorateIp($value, $time);
         
         return $value;
     }
