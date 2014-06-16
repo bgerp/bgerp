@@ -412,7 +412,7 @@ class purchase_Services extends core_Master
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
-    
+    	
     	// Ако началото на треда е активирана покупка
     	if(($firstDoc->instance() instanceof purchase_Purchases) && $docState == 'active'){
     		

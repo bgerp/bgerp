@@ -158,8 +158,6 @@ class sales_Services extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
-        
-        $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Запълнен ли е,notNull,default=yes');
     }
 
 
@@ -192,13 +190,6 @@ class sales_Services extends core_Master
         $rec->amountDelivered = $amount * $rec->currencyRate;
         $rec->amountDeliveredVat = $rec->_total->vat * $rec->currencyRate;
         $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
-        
-        // Записване в кеш полето дали има още продукти за добавяне
-        $origin = $this->getOrigin($rec);
-		$dealAspect = $origin->getAggregateDealInfo()->agreed;
-		$invProducts = $this->getDealInfo($rec->id)->shipped;
-		
-		$rec->isFull = (!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'services')) ? 'yes' : 'no';
 		
         $this->save($rec);
     }
@@ -723,22 +714,6 @@ class sales_Services extends core_Master
     static function getRecTitle($rec, $escaped = TRUE)
     {
         return tr("|Протокол за извършени услуги|* №") . $rec->id;
-    }
-    
-    
-    /**
-     * След изпращане на формата
-     */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
-    {
-    	if ($form->isSubmitted()) {
-        	
-        	if(empty($form->rec->isFull)){
-        		
-        		// Сетване на кеш полето че протокола е запълнен
-        		$form->rec->isFull = 'no';
-        	}
-        }
     }
     
     

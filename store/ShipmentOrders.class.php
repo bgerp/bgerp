@@ -177,8 +177,6 @@ class store_ShipmentOrders extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
-        
-        $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Запълнен ли е,notNull,default=yes');
     }
 
 
@@ -221,9 +219,6 @@ class store_ShipmentOrders extends core_Master
         
         // Записване в кеш полето дали има още продукти за добавяне
         $origin = $this->getOrigin($rec);
-		$dealAspect = $origin->getAggregateDealInfo()->agreed;
-		$invProducts = $this->getDealInfo($rec->id)->shipped;
-        $rec->isFull = (!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'storable')) ? 'yes' : 'no';
         
         $this->save($rec);
     }
@@ -386,7 +381,6 @@ class store_ShipmentOrders extends core_Master
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
         if (empty($form->rec->id)) {
-        	$form->setField('isFull', 'input=none');
         	
             // ... проверяваме предхождащия за bgerp_DealIntf
             expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
@@ -421,12 +415,6 @@ class store_ShipmentOrders extends core_Master
         				$form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице!');
         			}
         		}
-        	}
-        	
-        	if(empty($rec->isFull)){
-        		
-        		// Сетване на кеш полето че ЕН-то не е запълнено
-        		$rec->isFull = 'no';
         	}
         }
     }
