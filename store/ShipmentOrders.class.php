@@ -479,8 +479,7 @@ class store_ShipmentOrders extends core_Master
     	// Ако началото на треда е активирана продажба
     	if(($firstDoc->instance() instanceof sales_Sales) && $docState == 'active'){
     		
-    		// Ако има поне един складируем продукт в продажбата
-    		return $firstDoc->hasStorableProducts();
+    		return TRUE;
     	}
     	
     	return FALSE;

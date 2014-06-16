@@ -468,8 +468,7 @@ class store_Receipts extends core_Master
     	// Ако началото на треда е активирана покупка
     	if(($firstDoc->instance() instanceof purchase_Purchases) && $docState == 'active'){
     		
-    		// Ако има поне един складируем продукт в покупката
-    		return $firstDoc->hasStorableProducts();
+    		return TRUE;
     	}
     	
     	return FALSE;

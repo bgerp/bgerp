@@ -416,8 +416,7 @@ class purchase_Services extends core_Master
     	// Ако началото на треда е активирана покупка
     	if(($firstDoc->instance() instanceof purchase_Purchases) && $docState == 'active'){
     		
-    		// Ако има поне един нескладируем продукт в покупката
-    		return $firstDoc->hasStorableProducts(FALSE);
+    		return TRUE;
     	}
     	
     	return FALSE;

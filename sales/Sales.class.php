@@ -734,7 +734,7 @@ class sales_Sales extends core_Master
     		$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		
     		if(sales_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-	    		$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата");
+	    		$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата");
 	    	} else {
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'sales', той вижда бутона но не може да го използва
@@ -756,7 +756,7 @@ class sales_Sales extends core_Master
 	        }
 	        
     		if(sales_Proformas::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Проформа", array('sales_Proformas', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на проформа,order=9.9992');
+	    		$data->toolbar->addBtn("Проформа", array('sales_Proformas', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'row=2,ef_icon=img/16/invoice.png,title=Създаване на проформа,order=9.9992');
 		    }
 		    
 	        // Ако експедирането е на момента се добавя бутон за нова фактура

@@ -302,12 +302,12 @@ class purchase_Purchases extends core_Master
     		$closeArr = array('purchase_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		
     		if(purchase_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-	    		$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на покупката");
+	    		$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на покупката");
 	    	} else {
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'purchase', той вижда бутона но не може да го използва
 	    		if(!purchase_ClosedDeals::isPurchaseDiffAllowed($rec) && haveRole('purchase')){
-	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на покупката,error=Нямате право да приключите покупка с разлика над допустимото");
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на покупката,error=Нямате право да приключите покупка с разлика над допустимото");
 	    		}
 	    	}
     		

@@ -101,7 +101,7 @@ class sales_ServicesDetails extends core_Detail
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $this->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
-        $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,inpu');
+        $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
     }
 

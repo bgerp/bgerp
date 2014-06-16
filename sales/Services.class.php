@@ -416,8 +416,7 @@ class sales_Services extends core_Master
     	// Ако началото на треда е активирана продажба
     	if(($firstDoc->instance() instanceof sales_Sales) && $docState == 'active'){
     		
-    		// Ако има поне един нескладируем продукт в продажбата
-    		return $firstDoc->hasStorableProducts(FALSE);
+    		return TRUE;
     	}
     	
     	return FALSE;
