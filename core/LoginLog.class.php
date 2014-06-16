@@ -90,7 +90,7 @@ class core_LoginLog extends core_Manager
     /**
      * 
      */
-    var $listFields = 'userId, status, ip, brid, createdOn, createdBy, timestamp';
+    var $listFields = 'userId, status, ip, brid, createdOn, createdBy';
     
     
     /**
@@ -559,6 +559,23 @@ class core_LoginLog extends core_Manager
                     $requiredRoles = 'no_one';
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $data
+     */
+    static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+        $data->listFields = arr::make($data->listFields);
+        
+        if (haveRole('debug')) {
+            $data->listFields['timestamp'] = 'Време';
         }
     }
 }
