@@ -198,7 +198,7 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         $rec = static::fetch(array("
         					#createdOn > '[#1#]' AND
@@ -235,7 +235,7 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Последния n на брой успешни логвания от този браузър
         $query = static::getQuery();
@@ -290,7 +290,7 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Вземаме всички успешни логвания (включтелно първите)
         // За съответния потреибтел
@@ -336,7 +336,7 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Дали има първо логване в зададения период
         $rec = static::fetch(array("#createdOn > '[#1#]' AND
@@ -387,7 +387,7 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Последното логване с това IP/браузър от този потребител
         $query = static::getQuery();
@@ -456,7 +456,7 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Всички записи за съответния потребител, подредени по дата
         $query = static::getQuery();
