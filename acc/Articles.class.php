@@ -191,7 +191,7 @@ class acc_Articles extends core_Master
     {
         $valior = self::getVerbal($rec, 'valior');
         
-        return "<b>{$rec->id}</b>&nbsp;/&nbsp;{$valior}";
+        return tr('Мемориален ордер') . " №{$rec->id} / {$valior}";
     }
     
     
