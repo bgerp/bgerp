@@ -79,8 +79,20 @@ class trans_Lines extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, trans';
-    
-    
+
+
+    /**
+     * Кой има право да затваря линията?
+     */
+    var $canClose = 'ceo, trans'
+
+
+    /**
+     * Кой има право да отваря линията?
+     */
+    var $canOpen = 'ceo, trans'
+
+
     /**
      * Детайла, на модела
      */
