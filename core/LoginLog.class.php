@@ -195,7 +195,7 @@ class core_LoginLog extends core_Manager
         }
         
         $conf = core_Packs::getConfig('core');
-        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
+        $daysLimit = (int)$conf->CORE_LOGIN_TIMESTAMP_DEVIATION;
         
         // Ограничаваме времето на търсене
         $maxCreatedOn = dt::subtractSecs($daysLimit);
