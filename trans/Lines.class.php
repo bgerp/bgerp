@@ -82,15 +82,9 @@ class trans_Lines extends core_Master
 
 
     /**
-     * Кой има право да затваря линията?
+     * Кой има право да пише?
      */
-    var $canClose = 'ceo, trans';
-
-
-    /**
-     * Кой има право да отваря линията?
-     */
-    var $canOpen = 'ceo, trans';
+    var $canWrite = 'ceo, trans';
 
 
     /**
