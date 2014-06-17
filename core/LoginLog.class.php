@@ -203,10 +203,10 @@ class core_LoginLog extends core_Manager
         $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         $rec = static::fetch(array("
-        					#createdOn > '[#1#]' AND
-        					#userId = '[#2#]' AND
-        					#timestamp = '[#3#]' AND
-        					(#status='success' OR #status='first_login')", $maxCreatedOn, $userId, $timestamp));
+        					#createdOn > '{$maxCreatedOn}' AND
+        					#userId = '[#1#]' AND
+        					#timestamp = '[#2#]' AND
+        					(#status='success' OR #status='first_login')", $userId, $timestamp));
         
         if ($rec) return TRUE;
         
@@ -241,11 +241,13 @@ class core_LoginLog extends core_Manager
         
         // Последния n на брой успешни логвания от този браузър
         $query = static::getQuery();
-        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
+        $query->where(array("#brid = '[#1#]'", $brid));
+        $query->where("#createdOn > '{$maxCreatedOn}'");
         $query->where("#status = 'success'");
         $query->orWhere("#status = 'first_login'");
-        $query->where("#brid = '{$brid}'");
+        
         $query->limit((int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE);
+        
         $query->orderBy('createdOn', 'DESC');
         
         // Ако е логнат само от един потребител
@@ -298,10 +300,10 @@ class core_LoginLog extends core_Manager
         // За съответния потреибтел
         // От това IP или този браузър
         // Като лимитираме търсенето до константа
-        $rec = static::fetch(array("#createdOn > '[#1#]' AND
-        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
-        							#userId = '[#4#]' AND
-        							(#status = 'success' OR #status = 'first_login')", $maxCreatedOn, $ip, $brid, $userId));
+        $rec = static::fetch(array("#createdOn > '{$maxCreatedOn}' AND
+        							(#ip = '[#1#]' OR #brid = '[#2#]') AND
+        							#userId = '[#3#]' AND
+        							(#status = 'success' OR #status = 'first_login')", $ip, $brid, $userId));
         
         // Ако има някакъв запис, следователно не е първо логване
         if ($rec) {
@@ -341,19 +343,19 @@ class core_LoginLog extends core_Manager
         $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Дали има първо логване в зададения период
-        $rec = static::fetch(array("#createdOn > '[#1#]' AND
-        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
-        							#userId = '[#4#]' AND
+        $rec = static::fetch(array("#createdOn > '{$maxCreatedOn}' AND
+        							(#ip = '[#1#]' OR #brid = '[#2#]') AND
+        							#userId = '[#3#]' AND
         							#status = 'first_login' 
-        							", $maxCreatedOn, $ip, $brid, $userId));
+        							", $ip, $brid, $userId));
         if ($rec) return FALSE;
         
         // Дали има успешно логване в зададения период
-        $rec = static::fetch(array("#createdOn > '[#1#]' AND
-        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
-        							#userId = '[#4#]' AND
+        $rec = static::fetch(array("#createdOn > '{$maxCreatedOn}' AND
+        							(#ip = '[#1#]' OR #brid = '[#2#]') AND
+        							#userId = '[#3#]' AND
         							#status = 'success' 
-        							", $maxCreatedOn, $ip, $brid, $userId));
+        							", $ip, $brid, $userId));
         if ($rec) return TRUE;
         
         return FALSE;
@@ -393,7 +395,7 @@ class core_LoginLog extends core_Manager
         
         // Последното логване с това IP/браузър от този потребител
         $query = static::getQuery();
-        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
+        $query->where("#createdOn > '{$maxCreatedOn}'");
         $query->where(array("#ip = '[#1#]'", $ip));
         $query->orWhere(array("#brid = '[#1#]'", $brid));
         $query->where(array("#userId = '[#1#]'", $userId));
@@ -410,7 +412,7 @@ class core_LoginLog extends core_Manager
         // Всички логвания от други IP'та/браузъри с този потребител
         // След съответното време
         $sQuery = static::getQuery();
-        $sQuery->where(array("#createdOn > '[#1#]'", $lastCreatedOn));
+        $sQuery->where("#createdOn > '{$lastCreatedOn}'");
         $sQuery->where(array("#ip != '[#1#]'", $ip));
         $sQuery->where(array("#brid != '[#1#]'", $brid));
         $sQuery->where(array("#userId = '[#1#]'", $userId));
@@ -462,8 +464,8 @@ class core_LoginLog extends core_Manager
         
         // Всички записи за съответния потребител, подредени по дата
         $query = static::getQuery();
-        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
-        $query->where("#userId = '{$userId}'");
+        $query->where("#createdOn > '{$maxCreatedOn}'");
+        $query->where(array("#userId = '[#1#]'", $userId));
         $query->orderBy('createdOn', 'DESC');
         
         // Ако е зададен лимит
