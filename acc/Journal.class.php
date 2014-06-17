@@ -493,4 +493,50 @@ class acc_Journal extends core_Master
      	
      	return $entries;
      }
+     
+     
+     /**
+      * Връща всички записи от журнала където в поне един ред на кредита и дебита на една сметка
+      * се среща зададеното перо
+      * 
+      * @param mixed $item - масив с име на мениджър и ид на запис, или ид на перо
+      * @param string $accSysId - систем Ид на сч. сметка
+      * @return array $res - извлечените движения
+      */
+     public static function getTransactions($item, $accSysId)
+     {
+     	expect($item, $accSysId);
+     	
+     	// Ако е подаден масив, опитваме се да намерим кое е перото
+     	if(is_array($item)){
+     		$Class = cls::get($item[0]);
+     		expect($Class->fetch($item[1]));
+     		$item = acc_Items::fetchItem($Class->getClassId(), $item[1]);
+     		if(!$item) return NULL;
+     	}
+     	
+     	// Извличаме записите от журнала отговарящи на условията
+     	expect($itemRec = acc_Items::fetchRec($item));
+     	$jQuery = acc_JournalDetails::getQuery();
+     	acc_JournalDetails::filterQuery($jQuery, NULL, dt::now(), $accSysId, $itemRec->id);
+     	
+     	$res = array();
+     	
+     	// Леко обработваме записите
+     	while($jRec = $jQuery->fetch()){
+     		$jRec->debitAccId = acc_Accounts::fetchField($jRec->debitAccId, 'systemId');
+     		$jRec->creditAccId = acc_Accounts::fetchField($jRec->creditAccId, 'systemId');
+     		if($jRec->debitItem1 == $itemRec->id){
+     			$jRec->debitAmount += $jRec->amount;
+     		}
+     		if($jRec->creditItem1 == $itemRec->id){
+     			$jRec->creditAmount += $jRec->amount;
+     		}
+     		
+     		$res[] = $jRec;
+     	}
+     	
+     	// Връщаме извлечените записи
+     	return $res;
+     }
 }
