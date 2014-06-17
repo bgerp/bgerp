@@ -30,7 +30,10 @@ class core_Ajax extends core_Mvc
         if (!isDebug()) {
             
             // Очаквае заявката да е по AJAX - да има такъв хедър
-            expect(strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
+            if (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+                core_Logs::log("Стартиране на core_Ajax::get() извън AJAX");
+                expect(FALSE);
+            }
         }
         
         // Масив с URL-та в JSON формат
