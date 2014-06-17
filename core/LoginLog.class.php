@@ -121,6 +121,8 @@ class core_LoginLog extends core_Manager
         $this->FLD('timestamp', 'int', 'caption=Време, input=none');
         
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('ip');
+        $this->setDbIndex('brid');
     }
     
     
