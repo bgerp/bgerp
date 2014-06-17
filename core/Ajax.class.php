@@ -26,6 +26,13 @@ class core_Ajax extends core_Mvc
      */
     function act_Get()
     {
+        // Ако не сме в DEBUG режим
+        if (!isDebug()) {
+            
+            // Очаквае заявката да е по AJAX - да има такъв хедър
+            expect(strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
+        }
+        
         // Масив с URL-та в JSON формат
         $subscribed = Request::get('subscribed');
         

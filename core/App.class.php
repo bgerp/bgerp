@@ -28,7 +28,14 @@ class core_App
             
             // Генерираме съдържанието
             $content = core_Request::forward();
-
+            
+            // Ако не сме в DEBUG режим и заявката е по AJAX
+            if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
+                core_Logs::log("Стартиране на core_App::run() през AJAX");
+                
+                return ;
+            }
+            
             // Зарежда опаковката
             $Wrapper = core_Cls::get('page_Wrapper');
 
