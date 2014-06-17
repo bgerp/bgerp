@@ -71,27 +71,6 @@ class tracking_ListenerControl extends core_Manager
         $this->FLD('data', 'blob', 'caption=Параметри');
     }
     
-    /**
-     * Изпълнява се след начално установяване(настройка) на модела
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-        $conf = core_Packs::getConfig('tracking');
-    
-        // Наглася Cron да стартира приемача на данни
-        $Cron = cls::get('core_Cron');
-    
-        $rec = new stdClass();
-        $rec->systemId = "trackingWatchDog";
-        $rec->description = "Грижа приемача на данни да е пуснат";
-        $rec->controller = "tracking_ListenerControl";
-        $rec->action = "WatchDog";
-        $rec->period = (int) $conf->RESTART_PERIOD / 60;
-        $rec->offset = 0;
-    
-        $Cron->addOnce($rec);
-    
-    }
     
     /**
      * Ако няма записи не вади таблицата

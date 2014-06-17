@@ -103,7 +103,36 @@ class tracking_Setup extends core_ProtoSetup
             array(3.4, 'Мониторинг', 'Tracking', 'tracking_Log', 'default', "tracking,ceo,admin"),
     );
     
-
+    /**
+     * Добавяне на крон
+     */
+    function install()
+    {
+        //Данни за работата на cron
+        $conf = core_Packs::getConfig('tracking');
+    
+        // Наглася Cron да стартира приемача на данни
+        $Cron = cls::get('core_Cron');
+    
+        $rec = new stdClass();
+        $rec->systemId = "trackingWatchDog";
+        $rec->description = "Грижа приемача на данни да е пуснат";
+        $rec->controller = "tracking_ListenerControl";
+        $rec->action = "WatchDog";
+        $rec->period = (int) $conf->RESTART_PERIOD / 60;
+        $rec->offset = 0;
+    
+        if ($Cron->addOnce($rec)) {
+            $html .= "<li><font color='green'>Задаване по крон WatchDog tracking</font></li>";
+        } else {
+            $html .= "<li>Отпреди Cron е бил нагласен за WatchDog tracking</li>";
+        }
+    
+        $html .= parent::install();
+    
+        return $html;
+    }
+    
     /**
      * Де-инсталиране на пакета
      */
