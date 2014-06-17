@@ -100,6 +100,19 @@ class core_Browser extends core_Manager
     
     
     /**
+     * Обновява времето до когато ще е активен brid
+     */
+    static function updateBridCookieLifetime()
+    {
+        $brid = static::getBrid(FALSE);
+        
+        if (!$brid) return FALSE;
+        
+        static::setBridCookie($brid);
+    }
+    
+    
+    /**
      * Допълнителна сол за brid
      * 
      * @return string
