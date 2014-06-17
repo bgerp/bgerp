@@ -158,7 +158,7 @@ class core_LoginLog extends core_Manager
      * 
      * @return boolean
      */
-    static function isTimestampCorrect($timestamp)
+    static function isTimestampDeviationInNorm($timestamp)
     {
         $conf = core_Packs::getConfig('core');
         $maxDeviation = $conf->CORE_LOGIN_TIMESTAMP_DEVIATION;
@@ -320,7 +320,7 @@ class core_LoginLog extends core_Manager
      * 
      * @return boolean
      */
-    static function isGoodLoginForUser($ip, $userId=NULL)
+    static function isTrustedUserLogin($ip, $userId=NULL)
     {
         // Ако не е подаден потребител
         if (!$userId) {

@@ -436,8 +436,8 @@ class core_Users extends core_Manager
                     $form->setError('pass', 'Липсва парола!');
                     $this->logLogin($inputs, 'missing_password');
                     core_LoginLog::add('missing_password', $userRec->id, $inputs->time);
-//                } elseif (!$inputs->pass && !core_LoginLog::isTimestampCorrect($inputs->time)) {  
-                } elseif (!core_LoginLog::isTimestampCorrect($inputs->time)) {  
+//                } elseif (!$inputs->pass && !core_LoginLog::isTimestampDeviationInNorm($inputs->time)) {  
+                } elseif (!core_LoginLog::isTimestampDeviationInNorm($inputs->time)) {  
                     $form->setError('pass', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
                     $this->logLogin($inputs, 'time_deviation');
                     core_LoginLog::add('time_deviation', $userRec->id, $inputs->time);
@@ -833,7 +833,7 @@ class core_Users extends core_Manager
         // Ако се е логнат от различно IP
         if ($userRec->lastLoginIp && ($userRec->lastLoginIp != $currIp)) {
             
-            if (core_LoginLog::isGoodLoginForUser($currIp, $userRec->id)) {
+            if (core_LoginLog::isTrustedUserLogin($currIp, $userRec->id)) {
                 
                 $arr = core_LoginLog::getLastLoginFromOtherIp($currIp, $userRec->id);
                 
