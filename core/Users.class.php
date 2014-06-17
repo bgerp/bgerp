@@ -843,6 +843,8 @@ class core_Users extends core_Manager
                 
                 $TimeInst = cls::get('type_Time');
                 
+                $url = static::getUrlForLoginLogStatus($userRec->id);
+                
                 // Всички IP-та, от които се е логнало за първи път
                 foreach ((array)$arr['first_login'] as $loginRec) {
                     
@@ -856,11 +858,20 @@ class core_Users extends core_Manager
                     $time = $TimeInst->toVerbal($time);
                     
                     // Вербално IP
-                    $ip = type_Ip::decorateIp($loginRec->ip, $loginRec->createdOn);
+                    $ip = $loginRec->ip;
                     
                     // Добавяме съответното статус съобщение
                     $text = "|Подозрително логване от|* {$ip} |преди|* {$time}";
-                    core_Statuses::newStatus($text, 'warning');
+                    
+                    // Ако има УРЛ, текста да е линк към него
+                    if ($url) {
+                        $link = ht::createLink($text, $url);
+                        $statusText = $link->getContent();
+                    } else {
+                        $statusText = $text;
+                    }
+                    
+                    core_Statuses::newStatus($statusText, 'warning');
                 }
                 
                 // Всички успешни лования
@@ -876,17 +887,52 @@ class core_Users extends core_Manager
                     $time = $TimeInst->toVerbal($time);
                     
                     // Вербално IP
-                    $ip = type_Ip::decorateIp($loginRec->ip, $loginRec->createdOn);
+                    $ip = $loginRec->ip;
                     
                     // Добавяме съответното статус съобщение
                     $text = "|Логване от|* {$ip} |преди|* {$time}";
-                    core_Statuses::newStatus($text, 'notice');
+                    
+                    // Ако има УРЛ, текста да е линк към него
+                    if ($url) {
+                        $link = ht::createLink($text, $url);
+                        $statusText = $link->getContent();
+                    } else {
+                        $statusText = $text;
+                    }
+                    
+                    core_Statuses::newStatus($statusText, 'notice');
                 }
             }
         }
         
         // Записваме в лога успешното логване
         core_LoginLog::add('success', $userRec->id, $inputs->time);
+    }
+    
+    
+    /**
+     * Връща URL към листовия изглед на логин лога за текущия потребител
+     * 
+     * @param integer $userId
+     * 
+     * return array
+     */
+    static function getUrlForLoginLogStatus_($userId=NULL)
+    {
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        // id на потребитяля за търсене
+        $userTeams = type_User::getUserFromTeams($userId);
+        reset($userTeams);
+        $userIdWithTeam = key($userTeams);
+        
+        // Ако има права за този екшън
+        if (core_LoginLog::haveRightFor('list')) {
+            
+            return array('core_LoginLog', 'list', 'userId' => $userIdWithTeam);
+        }
     }
     
     
