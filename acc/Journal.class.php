@@ -500,12 +500,11 @@ class acc_Journal extends core_Master
       * се среща зададеното перо
       * 
       * @param mixed $item - масив с име на мениджър и ид на запис, или ид на перо
-      * @param string $accSysId - систем Ид на сч. сметка
       * @return array $res - извлечените движения
       */
-     public static function getTransactions($item, $accSysId)
+     public static function getTransactions($item)
      {
-     	expect($item, $accSysId);
+     	expect($item);
      	
      	// Ако е подаден масив, опитваме се да намерим кое е перото
      	if(is_array($item)){
@@ -518,25 +517,9 @@ class acc_Journal extends core_Master
      	// Извличаме записите от журнала отговарящи на условията
      	expect($itemRec = acc_Items::fetchRec($item));
      	$jQuery = acc_JournalDetails::getQuery();
-     	acc_JournalDetails::filterQuery($jQuery, NULL, dt::now(), $accSysId, $itemRec->id);
-     	
-     	$res = array();
-     	
-     	// Леко обработваме записите
-     	while($jRec = $jQuery->fetch()){
-     		$jRec->debitAccId = acc_Accounts::fetchField($jRec->debitAccId, 'systemId');
-     		$jRec->creditAccId = acc_Accounts::fetchField($jRec->creditAccId, 'systemId');
-     		if($jRec->debitItem1 == $itemRec->id){
-     			$jRec->debitAmount += $jRec->amount;
-     		}
-     		if($jRec->creditItem1 == $itemRec->id){
-     			$jRec->creditAmount += $jRec->amount;
-     		}
-     		
-     		$res[] = $jRec;
-     	}
+     	acc_JournalDetails::filterQuery($jQuery, NULL, dt::now(), NULL, $itemRec->id);
      	
      	// Връщаме извлечените записи
-     	return $res;
+     	return $jQuery->fetchAll();
      }
 }

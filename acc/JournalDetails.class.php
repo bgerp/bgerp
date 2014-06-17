@@ -138,13 +138,14 @@ class acc_JournalDetails extends core_Detail
      * 
      * @param core_Query $query - Заявка към модела
      * @param mixed $accs       - списък от систем ид-та на сметките
+     * @param mixed $itemsAll   - списък от пера, за които може да са на произволна позиция
      * @param mixed $items1     - списък с пера, от които поне един може да е на първа позиция
      * @param mixed $items2     - списък с пера, от които поне един може да е на втора позиция
      * @param mixed $items3     - списък с пера, от които поне един може да е на трета позиция
      * @param boolean $strict   - ако перата са NULL да се търсят записи в журнала със стойност NULL,
      * 							  иначе приема че не трябва да се търсят пера
      */
-	public static function filterQuery(core_Query &$query, $from, $to, $accs = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL, $strict = FALSE)
+	public static function filterQuery(core_Query &$query, $from, $to, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL, $strict = FALSE)
     {
     	expect($query->mvc instanceof acc_JournalDetails);
     	
@@ -166,6 +167,25 @@ class acc_JournalDetails extends core_Detail
 		    	$query->where("#debitAccId = {$acc->id}");
 		    	$query->orWhere("#creditAccId = {$acc->id}");
 		    }
+    	}
+    	
+    	// Перата които може да са на произволна позиция
+    	$itemsAll = arr::make($itemsAll);
+    	
+    	if(count($itemsAll)){
+    		foreach ($itemsAll as $itemId){
+    			 
+    			// Трябва да инт число
+    			expect(ctype_digit($itemId));
+    			 
+    			// .. и перото да участва на произволна позиция
+    			$query->where("#debitItem1 = {$itemId}");
+    			$query->orWhere("#debitItem2 = {$itemId}");
+    			$query->orWhere("#debitItem3 = {$itemId}");
+    			$query->orWhere("#creditItem1 = {$itemId}");
+    			$query->orWhere("#creditItem2 = {$itemId}");
+    			$query->orWhere("#creditItem3 = {$itemId}");
+    		}
     	}
     	
     	// Проверка на останалите параметри от 1 до 3

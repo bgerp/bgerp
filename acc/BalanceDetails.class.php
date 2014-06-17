@@ -1087,7 +1087,7 @@ class acc_BalanceDetails extends core_Detail
         $query->orderBy('valior,id', 'ASC');
         
         // Филтриране на копието, за показване на записите за тези пера
-        acc_JournalDetails::filterQuery($cloneQuery, $from, $to, $accs, $items1, $items2, $items3, TRUE); 
+        acc_JournalDetails::filterQuery($cloneQuery, $from, $to, $accs, NULL, $items1, $items2, $items3, TRUE); 
         $cloneQuery->orderBy('valior,id', 'DESC');
         
         // Добавяне на странициране
