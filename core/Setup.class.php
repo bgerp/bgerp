@@ -96,7 +96,7 @@ defIfNot('CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT', 1209600);
  * @since     v 0.1
  * @link
  */
-class core_Setup {
+class core_Setup extends core_ProtoSetup {
     
     
     /**
@@ -150,11 +150,22 @@ class core_Setup {
     
         );
     
+    
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+        'migrate::loginLogTruncate',
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */
     function install()
     {
+        $html .= parent::install();
+        
         // Установяване за първи път
         
         // Правим това, защото процедурата по начално установяване
@@ -259,7 +270,17 @@ class core_Setup {
         $html .= core_Classes::rebuild();
 		
         $html .= core_Cron::cleanRecords();
-
+        
         return $html;
+    }
+    
+    
+    /**
+     * Миграция, която изтрива съдържанието на таблицата core_LoginLog
+     */
+    function loginLogTruncate()
+    {
+        $loginLog = cls::get('core_LoginLog');
+        $loginLog->db->query("TRUNCATE TABLE `{$loginLog->dbTableName}`");
     }
 }
