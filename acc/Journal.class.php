@@ -474,35 +474,13 @@ class acc_Journal extends core_Master
      
      
      /**
-      * Метод извличащ всички записи от журнала, на документите от дадена нишка
-      */
-     public static function getEntries($threadId)
-     {
-     	$entries = array();
-     	
-     	$query = doc_Containers::getQuery();
-     	$query->where("#threadId = {$threadId} AND #docId IS NOT NULL");
-     	
-     	while($docRec = $query->fetch()){
-     		if($jId = static::fetchByDoc($docRec->docClass, $docRec->docId)->id){
-     			$dQuery = acc_JournalDetails::getQuery();
-     			$dQuery->where("#journalId = {$jId}");
-     			$entries = array_merge($entries, $dQuery->fetchAll());
-     		}
-     	}
-     	
-     	return $entries;
-     }
-     
-     
-     /**
       * Връща всички записи от журнала където в поне един ред на кредита и дебита на една сметка
       * се среща зададеното перо
       * 
       * @param mixed $item - масив с име на мениджър и ид на запис, или ид на перо
       * @return array $res - извлечените движения
       */
-     public static function getTransactions($item)
+     public static function getEntries($item)
      {
      	expect($item);
      	
