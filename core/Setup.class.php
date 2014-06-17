@@ -29,7 +29,7 @@ defIfNot('EF_DATE_NARROW_FORMAT', 'd.m.year');
 /**
  * Минимален брой значещи десетични цифри по подразбиране
  */
-defIfNot('EF_ROUND_SIGNIFICANT_DIGITS', '4');
+defIfNot('EF_ROUND_SIGNIFICANT_DIGITS', '6');
 
 
 /**
