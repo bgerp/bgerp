@@ -819,6 +819,10 @@ class core_Users extends core_Manager
         // Ако не се логва, а се рефрешва потребителя
         if ($refresh) return ;
         
+        // Обновяваме времето на BRID кукито
+        core_Browser::updateBridCookieLifetime();
+        
+        // IP адреса на потребителя
         $currIp = $mvc->getRealIpAddr();
         
         // Ако е първо логване
