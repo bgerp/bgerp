@@ -178,9 +178,6 @@ class acc_plg_InvoiceDetail extends core_Plugin
 				$productRef = new core_ObjectReference($ProductMan, $rec->productId);
 				expect($productInfo = $productRef->getProductInfo());
 	
-				// Определяне на цена, количество и отстъпка за опаковка
-				$priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : dt::now();
-	
 				if (empty($rec->packagingId)) {
 					// Покупка в основна мярка
 					$rec->quantityInPack = 1;
@@ -197,17 +194,17 @@ class acc_plg_InvoiceDetail extends core_Plugin
 				// Ако няма въведена цена
 				if (!isset($rec->packPrice)) {
 					
-					$ProductMan = ($mvc->Policy) ? $mvc->Policy : $ProductMan;
-					
-					$policyInfo = $ProductMan->getPriceInfo(
-							$masterRec->contragentClassId,
-							$masterRec->contragentId,
-							$rec->productId,
-							$rec->classId,
-							$rec->packagingId,
-							$rec->quantity,
-							$priceAtDate
-					);
+					// Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
+					$origin = $mvc->Master->getOrigin($masterRec);
+					$dealInfo = $origin->getAggregateDealInfo();
+					$aggreedProduct = $dealInfo->shipped->findProduct($rec->productId, $rec->classId, $rec->packagingId);
+					if($aggreedProduct){
+						$policyInfo = new stdClass();
+						$policyInfo->price = $aggreedProduct->price;
+					} else {
+						$ProductMan = ($mvc->Policy) ? $mvc->Policy : $ProductMan;
+						$policyInfo = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity, dt::now());
+					}
 					
 					// Ако няма последна покупна цена и не се обновява запис в текущата покупка
 					if (!isset($policyInfo->price) && empty($pRec)) {
