@@ -32,7 +32,7 @@ class cal_Reminders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg';
+    var $loadList = ' cal_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, doc_SharablePlg, plg_Sorting, plg_State';
     
 
     /**
@@ -324,6 +324,15 @@ class cal_Reminders extends core_Master
 
     
     /**
+     * Подрежда по state, за да могат затворените да са отзад
+     */
+    function on_BeforePrepareListFilter($mvc, &$res, $data)
+    {
+    	$data->query->orderBy("#state=ASC, #nextStartTime=DESC");
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -348,9 +357,7 @@ class cal_Reminders extends core_Master
         $data->listFilter->showFields = 'selectedUsers';
         
         $data->listFilter->input('selectedUsers', 'silent');
-        
-        $data->query->orderBy("#timeStart=ASC,#state=DESC");
-
+                        
         if(!$data->listFilter->rec->selectedUsers) {
             $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
 	  	}
@@ -458,7 +465,7 @@ class cal_Reminders extends core_Master
 		    if ($rec->repetitionEach != NULL) {
 				$data->rows[$id]->repetition = $row->repetitionEach . " " . $row->repetitionType;
 		    } else {
-		    	$data->rows[$id]->repetition = "без повторение";
+		    	$data->rows[$id]->repetition = " ";
 		    }
 		}
     }
@@ -482,11 +489,9 @@ class cal_Reminders extends core_Master
                     $data->rec->id
                 ),
                 'ef_icon = img/16/media_playback_stop.png');
-           //$data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'ef_icon = img/16/close16.png');
         }
         
         if ($data->rec->state == 'closed' && $data->rec->nextStartTime > $now) {
-            //$data->toolbar->removeBtn("*");
             $data->toolbar->addBtn('Старт', array(
                     $mvc,
                     'Activate',
