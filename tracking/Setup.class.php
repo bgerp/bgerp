@@ -30,7 +30,12 @@ defIfNot('DOMAIN', 'bgerp.local');
  * Период на рестартиране на сървиса
  */
 defIfNot('RESTART_PERIOD', '3600');
-        
+
+/**
+ * pid на процеса за слушане
+ */
+defIfNot('PID', '');
+
 /**
  * Клас 'tracking_Setup'
  *
@@ -87,7 +92,7 @@ class tracking_Setup extends core_ProtoSetup
      */
     public $managers = array(
             'tracking_Log',
-            'tracking_ListenerControl',
+//            'tracking_ListenerControl',
             'tracking_Vehicles'
     );
 
@@ -117,7 +122,7 @@ class tracking_Setup extends core_ProtoSetup
         $rec = new stdClass();
         $rec->systemId = "trackingWatchDog";
         $rec->description = "Грижа приемача на данни да е пуснат";
-        $rec->controller = "tracking_ListenerControl";
+        $rec->controller = "tracking_Setup";
         $rec->action = "WatchDog";
         $rec->period = (int) $conf->RESTART_PERIOD / 60;
         $rec->offset = 0;
@@ -131,6 +136,90 @@ class tracking_Setup extends core_ProtoSetup
         $html .= parent::install();
     
         return $html;
+    }
+
+    /**
+     * Проверява дали е пуснат сървиса, и ако не е го пуска
+     *
+     * @param string
+     * @return array
+     */
+    public function cron_WatchDog()
+    {
+        if (!self::isStarted()) {
+            self::Start(); echo ("Startiran");
+        }
+        echo ("OK");
+        /* 
+         * @todo: На определено време е добре сървиса да се рестартира.
+         */
+    }
+    /**
+     * Пуска листенер-а
+     *
+     * @return bool
+     */
+    private function Start()
+    {
+        $conf = core_Packs::getConfig('tracking');
+        if (!self::isStarted()) {
+    
+            $conf->DATA = "php " . realpath(dirname(__FILE__)) . "/sockListener.php"
+                    . " " . $conf->PROTOCOL . " " . getHostByName($conf->DOMAIN)
+                    . " " . $conf->PORT
+                    . " " . $conf->DOMAIN;
+    
+            $conf->PID = exec(sprintf("%s > /dev/null 2>&1 & echo $!", $cmd));
+
+            core_Packs::setConfig('tracking', $conf);
+        }
+    
+        return ($conf->PID);
+    }
+    
+    
+    /**
+     * Спира листенер-а
+     *
+     * @return bool
+     */
+    private static function Stop()
+    {
+        $conf = core_Packs::getConfig('tracking');
+        
+        if (!empty($conf->PID)) {
+            posix_kill($conf->PID, 9);
+        }
+    
+        return (TRUE);
+    }
+    
+    
+    /**
+     * Стартиран ли е листенер-а
+     *
+     * @return bool
+     */
+    private static function isStarted()
+    {
+        $conf = core_Packs::getConfig('tracking');
+        // Взимаме PID-а от конфигурацията - ако няма стойност - процеса е спрян
+    
+        // Парсираме резултата от ps -fp <PID> команда и взимаме командната линия на процеса
+        exec("ps -fp " . $conf->PID, $output);
+        // Ако командата се съдържа в резултата от ps значи процеса е нашия
+        if (strpos($output[1], $conf->DATA) !== FALSE) {
+    
+            return (TRUE);
+        } else {
+            // Процеса не е нашия и чистим връзката с него
+            unset($conf->PID);
+            unset($conf->DATA);
+            
+            core_Packs::setConfig('tracking', $conf);
+        }
+    
+        return (FALSE);
     }
     
     /**
