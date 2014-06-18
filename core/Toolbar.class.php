@@ -201,11 +201,11 @@ class core_Toolbar extends core_BaseClass
      */
     function renderHtml_()
     {
-        $toolbar = new ET();
+        $layout = new ET();
         
-        if (!count($this->buttons) > 0) return $toolbar;
+        if (!count($this->buttons) > 0) return $layout;
         
-        if (Mode::is('printing')) return $toolbar;
+        if (Mode::is('printing')) return $layout;
         
         // Какъв ще бъде изгледа на лентата с инструменти?
       //  if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
@@ -228,114 +228,75 @@ class core_Toolbar extends core_BaseClass
             ht::setUniqId($attr);
 
             $rowId = $attr['id'];
-            if(count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
-            	count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')){
-	          	$toolbar = new ET("<div class='clearfix21 toolbar' {$id}><div class='toolbar-first'>[#ROW0#][#ROW1#]" .
-            	"<!--ET_BEGIN ROW2--><div class='modal-toolbar' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div></div>");
-            }
-        	else{
-        		$toolbar = new ET("<div class='clearfix21 toolbar'{$id}><div>[#ROW1#][#ROW2#]</div></div>");
-        		$flag1row = TRUE;
-        	}
-        	
+            
+            $layout = $this->getToolbarLayout($rowId);
+            
             foreach ($this->buttons as $id => $btn) {
                 $attr = $btn->attr;
                 
-                if(Mode::is('screenMode', 'narrow') && count($this->buttons) > 1) {
-                    if($btnCnt == 0) {
-                        $attr['class'] .= " btn-left";
-                    } elseif($btnCnt == count($this->buttons)-1) {
-                        $attr['class'] .= " btn-right";
-                    } else {
-                        $attr['class'] .= " btn-middle";
-                    }
-                }
-                
-                $place = ($btn->attr['row'] == 2 && !$flag1row) ? 'ROW2' : 'ROW1' ;
+                $place = ($btn->attr['row'] == 2) ? 'ROW2' : 'ROW1' ;
 				if($place == 'ROW2'){
 					$flagRow2 = TRUE;
 				}
 				
 				if($btn->error){
-					$toolbar->append(ht::createErrBtn($btn->title, $btn->error, $attr), $place);
+					$layout->append(ht::createErrBtn($btn->title, $btn->error, $attr), $place);
 				} elseif ($btn->type == 'submit') {
-                    $toolbar->append(ht::createSbBtn($btn->title, $btn->cmd, $btn->warning, $btn->newWindow, $attr), $place);
+                    $layout->append(ht::createSbBtn($btn->title, $btn->cmd, $btn->warning, $btn->newWindow, $attr), $place);
                 } elseif ($btn->type == 'function') {
-                    $toolbar->append(ht::createFnBtn($btn->title, $btn->fn, $btn->warning, $attr), $place);
+                    $layout->append(ht::createFnBtn($btn->title, $btn->fn, $btn->warning, $attr), $place);
                 } else {
-                    $toolbar->append(ht::createBtn($btn->title, $btn->url, $btn->warning, $btn->newWindow, $attr), $place);
+                    $layout->append(ht::createBtn($btn->title, $btn->url, $btn->warning, $btn->newWindow, $attr), $place);
                 }
                 
                 $btnCnt++;
             }
            
             if($flagRow2) {
-            	$toolbar->prepend(ht::createFnBtn('', "", NULL, 'ef_icon=img/16/menu.png, class=more-btn'), "ROW0");
-            	
-            	$JQuery = cls::get('jquery_Jquery');
-            	$JQuery->enable($toolbar);
-            	$toolbar->push('css/contextMenu.css', "CSS");
-            	$toolbar->push('js/contextMenu.js', "JS");
-            	$JQuery->run($toolbar,'prepareContextMenu();', TRUE);
+            	$this->appendSecondRow($layout, $rowId);
             }
-         
-    /*    } else {
-            // Показваме селект меню
-            $options['default'] = tr('Действие') . ' »';
             
-            foreach ($this->buttons as $btn) {
-                if ($btn->newWindow === TRUE) {
-                    $btn->newWindow = '_blank';
-                }
-                
-                if ($btn->type == 'submit') {
-                    $b = $btn->cmd . "|" . tr($btn->warning) . "|" . $btn->newWindow . "|s";
-                } elseif ($btn->type == 'function') {
-                    $b = str_replace("'", "\'", $btn->fn) . "|" . tr($btn->warning) . "||f";
-                } else {
-                    $b = toUrl($btn->url) . "|" . tr($btn->warning) . "|" . $btn->newWindow;
-                }
-                $options[$b] = tr($btn->title);
-            }
-            static $i;
-            $attr['onchange'] = "  selectToolbar(this); ";
-            $attr['class'] = "button";
-            $i++;
-            $name = "Cmd";
-            $attr['id'] = $name;
-            $toolbar = ht::createSelect($name, $options, '', $attr);
-            
-            $toolbar->appendOnce("
-                function selectToolbar( se ) {
-                    var str = se.value;
-                    if( str == 'default' ) return;
-                    var param = str.split('|');
-                    if( param[1] ) {
-                        if (!confirm(param[1])) return false;
-                    }
-                    if( param[3] == 's' ) {
-
-                        if(param[2]) {
-                            se.form.target = param[2];
-                        }
-
-                        return se.form.submit();    
-                    } else if (param[3] == 'f') {
-                        return eval(param[0]);
-                    } else {
-                        if(param[2]) {
-                            window.open(param[0],param[2]);
-                        } else {
-                            document.location = param[0];
-                        }
-                    }
-                    se.value = '';
-                }
-            ", "SCRIPTS");
-        }*/
+        $layout->prepend(ht::createHidden($this->hidden));
         
-        $toolbar->prepend(ht::createHidden($this->hidden));
-        
-        return $toolbar;
+        return $layout;
+    }
+    
+    
+    /*
+     * Добавя бутоните за втория ред от тулбара
+     */
+    function appendSecondRow_($toolbar, $rowId)
+    {
+    	$toolbar->prepend(ht::createFnBtn('', NULL, NULL, 'ef_icon=img/16/menu.png, class=more-btn'), "ROW0");
+    	//$toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, 'ef_icon=img/16/toggle-expand.png, class=more-btn'), "ROW0");
+    	 
+    	//contextMenu files
+    	$JQuery = cls::get('jquery_Jquery');
+    	$JQuery->enable($toolbar);
+    	$toolbar->push('css/contextMenu.css', "CSS");
+    	$toolbar->push('js/contextMenu.js', "JS");
+    	$JQuery->run($toolbar,'prepareContextMenu();', TRUE);
+    }
+    
+    
+    /*
+     * Връща лейаута на тулбара
+     */
+    function getToolbarLayout_($rowId)
+    {
+    	if(count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
+    	count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')){
+    		$layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]" .
+    		"<!--ET_BEGIN ROW2--><div class='modal-toolbar' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div></div>");
+    	
+    		//$layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]</div>" .
+    		   //"<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
+    	
+    	}
+    	else{
+    		$layout = new ET("<div class='clearfix21 toolbar'><div>[#ROW1#][#ROW2#]</div></div>");
+    	}
+    	
+    	return $layout;
     }
 }
