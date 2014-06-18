@@ -1567,23 +1567,25 @@ function createObject(name)
 
 
 // Предпазване от двойно събмитване
-function preventDoubleSubmission(el) {	
-	var lastSubmit, timeSinceSubmit;
-	jQuery(el).bind('submit', function(event) {
+function preventDoubleSubmission(id) {
+	var form = '#' + id;
+	var lastSubmitStr, submitStr;
+	
+	if(!($(form).hasClass('js-allow-double-submission'))){
+		jQuery(form).bind('submit', function(event, data) {	
+			
+			submitStr = $(form).serialize();
 		
-	    if(lastSubmit) {
-	    	timeSinceSubmit = jQuery.now() - lastSubmit;
-	    }
-	
-	    lastSubmit = jQuery.now();
-	
-	    if(timeSinceSubmit < 10000) {
-	        // Blocking form submit because it was too soon after the last submit.
-	    	event.preventDefault();
-	    }
-	
-	    return true;
-	});
+		    if(lastSubmitStr && (lastSubmitStr == submitStr)) {
+		        // Blocking form submit because there was no change.
+		    	event.preventDefault();
+		    }
+		    
+		    lastSubmitStr = submitStr;
+		    
+		    return true;
+		});
+	}
 }
 
 /**
