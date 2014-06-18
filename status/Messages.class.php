@@ -140,11 +140,12 @@ class status_Messages extends core_Manager
      * 
      * @param integer $hitTime - timestamp на изискване на страницата
      * @param integer $idleTime - Време на бездействие на съответния таб
+     * @param integer $maxLimit - Максимален брой на статусите, които да се връщат при едно извикване
      * @param boolean $once - Еднакви (стринг и тип) статус съобщения да се показват само веднъж
      * 
      * @return array $resArr - Масив със съобщението и типа на статуса
      */
-    static function getStatuses($hitTime, $idleTime, $once=TRUE)
+    static function getStatuses($hitTime, $idleTime, $maxLimit=4, $once=TRUE)
     {
         $resArr = array();
         
@@ -183,7 +184,11 @@ class status_Messages extends core_Manager
         
         $checkedArr = array();
         
+        $limit = 0;
+        
         while ($rec = $query->fetch()) {
+            
+            $skip = FALSE;
             
             // Проверяваме дали е изличан преди
             $isRetrived = status_Retrieving::isRetrived($rec->id, $hitTime, $idleTime, $sid, $userId);
@@ -191,20 +196,34 @@ class status_Messages extends core_Manager
             // Ако е извличан преди в съответния таб, да не се показва пак
             if ($isRetrived) continue;
             
-            // Добавяме в извличанията
-            status_Retrieving::addRetrieving($rec->id, $hitTime, $idleTime, $sid, $userId);
-            
             // Ако ще се показват само веднъж
             if ($once) {
                 
+                // Хеша на стринга
                 $strHash = md5($rec->text . $rec->type);
-                if ($checkedArr[$strHash]) continue;
+                
+                if ($checkedArr[$strHash]) {
+                    $skip = TRUE;
+                }
+                
+                // Добавяме в масива
                 $checkedArr[$strHash] = $strHash;
             }
             
-            // Двумерен масив с типа и текста
-            $resArr[$rec->id]['text'] = tr("|*" . $rec->text);
-            $resArr[$rec->id]['type'] = $rec->type;
+            // Ако няма да се прескача
+            if (!$skip) {
+                
+                // Ако сме достигнали лимита
+                if ($limit >= $maxLimit) continue;
+                
+                // Двумерен масив с типа и текста
+                $resArr[$rec->id]['text'] = tr("|*" . $rec->text);
+                $resArr[$rec->id]['type'] = $rec->type;
+                $limit++;
+            }
+            
+            // Добавяме в извличанията
+            status_Retrieving::addRetrieving($rec->id, $hitTime, $idleTime, $sid, $userId);
         }
         
         return $resArr;
