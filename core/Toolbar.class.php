@@ -275,7 +275,8 @@ class core_Toolbar extends core_BaseClass
     	$JQuery->enable($toolbar);
     	$toolbar->push('css/contextMenu.css', "CSS");
     	$toolbar->push('js/contextMenu.js', "JS");
-    	$JQuery->run($toolbar,'prepareContextMenu();', TRUE); */
+    	$JQuery->run($toolbar,'prepareContextMenu();', TRUE);
+    	$JQuery->runAfterAjax($toolbar, 'prepareContextMenu');*/
     }
     
     
