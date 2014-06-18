@@ -140,10 +140,11 @@ class status_Messages extends core_Manager
      * 
      * @param integer $hitTime - timestamp на изискване на страницата
      * @param integer $idleTime - Време на бездействие на съответния таб
+     * @param boolean $once - Еднакви (стринг и тип) статус съобщения да се показват само веднъж
      * 
      * @return array $resArr - Масив със съобщението и типа на статуса
      */
-    static function getStatuses($hitTime, $idleTime)
+    static function getStatuses($hitTime, $idleTime, $once=TRUE)
     {
         $resArr = array();
         
@@ -180,6 +181,8 @@ class status_Messages extends core_Manager
         
         $query->orderBy('createdOn', 'ASC');
         
+        $checkedArr = array();
+        
         while ($rec = $query->fetch()) {
             
             // Проверяваме дали е изличан преди
@@ -188,12 +191,20 @@ class status_Messages extends core_Manager
             // Ако е извличан преди в съответния таб, да не се показва пак
             if ($isRetrived) continue;
             
+            // Добавяме в извличанията
+            status_Retrieving::addRetrieving($rec->id, $hitTime, $idleTime, $sid, $userId);
+            
+            // Ако ще се показват само веднъж
+            if ($once) {
+                
+                $strHash = md5($rec->text . $rec->type);
+                if ($checkedArr[$strHash]) continue;
+                $checkedArr[$strHash] = $strHash;
+            }
+            
             // Двумерен масив с типа и текста
             $resArr[$rec->id]['text'] = tr("|*" . $rec->text);
             $resArr[$rec->id]['type'] = $rec->type;
-            
-            // Добавяме в извличанията
-            status_Retrieving::addRetrieving($rec->id, $hitTime, $idleTime, $sid, $userId);
         }
         
         return $resArr;
