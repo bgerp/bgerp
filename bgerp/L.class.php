@@ -275,7 +275,7 @@ class bgerp_L extends core_Manager
      */
     static function getDocLink($cid, $mid)
     {
-        $url = toUrl(array('L', 'S', $cid, 'm'=>$mid), 'absolute');
+        $url = toUrl(array('L', 'S', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
         
         return $url;
     }
