@@ -2095,6 +2095,16 @@ function render_notificationsCnt(data)
 
 
 /**
+ * Функция, която извиква подготвянето на контекстното меню
+ * Може да се комбинира с efae
+ */
+function render_prepareContextMenu()
+{	
+	prepareContextMenu();
+}
+
+
+/**
  * Функция, която редиректва към определена страница, може да се
  * използва с efae
  * 
