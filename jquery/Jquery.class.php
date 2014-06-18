@@ -96,4 +96,21 @@ class jquery_Jquery {
             $tpl->append($code, 'JQUERY_CODE');
         }
     }
+    
+    
+    /**
+     * Функция, която да се изпълни след получаване на резултата по AJAX
+     * 
+     * @param core_ET $tpl
+     * @param string $func
+     * @param boolean $once
+     */
+    static function runAfterAjax(&$tpl, $func, $once = TRUE)
+    {
+        if (!is_object($tpl)) {
+            $tpl = new ET();
+        }
+        
+        $tpl->push($func, 'JQUERY_RUN_AFTER_AJAX', $once);
+    }
 }
