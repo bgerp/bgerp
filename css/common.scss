@@ -2704,3 +2704,16 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 .rightAlign {
 	text-align: right;
 }
+
+.loginLog-first_login{
+	background-color: #ffd !important;
+}
+.loginLog-success{
+	background-color: #dbffe4 !important;
+}
+.loginLog-other{
+	 background-color: #fee1e4 !important;
+}
+.core_LoginLog .group-by-date-row{
+       background-color: transparent !important;
+}
