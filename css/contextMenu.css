@@ -81,6 +81,7 @@
     height: auto;
     border-radius: 5px;
     moz-border-radius: 5px;
+    border: 1px solid #C6C6C6;
 }
 
 .modal-toolbar.iw-contextMenu .button{
