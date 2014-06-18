@@ -254,6 +254,8 @@ class crm_Profiles extends core_Master
                         // URL за промяна
                         $loginLogUrl = array('core_LoginLog', 'list', 'userId' => $userId, 'ret_url' => TRUE);
                         
+                        $data->LoginLog->row = new stdClass();
+                        
                         // Създаме линка
                         $data->LoginLog->row->loginLogLink = ht::createLink(tr("Още..."), $loginLogUrl, FALSE, $attr);  
                     }
