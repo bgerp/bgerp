@@ -435,10 +435,6 @@ class core_Form extends core_FieldSet
             if(isset($this->class)){
             	$this->layout->append($this->class, 'CLASS');
             }
-            
-            $JQuery = cls::get('jquery_Jquery');
-            $JQuery->enable( $this->layout);
-            $JQuery->run( $this->layout, "preventDoubleSubmission($('form:not(.js-allow-double-submission)'));", TRUE);
         }
         
         if (count($this->styles)) {
