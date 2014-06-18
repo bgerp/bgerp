@@ -230,7 +230,13 @@ class crm_Profiles extends core_Master
                     foreach ((array)$data->LoginLog->recsArr as $key => $logRec) {
                         
                         $data->LoginLog->rowsArr[$key] = core_LoginLog::recToVerbal($logRec);
-                        $data->LoginLog->rowsArr[$key]->logClass = 'loginLog-' . $logRec->status;
+                        
+                        // Ако има зададен клас
+                        if ($data->LoginLog->rowsArr[$key]->ROW_ATTR['class']) {
+                            $data->LoginLog->rowsArr[$key]->logClass = $data->LoginLog->rowsArr[$key]->ROW_ATTR['class'];
+                        } else {
+                            $data->LoginLog->rowsArr[$key]->logClass = 'loginLog-' . $logRec->status;
+                        }
                     }
                     
                     // Ако има роля admin
