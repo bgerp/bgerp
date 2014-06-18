@@ -3,10 +3,12 @@
 	<legend class="groupTitle">|Логин лог|*<!--ET_BEGIN loginLogLink--> [#loginLogLink#]<!--ET_END loginLogLink--></legend>
 	
 	<div class="groupList">
-		<table>
+		<table style='min-width:440px'>
 			<!--ET_BEGIN log-->
-					<tr>
-						<td class='[#logClass#]'>[#status#]: [#createdOn#] |от|* [#ip#]</td>
+					<tr class='[#logClass#]'>
+						<td>[#status#]</td>
+						<td align='center'>[#createdOn#]</td>
+						<td align='right'>[#ip#]</td>
 					</tr>
 			<!--ET_END log-->
 		</table>
