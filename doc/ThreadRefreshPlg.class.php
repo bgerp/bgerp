@@ -101,7 +101,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         // Вземаме шаблона
         $tpl = Request::forward($refreshUrl);
-
+        
         // Ако липсва шаблона, да не се изпълнява
         if (!$tpl) return FALSE;
         
@@ -114,6 +114,23 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $resObj->arg = array('id'=>'rowsContainer', 'html' => $content, 'replace' => TRUE);
         
         $resStatus[] = $resObj;
+        
+        // Стойности на плейсхолдера
+        $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
+        
+        // Добавя всички функции в масива, които ще се виката
+        if (is_array($runAfterAjaxArr) && count(is_array($runAfterAjaxArr))) {
+            
+            // Да няма повтарящи се функции
+            $runAfterAjaxArr = array_unique($runAfterAjaxArr);
+            
+            foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+                $resObj = new stdClass();
+                $resObj->func = $runAfterAjax;
+                
+                $resStatus[] = $resObj;
+            }
+        }
         
         // Масив с id-тата на всички променени документи
         $docsArr = Mode::get('REFRESH_DOCS_ARR');
