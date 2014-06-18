@@ -1,6 +1,6 @@
-Кеш,active,yes
-Borica,active,no
-Transcard,active,no
-vaucherCBA,closed,no
-vaucherCheck,closed,no
-Стая,closed,no
+Кеш,active,yes,0
+Borica,active,no,1
+Transcard,active,no,2
+vaucherCBA,closed,no,3
+vaucherCheck,closed,no,4
+Стая,closed,no,5

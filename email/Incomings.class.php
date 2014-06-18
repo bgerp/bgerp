@@ -464,8 +464,8 @@ class email_Incomings extends core_Master
         $rec->textPart = $mime->textPart;
         
         // Запазване на допълнителни MIME-хедъри за нуждите на рутирането
-        $rec->inReplyTo      = $mime->getHeader('In-Reply-To');
-        $rec->bgerpSignature = $mime->getHeader('X-Bgerp-Thread');
+        $rec->inReplyTo   = $mime->getHeader('In-Reply-To');
+        $rec->bgerpThread = $mime->getHeader('X-Bgerp-Thread');
         
         // От коя сметка е получено писмото
         $rec->accId = $accId;
@@ -699,8 +699,8 @@ class email_Incomings extends core_Master
             $row->toBox = $row->toEml;
         }
         
-        if($rec->fromIp && $rec->country) {
-            $row->fromIp = vislog_History::decorateIp($rec->fromIp, $rec->createdOn);
+        if($rec->fromIp) {
+            $row->fromIp = type_Ip::decorateIp($rec->fromIp, $rec->createdOn);
         }
         
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {

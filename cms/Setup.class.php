@@ -7,14 +7,9 @@ defIfNot('CMS_THEME', 'cms_DefaultTheme');
 
 
 /**
- * Текущ език
- */
-defIfNot('EF_DEFAULT_LANGUAGE', 'bg');
-
-/**
  * Основен език на публичната част
  */
-defIfNot('CMS_BASE_LANG', EF_DEFAULT_LANGUAGE);
+defIfNot('CMS_BASE_LANG', core_Lg::getDefaultLang());
 
 
 /**

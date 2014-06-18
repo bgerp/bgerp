@@ -22,6 +22,16 @@
 			        	<span class="gray-title">|Тип|*:</span> [#type#]
 					</li>
 					<!--ET_END type-->
+					<!--ET_BEGIN tel-->
+			        <li class="info">
+			        	<span class="gray-title">|Телефони|*:</span> [#tel#]
+					</li>
+					<!--ET_END tel-->
+					<!--ET_BEGIN email-->
+			        <li class="info">
+			        	<span class="gray-title">|Имейли|*:</span> [#email#]
+					</li>
+					<!--ET_END email-->
 					<!--ET_BEGIN gln-->
 					<li class="info">
 			        	<span class="gray-title">GLN |код|*:</span> [#gln#]

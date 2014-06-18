@@ -462,6 +462,15 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnPrint');
+    }
+    
+    
+    /**
      * Извиква се след рендиране на Toolbar-а
      */
     static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
@@ -691,6 +700,11 @@ class acc_BalanceDetails extends core_Detail
             $this->calcAmount($rec);
         	$this->addEntry($rec, 'debit');
             $this->addEntry($rec, 'credit');
+            
+            // След като се изчисли сумата, презаписваме цените в журнала
+            @$rec->debitPrice = round($rec->amount / $rec->debitQuantity, 4);
+            @$rec->creditPrice = round($rec->amount /$rec->creditQuantity, 4);
+            $JournalDetails->save($rec);
         }
     }
     
@@ -724,8 +738,6 @@ class acc_BalanceDetails extends core_Detail
             // Ако е активна, извличаме цена от стратегията
             // Ако е пасивна - "захранваме" стратегията с данни;
             // (точно обратното на дебитната сметка)
-            
-        	
             switch ($this->Accounts->getType($rec->creditAccId)) {
                 case 'active' :
                 	
@@ -1078,7 +1090,7 @@ class acc_BalanceDetails extends core_Detail
         $query->orderBy('valior,id', 'ASC');
         
         // Филтриране на копието, за показване на записите за тези пера
-        acc_JournalDetails::filterQuery($cloneQuery, $from, $to, $accs, $items1, $items2, $items3, TRUE); 
+        acc_JournalDetails::filterQuery($cloneQuery, $from, $to, $accs, NULL, $items1, $items2, $items3, TRUE); 
         $cloneQuery->orderBy('valior,id', 'DESC');
         
         // Добавяне на странициране

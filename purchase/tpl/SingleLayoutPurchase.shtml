@@ -70,6 +70,7 @@
 		</div>
 		<!--ET_END STATISTIC_BAR-->
 		[#SINGLE_CONTENT#]
+</div>
 		<!--ET_BEGIN DETAILS-->
 		<div class='details'>
 		[#DETAILS#]
@@ -81,5 +82,5 @@
 	        	[#shareLog#]
 	    	</div>
 	    <!--ET_END shareLog-->
-</div>
+
 </div>

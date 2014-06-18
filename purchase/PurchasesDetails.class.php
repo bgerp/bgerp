@@ -404,8 +404,8 @@ class purchase_PurchasesDetails extends core_Detail
             
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if($rec->id){
-            	$oldPack = $mvc->fetchField($rec->id, 'packagingId');
-            	if($rec->packagingId != $oldPack){
+            	$oldRec = $mvc->fetch($rec->id);
+            	if($oldRec && $rec->packagingId != $oldPack && trim($rec->packPrice) == trim($oldRec->packPrice)){
             		$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
             	}
             }
@@ -419,9 +419,13 @@ class purchase_PurchasesDetails extends core_Detail
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if (!empty ($data->toolbar->buttons ['btnAdd'])) {
-			$addUrl = $data->toolbar->buttons ['btnAdd']->url;
-			$classId = cat_Products::getClassId();
-			$data->toolbar->addBtn ('Артикул', $addUrl + array ('classId' => $classId), "id=btnAdd-{$classId},,order=10", 'ef_icon = img/16/shopping.png');
+			$masterRec = $data->masterData->rec;
+			
+			if(!$mvc->Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, 1)){
+				$error = "error=Няма купуваеми артикули";
+			}
+			
+			$data->toolbar->addBtn('Артикул', array($mvc, 'add', 'requestId'=> $masterRec->id, 'classId' => cat_Products::getClassId(), 'ret_url' => TRUE), "id=btnAdd-{$classId},{$error},order=10", 'ef_icon = img/16/shopping.png');
 	        unset($data->toolbar->buttons['btnAdd']);
 	   }
     }

@@ -30,7 +30,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	if(!$mvc->fields['meta']){
     		$mvc->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
         						canStore=Складируем,canConvert=Вложим,
-        						fixedAsset=Дма,canManifacture=Производим)', 'before=sharedUsers,caption=Свойства->Списък,columns=2');
+        						fixedAsset=Дма,canManifacture=Производим,costs=Разходи)', 'before=sharedUsers,caption=Свойства->Списък,columns=2');
     	}
     	
     	// Добавяне на интерфейс за изпращане по имейл

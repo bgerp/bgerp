@@ -20,7 +20,12 @@
 				[#DETAILS#]
 			<!--ET_END DETAILS-->
 			
-		
+			<div style="clear:both;"></div>
+			
+			<!--ET_BEGIN loginLog-->
+				[#loginLog#]
+			<!--ET_END loginLog-->
+			
 			<div style="clear:both;"></div>
 		</div>
 	</div>

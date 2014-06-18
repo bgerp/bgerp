@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -30,7 +30,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, productId, pointId, catId, image, createdOn, createdBy, state';
+    var $listFields = 'tools=Пулт, productId, pack=Мярка/Опаковка, pointId, catId, image, createdOn, createdBy, state';
     
     
     /**
@@ -83,7 +83,7 @@ class pos_Favourites extends core_Manager {
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory');
     	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
     	$this->FLD('catId', 'keylist(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
-    	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
+    	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=name, makeLinks)', 'caption=Точка на продажба');
     	$this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
     	
     	$this->setDbUnique('productId, packagingId');
@@ -117,6 +117,7 @@ class pos_Favourites extends core_Manager {
     
     /**
      * Метод подготвящ продуктите и формата за филтриране
+     * 
      * @return stdClass - обект съдържащ пос продуктите за текущата
      * точка и формата за филтриране
      */
@@ -132,6 +133,7 @@ class pos_Favourites extends core_Manager {
     
     /**
      * Подготвя продуктите за показване в пос терминала
+     * 
      * @return array $arr - масив от всички позволени продукти
      */
     function preparePosProducts()
@@ -168,6 +170,7 @@ class pos_Favourites extends core_Manager {
 	    		$obj->price = $double->toVerbal($price * (1 + $vat));
 	    	}
 	    }
+	    
     	return $cache;
     }
     
@@ -185,6 +188,7 @@ class pos_Favourites extends core_Manager {
     
     /**
      * Подготвяме единичен продукт от модела
+     * 
      * @param stdClass $rec - запис от модела
      * @return stdClass $obj - обект с информацията за продукта
      */
@@ -215,6 +219,7 @@ class pos_Favourites extends core_Manager {
     
     /**
      * Рендираме Продуктите и техните категории в подходящ вид
+     * 
      * @param stdClass $data - обект съдържащ масивите с продуктите,
      * категориите и темата по подразбиране
      * @return core_ET $tpl - шаблона с продуктите
@@ -231,12 +236,14 @@ class pos_Favourites extends core_Manager {
     	if($data->categories){
     		$self->renderCategories($data->categories, $tpl);
     	}
+    	
     	return $tpl;
     }
     
     
     /**
      * Рендира категориите на продуктите в удобен вид
+     * 
      * @param array $categories - Масив от продуктовите категории
      * @param core_ET $tpl - шаблона в който ще поставяме категориите
      */
@@ -254,6 +261,7 @@ class pos_Favourites extends core_Manager {
     
     /**
      * Рендира продуктите във вид подходящ за пос терминала
+     * 
      * @param array $products - масив от продукти с информацията за тях
      * @return core_ET $tpl - шаблон с продуктите
      */
@@ -292,21 +300,20 @@ class pos_Favourites extends core_Manager {
     	// До името на продукта показваме неговата основна мярка и ако
     	// има зададена опаковка - колко броя в опаковката има.
     	$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
-    	$measureRow = cat_UoM::getShortName($info->productRec->measureId);
+    	
     	if($info->packagingRec) {
+    		$measureRow = cat_UoM::getShortName($info->productRec->measureId);
     		$packName = cat_Packagings::getTitleById($rec->packagingId);
     		$quantity = $info->packagingRec->quantity;
-    		$pack = " , {$quantity} {$measureRow} в {$packName}";
+    		$row->pack = "{$quantity} {$measureRow} " . tr('в') . " {$packName}";
     	} else {
-    		$pack = " , 1 {$measureRow}";
+    		$row->pack = cat_UoM::getTitleById($info->productRec->measureId);
     	}
     	
     	if(!$rec->pointId) {
     		$row->pointId = tr('Всички');
     	}
     	
-    	$row->productId .= $pack;
-    	$icon = sbf("img/16/wooden-box.png");
-    	$row->productId = ht::createLink($row->productId, array("cat_Products", 'single', $rec->productId), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
+    	$row->productId = cat_Products::getHyperLink($rec->productId, TRUE);
     }
 }

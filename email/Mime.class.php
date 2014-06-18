@@ -933,23 +933,7 @@ class email_Mime extends core_BaseClass
                 
                 if($p->subType == 'HTML') {
                     $text = html2text_Converter::toRichText($text);
-                    
-                    // Премахваме повече от 2 празни линии
-                    $lines = explode("\n", $text);
-                    $empty = 0;
-                    foreach($lines as $l) {
-                        if(trim(str_replace(array('[b]', '[/b]', '[i]', '[/i]', '[u]', '[/u]'), array('', '', '', '', '', ''), $l))) {
-                            $empty = 0;
-                        } else {
-                            $empty++;
-                        }
-                        
-                        if($empty <2) {
-                            $text1 .= $l . "\n";
-                        }
-                    }
-
-                    $text = $text1;
+                    $text = type_Richtext::removeEmptyLines($text, 2);
                 }
                 
                 $textRate = $this->getTextRate($text);

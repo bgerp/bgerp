@@ -360,9 +360,8 @@ class sales_SalesDetails extends core_Detail
             expect($productInfo = $productRef->getProductInfo());
             
             // Определяне на цена, количество и отстъпка за опаковка
-            $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
-            $priceAtDate .= " 23:59:59";
-           
+            $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : dt::now();
+            
             if (empty($rec->packagingId)) {
                 // Покупка в основна мярка
                 $rec->quantityInPack = 1;
@@ -423,8 +422,8 @@ class sales_SalesDetails extends core_Detail
             
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if($rec->id){
-            	$oldPack = $mvc->fetchField($rec->id, 'packagingId');
-            	if($rec->packagingId != $oldPack){
+            	$oldRec = $mvc->fetch($rec->id);
+            	if($oldRec && $rec->packagingId != $oldPack && trim($rec->packPrice) == trim($oldRec->packPrice)){
             		$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
             	}
             }
@@ -468,16 +467,14 @@ class sales_SalesDetails extends core_Detail
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
             $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
             $masterRec = $data->masterData->rec;
-            $addUrl = $data->toolbar->buttons['btnAdd']->url;
             
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
-            	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date);
-                if(!count($products)){
+            	if(!$productMan->hasSellableProduct($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior)){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
                 
-            	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
+            	$data->toolbar->addBtn($productMan->singleTitle, array('sales_SalesDetails', 'add', 'saleId'=> $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
                     "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
             	unset($error);
             }

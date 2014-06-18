@@ -120,6 +120,7 @@ class crm_Locations extends core_Master {
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
+        $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
         $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код,width=15.4em');
         $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
@@ -289,7 +290,7 @@ class crm_Locations extends core_Master {
         if(count($data->rows)) {
             
             foreach($data->rows as $id => $row) {
-            	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, тел: [#tel#]<!--ET_END tel--> [#tools#]</div>");
+            	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, " . tr('тел') . ": [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, " . tr('имейл') . ": [#email#]<!--ET_END email--> [#tools#]</div>");
             	$block->placeObject($row);
             	$block->removeBlocks();
                 $tpl->append($block, 'content');

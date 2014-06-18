@@ -3,7 +3,7 @@
 
 
 /**
- * Документ за "Прехвърляне на задължение"
+ * Документ за "Прехвърляне на вземания"
  * Могат да се добавят към нишки на покупки, продажби и финансови сделки
  *
  *
@@ -14,8 +14,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_CreditDocument extends core_Master
+class deals_DebitDocuments extends core_Master
 {
+    
+    
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'deals_DebitDocument';
 	
 	
     /**
@@ -27,13 +33,13 @@ class deals_CreditDocument extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Прехвърляне на задължения";
+    public $title = "Прехвърляне на вземания";
     
     
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Sorting, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, deals_Wrapper, deals_WrapperDocuments, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, deals_plg_Document,
                      plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
     
@@ -53,7 +59,7 @@ class deals_CreditDocument extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, deals';
+	public $canList = 'ceo, dealsMaster';
 
 
 	/**
@@ -71,7 +77,7 @@ class deals_CreditDocument extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    public $singleTitle = 'Прехвърляне на задължение';
+    public $singleTitle = 'Прехвърляне на взeмане';
     
     
     /**
@@ -113,7 +119,7 @@ class deals_CreditDocument extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    public $singleLayoutFile = 'deals/tpl/SingleLayoutCreditDocument.shtml';
+    public $singleLayoutFile = 'deals/tpl/SingleLayoutDebitDocument.shtml';
     
     
     /**
@@ -125,7 +131,7 @@ class deals_CreditDocument extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.6|Финанси";
+    public $newBtnGroup = "4.5|Финанси";
     
     
     /**
@@ -181,11 +187,12 @@ class deals_CreditDocument extends core_Master
     	$form->setOptions('dealId', $options);
     	
     	$form->dealInfo = $dealInfo;
-    	$form->setDefault('operationSysId', 'creditDeals');
+    	$form->setDefault('operationSysId', 'debitDeals');
     	
     	// Използваме помощната функция за намиране името на контрагента
     	if(empty($form->rec->id)) {
     		 $form->setDefault('description', "Към документ #{$origin->getHandle()}");
+    		 
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
     		 $form->rec->rate = $dealInfo->agreed->rate;
     	}
@@ -203,13 +210,11 @@ class deals_CreditDocument extends core_Master
     	
     	if ($form->isSubmitted()){
     		$operation = $form->dealInfo->allowedPaymentOperations[$rec->operationSysId];
-    		
-    		$creditAcc = deals_Deals::fetchField($rec->dealId, 'accountId');
+    		$debitAcc = deals_Deals::fetchField($rec->dealId, 'accountId');
     		
     		// Коя е дебитната и кредитната сметка
-    		$rec->debitAccount = $operation['debit'];
-    		$rec->creditAccount = acc_Accounts::fetchRec($creditAcc)->systemId;
-    		
+    		$rec->debitAccount = acc_Accounts::fetchRec($debitAcc)->systemId;
+    		$rec->creditAccount = $operation['credit'];
     		acc_Periods::checkDocumentDate($form, 'valior');
     		
     		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
@@ -237,9 +242,9 @@ class deals_CreditDocument extends core_Master
     	expect($origin = static::getOrigin($rec));
     	$dealInfo = $origin->getAggregateDealInfo();
     	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_DEAL){
-    		$debitFirstArr = array('deals_Deals', $origin->that);
+    		$creditFirstArr = array('deals_Deals', $origin->that);
     	} else {
-    		$debitFirstArr = array($rec->contragentClassId, $rec->contragentId);
+    		$creditFirstArr = array($rec->contragentClassId, $rec->contragentId);
     	}
     	
     	$dealRec = deals_Deals::fetch($rec->dealId);
@@ -252,14 +257,14 @@ class deals_CreditDocument extends core_Master
     					array(
     						'amount' => $amount,	// равностойноста на сумата в основната валута
     						'debit' => array($rec->debitAccount,
-    										$debitFirstArr,
-    										array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
-    										'quantity' => round($amount / $dealInfo->agreed->rate, 2)),
-    							
-    						'credit' => array($rec->creditAccount,
     										array('deals_Deals', $rec->dealId),
     										array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
     										'quantity' => round($amount / $dealRec->currencyRate, 2)),
+    							
+    						'credit' => array($rec->creditAccount,
+    										$creditFirstArr,
+    										array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
+    										'quantity' => round($amount / $dealInfo->agreed->rate, 2)),
     				)
     		)
     	);
@@ -311,7 +316,7 @@ class deals_CreditDocument extends core_Master
     	$docState = $firstDoc->fetchField('state');
     	 
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
-    		// Ако няма позволени операции за документа не може да се създава
+    		
     		$dealInfo = $firstDoc->getAggregateDealInfo();
     		
     		// Ако няма финансови сделки в които  замесен контрагента, не може да се създава
@@ -319,7 +324,7 @@ class deals_CreditDocument extends core_Master
     		if(!count($options)) return FALSE;
     		
     		// Ако няма позволени операции за документа не може да се създава
-    		return isset($dealInfo->allowedPaymentOperations['creditDeals']) ? TRUE : FALSE;
+    		return isset($dealInfo->allowedPaymentOperations['debitDeals']) ? TRUE : FALSE;
     	}
     
     	return FALSE;
@@ -343,19 +348,6 @@ class deals_CreditDocument extends core_Master
     
     
     /**
-     * След оттегляне на документа
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param object|int $id
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-    	$mvc->notificateOrigin($id);
-    }
-    
-    
-    /**
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
      * @param int|object $id
@@ -371,12 +363,26 @@ class deals_CreditDocument extends core_Master
     	 
     	// При продажба платеното се увеличава, ако е покупка се намалява
     	$origin = static::getOrigin($rec);
-    	$sign = ($origin->className == 'sales_Sales') ? -1 : 1;
     	
-    	$result->paid->amount   = $sign * $rec->amount * $rec->rate;
-    	$result->paid->currency = currency_Currencies::getCodeById($rec->currencyId);
-    	$result->paid->rate 	= $rec->rate;
+    	$sign = ($origin->className == 'sales_Sales') ? 1 : -1;
+    	
+    	$result->paid->amount    = $sign * $rec->amount * $rec->rate;
+    	$result->paid->currency  = currency_Currencies::getCodeById($rec->currencyId);
+    	$result->paid->rate 	 = $rec->rate;
     	 
     	return $result;
+    }
+    
+    
+    /**
+     * След оттегляне на документа
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param object|int $id
+     */
+    public static function on_AfterReject($mvc, &$res, $id)
+    {
+    	$mvc->notificateOrigin($id);
     }
 }

@@ -116,6 +116,7 @@ class pos_Points extends core_Master {
     	$this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em');
+        $this->FLD('driver', 'class(interface=pos_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър');
     }
     
 	
@@ -193,7 +194,7 @@ class pos_Points extends core_Master {
     		if(pos_Reports::haveRightFor('add')){
     			
     			// Ако има чернова репорт за тази точка и този потребител слагаме бутон към сингъла му
-	    		if(pos_Receipts::fetch("#pointId = {$rec->id} AND #createdBy = {$cu} AND #state = 'active'")){
+	    		if(static::getCurrent() && pos_Receipts::fetch("#pointId = {$rec->id} AND #createdBy = {$cu} AND #state = 'active'")){
 	    			if($repId = pos_Reports::fetchField("#pointId = {$rec->id} AND #cashier = {$cu} AND #state='draft'")){
 	    				$reportUrl = array('pos_Reports', 'single', $repId);
 	    			} else {

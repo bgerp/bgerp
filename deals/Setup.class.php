@@ -53,23 +53,25 @@ class deals_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'deals_Deals',
-    		'deals_DebitDocument',
-    		'deals_CreditDocument',
-    		'deals_ClosedDeals'
+    		'deals_DebitDocuments',
+    		'deals_CreditDocuments',
+    		'deals_ClosedDeals',
+    		'deals_AdvanceReports',
+    		'deals_AdvanceReportDetails',
         );
 
         
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'deals';
+    var $roles = 'deals,dealsMaster';
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.3, 'Финанси', 'Сделки', 'deals_Deals', 'default', "deals, ceo"),
+            array(2.3, 'Финанси', 'Сделки', 'deals_Deals', 'default', "dealsMaster, ceo"),
         );
     
     
@@ -91,7 +93,9 @@ class deals_Setup extends core_ProtoSetup
     function install()
     {
     	$html = parent::install();
-    
+    	
+    	core_Roles::addRole('dealsMaster', 'deals');
+    	
     	// @TODO миграция да се махне след като се разнесе
     	if($listRec = acc_Lists::fetchBySystemId('financialDeals')){
     		if(!$listRec->regInterfaceId){

@@ -31,7 +31,7 @@ class pos_Payments extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, change, state';
+    var $listFields = 'id, title, change, code, state';
     
     
     /**
@@ -70,6 +70,12 @@ class pos_Payments extends core_Manager {
 	var $canSingle = 'ceo,pos';
     
 
+	/**
+	 * Какъв е кода на плащането в брой
+	 */
+	public static $cashCode = '0';
+	
+	
     /**
      * Описание на модела
      */
@@ -77,6 +83,7 @@ class pos_Payments extends core_Manager {
     {
     	$this->FLD('title', 'varchar(255)', 'caption=Наименование');
     	$this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Ресто?,value=no');
+    	$this->FLD('code', 'int', 'caption=Код,mandatory');
     	
     	$this->setDbUnique('title');
     }
@@ -92,7 +99,8 @@ class pos_Payments extends core_Manager {
     	$fields = array(
 	    	0 => "title", 
 	    	1 => "state", 
-	    	2 => "change",);
+	    	2 => "change",
+    		3 => "code",);
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	

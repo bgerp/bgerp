@@ -155,28 +155,29 @@
 		                </tr>           
 		                </tbody>
 		            </table>
-		            <ol>
-						<!--ET_BEGIN withVat-->
-                        <li>|Цените са с включен ДДС|*[#withVat#]</li>
-                        <!--ET_END withVat-->
-                        <!--ET_BEGIN sepVat-->
-                        <li>|Цените са с отделно ДДС|*[#sepVat#]</li>
-                        <!--ET_END sepVat-->
-                        <!--ET_BEGIN noVat-->
-                        <li>|Цените са без ДДС|*[#noVat#]</li>
-                        <!--ET_END noVat-->
-						<!--ET_BEGIN others-->
-							[#others#]
-						<!--ET_END others-->
-					</ol>
-		 			<!--ET_BEGIN DETAILS-->
-						<div class='details'>
-							[#DETAILS#]
-						</div>
-					<!--ET_END DETAILS-->
-		        </td>
-		    </tr>
-		    </tbody>
-		</table>
-	</div>
+		            </td>
+            </tr>
+            </tbody>
+        </table>
+        </div>
+	    <ol>
+			<!--ET_BEGIN withVat-->
+			<li>|Цените са с включен ДДС|*[#withVat#]</li>
+			<!--ET_END withVat-->
+			<!--ET_BEGIN sepVat-->
+			<li>|Цените са с отделно ДДС|*[#sepVat#]</li>
+			<!--ET_END sepVat-->
+			<!--ET_BEGIN noVat-->
+			<li>|Цените са без ДДС|*[#noVat#]</li>
+			<!--ET_END noVat-->
+			<!--ET_BEGIN others-->
+				[#others#]
+			<!--ET_END others-->
+		</ol>
+
+		<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+			[#DETAILS#]
+		</div>
+		<!--ET_END DETAILS-->
 </div>

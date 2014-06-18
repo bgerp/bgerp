@@ -38,7 +38,7 @@ class price_ListDocs extends core_Master
      /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, doc_plg_TplManager,
+    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc';
     	
     
@@ -116,6 +116,18 @@ class price_ListDocs extends core_Master
     
     
     /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    var $singleLayoutFile = 'price/tpl/templates/ListDoc.shtml';
+    
+    
+    /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    var $singleLayoutFile2 = 'price/tpl/templates/ListDocWithoutUom.shtml';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -128,6 +140,7 @@ class price_ListDocs extends core_Master
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
+    	$this->FLD('showUoms', 'enum(yes=Ценоразпис (пълен),no=Ценоразпис без основна мярка)', 'caption=Шаблон,notNull,default=yes');
     }
     
     
@@ -160,6 +173,8 @@ class price_ListDocs extends core_Master
     	$form->setDefault('policyId', $defaultList);
     	
     	$form->setDefault('currencyId', $mvc->getDefaultCurrency($form->rec));
+    	
+    	
     }
     
     
@@ -317,7 +332,14 @@ class price_ListDocs extends core_Master
     private function prepareProducts(&$data)
     {
     	$rec = &$data->rec;
-    	$data->rec->date .= ' 23:59:59';
+    	
+    	// Ако датата на ценоразписа е текущата, извличаме и текущото време
+    	if($data->rec->date == dt::today()){
+    		$data->rec->date = dt::now();
+    	} else {
+    		$data->rec->date .= ' 23:59:59';
+    	}
+    	
     	$customerProducts = price_GroupOfProducts::getAllProducts($data->rec->date); 
     	
     	if($customerProducts){
@@ -355,15 +377,19 @@ class price_ListDocs extends core_Master
     	if(!count($rec->details->products)) return;
     	$packArr = keylist::toArray($rec->packagings);
     	
+    	// Ако няма избрани опаковки, значи сме избрали всички
+    	if(!count($packArr)){
+    		$packArr = cat_Packagings::makeArray4Select('id');;
+    	}
+    	
     	foreach($rec->details->products as &$product){
     		
     		// Изчисляваме цената за продукта в основна мярка
     		$product->priceM = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
-    		
     		$productInfo = cat_Products::getProductInfo($product->productId);
     		
-    		// Ако има опаковки
-    		if(count($productInfo->packagings)){
+    		// Ако е пълен ценоразпис и има засичане на опаковките или е непълен и има опаковки
+    		if(($rec->showUoms == 'yes' && array_intersect_key($productInfo->packagings, $packArr) || ($rec->showUoms == 'no' && count($productInfo->packagings)))){
     			$count = 0;
     			
     			// За всяка опаковка
@@ -397,7 +423,7 @@ class price_ListDocs extends core_Master
     			}
     		} else {
     			// Ако продукта няма опаковки и се показват всички опаковки добавяме го
-	    		if(!count($packArr) && $product->priceM){
+	    		if($rec->showUoms == 'yes' && $product->priceM){
 	    			$rec->details->recs[] = $product;
 	    		}
     		}
@@ -448,9 +474,11 @@ class price_ListDocs extends core_Master
     	$row->productId = cat_Products::getVerbal($rec->productId, 'name');
     	
     	if(!Mode::is('printing')){
-	    	$icon = sbf("img/16/wooden-box.png");
-	    	$url = array('cat_Products', 'single', $rec->productId);
-			$row->productId = ht::createLink($row->productId, $url, NULL, "style=background-image:url({$icon}),class=linkWithIcon");
+    		if(cat_Products::haveRightFor('single', $rec->productId)){
+    			$icon = sbf("img/16/wooden-box.png");
+    			$url = array('cat_Products', 'single', $rec->productId);
+    			$row->productId = ht::createLink($row->productId, $url, NULL, "style=background-image:url({$icon}),class=linkWithIcon");
+    		}
     	}
     	
     	foreach (array('priceP', 'priceM') as $priceFld) {
@@ -481,6 +509,16 @@ class price_ListDocs extends core_Master
     
     
     /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	$tplFile = ($data->rec->showUoms == 'yes') ? $this->singleLayoutFile : $this->singleLayoutFile2;
+    	$tpl = getTplFromFile($tplFile);
+    }
+    
+    
+    /**
      * Вкарваме css файл за единичния изглед
      */
 	static function on_AfterRenderSingle($mvc, &$tpl, $data)
@@ -500,11 +538,11 @@ class price_ListDocs extends core_Master
 	    foreach ($data->rec->products->recs as $groupId => $products1){
 			foreach ($products1 as $index => $dRec){
 				if($dRec->priceM){
-					core_Math::roundNumber($dRec->priceM, $maxDecM, 4);
+					core_Math::roundNumber($dRec->priceM, $maxDecM, 2);
 				}
 				
 				if($dRec->priceP){
-					core_Math::roundNumber($dRec->priceP, $maxDecP, 4);
+					core_Math::roundNumber($dRec->priceP, $maxDecP, 2);
 				}
 			}
 	    }
@@ -517,13 +555,13 @@ class price_ListDocs extends core_Master
 				$rec = $data->rec->products->recs[$groupId][$index];
 				if($row->priceM){
 					$Double->params['decimals'] = max(2, $maxDecM);
-					$rec->priceM = core_Math::roundNumber($rec->priceM, $maxDecM);
+					$rec->priceM = core_Math::roundNumber($rec->priceM, $maxDecM, 2);
 					$row->priceM = $Double->toVerbal($rec->priceM);
 				}
 				
 				if($row->priceP){
 					$Double->params['decimals'] = max(2, $maxDecP);
-					$rec->priceP = core_Math::roundNumber($rec->priceP, $maxDecP);
+					$rec->priceP = core_Math::roundNumber($rec->priceP, $maxDecP, 2);
 					$row->priceP = $Double->toVerbal($rec->priceP);
 				}
 			}
@@ -740,32 +778,5 @@ class price_ListDocs extends core_Master
     		}
     	}
     	return FALSE;
-    }
-    
-    
-    /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$mvc->setTemplates($res);
-    }
-    
-    
-	/**
-     * Зарежда шаблоните на покупката в doc_TplManager
-     */
-    private function setTemplates(&$res)
-    {
-    	$tplArr[] = array('name' => 'Ценоразпис', 'content' => 'price/tpl/templates/ListDoc.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Ценоразпис без основна мярка', 'content' => 'price/tpl/templates/ListDocWithoutUom.shtml', 'lang' => 'bg');
-    	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за ценоразписи, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
 }

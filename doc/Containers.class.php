@@ -91,7 +91,6 @@ class doc_Containers extends core_Manager
         // Документ
         $this->FLD('docClass' , 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
-        $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
         $this->FLD('searchKeywords', 'text', 'notNull,column=none, input=none');
         
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
@@ -175,6 +174,11 @@ class doc_Containers extends core_Manager
         bgerp_Notifications::clear($url);
         
         $tpl->appendOnce("\n runOnLoad(function(){flashHashDoc(flashDocInterpolation);});", 'JQRUN');
+        
+        if(Mode::is('screenMode', 'narrow')) {
+        	$tpl->appendOnce("\n runOnLoad(function(){setThreadElemWidth()});", 'JQRUN');
+        	$tpl->appendOnce('$(window).resize(function(){setThreadElemWidth();});', "JQRUN");
+        }
     }
     
     
@@ -636,7 +640,7 @@ class doc_Containers extends core_Manager
             
             // Вадим от текущото време, зададените секунди за търсене преди
             $notifConf = core_Packs::getConfig('bgerp');
-            $lastClosedOn = dt::removeSecs($notifConf->BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE);
+            $lastClosedOn = dt::subtractSecs($notifConf->BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE);
         }
         
         // Вземаме всички записи
@@ -756,39 +760,8 @@ class doc_Containers extends core_Manager
         
         return $id;
     }
-    
-    
-    /**
-     * Генерира и връща манипулатор на документ.
-     *
-     * @param int $id key(mvc=doc_Container)
-     * @return string манипулатора на документа
-     */
-    public static function getHandle($id)
-    {
-        $rec = static::fetch($id, 'id, handle, docId, docClass');
-        
-        expect($rec);
-        
-        if (!$rec->handle) {
-            $doc = static::getDocument($rec, 'doc_DocumentIntf');
-            $rec->handle = $doc->getHandle();
-            
-            do {
-                $rec->handle = email_util_ThreadHandle::protect($rec->handle);
-            } while (!is_null(static::getByHandle($rec->handle)));
-            
-            expect($rec->handle);
-            
-            // Записваме току-що генерирания манипулатор в контейнера. Всеки следващ 
-            // опит за вземане на манипулатор ще връща тази записана стойност.
-            static::save($rec);
-        }
-        
-        return $rec->handle;
-    }
-    
-    
+
+
     /**
      * Потребителите, с които е споделен документ
      *
@@ -934,9 +907,12 @@ class doc_Containers extends core_Manager
         
         // Ако сме в нишка
         if ($rec->threadId) {
-            $text = tr('Добавяне на нов документ в нишката');
+        	$thRec = doc_Threads::fetch($rec->threadId);
+        	$title = doc_Threads::recToVerbal($thRec)->onlyTitle;
+        	$text = tr("Нов документ в") . " " . $title;
         } else {
-            $text = tr('Добавяне на нов документ (нишка) в папката');
+        	$folderRow = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            $text = tr("|Нова тема в |* {$folderRow}");
         }
         
         $tpl->append("\n<div class='listTitle'>" . $text . ":</div>");
@@ -1289,15 +1265,18 @@ class doc_Containers extends core_Manager
      */
     public static function rejectByThread($threadId)
     {
-        /* @var $query core_Query */
         $query = static::getQuery();
         
         $query->where("#threadId = {$threadId}");
         $query->where("#state <> 'rejected'");
         
         while ($rec = $query->fetch()) {
-            $doc = static::getDocument($rec);
-            $doc->reject();
+            try{
+            	$doc = static::getDocument($rec);
+            	$doc->reject();
+            } catch(Exception $e){
+            	continue;
+            }
         }
     }
     
@@ -1510,8 +1489,8 @@ class doc_Containers extends core_Manager
         
         // Масив с датите между които ще се извлича
         $dateRange = array();
-        $dateRange[0] = dt::removeSecs($conf->DOC_NOTIFY_FOR_INCOMPLETE_FROM, $now); 
-        $dateRange[1] = dt::removeSecs($conf->DOC_NOTIFY_FOR_INCOMPLETE_TO, $now); 
+        $dateRange[0] = dt::subtractSecs($conf->DOC_NOTIFY_FOR_INCOMPLETE_FROM, $now); 
+        $dateRange[1] = dt::subtractSecs($conf->DOC_NOTIFY_FOR_INCOMPLETE_TO, $now); 
         
         // Подреждаме масива
         sort($dateRange);

@@ -323,6 +323,7 @@ class pos_Receipts extends core_Master {
     
     /**
      * Ъпдейтване на бележката
+     * 
      * @param int $id - на бележката
      */
     function updateReceipt($id)
@@ -422,6 +423,18 @@ class pos_Receipts extends core_Master {
 		// Можели да бъде направено плащане по бележката
 		if($action == 'pay' && isset($rec)){
 			if(!$rec->total || ($rec->total && $rec->paid >= $rec->total)){
+				$res = 'no_one';
+			}
+		}
+		
+		// Дали може да се принтира касова бележка
+		if($action == 'printreceipt'){
+			$pointRec = pos_Points::fetch($rec->pointId);
+			
+			// Трябва точката да има драйвър, да има инсталирани драйвъри и бележката да е чернова
+			if($pointRec->driver && array_key_exists($pointRec->driver, core_Classes::getOptionsByInterface('pos_FiscPrinterIntf')) && $rec->state == 'draft'){
+				$res = $mvc->getRequiredRoles('close', $rec);
+			} else {
 				$res = 'no_one';
 			}
 		}
@@ -729,12 +742,20 @@ class pos_Receipts extends core_Master {
     	
     	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;')) . "<br />", 'INPUT_PAYMENT');
     	
+    	// Показваме всички активни методи за плащания
     	$disClass = ($payUrl) ? '' : 'disabledBtn';
     	$payments = pos_Payments::fetchSelected();
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "$payment->id", 'data-url' => $payUrl);
 	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
 	    }
+	    
+	    // Ако може да се издаде касова бележка, активираме бутона
+	    if($this->haveRightFor('printReceipt', $rec)){
+	    	$recUrl = array($this, 'printReceipt', $rec->id);
+	    }
+	    $disClass = ($recUrl) ? '' : 'disabledBtn';
+	    $block->append(ht::createBtn('Касов бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка')), 'PAYMENT_TYPE');
 	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
 	    if ($this->haveRightFor('close', $rec)) {
@@ -762,6 +783,22 @@ class pos_Receipts extends core_Master {
 	    $block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
     	
 	    return $block;
+    }
+    
+    
+    /**
+     * Екшън за принтиране на касова белжка
+     */
+    public function act_printReceipt()
+    {
+    	expect(haveRole('pos, ceo'));
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('printReceipt', $rec);
+    	
+    	$Driver = cls::get(pos_Points::fetchField($rec->pointId, 'driver'));
+    	
+    	return $Driver->createFile($id);
     }
     
     
@@ -942,7 +979,7 @@ class pos_Receipts extends core_Master {
     	$rec->state = 'active';
     	if($this->save($rec)){
     		
-    		// Обновяваме складовите наличностти
+    		// Обновяваме складовите наличности
     		pos_Stocks::updateStocks($rec->id);
     	}
     	
@@ -984,12 +1021,17 @@ class pos_Receipts extends core_Master {
     		$html = ' ';
     	}
     	
-    	// Ще реплесйнем и добавим таблицата с резултатите
-		$resObj = new stdClass();
-		$resObj->func = "html";
-		$resObj->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => TRUE);
-        
-        return array($resObj);
+    	if(Request::get('ajax_mode')){
+    		// Ще реплесйнем и добавим таблицата с резултатите
+    		$resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => TRUE);
+    		
+    		return array($resObj);
+    		
+    	} else {
+    		Redirect(array($this, 'terminal', $rec->id));
+    	}
     }
     
     
@@ -1024,6 +1066,7 @@ class pos_Receipts extends core_Master {
     	$sellable = cat_Products::getByProperty('canSell');
     	if(!count($sellable)) return;
     	
+    	$Policy = cls::get('price_ListToCustomers');
     	$Products = cls::get('cat_Products');
     	foreach ($sellable as $id => $name){
     		
@@ -1032,7 +1075,8 @@ class pos_Receipts extends core_Master {
     		
     		// Ако продукта не отговаря на търсения стринг, го пропускаме
     		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
-    		$price = $Products->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), NULL, NULL, $data->rec->createdOn);
+    		
+    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), NULL, NULL, $data->rec->createdOn);
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;
@@ -1083,8 +1127,8 @@ class pos_Receipts extends core_Master {
     			}
     		}
     	}
-    	$singImg = ht::createElement('img', array('src' => sbf('img/16/anchor-image.png', '')));
-    	$row->singleBtn = ht::createLink($singImg, array('cat_Products', 'single', $obj->productId), FALSE, array('target'=>'_blank', 'class'=>'singleProd'));
+    	
+    	$row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), NULL, array('target'=>'_blank', 'class'=>'singleProd'));
     	
     	if($obj->stock < 0){
     		$row->stock = "<span style='color:red'>$row->stock</span>";	

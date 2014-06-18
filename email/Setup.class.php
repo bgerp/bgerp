@@ -53,6 +53,31 @@ defIfNot('EMAIL_MAX_TEXT_LEN', '1000000');
 
 
 /**
+ * Дали манипулатора на нишката да е в началото на събджекта на писмото
+ */
+defIfNot('EMAIL_THREAD_HANDLE_POS', 'BEFORE_SUBJECT');
+
+
+/**
+ * Какъв тип да е генерирания манипулатор за събджект на имейл
+ * t0 - <123456>
+ * t1 - EML234SGR
+ * t2 - #123496
+ */
+defIfNot('EMAIL_THREAD_HANDLE_TYPE', 'type1');
+
+
+/**
+ * Какъв какви типове манипулатори за събджект на имейл се 
+ * с минали периоди 
+ * t0 - <123456> (номер на нишка)
+ * t1 - EML234SGR (манипулатор на документ + защита)
+ * t2 - #123496 (номер на нишка + защита)
+ */
+defIfNot('EMAIL_THREAD_HANDLE_LEGACY_TYPES', 'type0');
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -128,6 +153,16 @@ class email_Setup extends core_ProtoSetup
             
             // Максимален брой символи в текстовата част на входящите имейли
             'EMAIL_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи в текстовата част на входящите имейли->Символи'),
+            
+            // Тип на манипулатора в събджекта
+            'EMAIL_THREAD_HANDLE_POS' => array ('enum(BEFORE_SUBJECT=Преди събдекта,AFTER_SUBJECT=След събджекта)', 'caption=Манипулатор на нишка в събджект на имейл->Позиция'),
+            
+            // Позиция на манипулатора в събджекта
+            'EMAIL_THREAD_HANDLE_TYPE' => array ('enum(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Тип'),
+            
+            // Позиция на манипулатора в събджекта
+            'EMAIL_THREAD_HANDLE_LEGACY_TYPES' => array ('set(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Наследени,columns=1'),
+
         );
         
         
@@ -149,6 +184,8 @@ class email_Setup extends core_ProtoSetup
             'email_Fingerprints',
             'email_Unparsable',
             'email_Salutations',
+            'email_ThreadHandles',
+            'migrate::transferThreadHandles',
         );
     
 
@@ -205,5 +242,28 @@ class email_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+
+
+    /**
+     * Миграция, която прехвърля манипулаторите на нишки от модел doc_Threads 
+     * в email_ThreadHandles
+     */
+    function transferThreadHandles()
+    {
+        $docThreads = cls::get('doc_Threads');
+
+        // Манипулатор на нишката (thread handle)
+        $docThreads->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
+
+        $tQuery = $docThreads->getQuery();
+
+        while($rec = $tQuery->fetch("#handle IS NOT NULL")) {
+            $rec->handle = strtoupper($rec->handle);
+            if($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
+                email_ThreadHandles::save( (object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle));
+            }
+        }
+
     }
 }

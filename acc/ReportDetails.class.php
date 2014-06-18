@@ -111,7 +111,6 @@ class acc_ReportDetails extends core_Manager
     	// Създаване на нова инстанция на core_Mvc за задаване на td - класове
     	// Създава се с new за да сме сигурни че обекта е нова празна инстанция
     	$data->reportTableMvc = new core_Mvc;
-    	
     	$data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
     	$data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
     	$data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
@@ -162,6 +161,7 @@ class acc_ReportDetails extends core_Manager
 	    				
 	    			// Ако перото не е групиращото, ще се показва в справката
 	    			$row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'numTitleLink');
+	    			$row["ent{$pos}Id"] = "<span style='margin-left:7px;float:left'>{$row["ent{$pos}Id"]}</span>";
 	    		}
 	    	}
 	    	

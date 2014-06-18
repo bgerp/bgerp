@@ -6,9 +6,6 @@ function accordionRenderAndCollapse() {
 	// Hide all the content except the first
 	$('.accordian li:odd:gt(0)').hide();
 	
-	// Change min-width
-	$('.wide .dimension .button').css('min-width','308px');
-	
 	// Add class to last title
 	$('.btns-title').last().addClass('last-title');
 	

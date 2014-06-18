@@ -189,68 +189,12 @@ class vislog_History extends core_Manager {
         //    $name = $mvc->IpToCountry->get($rec->ip);
        // }
 
-        $row->ip = self::decorateIp($rec->ip, $rec->createdOn);
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
         
         $ref = vislog_Referer::getReferer($rec->ip, $rec->createdOn);
 
         if($ref) {
             $row->HistoryResourceId .= "<br><span style='font-size:0.6em;'>{$ref}</span>";
         }
-    }
-
-
-
-    /**
-     * Декорира ip адреса с html връзки
-     */
-    static function decorateIp($ip, $time = NULL)
-    {   
-        // Ако показваме чист текст или подготвяме HTML за навън - лишаваме се от декорациите
-        if(Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) {
-
-            return $ip;
-        }
-
-        if($cnt = self::count(array("#ip = '[#1#]'", $ip))) {
-            if($time) {
-                $old = self::count(array("#ip = '[#1#]' AND #createdOn <= '[#2#]'", $ip, $time));
-                $style = 'color:#' . sprintf("%02X%02X%02X", min(($old / $cnt) * ($old / $cnt) * ($old / $cnt) * 255, 255),0,0) . ';';
-                $titleCnt = "{$old}/{$cnt}";
-            } else {
-                $style = '';
-                $titleCnt = "{$cnt}";
-            }
-            if(self::haveRightFor('list')) {
-                $count = ht::createLink($titleCnt, 
-                            array('vislog_History', 'ip' => $ip),
-                            NULL,
-                            array('class' => 'vislog-cnt', 'style' => $style));
-            } else {
-                $count = $titleCnt;
-            }
-        }
-                
-
-        $country2 =  drdata_IpToCountry::get($ip);
-        $countryName = drdata_Countries::fetchField("#letterCode2 = '" . strtoupper($country2) . "'", 'commonName' . (core_Lg::getCurrent() == 'bg' ? 'Bg' : ''));
-
-        $country = ht::createLink($country2, "http://bgwhois.com/?query=" . $ip, NULL, array('target' => '_blank', 'class' => 'vislog-country', 'title' => $countryName));
-        
-        list($p1, $p2, $p3, $p4) = explode('.', $ip);
-        $ip3 = "{$p1}.{$p2}.{$p3}.*";
-        $ip2 = "{$p1}.{$p2}.*.*";
-        $ipRec = vislog_IpNames::fetch(array("(#ip = '[#1#]') OR (#ip = '[#2#]') OR (#ip = '[#3#]')", $ip, $ip3, $ip2));
-
-        if($ipRec) {
-            $name = vislog_IpNames::getVerbal($ipRec, 'name');
-        }
-
-        if(!$name) {
-            $name = $ip;
-        }
- 
-        $res = new ET("<div class='vislog'>[#1#]&nbsp;<span class='vislog-ip'>{$name}</span>&nbsp;[#2#]</div>", $country, $count);
-
-        return $res;
     }
 }

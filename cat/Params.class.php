@@ -240,27 +240,12 @@ class cat_Params extends core_Manager
 	    	0 => "name", 
 	    	1 => "type", 
 	    	2 => "suffix", 
-	    	3 => "sysId");
+	    	3 => "sysId",
+    		4 => "options");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
-    	
-    	// @TODO Миграция да се махне след като се разнесе
-    	$newWId = static::fetchIdBySysId('weight');
-    	$oldW1 = static::fetchIdBySysId('weightGr');
-    	$oldW2 = static::fetchIdBySysId('weightKg');
-    	
-    	if($oldW1 && $oldW2){
-	    	$query = cat_products_Params::getQuery();
-	    	$query->where("#paramId = {$oldW1} || #paramId = {$oldW2}");
-	    	while($rec = $query->fetch()){
-	    		$rec->paramId = $newWId;
-	    		cat_products_Params::save($rec);
-	    	}
-	    	
-	    	static::delete("#sysId = 'weightGr' || #sysId = 'weightKg'");
-    	}
-    	
+    
     	return $res;
     }
 }

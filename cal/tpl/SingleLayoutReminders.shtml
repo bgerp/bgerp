@@ -16,7 +16,13 @@
 			</div>
 			<div class='reminder-half'>
 				<div>|Споделяне|*: [#shareLog#]</div>
-				<div>|Следващо напомняне|*: [#nextStartTime#]</div>
+				<!--ET_BEGIN repetition--> 
+					<div>
+						<!--ET_BEGIN nextStartTime-->|Следващо напомняне|*: [#nextStartTime#]<!--ET_END nextStartTime--> 
+						<!--ET_BEGIN rem-->|Напомняне|*: [#rem#]<!--ET_END rem--> 
+					</div>
+				<!--ET_END repetition-->
+				
 				<!--ET_BEGIN repetitionEach-->   
 					<div>
 				     	 <!--ET_BEGIN each-->|Повторение|* [#each#]<!--ET_END each--> 

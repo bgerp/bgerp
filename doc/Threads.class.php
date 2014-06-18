@@ -98,10 +98,7 @@ class doc_Threads extends core_Manager
         
         // Достъп
         $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
-        
-        // Манипулатор на нишката (thread handle)
-        $this->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
-        
+                
         // Състоянието на последния документ в нишката
         $this->FLD('lastState', 'enum(draft=Чернова,
                   pending=Чакащо,
@@ -316,8 +313,8 @@ class doc_Threads extends core_Manager
         if(mb_strlen($docRow->title) > self::maxLenTitle) {
             $attr['title'] = $docRow->title;
         }
-
-        $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
+		
+        $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
             array('doc_Containers', 'list',
                 'threadId' => $rec->id,
                 'folderId' => $rec->folderId,
@@ -990,54 +987,6 @@ class doc_Threads extends core_Manager
         }
     }
     
-
-    /**
-     * Намира нишка по манипулатор на нишка.
-     *
-     * @param string $handle манипулатор на нишка
-     * @return int key(mvc=doc_Threads) NULL ако няма съответна на манипулатора нишка
-     */
-    public static function getByHandle($handle)
-    {
-        $id = static::fetchField(array("#handle = '[#1#]'", $handle), 'id');
-        
-        if (!$id) {
-            $id = NULL;
-        }
-        
-        return $id;
-    }
-    
-    
-    /**
-     * Генерира и връща манипулатор на нишка.
-     *
-     * @param int $id key(mvc=doc_Threads)
-     * @return string манипулатора на нишката
-     */
-    public static function getHandle($id)
-    {
-        $rec = static::fetch($id, 'id, handle, firstContainerId');
-        
-        expect($rec);
-        
-        if (!$rec->handle) {
-            if (!$rec->firstContainerId) {
-                // Ако първия контейнер в нишката все още не е кеширан, намираме го на място.
-                $rec->firstContainerId = self::getFirstContainerId($rec->id);
-            }
-            
-            $rec->handle = doc_Containers::getHandle($rec->firstContainerId);
-            
-            expect($rec->handle);
-            
-            // Записваме току-що генерирания манипулатор в данните на нишката. Всеки следващ 
-            // опит за вземане на манипулатор на тази нишка ще връща тази записана стойност
-            static::save($rec);
-        }
-        
-        return $rec->handle;
-    }
     
     
     /**

@@ -31,7 +31,7 @@ class cat_products_Packagings extends cat_products_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'code=Код, packagingId, quantity=К-во, netWeight=, tareWeight=, weight=Тегло, 
+    var $listFields = 'code=EAN, packagingId, quantity=К-во, netWeight=, tareWeight=, weight=Тегло, 
         sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, 
         eanCode=,tools=Пулт';
     
@@ -72,7 +72,7 @@ class cat_products_Packagings extends cat_products_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,caption=Опаковка,mandatory');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,caption=Опаковка,mandatory,width=7em');
         $this->FLD('quantity', 'double', 'input,caption=Количество,mandatory');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('netWeight', 'cat_type_Weight', 'caption=Тегло->Нето');
@@ -264,7 +264,7 @@ class cat_products_Packagings extends cat_products_Detail
     	$row->dimention = "{$row->sizeWidth} x {$row->sizeHeight} x {$row->sizeDepth}";
     	
     	if($rec->eanCode){
-    		$row->code = tr("|EAN|*:") . $row->eanCode . "<br />";
+    		$row->code = $row->eanCode;
     	}
     	if($rec->netWeight){
     		$row->weight = tr("|Нето|*: ") . $row->netWeight . "<br />";

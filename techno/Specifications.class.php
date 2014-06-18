@@ -166,29 +166,39 @@ class techno_Specifications extends core_Manager {
      * Това са всички спецификации от неговата папка, както и
      * всички общи спецификации (създадени в папка "Проект")
      */
-    function getProducts($customerClass, $customerId, $date = NULL)
+    function getProducts($customerClass, $customerId, $date = NULL, $limit = NULL)
     {
     	$Class = cls::get($customerClass);
     	$folderId = $Class->forceCoverAndFolder($customerId, FALSE);
     	
+    	$count = 0;
     	$products = array();
     	$query = $this->getQuery();
     	$query->where("#folderId = {$folderId}");
     	$query->orWhere("#common = 'yes'");
     	$query->where("#state = 'active'");
     	while($rec = $query->fetch()){
-    		try{
+    		if(cls::load($rec->docClassId, TRUE)){
     			$DocClass = cls::get($rec->docClassId);
-    			
     			if($DocClass->fetchField($rec->docId, 'state') != 'active') continue;
-    			
     			$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
-    		} catch(Exception $e){
-    			continue;
+    			$count++;
+    			if(isset($limit) && $count >= $limit) break;
     		}
     	}
     	
     	return $products;
+    }
+    
+    
+    /**
+     * Дали има поне един продаваем продукт за клиента
+     */
+    public function hasSellableProduct($contragentClassId, $contragentId, $date)
+    {
+    	$sellable = $this->getProducts($contragentClassId, $contragentId, $date);
+    	
+    	return count($sellable);
     }
     
     
@@ -422,19 +432,23 @@ class techno_Specifications extends core_Manager {
      * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
      * @param mixed $properties - комбинация на горе посочените мета 
      * 							  данни или като масив или като стринг
+     * @param int $limit       - Лимит на опциите
      * @return array $products - продукти отговарящи на условието, ако не са
      * 							 зададени мета данни връща всички продукти
      */
-    public static function getByProperty($properties)
+    public static function getByProperty($properties, $limit = NULL)
     {
     	$products = array();
     	$properties = arr::make($properties);
     	expect(count($properties));
     	
+    	$count = 0;
     	$query = static::getQuery();
     	$query->where("#state = 'active'");
     	while($rec = $query->fetch()){
     		$flag = FALSE;
+    		if(!cls::load($rec->docClassId, 'silent')) continue;
+    		
     		$DocClass = cls::get($rec->docClassId);
     		$meta = $DocClass->getProductInfo($rec->docId)->meta;
     		foreach ($properties as $prop){
@@ -443,6 +457,8 @@ class techno_Specifications extends core_Manager {
     		
     		if(!$flag){
     			$products[$rec->id] = $DocClass->getTitleById($rec->docId);
+    			$count++;
+    			if(isset($limit) && $count >= $limit) break;
     		}
     	}
     	
