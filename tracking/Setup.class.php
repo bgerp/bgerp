@@ -37,6 +37,11 @@ defIfNot('RESTART_PERIOD', '3600');
 defIfNot('PID', '');
 
 /**
+ * Команден ред за изпълнение на командата
+ */
+defIfNot('CMD', '');
+
+/**
  * Клас 'tracking_Setup'
  *
  * @category  vendors
@@ -83,7 +88,9 @@ class tracking_Setup extends core_ProtoSetup
             'PROTOCOL' => array ('enum(udp=udp, tcp=tcp)', 'mandatory, caption=Протокол'),
             'DATA_SENDER' => array ('ip', 'mandatory, caption=Адрес на изпращач'),
             'DOMAIN' => array ('varchar(255)', 'mandatory, caption=Домейн'),
-            'RESTART_PERIOD' => array ('int()', 'mandatory, caption=Период за рестарт')
+            'RESTART_PERIOD' => array ('int()', 'mandatory, caption=Период за рестарт'),
+            'PID' => array ('varchar(readonly)', 'caption=PID на процеса за слушане'),
+           // 'CMD' => array ('varchar(255)', 'input=hidden, caption=Команда на процеса'),
     );
     
     
@@ -92,7 +99,6 @@ class tracking_Setup extends core_ProtoSetup
      */
     public $managers = array(
             'tracking_Log',
-//            'tracking_ListenerControl',
             'tracking_Vehicles'
     );
 
@@ -161,20 +167,23 @@ class tracking_Setup extends core_ProtoSetup
      */
     private function Start()
     {
-        $conf = core_Packs::getConfig('tracking');
+        $domain = core_Packs::getConfigKey('tracking', 'DOMAIN');
+        $protocol = core_Packs::getConfigKey('tracking', 'PROTOCOL');
+        $port = core_Packs::getConfigKey('tracking', 'PORT');
+        
         if (!self::isStarted()) {
     
-            $conf->DATA = "php " . realpath(dirname(__FILE__)) . "/sockListener.php"
-                    . " " . $conf->PROTOCOL . " " . getHostByName($conf->DOMAIN)
-                    . " " . $conf->PORT
-                    . " " . $conf->DOMAIN;
+            $cmd = "php " . realpath(dirname(__FILE__)) . "/sockListener.php"
+                    . " " . $protocol . " " . getHostByName($domain)
+                    . " " . $port
+                    . " " . $domain;
     
-            $conf->PID = exec(sprintf("%s > /dev/null 2>&1 & echo $!", $cmd));
+            $pid = exec(sprintf("%s > /dev/null 2>&1 & echo $!", $cmd));
 
-            core_Packs::setConfig('tracking', $conf);
+            core_Packs::setConfig('tracking', array('PID'=>$pid, 'CMD'=>$cmd));
         }
     
-        return ($conf->PID);
+        return ($pid);
     }
     
     
@@ -202,23 +211,24 @@ class tracking_Setup extends core_ProtoSetup
      */
     private static function isStarted()
     {
-        $conf = core_Packs::getConfig('tracking');
+        
+        $pid = core_Packs::getConfigKey('tracking', 'PID');
+        $cmd = core_Packs::getConfigKey('tracking', 'CMD');
+
         // Взимаме PID-а от конфигурацията - ако няма стойност - процеса е спрян
-    
+        if (empty($pid)) return FALSE;
+        
         // Парсираме резултата от ps -fp <PID> команда и взимаме командната линия на процеса
-        exec("ps -fp " . $conf->PID, $output);
+        exec("ps -fp " . $pid, $output);
         // Ако командата се съдържа в резултата от ps значи процеса е нашия
-        if (strpos($output[1], $conf->DATA) !== FALSE) {
+        if (strpos($output[1], $cmd) !== FALSE) {
     
             return (TRUE);
         } else {
             // Процеса не е нашия и чистим връзката с него
-            unset($conf->PID);
-            unset($conf->DATA);
-            
-            core_Packs::setConfig('tracking', $conf);
+            core_Packs::setConfig('tracking', array('PID' => '', 'CMD' => ''));
         }
-    
+
         return (FALSE);
     }
     
