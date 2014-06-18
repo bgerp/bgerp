@@ -23,9 +23,7 @@
                 selector = null;
             }
         }
-        //console.log(method);
-        //console.log(selector);
-        //console.log(option);
+       
         if ((selector instanceof Array) && (method != 'update')) {
             method = 'menu';
         }
@@ -282,12 +280,22 @@
                 //check conditions
                 cntWin = cntnmnt == window,
                 btChck = option.baseTrigger.index(trigger) == -1;
-
+                
+                
+            var el = trigger.parent().find('.modal-toolbar');
+            var isHidden;
+            if(el.css('display') == 'none'){
+            	isHidden = true;
+            } else {
+            	isHidden = false;
+            }
             //to close previous open menu.
             if (!btChck && option.closeOther) {
                 $('.iw-contextMenu').css('display', 'none');
             }
-
+            if(isHidden != true){
+            	return;
+            }
             //to reset already selected menu item
             menu.find('.iw-mSelected').removeClass('iw-mSelected');
 
