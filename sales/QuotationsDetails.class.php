@@ -63,7 +63,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals, doc_plg_HidePrices, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew';
     
     
     /**
@@ -108,7 +108,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'input=hidden,caption=Политика,silent,oldFieldName=productManId');
     	$this->FLD('quantity', 'double(Min=0)', 'caption=К-во,width=8em;');
-    	$this->FLD('price', 'double(minDecimals=2)', 'caption=Ед. цена, input,width=8em');
+    	$this->FLD('price', 'double', 'caption=Ед. цена, input,width=8em');
         $this->FLD('discount', 'percent(maxDecimals=2)', 'caption=Отстъпка,width=8em');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,width=8em;');
