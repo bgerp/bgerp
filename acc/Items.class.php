@@ -90,6 +90,14 @@ class acc_Items extends core_Manager
     
     
     /**
+     * Опашка от пера на които да се задейства ивент
+     *
+     * @var array Масив от записи на acc_Items (с ключове - ид-та на записи)
+     */
+    protected static $affected = array();
+    
+    
+    /**
      * Шаблон (ET) за заглавие на перо
      *
      * @var string
@@ -710,6 +718,9 @@ class acc_Items extends core_Manager
             self::save($rec);
         }
         
+        // Запомняме афектираните пера
+        self::$affected[$rec->id] = $rec;
+        
         return $rec->id;
     }
     
@@ -748,6 +759,17 @@ class acc_Items extends core_Manager
     {
         foreach ($mvc->touched as $rec) {
             $mvc->save($rec, 'state, lastUseOn');
+        }
+        
+        // Всяко афектирано перо, задейства ивент в мениджъра си
+        if(count(self::$affected)){
+        	foreach (self::$affected as $rec) {
+        		if(cls::load($rec->classId, TRUE)){
+        			$Class = cls::get($rec->classId);
+        			$objectRec = $Class->fetch($rec->objectId);
+        			$Class->invoke('AfterAffectItem', array($objectRec, $rec));
+        		}
+        	}
         }
     }
     
