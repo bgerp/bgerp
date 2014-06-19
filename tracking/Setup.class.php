@@ -167,16 +167,14 @@ class tracking_Setup extends core_ProtoSetup
      */
     private function Start()
     {
-        $domain = core_Packs::getConfigKey('tracking', 'DOMAIN');
-        $protocol = core_Packs::getConfigKey('tracking', 'PROTOCOL');
-        $port = core_Packs::getConfigKey('tracking', 'PORT');
-        
+        $conf = core_Packs::getConfig('tracking');
+
         if (!self::isStarted()) {
     
             $cmd = "php " . realpath(dirname(__FILE__)) . "/sockListener.php"
-                    . " " . $protocol . " " . getHostByName($domain)
-                    . " " . $port
-                    . " " . $domain;
+                    . " " . $conf->PROTOCOL . " " . getHostByName($conf->DOMAIN)
+                    . " " . $conf->PORT
+                    . " " . $conf->DOMAIN;
     
             $pid = exec(sprintf("%s > /dev/null 2>&1 & echo $!", $cmd));
 
