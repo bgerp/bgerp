@@ -551,11 +551,18 @@ class purchase_Purchases extends core_Master
     	if(!Request::get('Rejected', 'int')){
         	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=13em');
 	        $data->listFilter->setDefault('type', 'active');
-			$data->listFilter->showFields .= ',type';
+			$data->listFilter->showFields .= ',dealerId,type';
+			$data->listFilter->setField('dealerId', 'caption=Търговец,width=13em');
+			$data->listFilter->setDefault('dealerId', core_Users::getCurrent());
 		}
 		
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
+			
+			if($filter->dealerId){
+				$data->query->where("#dealerId = {$filter->dealerId}");
+			}
+		
 			if($filter->type) {
 				switch($filter->type){
 					case "all":
