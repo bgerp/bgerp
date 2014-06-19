@@ -53,14 +53,16 @@ class store_transactionIntf_ShipmentOrder
         
         $rec = $this->fetchShipmentData($id);
             
+        $origin = $this->class->getOrigin($rec);
+        
         // Всяко ЕН трябва да има поне един детайл
         if (count($rec->details) > 0) {
             // Записите от тип 1 (вземане от клиент)
-            $entries = $this->getTakingPart($rec);
+            $entries = $this->getTakingPart($rec, $origin);
                 
             if($rec->storeId){
             	// Записите от тип 2 (експедиция)
-            	$entries = array_merge($entries, $this->getDeliveryPart($rec));
+            	$entries = array_merge($entries, $this->getDeliveryPart($rec, $origin));
             }
         }
         
@@ -128,21 +130,21 @@ class store_transactionIntf_ShipmentOrder
     /**
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
-     *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
+     *    Dt: 411  - Вземания от клиенти               (Клиент, Сделка, Валута)
      *    
-     *    Ct: 701  - Приходи от продажби на Стоки и Продукти  (Клиенти, Стоки и Продукти)
-     *    	  706  - Приходи от продажба на Суровини и Материали (Клиенти, Суровини и материали)
+     *    Ct: 701  - Приходи от продажби на Стоки и Продукти  (Клиенти, Сделка, Стоки и Продукти)
+     *    	  706  - Приходи от продажба на Суровини и Материали (Клиенти, Сделка, Суровини и материали)
      * 
      * ДДС за начисляване
      * 
-     *    Dt: 411. Вземания от клиенти                   (Клиент, Валута)
+     *    Dt: 411. Вземания от клиенти                   (Клиент, Сделки, Валута)
      *    
      *    Ct: 4530 - ДДС за начисляване
      *    
      * @param stdClass $rec
      * @return array
      */
-    protected function getTakingPart($rec)
+    protected function getTakingPart($rec, $origin)
     {
         $entries = array();
         
@@ -173,14 +175,16 @@ class store_transactionIntf_ShipmentOrder
                 'debit' => array(
                     '411',
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $currencyId),     		// Перо 2 - Валута
+                		array($origin->className, $origin->that),			// Перо 2 - Сделка
+                        array('currency_Currencies', $currencyId),     		// Перо 3 - Валута
                     'quantity' => currency_Currencies::round($amount, $currencyCode), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                      $creditAccId, 
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                    	array($detailRec->classId, $detailRec->productId), // Перо 2 - Артикул
+                		array($origin->className, $origin->that),			// Перо 2 - Сделка
+                    	array($detailRec->classId, $detailRec->productId), // Перо 3 - Артикул
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -194,7 +198,8 @@ class store_transactionIntf_ShipmentOrder
                 'debit' => array(
                     '411',
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+                		array($origin->className, $origin->that),			// Перо 2 - Сделка
+                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
                     'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
                 ),
                 
@@ -214,8 +219,8 @@ class store_transactionIntf_ShipmentOrder
      * 
      * Експедиране на стоката от склада
      *
-     *    Dt: 701 - Приходи от продажби на Стоки и Продукти 	(Клиент, Стоки и Продукти) 
-     *    	  706 - Приходи от продажба на Суровини и материали (Клиент, Суровини и материали)
+     *    Dt: 701 - Приходи от продажби на Стоки и Продукти 	(Клиент, Сделка, Стоки и Продукти) 
+     *    	  706 - Приходи от продажба на Суровини и материали (Клиент, Сделка, Суровини и материали)
      *    
      *    Ct: 321  - Стоки и Продукти                 			(Склад, Стоки и Продукти)
      *    	  302  - Суровини и материали             			(Склад, Суровини и материали)
@@ -223,7 +228,7 @@ class store_transactionIntf_ShipmentOrder
      * @param stdClass $rec
      * @return array
      */
-    protected function getDeliveryPart($rec)
+    protected function getDeliveryPart($rec, $origin)
     {
         $entries = array();
         
@@ -239,7 +244,8 @@ class store_transactionIntf_ShipmentOrder
 	             'debit' => array(
 	                    $debitAccId, 
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-        					array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
+	             			array($origin->className, $origin->that),			// Перо 2 - Сделка
+        					array($detailRec->classId, $detailRec->productId), // Перо 3 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	                

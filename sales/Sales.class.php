@@ -31,7 +31,7 @@ class sales_Sales extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_TransactionSourceIntf=sales_TransactionSourceImpl,
-                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf';
+                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf,acc_RegisterIntf';
     
     
     /**
@@ -1350,4 +1350,55 @@ class sales_Sales extends core_Master
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
+     
+     
+     /**
+      * Перо в номенклатурите, съответстващо на този продукт
+      *
+      * Част от интерфейса: acc_RegisterIntf
+      */
+     static function getItemRec($objectId)
+     {
+     	$result = NULL;
+     	$self = cls::get(__CLASS__);
+     
+     	if ($rec = self::fetch($objectId)) {
+     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+     		$result = (object)array(
+     				'num' => $objectId,
+     				'title' => static::getRecTitle($objectId),
+     				'features' => array('Контрагент' => $contragentName)
+     		);
+     	}
+     //bp($result);
+     	return $result;
+     }
+     
+     
+     /**
+      * @see acc_RegisterIntf::itemInUse()
+      * @param int $objectId
+      */
+     static function itemInUse($objectId)
+     {
+     }
+     
+     
+     /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+        $self = cls::get(__CLASS__);
+        $self->recTitleTpl = NULL;
+    	
+        if ($rec = self::fetch($objectId)) {
+            $result = $self->getHyperlink($objectId);
+        } else {
+            $result = '<i>' . tr('неизвестно') . '</i>';
+        }
+        
+        return $result;
+    }
 }

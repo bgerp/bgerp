@@ -600,7 +600,10 @@ class sales_Services extends core_Master
 	public function getTransaction($id)
     {
         $entries = array();
+        
         $rec = new sales_model_Service($id);
+        $origin = $this->getOrigin($this->fetchRec($id));
+        
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         
         $detailsRec = $rec->getDetails('sales_ServicesDetails');
@@ -624,14 +627,16 @@ class sales_Services extends core_Master
 	                'debit' => array(
 	                    '411', // Сметка "411. Вземания от клиенти"
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-	                        array('currency_Currencies', $currencyId),     		// Перо 2 - Валута
+	                		array($origin->className, $origin->that),			// Перо 2 - Сделка
+	                        array('currency_Currencies', $currencyId),     		// Перо 3 - Валута
 	                    'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на продажбата
 	                ),
 	                
 	                'credit' => array(
 	                    '703', // Сметка "703". Приходи от продажби на услуги
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-	                    	array($dRec->classId, $dRec->productId), // Перо 2 - Артикул
+	                		array($origin->className, $origin->that),			// Перо 2 - Сделка
+	                    	array($dRec->classId, $dRec->productId), // Перо 3 - Артикул
 	                    'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
 	                ),
             	);
@@ -645,7 +650,8 @@ class sales_Services extends core_Master
 	                'debit' => array(
 	                    '411',
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-	                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+	                		array($origin->className, $origin->that),			// Перо 2 - Сделка
+	                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
 	                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
 	                ),
 	                
