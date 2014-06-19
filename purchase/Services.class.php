@@ -562,6 +562,8 @@ class purchase_Services extends core_Master
     {
         $entries = array();
         $rec = new purchase_model_Service($id);
+        $origin = $this->getOrigin($this->fetchRec($id));
+        
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         
         $detailsRec = $rec->getDetails('purchase_ServicesDetails');
@@ -591,7 +593,8 @@ class purchase_Services extends core_Master
 	                'credit' => array(
 	                    '401', // Сметка "401. Задължения към доставчици (Доставчик, Валути)"
                        		array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
-                       		array('currency_Currencies', $currencyId),          // Перо 2 - Валута
+                       		array($origin->className, $origin->that),			// Перо 2 - Сделка
+                       		array('currency_Currencies', $currencyId),          // Перо 3 - Валута
                     	'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на покупката
 	                ),
             	);
@@ -605,7 +608,8 @@ class purchase_Services extends core_Master
 		                'credit' => array(
 		                    '401',
 		                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-		                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+		                		array($origin->className, $origin->that),			// Перо 2 - Сделка
+		                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
 		                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
 		                ),
 		                

@@ -27,7 +27,7 @@ class purchase_Purchases extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_TransactionSourceImpl, deals_DealsAccRegIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_TransactionSourceImpl, deals_DealsAccRegIntf, acc_RegisterIntf';
     
     
     /**
@@ -1160,5 +1160,56 @@ class purchase_Purchases extends core_Master
     	//Ако потребителя не е в група доставчици го включваме
     	$rec = $mvc->fetchRec($rec);
     	cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, 'suppliers');
+    }
+    
+    
+    /**
+     * Перо в номенклатурите, съответстващо на този продукт
+     *
+     * Част от интерфейса: acc_RegisterIntf
+     */
+    static function getItemRec($objectId)
+    {
+    	$result = NULL;
+    	$self = cls::get(__CLASS__);
+    	 
+    	if ($rec = self::fetch($objectId)) {
+    		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+    		$result = (object)array(
+    				'num' => $objectId,
+    				'title' => static::getRecTitle($objectId),
+    				'features' => array('Контрагент' => $contragentName)
+    		);
+    	}
+    	 
+    	return $result;
+    }
+     
+     
+    /**
+     * @see acc_RegisterIntf::itemInUse()
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
+    }
+     
+     
+    /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+    	$self = cls::get(__CLASS__);
+    	$self->recTitleTpl = NULL;
+    	 
+    	if ($rec = self::fetch($objectId)) {
+    		$result = $self->getHyperlink($objectId);
+    	} else {
+    		$result = '<i>' . tr('неизвестно') . '</i>';
+    	}
+    
+    	return $result;
     }
 }
