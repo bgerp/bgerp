@@ -186,7 +186,7 @@ class bgerp_Recently extends core_Manager
                 $threadRec = doc_Threads::fetch($docRec->threadId);
                 $state     = $threadRec->state;
                 
-                if(doc_Threads::requireRightFor('newdoc', $docRec->threadId)){
+                if(doc_Threads::haveRightFor('newdoc', $docRec->threadId)){
                 	$row->title .= ht::createLink(' ', array('doc_Containers', 'ShowDocMenu', 'threadId' => $docRec->threadId), NULL, array('class'=>'portalAddDoc','ef_icon' => 'img/16/add1-16.png'));
                 	$row->title = '<div>' . $row->title .'</div>';
                 }
