@@ -182,7 +182,7 @@ class sales_Services extends core_Master
     	$query = $this->sales_ServicesDetails->getQuery();
         $query->where("#shipmentId = '{$id}'");
         
-        price_Helper::fillRecs($query->fetchAll(), $rec);
+        deals_Helper::fillRecs($query->fetchAll(), $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amount = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
@@ -304,7 +304,7 @@ class sales_Services extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
@@ -605,7 +605,7 @@ class sales_Services extends core_Master
         
         $detailsRec = $rec->getDetails('sales_ServicesDetails');
         if(count($detailsRec)){
-        	price_Helper::fillRecs($detailsRec, $rec);
+        	deals_Helper::fillRecs($detailsRec, $rec);
         	
 	        foreach ($detailsRec as $dRec) {
 		        if($rec->chargeVat == 'yes'){

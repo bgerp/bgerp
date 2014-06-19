@@ -126,7 +126,7 @@ class deals_AdvanceReportDetails extends core_Detail
     	if($rec->id){
     		$rec->amount /= $masterRec->rate;
     		$rec->amount *= 1 + $rec->vat;
-    		$rec->amount = price_Helper::roundPrice($rec->amount);
+    		$rec->amount = deals_Helper::roundPrice($rec->amount);
     	}
     }
     

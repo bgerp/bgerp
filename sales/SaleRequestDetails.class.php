@@ -65,7 +65,7 @@ class sales_SaleRequestDetails extends core_Detail {
     
     
     /**
-     * Помощен масив (@see price_Helper)
+     * Помощен масив (@see deals_Helper)
      */
     public static $map = array('priceFld' => 'price', 'quantityFld' => 'quantity', 'valior' => 'createdOn');
     
@@ -102,7 +102,7 @@ class sales_SaleRequestDetails extends core_Detail {
     	$recs = &$data->recs;
     	$masterRec = $data->masterData->rec;
     	
-    	price_Helper::fillRecs($data->recs, $masterRec, static::$map);
+    	deals_Helper::fillRecs($data->recs, $masterRec, static::$map);
     }
     
     

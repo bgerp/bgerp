@@ -6,13 +6,13 @@
  *
  *
  * @category  bgerp
- * @package   price
+ * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class price_Helper
+abstract class deals_Helper
 {
 	
 	/**

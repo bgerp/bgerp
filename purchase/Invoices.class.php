@@ -688,7 +688,7 @@ class purchase_Invoices extends core_Master
     			$rec->_total->vat = $rec->vatAmount / $rec->rate;
     		}
     		
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
+    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
     	 	if($rec->paymentMethodId && $rec->type == 'invoice' && $rec->dpOperation != 'accrued') {

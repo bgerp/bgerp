@@ -91,7 +91,7 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
-     * Помощен масив (@see price_Helper)
+     * Помощен масив (@see deals_Helper)
      */
     protected static $map = array('priceFld'      => 'price', 
     							  'quantityFld'   => 'quantity', 
@@ -140,16 +140,16 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	// Подготовка за показване на задължителнтие продукти
-    	price_Helper::fillRecs($notOptional, $masterRec, static::$map);
+    	deals_Helper::fillRecs($notOptional, $masterRec, static::$map);
     	
     	if(empty($data->noTotal)){
     		
     		// Запомня се стойноста и ддс-то само на опционалните продукти
-    		$data->summary = price_Helper::prepareSummary($masterRec->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($masterRec->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
     	}
     	
     	// Подготовка за показване на опционалните продукти
-    	price_Helper::fillRecs($optional, $masterRec, static::$map);
+    	deals_Helper::fillRecs($optional, $masterRec, static::$map);
     	$recs = $notOptional + $optional;
     	
     	// Изчисляване на цената с отстъпка

@@ -62,7 +62,7 @@ class purchase_TransactionSourceImpl
         if ($actions['ship'] || $actions['pay']) {
             
             $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
-			price_Helper::fillRecs($rec->details, $rec); 
+			deals_Helper::fillRecs($rec->details, $rec); 
             
             if ($actions['ship']) {
                 // Покупката играе роля и на складова разписка.

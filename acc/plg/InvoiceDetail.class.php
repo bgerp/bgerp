@@ -213,7 +213,7 @@ class acc_plg_InvoiceDetail extends core_Plugin
 							
 						// Ако се обновява вече съществуващ запис
 						if($pRec){
-							$pRec->packPrice = price_Helper::getPriceToCurrency($pRec->packPrice, $vat, $masterRec->rate, $masterRec->vatRate);
+							$pRec->packPrice = deals_Helper::getPriceToCurrency($pRec->packPrice, $vat, $masterRec->rate, $masterRec->vatRate);
 						}
 							
 						// Ако се обновява запис се взима цената от него, ако не от политиката
@@ -225,7 +225,7 @@ class acc_plg_InvoiceDetail extends core_Plugin
 					
 					// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
 					if(!$update || ($update && Request::get('Ignore'))){
-						$rec->packPrice =  price_Helper::getPriceFromCurrency($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
+						$rec->packPrice =  deals_Helper::getPriceFromCurrency($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
 					}
 					
 					// Изчисляване цената за единица продукт в осн. мярка

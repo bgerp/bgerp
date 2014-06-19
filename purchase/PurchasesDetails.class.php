@@ -208,7 +208,7 @@ class purchase_PurchasesDetails extends core_Detail
         $purchaseRec = $data->masterData->rec;
         
         if (empty($recs)) return;
-        price_Helper::fillRecs($recs, $purchaseRec);
+        deals_Helper::fillRecs($recs, $purchaseRec);
     }
     
     
@@ -296,7 +296,7 @@ class purchase_PurchasesDetails extends core_Detail
               
         if (!empty($rec->packPrice)) {
         	$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
-        	$rec->packPrice = price_Helper::getPriceToCurrency($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+        	$rec->packPrice = deals_Helper::getPriceToCurrency($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
     }
     
@@ -379,7 +379,7 @@ class purchase_PurchasesDetails extends core_Detail
                 	
                 	// Ако се обновява вече съществуващ запис
                 	if($pRec){
-                		$pRec->packPrice = price_Helper::getPriceToCurrency($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+                		$pRec->packPrice = deals_Helper::getPriceToCurrency($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         			}
                 	
                 	// Ако се обновява запис се взима цената от него, ако не от политиката
@@ -391,7 +391,7 @@ class purchase_PurchasesDetails extends core_Detail
             	
             	// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
             	if(!$update || ($update && Request::get('Ignore'))){
-            		$rec->packPrice =  price_Helper::getPriceFromCurrency($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+            		$rec->packPrice =  deals_Helper::getPriceFromCurrency($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
             	}
                 
                 // Изчисляване цената за единица продукт в осн. мярка

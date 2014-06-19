@@ -253,7 +253,7 @@ class sales_Sales extends core_Master
         $query->where("#saleId = '{$id}'");
         $recs = $query->fetchAll();
         
-        price_Helper::fillRecs($recs, $rec);
+        deals_Helper::fillRecs($recs, $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amountDeal = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
@@ -799,7 +799,7 @@ class sales_Sales extends core_Master
     	if(empty($data->noTotal)){
     		
     		$fromProforma = ($data->fromProforma) ? TRUE : FALSE;
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, $fromProforma, $rec->tplLang);
+    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, $fromProforma, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
     		if($rec->paymentMethodId) {

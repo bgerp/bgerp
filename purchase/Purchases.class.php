@@ -352,7 +352,7 @@ class purchase_Purchases extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
+    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	
     		if($rec->paymentMethodId) {
@@ -928,7 +928,7 @@ class purchase_Purchases extends core_Master
     	$query = $this->purchase_PurchasesDetails->getQuery();
         $query->where("#requestId = '{$id}'");
         
-        price_Helper::fillRecs($query->fetchAll(), $rec);
+        deals_Helper::fillRecs($query->fetchAll(), $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amountDeal = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;

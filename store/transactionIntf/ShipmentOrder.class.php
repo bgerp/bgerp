@@ -150,7 +150,7 @@ class store_transactionIntf_ShipmentOrder
         $currencyRate = $rec->currencyRate;
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
-        price_Helper::fillRecs($rec->details, $rec);
+        deals_Helper::fillRecs($rec->details, $rec);
         
         foreach ($rec->details as $detailRec) {
         	if($rec->chargeVat == 'yes'){

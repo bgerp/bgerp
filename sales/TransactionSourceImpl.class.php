@@ -71,7 +71,7 @@ class sales_TransactionSourceImpl
         if ($actions['ship'] || $actions['pay']) {
             
             $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
-			price_Helper::fillRecs($rec->details, $rec);
+			deals_Helper::fillRecs($rec->details, $rec);
             
             if ($actions['ship']) {
                 // Продажбата играе роля и на експедиционно нареждане.

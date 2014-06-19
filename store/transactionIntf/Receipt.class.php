@@ -130,7 +130,7 @@ class store_transactionIntf_Receipt
         $currencyRate = $this->getCurrencyRate($rec);
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
-        price_Helper::fillRecs($rec->details, $rec);
+        deals_Helper::fillRecs($rec->details, $rec);
         
         
         foreach ($rec->details as $detailRec) {
