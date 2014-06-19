@@ -62,7 +62,7 @@
 		</div>
 		
 		<div style='margin-bottom:15px' class='line-detail'>
-			<div class='line-header'>|Товари към доставчици|*</div>
+			<div class='line-header'>|Товари от доставчици|*</div>
 			[#Receipts#]
 		</div>
 		

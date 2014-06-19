@@ -2254,7 +2254,7 @@ class log_Documents extends core_Manager
         if ($resendingSecs) {
             
             // Премахваме секундите
-            $resendingTime = dt::removeSecs($resendingSecs);
+            $resendingTime = dt::subtractSecs($resendingSecs);
             
             // изпратени преди датата за повторно изпращане
             $query->where("#createdOn < '{$resendingTime}'");

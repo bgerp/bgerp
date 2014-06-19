@@ -79,8 +79,14 @@ class trans_Lines extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, trans';
-    
-    
+
+
+    /**
+     * Кой има право да пише?
+     */
+    var $canWrite = 'ceo, trans';
+
+
     /**
      * Детайла, на модела
      */

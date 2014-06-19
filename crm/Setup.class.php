@@ -127,6 +127,8 @@ class crm_Setup extends core_ProtoSetup
         
         // Инсталираме на плъгина за превръщане на никовете в оцветени линкове
         $html .= $Plugins->forcePlugin('NickToLink', 'crm_ProfilesPlg', 'core_Manager', 'family');
+        
+        $html .= $Plugins->forcePlugin('Линкове в статусите след логване', 'crm_UsersLoginStatusPlg', 'core_Users', 'private');
 
         // Нагласяване на Cron        
         $rec = new stdClass();
