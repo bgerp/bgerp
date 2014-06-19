@@ -61,8 +61,9 @@
 								<div><span class='quiet'>|Окончателно до|*: </span>[#deadlineForBalancePayment#]</div>
 								<!--ET_END deadlineForBalancePayment-->
 								
-		                        <hr>
+		                       
 		                        <!--ET_BEGIN accountId-->
+		                        <hr>
 		                        <div>
 			                        <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
 			                        <div class="smallData">
@@ -77,6 +78,7 @@
 		                        <!--ET_END accountId-->
 		                       
 		                       <!--ET_BEGIN deliveryInfo-->
+		                       
 		                       [#deliveryInfo#]
 		                       <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Доставка|*</b></div>
                                
