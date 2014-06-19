@@ -355,4 +355,55 @@ class acc_Balances extends core_Master
     	// Връщане на всички намерени записи
 	    return $dQuery->fetchAll();
     }
+    
+    
+    /**
+     * Връща крайното салдо на дадена сметка, според подадени записи
+     * 
+     * @param array $jRecs - масив с данни от журнала
+     * @param string $accSysId - сметка на която ще върнем салдото
+     * @param string $accSysIdFrom - сметка с която кореспондира първата
+     * 
+     * @return stdClass $res - обект със следната структура:
+     * 			->amount - крайното салдо на сметката
+     * 			->recs   - тази част от подадените записи, участвали в образуването на салдото
+     */
+    public static function getBlAmounts($jRecs, $accSysId, $accSysIdFrom = NULL) // masiv smetka smetka
+    {
+    	// Ако няма записи, връщаме празен масив
+    	if(!count($jRecs)) return array();
+    	
+    	// Намираме ид-та на сметките
+    	expect($accId = acc_Accounts::getRecBySystemId($accSysId)->id);
+    	if(isset($accSysIdFrom)){
+    		expect($accIdFrom = acc_Accounts::getRecBySystemId($accSysIdFrom)->id);
+    	}
+    	
+    	$res = new stdClass();
+    	
+    	// За всеки запис
+    	foreach ($jRecs as $rec){
+    		
+    		// Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
+    		if(isset($accIdFrom) && ($rec->debitAccId != $accIdFrom && $rec->creditAccId != $accIdFrom)) continue;
+    		
+    		// Изчисляваме крайното салдо
+    		if($rec->debitAccId == $accId) {
+    			$res->amount += $rec->amount;
+    		}
+    		
+    		if($rec->creditAccId == $accId) {
+    			$res->amount -= $rec->amount;
+    		}
+    		
+    		// Добавяме записа, участвал в образуването на крайното салдо
+    		$res->recs[$rec->id] = $rec;
+    	}
+    	
+    	// Връщане на резултата
+    	return $res;
+    }
+    
+    
+    
 }
