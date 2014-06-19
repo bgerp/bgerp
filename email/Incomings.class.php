@@ -168,7 +168,7 @@ class email_Incomings extends core_Master
         $this->FLD("lg", "varchar", 'caption=Език');
         $this->FLD("date", "datetime(format=smartTime)", 'caption=Дата');
         $this->FLD('hash', 'varchar(32)', 'caption=Keш');
-        $this->FLD('country', 'key(mvc=drdata_countries,select=letterCode2, allowEmpty)', 'caption=Държава, autoFilter');
+        $this->FLD('country', 'key(mvc=drdata_countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава, autoFilter');
         $this->FLD('fromIp', 'ip', 'caption=IP');
         $this->FLD('files', 'keylist(mvc=fileman_Files)', 'caption=Файлове, input=none');
         $this->FLD('emlFile', 'key(mvc=fileman_Files)', 'caption=eml файл, input=none');
