@@ -135,7 +135,7 @@ class page_Html extends core_ET {
         if (!$hitTime = Mode::get('hitTime')) {
             
             // Използваме текущото
-            $hitTime = dt::nowTimestamp();
+            $hitTime = dt::mysql2timestamp();
         }
         
         // Добавяме в JS timestamp на извикване на страницата

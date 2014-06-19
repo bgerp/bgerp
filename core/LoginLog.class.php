@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ * Лог за всички логвания и действия с акаунтите
  *
  * @category  ef
  * @package   core
@@ -78,7 +78,7 @@ class core_LoginLog extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_SystemWrapper, plg_Created, plg_GroupByDate';
+    var $loadList = 'plg_SystemWrapper, plg_LoginWrapper, plg_Created, plg_GroupByDate, plg_AutoFilter';
     
     
     /**
@@ -90,7 +90,7 @@ class core_LoginLog extends core_Manager
     /**
      * 
      */
-    var $listFields = 'userId, status, ip, brid, createdOn, createdBy, timestamp';
+    var $listFields = 'userId, status, ip, brid, createdOn, createdBy';
     
     
     /**
@@ -98,29 +98,31 @@ class core_LoginLog extends core_Manager
      */
     function description()
     {
-        $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent');
+        $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent, autoFilter');
         $this->FLD('ip', 'ip', 'caption=IP');
         $this->FLD('brid', 'varchar(8)', 'caption=BRID');
-        $this->FLD('status', 'enum( 
+        $this->FLD('status', 'enum( all=,
         							success=Успешно логване,
+									first_login=Първо логване,
+									wrong_password=Грешна парола,
+									missing_password=Липсва парола,
+									pass_reset=Ресетване на парола,
+									pass_change=Промяна на парола,
+									change_nick=Промяна на ник,
+									time_deviation=Отклонение във времето,
+									used_timestamp=Използван timestamp,
 									error=Грешка,
 									block=Блокиран,
 									reject=Оттеглен,
 									draft=Чернова,
-									missing_password=Липсва парола,
-									wrong_password=Грешна парола,
-									pass_reset=Ресетване на парола,
-									pass_change=Промяна на парола,
 									user_reg=Регистриране,
-									user_activate=Активиране,
-									change_nick=Промяна на ник,
-									time_deviation=Отклонение във времето,
-									used_timestamp=Използван timestamp,
-									first_login=Първо логване
-								  )', 'caption=Статус, silent');
+									user_activate=Активиране
+								  )', 'caption=Статус, silent, autoFilter');
         $this->FLD('timestamp', 'int', 'caption=Време, input=none');
         
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('ip');
+        $this->setDbIndex('brid');
     }
     
     
@@ -158,13 +160,13 @@ class core_LoginLog extends core_Manager
      * 
      * @return boolean
      */
-    static function isTimestampCorrect($timestamp)
+    static function isTimestampDeviationInNorm($timestamp)
     {
         $conf = core_Packs::getConfig('core');
         $maxDeviation = $conf->CORE_LOGIN_TIMESTAMP_DEVIATION;
         
         // Текущото време в таймстампа
-        $nowTimestamp = dt::nowTimestamp();
+        $nowTimestamp = dt::mysql2timestamp();
         
         // Разликата между текущото време и зададенот
         $diff = abs($nowTimestamp - $timestamp);
@@ -195,16 +197,16 @@ class core_LoginLog extends core_Manager
         }
         
         $conf = core_Packs::getConfig('core');
-        $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
+        $daysLimit = (int)$conf->CORE_LOGIN_TIMESTAMP_DEVIATION;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         $rec = static::fetch(array("
-        					#createdOn > '[#1#]' AND
-        					#userId = '[#2#]' AND
-        					#timestamp = '[#3#]' AND
-        					(#status='success' OR #status='first_login')", $maxCreatedOn, $userId, $timestamp));
+        					#createdOn > '{$maxCreatedOn}' AND
+        					#userId = '[#1#]' AND
+        					#timestamp = '[#2#]' AND
+        					(#status='success' OR #status='first_login')", $userId, $timestamp));
         
         if ($rec) return TRUE;
         
@@ -235,15 +237,17 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Последния n на брой успешни логвания от този браузър
         $query = static::getQuery();
-        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
+        $query->where(array("#brid = '[#1#]'", $brid));
+        $query->where("#createdOn > '{$maxCreatedOn}'");
         $query->where("#status = 'success'");
         $query->orWhere("#status = 'first_login'");
-        $query->where("#brid = '{$brid}'");
+        
         $query->limit((int)$conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE);
+        
         $query->orderBy('createdOn', 'DESC');
         
         // Ако е логнат само от един потребител
@@ -290,16 +294,16 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Вземаме всички успешни логвания (включтелно първите)
         // За съответния потреибтел
         // От това IP или този браузър
         // Като лимитираме търсенето до константа
-        $rec = static::fetch(array("#createdOn > '[#1#]' AND
-        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
-        							#userId = '[#4#]' AND
-        							(#status = 'success' OR #status = 'first_login')", $maxCreatedOn, $ip, $brid, $userId));
+        $rec = static::fetch(array("#createdOn > '{$maxCreatedOn}' AND
+        							(#ip = '[#1#]' OR #brid = '[#2#]') AND
+        							#userId = '[#3#]' AND
+        							(#status = 'success' OR #status = 'first_login')", $ip, $brid, $userId));
         
         // Ако има някакъв запис, следователно не е първо логване
         if ($rec) {
@@ -320,7 +324,7 @@ class core_LoginLog extends core_Manager
      * 
      * @return boolean
      */
-    static function isGoodLoginForUser($ip, $userId=NULL)
+    static function isTrustedUserLogin($ip, $userId=NULL)
     {
         // Ако не е подаден потребител
         if (!$userId) {
@@ -336,22 +340,22 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Дали има първо логване в зададения период
-        $rec = static::fetch(array("#createdOn > '[#1#]' AND
-        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
-        							#userId = '[#4#]' AND
+        $rec = static::fetch(array("#createdOn > '{$maxCreatedOn}' AND
+        							(#ip = '[#1#]' OR #brid = '[#2#]') AND
+        							#userId = '[#3#]' AND
         							#status = 'first_login' 
-        							", $maxCreatedOn, $ip, $brid, $userId));
+        							", $ip, $brid, $userId));
         if ($rec) return FALSE;
         
         // Дали има успешно логване в зададения период
-        $rec = static::fetch(array("#createdOn > '[#1#]' AND
-        							(#ip = '[#2#]' OR #brid = '[#3#]') AND
-        							#userId = '[#4#]' AND
+        $rec = static::fetch(array("#createdOn > '{$maxCreatedOn}' AND
+        							(#ip = '[#1#]' OR #brid = '[#2#]') AND
+        							#userId = '[#3#]' AND
         							#status = 'success' 
-        							", $maxCreatedOn, $ip, $brid, $userId));
+        							", $ip, $brid, $userId));
         if ($rec) return TRUE;
         
         return FALSE;
@@ -387,11 +391,11 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Последното логване с това IP/браузър от този потребител
         $query = static::getQuery();
-        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
+        $query->where("#createdOn > '{$maxCreatedOn}'");
         $query->where(array("#ip = '[#1#]'", $ip));
         $query->orWhere(array("#brid = '[#1#]'", $brid));
         $query->where(array("#userId = '[#1#]'", $userId));
@@ -408,7 +412,7 @@ class core_LoginLog extends core_Manager
         // Всички логвания от други IP'та/браузъри с този потребител
         // След съответното време
         $sQuery = static::getQuery();
-        $sQuery->where(array("#createdOn > '[#1#]'", $lastCreatedOn));
+        $sQuery->where("#createdOn > '{$lastCreatedOn}'");
         $sQuery->where(array("#ip != '[#1#]'", $ip));
         $sQuery->where(array("#brid != '[#1#]'", $brid));
         $sQuery->where(array("#userId = '[#1#]'", $userId));
@@ -456,12 +460,12 @@ class core_LoginLog extends core_Manager
         $daysLimit = (int)$conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
         
         // Ограничаваме времето на търсене
-        $maxCreatedOn = dt::removeSecs($daysLimit);
+        $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Всички записи за съответния потребител, подредени по дата
         $query = static::getQuery();
-        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
-        $query->where("#userId = '{$userId}'");
+        $query->where("#createdOn > '{$maxCreatedOn}'");
+        $query->where(array("#userId = '[#1#]'", $userId));
         $query->orderBy('createdOn', 'DESC');
         
         // Ако е зададен лимит
@@ -492,9 +496,29 @@ class core_LoginLog extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($rec->ip){
+        if ($rec->ip) {
     	    $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     	}
+    	
+    	// В зависимост от статуса, добавяме клас на реда
+    	if ($rec->status == 'success') {
+    	    $row->ROW_ATTR['class'] = 'loginLog-success';
+    	} elseif ($rec->status == 'first_login') {
+    	    $row->ROW_ATTR['class'] = 'loginLog-first_login';
+    	} else {
+    	    $row->ROW_ATTR['class'] = 'loginLog-other';
+    	}
+    	
+    	// Оцветяваме BRID
+    	$bridTextColor = static::getTextColor($rec->brid);
+    	$brinFontColor = static::getFontColor($rec->brid);
+    	$row->brid = "<span style='color: {$bridTextColor}; background-color: {$brinFontColor};'>" . $row->brid . "</span>";
+    	
+    	// Оцветяваме IP-то
+    	$ipTextColor = static::getTextColor($rec->ip);
+    	$ipFontColor = static::getFontColor($rec->ip);
+    	$row->ip = "<span style='color: {$ipTextColor}; background-color: {$ipFontColor};'>" . $row->ip . "</span>";
+    	
     }
     
     
@@ -513,15 +537,8 @@ class core_LoginLog extends core_Manager
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Ако имаме тип на обаждането
-        if ($statusOptions = &$data->listFilter->getField('status')->type->options) {
-            
-            // Добавяме в началото празен стринг за всички
-            $statusOptions = array('all' => '') + $statusOptions;
-            
-            // Избираме го по подразбиране
-            $data->listFilter->setDefault('status', 'all');
-        }
+        // Избираме го по подразбиране
+        $data->listFilter->setDefault('status', 'all');
         
         // Кои полета да се показват
         $data->listFilter->showFields = 'userId, status';
@@ -567,5 +584,106 @@ class core_LoginLog extends core_Manager
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $data
+     */
+    static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+        $data->listFields = arr::make($data->listFields);
+        
+        if (haveRole('debug')) {
+            $data->listFields['timestamp'] = 'Време';
+        }
+    }
+    
+    
+    /**
+     * Връща цвете на текста от подадения стринг
+     * 
+     * @param string $text
+     * 
+     * @return string
+     */
+    static function getTextColor($text)
+    {
+        $color = static::getColorFromText($text, "&", "050505");
+        
+        return $color;
+    }
+    
+    
+    /**
+     * Връща фона за стринга
+     * 
+     * @param string $text
+     * 
+     * @return string
+     */
+    static function getFontColor($text)
+    {
+        $color = static::getColorFromText($text, "|", "C0C0C0");
+        
+        return $color;
+    }
+    
+    
+    /**
+     * От подадения стринг и маска генерира съдържание
+     * 
+     * @param string $text
+     * @param string $operation
+     * @param string $mask
+     * @param string $prefix
+     * 
+     * @return string
+     */
+    static function getColorFromText($text, $operation, $mask, $prefix='#')
+    {
+        // Масив с всички генерирание цветове
+        static $colorArray = array();
+        
+        $textStr = $text . $operation . $mask;
+        
+        // Ако не сме генерирали цвят за този текст с тази маска и операция
+        if (!$colorArray[$textStr]) {
+            
+            // Хеша на текста
+            $hash = md5($text);
+            
+            // RGB на текста
+            $r = hexdec(substr($hash, 0, 2));
+            $g = hexdec(substr($hash, 2, 2));
+            $b = hexdec(substr($hash, 4, 2));
+            
+            // RGB от маската
+            $rM = hexdec(substr($mask, 0, 2));
+            $gM = hexdec(substr($mask, 2, 2));
+            $bM = hexdec(substr($mask, 4, 2));
+            
+            // В зависимост от операцията
+            if ($operation == '|') {
+                $rC = $r | $rM;
+                $gC = $g | $gM;
+                $bC = $b | $bM;
+            } elseif ($operation == '&') {
+                $rC = $r & $rM;
+                $gC = $g & $gM;
+                $bC = $b & $bM;
+            }
+            
+            // Добавяме получения цвят в масива
+            $colorArray[$textStr] = str_pad(dechex($rC), 2, 0, STR_PAD_LEFT) . 
+                    str_pad(dechex($gC), 2, 0, STR_PAD_LEFT) . 
+                    str_pad(dechex($bC), 2, 0, STR_PAD_LEFT);
+        }
+        
+        return $prefix . $colorArray[$textStr];
     }
 }

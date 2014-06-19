@@ -63,3 +63,37 @@
 	position:absolute;
 	}
 /*context menu css end */
+
+
+/*our styles*/
+.narrow .more-btn {
+	float: left;
+}
+
+.modal-toolbar{
+    display: none;
+}
+
+.modal-toolbar.iw-contextMenu{
+    background: #f9f9f9;
+    max-width: 142px;
+    padding: 6px 4px 6px 6px;
+    height: auto;
+    border-radius: 5px;
+    moz-border-radius: 5px;
+    border: 1px solid #C6C6C6;
+}
+
+.modal-toolbar.iw-contextMenu .button{
+    width: 100% !important;
+    max-width: 140px;
+    float: none !important;
+    margin: 2px 0px 5px 0px !important;
+    margin: 0px !important;
+    text-align: left !important;
+    border-radius: 0px !important;
+}
+
+.more-btn {
+    background-image: url(../img/16/menu.png) !important;
+}

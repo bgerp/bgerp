@@ -838,11 +838,12 @@ table .linkWithIcon {
 	margin-top: 0;
 	margin-bottom: 0;
 	background-position: center center;
-	background-image: url(../img/16/menu.png) !important;
+	background-image: url(../img/16/toggle-expand.png) !important;
 	background-repeat: no-repeat !important;
 	padding-left: 0.3em !important;
 	padding-right: 0.3em !important;
 	width: 1.9em;
+	height: 2em \9;
 }
 
 .narrow .more-btn {
@@ -850,25 +851,7 @@ table .linkWithIcon {
 }
 
 .more-btn.show-btn {
-	1background-image: url(../img/16/toggle2.png) !important;
-}
-
-.modal-toolbar{
-    display: none;
-}
-
-.modal-toolbar.iw-contextMenu{
-    background: #fff;
-    max-width: 142px;
-    padding: 10px;
-    height: auto;
-    .button{
-       width: 100%;
-       float: none !important;
-       margin: 2px 0px 5px 0px !important;
-       margin-bottom: 5px;
-       text-align: left;
-    }
+	background-image: url(../img/16/toggle2.png) !important;
 }
 
 .docBgIcon {
@@ -1678,7 +1661,6 @@ div.tab-control div.tab-page {
 	top: 1px;
 	padding: 1em;
 	@include border-radius(5px);
-	z-index: 2;
 }
 
 .narrow div.tab-control div.tab-page {
@@ -2721,4 +2703,17 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 
 .rightAlign {
 	text-align: right;
+}
+
+.loginLog-first_login{
+	background-color: #ffd !important;
+}
+.loginLog-success{
+	background-color: #dbffe4 !important;
+}
+.loginLog-other{
+	 background-color: #fee1e4 !important;
+}
+.core_LoginLog .group-by-date-row{
+       background-color: transparent !important;
 }

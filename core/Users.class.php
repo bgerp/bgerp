@@ -436,8 +436,8 @@ class core_Users extends core_Manager
                     $form->setError('pass', 'Липсва парола!');
                     $this->logLogin($inputs, 'missing_password');
                     core_LoginLog::add('missing_password', $userRec->id, $inputs->time);
-//                } elseif (!$inputs->pass && !core_LoginLog::isTimestampCorrect($inputs->time)) {  
-                } elseif (!core_LoginLog::isTimestampCorrect($inputs->time)) {  
+//                } elseif (!$inputs->pass && !core_LoginLog::isTimestampDeviationInNorm($inputs->time)) {  
+                } elseif (!core_LoginLog::isTimestampDeviationInNorm($inputs->time)) {  
                     $form->setError('pass', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
                     $this->logLogin($inputs, 'time_deviation');
                     core_LoginLog::add('time_deviation', $userRec->id, $inputs->time);
@@ -819,6 +819,10 @@ class core_Users extends core_Manager
         // Ако не се логва, а се рефрешва потребителя
         if ($refresh) return ;
         
+        // Обновяваме времето на BRID кукито
+        core_Browser::updateBridCookieLifetime();
+        
+        // IP адреса на потребителя
         $currIp = $mvc->getRealIpAddr();
         
         // Ако е първо логване
@@ -833,11 +837,13 @@ class core_Users extends core_Manager
         // Ако се е логнат от различно IP
         if ($userRec->lastLoginIp && ($userRec->lastLoginIp != $currIp)) {
             
-            if (core_LoginLog::isGoodLoginForUser($currIp, $userRec->id)) {
+            if (core_LoginLog::isTrustedUserLogin($currIp, $userRec->id)) {
                 
                 $arr = core_LoginLog::getLastLoginFromOtherIp($currIp, $userRec->id);
                 
                 $TimeInst = cls::get('type_Time');
+                
+                $url = static::getUrlForLoginLogStatus($userRec->id);
                 
                 // Всички IP-та, от които се е логнало за първи път
                 foreach ((array)$arr['first_login'] as $loginRec) {
@@ -852,11 +858,20 @@ class core_Users extends core_Manager
                     $time = $TimeInst->toVerbal($time);
                     
                     // Вербално IP
-                    $ip = type_Ip::decorateIp($loginRec->ip, $loginRec->createdOn);
+                    $ip = $loginRec->ip;
                     
                     // Добавяме съответното статус съобщение
                     $text = "|Подозрително логване от|* {$ip} |преди|* {$time}";
-                    core_Statuses::newStatus($text, 'warning');
+                    
+                    // Ако има УРЛ, текста да е линк към него
+                    if ($url) {
+                        $link = ht::createLink($text, $url);
+                        $statusText = $link->getContent();
+                    } else {
+                        $statusText = $text;
+                    }
+                    
+                    core_Statuses::newStatus($statusText, 'warning');
                 }
                 
                 // Всички успешни лования
@@ -872,17 +887,52 @@ class core_Users extends core_Manager
                     $time = $TimeInst->toVerbal($time);
                     
                     // Вербално IP
-                    $ip = type_Ip::decorateIp($loginRec->ip, $loginRec->createdOn);
+                    $ip = $loginRec->ip;
                     
                     // Добавяме съответното статус съобщение
                     $text = "|Логване от|* {$ip} |преди|* {$time}";
-                    core_Statuses::newStatus($text, 'notice');
+                    
+                    // Ако има УРЛ, текста да е линк към него
+                    if ($url) {
+                        $link = ht::createLink($text, $url);
+                        $statusText = $link->getContent();
+                    } else {
+                        $statusText = $text;
+                    }
+                    
+                    core_Statuses::newStatus($statusText, 'notice');
                 }
             }
         }
         
         // Записваме в лога успешното логване
         core_LoginLog::add('success', $userRec->id, $inputs->time);
+    }
+    
+    
+    /**
+     * Връща URL към листовия изглед на логин лога за текущия потребител
+     * 
+     * @param integer $userId
+     * 
+     * return array
+     */
+    static function getUrlForLoginLogStatus_($userId=NULL)
+    {
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        // id на потребитяля за търсене
+        $userTeams = type_User::getUserFromTeams($userId);
+        reset($userTeams);
+        $userIdWithTeam = key($userTeams);
+        
+        // Ако има права за този екшън
+        if (core_LoginLog::haveRightFor('list')) {
+            
+            return array('core_LoginLog', 'list', 'userId' => $userIdWithTeam);
+        }
     }
     
     

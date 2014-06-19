@@ -318,7 +318,7 @@ class core_Request
             if (!Mode::get('hitTime')) {
                 
                 // Записваме времето на извикване
-                Mode::set('hitTime', dt::nowTimestamp());
+                Mode::set('hitTime', dt::mysql2timestamp());
             }
         } catch (Exception $e) { }
         

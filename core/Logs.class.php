@@ -57,7 +57,7 @@ class core_Logs extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_Created,plg_SystemWrapper,plg_AutoFilter';
+    var $loadList = 'plg_SystemWrapper, plg_LoginWrapper, plg_AutoFilter, plg_Created';
     
     
     /**

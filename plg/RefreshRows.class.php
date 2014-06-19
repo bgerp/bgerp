@@ -63,7 +63,7 @@ class plg_RefreshRows extends core_Plugin
             if (!Mode::get('hitTime')) {
                 
                 // Записваме времето на извикване
-                Mode::set('hitTime', dt::nowTimestamp());
+                Mode::set('hitTime', dt::mysql2timestamp());
             }
             
             // Вземаме съдържанието от шаблона

@@ -103,28 +103,13 @@ class core_DateTime
     /**
      * Превръща MySQL-ска data/време UNIX timestamp
      */
-    static function mysql2timestamp($mysqlDate)
+    static function mysql2timestamp($mysqlDate=NULL)
     {
+        if (!$mysqlDate) {
+            $mysqlDate = static::now();
+        }
         
         return strtotime($mysqlDate);
-    }
-    
-    
-    /**
-     * Текущия timestamp
-     *
-     * @return integer
-     */
-    static function nowTimestamp()
-    {
-        $date = static::verbal2mysql();
-        $timestamp = static::mysql2timestamp($date);
-        
-        // PHP вариант
-//        $dt = new DateTime();
-//        $timestamp = $dt->getTimestamp();
-        
-        return $timestamp;
     }
     
     
@@ -621,7 +606,7 @@ class core_DateTime
 	/**
      * Премахва секунди от датата
      */
-    static function removeSecs($secs, $date = NULL)
+    static function subtractSecs($secs, $date = NULL)
     {
         $secs *= -1;
         
