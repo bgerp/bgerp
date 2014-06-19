@@ -31,7 +31,7 @@
 304,"Отпадъци от опаковки",,"packWaste","yes"
 309,"Амбалаж, инструменти и други суровини и материали","cat_ProductAccRegIntf","otherRawMaterials","yes"
 321,"Стоки и Продукти","cat_ProductAccRegIntf","goods&Products","yes"
-400,"Финансови сделки","deals_DealsAccRegIntf","financialDeals","no"
+400,"Сделки","deals_DealsAccRegIntf","deals","no"
 501,"Каси","cash_CaseAccRegIntf","case","no"
 503,"Банкови сметки","bank_OwnAccRegIntf","bankAcc","no"
 703,"Услуги","cat_ProductAccRegIntf","services","no"
