@@ -253,39 +253,14 @@ class plg_Search extends core_Plugin
     /**
      * Maркира текста, отговарящ на заявката
      */
-    static function highlight($text, $query, $color = '#ffff66')
+    static function highlight($text, $query)
     {  
-        $words = self::parseQuery($query, FALSE);
-       // echo "<li> $text";
-        $rand = str::getRand();
-
-        $startMark = 's' . str::getRand();
-        $endMark = 'e' . str::getRand();
-
-        if(count($words)) {
-            foreach($words as $w) {
-                if($w{0} == '"') {
-                    $w = substr($w, 1);
-                    if(!$w) continue;
-                } elseif($w{0} == '-') {
-                    continue;
-                }  
-                 
-                $min = max(3 -  strlen($w), 0);
-                
-                $end = "[\\pL]{{$min},32}";
-                
-                $mask = "/(?<!\pL)(" . preg_quote($w, '/') . $end . ")(?=[^><]*<|.$)/ui";
-
-                $text = preg_replace($mask , "{$startMark}$1{$endMark}" , $text);
-            }
-        }
-
-        $text = str_replace($startMark, "<span style=\"background:".$color.";\"><b>", $text);
-
-        $text = str_replace($endMark, "</b></span>", $text);
-        
-        return $text;
+    	$JQuery = cls::get('jquery_Jquery');
+    	$JQuery->enable($text);
+    	$text->push('js/highlight.js', "JS");
+    	$JQuery->run($text, "\n $('.document').highlight('{$query}');", TRUE);
+    	
+        return $text; 
     }
 
 
