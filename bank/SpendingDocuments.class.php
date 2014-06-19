@@ -478,25 +478,13 @@ class bank_SpendingDocuments extends core_Master
                         'quantity' => $rec->amount,
                     );
         
-        // Ако пораждащия документ е покупка или продажба
-        if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-        	$debitArr = array(
-                        $rec->debitAccId,
-                            array($rec->contragentClassId, $rec->contragentId),
-                            array('currency_Currencies', $debitCurrency),
-                        'quantity' => $debitQuantity,
-                    );
-        
-        } else {
-        
-        	// Ако е към финансова сделка
-        	$debitArr = array(
-        			$rec->debitAccId, // кредитна сметка
-        			array($origin->className, $origin->that), // Перо финансова сделка
-        			array('currency_Currencies', $debitCurrency),
-        			'quantity' => $debitQuantity,
-        	);
-        }
+        $debitArr = array(
+        		$rec->debitAccId,
+        		array($rec->contragentClassId, $rec->contragentId),
+        		array($origin->className, $origin->that), // Перо сделка
+        		array('currency_Currencies', $debitCurrency),
+        		'quantity' => $debitQuantity,
+        );
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(

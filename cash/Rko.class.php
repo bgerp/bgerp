@@ -456,25 +456,13 @@ class cash_Rko extends core_Master
                         'quantity' => $rec->amount,
                     );
         
-        // Ако пораждащия документ е покупка или продажба
-        if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-        	$debitArr = array(
-                        $rec->debitAccount, // дебитната сметка
-                            array($rec->contragentClassId, $rec->contragentId),  // перо контрагент
-                            array('currency_Currencies', $debitCurrency),      // перо валута
-                        'quantity' => $debitQuantity,
-                    );
-        	 
-        } else {
-        	 
-        	// Ако е към финансова сделка
-        	$debitArr = array(
-        			$rec->debitAccount, // кредитна сметка
-        			array($origin->className, $origin->that), // Перо финансова сделка
-        			array('currency_Currencies', $debitCurrency),
-        			'quantity' => $debitQuantity,
-        	);
-        }
+        $debitArr = array(
+        		$rec->debitAccount, // дебитната сметка
+        		array($rec->contragentClassId, $rec->contragentId),  // перо контрагент
+        		array($origin->className, $origin->that), // Перо сделка
+        		array('currency_Currencies', $debitCurrency),      // перо валута
+        		'quantity' => $debitQuantity,
+        );
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
