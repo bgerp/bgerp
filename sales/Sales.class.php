@@ -31,7 +31,7 @@ class sales_Sales extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_TransactionSourceIntf=sales_TransactionSourceImpl,
-                          bgerp_DealIntf, bgerp_DealAggregatorIntf';
+                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf';
     
     
     /**

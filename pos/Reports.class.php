@@ -19,7 +19,7 @@ class pos_Reports extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl, deals_DealsAccRegIntf';
     
     
     /**
