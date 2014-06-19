@@ -478,9 +478,10 @@ class acc_Journal extends core_Master
       * се среща зададеното перо
       * 
       * @param mixed $item - масив с име на мениджър и ид на запис, или ид на перо
+      * @param stdClass $itemRec - върнатия запис на перото
       * @return array $res - извлечените движения
       */
-     public static function getEntries($item)
+     public static function getEntries($item, &$itemRec = NULL)
      {
      	expect($item);
      	
@@ -492,12 +493,31 @@ class acc_Journal extends core_Master
      		if(!$item) return NULL;
      	}
      	
-     	// Извличаме записите от журнала отговарящи на условията
+     	// Извличаме ид-та на журналите, имащи ред с участник това перо
      	expect($itemRec = acc_Items::fetchRec($item));
      	$jQuery = acc_JournalDetails::getQuery();
-     	acc_JournalDetails::filterQuery($jQuery, NULL, dt::now(), NULL, $itemRec->id);
+     	$jQuery->show('journalId');
+     	
+     	$now = dt::now();
+     	$jIds = array();
+     	acc_JournalDetails::filterQuery($jQuery, NULL, $now, NULL, $itemRec->id);
+     	while($jRec = $jQuery->fetch()){
+     		$jIds[$jRec->journalId] = $jRec->journalId;
+     	}
+     	
+     	// Извличаме всички транзакции на намерените журнали
+     	$jQuery = acc_JournalDetails::getQuery();
+     	$jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId');
+     	$jQuery->EXT('docId', 'acc_Journal', 'externalKey=journalId');
+     	$jQuery->where("#createdOn BETWEEN '{$itemRec->createdOn}' AND '{$now}'");
+     	
+     	if(count($jIds)){
+     		$jQuery->in('journalId', $jIds);
+     		
+     		return $jQuery->fetchAll();
+     	}
      	
      	// Връщаме извлечените записи
-     	return $jQuery->fetchAll();
+     	return $jIds;
      }
 }
