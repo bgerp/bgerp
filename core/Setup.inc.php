@@ -932,8 +932,8 @@ if($step == start) {
     }
     
     $Packs = cls::get('core_Packs');
-    //$Packs->setupMVC();
-    //$Packs->checkSetup();
+    $Packs->setupMVC();
+    $Packs->checkSetup();
     // за сега стартираме пакета bgERP за пълно обновяване
     $Packs->setupPack("bgerp");
 
