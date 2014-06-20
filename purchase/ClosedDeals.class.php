@@ -196,12 +196,12 @@ class purchase_ClosedDeals extends acc_ClosedDeals
      * Връща записа за начисляване на извънредния приход/разход
      * ------------------------------------------------------
      * Надплатеното:  Dt: 6912. Надплатени по покупки
-     * 				  Ct:  401. Задължения към доставчици (Доставчици, Валути)
+     * 				  Ct:  401. Задължения към доставчици (Доставчици, Сделки, Валути)
      * 
-     * Недоплатеното: Dt:  401. Задължения към доставчици (Доставчици, Валути)
+     * Недоплатеното: Dt:  401. Задължения към доставчици (Доставчици, Сделки, Валути)
      * 				  Ct: 7912. Отписани задължения по покупки
      */
-	protected function getCloseEntry($amount, $totalAmount, $docRec, $dealType)
+	protected function getCloseEntry($amount, $totalAmount, $docRec, $dealType, $firstDoc)
     {
     	$entry = array();
     	
@@ -211,18 +211,20 @@ class purchase_ClosedDeals extends acc_ClosedDeals
 	    	$entry = array(
 	    		'amount' => $totalAmount,
 	    		'debit'  => array('401',
-	    								array($docRec->contragentClassId, $docRec->contragentId), 
+	    								array($docRec->contragentClassId, $docRec->contragentId),
+	    								array($firstDoc->className, $firstDoc->that), 
 	                        			array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                       			'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	            'credit' => array('7912', 'quantity' => $totalAmount),
+	            'credit' => array('7912'),
 	    	);
     	} elseif($amount > 0){
     		// Записа за извънреден разход
 	    	$entry = array(
 	    		'amount' => $totalAmount,
-	    		'debit'  => array('6912', 'quantity' => $totalAmount),
+	    		'debit'  => array('6912'),
 	    		'credit' => array('401',
-	    								array($docRec->contragentClassId, $docRec->contragentId), 
+	    								array($docRec->contragentClassId, $docRec->contragentId),
+	    								array($firstDoc->className, $firstDoc->that),
 	                        			array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                       			'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
 	    	);
@@ -268,7 +270,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     			$entries[] = array(
 	    			'amount' => $amount,
 	    			'debit'  => $debitEnt,
-	            	'credit' => array('4530', 'quantity' => $amount),
+	            	'credit' => array('4530'),
     			);
     		}
     	}

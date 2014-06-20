@@ -416,12 +416,12 @@ abstract class acc_ClosedDeals extends core_Master
         if($amount != 0){
         	
         	// Взимаме записа за начисляване на извънредния приход/разход
-        	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $dealInfo->dealType);
+        	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $dealInfo->dealType, $firstDoc);
         }
         
     	if($vatToCharge = $dealInfo->invoiced->vatToCharge){
         	// Създаване на запис за прехвърляне на всеки аванс
-        	$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $total1);
+        	$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $total1, $firstDoc);
         	$result->totalAmount += $total1;
         }
         
@@ -429,7 +429,7 @@ abstract class acc_ClosedDeals extends core_Master
         if($downpayment = $dealInfo->paid->downpayment){
         	
         	// Създаване на запис за прехвърляне на всеки аванс
-        	$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $total);
+        	$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $total, $firstDoc);
         	$result->totalAmount += $total;
         }
         
@@ -470,7 +470,7 @@ abstract class acc_ClosedDeals extends core_Master
      * Dt: 401. Задължения към доставчици (Доставчици, Валути)
      * Ct: 402. Вземания от доставчици по аванси
      */
-    protected function trasnferDownpayments(bgerp_iface_DealResponse $dealInfo, $docRec, &$total)
+    protected function trasnferDownpayments(bgerp_iface_DealResponse $dealInfo, $docRec, &$total, $firstDoc)
     {
     	$entryArr = array();
     	$total = 0;
@@ -484,12 +484,14 @@ abstract class acc_ClosedDeals extends core_Master
     		$entry = array();
     		$entry['amount'] = currency_Currencies::round($rec['amountBase']);
     		$entry['debit'] = array($accounts['downpayments']['debit'],
-    									array($docRec->contragentClassId, $docRec->contragentId), 
+    									array($docRec->contragentClassId, $docRec->contragentId),
+    									array($firstDoc->className, $firstDoc->that), 
                      					array('currency_Currencies', $currencyId),
                      				'quantity' => $rec['amount']);
                      					
             $entry['credit'] = array($accounts['downpayments']['credit'],
     									array($docRec->contragentClassId, $docRec->contragentId), 
+            							array($firstDoc->className, $firstDoc->that),
                      					array('currency_Currencies', $currencyId),
                      				'quantity' => $rec['amount']);
             

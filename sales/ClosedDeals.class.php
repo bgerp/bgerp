@@ -214,13 +214,13 @@ class sales_ClosedDeals extends acc_ClosedDeals
  	/**
      * Връща записа за начисляване на извънредния приход/разход
      * ------------------------------------------------------
-     * Надплатеното: Dt:  411. Вземания от клиенти (Клиенти, Валути)
+     * Надплатеното: Dt:  411. Вземания от клиенти (Клиенти, Сделки, Валути)
      * 				 Ct: 7911. Надплатени по продажби
      * 
      * Недоплатеното: Dt: 6911. Отписани вземания по продажби
-     * 				  Ct:  411. Вземания от клиенти (Клиенти, Валути)
+     * 				  Ct:  411. Вземания от клиенти (Клиенти, Сделки, Валути)
      */
-    protected function getCloseEntry($amount, $totalAmount, $docRec, $dealType)
+    protected function getCloseEntry($amount, $totalAmount, $docRec, $dealType, $firstDoc)
     {
     	$entry = array();
     	$accounts = $this->contoAccounts;
@@ -230,9 +230,10 @@ class sales_ClosedDeals extends acc_ClosedDeals
     		// Записа за извънреден разход
 	    	$entry = array(
 	    		'amount' => $totalAmount,
-	    		'debit'  => array('6911', 'quantity' => $totalAmount),
+	    		'debit'  => array('6911'),
 	    		'credit' => array('411',
 	    							array($docRec->contragentClassId, $docRec->contragentId), 
+	    							array($firstDoc->className, $firstDoc->that),
 	                        		array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                       		'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
 	    	);
@@ -242,10 +243,11 @@ class sales_ClosedDeals extends acc_ClosedDeals
     		$entry = array(
 	    		'amount' => $totalAmount,
 	    		'debit'  => array('411',
-	    							array($docRec->contragentClassId, $docRec->contragentId), 
+	    							array($docRec->contragentClassId, $docRec->contragentId),
+	    							array($firstDoc->className, $firstDoc->that),
 	                        		array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                       		  'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	            'credit' => array('7911', 'quantity' => $totalAmount),
+	            'credit' => array('7911'),
     		);	
     	}
     	
@@ -259,12 +261,12 @@ class sales_ClosedDeals extends acc_ClosedDeals
      * За Продажба:
      * 		Dt: 4530. ДДС за начисляване
      * 		
-     * 		Ct: 701. Приходи от продажби на Стоки и Продукти     (Клиенти, Стоки и Продукти)
-     * 			703. Приходи от продажби на услуги			     (Клиенти, Услуги)
-     * 			706. Приходи от продажба на суровини/материали   (Клиенти, Суровини и Материали)
+     * 		Ct: 701. Приходи от продажби на Стоки и Продукти     (Клиенти, Сделки, Стоки и Продукти)
+     * 			703. Приходи от продажби на услуги			     (Клиенти, Сделки, Услуги)
+     * 			706. Приходи от продажба на суровини/материали   (Клиенти, Сделки, Суровини и Материали)
      * 
      */
-    protected function transferVatNotCharged($dealInfo, $docRec, &$total)
+    protected function transferVatNotCharged($dealInfo, $docRec, &$total, $firstDoc)
     {
     	$vatToCharge = $dealInfo->invoiced->vatToCharge;
     	
@@ -283,9 +285,10 @@ class sales_ClosedDeals extends acc_ClosedDeals
 	    				'amount' => $amount,
 	    				'credit'  => array($creditAcc,
 	    									array($docRec->contragentClassId, $docRec->contragentId), 
+	    									array($firstDoc->className, $firstDoc->that),
 	                        				array($classId, $productId),
 	                       				'quantity' => $invProduct->quantity),
-	            		'debit' => array('4530', 'quantity' => $amount),
+	            		'debit' => array('4530'),
     				);
     		}
     	}
