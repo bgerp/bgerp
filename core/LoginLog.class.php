@@ -98,7 +98,7 @@ class core_LoginLog extends core_Manager
      */
     function description()
     {
-        $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent, autoFilter');
+        $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent');
         $this->FLD('ip', 'ip', 'caption=IP');
         $this->FLD('brid', 'varchar(8)', 'caption=BRID');
         $this->FLD('status', 'enum( all=,
@@ -535,6 +535,9 @@ class core_LoginLog extends core_Manager
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
         
+        // Поле за избор на потребител
+        $data->listFilter->FNC('users', 'users(rolesForAll = admin, rolesForTeams = admin)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -542,10 +545,17 @@ class core_LoginLog extends core_Manager
         $data->listFilter->setDefault('status', 'all');
         
         // Кои полета да се показват
-        $data->listFilter->showFields = 'userId, status';
+        $data->listFilter->showFields = 'users, status';
         
         // Инпутваме заявката
-        $data->listFilter->input('userId, status', 'silent');
+        $data->listFilter->input('users, status', 'silent');
+        
+        // Ако не избран потребител
+        if(!$data->listFilter->rec->users) {
+            
+        	// По подразбиране да е избран текущия
+            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+        }
         
         // Сортиране на записите по създаване
         $data->query->orderBy('createdOn', 'DESC');
@@ -554,8 +564,13 @@ class core_LoginLog extends core_Manager
         if($filter = $data->listFilter->rec) {
             
             // Ако се търси по потребител
-            if ($filter->userId) {
-                $data->query->where(array("#userId = '[#1#]'", $filter->userId));
+            if ($filter->users && $filter->users != 'all') {
+                
+                // Масив с избраните потребители
+                $usersArr = type_Keylist::toArray($filter->users);
+                
+                // Филтрираме всички избрани потребители
+                $data->query->orWhereArr('userId', $usersArr);
             }
             
             // Ако се търси по статус
