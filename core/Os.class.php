@@ -405,7 +405,7 @@ class core_Os
     static function cron_clearOldFiles()
     {
         // Ако не е дефиниран пътя
-        if (EF_TEMP_PATH == 'EF_TEMP_PATH') return ;
+        if ((!EF_TEMP_PATH) || (EF_TEMP_PATH == 'EF_TEMP_PATH')) return ;
         
         $conf = core_Packs::getConfig('core');
         
