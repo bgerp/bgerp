@@ -259,7 +259,7 @@ class deals_CreditDocuments extends core_Master
     							
     						'credit' => array($rec->creditAccount,
     										array($dealRec->contragentClassId, $dealRec->contragentId),
-    										array('deals_Deals', $rec->dealId),
+    										array($dealRec->dealManId, $rec->dealId),
     										array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
     										'quantity' => round($amount / $dealRec->currencyRate, 2)),
     				)

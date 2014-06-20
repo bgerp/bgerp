@@ -252,7 +252,7 @@ class deals_DebitDocuments extends core_Master
     						'amount' => $amount,	// равностойноста на сумата в основната валута
     						'debit' => array($rec->debitAccount,
     										array($dealRec->contragentClassId, $dealRec->contragentId),
-    										array('deals_Deals', $rec->dealId),
+    										array($dealRec->dealManId, $rec->dealId),
     										array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
     										'quantity' => round($amount / $dealRec->currencyRate, 2)),
     							
