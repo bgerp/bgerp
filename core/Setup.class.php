@@ -164,7 +164,8 @@ class core_Setup extends core_ProtoSetup {
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-        'migrate::loginLogTruncate',
+        'core_LoginLog',
+        'migrate::loginLogTruncate'
     );
     
     
@@ -215,9 +216,6 @@ class core_Setup extends core_ProtoSetup {
         
         $Users = cls::get('core_Users');
         $html .= $Users->setupMVC();
-        
-        $LoginLog = cls::get('core_LoginLog');
-        $html .= $LoginLog->setupMVC();
         
         $Locks = cls::get('core_Locks');
         $html .= $Locks->setupMVC();

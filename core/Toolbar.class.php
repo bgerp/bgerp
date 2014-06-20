@@ -263,20 +263,11 @@ class core_Toolbar extends core_BaseClass
     
     
     /*
-     * Добавя бутоните за втория ред от тулбара
+     * Добавя бутона за показване на втория ред от тулбара
      */
     function appendSecondRow_($toolbar, $rowId)
     {
-    	//$toolbar->prepend(ht::createFnBtn('', NULL, NULL, 'ef_icon=img/16/menu.png, class=more-btn'), "ROW0");
-    	$toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, 'ef_icon=img/16/toggle-expand.png, class=more-btn'), "ROW0");
-    	 
-    	//contextMenu files
-    /*	$JQuery = cls::get('jquery_Jquery');
-    	$JQuery->enable($toolbar);
-    	$toolbar->push('css/contextMenu.css', "CSS");
-    	$toolbar->push('js/contextMenu.js', "JS");
-    	$JQuery->run($toolbar,'prepareContextMenu();', TRUE);
-    	$JQuery->runAfterAjax($toolbar, 'prepareContextMenu');*/
+    	$toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, 'class=more-btn'), "ROW0");
     }
     
     
@@ -287,12 +278,8 @@ class core_Toolbar extends core_BaseClass
     {
     	if(count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
     	count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')){
-    		//$layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]" .
-    		//"<!--ET_BEGIN ROW2--><div class='modal-toolbar' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div></div>");
-    	
     		$layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]</div>" .
     		   "<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
-    	
     	}
     	else{
     		$layout = new ET("<div class='clearfix21 toolbar'><div>[#ROW1#][#ROW2#]</div></div>");

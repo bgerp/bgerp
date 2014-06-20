@@ -288,7 +288,7 @@ class core_Manager extends core_Mvc
         $tpl = $data->form->renderHtml();
         
         $formId = $data->form->formAttr['id'];
-        $tpl->append("preventDoubleSubmission('{$formId}');", 'JQRUN');
+        $tpl->append("\n runOnLoad(function(){preventDoubleSubmission('{$formId}');});", 'JQRUN');
         
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
