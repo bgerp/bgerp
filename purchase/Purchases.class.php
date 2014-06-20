@@ -27,7 +27,7 @@ class purchase_Purchases extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_TransactionSourceImpl';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_TransactionSourceImpl, deals_DealsAccRegIntf, acc_RegisterIntf';
     
     
     /**
@@ -352,7 +352,7 @@ class purchase_Purchases extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
+    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	
     		if($rec->paymentMethodId) {
@@ -551,11 +551,18 @@ class purchase_Purchases extends core_Master
     	if(!Request::get('Rejected', 'int')){
         	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=13em');
 	        $data->listFilter->setDefault('type', 'active');
-			$data->listFilter->showFields .= ',type';
+			$data->listFilter->showFields .= ',dealerId,type';
+			$data->listFilter->setField('dealerId', 'caption=Търговец,width=13em');
+			$data->listFilter->setDefault('dealerId', core_Users::getCurrent());
 		}
 		
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
+			
+			if($filter->dealerId){
+				$data->query->where("#dealerId = {$filter->dealerId}");
+			}
+		
 			if($filter->type) {
 				switch($filter->type){
 					case "all":
@@ -921,7 +928,7 @@ class purchase_Purchases extends core_Master
     	$query = $this->purchase_PurchasesDetails->getQuery();
         $query->where("#requestId = '{$id}'");
         
-        price_Helper::fillRecs($query->fetchAll(), $rec);
+        deals_Helper::fillRecs($query->fetchAll(), $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amountDeal = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
@@ -1153,5 +1160,56 @@ class purchase_Purchases extends core_Master
     	//Ако потребителя не е в група доставчици го включваме
     	$rec = $mvc->fetchRec($rec);
     	cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, 'suppliers');
+    }
+    
+    
+    /**
+     * Перо в номенклатурите, съответстващо на този продукт
+     *
+     * Част от интерфейса: acc_RegisterIntf
+     */
+    static function getItemRec($objectId)
+    {
+    	$result = NULL;
+    	$self = cls::get(__CLASS__);
+    	 
+    	if ($rec = self::fetch($objectId)) {
+    		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+    		$result = (object)array(
+    				'num' => $objectId,
+    				'title' => static::getRecTitle($objectId),
+    				'features' => array('Контрагент' => $contragentName)
+    		);
+    	}
+    	 
+    	return $result;
+    }
+     
+     
+    /**
+     * @see acc_RegisterIntf::itemInUse()
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
+    }
+     
+     
+    /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+    	$self = cls::get(__CLASS__);
+    	$self->recTitleTpl = NULL;
+    	 
+    	if ($rec = self::fetch($objectId)) {
+    		$result = $self->getHyperlink($objectId);
+    	} else {
+    		$result = '<i>' . tr('неизвестно') . '</i>';
+    	}
+    
+    	return $result;
     }
 }

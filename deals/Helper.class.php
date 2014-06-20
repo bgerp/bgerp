@@ -6,13 +6,13 @@
  *
  *
  * @category  bgerp
- * @package   price
+ * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class price_Helper
+abstract class deals_Helper
 {
 	
 	/**
@@ -194,7 +194,7 @@ abstract class price_Helper
 		if($values['discount']){ 								// ако има отстъпка
 			$arr['discountValue'] = $values['discount'];
 			$arr['discountCurrencyId'] = $currencyId; 			// Валутата на отстъпката е тази на документа
-			$arr['neto'] = $arr['value'] - $arr['discount']; 	// Стойността - отстъпката
+			$arr['neto'] = $arr['value'] - $arr['discountValue']; 	// Стойността - отстъпката
 			$arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
 		}
 		

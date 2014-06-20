@@ -29,16 +29,16 @@ class sales_TransactionSourceImpl
      *
      * 1. Задължаване на с/ката на клиента
      *
-     *    Dt: 411. Вземания от клиенти  (Клиент, Валута)
+     *    Dt: 411. Вземания от клиенти  (Клиент, Сделка, Валута)
      *    
-     *    Ct: 701. Приходи от продажби на Стоки и Продукти       (Стоки и Продукти)
-     *    	  703. Приходи от продажби на услуги                 (Клиент, Услуга)
-     *    	  706. Приходи от продажби на Суровини и Материали   (Клиент, Суровини и Материали)
+     *    Ct: 701. Приходи от продажби на Стоки и Продукти       (Клиент, Сделка, Стоки и Продукти)
+     *    	  703. Приходи от продажби на услуги                 (Клиент, Сделка, Услуга)
+     *    	  706. Приходи от продажби на Суровини и Материали   (Клиент, Сделка, Суровини и Материали)
      * 
      * 
      * 2. Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 701. Приходи от продажби на Стоки и Продукти  (Стоки и Продукти)
+     *    Dt: 701. Приходи от продажби на Стоки и Продукти  (Клиент, Сделка, Стоки и Продукти)
      *    
      *    Ct: 321. Стоки и Продукти       (Склад, Стоки и Продукти)
      *    	  302. Суровини и Материали   (Склад, Суровини и Материали)
@@ -50,7 +50,7 @@ class sales_TransactionSourceImpl
      *    Dt: 501. Каси                  (Каса, Валута)
      *        503. Разпл. с/ки           (Сметка, Валута)
      *        
-     *    Ct: 411. Вземания от клиенти   (Клиент, Валута)
+     *    Ct: 411. Вземания от клиенти   (Клиент, Сделка, Валута)
      *    
      * Такава транзакция се записва в журнала само при условие, че продабата е от текущата каса
      * и от текущия склад. В противен случай счетоводна транзакция не се прави. Вместо това,
@@ -71,7 +71,7 @@ class sales_TransactionSourceImpl
         if ($actions['ship'] || $actions['pay']) {
             
             $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
-			price_Helper::fillRecs($rec->details, $rec);
+			deals_Helper::fillRecs($rec->details, $rec);
             
             if ($actions['ship']) {
                 // Продажбата играе роля и на експедиционно нареждане.
@@ -179,14 +179,14 @@ class sales_TransactionSourceImpl
     /**
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
-     *    Dt: 411. Вземания от клиенти                   (Клиент, Валута)
+     *    Dt: 411. Вземания от клиенти                   (Клиент, Сделка, Валута)
      *    
-     *    Ct: 701. Приходи от продажби към Контрагенти   (Клиент, Стоки и Продукти)
-     *    	  703. Приходи от продажби на услуги         (Клиент, Услуга)
+     *    Ct: 701. Приходи от продажби към Контрагенти   (Клиент, Сделка, Стоки и Продукти)
+     *    	  703. Приходи от продажби на услуги         (Клиент, Сделка, Услуга)
      *    
      * ДДС за начисляване
      * 
-     *    Dt: 411. Вземания от клиенти                   (Клиент, Валута)
+     *    Dt: 411. Вземания от клиенти                   (Клиент, Сделка, Валута)
      *    
      *    Ct: 4530 - ДДС за начисляване
      *    
@@ -225,14 +225,16 @@ class sales_TransactionSourceImpl
                 'debit' => array(
                     '411', 
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
+                		array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
+                        array('currency_Currencies', $currencyId),          // Перо 3 - Валута
                     'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     $creditAccId,
                     	array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
+                		array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
+                        array($detailRec->classId, $detailRec->productId), // Перо 3 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -246,7 +248,8 @@ class sales_TransactionSourceImpl
                 'debit' => array(
                     '411',
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+                		array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
+                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
                     'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
                 ),
                 
@@ -265,9 +268,8 @@ class sales_TransactionSourceImpl
      * Помощен метод - генерира платежната част от транзакцията за продажба (ако има)
      * 
      *    Dt: 501. Каси                  (Каса, Валута)
-     *        503. Разпл. с/ки           (Сметка, Валута)
      *        
-     *    Ct: 411. Вземания от клиенти   (Клиент, Валута)
+     *    Ct: 411. Вземания от клиенти   (Клиент, Сделки, Валута)
      *    
      * @param stdClass $rec
      * @return array
@@ -300,7 +302,8 @@ class sales_TransactionSourceImpl
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
+                		array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
+                        array('currency_Currencies', $currencyId),          // Перо 3 - Валута
                     'quantity' => $quantityAmountBase, // "брой пари" във валутата на продажбата
                 ),
             );
@@ -314,8 +317,8 @@ class sales_TransactionSourceImpl
      * 
      * Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 701. Приходи от продажби на Стоки и Продукти    (Клиент, Стоки и Продукти)
-     *    	  706 - Приходи от продажба на Суровини и материали (Клиент, Суровини и материали)
+     *    Dt: 701. Приходи от продажби на Стоки и Продукти    (Клиент, Сделки, Стоки и Продукти)
+     *    	  706 - Приходи от продажба на Суровини и материали (Клиент, Сделки, Суровини и материали)
      *    
      *    Ct: 321. Стоки и Продукти                           (Склад, Стоки и Продукти)
      *        302. Суровини и Материали                       (Склад, Суровини и Материали)
@@ -344,7 +347,8 @@ class sales_TransactionSourceImpl
 	                'debit' => array(
 	                    $debitAccId,
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-        					array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
+	                		array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
+        					array($detailRec->classId, $detailRec->productId), // Перо 3 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	                

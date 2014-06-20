@@ -109,13 +109,13 @@
 				      <td class='info-right' width='1%'><span class='cCode'>[#currencyId#]</span></td>
 				      <td align='right' width='1%'> <b>[#value#]</b></td>
 				     </tr>
-				     <!--ET_BEGIN discount-->
+				     <!--ET_BEGIN discountValue-->
 				     <tr class='nowrap'>
 				     	<td align='right'>|Отстъпка|* :</td>
 				     	<td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
-				     	<td align='right'><b>[#discount#]</b></td>
+				     	<td align='right'><b>[#discountValue#]</b></td>
 				     </tr>
-				     <!--ET_END discount-->
+				     <!--ET_END discountValue-->
 				     <!--ET_BEGIN neto-->
 				     <tr class='nowrap'>
 				     	<td align='right'>|Нето|* :</td>

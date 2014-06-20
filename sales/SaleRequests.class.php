@@ -201,7 +201,7 @@ class sales_SaleRequests extends core_Master
     		$this->sales_SaleRequestDetails->save($item);
     	}
     	
-    	price_Helper::fillRecs($items, $rec, sales_SaleRequestDetails::$map);
+    	deals_Helper::fillRecs($items, $rec, sales_SaleRequestDetails::$map);
     	$amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
         $amountDeal -= $rec->_total->discount;
         $rec->amountDeal = $amountDeal * $rec->currencyRate;
@@ -465,7 +465,7 @@ class sales_SaleRequests extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }

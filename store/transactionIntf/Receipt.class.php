@@ -117,7 +117,7 @@ class store_transactionIntf_Receipt
      *	  Dt: 302. Суровини и материали 	  (Склад, Суровини и Материали) - за вложимите продукти
      *	  	  321. Стоки и Продукти 		  (Склад, Стоки и Продукти) - за всички останали складируеми продукти
      *
-     *    Ct: 401. Задължения към доставчици (Доставчик, Валути)
+     *    Ct: 401. Задължения към доставчици (Доставчик, Сделки, Валути)
      *    
      * @param stdClass $rec
      * @return array
@@ -125,12 +125,13 @@ class store_transactionIntf_Receipt
     protected function getDeliveryPart($rec)
     {
         $entries = array();
+        $origin = $this->class->getOrigin($rec);
         
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         $currencyRate = $this->getCurrencyRate($rec);
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
-        price_Helper::fillRecs($rec->details, $rec);
+        deals_Helper::fillRecs($rec->details, $rec);
         
         
         foreach ($rec->details as $detailRec) {
@@ -162,7 +163,8 @@ class store_transactionIntf_Receipt
 	             'credit' => array(
 	                   '401', 
                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
-                       array('currency_Currencies', $currencyId),          // Перо 2 - Валута
+	             	   array($origin->className, $origin->that),		   // Перо 2 - Сделка
+                       array('currency_Currencies', $currencyId),          // Перо 3 - Валута
                     'quantity' => currency_Currencies::round($amount, $currencyCode), // "брой пари" във валутата на покупката
 	             ),
 	        );
@@ -176,7 +178,8 @@ class store_transactionIntf_Receipt
                 'credit' => array(
                     '401',
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+                		array($origin->className, $origin->that),			// Перо 2 - Сделка
+                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
                     'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
                 ),
                 

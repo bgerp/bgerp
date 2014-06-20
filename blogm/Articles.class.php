@@ -43,7 +43,7 @@ class blogm_Articles extends core_Master {
 	/**
 	 * Полета за листов изглед
 	 */
-	var $listFields ='id, title, categories, author, language, createdOn, createdBy, modifiedOn, modifiedBy';
+	var $listFields ='id, title, categories, author, createdOn, createdBy, modifiedOn, modifiedBy';
 	
         
 	

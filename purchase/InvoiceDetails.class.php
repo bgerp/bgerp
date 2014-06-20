@@ -91,7 +91,7 @@ class purchase_InvoiceDetails extends core_Detail
     
     
     /**
-     * Помощен масив за мапиране на полета изпозлвани в price_Helper
+     * Помощен масив за мапиране на полета изпозлвани в deals_Helper
      */
     public static $map = array('rateFld'     => 'rate', 
         			 		   'chargeVat'   => 'vatRate', 
@@ -164,7 +164,7 @@ class purchase_InvoiceDetails extends core_Detail
         }
         
         if (!empty($rec->packPrice)) {
-        	$rec->packPrice = price_Helper::getPriceToCurrency($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
+        	$rec->packPrice = deals_Helper::getPriceToCurrency($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
         }
     }
 
@@ -203,7 +203,7 @@ class purchase_InvoiceDetails extends core_Detail
      */
     public function calculateAmount_(&$recs, &$rec)
     {
-    	price_Helper::fillRecs($recs, $rec, static::$map);
+    	deals_Helper::fillRecs($recs, $rec, static::$map);
     }
     
     
