@@ -195,7 +195,7 @@ class sales_Invoices extends core_Master
         $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo');
-        $this->FLD('uicNo', 'type_Varchar', 'caption=Национален №');
+        $this->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №');
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode,contragentDataField=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData,contragentDataField=place');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
@@ -348,7 +348,7 @@ class sales_Invoices extends core_Master
         $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
         if($className == 'crm_Persons'){
         	$numType = 'bglocal_EgnType';
-        	$form->setField('uicNo', 'caption=ЕГН');
+        	$form->setField('uicNo', 'caption=Получател->ЕГН');
         	$form->fields['uicNo']->type = cls::get($numType);
         }
         
