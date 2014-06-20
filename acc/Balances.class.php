@@ -361,43 +361,56 @@ class acc_Balances extends core_Master
      * Връща крайното салдо на дадена сметка, според подадени записи
      * 
      * @param array $jRecs - масив с данни от журнала
-     * @param string $accSysId - сметка на която ще върнем салдото
+     * @param string $accsd - Масив от сметки на които ще се изчислява крайното салдо
      * @param string $accSysIdFrom - сметка с която кореспондира първата
      * 
      * @return stdClass $res - обект със следната структура:
-     * 			->amount - крайното салдо на сметката
+     * 			->amount - крайното салдо на сметката, ако няма записи е 0
      * 			->recs   - тази част от подадените записи, участвали в образуването на салдото
      */
-    public static function getBlAmounts($jRecs, $accSysId, $accSysIdFrom = NULL) // masiv smetka smetka
+    public static function getBlAmounts($jRecs, $accs, $accSysIdFrom = NULL)
     {
+    	$res = new stdClass();
+    	$res->amount = 0;
+    	
     	// Ако няма записи, връщаме празен масив
-    	if(!count($jRecs)) return array();
+    	if(!count($jRecs)) return $res;
+    	
+    	$newAccArr = array();
+    	$accArr = arr::make($accs);
+    	expect(count($accArr));
     	
     	// Намираме ид-та на сметките
-    	expect($accId = acc_Accounts::getRecBySystemId($accSysId)->id);
+    	foreach ($accArr as $accSysId){
+    		expect($accId = acc_Accounts::getRecBySystemId($accSysId)->id);
+    		$newAccArr[] = $accId;
+    	}
     	if(isset($accSysIdFrom)){
     		expect($accIdFrom = acc_Accounts::getRecBySystemId($accSysIdFrom)->id);
     	}
     	
-    	$res = new stdClass();
-    	
     	// За всеки запис
     	foreach ($jRecs as $rec){
+    		$add = FALSE;
     		
     		// Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
     		if(isset($accIdFrom) && ($rec->debitAccId != $accIdFrom && $rec->creditAccId != $accIdFrom)) continue;
     		
     		// Изчисляваме крайното салдо
-    		if($rec->debitAccId == $accId) {
+    		if(in_array($rec->debitAccId, $newAccArr)) {
     			$res->amount += $rec->amount;
+    			$add = TRUE;
     		}
     		
-    		if($rec->creditAccId == $accId) {
+    		if(in_array($rec->creditAccId, $newAccArr)) {
     			$res->amount -= $rec->amount;
+    			$add = TRUE;
     		}
     		
     		// Добавяме записа, участвал в образуването на крайното салдо
-    		$res->recs[$rec->id] = $rec;
+    		if($add){
+    			$res->recs[$rec->id] = $rec;
+    		}
     	}
     	
     	// Връщане на резултата
