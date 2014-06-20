@@ -202,10 +202,10 @@ class tracking_Setup extends core_ProtoSetup
         $conf = core_Packs::getConfig('tracking');
         
         if (!empty($conf->PID)) {
-            posix_kill($conf->PID, 9);
+            $res = posix_kill($conf->PID, 9);
         }
     
-        return (TRUE);
+        return ($res);
     }
     
     
@@ -242,6 +242,13 @@ class tracking_Setup extends core_ProtoSetup
      */
     function deinstall()
     {
+        // Спираме процеса
+        if (TRUE === self::Stop()) {
+            $res = "Успешно спрян процес.";
+        } else {
+            $res = "Неуспешно спрян процес.";
+        }
+        
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
         
