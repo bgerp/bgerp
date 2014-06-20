@@ -403,7 +403,4 @@ class acc_Balances extends core_Master
     	// Връщане на резултата
     	return $res;
     }
-    
-    
-    
 }

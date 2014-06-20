@@ -697,20 +697,33 @@ class acc_BalanceDetails extends core_Detail
         $query->orderBy('valior,id', 'ASC');
         
         while ($rec = $query->fetch()) {
+        	
             $this->calcAmount($rec);
         	$this->addEntry($rec, 'debit');
             $this->addEntry($rec, 'credit');
+            $update = FALSE;
             
             // След като се изчисли сумата, презаписваме цените в журнала, само ако сметките са размерни
             if($rec->debitQuantity){
-            	$rec->debitPrice = round($rec->amount / $rec->debitQuantity, 4);
+            	$debitPrice = round($rec->amount / $rec->debitQuantity, 4);
+            	if(trim($rec->debitPrice) != trim($debitPrice)){
+            		$rec->debitPrice = $debitPrice;
+            		$update = TRUE;
+            	}
             }
             
             if($rec->creditQuantity){
-            	$rec->creditPrice = round($rec->amount / $rec->creditQuantity, 4);
+            	$creditPrice = round($rec->amount / $rec->creditQuantity, 4);
+            	if(trim($rec->creditPrice) != trim($creditPrice)){
+            		$rec->creditPrice = $creditPrice;
+            		$update = TRUE;
+            	}
             }
             
-            $JournalDetails->save($rec);
+            // Обновява се записа само ако има промяна с цената
+            if($update){
+            	$JournalDetails->save($rec);
+            }
         }
     }
     
