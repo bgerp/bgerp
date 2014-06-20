@@ -92,6 +92,13 @@ defIfNot('CORE_COOKIE_LIFETIME', 5259492);
 
 
 /**
+ * Колко дълго да се пазят файловете в temp директорията
+ * 10 дни
+ */
+defIfNot('CORE_TEMP_PATH_MAX_AGE', 864000);
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -156,7 +163,8 @@ class core_Setup extends core_ProtoSetup {
            'CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT' => array ('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Колко време назад да се търси в лога за first_login->Време'),
            
            'CORE_COOKIE_LIFETIME' => array ('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
-    
+           
+           'CORE_TEMP_PATH_MAX_AGE' => array ('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
         );
     
     
@@ -277,6 +285,38 @@ class core_Setup extends core_ProtoSetup {
         $html .= core_Classes::rebuild();
 		
         $html .= core_Cron::cleanRecords();
+        
+        $html .= static::addCronToDelOldTempFiles();
+        
+        return $html;
+    }
+    
+    
+    /**
+     * Добавя в крон таблицата, функция за изтриване на старите временни файлове
+     * 
+     * @return string
+     */
+    static function addCronToDelOldTempFiles()
+    {
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'clearOldTempFiles';
+        $rec->description = 'Изтрива старите временни файлове';
+        $rec->controller = 'core_Os';
+        $rec->action = 'clearOldFiles';
+        $rec->period = 60;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 120;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $html .= "<li><font color='green'>Задаване по крон да се изтриват старите файлове от " . EF_TEMP_PATH . "</font></li>";
+        } else {
+            $html .= "<li>Отпреди Cron е бил нагласен да изтрива старите файлове от " . EF_TEMP_PATH . "</li>";
+        }
         
         return $html;
     }
