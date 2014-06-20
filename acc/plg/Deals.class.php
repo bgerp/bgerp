@@ -3,7 +3,7 @@
 
 
 /**
- * Плъгин за покупките и продажбите. Дава им възможност за избор на операция преди контиране.
+ * Плъгин за сделките
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_plg_DealsChooseOperation extends core_Plugin
+class acc_plg_Deals extends core_Plugin
 {
     
 	
