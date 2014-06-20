@@ -1569,23 +1569,23 @@ function createObject(name)
 // Предпазване от двойно събмитване
 function preventDoubleSubmission(id) {
 	var form = '#' + id;
-	var lastSubmitStr, submitStr;
+	var lastSubmitStr, submitStr, lastSubmitTime, timeSinceSubmit;
 	
-	if(!($(form).hasClass('js-allow-double-submission'))){
-		jQuery(form).bind('submit', function(event, data) {	
-			
-			submitStr = $(form).serialize();
-		
-		    if(lastSubmitStr && (lastSubmitStr == submitStr)) {
-		        // Blocking form submit because there was no change.
-		    	event.preventDefault();
-		    }
-		    
-		    lastSubmitStr = submitStr;
-		    
-		    return true;
-		});
-	}
+	jQuery(form).bind('submit', function(event, data) {	
+		if(lastSubmitTime) {
+	    	timeSinceSubmit = jQuery.now() - lastSubmitTime;
+	    }
+	
+		lastSubmitTime = jQuery.now();
+	    submitStr = $(form).serialize();
+	    
+	    if((lastSubmitStr != submitStr) || timeSinceSubmit > 10000) {
+	    	lastSubmitStr = submitStr;
+	    	return true;
+	    }
+	    // Блокиране на събмита, ако няма промени и за определено време
+	    event.preventDefault();
+	});
 }
 
 /**
