@@ -1070,11 +1070,12 @@ class type_Richtext extends type_Blob
                     $out .= "\n<table class='inlineRichTable listTable'>";
                     $table = TRUE;
                 }
-                $l = trim($l, " |\t");
-                $out .= "\n<tr><td>" . str_replace('|', '</td><td>', $l) . "</td></tr>";
+                $l = trim($l, " \t");
+                $l = trim($l, "|");
+                $out .= "<tr><td>" . str_replace('|', '</td><td>', $l) . "</td></tr>";
             } else {
                 if($table) {
-                    $out .= "\n</table>";
+                    $out .= "</table>";
                     $table = FALSE;
                 }
 
@@ -1082,7 +1083,7 @@ class type_Richtext extends type_Blob
             }
         }
         if($table) {
-            $out .= "\n</table>";
+            $out .= "</table>";
             $table = FALSE;
         }
 
