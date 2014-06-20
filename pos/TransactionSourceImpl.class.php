@@ -72,10 +72,10 @@ class pos_TransactionSourceImpl
     /**
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
-     *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
+     *    Dt: 411  - Вземания от клиенти               (Клиент, Сделки, Валута)
      *    
-     *    Ct: 701  - Приходи от продажби на Стоки и Продукти  (Клиенти, Стоки и Продукти)
-     *    	  703  - Приходи от продажба на услуги 			  (Клиенти, Услуги)
+     *    Ct: 701  - Приходи от продажби на Стоки и Продукти  (Клиенти, Сделки, Стоки и Продукти)
+     *    	  703  - Приходи от продажба на услуги 			  (Клиенти, Сделки, Услуги)
      *        706  - Приходи от продажба на Суровини и Материали (Клиенти, Суровини и материали)
      * 
      * @param stdClass $rec    - записа
@@ -105,7 +105,8 @@ class pos_TransactionSourceImpl
     		$credit = array(
 	              $creditAccId, 
 	                    array($product->contragentClassId, $product->contragentId), // Перо 1 - Клиент
-	                    array('cat_Products', $product->value), // Перо 2 - Артикул
+	                    array('pos_Reports', $rec->id),								// Перо 2 - Сделка
+	                    array('cat_Products', $product->value), // Перо 3 - Артикул
 	              'quantity' => $product->totalQuantity, // Количество продукт в основната му мярка
 	        );
 	        
@@ -113,7 +114,8 @@ class pos_TransactionSourceImpl
 	        'amount' => $totalAmount, // Стойност на продукта за цялото количество, в основна валута
 	        'debit' => array(
 	            '411',  
-	                array($product->contragentClassId, $product->contragentId), // Перо 1 - Каса
+	                array($product->contragentClassId, $product->contragentId), // Перо 1 - Клиент
+	        		array('pos_Reports', $rec->id),								// Перо 2 - Сделка
 	                array('currency_Currencies', $currencyId), // Перо 3 - Валута
 	            'quantity' => $totalAmount), // "брой пари" във валутата на продажбата
 	        
@@ -133,8 +135,8 @@ class pos_TransactionSourceImpl
      * Помощен метод - генерира доставната част от транзакцията за продажба (ако има)
      * Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 701. Приходи от продажби на стоки и продукти     (Клиент, Стоки и Продукти)
-     *    	  706. Приходи от продажба на суровини/материали   (Клиент, Суровини и материали)
+     *    Dt: 701. Приходи от продажби на стоки и продукти     (Клиент, Сделки, Стоки и Продукти)
+     *    	  706. Приходи от продажба на суровини/материали   (Клиент, Сделки, Суровини и материали)
      *    
      *    Ct: 321. Стоки и Продукти 	   (Склад, Стоки и Продукти)
      *    	  302. Суровини и материали    (Складове, Суровини и материали)
@@ -156,13 +158,14 @@ class pos_TransactionSourceImpl
 			 'debit' => array(
 			       $debitAccId,
 			       		array($product->contragentClassId, $product->contragentId), // Перо 1 - Клиент
-			            array('cat_Products', $product->value), // Перо 1 - Продукт
+			 			array('pos_Reports', $rec->id),								// Перо 2 - Сделка
+			            array('cat_Products', $product->value), // Перо 3 - Продукт
 		           'quantity' => $product->totalQuantity),
 			        
 			 'credit' => array(
 			        $creditAccId,
 			            array('store_Stores', $posRec->storeId), // Перо 1 - Склад
-			            array('cat_Products', $product->value), // Перо 1 - Продукт
+			            array('cat_Products', $product->value), // Перо 2 - Продукт
 		            'quantity' => $product->totalQuantity),
 		);
 		
@@ -173,7 +176,7 @@ class pos_TransactionSourceImpl
     /**
      * Връща часта контираща ддс-то
      * 
-     * 		Dt: 411.  Взимания от клиенти           (Клиенти, Валути)
+     * 		Dt: 411.  Взимания от клиенти           (Клиенти, Сделки, Валути)
      * 
      * 		Ct: 4532. Начислен ДДС за продажбите
      * 
@@ -193,13 +196,13 @@ class pos_TransactionSourceImpl
 	         'debit' => array(
 	              '411',  
 	            	 $contragentArr, // Перо 1 - Клиент
+	         		 array('pos_Reports', $rec->id),								// Перо 2 - Сделка
 	            	 array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->createdOn)), // Валута в основна мярка
 	              'quantity' => currency_Currencies::round($value), 
 	            ),
 	            
 	        'credit' => array(
-	              '4532',  
-	              'quantity' => currency_Currencies::round($value),
+	              '4532'
 	            )
 	    	);
     	}
@@ -213,7 +216,7 @@ class pos_TransactionSourceImpl
      * 
      *    Dt: 501. Каси                  (Каса, Валута)
      *        
-     *    Ct: 411. Вземания от клиенти   (Клиент, Валута)
+     *    Ct: 411. Вземания от клиенти   (Клиент, Сделки, Валута)
      *    
      * @param stdClass $rec
      * @return array
@@ -239,7 +242,8 @@ class pos_TransactionSourceImpl
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($payment->contragentClassId, $payment->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
+                		array('pos_Reports', $rec->id),								// Перо 2 - Сделка
+                        array('currency_Currencies', $currencyId),          // Перо 3 - Валута
                     'quantity' => currency_Currencies::round($payment->amount), // "брой пари" във валутата на продажбата
                 ),
             );
