@@ -3,3 +3,14 @@
 # Denote all files that are truly binary and should not be modified.
 *.png binary
 *.jpg binary
+*.swf binary
+*. binary
+*.vcf binary
+*.gz binary
+*.gif binary
+*.foo binary
+*.ttf binary
+*.jar binary
+*.pdf binary
+*.bat binary
+*.sh binary
