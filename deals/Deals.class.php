@@ -140,7 +140,7 @@ class deals_Deals extends core_Master
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,width=100%');
     	$this->FLD('blAmount', 'double(decimals=2)', 'input=none,notNull');
-    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf, allowEmpty)', 'caption=Сметка,mandatory,silent');
+    	$this->FLD('accountId', 'acc_type_Account', 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
@@ -211,7 +211,11 @@ class deals_Deals extends core_Master
     	
     	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
-    }
+    	
+    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+    	acc_type_Account::filterSuggestions('crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf', $options);
+    	$form->setOptions('accountId', array('' => '') + $options);
+	}
     
     
     /**
@@ -348,39 +352,19 @@ class deals_Deals extends core_Master
     
     
     /**
-     * Връща филтрираната заявка, за това перо, ако е перо
-     */
-    private function getJournalQuery($rec, &$item)
-    {
-    	$rec = $this->fetchRec($rec);
-    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
-    	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
-    	
-    	$item = acc_Items::fetchItem($this->getClassId(), $rec->id);
-    	if(!$item) return NULL;
-    	
-    	// Намираме от журнала записите, където участва перото от датата му на създаване до сега
-    	$jQuery = acc_JournalDetails::getQuery();
-    	acc_JournalDetails::filterQuery($jQuery, $createdOn, dt::today(), $accSysId, $item->id);
-    	
-    	return $jQuery;
-    }
-    
-    
-    /**
      * Връща хронологията от журнала, където участва документа като перо
      */
     private function getHistory(&$data)
     {
     	$rec = $this->fetchRec($data->rec->id);
     	
-    	$jQuery = $this->getJournalQuery($rec, $item);
+    	$entries = acc_Journal::getEntries(array('deals_Deals', $rec->id), $item);
     	
-    	if($jQuery){
+    	if(count($entries)){
     		$data->history = array();
     		
     		$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
-    		$Pager->itemsCount = $jQuery->count();
+    		$Pager->itemsCount = count($entries);
     		$Pager->calc();
     		$data->pager = $Pager;
     		
@@ -389,7 +373,7 @@ class deals_Deals extends core_Master
     		$count = 0;
     		
     		// Групираме записите по документ
-    		while($jRec = $jQuery->fetch()){
+    		foreach($entries as $jRec){
     			$index = $jRec->docType . "|" . $jRec->docId;
     			if(empty($recs[$index])){
     				$recs[$index] = $jRec;
@@ -397,11 +381,11 @@ class deals_Deals extends core_Master
     			$r = &$recs[$index];
     			
     			$jRec->amount /= $rec->currencyRate;
-    			if($jRec->debitItem1 == $item->id){
+    			if($jRec->debitItem2 == $item->id){
     				$r->debitA += $jRec->amount;
     			}
     			
-    			if($jRec->creditItem1 == $item->id){
+    			if($jRec->creditItem2 == $item->id){
     				$r->creditA += $jRec->amount;
     			}
     		}
@@ -427,6 +411,7 @@ class deals_Deals extends core_Master
      */
     private function getHistoryRow($jRec)
     {
+    	//@TODO ДА ГИ ОПРАВЯЯЯЯЯЯЯЯ
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	
@@ -761,13 +746,13 @@ class deals_Deals extends core_Master
     	$blAmount = 0;
     	$rec = $dealRef->fetch();
     	
-    	$jQuery = $mvc->getJournalQuery($rec, $item);
-    	if(!$jQuery) return;
-    	while($jRec = $jQuery->fetch()){
-    		if($jRec->debitItem1 == $item->id){
+    	$entries = acc_Journal::getEntries(array('deals_Deals', $rec->id), $item);
+    	if(!count($entries)) return;
+    	foreach($entries as $jRec){
+    		if($jRec->debitItem2 == $item->id){
     			$blAmount += $jRec->amount;
     		}
-    		if($jRec->creditItem1 == $item->id){
+    		if($jRec->creditItem2 == $item->id){
     			$blAmount -= $jRec->amount;
     		}
     	}
