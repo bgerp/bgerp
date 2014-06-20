@@ -58,6 +58,9 @@ class core_Browser extends core_Manager
             
             if ($brid) {
                 
+                // Записваме в сесията
+                Mode::setPermanent(static::BRID_NAME, $brid);
+                
                 return $brid;
             } else {
                 
