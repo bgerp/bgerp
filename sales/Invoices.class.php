@@ -1011,15 +1011,9 @@ class sales_Invoices extends core_Master
         	$entries[] = array(
                 'amount' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
                 
-                'debit' => array(
-                    '4530', // дебитната сметка
-                    'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
-                ),
+                'debit' => array('4530'),
                 
-                'credit' => array(
-                    '4532', // кредитна сметка;
-                    'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
-                )
+                'credit' => array('4532'),
     	    );
         }
         
