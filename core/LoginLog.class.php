@@ -109,6 +109,7 @@ class core_LoginLog extends core_Manager
 									pass_reset=Ресетване на парола,
 									pass_change=Промяна на парола,
 									change_nick=Промяна на ник,
+									new_user=Нов потребител,
 									time_deviation=Отклонение във времето,
 									used_timestamp=Използван timestamp,
 									error=Грешка,

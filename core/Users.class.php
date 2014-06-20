@@ -279,7 +279,9 @@ class core_Users extends core_Manager
             } else {
                 // Ако няма грешки, задаваме да се модифицира хеша в DB
                 $rec->ps5Enc = $rec->passNewHash;
-                $mvc->changePass = TRUE;
+                if ($recId) {
+                    $mvc->changePass = TRUE;
+                }
             }
         } else {
             if($recId) {
@@ -301,6 +303,8 @@ class core_Users extends core_Manager
                 if($rec->nick != $exRec->nick) {
                     $mvc->changeNick = TRUE;
                 }
+            } else {
+                $mvc->addNewUser = TRUE;
             }
         }
         
@@ -583,18 +587,24 @@ class core_Users extends core_Manager
             $rec->roles = keylist::fromArray($rolesArr);
         }
         
-        // Ако е сменен ника
-        if ($mvc->changeNick) {
-            core_LoginLog::add('change_nick', $rec->id);
-        }
-        
-        // Ако е сменена паролата
-        if ($mvc->changePass) {
-            core_LoginLog::add('pass_change', $rec->id);
+        if ($rec->id) {
+            // Ако е сменен ника
+            if ($mvc->changeNick) {
+                core_LoginLog::add('change_nick', $rec->id);
+            }
+            
+            // Ако е сменена паролата
+            if ($mvc->changePass) {
+                core_LoginLog::add('pass_change', $rec->id);
+            }
+        } else {
+            if ($mvc->addNewUser) {
+                core_LoginLog::add('new_user', core_Users::getCurrent());
+            }
         }
     }
-
-
+    
+    
     /**
      * Връща истина ако няма никакви регистрирани потребители до сега
      */
