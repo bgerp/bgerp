@@ -241,11 +241,6 @@ class deals_CreditDocuments extends core_Master
     	
     	expect($origin = static::getOrigin($rec));
     	$dealInfo = $origin->getAggregateDealInfo();
-    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_DEAL){
-    		$debitFirstArr = array('deals_Deals', $origin->that);
-    	} else {
-    		$debitFirstArr = array($rec->contragentClassId, $rec->contragentId);
-    	}
     	
     	$dealRec = deals_Deals::fetch($rec->dealId);
     	
@@ -257,11 +252,13 @@ class deals_CreditDocuments extends core_Master
     					array(
     						'amount' => $amount,	// равностойноста на сумата в основната валута
     						'debit' => array($rec->debitAccount,
-    										$debitFirstArr,
+    										array($rec->contragentClassId, $rec->contragentId),
+    										array($origin->className, $origin->that),
     										array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
     										'quantity' => round($amount / $dealInfo->agreed->rate, 2)),
     							
     						'credit' => array($rec->creditAccount,
+    										array($dealRec->contragentClassId, $dealRec->contragentId),
     										array('deals_Deals', $rec->dealId),
     										array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
     										'quantity' => round($amount / $dealRec->currencyRate, 2)),
