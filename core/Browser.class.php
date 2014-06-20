@@ -31,18 +31,24 @@ class core_Browser extends core_Manager
     
     /**
      * 
+     */
+    const BRID_NAME = 'brid';
+    
+    
+    /**
+     * 
      * 
      * @param boolean $generate
      */
     static function getBrid($generate = TRUE)
     {   
         // brid от сесията
-        $brid = Mode::get('brid');
+        $brid = Mode::get(static::BRID_NAME);
         
         if ($brid) return $brid;
         
         // brid от кукитата
-        if ($bridC = $_COOKIE['brid']) {
+        if ($bridC = $_COOKIE[static::BRID_NAME]) {
             
             // Допълнителна сол за brid
             $bridSalt = static::getBridSalt();
@@ -70,7 +76,7 @@ class core_Browser extends core_Manager
             $brid = static::generateBrid();
             
             // Записваме в сесията
-            Mode::setPermanent('brid', $brid);
+            Mode::setPermanent(static::BRID_NAME, $brid);
             
             // Записваме кукито
             static::setBridCookie($brid);
@@ -95,7 +101,7 @@ class core_Browser extends core_Manager
         
         // Добавяме хеш към brid и записваме в кукитата
         $bridHash = str::addHash($brid, static::HASH_LENGTH, $bridSalt);
-        setcookie("brid", $bridHash, time() + $conf->CORE_COOKIE_LIFETIME);
+        setcookie(static::BRID_NAME, $bridHash, time() + $conf->CORE_COOKIE_LIFETIME);
     }
     
     
