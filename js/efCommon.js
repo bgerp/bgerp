@@ -1575,12 +1575,12 @@ function preventDoubleSubmission(id) {
 		if(lastSubmitTime) {
 	    	timeSinceSubmit = jQuery.now() - lastSubmitTime;
 	    }
-	
-		lastSubmitTime = jQuery.now();
 	    submitStr = $(form).serialize();
 	    
-	    if((lastSubmitStr != submitStr) || timeSinceSubmit > 10000) {
+	    if((typeof lastSubmitStr == 'undefined') || (lastSubmitStr != submitStr) || ((typeof timeSinceSubmit != 'undefined') && timeSinceSubmit > 10000)) {
+	    	lastSubmitTime = jQuery.now();
 	    	lastSubmitStr = submitStr;
+	    	
 	    	return true;
 	    }
 	    // Блокиране на събмита, ако няма промени и за определено време
