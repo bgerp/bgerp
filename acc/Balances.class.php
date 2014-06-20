@@ -362,19 +362,24 @@ class acc_Balances extends core_Master
      * 
      * @param array $jRecs - масив с данни от журнала
      * @param string $accsd - Масив от сметки на които ще се изчислява крайното салдо
+     * @param enum(debit,credit,NULL) $type - кредното, дебитното или крайното салдо
      * @param string $accSysIdFrom - сметка с която кореспондира първата
      * 
      * @return stdClass $res - обект със следната структура:
      * 			->amount - крайното салдо на сметката, ако няма записи е 0
      * 			->recs   - тази част от подадените записи, участвали в образуването на салдото
      */
-    public static function getBlAmounts($jRecs, $accs, $accSysIdFrom = NULL)
+    public static function getBlAmounts($jRecs, $accs, $type = NULL, $accSysIdFrom = NULL)
     {
     	$res = new stdClass();
     	$res->amount = 0;
     	
     	// Ако няма записи, връщаме празен масив
     	if(!count($jRecs)) return $res;
+    	
+    	if($type){
+    		expect(in_array($type, array('debit', 'credit')));
+    	}
     	
     	$newAccArr = array();
     	$accArr = arr::make($accs);
@@ -398,12 +403,19 @@ class acc_Balances extends core_Master
     		
     		// Изчисляваме крайното салдо
     		if(in_array($rec->debitAccId, $newAccArr)) {
-    			$res->amount += $rec->amount;
-    			$add = TRUE;
+    			if($type === NULL || $type == 'debit'){
+    				$res->amount += $rec->amount;
+    				$add = TRUE;
+    			}
     		}
     		
     		if(in_array($rec->creditAccId, $newAccArr)) {
-    			$res->amount -= $rec->amount;
+    			$sign = ($type === NULL) ? -1 : 1;
+    			
+    			if($type === NULL || $type == 'credit'){
+    				$res->amount += $sign * $rec->amount;
+    			}
+    			
     			$add = TRUE;
     		}
     		
