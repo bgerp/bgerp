@@ -1219,7 +1219,7 @@ function loginFormPadding()
  */
 function setFormElementsWidth()
 {
-
+	
 	var form = $('.formTable');
 	var winWidth = parseInt($(window).width());
 	
@@ -1235,12 +1235,9 @@ function setFormElementsWidth()
 	// колко РХ е 1 ЕМ
 	var em = parseInt(winWidth / sizeInEm);
 	
-	if(winWidth > 640  && winWidth < 1000){
+	if(winWidth > 640){
 		formElWidth =  30 * em;
-		form.css('width','30em');
-	} else if(winWidth >= 1000){
-		formElWidth =  33 * em;
-		form.css('width','33em');
+		form.css('maxWidth','30em');
 	}
 	
 	$('.formTable label').each(function() {
@@ -1250,7 +1247,9 @@ function setFormElementsWidth()
 		}
 		$(this).css('maxWidth', parseInt((formElWidth - 25)/colsInRow));
 	});
-	$('.formTable .richEdit').css('maxWidth',formElWidth);
+	
+	$('.formTable').css('width', formElWidth);
+	$('.formTable .richEdit').css('width',formElWidth);
 	$('.formTable .richEdit').css('display','block');
 	$('.formTable textarea').css('minWidth','100%');
 	$('.formTable input').not(':input[type=button], :input[type=submit], :input[type=reset], :input[type=radio],:input[type=checkbox]').css('maxWidth', formElWidth);
