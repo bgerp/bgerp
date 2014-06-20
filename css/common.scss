@@ -2095,16 +2095,17 @@ div.richtext pre code {
 }
 
 .richtext .oneLineCode {
-	font-family: Courier New,monospace;
+	font-family: "Courier New",monospace;
 	font-size: 0.96em;
 	line-height: normal;
 	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
-	background: rgba(245,245,255,0.5);
+	background: rgba(235,235,235,0.5);
 	border: 1px solid $gray3;
 	border-radius: 3px 3px 3px 3px;
 	margin: 0px 2px 1px;
 	padding: 0px 5px 0px;	
 	display: inline-block;
+	color:#000;
 }
 
 .narrow .richtext .oneLineCode {

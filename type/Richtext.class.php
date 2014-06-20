@@ -226,7 +226,7 @@ class type_Richtext extends type_Blob
 			// Възстановяваме началното състояние
 			$html = str_replace($replaceFrom, $replaceTo, $html);
 		}
-
+        
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]([\r\n]{0,2})/is", array($this, '_catchCode'), $html);
         
@@ -265,7 +265,12 @@ class type_Richtext extends type_Blob
             $html = preg_replace_callback($patternBold, array($this, '_catchBold'), $html);   
         }
         
+        // Заменя текстово описаните таблици с вертикални черти с HTML таблици 
+        $html = $this->replaceTables($html);
+        
+        // Заменя таговете с HTML такива
         $html = $this->replaceTags($html);   
+        
 
         // Обработваме елементите [color=????]  
         $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
@@ -1040,6 +1045,48 @@ class type_Richtext extends type_Blob
         }
 
         return $email;
+    }
+
+
+    /**
+     * Заменя текстово описаните таблици с вертикални черти с HTML таблици 
+     */
+    function replaceTables($html)
+    {
+        if(Mode::is('text', 'plain')) {
+
+            return $html;
+        }
+        
+        $html = str_replace( array("\r\n", "\n\r", "\r", "\n"), array("\n", "\n", "\n", "\n"), $html);
+
+        $lines = explode("\n", $html);
+        
+        $table = FALSE;
+        
+        foreach($lines as $l) {
+            if($l{0} == '|') {
+                if(!$table) {
+                    $out .= "\n<table class='inlineRichTable listTable'>";
+                    $table = TRUE;
+                }
+                $l = trim($l, " |\t");
+                $out .= "\n<tr><td>" . str_replace('|', '</td><td>', $l) . "</td></tr>";
+            } else {
+                if($table) {
+                    $out .= "\n</table>";
+                    $table = FALSE;
+                }
+
+                $out .= "\n" . $l;
+            }
+        }
+        if($table) {
+            $out .= "\n</table>";
+            $table = FALSE;
+        }
+
+        return $out;
     }
 
 
