@@ -17,8 +17,8 @@
 						<td  rowspan='2' class='title-order'>
 							<h2 style='margin-bottom:15px;margin-top:0px'>|РАЗХОДЕН|*<br> |КАСОВ ОРДЕР|*</h2>
 							№:&nbsp;&nbsp;<b>[#number#]</b><br>
-							|Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
-							<h3 style='margin:10px'>[#state#]</h3>
+							|Дата|*:&nbsp;&nbsp;<b>[#valior#]</b><br />
+							<div class="[#STATE_CLASS#]" style='margin-top:5px'>[#state#]</div>
 						</td>
 						<td class='top-head'><b>|Да се изплати на|*</b></td>
 					</tr>

@@ -18,7 +18,7 @@
 						<h2 style='margin-bottom:15px;margin-top:0px'>|ПРИХОДЕН|*<br> |КАСОВ ОРДЕР|*</h2>
 						№:&nbsp;&nbsp;<b>[#number#]</b><br>
 						|Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
-						<h3 style='margin:10px'>[#state#]</h3>
+						<div class="[#STATE_CLASS#]" style='margin-top:5px'>[#state#]</div>
 					</td>
 					<td class='top-head'><b>|Организация|*</b></td>
 				</tr>
