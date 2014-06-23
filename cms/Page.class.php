@@ -56,6 +56,7 @@ class cms_Page extends page_Html {
         $this->push('css/common.css','CSS');
         $this->push('css/Application.css','CSS');
         $this->push('cms/css/Wide.css', 'CSS');
+        jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         
         // Евентуално се кешират страници за не PowerUsers
