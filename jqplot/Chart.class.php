@@ -334,9 +334,6 @@ class jqplot_Chart
      */
     protected static function setup($tpl)
     {
-        // Зареждане на jquery
-        jquery_Jquery::enable($tpl);
-
         // Зареждане на базовите jqplot файлове
         $tpl->appendOnce("\n"
             . "<!--[if lt IE 9]>"
