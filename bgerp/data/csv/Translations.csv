@@ -344,7 +344,7 @@ en,Кога?,When?
 en,Кой?,Who?
 en,Какво?,What?
 en,часа,hours
-en,мин.,min.
+en,мин.,min
 en,час,hour
 en,и,and
 en,Периодични про_b38f,Scheduled tasks
@@ -540,8 +540,12 @@ en,По дни,Daily
 en,По часове,Hourly
 en,Без осредняване,Without averaging
 en,Осредняване,Averaging
-en,Сензор,Sensor
-en,Записи от сенз_bf0f9,Records from sensors
+en,Индикатор,Indicator
+en,Индикатори,Indicators
+en,Порт,Port
+en,Портове,Ports
+en,Контролери,Controllers
+en,Лог на индикаторите,Indicator's log
 en,Мениджър изгледи,Views manager
 en,Наблюдение,Surveillance
 en,Показания,Indications
@@ -808,7 +812,7 @@ en,Артикул,Item
 en,Свойства,Properties
 en,Стоки - други,Goods - other
 en,Добави към пот_57ea5,Add to user
-en,сек.,sec.
+en,сек.,sec
 en,Вътрешен,Internal
 en,Контакт,Contact
 en,Външен,External
