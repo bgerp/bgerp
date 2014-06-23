@@ -56,8 +56,6 @@ class help_Plugin extends core_Plugin
             $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><a class='close-tooltip'></a>[#1#]</div>", $hintText);
             $url = toUrl(array('help_Log', 'CloseInfo', $rec->id));
             
-            jquery_Jquery::enable($tabsTpl);
-         
             $tabsTpl->push('css/tooltip.css', 'CSS');
             $tabsTpl->push('js/tooltipCustom.js', 'JS');
             
