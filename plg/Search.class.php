@@ -255,10 +255,8 @@ class plg_Search extends core_Plugin
      */
     static function highlight($text, $query)
     {  
-    	$JQuery = cls::get('jquery_Jquery');
-    	$JQuery->enable($text);
     	$text->push('js/highlight.js', "JS");
-    	$JQuery->run($text, "\n $('.document').highlight('{$query}');", TRUE);
+    	jquery_Jquery::run($text, "\n $('.document').highlight('{$query}');", TRUE);
     	
         return $text; 
     }
