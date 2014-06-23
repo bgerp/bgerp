@@ -3,7 +3,7 @@
 	<h2>[#SingleTitle#]</h2>
 	<table border='0' style='' cellpadding='1px' class='default-table'>
 		<tr valign=top>
-			<td width='120px'>|Контрагент|*:</td>
+			<td width='120px'>|Титуляр|*:</td>
 			<td><b>[#contragent#]</b></td>
 		</tr>
 		<tr valign=top>

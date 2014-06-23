@@ -127,20 +127,18 @@ class bank_Accounts extends core_Master {
         if($rec->id) {
             $data->form->title = 'Редактиране на банкова сметка на |*' . $contragentTitle;
         } else {
-            
         	// По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
             if ($contragentRec->country) {
                 $countryRec = drdata_Countries::fetch($contragentRec->country);
                 $cCode = $countryRec->currencyCode;
-                $data->form->setDefault('currencyId',   currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));  
+                $data->form->setDefault('currencyId', currency_Currencies::fetchField("#code = '{$cCode}'", 'id')); 
             } else {
-            	
             	// По дефолт е основната валута в системата
             	$conf = core_Packs::getConfig('currency');
             	$defaultCurrencyId = currency_Currencies::getIdByCode($conf->CURRENCY_BASE_CODE);
             	$data->form->setDefault('currencyId', $defaultCurrencyId);
             }
-                    
+ 
             $data->form->title = 'Нова банкова сметка на |*' . $contragentTitle;
         }
         
@@ -174,7 +172,9 @@ class bank_Accounts extends core_Master {
         // то ги извличаме от IBAN-a , ако са попълнени изкарваме преудреждение 
         // ако те се разминават с тези в системата
     	if($form->isSubmitted()){
-    		$bank = bglocal_Banks::getBankName($form->rec->iban);
+            if($form->rec->iban{0} != '#') {
+    		    $bank = bglocal_Banks::getBankName($form->rec->iban);
+            }
 	        if(!$form->rec->bank){
 	        	$form->rec->bank = $bank;
 	        } else {
