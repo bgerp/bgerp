@@ -49,8 +49,6 @@ class orgchart_Adapter extends core_BaseClass
         // Генерираме необходимия маркъп за плъгина
         $tpl->append("<div class='organisation'>{$nestedLists}</div><div id='{$idChart}'></div>");
 
-        jquery_Jquery::enable($tpl);
-         
         $tpl->push('orgchart/lib/jquery.orgchart.css', 'CSS');
         $tpl->push('orgchart/lib/jquery.orgchart.js', 'JS');
             
