@@ -51,8 +51,6 @@ class chosen_PluginSelect extends core_Plugin
         // Ако няма JS нищо не правим
         if (Mode::is('javascript', 'no')) return;
         
-        $JQuery = cls::get('jquery_Jquery');
-        $JQuery->enable($tpl);
         $tpl->push($conf->CHOSEN_PATH . "/chosen.css", "CSS");
         $tpl->push($conf->CHOSEN_PATH . "/chosen.jquery.js", "JS");
 
@@ -62,7 +60,7 @@ class chosen_PluginSelect extends core_Plugin
         
         $choose = tr("Избери");
         $noResults = tr("Няма резултати");
-        $JQuery->run($tpl, "$('#" . $attr['id'] . "').data('placeholder', '{$choose}...').chosen({no_results_text: \"{$noResults}\"{$allowEmpty}});");
+        jquery_Jquery::run($tpl, "$('#" . $attr['id'] . "').data('placeholder', '{$choose}...').chosen({no_results_text: \"{$noResults}\"{$allowEmpty}});");
    }
     
 }
