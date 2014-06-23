@@ -747,12 +747,6 @@ class cal_Tasks extends core_Master
     }
     
     
-    static function on_AfterRenderWrapping($mvc, &$tpl)
-    {
-    	jquery_Jquery::enable($tpl);
-    }
- 
-    
     /**
      * Обновява информацията за задачата в календара
      */
