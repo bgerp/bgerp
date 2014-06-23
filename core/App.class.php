@@ -40,7 +40,7 @@ class core_App
             $Wrapper = core_Cls::get('page_Wrapper');
 
             $Wrapper->render($content);
-            
+     
             // Край на работата на скрипта
             static::shutdown();
         }
@@ -375,29 +375,48 @@ class core_App
      */
     public static function shutdown($sendOutput = TRUE)
     {
+        
         if (!static::isDebug() && $sendOutput) {
-            
-            $size = ob_get_length();
-            header("Content-Length: {$size}");
-            header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
-            header('Pragma: no-cache'); // HTTP 1.0.
-            header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Proxies.
-            header('Connection: close');
-            
-            // Изпращаме съдържанието на изходния буфер
-            ob_end_flush();
-            flush();
+            self::flushAndClose();
         }
+
 
         // Освобождава манипулатора на сесията. Ако трябва да се правят
         // записи в сесията, то те трябва да се направят преди shutdown()
         if (session_id()) session_write_close();
 
+ 
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
 
         // Излизаме със зададения статус
         exit($status);
+    }
+
+    
+    /**
+     * Изпраща всичко буферирано към браузъра и затваря връзката
+     */
+    static function flushAndClose()
+    {
+        $content = ob_get_contents();         // Get the content of the output buffer
+         
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        $len = strlen($content);             // Get the length
+        header("Content-Length: $len");     // Close connection after $size characters
+        header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
+        header('Pragma: no-cache'); // HTTP 1.0.
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Proxies.
+        header('Connection: close');
+        
+        echo $content;                       // Output content
+            
+        // Изпращаме съдържанието на изходния буфер
+        ob_end_flush();
+        flush();
     }
 
 
