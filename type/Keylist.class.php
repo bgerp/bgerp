@@ -232,7 +232,6 @@ class type_Keylist extends core_Type {
         
         $attr['class'] .= ' keylist';
         $tpl = HT::createElement('table', $attr, $html);
-        jquery_Jquery::enable($tpl);
         $tpl->push('js/keylist.js', 'JS');
         jquery_Jquery::run($tpl, "checkForHiddenGroups();", TRUE);
         return $tpl;
