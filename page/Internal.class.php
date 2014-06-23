@@ -34,6 +34,7 @@ class page_Internal extends page_Html {
         
         $this->push('css/common.css', 'CSS');
         $this->push('css/Application.css', 'CSS');
+        jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
