@@ -638,4 +638,52 @@ class core_String
 	    
 	    return $str;
 	}
+    
+
+    /**
+     * Подготвя аритметичен израз за изчисляване
+     */
+    static function prepareMathExpr($expr)
+    {
+        // Remove whitespaces
+        $expr = preg_replace('/\s+/', '', $expr);
+                
+        // What is a number
+        $number = '((?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?|pi|π)'; 
+        
+        // Allowed PHP functions
+        $functions = '(?:sinh?|cosh?|tanh?|acosh?|asinh?|atanh?|exp|log(10)?|deg2rad|rad2deg|sqrt|pow|min|max|abs|intval|ceil|floor|round|(mt_)?rand|gmp_fact)';
+        
+        // Allowed math operators
+        $operators = '[\/*\^\+-,]';
+        
+        // Final regexp, heavily using recursive patterns
+        $regexp = '/^([+-]?(' . $number . '|' . $functions . '\s*\((?1)+\)|\((?1)+\))(?:' . $operators . '(?1))?)+$/'; 
+
+        if (preg_match($regexp, $expr)) {
+            // Replace pi with pi function
+            $result = preg_replace('!pi|π!', 'pi()', $expr); 
+        } else {
+            $result = FALSE;
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Изчислява аритметичен израз от стринг
+     * Предварително израза трябва да се подготви 
+     */
+    static function calcMathExpr($expr)
+    { 
+        $expr = self::prepareMathExpr($expr);
+        
+        if($expr) {
+            @eval('$result = ' . $expr . ';');
+        }
+
+        return $result;
+    }
+
 }
