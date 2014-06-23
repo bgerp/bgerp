@@ -373,17 +373,57 @@ class core_Os
     /**
      * Изтрива файловете в посочената директория и нейните под-директории,
      * които не са прочитани в последните скудни указани от $maxAge
+     * 
+     * @param string $dir
+     * @param integer $maxAge
+     * 
+     * @return integer - Броя на изтритите файлове
      */
     static function deleteOldFiels($dir, $maxAge = 86400)
     {
         $allFiles = self::listFiles($dir);
-         
+        
+        $delCnt = 0;
         if(is_array($allFiles['files'])) {
             foreach($allFiles['files'] as $fPath) {
                 if(time() - fileatime($fPath) > $maxAge) {
-                    @unlink($fPath);
+                    
+                    if (@unlink($fPath)) {
+                        $delCnt++;
+                    }
                 }
             }
+        }
+        
+        return $delCnt;
+    }
+    
+    
+    /**
+     * Изтрива всички файлове от EF_TEMP_PATH по крон
+     */
+    static function cron_clearOldFiles()
+    {
+        // Ако не е дефиниран пътя
+        if ((!EF_TEMP_PATH) || (EF_TEMP_PATH == 'EF_TEMP_PATH')) return ;
+        
+        $conf = core_Packs::getConfig('core');
+        
+        // Изтриваме всички, файлове, кото са по стари от дадено време
+        $delCnt = static::deleteOldFiels(EF_TEMP_PATH, $conf->CORE_TEMP_PATH_MAX_AGE);
+        
+        // Показваме броя на изтритите файлове
+        if ($delCnt) {
+            
+            if ($delCnt == 1) {
+                $resText = "Изтрит 1 файл";
+            } else {
+                $resText = "Изтрити {$delCnt} файла";
+            }
+            
+            $resText .= " от '" . EF_TEMP_PATH . "'";
+            
+            return $resText;
         }
     }
     
