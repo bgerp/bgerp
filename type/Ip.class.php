@@ -72,14 +72,15 @@ class type_IP extends type_Varchar {
      * 
      * @param IP $ip
      * @param time $time
+     * @param array $attr
      */
-    static function decorateIp($ip, $time = NULL)
+    static function decorateIp($ip, $time=NULL, $attr=array())
     {
         $res = $ip;
         
         $me = cls::get(get_called_class());
         
-        $me->invoke('AfterDecorateIp', array(&$res, $ip, $time));
+        $me->invoke('AfterDecorateIp', array(&$res, $ip, $time, $attr));
         
         return $res;
     }
