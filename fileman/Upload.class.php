@@ -225,9 +225,7 @@ class fileman_Upload extends core_Manager {
         
         $tpl->replace(Request::get('Protected'), 'Protected');
         
-        $JQ = cls::get('jquery_Jquery');
-        
-        $JQ->enableUI($tpl);
+        jqueryui_Ui::enable($tpl);
         
         $url = toUrl(array($this, 'UploadProgress'));
         

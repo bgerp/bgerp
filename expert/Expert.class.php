@@ -1704,8 +1704,7 @@ class expert_Expert extends core_FieldSet {
      */
     static function enableAjax(&$tpl)
     {
-        $JQ = cls::get('jquery_Jquery');
-        $JQ->enableUI($tpl);
+        jqueryui_Ui::enable($tpl);
         
         $tpl->push("expert/ajaxExpert.js", "JS");
         $dialog = new ET("<div id=\"expertDialog\"  title=\"\" style='display:none;'><p>[#FORM#]</p></div>");
@@ -1719,7 +1718,7 @@ class expert_Expert extends core_FieldSet {
         $tpl->appendOnce("<div id=\"ajaxLoader\" style=\"position:absolute;top:10%;left:10%;display:none;padding:100px;background:url(" .
             sbf('img/ajax-loader.gif', '') . ") no-repeat 2px;\"></div>", "PAGE_CONTENT");
         $tpl->appendOnce($dialog, "PAGE_CONTENT");
-        $JQ->run($tpl, "$('#expertDialog').dialog({autoOpen: false,height: 400,width: 600,modal: true});");
+        jquery_Jquery::run($tpl, "$('#expertDialog').dialog({autoOpen: false,height: 400,width: 600,modal: true});");
     }
     
     
