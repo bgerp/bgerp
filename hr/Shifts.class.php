@@ -181,9 +181,6 @@ class hr_Shifts extends core_Master
 
     function on_AfterRenderWrapping($mvc, &$tpl)
     {
-    	jquery_Jquery::enable($tpl);
-    	
-    	
     	$tpl->push('hr/tpl/style.css', 'CSS');
     }
     
