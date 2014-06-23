@@ -28,8 +28,6 @@ class gantt_Adapter extends core_Mvc
         $ganttHolder = ht::createElement('div',  array('id' => $idChart), $tpl);
         $tpl->append($ganttHolder);
         
-        jquery_Jquery::enable($tpl);
-         
         $tpl->push('gantt/lib/ganttCustom.css', 'CSS');
         $tpl->push('gantt/lib/ganttCustom.js', 'JS');
             
