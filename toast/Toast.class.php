@@ -36,9 +36,6 @@ class toast_Toast extends core_Plugin
         $conf = core_Packs::getConfig('toast');
         $version = $conf->TOAST_MESSAGE_VERSION;
         
-        // Активираме JQuery
-        jquery_Jquery::enable($tpl);
-        
         //Добавяме JS и CSS необходими за работа на статусите
         $tpl->push("toast/{$version}/javascript/jquery.toastmessage.js", 'JS');
         $tpl->push("toast/{$version}/resources/css/jquery.toastmessage.css", 'CSS');
