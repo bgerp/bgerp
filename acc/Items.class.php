@@ -764,13 +764,27 @@ class acc_Items extends core_Manager
         // Всяко афектирано перо, задейства ивент в мениджъра си
         if(count(self::$affected)){
         	foreach (self::$affected as $rec) {
-        		if(cls::load($rec->classId, TRUE)){
-        			$Class = cls::get($rec->classId);
-        			$objectRec = $Class->fetch($rec->objectId);
-        			$Class->invoke('AfterAffectItem', array($objectRec, $rec));
-        		}
+        		self::notifyObject($rec);
         	}
         }
+    }
+    
+    
+    /**
+     * Метод пораждащ събитие 'AfterAffectItem' в мениджъра на перото
+     * 
+     * @param mixed $id - обект или запис на перо
+     * @return void
+     */
+    public static function notifyObject($id)
+    {
+    	expect($rec = static::fetchRec($id));
+    	
+    	if(cls::load($rec->classId, TRUE)){
+    		$Class = cls::get($rec->classId);
+    		$objectRec = $Class->fetch($rec->objectId);
+    		$Class->invoke('AfterAffectItem', array($objectRec, $rec));
+    	}
     }
     
     

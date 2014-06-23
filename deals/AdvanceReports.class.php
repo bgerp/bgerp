@@ -426,9 +426,10 @@ class deals_AdvanceReports extends core_Master
     	// Извличаме записа
     	expect($rec = self::fetchRec($id));
     	expect($origin = static::getOrigin($rec));
+    	$originRec = $origin->fetch();
     	
     	$entries = array();
-    	$creditArr = array($rec->creditAccount, array('deals_Deals', $origin->that), array('currency_Currencies', $rec->currencyId));
+    	$creditArr = array($rec->creditAccount, array($originRec->contragentClassId, $originRec->contragentId), array($origin->className, $origin->that), array('currency_Currencies', $rec->currencyId));
     	
     	/*
     	 * Дебитираме разходната сметка, кредитираме сметката от фин. сделката
@@ -461,14 +462,14 @@ class deals_AdvanceReports extends core_Master
     			'amount' => $vatAmount, // В основна валута
     			'credit' => array(
     					'422',
-    					array('deals_Deals', $origin->that), // Перо 1 - Фин. сделка
-    					array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+    					array($originRec->contragentClassId, $originRec->contragentId),   // Перо 1 - Клиент
+    					array($origin->className, $origin->that), // Перо 2 - Фин. сделка
+    					array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
     					'quantity' => $vatAmount, 
     			),
     	
     			'debit' => array(
     					'4530',
-    					'quantity' => $vatAmount,
     			),
     	);
     	

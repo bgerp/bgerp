@@ -190,7 +190,7 @@ class purchase_Invoices extends core_Master
         $this->FLD('responsible', 'varchar(255)', 'caption=Доставчик->Отговорник, class=contactData');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Доставчик->Държава,mandatory,contragentDataField=countryId');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Доставчик->VAT №,contragentDataField=vatNo');
-        $this->FLD('uicNo', 'type_Varchar', 'caption=Национален №');
+        $this->FLD('uicNo', 'type_Varchar', 'caption=Доставчик->Национален №');
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Доставчик->П. код,recently,class=pCode,contragentDataField=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Доставчик->Град,class=contactData,contragentDataField=place');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Доставчик->Адрес,class=contactData,contragentDataField=address');
@@ -320,7 +320,7 @@ class purchase_Invoices extends core_Master
         $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
         if($className == 'crm_Persons'){
         	$numType = 'bglocal_EgnType';
-        	$form->setField('uicNo', 'caption=ЕГН');
+        	$form->setField('uicNo', 'caption=Доставчик->ЕГН');
         	$form->fields['uicNo']->type = cls::get($numType);
         }
         
@@ -688,7 +688,7 @@ class purchase_Invoices extends core_Master
     			$rec->_total->vat = $rec->vatAmount / $rec->rate;
     		}
     		
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
+    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
     	 	if($rec->paymentMethodId && $rec->type == 'invoice' && $rec->dpOperation != 'accrued') {
@@ -937,15 +937,9 @@ class purchase_Invoices extends core_Master
         	$entries[] = array(
                 'amount' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
                 
-                'credit' => array(
-                    $creditAccId, // дебитната сметка
-                    'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
-                ),
+                'credit' => array($creditAccId),
                 
-                'debit' => array(
-                    $debitAccId, // кредитна сметка;
-                    'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
-                )
+                'debit' => array($debitAccId),
     	    );
         }
         

@@ -168,7 +168,7 @@ class sales_ServicesDetails extends core_Detail
         
         if (empty($recs)) return;
         
-        price_Helper::fillRecs($recs, $orderRec);
+        deals_Helper::fillRecs($recs, $orderRec);
     }
     
     

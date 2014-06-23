@@ -31,14 +31,14 @@ class purchase_TransactionSourceImpl
      *
      *    Dt: 602. Разходи за външни услуги    (Услуга)
      *    
-     *    Ct: 401. Задължения към доставчици   (Доставчик, Валута)
+     *    Ct: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
      * 
      * 2. Засклаждане на стоката в склада (в някой случаи)
      *
      *    Dt: 302. Суровини и материали 	  (Склад, Суровини и Материали) - за вложимите продукти
      *	  	  321. Стоки и Продукти 		  (Склад, Стоки и Продукти) - за всички останали складируеми продукти
      *
-     *    Ct: 401. Задължения към доставчици (Доставчик, Валути)
+     *    Ct: 401. Задължения към доставчици (Доставчик, Сделки, Валути)
      *
      *
      *
@@ -46,7 +46,7 @@ class purchase_TransactionSourceImpl
      *
      *    Dt: 501. Каси                  (Каса, Валута)
      *        
-     *    Ct: 401. Задължения към доставчици   (Доставчик, Валута)
+     *    Ct: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
      *
      * @param int|object $id първичен ключ или запис на покупка
      * @return object NULL означава, че документа няма отношение към счетоводството, няма да генерира
@@ -62,7 +62,7 @@ class purchase_TransactionSourceImpl
         if ($actions['ship'] || $actions['pay']) {
             
             $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
-			price_Helper::fillRecs($rec->details, $rec); 
+			deals_Helper::fillRecs($rec->details, $rec); 
             
             if ($actions['ship']) {
                 // Покупката играе роля и на складова разписка.
@@ -165,7 +165,7 @@ class purchase_TransactionSourceImpl
      * 
      *    Dt: 602. Разходи за външни услуги    (Услуга)
      *    
-     *    Ct: 401. Задължения към доставчици   (Доставчик, Валута)
+     *    Ct: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
      *    	  
      *    
      * @param stdClass $rec
@@ -197,6 +197,7 @@ class purchase_TransactionSourceImpl
 	                'credit' => array(
 	                    '401', 
 	                        array($rec->contragentClassId, $rec->contragentId),
+	                		array('purchase_Purchases', $rec->id),
 	                        array('currency_Currencies', $currencyId),          
 	                    'quantity' => currency_Currencies::round($amount, $rec->currencyId),
 	                ),
@@ -218,7 +219,8 @@ class purchase_TransactionSourceImpl
 	             'credit' => array(
 	                   '401',
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-	                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+	             			array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
+	                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
 	                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
 	                ),
 	                
@@ -238,7 +240,7 @@ class purchase_TransactionSourceImpl
      * 
      *    Dt: 501. Каси                  (Каса, Валута)
      *        
-     *    Ct: 401. Задължения към доставчици   (Доставчик, Валута)
+     *    Ct: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
      *    
      * @param stdClass $rec
      * @return array
@@ -271,7 +273,8 @@ class purchase_TransactionSourceImpl
                 'debit' => array(
                     '401', // Сметка "401. Задължения към доставчици"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
+                		array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
+                        array('currency_Currencies', $currencyId),          // Перо 3 - Валута
                     'quantity' => $quantityAmountBase, // "брой пари" във валутата на покупката
                 ),
             );
@@ -287,7 +290,7 @@ class purchase_TransactionSourceImpl
      *	  Dt: 302. Суровини и материали 	  (Склад, Суровини и Материали) - за вложимите продукти
      *	  	  321. Стоки и Продукти 		  (Склад, Стоки и Продукти) - за всички останали складируеми продукти
      *
-     *    Ct: 401. Задължения към доставчици (Доставчик, Валути)
+     *    Ct: 401. Задължения към доставчици (Доставчик, Сделки, Валути)
      *    
      * @param stdClass $rec
      * @return array
@@ -333,7 +336,8 @@ class purchase_TransactionSourceImpl
 		             'credit' => array(
 		                   '401', 
 	                       array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
-	                       array('currency_Currencies', $currencyId),          // Перо 2 - Валута
+		             	   array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
+	                       array('currency_Currencies', $currencyId),          // Перо 3 - Валута
 	                    'quantity' => currency_Currencies::round($amount, $currencyCode), // "брой пари" във валутата на покупката
 		             ),
 		        );

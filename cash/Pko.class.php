@@ -445,27 +445,13 @@ class cash_Pko extends core_Master
         $creditCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
         $creditQuantity = round($amount / $dealInfo->agreed->rate, 2);
         
-        // Ако пораждащия документ е покупка или продажба
-        if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-        	$creditArr = array(
-        			$rec->creditAccount, // кредитна сметка
-        			array($rec->contragentClassId, $rec->contragentId), // Перо контрагент
-        			array('currency_Currencies', $creditCurrency),
-        			'quantity' => $creditQuantity,
-        	);
-        	
-        } else {
-        	
-        	// Ако е към финансова сделка
-        	$creditArr = array(
-        			$rec->creditAccount, // кредитна сметка
-        			array($origin->className, $origin->that), // Перо финансова сделка
-        			array('currency_Currencies', $creditCurrency),
-        			'quantity' => $creditQuantity,
-        	);
-        }
-        
-        
+        $creditArr = array(
+        		$rec->creditAccount, // кредитна сметка
+        		array($rec->contragentClassId, $rec->contragentId), // Перо контрагент
+        		array($origin->className, $origin->that), // Перо сделка
+        		array('currency_Currencies', $creditCurrency),
+        		'quantity' => $creditQuantity,
+        );
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(

@@ -53,6 +53,7 @@ class deals_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'deals_Deals',
+    		'deals_AdvanceDeals',
     		'deals_DebitDocuments',
     		'deals_CreditDocuments',
     		'deals_ClosedDeals',

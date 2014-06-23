@@ -114,6 +114,7 @@ class tracking_Setup extends core_ProtoSetup
             array(3.4, 'Мониторинг', 'Tracking', 'tracking_Log', 'default', "tracking,ceo,admin"),
     );
     
+    
     /**
      * Добавяне на крон
      */
@@ -138,12 +139,19 @@ class tracking_Setup extends core_ProtoSetup
         } else {
             $html .= "<li>Отпреди Cron е бил нагласен за WatchDog tracking</li>";
         }
+        
+        if ($pid = self::Start()) {
+            $html .= "<li><font color='green'>Стартиран слушач за тракерите - pid={$pid}</font></li>";
+        } else {
+            $html .= "<li>Процеса за тракерите е стартиран от преди това.</li>";
+        }
     
         $html .= parent::install();
     
         return $html;
     }
-
+    
+    
     /**
      * Проверява дали е пуснат сървиса, и ако не е го пуска
      *
@@ -153,9 +161,8 @@ class tracking_Setup extends core_ProtoSetup
     public function cron_WatchDog()
     {
         if (!self::isStarted()) {
-            self::Start(); echo ("Startiran");
+            self::Start();
         }
-        echo ("OK");
         /* 
          * @todo: На определено време е добре сървиса да се рестартира.
          */
@@ -167,16 +174,14 @@ class tracking_Setup extends core_ProtoSetup
      */
     private function Start()
     {
-        $domain = core_Packs::getConfigKey('tracking', 'DOMAIN');
-        $protocol = core_Packs::getConfigKey('tracking', 'PROTOCOL');
-        $port = core_Packs::getConfigKey('tracking', 'PORT');
-        
+        $conf = core_Packs::getConfig('tracking');
+
         if (!self::isStarted()) {
     
             $cmd = "php " . realpath(dirname(__FILE__)) . "/sockListener.php"
-                    . " " . $protocol . " " . getHostByName($domain)
-                    . " " . $port
-                    . " " . $domain;
+                    . " " . $conf->PROTOCOL . " " . getHostByName($conf->DOMAIN)
+                    . " " . $conf->PORT
+                    . " " . $conf->DOMAIN;
     
             $pid = exec(sprintf("%s > /dev/null 2>&1 & echo $!", $cmd));
 
@@ -194,13 +199,13 @@ class tracking_Setup extends core_ProtoSetup
      */
     private static function Stop()
     {
-        $conf = core_Packs::getConfig('tracking');
-        
-        if (!empty($conf->PID)) {
-            posix_kill($conf->PID, 9);
+        $pid = core_Packs::getConfigKey('tracking', 'PID');
+
+        if (!empty($pid)) {
+            $res = posix_kill($pid, 9);
         }
-    
-        return (TRUE);
+        
+        return ($res);
     }
     
     
@@ -237,6 +242,15 @@ class tracking_Setup extends core_ProtoSetup
      */
     function deinstall()
     {
+        // Спираме процеса
+        if (TRUE === self::Stop()) {
+            $res = "Успешно спрян процес.";
+        } else {
+            $res = "Неуспешно спрян процес.";
+        }
+        
+        file_put_contents("tracking.log", "\n deinstall", FILE_APPEND);
+        
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
         

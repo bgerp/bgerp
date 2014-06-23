@@ -241,15 +241,9 @@ class deals_DebitDocuments extends core_Master
     	
     	expect($origin = static::getOrigin($rec));
     	$dealInfo = $origin->getAggregateDealInfo();
-    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_DEAL){
-    		$creditFirstArr = array('deals_Deals', $origin->that);
-    	} else {
-    		$creditFirstArr = array($rec->contragentClassId, $rec->contragentId);
-    	}
-    	
     	$dealRec = deals_Deals::fetch($rec->dealId);
     	
-    	// Подготвяме информацията която ще записваме в Журнала
+    	// Подготвяме информацията, която ще записваме в Журнала
     	$result = (object)array(
     			'reason' => $rec->name, // основанието за ордера
     			'valior' => $rec->valior,   // датата на ордера
@@ -257,12 +251,14 @@ class deals_DebitDocuments extends core_Master
     					array(
     						'amount' => $amount,	// равностойноста на сумата в основната валута
     						'debit' => array($rec->debitAccount,
-    										array('deals_Deals', $rec->dealId),
+    										array($dealRec->contragentClassId, $dealRec->contragentId),
+    										array($dealRec->dealManId, $rec->dealId),
     										array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
     										'quantity' => round($amount / $dealRec->currencyRate, 2)),
     							
     						'credit' => array($rec->creditAccount,
-    										$creditFirstArr,
+    										array($rec->contragentClassId, $rec->contragentId),
+    										array($origin->className, $origin->that),
     										array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
     										'quantity' => round($amount / $dealInfo->agreed->rate, 2)),
     				)

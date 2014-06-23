@@ -148,7 +148,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
-        $this->FLD('info', "varchar(125)", 'caption=Инфо');
+        $this->FLD('info', "varchar(125)", 'caption=Колети');
     }
 
 
@@ -223,7 +223,7 @@ class store_ShipmentOrderDetails extends core_Detail
         
         if (empty($recs)) return;
         
-        price_Helper::fillRecs($recs, $orderRec);
+        deals_Helper::fillRecs($recs, $orderRec);
         
         // Преброява броя на колетите, само ако се показва тази информация
         if(isset($data->listFields['info'])){

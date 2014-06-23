@@ -35,7 +35,7 @@ class deals_Deals extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, deals_WrapperFin, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
@@ -125,7 +125,7 @@ class deals_Deals extends core_Master
     /**
      * Позволени операции на последващите платежни документи
      */
-    private $allowedPaymentOperations = array(
+    protected $allowedPaymentOperations = array(
     		'debitDealCase'      => array('title' => 'Приход по финансова сделка', 'debit' => '501', 'credit' => '*'),
     		'debitDealBank'      => array('title' => 'Приход по финансова сделка', 'debit' => '503', 'credit' => '*'),
     		'creditDealCase'     => array('title' => 'Разход по финансова сделка', 'debit' => '*', 'credit' => '501'),
@@ -140,7 +140,7 @@ class deals_Deals extends core_Master
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,width=100%');
     	$this->FLD('blAmount', 'double(decimals=2)', 'input=none,notNull');
-    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=deals_DealsAccRegIntf, allowEmpty)', 'caption=Сметка,mandatory,silent');
+    	$this->FLD('accountId', 'acc_type_Account', 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
@@ -159,6 +159,7 @@ class deals_Deals extends core_Master
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Състояние, input=none');
     	
     	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
+    	$this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
     }
     
     
@@ -193,31 +194,39 @@ class deals_Deals extends core_Master
     
     
     /**
-     * Преди показване на форма за добавяне/промяна
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    public function prepareEditForm_($data)
     {
+    	parent::prepareEditForm_($data);
+    	
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
+    	 
     	$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
-    	
+    	 
     	$form->setDefault('contragentClassId', $coverClass::getClassId());
     	$form->setDefault('contragentId', $coverId);
-    	
+    	 
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
     	$form->setReadOnly('contragentName');
-    	
+    	 
     	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
+    	 
+    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+    	acc_type_Account::filterSuggestions('crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf', $options);
+    	$form->setOptions('accountId', array('' => '') + $options);
+    	
+    	return $data;
     }
     
     
     /**
      * Проверка и валидиране на формата
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if ($form->isSubmitted()){
     		$rec  = &$form->rec;
@@ -250,6 +259,8 @@ class deals_Deals extends core_Master
     				$form->setWarning('currencyRate', $msg);
     			}
     		}
+    		
+    		$rec->dealManId = $mvc->getClassId();
     	}
     }
     
@@ -329,7 +340,7 @@ class deals_Deals extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	// При създаване на сделка, тя не може да се активира
     	if($action == 'activate' && empty($rec)){
@@ -348,39 +359,19 @@ class deals_Deals extends core_Master
     
     
     /**
-     * Връща филтрираната заявка, за това перо, ако е перо
-     */
-    private function getJournalQuery($rec, &$item)
-    {
-    	$rec = $this->fetchRec($rec);
-    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
-    	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
-    	
-    	$item = acc_Items::fetchItem($this->getClassId(), $rec->id);
-    	if(!$item) return NULL;
-    	
-    	// Намираме от журнала записите, където участва перото от датата му на създаване до сега
-    	$jQuery = acc_JournalDetails::getQuery();
-    	acc_JournalDetails::filterQuery($jQuery, $createdOn, dt::today(), $accSysId, $item->id);
-    	
-    	return $jQuery;
-    }
-    
-    
-    /**
      * Връща хронологията от журнала, където участва документа като перо
      */
     private function getHistory(&$data)
     {
     	$rec = $this->fetchRec($data->rec->id);
     	
-    	$jQuery = $this->getJournalQuery($rec, $item);
+    	$entries = acc_Journal::getEntries(array(get_called_class(), $rec->id), $item);
     	
-    	if($jQuery){
+    	if(count($entries)){
     		$data->history = array();
     		
     		$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
-    		$Pager->itemsCount = $jQuery->count();
+    		$Pager->itemsCount = count($entries);
     		$Pager->calc();
     		$data->pager = $Pager;
     		
@@ -389,7 +380,7 @@ class deals_Deals extends core_Master
     		$count = 0;
     		
     		// Групираме записите по документ
-    		while($jRec = $jQuery->fetch()){
+    		foreach($entries as $jRec){
     			$index = $jRec->docType . "|" . $jRec->docId;
     			if(empty($recs[$index])){
     				$recs[$index] = $jRec;
@@ -397,11 +388,11 @@ class deals_Deals extends core_Master
     			$r = &$recs[$index];
     			
     			$jRec->amount /= $rec->currencyRate;
-    			if($jRec->debitItem1 == $item->id){
+    			if($jRec->debitItem2 == $item->id){
     				$r->debitA += $jRec->amount;
     			}
     			
-    			if($jRec->creditItem1 == $item->id){
+    			if($jRec->creditItem2 == $item->id){
     				$r->creditA += $jRec->amount;
     			}
     		}
@@ -455,7 +446,7 @@ class deals_Deals extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$fieldSet = new core_FieldSet();
     	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field');
@@ -481,13 +472,7 @@ class deals_Deals extends core_Master
     	$data->listFilter->showFields = 'search';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     
-    	if($data->listFilter->rec->accountId){
-    		$data->query->where("#accountId = {$data->listFilter->rec->accountId}");
-    	} else {
-    		$exceptSysId = deals_AdvanceReports::$baseAccountSysId;
-    		$exceptId = acc_Accounts::getRecBySystemId($exceptSysId)->id;
-    		$data->query->where("#accountId != {$exceptId}");
-    	}
+    	$data->query->where("#dealManId = {$mvc->getClassId()}");
     }
     
     
@@ -696,7 +681,7 @@ class deals_Deals extends core_Master
     /**
      * Подрежда по state, за да могат затворените да са отзад
      */
-    function on_BeforePrepareListFilter($mvc, &$res, $data)
+    public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
     	$data->query->orderBy('#state');
     }
@@ -761,13 +746,13 @@ class deals_Deals extends core_Master
     	$blAmount = 0;
     	$rec = $dealRef->fetch();
     	
-    	$jQuery = $mvc->getJournalQuery($rec, $item);
-    	if(!$jQuery) return;
-    	while($jRec = $jQuery->fetch()){
-    		if($jRec->debitItem1 == $item->id){
+    	$entries = acc_Journal::getEntries(array('deals_Deals', $rec->id), $item);
+    	if(!count($entries)) return;
+    	foreach($entries as $jRec){
+    		if($jRec->debitItem2 == $item->id){
     			$blAmount += $jRec->amount;
     		}
-    		if($jRec->creditItem1 == $item->id){
+    		if($jRec->creditItem2 == $item->id){
     			$blAmount -= $jRec->amount;
     		}
     	}
@@ -778,29 +763,27 @@ class deals_Deals extends core_Master
     
     
     /**
-     * Екшън показващ само финансовите сделки свързани с аванси
+     * Изпълнява се след създаването на модела
      */
-    function act_ListAdvances()
+    static function on_AfterSetupMVC($mvc, &$res)
     {
-    	// Зареждаме нужната обвивка
-    	$this->load("deals_WrapperPol");
-    	
-    	// Подготвяме филтриращите параметри
-    	$accountRec = acc_Accounts::getRecBySystemId(deals_AdvanceReports::$baseAccountSysId);
-    	$params = array('Ctr' => $this, 'Act' => 'list', 'accountId' => $accountRec->id);
-    	
-    	// Връщаме резултата за лист изгледа, филтриран по сметка
-    	return Request::forward($params);
-    }
-    
-    
-    /**
-     *  Да зареждаме нормалната, обвивка ако не показваме филтриране по сметки
-     */
-    public static function on_BeforeAction($mvc, &$tpl, $action)
-    {
-    	if (($action == 'list' || $action == 'default') && !Request::get('accountId')) {
-    		$mvc->load('deals_WrapperFin');
+    	// Попълва информация за мениджъра от който е направен записа
+    	if($mvc->count()){
+    		$sysId = deals_AdvanceReports::$baseAccountSysId;
+    		$exceptId = acc_Accounts::getRecBySystemId($sysId)->id;
+    		
+    		$query = $mvc->getQuery();
+    		while($rec = $query->fetch()){
+    			if(empty($rec->dealManId)){
+    				if($rec->accountId == $exceptId){
+    					$rec->dealManId = deals_AdvanceDeals::getClassId();
+    				} else {
+    					$rec->dealManId = deals_Deals::getClassId();
+    				}
+    				
+    				$mvc->save($rec);
+    			}
+    		}
     	}
     }
 }

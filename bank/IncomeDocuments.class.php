@@ -476,29 +476,14 @@ class bank_IncomeDocuments extends core_Master
                         $rec->debitAccId,
                             array('bank_OwnAccounts', $rec->ownAccount),
                             array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $rec->amount,
-                    );
+                        'quantity' => $rec->amount,);
         
-        // Ако пораждащия документ е покупка или продажба
-        if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-        	$creditArr = array(
-                        $rec->creditAccId,
-                            array($rec->contragentClassId, $rec->contragentId),
-                            array('currency_Currencies', $creditCurrency),
-                        'quantity' => $creditQuantity,
-                    );
-        	 
-        } else {
-        	 
-        	// Ако е към финансова сделка
-        	$creditArr = array(
-        			$rec->creditAccId, // кредитна сметка
-        			array($origin->className, $origin->that), // Перо финансова сделка
-        			array('currency_Currencies', $creditCurrency),
-        			'quantity' => $creditQuantity,
-        	);
-        }
-        
+        $creditArr = array(
+        		$rec->creditAccId, // кредитна сметка
+        		array($rec->contragentClassId, $rec->contragentId), // Перо контрагент
+        		array($origin->className, $origin->that), // Перо сделка
+        		array('currency_Currencies', $creditCurrency),
+        		'quantity' => $creditQuantity,);
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(

@@ -43,7 +43,7 @@ class sales_SaleRequestDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_AlignDecimals, plg_RowNumbering, sales_Wrapper, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, plg_AlignDecimals2, plg_RowNumbering, sales_Wrapper, doc_plg_HidePrices';
     
     
     /**
@@ -65,7 +65,7 @@ class sales_SaleRequestDetails extends core_Detail {
     
     
     /**
-     * Помощен масив (@see price_Helper)
+     * Помощен масив (@see deals_Helper)
      */
     public static $map = array('priceFld' => 'price', 'quantityFld' => 'quantity', 'valior' => 'createdOn');
     
@@ -79,7 +79,7 @@ class sales_SaleRequestDetails extends core_Detail {
     	$this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden,oldFieldName=productManId');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em', 'tdClass=small-field');
-    	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена,width=8em');
+    	$this->FLD('price', 'double', 'caption=Ед. цена,width=8em');
         $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
     }
     
@@ -102,7 +102,7 @@ class sales_SaleRequestDetails extends core_Detail {
     	$recs = &$data->recs;
     	$masterRec = $data->masterData->rec;
     	
-    	price_Helper::fillRecs($data->recs, $masterRec, static::$map);
+    	deals_Helper::fillRecs($data->recs, $masterRec, static::$map);
     }
     
     

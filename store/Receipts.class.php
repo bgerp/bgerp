@@ -196,7 +196,7 @@ class store_Receipts extends core_Master
         
         $recs = $query->fetchAll();
         
-        price_Helper::fillRecs($recs, $rec);
+        deals_Helper::fillRecs($recs, $rec);
         $measures = $this->getMeasures($recs);
     	
     	$rec->weight = $measures->weight;
@@ -325,7 +325,7 @@ class store_Receipts extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }

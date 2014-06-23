@@ -252,7 +252,7 @@ class crm_Profiles extends core_Master
         		        $attr['title'] = tr('Логин лог за потребителя');
                         
                         // URL за промяна
-                        $loginLogUrl = array('core_LoginLog', 'list', 'userId' => $userId, 'ret_url' => TRUE);
+                        $loginLogUrl = array('core_LoginLog', 'list', 'users' => $userId, 'ret_url' => TRUE);
                         
                         $data->LoginLog->row = new stdClass();
                         

@@ -31,13 +31,13 @@ class sales_Sales extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_TransactionSourceIntf=sales_TransactionSourceImpl,
-                          bgerp_DealIntf, bgerp_DealAggregatorIntf';
+                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, acc_RegisterIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager, acc_plg_DealsChooseOperation, doc_DocumentPlg, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager, acc_plg_Deals, doc_DocumentPlg, acc_plg_Contable,
                     acc_plg_DocumentSummary, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, doc_SharablePlg';
     
@@ -253,7 +253,7 @@ class sales_Sales extends core_Master
         $query->where("#saleId = '{$id}'");
         $recs = $query->fetchAll();
         
-        price_Helper::fillRecs($recs, $rec);
+        deals_Helper::fillRecs($recs, $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amountDeal = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
@@ -669,11 +669,18 @@ class sales_Sales extends core_Master
         if(!Request::get('Rejected', 'int')){
         	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=13em');
 	        $data->listFilter->setDefault('type', 'active');
-			$data->listFilter->showFields .= ',type';
+			$data->listFilter->showFields .= ',dealerId,type';
+			$data->listFilter->setField('dealerId', 'caption=Търговец,width=13em');
+			$data->listFilter->setDefault('dealerId', core_Users::getCurrent());
 		}
 		
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
+			
+			if($filter->dealerId){
+				$data->query->where("#dealerId = {$filter->dealerId}");
+			}
+		
 			if($filter->type) {
 				switch($filter->type){
 					case "all":
@@ -792,7 +799,7 @@ class sales_Sales extends core_Master
     	if(empty($data->noTotal)){
     		
     		$fromProforma = ($data->fromProforma) ? TRUE : FALSE;
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, $fromProforma, $rec->tplLang);
+    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, $fromProforma, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
     		if($rec->paymentMethodId) {
@@ -1343,4 +1350,55 @@ class sales_Sales extends core_Master
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
+     
+     
+     /**
+      * Перо в номенклатурите, съответстващо на този продукт
+      *
+      * Част от интерфейса: acc_RegisterIntf
+      */
+     static function getItemRec($objectId)
+     {
+     	$result = NULL;
+     	$self = cls::get(__CLASS__);
+     
+     	if ($rec = self::fetch($objectId)) {
+     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+     		$result = (object)array(
+     				'num' => $objectId,
+     				'title' => static::getRecTitle($objectId),
+     				'features' => array('Контрагент' => $contragentName)
+     		);
+     	}
+     
+     	return $result;
+     }
+     
+     
+     /**
+      * @see acc_RegisterIntf::itemInUse()
+      * @param int $objectId
+      */
+     static function itemInUse($objectId)
+     {
+     }
+     
+     
+     /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+        $self = cls::get(__CLASS__);
+        $self->recTitleTpl = NULL;
+    	
+        if ($rec = self::fetch($objectId)) {
+            $result = $self->getHyperlink($objectId);
+        } else {
+            $result = '<i>' . tr('неизвестно') . '</i>';
+        }
+        
+        return $result;
+    }
 }

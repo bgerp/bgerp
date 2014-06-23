@@ -89,6 +89,18 @@ class cams_Records extends core_Master
      */
     var $canRead = 'ceo,cams, admin';
     
+    
+    /**
+     * Права за маркиране
+     */
+    var $canMark = 'ceo,cams,admin';
+
+
+    /**
+     * Права за размаркиране
+     */
+    var $canUnmark = 'ceo,cams,admin';
+    
     // Ръчно не могат да се добавят записи
     //var $canEdit = 'no_one';
     //var $canAdd = 'no_one';
@@ -379,7 +391,7 @@ class cams_Records extends core_Master
         
         expect($rec = $this->fetch($id));
         
-        $this->requireRightFor('marked', $rec);
+        $this->requireRightFor('mark', $rec);
         
         $rec->marked = 'yes';
         
@@ -398,7 +410,7 @@ class cams_Records extends core_Master
         
         expect($rec = $this->fetch($id));
         
-        $this->requireRightFor('marked', $rec);
+        $this->requireRightFor('unmark', $rec);
         
         $fp = $this->getFilePaths($rec->startTime, $rec->cameraId);
         
