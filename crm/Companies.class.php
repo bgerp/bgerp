@@ -25,6 +25,10 @@ class crm_Companies extends core_Master
     var $interfaces = array(
         // Интерфейс на всички счетоводни пера, които представляват контрагенти
         'crm_ContragentAccRegIntf',
+
+        // Интерфейс за счетоводни пера, отговарящи на фирми
+        'crm_CompanyAccRegIntf',
+
         
         // Интерфейс за всякакви счетоводни пера
         'acc_RegisterIntf',
