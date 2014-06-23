@@ -141,9 +141,6 @@ class flexpaper_Render
         $swfObj->setAttributes($attributes);
         $swfObj->setParams($paramsSwf);
         
-        $JQuery = cls::get('jquery_Jquery');
-        $JQuery->enable($html);
-        
         return $swfObj->getContent();
     }
 }
