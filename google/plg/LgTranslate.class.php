@@ -47,12 +47,6 @@ class google_plg_LgTranslate extends core_Plugin
         // Променлива
         $tpl = &$data->form->tpl;
         
-        // Инстанция на JQuery
-        $JQuery = cls::get('jquery_Jquery');
-        
-        // Включваме го
-        $JQuery->enable($tpl);
-        
         // Вземаме променливите, необходими за превеждане
         $markup = google_Translate1::getMarkupTpl('', TRUE);
         $tpl->push(google_Translate1::getElementJsUrl('en'), 'JS');
@@ -60,7 +54,7 @@ class google_plg_LgTranslate extends core_Plugin
         $tpl->appendOnce(google_Translate1::getCss(), 'STYLES');
         
         // Добавяме скрипта
-        $JQuery->run($tpl, "
+        jquery_Jquery::run($tpl, "
         	$('.formFields table tbody').append('<tr><td align=\"right\">Google:</td><td>$markup</td>');
         	
         	$('.goog-trans-text').text($('.translated').val());
