@@ -492,7 +492,6 @@ class pos_Receipts extends core_Master {
      */
     private function pushFiles(&$tpl)
     {
-    	jquery_Jquery::enable($tpl);
 	    $tpl->push('pos/tpl/css/styles.css', 'CSS');
 	    $tpl->push('pos/js/scripts.js', 'JS');
 		jquery_Jquery::run($tpl, "posActions();");
