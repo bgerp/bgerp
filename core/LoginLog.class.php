@@ -497,10 +497,6 @@ class core_LoginLog extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($rec->ip) {
-    	    $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
-    	}
-    	
     	// В зависимост от статуса, добавяме клас на реда
     	if ($rec->status == 'success') {
     	    $row->ROW_ATTR['class'] = 'loginLog-success';
@@ -515,11 +511,13 @@ class core_LoginLog extends core_Manager
     	$brinFontColor = static::getFontColor($rec->brid);
     	$row->brid = "<span style='color: {$bridTextColor}; background-color: {$brinFontColor};'>" . $row->brid . "</span>";
     	
-    	// Оцветяваме IP-то
-    	$ipTextColor = static::getTextColor($rec->ip);
-    	$ipFontColor = static::getFontColor($rec->ip);
-    	$row->ip = "<span style='color: {$ipTextColor}; background-color: {$ipFontColor};'>" . $row->ip . "</span>";
-    	
+        if ($rec->ip) {
+    	    
+        	// Оцветяваме IP-то
+        	$ipTextColor = static::getTextColor($rec->ip);
+        	$ipFontColor = static::getFontColor($rec->ip);
+            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, array('style' => "color: {$ipTextColor}; background-color: {$ipFontColor};"));
+    	}
     }
     
     
