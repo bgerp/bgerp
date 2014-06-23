@@ -170,14 +170,14 @@ class purchase_Purchases extends core_Master
     public $allowedPaymentOperations = array(
     		'case2supplierAdvance' => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '501'),
     		'bank2supplierAdvance' => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '503'),
-    		'case2supplier' => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '501'),
-    		'bank2supplier' => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '503'),
-    		'supplier2case' => array('title' => 'Връщане от Доставчик', 'debit' => '501', 'credit' => '401'),
-    		'supplier2bank' => array('title' => 'Връщане от Доставчик', 'debit' => '503', 'credit' => '401'),
-    		'supplierAdvance2case' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '501', 'credit' => '402'),
-    		'supplierAdvance2bank' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '503', 'credit' => '402'),
+    		'case2supplier'        => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '501'),
+    		'bank2supplier'        => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '503'),
+    		'supplier2case'        => array('title' => 'Връщане от Доставчик', 'debit' => '501', 'credit' => '401', 'reverse' => TRUE),
+    		'supplier2bank'        => array('title' => 'Връщане от Доставчик', 'debit' => '503', 'credit' => '401', 'reverse' => TRUE),
+    		'supplierAdvance2case' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '501', 'credit' => '402', 'reverse' => TRUE),
+    		'supplierAdvance2bank' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '503', 'credit' => '402', 'reverse' => TRUE),
     		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '401'),
-    		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '401', 'credit' => '*'),
+    		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '401', 'credit' => '*', 'reverse' => TRUE),
     );
     
     

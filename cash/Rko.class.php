@@ -181,7 +181,8 @@ class cash_Rko extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
-    	 
+    	$this->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
+    	
         // Поставяне на уникален индекс
     	$this->setDbUnique('number');
     }
@@ -335,9 +336,12 @@ class cash_Rko extends core_Master
     		
     		// Коя е дебитната и кредитната сметка
 	        $operation = $dealInfo->allowedPaymentOperations[$rec->operationSysId];
+    		$debitAcc = empty($operation['reverse']) ? $operation['debit'] : $operation['credit'];
+    		$creditAcc = empty($operation['reverse']) ? $operation['credit'] : $operation['debit'];
     		
-	        $rec->debitAccount = $operation['debit'];
-    		$rec->creditAccount = $operation['credit'];
+	        $rec->debitAccount = $debitAcc;
+    		$rec->creditAccount = $creditAcc;
+    		$rec->isReverse = empty($operation['reverse']) ? 'no' : 'yes';
     		
 	    	$rec->contragentClassId = doc_Folders::fetchField($rec->folderId, 'coverClass');
 	        $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
@@ -445,35 +449,34 @@ class cash_Rko extends core_Master
         $dealInfo = $origin->getAggregateDealInfo();
         $amount = round($rec->rate * $rec->amount, 2);
         
+        // Ако е обратна транзакцията, сумите и к-та са с минус
+        $sign = ($rec->isReverse == 'no') ? 1 : -1;
+       
         // Дебита е винаги във валутата на пораждащия документ,
         $debitCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
         $debitQuantity = round($amount / $dealInfo->agreed->rate, 2);
         
-        $creditArr =  array(
-                        $rec->creditAccount, // кредитна сметка
-                            array('cash_Cases', $rec->peroCase), // перо каса
-                            array('currency_Currencies', $rec->currencyId), // перо валута
-                        'quantity' => $rec->amount,
-                    );
+        $creditArr[] = $rec->creditAccount;
+        $debitArr[] = $rec->debitAccount;
         
-        $debitArr = array(
-        		$rec->debitAccount, // дебитната сметка
-        		array($rec->contragentClassId, $rec->contragentId),  // перо контрагент
-        		array($origin->className, $origin->that), // Перо сделка
-        		array('currency_Currencies', $debitCurrency),      // перо валута
-        		'quantity' => $debitQuantity,
-        );
+        $cashArr = array('1' => array('cash_Cases', $rec->peroCase), 
+        				 '2' => array('currency_Currencies', $rec->currencyId), 
+        				 'quantity' => $sign * $rec->amount);
+        
+        $dealArr = array('1' => array($rec->contragentClassId, $rec->contragentId), 
+        				 '2' => array($origin->className, $origin->that), 
+        				 '3' => array('currency_Currencies', $debitCurrency), 
+        				 'quantity' => $sign * $rec->amount);
+       
+        $creditArr += ($rec->isReverse == 'no') ? $cashArr : $dealArr;
+        $debitArr += ($rec->isReverse == 'no') ? $dealArr : $cashArr;
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason'  => $rec->reason,   // основанието за ордера
             'valior'  => $rec->valior,   // датата на ордера
             'entries' => array(
-                array(
-                    'amount' => $amount,	// равностойноста на сумата в основната валута
-                    'debit' => $debitArr,
-                    'credit' => $creditArr,
-                ),
+                array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,),
             )
         );
         
