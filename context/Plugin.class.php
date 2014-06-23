@@ -25,12 +25,10 @@ class context_Plugin extends core_Plugin {
      	
     	$toolbar->prepend(ht::createFnBtn('', NULL, NULL, 'class=more-btn'), "ROW0");
     	
-        $JQuery = cls::get('jquery_Jquery');
-        $JQuery->enable($toolbar);
         $toolbar->push('context/lib/contextMenu.css', "CSS");
         $toolbar->push('context/lib/contextMenu.js', "JS");
-        $JQuery->run($toolbar,'prepareContextMenu();', TRUE);
-        $JQuery->runAfterAjax($toolbar, 'prepareContextMenu');
+        jquery_Jquery::run($toolbar,'prepareContextMenu();', TRUE);
+        jquery_Jquery::runAfterAjax($toolbar, 'prepareContextMenu');
         
         return FALSE;
     }
