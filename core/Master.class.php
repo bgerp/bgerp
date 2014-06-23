@@ -138,8 +138,7 @@ class core_Master extends core_Manager
          * би трябвало да е така, но промяната му би била прекалено рискова. По тази причина
          * правим компромиса да изчислим $data->row втори път, ако се налага. 
          */
-        $diff = array_diff_assoc((array)$data->rec, (array)$oldRec);
-        if (count($diff)) {
+        if (serialize($data->rec) != serialize($oldRec)) {
             // $data->rec се е променил в някой `prepare` метод - преизчисляваме $data->row.
             // подсигуряваме, че всички полета на $data->row които не са генерирани в 
             // recToVerbal() a другаде, ще бъдат запазени.
