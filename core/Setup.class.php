@@ -173,7 +173,8 @@ class core_Setup extends core_ProtoSetup {
      */
     var $managers = array(
         'core_LoginLog',
-        'migrate::loginLogTruncate'
+        'migrate::loginLogTruncate',
+        'core_Browser'
     );
     
     

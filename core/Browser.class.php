@@ -36,9 +36,81 @@ class core_Browser extends core_Manager
     
     
     /**
-     * 
+     * Кой има право да чете?
+     */
+    var $canRead = 'admin';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'no_one';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'no_one';
+    
+    
+    /**
+     * Кой има право да го види?
+     */
+    var $canView = 'admin';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'admin';
+    
+    
+    /**
+     * Необходими роли за оттегляне на документа
+     */
+    var $canReject = 'no_one';
+    
+    
+    /**
+     * Кой има право да го изтрие?
+     */
+    var $canDelete = 'no_one';
+    
+    
+    /**
+     * Името на полито, по което плъгина GroupByDate ще групира редовете
+     */
+    var $groupByDateField = 'createdOn';
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
+    var $loadList = 'plg_SystemWrapper, plg_Created, plg_GroupByDate';
+    
+    
+    /**
+     * Описание на модела
+     */
+    function description()
+    {
+        $this->FLD('brid', 'varchar(8)', 'caption=BRID');
+        $this->FLD('browser', 'varchar(16)', 'caption=Браузър');
+        $this->FLD('OS', 'varchar(16)', 'caption=ОС');
+        
+        $this->setDbUnique('brid');
+    }
+    
+    
+    /**
+     * Връща уникален BRID
+     * 1. Търси в сесията
+     * 2. Търси в кукутата
+     * 3. Ако няма открит BRID, и флага е вдигнат генерира и записва BRID
      * 
      * @param boolean $generate
+     * 
+     * @return string
      */
     static function getBrid($generate = TRUE)
     {   
@@ -60,6 +132,9 @@ class core_Browser extends core_Manager
                 
                 // Записваме в сесията
                 Mode::setPermanent(static::BRID_NAME, $brid);
+                
+                // Добавяме в модела
+                static::add($brid);
                 
                 return $brid;
             } else {
@@ -84,8 +159,30 @@ class core_Browser extends core_Manager
             // Записваме кукито
             static::setBridCookie($brid);
             
+            // Добавяме в модела
+            static::add($brid);
+            
             return $brid;
         }
+    }
+    
+    
+    /**
+     * Добавя BRID, OS и браузъра в модела
+     * 
+     * @param string $brid
+     */
+    static function add($brid)
+    {
+        // Ако е бот, да не се добавя
+        if (static::detectBot()) return ;
+        
+        $rec = new stdClass();
+        $rec->brid = $brid;
+        $rec->browser = static::getBrowserName();
+        $rec->OS = static::getOSName();
+        
+        static::save($rec, NULL, REPLACE);
     }
     
     
@@ -156,14 +253,18 @@ class core_Browser extends core_Manager
      */
     static function getBrowserName_()
     {
+        static $browserName='';
+        
+        if ($browserName) return $browserName;
+        
         // Ако може да се използва browserCap
         $browserCap = static::getBrowserCap();
         
         if ($browserCap) {
-            $browser = $browserCap->browser;
+            $browserName = $browserCap->browser;
         }
         
-        if ($browser) return $browser;
+        if ($browserName) return $browserName;
         
         // Вземаме името на браузъра от HTTP_USER_AGENT
         $userAgent = static::getUserAgent();
@@ -173,12 +274,12 @@ class core_Browser extends core_Manager
         }
         
         if ($browserInfo) {
-            list($browser) = explode('/', $browserInfo);
+            list($browserName) = explode('/', $browserInfo);
         }
         
-        if (!$browser) return 'Unknown';
+        if (!$browserName) return 'Unknown';
         
-        return $browser;
+        return $browserName;
     }
     
     
@@ -189,6 +290,10 @@ class core_Browser extends core_Manager
      */
     static function getOSName_()
     {
+        static $osPlatform;
+        
+        if ($osPlatform) return $osPlatform;
+        
         // Ако може да се използва browserCap
         $browserCap = static::getBrowserCap();
         
@@ -440,5 +545,37 @@ class core_Browser extends core_Manager
      
         return FALSE;
     }
-
+    
+    
+    /**
+     * 
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        // В хоризонтален вид
+        $data->listFilter->view = 'horizontal';
+        
+        // Добавяме бутон
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Кои полета да се показват
+        $data->listFilter->showFields = 'brid';
+        
+        // Инпутваме заявката
+        $data->listFilter->input('brid', 'silent');
+        
+        // Ако има филтър
+        if($filter = $data->listFilter->rec) {
+            if ($filter->brid) {
+                $data->query->where(array("#brid = '[#1#]'", $filter->brid));
+            }
+        }
+        
+        // Сортиране на записите по създаване
+        $data->query->orderBy('createdOn', 'DESC');
+    }
 }
