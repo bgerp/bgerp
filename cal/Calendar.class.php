@@ -292,8 +292,6 @@ class cal_Calendar extends core_Master
     
     function on_AfterRenderWrapping($mvc, &$tpl)
     {
-    	jquery_Jquery::enable($tpl);
-    	
     	$tpl->push('cal/tpl/style.css', 'CSS');
     	$tpl->push('cal/js/mouseEvent.js', 'JS');
     	
