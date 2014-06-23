@@ -1885,7 +1885,7 @@ span.richEdit div.richedit-toolbar {
     background: $gray2; 
     border: 1px solid $violet; 
     border-top: none; 
-    padding: 5px; 
+    padding: 4px; 
     font-size: 0.85em; 
     text-align: left;
 	color: #333;
@@ -1953,24 +1953,41 @@ div.richEdit {
 }
 
 a.rtbutton {
-    border: 1px solid #bba;
-    background: #eed;
+    border: 1px solid transparent;
+    background: transparent;
     padding: 0.2em 0.3em 0.3em;
     cursor: pointer;
     display: block;
     float: left;
     min-width: 0.6em;
     height: 1.2em;
+	min-width:15px;
+	text-align:center;
 }
+
+.richtext-holder-group a.rtbutton {
+	background:#ddd;
+    border: 1px solid #bba;
+ 	padding:4px;
+	border-radius:0px !important;
+}
+
+.left a.rtbutton {
+	text-align:left;
+}
+
 
 .narrow a.rtbutton {
 	padding: 0.2em 0.3em 0.3em;
 	height:1.1em;
 }
 
-a.rtbutton:hover {
-    background: white;
+a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
+    background: #d0d0ff;
     border-style: outset;
+    border: 1px solid #bbd;
+	border-radius:3px;
+	color:black !important;
 }
 
 .richtext-emoticons, .richtext-emoticons2, .richtext-emoticons3, .richtext-emoticons4, .richtext-emoticons5 {
