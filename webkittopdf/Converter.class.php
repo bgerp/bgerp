@@ -77,9 +77,6 @@ class webkittopdf_Converter extends core_Manager
             // Обхождаме масива с JQUERY кодовете
             if ($jsArr['JQUERY_CODE'] && count((array)$jsArr['JQUERY_CODE'])) {
                 
-                // Активираме JQUERY
-                jquery_Jquery::enable($wrapperTpl);
-                
                 // Обхождаме JQuery кодовете
                 foreach ((array)$jsArr['JQUERY_CODE'] as $jquery) {
                     
