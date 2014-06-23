@@ -98,13 +98,10 @@ class fancybox_Fancybox {
         $aAttr['class'] .= 'fancybox';
         $tpl = ht::createElement('a', $aAttr, $imgTpl);
 
-        $jQuery = cls::get('jquery_Jquery');
-        $jQuery->enable($tpl);
-        
         $tpl->push(FANCYBOX_PATH . '/jquery.fancybox-1.3.4.css', 'CSS');
         $tpl->push(FANCYBOX_PATH . '/jquery.fancybox-1.3.4.js', 'JS');
         
-        $jQuery->run($tpl, "$('a.fancybox').fancybox();", TRUE);
+        jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", TRUE);
         
         return $tpl;
     }
