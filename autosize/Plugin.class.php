@@ -35,14 +35,12 @@ class autosize_Plugin extends core_Plugin {
     {
     	$conf = core_Packs::getConfig('autosize');
     	        
-        $JQuery = cls::get('jquery_Jquery');
-        $JQuery->enable($tpl);
         $tpl->push("autosize/" . $conf->AUTOSIZE_VERSION . "/jquery.autosize.min.js", "JS");
         
         $maxRows = Mode::is('screenMode', 'narrow') ? $conf->AUTOSIZE_MAX_ROWS_NARROW : $conf->AUTOSIZE_MAX_ROWS_WIDE;
 
         //$tpl->append("\n    .autosize {max-height:{$maxRows}em;}", "STYLES");
 
-        $JQuery->run($tpl, "$('.autosize').autosize({maxHeight:{$maxRows}});");
+        jquery_Jquery::run($tpl, "$('.autosize').autosize({maxHeight:{$maxRows}});");
     }
 } 
