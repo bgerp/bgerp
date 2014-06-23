@@ -1229,16 +1229,22 @@ function setFormElementsWidth()
 	var paddingL = parseInt(form.css('paddingLeft'));
 	var inlinePadding = 14;
 	var formElWidth = winWidth - 2 * formOffsetL - 2 * paddingL - inlinePadding;
+	var preferredSizeInEm = 42;
+	var outsideWidth = 44;
 	
 	// колко ЕМ е широка страницата
 	var sizeInEm = winWidth / parseFloat($(".formTable input[type=text]").css("font-size")); 
 	
 	// колко РХ е 1 ЕМ
 	var em = parseInt(winWidth / sizeInEm);
-	
-	if(winWidth > 640){
-		formElWidth =  30 * em;
-		form.css('maxWidth','30em');
+	var width = preferredSizeInEm * em;
+
+	if(winWidth > (width + outsideWidth)){
+		formElWidth =  width;
+		form.css('maxWidth', '42em');
+	} else {
+		formElWidth =  winWidth - outsideWidth;
+		form.css('maxWidth', parseInt(formElWidth/sizeInEm) + 'em' );
 	}
 	
 	$('.formTable label').each(function() {
