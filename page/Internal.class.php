@@ -46,7 +46,8 @@ class page_Internal extends page_Html {
 		       select {padding-left: 0.2em !important;}
 		         ", "STYLES");
         }
-      
+        
+        jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         
         $this->push('Cache-Control: no-cache, must-revalidate', 'HTTP_HEADER');
