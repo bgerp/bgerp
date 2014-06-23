@@ -44,7 +44,7 @@ defIfNot('CMD', '');
 /**
  * Клас 'tracking_Setup'
  *
- * @category  vendors
+ * @category  bgerp
  * @package   tracking
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
@@ -98,8 +98,9 @@ class tracking_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'tracking_Log',
-            'tracking_Vehicles'
+            'tracking_Vehicles',
+            'tracking_Drivers',
+            'tracking_Log'
     );
 
     /**
@@ -111,7 +112,7 @@ class tracking_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.4, 'Мониторинг', 'Tracking', 'tracking_Log', 'default', "tracking,ceo,admin"),
+            array(3.4, 'Мониторинг', 'Проследяване', 'tracking_Log', 'default', "tracking,ceo,admin"),
     );
     
     

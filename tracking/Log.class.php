@@ -20,7 +20,7 @@ class tracking_Log extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Tracking';
+    public $title = 'Точки';
     
     /**
      * Заглавие
@@ -85,6 +85,7 @@ class tracking_Log extends core_Manager
 
             exit;
         }
+        file_put_contents('tracking_log.log', "\n accepted", FILE_APPEND);
         
         $trackerId = Request::get('trackerId', 'varchar');
         $data = Request::get('data', 'varchar');
@@ -102,6 +103,8 @@ class tracking_Log extends core_Manager
             $rec = $query->fetch();
             $recData = self::parseTrackingData($rec->data); 
             if (is_array($recData) && ($recData['speed'] -0.01) < 0) {
+                file_put_contents('tracking_log.log', "\n NEZAPISAN", FILE_APPEND);
+                
                 // Не го записваме
                 exit;
             }

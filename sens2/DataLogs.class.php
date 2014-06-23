@@ -136,10 +136,12 @@ class sens2_DataLogs extends core_Manager
      */
     static function on_AfterPrepareListRows($mvc, $data, $data)
     { 
-        foreach($data->rows as $id => &$row) {
-            $row->value .= "<span class='measure'>" . 
-                type_Varchar::escape(sens2_Indicators::getUom($data->recs[$id]->indicatorId)) . "</span>";
-        }
+    	if(is_array($data->rows)) {
+            foreach($data->rows as $id => &$row) {
+                $row->value .= "<span class='measure'>" . 
+                    type_Varchar::escape(sens2_Indicators::getUom($data->recs[$id]->indicatorId)) . "</span>";
+            }
+    	}
     }
 
     
