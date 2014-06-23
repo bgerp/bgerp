@@ -256,9 +256,10 @@ function comboSelectOnChange(id, value, suffix)
 	} else {
 		get$(id).value = value.replace(/&lt;/g, '<'); 
 	}
+	
+	get$(id).focus(); 
+	$(id).trigger("change");
 
-	get$(id).focus();
-	get$(id).onchange();
 	var selCombo = get$(id + suffix);
 	selCombo.value = '?';
 }
