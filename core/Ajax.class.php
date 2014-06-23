@@ -189,7 +189,7 @@ class core_Ajax extends core_Mvc
         $nameArr[$name] = TRUE;
         
         // Добавяме необходимите неща за стартиране на efae
-        static::enable($tpl);
+        static::run($tpl);
         
         // Локално URL
         $localUrl = toUrl($urlArr, 'local');
@@ -202,32 +202,6 @@ class core_Ajax extends core_Mvc
         
         // Добавяме само веднъж
         $tpl->appendOnce($subscribeStr, 'SCRIPTS');
-    }
-    
-    
-    /**
-     * Добавя необходимите неща, за да може да се стартира efae
-     * 
-     * @param core_ET $tpl - Щаблон, към който ще се добавя
-     */
-    protected static function enable(&$tpl)
-    {
-        // Скрипт, за вземане на инстанция на efae
-//        $tpl->appendOnce("\n runOnLoad(function(){ getEfae(); });", 'SCRIPTS');
-        
-        // Този пакет е във vendors
-        if (method_exists('jquery_Jquery', 'enable')) {
-            
-            // Стартираме JQuery
-            jquery_Jquery::enable($tpl);
-        } else {
-            
-            // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, 'Липсва метода `enable` в `jquery_Jquery`', static::$logKeepDays);
-        }
-        
-        // Стартираме извикването на `run` фунцкцията на efae
-        static::run($tpl);
     }
     
     
@@ -259,21 +233,9 @@ class core_Ajax extends core_Mvc
         
         // Задаваме УРЛ-то
 //        $tpl->appendOnce("\n runOnLoad(function(){getEfae().setParentUrl('{$parentUrl}');});", 'SCRIPTS');
-        
-        // Този пакет е във vendors - ако липсва
-        if (method_exists('jquery_Jquery', 'run')) {
             
-            // Стартираме извикването на `run` фунцкцията на efae
-            jquery_Jquery::run($tpl, "\n getEfae().run();", TRUE);
-            jquery_Jquery::run($tpl, "\n getEO().runIdleTimer();", TRUE);
-        } else {
-            
-            // Стартираме извикването на run
-            $tpl->prependOnce("\n runOnLoad(function(){getEfae().run();});", 'SCRIPTS');
-            $tpl->prependOnce("\n runOnLoad(function(){getEO().runIdleTimer();});", 'SCRIPTS');
-            
-            // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, 'Липсва метода `run` в `jquery_Jquery`', static::$logKeepDays);
-        }
+        // Стартираме извикването на `run` фунцкцията на efae
+        jquery_Jquery::run($tpl, "\n getEfae().run();", TRUE);
+        jquery_Jquery::run($tpl, "\n getEO().runIdleTimer();", TRUE);
     }
 }
