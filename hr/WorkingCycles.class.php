@@ -295,7 +295,6 @@ class hr_WorkingCycles extends core_Master
     	$prepareRecs = static::prepareGrafic($data);
     	//bp($prepareRecs);
 		$tpl = new ET(getTplFromFile('hr/tpl/SingleLayoutShift.shtml'));
-		jquery_Jquery::enable($tpl);
 		$tpl->push('hr/tpl/style.css', 'CSS');
 		$tpl->appendOnce($jsFnc, 'SCRIPTS');
     	
