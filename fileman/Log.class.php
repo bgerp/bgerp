@@ -200,9 +200,6 @@ class fileman_Log extends core_Manager
         // Вземаме шаблона
         $tpl = $this->getTpl();
         
-        // Стартирамя JQuery
-//        jquery_Jquery::enable($tpl);
-        
         // Рендираме диалоговия прозорец
 //        return $this->renderDialog($tpl);
         
