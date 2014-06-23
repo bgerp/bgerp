@@ -36,10 +36,6 @@ class location_Type extends type_Varchar {
         
         $tpl = parent::createInput($name, $value, $attr);
         
-        $JQuery = cls::get('jquery_Jquery');
-        
-        $JQuery->enable($tpl);
-        
         $tpl->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
         
         $Lg = cls::get('core_Lg');
@@ -50,7 +46,7 @@ class location_Type extends type_Varchar {
             $tpl->push('location/js/jquery.locationpicker.js', 'JS');
         }
         
-        $JQuery->run($tpl, "$(\"input.lnglat\").locationPicker();");
+        jquery_Jquery::run($tpl, "$(\"input.lnglat\").locationPicker();");
         
         return $tpl;
     }
@@ -73,15 +69,11 @@ class location_Type extends type_Varchar {
 
         $res = new ET("<div style='width:{$width}px;height:{$height}px;' id=\"{$id}\"></div>");
         
-        $JQuery = cls::get('jquery_Jquery');
-        
-        $JQuery->enable($res);
-       
         $res->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
         
         $res->push('location/js/gmap3.min.js', 'JS');
 
-        $JQuery->run($res, "\$('#{$id}').gmap3(
+        jquery_Jquery::run($res, "\$('#{$id}').gmap3(
                             { action:'init',
                             options:{
                             center:[{$value}],
