@@ -131,9 +131,6 @@ class mejs_Adapter
         // Добавяме скрипта за стартиране
         $tpl->append("<script> $('{$type}').mediaelementplayer({$paramsStr}); </script>");
         
-        // Активираме JQuery
-        jquery_Jquery::enable($tpl);
-
         // Добавяме CSS
         $tpl->push('mejs/' . MEJS_VERSION . '/build/mediaelementplayer.css', 'CSS');
         
