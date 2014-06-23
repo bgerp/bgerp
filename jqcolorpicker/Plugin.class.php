@@ -57,12 +57,10 @@ class jqcolorpicker_Plugin extends core_Plugin {
  
         $tpl = ht::createSelect($name, $options, $selected, $attr);
         
-        $JQuery = cls::get('jquery_Jquery');
-        $JQuery->enable($tpl);
         $tpl->push("jqcolorpicker/2.0/jquery.colourPicker.css", "CSS");
         $tpl->push("jqcolorpicker/2.0/jquery.colourPicker.js", "JS");
         
-        $JQuery->run($tpl,
+        jquery_Jquery::run($tpl,
             
             "\n$('#" . $attr['id'] . "').colourPicker({" .
             "\n    ico:     '" . sbf('jqcolorpicker/2.0/jquery.colourPicker.gif', '') . "'," .
