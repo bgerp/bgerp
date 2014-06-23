@@ -23,6 +23,7 @@ class fileman_view_DialogWrapper extends page_Html
         $this->replace("UTF-8", 'ENCODING');
         $this->push('fileman/css/default.css', 'CSS');
         $this->push('css/common.css', 'CSS');
+        jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
     }
 }
