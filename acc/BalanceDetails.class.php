@@ -480,7 +480,6 @@ class acc_BalanceDetails extends core_Detail
             	if(!$tpl){
             		$tpl = new ET("");
             	}
-            	jquery_Jquery::enable($tpl);
 		    	$tpl->push(('acc/js/balance.js'), 'JS');
 		    	jquery_Jquery::run($tpl, "chosenrefresh();");
     	
