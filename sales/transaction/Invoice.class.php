@@ -1,22 +1,22 @@
 <?php
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа purchase_Invoices
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа sales_Invoices
  *
  * @category  bgerp
- * @package   purchase
+ * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class purchase_transaction_Invoice
+class sales_transaction_Invoice
 {
     /**
      * 
-     * @var purchase_Invoices
+     * @var sales_Invoices
      */
     public $class;
     
@@ -30,12 +30,11 @@ class purchase_transaction_Invoice
     	$rec->state = 'active';
     
     	if ($this->class->save($rec)) {
-    		$this->class->invoke('AfterActivation', array($rec));
-    		
+    
     		// Нотификация към пораждащия документ, че нещо във веригата
     		// му от породени документи се е променило.
     		if ($origin = doc_Threads::getFirstDocument($rec->threadId)) {
-    			$rec = new core_ObjectReference($this->class, $rec);
+    			$rec = new core_ObjectReference(get_called_class(), $rec);
     			$origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
     		}
     	}
@@ -46,8 +45,8 @@ class purchase_transaction_Invoice
      *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      *  Създава транзакция която се записва в Журнала, при контирането
      *
-     *  Dt: 4531 - Начислен ДДС за покупките
-     *  Ct: 401  - Задължения към доставчици
+     *  Dt: 411  - ДДС за начисляване
+     *  Ct: 4532 - Начислен ДДС за продажбите
      */
     public function getTransaction($id)
     {
@@ -60,21 +59,27 @@ class purchase_transaction_Invoice
     	$contragentId    = doc_Folders::fetchCoverId($cloneRec->folderId);
     
     	$result = (object)array(
-    			'reason'  => "Входяща фактура №{$rec->number}", // основанието за ордера
+    			'reason'  => "Фактура №{$rec->id}", // основанието за ордера
     			'valior'  => $rec->date,   // датата на ордера
     			'entries' => array(),
     	);
-    
+    	
     	$origin = $this->class->getOrigin($rec);
     	
     	// Ако е ДИ или КИ се посочва към коя фактура е то
     	if($rec->type != 'invoice') {
+    		$origin = $this->class->getOrigin($rec);
+    		
     		$type = $this->class->getVerbal($rec, 'type');
+    		if(!$origin) return $result;
     		$result->reason = "{$type} към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
     	
     		// Намираме оридиджана на фактурата върху която е ДИ или КИ
     		$origin = $origin->getOrigin();
     	}
+    
+    	// Ако фактурата е от пос продажба не се контира ддс
+    	if($cloneRec->type == 'invoice' && isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
     	 
     	$entries = array();
     
@@ -82,9 +87,9 @@ class purchase_transaction_Invoice
     		$entries[] = array(
     				'amount' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
     
-    				'credit' => array('4531', array($origin->className, $origin->that)),
-    
     				'debit' => array('4530', array($origin->className, $origin->that)),
+    
+    				'credit' => array('4532', array($origin->className, $origin->that)),
     		);
     	}
     

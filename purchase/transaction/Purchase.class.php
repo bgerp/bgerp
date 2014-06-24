@@ -226,7 +226,7 @@ class purchase_transaction_Purchase
 	                
 	                'debit' => array(
 	                    '4530', 
-	                    'quantity' => $vatAmount, // Количество продукт в основната му мярка
+	                		array('purchase_Purchases', $rec->id),
 	                ),
 	         );
         }

@@ -29,7 +29,7 @@ class sales_Services extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealIntf, acc_TransactionSourceIntf=sales_transaction_Service';
     
     
     /**
@@ -476,7 +476,7 @@ class sales_Services extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new sales_model_Service($id);
+        $rec = $this->fetchRec($id);
         $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
@@ -490,8 +490,10 @@ class sales_Services extends core_Master
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
         
-        /* @var $dRec sales_model_Service */
-        foreach ($rec->getDetails('sales_ServicesDetails') as $dRec) {
+        $dQuery = sales_ServicesDetails::getQuery();
+        $dQuery->where("#shipmentId = {$rec->id}");
+        
+        while ($dRec = $dQuery->fetch()) {
             $p = new bgerp_iface_DealProduct();
             
             $p->classId     = $dRec->classId;
@@ -541,27 +543,6 @@ class sales_Services extends core_Master
     }
     
     
-    /**
-     * Финализиране на транзакцията
-     * @param int $id
-     */
-	public function finalizeTransaction($id)
-    {
-        $rec = $this->fetchRec($id);
-        $rec->state = 'active';
-        
-        if ($this->save($rec)) {
-            $this->invoke('AfterActivation', array($rec));
-        }
-        
-        // Нотификация към пораждащия документ, че нещо във веригата му от породени документи се е променило.
-        if ($origin = $this->getOrigin($rec)) {
-            $rec = new core_ObjectReference($this, $rec);
-            $origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
-        }
-    }
-    
-    
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
@@ -590,86 +571,6 @@ class sales_Services extends core_Master
     	}
     	
     	$res .= "<li><font color='green'>Добавени са {$added} шаблона за протоколи за извършени услуги, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
-    }
-    
-    
-    /**
-     * Транзакция за запис в журнала
-     * @param int $id
-     */
-	public function getTransaction($id)
-    {
-        $entries = array();
-        
-        $rec = new sales_model_Service($id);
-        $origin = $this->getOrigin($this->fetchRec($id));
-        
-        $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-        
-        $detailsRec = $rec->getDetails('sales_ServicesDetails');
-        if(count($detailsRec)){
-        	deals_Helper::fillRecs($detailsRec, $rec);
-        	
-	        foreach ($detailsRec as $dRec) {
-		        if($rec->chargeVat == 'yes'){
-	        		$ProductManager = cls::get($dRec->classId);
-	            	$vat = $ProductManager->getVat($dRec->productId, $rec->valior);
-	            	$amount = $dRec->amount - ($dRec->amount * $vat / (1 + $vat));
-	        	} else {
-	        		$amount = $dRec->amount;
-	        	}
-	        	
-	        	$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;
-	        	
-	        	$entries[] = array(
-	                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
-	                
-	                'debit' => array(
-	                    '411', // Сметка "411. Вземания от клиенти"
-	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-	                		array($origin->className, $origin->that),			// Перо 2 - Сделка
-	                        array('currency_Currencies', $currencyId),     		// Перо 3 - Валута
-	                    'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на продажбата
-	                ),
-	                
-	                'credit' => array(
-	                    '703', // Сметка "703". Приходи от продажби на услуги
-	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-	                		array($origin->className, $origin->that),			// Перо 2 - Сделка
-	                    	array($dRec->classId, $dRec->productId), // Перо 3 - Артикул
-	                    'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
-	                ),
-            	);
-	        }
-	        
-        	if($rec->_total->vat){
-	        	$vatAmount = currency_Currencies::round($rec->_total->vat * $rec->currencyRate);
-	        	$entries[] = array(
-	                'amount' => $vatAmount, // В основна валута
-	                
-	                'debit' => array(
-	                    '411',
-	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-	                		array($origin->className, $origin->that),			// Перо 2 - Сделка
-	                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
-	                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
-	                ),
-	                
-	                'credit' => array(
-	                    '4530', 
-	                    'quantity' => $vatAmount, // Количество продукт в основната му мярка
-	                ),
-	            );
-        	}
-        }
-        
-        $transaction = (object)array(
-            'reason'  => 'Протокол за доставка на услуги #' . $rec->id,
-            'valior'  => $rec->valior,
-            'entries' => $entries, 
-        );
-        
-        return $transaction;
     }
     
     

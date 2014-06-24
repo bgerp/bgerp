@@ -223,8 +223,8 @@ class store_transaction_ShipmentOrder
                 ),
                 
                 'credit' => array(
-                    '4530', 
-                    'quantity' => $sign * $vatAmount, // Количество продукт в основната му мярка
+                    '4530',
+                		array($origin->className, $origin->that),
                 ),
             );
         }

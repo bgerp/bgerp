@@ -29,7 +29,7 @@ class purchase_transaction_Service
     {
     	$entries = array();
     	$rec = $this->class->fetchRec($id);
-    	$origin = $this->class->getOrigin($this->class->fetchRec($id));
+    	$origin = $this->class->getOrigin($rec);
     
     	$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
     
@@ -87,7 +87,7 @@ class purchase_transaction_Service
     
     					'debit' => array(
     							'4530',
-    							'quantity' => $vatAmount, // Количество продукт в основната му мярка
+    							array($origin->className, $origin->that),
     					),
     			);
     		}

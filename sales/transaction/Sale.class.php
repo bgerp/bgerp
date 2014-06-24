@@ -4,7 +4,7 @@
  *
  * @category  bgerp
  * @package   sales
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -12,7 +12,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class sales_TransactionSourceImpl
+class sales_transaction_Sale
 {
     /**
      * 
@@ -255,7 +255,7 @@ class sales_TransactionSourceImpl
                 
                 'credit' => array(
                     '4530', 
-                    'quantity' => $vatAmount, // Количество продукт в основната му мярка
+                		array('sales_Sales', $rec->id),
                 ),
             );
         }
