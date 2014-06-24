@@ -89,7 +89,7 @@ class tracking_Setup extends core_ProtoSetup
             'DATA_SENDER' => array ('ip', 'mandatory, caption=Адрес на изпращач'),
             'DOMAIN' => array ('varchar(255)', 'mandatory, caption=Домейн'),
             'RESTART_PERIOD' => array ('int()', 'mandatory, caption=Период за рестарт'),
-            'PID' => array ('varchar(readonly)', 'caption=PID на процеса за слушане'),
+            'PID' => array ('varchar(readonly)', 'caption=PID на процеса за слушане,input=readonly,readonly'),
            // 'CMD' => array ('varchar(255)', 'input=hidden, caption=Команда на процеса'),
     );
     
@@ -99,7 +99,6 @@ class tracking_Setup extends core_ProtoSetup
      */
     public $managers = array(
             'tracking_Vehicles',
-            'tracking_Drivers',
             'tracking_Log'
     );
 
@@ -112,7 +111,7 @@ class tracking_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.4, 'Мониторинг', 'Проследяване', 'tracking_Log', 'default', "tracking,ceo,admin"),
+            array(3.4, 'Мониторинг', 'Проследяване', 'tracking_Vehicles', 'default', "tracking,ceo,admin"),
     );
     
     

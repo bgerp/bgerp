@@ -7,7 +7,7 @@
  * Съхранява хронологични данни от тракери
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   tracking
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
@@ -20,13 +20,13 @@ class tracking_Log extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Точки';
+    public $title = 'Лог';
     
     /**
-     * Заглавие
+     * Права
      */
     public $canList = 'tracking, admin, ceo';
-    
+
     /**
      * Плъгини за зареждане
      *
@@ -39,16 +39,17 @@ class tracking_Log extends core_Manager
      *
      * var string|array
      */
-    public $listFields = 'trackerId, text, remoteIp, createdOn';
+    public $listFields = 'vehicleId, driverId, text, remoteIp, createdOn';
     
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('trackerId', 'varchar(12)', 'caption=Тракер Id');
-        $this->FLD('data', 'blob', 'caption=tracking данни');
-        $this->FNC('text', 'html', 'caption=tracking данни');
+        $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number,make,model)', 'caption=Автомобил');
+        $this->FLD('driverId', 'key(mvc=crm_Persons, select=name)', 'caption=Водач');
+        $this->FLD('data', 'blob', 'caption=Данни');
+        $this->FNC('text', 'html', 'caption=Данни');
         $this->FLD('remoteIp', 'ip', 'caption=Tракер IP');
     }
     
