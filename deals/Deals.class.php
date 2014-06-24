@@ -134,6 +134,14 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Позволени операции за посследващите складови документи/протоколи
+     */
+    public $allowedShipmentOperations = array('delivery' => array('title' => 'Експедиране на стока', 'debit' => '*', 'credit' => 'store'),
+    										  'stowage'  => array('title' => 'Засклаждане на стока', 'debit' => 'store', 'credit' => '*'),
+    );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -521,7 +529,12 @@ class deals_Deals extends core_Master
     	$result = new bgerp_iface_DealResponse();
     	
     	$result->dealType = bgerp_iface_DealResponse::TYPE_DEAL;
-    	$result->allowedPaymentOperations = $this->getAllowedOperations($rec);
+    	
+    	$this->getAllowedOperations($rec, $paymentOperations, $shipmentOperations);
+    	
+    	$result->allowedPaymentOperations = $paymentOperations;
+    	$result->allowedShipmentOperations = $shipmentOperations;
+    	
     	$result->involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
     	if($rec->secondContragentClassId){
     		$result->involvedContragents[] = (object)array('classId' => $rec->secondContragentClassId, 'id' => $rec->secondContragentId);
@@ -540,27 +553,29 @@ class deals_Deals extends core_Master
     /**
      * Връща позволените операции за последващите документи
      */
-    private function getAllowedOperations($rec)
+    private function getAllowedOperations($rec, &$paymentOperations, &$shipmentOperations)
     {
     	expect(count($this->allowedPaymentOperations));
+    	expect(count($this->allowedShipmentOperations));
     	$sysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
     	
-    	$operations = $this->allowedPaymentOperations;
+    	$paymentOperations = $this->allowedPaymentOperations;
+    	$shipmentOperations = $this->allowedShipmentOperations;
     	
-    	// На местата с '*' добавяме сметката на сделката
-    	foreach ($operations as $index => &$op){
-    		if($op['debit'] == '*'){
-    			$op['debit'] = $sysId;
-    		}
-    		if($op['credit'] == '*'){
-    			$op['credit'] = $sysId;
+    	foreach (array('paymentOperations', 'shipmentOperations') as $opVar){
+    		// На местата с '*' добавяме сметката на сделката
+    		foreach (${$opVar} as $index => &$op){
+    			if($op['debit'] == '*'){
+    				$op['debit'] = $sysId;
+    			}
+    			if($op['credit'] == '*'){
+    				$op['credit'] = $sysId;
+    			}
     		}
     	}
     	
-    	$operations['debitDeals'] = array('title' => 'Приход по финансова сделка', 'debit' => '*', 'credit' => $sysId);
-    	$operations['creditDeals'] = array('title' => 'Разход по финансова сделка', 'debit' => $sysId, 'credit' => '*');
-    	
-    	return $operations;
+    	$paymentOperations['debitDeals'] = array('title' => 'Приход по финансова сделка', 'debit' => '*', 'credit' => $sysId);
+    	$paymentOperations['creditDeals'] = array('title' => 'Разход по финансова сделка', 'debit' => $sysId, 'credit' => '*');
     }
     
     

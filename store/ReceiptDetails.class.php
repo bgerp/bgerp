@@ -107,7 +107,7 @@ class store_ReceiptDetails extends core_Detail
         $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,column=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
@@ -243,9 +243,11 @@ class store_ReceiptDetails extends core_Detail
     {
         $form = &$data->form;
     	$ProductManager = cls::get('cat_Products');
-         
-        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-        $products = $ProductManager::getByProperty('canBuy');
+    	
+        // Намираме всички скалдируеми продукти, ако документа е обратен взимаме продаваемите, иначе купуваемите
+        $property = ($mvc->Master->fetchField($form->rec->receiptId, 'isReverse') == 'yes') ? 'canSell' : 'canBuy';
+        $products = $ProductManager::getByProperty($property);
+        
         $products2 = $ProductManager::getByProperty('canStore');
         $products = array_intersect_key($products, $products2);
          

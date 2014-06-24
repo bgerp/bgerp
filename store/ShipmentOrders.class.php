@@ -32,7 +32,7 @@ class store_ShipmentOrders extends core_Master
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transactionIntf_ShipmentOrder, bgerp_DealIntf';
+                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf';
     
     
     /**
@@ -177,6 +177,8 @@ class store_ShipmentOrders extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
+    	$this->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
+    	$this->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)','input=none,notNull,value=411');
     }
 
 
@@ -248,6 +250,10 @@ class store_ShipmentOrders extends core_Master
         // използваме го за автоматично попълване на детайлите на ЕН
         
         if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
+            
+        	// Ако документа е обратен не слагаме продукти по дефолт
+        	if($rec->isReverse == 'yes') return;
+            
             /* @var $aggregatedDealInfo bgerp_iface_DealResponse */
             $aggregatedDealInfo = $origin->getAggregateDealInfo();
             
@@ -379,21 +385,25 @@ class store_ShipmentOrders extends core_Master
         $form->getField('locationId')->type->options = 
             array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
-        // Ако създаваме нов запис и то базиран на предхождащ документ ...
-        if (empty($form->rec->id)) {
-        	
-            // ... проверяваме предхождащия за bgerp_DealIntf
-            expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
-            expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
-            	
-            /* @var $dealInfo bgerp_iface_DealResponse */
-            $dealInfo = $origin->getAggregateDealInfo();
-            $form->rec->currencyId   = $dealInfo->agreed->currency;
-            $form->rec->currencyRate = $dealInfo->agreed->rate;
-            $form->rec->locationId   = $dealInfo->agreed->delivery->location;
-            $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
-            $form->rec->chargeVat    = $dealInfo->agreed->vatType;
-            $form->rec->storeId      = $dealInfo->agreed->delivery->storeId;
+        expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
+        expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
+        $dealInfo = $origin->getAggregateDealInfo();
+        
+        $form->setDefault('currencyId', $dealInfo->agreed->currency);
+        $form->setDefault('currencyRate', $dealInfo->agreed->rate);
+        $form->setDefault('locationId', $dealInfo->agreed->delivery->location);
+        $form->setDefault('deliveryTime', $dealInfo->agreed->delivery->time);
+        $form->setDefault('chargeVat', $dealInfo->agreed->vatType);
+        $form->setDefault('storeId', $dealInfo->agreed->delivery->storeId);
+        
+        if(!$dealInfo->agreed->vatType){
+        	$form->setField('chargeVat', 'input=input,important');
+        }
+        
+        if($form->rec->id){
+        	if($mvc->store_ShipmentOrderDetails->fetch("#shipmentId = {$form->rec->id}")){
+        		$form->setReadOnly('chargeVat');
+        	}
         }
     }
     
@@ -405,6 +415,10 @@ class store_ShipmentOrders extends core_Master
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
+        	$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
+        	$operation = $dealInfo->allowedShipmentOperations['delivery'];
+        	$rec->accountId = $operation['debit'];
+        	$rec->isReverse = (isset($operation['reverse'])) ? 'yes' : 'no';
         	
         	if($rec->lineId){
         		$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
@@ -466,7 +480,6 @@ class store_ShipmentOrders extends core_Master
     
     /**
      * Може ли ЕН да се добави в посочената нишка?
-     * Експедиционните нареждания могат да се добавят само в нишки с начало - документ-продажба
      *
      * @param int $threadId key(mvc=doc_Threads)
      * @return boolean
@@ -476,10 +489,11 @@ class store_ShipmentOrders extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	// Ако началото на треда е активирана продажба
-    	if(($firstDoc->instance() instanceof sales_Sales) && $docState == 'active'){
+    	// Може да се добавя само към активиран документ
+    	if($docState == 'active'){
     		
-    		return TRUE;
+    		$dealInfo = $firstDoc->getAggregateDealInfo();
+    		return ($dealInfo->allowedShipmentOperations['delivery']) ? TRUE : FALSE;
     	}
     	
     	return FALSE;
@@ -540,7 +554,7 @@ class store_ShipmentOrders extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new store_model_ShipmentOrder($id);
+        $rec = $this->fetchRec($id);
         
         $result = new bgerp_iface_DealResponse();
         
@@ -556,9 +570,10 @@ class store_ShipmentOrders extends core_Master
         $result->shipped->delivery->time     = $rec->deliveryTime;
         $result->shipped->delivery->storeId  = $rec->storeId;
         
+        $dQuery = store_ShipmentOrderDetails::getQuery();
+        $dQuery->where("#shipmentId = {$rec->id}");
         
-        /* @var $dRec store_model_ShipmentOrder */
-        foreach ($rec->getDetails('store_ShipmentOrderDetails') as $dRec) {
+        while ($dRec = $dQuery->fetch()) {
             $p = new bgerp_iface_DealProduct();
             
             $p->classId     = $dRec->classId;

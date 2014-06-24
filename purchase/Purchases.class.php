@@ -182,6 +182,15 @@ class purchase_Purchases extends core_Master
     
     
     /**
+     * Позволени операции за посследващите складови документи/протоколи
+     */
+    public $allowedShipmentOperations = array('stowage'     => array('title' => 'Засклаждане на стока', 'debit' => 'store', 'credit' => '401'),
+    										  'buyServices' => array('title' => 'Покупка на услуги', 'debit' => 'service', 'credit' => '401'),
+    										  //'delivery'    => array('title' => 'Връщане на доставена стока', 'debit' => '401', 'credit' => 'store', 'reverse' => TRUE),
+    );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -746,6 +755,7 @@ class purchase_Purchases extends core_Master
        
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
+        $result->allowedShipmentOperations = $this->allowedShipmentOperations;
         $result->involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
         
         $result->agreed->amount                 = $rec->amountDeal;

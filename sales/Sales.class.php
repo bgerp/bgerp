@@ -166,8 +166,17 @@ class sales_Sales extends core_Master
     		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '411'),
     		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '411', 'credit' => '*', 'reverse' => TRUE), 
     		);
+
+    
+    /**
+     * Позволени операции за посследващите складови документи/протоколи
+     */
+    public $allowedShipmentOperations = array('delivery'        => array('title' => 'Експедиране на стока', 'debit' => '411', 'credit' => 'store'),
+    										  'deliveryService' => array('title' => 'Доставка на услуги', 'debit' => '411', 'credit' => 'service'),
+    										  //'stowage'         => array('title' => 'Връщане на стока', 'debit' => 'store', 'credit' => '411', 'reverse' => TRUE),
+    );
     		
-    		
+    
     /**
      * Опашка от записи за записване в on_Shutdown
      */
@@ -192,6 +201,8 @@ class sales_Sales extends core_Master
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none,summary=amount'); // Сумата на доставената стока
         $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
         $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
+        $this->FLD('amountToInvoice', 'double(decimals=2)', 'input=none,summary=amount'); // Сумата която е платена
+        
         $this->FLD('amountVat', 'double(decimals=2)', 'input=none');
         $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
         
@@ -626,10 +637,6 @@ class sales_Sales extends core_Master
 					break;
 			}
 			$row->$fld = ' ';
-			
-			if($rec->makeInvoice == 'no'){
-				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
-			}
 	    }
     }
     
@@ -940,6 +947,7 @@ class sales_Sales extends core_Master
         
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
+        $result->allowedShipmentOperations = $this->allowedShipmentOperations;
         $result->involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
         
         $result->agreed->amount                 = $rec->amountDeal;
@@ -1401,4 +1409,31 @@ class sales_Sales extends core_Master
         
         return $result;
     }
+    
+    /*
+    public static function on_AfterAffectItem($mvc, $rec, $item)
+    {
+    	$jRecs = acc_Journal::getEntries($item);
+    	$paid = acc_Balances::getBlAmounts($jRecs, '411', 'credit')->amount;
+    	$paid += -1 * acc_Balances::getBlAmounts($jRecs, '412')->amount;
+    	//@TODO да вадя и извънредния приход
+    	
+    	$delivered = acc_Balances::getBlAmounts($jRecs, '411', 'debit')->amount;
+    	$delivered -= acc_Balances::getBlAmounts($jRecs, '411', 'debit', '7911')->amount;
+    	$toInvoice = -1 * acc_Balances::getBlAmounts($jRecs, '4530')->amount;
+    	
+    	$ivoiced = acc_Balances::getBlAmounts($jRecs, '4532', 'credit')->amount;
+    	
+    	$rec->amountPaid = $paid;
+    	$rec->amountDelivered = $delivered;
+    	$rec->amountToInvoice = $toInvoice;
+    	$rec->amountInvoiced = $ivoiced * 6;
+    	
+    	$mvc->save($rec);
+    	$mvc->sales_SalesDetails->updateDeliveryInfo($rec->id);
+    }
+    
+    function act_test(){
+    	$this->sales_SalesDetails->updateDeliveryInfo(1536);
+    }*/
 }

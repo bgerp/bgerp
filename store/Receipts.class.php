@@ -30,7 +30,7 @@ class store_Receipts extends core_Master
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transactionIntf_Receipt, bgerp_DealIntf';
+                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf';
     
     
     /**
@@ -146,7 +146,7 @@ class store_Receipts extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=В склад, mandatory'); 
-        $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=ДДС,input=hidden');
+        $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=ДДС');
         
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
         $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount');
@@ -169,6 +169,8 @@ class store_Receipts extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
+    	$this->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
+    	$this->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)','input=none,notNull,value=401,column=none');
     }
 
 
@@ -237,6 +239,10 @@ class store_Receipts extends core_Master
         // използваме го за автоматично попълване на детайлите на СР
         
         if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
+            
+        	//@TODO да го оправя, да взима от журнала експедираното
+        	if($rec->isReverse == 'yes') return;
+        	
             /* @var $aggregatedDealInfo bgerp_iface_DealResponse */
             $aggregatedDealInfo = $origin->getAggregateDealInfo();
             
@@ -368,23 +374,27 @@ class store_Receipts extends core_Master
         $form->getField('locationId')->type->options = 
             array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
             
-        // Ако създаваме нов запис и то базиран на предхождащ документ ...
-        if (empty($form->rec->id)) {
-        	
-            // ... проверяваме предхождащия за bgerp_DealIntf
-            expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
-            
-            expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
-            
-            /* @var $dealInfo bgerp_iface_DealResponse */
-            $dealInfo = $origin->getAggregateDealInfo();
-                
-            $form->rec->currencyId = $dealInfo->agreed->currency;
-            $form->rec->currencyRate = $dealInfo->agreed->rate;
-            $form->rec->locationId = $dealInfo->agreed->delivery->location;
-            $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
-            $form->rec->chargeVat = $dealInfo->agreed->vatType;
-            $form->rec->storeId = $dealInfo->agreed->delivery->storeId;
+        expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
+        expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
+        $dealInfo = $origin->getAggregateDealInfo();
+        
+        $form->setDefault('currencyId', $dealInfo->agreed->currency);
+        $form->setDefault('currencyRate', $dealInfo->agreed->rate);
+        $form->setDefault('locationId', $dealInfo->agreed->delivery->location);
+        $form->setDefault('deliveryTime', $dealInfo->agreed->delivery->time);
+        $form->setDefault('chargeVat', $dealInfo->agreed->vatType);
+        $form->setDefault('storeId', $dealInfo->agreed->delivery->storeId);
+        
+        if(!$dealInfo->agreed->vatType){
+        	$form->setField('chargeVat', 'input=input,important');
+        } else {
+        	$form->setField('chargeVat', 'input=hidden');
+        }
+        
+        if($form->rec->id){
+        	if($mvc->store_ReceiptDetails->fetch("#receiptId = {$form->rec->id}")){
+        		$form->setReadOnly('chargeVat');
+        	}
         }
     }
     
@@ -396,10 +406,13 @@ class store_Receipts extends core_Master
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
+        	$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
+        	
+        	$operation = $dealInfo->allowedShipmentOperations['stowage'];
+        	$rec->accountId = $operation['credit'];
+        	$rec->isReverse = (isset($operation['reverse'])) ? 'yes' : 'no';
         	
         	if($rec->lineId){
-        		$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
-        		
         		// Ако има избрана линия и метод на плащане, линията трябва да има подочетно лице
         		if($pMethods = $dealInfo->agreed->payment->method){
         			if(cond_PaymentMethods::isCOD($pMethods) && !trans_Lines::hasForwarderPersonId($rec->lineId)){
@@ -465,10 +478,11 @@ class store_Receipts extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	// Ако началото на треда е активирана покупка
-    	if(($firstDoc->instance() instanceof purchase_Purchases) && $docState == 'active'){
+    	// Може да се добавя само към активиран документ
+    	if($docState == 'active'){
     		
-    		return TRUE;
+    		$dealInfo = $firstDoc->getAggregateDealInfo();
+    		return ($dealInfo->allowedShipmentOperations['stowage']) ? TRUE : FALSE;
     	}
     	
     	return FALSE;
@@ -529,7 +543,7 @@ class store_Receipts extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new store_model_Receipt($id);
+        $rec = $this->fetchRec($id);
         
         $result = new bgerp_iface_DealResponse();
         
@@ -545,8 +559,10 @@ class store_Receipts extends core_Master
         $result->shipped->delivery->time     = $rec->deliveryTime;
         $result->shipped->delivery->storeId  = $rec->storeId;
         
-        /* @var $dRec store_model_Receipt */
-        foreach ($rec->getDetails('store_ReceiptDetails') as $dRec) {
+        $dQuery = store_ReceiptDetails::getQuery();
+        $dQuery->where("#receiptId = {$rec->id}");
+        
+        while ($dRec = $dQuery->fetch()) {
             $p = new bgerp_iface_DealProduct();
             
             $p->classId     = $dRec->classId;

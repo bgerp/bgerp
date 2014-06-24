@@ -12,7 +12,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class store_transactionIntf_ShipmentOrder
+class store_transaction_ShipmentOrder
 {
     /**
      * 
@@ -57,15 +57,17 @@ class store_transactionIntf_ShipmentOrder
         
         // Всяко ЕН трябва да има поне един детайл
         if (count($rec->details) > 0) {
-            // Записите от тип 1 (вземане от клиент)
-            $entries = $this->getTakingPart($rec, $origin);
-                
-            if($rec->storeId){
-            	// Записите от тип 2 (експедиция)
-            	$entries = array_merge($entries, $this->getDeliveryPart($rec, $origin));
-            }
+            
+        	if($rec->isReverse == 'yes'){
+        		// Ако СР е обратна, тя прави контировка на ЕН но с отрицателни стойностти
+        		$entries = store_transaction_Receipt::getReverseEntries($rec, $origin);
+        	} else {
+        		// Записите от тип 1 (вземане от клиент)
+        		$entries = $this->getEntries($rec, $origin);
+        	}
+            
         }
-        
+       
         $transaction = (object)array(
             'reason'  => 'Експедиционно нареждане №' . $rec->id,
             'valior'  => $rec->valior,
@@ -73,6 +75,22 @@ class store_transactionIntf_ShipmentOrder
         );
         
         return $transaction;
+    }
+    
+    
+    /**
+     * Връща ентритата на транзакцията
+     */
+    private function getEntries($rec, $origin, $reverse = FALSE)
+    {
+    	// Записите от тип 1 (вземане от клиент)
+    	$entries = $this->getTakingPart($rec, $origin, $reverse);
+    	
+    	// Записите от тип 2 (експедиция)
+    	
+    	$entries = array_merge($entries, $this->getDeliveryPart($rec, $origin, $reverse));
+    	
+    	return $entries;
     }
     
     
@@ -144,10 +162,11 @@ class store_transactionIntf_ShipmentOrder
      * @param stdClass $rec
      * @return array
      */
-    protected function getTakingPart($rec, $origin)
+    protected function getTakingPart($rec, $origin, $reverse = FALSE)
     {
         $entries = array();
-        
+        $sign = ($reverse) ? -1 : 1;
+       
         // Изчисляваме курса на валутата на продажбата към базовата валута
         $currencyRate = $rec->currencyRate;
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
@@ -170,14 +189,14 @@ class store_transactionIntf_ShipmentOrder
         	$creditAccId = (isset($pInfo->meta['canConvert'])) ? '706' : '701';
             
         	$entries[] = array(
-                'amount' => currency_Currencies::round($amount * $currencyRate), // В основна валута
+                'amount' => $sign * currency_Currencies::round($amount * $currencyRate), // В основна валута
                 
                 'debit' => array(
-                    '411',
+                    $rec->accountId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                 		array($origin->className, $origin->that),			// Перо 2 - Сделка
                         array('currency_Currencies', $currencyId),     		// Перо 3 - Валута
-                    'quantity' => currency_Currencies::round($amount, $currencyCode), // "брой пари" във валутата на продажбата
+                    'quantity' => $sign * currency_Currencies::round($amount, $currencyCode), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
@@ -185,7 +204,7 @@ class store_transactionIntf_ShipmentOrder
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                 		array($origin->className, $origin->that),			// Перо 2 - Сделка
                     	array($detailRec->classId, $detailRec->productId), // Перо 3 - Артикул
-                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                    'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
         }
@@ -193,19 +212,19 @@ class store_transactionIntf_ShipmentOrder
         if($rec->_total->vat){
         	$vatAmount = currency_Currencies::round($rec->_total->vat * $currencyRate);
         	$entries[] = array(
-                'amount' => $vatAmount, // В основна валута
+                'amount' => $sign * $vatAmount, // В основна валута
                 
                 'debit' => array(
-                    '411',
+                    $rec->accountId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                 		array($origin->className, $origin->that),			// Перо 2 - Сделка
                         array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
-                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
+                    'quantity' => $sign * $vatAmount, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     '4530', 
-                    'quantity' => $vatAmount, // Количество продукт в основната му мярка
+                    'quantity' => $sign * $vatAmount, // Количество продукт в основната му мярка
                 ),
             );
         }
@@ -228,9 +247,11 @@ class store_transactionIntf_ShipmentOrder
      * @param stdClass $rec
      * @return array
      */
-    protected function getDeliveryPart($rec, $origin)
+    protected function getDeliveryPart($rec, $origin, $reverse = FALSE)
     {
         $entries = array();
+        
+        $sign = ($reverse) ? -1 : 1;
         
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         foreach ($rec->details as $detailRec) {
@@ -246,18 +267,30 @@ class store_transactionIntf_ShipmentOrder
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
 	             			array($origin->className, $origin->that),			// Перо 2 - Сделка
         					array($detailRec->classId, $detailRec->productId), // Перо 3 - Продукт
-	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
+	                    'quantity' => $sign * $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	                
 	                'credit' => array(
 	                    $creditAccId, 
 	                        array('store_Stores', $rec->storeId), // Перо 1 - Склад
 	                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
-	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
+	                    'quantity' => $sign * $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	       );
         }
         
         return $entries;
+    }
+    
+    
+    /**
+     * Връща обратна контировка на стандартната
+     */
+    public static function getReverseEntries($rec, $origin)
+    {
+    	$self = cls::get(get_called_class());
+    	$entries = $self->getEntries($rec, $origin, TRUE);
+    	
+    	return $entries;
     }
 }

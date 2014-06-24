@@ -119,7 +119,9 @@ class store_plg_DocumentDetail extends core_Plugin
 						$policyInfo = new stdClass();
 						$policyInfo->price = $aggreedProduct->price;
 					} else {
-						$ProductMan = ($mvc->Policy) ? $mvc->Policy : $ProductMan;
+						
+						// Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
+						$ProductMan = ($mvc->Policy && $masterRec->isReverse === 'no') ? $mvc->Policy : $ProductMan;
 						$policyInfo = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate);
 					}
 					
