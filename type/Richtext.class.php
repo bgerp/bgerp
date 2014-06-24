@@ -1078,8 +1078,8 @@ class type_Richtext extends type_Blob
                     $out .= "</table>";
                     $table = FALSE;
                 }
-
-                $out .= "\n" . $l;
+                
+                $out .= (isset($out)) ? "\n" . $l : $l;
             }
         }
         if($table) {
