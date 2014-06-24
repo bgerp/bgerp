@@ -241,7 +241,7 @@ class crm_Companies extends core_Master
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData');
         
         // Данъчен номер на фирмата
-        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС(VAT) №,remember=info,class=contactData');
+        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData');
         $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData');
         
         // Допълнителна информация
