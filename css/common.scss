@@ -1990,7 +1990,7 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
 	color:black !important;
 }
 
-.richtext-emoticons, .richtext-emoticons2, .richtext-emoticons3, .richtext-emoticons4, .richtext-emoticons5 {
+.richtext-emoticons, .richtext-emoticons2, .richtext-emoticons3, .richtext-emoticons4, .richtext-emoticons5, .richtext-emoticons7 {
     position: absolute;
     left: 0px;
     bottom: 2.1em;
@@ -2043,6 +2043,19 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
     padding-left: 22px !important;  
     background-repeat: no-repeat !important;
     background-position: 3px center !important;
+}
+
+.popup-table-info{
+	width: 80px;
+	padding: 5px;
+	background: #DDD;
+    border: 1px solid #BBA;
+	input{
+	   max-width: 80px !important;
+	}
+	.popupBlock{
+	   margin-bottom: 5px;
+	}
 }
 /* край на стилове за елемента 'RichEdit' */
 
@@ -2223,6 +2236,11 @@ div.richtext ol ol {
 	vertical-align: middle;
 	margin: 0 2px 0 5px;
 	display: inline-block;
+}
+
+.inlineRichTable td {
+    height: 20px;
+    min-width: 10px;
 }
 
 /*richtext message-box*/

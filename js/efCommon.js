@@ -504,6 +504,94 @@ function rp(text, textarea, newLine)
 	}
 }
 
+/*
+ * добавяне на необходимите за създаване на таблица в ричедит символи, по зададени колони и редове
+ */
+function crateRicheditTable(textarea, newLine, tableCol, tableRow)
+{
+	if(tableRow < 2 ||  tableRow > 10 || tableCol < 2 ||  tableCol > 10 ) return;
+	var version = getIEVersion();
+	if( (version == 8 || version == 9) && typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange )
+	{  
+		textarea.focus();
+		var caretPos = textarea.caretPos;
+		
+		var textareaText = textarea.value;
+		var position = textareaText.length;
+		var previousChar = textareaText.charAt(position - 1);
+		
+		if (previousChar !="\n"  && position != 0  && newLine){
+			text = "\n" + text;
+		}
+		text="";
+		var i,j;
+		for(j=0; j < tableRow; j++){
+			for(i=0; i <= tableCol; i++){
+				if(i < tableCol){
+					text += "|  ";
+				} else {
+					text += "|";
+				}	
+			}  
+			text += "\n";
+		}
+
+		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text + ' ' : text;
+		
+		textarea.focus();
+	} else if (typeof(textarea.selectionStart) != 'undefined' ) {
+		
+		var begin = textarea.value.substr(0, textarea.selectionStart);
+		var end = textarea.value.substr(textarea.selectionEnd);
+		var scrollPos = textarea.scrollTop;
+		
+		if (begin.charAt(begin.length-1) != "\n" && begin != "" && newLine){
+			begin += "\n";
+		}
+		text="";
+		var i,j;
+		for(j=0; j < tableRow; j++){
+			for(i=0; i <= tableCol; i++){
+				if(i < tableCol){
+					text += "|  ";
+				} else {
+					text += "|";
+				}	
+			}  
+			text += "\n";
+		}
+		
+		textarea.value = begin + text + end;
+
+		if (textarea.setSelectionRange)
+		{
+			textarea.focus();
+			textarea.setSelectionRange(begin.length + text.length, begin.length + text.length);
+		}
+		textarea.scrollTop = scrollPos ;
+	} else {
+		var textareaText = textarea.value;
+		var position = textareaText.length;
+		var previousChar = textareaText.charAt(position - 1);
+		
+		if (previousChar !="\n"  && position != 0  && newLine){
+			text = "\n" + text;
+		}
+		for(j=0; j < tableRow; j++){
+			for(i=0; i <= tableCol; i++){
+				if(i < tableCol){
+					text += "|  ";
+				} else {
+					text += "|";
+				}	
+			}  
+			text += "\n";
+		}
+		textarea.value += text;
+		textarea.focus(textarea.value.length - 1);
+	}
+}
+
 /**
  * Връща избрания текст в textarea
  * 
@@ -775,8 +863,10 @@ function hasClass(element, className) {
 function hideRichtextEditGroups()
 {
 	if (typeof jQuery != 'undefined') {	
-		$('body').live('click',function() {
-			hideRichtextEditGroupsBlock();
+		$('body').live('click',function(e) {
+			if(!($(e.target).is('input[type=text]'))){
+				hideRichtextEditGroupsBlock();
+			}
 		});
 	}else{
 		window.onclick = function() {
