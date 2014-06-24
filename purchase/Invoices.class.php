@@ -20,7 +20,7 @@ class purchase_Invoices extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, acc_TransactionSourceIntf, bgerp_DealIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, acc_TransactionSourceIntf=purchase_transaction_Invoice, bgerp_DealIntf';
     
     
     /**
@@ -856,26 +856,6 @@ class purchase_Invoices extends core_Master
     public static function fetchByHandle($parsedHandle)
     {
         return static::fetch("#number = '{$parsedHandle['id']}'");
-    } 
-
-    
-	/**
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        $rec->state = 'active';
-                
-        if (self::save($rec)) {
-
-            // Нотификация към пораждащия документ, че нещо във веригата 
-            // му от породени документи се е променило.
-            if ($origin = doc_Threads::getFirstDocument($rec->threadId)) {
-                $rec = new core_ObjectReference(get_called_class(), $rec);
-                $origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
-            }
-        }
     }
     
     
@@ -896,56 +876,6 @@ class purchase_Invoices extends core_Master
 	    }
     	
     	return $origin;
-    }
-    
-    
-    /**
-   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-   	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 *  
-   	 *  Dt: 4531 - Начислен ДДС за покупките
-   	 *  Ct: 401  - Задължения към доставчици
-   	 */
-    public static function getTransaction($id)
-    {
-       	// Извличаме записа
-        expect($rec = self::fetchRec($id));
-        $cloneRec = clone $rec;
-        
-        // Създаване / обновяване на перото за контрагента
-        $contragentClass = doc_Folders::fetchCoverClassName($cloneRec->folderId);
-        $contragentId    = doc_Folders::fetchCoverId($cloneRec->folderId);
-        
-        $result = (object)array(
-            'reason'  => "Входяща фактура №{$rec->number}", // основанието за ордера
-            'valior'  => $rec->date,   // датата на ордера
-        	'entries' => array(),
-        );
-        
-        // Ако е ДИ или КИ се посочва към коя фактура е то
-        if($rec->type != 'invoice') {
-        	$origin = static::getOrigin($rec);
-        	$type = static::getVerbal($rec, 'type');
-        	$result->reason = "{$type} към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
-        }
-       
-        $entries = array();
-    	$debitAccId  = '4531';
-	    $creditAccId = '4530';
-        
-    	if(isset($cloneRec->vatAmount)){
-        	$entries[] = array(
-                'amount' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
-                
-                'credit' => array($creditAccId),
-                
-                'debit' => array($debitAccId),
-    	    );
-        }
-        
-      	$result->entries = $entries;
-      	
-      	return $result;
     }
     
     
@@ -983,7 +913,7 @@ class purchase_Invoices extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new purchase_model_Invoice($id);
+        $rec = $this->fetchRec($id);
         
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         $result = new bgerp_iface_DealResponse();
@@ -1008,8 +938,10 @@ class purchase_Invoices extends core_Master
         	}
         }
         
-        /* @var $dRec purchase_model_InvoiceProduct */
-        foreach ($rec->getDetails('purchase_InvoiceDetails') as $dRec) {
+        $dQuery = purchase_InvoiceDetails::getQuery();
+        $dQuery->where("#invoiceId = {$rec->id}");
+        
+        while ($dRec = $dQuery->fetch()) {
             $p = new bgerp_iface_DealProduct();
             
             $p->classId     = $dRec->classId;

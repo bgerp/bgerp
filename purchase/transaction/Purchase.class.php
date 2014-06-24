@@ -12,7 +12,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class purchase_TransactionSourceImpl
+class purchase_transaction_Purchase
 {
     /**
      * 
