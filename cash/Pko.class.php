@@ -176,7 +176,7 @@ class cash_Pko extends core_Master
     	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
     	$this->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');

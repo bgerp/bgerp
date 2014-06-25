@@ -29,7 +29,7 @@ class cash_transaction_Pko
     public function finalizeTransaction($id)
     {
     	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'active';
+    	$rec->state = 'closed';
     
     	if ($this->class->save($rec)) {
     		// Нотифицираме origin-документа, че някой от веригата му се е променил
