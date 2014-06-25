@@ -230,7 +230,9 @@ class sales_ClosedDeals extends acc_ClosedDeals
     		// Записа за извънреден разход
 	    	$entry = array(
 	    		'amount' => $totalAmount,
-	    		'debit'  => array('6911'),
+	    		'debit'  => array('6911', 
+	    							array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that)),
 	    		'credit' => array('411',
 	    							array($docRec->contragentClassId, $docRec->contragentId), 
 	    							array($firstDoc->className, $firstDoc->that),
@@ -247,7 +249,9 @@ class sales_ClosedDeals extends acc_ClosedDeals
 	    							array($firstDoc->className, $firstDoc->that),
 	                        		array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                       		  'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	            'credit' => array('7911'),
+	            'credit' => array('7911', 
+	            					array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that)),
     		);	
     	}
     	
@@ -288,7 +292,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
 	    									array($firstDoc->className, $firstDoc->that),
 	                        				array($classId, $productId),
 	                       				'quantity' => $invProduct->quantity),
-	            		'debit' => array('4530'),
+	            		'debit' => array('4530', array($firstDoc->className, $firstDoc->that)),
     				);
     		}
     	}
