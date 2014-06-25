@@ -232,7 +232,7 @@ class webkittopdf_Converter extends core_Manager
             
             $conf = core_Packs::getConfig('webkittopdf');
             
-            return "<li style='color: red;'>" . type_Varchar::escape($conf->WEBKIT_TO_PDF_BIN) . "не е инсталиран" . "</li>";
+            return "<li style='color: red;'>" . type_Varchar::escape($conf->WEBKIT_TO_PDF_BIN) . " не е инсталиран" . "</li>";
         }
         
         // Версиите на пакета
