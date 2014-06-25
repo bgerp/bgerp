@@ -19,7 +19,7 @@ class bgerp_plg_Blank extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         //Ако принтираме или пращаме документа
         if ((Mode::is('text', 'xhtml')) || (Mode::is('printing'))) {
@@ -39,14 +39,19 @@ class bgerp_plg_Blank extends core_Plugin
             // ID на контейнера
             $cid = $data->rec->containerId;
             
+            // Ако е подаден __MID__, да се използва, вместо плейсхолдера
+            if (!($mid = $data->__MID__)) {
+                $mid = doc_DocumentPlg::getMidPlace();
+            }
+            
             // URL за за src="..." атрибута, на <img> тага на QR баркода
-            $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => doc_DocumentPlg::getMidPlace()), 'absolute', TRUE, array('m'));
+            $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
              
             // Създаваме <img> елемент за QR баркода
             $qrImg = ht::createElement('img', array('alt' => 'View doc', 'width' => 87, 'height' => 87, 'src' => $qrImgSrc));
             
             // URL за линка, който стои под QR кода
-            $qrLinkUrl = toUrl(array('L', 'S', $cid, 'm' => doc_DocumentPlg::getMidPlace()), 'absolute', TRUE, array('m'));
+            $qrLinkUrl = toUrl(array('L', 'S', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
 
             // Под картинката с QR баркод, слагаме хипервръзка към документа
             $qrA = ht::createElement('a', array('target' => '_blank',  'href' => $qrLinkUrl), $qrImg);
