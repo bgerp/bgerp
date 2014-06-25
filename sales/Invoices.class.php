@@ -985,7 +985,7 @@ class sales_Invoices extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new sales_model_Invoice($id);
+        $rec = $this->fetchRec($id);
         
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         $result = new bgerp_iface_DealResponse();
@@ -1011,8 +1011,10 @@ class sales_Invoices extends core_Master
         	}
         }
         
-        /* @var $dRec sales_model_InvoiceProduct */
-        foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {
+        $dQuery = sales_InvoiceDetails::getQuery();
+        $dQuery->where("#invoiceId = {$rec->id}");
+        
+        while ($dRec = $dQuery->fetch()) {
             $p = new bgerp_iface_DealProduct();
             
             $p->classId     = $dRec->classId;
