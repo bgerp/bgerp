@@ -56,7 +56,8 @@ class cms_ObjectPlg extends core_Plugin
     function on_AfterRenderCmsObject($mvc, &$res, $data, $tpl)
     {
         if(!$res) {
-            $res = $mvc->renderSingle($data, $tpl);
+            $data->singleLayout = $tpl;
+            $res = $mvc->renderSingle($data);
         }
     }
     
