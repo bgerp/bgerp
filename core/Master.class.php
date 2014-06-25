@@ -237,7 +237,7 @@ class core_Master extends core_Manager
     /**
      * Рендираме общия изглед за 'List'
      */
-    function renderSingle_($data, $tpl = NULL)
+    function renderSingle_($data)
     { 
         // Рендираме общия лейаут
         if(!$tpl) {
@@ -343,6 +343,14 @@ class core_Master extends core_Manager
      */
     function renderSingleLayout_(&$data)
     {
+        if (isset($data->singleLayout)) {
+            if (!($data->singleLayout instanceof core_ET)) {
+                $data->singleLayout = new ET($data->singleLayout);
+            }
+            
+            return $data->singleLayout;
+        }
+        
         if(isset($this->singleLayoutFile)) {
             $layoutText = tr('|*' . file_get_contents(getFullPath($this->singleLayoutFile)));
         } elseif(isset($this->singleLayoutTpl)) {
