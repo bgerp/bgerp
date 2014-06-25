@@ -538,11 +538,11 @@ class price_ListDocs extends core_Master
 	    foreach ($data->rec->products->recs as $groupId => $products1){
 			foreach ($products1 as $index => $dRec){
 				if($dRec->priceM){
-					core_Math::roundNumber($dRec->priceM, $maxDecM, 2);
+					core_Math::roundNumber($dRec->priceM, $maxDecM);
 				}
 				
 				if($dRec->priceP){
-					core_Math::roundNumber($dRec->priceP, $maxDecP, 2);
+					core_Math::roundNumber($dRec->priceP, $maxDecP);
 				}
 			}
 	    }
@@ -555,13 +555,13 @@ class price_ListDocs extends core_Master
 				$rec = $data->rec->products->recs[$groupId][$index];
 				if($row->priceM){
 					$Double->params['decimals'] = max(2, $maxDecM);
-					$rec->priceM = core_Math::roundNumber($rec->priceM, $maxDecM, 2);
+					$rec->priceM = core_Math::roundNumber($rec->priceM, $maxDecM);
 					$row->priceM = $Double->toVerbal($rec->priceM);
 				}
 				
 				if($row->priceP){
 					$Double->params['decimals'] = max(2, $maxDecP);
-					$rec->priceP = core_Math::roundNumber($rec->priceP, $maxDecP, 2);
+					$rec->priceP = core_Math::roundNumber($rec->priceP, $maxDecP);
 					$row->priceP = $Double->toVerbal($rec->priceP);
 				}
 			}
