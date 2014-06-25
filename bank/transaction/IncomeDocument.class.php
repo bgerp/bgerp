@@ -53,11 +53,11 @@ class bank_transaction_IncomeDocument
         $origin = $this->class->getOrigin($rec);
         
         if($rec->isReverse == 'yes'){
-        	// Ако документа е обратен, правим контировката на РКО-то но с отрицателен знак
+        	// Ако документа е обратен, правим контировката на РБД-то но с отрицателен знак
         	$entry = bank_transaction_SpendingDocument::getReverseEntries($rec, $origin);
         } else {
         
-        	// Ако документа не е обратен, правим нормална контировка на ПКО
+        	// Ако документа не е обратен, правим нормална контировка на ПБД
         	$entry = $this->getEntry($rec, $origin);
         }
         

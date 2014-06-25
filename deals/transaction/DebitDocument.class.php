@@ -48,11 +48,11 @@ class deals_transaction_DebitDocument
     	expect($origin = $this->class->getOrigin($rec));
     	
     	if($rec->isReverse == 'yes'){
-    		// Ако документа е обратен, правим контировката на РКО-то но с отрицателен знак
+    		// Ако документа е обратен, правим контировката на прехвърлянето на задължения но с отрицателен знак
     		$entry = deals_transaction_CreditDocument::getReverseEntries($rec, $origin);
     	} else {
     	
-    		// Ако документа не е обратен, правим нормална контировка на ПКО
+    		// Ако документа не е обратен, правим нормална контировка на прехвърлянето на взимане
     		$entry = $this->getEntry($rec, $origin);
     	}
     	 
@@ -80,17 +80,19 @@ class deals_transaction_DebitDocument
     	
     	$dealRec = deals_Deals::fetch($rec->dealId);
     	
+    	// Дебитираме разчетната сметка на избраната финансова сделка
+    	$debitArr = array($rec->debitAccount,
+    			array($dealRec->contragentClassId, $dealRec->contragentId),
+    			array($dealRec->dealManId, $rec->dealId),
+    			array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
+    			'quantity' => $sign * round($amount / $dealRec->currencyRate, 2));
+    	
+    	// Кредитираме разчетната сметка на сделката, начало на нишка
     	$creditArr = array($rec->creditAccount,
     						array($rec->contragentClassId, $rec->contragentId),
 				    		array($origin->className, $origin->that),
 				    		array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
     						'quantity' => $sign * round($amount / $dealInfo->agreed->rate, 2));
-    	
-    	$debitArr = array($rec->debitAccount,
-    					array($dealRec->contragentClassId, $dealRec->contragentId),
-    					array($dealRec->dealManId, $rec->dealId),
-    					array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
-    					'quantity' => $sign * round($amount / $dealRec->currencyRate, 2));
     	
     	$entry = array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,);
     	 

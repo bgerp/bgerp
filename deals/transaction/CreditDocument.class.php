@@ -32,11 +32,11 @@ class deals_transaction_CreditDocument
     	expect($origin = $this->class->getOrigin($rec));
     	
     	if($rec->isReverse == 'yes'){
-    		// Ако документа е обратен, правим контировката на РКО-то но с отрицателен знак
+    		// Ако документа е обратен, правим контировката на прехвърлянето на взимане но с отрицателен знак
     		$entry = deals_transaction_DebitDocument::getReverseEntries($rec, $origin);
     	} else {
     		
-    		// Ако документа не е обратен, правим нормална контировка на ПКО
+    		// Ако документа не е обратен, правим нормална контировка на прехвърляне на задължение
     		$entry = $this->getEntry($rec, $origin);
     	}
     	 
@@ -79,12 +79,14 @@ class deals_transaction_CreditDocument
     	// Ако е обратна транзакцията, сумите и к-та са с минус
     	$sign = ($reverse) ? -1 : 1;
     	
+    	// Дебитираме разчетната сметка на сделката, начало на нишка
     	$debitArr = array($rec->debitAccount,
     						array($rec->contragentClassId, $rec->contragentId),
     						array($origin->className, $origin->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
     						'quantity' => $sign * round($amount / $dealInfo->agreed->rate, 2));
     	
+    	// Кредитираме разчетната сметка на избраната финансова сделка
     	$creditArr = array($rec->creditAccount,
     							array($dealRec->contragentClassId, $dealRec->contragentId),
     							array($dealRec->dealManId, $rec->dealId),
