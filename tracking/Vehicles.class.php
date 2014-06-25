@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class tracking_Vehicles extends core_Manager
+class tracking_Vehicles extends core_Master
 {
     
     /**
@@ -66,5 +66,21 @@ class tracking_Vehicles extends core_Manager
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name)', 'caption=Водач');
     }
     
-    
+    /**
+     * Връща запис по зададен номер на тракер или FALSE, ако няма такъв номер
+     * 
+     * @param int - номер на тракер
+     * @return stdClass
+     */
+    public static function getRecByTrackerId($trackerId)
+    {
+        $vehicles = cls::get('tracking_Vehicles');
+        $query = $vehicles->getQuery();
+        $query->where(array("#trackerId = '[#1#]'", $trackerId));
+        $query->limit(1);
+        $rec = $query->fetch();
+        if (!$rec) return FALSE;
+        
+        return $rec;
+    }
 }

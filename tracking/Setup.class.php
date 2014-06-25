@@ -249,8 +249,6 @@ class tracking_Setup extends core_ProtoSetup
             $res = "Неуспешно спрян процес.";
         }
         
-        file_put_contents("tracking.log", "\n deinstall", FILE_APPEND);
-        
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
         
