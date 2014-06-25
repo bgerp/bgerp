@@ -336,4 +336,36 @@ class core_Detail extends core_Manager
     {
         return isset($this->Master) ? array($this->masterKey => $this->Master) : array();
     }
+    
+    
+    /**
+     * Пренасочва URL за връщане след запис към сингъла на мастъра, ако има такъв
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	// Определяме мастър ид-то на документа
+    	if($data->masterId){
+    		
+    		// Ако го има в датата, взимаме го от там
+    		$masterId = $data->masterId;
+    	} else {
+    		
+    		// Ако има ид в заявката, извличаме мастър ид-то от записа му
+    		if($id = Request::get('id', 'int')){
+    			$masterId = $mvc->fetchField($id, $mvc->masterKey);
+    		}
+    	}
+    	
+    	// Ако може да се намери мастър ид-то
+    	if($masterId){
+    		
+    		// Рет урл-то става сингъла на мастъра на детайла
+    		$Master = isset($data->masterMvc) ? $data->masterMvc : $mvc->Master;
+    		
+    		// Ако имаме право за сингъл, и ако не правим "заспис и нов", рет урл-то е сингъла на мастъра
+    		if($Master->haveRightFor('single', $masterId) && $data->form->cmd !== 'save_n_new'){
+    			$data->retUrl = toUrl(array($Master, 'single', $masterId));
+    		}
+    	}
+    }
 }
