@@ -1,9 +1,9 @@
 <?php
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа cash_Pko
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа deals_CreditDocuments
  *
  * @category  bgerp
- * @package   cash
+ * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -12,15 +12,45 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class cash_transaction_Pko
+class deals_transaction_CreditDocument
 {
     /**
      * 
-     * @var cash_Pko
+     * @var deals_CreditDocuments
      */
     public $class;
     
     
+    /**
+     *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
+     *  Създава транзакция която се записва в Журнала, при контирането
+     */
+    public function getTransaction($id)
+    {
+    	// Извличаме записа
+    	expect($rec = $this->class->fetchRec($id));
+    	expect($origin = $this->class->getOrigin($rec));
+    	
+    	if($rec->isReverse == 'yes'){
+    		// Ако документа е обратен, правим контировката на РКО-то но с отрицателен знак
+    		$entry = deals_transaction_DebitDocument::getReverseEntries($rec, $origin);
+    	} else {
+    		
+    		// Ако документа не е обратен, правим нормална контировка на ПКО
+    		$entry = $this->getEntry($rec, $origin);
+    	}
+    	 
+    	// Подготвяме информацията която ще записваме в Журнала
+    	$result = (object)array(
+    			'reason' => $rec->name, // основанието за ордера
+    			'valior' => $rec->valior,   // датата на ордера
+    			'entries' => array($entry)
+    	);
+    	 
+    	return $result;
+    }
+
+
     /**
      * @param int $id
      * @return stdClass
@@ -32,43 +62,8 @@ class cash_transaction_Pko
     	$rec->state = 'active';
     
     	if ($this->class->save($rec)) {
-    		// Нотифицираме origin-документа, че някой от веригата му се е променил
-    		if ($origin = $this->class->getOrigin($rec)) {
-    			$ref = new core_ObjectReference($this->class, $rec);
-    			$origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-    		}
+    		$this->class->notificateOrigin($rec);
     	}
-    }
-    
-    
-    /**
-     *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-     *  Създава транзакция която се записва в Журнала, при контирането
-     */
-    public function getTransaction($id)
-    {
-    	// Извличаме записа
-    	expect($rec = $this->class->fetchRec($id));
-    	 
-    	$origin = $this->class->getOrigin($rec);
-    	
-    	if($rec->isReverse == 'yes'){
-    		// Ако документа е обратен, правим контировката на РКО-то но с отрицателен знак
-    		$entry = cash_transaction_Rko::getReverseEntries($rec, $origin);
-    	} else {
-    		
-    		// Ако документа не е обратен, правим нормална контировка на ПКО
-    		$entry = $this->getEntry($rec, $origin);
-    	}
-    	
-    	// Подготвяме информацията която ще записваме в Журнала
-    	$result = (object)array(
-    			'reason' => $rec->reason, // основанието за ордера
-    			'valior' => $rec->valior,   // датата на ордера
-    			'entries' => array($entry)
-    	);
-    	
-    	return $result;
     }
     
     
@@ -77,31 +72,27 @@ class cash_transaction_Pko
      */
     private function getEntry($rec, $origin, $reverse = FALSE)
     {
-    	$dealInfo = $origin->getAggregateDealInfo();
     	$amount = round($rec->rate * $rec->amount, 2);
+    	$dealInfo = $origin->getAggregateDealInfo();
+    	$dealRec = deals_Deals::fetch($rec->dealId);
     	
     	// Ако е обратна транзакцията, сумите и к-та са с минус
     	$sign = ($reverse) ? -1 : 1;
     	
-    	// Кредита е винаги във валутата на пораждащия документ,
-    	$creditCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-    	$creditQuantity = round($amount / $dealInfo->agreed->rate, 2);
-    	
-    	// Дебитираме касата
     	$debitArr = array($rec->debitAccount,
-    						array('cash_Cases', $rec->peroCase),
-    						array('currency_Currencies', $rec->currencyId),
-    						'quantity' => $sign * $rec->amount,);
+    						array($rec->contragentClassId, $rec->contragentId),
+    						array($origin->className, $origin->that),
+    						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
+    						'quantity' => $sign * round($amount / $dealInfo->agreed->rate, 2));
     	
-    	// Кредитираме разчетната сметка
     	$creditArr = array($rec->creditAccount,
-    							array($rec->contragentClassId, $rec->contragentId),
-    							array($origin->className, $origin->that),
-    							array('currency_Currencies', $creditCurrency),
-    							'quantity' => $sign * $creditQuantity);
+    							array($dealRec->contragentClassId, $dealRec->contragentId),
+    							array($dealRec->dealManId, $rec->dealId),
+    							array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
+    							'quantity' => $sign * round($amount / $dealRec->currencyRate, 2));
     	
     	$entry = array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,);
-    	
+    
     	return $entry;
     }
     
@@ -112,7 +103,7 @@ class cash_transaction_Pko
     public static function getReverseEntries($rec, $origin)
     {
     	$self = cls::get(get_called_class());
-    	 
+    
     	return $self->getEntry($rec, $origin, TRUE);
     }
 }

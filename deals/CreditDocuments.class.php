@@ -26,7 +26,7 @@ class deals_CreditDocuments extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public  $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public  $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=deals_transaction_CreditDocument, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
    
     
     /**
@@ -234,52 +234,6 @@ class deals_CreditDocuments extends core_Master
     
     
     /**
-     *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-     *  Създава транзакция която се записва в Журнала, при контирането
-     */
-    public static function getTransaction($id)
-    {
-    	// Извличаме записа
-    	expect($rec = self::fetchRec($id));
-    	$amount = round($rec->rate * $rec->amount, 2);
-    	
-    	expect($origin = static::getOrigin($rec));
-    	$dealInfo = $origin->getAggregateDealInfo();
-    	
-    	// Ако е обратна транзакцията, сумите и к-та са с минус
-    	$sign = ($rec->isReverse == 'no') ? 1 : -1;
-    	
-    	$dealRec = deals_Deals::fetch($rec->dealId);
-    	$creditArr[] = $rec->creditAccount;
-    	$debitArr[] = $rec->debitAccount;
-    	
-    	$dealFrom = array('1' => array($rec->contragentClassId, $rec->contragentId), 
-    					  '2' => array($origin->className, $origin->that), 
-    					  '3' => array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)), 
-    					  'quantity' => $sign * round($amount / $dealInfo->agreed->rate, 2));
-    	
-    	$dealTo = array('1' => array($dealRec->contragentClassId, $dealRec->contragentId),
-    					'2' => array($dealRec->dealManId, $rec->dealId),
-    					'3' => array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
-    					'quantity' => $sign * round($amount / $dealRec->currencyRate, 2));
-    	
-    	$creditArr += ($rec->isReverse == 'no') ? $dealTo : $dealFrom;
-    	$debitArr += ($rec->isReverse == 'no') ? $dealFrom : $dealTo;
-    	
-    	// Подготвяме информацията която ще записваме в Журнала
-    	$result = (object)array(
-    			'reason' => $rec->name, // основанието за ордера
-    			'valior' => $rec->valior,   // датата на ордера
-    			'entries' => array(
-    					array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr)
-    		)
-    	);
-    	
-    	return $result;
-    }
-    
-    
-    /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     static function getRecTitle($rec, $escaped = TRUE)
@@ -334,22 +288,6 @@ class deals_CreditDocuments extends core_Master
     	}
     
     	return FALSE;
-    }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = self::fetchRec($id);
-    	$rec->state = 'active';
-    
-    	if ($this->save($rec)) {
-    		$this->notificateOrigin($rec);
-    	}
     }
     
     
