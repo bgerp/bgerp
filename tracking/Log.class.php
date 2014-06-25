@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class tracking_Log extends core_Manager
+class tracking_Log extends core_Detail
 {
     
     /**
@@ -35,6 +35,11 @@ class tracking_Log extends core_Manager
     public $loadList = 'plg_Created, tracking_Wrapper';
     
     /**
+     * Име на поле от модела, външен ключ към мастър записа
+     */
+    public $masterKey = 'vehicleId';    
+    
+    /**
      * Полета за показване
      *
      * var string|array
@@ -46,15 +51,19 @@ class tracking_Log extends core_Manager
      */
     function description()
     {
-        $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number,make,model)', 'caption=Автомобил');
+        $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number)', 'caption=Автомобил');
         $this->FLD('driverId', 'key(mvc=crm_Persons, select=name)', 'caption=Водач');
         $this->FLD('data', 'blob', 'caption=Данни');
         $this->FNC('text', 'html', 'caption=Данни');
         $this->FLD('remoteIp', 'ip', 'caption=Tракер IP');
     }
     
+    protected function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
+    {
+        //bp($rec);
+    }
     
-    public function on_CalcText($mvc, $rec)
+    protected function on_CalcText($mvc, $rec)
     {
         $data = self::parseTrackingData($rec->data);
 
@@ -63,8 +72,6 @@ class tracking_Log extends core_Manager
                 
         $rec->text  = "Дата: " . $dateTimeTracking . "<br>";
         $rec->text .= "Статус: " . (($data['status'] == 'A')?'Валиден':'Невалиден'). "<br>";
-        $rec->text .= "Ширина: " . $data['latitude'] . "<br>";
-        $rec->text .= "Дължина: " . $data['longitude'] . "<br>";
         $rec->text .= "Ширина DD: " . self::DMSToDD($data['latitude']) . "<br>";
         $rec->text .= "Дължина DD: " . self::DMSToDD($data['longitude']) . "<br>";
         $rec->text .= "Скорост: " . $data['speed'] . " км/ч<br>";
@@ -82,19 +89,31 @@ class tracking_Log extends core_Manager
     public function act_Log()
     {
         $conf = core_Packs::getConfig('tracking');
+        // Ако получаваме данни от неоторизирано IP ги игнорираме
         if ($_SERVER['REMOTE_ADDR'] != $conf->DATA_SENDER) {
-
+            file_put_contents('tracking.log', "\n неоторизирано IP", FILE_APPEND);
             exit;
         }
-        file_put_contents('tracking_log.log', "\n accepted", FILE_APPEND);
+        file_put_contents('tracking.log', "\n accepted", FILE_APPEND);
         
         $trackerId = Request::get('trackerId', 'varchar');
-        $data = Request::get('data', 'varchar');
+        $trackerData = Request::get('data', 'varchar');
         $remoteIp = Request::get('remoteIp', 'varchar');
+        // Махаме порта от IP адреса
+        $remoteIp = substr($remoteIp, 0, strpos($remoteIp, ':'));
+        
+        // Взимаме данните за колата, на която е закачен тракера
+        $recVehicle = tracking_Vehicles::getRecByTrackerId($trackerId);
+        if (FALSE === $recVehicle) {
+            /* @TODO Логваме логваме съобщение, че нямаме въведена кола за този тракер */
+            file_put_contents("tracking.log", "\n Липсваща кола с тракер {rackerId}". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
+            
+            exit;
+        }
         
         // Проверяваме дали скоростта е нула
-        $dataArr = self::parseTrackingData($data);
-        if (($dataArr['speed']-0.01) < 0) {
+        $trackerDataArr = self::parseTrackingData($trackerData);
+        if (($trackerDataArr['speed']-0.01) < 0) {
             // Проверяваме последния запис от този тракер, дали е с нулева скорост. Ако - да - не го записваме
             $query = $this->getQuery();
             $query->show('data');
@@ -104,17 +123,17 @@ class tracking_Log extends core_Manager
             $rec = $query->fetch();
             $recData = self::parseTrackingData($rec->data); 
             if (is_array($recData) && ($recData['speed'] -0.01) < 0) {
-                file_put_contents('tracking_log.log', "\n NEZAPISAN", FILE_APPEND);
+                file_put_contents('tracking.log', "\n NEZAPISAN", FILE_APPEND);
                 
                 // Не го записваме
                 exit;
             }
         }
         
-        // Махаме порта от IP адреса
-        $remoteIp = substr($remoteIp, 0, strpos($remoteIp, ':'));
+        $rec->vehicleId = $recVehicle->id;
+        $rec->driverId = $recVehicle->personId;
         $rec->trackerId = $trackerId;
-        $rec->data = $data;
+        $rec->data = $trackerData;
         $rec->remoteIp = $remoteIp;
         
         $this->save($rec);
