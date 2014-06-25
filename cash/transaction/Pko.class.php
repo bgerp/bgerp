@@ -51,39 +51,69 @@ class cash_transaction_Pko
     	expect($rec = $this->class->fetchRec($id));
     	 
     	$origin = $this->class->getOrigin($rec);
-    	$dealInfo = $origin->getAggregateDealInfo();
-    	$amount = round($rec->rate * $rec->amount, 2);
-    
-    	// Ако е обратна транзакцията, сумите и к-та са с минус
-    	$sign = ($rec->isReverse == 'no') ? 1 : -1;
-    	 
-    	// Кредита е винаги във валутата на пораждащия документ,
-    	$creditCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-    	$creditQuantity = round($amount / $dealInfo->agreed->rate, 2);
-    
-    	$creditArr[] = $rec->creditAccount;
-    	$debitArr[] = $rec->debitAccount;
-    
-    	$cashArr = array('1' => array('cash_Cases', $rec->peroCase),
-    			'2' => array('currency_Currencies', $rec->currencyId),
-    			'quantity' => $sign * $rec->amount);
-    
-    	$dealArr = array('1' => array($rec->contragentClassId, $rec->contragentId),
-    			'2' => array($origin->className, $origin->that),
-    			'quantity' => $sign * $creditQuantity);
-    
-    	$creditArr += ($rec->isReverse == 'no') ? $dealArr : $cashArr;
-    	$debitArr += ($rec->isReverse == 'no') ? $cashArr : $dealArr;
-    
+    	
+    	
+    	if($rec->isReverse == 'yes'){
+    		// Ако документа е обратен, правим контировката на РКО-то но с отрицателен знак
+    		$entry = cash_transaction_Rko::getReverseEntries($rec, $origin);
+    	} else {
+    		
+    		// Ако документа не е обратен, правим нормална контировка на ПКО
+    		$entry = $this->getEntry($rec, $origin);
+    	}
+    	
     	// Подготвяме информацията която ще записваме в Журнала
     	$result = (object)array(
     			'reason' => $rec->reason, // основанието за ордера
     			'valior' => $rec->valior,   // датата на ордера
-    			'entries' => array(
-    					array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,)
-    			)
+    			'entries' => array($entry)
     	);
-    
+    	
     	return $result;
+    }
+    
+    
+    /**
+     * Връща записа на транзакцията
+     */
+    private function getEntry($rec, $origin, $reverse = FALSE)
+    {
+    	$dealInfo = $origin->getAggregateDealInfo();
+    	$amount = round($rec->rate * $rec->amount, 2);
+    	
+    	// Ако е обратна транзакцията, сумите и к-та са с минус
+    	$sign = ($reverse) ? -1 : 1;
+    	
+    	// Кредита е винаги във валутата на пораждащия документ,
+    	$creditCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
+    	$creditQuantity = round($amount / $dealInfo->agreed->rate, 2);
+    	
+    	// Дебитираме касата
+    	$debitArr = array($rec->debitAccount,
+    						array('cash_Cases', $rec->peroCase),
+    						array('currency_Currencies', $rec->currencyId),
+    						'quantity' => $sign * $rec->amount,);
+    	
+    	// Кредитираме разчетната сметка
+    	$creditArr = array($rec->creditAccount,
+    							array($rec->contragentClassId, $rec->contragentId),
+    							array($origin->className, $origin->that),
+    							array('currency_Currencies', $creditCurrency),
+    							'quantity' => $sign * $creditQuantity);
+    	
+    	$entry = array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,);
+    	
+    	return $entry;
+    }
+    
+    
+    /**
+     * Връща обратна контировка на стандартната
+     */
+    public static function getReverseEntries($rec, $origin)
+    {
+    	$self = cls::get(get_called_class());
+    	 
+    	return $self->getEntry($rec, $origin, TRUE);
     }
 }
