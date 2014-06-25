@@ -240,9 +240,7 @@ class core_Master extends core_Manager
     function renderSingle_($data)
     { 
         // Рендираме общия лейаут
-        if(!$tpl) {
-            $tpl = $this->renderSingleLayout($data);
-        }
+        $tpl = $this->renderSingleLayout($data);
         
         // Рендираме заглавието
         $data->row->SingleTitle = $this->renderSingleTitle($data);
