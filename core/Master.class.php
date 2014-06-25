@@ -146,6 +146,9 @@ class core_Master extends core_Manager
             foreach (array_keys((array)$newRow) as $n) {
                 $data->row->{$n} = $newRow->{$n};
             }
+            
+            // Добавяме в лога
+            static::log("Преизчисляване на полетата на мастера", $data->rec->id);
         }
         
         return $data;
