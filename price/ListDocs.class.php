@@ -412,7 +412,6 @@ class price_ListDocs extends core_Master
 				    			$exRec->priceP = $object->priceP;
 				    			$rec->details->recs[] = $exRec;
     						} else {
-    							
     							// Всички останали опаковки са на нов ред, без цена
     							unset($object->priceM);
 			    				$rec->details->recs[] = $object;
@@ -497,12 +496,15 @@ class price_ListDocs extends core_Master
     		$row->pack .= "&nbsp;({$double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
 		}
     	
+		$row->code = $varchar->toVerbal($rec->code);
+		$row->eanCode = $varchar->toVerbal($rec->eanCode);
+		
     	if($rec->measureId && $rec->priceM){
     		$row->measureId = $measureShort;
+    	} else {
+    		unset($row->productId);
+    		unset($row->code);
     	}
-    	
-    	$row->code = $varchar->toVerbal($rec->code);
-    	$row->eanCode = $varchar->toVerbal($rec->eanCode);
     	
     	return $row;
     }
