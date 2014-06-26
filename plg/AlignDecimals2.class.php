@@ -43,8 +43,8 @@ class plg_AlignDecimals2 extends core_Plugin
 		}
 		
 		// Закръгляме сумата и я обръщаме във вербален вид
-    	foreach ($recs as $id => &$rec){
-			foreach ($decFields as $fName){
+    	foreach ($recs as $id => &$rec){ 
+			foreach ($decFields as $col => $fName){
 				$Type = $mvc->fields[$fName]->type;
 				setIfNot($Type->params['minDecimals'], 0);
                 setIfNot($Type->params['maxDecimals'], 6);
@@ -56,7 +56,12 @@ class plg_AlignDecimals2 extends core_Plugin
 				$Type->params['decimals'] = $optDecimals;
 				$rec->$fName = core_Math::roundNumber($rec->$fName, ${"{$fName}FracLen"});
 				$rows[$id]->$fName = $Type->toVerbal($rec->$fName);
+				
+				preg_match("/(?'int'[0-9]+)(?'delimiter'\,|\.)?(?'frac'[0-9]+)?/", $rows[$id]->$fName, $matches) ;
+				
+				$rows[$id]->$fName = $matches['int'] . "<span class='fracPart' data-col='{$col}'>{$matches['delimiter']}{$matches['frac']}</span>";
 			}
 		}
+		$data->listTableClass = "alignDecimals";
     }
 }

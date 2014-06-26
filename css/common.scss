@@ -1976,7 +1976,6 @@ a.rtbutton {
 	text-align:left;
 }
 
-
 .narrow a.rtbutton {
 	padding: 0.2em 0.3em 0.3em;
 	height:1.1em;
@@ -2757,4 +2756,8 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 /* цвят за маркиране на текста */
 .highlight {
     background-color: #ffff66;
+}
+.fracPart{
+	display: inline-block;
+	text-align: left;
 }
