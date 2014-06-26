@@ -1242,7 +1242,7 @@ class fileman_Files extends core_Master
         $attr['ef_icon'] = $icon;
         
         // Клас на връзката
-        $attr['class'] = 'file';
+        $attr['class'] = 'fileLink';
 
         // Ограничаваме максиманата дължина на името на файла
         $nameFix = str::limitLen($name, 32);
@@ -1261,7 +1261,7 @@ class fileman_Files extends core_Master
         if (($fRec->dataId) && file_exists($path)) {
             
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml
-            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
             
             //Генерираме връзката 
             $url  = static::generateUrl($fh, $isAbsolute);
@@ -1278,9 +1278,15 @@ class fileman_Files extends core_Master
                 
                 //Преобразуваме големината на файла във вербална стойност
                 $size = $FileSize->toVerbal($fileLen);
-    
-                // Ако линка е в iframe да се отваря в родителския(главния) прозорец
-                $attr['target'] = "_parent";
+                
+                if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+                        
+                    // Линка да се отваря на нова страница
+                    $attr['target'] = '_blank';    
+                } else {
+                    // Ако линка е в iframe да се отваря в родителския(главния) прозорец
+                    $attr['target'] = "_parent";
+                }
                 
                 //Заместваме &nbsp; с празен интервал
                 $size =  str_ireplace('&nbsp;', ' ', $size);
