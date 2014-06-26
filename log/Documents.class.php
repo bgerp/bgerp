@@ -1112,6 +1112,15 @@ class log_Documents extends core_Manager
 			// Milen: Това какво прави? Супер неясно глобално предаване на параметри!!!
 			if(static::getAction()) {
 				static::getAction()->id = $rec->id;
+				
+			} else {
+			    
+			    // Ако няма пушнат екшън и има подаден екшън, пушваме го
+			    if ($actionData) {
+			        $actionData['id'] = $rec->id;
+			    
+			        static::pushAction($actionData);
+			    }
 			}
             
             return $rec->mid;
