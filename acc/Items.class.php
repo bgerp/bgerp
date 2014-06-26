@@ -98,6 +98,14 @@ class acc_Items extends core_Manager
     
     
     /**
+     * Опашка от приключени пера на които да се задейства ивент
+     *
+     * @var array Масив от записи на acc_Items (с ключове - ид-та на записи)
+     */
+    protected static $closed = array();
+    
+    
+    /**
      * Шаблон (ET) за заглавие на перо
      *
      * @var string
@@ -244,6 +252,13 @@ class acc_Items extends core_Manager
         }
         
         acc_Features::syncItem($id);
+        
+        // Взависимост от състоянието на перото се задейства определено събитие в мениджъра му
+        if($rec->state == 'active'){
+        	self::$affected[$rec->id] = $rec;
+        } elseif($rec->state == 'closed'){
+        	self::$closed[$rec->id] = $rec;
+        }
     }
     
     
@@ -767,23 +782,35 @@ class acc_Items extends core_Manager
         		self::notifyObject($rec);
         	}
         }
+        
+        // Всяко затворено перо задейства ивент е мениджъра си
+        if(count(self::$closed)){
+        	foreach (self::$closed as $rec) {
+        		self::notifyObject($rec, 'close');
+        	}
+        }
     }
     
     
     /**
-     * Метод пораждащ събитие 'AfterAffectItem' в мениджъра на перото
+     * Метод пораждащ събитие 'AfterAffectItem' или ''AfterCloseItem'' в мениджъра на перото
      * 
      * @param mixed $id - обект или запис на перо
      * @return void
      */
-    public static function notifyObject($id)
+    public static function notifyObject($id, $action = 'affect')
     {
     	expect($rec = static::fetchRec($id));
+    	expect(in_array($action, array('affect', 'close')));
     	
+    	// Опитваме се да заредим класа на перото
     	if(cls::load($rec->classId, TRUE)){
     		$Class = cls::get($rec->classId);
     		$objectRec = $Class->fetch($rec->objectId);
-    		$Class->invoke('AfterAffectItem', array($objectRec, $rec));
+    		
+    		// Пораждаме събитие в перото
+    		$event = ($action == 'affect') ? 'AfterAffectItem' : 'AfterCloseItem';
+    		$Class->invoke($event, array($objectRec, $rec));
     	}
     }
     
