@@ -558,8 +558,6 @@ class bank_IncomeDocuments extends core_Master
         
     	if($rec->operationSysId == 'customer2bankAdvance' || $rec->operationSysId == 'supplierAdvance2bank'){
     		$result->paid->downpayment = $result->paid->amount;
-    		$result->paid->downpayments[$rec->currencyId] = array('amount' => $sign * $rec->amount, 
-    															  'amountBase' => $result->paid->amount);
     	} 
     	
         return $result;

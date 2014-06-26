@@ -504,8 +504,6 @@ class bank_SpendingDocuments extends core_Master
         
     	if($rec->operationSysId == 'bank2supplierAdvance' || $rec->operationSysId == 'bankAdvance2customer'){
     		$result->paid->downpayment = $result->paid->amount;
-    		$result->paid->downpayments[$rec->currencyId] = array('amount' => $sign * $rec->amount, 
-    															  'amountBase' => $result->paid->amount);
     	} 
     	
         return $result;

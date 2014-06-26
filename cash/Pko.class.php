@@ -578,8 +578,6 @@ class cash_Pko extends core_Master
         
         if($rec->operationSysId == 'customer2caseAdvance' || $rec->operationSysId == 'supplierAdvance2case'){
     		$result->paid->downpayment = $result->paid->amount;
-    		$result->paid->downpayments[$rec->currencyId] = array('amount' => $sign * $rec->amount, 
-    															  'amountBase' => $result->paid->amount);
     	}
     	
         return $result;
