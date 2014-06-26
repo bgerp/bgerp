@@ -563,8 +563,6 @@ class marketing_Inquiries extends core_Master
              */
             $PML->Encoding = "quoted-printable";
     		
-    		Mode::push('printing', TRUE);
-    		
     		Mode::push('text', 'plain');
     		
     		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
@@ -614,8 +612,6 @@ class marketing_Inquiries extends core_Master
         	email_Sent::embedSbfImg($PML);
         	
     		Mode::pop('text');
-    		
-    		Mode::pop('printing');
     		
     		// Име на фирма/лице / име на продукта
     		$subject = $this->getTitle($rec);

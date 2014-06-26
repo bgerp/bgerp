@@ -98,11 +98,27 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Изпълнява се след подготовката на единичния изглед
      * Подготвя иконата за единичния изглед
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $data
      */
-    function on_AfterPrepareSingle($mvc, &$res, $data)
+    function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
-        
+    }
+    
+    
+    /**
+     * Изпълнява се преди подготовката на единичния изглед
+     * Пушва екшъна за принтиране в лога
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $data
+     */
+    function on_BeforePrepareSingle($mvc, &$res, $data)
+    {
         if (Request::get('Printing') && empty($data->__MID__)) {
             $data->__MID__ = log_Documents::saveAction(
                 array(
@@ -986,7 +1002,7 @@ class doc_DocumentPlg extends core_Plugin
             core_Users::exitSudo();
         }
         
-        // Връщаме старата стойност на 'printing' и 'text'
+        // Връщаме старата стойност на 'text'
         Mode::pop('text');
     }
     
@@ -1007,9 +1023,6 @@ class doc_DocumentPlg extends core_Plugin
     {
         expect($mode == 'plain' || $mode == 'html' || $mode == 'xhtml');
         
-        // Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
-        Mode::push('printing', TRUE);
-                
         // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
         // във формата, указан от `text` режима (plain или html)
         Mode::push('text', $mode);
@@ -1050,9 +1063,8 @@ class doc_DocumentPlg extends core_Plugin
             core_Users::exitSudo();
         }
         
-        // Връщаме старата стойност на 'printing' и 'text'
+        // Връщаме старата стойност на 'text'
         Mode::pop('text');
-        Mode::pop('printing');
     }
     
     
@@ -1461,9 +1473,6 @@ class doc_DocumentPlg extends core_Plugin
         
         if (strtolower($type) != 'pdf') return ;
         
-        //Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
-        Mode::push('printing', TRUE);
-        
         //Емулираме режим 'xhtml', за да покажем статичните изображения
         Mode::push('text', 'xhtml');
         
@@ -1501,9 +1510,6 @@ class doc_DocumentPlg extends core_Plugin
         
         //Връщаме старата стойност на 'text'
         Mode::pop('text');
-        
-        //Връщаме старата стойност на 'printing'
-        Mode::pop('printing');         
     }
         
     

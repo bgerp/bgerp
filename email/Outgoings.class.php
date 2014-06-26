@@ -1663,7 +1663,7 @@ class email_Outgoings extends core_Master
                 $tpl = 'email/tpl/SingleLayoutOutgoings.txt';
                 break;
                 
-            case Mode::is('printing'):
+            case (Mode::is('printing') || Mode::is('text', 'xhtml')):
                 $tpl = 'email/tpl/SingleLayoutSendOutgoings.shtml';
                 break;
                 
