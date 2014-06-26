@@ -38,7 +38,7 @@ class tracking_Log extends core_Manager {
      *
      * var string|array
      */
-    public $listFields = 'vehicleId, driverId, text, remoteIp, createdOn';
+    public $listFields = 'vehicleId, driverId, text, fixTime, remoteIp, createdOn';
     
     /**
      * Описание на модела
@@ -48,6 +48,7 @@ class tracking_Log extends core_Manager {
         $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number)', 'caption=Автомобил');
         $this->FLD('driverId', 'key(mvc=crm_Persons, select=name)', 'caption=Водач');
         $this->FLD('data', 'blob', 'caption=Данни');
+        $this->FLD('fixTime', 'datetime', 'caption=Време на засичне');
         $this->FNC('text', 'html', 'caption=Данни');
         $this->FLD('remoteIp', 'ip', 'caption=Tракер IP');
     }
@@ -58,10 +59,7 @@ class tracking_Log extends core_Manager {
     {
         $data = self::parseTrackingData($rec->data);
 
-        $dateTimeTracking = "20" . substr($data['date'],4,2) . "-" . substr($data['date'],2,2) . "-" . substr($data['date'],0,2)
-                . " " . substr($data['time'],0,2) . ":" . substr($data['time'],2,2) . ":" . substr($data['time'],4,2); 
-                
-        $rec->text  = "Дата: " . $dateTimeTracking . "<br>";
+        $rec->text  = "Дата: " . $data['fixTime'] . "<br>";
         $rec->text .= "Статус: " . (($data['status'] == 'A')?'Валиден':'Невалиден'). "<br>";
         $rec->text .= "Ширина DD: " . self::DMSToDD($data['latitude']) . "<br>";
         $rec->text .= "Дължина DD: " . self::DMSToDD($data['longitude']) . "<br>";
@@ -105,7 +103,7 @@ class tracking_Log extends core_Manager {
         $trackerDataArr = self::parseTrackingData($trackerData);
         
         // Проверяваме дали скоростта е нула
-        if (($trackerDataArr['speed']-0.01) < 0) {
+         if (($trackerDataArr['speed']-0.01) < 0) {
             // Проверяваме последния запис от този тракер, дали е с нулева скорост. Ако - да - не го записваме
             $query = $this->getQuery();
             $query->show('data');
@@ -126,6 +124,7 @@ class tracking_Log extends core_Manager {
         $rec->driverId = $recVehicle->personId;
         $rec->trackerId = $trackerId;
         $rec->data = $trackerData;
+        $rec->fixTime = self::GMT2Local($trackerDataArr['fixTime']);
         $rec->remoteIp = $remoteIp;
         
         $this->save($rec);
@@ -151,6 +150,11 @@ class tracking_Log extends core_Manager {
         $res['speed'] = $arrData[6];
         $res['heading'] = $arrData[7];
         $res['date'] = $arrData[8];
+        // Ако имаме дата и час - конструираме времето на фиксиране в mysql формат
+        if (!empty($res['date']) && !empty($res['time'])) {
+            $res['fixTime'] = "20" . substr($res['date'],4,2) . "-" . substr($res['date'],2,2) . "-" . substr($res['date'],0,2)
+                . " " . substr($res['time'],0,2) . ":" . substr($res['time'],2,2) . ":" . substr($res['time'],4,2);
+        } 
         
         
         return $res;
@@ -183,8 +187,8 @@ class tracking_Log extends core_Manager {
     /**
      * Превръща от GMT Mysql време в локано
      * 
-     * @param string  - стринг с данните - в стил DMS ()
-     * @return double  - decimal degrees
+     * @param string  - datetime - в UTC
+     * @return string  - DateTime локално време в Mysql формат
      */
     private function GMT2Local($date)
     {
