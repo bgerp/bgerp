@@ -31,7 +31,7 @@ class tracking_Log extends core_Manager {
      *
      * var string|array
      */
-    public $loadList = 'plg_Created, tracking_Wrapper, plg_LastUsedKeys';
+    public $loadList = 'plg_Created, plg_LastUsedKeys, tracking_Wrapper';
     
     /**
      * Полета за показване
@@ -180,6 +180,16 @@ class tracking_Log extends core_Manager {
         return $res;
     }
 
+    /**
+     * Превръща от GMT Mysql време в локано
+     * 
+     * @param string  - стринг с данните - в стил DMS ()
+     * @return double  - decimal degrees
+     */
+    private function GMT2Local($date)
+    {
+        return date("Y-m-d H:i:s", strtotime($date . " UTC"));
+    }
     
     /**
      * Връща Tracker данните

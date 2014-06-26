@@ -3541,6 +3541,9 @@ body.narrow {
     #all h1{
         font-size: 1.7em;
     }
+    .narrow a.rtbutton {
+        min-width: 8px;
+    }
 }
 
 @media handheld, only screen and (max-width: 240px) { 
