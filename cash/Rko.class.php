@@ -560,10 +560,6 @@ class cash_Rko extends core_Master
         $result->paid->rate 	       = $rec->rate;
         $result->paid->payment->caseId = $rec->peroCase;
     	$result->paid->operationSysId  = $rec->operationSysId;
-        
-        if($rec->operationSysId == 'case2supplierAdvance' || $rec->operationSysId == 'caseAdvance2customer'){
-    		$result->paid->downpayment = $result->paid->amount;
-        }
     	
         return $result;
     }

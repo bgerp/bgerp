@@ -964,6 +964,10 @@ class sales_Sales extends core_Master
         $result->agreed->payment->bankAccountId = $rec->bankAccountId;
         $result->agreed->payment->caseId        = $rec->caseId;
         
+        // Извличаме направените авансови плащания досега
+        $jRecs = acc_Journal::getEntries(array('sales_Sales', $rec->id));
+        $result->paid->downpayment = acc_Balances::getBlAmounts($jRecs, '412', 'credit')->amount;
+        
         if (isset($actions['pay'])) {
             $result->paid->amount   			  = $rec->amountDeal;
             $result->agreed->downpayment          = ($downPayment) ? $downPayment : NULL;
@@ -1410,30 +1414,17 @@ class sales_Sales extends core_Master
         return $result;
     }
     
-    /*
-    public static function on_AfterAffectItem($mvc, $rec, $item)
+    
+    /*public static function on_AfterAffectItem($mvc, $rec, $item)
     {
-    	$jRecs = acc_Journal::getEntries($item);
-    	$paid = acc_Balances::getBlAmounts($jRecs, '411', 'credit')->amount;
-    	$paid += -1 * acc_Balances::getBlAmounts($jRecs, '412')->amount;
-    	//@TODO да вадя и извънредния приход
+    	$saleRec = new sales_model_Sale($rec);
+    	$aggregatedDealInfo = $mvc->getAggregateDealInfo($rec->id);
     	
-    	$delivered = acc_Balances::getBlAmounts($jRecs, '411', 'debit')->amount;
-    	$delivered -= acc_Balances::getBlAmounts($jRecs, '411', 'debit', '7911')->amount;
-    	$toInvoice = -1 * acc_Balances::getBlAmounts($jRecs, '4530')->amount;
-    	
-    	$ivoiced = acc_Balances::getBlAmounts($jRecs, '4532', 'credit')->amount;
-    	
-    	$rec->amountPaid = $paid;
-    	$rec->amountDelivered = $delivered;
-    	$rec->amountToInvoice = $toInvoice;
-    	$rec->amountInvoiced = $ivoiced * 6;
-    	
-    	$mvc->save($rec);
-    	$mvc->sales_SalesDetails->updateDeliveryInfo($rec->id);
+    	$saleRec->updateAggregateDealInfo($aggregatedDealInfo);
     }
     
+    
     function act_test(){
-    	$this->sales_SalesDetails->updateDeliveryInfo(1536);
+    	sales_transaction_Sale::getShippedProducts(1555);
     }*/
 }

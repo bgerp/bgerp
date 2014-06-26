@@ -555,10 +555,6 @@ class bank_IncomeDocuments extends core_Master
         $result->paid->rate 	              = $rec->rate;
         $result->paid->payment->bankAccountId = bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId');
 		$result->paid->operationSysId         = $rec->operationSysId;
-        
-    	if($rec->operationSysId == 'customer2bankAdvance' || $rec->operationSysId == 'supplierAdvance2bank'){
-    		$result->paid->downpayment = $result->paid->amount;
-    	} 
     	
         return $result;
     }

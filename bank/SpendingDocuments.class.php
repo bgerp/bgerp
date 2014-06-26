@@ -501,10 +501,6 @@ class bank_SpendingDocuments extends core_Master
         $result->paid->rate 	              = $rec->rate;
         $result->paid->payment->bankAccountId = bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId');
         $result->paid->operationSysId         = $rec->operationSysId;
-        
-    	if($rec->operationSysId == 'bank2supplierAdvance' || $rec->operationSysId == 'bankAdvance2customer'){
-    		$result->paid->downpayment = $result->paid->amount;
-    	} 
     	
         return $result;
     }
