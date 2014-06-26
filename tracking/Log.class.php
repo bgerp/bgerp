@@ -48,12 +48,19 @@ class tracking_Log extends core_Manager {
         $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number)', 'caption=Автомобил');
         $this->FLD('driverId', 'key(mvc=crm_Persons, select=name)', 'caption=Водач');
         $this->FLD('data', 'blob', 'caption=Данни');
-        $this->FLD('fixTime', 'datetime', 'caption=Време на засичне');
+        $this->FLD('fixTime', 'datetime()', 'caption=Време на засичне');
         $this->FNC('text', 'html', 'caption=Данни');
         $this->FLD('remoteIp', 'ip', 'caption=Tракер IP');
     }
     
-
+    /**
+     * Преди извличане на записите филтър по number
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('#fixTime', 'DESC');
+    }
+    
     
     protected function on_CalcText($mvc, $rec)
     {
@@ -95,7 +102,7 @@ class tracking_Log extends core_Manager {
         $recVehicle = tracking_Vehicles::getRecByTrackerId($trackerId);
         if (FALSE === $recVehicle) {
             /* @TODO Логваме съобщение, че нямаме въведена кола за този тракер */
-            file_put_contents("tracking.log", "\n Липсваща кола с тракер {rackerId}". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
+            file_put_contents("tracking.log", "\n Липсваща кола с тракер No:{$trackerId}". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
             
             exit;
         }
