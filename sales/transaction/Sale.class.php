@@ -21,6 +21,9 @@ class sales_transaction_Sale
     public $class;
     
     
+    const DOWNPAYMENT_ACCOUNT_ID = '412';
+    
+    
     /**
      * Генериране на счетоводните транзакции, породени от продажба.
      * 
@@ -364,4 +367,15 @@ class sales_transaction_Sale
         
         return $entries;
     }
+	
+	
+	/**
+	 * Колко е направеното авансово плащане досега
+	 */
+	public static function getDownpayment($id)
+	{
+		$jRecs = acc_Journal::getEntries(array('sales_Sales', $id));
+		 
+		return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'credit')->amount;
+	}
 }

@@ -965,8 +965,7 @@ class sales_Sales extends core_Master
         $result->agreed->payment->caseId        = $rec->caseId;
         
         // Извличаме направените авансови плащания досега
-        $jRecs = acc_Journal::getEntries(array('sales_Sales', $rec->id));
-        $result->paid->downpayment = acc_Balances::getBlAmounts($jRecs, '412', 'credit')->amount;
+        $result->paid->downpayment = sales_transaction_Sale::getDownpayment($rec->id);
         
         if (isset($actions['pay'])) {
             $result->paid->amount   			  = $rec->amountDeal;
