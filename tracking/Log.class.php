@@ -14,8 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class tracking_Log extends core_Detail
-{
+class tracking_Log extends core_Manager {
     
     /**
      * Заглавие
@@ -32,12 +31,7 @@ class tracking_Log extends core_Detail
      *
      * var string|array
      */
-    public $loadList = 'plg_Created, tracking_Wrapper';
-    
-    /**
-     * Име на поле от модела, външен ключ към мастър записа
-     */
-    public $masterKey = 'vehicleId';    
+    public $loadList = 'plg_Created, tracking_Wrapper, plg_LastUsedKeys';
     
     /**
      * Полета за показване
@@ -58,10 +52,7 @@ class tracking_Log extends core_Detail
         $this->FLD('remoteIp', 'ip', 'caption=Tракер IP');
     }
     
-    protected function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
-    {
-        //bp($rec);
-    }
+
     
     protected function on_CalcText($mvc, $rec)
     {
@@ -105,14 +96,15 @@ class tracking_Log extends core_Detail
         // Взимаме данните за колата, на която е закачен тракера
         $recVehicle = tracking_Vehicles::getRecByTrackerId($trackerId);
         if (FALSE === $recVehicle) {
-            /* @TODO Логваме логваме съобщение, че нямаме въведена кола за този тракер */
+            /* @TODO Логваме съобщение, че нямаме въведена кола за този тракер */
             file_put_contents("tracking.log", "\n Липсваща кола с тракер {rackerId}". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
             
             exit;
         }
         
-        // Проверяваме дали скоростта е нула
         $trackerDataArr = self::parseTrackingData($trackerData);
+        
+        // Проверяваме дали скоростта е нула
         if (($trackerDataArr['speed']-0.01) < 0) {
             // Проверяваме последния запис от този тракер, дали е с нулева скорост. Ако - да - не го записваме
             $query = $this->getQuery();

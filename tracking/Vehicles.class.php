@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class tracking_Vehicles extends core_Master
+class tracking_Vehicles extends core_Manager
 {
     
     /**
@@ -64,6 +64,7 @@ class tracking_Vehicles extends core_Master
         $this->FLD('model', 'varchar(12)', 'caption=модел');
         $this->FLD('number', 'varchar(10)', 'caption=рег. номер');
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name)', 'caption=Водач');
+        
     }
     
     /**
