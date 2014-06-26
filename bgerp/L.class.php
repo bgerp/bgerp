@@ -133,9 +133,6 @@ class bgerp_L extends core_Manager
             // Очакваме да не е чернова или оттеглен документ
             expect($rec->state != 'rejected' && $rec->state != 'draft', 'Липсващ документ');
             
-            //Спираме режима за принтиране
-            Mode::set('printing', FALSE); // @todo Необходимо ли е?
-
             //
             // Проверка за право на достъп според MID
             //
@@ -275,7 +272,8 @@ class bgerp_L extends core_Manager
      */
     static function getDocLink($cid, $mid)
     {
-        $url = toUrl(array('L', 'S', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
+        $url = toUrl(array('L', 'S', $cid, 'm' => $mid), $isAbsolute, TRUE, array('m'));
         
         return $url;
     }
