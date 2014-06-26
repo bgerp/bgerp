@@ -2044,6 +2044,11 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
     background-position: 3px center !important;
 }
 
+.narrow .richtext-holder-group a.rtbutton {
+    padding: 0.3em 0.4em 0.3em;
+    line-height: 1;
+}
+
 .popup-table-info{
 	width: 80px;
 	padding: 5px;
