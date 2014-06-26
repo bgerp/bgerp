@@ -57,11 +57,11 @@ class plg_AlignDecimals2 extends core_Plugin
 				$rec->$fName = core_Math::roundNumber($rec->$fName, ${"{$fName}FracLen"});
 				$rows[$id]->$fName = $Type->toVerbal($rec->$fName);
 				
-				preg_match("/(?'int'[0-9]+)(?'delimiter'\,|\.)?(?'frac'[0-9]+)?/", $rows[$id]->$fName, $matches) ;
+				//preg_match("/(?'int'[0-9]+)(?'delimiter'\,|\.)?(?'frac'[0-9]+)?/", $rows[$id]->$fName, $matches) ;
 				
-				$rows[$id]->$fName = $matches['int'] . "<span class='fracPart' data-col='{$col}'>{$matches['delimiter']}{$matches['frac']}</span>";
+				//$rows[$id]->$fName = $matches['int'] . "<span class='fracPart' data-col='{$col}'>{$matches['delimiter']}{$matches['frac']}</span>";
 			}
 		}
-		$data->listTableClass = "alignDecimals";
+		//$data->listTableClass = "alignDecimals";
     }
 }
