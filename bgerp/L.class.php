@@ -246,6 +246,10 @@ class bgerp_L extends core_Manager
      */
     function act_B()
     {
+        // Пускаме xhtml режима при вземане на QR кода
+        $text = Mode::get('text');
+        Mode::set('text', 'xhtml');
+        
         //Вземаме номера на контейнера
         $cid = Request::get('id', 'int');
         $mid = Request::get('m');
@@ -257,8 +261,11 @@ class bgerp_L extends core_Manager
         if ($mid) log_Documents::received($mid, NULL, $ip);
 
         $docUrl = static::getDocLink($cid, $mid);
-
+        
         barcode_Qr::getImg($docUrl, 3, 0, 'L', NULL);
+        
+        // Връщаме стария режим
+        Mode::set('text', $text);
     }
 
 
