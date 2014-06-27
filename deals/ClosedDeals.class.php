@@ -201,12 +201,14 @@ class deals_ClosedDeals extends acc_ClosedDeals
         							array($docRec->contragentClassId, $docRec->contragentId),
 	            					array($firstDoc->className, $firstDoc->that));
         	$creditArr = array($account,
+        						array($docRec->contragentClassId, $docRec->contragentId),
         						array('deals_Deals', $docRec->id),
 	    						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                        'quantity' =>  abs($amount));
         } else {
         	// Извънреден приход
         	$debitArr = array($account,
+        					array($docRec->contragentClassId, $docRec->contragentId),
 	    					array('deals_Deals', $docRec->id), 
 	                        array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                    'quantity' =>  abs($amount));
