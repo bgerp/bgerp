@@ -54,14 +54,41 @@ class tracking_Log extends core_Manager {
     }
     
     /**
-     * Преди извличане на записите филтър по number
+     * Добавя форма за търсене
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy('#fixTime', 'DESC');
+        $data->listFilter->FNC('dateFrom','date','caption=От,input');
+        $data->listFilter->FNC('dateTo','date','caption=Сега,input');
+        
+        $data->listFilter->showFields = 'vehicleId,driverId,dateFrom,dateTo';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтър');
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $rec = $data->listFilter->input();
+        
+        if ($rec) {
+            if ($rec->vehicleId) {
+                $data->query->where("#vehicleId = {$rec->vehicleId}");
+            }
+        
+            if ($rec->driverId) {
+                $data->query->where("#driverId = '{$rec->driverId}'");
+            }
+            
+            if ($rec->dateFrom) {
+                if (empty($rec->dateTo)) {
+                    $rec->dateTo = date("Y-m-d");
+                }
+                $data->query->where("CAST(#fixTime AS DATE) BETWEEN '{$rec->dateFrom}' AND '{$rec->dateTo}'");
+            }
+        }
+        
+        $data->query->orderBy('#fixTime', 'DESC');        
     }
-    
-    
+        
     protected function on_CalcText($mvc, $rec)
     {
         $data = self::parseTrackingData($rec->data);
