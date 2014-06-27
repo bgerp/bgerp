@@ -29,11 +29,12 @@ class core_Os
             $this->wshShell = @new COM("WScript.Shell");
             
             if (!$this->wshShell)
-            error('Невъзможност да се инициализира WScript.Shell', TRUE);
+                error('Невъзможност да се инициализира WScript.Shell', TRUE);
+            
             $this->wmi = @new COM("winmgmts://./root/cimv2");
             
             if (!$this->wmi)
-            error('Невъзможност да се инициализира winmgmts://./root/cimv2', TRUE);
+                error('Невъзможност да се инициализира winmgmts://./root/cimv2', TRUE);
         }
     }
     
