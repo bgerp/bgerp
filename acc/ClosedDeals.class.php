@@ -401,7 +401,7 @@ abstract class acc_ClosedDeals extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $docRec = cls::get($rec->docClassId)->fetch($rec->docId);
 		$amount = $this->getClosedDealAmount($firstDoc);
-        
+       
 		// Създаване на обекта за транзакция
         $result = (object)array(
             'reason'      => $this->singleTitle . " #" . $firstDoc->getHandle(),
@@ -409,7 +409,7 @@ abstract class acc_ClosedDeals extends core_Master
             'totalAmount' => currency_Currencies::round(abs($amount)),
             'entries'     => array()
         );
-       	
+        
         $dealInfo = $this->getDealInfo($rec->threadId);
         
         // Ако има сума различна от нула значи има приход/разход
@@ -418,7 +418,7 @@ abstract class acc_ClosedDeals extends core_Master
         	// Взимаме записа за начисляване на извънредния приход/разход
         	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $dealInfo->dealType, $firstDoc);
         }
-        
+       
     	if($vatToCharge = $dealInfo->invoiced->vatToCharge){
         	// Създаване на запис за прехвърляне на всеки аванс
         	$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $total1, $firstDoc);
@@ -451,57 +451,6 @@ abstract class acc_ClosedDeals extends core_Master
         
     	// Връщане на резултата
         return $result;
-    }
-    
-    
-	/**
-     * Ако има направени авансови плащания към сделката се приключва и аванса
-     * Направените аванси са сумирани по валута, така за всяко авансово плащане в различна валута
-     * има запис за неговото приключване
-     * 
-     * Приключване на аванс на продажба:
-     * ------------------------------------------------------
-     * Dt:  412. Задължения към клиенти (по аванси)
-     * Ct:  411. Вземания от клиенти (Клиенти, Валути)
-     * 
-     * 
-     * Приключване на аванс на покупка:
-     * -------------------------------------------------------
-     * Dt: 401. Задължения към доставчици (Доставчици, Валути)
-     * Ct: 402. Вземания от доставчици по аванси
-     */
-    protected function trasnferDownpayments(bgerp_iface_DealResponse $dealInfo, $docRec, &$total, $firstDoc)
-    {
-    	$entryArr = array();
-    	$total = 0;
-    	
-    	// Направените авансови плащания досега сумирани по валута
-    	$downpayments = $dealInfo->paid->downpayments;
-    	$accounts = $this->contoAccounts;
-    	
-    	// За всяко авансово плащане се създава запис
-    	foreach ($downpayments as $currencyId => $rec){
-    		$entry = array();
-    		$entry['amount'] = currency_Currencies::round($rec['amountBase']);
-    		$entry['debit'] = array($accounts['downpayments']['debit'],
-    									array($docRec->contragentClassId, $docRec->contragentId),
-    									array($firstDoc->className, $firstDoc->that), 
-                     					array('currency_Currencies', $currencyId),
-                     				'quantity' => $rec['amount']);
-                     					
-            $entry['credit'] = array($accounts['downpayments']['credit'],
-    									array($docRec->contragentClassId, $docRec->contragentId), 
-            							array($firstDoc->className, $firstDoc->that),
-                     					array('currency_Currencies', $currencyId),
-                     				'quantity' => $rec['amount']);
-            
-            // Сумиране на общото
-            $total += $entry['amount'];
-            $entryArr[] = $entry;
-    	}
-    	
-    	// Връщане на готовия масив със записи
-    	return $entryArr;
     }
     
     

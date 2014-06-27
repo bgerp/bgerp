@@ -481,8 +481,11 @@ class store_Receipts extends core_Master
     	// Може да се добавя само към активиран документ
     	if($docState == 'active'){
     		
-    		$dealInfo = $firstDoc->getAggregateDealInfo();
-    		return ($dealInfo->allowedShipmentOperations['stowage']) ? TRUE : FALSE;
+    		if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
+    			$dealInfo = $firstDoc->getAggregateDealInfo();
+    			
+    			return ($dealInfo->allowedShipmentOperations['stowage']) ? TRUE : FALSE;
+    		}
     	}
     	
     	return FALSE;

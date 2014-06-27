@@ -215,13 +215,17 @@ class purchase_ClosedDeals extends acc_ClosedDeals
 	    								array($firstDoc->className, $firstDoc->that), 
 	                        			array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                       			'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	            'credit' => array('7912'),
+	            'credit' => array('7912',
+	            					array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that)),
 	    	);
     	} elseif($amount > 0){
     		// Записа за извънреден разход
 	    	$entry = array(
 	    		'amount' => $totalAmount,
-	    		'debit'  => array('6912'),
+	    		'debit'  => array('6912',
+	    							array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that)),
 	    		'credit' => array('401',
 	    								array($docRec->contragentClassId, $docRec->contragentId),
 	    								array($firstDoc->className, $firstDoc->that),
@@ -270,7 +274,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     			$entries[] = array(
 	    			'amount' => $amount,
 	    			'debit'  => $debitEnt,
-	            	'credit' => array('4530'),
+	            	'credit' => array('4530', array($firstDoc->className, $firstDoc->that)),
     			);
     		}
     	}
@@ -294,5 +298,52 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_PURCHASE) return FALSE;
     	 
     	return TRUE;
+    }
+    
+    
+    /**
+     * Ако има направени авансови плащания към сделката се приключва и аванса
+     * Направените аванси са сумирани по валута, така за всяко авансово плащане в различна валута
+     * има запис за неговото приключване
+     *
+     *
+     * Приключване на аванс на покупка:
+     * -------------------------------------------------------
+     * Dt: 401. Задължения към доставчици (Доставчици, Валути)
+     * Ct: 402. Вземания от доставчици по аванси
+     */
+    public function trasnferDownpayments(bgerp_iface_DealResponse $dealInfo, $docRec, &$total, $firstDoc)
+    {
+    	$entryArr = array();
+    	$total = 0;
+    	 
+    	$docRec = $firstDoc->rec();
+    	 
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+    	 
+    	// Колко е направеното авансовото плащане
+    	$downpaymentAmount = acc_Balances::getBlAmounts($jRecs, '402')->amount;
+    	
+    	// Валутата на плащането е тази на сделката
+    	$currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
+    	$amount = currency_Currencies::round($downpaymentAmount / $dealInfo->agreed->rate, 2);
+    	
+    	$entry = array();
+    	$entry['amount'] = currency_Currencies::round($downpaymentAmount);
+    	$entry['debit'] = array('401',
+    			array($docRec->contragentClassId, $docRec->contragentId),
+    			array($firstDoc->className, $firstDoc->that),
+    			array('currency_Currencies', $currencyId),
+    			'quantity' => $amount);
+    	
+    	$entry['credit'] = array('402',
+    			array($docRec->contragentClassId, $docRec->contragentId),
+    			array($firstDoc->className, $firstDoc->that),
+    			array('currency_Currencies', $currencyId),
+    			'quantity' => $amount);
+    	
+    	$total += $entry['amount'];
+    	
+    	return array($entry);
     }
 }

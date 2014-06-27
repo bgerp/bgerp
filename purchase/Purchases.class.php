@@ -771,6 +771,9 @@ class purchase_Purchases extends core_Master
         $result->agreed->payment->bankAccountId = bank_Accounts::fetchField("#iban = '{$rec->bankAccountId}'", 'id');
         $result->agreed->payment->caseId        = $rec->caseId;
         
+        // Извличаме направените авансови плащания досега
+        $result->paid->downpayment = purchase_transaction_Purchase::getDownpayment($rec->id);
+        
     	if (isset($actions['pay'])) {
             $result->paid->amount   			  = $rec->amountDeal;
             $result->agreed->downpayment          = ($downPayment) ? $downPayment : NULL;

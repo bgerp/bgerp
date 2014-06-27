@@ -457,9 +457,11 @@ class acc_Journal extends core_Master
      	$query->where("#state = 'draft'");
      	
      	while($rec = $query->fetch()){
-     		
-     		// От кой обект са генерирани
-     		$document = new core_ObjectReference($rec->docType, $rec->docId);
+     		try{
+     			$document = new core_ObjectReference($rec->docType, $rec->docId);
+     		} catch(Exception $e){
+     			continue;
+     		}
      		
      		// Ако състоянието на документа е чернова
      		$state = $document->fetchField('state');

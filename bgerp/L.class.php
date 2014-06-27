@@ -133,9 +133,6 @@ class bgerp_L extends core_Manager
             // Очакваме да не е чернова или оттеглен документ
             expect($rec->state != 'rejected' && $rec->state != 'draft', 'Липсващ документ');
             
-            //Спираме режима за принтиране
-            Mode::set('printing', FALSE); // @todo Необходимо ли е?
-
             //
             // Проверка за право на достъп според MID
             //
@@ -249,6 +246,10 @@ class bgerp_L extends core_Manager
      */
     function act_B()
     {
+        // Пускаме xhtml режима при вземане на QR кода
+        $text = Mode::get('text');
+        Mode::set('text', 'xhtml');
+        
         //Вземаме номера на контейнера
         $cid = Request::get('id', 'int');
         $mid = Request::get('m');
@@ -260,8 +261,11 @@ class bgerp_L extends core_Manager
         if ($mid) log_Documents::received($mid, NULL, $ip);
 
         $docUrl = static::getDocLink($cid, $mid);
-
+        
         barcode_Qr::getImg($docUrl, 3, 0, 'L', NULL);
+        
+        // Връщаме стария режим
+        Mode::set('text', $text);
     }
 
 
@@ -275,7 +279,8 @@ class bgerp_L extends core_Manager
      */
     static function getDocLink($cid, $mid)
     {
-        $url = toUrl(array('L', 'S', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
+        $url = toUrl(array('L', 'S', $cid, 'm' => $mid), $isAbsolute, TRUE, array('m'));
         
         return $url;
     }

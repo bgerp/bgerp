@@ -20,7 +20,7 @@ class cash_Pko extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_Pko, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
    
     
     /**
@@ -176,7 +176,7 @@ class cash_Pko extends core_Master
     	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
     	$this->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -423,73 +423,6 @@ class cash_Pko extends core_Master
     }
     
     
-   	/**
-   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-   	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 */
-    public static function getTransaction($id)
-    {
-       	// Извличаме записа
-        expect($rec = self::fetchRec($id));
-       
-        $origin = self::getOrigin($rec);
-        $dealInfo = $origin->getAggregateDealInfo();
-       	$amount = round($rec->rate * $rec->amount, 2);
-        
-       	// Ако е обратна транзакцията, сумите и к-та са с минус
-        $sign = ($rec->isReverse == 'no') ? 1 : -1;
-       
-        // Кредита е винаги във валутата на пораждащия документ,
-        $creditCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-        $creditQuantity = round($amount / $dealInfo->agreed->rate, 2);
-       	
-        $creditArr[] = $rec->creditAccount;
-        $debitArr[] = $rec->debitAccount;
-        
-        $cashArr = array('1' => array('cash_Cases', $rec->peroCase), 
-        				 '2' => array('currency_Currencies', $rec->currencyId), 
-        				 'quantity' => $sign * $rec->amount);
-        
-        $dealArr = array('1' => array($rec->contragentClassId, $rec->contragentId), 
-        				 '2' => array($origin->className, $origin->that), 
-        				 'quantity' => $sign * $creditQuantity);
-        
-        $creditArr += ($rec->isReverse == 'no') ? $dealArr : $cashArr;
-        $debitArr += ($rec->isReverse == 'no') ? $cashArr : $dealArr;
-        
-        // Подготвяме информацията която ще записваме в Журнала
-        $result = (object)array(
-            'reason' => $rec->reason, // основанието за ордера
-            'valior' => $rec->valior,   // датата на ордера
-            'entries' => array(
-                array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,)
-            )
-        );
-        
-        return $result;
-    }
-    
-	
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        $rec->state = 'active';
-        
-        if ($this->save($rec)) {
-            // Нотифицираме origin-документа, че някой от веригата му се е променил
-            if ($origin = $this->getOrigin($rec)) {
-                $ref = new core_ObjectReference($this, $rec);
-                $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-            }
-        }
-    }
-    
-    
     /**
      * След оттегляне на документа
      * 
@@ -642,12 +575,6 @@ class cash_Pko extends core_Master
         $result->paid->rate 	       = $rec->rate;
         $result->paid->payment->caseId = $rec->peroCase;
         $result->paid->operationSysId  = $rec->operationSysId;
-        
-        if($rec->operationSysId == 'customer2caseAdvance' || $rec->operationSysId == 'supplierAdvance2case'){
-    		$result->paid->downpayment = $result->paid->amount;
-    		$result->paid->downpayments[$rec->currencyId] = array('amount' => $sign * $rec->amount, 
-    															  'amountBase' => $result->paid->amount);
-    	}
     	
         return $result;
     }

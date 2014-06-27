@@ -197,7 +197,9 @@ class deals_ClosedDeals extends acc_ClosedDeals
         
         // Извънреден разход
         if($amount < 0){
-        	$debitArr = array('6913', 'quantity' => abs($amount));
+        	$debitArr = array('6913', 
+        							array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that));
         	$creditArr = array($account,
         						array('deals_Deals', $docRec->id),
 	    						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
@@ -208,7 +210,9 @@ class deals_ClosedDeals extends acc_ClosedDeals
 	    					array('deals_Deals', $docRec->id), 
 	                        array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                    'quantity' =>  abs($amount));
-        	$creditArr = array('7913', 'quantity' => abs($amount));
+        	$creditArr = array('7913', 
+        							array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that));
         }
         
         // Създаване на обекта за транзакция

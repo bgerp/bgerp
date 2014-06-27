@@ -492,8 +492,11 @@ class store_ShipmentOrders extends core_Master
     	// Може да се добавя само към активиран документ
     	if($docState == 'active'){
     		
-    		$dealInfo = $firstDoc->getAggregateDealInfo();
-    		return ($dealInfo->allowedShipmentOperations['delivery']) ? TRUE : FALSE;
+    		if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
+    			$dealInfo = $firstDoc->getAggregateDealInfo();
+    			
+    			return ($dealInfo->allowedShipmentOperations['delivery']) ? TRUE : FALSE;
+    		}
     	}
     	
     	return FALSE;

@@ -19,7 +19,7 @@ class bank_IncomeDocuments extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_IncomeDocument, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
    
     
     /**
@@ -438,72 +438,7 @@ class bank_IncomeDocuments extends core_Master
     }
     
     
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        $rec->state = 'closed';
-                
-        if ($this->save($rec)) {
-            // Нотифицираме origin-документа, че някой от веригата му се е променил
-            if ($origin = $this->getOrigin($rec)) {
-                $ref = new core_ObjectReference($this, $rec);
-                $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-            }
-        }
-    }
     
-    
-    /**
-   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-   	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 */
-    public static function getTransaction($id)
-    {
-    	// Извличаме записа
-        expect($rec = self::fetchRec($id));
-        
-        $origin = self::getOrigin($rec);
-        $dealInfo = $origin->getAggregateDealInfo();
-        $amount = round($rec->rate * $rec->amount, 2);
-        
-        // Ако е обратна транзакцията, сумите и к-та са с минус
-        $sign = ($rec->isReverse == 'no') ? 1 : -1;
-        
-        // Кредита е винаги във валутата на пораждащия документ,
-        $creditCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-        $creditQuantity = round($amount / $dealInfo->agreed->rate, 2);
-        
-        $creditArr[] = $rec->creditAccId;
-        $debitArr[] = $rec->debitAccId;
-        
-        $bankArr = array('1' => array('bank_OwnAccounts', $rec->ownAccount), 
-        				 '2' => array('currency_Currencies', $rec->currencyId), 
-        				 'quantity' => $sign * $rec->amount);
-        
-        $dealArr = array('1' => array($rec->contragentClassId, $rec->contragentId), 
-        				 '2' => array($origin->className, $origin->that), 
-        				 '3' => array('currency_Currencies', $creditCurrency), 
-        				 'quantity' => $sign * $creditQuantity);
-        
-        $creditArr += ($rec->isReverse == 'no') ? $dealArr : $bankArr;
-        $debitArr += ($rec->isReverse == 'no') ? $bankArr : $dealArr;
-        
-        // Подготвяме информацията която ще записваме в Журнала
-        $result = (object)array(
-            'reason' => $rec->reason,   // основанието за ордера
-            'valior' => $rec->valior,   // датата на ордера
-            'entries' => array( 
-                array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,)
-            )
-        );
-        
-        return $result;
-    }
     
     
     /**
@@ -620,12 +555,6 @@ class bank_IncomeDocuments extends core_Master
         $result->paid->rate 	              = $rec->rate;
         $result->paid->payment->bankAccountId = bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId');
 		$result->paid->operationSysId         = $rec->operationSysId;
-        
-    	if($rec->operationSysId == 'customer2bankAdvance' || $rec->operationSysId == 'supplierAdvance2bank'){
-    		$result->paid->downpayment = $result->paid->amount;
-    		$result->paid->downpayments[$rec->currencyId] = array('amount' => $sign * $rec->amount, 
-    															  'amountBase' => $result->paid->amount);
-    	} 
     	
         return $result;
     }

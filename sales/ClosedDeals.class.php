@@ -230,7 +230,9 @@ class sales_ClosedDeals extends acc_ClosedDeals
     		// Записа за извънреден разход
 	    	$entry = array(
 	    		'amount' => $totalAmount,
-	    		'debit'  => array('6911'),
+	    		'debit'  => array('6911', 
+	    							array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that)),
 	    		'credit' => array('411',
 	    							array($docRec->contragentClassId, $docRec->contragentId), 
 	    							array($firstDoc->className, $firstDoc->that),
@@ -247,7 +249,9 @@ class sales_ClosedDeals extends acc_ClosedDeals
 	    							array($firstDoc->className, $firstDoc->that),
 	                        		array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                       		  'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	            'credit' => array('7911'),
+	            'credit' => array('7911', 
+	            					array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that)),
     		);	
     	}
     	
@@ -288,7 +292,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
 	    									array($firstDoc->className, $firstDoc->that),
 	                        				array($classId, $productId),
 	                       				'quantity' => $invProduct->quantity),
-	            		'debit' => array('4530'),
+	            		'debit' => array('4530', array($firstDoc->className, $firstDoc->that)),
     				);
     		}
     	}
@@ -312,5 +316,52 @@ class sales_ClosedDeals extends acc_ClosedDeals
     	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_SALE) return FALSE;
     	
     	return TRUE;
+    }
+    
+    
+    /**
+     * Ако има направени авансови плащания към сделката се приключва и аванса
+     * Направените аванси са сумирани по валута, така за всяко авансово плащане в различна валута
+     * има запис за неговото приключване
+     *
+     *
+     * Приключване на аванс на продажба:
+     * ------------------------------------------------------
+     * Dt:  412. Задължения към клиенти (по аванси)
+     * Ct:  411. Вземания от клиенти (Клиенти, Валути)
+     */
+    protected function trasnferDownpayments(bgerp_iface_DealResponse $dealInfo, $docRec, &$total, $firstDoc)
+    {
+    	$entryArr = array();
+    	$total = 0;
+    	
+    	$docRec = $firstDoc->rec();
+    	
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+    	
+    	// Колко е направеното авансовото плащане
+    	$downpaymentAmount = -1 * acc_Balances::getBlAmounts($jRecs, '412')->amount;
+    	
+    	// Валутата на плащането е тази на сделката
+    	$currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
+    	$amount = currency_Currencies::round($downpaymentAmount / $dealInfo->agreed->rate, 2);
+    	 
+    	$entry = array();
+    	$entry['amount'] = currency_Currencies::round($downpaymentAmount);
+    	$entry['debit'] = array('412',
+    			array($docRec->contragentClassId, $docRec->contragentId),
+    			array($firstDoc->className, $firstDoc->that),
+    			array('currency_Currencies', $currencyId),
+    			'quantity' => $amount);
+    	 
+    	$entry['credit'] = array('411',
+    			array($docRec->contragentClassId, $docRec->contragentId),
+    			array($firstDoc->className, $firstDoc->that),
+    			array('currency_Currencies', $currencyId),
+    			'quantity' => $amount);
+    	 
+    	$total += $entry['amount'];
+    	 
+    	return array($entry);
     }
 }
