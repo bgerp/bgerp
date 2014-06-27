@@ -217,23 +217,4 @@ class acc_plg_Deals extends core_Plugin
     	
     	$res = $options;
     }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave1(core_Mvc $mvc, &$id, $rec)
-    {
-    	if($rec->state == 'closed' || $rec->state == 'active'){
-    		$itemRec = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-    		if($itemRec){
-    			$itemRec->state = ($rec->state == 'active') ? 'active' : 'closed';
-    			acc_Items::save($itemRec);
-    		}
-    	}
-    }
 }
