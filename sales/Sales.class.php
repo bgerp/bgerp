@@ -911,7 +911,7 @@ class sales_Sales extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new sales_model_Sale(self::fetchRec($id));
+        $rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
         
         // Извличаме продуктите на продажбата
@@ -1032,19 +1032,17 @@ class sales_Sales extends core_Master
      */
     public function getAggregateDealInfo($id)
     {
-        $saleRec = new sales_model_Sale($id);
+        $saleRec = $this->fetchRec($id);
     	
     	$saleDocuments = $this->getDescendants($saleRec->id);
         
         // Извличаме dealInfo от самата продажба
-        /* @var $saleDealInfo bgerp_iface_DealResponse */
         $saleDealInfo = $this->getDealInfo($saleRec->id);
         
         // dealInfo-то на самата продажба е база, в/у която се натрупват някой от аспектите
         // на породените от нея документи (платежни, експедиционни, фактури)
         $aggregateInfo = clone $saleDealInfo;
         
-        /* @var $d core_ObjectReference */
         foreach ($saleDocuments as $d) {
             $dState = $d->rec('state');
             if ($dState == 'draft' || $dState == 'rejected') {
@@ -1053,7 +1051,6 @@ class sales_Sales extends core_Master
             }
         
             if ($d->haveInterface('bgerp_DealIntf')) {
-                /* @var $dealInfo bgerp_iface_DealResponse */
                 $dealInfo = $d->getDealInfo();
                 $aggregateInfo->shipped->push($dealInfo->shipped);
                 $aggregateInfo->paid->push($dealInfo->paid);
@@ -1292,7 +1289,7 @@ class sales_Sales extends core_Master
      */
     public function hasStorableProducts($id, $storable = TRUE)
     {
-    	$rec = new sales_model_Sale(self::fetchRec($id));
+    	$rec = $this->fetchRec($id);
     	$dQuery = sales_SalesDetails::getQuery();
     	$dQuery->where("#saleId = {$rec->id}");
     	$detailRecs = $dQuery->fetchAll();
@@ -1409,14 +1406,51 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
-    	$saleRec = new sales_model_Sale($rec);
     	$aggregatedDealInfo = $mvc->getAggregateDealInfo($rec->id);
     	
-    	$saleRec->updateAggregateDealInfo($aggregatedDealInfo);
+    	$mvc->updateAggregateDealInfo($rec, $aggregatedDealInfo);
     }
     
     
-    /*function act_test(){
-    	sales_transaction_Sale::getShippedProducts(1555);
-    }*/
+    /**
+     * Обновява БД с агрегирана бизнес информация за продажба 
+     * 
+     * @param bgerp_iface_DealResponse $aggregateDealInfo
+     */
+    public function updateAggregateDealInfo($rec, bgerp_iface_DealResponse $aggregateDealInfo)
+    {
+        // Преизчисляваме общо платената и общо експедираната сума
+        $rec->amountPaid      = $aggregateDealInfo->paid->amount;
+        $rec->amountDelivered = $aggregateDealInfo->shipped->amount;
+        $rec->amountInvoiced  = $aggregateDealInfo->invoiced->amount;
+        
+        if($rec->amountPaid && $rec->amountDelivered && $rec->paymentState != 'overdue'){
+        	if($rec->amountPaid >= $rec->amountDelivered){
+        		$rec->paymentState = 'paid';
+        	} else {
+        		$rec->paymentState = 'pending';
+        	}
+        }
+        
+        $this->save($rec);
+        
+        $dQuery = $this->sales_SalesDetails->getQuery();
+        $dQuery->where("#saleId = {$rec->id}");
+        while($p = $dQuery->fetch()) {
+            $aggrProduct = $aggregateDealInfo->shipped->findProduct($p->productId, $p->classId, $p->packagingId);
+            if ($aggrProduct) {
+                $p->quantityDelivered = $aggrProduct->quantity;
+            } else {
+                $p->quantityDelivered = 0;
+            }
+            $aggrProduct = $aggregateDealInfo->invoiced->findProduct($p->productId, $p->classId, $p->packagingId);
+            if ($aggrProduct) {
+                $p->quantityInvoiced = $aggrProduct->quantity;
+            } else {
+                $p->quantityInvoiced = 0;
+            }
+        
+            $this->sales_SalesDetails->save($p);
+        }
+    }
 }

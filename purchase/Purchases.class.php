@@ -726,7 +726,7 @@ class purchase_Purchases extends core_Master
      */
     public function getDealInfo($id)
     {
-    	$rec = new purchase_model_Purchase(self::fetchRec($id));
+    	$rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
         
         // Извличаме продуктите на покупката
@@ -854,7 +854,7 @@ class purchase_Purchases extends core_Master
      */
     public function getAggregateDealInfo($id)
     {
-        $requestRec = new purchase_model_Purchase($id);
+        $requestRec = $this->fetchRec($id);
         
     	$requestDocuments = $this->getDescendants($requestRec->id);
         
@@ -909,10 +909,52 @@ class purchase_Purchases extends core_Master
      */
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
-    	$purRec = new purchase_model_Purchase($rec);
     	$aggregatedDealInfo = $mvc->getAggregateDealInfo($rec->id);
-    	 
-    	$purRec->updateAggregateDealInfo($aggregatedDealInfo);
+    	$mvc->updateAggregateDealInfo($rec, $aggregatedDealInfo);
+    }
+    
+    
+    /**
+     * Обновява БД с агрегирана бизнес информация за покупка
+     *
+     * @param bgerp_iface_DealResponse $aggregateDealInfo
+     */
+    public function updateAggregateDealInfo($rec, bgerp_iface_DealResponse $aggregateDealInfo)
+    {
+    	// Преизчисляваме общо платената и общо експедираната сума
+    	$rec->amountPaid      = $aggregateDealInfo->paid->amount;
+    	$rec->amountDelivered = $aggregateDealInfo->shipped->amount;
+    	$rec->amountInvoiced  = $aggregateDealInfo->invoiced->amount;
+    
+    	if($rec->amountPaid && $rec->amountDelivered && $rec->paymentState != 'overdue'){
+    		if($rec->amountPaid >= $rec->amountDelivered){
+    			$rec->paymentState = 'paid';
+    		} else {
+    			$rec->paymentState = 'pending';
+    		}
+    	}
+    
+    	$dQuery = $this->purchase_PurchasesDetails->getQuery();
+    	$dQuery->where("#requestId = {$rec->id}");
+    
+    	$this->save($rec);
+    
+    	while ($p = $dQuery->fetch) {
+    		$aggrProduct = $aggregateDealInfo->shipped->findProduct($p->productId, $p->classId, $p->packagingId);
+    		if ($aggrProduct) {
+    			$p->quantityDelivered = $aggrProduct->quantity;
+    		} else {
+    			$p->quantityDelivered = 0;
+    		}
+    		$aggrProduct = $aggregateDealInfo->invoiced->findProduct($p->productId, $p->classId, $p->packagingId);
+    		if ($aggrProduct) {
+    			$p->quantityInvoiced = $aggrProduct->quantity;
+    		} else {
+    			$p->quantityInvoiced = 0;
+    		}
+    
+    		$this->purchase_PurchasesDetails->save($p);
+    	}
     }
     
     
@@ -1001,12 +1043,12 @@ class purchase_Purchases extends core_Master
      */
     public function hasStorableProducts($id, $storable = TRUE)
     {
-    	$rec = new purchase_model_Purchase(self::fetchRec($id));
+    	$rec = $this->fetchRec($id);
+    	
         $dQuery = purchase_PurchasesDetails::getQuery();
         $dQuery->where("#requestId = {$rec->id}");
-        $detailRecs = $dQuery->fetchAll();
         
-        foreach ($detailRecs as $d){
+        while($d = $dQuery->fetch()){
         	$info = cls::get($d->classId)->getProductInfo($d->productId);
         	if($storable){
         		
