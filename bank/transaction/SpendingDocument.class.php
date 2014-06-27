@@ -31,7 +31,9 @@ class bank_transaction_SpendingDocument
     	$rec = $this->class->fetchRec($id);
     	$rec->state = 'closed';
     
-    	$this->class->save($rec);
+    	if($this->class->save($rec)) {
+    		$this->class->invoke('AfterActivation', array($rec));
+    	}
     }
     
     

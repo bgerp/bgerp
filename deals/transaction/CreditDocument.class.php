@@ -63,6 +63,7 @@ class deals_transaction_CreditDocument
     
     	if ($this->class->save($rec)) {
     		$this->class->notificateOrigin($rec);
+    		$this->class->invoke('AfterActivation', array($rec));
     	}
     }
     

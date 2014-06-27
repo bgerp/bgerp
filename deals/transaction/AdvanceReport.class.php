@@ -31,7 +31,9 @@ class deals_transaction_AdvanceReport
     	$rec = $this->class->fetchRec($id);
     	$rec->state = 'active';
     
-    	$this->class->save($rec);
+    	if($this->class->save($rec)) {
+    		$this->class->invoke('AfterActivation', array($rec));
+    	}
     }
     
     

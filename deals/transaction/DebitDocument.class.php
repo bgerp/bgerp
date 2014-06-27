@@ -33,6 +33,7 @@ class deals_transaction_DebitDocument
     
     	if ($this->class->save($rec)) {
     		$this->class->notificateOrigin($rec);
+    		$this->class->invoke('AfterActivation', array($rec));
     	}
     }
     
