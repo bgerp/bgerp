@@ -386,7 +386,7 @@ class sales_SaleRequests extends core_Master
         $result->quoted->payment->method = $rec->paymentMethodId;
     	
     	foreach ($details as $dRec) {
-            $result->quoted->products[] = new sales_model_QuotationProduct($dRec);
+            $result->quoted->products[] = $dRec;
         }
         
         return $result;
