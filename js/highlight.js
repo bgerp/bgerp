@@ -6,8 +6,11 @@ jQuery.extend({
             if (match) {
                 var highlight = document.createElement(nodeName || 'span');
                 highlight.className = className || 'highlight';
+                if(node.data[match.index] == ' '){
+                	match.index++;
+                }
                 var wordNode = node.splitText(match.index);
-                wordNode.splitText(match[0].length);
+                wordNode.splitText(match[2].length);
                 var wordClone = wordNode.cloneNode(true);
                 highlight.appendChild(wordClone);
                 wordNode.parentNode.replaceChild(highlight, wordNode);
@@ -56,7 +59,7 @@ jQuery.fn.highlight = function (words, options) {
         pattern = "\\b" + pattern + "\\b";
     }
     if (settings.startsWith){
-    	pattern = "\\b" + pattern;
+    	pattern = "(\\s|^)" + pattern;
     }
     var re = new RegExp(pattern, flag);
     
