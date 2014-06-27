@@ -937,7 +937,7 @@ en,Бланка,Template
 en,Привет,Greetings
 en,Персонализаци_12704,Personalization of
 en,Първи документ,First document
-en,изпращания,Sent items
+en,изпращания,sents
 en,използване,use
 en,Използван доку_e8f2,Used document
 en,сваляния,downloads
@@ -1298,9 +1298,9 @@ en,Под меню,Sub-menu
 en,Меню,Menu
 en,Ред,Row
 en,Елементи на ме_1d410,Menu Items
-en,Освободено,Freed
-en,Събудено,Awaken
-en,Оттеглено,Withdrawed
+en,Освободено,Released
+en,Събудено,Awoken
+en,Оттеглено,Rejected
 en,Скрито,Hidden
 en,Приключено,Closed
 en,Отворено,Opened
