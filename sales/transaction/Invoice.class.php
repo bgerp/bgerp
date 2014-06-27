@@ -29,15 +29,7 @@ class sales_transaction_Invoice
     	$rec = $this->class->fetchRec($id);
     	$rec->state = 'active';
     
-    	if ($this->class->save($rec)) {
-    
-    		// Нотификация към пораждащия документ, че нещо във веригата
-    		// му от породени документи се е променило.
-    		if ($origin = doc_Threads::getFirstDocument($rec->threadId)) {
-    			$rec = new core_ObjectReference(get_called_class(), $rec);
-    			$origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
-    		}
-    	}
+    	$this->class->save($rec);
     }
     
     

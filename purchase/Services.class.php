@@ -246,19 +246,6 @@ class purchase_Services extends core_Master
             $mvc->purchase_ServicesDetails->save($shipProduct);
         }
     }
-
-
-    /**
-     * След оттегляне на документа
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-        // Нотифициране на origin-документа, че някой от веригата му се е променил
-        if ($origin = $mvc->getOrigin($id)) {
-            $ref = new core_ObjectReference($mvc, $id);
-            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-        }
-    }
     
     
 	/**

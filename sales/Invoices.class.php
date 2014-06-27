@@ -1192,21 +1192,4 @@ class sales_Invoices extends core_Master
 	        }
         }
     }
-    
-    
-	/**
-     * След оттегляне на документа
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param object|int $id
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-        // Нотифицираме origin-документа, че някой от веригата му се е променил
-        if ($origin = $mvc->getOrigin($id)) {
-            $ref = new core_ObjectReference($mvc, $id);
-            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-        }
-    }
 }

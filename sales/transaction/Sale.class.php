@@ -367,6 +367,46 @@ class sales_transaction_Sale
         
         return $entries;
     }
+    
+    
+    /**
+     * Връща всички експедирани продукти и техните количества по сделката
+     */
+    public static function getShippedProducts($id)
+    {
+    	$res = array();
+    	$query = sales_SalesDetails::getQuery();
+        $query->where("#saleId = '{$id}'");
+        $query->show('id, productId, classId, quantityDelivered');
+        
+        // Намираме всички транзакции с перо сделката
+        $jRecs = acc_Journal::getEntries(array('sales_Sales', $id));
+        
+        // Извличаме тези, отнасящи се за експедиране
+        $dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,703', 'credit');
+        
+        if(!count($dInfo->recs)) return $res;
+        	foreach ($dInfo->recs as $p){
+        	
+         	// Обикаляме всяко перо
+         	foreach (range(1, 3) as $i){
+        		$itemRec = acc_Items::fetch($p->{"creditItem{$i}"});
+        		
+        		// Ако има интерфейса за артикули-пера, го добавяме
+        		if(cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)){
+        			$obj = new stdClass();
+        			$obj->classId = $itemRec->classId;
+        			$obj->productId = $itemRec->objectId;
+        			$obj->quantityDelivered = $p->creditQuantity;
+        			$res[] = $obj;
+        			break;
+        		}
+        	}
+    	}
+    	
+    	// Връщаме масив със всички експедирани продукти по тази сделка
+    	return $res;
+	}
 	
 	
 	/**
