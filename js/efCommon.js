@@ -1708,12 +1708,13 @@ function tableElemsFractionsWidth(){
 		var fracPartWidth = [];
         $(this).find('.fracPart').each(function() {  
         	var elem = $(this);
-        	if(!fracPartWidth[elem.attr('data-col')] || fracPartWidth[elem.attr('data-col')] < $(elem).width()){
-        		fracPartWidth[elem.attr('data-col')] = $(elem).width();
+        	var parent = $(this).parent();
+        	if(!fracPartWidth[parent.attr('data-col')] || fracPartWidth[parent.attr('data-col')] < $(elem).width()){
+        		fracPartWidth[parent.attr('data-col')] = $(elem).width();
         	}
         });
 		for(key in fracPartWidth) {
-			$(table).find(".fracPart[data-col='" + key + "']").css('width', fracPartWidth[key]);
+			$(table).find("span[data-col='" + key + "'] .fracPart").css('width', fracPartWidth[key]);
 		}
 	});
 }
