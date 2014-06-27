@@ -81,6 +81,23 @@ class sales_SaleRequestDetails extends core_Detail {
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em', 'tdClass=small-field');
     	$this->FLD('price', 'double', 'caption=Ед. цена,width=8em');
         $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
+        $this->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
+    }
+    
+    
+    /**
+     * Изчисляване на сумата на реда
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function on_CalcAmount(core_Mvc $mvc, $rec)
+    {
+    	if (empty($rec->price) || empty($rec->quantity)) {
+    		return;
+    	}
+    
+    	$rec->amount = $rec->price * $rec->quantity;
     }
     
     
@@ -140,8 +157,5 @@ class sales_SaleRequestDetails extends core_Detail {
     	
     	$measureId = $productMan->getProductInfo($rec->productId, NULL)->productRec->measureId;
     	$row->uomId = cat_UoM::getTitleById($measureId);
-    	
-    	$row->amount = $mvc->fields['price']->type->toVerbal($rec->price * $rec->quantity);
-    	$row->amount = "<div style='text-align:right'>{$row->amount}</div>";
     }
 }
