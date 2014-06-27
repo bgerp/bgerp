@@ -181,7 +181,7 @@ class sales_model_Sale extends core_Model
         	}
         }
         
-        $saleProducts = $this->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+        $saleProducts = $this->getDetails('sales_SalesDetails');
         
         $this->save();
         

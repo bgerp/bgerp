@@ -333,10 +333,11 @@ class sales_Sales extends core_Master
                     continue;
                 }
         
-                $saleProduct = new sales_model_SaleProduct(NULL);
-        
+                $saleProduct = new stdClass();
+        		$ProductMan = cls::get($product->classId);
+                
                 $saleProduct->saleId      = $rec->id;
-                $saleProduct->classId     = cls::get($product->classId)->getClassId();
+                $saleProduct->classId     = $ProductMan->getClassId();
                 $saleProduct->productId   = $product->productId;
                 $saleProduct->packagingId = $product->packagingId;
                 $saleProduct->quantity    = $product->quantity;
@@ -344,9 +345,10 @@ class sales_Sales extends core_Master
                 $saleProduct->price       = $product->price;
                 $saleProduct->uomId       = $product->uomId;
         
-                $saleProduct->quantityInPack = $saleProduct->getQuantityInPack();
+                $productInfo = $ProductMan->getProductInfo($saleProduct->productId, $saleProduct->packagingId);
+                $saleProduct->quantityInPack = ($saleProduct->packagingId) ? $productInfo->packagingRec->quantity : 1;
                 
-                $saleProduct->save();
+                sales_SalesDetails::save($saleProduct);
             }
         }
     }
@@ -913,7 +915,9 @@ class sales_Sales extends core_Master
         $actions = type_Set::toArray($rec->contoActions);
         
         // Извличаме продуктите на продажбата
-        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+        $dQuery = sales_SalesDetails::getQuery();
+        $dQuery->where("#saleId = {$rec->id}");
+        $detailRecs = $dQuery->fetchAll();
                 
         $result = new bgerp_iface_DealResponse();
         
@@ -922,7 +926,7 @@ class sales_Sales extends core_Master
         $allowedPaymentOperations = $this->allowedPaymentOperations;
        
         if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        	unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'],$allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
+        	unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'], $allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
         } else {
         	// Колко е очакваното авансово плащане
         	$downPayment = cond_PaymentMethods::getDownpayment($rec->paymentMethodId, $rec->amountDeal);
@@ -973,7 +977,6 @@ class sales_Sales extends core_Master
             $result->shipped->delivery->time     = $rec->deliveryTime;
         }
         
-        /* @var $dRec sales_model_SaleProduct */
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
@@ -1289,7 +1292,10 @@ class sales_Sales extends core_Master
     public function hasStorableProducts($id, $storable = TRUE)
     {
     	$rec = new sales_model_Sale(self::fetchRec($id));
-        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+    	$dQuery = sales_SalesDetails::getQuery();
+    	$dQuery->where("#saleId = {$rec->id}");
+    	$detailRecs = $dQuery->fetchAll();
+    	
         foreach ($detailRecs as $d){
         	$info = cls::get($d->classId)->getProductInfo($d->productId);
         	if($storable){
