@@ -318,7 +318,7 @@ class doc_Threads extends core_Manager
             array('doc_Containers', 'list',
                 'threadId' => $rec->id,
                 'folderId' => $rec->folderId,
-                'Q' => Request::get('search')),
+                'Q' => Request::get('search') ? Request::get('search') : NULL),
             NULL, $attr);
 
         if($docRow->subTitle) {
