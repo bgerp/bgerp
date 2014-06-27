@@ -876,23 +876,6 @@ class sales_Sales extends core_Master
     }
     
     
-    /**
-     * Трасира веригата от документи, породени от дадена продажба. Извлича от тях експедираните 
-     * количества и платените суми.
-     * 
-     * @param core_Mvc $mvc
-     * @param core_ObjectReference $saleRef
-     * @param core_ObjectReference $descendantRef кой породен документ е инициатор на трасирането
-     */
-    public static function on_DescendantChanged($mvc, $saleRef, $descendantRef = NULL)
-    {
-        $saleRec = new sales_model_Sale($saleRef->rec());
-    	$aggregatedDealInfo = $mvc->getAggregateDealInfo($saleRef->that);
-		
-        $saleRec->updateAggregateDealInfo($aggregatedDealInfo);
-    }
-    
-    
 	/**
      * Връща масив от използваните нестандартни артикули в продажбата
      * @param int $id - ид на продажба
@@ -1414,7 +1397,10 @@ class sales_Sales extends core_Master
     }
     
     
-    /*public static function on_AfterAffectItem($mvc, $rec, $item)
+    /**
+     * След промяна в журнала със свързаното перо
+     */
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
     	$saleRec = new sales_model_Sale($rec);
     	$aggregatedDealInfo = $mvc->getAggregateDealInfo($rec->id);
@@ -1423,7 +1409,7 @@ class sales_Sales extends core_Master
     }
     
     
-    function act_test(){
+    /*function act_test(){
     	sales_transaction_Sale::getShippedProducts(1555);
     }*/
 }

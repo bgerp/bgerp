@@ -904,19 +904,14 @@ class purchase_Purchases extends core_Master
     
     
 	/**
-     * Трасира веригата от документи, породени от дадена покупка. Извлича от тях експедираните 
-     * количества и платените суми.
-     * 
-     * @param core_Mvc $mvc
-     * @param core_ObjectReference $requestRef
-     * @param core_ObjectReference $descendantRef кой породен документ е инициатор на трасирането
+     * След промяна в журнала със свързаното перо
      */
-    public static function on_DescendantChanged($mvc, $requestRef, $descendantRef = NULL)
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
-        $requestRec = new purchase_model_Purchase($requestRef->rec());
-    	$aggregatedDealInfo = $mvc->getAggregateDealInfo($requestRef->that);
-		
-        $requestRec->updateAggregateDealInfo($aggregatedDealInfo);
+    	$purRec = new purchase_model_Purchase($rec);
+    	$aggregatedDealInfo = $mvc->getAggregateDealInfo($rec->id);
+    	 
+    	$purRec->updateAggregateDealInfo($aggregatedDealInfo);
     }
     
     
