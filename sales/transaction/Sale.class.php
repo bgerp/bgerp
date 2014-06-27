@@ -410,12 +410,65 @@ class sales_transaction_Sale
 	
 	
 	/**
+	 * Връща записите от журнала за това перо
+	 */
+	private static function getEntries($jRecs)
+	{
+		if(is_numeric($jRecs)){
+			$jRecs = acc_Journal::getEntries(array('sales_Sales', $jRecs));
+		}
+		
+		return $jRecs;
+	}
+	
+	
+	/**
 	 * Колко е направеното авансово плащане досега
 	 */
-	public static function getDownpayment($id)
+	public static function getDownpayment($jRecs)
 	{
-		$jRecs = acc_Journal::getEntries(array('sales_Sales', $id));
+		$jRecs = static::getEntries($jRecs);
 		 
 		return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'credit')->amount;
+	}
+	
+	
+	/**
+	 * Колко е платеното по сделка
+	 */
+	public static function getPaidAmount($jRecs)
+	{
+		$jRecs = static::getEntries($jRecs);
+		
+		$paid = acc_Balances::getBlAmounts($jRecs, '411', 'credit')->amount;
+		$paid += -1 * acc_Balances::getBlAmounts($jRecs, '412')->amount;
+		$paid -= acc_Balances::getBlAmounts($jRecs,  '411', 'credit', '6911')->amount;
+		
+		return $paid;
+	}
+	
+	
+	/**
+	 * Колко е доставено по сделката
+	 */
+	public static function getDeliveryAmount($jRecs)
+	{
+		$jRecs = static::getEntries($jRecs);
+		
+		$delivered = acc_Balances::getBlAmounts($jRecs, '411', 'debit')->amount;
+		$delivered -= acc_Balances::getBlAmounts($jRecs, '411', 'debit', '7911')->amount;
+		
+		return $delivered;
+	}
+	
+	
+	/**
+	 * Колко е ддс-то за начисляване
+	 */
+	public static function getAmountToInvoice($jRecs)
+	{
+		$jRecs = static::getEntries($jRecs);
+		
+		return -1 * acc_Balances::getBlAmounts($jRecs, '4530')->amount;
 	}
 }
