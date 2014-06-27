@@ -246,7 +246,7 @@ class purchase_PurchasesDetails extends core_Detail
                 
                 $row->quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
                 $row->quantity->placeObject($row);
-            	if($row->packQuantityDelivered == 0){
+            	if($rec->packQuantityDelivered == 0){
                 	$row->quantity->removeBlock('packQuantityDelivered');
                 } 
             }
