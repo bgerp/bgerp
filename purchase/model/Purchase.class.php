@@ -208,11 +208,10 @@ class purchase_model_Purchase extends core_Model
         	}
         }
         
-        $requestProducts = $this->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
+        $requestProducts = $this->getDetails('purchase_PurchasesDetails');
         
         $this->save();
         
-        /* @var $p purchase_model_PurchaseProduct */
         foreach ($requestProducts as $p) {
             $aggrProduct = $aggregateDealInfo->shipped->findProduct($p->productId, $p->classId, $p->packagingId);
             if ($aggrProduct) {

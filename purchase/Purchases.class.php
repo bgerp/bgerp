@@ -730,7 +730,9 @@ class purchase_Purchases extends core_Master
         $actions = type_Set::toArray($rec->contoActions);
         
         // Извличаме продуктите на покупката
-        $detailRecs = $rec->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
+        $dQuery = purchase_PurchasesDetails::getQuery();
+        $dQuery->where("#requestId = {$rec->id}");
+        $detailRecs = $dQuery->fetchAll();
                 
         $result = new bgerp_iface_DealResponse();
         
@@ -797,7 +799,6 @@ class purchase_Purchases extends core_Master
             $result->shipped->delivery->time     = $rec->deliveryTime;
         }
         
-        /* @var $dRec purchase_model_PurchaseProduct */
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
@@ -993,6 +994,7 @@ class purchase_Purchases extends core_Master
     
 	/**
      * Помощна ф-я показваща дали в покупката има поне един складируем/нескладируем артикул
+     * 
      * @param int $id - ид на покупката
      * @param boolean $storable - дали се търсят складируеми или нескладируеми артикули
      * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
@@ -1000,7 +1002,9 @@ class purchase_Purchases extends core_Master
     public function hasStorableProducts($id, $storable = TRUE)
     {
     	$rec = new purchase_model_Purchase(self::fetchRec($id));
-        $detailRecs = $rec->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
+        $dQuery = purchase_PurchasesDetails::getQuery();
+        $dQuery->where("#requestId = {$rec->id}");
+        $detailRecs = $dQuery->fetchAll();
         
         foreach ($detailRecs as $d){
         	$info = cls::get($d->classId)->getProductInfo($d->productId);
