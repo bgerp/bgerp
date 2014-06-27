@@ -244,8 +244,7 @@ abstract class acc_ClosedDeals extends core_Master
 		    
 		    // Ако има перо сделката, обновяваме му състоянието
 		    if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
-		    	$lists = keylist::addKey($item->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'deals'), 'id'));
-		    	acc_Lists::updateItem($DocClass, $firstRec->id, $lists);
+		    	acc_Lists::updateItem($DocClass, $firstRec->id, $item->lists);
 		    }
     	}
     }
