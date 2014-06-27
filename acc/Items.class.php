@@ -252,13 +252,6 @@ class acc_Items extends core_Manager
         }
         
         acc_Features::syncItem($id);
-        
-        // Взависимост от състоянието на перото се задейства определено събитие в мениджъра му
-        if($rec->state == 'active'){
-        	self::$affected[$rec->id] = $rec;
-        } elseif($rec->state == 'closed'){
-        	self::$closed[$rec->id] = $rec;
-        }
     }
     
     
@@ -418,26 +411,6 @@ class acc_Items extends core_Manager
         }
         
         $data->query->orderBy('#num');
-    }
-    
-    
-    /**
-     * Какви роли са необходими
-     */
-    static function on_BeforeGetRequiredRoles($mvc, &$roles, $cmd)
-    {
-        return;
-        if($cmd == 'write') {
-            $listId = $mvc->getCurrentListId();
-            
-            $listRec = $mvc->Lists->fetch($listId);
-            
-            if(!$listRec || $listRec->regInterfaceId) {
-                $roles = 'no_one';
-                
-                return FALSE;
-            }
-        }
     }
     
     
@@ -733,9 +706,6 @@ class acc_Items extends core_Manager
             self::save($rec);
         }
         
-        // Запомняме афектираните пера
-        self::$affected[$rec->id] = $rec;
-        
         return $rec->id;
     }
     
@@ -747,20 +717,13 @@ class acc_Items extends core_Manager
      */
     public static function touch($rec)
     {
-        /*
-         * Вземаме инстация на acc_Items за да подсигурим извикването на acc_Items::on_Shutdown()
-         * 
-         * @var $Items acc_Items
-         */
+        // Вземаме инстация на acc_Items за да подсигурим извикването на acc_Items::on_Shutdown()
         $Items = cls::get(__CLASS__);
-        
-        $rec->state     = 'active';
         $rec->lastUseOn = dt::now();
         
         expect($rec->id);
         
-        // Тук само запомняме какво е "пипнато" (използвано). Същинското обновяване се прави
-        // в on_Shutdown()
+        // Тук само запомняме какво е "пипнато" (използвано). Същинското обновяване се прави в on_Shutdown()
         $Items->touched[$rec->id] = $rec;
     }
 
@@ -773,44 +736,26 @@ class acc_Items extends core_Manager
     public static function on_Shutdown($mvc)
     {
         foreach ($mvc->touched as $rec) {
-            $mvc->save($rec, 'state, lastUseOn');
-        }
-        
-        // Всяко афектирано перо, задейства ивент в мениджъра си
-        if(count(self::$affected)){
-        	foreach (self::$affected as $rec) {
-        		self::notifyObject($rec);
-        	}
-        }
-        
-        // Всяко затворено перо задейства ивент е мениджъра си
-        if(count(self::$closed)){
-        	foreach (self::$closed as $rec) {
-        		self::notifyObject($rec, 'close');
-        	}
+            $mvc->save($rec, 'lastUseOn');
         }
     }
     
     
     /**
-     * Метод пораждащ събитие 'AfterAffectItem' или ''AfterCloseItem'' в мениджъра на перото
+     * Метод пораждащ събитие 'AfterJournalItemAffect'в мениджъра на перото
      * 
      * @param mixed $id - обект или запис на перо
      * @return void
      */
-    public static function notifyObject($id, $action = 'affect')
+    public static function notifyObject($id)
     {
     	expect($rec = static::fetchRec($id));
-    	expect(in_array($action, array('affect', 'close')));
     	
     	// Опитваме се да заредим класа на перото
     	if(cls::load($rec->classId, TRUE)){
     		$Class = cls::get($rec->classId);
     		$objectRec = $Class->fetch($rec->objectId);
-    		
-    		// Пораждаме събитие в перото
-    		$event = ($action == 'affect') ? 'AfterAffectItem' : 'AfterCloseItem';
-    		$Class->invoke($event, array($objectRec, $rec));
+    		$Class->invoke('AfterJournalItemAffect', array($objectRec, $rec));
     	}
     }
     

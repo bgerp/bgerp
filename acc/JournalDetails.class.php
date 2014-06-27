@@ -54,12 +54,6 @@ class acc_JournalDetails extends core_Detail
     
     
     /**
-     * Кеш на перата от изтритите записи
-     */
-    private static $deletedRecsItems = array();
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -233,23 +227,9 @@ class acc_JournalDetails extends core_Detail
     	foreach ($query->getDeletedRecs() as $rec) {
     		foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
     			if(isset($rec->$item)){
-    				static::$deletedRecsItems[$rec->$item] = $rec->$item;
+    				$mvc->Master->affectedItems[$rec->$item] = $rec->$item;
     			}
     		}
     	}
-    }
-    
-    
-    /**
-     * Перата от изтритите записи, нотифицират мениджърите си
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	// Всяко афектирано перо, задейства ивент в мениджъра си
-        if(count(static::$deletedRecsItems)){
-        	foreach (static::$deletedRecsItems as $rec) {
-        		acc_Items::notifyObject($rec);
-        	}
-        }
     }
 }
