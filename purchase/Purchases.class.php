@@ -790,9 +790,6 @@ class purchase_Purchases extends core_Master
         if (isset($actions['ship'])) {
             $result->shipped->amount             = $rec->amountDeal;
             $result->agreed->downpayment         = ($downPayment) ? $downPayment : NULL;
-            $result->shipped->currency           = $rec->currencyId;
-            $result->shipped->rate               = $rec->currencyRate;
-            $result->shipped->vatType 			 = $rec->chargeVat;
             $result->shipped->delivery->location = $rec->deliveryLocationId;
             $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
             $result->shipped->delivery->term     = $rec->deliveryTermId;
@@ -921,6 +918,9 @@ class purchase_Purchases extends core_Master
      */
     public function updateAggregateDealInfo($rec, bgerp_iface_DealResponse $aggregateDealInfo)
     {
+    	$p = purchase_transaction_Purchase::getDeliveryAmount($rec->id);
+    	core_Statuses::newStatus("$p");
+    	
     	// Преизчисляваме общо платената и общо експедираната сума
     	$rec->amountPaid      = $aggregateDealInfo->paid->amount;
     	$rec->amountDelivered = $aggregateDealInfo->shipped->amount;

@@ -552,10 +552,7 @@ class store_ShipmentOrders extends core_Master
         
         // Конвертираме данъчната основа към валутата идваща от продажбата
         $result->shipped->amount             = $rec->amountDelivered;
-        $result->shipped->currency		 	 = $rec->currencyId;
-        $result->shipped->rate		         = $rec->currencyRate;
         $result->shipped->valior 			 = $rec->valior;
-        $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
         $result->shipped->delivery->storeId  = $rec->storeId;

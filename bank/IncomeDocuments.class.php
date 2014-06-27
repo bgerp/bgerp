@@ -279,7 +279,7 @@ class bank_IncomeDocuments extends core_Master
     	expect(count($options));
     		
     	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-    		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->agreed->rate;
     		$amount = ($amount <= 0) ? 0 : $amount;
     			
     		$form->defaultOperation = $this->getDefaultOperation($dealInfo);
@@ -288,14 +288,13 @@ class bank_IncomeDocuments extends core_Master
     		}
     	}
     		 
-    	$cId = ($dealInfo->shipped->currency) ? $dealInfo->shipped->currency : $dealInfo->paid->currency;
+    	$cId = $dealInfo->agreed->currency;
     	$form->rec->currencyId = currency_Currencies::getIdByCode($cId);
     		 
-    	$rate = ($dealInfo->shipped->currency) ? $dealInfo->shipped->rate : $dealInfo->paid->rate;
-    	$form->rec->rate = $rate;
+    	$form->rec->rate = $dealInfo->agreed->rate;
     		 	 
     	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
-    		 $form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 $form->rec->amount = currency_Currencies::round($amount, $dealInfo->agreed->currency);
     		 	
     		 // Ако има банкова сметка по подразбиране
     		 if($bankId = $dealInfo->agreed->payment->bankAccountId){

@@ -220,9 +220,8 @@ class cash_Pko extends core_Master
         // Използваме помощната функция за намиране името на контрагента
     	if(empty($form->rec->id)) {
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
-    		 	
     		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-    		 		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->agreed->rate;
     		 		if($amount <= 0) {
     		 			$amount = 0;
     		 		}
@@ -240,14 +239,12 @@ class cash_Pko extends core_Master
 	    		 	cash_Cases::selectSilent($caseId);
 	    		}
     		 	
-	    		$cId = ($dealInfo->shipped->currency) ? $dealInfo->shipped->currency : $dealInfo->paid->currency;
+	    		$cId = $dealInfo->agreed->currency;
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($cId);
-    		 	
-    		 	$rate = ($dealInfo->shipped->rate) ? $dealInfo->shipped->rate : $dealInfo->paid->rate;
-    		 	$form->rec->rate = $rate;
+    		 	$form->rec->rate = $dealInfo->agreed->rate;
     		 		
     		 	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
-    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->agreed->currency);
     		 	}
     	} else {
     		$defaultOperation = 'customer2case';

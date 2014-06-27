@@ -334,9 +334,9 @@ class purchase_Invoices extends core_Master
         expect($origin = static::getOrigin($form->rec));
         if($origin->haveInterface('bgerp_DealAggregatorIntf')){
         	$aggregateInfo         = $origin->getAggregateDealInfo();
-        	$form->rec->vatRate    = $aggregateInfo->shipped->vatType;
-        	$form->rec->currencyId = $aggregateInfo->shipped->currency;
-        	$form->rec->rate       = $aggregateInfo->shipped->rate;
+        	$form->rec->vatRate    = $aggregateInfo->agreed->vatType;
+        	$form->rec->currencyId = $aggregateInfo->agreed->currency;
+        	$form->rec->rate       = $aggregateInfo->agreed->rate;
         	
         	if($aggregateInfo->agreed->payment->method){
         		$form->rec->paymentMethodId = $aggregateInfo->agreed->payment->method;
