@@ -317,17 +317,4 @@ class deals_DebitDocuments extends core_Master
     	 
     	return $result;
     }
-    
-    
-    /**
-     * След оттегляне на документа
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param object|int $id
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-    	$mvc->notificateOrigin($id);
-    }
 }

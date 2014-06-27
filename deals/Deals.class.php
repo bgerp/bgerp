@@ -384,6 +384,7 @@ class deals_Deals extends core_Master
     		$data->pager = $Pager;
     		
     		$recs = array();
+    		
     		// Извличаме всички записи, за да изчислим точно крайното салдо
     		$count = 0;
     		
@@ -753,26 +754,15 @@ class deals_Deals extends core_Master
     
     
     /**
-     * След като се промени някой от наследниците: в това число и 
-     * ако някое прехвърляне в друга нишка засяга сделката преизчислява крайното салдо по сделката
+     * След промяна в журнала със свързаното перо
      */
-    public static function on_DescendantChanged($mvc, $dealRef, $descendantRef = NULL)
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
-    	$blAmount = 0;
-    	$rec = $dealRef->fetch();
+    	$entries = acc_Journal::getEntries(array($mvc->className, $rec->id));
     	
-    	$entries = acc_Journal::getEntries(array('deals_Deals', $rec->id), $item);
-    	if(!count($entries)) return;
-    	foreach($entries as $jRec){
-    		if($jRec->debitItem2 == $item->id){
-    			$blAmount += $jRec->amount;
-    		}
-    		if($jRec->creditItem2 == $item->id){
-    			$blAmount -= $jRec->amount;
-    		}
-    	}
+    	// Обновяваме крайното салдо на сметката на сделката
+    	$rec->blAmount = acc_Balances::getBlAmounts($entries, acc_Accounts::fetchField($rec->accountId, 'systemId'))->amount;
     	
-    	$rec->blAmount = $blAmount;
     	$mvc->save($rec);
     }
     
