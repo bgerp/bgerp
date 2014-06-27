@@ -541,9 +541,6 @@ class deals_Deals extends core_Master
     		$result->involvedContragents[] = (object)array('classId' => $rec->secondContragentClassId, 'id' => $rec->secondContragentId);
     	}
     	
-    	$result->paid->currency = $rec->currencyId;
-    	$result->paid->rate = $rec->currencyRate;
-    	
     	$result->agreed->currency = $rec->currencyId;
     	$result->agreed->rate = $rec->currencyRate;
     	

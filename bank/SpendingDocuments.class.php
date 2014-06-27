@@ -497,8 +497,6 @@ class bank_SpendingDocuments extends core_Master
         $sign = ($origin->className == 'purchase_Purchases') ? 1 : -1;
         
     	$result->paid->amount                 = $sign * $rec->amount * $rec->rate;
-        $result->paid->currency               = currency_Currencies::getCodeById($rec->currencyId);
-        $result->paid->rate 	              = $rec->rate;
         $result->paid->payment->bankAccountId = bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId');
         $result->paid->operationSysId         = $rec->operationSysId;
     	

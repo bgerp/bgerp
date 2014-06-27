@@ -310,8 +310,6 @@ class deals_CreditDocuments extends core_Master
     	$sign = ($origin->className == 'sales_Sales') ? -1 : 1;
     	
     	$result->paid->amount   = $sign * $rec->amount * $rec->rate;
-    	$result->paid->currency = currency_Currencies::getCodeById($rec->currencyId);
-    	$result->paid->rate 	= $rec->rate;
     	 
     	return $result;
     }

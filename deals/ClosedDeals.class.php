@@ -193,7 +193,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
         $docRec = $firstDoc->fetch();
         $account = acc_Accounts::fetchField($docRec->accountId, 'systemId');
         
-        $amount = round($info->paid->amount / $info->paid->rate, 2);
+        $amount = round($info->agreed->amount / $info->agreed->rate, 2);
         
         // Извънреден разход
         if($amount < 0){

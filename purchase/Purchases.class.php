@@ -779,9 +779,6 @@ class purchase_Purchases extends core_Master
     	if (isset($actions['pay'])) {
             $result->paid->amount   			  = $rec->amountDeal;
             $result->agreed->downpayment          = ($downPayment) ? $downPayment : NULL;
-            $result->paid->currency 			  = $rec->currencyId;
-            $result->paid->rate                   = $rec->currencyRate;
-            $result->paid->vatType 				  = $rec->chargeVat;
             $result->paid->payment->method        = $rec->paymentMethodId;
             $result->paid->payment->bankAccountId = bank_Accounts::fetchField("#iban = '{$rec->bankAccountId}'", 'id');
             $result->paid->payment->caseId        = $rec->caseId;
