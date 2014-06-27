@@ -248,7 +248,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
      * 		Ct: 4530. ДДС за начисляване
      * 
      */
-    protected function transferVatNotCharged($dealInfo, $docRec, &$total)
+    protected function transferVatNotCharged($dealInfo, $docRec, &$total, $firstDoc)
     {
     	$vatToCharge = $dealInfo->invoiced->vatToCharge;
     	
