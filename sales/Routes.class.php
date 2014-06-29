@@ -285,23 +285,27 @@ class sales_Routes extends core_Manager {
     	$results = array();
      	while ($rec = $query->fetch()) {
             $data->masterData->row->haveRoutes = TRUE;
+            
+            $row = static::recToVerbal($rec,'id,salesmanId,tools,-list');
+
     		if ($data->masterData->rec->state != 'rejected') {
                 $nextVisit = $this->calcNextVisit($rec);
     			if($nextVisit === FALSE) continue;
-                $routeArr['nextVisit'] = $nextVisit;
-    		}
-    		$row = static::recToVerbal($rec,'id,salesmanId,tools,-list');
-    		$routeArr['tools'] = $row->tools;
-    		$routeArr['salesmanId'] = $row->salesmanId;
-    		
-    		$results[] = (object)$routeArr;
+                $row->nextVisit = dt::mysql2verbal($nextVisit, "d.m.Y D");
+                $row->ordeDate = $nextVisit;
+     		}
+
+    		$data->rows[$rec->id] = $row;
     	}
+
+        if(is_array($data->rows) && count($data->rows) > 1) {
+            arr::order($data->rows, 'ordeDate');
+        }
     		
     	if ($this->haveRightFor('add', (object)(array('locationId' => $data->masterData->rec->id)))) {
 	    	$data->addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
     	}
     	
-    	$data->rows = $results;
     }
     
     
@@ -335,7 +339,6 @@ class sales_Routes extends core_Manager {
     	}
     	
     	$date = dt::timestamp2mysql($nextStartTimeTs);
-    	$date = dt::mysql2verbal($date, "d.m.Y D");
     	
     	return  $date;
     }

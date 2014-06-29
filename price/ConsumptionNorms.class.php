@@ -171,7 +171,7 @@ class price_ConsumptionNorms extends core_Master {
     		if($form->rec->uom) {
     			$similarMeasures = cat_UoM::getSameTypeMeasures($productUom);
     			if(!array_key_exists($form->rec->uom, $similarMeasures)) {
-    				$form->setError('uom', 'Избраната мярка не е от същата група като основната мярка на продукта');
+    				$form->setError('uom', "Избраната мярка не е от същата група като основната мярка на продукта (" . cat_Uom::getTitleById($productUom) . ')');
     			}
     		} else {
     			$form->rec->uom = $productUom;
@@ -644,10 +644,6 @@ class price_ConsumptionNorms extends core_Master {
 				$res = 'no_one';
 			}
 		}
-		
-		if($action == 'add') {
-			$res = $mvc->canAdd;
-		}
 	}
 	
 	
@@ -659,6 +655,8 @@ class price_ConsumptionNorms extends core_Master {
      */
     public static function canAddToFolder($folderId)
     {
+        return FALSE;
+
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
     
         return $folderClass == 'cat_Products';
@@ -674,6 +672,9 @@ class price_ConsumptionNorms extends core_Master {
      */
 	public static function canAddToThread($threadId)
     {
+
+return FALSE;
+
 		$folderId = doc_Threads::fetchField($threadId, 'folderId');
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
         

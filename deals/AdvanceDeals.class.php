@@ -90,7 +90,13 @@ class deals_AdvanceDeals extends deals_Deals
      * Заглавие в единствено число
      */
     public $singleTitle = 'Служебен аванс';
-   
+    
+    
+    /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/kwallet.png';
+
     
     /**
      * Групиране на документите

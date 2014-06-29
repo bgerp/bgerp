@@ -129,6 +129,12 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/cart1.png';
+
+    
+    /**
      * Поле в което се замества шаблона от doc_TplManager
      */
     public $templateFld = 'SINGLE_CONTENT';

@@ -879,72 +879,82 @@ class doc_Containers extends core_Manager
      */
     static function getNewDocMenu($rec)
     {
+        // Определяме заглавието на нишката или папката
+        if ($rec->threadId) {
+            $thRec = doc_Threads::fetch($rec->threadId);
+            $title = doc_Threads::recToVerbal($thRec)->onlyTitle;
+        } else {
+            $title = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+        }
+
         // Извличане на потенциалните класове на нови документи
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
-        
-        foreach($docArr as $id => $class) {
-	            
-            $mvc = cls::get($class);
-            
-            list($order, $group) = explode('|', $mvc->newBtnGroup);
+ 
+        if(is_array($docArr) && count($docArr)) {
+            foreach($docArr as $id => $class) {
+                    
+                $mvc = cls::get($class);
+                
+                list($order, $group) = explode('|', $mvc->newBtnGroup);
 
-            if($mvc->haveRightFor('add', $rec)) {
-                $ind = $order*10000 + $i++;
-                $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
+                if($mvc->haveRightFor('add', $rec)) {
+                    $ind = $order*10000 + $i++;
+                    $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
+                }
             }
-        }
-        
-        // Сортиране
-        ksort($docArrSort);
-
-        // Групиране
-	    foreach($docArrSort as $id => $arr) {
-            $btns[$arr[0]][$arr[1]] = $arr[2];
-        }
-        
-        // Генериране на изгледа
-        $tpl = new ET();
-        
-        // Ако сме в нишка
-        if ($rec->threadId) {
-        	$thRec = doc_Threads::fetch($rec->threadId);
-        	$title = doc_Threads::recToVerbal($thRec)->onlyTitle;
-        	$text = tr("Нов документ в") . " " . $title;
-        } else {
-        	$folderRow = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-            $text = tr("|Нова тема в |* {$folderRow}");
-        }
-        
-        $tpl->append("\n<div class='listTitle'>" . $text . ":</div>");
-        $tpl->append("<div class='accordian noSelect'><ul>");
-        
-        $active = 'active';
-        
-        foreach($btns as $group => $bArr) {
             
-            // Превеждаме групата
-       	    $group = tr($group);
-       	    
-        	$tpl->append("<li class='btns-title {$active} '><img class='btns-icon plus' src=". sbf('img/16/toggle1.png') ."><img class='btns-icon minus' src=". sbf('img/16/toggle2.png') .">&nbsp;{$group}</li>");
-        	$tpl->append("<li class='dimension'>");
-        	foreach($bArr as $btn => $class) {
-        		$mvc = cls::get($class);
-        		
-        		$tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, 
-                    array($class, 'add', 
-                        'threadId' => $rec->threadId, 'folderId' => $rec->folderId, 'ret_url' => TRUE), 
-                        NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
-        	}
-        	
-        	$tpl->append("</li>"); 
-        	$active = '';
-        }
+            // Сортиране
+            ksort($docArrSort);
 
-       	$tpl->append("</ul></div>");
+            // Групиране
+            foreach($docArrSort as $id => $arr) {
+                $btns[$arr[0]][$arr[1]] = $arr[2];
+            }
         
-        $tpl->push('doc/tpl/style.css', 'CSS');
-    	$tpl->push('doc/js/accordion.js', 'JS');
-    	jquery_Jquery::run($tpl, "accordionRenderAndCollapse();");
+            // Генериране на изгледа
+            $tpl = new ET();
+            
+            // Ако сме в нишка
+            if ($rec->threadId) {
+                $text = tr("Нов документ в") . " " . $title;
+            } else {
+                $text = tr("Нова тема в") . " " . $title;
+            }
+            
+            $tpl->append("\n<div class='listTitle'>" . $text . "</div>");
+            $tpl->append("<div class='accordian noSelect'><ul>");
+            
+            $active = 'active';
+            
+            foreach($btns as $group => $bArr) {
+                
+                // Превеждаме групата
+                $group = tr($group);
+                
+                $tpl->append("<li class='btns-title {$active} '><img class='btns-icon plus' src=". sbf('img/16/toggle1.png') ."><img class='btns-icon minus' src=". sbf('img/16/toggle2.png') .">&nbsp;{$group}</li>");
+                $tpl->append("<li class='dimension'>");
+                foreach($bArr as $btn => $class) {
+                    $mvc = cls::get($class);
+                    
+                    $tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, 
+                        array($class, 'add', 
+                            'threadId' => $rec->threadId, 'folderId' => $rec->folderId, 'ret_url' => TRUE), 
+                            NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
+                }
+                
+                $tpl->append("</li>"); 
+                $active = '';
+            }
+
+            $tpl->append("</ul></div>");
+            
+            $tpl->push('doc/tpl/style.css', 'CSS');
+            $tpl->push('doc/js/accordion.js', 'JS');
+            jquery_Jquery::run($tpl, "accordionRenderAndCollapse();");
+        } else {
+
+            $tpl = tr("Няма възможност за добавяне на документ в") . " " . $title;
+        }
 
         return $tpl;
     }

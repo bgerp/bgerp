@@ -51,7 +51,7 @@ class blast_Lists extends core_Master
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Циркулярни контакти';
+    var $singleTitle = 'Списък с контакти';
     
     
     /**

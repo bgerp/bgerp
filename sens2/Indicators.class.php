@@ -62,8 +62,18 @@ class sens2_Indicators extends core_Manager
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност');
         $this->FLD('time', 'datetime', 'caption=Време');
         $this->FLD('error', 'varchar(64)', 'caption=Грешка');
+        $this->FNC('title', 'varchar(64)', 'caption=заглавие');
 
         $this->setDbUnique('controllerId,port,uom');
+    }
+    
+
+    /**
+     * Изчислява стойността на функционалното поле 'title'
+     */
+    function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = $mvc->getRecTitle($rec);
     }
 
 

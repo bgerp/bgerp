@@ -104,7 +104,13 @@ class acc_Balances extends core_Master
      */
     var $listFields = 'id, periodId, lastCalculate';
     
-    
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/table_sum.png';
+
+
     /**
      * Описание на модела (таблицата)
      */

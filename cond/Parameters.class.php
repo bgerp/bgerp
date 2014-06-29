@@ -99,7 +99,7 @@ class cond_Parameters extends core_Master
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
         $this->FLD('sysId', 'varchar(32)', 'caption=Sys Id');
-        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Използвай като признак за групиране->Избор,notNull,default=no,maxRadio=2,value=no,hint=Да служили параметъра като признак за групиране');
+        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Да служили параметъра като признак за групиране');
         
         $this->setDbUnique('name');
     }

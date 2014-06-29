@@ -44,7 +44,7 @@ class survey_Surveys extends core_Master {
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/survey.png';
+    var $singleIcon = 'img/16/text_list_bullets.png';
     
     
     /**
@@ -110,7 +110,7 @@ class survey_Surveys extends core_Master {
 	/**
      * Групиране на документите
      */
-    var $newBtnGroup = "9.2|Обслужване";
+    var $newBtnGroup = "18.2|Други";
     
     
     /**
@@ -257,7 +257,7 @@ class survey_Surveys extends core_Master {
     	if($summary && $data->rec->state == 'active') {
     		
     		unset($url['summary']);
-    		$data->toolbar->addBtn('Анкета',  $url, 'ef_icon=img/16/survey.png');
+    		$data->toolbar->addBtn('Анкета',  $url, 'ef_icon=img/16/text_list_bullets.png');
     		$data->toolbar->buttons['btnPrint']->url['summary'] = 'ok';
     	}
     	

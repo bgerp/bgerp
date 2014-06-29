@@ -143,7 +143,7 @@ class incoming_Documents extends core_Master
     /**
      * Групиране на документите
      */ 
-    var $newBtnGroup = "1.6|Общи";
+    var $newBtnGroup = "18.6|Други";
     
     /**
      * Описание на модела

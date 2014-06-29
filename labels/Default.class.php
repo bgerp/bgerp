@@ -116,7 +116,7 @@ class labels_Default extends core_Master
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/palette.png';
+    var $singleIcon = 'img/16/barcode-icon.png';
 
     
     /**
@@ -140,7 +140,7 @@ class labels_Default extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "12.1|Етикети";
+    var $newBtnGroup = "18.3|Други";
 	
     
 	/**

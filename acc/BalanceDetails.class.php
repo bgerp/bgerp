@@ -586,7 +586,7 @@ class acc_BalanceDetails extends core_Detail
             
             if ($accRec->groupId1 || $accRec->groupId2 || $accRec->groupId3) {
                 $row->accountId = ht::createLink($row->accountId,
-                    array($mvc->master, 'single', $rec->balanceId, 'accId'=>$rec->accountId), NULL, array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/view.png') . ');'));
+                    array($mvc->master, 'single', $rec->balanceId, 'accId'=>$rec->accountId), NULL, array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/filter.png') . ');'));
             } else{
             	$row->accountId = ht::createLink($row->accountId,
                     array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum), NULL, array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/clock_history.png') . ');'));

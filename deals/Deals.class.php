@@ -91,7 +91,13 @@ class deals_Deals extends core_Master
      */
     public $singleTitle = 'Финансова сделка';
    
-    
+
+    /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/stock_new_meeting.png';
+
+
     /**
      * Групиране на документите
      */ 

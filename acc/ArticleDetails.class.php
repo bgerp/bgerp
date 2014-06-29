@@ -57,7 +57,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Активен таб
      */
-    var $currentTab = 'Мемориални Ордери';
+    var $currentTab = 'Мемориални ордери';
 
         
     /**

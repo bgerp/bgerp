@@ -31,7 +31,7 @@ class price_ConsumptionNormDetails extends core_Detail {
 	/**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Sorting';
+    var $loadList = 'plg_RowTools, plg_Sorting, price_Wrapper, price_ConsumptionNormWrapper';
     
     
     /**
@@ -156,7 +156,7 @@ class price_ConsumptionNormDetails extends core_Detail {
     			// Проверяваме дали мярката е от позволените за продукта
     			$similarMeasures = cat_UoM::getSameTypeMeasures($productUom);
     			if(!array_key_exists($rec->dUom, $similarMeasures)){
-    				$form->setError('dUom', 'Избраната мярка не е от същата група като основната мярка на продукта');
+    				$form->setError('dUom', "Избраната мярка не е от същата група като основната мярка на продукта (" . cat_Uom::getTitleById($productUom) . ')');
     			}
     		} else {
     			

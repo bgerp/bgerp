@@ -26,7 +26,7 @@ class acc_Articles extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Мемориални Ордери";
+    var $title = "Мемориални ордери";
     
     
     /**

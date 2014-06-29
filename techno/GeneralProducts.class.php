@@ -63,7 +63,12 @@ class techno_GeneralProducts extends core_Master {
      * Шаблон за единичен изглед
      */
     var $singleLayoutFile = 'techno/tpl/SingleLayoutGeneralProducts.shtml';
-    
+
+    /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/doc.png';
+
     
     /**
      * Кой може да го прочете?

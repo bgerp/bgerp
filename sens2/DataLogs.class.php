@@ -23,6 +23,8 @@ class sens2_DataLogs extends core_Manager
     var $loadList = 'plg_RowTools, sens2_Wrapper, plg_Sorting, plg_RefreshRows, plg_AlignDecimals';
     
     
+    var $interfaces = 'frame_ReportSourceIntf';
+
     /**
      * Заглавие
      */
@@ -152,4 +154,77 @@ class sens2_DataLogs extends core_Manager
     {
     
     }
+
+
+
+
+
+    /**
+     * Интерфейс: frame_ReportSourceIntf
+     *
+     * Реализация на метода prepareReportForm
+     */
+    function prepareReportForm($form)
+    {
+        $form->FLD('from', 'datetime', 'caption=От,mandatory');
+        $form->FLD('to', 'datetime', 'caption=До,mandatory');
+        $form->FLD('indicators', 'keylist(mvc=sens2_Indicators,select=title)', 'caption=Сензори,mandatory');
+    }
+
+
+    /**
+     * Интерфейс: frame_ReportSourceIntf
+     *
+     * Реализация на метода prepareReportForm
+     */
+    function checkReportForm($form)
+    {
+    }
+
+
+    function prepareReportData($filter)
+    {
+        $data = new StdClass();
+
+        if(!strpos($filter->to, ' ')) {
+            $filter->to .= ' 23:59:59';
+        }
+
+        $query = self::getQuery();
+
+        $query->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $filter->from, $filter->to));
+
+        $query->in("indicatorId", keylist::toArray($filter->indicators));
+
+        while($rec = $query->fetch()) {
+            $data->recs[$rec->id] = $rec;
+        }
+ 
+        return $data;
+    }
+
+
+    function renderReportData($filter, $data)
+    {
+        $layout = new ET(getFileContent('sens2/tpl/ReportLayout.shtml'));
+        
+        $layout->placeObject($filter);
+
+        if(is_array($data->recs)) {
+            foreach($data->recs as $id => $rec) {
+                $data->rows[$id] = self::recToVerbal($rec);
+                $data->rows[$id]->time = str_replace(' ', '&nbsp;', $data->rows[$id]->time);
+            }
+
+            $this->invoke('AfterPrepareListRows', array($data, $data));
+
+            $table = cls::get('core_TableView');
+ 
+            $layout->append($table->get($data->rows, 'time=Време,indicatorId=Индикатор,value=Стойност'), 'data');
+        }
+
+        return $layout;
+    }
+
+
 }
