@@ -38,7 +38,7 @@ class core_Manager extends core_Mvc
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/view.png';
+    var $singleIcon = 'img/16/page_white_text.png';
     
     
     /**
