@@ -114,7 +114,7 @@ class distro_Group extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "1.29|Общи"; 
+    var $newBtnGroup = "18.8|Други"; 
     
     
     /**

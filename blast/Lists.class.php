@@ -159,10 +159,7 @@ class blast_Lists extends core_Master
         $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
 
         // Ако не е папка проект или контрагент, не може да се добави
-        if (($coverClassName != 'doc_unsortedfolders') && 
-            ($coverClassName != 'crm_persons') &&
-            ($coverClassName != 'crm_groups') &&
-            ($coverClassName != 'crm_companies')) return FALSE;
+        if (($coverClassName != 'doc_unsortedfolders')) return FALSE;
     }
     
     
