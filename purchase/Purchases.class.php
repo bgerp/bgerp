@@ -726,11 +726,13 @@ class purchase_Purchases extends core_Master
      */
     public function getDealInfo($id)
     {
-    	$rec = new purchase_model_Purchase(self::fetchRec($id));
+    	$rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
         
         // Извличаме продуктите на покупката
-        $detailRecs = $rec->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
+        $dQuery = purchase_PurchasesDetails::getQuery();
+        $dQuery->where("#requestId = {$rec->id}");
+        $detailRecs = $dQuery->fetchAll();
                 
         $result = new bgerp_iface_DealResponse();
         
@@ -777,9 +779,6 @@ class purchase_Purchases extends core_Master
     	if (isset($actions['pay'])) {
             $result->paid->amount   			  = $rec->amountDeal;
             $result->agreed->downpayment          = ($downPayment) ? $downPayment : NULL;
-            $result->paid->currency 			  = $rec->currencyId;
-            $result->paid->rate                   = $rec->currencyRate;
-            $result->paid->vatType 				  = $rec->chargeVat;
             $result->paid->payment->method        = $rec->paymentMethodId;
             $result->paid->payment->bankAccountId = bank_Accounts::fetchField("#iban = '{$rec->bankAccountId}'", 'id');
             $result->paid->payment->caseId        = $rec->caseId;
@@ -788,16 +787,12 @@ class purchase_Purchases extends core_Master
         if (isset($actions['ship'])) {
             $result->shipped->amount             = $rec->amountDeal;
             $result->agreed->downpayment         = ($downPayment) ? $downPayment : NULL;
-            $result->shipped->currency           = $rec->currencyId;
-            $result->shipped->rate               = $rec->currencyRate;
-            $result->shipped->vatType 			 = $rec->chargeVat;
             $result->shipped->delivery->location = $rec->deliveryLocationId;
             $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
             $result->shipped->delivery->term     = $rec->deliveryTermId;
             $result->shipped->delivery->time     = $rec->deliveryTime;
         }
         
-        /* @var $dRec purchase_model_PurchaseProduct */
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
@@ -853,7 +848,7 @@ class purchase_Purchases extends core_Master
      */
     public function getAggregateDealInfo($id)
     {
-        $requestRec = new purchase_model_Purchase($id);
+        $requestRec = $this->fetchRec($id);
         
     	$requestDocuments = $this->getDescendants($requestRec->id);
         
@@ -904,19 +899,59 @@ class purchase_Purchases extends core_Master
     
     
 	/**
-     * Трасира веригата от документи, породени от дадена покупка. Извлича от тях експедираните 
-     * количества и платените суми.
-     * 
-     * @param core_Mvc $mvc
-     * @param core_ObjectReference $requestRef
-     * @param core_ObjectReference $descendantRef кой породен документ е инициатор на трасирането
+     * След промяна в журнала със свързаното перо
      */
-    public static function on_DescendantChanged($mvc, $requestRef, $descendantRef = NULL)
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
-        $requestRec = new purchase_model_Purchase($requestRef->rec());
-    	$aggregatedDealInfo = $mvc->getAggregateDealInfo($requestRef->that);
-		
-        $requestRec->updateAggregateDealInfo($aggregatedDealInfo);
+    	$aggregatedDealInfo = $mvc->getAggregateDealInfo($rec->id);
+    	$mvc->updateAggregateDealInfo($rec, $aggregatedDealInfo);
+    }
+    
+    
+    /**
+     * Обновява БД с агрегирана бизнес информация за покупка
+     *
+     * @param bgerp_iface_DealResponse $aggregateDealInfo
+     */
+    public function updateAggregateDealInfo($rec, bgerp_iface_DealResponse $aggregateDealInfo)
+    {
+    	$p = purchase_transaction_Purchase::getDeliveryAmount($rec->id);
+    	core_Statuses::newStatus("$p");
+    	
+    	// Преизчисляваме общо платената и общо експедираната сума
+    	$rec->amountPaid      = $aggregateDealInfo->paid->amount;
+    	$rec->amountDelivered = $aggregateDealInfo->shipped->amount;
+    	$rec->amountInvoiced  = $aggregateDealInfo->invoiced->amount;
+    
+    	if($rec->amountPaid && $rec->amountDelivered && $rec->paymentState != 'overdue'){
+    		if($rec->amountPaid >= $rec->amountDelivered){
+    			$rec->paymentState = 'paid';
+    		} else {
+    			$rec->paymentState = 'pending';
+    		}
+    	}
+    
+    	$dQuery = $this->purchase_PurchasesDetails->getQuery();
+    	$dQuery->where("#requestId = {$rec->id}");
+    
+    	$this->save($rec);
+    
+    	while ($p = $dQuery->fetch) {
+    		$aggrProduct = $aggregateDealInfo->shipped->findProduct($p->productId, $p->classId, $p->packagingId);
+    		if ($aggrProduct) {
+    			$p->quantityDelivered = $aggrProduct->quantity;
+    		} else {
+    			$p->quantityDelivered = 0;
+    		}
+    		$aggrProduct = $aggregateDealInfo->invoiced->findProduct($p->productId, $p->classId, $p->packagingId);
+    		if ($aggrProduct) {
+    			$p->quantityInvoiced = $aggrProduct->quantity;
+    		} else {
+    			$p->quantityInvoiced = 0;
+    		}
+    
+    		$this->purchase_PurchasesDetails->save($p);
+    	}
     }
     
     
@@ -998,16 +1033,19 @@ class purchase_Purchases extends core_Master
     
 	/**
      * Помощна ф-я показваща дали в покупката има поне един складируем/нескладируем артикул
+     * 
      * @param int $id - ид на покупката
      * @param boolean $storable - дали се търсят складируеми или нескладируеми артикули
      * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
      */
     public function hasStorableProducts($id, $storable = TRUE)
     {
-    	$rec = new purchase_model_Purchase(self::fetchRec($id));
-        $detailRecs = $rec->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
+    	$rec = $this->fetchRec($id);
+    	
+        $dQuery = purchase_PurchasesDetails::getQuery();
+        $dQuery->where("#requestId = {$rec->id}");
         
-        foreach ($detailRecs as $d){
+        while($d = $dQuery->fetch()){
         	$info = cls::get($d->classId)->getProductInfo($d->productId);
         	if($storable){
         		

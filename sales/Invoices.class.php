@@ -362,9 +362,9 @@ class sales_Invoices extends core_Master
         expect($origin = static::getOrigin($form->rec));
         if($origin->haveInterface('bgerp_DealAggregatorIntf')){
         	$aggregateInfo         = $origin->getAggregateDealInfo();
-        	$form->rec->vatRate    = $aggregateInfo->shipped->vatType;
-        	$form->rec->currencyId = $aggregateInfo->shipped->currency;
-        	$form->rec->rate       = $aggregateInfo->shipped->rate;
+        	$form->rec->vatRate    = $aggregateInfo->agreed->vatType;
+        	$form->rec->currencyId = $aggregateInfo->agreed->currency;
+        	$form->rec->rate       = $aggregateInfo->agreed->rate;
         	
         	if($aggregateInfo->agreed->payment->method){
         		$form->rec->paymentMethodId = $aggregateInfo->agreed->payment->method;
@@ -1190,23 +1190,6 @@ class sales_Invoices extends core_Master
 	        if($originState === 'closed'){
 	        	$res = 'no_one';
 	        }
-        }
-    }
-    
-    
-	/**
-     * След оттегляне на документа
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param object|int $id
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-        // Нотифицираме origin-документа, че някой от веригата му се е променил
-        if ($origin = $mvc->getOrigin($id)) {
-            $ref = new core_ObjectReference($mvc, $id);
-            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
         }
     }
 }

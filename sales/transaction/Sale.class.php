@@ -367,15 +367,108 @@ class sales_transaction_Sale
         
         return $entries;
     }
+    
+    
+    /**
+     * Връща всички експедирани продукти и техните количества по сделката
+     */
+    public static function getShippedProducts($id)
+    {
+    	$res = array();
+    	$query = sales_SalesDetails::getQuery();
+        $query->where("#saleId = '{$id}'");
+        $query->show('id, productId, classId, quantityDelivered');
+        
+        // Намираме всички транзакции с перо сделката
+        $jRecs = acc_Journal::getEntries(array('sales_Sales', $id));
+        
+        // Извличаме тези, отнасящи се за експедиране
+        $dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,703', 'credit');
+        
+        if(!count($dInfo->recs)) return $res;
+        	foreach ($dInfo->recs as $p){
+        	
+         	// Обикаляме всяко перо
+         	foreach (range(1, 3) as $i){
+        		$itemRec = acc_Items::fetch($p->{"creditItem{$i}"});
+        		
+        		// Ако има интерфейса за артикули-пера, го добавяме
+        		if(cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)){
+        			$obj = new stdClass();
+        			$obj->classId = $itemRec->classId;
+        			$obj->productId = $itemRec->objectId;
+        			$obj->quantityDelivered = $p->creditQuantity;
+        			$res[] = $obj;
+        			break;
+        		}
+        	}
+    	}
+    	
+    	// Връщаме масив със всички експедирани продукти по тази сделка
+    	return $res;
+	}
+	
+	
+	/**
+	 * Връща записите от журнала за това перо
+	 */
+	private static function getEntries($jRecs)
+	{
+		if(is_numeric($jRecs)){
+			$jRecs = acc_Journal::getEntries(array('sales_Sales', $jRecs));
+		}
+		
+		return $jRecs;
+	}
 	
 	
 	/**
 	 * Колко е направеното авансово плащане досега
 	 */
-	public static function getDownpayment($id)
+	public static function getDownpayment($jRecs)
 	{
-		$jRecs = acc_Journal::getEntries(array('sales_Sales', $id));
+		$jRecs = static::getEntries($jRecs);
 		 
 		return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'credit')->amount;
+	}
+	
+	
+	/**
+	 * Колко е платеното по сделка
+	 */
+	public static function getPaidAmount($jRecs)
+	{
+		$jRecs = static::getEntries($jRecs);
+		
+		$paid = acc_Balances::getBlAmounts($jRecs, '411', 'credit')->amount;
+		$paid += -1 * acc_Balances::getBlAmounts($jRecs, '412')->amount;
+		$paid -= acc_Balances::getBlAmounts($jRecs,  '411', 'credit', '6911')->amount;
+		
+		return $paid;
+	}
+	
+	
+	/**
+	 * Колко е доставено по сделката
+	 */
+	public static function getDeliveryAmount($jRecs)
+	{
+		$jRecs = static::getEntries($jRecs);
+		
+		$delivered = acc_Balances::getBlAmounts($jRecs, '411', 'debit')->amount;
+		$delivered -= acc_Balances::getBlAmounts($jRecs, '411', 'debit', '7911')->amount;
+		
+		return $delivered;
+	}
+	
+	
+	/**
+	 * Колко е ддс-то за начисляване
+	 */
+	public static function getAmountToInvoice($jRecs)
+	{
+		$jRecs = static::getEntries($jRecs);
+		
+		return -1 * acc_Balances::getBlAmounts($jRecs, '4530')->amount;
 	}
 }

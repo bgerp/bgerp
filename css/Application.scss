@@ -1202,7 +1202,7 @@ div.attachments {
 		background-position: 6px 4px;
 		border-bottom: solid 1px $gray2;
 	}
-	.file {
+	.fileLink {
 		max-height: 32px;
 		height: auto;
 		overflow: hidden;
@@ -3558,7 +3558,7 @@ body.narrow {
 	}
 	.narrow .single-thread .scrolling-holder, .narrow .docStatistic {
 		max-width: 200px;
-	}
+	} 
 	.narrow #all {
 		border: none;
 	}
@@ -3924,4 +3924,4 @@ body.narrow {
 	padding:2px;
 	border:solid 1px #ccc;
 	background-color:#eee;
-}
+} 

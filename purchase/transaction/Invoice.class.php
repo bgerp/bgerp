@@ -31,13 +31,6 @@ class purchase_transaction_Invoice
     
     	if ($this->class->save($rec)) {
     		$this->class->invoke('AfterActivation', array($rec));
-    		
-    		// Нотификация към пораждащия документ, че нещо във веригата
-    		// му от породени документи се е променило.
-    		if ($origin = doc_Threads::getFirstDocument($rec->threadId)) {
-    			$rec = new core_ObjectReference($this->class, $rec);
-    			$origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
-    		}
     	}
     }
     

@@ -273,19 +273,6 @@ class store_Receipts extends core_Master
             }
         }
     }
-
-
-    /**
-     * След оттегляне на документа
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-        // Нотифициране на origin-документа, че някой от веригата му се е променил
-        if ($origin = $mvc->getOrigin($id)) {
-            $ref = new core_ObjectReference($mvc, $id);
-            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-        }
-    }
     
     
 	/**
@@ -553,10 +540,7 @@ class store_Receipts extends core_Master
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
 		
 		$result->shipped->amount             = $rec->amountDelivered;
-		$result->shipped->currency           = $rec->currencyId;
-		$result->shipped->rate 				 = $rec->currencyRate;
 		$result->shipped->valior 			 = $rec->valior;
-        $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->term     = $rec->termId;
         $result->shipped->delivery->time     = $rec->deliveryTime;

@@ -39,9 +39,9 @@ class acc_plg_Deals extends core_Plugin
     function on_AfterDescription(core_Mvc $mvc)
     {
     	// Може да се добавя само към покупка или продажба
-    	expect($mvc instanceof sales_Sales || $mvc instanceof purchase_Purchases);
+    	expect(cls::haveInterface('deals_DealsAccRegIntf', $mvc));
     	
-    	if(empty($mvc->fields['contoActions'])){
+    	if(empty($mvc->fields['contoActions']) && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
     		$mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
     	}
     }
@@ -84,6 +84,7 @@ class acc_plg_Deals extends core_Plugin
     		$id = Request::get('id', 'int');
 	    	expect($rec = $mvc->fetch($id));
 	    	expect($rec->state == 'draft');
+	    	expect(cls::haveInterface('acc_TransactionSourceIntf', $mvc));
 	    	expect(acc_plg_Contable::checkPeriod($rec->valior, $error), $error);
 	    	$curStoreId = store_Stores::getCurrent('id', FALSE);
 	    	$curCaseId  = cash_Cases::getCurrent('id', FALSE);

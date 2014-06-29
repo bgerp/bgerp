@@ -225,7 +225,7 @@ class cash_Rko extends core_Master
     		 	$dealInfo = $origin->getAggregateDealInfo();
     		 	
     		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-    		 		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->agreed->rate;
     		 		if($amount <= 0) {
     		 			$amount = 0;
     		 		}
@@ -244,14 +244,13 @@ class cash_Rko extends core_Master
     		 		cash_Cases::selectSilent($caseId);
     		 	}
     		 	
-    		 	$cId = ($dealInfo->shipped->currency) ? $dealInfo->shipped->currency : $dealInfo->paid->currency;
+    		 	$cId = $dealInfo->agreed->currency;
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($cId);
     		 	
-    		 	$rate = ($dealInfo->shipped->rate) ? $dealInfo->shipped->rate : $dealInfo->paid->rate;
-    		 	$form->rec->rate = $rate;
+    		 	$form->rec->rate = $dealInfo->agreed->rate;
     		 		
     		 	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
-    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->agreed->currency);
     		 	}
     	}  else {
     		$defaultOperation = 'case2supplier';
@@ -556,29 +555,10 @@ class cash_Rko extends core_Master
         $sign = ($origin->className == 'purchase_Purchases') ? 1 : -1;
     
         $result->paid->amount          = $sign * $rec->amount * $rec->rate;
-        $result->paid->currency        = currency_Currencies::getCodeById($rec->currencyId);
-        $result->paid->rate 	       = $rec->rate;
         $result->paid->payment->caseId = $rec->peroCase;
     	$result->paid->operationSysId  = $rec->operationSysId;
     	
         return $result;
-    }
-    
-    
-	/**
-     * След оттегляне на документа
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param object|int $id
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-        // Нотифицираме origin-документа, че някой от веригата му се е променил
-        if ($origin = $mvc->getOrigin($id)) {
-            $ref = new core_ObjectReference($mvc, $id);
-            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-        }
     }
     
     

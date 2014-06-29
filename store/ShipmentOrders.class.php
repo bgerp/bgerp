@@ -284,19 +284,6 @@ class store_ShipmentOrders extends core_Master
             }
         }
     }
-
-
-    /**
-     * След оттегляне на документа
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-        // Нотифициране на origin-документа, че някой от веригата му се е променил
-        if ($origin = $mvc->getOrigin($id)) {
-            $ref = new core_ObjectReference($mvc, $id);
-            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-        }
-    }
     
     
 	/**
@@ -565,10 +552,7 @@ class store_ShipmentOrders extends core_Master
         
         // Конвертираме данъчната основа към валутата идваща от продажбата
         $result->shipped->amount             = $rec->amountDelivered;
-        $result->shipped->currency		 	 = $rec->currencyId;
-        $result->shipped->rate		         = $rec->currencyRate;
         $result->shipped->valior 			 = $rec->valior;
-        $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
         $result->shipped->delivery->storeId  = $rec->storeId;
@@ -725,8 +709,8 @@ class store_ShipmentOrders extends core_Master
     	$tplArr[] = array('name' => 'Експедиционно нареждане с цени', 
     					  'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
-    	$tplArr[] = array('name' => 'Packaging list', 
-    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en',
+    	$tplArr[] = array('name' => 'Packing list', 
+    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packaging list',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	
     	$skipped = $added = $updated = 0;

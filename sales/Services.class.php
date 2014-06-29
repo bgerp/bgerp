@@ -246,19 +246,6 @@ class sales_Services extends core_Master
             $mvc->sales_ServicesDetails->save($shipProduct);
         }
     }
-
-
-    /**
-     * След оттегляне на документа
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-        // Нотифициране на origin-документа, че някой от веригата му се е променил
-        if ($origin = $mvc->getOrigin($id)) {
-            $ref = new core_ObjectReference($mvc, $id);
-            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-        }
-    }
     
     
 	/**
@@ -483,10 +470,7 @@ class sales_Services extends core_Master
         
         // Конвертираме данъчната основа към валутата идваща от продажбата
         $result->shipped->amount             = $rec->amountDelivered;
-        $result->shipped->currency		 	 = $rec->currencyId;
-        $result->shipped->rate		         = $rec->currencyRate;
         $result->shipped->valior 			 = $rec->valior;
-        $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
         

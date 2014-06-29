@@ -35,7 +35,7 @@ class deals_Deals extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, deals_WrapperFin, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, deals_Wrapper, acc_plg_Deals , plg_Printing, doc_DocumentPlg, deals_WrapperFin, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
@@ -390,6 +390,7 @@ class deals_Deals extends core_Master
     		$data->pager = $Pager;
     		
     		$recs = array();
+    		
     		// Извличаме всички записи, за да изчислим точно крайното салдо
     		$count = 0;
     		
@@ -545,9 +546,6 @@ class deals_Deals extends core_Master
     	if($rec->secondContragentClassId){
     		$result->involvedContragents[] = (object)array('classId' => $rec->secondContragentClassId, 'id' => $rec->secondContragentId);
     	}
-    	
-    	$result->paid->currency = $rec->currencyId;
-    	$result->paid->rate = $rec->currencyRate;
     	
     	$result->agreed->currency = $rec->currencyId;
     	$result->agreed->rate = $rec->currencyRate;
@@ -759,26 +757,15 @@ class deals_Deals extends core_Master
     
     
     /**
-     * След като се промени някой от наследниците: в това число и 
-     * ако някое прехвърляне в друга нишка засяга сделката преизчислява крайното салдо по сделката
+     * След промяна в журнала със свързаното перо
      */
-    public static function on_DescendantChanged($mvc, $dealRef, $descendantRef = NULL)
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
-    	$blAmount = 0;
-    	$rec = $dealRef->fetch();
+    	$entries = acc_Journal::getEntries(array($mvc->className, $rec->id));
     	
-    	$entries = acc_Journal::getEntries(array('deals_Deals', $rec->id), $item);
-    	if(!count($entries)) return;
-    	foreach($entries as $jRec){
-    		if($jRec->debitItem2 == $item->id){
-    			$blAmount += $jRec->amount;
-    		}
-    		if($jRec->creditItem2 == $item->id){
-    			$blAmount -= $jRec->amount;
-    		}
-    	}
+    	// Обновяваме крайното салдо на сметката на сделката
+    	$rec->blAmount = acc_Balances::getBlAmounts($entries, acc_Accounts::fetchField($rec->accountId, 'systemId'))->amount;
     	
-    	$rec->blAmount = $blAmount;
     	$mvc->save($rec);
     }
     

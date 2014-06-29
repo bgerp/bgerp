@@ -339,10 +339,11 @@ class sales_Sales extends core_Master
                     continue;
                 }
         
-                $saleProduct = new sales_model_SaleProduct(NULL);
-        
+                $saleProduct = new stdClass();
+        		$ProductMan = cls::get($product->classId);
+                
                 $saleProduct->saleId      = $rec->id;
-                $saleProduct->classId     = cls::get($product->classId)->getClassId();
+                $saleProduct->classId     = $ProductMan->getClassId();
                 $saleProduct->productId   = $product->productId;
                 $saleProduct->packagingId = $product->packagingId;
                 $saleProduct->quantity    = $product->quantity;
@@ -350,9 +351,10 @@ class sales_Sales extends core_Master
                 $saleProduct->price       = $product->price;
                 $saleProduct->uomId       = $product->uomId;
         
-                $saleProduct->quantityInPack = $saleProduct->getQuantityInPack();
+                $productInfo = $ProductMan->getProductInfo($saleProduct->productId, $saleProduct->packagingId);
+                $saleProduct->quantityInPack = ($saleProduct->packagingId) ? $productInfo->packagingRec->quantity : 1;
                 
-                $saleProduct->save();
+                sales_SalesDetails::save($saleProduct);
             }
         }
     }
@@ -882,23 +884,6 @@ class sales_Sales extends core_Master
     }
     
     
-    /**
-     * Трасира веригата от документи, породени от дадена продажба. Извлича от тях експедираните 
-     * количества и платените суми.
-     * 
-     * @param core_Mvc $mvc
-     * @param core_ObjectReference $saleRef
-     * @param core_ObjectReference $descendantRef кой породен документ е инициатор на трасирането
-     */
-    public static function on_DescendantChanged($mvc, $saleRef, $descendantRef = NULL)
-    {
-        $saleRec = new sales_model_Sale($saleRef->rec());
-    	$aggregatedDealInfo = $mvc->getAggregateDealInfo($saleRef->that);
-		
-        $saleRec->updateAggregateDealInfo($aggregatedDealInfo);
-    }
-    
-    
 	/**
      * Връща масив от използваните нестандартни артикули в продажбата
      * @param int $id - ид на продажба
@@ -932,11 +917,13 @@ class sales_Sales extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new sales_model_Sale(self::fetchRec($id));
+        $rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
         
         // Извличаме продуктите на продажбата
-        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+        $dQuery = sales_SalesDetails::getQuery();
+        $dQuery->where("#saleId = {$rec->id}");
+        $detailRecs = $dQuery->fetchAll();
                 
         $result = new bgerp_iface_DealResponse();
         
@@ -945,7 +932,7 @@ class sales_Sales extends core_Master
         $allowedPaymentOperations = $this->allowedPaymentOperations;
        
         if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        	unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'],$allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
+        	unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'], $allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
         } else {
         	// Колко е очакваното авансово плащане
         	$downPayment = cond_PaymentMethods::getDownpayment($rec->paymentMethodId, $rec->amountDeal);
@@ -976,9 +963,6 @@ class sales_Sales extends core_Master
         if (isset($actions['pay'])) {
             $result->paid->amount   			  = $rec->amountDeal;
             $result->agreed->downpayment          = ($downPayment) ? $downPayment : NULL;
-            $result->paid->currency 			  = $rec->currencyId;
-            $result->paid->rate                   = $rec->currencyRate;
-            $result->paid->vatType 				  = $rec->chargeVat;
             $result->paid->payment->method        = $rec->paymentMethodId;
             $result->paid->payment->bankAccountId = $rec->bankAccountId;
             $result->paid->payment->caseId        = $rec->caseId;
@@ -987,16 +971,12 @@ class sales_Sales extends core_Master
         if (isset($actions['ship'])) {
             $result->shipped->amount             = $rec->amountDeal;
             $result->agreed->downpayment         = ($downPayment) ? $downPayment : NULL;
-            $result->shipped->currency           = $rec->currencyId;
-            $result->shipped->rate               = $rec->currencyRate;
-            $result->shipped->vatType 			 = $rec->chargeVat;
             $result->shipped->delivery->location = $rec->deliveryLocationId;
             $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
             $result->shipped->delivery->term     = $rec->deliveryTermId;
             $result->shipped->delivery->time     = $rec->deliveryTime;
         }
         
-        /* @var $dRec sales_model_SaleProduct */
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
@@ -1052,19 +1032,17 @@ class sales_Sales extends core_Master
      */
     public function getAggregateDealInfo($id)
     {
-        $saleRec = new sales_model_Sale($id);
+        $saleRec = $this->fetchRec($id);
     	
     	$saleDocuments = $this->getDescendants($saleRec->id);
         
         // Извличаме dealInfo от самата продажба
-        /* @var $saleDealInfo bgerp_iface_DealResponse */
         $saleDealInfo = $this->getDealInfo($saleRec->id);
         
         // dealInfo-то на самата продажба е база, в/у която се натрупват някой от аспектите
         // на породените от нея документи (платежни, експедиционни, фактури)
         $aggregateInfo = clone $saleDealInfo;
         
-        /* @var $d core_ObjectReference */
         foreach ($saleDocuments as $d) {
             $dState = $d->rec('state');
             if ($dState == 'draft' || $dState == 'rejected') {
@@ -1073,7 +1051,6 @@ class sales_Sales extends core_Master
             }
         
             if ($d->haveInterface('bgerp_DealIntf')) {
-                /* @var $dealInfo bgerp_iface_DealResponse */
                 $dealInfo = $d->getDealInfo();
                 $aggregateInfo->shipped->push($dealInfo->shipped);
                 $aggregateInfo->paid->push($dealInfo->paid);
@@ -1084,9 +1061,6 @@ class sales_Sales extends core_Master
         // Aко няма експедирани/фактурирани продукти, то се копират договорените
         // но с количество 0 за експедирани/фактурирани
         foreach(array('shipped', 'invoiced') as $type){
-        	$aggregateInfo->$type->currency = $aggregateInfo->agreed->currency;
-        	$aggregateInfo->$type->rate     = $aggregateInfo->agreed->rate;
-        	$aggregateInfo->$type->vatType  = $aggregateInfo->agreed->vatType;
         	
         	if(!count($aggregateInfo->$type->products)){
         		
@@ -1305,14 +1279,18 @@ class sales_Sales extends core_Master
     
     /**
      * Помощна ф-я показваща дали в продажбата има поне един складируем/нескладируем артикул
+     * 
      * @param int $id - ид на продажба
      * @param boolean $storable - дали се търсят складируеми или нескладируеми артикули
      * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
      */
     public function hasStorableProducts($id, $storable = TRUE)
     {
-    	$rec = new sales_model_Sale(self::fetchRec($id));
-        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+    	$rec = $this->fetchRec($id);
+    	$dQuery = sales_SalesDetails::getQuery();
+    	$dQuery->where("#saleId = {$rec->id}");
+    	$detailRecs = $dQuery->fetchAll();
+    	
         foreach ($detailRecs as $d){
         	$info = cls::get($d->classId)->getProductInfo($d->productId);
         	if($storable){
@@ -1420,16 +1398,56 @@ class sales_Sales extends core_Master
     }
     
     
-    /*public static function on_AfterAffectItem($mvc, $rec, $item)
+    /**
+     * След промяна в журнала със свързаното перо
+     */
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
-    	$saleRec = new sales_model_Sale($rec);
     	$aggregatedDealInfo = $mvc->getAggregateDealInfo($rec->id);
     	
-    	$saleRec->updateAggregateDealInfo($aggregatedDealInfo);
+    	$mvc->updateAggregateDealInfo($rec, $aggregatedDealInfo);
     }
     
     
-    function act_test(){
-    	sales_transaction_Sale::getShippedProducts(1555);
-    }*/
+    /**
+     * Обновява БД с агрегирана бизнес информация за продажба 
+     * 
+     * @param bgerp_iface_DealResponse $aggregateDealInfo
+     */
+    public function updateAggregateDealInfo($rec, bgerp_iface_DealResponse $aggregateDealInfo)
+    {
+        // Преизчисляваме общо платената и общо експедираната сума
+        $rec->amountPaid      = $aggregateDealInfo->paid->amount;
+        $rec->amountDelivered = $aggregateDealInfo->shipped->amount;
+        $rec->amountInvoiced  = $aggregateDealInfo->invoiced->amount;
+        
+        if($rec->amountPaid && $rec->amountDelivered && $rec->paymentState != 'overdue'){
+        	if($rec->amountPaid >= $rec->amountDelivered){
+        		$rec->paymentState = 'paid';
+        	} else {
+        		$rec->paymentState = 'pending';
+        	}
+        }
+        
+        $this->save($rec);
+        
+        $dQuery = $this->sales_SalesDetails->getQuery();
+        $dQuery->where("#saleId = {$rec->id}");
+        while($p = $dQuery->fetch()) {
+            $aggrProduct = $aggregateDealInfo->shipped->findProduct($p->productId, $p->classId, $p->packagingId);
+            if ($aggrProduct) {
+                $p->quantityDelivered = $aggrProduct->quantity;
+            } else {
+                $p->quantityDelivered = 0;
+            }
+            $aggrProduct = $aggregateDealInfo->invoiced->findProduct($p->productId, $p->classId, $p->packagingId);
+            if ($aggrProduct) {
+                $p->quantityInvoiced = $aggrProduct->quantity;
+            } else {
+                $p->quantityInvoiced = 0;
+            }
+        
+            $this->sales_SalesDetails->save($p);
+        }
+    }
 }

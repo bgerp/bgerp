@@ -32,7 +32,7 @@ class deals_transaction_DebitDocument
     	$rec->state = 'active';
     
     	if ($this->class->save($rec)) {
-    		$this->class->notificateOrigin($rec);
+    		$this->class->invoke('AfterActivation', array($rec));
     	}
     }
     

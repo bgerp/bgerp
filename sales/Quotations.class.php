@@ -619,7 +619,7 @@ class sales_Quotations extends core_Master
     		$uIndex =  "{$detail->productId}|{$detail->policyId}";
     		if(array_key_exists($uIndex, $products) || !$detail->quantity) return NULL;
     		$total += $detail->quantity * ($detail->price * (1 + $detail->discount));
-    		$products[$uIndex] = new sales_model_QuotationProduct($detail);
+    		$products[$uIndex] = $detail;
     	}
     	
     	return array_values($products);

@@ -31,12 +31,8 @@ class cash_transaction_Rko
     	$rec = $this->class->fetchRec($id);
     	$rec->state = 'closed';
     
-    	if ($this->class->save($rec)) {
-    		// Нотифицираме origin-документа, че някой от веригата му се е променил
-    		if ($origin = $this->class->getOrigin($rec)) {
-    			$ref = new core_ObjectReference($this->class, $rec);
-    			$origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-    		}
+    	if($this->class->save($rec)) {
+    		$this->class->invoke('AfterActivation', array($rec));
     	}
     }
     

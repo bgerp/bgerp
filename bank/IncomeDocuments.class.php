@@ -279,7 +279,7 @@ class bank_IncomeDocuments extends core_Master
     	expect(count($options));
     		
     	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-    		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->agreed->rate;
     		$amount = ($amount <= 0) ? 0 : $amount;
     			
     		$form->defaultOperation = $this->getDefaultOperation($dealInfo);
@@ -288,14 +288,13 @@ class bank_IncomeDocuments extends core_Master
     		}
     	}
     		 
-    	$cId = ($dealInfo->shipped->currency) ? $dealInfo->shipped->currency : $dealInfo->paid->currency;
+    	$cId = $dealInfo->agreed->currency;
     	$form->rec->currencyId = currency_Currencies::getIdByCode($cId);
     		 
-    	$rate = ($dealInfo->shipped->currency) ? $dealInfo->shipped->rate : $dealInfo->paid->rate;
-    	$form->rec->rate = $rate;
+    	$form->rec->rate = $dealInfo->agreed->rate;
     		 	 
     	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
-    		 $form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 $form->rec->amount = currency_Currencies::round($amount, $dealInfo->agreed->currency);
     		 	
     		 // Ако има банкова сметка по подразбиране
     		 if($bankId = $dealInfo->agreed->payment->bankAccountId){
@@ -438,26 +437,6 @@ class bank_IncomeDocuments extends core_Master
     }
     
     
-    
-    
-    
-    /**
-     * След оттегляне на документа
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param object|int $id
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-        // Нотифицираме origin-документа, че някой от веригата му се е променил
-        if ($origin = $mvc->getOrigin($id)) {
-            $ref = new core_ObjectReference($mvc, $id);
-            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-        }
-    }
-    
-    
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
@@ -551,8 +530,6 @@ class bank_IncomeDocuments extends core_Master
         $sign = ($origin->className == 'purchase_Purchases') ? -1 : 1;
         
         $result->paid->amount                 = $sign * $rec->amount * $rec->rate;
-        $result->paid->currency               = currency_Currencies::getCodeById($rec->currencyId);
-        $result->paid->rate 	              = $rec->rate;
         $result->paid->payment->bankAccountId = bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId');
 		$result->paid->operationSysId         = $rec->operationSysId;
     	

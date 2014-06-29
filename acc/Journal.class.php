@@ -103,6 +103,12 @@ class acc_Journal extends core_Master
     
     
     /**
+     * Кеш на афектираните пера
+     */
+    public $affectedItems = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -194,6 +200,19 @@ class acc_Journal extends core_Master
         if ($rec->state != 'draft') {
             // Нотифицираме съотв. период че има нови транзакции
             acc_Periods::touch($rec->valior);
+        }
+        
+        // След активиране, извличаме всички записи от журнала и запомняме кои пера са вкарани
+        if($rec->state == 'active'){
+        	$dQuery = $mvc->acc_JournalDetails->getQuery();
+        	$dQuery->where("#journalId = {$rec->id}");
+        	while($dRec = $dQuery->fetch()){
+        		foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
+        			if(isset($dRec->$item)){
+        				$mvc->affectedItems[$dRec->$item] = $dRec->$item;
+        			}
+        		}
+        	}
         }
     }
     
@@ -521,5 +540,18 @@ class acc_Journal extends core_Master
      	
      	// Връщаме извлечените записи
      	return $jIds;
+     }
+     
+     /**
+      * Афектираните пера, нотифицират мениджърите си
+      */
+     public static function on_Shutdown($mvc)
+     {
+     	// Всяко афектирано перо, задейства ивент в мениджъра си
+     	if(count($mvc->affectedItems)){
+     		foreach ($mvc->affectedItems as $rec) {
+     			acc_Items::notifyObject($rec);
+     		}
+     	}
      }
 }

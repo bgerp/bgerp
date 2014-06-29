@@ -193,7 +193,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
         $docRec = $firstDoc->fetch();
         $account = acc_Accounts::fetchField($docRec->accountId, 'systemId');
         
-        $amount = round($info->paid->amount / $info->paid->rate, 2);
+        $amount = round($info->agreed->amount / $info->agreed->rate, 2);
         
         // Извънреден разход
         if($amount < 0){
@@ -201,12 +201,14 @@ class deals_ClosedDeals extends acc_ClosedDeals
         							array($docRec->contragentClassId, $docRec->contragentId),
 	            					array($firstDoc->className, $firstDoc->that));
         	$creditArr = array($account,
+        						array($docRec->contragentClassId, $docRec->contragentId),
         						array('deals_Deals', $docRec->id),
 	    						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                        'quantity' =>  abs($amount));
         } else {
         	// Извънреден приход
         	$debitArr = array($account,
+        					array($docRec->contragentClassId, $docRec->contragentId),
 	    					array('deals_Deals', $docRec->id), 
 	                        array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
 	                    'quantity' =>  abs($amount));

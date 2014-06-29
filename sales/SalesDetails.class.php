@@ -516,7 +516,7 @@ class sales_SalesDetails extends core_Detail
                 
                 $quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
                 $quantity->placeObject($row);
-                if($row->packQuantityDelivered == 0){
+                if($rec->packQuantityDelivered == 0){
                 	$quantity->removeBlock('packQuantityDelivered');
                 }
                 $row->quantity = $quantity;
@@ -528,35 +528,4 @@ class sales_SalesDetails extends core_Detail
             unset($data->listFields['discount']);
         }
     }
-    
-    
-    /*public function updateDeliveryInfo($saleId)
-    {
-    	$query = $this->getQuery();
-        $query->where("#saleId = '{$saleId}'");
-        $query->show('id, productId, classId, quantityDelivered');
-        
-        $jRecs = acc_Journal::getEntries(array('sales_Sales', $saleId));
-        $dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,703', 'credit');
-      
-        while ($rec = $query->fetch()) {
-        	$itemId = acc_Items::fetchItem($rec->classId, $rec->productId)->id;
-        	if(empty($itemId)) continue;
-        	$delivered = 0;
-        	
-        	foreach ($dInfo->recs as $dRec){
-        		foreach (range(1, 3) as $i){
-        			if($dRec->{"creditItem{$i}"} == $itemId){
-        				$delivered += $dRec->creditQuantity;
-        				break;
-        			}
-        		}
-        	}
-        	
-        	if($rec->quantityDelivered != $delivered){
-        		$rec->quantityDelivered = $delivered;
-        		$this->save_($rec, 'id,quantityDelivered');
-        	}
-        }
-    }*/
 }

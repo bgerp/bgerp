@@ -219,6 +219,11 @@ abstract class acc_ClosedDeals extends core_Master
 	    	$firstRec = $DocClass->fetch($rec->docId);
 	    	$firstRec->state = 'closed';
 	    	$DocClass->save($firstRec);
+	    	
+	    	// Ако има перо сделката, затваряме го
+	    	if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
+	    		acc_Lists::removeItem($DocClass, $firstRec->id);
+	    	}
     	}
     }
     
@@ -236,6 +241,11 @@ abstract class acc_ClosedDeals extends core_Master
 		    $firstRec->state = 'active';
 		    
 		    $DocClass->save($firstRec);
+		    
+		    // Ако има перо сделката, обновяваме му състоянието
+		    if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
+		    	acc_Lists::updateItem($DocClass, $firstRec->id, $item->lists);
+		    }
     	}
     }
     
