@@ -67,7 +67,7 @@ class type_Datetime extends type_Date {
         $input->append('&nbsp;');
         
         $attr['value'] = $time;
- $attr['style'] .= 'vertical-align:top;';
+        $attr['style'] .= 'vertical-align:top;';
         unset($attr['id']);
 
         if($ts = $this->params['timeSuggestions']) {

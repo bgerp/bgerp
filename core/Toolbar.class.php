@@ -205,7 +205,7 @@ class core_Toolbar extends core_BaseClass
         
         if (!count($this->buttons) > 0) return $layout;
         
-        if (Mode::is('printing')) return $layout;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain')) return $layout;
         
         // Какъв ще бъде изгледа на лентата с инструменти?
       //  if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {

@@ -146,6 +146,9 @@ class core_Master extends core_Manager
             foreach (array_keys((array)$newRow) as $n) {
                 $data->row->{$n} = $newRow->{$n};
             }
+            
+            // Добавяме в лога
+            static::log("Преизчисляване на полетата на мастера", $data->rec->id);
         }
         
         return $data;
@@ -237,12 +240,10 @@ class core_Master extends core_Manager
     /**
      * Рендираме общия изглед за 'List'
      */
-    function renderSingle_($data, $tpl = NULL)
+    function renderSingle_($data)
     { 
         // Рендираме общия лейаут
-        if(!$tpl) {
-            $tpl = $this->renderSingleLayout($data);
-        }
+        $tpl = $this->renderSingleLayout($data);
         
         // Рендираме заглавието
         $data->row->SingleTitle = $this->renderSingleTitle($data);
@@ -328,7 +329,7 @@ class core_Master extends core_Manager
                     $tabHtml = $this->{$selected}->$method($data->{$selected});
                 }
 
-                $tabHtml = new ET("<div style='margin-top:20px;' class='clearfix21'></div><div><a name='detailTabs'></a>[#1#]</div>", $tabHtml);
+                $tabHtml = new ET("<div style='margin-top:20px;' class='clearfix21'></div><div class='docStatistic'><a name='detailTabs'></a>[#1#]</div>", $tabHtml);
 
                 $tpl->append($tabHtml, 'DETAILS');
             }
@@ -343,6 +344,14 @@ class core_Master extends core_Manager
      */
     function renderSingleLayout_(&$data)
     {
+        if (isset($data->singleLayout)) {
+            if (!($data->singleLayout instanceof core_ET)) {
+                $data->singleLayout = new ET($data->singleLayout);
+            }
+            
+            return $data->singleLayout;
+        }
+        
         if(isset($this->singleLayoutFile)) {
             $layoutText = tr('|*' . file_get_contents(getFullPath($this->singleLayoutFile)));
         } elseif(isset($this->singleLayoutTpl)) {

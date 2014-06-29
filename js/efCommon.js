@@ -504,6 +504,7 @@ function rp(text, textarea, newLine)
 	}
 }
 
+
 /*
  * добавяне на необходимите за създаване на таблица в ричедит символи, по зададени колони и редове
  */
@@ -592,6 +593,20 @@ function crateRicheditTable(textarea, newLine, tableCol, tableRow)
 	}
 }
 
+/*
+ * предпазване от субмит на формата, при натискане на enter във форма на richedit
+ */
+function bindEnterOnRicheditTableForm(textarea){
+	var richedit = $(textarea).closest('.richEdit');
+	$(richedit).find(".popupBlock input").keypress(function(e) {
+		if (e.which === 13) {
+			e.preventDefault();
+			$('#getTableInfo').click();
+		}
+	}); 
+}
+
+
 /**
  * Връща избрания текст в textarea
  * 
@@ -630,7 +645,7 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine, everyLine)
 		var position = textareaText.length;
 		var previousChar = textareaText.charAt(position - 1);
 	
-		if(caretPos.text != '' && caretPos.text.indexOf("\n") == -1 && text2 == '[/code]' && caretPos.text.length <= maxOneLine)  {
+		if(caretPos.text != '' && caretPos.text.indexOf("\n") == -1 && (text2 == '[/code]' ||  text2 == '[/bQuote]') && caretPos.text.length <= maxOneLine)  {
 			text1 = "`";
 			text2 = "`";
 		} else {
@@ -695,7 +710,7 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine, everyLine)
 			} 
 		}
 		
-		if(selection != '' && selection.indexOf("\n") == -1  && text2 == '[/code]' && selection.length <= maxOneLine) {
+		if(selection != '' && selection.indexOf("\n") == -1  && (text2 == '[/code]' ||  text2 == '[/bQuote]') && selection.length <= maxOneLine) {
 			text1 = "`";
 			text2 = "`";
 		} else{
@@ -1363,8 +1378,8 @@ function setFormElementsWidth()
  */
 function setThreadElemWidth(){
 	var winWidth = parseInt($(window).width()) - 45;
-	$('.doc_Containers table.listTable td').css('maxWidth',winWidth + 8);
-	$('.details').css('maxWidth',winWidth);
+	$('.doc_Containers table.listTable > tbody > tr >td').css('maxWidth',winWidth + 8);
+	$('.docStatistic').css('maxWidth',winWidth);
 	$('.scrolling-holder').css('maxWidth',winWidth );
 }
 
@@ -1681,6 +1696,26 @@ function preventDoubleSubmission(id) {
 	    }
 	    // Блокиране на събмита, ако няма промени и за определено време
 	    event.preventDefault();
+	});
+}
+
+/*
+ * Функция за подравняване на числа по десетичния знак
+ */
+function tableElemsFractionsWidth(){
+	$('.alignDecimals > table').each(function() { 
+		var table = $(this);
+		var fracPartWidth = [];
+        $(this).find('.fracPart').each(function() {  
+        	var elem = $(this);
+        	var parent = $(this).parent();
+        	if(!fracPartWidth[parent.attr('data-col')] || fracPartWidth[parent.attr('data-col')] < $(elem).width()){
+        		fracPartWidth[parent.attr('data-col')] = $(elem).width();
+        	}
+        });
+		for(key in fracPartWidth) {
+			$(table).find("span[data-col='" + key + "'] .fracPart").css('width', fracPartWidth[key]);
+		}
 	});
 }
 

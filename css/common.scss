@@ -1976,7 +1976,6 @@ a.rtbutton {
 	text-align:left;
 }
 
-
 .narrow a.rtbutton {
 	padding: 0.2em 0.3em 0.3em;
 	height:1.1em;
@@ -2043,6 +2042,11 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
     padding-left: 22px !important;  
     background-repeat: no-repeat !important;
     background-position: 3px center !important;
+}
+
+.narrow .richtext-holder-group a.rtbutton {
+    padding: 0.3em 0.4em 0.3em;
+    line-height: 1;
 }
 
 .popup-table-info{
@@ -2757,4 +2761,8 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 /* цвят за маркиране на текста */
 .highlight {
     background-color: #ffff66;
+}
+.fracPart{
+	display: inline-block;
+	text-align: left;
 }
