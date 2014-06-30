@@ -14,7 +14,7 @@
                     <table class='border-table' cellpadding='4px' >
                     <tr>
                         <td class='top-head'>
-                            <b>|Получател|*</b>
+                            <b>|Платец|*</b>
                         </td>
                         <td  rowspan='2' class='title-order'>
                             <div class='document-title'>|ПРИХОДЕН|*<br> |БАНКОВ ДОКУМЕНТ|*</div>
@@ -26,7 +26,7 @@
 			                  <br />
 			               <!--ET_END state-->
                         </td>
-                        <td class='top-head'><b>|Организация|*</b></td>
+                        <td class='top-head'><b>|Получател|*</b></td>
                     </tr>
                     <tr>
                         <td style='padding-top:10px;'>

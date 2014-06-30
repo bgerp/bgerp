@@ -11,16 +11,16 @@
 	<!--ET_END header-->
 	<div class='scrolling-holder'>
 		<div class='display-table'>
-					<table border='1px' class='order-table' cellpadding='4px'>
+					<table border='1px' class='border-table' cellpadding='4px'>
 					<tr>
-						<td class='top-head'><b>|Организация|*</b></td>
+						<td class='top-head'><b>|Платец|*</b></td>
 						<td  rowspan='2' class='title-order'>
 							<h2 style='margin-bottom:15px;margin-top:0px'>|РАЗХОДЕН|*<br> |КАСОВ ОРДЕР|*</h2>
 							№:&nbsp;&nbsp;<b>[#number#]</b><br>
 							|Дата|*:&nbsp;&nbsp;<b>[#valior#]</b><br />
 							<div class="[#STATE_CLASS#]" style='margin-top:5px'>[#state#]</div>
 						</td>
-						<td class='top-head'><b>|Да се изплати на|*</b></td>
+						<td class='top-head'><b>|Получател|*</b></td>
 					</tr>
 					<tr>
 						<td style='padding-top:10px;'>
@@ -79,22 +79,8 @@
 						<tr>
 							<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
 								<br>
-								<table class='signature-table'>
-								    <tr>
-								        <td width=1%>|Получил|*:  </td><td></td>
-								    </tr>
-								    <tr>
-								        <td></td>
-								        <td><span class='sign_names'>( [#beneficiary#] )</span></td>
-								        
-								    </tr>
 								
-								</table>
-								
-							</td>
-							<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
-							 <br>
-								<table class='signature-table fright' style='width:1%'>
+								<table class='signature-table' >
                                     <tr>
                                         <td width=1%>|Касиер|*:  </td><td></td>
                                     </tr>
@@ -104,7 +90,23 @@
                                         
                                     </tr>
                                 
-                             </table>
+                                </table>
+								
+								
+							</td>
+							<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
+							 <br>
+								<table class='signature-table fright' style='width:1%'>
+                                    <tr>
+                                        <td width=1%>|Получил|*:  </td><td></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td><span class='sign_names'>( [#beneficiary#] )</span></td>
+                                        
+                                    </tr>
+                                
+                                </table>
 								
 							</td>
 						</tr>
