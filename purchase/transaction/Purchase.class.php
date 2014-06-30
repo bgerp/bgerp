@@ -367,11 +367,11 @@ class purchase_transaction_Purchase
     /**
      * Колко е направеното авансово плащане досега
      */
-    public static function getDownpayment($id)
+    public static function getDownpayment($jRecs)
     {
     	$jRecs = static::getEntries($jRecs);
     	
-    	return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'credit')->amount;
+    	return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'debit')->amount;
     }
     
     
