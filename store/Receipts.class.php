@@ -36,8 +36,8 @@ class store_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
-                    doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, store_DocumentWrapper, doc_plg_TplManager,
+    public $loadList = 'plg_RowTools, store_Wrapper, store_DocumentWrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
+                    doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, store_plg_Document';
 
     

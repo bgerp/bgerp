@@ -35,8 +35,8 @@ class store_Transfers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, store_plg_Document, doc_plg_BusinessDoc, store_DocumentWrapper, plg_Search';
+    public $loadList = 'plg_RowTools, store_Wrapper, store_DocumentWrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
+                    doc_DocumentPlg, store_plg_Document, doc_plg_BusinessDoc, plg_Search';
 
     
     /**
@@ -162,7 +162,7 @@ class store_Transfers extends core_Master
      */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{
-		$data->listFilter->showFields = 'from,to,search';
+		$data->listFilter->showFields = 'search,from,to';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 		$data->listFilter->input();
 	}

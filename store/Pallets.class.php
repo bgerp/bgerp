@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 
 
@@ -26,7 +26,7 @@ class store_Pallets extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State, plg_LastUsedKeys, store_PalletteWrapper';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, store_ArrangementWrapper, plg_State, plg_LastUsedKeys';
     
     
     /**

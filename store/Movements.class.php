@@ -26,7 +26,7 @@ class store_Movements extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RefreshRows, plg_State';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, store_ArrangementWrapper, plg_RefreshRows, plg_State';
     
     
     /**
