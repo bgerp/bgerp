@@ -30,7 +30,8 @@
 		<tr>
 		    <td class="cell">
 		        <b>[#contragentName#]</b><br>
-		       [#contragentPlace#]<!--ET_END contragentPlace--><!--ET_BEGIN contragentAddress-->, [#contragentAddress#] <!--ET_END contragentAddress-->
+		       [#contragentCountryId#],  <!--ET_BEGIN contragentPlace-->[#contragentPCode#] [#contragentPlace#]<!--ET_END contragentPlace-->
+		       <!--ET_BEGIN contragentAddress-->, [#contragentAddress#] <!--ET_END contragentAddress-->
 		        
 		    </td>
 		    <td class="cell">
