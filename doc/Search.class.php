@@ -242,10 +242,16 @@ class doc_Search extends core_Manager
              */
             
             // Ако ще се филтира по състояни и текущия потребител (автор)
-            if ($filterRec->state && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
+            if ($filterRec->state) {
+                
+                $url = array($mvc, 'state' => $filterRec->state);
+                
+                // Ако се филтрира по текущия автор
+                if ($filterRec->author && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
+                    $url['author'] = core_Users::getCurrent();
+                }
                 
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние
-                $url = array($mvc, 'state' => $filterRec->state, 'author' => core_Users::getCurrent());
                 bgerp_Notifications::clear($url);
             }
         } else {
