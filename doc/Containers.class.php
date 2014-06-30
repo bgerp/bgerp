@@ -100,7 +100,7 @@ class doc_Containers extends core_Manager
         $this->setDbIndex('threadId');
         $this->setDbUnique('docClass, docId');
     }
- 
+    
     
     /**
      * Изпълнява се след подготовката на филтъра за листовия изглед
@@ -663,6 +663,39 @@ class doc_Containers extends core_Manager
         }
         
         return $authorArr;
+    }
+    
+    
+    /**
+     * Проверява дали има документ в нишката след подадената дата от съответния клас
+     * 
+     * @param integer $threadId
+     * @param date $date
+     * @param integer $classId
+     */
+    static function haveDocsAfter($threadId, $date=NULL, $classId=NULL)
+    {
+        // Ако не е подадена дата, да се използва текущото време
+        if (!$date) {
+            $date = dt::now();
+        }
+        
+        // Първия документ, в нишката, който не е оттеглен
+        $query = static::getQuery();
+        $query->where(array("#threadId = '[#1#]'", $threadId));
+        $query->where("#state != 'rejected'");
+        
+        // Създадене след съответната дата
+        $query->where(array("#createdOn > '[#1#]'", $date));
+        
+        // Ако е зададен от кой клас да е документа
+        if ($classId) {
+            $query->where(array("#docClass = '[#1#]'", $classId));
+        }
+        
+        $rec = $query->fetch();
+        
+        return $rec;
     }
     
     
