@@ -1023,16 +1023,6 @@ class sales_Invoices extends core_Master
             $p->quantity    = $dRec->quantity * $dRec->quantityInPack;
             $p->price       = $dRec->price;
             
-        	if($rec->vatRate == 'yes' || $rec->vatRate == 'separate'){
-            		 
-            	// Отбелязваме че има ддс за начисляване от експедирането съответно за видовете продукти
-	            $ProductMan = cls::get($dRec->classId);
-        		$vat = $ProductMan->getVat($dRec->productId, $rec->valior);
-	            $vatAmount = $dRec->price * $p->quantity * $vat;
-	            $code = $dRec->classId . "|" . $dRec->productId . "|" . $dRec->packagingId;
-	            $result->invoiced->vatToCharge[$code] += -1 * $vatAmount;
-            }
-            
             $result->invoiced->products[] = $p;
         }
         

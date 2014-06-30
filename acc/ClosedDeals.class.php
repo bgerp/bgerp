@@ -429,11 +429,11 @@ abstract class acc_ClosedDeals extends core_Master
         	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $dealInfo->dealType, $firstDoc);
         }
        
-    	if($vatToCharge = $dealInfo->invoiced->vatToCharge){
+    	/*if($vatToCharge = $dealInfo->invoiced->vatToCharge){
         	// Създаване на запис за прехвърляне на всеки аванс
         	$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $total1, $firstDoc);
         	$result->totalAmount += $total1;
-        }
+        }*/
         
         // Ако има направено авансово плащане
         if($downpayment = $dealInfo->paid->downpayment){

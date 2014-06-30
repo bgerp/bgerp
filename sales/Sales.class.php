@@ -926,7 +926,8 @@ class sales_Sales extends core_Master
         $detailRecs = $dQuery->fetchAll();
                 
         $result = new bgerp_iface_DealResponse();
-        
+        //$result = new bgerp_iface_DealAggregator;
+        //bp($result);
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
         $allowedPaymentOperations = $this->allowedPaymentOperations;
@@ -995,16 +996,6 @@ class sales_Sales extends core_Master
             $result->agreed->products[] = $p;
             
             if (isset($actions['ship'])) {
-            	
-            	if($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate'){
-            		
-            		// Отбелязваме че има ддс за начисляване от експедирането съответно за видовете продукти
-	            	$vat = $ProductMan->getVat($dRec->productId, $rec->valior);
-	            	$vatAmount = $dRec->price * $dRec->quantity * $vat;
-	            	$code = $dRec->classId . "|" . $dRec->productId . "|" . $dRec->packagingId;
-	            	$result->invoiced->vatToCharge[$code] += $vatAmount;
-            	}
-            	
             	$result->shipped->products[] = clone $p;
             }
         }

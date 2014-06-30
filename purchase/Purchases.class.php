@@ -817,16 +817,6 @@ class purchase_Purchases extends core_Master
             $result->agreed->products[] = $p;
             
         	if (isset($actions['ship'])) {
-        		
-        		if($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate'){
-            		
-            		// Отбелязваме че има ддс за начисляване от експедирането съответно за видовете продукти
-	            	$vat = $ProductMan->getVat($dRec->productId, $rec->valior);
-	            	$vatAmount = $dRec->price * $dRec->quantity * $vat;
-	            	$code = $dRec->classId . "|" . $dRec->productId . "|" . $dRec->packagingId;
-	            	$result->invoiced->vatToCharge[$code] += $vatAmount;
-            	}
-            	
             	$result->shipped->products[] = clone $p;
             }
         }
