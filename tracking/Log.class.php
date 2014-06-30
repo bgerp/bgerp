@@ -45,8 +45,8 @@ class tracking_Log extends core_Manager {
      */
     function description()
     {
-        $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number)', 'caption=Автомобил');
-        $this->FLD('driverId', 'key(mvc=crm_Persons, select=name)', 'caption=Водач');
+        $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number, allowEmpty=true)', 'caption=Автомобил');
+        $this->FLD('driverId', 'key(mvc=crm_Persons, select=name, allowEmpty=true)', 'caption=Водач');
         $this->FLD('data', 'blob', 'caption=Данни');
         $this->FLD('fixTime', 'datetime()', 'caption=Време на засичне');
         $this->FNC('text', 'html', 'caption=Данни');
@@ -82,6 +82,7 @@ class tracking_Log extends core_Manager {
                 if (empty($rec->dateTo)) {
                     $rec->dateTo = date("Y-m-d");
                 }
+                // Понеже fixTime съдържа времева част - кастваме до дата
                 $data->query->where("CAST(#fixTime AS DATE) BETWEEN '{$rec->dateFrom}' AND '{$rec->dateTo}'");
             }
         }
