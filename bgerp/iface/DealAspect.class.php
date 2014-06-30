@@ -20,14 +20,6 @@ class bgerp_iface_DealAspect
      * @var array of bgerp_iface_DealProduct
      */
     public $products = array();
-
-	
-    /**
-     * Списък от направените авансови плащания по валути
-     *
-     * @var array of bgerp_iface_DealProduct
-     */
-    public $downpayments = array();
     
     
     /**
@@ -129,11 +121,6 @@ class bgerp_iface_DealAspect
         
     	foreach ($aspect->products as $p) {
             $this->pushProduct($p);
-        }
-        
-    	foreach ($aspect->downpayments as $currencyId => $d) {
-    		$this->downpayments[$currencyId]['amount'] += $d['amount'];
-            $this->downpayments[$currencyId]['amountBase'] += $d['amountBase'];
         }
         
         if (isset($aspect->delivery)) {
