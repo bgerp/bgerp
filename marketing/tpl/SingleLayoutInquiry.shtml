@@ -125,4 +125,10 @@
 	</tr>
 	</table>
 	</div>
+	
+	<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+			[#DETAILS#]
+		</div>
+	<!--ET_END DETAILS-->
 </div>
