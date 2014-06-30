@@ -26,7 +26,7 @@ class store_Products extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, store_ArrangementWrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals, plg_State, plg_LastUsedKeys';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals, plg_State, plg_LastUsedKeys';
     
     
     /**
