@@ -487,15 +487,6 @@ class sales_Services extends core_Master
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;
-            
-            if($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate'){
-            	// Отбелязваме че има ддс за начисляване от експедирането
-		        $ProductMan = cls::get($dRec->classId);
-		        $vat = $ProductMan->getVat($dRec->productId, $rec->valior);
-		        $vatAmount = $dRec->price * $dRec->quantity * $vat;
-		        $code = $dRec->classId . "|" . $dRec->productId . "|" . $dRec->packagingId;
-	            $result->invoiced->vatToCharge[$code] += $vatAmount;
-            }
 	        
             $result->shipped->products[] = $p;
         }
