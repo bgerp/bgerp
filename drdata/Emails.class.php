@@ -172,7 +172,7 @@ class drdata_Emails extends core_BaseClass
      */
     function mxRecordsValidate($domain)
     {
-        if ($this->getmxrr($domain, $mxhosts, $mx_weight)) {
+        if (getmxrr($domain, $mxhosts, $mx_weight)) {
             if ($mxhosts === array(0 => '')) {
                 return FALSE;
             }
@@ -489,50 +489,5 @@ class drdata_Emails extends core_BaseClass
         }
         
         return FALSE;
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function winGetmxrr($host, &$mx, $weight)
-    {
-        $OS = cls::get('core_OS');
-        $res = implode("\n", $OS->exec('nslookup -type=mx ' . escapeshellarg($host) . ' 4.2.2.3', 'getOutput'));
-        $res = explode("\n", strstr($res, $host));
-        
-        if (!isset($res[1])) {
-            $mx[] = FALSE;
-            
-            return FALSE;
-        }
-        
-        foreach ($res as $v) {
-            $w = explode(' ', $v);
-            $mx[] = $w[7];
-            
-            if (isset($weight)) {
-                $weight[] = $w[3]{0};
-            }
-        }
-        unset($mx[count($mx) - 1]);
-        unset($weight[count($weight) - 1]);
-        
-        return TRUE;
-    }
-    
-    
-    /**
-     * Define
-     */
-    function getmxrr($hostname, &$mxhosts, $mxweight)
-    {
-        cls::load('core_Os');
-        
-        if (core_Os::isWindows()) {
-            return $this->winGetmxrr($hostname, $mxhosts, $mxweight);
-        } else {
-            return getmxrr($hostname, $mxhosts, $mxweight);
-        }
     }
 }
