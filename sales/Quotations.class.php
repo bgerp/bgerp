@@ -355,11 +355,10 @@ class sales_Quotations extends core_Master
 	    	$row->number = $mvc->getHandle($rec->id);
 			$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
 			
+			$row->contragentAdress = trim(sprintf("%s, %s %s",$row->country, $row->pCode, $row->place)); 
 			if($row->address){
-				$row->contragentAdress = $row->address . ",";
+				$row->contragentAdress .= ", " . $row->address ;
 			}
-			$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$row->pcode, $row->place, $row->country)); 
-			
 			if($rec->currencyRate == 1){
 				unset($row->currencyRate);
 			}
@@ -386,7 +385,7 @@ class sales_Quotations extends core_Master
 			
 			$ownCompanyData = crm_Companies::fetchOwnCompany();
 	        $Companies = cls::get('crm_Companies');
-	        $row->MyCompany = $Companies->getTitleById($ownCompanyData->companyId);
+	        $row->MyCompany = $Companies->getVerbal($ownCompanyData->companyId, 'name');
 	        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
 		}
 		

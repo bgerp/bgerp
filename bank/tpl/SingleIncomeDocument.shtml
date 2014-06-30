@@ -11,13 +11,13 @@
     <!--ET_END header-->
     <div class='scrolling-holder'>
         <div class='display-table'>
-                    <table border='1px' class='order-table' cellpadding='4px' >
+                    <table class='border-table' cellpadding='4px' >
                     <tr>
                         <td class='top-head'>
-                            <b>|Получател|*</b>
+                            <b>|Платец|*</b>
                         </td>
                         <td  rowspan='2' class='title-order'>
-                            <h2 style='margin-bottom:8px;margin-top:0px'>|ПРИХОДЕН|*<br> |БАНКОВ ДОКУМЕНТ|*</h2>
+                            <div class='document-title'>|ПРИХОДЕН|*<br> |БАНКОВ ДОКУМЕНТ|*</div>
                             |Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
                             <!--ET_BEGIN state-->
 			                  <br />
@@ -26,7 +26,7 @@
 			                  <br />
 			               <!--ET_END state-->
                         </td>
-                        <td class='top-head'><b>|Организация|*</b></td>
+                        <td class='top-head'><b>|Получател|*</b></td>
                     </tr>
                     <tr>
                         <td style='padding-top:10px;'>
@@ -39,7 +39,7 @@
                     </tr>
                     </table>
                     <div class='lines'></div>
-                    <table border='1px' cellpadding='5px'  class='border-table'>
+                    <table  class='border-table'>
                         <tr>
                             <td width='67%' align='left' style='padding-left:10px;'>
                                 <table class='no-border' cellpadding=0 cellspacing=0>
