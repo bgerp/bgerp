@@ -444,15 +444,15 @@ class email_Outgoings extends core_Master
             // Добавяме статус
             status_Messages::newStatus($msg, $statusType);
             
+            // Инстанция на изходящи имейли
+            $inst = cls::get('email_Outgoings');
+            
             // Нулираме флага, защото имейла вече е изпратен
             // Проверява се в on_AfterSave
             $inst->flagSendIt = FALSE;
             
             $nRec = new stdClass();
             $nRec->id = $rec->id;
-            
-            // Инстанция на изходящи имейли
-            $inst = cls::get('email_Outgoings');
             
             // Ако имейла е активен или чернова и не е въведено време за изчакване
             if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft')) {
