@@ -939,7 +939,7 @@ class doc_DocumentPlg extends core_Plugin
             
             if($thRec->firstContainerId != $form->rec->containerId) {
                 list($t,) = explode('<div', doc_Threads::recToVerbal($thRec)->title);
-                $title .= tr(mb_strtolower($mvc->singleTitle)) . $in . $t;
+                $title = tr(mb_strtolower($mvc->singleTitle)) . $in . $t;
             }
         }
        
