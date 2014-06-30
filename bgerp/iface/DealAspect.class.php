@@ -23,6 +23,14 @@ class bgerp_iface_DealAspect
     
     
     /**
+     * Списък (масив) от характеристики на продукти
+     *
+     * @var array of bgerp_iface_DealProduct
+     */
+    public $shippedProducts = array();
+    
+    
+    /**
      * 3-буквен ISO код на валута
      *
      * @var string
@@ -71,11 +79,25 @@ class bgerp_iface_DealAspect
     
     
     /**
+     * Колко е очакваното авансово плащане
+     *
+     * @var double
+     */
+    public $downpaymentExpect;
+    
+    
+    /**
      * Обща сума на приспаднатото авансово плащане (ако има)
      *
      * @var double
      */
     public $downpaymentDeducted = NULL;
+    
+    
+    /**
+     * Сумата на фактурираното
+     */
+    public $amountInvoiced;
     
     
     /**
@@ -92,6 +114,9 @@ class bgerp_iface_DealAspect
      * @var bgerp_iface_DealPayment
      */
     public $payment;
+    
+    
+    
     
     
 	public function __construct()
