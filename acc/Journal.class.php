@@ -20,7 +20,7 @@ class acc_Journal extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Журнал";
+    var $title = "Журнал със счетоводни транзакции";
     
     
     /**

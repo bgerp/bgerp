@@ -288,19 +288,23 @@ class acc_OpenDeals extends core_Manager {
     		case 'cash':
     			$menu = "Финанси";
     			$subMenu = 'Каси';
+                $mvc->load("{$show}_Wrapper");
     			break;
     		case 'bank':
     			$menu = "Финанси";
     			$subMenu = 'Банки';
+                $mvc->load("{$show}_Wrapper");
     			break;
     		case 'store':
     			$menu = "Логистика";
-    			$subMenu = 'Складове';
+    			$subMenu = 'Склад';
+                $mvc->load("{$show}_Wrapper");
+                $mvc->load("store_DocumentWrapper");
     			break;
     	}
     	
     	Mode::set('pageMenu', $menu);
 		Mode::set('pageSubMenu', $subMenu);
-    	$mvc->load("{$show}_Wrapper");
+    	
     }
 }

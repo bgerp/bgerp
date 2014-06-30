@@ -910,7 +910,8 @@ class doc_DocumentPlg extends core_Plugin
             $fRec = doc_Folders::fetch($form->rec->folderId);
             $title = tr(mb_strtolower($mvc->singleTitle));
         	if(core_Users::getCurrent('id', FALSE)){
-        		 $title .= ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
+                list($title,) = explode('<div', doc_Folders::recToVerbal($fRec)->title);
+        		$title .= ' |в|* ' . $title;
         	}
         }
         
@@ -937,7 +938,8 @@ class doc_DocumentPlg extends core_Plugin
             $thRec = doc_Threads::fetch($form->rec->threadId);
             
             if($thRec->firstContainerId != $form->rec->containerId) {
-                $title = tr(mb_strtolower($mvc->singleTitle)) . $in . doc_Threads::recToVerbal($thRec)->title;
+                list($title,) = explode('<div', doc_Threads::recToVerbal($thRec)->title);
+                $title = tr(mb_strtolower($mvc->singleTitle)) . $in . $title;
             }
         }
        

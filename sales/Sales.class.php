@@ -131,7 +131,7 @@ class sales_Sales extends core_Master
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/cart1.png';
+    public $singleIcon = 'img/16/cart_go.png';
 
     
     /**

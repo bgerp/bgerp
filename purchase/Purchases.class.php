@@ -102,6 +102,12 @@ class purchase_Purchases extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Покупка';
+    
+    
+    /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/cart_put.png';
 
 
     /**
