@@ -383,8 +383,9 @@ class doc_TplManager extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
+    	if($res == 'no_one') return;
+    	
     	if($action == 'delete' && isset($rec)){
-    		
     		// Ако шаблона е използван в някой документ, не може да се трие
     		if(cls::get($rec->docClassId)->fetch("#template = {$rec->id}")){
     			$res = 'no_one';
