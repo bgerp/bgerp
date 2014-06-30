@@ -13,11 +13,11 @@
 		<div id='contragent-label'>|Получател|* </div>
 		<div class='contragent-info'>[#MyCompany#]</div>
 		<div class='contragent-info'>[#MyAddress#]</div>
-		<!--ET_BEGIN contragentVatNo-->
-		<div class ='contragent-vat'>|номер по ЗДДС|*</div>
-		<div class='contragent-info'>[#MyCompanyVatNo#]</div>
-		<!--ET_END contragentVatNo-->
-		<div class ='contragent-info' style='font-size:14px'><b>|ЕИК|*</b></div>
-		<div class='contragent-info'>[#uicId#]</div>
+		<br>
+		<!--ET_BEGIN MyCompanyVatNo-->
+		<div><span class ='contragent-vat'>|номер по ЗДДС|*:</span> [#MyCompanyVatNo#]</div>
+		<!--ET_END MyCompanyVatNo-->
+		
+		<div class ='contragent-info' ><span class ='contragent-vat'>|ЕИК|*: </span>[#uicId#]</div>
 	</div>
 </div>

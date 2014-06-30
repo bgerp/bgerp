@@ -47,17 +47,11 @@
 		            <tbody>
 		               <!--ET_BEGIN MyCompanyVatNo-->
 		               <tr>
-		                   <td><small><b>|номер по ЗДДС|*</b></small></td>
-		               </tr>
-		               <tr>
-		                   <td class="bigData">[#MyCompanyVatNo#]</td>
+		                   <td><small><b>|номер по ЗДДС|*: </b></small><span class="bigData">[#MyCompanyVatNo#]</span></td>
 		               </tr>
 		               <!--ET_END MyCompanyVatNo-->
 		               <tr>
-		                   <td><small><b>|ЕИК|*</b></small></td>
-		               </tr>
-		               <tr>
-		                    <td class="bigData">[#uicId#]</td>
+		                   <td><small><b>|ЕИК|*: </b></small><span class="bigData">[#uicId#]</span></td>
 		               </tr>
 		             </tbody>
 		          </table> 
@@ -68,17 +62,11 @@
 		            <tbody>
 		               <!--ET_BEGIN contragentVatNo-->
 		               <tr>
-		                   <td><small><b>|номер по ЗДДС|*</b></small></td>
-		               </tr>
-		               <tr>
-		                   <td class="bigData">[#contragentVatNo#]</td>
+		                   <td><small><b>|номер по ЗДДС|*: </b></small><span class="bigData">[#contragentVatNo#]</span></td>
 		               </tr>
 		               <!--ET_END contragentVatNo-->
 		               <tr>
-		                   <td><small><b>[#cNum#]</b></small></td>
-		               </tr>
-		               <tr>
-		                   <td class="bigData">[#uicNo#]</td>
+		                   <td><small><b>[#cNum#]: </b></small><span class="bigData">[#uicNo#]</span></td>
 		               </tr>
 		            </tbody>
 		        </table>
