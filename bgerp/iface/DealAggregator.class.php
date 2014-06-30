@@ -15,6 +15,17 @@
  */
 class bgerp_iface_DealAggregator
 {
+	const TYPE_PURCHASE = 'purchase';
+	const TYPE_SALE     = 'sale';
+	const TYPE_DEAL     = 'deal';
+	
+	
+	/**
+	 * Вид на сделката
+	 */
+	public $dealType;
+	
+	
 	/**
 	 * Договорената сума по сделката
 	 */
@@ -25,6 +36,12 @@ class bgerp_iface_DealAggregator
 	 * Платено до момента
 	 */
 	public $amountPaid;
+	
+	
+	/**
+	 * Сума на доставеното
+	 */
+	public $deliveryAmount;
 	
 	
 	/**
