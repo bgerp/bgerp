@@ -1,4 +1,4 @@
-﻿/* http://keith-wood.name/datepick.html
+﻿﻿/* http://keith-wood.name/datepick.html
    Date picker for jQuery v4.0.6.
    Written by Keith Wood (kbwood{at}iinet.com.au) February 2010.
    Dual licensed under the GPL (http://dev.jquery.com/browser/trunk/jquery/GPL-LICENSE.txt) and 
@@ -197,7 +197,7 @@ $.extend(Datepicker.prototype, {
 				return (!minDate || $.datepick.today().getTime() >= minDate.getTime()) &&
 					(!maxDate || $.datepick.today().getTime() <= maxDate.getTime()); },
 			date: function(inst) { return $.datepick.today(); },
-			action: function(inst) { $.datepick.showMonth(this); }
+			action: function(inst) { $.datepick.showMonth(this); $('.datepick-today').click(); $(this).blur(); }
 		},
 		clear: {text: 'clearText', status: 'clearStatus', // Clear the datepicker
 			keystroke: {keyCode: 35, ctrlKey: true}, // Ctrl + End
