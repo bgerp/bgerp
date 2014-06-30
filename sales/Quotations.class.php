@@ -385,7 +385,7 @@ class sales_Quotations extends core_Master
 			
 			$ownCompanyData = crm_Companies::fetchOwnCompany();
 	        $Companies = cls::get('crm_Companies');
-	        $row->MyCompany = $Companies->getTitleById($ownCompanyData->companyId);
+	        $row->MyCompany = $Companies->getVerbal($ownCompanyData->companyId, 'name');
 	        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
 		}
 		
