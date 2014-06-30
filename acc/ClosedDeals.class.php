@@ -435,13 +435,9 @@ abstract class acc_ClosedDeals extends core_Master
         	$result->totalAmount += $total1;
         }*/
         
-        // Ако има направено авансово плащане
-        if($downpayment = $dealInfo->paid->downpayment){
-        	
-        	// Създаване на запис за прехвърляне на всеки аванс
-        	$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $total, $firstDoc);
-        	$result->totalAmount += $total;
-        }
+        // Създаване на запис за прехвърляне на всеки аванс
+        $entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $total, $firstDoc);
+        $result->totalAmount += $total;
         
         // Ако тотала не е нула добавяме ентритата
     	if($result->totalAmount != 0){

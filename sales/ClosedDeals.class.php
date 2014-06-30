@@ -341,6 +341,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     	
     	// Колко е направеното авансовото плащане
     	$downpaymentAmount = -1 * acc_Balances::getBlAmounts($jRecs, '412')->amount;
+    	if($downpaymentAmount == 0) return;
     	
     	// Валутата на плащането е тази на сделката
     	$currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
