@@ -238,7 +238,7 @@ class doc_Threads extends core_Manager
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
         bgerp_Notifications::clear($url);
-        bgerp_Recently::add('folder', $folderId);
+        bgerp_Recently::add('folder', $folderId, NULL, ($folderRec->state == 'rejected') ? 'yes' : 'no');
     }
     
     

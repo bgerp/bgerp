@@ -116,8 +116,8 @@ class doc_Containers extends core_Manager
         doc_Threads::requireRightFor('single', $data->threadRec);
         
         expect($data->threadRec->firstContainerId, 'Проблемен запис на нишка', $data->threadRec);
-        
-        bgerp_Recently::add('document', $data->threadRec->firstContainerId);
+       
+        bgerp_Recently::add('document', $data->threadRec->firstContainerId, NULL, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         
         $data->query->orderBy('#createdOn');
         

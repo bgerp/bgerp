@@ -93,7 +93,7 @@ class bgerp_Recently extends core_Manager
      * @param integer $userId
      * @param enum $priority
      */
-    static function add($type, $objectId, $userId = NULL)
+    static function add($type, $objectId, $userId = NULL, $hidden)
     {
         // Не добавяме от опресняващи ajax заявки
         if(Request::get('ajax_mode')) return;
@@ -107,7 +107,8 @@ class bgerp_Recently extends core_Manager
         $rec->objectId  = $objectId;
         $rec->userId    = $userId ? $userId : core_Users::getCurrent();
         $rec->last      = dt::verbal2mysql();
-        
+        $rec->hidden    = $hidden;
+      
         $rec->id = bgerp_Recently::fetchField("#type = '{$type}'  AND #objectId = $objectId AND #userId = {$rec->userId}");
         
         bgerp_Recently::save($rec);
@@ -268,13 +269,13 @@ class bgerp_Recently extends core_Manager
         
         // Подготвяме филтрирането
         $Recently->prepareListFilter($data);
-        
+       
         // Подготвяме навигацията по страници
         $Recently->prepareListPager($data);
         
         // Подготвяме записите за таблицата
         $Recently->prepareListRecs($data);
-        
+         
         // Подготвяме редовете на таблицата
         $Recently->prepareListRows($data);
         
