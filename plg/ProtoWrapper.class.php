@@ -82,7 +82,7 @@ class plg_ProtoWrapper extends core_Plugin
         $tpl->prepend(tr($invoker->title) . $title . ' « ', 'PAGE_TITLE');
         
         // Проверяваме дали текущия таб не е изрично зададен
-        if ($isCurrentTabSet = $invoker->currentTab && isset($this->tabs[$invoker->currentTab])) {
+        if ($isCurrentTabSet = $invoker->currentTab  ) {
             $currentTab = $invoker->currentTab;
         }  
         
@@ -130,24 +130,51 @@ class plg_ProtoWrapper extends core_Plugin
         
         // Създаваме рендер на табове
         $tabs = cls::get('core_Tabs');
- 
+        $subTabs = array();
  
         $tabs->htmlId = 'packWrapper';
-    
 
         foreach($this->tabs as $name => $rec) {
-           
-            if($rec->haveRight) {
-                 $tabs->TAB($name, $name, $rec->url);
-                 if($name == $currentTab) {
-                     $this->invoke('afterSetCurrentTab', array($name, $rec->url, &$hint, &$hintBtn, $tpl));  
-                 }
-            } elseif($name == $currentTab) {
-                 $tabs->TAB($name, $name, array());
+            
+            // Дали ще правим един или два таб контрола?
+            list($mainName, $subName) = explode('->', $name);
+            
+            // Добавяме към главния таб
+            if(!$usedNames[$mainName]) {
+                if($rec->haveRight) {
+                     $tabs->TAB($mainName, $mainName, $rec->url);
+                     if($name == $currentTab && (!$subName)) {
+                         $this->invoke('afterSetCurrentTab', array($mainName, $rec->url, &$hint, &$hintBtn, $tpl));  
+                     }
+                } elseif($name == $currentTab) {
+                     $tabs->TAB($mainName, $mainName, array());
+                }
+                $usedNames[$mainName] = TRUE;
+            }
+
+            // Добавяме към подчинения таб, ако има нужда
+            if($subName) {
+                if(!$subTabs[$mainName]) {
+                    $subTabs[$mainName] = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+                }
+                if($rec->haveRight) {
+                     $subTabs[$mainName]->TAB($subName, $subName, $rec->url);
+                     if($name == $currentTab) {
+                         $this->invoke('afterSetCurrentTab', array($mainName, $rec->url, &$hint, &$hintBtn, $tpl));  
+                     }
+                } elseif($name == $currentTab) {
+                     $subTabs[$mainName]->TAB($subName, $subName, array());
+                }
             }
         }
         
-        $tpl = $tabs->renderHtml($tpl, $currentTab, $hint, $hintBtn);
+        list($currentMainTab, $currentSubTab) = explode('->', $currentTab);
 
+        if($subTabs[$currentMainTab]) {
+            $tpl = $subTabs[$currentMainTab]->renderHtml($tpl, $currentSubTab, $hint, $hintBtn);
+            $tpl = $tabs->renderHtml($tpl, $currentMainTab);
+        } else {
+            $tpl = $tabs->renderHtml($tpl, $currentMainTab, $hint, $hintBtn);
+        }
     }
 }
