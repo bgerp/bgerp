@@ -156,6 +156,10 @@ class email_Outgoings extends core_Master
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
         $this->FLD('body', 'richtext(rows=15,bucket=Postings, appendQuote)', 'caption=Съобщение,mandatory');
         
+        $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
+        $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
+        $this->FLD('lastSendedBy', 'key(mvc=core_Users)', 'caption=Изпратено->От, notNull, input=none');
+        
         //Данни за адресата
         $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent');
         $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%');
@@ -440,24 +444,37 @@ class email_Outgoings extends core_Master
             // Добавяме статус
             status_Messages::newStatus($msg, $statusType);
             
-            // Ако имейла е активен или чернова
-            if ($rec->state == 'active' || $rec->state == 'draft') {
+            // Нулираме флага, защото имейла вече е изпратен
+            // Проверява се в on_AfterSave
+            $inst->flagSendIt = FALSE;
+            
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            
+            // Инстанция на изходящи имейли
+            $inst = cls::get('email_Outgoings');
+            
+            // Ако имейла е активен или чернова и не е въведено време за изчакване
+            if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft')) {
                 
                 // Сменяме състоянието на затворено
-                $nRec = new stdClass();
-                $nRec->id = $rec->id;
                 $nRec->state = 'closed';
-                
-                // Инстанция на изходящи имейли
-                $inst = cls::get('email_Outgoings');
-                
-                // Нулираме флага, защото имейла вече е изпратен
-                // Проверява се в on_AfterSave
-                $inst->flagSendIt = FALSE;
-                
-                // Записваме
-                $inst->save($nRec);
             }
+            
+            // Ако ще се изчаква
+            if ($options->waiting) {
+                
+                // Добавяме времето на изчкаваме и състоянието
+                $nRec->waiting = $options->waiting;
+                $nRec->state = 'pending';
+            }
+            
+            // От кого и кога е изпратено последно
+            $nRec->lastSendedOn = dt::now();
+            $nRec->lastSendedBy = core_Users::getCurrent();
+            
+            // Записваме
+            $inst->save($nRec);
         } 
         
         // Ако има провалено изпращане
@@ -471,6 +488,11 @@ class email_Outgoings extends core_Master
     }
     
     
+    /**
+     * 
+     * 
+     * @param object $rec
+     */
     static function getAttachedDocuments($rec)
     {
         $docs     = array();
@@ -675,6 +697,52 @@ class email_Outgoings extends core_Master
         // Стойността на полето От, дефинирано в персонализацията на профилите
         $defaultBoxFromId = crm_Personalization::getInboxId();
         $data->form->setDefault('boxFrom', $defaultBoxFromId);
+        
+        // Ако имам папка
+        if ($data->rec->folderId) {
+            
+            
+            // Времето за изчакване да се вземе от последно изпратения имейл от паката, в което е използвано изчакване
+            $waitingTime = $mvc->getLastWaitingTime($data->rec->folderId, $data->rec->email);
+            
+            $data->form->setDefault('waiting', $waitingTime);
+        }
+    }
+    
+    
+    /**
+     * Връща последното изпозлвано време за изчакване за съответния имейл в папката
+     * 
+     * @param integer $foldeId
+     * @param string $email
+     */
+    static function getLastWaitingTime($foldeId, $email)
+    {
+        $query = static::getQuery();
+        
+        // Само от съответната папка
+        $query->where(array("#folderId = '[#1#]'", $foldeId));
+        
+        // Ако е подаден имейл да се използва
+        if ($email) {
+            $query->where(array("#email = '[#1#]'", $email));
+        }
+        
+        // Които имат време за изчакване
+        $query->where('#waiting IS NOT NULL');
+        
+        // В съответните състояние
+        $query->where("#state = 'pending'");
+        $query->orWhere("#state = 'active'");
+        $query->orWhere("#state = 'closed'");
+        
+        // Подредени по последно изпратени
+        $query->orderBy('lastSendedOn', 'DESC');
+        $query->limit(1);
+        
+        $rec = $query->fetch();
+        
+        return $rec->waiting;
     }
     
     
@@ -1725,50 +1793,128 @@ class email_Outgoings extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Postings', 'Прикачени файлове в постингите', NULL, '300 MB', 'user', 'user');
         
-        // @todo - може да се премахне след като се разнесе
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
         
-        // Брой променени записи
-        $sCnt = 0;
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'processWaitingEmails';
+        $rec->description = 'Нотифициране за чакащи имейли';
+        $rec->controller = $mvc->className;
+        $rec->action = 'processWaitingEmails';
+        $rec->period = 60;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 250;
         
-        // Вземаме всички имейли с активно състояние
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да нотифицира за чакащи имейли.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да нотифицира за чакащи имейли.</li>";
+        }
+    }
+    
+    
+    /**
+     * Стартира се по крон
+     */
+    static function cron_ProcessWaitingEmails()
+    {
+        // Нотифицира за чакащи имейли
+        static::processWaitingEmails();
+    }
+    
+    
+    /**
+     * Намира изпратени и чакащи имейли, на които им е минал срока.
+     * Ако има входящ имейл слет последното изпращане на имейла, се затваря
+     * Ако няма входящ имейл и срок е минал, изпраща се нотификация до последно изпратилия
+     */
+    static function processWaitingEmails()
+    {
+        $cnt = 0;
+        
+        // Класа на входящите документи
+        $incomingClassId = core_Classes::fetchIdByName('email_Incomings');
+        
+        // Вземаме всички чакащи или събудени имейли
         $query = static::getQuery();
-        $query->where("#state = 'active'");
+        $query->where("#state = 'pending'");
+        $query->orWhere("#state = 'wakeup'");
         
-        // Обхождаме резултата
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             
-            if (!$rec->containerId) continue ;
+            // Дали да се записва
+            $flagSave = FALSE;
             
-            // Вземаме всички записи за изпращания в лога за този контейнер
-            $logQuery = log_Documents::getQuery();
-            $logQuery->where(array("#action = '[#1#]'", log_Documents::ACTION_SEND));
-            $logQuery->where(array("#containerId = '[#1#]'", $rec->containerId));
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
             
-            // Ако не е бил пратен, няма какво да направим
-            if (!$logQuery->count()) continue;
-            
-            // Променяме състоянието да е затвореное
-            $rec->state = 'closed';
-            
-            // Записваме само състоянието
-            if ($mvc->save_($rec, 'state')) {
+            // Ако има входящ имейл след последното изпращане в нишката
+            if (doc_Containers::haveDocsAfter($rec->threadId, $rec->lastSendedOn, $incomingClassId)) {
                 
-                // Увеличаваме броя на направените записи
-                $sCnt++;
+                // Ако имейла е бил събуден
+                if ($rec->state == 'wakeup') {
+                    
+                    // Премахваме нотификацията
+                    $urlArr = array('doc_Search', 'state' => 'wakeup');
+                    bgerp_Notifications::clear($urlArr, $rec->lastSendedBy);
+                }
+                
+                // Затваряме
+                $nRec->state = 'closed';
+                $flagSave = TRUE;
+            } else {
+                
+                // Ако вече е бил събуден, не го пипаме
+                if ($rec->state == 'wakeup') continue;
+                
+                // Ако е минало максимално зададеното време
+                $now = dt::now();
+                $pendingTo = dt::addSecs($rec->waiting, $rec->lastSendedOn);
+                if (($now > $pendingTo) || !$rec->lastSendedOn) {
+                    
+                    // "Събуждаме" имейла и добавяме нотификация
+                    $nRec->state = 'wakeup';
+                    static::addWaitingEmailNotification($rec->lastSendedBy);
+                    $flagSave = TRUE;
+                }
+            }
+            
+            // Ако е вдигнат флага, записваме
+            if ($flagSave) {
+                if (static::save($nRec)) {
+                    $cnt++;
+                }
             }
         }
         
-        if ($sCnt) {
-            
-            if ($sCnt == 1) {
-                $text = "активиран и изратен имейл";
-            } else {
-                $text = "активирани и изпратени имейли";
-            }
-            
-            // Добавяме в резултата
-            $res .= "<li><font color='green'>Променено е състоянието в затворено на {$sCnt} {$text}.</font>";
+        return $cnt;
+    }
+    
+    
+    /**
+     * Добавяме нотификация на съответния потребител за чакащ имейл
+     * 
+     * @param integer $userId
+     */
+    static function addWaitingEmailNotification($userId=NULL)
+    {
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
         }
+        
+        if ($userId <= 0) return ;
+        
+        // Съобщение
+        $msg = "|Липсва отговор на изпратен имейл";
+        
+        // URL-то, където ще сочи нотификацията
+        $urlArr = array('doc_Search', 'state' => 'wakeup');
+        
+        // Добавяме нотификацията
+        bgerp_Notifications::add($msg, $urlArr, $userId, 'normal');
     }
     
     
