@@ -754,6 +754,21 @@ class price_ListDocs extends core_Master
     }
     
     
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     *
+     * @param $threadId int ид на нишката
+     */
+    public static function canAddToThread($threadId)
+    {
+        // Добавяме тези документи само в персонални папки
+        $threadRec = doc_Threads::fetch($threadId);
+
+        return self::canAddToFolder($threadRec->folderId);
+    }
+
+    
 	/**
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
