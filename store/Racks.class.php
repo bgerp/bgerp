@@ -26,7 +26,7 @@ class store_Racks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, plg_RowTools, store_Wrapper, store_ArrangementWrapper';
+    var $loadList = 'plg_Created, plg_LastUsedKeys, plg_RowTools, store_Wrapper';
     
     
     /**

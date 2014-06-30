@@ -299,7 +299,7 @@ class acc_OpenDeals extends core_Manager {
     			$menu = "Логистика";
     			$subMenu = 'Склад';
                 $mvc->load("{$show}_Wrapper");
-                $mvc->load("store_DocumentWrapper");
+                $mvc->currentTab = 'Документи->Чакащи';
     			break;
     	}
     	
