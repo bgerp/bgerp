@@ -182,6 +182,9 @@ class doc_Setup extends core_ProtoSetup
         // Променя линка за сваляне на файла
         $html .= $Plugins->installPlugin('Линкове на файлове след изпращане', 'bgerp_plg_File', 'fileman_Files', 'private');
         
+        // Променя линка към картинките в plain режим
+        $html .= $Plugins->installPlugin('FancyBox линкове', 'bgerp_plg_Fancybox', 'fancybox_Fancybox', 'private');
+        
         // Плъгин за работа с файлове в документите
         $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');
         
