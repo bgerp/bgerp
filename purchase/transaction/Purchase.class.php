@@ -21,7 +21,16 @@ class purchase_transaction_Purchase
     public $class;
     
     
+    /**
+     * Систем ид на сметката за авансово плащане
+     */
     const DOWNPAYMENT_ACCOUNT_ID = '402';
+    
+    
+    /**
+     * Работен кеш
+     */
+    private static $cache = array();
     
     
     /**
@@ -354,13 +363,15 @@ class purchase_transaction_Purchase
     /**
      * Връща записите от журнала за това перо
      */
-    private static function getEntries($jRecs)
+    private static function getEntries($id)
     {
-    	if(is_numeric($jRecs)){
-    		$jRecs = acc_Journal::getEntries(array('purchase_Purchases', $jRecs));
+    	// Кешираме записите за перото, ако не са извлечени
+    	if(empty(static::$cache[$id])){
+    		static::$cache[$id] = acc_Journal::getEntries(array('purchase_Purchases', $id));
     	}
     
-    	return $jRecs;
+    	// Връщане на кешираните записи
+    	return static::$cache[$id];
     }
     
     

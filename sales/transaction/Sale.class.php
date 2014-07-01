@@ -21,7 +21,16 @@ class sales_transaction_Sale
     public $class;
     
     
+    /**
+     * Систем ид на сметката за авансово плащане
+     */
     const DOWNPAYMENT_ACCOUNT_ID = '412';
+    
+    
+    /**
+     * Работен кеш
+     */
+    private static $cache = array();
     
     
     /**
@@ -412,22 +421,24 @@ class sales_transaction_Sale
 	/**
 	 * Връща записите от журнала за това перо
 	 */
-	private static function getEntries($jRecs)
+	private static function getEntries($id)
 	{
-		if(is_numeric($jRecs)){
-			$jRecs = acc_Journal::getEntries(array('sales_Sales', $jRecs));
+		// Кешираме записите за перото, ако не са извлечени
+		if(empty(static::$cache[$id])){
+			static::$cache[$id] = acc_Journal::getEntries(array('sales_Sales', $id));
 		}
 		
-		return $jRecs;
+		// Връщане на кешираните записи
+		return static::$cache[$id];
 	}
 	
 	
 	/**
 	 * Колко е направеното авансово плащане досега
 	 */
-	public static function getDownpayment($jRecs)
+	public static function getDownpayment($id)
 	{
-		$jRecs = static::getEntries($jRecs);
+		$jRecs = static::getEntries($id);
 		 
 		return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'credit')->amount;
 	}
@@ -436,9 +447,9 @@ class sales_transaction_Sale
 	/**
 	 * Колко е платеното по сделка
 	 */
-	public static function getPaidAmount($jRecs)
+	public static function getPaidAmount($id)
 	{
-		$jRecs = static::getEntries($jRecs);
+		$jRecs = static::getEntries($id);
 		
 		$paid = acc_Balances::getBlAmounts($jRecs, '411', 'credit')->amount;
 		$paid += -1 * acc_Balances::getBlAmounts($jRecs, '412')->amount;
@@ -451,9 +462,9 @@ class sales_transaction_Sale
 	/**
 	 * Колко е доставено по сделката
 	 */
-	public static function getDeliveryAmount($jRecs)
+	public static function getDeliveryAmount($id)
 	{
-		$jRecs = static::getEntries($jRecs);
+		$jRecs = static::getEntries($id);
 		
 		$delivered = acc_Balances::getBlAmounts($jRecs, '411', 'debit')->amount;
 		$delivered -= acc_Balances::getBlAmounts($jRecs, '411', 'debit', '7911')->amount;
@@ -465,9 +476,9 @@ class sales_transaction_Sale
 	/**
 	 * Колко е ддс-то за начисляване
 	 */
-	public static function getAmountToInvoice($jRecs)
+	public static function getAmountToInvoice($id)
 	{
-		$jRecs = static::getEntries($jRecs);
+		$jRecs = static::getEntries($id);
 		
 		return -1 * acc_Balances::getBlAmounts($jRecs, '4530')->amount;
 	}
