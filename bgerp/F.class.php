@@ -118,7 +118,7 @@ class bgerp_F extends core_Manager
         $name = Request::get('n');
         expect($name, 'Липсва име на файл');
         
-        // Ако няма MID, трябва да е регистриран потреибител
+        // Ако няма MID, трябва да е регистриран потребител
         if (!$mid) {
             requireRole('user');
         } else {
@@ -164,7 +164,7 @@ class bgerp_F extends core_Manager
         // Генерираме thumbnail
         $Img = new img_Thumb($imgRec->src, $width, $height, 'fileman', $name);
         
-        // Ако няма MID, трябва да е регистриран потреибител
+        // Ако има MID
         if ($mid) {
             // Форсираме свалянето му
             $Img->forceDownload();
