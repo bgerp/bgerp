@@ -1597,6 +1597,32 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+   /**
+    * Метод по подразбиране за намиране на прикачените картинки в документ
+    * 
+    * @param core_Mvc $mvc - 
+    * @param array $res - Масив с откритете прикачените файлове
+    * @param integer $rec - 
+    */
+    function on_AfterGetLinkedImages($mvc, &$res, $rec)
+    {
+        if (!is_object($rec)) {
+            $rec = $mvc->fetch($rec);
+        }
+        
+        // Намираме прикачените файлове
+        $res = array_merge(fileman_GalleryRichTextPlg::getImages($rec->body), (array)$res);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param array $res
+     * @param integer $id
+     * @param integer $userId
+     */
     public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL)
     {
         // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
