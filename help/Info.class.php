@@ -55,9 +55,10 @@ class help_Info extends core_Master
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'debug, help';
+    var $canWrite = 'help';
 
-    
+    var $canAdd = 'help';
+
     /**
      * Описание на модела
      */
@@ -112,19 +113,12 @@ class help_Info extends core_Master
      */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'edit') {
-    		$requiredRoles = 'help';
-    	}
-    	
-    	switch ($action) { 
-    		// ако метода е добавяне 
-            case 'add':
-            	// и нямяме роля debug
-    			if(!haveRole('debug')) {
-				        // никой не може да пише в модела
-						$requiredRoles = 'no_one';
-				}
-                break;
+    	if($action == 'edit' || $action == 'add') {
+            if(!haveRole('help')) {
+			    $requiredRoles = 'no_one';
+		    } else {
+    	        $requiredRoles = 'help';
+            }
     	}
     }
     
