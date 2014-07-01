@@ -48,7 +48,11 @@ div.alphabet div.tab-row .tab.selected{
 	height:18px;
 	width:18px;
 }
-
+.edit-tooltip{
+	margin-left: 5px;
+	position: relative;
+	top: 2px;
+}
 .tooltip-text{
     color: #fff;
     position: relative;
@@ -67,6 +71,7 @@ div.alphabet div.tab-row .tab.selected{
 }
 .tooltip-text .richtext{
 	line-height: 19px !important;
+	display: inline;
 }
 
 .tooltip-text a{
