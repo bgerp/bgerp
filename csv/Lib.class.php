@@ -186,4 +186,44 @@ class csv_Lib
 
         return $res;
     }
+
+
+
+    /**
+     * Създава csv
+     */
+    static function createCsv($recs, $listFields, $mvc)
+    {
+
+        foreach($recs as $rec) {
+            // Всеки нов ред ва началото е празен
+            $rCsv = '';
+             
+            /* за всяка колона */
+            foreach($listFields as $field) {
+                $type = $mvc->fields[$field]->type;
+                 
+                if ($type instanceof type_Key) {
+                    $value = $mvc->getVerbal($rec, $field);
+                } else {
+                    $value = $rec->{$field};
+                }
+                 
+                // escape
+                if (preg_match('/\\r|\\n|,|"/', $value)) {
+                    $value = '"' . str_replace('"', '""', $value) . '"';
+                }
+                 
+                $rCsv .= ($rCsv ? ',' : '') . $value;
+            }
+             
+            /* END за всяка колона */
+             
+            $csv .= $rCsv . "\n";
+        }
+         
+        return $csv;
+    }
+
+    
 }
