@@ -293,6 +293,8 @@ class acc_Articles extends core_Master
             'entries' => array()
         );
         
+        $Accounts = cls::get('acc_Accounts');
+        
         if (!empty($rec->id)) {
             // Извличаме детайл-записите на документа. В случая просто копираме полетата, тъй-като
             // детайл-записите на мемориалните ордери имат същата структура, каквато е и на 
@@ -300,11 +302,14 @@ class acc_Articles extends core_Master
             $query = acc_ArticleDetails::getQuery();
             
             while ($entry = $query->fetch("#articleId = {$rec->id}")) {
+            	$debitRec = acc_Accounts::fetch($entry->debitAccId);
+            	$creditRec = acc_Accounts::fetch($entry->creditAccId);
+            	
                 $result->entries[] = array(
                     'amount' => round($entry->amount, 2),
                 
                     'debit' => array(
-                        acc_Accounts::fetchField($entry->debitAccId, 'num'),
+                        $debitRec->num,
                         $entry->debitEnt1, // Перо 1
                         $entry->debitEnt2, // Перо 2
                         $entry->debitEnt3, // Перо 3
@@ -312,13 +317,22 @@ class acc_Articles extends core_Master
                     ),
                 
                     'credit' => array(
-                        acc_Accounts::fetchField($entry->creditAccId, 'num'),
+                        $creditRec->num,
                         $entry->creditEnt1, // Перо 1
                         $entry->creditEnt2, // Перо 2
                         $entry->creditEnt3, // Перо 3
                         'quantity' => $entry->creditQuantity,
                     ),
                 );
+                
+                // Проверка дали трябва да се сума на движението
+                $quantityOnly = ($debitRec->type == 'passive' && $debitRec->strategy) ||
+                ($creditRec->type == 'active' && $creditRec->strategy);
+                
+                // Ако трябва да е само количество, премахваме нулевата сума
+                if($quantityOnly){
+                	unset($result->entries[count($result->entries) - 1]['amount']);
+                }
             }
         }
         
