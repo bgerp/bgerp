@@ -396,6 +396,7 @@ class acc_Balances extends core_Master
     		expect($accId = acc_Accounts::getRecBySystemId($accSysId)->id);
     		$newAccArr[] = $accId;
     	}
+    	
     	if(isset($accSysIdFrom)){
     		expect($accIdFrom = acc_Accounts::getRecBySystemId($accSysIdFrom)->id);
     	}
@@ -429,6 +430,8 @@ class acc_Balances extends core_Master
     		if($add){
     			$res->recs[$rec->id] = $rec;
     		}
+    		
+    		$res->amount = round($res->amount, 2);
     	}
     	
     	// Връщане на резултата
