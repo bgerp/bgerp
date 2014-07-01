@@ -161,7 +161,7 @@ class acc_ReportDetails extends core_Manager
 	    				
 	    			// Ако перото не е групиращото, ще се показва в справката
 	    			$row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'numTitleLink');
-	    			$row["ent{$pos}Id"] = "<span style='margin-left:7px;float:left'>{$row["ent{$pos}Id"]}</span>";
+	    			$row["ent{$pos}Id"] = "<span class='feather-title'>{$row["ent{$pos}Id"]}</span>";
 	    		}
 	    	}
 	    	
@@ -233,7 +233,7 @@ class acc_ReportDetails extends core_Manager
     			$accGroups = acc_Accounts::getAccountInfo($accId)->groups;
     			
     			// Името на сметката излиза над таблицата
-    			$content = new ET("<span>{$accNum}</span></br />");
+    			$content = new ET("<span class='accTitle'>{$accNum}</span>");
     			$fields = $data->listFields;
     			
     			// Обикаляне на всички пера
@@ -259,8 +259,8 @@ class acc_ReportDetails extends core_Manager
     			$tableHtml->removeBlocks;
     			
     			// Добавяне на таблицата в шаблона
-    			$content->append($tableHtml);
-    			$tpl->append($content . "</br />", 'CONTENT');
+    			$content->append( $tableHtml);
+    			$tpl->append("<div class='summary-group'>" . $content . "</div>" , 'CONTENT');
     		}
     	} else {
     		
