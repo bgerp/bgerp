@@ -266,20 +266,44 @@ class core_Browser extends core_Manager
         
         if ($browserName) return $browserName;
         
-        // Вземаме името на браузъра от HTTP_USER_AGENT
-        $userAgent = static::getUserAgent();
-        
-        if ($userAgent) {
-            list($browserInfo) = explode(' ', $userAgent);
-        }
-        
-        if ($browserInfo) {
-            list($browserName) = explode('/', $browserInfo);
-        }
-        
-        if (!$browserName) return 'Unknown';
+        // Името на браузъра от HTTP_USER_AGENT
+        $browserName = static::getUserAgentBrowserName();
         
         return $browserName;
+    }
+    
+    
+    /**
+     * Връща името на браузъра от HTTP_USER_AGENT
+     * 
+     * @return string
+     */
+    static function getUserAgentBrowserName()
+    {
+        // Вземаме ОС от HTTP_USER_AGENT
+        $userAgent = static::getUserAgent();
+
+        $browser = "Unknown Browser";
+    
+        $browserArray = array(
+                                '/msie/i' => 'Internet Explorer',
+                                '/firefox/i' => 'Firefox',
+                                '/safari/i' => 'Safari',
+                                '/chrome/i' => 'Chrome',
+                                '/opera/i' => 'Opera',
+                                '/netscape/i' => 'Netscape',
+                                '/maxthon/i' => 'Maxthon',
+                                '/konqueror/i' => 'Konqueror',
+                                '/mobile/i' => 'Handheld Browser'
+                            );
+    
+        foreach ($browserArray as $regex => $value) { 
+            if (preg_match($regex, $userAgent)) {
+                $browser = $value;
+            }
+        }
+    
+        return $browser;
     }
     
     
@@ -301,8 +325,21 @@ class core_Browser extends core_Manager
             $osPlatform = $browserCap->platform;
         }
         
-        return $osPlatform;
+        if ($osPlatform) return $osPlatform;
         
+        $osPlatform = static::getUserAgentOsName();
+        
+        return $osPlatform;
+    }
+    
+    
+    /**
+     * Връща името на ОС от HTTP_USER_AGENT
+     * 
+     * @return string
+     */
+    static function getUserAgentOsName()
+    {
         // Вземаме ОС от HTTP_USER_AGENT
         $userAgent = static::getUserAgent();
         $osPlatform = "Unknown";
