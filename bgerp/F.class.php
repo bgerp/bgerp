@@ -164,14 +164,19 @@ class bgerp_F extends core_Manager
         // Генерираме thumbnail
         $Img = new img_Thumb($imgRec->src, $width, $height, 'fileman', $name);
         
-        // Форсираме свалянето му
-        $Img->forceDownload();
-        
-        // Показва картинката
-        // Вдигаме флага
-//        $bigImg->isAbsolute = TRUE;
-        // Вземаме деферед URL
-//        $url = $bigImg->getDeferredUrl();
-//        return new Redirect($url);
+        // Ако няма MID, трябва да е регистриран потреибител
+        if ($mid) {
+            // Форсираме свалянето му
+            $Img->forceDownload();
+        } else {
+            // Показва картинката
+            // Вдигаме флага
+            $Img->isAbsolute = TRUE;
+            
+            // Вземаме деферед URL
+            $url = $Img->getDeferredUrl();
+            
+            return new Redirect($url);
+        }
     }
 }
