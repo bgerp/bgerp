@@ -531,6 +531,7 @@ class acc_Journal extends core_Master
      	$jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId');
      	$jQuery->EXT('docId', 'acc_Journal', 'externalKey=journalId');
      	$jQuery->where("#createdOn BETWEEN '{$itemRec->createdOn}' AND '{$now}'");
+     	$jQuery->orderBy("#id", 'ASC');
      	
      	if(count($jIds)){
      		$jQuery->in('journalId', $jIds);
