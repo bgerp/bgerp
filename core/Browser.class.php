@@ -300,6 +300,7 @@ class core_Browser extends core_Manager
         foreach ($browserArray as $regex => $value) { 
             if (preg_match($regex, $userAgent)) {
                 $browser = $value;
+//                break;
             }
         }
     
@@ -374,7 +375,7 @@ class core_Browser extends core_Manager
     
             if (preg_match($regex, $userAgent)) {
                 $osPlatform = $value;
-                break;
+//                break;
             }
         }
         
