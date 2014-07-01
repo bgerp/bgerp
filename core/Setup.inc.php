@@ -604,14 +604,17 @@ if($step == 3) {
     
     $activePhpModules = get_loaded_extensions();
     
-    foreach($requiredPhpModules as $module) {
-        if(in_array($module, $activePhpModules)){
+    foreach ($requiredPhpModules as $module) {
+        if (in_array($module, $activePhpModules)){
             $log[] = "inf:Наличен PHP модул: <b>`$module`</b>";
         } else {
             $log[] = "err:Липсващ PHP модул: <b>`$module`</b>";
         }
     }
-
+    if (!ini_get("browscap")) {
+        $log[] = "wrn:Желателно инсталиране на : <a href='http://browscap.org/' target='_blank'><b>browscap</b></a>";
+    }
+    
 
     // Необходими модули на Apache
     $log[] = 'h:Проверка за необходимите Apache модули:';
