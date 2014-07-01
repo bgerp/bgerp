@@ -169,14 +169,18 @@ class bgerp_F extends core_Manager
             // Форсираме свалянето му
             $Img->forceDownload();
         } else {
-            // Показва картинката
-            // Вдигаме флага
-            $Img->isAbsolute = TRUE;
+            if (fileman_GalleryImages::haveRightFor('single', $imgRec)) {
+                // Показва картинката
+                // Вдигаме флага
+                $Img->isAbsolute = TRUE;
+                
+                // Вземаме деферед URL
+                $url = $Img->getDeferredUrl();
+                
+                return new Redirect($url);
+            }
             
-            // Вземаме деферед URL
-            $url = $Img->getDeferredUrl();
-            
-            return new Redirect($url);
+            expect(FALSE);
         }
     }
 }
