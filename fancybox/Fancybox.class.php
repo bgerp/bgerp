@@ -24,14 +24,17 @@ defIfNot('FANCYBOX_PATH', 'fancybox/1.3.4');
  * @todo:     Да се документира този клас
  * @link      http://fancybox.net/
  */
-class fancybox_Fancybox {
+class fancybox_Fancybox extends core_Manager {
     
     
     /**
      * @todo Чака за документация...
      */
-    static function getImage($fh, $thumbSize, $maxSize, $baseName = NULL, $imgAttr = array(), $aAttr = array())
+    static function getImage_($fh, $thumbSize, $maxSize, $baseName = NULL, $imgAttr = array(), $aAttr = array())
     {
+        // Ако е текстов режим, да не сработва
+        if (Mode::is('text', 'plain')) return '';
+        
         // Ако е зададено да е абсолютен линк
         $isAbsolute = $imgAttr['isAbsolute'];
         
