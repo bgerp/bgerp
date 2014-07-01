@@ -112,6 +112,10 @@ class help_Info extends core_Master
      */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+    	if($action == 'edit') {
+    		$requiredRoles = 'debug';
+    	}
+    	
     	switch ($action) { 
     		// ако метода е добавяне 
             case 'add':
