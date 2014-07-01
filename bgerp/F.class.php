@@ -126,6 +126,9 @@ class bgerp_F extends core_Manager
             // Опитваме се да определим изпращенето от MID'a
             expect(($rec = log_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
             
+            // Записваме, ако не е записоно, че файла е отворено от ip
+            log_Documents::opened($rec->containerId, $mid);
+            
             // Вземаме документа
             $doc = doc_Containers::getDocument($rec->containerId);
             
@@ -145,9 +148,6 @@ class bgerp_F extends core_Manager
             // Очакваме зададения да е във файла
             expect($linkedImages[$name]);
         }
-        
-        // Записваме, ако не е записоно, че файла е отворено от ip
-        log_Documents::opened($rec->containerId, $mid);
         
         // Запис за картинката
         $imgRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $name));
