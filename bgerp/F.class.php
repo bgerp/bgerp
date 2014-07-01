@@ -164,9 +164,6 @@ class bgerp_F extends core_Manager
         // Генерираме thumbnail
         $Img = new img_Thumb($imgRec->src, $width, $height, 'fileman', $name);
         
-        // Записваме картинакта
-        $Img->saveThumb();
-        
         // Форсираме свалянето му
         $Img->forceDownload();
         
