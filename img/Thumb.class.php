@@ -395,6 +395,41 @@ class img_Thumb
     
     
     /**
+     * Форсира свалянето на файла
+     */
+    function forceDownload()
+    {
+        // Записваме картинакта
+        $this->saveThumb();
+        
+        // Пътя до картинката
+        $path = $this->getThumbPath();
+        
+        // Размер на файла
+        $fileLen = filesize($path);
+        
+        // Име на файла
+        $fileName = $this->verbalName ? $this->verbalName . '.' . $this->getThumbFormat() : basename($path);
+        
+        // Задаваме хедърите
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename=' . $fileName);
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Content-Length: ' . $fileLen);
+        header("Connection: close");
+        header('Pragma: public'); // Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
+        
+        // Предизвикваме сваляне на файла
+        readfile($path);
+        
+        shutdown();
+    }
+    
+    
+    /**
      * Връща URL до умалената картинка
      */
     function getThumbUrl()
