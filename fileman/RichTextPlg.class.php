@@ -66,7 +66,7 @@ class fileman_RichTextPlg extends core_Plugin
 //            $toolbarArr->add($fileUpload, 'TBL_GROUP2');
             
             // Добавяне в групата за добавяне на файлове
-            $toolbarArr->add($fileUpload, $placeHolder, 1000.065);
+            $toolbarArr->add($fileUpload, $placeHolder, 1000.345);
         }
     }
     
