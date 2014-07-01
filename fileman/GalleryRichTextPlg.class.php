@@ -18,13 +18,13 @@ class fileman_GalleryRichTextPlg extends core_Plugin
     /**
      * Регулярен израз за картинките
      */
-    const IMG_PATTERN = "/\[img=\#(([^\]]*)|)\]\s*/si";
+    const IMG_PATTERN = "/\[img=\#(?'title'[^\]]*)\](?'end'\s*)/si";
 
 
     /**
      * Регулярен израз за галериите
      */
-    const GALLERY_PATTERN = "/\[gallery(=\#([^\]]*)|)\]\s*/si";
+    const GALLERY_PATTERN = "/\[gallery(=\#([^\]]*))\](\s*)/si";
 
 
     /**
@@ -105,12 +105,11 @@ class fileman_GalleryRichTextPlg extends core_Plugin
      */
     function catchImages($match)
     {
-        $title = $match[2];
+        $title = $match['title'];
         
-		
         $imgRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $title));
         
-        if(!$imgRec) return "[img=#{$title}]";
+        if(!$imgRec) return $match[0];
 
         $groupRec = fileman_GalleryGroups::fetch($imgRec->groupId);
         
@@ -126,7 +125,7 @@ class fileman_GalleryRichTextPlg extends core_Plugin
         }
         
         //Ако принтираме или пращаме документа
-        if ((Mode::is('text', 'xhtml')) || (Mode::is('printing'))) {
+        if ((Mode::is('text', 'xhtml')) || (Mode::is('text', 'plain'))) {
             
             // Добавяме атрибута за да използваме абсолютни линкове
             $attr['isAbsolute'] = TRUE;
@@ -141,11 +140,33 @@ class fileman_GalleryRichTextPlg extends core_Plugin
         
         $place = $this->mvc->getPlace();
 
-        $this->mvc->_htmlBoard[$place] = $res;
+        $this->mvc->_htmlBoard[$place] = $res . $match['end'];
 
         return "[#{$place}#]";
     }
     
+    
+    /**
+     * Връща всички картинки в подадения ричтекст
+     * 
+     * @param string $rt
+     * 
+     * @return array
+     */
+    static function getImages($rt)
+    {
+        preg_match_all(static::IMG_PATTERN, $rt, $matches);
+        
+        $imagesArr = array();
+        
+        if(count($matches['title'])) {
+            foreach($matches['title'] as $name) {
+                $imagesArr[$name] = $name;
+            }
+        }
+        
+        return $imagesArr;
+    }
     
     /**
      * Добавя бутон за качване на документ
