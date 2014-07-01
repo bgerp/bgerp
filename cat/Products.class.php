@@ -372,7 +372,8 @@ class cat_Products extends core_Master {
         						canStore=Складируеми,
         						canConvert=Вложими,
         						fixedAsset=ДМА,
-        						canManifacture=Производими)', 'input');
+        						canManifacture=Производими,
+        						costs=Разходи)', 'input');
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
