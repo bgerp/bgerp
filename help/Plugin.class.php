@@ -53,6 +53,10 @@ class help_Plugin extends core_Plugin
             $hintBtn = new ET("<a class='tooltip-button'>[#1#]</a>", $img);
             $convertText = cls::get('type_Richtext');
             $hintText = $convertText->toVerbal($rec->text);
+            if(haveRole('debug')){
+            	$imgEdit = ht::createElement("img", array('src' => sbf("img/16/edit-icon.png","")));
+            	$hintText .= ht::createLink($imgEdit, array("help_Info", "edit" , $rec->id), NULL, array('class' => 'edit-tooltip'));
+            }
             $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><a class='close-tooltip'></a>[#1#]</div>", $hintText);
             $url = toUrl(array('help_Log', 'CloseInfo', $rec->id));
             
