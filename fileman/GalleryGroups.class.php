@@ -55,7 +55,7 @@ class fileman_GalleryGroups extends core_Manager
     /**
      * Полета за изглед
      */
-    var $listFields = 'id,title,roles,columns,tWidth,tHeight,width,height,createdOn,createdBy,state';
+    var $listFields = 'id,title,roles,tWidth,tHeight,width,height,createdOn,createdBy,state';
     
     
     /**
@@ -82,8 +82,6 @@ class fileman_GalleryGroups extends core_Manager
         
         $this->FLD('style', 'varchar', 'caption=Стил');
 
-        $this->FLD('columns', 'int', 'caption=Колони');
-     
         $this->FLD('tWidth', 'int', 'caption=Тъмб->Широчина');
         $this->FLD('tHeight', 'int', 'caption=Тъмб->Височина');
         
@@ -118,12 +116,11 @@ class fileman_GalleryGroups extends core_Manager
     		1 => "position",
     		2 => "tpl",
     		3 => "style",
-    		4 => "columns",
-    		5 => "tWidth",
-    		6 => "tHeight",
-    		7 => "width",
-    		8 => "height",
-    		9 => "roles",
+    		4 => "tWidth",
+    		5 => "tHeight",
+    		6 => "width",
+    		7 => "height",
+    		8 => "roles",
     	);
     	    	
     	// Импортираме данните от CSV файла. 
