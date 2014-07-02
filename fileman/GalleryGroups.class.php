@@ -38,12 +38,6 @@ class fileman_GalleryGroups extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'user';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'user';
     
     
     /**
@@ -148,8 +142,8 @@ class fileman_GalleryGroups extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        // Ако има запис и потребителя не е CEO
-        if ($rec && !haveRole('ceo')) {
+        // Ако има запис и потребителя не е CEO или admin
+        if ($rec && !haveRole('ceo, admin')) {
             
             // Ако ще изтриваме или редактираме група
             if ($action == 'delete' || $action == 'edit') {
@@ -160,6 +154,15 @@ class fileman_GalleryGroups extends core_Manager
                     // Да не можем да редактираме
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+        
+        // Ако все още има права за изтриване
+        if ($requiredRoles != 'no_one' && $rec && $action == 'delete') {
+            
+            // Да не могат да се трият групи, които са използвани в картиниките
+            if (fileman_GalleryImages::fetch("#groupId = '{$rec->id}'")) {
+                $requiredRoles = 'no_one';
             }
         }
     }
