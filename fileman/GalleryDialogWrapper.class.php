@@ -87,7 +87,7 @@ class fileman_GalleryDialogWrapper extends core_Plugin
 	 */
     function on_AfterGetGalleryTabsArr($mvc, &$tabs)
     {
-        $tabs['galleryPicture'] = array('caption' => 'Картинка', 'Ctr' => $mvc, 'Act' => 'addImgDialog');
-        $tabs['galleryGallery'] = array('caption' => 'Галерия', 'Ctr' => $mvc, 'Act' => 'galleryDialog');
+        $tabs['galleryPicture'] = array('caption' => 'Добавяне', 'Ctr' => $mvc, 'Act' => 'addImgDialog');
+        $tabs['galleryGallery'] = array('caption' => 'Картинки', 'Ctr' => $mvc, 'Act' => 'galleryDialog');
     }
 }
