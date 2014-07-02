@@ -389,28 +389,35 @@ class sales_transaction_Sale
         $query->show('id, productId, classId, quantityDelivered');
         
         // Намираме всички транзакции с перо сделката
-        $jRecs = acc_Journal::getEntries(array('sales_Sales', $id));
+        $jRecs = self::getEntries($id);
         
         // Извличаме тези, отнасящи се за експедиране
         $dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,703', 'credit');
         
         if(!count($dInfo->recs)) return $res;
-        	foreach ($dInfo->recs as $p){
+        
+        foreach ($dInfo->recs as $p){
         	
-         	// Обикаляме всяко перо
-         	foreach (range(1, 3) as $i){
-        		$itemRec = acc_Items::fetch($p->{"creditItem{$i}"});
-        		
-        		// Ако има интерфейса за артикули-пера, го добавяме
-        		if(cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)){
-        			$obj = new stdClass();
-        			$obj->classId = $itemRec->classId;
-        			$obj->productId = $itemRec->objectId;
-        			$obj->quantityDelivered = $p->creditQuantity;
-        			$res[] = $obj;
-        			break;
-        		}
-        	}
+	         // Обикаляме всяко перо
+	         foreach (range(1, 3) as $i){
+	         	if(isset($p->{"creditItem{$i}"})){
+	         		$itemRec = acc_Items::fetch($p->{"creditItem{$i}"});
+	         		 
+	         		// Ако има интерфейса за артикули-пера, го добавяме
+	         		if(cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)){
+	         			$obj = new stdClass();
+	         			$obj->classId    = $itemRec->classId;
+	         			$obj->productId  = $itemRec->objectId;
+	         			
+	         			$index = $obj->classId . "|" . $obj->productId;
+	         			if(empty($res[$index])){
+	         				$res[$index] = $obj;
+	         			}
+	         			
+	         			$res[$index]->quantity  += $p->creditQuantity;
+	         		}
+	         	}
+	        }
     	}
     	
     	// Връщаме масив със всички експедирани продукти по тази сделка
@@ -434,6 +441,15 @@ class sales_transaction_Sale
 	
 	
 	/**
+	 * Чисти работния кеш
+	 */
+	public static function clearCache()
+	{
+		static::$cache = NULL;
+	}
+	
+	
+	/**
 	 * Колко е направеното авансово плащане досега
 	 */
 	public static function getDownpayment($id)
@@ -447,7 +463,7 @@ class sales_transaction_Sale
 	/**
 	 * Колко е платеното по сделка
 	 */
-	public static function getPaidAmount($id)
+	public static function getPaidAmount($id, $l = FALSE)
 	{
 		$jRecs = static::getEntries($id);
 		
