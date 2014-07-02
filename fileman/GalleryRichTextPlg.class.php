@@ -81,7 +81,7 @@ class fileman_GalleryRichTextPlg extends core_Plugin
             $row = $tpl->getBlock('ROW');;
         	 
             $row->replace($res, 'TPL');
-            if($count % $groupRec->columns == 0) {
+            if(!$groupRec->columns || $count % $groupRec->columns == 0) {
                 $row->append("</tr><tr>");
             }
             $row->removeBlocks;
