@@ -225,6 +225,7 @@ class sales_Invoices extends core_Master
         );
         
         $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
+        $this->FLD('docId', 'int', 'input=hidden,silent');
         
         $this->setDbUnique('number');
     }
