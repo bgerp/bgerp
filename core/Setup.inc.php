@@ -611,9 +611,10 @@ if($step == 3) {
             $log[] = "err:Липсващ PHP модул: <b>`$module`</b>";
         }
     }
-    if (!ini_get("browscap")) {
-        $log[] = "wrn:Желателно инсталиране на : <a href='http://browscap.org/' target='_blank'><b>browscap</b></a>";
-    }
+
+//     if (!ini_get("browscap")) {
+//         $log[] = "wrn:Желателно инсталиране на : <a href='http://browscap.org/' target='_blank'><b>browscap</b></a>";
+//     }
     
 
     // Необходими модули на Apache
