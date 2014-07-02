@@ -93,14 +93,6 @@ class fileman_GalleryGroups extends core_Manager
         $this->setDbUnique('title, position');
     }
     
-    /**
-     * допълнение към подготовката на вербално представяне
-     */
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
-    {
-     	$row->{$mvc->galleryTitleFieldName} = "[gallery=#" . $rec->{$mvc->galleryTitleFieldName} . "]";
-    }
-    
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
