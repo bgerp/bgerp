@@ -24,7 +24,7 @@ class fileman_GalleryRichTextPlg extends core_Plugin
     /**
      * Регулярен израз за галериите
      */
-    const GALLERY_PATTERN = "/\[gallery(=\#([^\]]*))\](\s*)/si";
+//    const GALLERY_PATTERN = "/\[gallery(=\#([^\]]*))\](\s*)/si";
 
 
     /**
@@ -38,62 +38,63 @@ class fileman_GalleryRichTextPlg extends core_Plugin
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         // Обработваме елементите [images=????]  
         $html = preg_replace_callback(self::IMG_PATTERN, array($this, 'catchImages'), $html);
-        $html = preg_replace_callback(self::GALLERY_PATTERN, array($this, 'catchGallery'), $html);
+//        $html = preg_replace_callback(self::GALLERY_PATTERN, array($this, 'catchGallery'), $html);
     }
 
     
-    /**
-     * Обработва тагове от вида [#gallery=#xyz#], които са имена на групи от галерията
-     * и показва всички изображения от тази група в таблица
-     */
-    function catchGallery($match)
-    {
-    	$title = $match[2];
-        $groupRec = fileman_GalleryGroups::fetch(array("#title = '[#1#]'", $title));
-    	if(!$groupRec) return "[img=#{$groupRec}]";
-    	
-    	$tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
-        $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);
-        
-        $imgagesRec = fileman_GalleryImages::getQuery();
-        $imgagesRec->where("#groupId={$groupRec->id}");
-        $tpl = new ET(getFileContent('cms/tpl/gallery.shtml'));
-        $tpl->replace($groupRec->tWidth,'width');
-        
-        $Fancybox = cls::get('fancybox_Fancybox');
-        $table = new ET();
-
-        // Задаваме броя на колонките по подразбиране
-        setIfNot($groupRec->columns, 3);
-
-        // извличаме изображенията от групата и генерираме шаблона им
-        $count = 1;
-        
-        while($img = $imgagesRec->fetch()) {
-            
-            $attr = array();
-
-            if($img->style || $groupRec->style) {
-                $attr['style'] = $img->style . ';' . $groupRec->style;
-            }
-
-            $res = $Fancybox->getImage($img->src, $tArr, $mArr, $img->title, $attr);
-            $row = $tpl->getBlock('ROW');;
-        	 
-            $row->replace($res, 'TPL');
-            if(!$groupRec->columns || $count % $groupRec->columns == 0) {
-                $row->append("</tr><tr>");
-            }
-            $row->removeBlocks;
-            $row->append2master();
-            $count++;
-         }
-         
-         $place = $this->mvc->getPlace();
-         $this->mvc->_htmlBoard[$place] = $tpl;
-        
-         return "[#{$place}#]";
-    }
+    // TODO - няма да се добавя цялата група, а отделни картинки, в отделен блок, който ще се показва по подобен начин
+//    /**
+//     * Обработва тагове от вида [#gallery=#xyz#], които са имена на групи от галерията
+//     * и показва всички изображения от тази група в таблица
+//     */
+//    function catchGallery($match)
+//    {
+//    	$title = $match[2];
+//        $groupRec = fileman_GalleryGroups::fetch(array("#title = '[#1#]'", $title));
+//    	if(!$groupRec) return "[img=#{$groupRec}]";
+//    	
+//    	$tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
+//        $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);
+//        
+//        $imgagesRec = fileman_GalleryImages::getQuery();
+//        $imgagesRec->where("#groupId={$groupRec->id}");
+//        $tpl = new ET(getFileContent('cms/tpl/gallery.shtml'));
+//        $tpl->replace($groupRec->tWidth,'width');
+//        
+//        $Fancybox = cls::get('fancybox_Fancybox');
+//        $table = new ET();
+//
+//        // Задаваме броя на колонките по подразбиране
+//        setIfNot($groupRec->columns, 3);
+//
+//        // извличаме изображенията от групата и генерираме шаблона им
+//        $count = 1;
+//        
+//        while($img = $imgagesRec->fetch()) {
+//            
+//            $attr = array();
+//
+//            if($img->style || $groupRec->style) {
+//                $attr['style'] = $img->style . ';' . $groupRec->style;
+//            }
+//
+//            $res = $Fancybox->getImage($img->src, $tArr, $mArr, $img->title, $attr);
+//            $row = $tpl->getBlock('ROW');;
+//        	 
+//            $row->replace($res, 'TPL');
+//            if(!$groupRec->columns || $count % $groupRec->columns == 0) {
+//                $row->append("</tr><tr>");
+//            }
+//            $row->removeBlocks;
+//            $row->append2master();
+//            $count++;
+//         }
+//         
+//         $place = $this->mvc->getPlace();
+//         $this->mvc->_htmlBoard[$place] = $tpl;
+//        
+//         return "[#{$place}#]";
+//    }
     
     
     /**
