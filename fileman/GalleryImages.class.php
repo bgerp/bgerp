@@ -32,18 +32,18 @@ class fileman_GalleryImages extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'user';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'user';
     
     
     /**
      * Заглавие
      */
     var $title = 'Картинки в Галерията';
+    
+    
+    /**
+     * Кой може да редактира заглавието на картинката
+     */
+    var $canEdittitle = 'user';
     
     
     /**
@@ -117,6 +117,12 @@ class fileman_GalleryImages extends core_Manager
             
             // Да е избрана
             $data->form->setDefault('groupId', $grId);
+        } else {
+            
+            // Ако редактираме записа и нямаме права за редактиране на заглавието
+            if (!static::haveRightFor('edittitle', $data->form->rec->id)) {
+                $data->form->setReadonly('title');
+            }
         }
     }
     
@@ -200,11 +206,30 @@ class fileman_GalleryImages extends core_Manager
     		}
         }
         
-        // Външно поле за ролите към групата
-        $data->query->EXT('groupRoles', 'fileman_GalleryGroups', 'externalName=roles,externalKey=groupId');
+        $orToPrevious = FALSE;
         
-        // Ограничаваме групите, които да се показват
-        fileman_GalleryGroups::restrictRoles($data->query, 'groupRoles');
+        // Да се показват групите, които са споделени до някоя от групите на потребителя
+        if (fileman_GalleryGroups::restrictRoles($data->query, $orToPrevious, 'groupRoles')) {
+            
+            // Външно поле за ролите към групата
+            $data->query->EXT('groupRoles', 'fileman_GalleryGroups', 'externalName=roles,externalKey=groupId');
+            $orToPrevious = TRUE;
+        }
+        
+        // Или до потребителя
+        if (fileman_GalleryGroups::restrictSharedTo($data->query, $orToPrevious, 'groupSharedTo')) {
+            
+            // Външно поле за споределените потребителие към групата
+            $data->query->EXT('groupSharedTo', 'fileman_GalleryGroups', 'externalName=sharedTo,externalKey=groupId');
+            $orToPrevious = TRUE;
+        }
+        
+        // Или са създадени от потребителя
+        if (fileman_GalleryGroups::restrictCreated($data->query, $orToPrevious, 'groupCreatedBy')) {
+            
+            // Външно поле за създателите на групата
+            $data->query->EXT('groupCreatedBy', 'fileman_GalleryGroups', 'externalName=createdBy,externalKey=groupId');
+        }
     }
     
     
@@ -223,32 +248,22 @@ class fileman_GalleryImages extends core_Manager
         if ($rec->id && $userId) {
             
             // Ако редактираме, изтриваме, добавяме или разглеждаме сингъла
-            if ($action == 'edit' || $action == 'single' || $action == 'delete') {
+            if ($action == 'edit' || $action == 'delete') {
                 
-                // Ако не е ceo
+                // Ако не е 'ceo', трябва да има достъп до групата, за да редактира картина от нея
                 if (!haveRole('ceo')) {
-                    
-                    // Ако не е създател на документа
-                    if ($rec->createdBy != $userId) {
-                        
-                        // Ако не е мениджър
-                        if (haveRole('manager')) {
-                            
-                            // Вземаме хората от нашия екип
-                            $teemMates = core_Users::getTeammates($userId);
-                            
-                            // Ако не е мениджър на екипа
-                            if (!type_Keylist::isIn($rec->createdBy, $teemMates)) {
-                                
-                                // Да не може
-                                $requiredRoles = 'no_one';
-                            }
-                        } else {
-                            
-                            // Да не може
-                            $requiredRoles = 'no_one';
-                        }
+                    if ($rec->groupId && !fileman_GalleryGroups::fetch($rec->groupId)) {
+                        $requiredRoles = 'no_one';
                     }
+                }
+            }
+            
+            // Ако ще радактира заглавието
+            if ($action == 'edittitle') {
+                
+                // Трябва да е създател на картината
+                if ($rec->createdBy != $userId) {
+                    $requiredRoles = 'no_one';
                 }
             }
         }
@@ -384,6 +399,12 @@ class fileman_GalleryImages extends core_Manager
             // По подразбиране да е избрана id на група
             $grId = fileman_GalleryGroups::getDefaultGroupId();
             $form->setDefault('imgGroupId', $grId);
+        }
+        
+        // Ако се редактира картина и няма права за редактиране на заглавието
+        if ($id && !static::haveRightFor('edittitle', $id)) {
+            
+            $form->setReadonly('imgTitle');
         }
         
         // Въвеждаме полето

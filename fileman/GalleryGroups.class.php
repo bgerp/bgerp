@@ -19,13 +19,13 @@ class fileman_GalleryGroups extends core_Manager
     /**
      * 
      */
-    var $canRead = 'admin,ceo';
+    var $canRead = 'user';
     
 
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'admin,ceo';
+    var $canWrite = 'user';
 
     
     /**
@@ -39,17 +39,24 @@ class fileman_GalleryGroups extends core_Manager
 	 */
 	var $canList = 'user';
     
+	
+	/**
+	 * Кой може да променя съсъоянието
+	 * @see plg_State2
+	 */
+    var $canChangestate = 'user';
+    
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,fileman_GalleryTitlePlg, plg_Clone, plg_State2";
+    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created, plg_Modified, fileman_GalleryTitlePlg, plg_Clone, plg_State2";
     
     
     /**
      * Полета за изглед
      */
-    var $listFields = 'id,title,roles,tWidth,tHeight,width,height,createdOn,createdBy,state';
+    var $listFields = 'id,title,roles,sharedTo,tWidth,tHeight,width,height,createdOn,createdBy,state';
     
     
     /**
@@ -82,7 +89,8 @@ class fileman_GalleryGroups extends core_Manager
         $this->FLD('width', 'int', 'caption=Картинка->Широчина');
         $this->FLD('height', 'int', 'caption=Картинка->Височина');
         
-        $this->FLD('roles', 'keylist(mvc=core_Roles, select=role, allowEmpty,groupBy=type)', 'caption=Роли, width=100%,placeholder=Всички');
+        $this->FLD('roles', 'keylist(mvc=core_Roles, select=role, allowEmpty,groupBy=type)', 'caption=Споделяне->Роли, width=100%');
+        $this->FLD('sharedTo', 'type_UserList', 'caption=Споделяне->Потребители, width=100%');
         
         $this->setDbUnique('title, position');
     }
@@ -146,7 +154,7 @@ class fileman_GalleryGroups extends core_Manager
         if ($rec && !haveRole('ceo, admin')) {
             
             // Ако ще изтриваме или редактираме група
-            if ($action == 'delete' || $action == 'edit') {
+            if ($action == 'delete' || $action == 'edit' || $action == 'changestate') {
                 
                 // Ако не сме създател
                 if ($rec->createdBy != $userId) {
@@ -176,30 +184,108 @@ class fileman_GalleryGroups extends core_Manager
 	 */
     function on_AfterGetQuery($mvc, $query)
     {
-        // Ограничаваме заявката да се показват само достъпните
-        static::restrictRoles($query);
+        $orToPrevious = FALSE;
+        
+        // Ограничаваме заявката да се показват само групите споделени с определени потребители
+        if (static::restrictRoles($query, $orToPrevious)) {
+            $orToPrevious = TRUE;
+        }
+        
+        // Ограничаваме заявката да се показват само групите споделени до определени потребители
+        if (static::restrictSharedTo($query, $orToPrevious)) {
+            $orToPrevious = TRUE;
+        }
+        
+        // Ограничаваме да се показва само групите създадени от съответния потребител
+        static::restrictCreated($query, $orToPrevious);
     }
     
     
     /**
-     * Ограничаваме заявката да се показват само достъпните групи
+     * Ограничаваме заявката да се показват само групите споделени с определени потребители
      * 
-     * @param core_Query $query
-     * @param string $rolesFieldName
+     * @param core_Query $query - Заявката
+     * @param boolean $orToPrevious - Дали да се залепи с OR към предишната заявка
+     * @param string $rolesFieldName - Името на полето
+     * @param integer $userId - id на потребителя
+     * 
+     * @return boolean
      */
-    static function restrictRoles(&$query, $rolesFieldName='roles')
+    static function restrictRoles(&$query, $orToPrevious=FALSE, $rolesFieldName='roles', $userId=NULL)
     {
         // Ако име роля ceo да може да вижда всички
         if (haveRole('ceo')) return ;
         
+        // Ако не е подаден потребител, да се изпозлва текущия
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
         // Ролите на текущия потребител
-        $userRoles = core_Users::getRoles();
+        $userRoles = core_Users::getRoles($userId);
         
-        // Всички групи без роли
-        $query->where("#{$rolesFieldName} IS NULL");
+        // Да се показва групите за които е зададене някоя роля от тези на потребителя
+        $query->likeKeylist($rolesFieldName, $userRoles, $orToPrevious);
         
-        // Ако е зададена роля показваме само тях
-        $query->likeKeylist($rolesFieldName, $userRoles, TRUE);
+        return TRUE;
+    }
+    
+
+    
+    /**
+     * Ограничаваме заявката да се показват само групите споделени до определени потребители
+     * 
+     * @param core_Query $query - Заявката
+     * @param boolean $orToPrevious - Дали да се залепи с OR към предишната заявка
+     * @param string $rolesFieldName - Името на полето
+     * @param integer $userId - id на потребителя
+     * 
+     * @return boolean
+     */
+    static function restrictSharedTo(&$query, $orToPrevious=FALSE, $rolesFieldName='sharedTo', $userId=NULL)
+    {
+        // Ако име роля ceo да може да вижда всички
+        if (haveRole('ceo')) return ;
+        
+        // Ако не е подаден потребител, да се изпозлва текущия
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Масив с текущия потребител
+        $userIdArr = type_Keylist::fromArray(array($userId=>$userId));
+        
+        // Да се показва групите за които е зададен е зададен потребителя
+        $query->likeKeylist($rolesFieldName, $userIdArr, $orToPrevious);
+        
+        return TRUE;
+    }
+    
+    
+	/**
+     * Ограничаваме да се показва само групите създадени от съответния потребител
+     * 
+     * @param core_Query $query - Заявката
+     * @param boolean $orToPrevious - Дали да се залепи с OR към предишната заявка
+     * @param string $rolesFieldName - Името на полето
+     * @param integer $userId - id на потребителя
+     * 
+     * @return boolean
+     */
+    static function restrictCreated(&$query, $orToPrevious=FALSE, $rolesFieldName='createdBy', $userId=NULL)
+    {
+        // Ако име роля ceo да може да вижда всички
+        if (haveRole('ceo')) return ;
+        
+        // Ако не е подаден потребител, да се изпозлва текущия
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Да се показва групите, които са създадени от потребителя
+        $query->where("#{$rolesFieldName} = '{$userId}'", $orToPrevious);
+        
+        return TRUE;
     }
     
     
@@ -221,16 +307,4 @@ class fileman_GalleryGroups extends core_Manager
             $rec->{$titleField} = $rec->position;
         }
     }
-    
-    
-    /**
-     * Подготовка на филтър формата
-     * 
-     * @param unknown_type $mvc
-     * @param unknown_type $data
-     */
-    static function on_AfterPrepareListFilter($mvc, &$data)
-	{
-//	    $data->query->orderBy('createdOn', 'DESC');
-	}
 }
