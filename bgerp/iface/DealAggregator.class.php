@@ -56,6 +56,19 @@ class bgerp_iface_DealAggregator
 		return $this->$name;
 	}
 	
+	/**
+	 * Добавя/изважда сума от пропърти на обекта
+	 *
+	 * @param string $name - име на пропърти
+	 * @param mixed $value - стойност за добавяне / изваждане
+	 * @return void
+	 */
+	public function sum($name, $value)
+	{
+		// Добавяме към стойността на пропъртито
+		$this->$name += $value;
+	}
+	
 	
 	/**
 	 * Пушва стойност към масив
