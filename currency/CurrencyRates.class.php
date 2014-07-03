@@ -412,7 +412,7 @@ class currency_CurrencyRates extends core_Detail
     	
     	$difference = round(abs($givenRate - $knownRate) / min($givenRate, $knownRate) * 100);
     	if($difference > $percent) {
-		    return 'Въведения курс е много различен от текущия';
+		    return "Въведения курс е много различен от очаквания '{$knownRate}'";
 		}
 		 
 		return FALSE;
