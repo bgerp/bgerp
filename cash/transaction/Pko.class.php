@@ -80,8 +80,8 @@ class cash_transaction_Pko
     	$sign = ($reverse) ? -1 : 1;
     	
     	// Кредита е винаги във валутата на пораждащия документ,
-    	$creditCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-    	$creditQuantity = round($amount / $dealInfo->agreed->rate, 2);
+    	$creditCurrency = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+    	$creditQuantity = round($amount / $dealInfo->get('rate'), 2);
     	
     	// Дебитираме касата
     	$debitArr = array($rec->debitAccount,

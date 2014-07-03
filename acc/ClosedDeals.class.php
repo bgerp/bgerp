@@ -137,8 +137,8 @@ abstract class acc_ClosedDeals extends core_Master
     	if($rec->state == 'active'){
     		$info = static::getDealInfo($rec->threadId);
     		$rec->amount = $mvc::getClosedDealAmount($mvc->fetchField($rec->id, 'threadId'));
-    		$rec->currencyId = $info->agreed->currency;
-    		$rec->rate = $info->agreed->rate;
+    		$rec->currencyId = $info->get('currency');
+    		$rec->rate = $info->get('rate');
     	}
     }
     
@@ -197,8 +197,9 @@ abstract class acc_ClosedDeals extends core_Master
     public static function getClosedDealAmount($threadId)
     {
     	expect($info = static::getDealInfo($threadId));
-        $paidAmount = currency_Currencies::round($info->paid->amount, 2);
-        $shippedAmount = currency_Currencies::round($info->shipped->amount, 2);
+    	
+        $paidAmount = currency_Currencies::round($info->get('amountPaid'), 2);
+        $shippedAmount = currency_Currencies::round($info->get('deliveryAmount'), 2);
 		
         // Разликата между платеното и доставеното
         return $paidAmount - $shippedAmount;
@@ -267,8 +268,8 @@ abstract class acc_ClosedDeals extends core_Master
     		$info = static::getDealInfo($rec->threadId);
     		$baseAmount = static::getClosedDealAmount($rec->threadId);
     		
-    		$amount = $baseAmount / $info->agreed->rate;
-    		$row->currencyId = $info->agreed->currency;
+    		$amount = $baseAmount / $info->get('rate');
+    		$row->currencyId = $info->get('currency');
     	} else {
     		@$amount =  $rec->amount / $rec->rate;
     	}
@@ -428,12 +429,6 @@ abstract class acc_ClosedDeals extends core_Master
         	// Взимаме записа за начисляване на извънредния приход/разход
         	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $dealInfo->dealType, $firstDoc);
         }
-       
-    	/*if($vatToCharge = $dealInfo->invoiced->vatToCharge){
-        	// Създаване на запис за прехвърляне на всеки аванс
-        	$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $total1, $firstDoc);
-        	$result->totalAmount += $total1;
-        }*/
         
         // Създаване на запис за прехвърляне на всеки аванс
         $entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $total, $firstDoc);
@@ -448,10 +443,6 @@ abstract class acc_ClosedDeals extends core_Master
     		
     		if(count($entry2)){
     			$result->entries = array_merge($result->entries, $entry2);
-    		}
-    		
-    		if(count($entry3)){
-    			$result->entries = array_merge($result->entries, $entry3);
     		}
     	}
         

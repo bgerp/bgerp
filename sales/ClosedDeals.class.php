@@ -94,14 +94,6 @@ class sales_ClosedDeals extends acc_ClosedDeals
     
     
     /**
-     * Какви ще са контировките на надплатеното/отписаното и авансите
-     */
-    public $contoAccounts = array('downpayments' => array(
-    										'debit' => '412',
-    										'credit' => '411'),);
-    
-    
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'notes,docId,classId';
@@ -310,10 +302,10 @@ class sales_ClosedDeals extends acc_ClosedDeals
     	$res = parent::canAddToThread($threadId);
     	if(!$res) return FALSE;
     	
-    	$dealInfo = static::getDealInfo($threadId);
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Може само към нишка, породена от продажба
-    	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_SALE) return FALSE;
+    	if(!($firstDoc->instance instanceof sales_Sales)) return FALSE;
     	
     	return TRUE;
     }
@@ -330,7 +322,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
      * Dt:  412. Задължения към клиенти (по аванси)
      * Ct:  411. Вземания от клиенти (Клиенти, Валути)
      */
-    protected function trasnferDownpayments(bgerp_iface_DealResponse $dealInfo, $docRec, &$total, $firstDoc)
+    protected function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$total, $firstDoc)
     {
     	$entryArr = array();
     	$total = 0;
@@ -344,8 +336,8 @@ class sales_ClosedDeals extends acc_ClosedDeals
     	if($downpaymentAmount == 0) return;
     	
     	// Валутата на плащането е тази на сделката
-    	$currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-    	$amount = currency_Currencies::round($downpaymentAmount / $dealInfo->agreed->rate, 2);
+    	$currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+    	$amount = currency_Currencies::round($downpaymentAmount / $dealInfo->get('rate'), 2);
     	 
     	$entry = array();
     	$entry['amount'] = currency_Currencies::round($downpaymentAmount);

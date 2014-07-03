@@ -77,10 +77,9 @@ class store_plg_DocumentDetail extends core_Plugin
 			$contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
 	
 			if(empty($rec->id)){
-				$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
-				$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
+				$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId}";
 				if($pRec = $mvc->fetch($where)){
-					$form->setWarning("productId", "Има вече такъв продукт с тази опаковка. Искате ли да го обновите?");
+					$form->setWarning("productId", "Има вече такъв продукт. Искате ли да го обновите?");
 					$rec->id = $pRec->id;
 					$update = TRUE;
 				}
@@ -114,12 +113,19 @@ class store_plg_DocumentDetail extends core_Plugin
 					// Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
 					$origin = $mvc->Master->getOrigin($masterRec);
 					$dealInfo = $origin->getAggregateDealInfo();
-					$aggreedProduct = $dealInfo->shipped->findProduct($rec->productId, $rec->classId, $rec->packagingId);
-					if($aggreedProduct){
-						$policyInfo = new stdClass();
-						$policyInfo->price = $aggreedProduct->price;
-					} else {
-						
+					$products = $dealInfo->get('products');
+					
+					if(count($products)){
+						foreach ($products as $p){
+							if($rec->classId == $p->classId && $rec->productId == $p->productId && $rec->packagingId == $p->packagingId){
+								$policyInfo = new stdClass();
+								$policyInfo->price = $p->price;
+								break;
+							}
+						}
+					}
+					
+					if(!$policyInfo){
 						// Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
 						$ProductMan = ($mvc->Policy && $masterRec->isReverse === 'no') ? $mvc->Policy : $ProductMan;
 						$policyInfo = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate);

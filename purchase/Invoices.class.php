@@ -334,23 +334,23 @@ class purchase_Invoices extends core_Master
         expect($origin = static::getOrigin($form->rec));
         if($origin->haveInterface('bgerp_DealAggregatorIntf')){
         	$aggregateInfo         = $origin->getAggregateDealInfo();
-        	$form->rec->vatRate    = $aggregateInfo->agreed->vatType;
-        	$form->rec->currencyId = $aggregateInfo->agreed->currency;
-        	$form->rec->rate       = $aggregateInfo->agreed->rate;
+        	$form->rec->vatRate    = $aggregateInfo->get('vatType');
+        	$form->rec->currencyId = $aggregateInfo->get('currency');
+        	$form->rec->rate       = $aggregateInfo->get('rate');
         	
-        	if($aggregateInfo->agreed->payment->method){
-        		$form->rec->paymentMethodId = $aggregateInfo->agreed->payment->method;
+        	if($aggregateInfo->get('paymentMethodId')){
+        		$form->rec->paymentMethodId = $aggregateInfo->get('paymentMethodId');
         		$form->setField('paymentMethodId', 'input=hidden');
         	}
         	
-        	$form->rec->deliveryId = $aggregateInfo->agreed->delivery->term;
-        	if($aggregateInfo->agreed->delivery->location){
-        		$form->rec->deliveryPlaceId = $aggregateInfo->agreed->delivery->location;
+        	$form->rec->deliveryId = $aggregateInfo->get('deliveryTerm');
+        	if($aggregateInfo->get('deliveryLocation')){
+        		$form->rec->deliveryPlaceId = $aggregateInfo->get('deliveryLocation');
         		$form->setField('deliveryPlaceId', 'input=hidden');
         	}
         	
-        	if($aggregateInfo->agreed->payment->bankAccountId){
-        		$form->rec->accountId = $aggregateInfo->agreed->payment->bankAccountId;
+        	if($aggregateInfo->get('bankAccountId')){
+        		$form->rec->accountId = $aggregateInfo->get('bankAccountId');
         	}
         }
 	        
@@ -434,28 +434,41 @@ class purchase_Invoices extends core_Master
     	
     	if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
     		$info = $origin->getAggregateDealInfo();
-    		$products = $info->shipped->products;
+    		$products = $info->get('shippedProducts');
+    		$invoiced = $info->get('invoicedProducts');
     		
     		if(count($products) != 0){
-	    		$productMans = array();
-    			
-	    		// Записваме информацията за продуктите в детайла
-		    	foreach ($products as $product){
-		    		if(!$productMans[$product->classId]){
-		    			$productMans[$product->classId] = cls::get($product->classId);
-		    		}
-		    		$pInfo = $productMans[$product->classId]->getProductInfo($product->productId, $product->packagingId);
-		    		$packQuantity = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
-		    		
-		    		$dRec = clone $product;
-		    		$dRec->invoiceId      = $rec->id;
-		    		$dRec->classId        = $product->classId;
-		    		$dRec->amount         = $product->quantity * $product->price;
-		    		$dRec->quantityInPack = $packQuantity;
-		    		$dRec->quantity       = $product->quantity / $packQuantity;
-		    		
-		    		$mvc->purchase_InvoiceDetails->save($dRec);
-		    	}
+    			 
+    			// Записваме информацията за продуктите в детайла
+    			foreach ($products as $product){
+    				$continue = FALSE;
+    				$diff = $product->quantity;
+    				if(count($invoiced)){
+    					foreach ($invoiced as $inv){
+    						if($inv->classId == $product->classId && $inv->productId == $product->productId){
+    							$diff = $product->quantity - $inv->quantity;
+    							if($diff <= 0){
+    								$continue = TRUE;
+    							}
+    							break;
+    						}
+    					}
+    				}
+    		
+    				if($continue) continue;
+    		
+    				$pInfo = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
+    				$packQuantity = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+    		
+    				$dRec = clone $product;
+    				$dRec->invoiceId      = $rec->id;
+    				$dRec->classId        = $product->classId;
+    				$dRec->price 		  = $product->amount / $product->quantity;
+    				$dRec->quantityInPack = $packQuantity;
+    				$dRec->quantity       = $diff / $packQuantity;
+    		
+    				$mvc->purchase_InvoiceDetails->save($dRec);
+    			}
     		}
     	}
     }
@@ -666,10 +679,6 @@ class purchase_Invoices extends core_Master
     			$data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/declarations.png, row=2');
     		}
     	}
-    	
-    	if(haveRole('debug')){
-	    	$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
-	    }
     }
     
     
@@ -911,49 +920,55 @@ class purchase_Invoices extends core_Master
      * @return bgerp_iface_DealResponse
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id)
+    public function getDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
         
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
-        $result = new bgerp_iface_DealResponse();
         
-        $result->dealType 			= bgerp_iface_DealResponse::TYPE_PURCHASE;
-        $result->invoiced->amount   = ($rec->type == 'credit_note') ? -1 * $total : $total;
-        $result->invoiced->currency = $rec->currencyId;
-        $result->invoiced->rate 	= $rec->rate;
-        $result->invoiced->valior   = $rec->date;
-        $result->invoiced->vatType  = $rec->vatRate;
-        $result->invoiced->payment->method  = $rec->paymentMethodId;
+        $total = ($rec->type == 'credit_note') ? -1 * $total : $total;
+        $aggregator->sum('invoicedAmount', $total);
+        $aggregator->setIfNot('invoicedValior', $rec->date);
+        $aggregator->setIfNot('paymentMethodId', $rec->paymentMethodId);
+        
         if(isset($rec->dpAmount)){
-        	$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
-    		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
-    			$vat = 0;
-    		}
-        	
         	if($rec->dpOperation == 'accrued'){
-        		$result->invoiced->downpayment  = $total;
+        		$aggregator->sum('downpaymentInvoiced', $total);
         	} elseif($rec->dpOperation == 'deducted') {
-        		$result->invoiced->downpaymentDeducted = $total;
+        		$aggregator->sum('downpaymentDeducted', $total);
         	}
         }
         
         $dQuery = purchase_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
         
+        // Намираме всички фактурирани досега продукти
+        $invoiced = $aggregator->get('invoicedProducts');
         while ($dRec = $dQuery->fetch()) {
-            $p = new bgerp_iface_DealProduct();
-            
+            $p = new stdClass();
             $p->classId     = $dRec->classId;
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->quantity    = $dRec->quantity * $dRec->quantityInPack;
-            $p->price       = $dRec->price;
             
-            $result->invoiced->products[] = $p;
+            // Добавяме към фактурираните продукти
+            $update = FALSE;
+            if(count($invoiced)){
+            	foreach ($invoiced as &$inv){
+            		if($inv->classId == $p->classId && $inv->productId == $p->productId){
+            			$inv->quantity += $p->quantity;
+            			$update = TRUE;
+            			break;
+            		}
+            	}
+            }
+           
+            if(!$update){
+            	$invoiced[] = $p;
+            }
         }
         
-        return $result;
+        $aggregator->set('invoicedProducts', $invoiced);
     }
     
     
@@ -965,18 +980,6 @@ class purchase_Invoices extends core_Master
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     	}
-    }
-    
-    
-	/**
-     * Дебъг екшън показващ агрегираните бизнес данни
-     */
-    function act_DealInfo()
-    {
-    	requireRole('debug');
-    	expect($id = Request::get('id', 'int'));
-    	$info = $this->getDealInfo($id);
-    	bp($info->invoiced);
     }
     
     
@@ -993,8 +996,9 @@ class purchase_Invoices extends core_Master
     	
     	// Ако има Авансово плащане може да се активира
     	if(isset($rec->dpAmount)){
-    		$res = ($rec->dealValue <= 0) ? FALSE : TRUE;
     		$res = ($rec->dpOperation == 'deducted' && $rec->dealValue == 0) ? TRUE : $res; 
+    		$res = ($rec->dealValue <= 0) ? FALSE : TRUE;
+    		
     		return;
     	}
     	
@@ -1006,6 +1010,7 @@ class purchase_Invoices extends core_Master
     	if($dQuery->fetch()){
     		$res = FALSE;
     	}
+    	
     }
     
     

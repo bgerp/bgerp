@@ -449,7 +449,7 @@ class purchase_transaction_Purchase
     	$jRecs = self::getEntries($id);
     
     	// Извличаме тези, отнасящи се за експедиране
-    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,703', 'debit');
+    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,602', 'debit');
     	
     	if(!count($dInfo->recs)) return $res;
     
@@ -471,12 +471,13 @@ class purchase_transaction_Purchase
     						$res[$index] = $obj;
     					}
     					 
+    					$res[$index]->amount += $p->amount;
     					$res[$index]->quantity  += $p->debitQuantity;
     				}
     			}
     		}
     	}
-    	 //bp($res);
+    	
     	// Връщаме масив със всички експедирани продукти по тази сделка
     	return $res;
     }

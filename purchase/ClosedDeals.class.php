@@ -94,14 +94,6 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     
     
     /**
-     * Какви ще са контировките на надплатеното/отписаното и авансите
-     */
-    public $contoAccounts = array('downpayments' => array(
-    									'debit' => '401',
-    									'credit' => '402'),);
-    
-    
-    /**
      * Имплементиране на интерфейсен метод
      * @see acc_ClosedDeals::getDocumentRow()
      */
@@ -295,7 +287,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	$dealInfo = static::getDealInfo($threadId);
     	 
     	// Може само към нишка, породена от продажба
-    	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_PURCHASE) return FALSE;
+    	if($dealInfo->dealType != purchase_Purchases::AGGREGATOR_TYPE) return FALSE;
     	 
     	return TRUE;
     }
@@ -312,7 +304,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
      * Dt: 401. Задължения към доставчици (Доставчици, Валути)
      * Ct: 402. Вземания от доставчици по аванси
      */
-    public function trasnferDownpayments(bgerp_iface_DealResponse $dealInfo, $docRec, &$total, $firstDoc)
+    public function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$total, $firstDoc)
     {
     	$entryArr = array();
     	$total = 0;
@@ -326,8 +318,8 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	if($downpaymentAmount == 0) return;
     	
     	// Валутата на плащането е тази на сделката
-    	$currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-    	$amount = currency_Currencies::round($downpaymentAmount / $dealInfo->agreed->rate, 2);
+    	$currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+    	$amount = currency_Currencies::round($downpaymentAmount / $dealInfo->get('rate'), 2);
     	
     	$entry = array();
     	$entry['amount'] = currency_Currencies::round($downpaymentAmount);

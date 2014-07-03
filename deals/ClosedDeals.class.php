@@ -175,8 +175,8 @@ class deals_ClosedDeals extends acc_ClosedDeals
     
     	$dealInfo = static::getDealInfo($threadId);
     
-    	// Може само към нишка, породена от продажба
-    	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL) return FALSE;
+    	// Може само към нишка, породена от финансова сделка
+    	if($dealInfo->get('dealType') != deals_Deals::AGGREGATOR_TYPE) return FALSE;
     
     	return TRUE;
     }
@@ -192,8 +192,8 @@ class deals_ClosedDeals extends acc_ClosedDeals
         $info = static::getDealInfo($rec->threadId);
         $docRec = $firstDoc->fetch();
         $account = acc_Accounts::fetchField($docRec->accountId, 'systemId');
-        
-        $amount = round($info->agreed->amount / $info->agreed->rate, 2);
+       
+        $amount = round($info->get('amount') / $info->get('rate'), 2);
         
         // Извънреден разход
         if($amount < 0){

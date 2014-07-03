@@ -84,7 +84,7 @@ class deals_transaction_DebitDocument
     	$debitArr = array($rec->debitAccount,
     			array($dealRec->contragentClassId, $dealRec->contragentId),
     			array($dealRec->dealManId, $rec->dealId),
-    			array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
+    			array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
     			'quantity' => $sign * round($amount / $dealRec->currencyRate, 2));
     	
     	// Кредитираме разчетната сметка на сделката, начало на нишка
@@ -92,7 +92,7 @@ class deals_transaction_DebitDocument
     						array($rec->contragentClassId, $rec->contragentId),
 				    		array($origin->className, $origin->that),
 				    		array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
-    						'quantity' => $sign * round($amount / $dealInfo->agreed->rate, 2));
+    						'quantity' => $sign * round($amount / $dealInfo->get('rate'), 2));
     	
     	$entry = array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,);
     	 

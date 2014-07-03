@@ -81,8 +81,8 @@ class cash_transaction_Rko
     	$sign = ($reverse) ? -1 : 1;
     	
     	// Дебита е винаги във валутата на пораждащия документ,
-    	$debitCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-    	$debitQuantity = round($amount / $dealInfo->agreed->rate, 2);
+    	$debitCurrency = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+    	$debitQuantity = round($amount / $dealInfo->get('rate'), 2);
     	
     	// Дебитираме разчетната сметка
     	$debitArr = array($rec->debitAccount,

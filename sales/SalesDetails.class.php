@@ -40,7 +40,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, 
+    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
                         plg_AlignDecimals2, doc_plg_HidePrices';
     
     
@@ -347,10 +347,9 @@ class sales_SalesDetails extends core_Detail
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
         	if(empty($rec->id)){
-    			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
-    			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
+    			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}";
     			if($pRec = $mvc->fetch($where)){
-    				$form->setWarning("productId", "Има вече такъв продукт с тази опаковка. Искате ли да го обновите?");
+    				$form->setWarning("productId", "Има вече такъв продукт. Искате ли да го обновите?");
     				$rec->id = $pRec->id;
     				$update = TRUE;
     			}

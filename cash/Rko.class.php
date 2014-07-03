@@ -214,9 +214,9 @@ class cash_Rko extends core_Master
         expect($origin = $mvc->getOrigin($form->rec));
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         $dealInfo = $origin->getAggregateDealInfo();
-        expect(count($dealInfo->allowedPaymentOperations));
         
-        $options = self::getOperations($dealInfo->allowedPaymentOperations);
+        $pOperations = $dealInfo->get('allowedPaymentOperations');
+        $options = self::getOperations($pOperations);
         expect(count($options));
         
     	// Използваме помощната функция за намиране името на контрагента
@@ -224,33 +224,32 @@ class cash_Rko extends core_Master
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 	$dealInfo = $origin->getAggregateDealInfo();
     		 	
-    		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-    		 		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->agreed->rate;
+    		 	if($dealInfo->get('dealType') != deals_Deals::AGGREGATOR_TYPE){
+    		 		$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
     		 		if($amount <= 0) {
     		 			$amount = 0;
     		 		}
     		 			
-    		 		$defaultOperation = $mvc->getDefaultOperation($dealInfo);
+    		 		$defaultOperation = $dealInfo->get('defaultCaseOperation');
     		 		if($defaultOperation == 'case2supplierAdvance'){
-    		 			$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
+    		 			$amount = ($dealInfo->get('agreedDownpayment') - $dealInfo->get('downpayment')) / $dealInfo->get('rate');
     		 		}
     		 	}
-    		 	
     		 		
-    		 	if($caseId = $dealInfo->agreed->payment->caseId){
+    		 	if($caseId = $dealInfo->get('caseId')){
     		 		$cashRec = cash_Cases::fetch($caseId);
     		 			 
     		 		// Ако потребителя има права, логва се тихо
     		 		cash_Cases::selectSilent($caseId);
     		 	}
     		 	
-    		 	$cId = $dealInfo->agreed->currency;
+    		 	$cId = $dealInfo->get('currency');
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($cId);
     		 	
-    		 	$form->rec->rate = $dealInfo->agreed->rate;
+    		 	$form->rec->rate = $dealInfo->get('rate');
     		 		
-    		 	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
-    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->agreed->currency);
+    		 	if($dealInfo->get('dealType') == purchase_Purchases::AGGREGATOR_TYPE){
+    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->get('currency'));
     		 	}
     	}  else {
     		$defaultOperation = 'case2supplier';
@@ -293,35 +292,6 @@ class cash_Rko extends core_Master
     
     
     /**
-     * Помощна ф-я връщаща дефолт операцията за документа
-     */
-    private function getDefaultOperation(bgerp_iface_DealResponse $dealInfo)
-    {
-    	$paid = $dealInfo->paid;
-    	$agreed = $dealInfo->agreed;
-    	
-    	// Ако е продажба пораждащия документ
-    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
-    		if(isset($agreed->downpayment)){
-    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'caseAdvance2customer' : 'case2customer';
-    		} else {
-    			$defaultOperation = 'case2customer';
-    		}
-    	} elseif($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
-    		if(isset($agreed->downpayment)){
-    			
-    			//bp($paid->downpayment,$agreed->downpayment);
-    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'case2supplierAdvance' : 'case2supplier';
-    		} else {
-    			$defaultOperation = 'case2supplier';
-    		}
-    	}
-    	
-    	return $defaultOperation;	
-    }
-    
-    
-    /**
      * Проверка и валидиране на формата
      */
     function on_AfterInputEditForm($mvc, $form)
@@ -353,8 +323,7 @@ class cash_Rko extends core_Master
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
         	if(!$rec->rate){
-        		
-		    	// Изчисляваме курса към основната валута ако не е дефиниран
+        		// Изчисляваме курса към основната валута ако не е дефиниран
 		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
 		    } else {
 		    	if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
@@ -543,22 +512,10 @@ class cash_Rko extends core_Master
 	/**
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id)
+    public function getDealInfo($id, &$aggregator)
     {
         $rec = self::fetchRec($id);
-    
-        /* @var $result bgerp_iface_DealResponse */
-        $result = new bgerp_iface_DealResponse();
-    	
-        // При продажба платеното се намалява, ако е покупка се увеличава
-        $origin = static::getOrigin($rec);
-        $sign = ($origin->className == 'purchase_Purchases') ? 1 : -1;
-    
-        $result->paid->amount          = $sign * $rec->amount * $rec->rate;
-        $result->paid->payment->caseId = $rec->peroCase;
-    	$result->paid->operationSysId  = $rec->operationSysId;
-    	
-        return $result;
+        $aggregator->setIfNot('caseId', $rec->peroCase);
     }
     
     

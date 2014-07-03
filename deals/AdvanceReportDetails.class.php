@@ -97,8 +97,8 @@ class deals_AdvanceReportDetails extends core_Detail
     public function description()
     {
     	$this->FLD('reportId', 'key(mvc=deals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('amount', 'double(minDecimals=2)', 'caption=Крайна сума,mandatory,width=10em');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory');
+    	$this->FLD('amount', 'double(minDecimals=2)', 'caption=Крайна сума,mandatory,width=10em');
     	$this->FLD('quantity', 'double(minDecimals=0)', 'caption=К-во,width=6em');
     	$this->FLD('vat', 'percent()', 'caption=ДДС,width=6em');
     	$this->FLD('description', 'richtext(bucket=Notes,rows=3)', 'caption=Описание');

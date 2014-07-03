@@ -34,7 +34,7 @@ class sales_ServicesDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, 
+    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
                         plg_AlignDecimals2, doc_plg_HidePrices, store_plg_DocumentDetail';
     
     

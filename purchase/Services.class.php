@@ -219,31 +219,32 @@ class purchase_Services extends core_Master
         // използваме го за автоматично попълване на детайлите на протокола
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         
-        /* @var $aggregatedDealInfo bgerp_iface_DealResponse */
         $aggregatedDealInfo = $origin->getAggregateDealInfo();
-            
-        $remainingToShip = clone $aggregatedDealInfo->agreed;
-        $remainingToShip->pop($aggregatedDealInfo->shipped);
-            
-        /* @var $product bgerp_iface_DealProduct */
-        foreach ($remainingToShip->products as $product) {
-            $info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
-                
-            // Пропускат се експедираните и складируемите артикули
-            if (isset($info->meta['canStore']) || $product->quantity <= 0) continue;
-            
-            $shipProduct = new stdClass();
-            $shipProduct->shipmentId  = $rec->id;
-            $shipProduct->classId     = $product->classId;
-            $shipProduct->productId   = $product->productId;
-            $shipProduct->packagingId = $product->packagingId;
-            $shipProduct->quantity    = $product->quantity;
-            $shipProduct->price       = $product->price;
-            $shipProduct->uomId       = $product->uomId;
-            $shipProduct->discount    = $product->discount;
-            $shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
-                
-            $mvc->purchase_ServicesDetails->save($shipProduct);
+        $agreedProducts = $aggregatedDealInfo->get('products');
+
+        if(count($agreedProducts)){
+        	foreach ($agreedProducts as $product) {
+        		$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
+        	
+        		// Колко остава за експедиране от продукта
+        		$toShip = $product->quantity - $product->quantityDelivered;
+        	
+        		// Пропускат се експедираните и складируемите артикули
+        		if (isset($info->meta['canStore']) || ($toShip <= 0)) continue;
+        	
+        		$shipProduct = new stdClass();
+        		$shipProduct->shipmentId  = $rec->id;
+        		$shipProduct->classId     = $product->classId;
+        		$shipProduct->productId   = $product->productId;
+        		$shipProduct->packagingId = $product->packagingId;
+        		$shipProduct->quantity    = $toShip;
+        		$shipProduct->price       = $product->price;
+        		$shipProduct->uomId       = $product->uomId;
+        		$shipProduct->discount    = $product->discount;
+        		$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
+        	
+        		$mvc->purchase_ServicesDetails->save($shipProduct);
+        	}
         }
     }
     
@@ -336,13 +337,13 @@ class purchase_Services extends core_Master
             $origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId);
             expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
             	
-            /* @var $dealInfo bgerp_iface_DealResponse */
             $dealInfo = $origin->getAggregateDealInfo();
-            $form->rec->currencyId = $dealInfo->agreed->currency;
-            $form->rec->currencyRate = $dealInfo->agreed->rate;
-            $form->rec->locationId = $dealInfo->agreed->delivery->location;
-            $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
-            $form->rec->chargeVat = $dealInfo->agreed->vatType;
+            
+            $form->setDefault('currencyId', $dealInfo->get('currency'));
+            $form->setDefault('currencyRate', $dealInfo->get('rate'));
+            $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
+            $form->setDefault('deliveryTime', $dealInfo->get('deliveryTime'));
+            $form->setDefault('chargeVat', $dealInfo->get('vatType'));
         }
     }
     
@@ -453,37 +454,25 @@ class purchase_Services extends core_Master
      * @return bgerp_iface_DealResponse
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id)
+    public function getDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
-        $result = new bgerp_iface_DealResponse();
         
-        $result->dealType = bgerp_iface_DealResponse::TYPE_PURCHASE;
-        
-        // Конвертираме данъчната основа към валутата идваща от покупката
-        $result->shipped->amount             = $rec->amountDelivered;
-        $result->shipped->valior 			 = $rec->valior;
-        $result->shipped->delivery->location = $rec->locationId;
-        $result->shipped->delivery->time     = $rec->deliveryTime;
+        $aggregator->setIfNot('shippedValior',$rec->valior);
+        $aggregator->setIfNot('deliveryLocation', $rec->locationId);
+        $aggregator->setIfNot('deliveryTime', $rec->deliveryTime);
         
         $dQuery = purchase_ServicesDetails::getQuery();
         $dQuery->where("#shipmentId = {$rec->id}");
     		
         while ($dRec = $dQuery->fetch()) {
-            $p = new bgerp_iface_DealProduct();
-            
+            $p = new stdClass();
             $p->classId     = $dRec->classId;
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
-            $p->discount    = $dRec->discount;
-            $p->quantity    = $dRec->quantity;
-            $p->price       = $dRec->price;
-            $p->uomId       = $dRec->uomId;
             
-            $result->shipped->products[] = $p;
+            $aggregator->push('shippedPacks', $p);
         }
-        
-        return $result;
     }
     
     

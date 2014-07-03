@@ -392,7 +392,7 @@ class sales_transaction_Sale
         $jRecs = self::getEntries($id);
         
         // Извличаме тези, отнасящи се за експедиране
-        $dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,703', 'credit');
+        $dInfo = acc_Balances::getBlAmounts($jRecs, '703,706,701', 'credit');
         
         if(!count($dInfo->recs)) return $res;
         
@@ -414,6 +414,7 @@ class sales_transaction_Sale
 	         				$res[$index] = $obj;
 	         			}
 	         			
+	         			$res[$index]->amount += $p->amount;
 	         			$res[$index]->quantity  += $p->creditQuantity;
 	         		}
 	         	}
@@ -463,7 +464,7 @@ class sales_transaction_Sale
 	/**
 	 * Колко е платеното по сделка
 	 */
-	public static function getPaidAmount($id, $l = FALSE)
+	public static function getPaidAmount($id)
 	{
 		$jRecs = static::getEntries($id);
 		
