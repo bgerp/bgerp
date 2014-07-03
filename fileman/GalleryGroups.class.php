@@ -252,6 +252,8 @@ class fileman_GalleryGroups extends core_Manager
             $userId = core_Users::getCurrent();
         }
         
+        if ($userId <= 0) return ;
+        
         // Масив с текущия потребител
         $userIdArr = type_Keylist::fromArray(array($userId=>$userId));
         
