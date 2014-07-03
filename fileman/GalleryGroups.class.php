@@ -221,6 +221,8 @@ class fileman_GalleryGroups extends core_Manager
             $userId = core_Users::getCurrent();
         }
         
+        if ($userId <= 0) return ;
+        
         // Ролите на текущия потребител
         $userRoles = core_Users::getRoles($userId);
         
@@ -283,6 +285,8 @@ class fileman_GalleryGroups extends core_Manager
         if (!$userId) {
             $userId = core_Users::getCurrent();
         }
+        
+        if ($userId <= 0) return ;
         
         // Да се показва групите, които са създадени от потребителя
         $query->where("#{$rolesFieldName} = '{$userId}'", $orToPrevious);
