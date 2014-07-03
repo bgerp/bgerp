@@ -335,7 +335,7 @@ class hr_Departments extends core_Master
     static function getChart ($data)
     {
       
-    	foreach($data->recs as $rec){
+    	foreach((array)$data->recs as $rec){
     	    // Ако имаме родител 
     		if($parent = $rec->staff) { 
     			// взимаме чистото име на наследника
