@@ -43,7 +43,7 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created, fileman_GalleryTitlePlg, plg_Search, fileman_GalleryDialogWrapper";
+    var $loadList = "plg_RowTools,fileman_Wrapper,plg_Created, fileman_GalleryTitlePlg, plg_Search, fileman_GalleryDialogWrapper";
     
     
     /**
