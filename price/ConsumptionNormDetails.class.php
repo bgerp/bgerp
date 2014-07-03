@@ -31,7 +31,7 @@ class price_ConsumptionNormDetails extends core_Detail {
 	/**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Sorting, price_Wrapper, price_ConsumptionNormWrapper';
+    var $loadList = 'plg_RowTools, plg_Sorting, price_Wrapper';
     
     
     /**

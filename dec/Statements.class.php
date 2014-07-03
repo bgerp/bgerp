@@ -37,7 +37,7 @@ class dec_Statements extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'sales_Wrapper, dec_Wrapper, plg_Created, plg_RowTools, plg_State2, plg_Printing, plg_SaveAndNew';
+    var $loadList = 'sales_Wrapper, plg_Created, plg_RowTools, plg_State2, plg_Printing, plg_SaveAndNew';
     
     
     /**

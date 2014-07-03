@@ -24,7 +24,8 @@ class pos_Wrapper extends plg_ProtoWrapper
     {
     	$this->TAB('pos_Points', 'Точки на продажба', 'ceo,pos');
         $this->TAB('pos_Receipts', 'Бележки за продажба', 'ceo,pos');
-        $this->TAB('pos_Favourites', 'Бързи бутони', 'ceo,pos');
+        $this->TAB('pos_Favourites', 'Бързи бутони->Меню', 'ceo,pos');
+        $this->TAB('pos_FavouritesCategories', 'Бързи бутони->Категории', 'ceo,pos');
         $this->TAB('pos_Reports', 'Отчети', 'ceo,pos');
         $this->TAB('pos_Stocks', 'Наличности', 'ceo,pos');
         $this->TAB('pos_Payments', 'Средства за плащане', 'ceo,pos');

@@ -91,7 +91,7 @@ class email_Incomings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'email_Wrapper, email_incoming_Wrapper, doc_DocumentPlg, 
+    var $loadList = 'email_Wrapper, doc_DocumentPlg, 
     				plg_RowTools, plg_Printing, email_plg_Document, 
     				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank,
     				plg_AutoFilter';
