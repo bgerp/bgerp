@@ -41,12 +41,6 @@ class fileman_GalleryImages extends core_Manager
     
     
     /**
-     * Кой може да редактира заглавието на картинката
-     */
-    var $canEdittitle = 'user';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created, fileman_GalleryTitlePlg, plg_Search, fileman_GalleryDialogWrapper";
@@ -117,12 +111,6 @@ class fileman_GalleryImages extends core_Manager
             
             // Да е избрана
             $data->form->setDefault('groupId', $grId);
-        } else {
-            
-            // Ако редактираме записа и нямаме права за редактиране на заглавието
-            if (!static::haveRightFor('edittitle', $data->form->rec->id)) {
-                $data->form->setReadonly('title');
-            }
         }
     }
     
@@ -264,15 +252,6 @@ class fileman_GalleryImages extends core_Manager
                     }
                 }
             }
-            
-            // Ако ще радактира заглавието
-            if ($action == 'edittitle') {
-                
-                // Трябва да е създател на картината
-                if ($rec->createdBy != $userId) {
-                    $requiredRoles = 'no_one';
-                }
-            }
         }
     }
     
@@ -408,12 +387,6 @@ class fileman_GalleryImages extends core_Manager
             $form->setDefault('imgGroupId', $grId);
         }
         
-        // Ако се редактира картина и няма права за редактиране на заглавието
-        if ($id && !static::haveRightFor('edittitle', $id)) {
-            
-            $form->setReadonly('imgTitle');
-        }
-        
         // Въвеждаме полето
         $form->input('imgFile, imgGroupId, imgTitle, id', TRUE);
         
@@ -426,8 +399,14 @@ class fileman_GalleryImages extends core_Manager
             // Ако няма запис
             if (!$rec) {
                 
-                // Създаваме записите
                 $rec = new stdClass();
+            } else if ($rec->id) {
+                
+                // Ако сме променили нещо при редактирането
+                if (($rec->title != $form->rec->imgTitle) || ($rec->groupId != $form->rec->imgGroupId) || ($rec->src != $form->rec->imgFile)) {
+                    
+                    $rec = new stdClass();
+                }
             }
             
             // Добавяме стойностите
