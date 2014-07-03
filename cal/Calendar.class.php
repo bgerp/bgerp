@@ -26,7 +26,7 @@ class cal_Calendar extends core_Master
     /**
      * Класове за автоматично зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, plg_GroupByDate, cal_View, plg_Printing, plg_Search';
+    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, plg_GroupByDate, plg_Printing, plg_Search';
     
     
     /**
@@ -721,6 +721,7 @@ class cal_Calendar extends core_Master
     {
     	self::requireRightFor('day');
     	
+    	$this->currentTab = "Календар->Ден";
     	    	
     	$data = new stdClass();
     	$data->query = $this->getQuery();
@@ -744,6 +745,8 @@ class cal_Calendar extends core_Master
     {
     	self::requireRightFor('week');
     	
+    	$this->currentTab = "Календар->Седмица";
+    	
     	$data = new stdClass();
     	$data->query = $this->getQuery();
     	$data->action = 'week';
@@ -764,8 +767,9 @@ class cal_Calendar extends core_Master
      */
     function act_Month()
     {
-    	
     	self::requireRightFor('month');
+    	
+    	$this->currentTab = "Календар->Месец";
     	
     	$data = new stdClass();
     	$data->query = $this->getQuery();
@@ -788,7 +792,9 @@ class cal_Calendar extends core_Master
     function act_Year()
     {
     	self::requireRightFor('year');
- 
+    	
+    	$this->currentTab = "Календар->Година";
+    	
     	$data = new stdClass();
     	$data->query = $this->getQuery();
     	$data->action = 'year';
