@@ -31,6 +31,7 @@ class store_Wrapper extends plg_ProtoWrapper
 
         $this->TAB('store_Movements', 'Подреждане->Движения');
         $this->TAB('store_Pallets', 'Подреждане->Палети');
+        $this->TAB('store_PalletTypes', 'Подреждане->Видове палети');
 		$this->TAB('store_Products', 'Подреждане->Продукти');
         $this->TAB('store_Racks', 'Подреждане->Стелажи');
         $this->TAB('store_Zones', 'Подреждане->Зони');
