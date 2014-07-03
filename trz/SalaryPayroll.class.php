@@ -28,7 +28,7 @@ class trz_SalaryPayroll extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected,  plg_SaveAndNew, 
-                    trz_Wrapper, trz_SalaryWrapper';
+                    trz_Wrapper';
     
     
     /**
