@@ -78,7 +78,7 @@ class core_LoginLog extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_SystemWrapper, plg_LoginWrapper, plg_Created, plg_GroupByDate, plg_AutoFilter';
+    var $loadList = 'plg_SystemWrapper, plg_Created, plg_GroupByDate, plg_AutoFilter';
     
     
     /**
