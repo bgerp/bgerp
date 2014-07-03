@@ -66,7 +66,7 @@ class orgchart_Adapter extends core_BaseClass
    		
     	$html = '' ;
     	
-    	foreach ( $array as $currentArr ) {
+    	foreach ((array)$array as $currentArr ) {
     		
     		if ($currentArr['parent_id'] == $level ) {
     			$html = $html . "\n<li>" . $currentArr['title'] . static::transformArrayToNestedLists( $array, $currentArr['id'] ) . "</li>\n";
