@@ -5,7 +5,9 @@ syntax: regexp
 syntax: regexp
 ^\.project$
 syntax: regexp
-^common/Deleteme\.class\.php$
+lab/Hora.class.php
+syntax: regexp
+.gitignore
 syntax: regexp
 ^tests$
 /.settings
