@@ -20,7 +20,7 @@ class email_Unparsable extends core_Master
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper,  email_incoming_Wrapper';
+    var $loadList = 'email_Wrapper';
     
     
     /**
