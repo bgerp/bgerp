@@ -96,7 +96,7 @@ class acc_type_Item extends type_Key
         
         foreach ($this->options as $key => $val) {
             if (!is_object($val) && intval($key) == $value) {
-                $value = $key;
+                $value = $val;
                 break;
             }
         }
