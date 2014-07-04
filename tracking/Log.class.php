@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class tracking_Log extends core_Manager {
+class tracking_Log extends core_Master {
     
     /**
      * Заглавие
@@ -31,14 +31,14 @@ class tracking_Log extends core_Manager {
      *
      * var string|array
      */
-    public $loadList = 'plg_Created, plg_LastUsedKeys, tracking_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools, plg_LastUsedKeys, tracking_Wrapper';
     
     /**
      * Полета за показване
      *
      * var string|array
      */
-    public $listFields = 'vehicleId, driverId, text, fixTime, remoteIp, createdOn';
+    public $listFields = 'id,vehicleId, driverId, text, fixTime, remoteIp, createdOn';
     
     /**
      * Описание на модела
@@ -47,6 +47,8 @@ class tracking_Log extends core_Manager {
     {
         $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number, allowEmpty=true)', 'caption=Автомобил');
         $this->FLD('driverId', 'key(mvc=crm_Persons, select=name, allowEmpty=true)', 'caption=Водач');
+        $this->FLD('location', 'location_Type', 'caption=Локация');
+        
         $this->FLD('data', 'blob', 'caption=Данни');
         $this->FLD('fixTime', 'datetime()', 'caption=Време на засичне');
         $this->FNC('text', 'html', 'caption=Данни');
@@ -88,6 +90,15 @@ class tracking_Log extends core_Manager {
         }
         
         $data->query->orderBy('#fixTime', 'DESC');        
+    }
+    
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
+    {
+        $data = self::parseTrackingData($rec->data);
+        $rec->location = self::DMSToDD($data['latitude'])
+            . "," . self::DMSToDD($data['longitude']);
+        $l = cls::get('location_Type');
+        $row->location = $l->toVerbal($rec->location);
     }
         
     protected function on_CalcText($mvc, $rec)
