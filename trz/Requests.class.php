@@ -37,7 +37,7 @@ class trz_Requests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, trz_Wrapper, trz_LeavesWrapper, 
+    var $loadList = 'plg_RowTools, trz_Wrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
     				 plg_Printing, doc_plg_BusinessDoc,plg_AutoFilter,doc_SharablePlg,bgerp_plg_Blank';
     

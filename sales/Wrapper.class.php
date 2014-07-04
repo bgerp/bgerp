@@ -28,7 +28,9 @@ class sales_Wrapper extends plg_ProtoWrapper
         $this->TAB('sales_Proformas', 'Проформи', 'ceo,sales');
         $this->TAB('sales_SaleRequests', 'Заявки', 'ceo,sales');
         $this->TAB('sales_Services', 'Протоколи', 'ceo,sales');
-        $this->TAB('dec_Declarations', 'Декларации', 'ceo,dec');
+        $this->TAB('dec_Declarations', 'Декларации->Списък', 'ceo,dec');
+        $this->TAB('dec_Statements', 'Декларации->Твърдения', 'ceo,dec');
+        $this->TAB('dec_DeclarationTypes', 'Декларации->Бланки', 'ceo,dec');
         $this->TAB('sales_ClosedDeals', 'Приключени сделки', 'ceo,sales');
         $this->TAB('sales_Routes', 'Маршрути', 'ceo,sales');
         

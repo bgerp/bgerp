@@ -35,7 +35,7 @@ class deals_AdvanceReports extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, deals_WrapperPol, plg_Sorting, plg_Printing, acc_plg_Contable, 
+    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, 
                     doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
 

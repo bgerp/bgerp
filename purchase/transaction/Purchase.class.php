@@ -376,6 +376,15 @@ class purchase_transaction_Purchase
     
     
     /**
+     * Чисти работния кеш
+     */
+    public static function clearCache()
+    {
+    	static::$cache = NULL;
+    }
+    
+    
+    /**
      * Колко е направеното авансово плащане досега
      */
     public static function getDownpayment($jRecs)
@@ -423,5 +432,52 @@ class purchase_transaction_Purchase
     	$jRecs = static::getEntries($jRecs);
     
     	return acc_Balances::getBlAmounts($jRecs, '4530')->amount;
+    }
+    
+    
+    /**
+     * Връща всички експедирани продукти и техните количества по сделката
+     */
+    public static function getShippedProducts($id)
+    {
+    	$res = array();
+    	$query = purchase_PurchasesDetails::getQuery();
+    	$query->where("#requestId = '{$id}'");
+    	$query->show('id, productId, classId, quantityDelivered');
+    
+    	// Намираме всички транзакции с перо сделката
+    	$jRecs = self::getEntries($id);
+    
+    	// Извличаме тези, отнасящи се за експедиране
+    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,703', 'debit');
+    	
+    	if(!count($dInfo->recs)) return $res;
+    
+    	foreach ($dInfo->recs as $p){
+    		 
+    		// Обикаляме всяко перо
+    		foreach (range(1, 3) as $i){
+    			if(isset($p->{"debitItem{$i}"})){
+    				$itemRec = acc_Items::fetch($p->{"debitItem{$i}"});
+    				 
+    				// Ако има интерфейса за артикули-пера, го добавяме
+    				if(cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)){
+    					$obj = new stdClass();
+    					$obj->classId    = $itemRec->classId;
+    					$obj->productId  = $itemRec->objectId;
+    					 
+    					$index = $obj->classId . "|" . $obj->productId;
+    					if(empty($res[$index])){
+    						$res[$index] = $obj;
+    					}
+    					 
+    					$res[$index]->quantity  += $p->debitQuantity;
+    				}
+    			}
+    		}
+    	}
+    	 //bp($res);
+    	// Връщаме масив със всички експедирани продукти по тази сделка
+    	return $res;
     }
 }

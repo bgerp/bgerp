@@ -38,7 +38,7 @@ class dec_DeclarationTypes extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_SaveAndNew, plg_Modified, sales_Wrapper, 
-    				 dec_Wrapper, doc_ActivatePlg, plg_Printing, plg_RowTools';
+    				 doc_ActivatePlg, plg_Printing, plg_RowTools';
     
     
     /**

@@ -35,7 +35,7 @@ class deals_AdvanceDeals extends deals_Deals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, deals_WrapperPol, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**

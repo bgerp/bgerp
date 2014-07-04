@@ -27,7 +27,7 @@ class bgerp_plg_Fancybox extends core_Plugin
      * @param array $imgAttr
      * @param array $aAttr
      */
-    function on_BeforeGetImage($mvc, &$resTpl, $fh, $thumbSize, $maxSize, $baseName, $imgAttr = array(), $aAttr = array())
+    function on_BeforeGetImage($mvc, &$resTpl, $fh, $thumbSize, $maxSize, $baseName = NULL, $imgAttr = array(), $aAttr = array())
     {
         // Да сработва само за plain режим
         if (!Mode::is('text', 'plain')) return ;

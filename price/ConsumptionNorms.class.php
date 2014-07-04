@@ -55,7 +55,7 @@ class price_ConsumptionNorms extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, price_Wrapper, price_ConsumptionNormWrapper, doc_DocumentPlg,
+    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg';
     
     

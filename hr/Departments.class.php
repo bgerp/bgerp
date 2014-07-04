@@ -312,20 +312,14 @@ class hr_Departments extends core_Master
     {
     	$chartType = Request::get('Chart');
     	
-    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
-        
-        $tabs->TAB('List', 'Таблица', array($mvc, 'list', 'Chart'=> 'List'));
-
-        $tabs->TAB('Structure', 'Графика', array($mvc, 'list', 'Chart'=> 'Structure'));
-       
         if($chartType == 'Structure') {
         	
         	$tpl = static::getChart($data);
+        	
+        	$mvc->currentTab = "Структура->Графика";
+        } else {
+            $mvc->currentTab = "Структура->Таблица";
         }
-        
-        $tpl = $tabs->renderHtml($tpl, $chartType);
-               
-        $mvc->currentTab = 'Структура';
     }
     
     
@@ -335,7 +329,7 @@ class hr_Departments extends core_Master
     static function getChart ($data)
     {
       
-    	foreach($data->recs as $rec){
+    	foreach((array)$data->recs as $rec){
     	    // Ако имаме родител 
     		if($parent = $rec->staff) { 
     			// взимаме чистото име на наследника
