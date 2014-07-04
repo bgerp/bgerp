@@ -783,7 +783,6 @@ class email_Mime extends core_BaseClass
 
         }
 
-
         $p = &$this->parts[$index];
         
         if(!is_object($p)) {
@@ -857,8 +856,17 @@ class email_Mime extends core_BaseClass
         // Парсираме хедър-а 'Content-Disposition'
         $cd = $this->extractHeader($p, 'Content-Disposition', array('filename'));
         
-        if($cd[0]) {
+        // Парсираме хедър-а 'Content-ID'
+        $cid = $this->getHeader('Content-ID', $p);
+        
+        if ($cd[0]) {
             $p->attachment = $cd[0];
+        } else {
+            
+            // Ако е изпуснат Content-Disposition, но има Content-ID, отбелязваме файла, като inline
+            if ($cid) {
+                $p->attachment = 'inline';
+            }
         }
         
         // Ако частта е съставна, рекурсивно изваждаме частите и
@@ -961,6 +969,11 @@ class email_Mime extends core_BaseClass
                     $p->data = $text;
                 }
                 
+                // Ако е прикачен файл, намаляме рейтинга
+                if ($p->attachment) {
+                    $textRate = $textRate * 0.5;
+                }
+                
                 if($textRate > (1.05 * $this->bestTextRate)) {
                     if($p->subType == 'HTML') {
                         // Записваме данните
@@ -982,7 +995,9 @@ class email_Mime extends core_BaseClass
                 
                 // Ако частта представлява атачнат файл, определяме името му и разширението му
                 $fileName = $this->getFileName($index);
-                $cid = trim($this->getHeader('Content-ID', $p), '<>');
+                
+                $cid = trim($cid, '<>');
+                
                 $p->filemanId = $this->addFile($data, $fileName, 'inline', $cid);
             }
         }
