@@ -479,8 +479,24 @@ class core_App
      */
     public static function getCurrentUrl()
     {
-        // Всички параметри в рекуеста
-        $params = Request::getParams();
+        // Ако заявката е по AJAX
+        if (Request::get('ajax_mode')) {
+            
+            // Ако е зададено URL на страницата, от която се вика AJAX заявката
+            $parentUrlStr = Request::get('parentUrl');
+            if ($parentUrlStr) {
+                
+                // Парсираме URL-то
+                $parentUrlArr = static::parseLocalUrl($parentUrlStr);
+            }
+        }
+        
+        if ($parentUrlArr) {
+            $params = $parentUrlArr;
+        } else {
+            // Всички параметри в рекуеста
+            $params = Request::getParams();
+        }
         
         // Ако има параметри
         if ($params) {
