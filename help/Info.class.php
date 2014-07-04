@@ -98,6 +98,8 @@ class help_Info extends core_Master
             2 => 'lg',
     		3 => 'text',
     	);
+
+        $mvc->importing = TRUE;
     	
     	// Импортираме данните от CSV файла. 
     	// Ако той не е променян - няма да се импортират повторно 
@@ -128,6 +130,9 @@ class help_Info extends core_Master
      */
     function on_AfterSave($mvc, $id, $rec) 
     {
+        // За да не променяме излишно хелпа
+        if($mvc->importing || !haveRole('help')) return;
+
         $query = self::getQuery();
         
         while($r = $query->fetch()) {
