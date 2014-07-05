@@ -86,7 +86,7 @@ class core_Browser extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_SystemWrapper, plg_Created, plg_GroupByDate';
+    var $loadList = 'plg_SystemWrapper, plg_Created, plg_GroupByDate, plg_RowTools';
     
     
     /**
@@ -95,13 +95,27 @@ class core_Browser extends core_Manager
     function description()
     {
         $this->FLD('brid', 'varchar(8)', 'caption=BRID');
-        $this->FLD('browser', 'varchar(16)', 'caption=Браузър');
-        $this->FLD('OS', 'varchar(16)', 'caption=ОС');
+        $this->FLD('userAgent', 'text', 'caption=User agent');
         
         $this->setDbUnique('brid');
     }
     
+
+    /**
+     * След преобразуването към вербални стойности, проказваме OS и Browser, като
+     * скриваме USER_AGENT стринга зад отварящ се блок
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    {
+        $os = static::getUserAgentOsName($rec->userAgent);
+        $browser = static::getUserAgentBrowserName($rec->userAgent);
+        $row->userAgent = str_replace('[', '&#91;', $row->userAgent);
+
+        $rt = core_Type::getByName('richtext');
+        $row->userAgent = $rt->toVerbal("[hide={$browser} / {$os}]{$row->userAgent}[/hide]");       
+    }
     
+
     /**
      * Връща уникален BRID
      * 1. Търси в сесията
@@ -179,9 +193,8 @@ class core_Browser extends core_Manager
         
         $rec = new stdClass();
         $rec->brid = $brid;
-        $rec->browser = static::getBrowserName();
-        $rec->OS = static::getOSName();
-        
+        $rec->userAgent = static::getUserAgent();
+         
         static::save($rec, NULL, REPLACE);
     }
     
@@ -225,8 +238,8 @@ class core_Browser extends core_Manager
      */
     static function getBridSalt_()
     {
-        $os = static::getOSName();
-        $browser = static::getBrowserName();
+        $os = static::getUserAgentOsName();
+        $browser = static::getUserAgentBrowserName();
         $bridSalt = $os . '_' . $browser;
         
         return $bridSalt;
@@ -247,50 +260,25 @@ class core_Browser extends core_Manager
     
     
     /**
-     * Връща името на браузъра
-     * 
-     * @return string
-     */
-    static function getBrowserName_()
-    {
-        static $browserName='';
-        
-        if ($browserName) return $browserName;
-        
-        // Ако може да се използва browserCap
-        $browserCap = static::getBrowserCap();
-        
-        if ($browserCap) {
-            $browserName = $browserCap->browser;
-        }
-        
-        if ($browserName) return $browserName;
-        
-        // Името на браузъра от HTTP_USER_AGENT
-        $browserName = static::getUserAgentBrowserName();
-        
-        return $browserName;
-    }
-    
-    
-    /**
      * Връща името на браузъра от HTTP_USER_AGENT
      * 
      * @return string
      */
-    static function getUserAgentBrowserName()
+    static function getUserAgentBrowserName($userAgent = NULL)
     {
-        // Вземаме ОС от HTTP_USER_AGENT
-        $userAgent = static::getUserAgent();
+        if(!$userAgent) {
+            // Вземаме ОС от HTTP_USER_AGENT
+            $userAgent = static::getUserAgent();
+        }
 
         $browser = "Unknown Browser";
     
         $browserArray = array(
+                                '/opera/i' => 'Opera',
                                 '/msie/i' => 'Internet Explorer',
                                 '/firefox/i' => 'Firefox',
-                                '/safari/i' => 'Safari',
                                 '/chrome/i' => 'Chrome',
-                                '/opera/i' => 'Opera',
+                                '/safari/i' => 'Safari',
                                 '/netscape/i' => 'Netscape',
                                 '/maxthon/i' => 'Maxthon',
                                 '/konqueror/i' => 'Konqueror',
@@ -300,50 +288,28 @@ class core_Browser extends core_Manager
         foreach ($browserArray as $regex => $value) { 
             if (preg_match($regex, $userAgent)) {
                 $browser = $value;
-//                break;
+                break;
             }
         }
     
         return $browser;
     }
     
-    
-    /**
-     * Връща името на операционната система, в която е стартиран браузъра
-     * 
-     * @return string
-     */
-    static function getOSName_()
-    {
-        static $osPlatform;
-        
-        if ($osPlatform) return $osPlatform;
-        
-        // Ако може да се използва browserCap
-        $browserCap = static::getBrowserCap();
-        
-        if ($browserCap) {
-            $osPlatform = $browserCap->platform;
-        }
-        
-        if ($osPlatform) return $osPlatform;
-        
-        $osPlatform = static::getUserAgentOsName();
-        
-        return $osPlatform;
-    }
-    
-    
+ 
+     
     /**
      * Връща името на ОС от HTTP_USER_AGENT
      * 
      * @return string
      */
-    static function getUserAgentOsName()
+    static function getUserAgentOsName($userAgent = NULL)
     {
-        // Вземаме ОС от HTTP_USER_AGENT
-        $userAgent = static::getUserAgent();
-        $osPlatform = "Unknown";
+        if(!$userAgent) {
+            // Вземаме ОС от HTTP_USER_AGENT
+            $userAgent = static::getUserAgent();
+        }
+        
+        $osPlatform = "Unknown OS";
         
         $osArray = array(
                             '/windows nt 6.3/i'     =>  'Windows 8.1',
@@ -375,23 +341,26 @@ class core_Browser extends core_Manager
     
             if (preg_match($regex, $userAgent)) {
                 $osPlatform = $value;
-//                break;
+                break;
             }
         }
-        
+
         return $osPlatform;
     }
     
+
+    function act_Test()
+    {
+
+        return self::getUserAgentOsName();
+    }
     
     /**
      * Връща $_SERVER['HTTP_USER_AGENT']
      */
     static function getUserAgent()
     {
-        static $userAgent='';
-        if (!$userAgent) {
-            $userAgent = $_SERVER['HTTP_USER_AGENT'];
-        }
+        $userAgent = $_SERVER['HTTP_USER_AGENT'];
         
         return $userAgent;
     }
@@ -412,7 +381,7 @@ class core_Browser extends core_Manager
                 $browser = get_browser();
             }
         }
-        
+ 
         return $browser;
     }
     
