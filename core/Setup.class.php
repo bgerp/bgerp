@@ -339,8 +339,8 @@ class core_Setup extends core_ProtoSetup {
      */
     function clearBrowserInfo()
     {
-        $Browsers = cls::get('core_Browsers');
+        $Browser = cls::get('core_Browser');
 
-        $Browsers->db->query("TRUNCATE TABLE `{$Browsers->dbTableName}`");
+        $Browser->db->query("TRUNCATE TABLE `{$Browser->dbTableName}`");
     }
 }
