@@ -115,6 +115,8 @@ class core_Browser extends core_Manager
             $rt = core_Type::getByName('richtext');
             $row->userAgent = $rt->toVerbal("[hide={$browser} / {$os}]{$row->userAgent}[/hide]");
         }
+
+        $row->brid = str::coloring($row->brid);
     }
     
 
