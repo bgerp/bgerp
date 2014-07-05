@@ -107,12 +107,14 @@ class core_Browser extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-        $os = static::getUserAgentOsName($rec->userAgent);
-        $browser = static::getUserAgentBrowserName($rec->userAgent);
-        $row->userAgent = str_replace('[', '&#91;', $row->userAgent);
+        if($row->userAgent) {
+            $os = static::getUserAgentOsName($rec->userAgent);
+            $browser = static::getUserAgentBrowserName($rec->userAgent);
+            $row->userAgent = str_replace('[', '&#91;', $row->userAgent);
 
-        $rt = core_Type::getByName('richtext');
-        $row->userAgent = $rt->toVerbal("[hide={$browser} / {$os}]{$row->userAgent}[/hide]");       
+            $rt = core_Type::getByName('richtext');
+            $row->userAgent = $rt->toVerbal("[hide={$browser} / {$os}]{$row->userAgent}[/hide]");
+        }
     }
     
 
