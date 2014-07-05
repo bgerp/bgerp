@@ -277,16 +277,17 @@ class core_Browser extends core_Manager
 
         $browser = "Unknown Browser";
     
-        $browserArray = array(
+        $browserArray = array( '/mobile/i' => 'Mobile Browser',
+                                '/opera mobi/i' => 'Opera Mobi',
                                 '/opera/i' => 'Opera',
-                                '/msie/i' => 'Internet Explorer',
+                                '/msie|trident/i' => 'Internet Explorer',
                                 '/firefox/i' => 'Firefox',
                                 '/chrome/i' => 'Chrome',
                                 '/safari/i' => 'Safari',
                                 '/netscape/i' => 'Netscape',
                                 '/maxthon/i' => 'Maxthon',
                                 '/konqueror/i' => 'Konqueror',
-                                '/mobile/i' => 'Handheld Browser'
+                                
                             );
     
         foreach ($browserArray as $regex => $value) { 
@@ -316,6 +317,12 @@ class core_Browser extends core_Manager
         $osPlatform = "Unknown OS";
         
         $osArray = array(
+                            '/iphone/i'             =>  'iPhone',
+                            '/ipod/i'               =>  'iPod',
+                            '/ipad/i'               =>  'iPad',
+                            '/android/i'            =>  'Android',
+                            '/blackberry/i'         =>  'BlackBerry',
+                            '/webos/i'              =>  'Mobile',
                             '/windows nt 6.3/i'     =>  'Windows 8.1',
                             '/windows nt 6.2/i'     =>  'Windows 8',
                             '/windows nt 6.1/i'     =>  'Windows 7',
@@ -325,19 +332,14 @@ class core_Browser extends core_Manager
                             '/windows xp/i'         =>  'Windows XP',
                             '/windows nt 5.0/i'     =>  'Windows 2000',
                             '/windows me/i'         =>  'Windows ME',
-                            '/win98/i'              =>  'Windows 98',
-                            '/win95/i'              =>  'Windows 95',
+                            '/win[a-z_ ]{0,6}98/i'  =>  'Windows 98',
+                            '/win[a-z_ ]{0,6}95/i'  =>  'Windows 95',
                             '/win16/i'              =>  'Windows 3.11',
+                            '/windows/i'            =>  'Windows',
                             '/macintosh|mac os x/i' =>  'Mac OS X',
                             '/mac_powerpc/i'        =>  'Mac OS 9',
-                            '/linux/i'              =>  'Linux',
                             '/ubuntu/i'             =>  'Ubuntu',
-                            '/iphone/i'             =>  'iPhone',
-                            '/ipod/i'               =>  'iPod',
-                            '/ipad/i'               =>  'iPad',
-                            '/android/i'            =>  'Android',
-                            '/blackberry/i'         =>  'BlackBerry',
-                            '/webos/i'              =>  'Mobile'
+                            '/linux/i'              =>  'Linux',
                         );
         
         // Проверяваме регулярните изрази
