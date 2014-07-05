@@ -686,4 +686,19 @@ class core_String
         return $result;
     }
 
+
+    /**
+     * Оцветява текст по относително уникален начин, в зависимост от съдържанието му
+     */
+    static function coloring($text)
+    {
+        $txColor = str_pad(dechex(hexdec(substr($hash = md5($text), 0, 6)) & 0x070707), 6, '0', STR_PAD_LEFT);
+        
+        $bgColor = str_pad(dechex(hexdec(substr($hash, 6, 6)) | 0x808080), 6, '0', STR_PAD_LEFT);
+
+        $text = "<span style='color:#{$txColor}; background-color:#{$bgColor}'>" . $text . "</span>";;
+
+        return $text;
+    }
+
 }
