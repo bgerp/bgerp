@@ -507,16 +507,11 @@ class core_LoginLog extends core_Manager
     	}
     	
     	// Оцветяваме BRID
-    	$bridTextColor = static::getTextColor($rec->brid);
-    	$brinFontColor = static::getFontColor($rec->brid);
-    	$row->brid = "<span style='color: {$bridTextColor}; background-color: {$brinFontColor};'>" . $row->brid . "</span>";
+    	$row->brid = str::coloring($row->brid);
     	
         if ($rec->ip) {
-    	    
-        	// Оцветяваме IP-то
-        	$ipTextColor = static::getTextColor($rec->ip);
-        	$ipFontColor = static::getFontColor($rec->ip);
-            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, array('style' => "color: {$ipTextColor}; background-color: {$ipFontColor};"));
+        	// Декорираме IP-то
+            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, TRUE);
     	}
     }
     
@@ -617,87 +612,4 @@ class core_LoginLog extends core_Manager
         }
     }
     
-    
-    /**
-     * Връща цвете на текста от подадения стринг
-     * 
-     * @param string $text
-     * 
-     * @return string
-     */
-    static function getTextColor($text)
-    {
-        $color = static::getColorFromText($text, "&", "050505");
-        
-        return $color;
-    }
-    
-    
-    /**
-     * Връща фона за стринга
-     * 
-     * @param string $text
-     * 
-     * @return string
-     */
-    static function getFontColor($text)
-    {
-        $color = static::getColorFromText($text, "|", "C0C0C0");
-        
-        return $color;
-    }
-    
-    
-    /**
-     * От подадения стринг и маска генерира съдържание
-     * 
-     * @param string $text
-     * @param string $operation
-     * @param string $mask
-     * @param string $prefix
-     * 
-     * @return string
-     */
-    static function getColorFromText($text, $operation, $mask, $prefix='#')
-    {
-        // Масив с всички генерирание цветове
-        static $colorArray = array();
-        
-        $textStr = $text . $operation . $mask;
-        
-        // Ако не сме генерирали цвят за този текст с тази маска и операция
-        if (!$colorArray[$textStr]) {
-            
-            // Хеша на текста
-            $hash = md5($text);
-            
-            // RGB на текста
-            $r = hexdec(substr($hash, 0, 2));
-            $g = hexdec(substr($hash, 2, 2));
-            $b = hexdec(substr($hash, 4, 2));
-            
-            // RGB от маската
-            $rM = hexdec(substr($mask, 0, 2));
-            $gM = hexdec(substr($mask, 2, 2));
-            $bM = hexdec(substr($mask, 4, 2));
-            
-            // В зависимост от операцията
-            if ($operation == '|') {
-                $rC = $r | $rM;
-                $gC = $g | $gM;
-                $bC = $b | $bM;
-            } elseif ($operation == '&') {
-                $rC = $r & $rM;
-                $gC = $g & $gM;
-                $bC = $b & $bM;
-            }
-            
-            // Добавяме получения цвят в масива
-            $colorArray[$textStr] = str_pad(dechex($rC), 2, 0, STR_PAD_LEFT) . 
-                    str_pad(dechex($gC), 2, 0, STR_PAD_LEFT) . 
-                    str_pad(dechex($bC), 2, 0, STR_PAD_LEFT);
-        }
-        
-        return $prefix . $colorArray[$textStr];
-    }
 }
