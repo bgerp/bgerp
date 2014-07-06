@@ -136,7 +136,7 @@ class email_Incomings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,subject,createdOn=Дата,fromEml=От,toBox=До,accId,boxIndex,routeBy,uid,country';
+    var $listFields = 'id,subject,createdOn=Дата,fromEml=От,toBox=До,accId,routeBy,uid,country';
     
     
     /**
@@ -173,7 +173,6 @@ class email_Incomings extends core_Master
         $this->FLD('files', 'keylist(mvc=fileman_Files)', 'caption=Файлове, input=none');
         $this->FLD('emlFile', 'key(mvc=fileman_Files)', 'caption=eml файл, input=none');
         $this->FLD('htmlFile', 'key(mvc=fileman_Files)', 'caption=html файл, input=none');
-        $this->FLD('boxIndex', 'int', 'caption=Индекс');
         $this->FLD('uid', 'int', 'caption=Imap UID');
         
         $this->FLD('routeBy', 'enum(thread, preroute, from, fromTo, domain, toBox, country)', 'caption=Рутиране');
@@ -664,9 +663,6 @@ class email_Incomings extends core_Master
         if(!$rec->subject) {
             $row->subject .= '[' . tr('Липсва заглавие') . ']';
         }
-        
-        // Показва до събджекта номера на писмото от пощенската кутия
-        // $row->subject .= " ($rec->boxIndex)";
         
         if($fields['-single']) {
             if ($rec->files) {
