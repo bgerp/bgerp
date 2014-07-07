@@ -2,6 +2,11 @@
 
 cls::load('type_Varchar');
 
+/**
+ * Пътя до външния код за изчертаване на карти
+ */
+defIfNot('GMAP3_VERSION', '6.0');
+
 
 /**
  * Клас 'location_Type' -
@@ -71,20 +76,21 @@ class location_Type extends type_Varchar {
         
         $res->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
         
-        $res->push('location/js/gmap3.min.js', 'JS');
+        $res->push("location/" . GMAP3_VERSION . "/gmap3.js", 'JS');
 
         jquery_Jquery::run($res, "\$('#{$id}').gmap3(
-                            { action:'init',
-                            options:{
-                            center:[{$value}],
-                            zoom: 10
-                            }
-                            },
-                            { action: 'addMarker',
-                              latLng:[{$value}]
-                            }
-                            );");
-
+                          {
+						    marker:{
+						      latLng: [{$value}]
+						    },
+						    map:{
+						      options:{
+						        zoom: 14,
+						         center: [{$value}]
+						      }
+						    }
+						  });");
+		
         return $res;
     }
 }
