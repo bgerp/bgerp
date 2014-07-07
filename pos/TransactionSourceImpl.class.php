@@ -45,7 +45,7 @@ class pos_TransactionSourceImpl
     		}
     	}
     	
-    	if(empty($rec->id)){
+    	if(isset($rec->id)){
     		// Генериране на записите
     		$entries = array_merge($entries, $this->getTakingPart($rec, $productsArr, $totalVat, $posRec));
     		
