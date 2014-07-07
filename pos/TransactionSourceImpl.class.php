@@ -45,15 +45,17 @@ class pos_TransactionSourceImpl
     		}
     	}
     	
-    	// Генериране на записите
-        $entries = array_merge($entries, $this->getTakingPart($rec, $productsArr, $totalVat, $posRec));
-        
-        $entries = array_merge($entries, $this->getPaymentPart($rec, $paymentsArr, $posRec));
-        
-        // Начисляване на ддс ако има
-        if(count($totalVat)){
-        	$entries = array_merge($entries, $this->getVatPart($rec, $totalVat, $posRec));
-        }
+    	if(empty($rec->id)){
+    		// Генериране на записите
+    		$entries = array_merge($entries, $this->getTakingPart($rec, $productsArr, $totalVat, $posRec));
+    		
+    		$entries = array_merge($entries, $this->getPaymentPart($rec, $paymentsArr, $posRec));
+    		
+    		// Начисляване на ддс ако има
+    		if(count($totalVat)){
+    			$entries = array_merge($entries, $this->getVatPart($rec, $totalVat, $posRec));
+    		}
+    	}
         
         $transaction = (object)array(
             'reason'  => 'Отчет за POS продажба №' . $rec->id,
