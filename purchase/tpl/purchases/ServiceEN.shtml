@@ -21,24 +21,19 @@
                     <td class="cell custom-header-bg" width="35%" valign="top"><b>|Receiver|*</b></td>
                     </tr>
                     <tr>
-                    <td class="cell">
-                     <!--ET_BEGIN supplier-->
-                        <b>[#MyCompany#]</b><br>
-                        <br>
-                        [#MyAddress#] <br>
-                    <!--ET_END supplier-->
+                     <td class="cell">
+                        <b>[#MyCompany#]</b>
+                         <div class='address-block'>
+                             [#MyAddress#]
+                         </div>
                     </td>
                     <td class="cell">
-                     <!--ET_BEGIN contragent-->
-                    <div>
-                        <b>[#contragentName#]</b><br>
-                        <br>
-                        <!--ET_BEGIN contragentAddress-->
-                            [#contragentAddress#]<br>
-                        <!--ET_END contragentAddress-->
-                    </div>
-                    <!--ET_END contragent-->
-                  </td>
+                       <b>[#contragentName#]</b>
+                        <div class='address-block'>
+                           [#contragentCountryId#]
+                           <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                       </div>
+                    </td>
                 </tr>
                 </tbody>
             </table>
