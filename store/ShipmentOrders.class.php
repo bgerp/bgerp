@@ -536,10 +536,10 @@ class store_ShipmentOrders extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      * 
      * @param int|object $id
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id, &$aggregator)
+    public function pushDealInfo($id, &$aggregator)
     {
     	$rec = $this->fetchRec($id);
         
@@ -552,14 +552,22 @@ class store_ShipmentOrders extends core_Master
         $dQuery = store_ShipmentOrderDetails::getQuery();
         $dQuery->where("#shipmentId = {$rec->id}");
         
+        // Подаваме на интерфейса най-малката опаковка с която е експедиран продукта
         while ($dRec = $dQuery->fetch()) {
-            $p = new stdClass();
+        	
+            $push = TRUE;
+            $index = $dRec->classId . "|" . $dRec->productId;
+            $shipped = $aggregator->get('shippedPacks');
+            if($shipped && isset($shipped[$index])){
+            	if($shipped[$index]->inPack < $dRec->quantityInPack){
+            		$push = FALSE;
+            	} 
+            } 
             
-            $p->classId     = $dRec->classId;
-            $p->productId   = $dRec->productId;
-            $p->packagingId = $dRec->packagingId;
-            
-            $aggregator->push('shippedPacks', $p);
+            if($push){
+            	$arr = array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
+            	$aggregator->push('shippedPacks', $arr, $index);
+            }
         }
     }
     

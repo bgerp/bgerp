@@ -166,8 +166,7 @@ class dec_Declarations extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        
-    	// Записваме оригиналното ид, ако имаме такова
+        // Записваме оригиналното ид, ако имаме такова
     	if($data->form->rec->originId){
     		$data->form->setDefault('doc', $data->form->rec->originId);
     		
@@ -181,7 +180,7 @@ class dec_Declarations extends core_Master
     		$firstDoc = doc_Threads::getFirstDocument($data->form->rec->threadId);
     		if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
     			$deal = $firstDoc->getAggregateDealInfo();
-    		} elseif($firstDoc->haveInterface('bgerp_DealIntf')){
+    		} elseif($firstDoc->haveInterface('bgerp_DealIntf')){bp();
     			$deal = $firstDoc->getDealInfo();
     		}
     		expect($deal);

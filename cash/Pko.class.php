@@ -510,10 +510,10 @@ class cash_Pko extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
      * @param int|object $id
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id, &$aggregator)
+    public function pushDealInfo($id, &$aggregator)
     {
         $rec = self::fetchRec($id);
     	$aggregator->setIfNot('caseId', $rec->peroCase);

@@ -305,10 +305,6 @@ class purchase_Services extends core_Master
     {
     	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$data->row->id}</b> ({$data->row->state})";
-    	
-    	if(haveRole('debug')){
-    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
-    	}
 	}
     
     
@@ -451,10 +447,10 @@ class purchase_Services extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      * 
      * @param int|object $id
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id, &$aggregator)
+    public function pushDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
         
@@ -484,18 +480,6 @@ class purchase_Services extends core_Master
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     	}
-    }
-    
-    
- 	/**
-     * Дебъг екшън показващ агрегираните бизнес данни
-     */
-    function act_DealInfo()
-    {
-    	requireRole('debug');
-    	expect($id = Request::get('id', 'int'));
-    	$info = $this->getDealInfo($id);
-    	bp($info->shipped, $this->fetch($id));
     }
     
     

@@ -457,9 +457,9 @@ class bank_SpendingDocuments extends core_Master
     
     
 	/**
-     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     * Имплементация на @link bgerp_DealIntf::pushDealInfo()
      */
-    public function getDealInfo($id, &$aggregator)
+    public function pushDealInfo($id, &$aggregator)
     {
         $rec = self::fetchRec($id);
         $aggregator->setIfNot('bankAccountId', bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId'));

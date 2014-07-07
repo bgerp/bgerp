@@ -510,9 +510,9 @@ class cash_Rko extends core_Master
     
     
 	/**
-     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     * Имплементация на @link bgerp_DealIntf::pushDealInfo()
      */
-    public function getDealInfo($id, &$aggregator)
+    public function pushDealInfo($id, &$aggregator)
     {
         $rec = self::fetchRec($id);
         $aggregator->setIfNot('caseId', $rec->peroCase);

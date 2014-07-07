@@ -730,10 +730,10 @@ class purchase_Purchases extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      * 
      * @param int|object $id
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id, &$result)
+    public function pushDealInfo($id, &$result)
     {
     	$rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
@@ -854,7 +854,7 @@ class purchase_Purchases extends core_Master
         $aggregateInfo = new bgerp_iface_DealAggregator;
          
         // Извличаме dealInfo от самата покупка
-        $this->getDealInfo($requestRec->id, $aggregateInfo);
+        $this->pushDealInfo($requestRec->id, $aggregateInfo);
         
         /* @var $d core_ObjectReference */
         foreach ($requestDocuments as $d) {
@@ -865,7 +865,7 @@ class purchase_Purchases extends core_Master
             }
         
             if ($d->haveInterface('bgerp_DealIntf')) {
-                $d->instance->getDealInfo($d->that, $aggregateInfo);
+                $d->instance->pushDealInfo($d->that, $aggregateInfo);
             }
         }
         
