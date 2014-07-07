@@ -55,7 +55,8 @@ class acc_plg_DpInvoice extends core_Plugin
         $form->dealInfo = $dealInfo;
         
         // Ако няма очаквано авансово плащане не правим нищо
-        if(empty($dealInfo->get('agreedDownpayment'))) return;
+        $aggreedDownpayment = $dealInfo->get('agreedDownpayment');
+        if(empty($aggreedDownpayment)) return;
         
         if(empty($form->rec->id)){
         	
