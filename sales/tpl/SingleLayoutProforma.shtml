@@ -43,14 +43,19 @@
 		</tr>           
 		<tr>
 		    <td class="cell">
-		        <b>[#contragentName#]</b><br>
-		        <b>[#contragentCountryId#]</b><br>
-		        [#contragentAddress#]
-		    </td>
-		    <td class="cell">
-		         <b>[#MyCompany#]</b><br>
-		         [#MyAddress#] <br>
-		    </td>
+                <b>[#contragentName#]</b>
+                <div class='address-block'>
+                   [#contragentCountryId#]
+                   <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+               </div>
+                
+            </td>
+            <td class="cell">
+                 <b>[#MyCompany#]</b>
+                 <div class='address-block'>
+                     [#MyAddress#]
+                 </div>
+            </td>
 		</tr>
 		<tr>
 		    <td class="cell">

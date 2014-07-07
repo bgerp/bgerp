@@ -488,7 +488,6 @@ class sales_SaleRequests extends core_Master
         
         $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
         $row->contragentAddress = $contragent->getFullAdress();
-        
         $row->contragentName = $contragent->getTitleById();
     }
     

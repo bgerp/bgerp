@@ -21,14 +21,14 @@
    </tr>           
    <tr>
        <td class="cell">
-           <p class='title-info'>[#company#]</p>
-		   <p class='title-info'>[#person#]</p>
-		   <p class='title-info'>[#contragentAdress#]</p>
+           <div><b>[#company#]</b></div>
+		   <div><b>[#person#]</b></div>
+		   <div class='address-block'>[#contragentAddress#]</div>
        </td>
 
        <td class="cell">
-           [#MyCompany#]<br>
-           [#MyAddress#]<br>
+           <b>[#MyCompany#]</b>
+            <div class='address-block'>[#MyAddress#]</div>
        </td>
    </tr>
    <tr>
