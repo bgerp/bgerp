@@ -76,14 +76,19 @@ class bgerp_iface_DealAggregator
 	 * @param string $name - име на пропърти
 	 * @param mixed $array - масив, обект или скалар който да се добавя към масива
 	 */
-	public function push($name, $array)
+	public function push($name, $array, $index = NULL)
 	{
 		// Ако няма такова пропърти, създаваме го
 		if(!isset($this->$name)){
 			$this->$name = array();
 		}
 		
-		// Долепяме в края на масива
-		array_push($this->$name, $array);
+		if($index){
+			$a = &$this->$name;
+			$a[$index] = $array;
+		} else {
+			// Долепяме в края на масива
+			array_push($this->$name, $array);
+		}
 	}
 }
