@@ -180,16 +180,7 @@ class vislog_History extends core_Manager {
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-       // $row->ip = ht::createLink($row->ip, "http://bgwhois.com/?query=" . $rec->ip, NULL, array('target' => '_blank'));
-        
-        // Ако имаме име на това ip - слагаме го като префикс, ако не - държавата
-       // if($ipName = vislog_IpNames::fetchField(array("#ip = '[#1#]'", $rec->ip), 'name')) {
-       //     $name = $ipName;
-       // } else {
-        //    $name = $mvc->IpToCountry->get($rec->ip);
-       // }
-
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, TRUE);
         
         $ref = vislog_Referer::getReferer($rec->ip, $rec->createdOn);
 

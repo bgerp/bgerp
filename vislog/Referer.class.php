@@ -129,7 +129,7 @@ class vislog_Referer extends core_Manager {
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-         $row->ip =  type_Ip::decorateIp($rec->ip, $rec->createdOn);
+         $row->ip =  type_Ip::decorateIp($rec->ip, $rec->createdOn, TRUE);
     }
 
 

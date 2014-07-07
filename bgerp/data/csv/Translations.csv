@@ -896,7 +896,7 @@ en,Брой,Number
 en,normal,normal
 en,Затворено,Closed
 en,Точки,Points
-en,Типове сигнали,Types of signals
+en,Типове сигнали,Issue types
 en,Нов вътрешен,New internal
 en,Получено на,Received on
 en,Мобилен номер,Mobile number
@@ -1249,8 +1249,8 @@ en,Циркулярни име_3d6e,Circular emails
 en,Ценоразписи,Price lists
 en,Фактури за про_aec89,Sales Invoice
 en,Списъци с конт_d23a7,Contact lists
-en,Сигнали,Signals
-en,Резолюция на с_c297a,Resolution on the signal
+en,Сигнали,Issues
+en,Резолюция на с_c297a,Issues Resolution
 en,Разходни касов_8e6a,Debit cash orders
 en,Разходни банко_a3df,Outgoing bank transfers
 en,Разходни Норми,Consumption norms
@@ -1258,7 +1258,7 @@ en,Приходни касов_b832,Credit cash orders
 en,Приходни банко_d760,Incoming bank transfers
 en,Превантивни де_876d,Preventive action
 en,Платежни нареж_731d,Payment orders
-en,Оценка на сигнал,Rating of the signal
+en,Оценка на сигнал,Issue Evaluation
 en,Оферти за покупки,Quotations for purchases
 en,Отчети за бърз_50379,Reports for quick sales
 en,Нареждане разп_4678,Cash payment order
