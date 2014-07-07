@@ -29,12 +29,17 @@
                         <td class='top-head'><b>|Получател|*</b></td>
                     </tr>
                     <tr>
-                        <td style='padding-top:10px;'>
+                        <td>
                             <b>[#contragentName#]</b>
+                             <div class='address-block'>
+                             [#contragentAddress#]
+                             </div>
                         </td>
-                        <td style='padding-top:10px;' class='align-top-td'>
+                        <td class='align-top-td'>
                             <b>[#companyName#]</b>
+                            <div class='address-block'>
                             [#companyAddress#]
+                            </div>
                         </td>
                     </tr>
                     </table>

@@ -376,6 +376,9 @@ class bank_IncomeDocuments extends core_Master
 	    	$Companies = cls::get('crm_Companies');
 	    	$row->companyName = $Companies->getTitleById($ownCompany->companyId);
 	    	$row->companyAddress = $Companies->getFullAdress($ownCompany->companyId);
+	    	
+	    	$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+	    	$row->contragentAddress = $contragent->getFullAdress();
 	    }
     }
     
