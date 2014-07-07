@@ -2253,22 +2253,24 @@ class crm_Persons extends core_Master
      */
     public function getFullAdress($id)
     {
-    	$adress = '';
-    	expect($rec = $this->fetch($id));
-    	if($rec->country){
-    		$adress .= crm_Persons::getVerbal($rec, 'country');
-    	}
+    	expect($rec = $this->fetchRec($id));
     	
+    	$obj = new stdClass();
+    	$tpl = new ET("[#country#]<br>[#pCode#] [#place#]<br>[#address#]");
+    	if($rec->country){
+    		$obj->country = crm_Persons::getVerbal($rec, 'country');
+    	}
+    
+    	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->$fld){
-    			$adress .= ((strlen($adress) && $fld != 'place') ? ", " : " ") . $rec->$fld;
+    			$obj->$fld = $Varchar->toVerbal($rec->$fld);
     		}
     	}
     	
-    	$Varchar = cls::get('type_Varchar');
-    	$adress = $Varchar->toVerbal($adress);
+    	$tpl->placeObject($obj);
     	
-    	return trim($adress);
+    	return $tpl;
     }
 
 

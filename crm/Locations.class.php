@@ -394,7 +394,9 @@ class crm_Locations extends core_Master {
     
     /**
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
+     * 
      * @param int $id
+     * @return core_ET $tpl 
      */
     public static function getAddress($id)
     {
@@ -403,25 +405,9 @@ class crm_Locations extends core_Master {
     	
     	$string = '';
     	
-    	if($rec->countryId){
-    		$string .= $row->countryId . ", ";
-    	}
+    	$tpl = new ET("[#countryId#]<br>[#pCode#] [#place#]<br>[#address#]");
+    	$tpl->placeObject($row);
     	
-    	if($rec->pCode){
-    		$string .= $row->pCode . " ";
-    	}
-    	
-    	if($rec->place){
-    		$string .= $row->place . ", ";
-    	}
-    	
-    	if(!$rec->address){
-    		$string .= $row->address;
-    	}
-    	
-    	$Varchar = cls::get('type_Varchar');
-    	$sting = $Varchar->toVerbal($string);
-    	
-    	return trim($string, ", ");
+    	return $tpl;
     }
 }
