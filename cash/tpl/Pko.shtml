@@ -23,10 +23,21 @@
 					<td class='top-head'><b>|Получател|*</b></td>
 				</tr>
 				<tr>
-					<td style='padding-top:10px;'>
-					<b>[#contragentName#]</b><br>[#contragentAddress#]<br><br>[#creditAccounts#]</td>
-					<td style='padding-top:10px;' class='align-top-td'>
-					<b>[#organisation#]</b><br />[#organisationAddress#]<br><br>|Каса|*<b>: [#peroCase#]</b>
+					<td>
+					<b>[#contragentName#]</b>
+					<div class='address-block'>
+                    [#contragentAddress#]
+                    </div>
+                    [#creditAccounts#]
+                    </td>
+					<td class='align-top-td'>
+					<b>[#organisation#]</b>
+					<div class='address-block'>
+					[#organisationAddress#]
+					</div>
+					<div class='address-block'>
+                    |Каса|*<b>: [#peroCase#]</b>
+                    </div>
 					</td>
 				</tr>
 				</table>

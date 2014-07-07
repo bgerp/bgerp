@@ -349,14 +349,8 @@ class cash_Rko extends core_Master
     	if($fields['-single']){
     		
     		// Адреса на контрагента
-    		$row->contragentAddress = trim(
-                sprintf("<br>%s<br>%s %s<br> %s", 
-                 	$row->contragentCountry,
-                    $row->contragentPcode,
-                    $row->contragentPlace,
-                    $row->contragentAdress
-                )
-            );
+    		$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+    		$row->contragentAddress = $contragent->getFullAdress();
     	   
     		if($rec->rate != 1) {
 		   		$rec->equals = round($rec->amount * $rec->rate, 2);
