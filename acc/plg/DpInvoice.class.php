@@ -63,9 +63,9 @@ class acc_plg_DpInvoice extends core_Plugin
         	// Поставяне на дефолт стойностти
         	self::getDefaultDpData($form);
         }
-        
+       
         // Ако има експедирано, не се показват полетата за начисляване
-    	if($form->rec->dpOperation == 'accrued' && $form->dealInfo->shipped->amount){
+    	if($form->rec->dpOperation == 'accrued' && $form->dealInfo->get('deliveryAmount')){
     		
     		return;
     	}
