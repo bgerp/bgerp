@@ -997,13 +997,44 @@ class sales_Sales extends core_Master
             
             $result->push('products', $p);
             
-            if (isset($actions['ship'])) {
-            	$p1 = clone $p;
-            	$result->push('shippedPacks', $p1);
+            if (isset($actions['ship']) && !empty($dRec->packagingId)) {
+            	$push = TRUE;
+            	$index = $dRec->classId . "|" . $dRec->productId;
+            	$shipped = $result->get('shippedPacks');
+            	if($shipped && isset($shipped[$index])){
+            		if($shipped[$index]->inPack < $dRec->quantityInPack){
+            			$push = FALSE;
+            		}
+            	}
+            	
+            	if($push){
+            		$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
+            		$result->push('shippedPacks', $arr, $index);
+            	}
             }
             
             $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($rec->id));
         }
+        
+        /*
+         * if(empty($dRec->packagingId)) continue;
+        	
+        	// Подаваме най-малката опаковка в която е експедиран продукта
+            $push = TRUE;
+            $index = $dRec->classId . "|" . $dRec->productId;
+            $shipped = $aggregator->get('shippedPacks');
+            if($shipped && isset($shipped[$index])){
+            	if($shipped[$index]->inPack < $dRec->quantityInPack){
+            		$push = FALSE;
+            	} 
+            } 
+            
+            // Ако ще обновяваме информацията за опаковката
+            if($push){
+            	$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
+            	$aggregator->push('shippedPacks', $arr, $index);
+            }
+         */
     }
     
     

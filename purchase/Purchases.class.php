@@ -818,9 +818,20 @@ class purchase_Purchases extends core_Master
             
             $result->push('products', $p);
             
-        	if (isset($actions['ship'])) {
-            	$p1 = clone $p;
-            	$result->push('shippedPacks', $p1);
+        	if (isset($actions['ship']) && !empty($dRec->packagingId)) {
+        		$push = TRUE;
+            	$index = $dRec->classId . "|" . $dRec->productId;
+            	$shipped = $result->get('shippedPacks');
+            	if($shipped && isset($shipped[$index])){
+            		if($shipped[$index]->inPack < $dRec->quantityInPack){
+            			$push = FALSE;
+            		}
+            	}
+            	
+            	if($push){
+            		$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
+            		$result->push('shippedPacks', $arr, $index);
+            	}
             }
         }
         
