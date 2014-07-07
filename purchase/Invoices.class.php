@@ -436,6 +436,7 @@ class purchase_Invoices extends core_Master
     		$info = $origin->getAggregateDealInfo();
     		$products = $info->get('shippedProducts');
     		$invoiced = $info->get('invoicedProducts');
+    		$packs = $info->get('shippedPacks');
     		
     		if(count($products) != 0){
     			 
@@ -456,11 +457,17 @@ class purchase_Invoices extends core_Master
     				}
     		
     				if($continue) continue;
-    		
-    				$pInfo = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
-    				$packQuantity = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
-    		
+    				
     				$dRec = clone $product;
+    				$index = $product->classId . "|" . $product->productId;
+    				if($packs[$index]){
+    					$packQuantity = $packs[$index]->inPack;
+    					$dRec->packagingId = $packs[$index]->packagingId;
+    				} else {
+    					$packQuantity = 1;
+    					$dRec->packagingId = NULL;
+    				}
+    		
     				$dRec->invoiceId      = $rec->id;
     				$dRec->classId        = $product->classId;
     				$dRec->price 		  = $product->amount / $product->quantity;

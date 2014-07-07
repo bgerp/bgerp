@@ -554,7 +554,9 @@ class store_ShipmentOrders extends core_Master
         
         // Подаваме на интерфейса най-малката опаковка с която е експедиран продукта
         while ($dRec = $dQuery->fetch()) {
+        	if(empty($dRec->packagingId)) continue;
         	
+        	// Подаваме най-малката опаковка в която е експедиран продукта
             $push = TRUE;
             $index = $dRec->classId . "|" . $dRec->productId;
             $shipped = $aggregator->get('shippedPacks');
@@ -564,8 +566,9 @@ class store_ShipmentOrders extends core_Master
             	} 
             } 
             
+            // Ако ще обновяваме информацията за опаковката
             if($push){
-            	$arr = array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
+            	$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
             	$aggregator->push('shippedPacks', $arr, $index);
             }
         }

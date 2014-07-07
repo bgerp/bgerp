@@ -543,12 +543,23 @@ class store_Receipts extends core_Master
         $dQuery->where("#receiptId = {$rec->id}");
         
         while ($dRec = $dQuery->fetch()) {
-            $p = new stdClass();
-            $p->classId     = $dRec->classId;
-            $p->productId   = $dRec->productId;
-            $p->packagingId = $dRec->packagingId;
+        	if(empty($dRec->packagingId)) continue;
+        	
+        	// Подаваме най-малката опаковка в която е експедиран продукта
+            $push = TRUE;
+            $index = $dRec->classId . "|" . $dRec->productId;
+            $shipped = $aggregator->get('shippedPacks');
+            if($shipped && isset($shipped[$index])){
+            	if($shipped[$index]->inPack < $dRec->quantityInPack){
+            		$push = FALSE;
+            	} 
+            } 
             
-            $aggregator->push('shippedPacks', $p);
+            // Ако ще обновяваме информацията за опаковката
+            if($push){
+            	$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
+            	$aggregator->push('shippedPacks', $arr, $index);
+            }
         }
     }
     
