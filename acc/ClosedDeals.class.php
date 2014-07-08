@@ -428,6 +428,8 @@ abstract class acc_ClosedDeals extends core_Master
         	
         	// Взимаме записа за начисляване на извънредния приход/разход
         	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $dealInfo->dealType, $firstDoc);
+        
+        	$result->entries[] = $entry;
         }
         
         // Създаване на запис за прехвърляне на всеки аванс
@@ -435,12 +437,7 @@ abstract class acc_ClosedDeals extends core_Master
         $result->totalAmount += $total;
         
         // Ако тотала не е нула добавяме ентритата
-    	if($result->totalAmount != 0){
-    		
-    		if(count($entry)){
-    			$result->entries[] = $entry;
-    		}
-    		
+    	if($total != 0){
     		if(count($entry2)){
     			$result->entries = array_merge($result->entries, $entry2);
     		}
