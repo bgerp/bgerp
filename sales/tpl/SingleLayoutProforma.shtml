@@ -63,13 +63,13 @@
 		            <tbody>
 		               <!--ET_BEGIN contragentVatNo-->
 		               <tr>
-		                   <td><small><b>|номер по ЗДДС|* / <i>VAT ID: </i></b></small><span class="bigData">[#contragentVatNo#]</span></td>
+		                   <td align="right"><small>№ |по ЗДДС|* / <i>VAT ID </i></small>:</td><td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
 		               </tr>
 		               <!--ET_END contragentVatNo-->
 		               <!--ET_BEGIN uik-->
 		               [#uik#]
 		               <tr>
-		                   <td><small><b>[#cNum#]: </b></small><span class="bigData">[#uicNo#]</span></td>
+		                   <td align="right"><small>[#cNum#] </small>:</td><td><span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
 		               </tr>
 		               <!--ET_END uik-->
 		            </tbody>
@@ -80,12 +80,12 @@
 		            <tbody>
 		               <!--ET_BEGIN MyCompanyVatNo-->
 		               <tr>
-		                   <td><small><b>|номер по ЗДДС|* / <i>VAT ID: </i></b></small><span class="bigData">[#MyCompanyVatNo#]</span></td>
+		                   <td align="right"><small>№ |по ЗДДС|* / <i>VAT ID </i></small>:</td><td> <span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
 		               </tr>
 		               <!--ET_END MyCompanyVatNo-->
 		               <!--ET_BEGIN uicId-->
 		               <tr>
-		                   <td><small><b>|ЕИК|* / <i>UIC: </i></b></small><span class="bigData">[#uicId#]</span></td>
+		                   <td align="right"><small>|ЕИК|* / <i>UIC </i></small>:</td><td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
 		               </tr>
 		               <!--ET_END uicId-->
 		             </tbody>
