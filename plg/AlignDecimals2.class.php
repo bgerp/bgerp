@@ -54,7 +54,9 @@ class plg_AlignDecimals2 extends core_Plugin
                     max($Type->params['minDecimals'], ${"{$fName}FracLen"})
                 );
 				$Type->params['decimals'] = $optDecimals;
-				$rec->$fName = core_Math::roundNumber($rec->$fName, ${"{$fName}FracLen"});
+				
+				//$rec->$fName = core_Math::roundNumber($rec->$fName, ${"{$fName}FracLen"});
+				
 				$rows[$id]->$fName = $Type->toVerbal($rec->$fName);
 				$fracRegExp = "/(?'delimiter'\,|\.)(?'frac'[0-9]+)/";
 				$rows[$id]->$fName = preg_replace_callback($fracRegExp, array(get_called_class(), '_m'), $rows[$id]->$fName, 1, $cnt);
