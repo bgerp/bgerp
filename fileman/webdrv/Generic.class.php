@@ -174,7 +174,7 @@ class fileman_webdrv_Generic extends core_Manager
             $thumbWidthAndHeightArr = static::getPreviewWidthAndHeight();
             
             // Атрибути на thumbnail изображението
-            $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '', 'class' => 'webdrv-preview', 'style' => 'margin: 0 auto; display: block;');
+            $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '', 'class' => 'webdrv-preview', 'style' => 'margin: 0 auto 5px auto; display: block;');
             
             // Background' а на preview' то
             $bgImg = sbf('fileman/img/Preview_background.jpg');
