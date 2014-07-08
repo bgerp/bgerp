@@ -34,6 +34,12 @@ class purchase_transaction_Purchase
     
     
     /**
+     * Работен кеш
+     */
+    private static $cache2 = array();
+    
+    
+    /**
      * Генериране на счетоводните транзакции, породени от покупка.
      * 
      * Счетоводната транзакция за породена от документ-покупка може да се раздели на три
@@ -269,8 +275,13 @@ class purchase_transaction_Purchase
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
         	$amountBase += $amount * $rec->currencyRate;
-        	$quantityAmountBase += currency_Currencies::round($amount, $rec->currencyId);
         }
+        
+        if($rec->chargeVat == 'separate'){
+        	$amountBase += $rec->_total->vat;
+        }
+        
+        $quantityAmountBase += currency_Currencies::round($amountBase, $rec->currencyId);
         
         $entries[] = array(
                 'amount' => currency_Currencies::round($amountBase), // В основна валута
