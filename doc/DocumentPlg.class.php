@@ -1402,7 +1402,7 @@ class doc_DocumentPlg extends core_Plugin
             if (!$max) {
                 
                 $conf = core_Packs::getConfig('phpmailer');
-                $smtMessageLimit = $conf->SMT_MESSAGE_SIZE_LIMIT;
+                $smtMessageLimit = $conf->SMTP_MESSAGE_SIZE_LIMIT;
                 
                 // Инстанция на класа за определяне на размера
                 $FileSize = cls::get('fileman_FileSize');
