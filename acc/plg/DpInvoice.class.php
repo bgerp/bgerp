@@ -58,17 +58,14 @@ class acc_plg_DpInvoice extends core_Plugin
         $aggreedDownpayment = $dealInfo->get('agreedDownpayment');
         if(empty($aggreedDownpayment)) return;
         
+        // Ако има експедирано, не се показват полетата за начисляване
+        if($form->dealInfo->get('deliveryAmount')) return;
+        
         if(empty($form->rec->id)){
         	
         	// Поставяне на дефолт стойностти
         	self::getDefaultDpData($form);
         }
-       
-        // Ако има експедирано, не се показват полетата за начисляване
-    	if($form->rec->dpOperation == 'accrued' && $form->dealInfo->get('deliveryAmount')){
-    		
-    		return;
-    	}
     	
         // Показване на полетата за авансовите плащания
         $form->setField('dpAmount',"input,mandatory,unit=|*{$rec->currencyId} |без ДДС|*");
@@ -140,7 +137,10 @@ class acc_plg_DpInvoice extends core_Plugin
     	if(empty($form->dealInfo)) return;
     	
     	if ($form->isSubmitted()) {
-        	$rec      = &$form->rec;
+    		
+    		if($form->dealInfo->get('deliveryAmount')) return;
+    		
+        	$rec = &$form->rec;
         	
         	$aggreedDp  = $form->dealInfo->get('agreedDownpayment');
 	    	$actualDp   = $form->dealInfo->get('downpayment');
