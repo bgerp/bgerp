@@ -263,7 +263,8 @@ class cash_Pko extends core_Master
     		$form->rec->operationSysId = $defaultOperation;	
         }
     	$form->setReadOnly('peroCase', cash_Cases::getCurrent());
-    	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
+    	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
+    	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
     	
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
@@ -362,7 +363,7 @@ class cash_Pko extends core_Master
     		// Вземаме данните за нашата фирма
         	$ownCompanyData = crm_Companies::fetchOwnCompany();
         	$Companies = cls::get('crm_Companies');
-        	$row->organisation = $Companies->getTitleById($ownCompanyData->companyId);
+        	$row->organisation = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         	$row->organisationAddress = $Companies->getFullAdress($ownCompanyData->companyId);
             
     		// Извличаме имената на създателя на документа (касиера)

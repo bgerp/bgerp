@@ -217,7 +217,8 @@ class bank_IncomeDocuments extends core_Master
     		$form->rec->operationSysId = $form->defaultOperation;	
         }
     	
-     	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
+        $cData = cls::get($contragentClassId)->getContragentData($contragentId);
+        $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
     
@@ -374,7 +375,7 @@ class bank_IncomeDocuments extends core_Master
 	    	
 	    	$ownCompany = crm_Companies::fetchOwnCompany();
 	    	$Companies = cls::get('crm_Companies');
-	    	$row->companyName = $Companies->getTitleById($ownCompany->companyId);
+	    	$row->companyName = cls::get('type_Varchar')->toVerbal($ownCompany->company);
 	    	$row->companyAddress = $Companies->getFullAdress($ownCompany->companyId);
 	    	
 	    	$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
