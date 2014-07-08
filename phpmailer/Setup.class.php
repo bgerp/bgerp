@@ -96,7 +96,7 @@ defIfNot('PML_SMTPSECURE', 0);
  * Максимален размер на имейла при изпращане
  * Задава се в postfix
  */
-defIfNot('SMT_MESSAGE_SIZE_LIMIT', 20971520);
+defIfNot('SMTP_MESSAGE_SIZE_LIMIT', 20971520);
 
 
 // Зареждаме кода на на PHP_Mailer
@@ -161,7 +161,7 @@ class phpmailer_Setup extends core_ProtoSetup
     		'PML_USERNAME'  => array ('varchar', 'caption=Smtp->Потребител'),
     		'PML_PASSWORD'  => array ('varchar', 'caption=Smtp->Парола'),
     		'PML_SMTPSECURE'  => array ('enum(tls=TLS, ssl=SSL, 0=няма)', 'caption=Smtp->Криптографски протокол'),
-            'SMT_MESSAGE_SIZE_LIMIT' => array ('fileman_FileSize', 'caption=Максимален размер на имейла при изпращане зададено в SMT настройките->Размер, suggestions=10 MB|20 MB|30 MB'),
+            'SMTP_MESSAGE_SIZE_LIMIT' => array ('fileman_FileSize', 'caption=Максимален размер на имейла при изпращане зададено в SMT настройките->Размер, suggestions=10 MB|20 MB|30 MB'),
         );
 
         
