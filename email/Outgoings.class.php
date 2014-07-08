@@ -836,44 +836,64 @@ class email_Outgoings extends core_Master
                 }
             }
             
-            // Ако ще прикачваме файлове
-            if (trim($rec->attachmentsSet)) {
+            // Ако ще се прикачат документи или файлове
+            if (trim($rec->documentsSet) || trim($rec->attachmentsSet)) {
                 
-                // Масив с прикачените файлове
-                $attachmentsArr = type_Set::toArray($rec->attachmentsSet);
-                
-                // Вземаме размерите, които ще влияят за изпращането на файлове
-                $uploadMaxFilesize = ini_get('upload_max_filesize');
-                $postMaxSize = ini_get('post_max_size');
-                $memoryLimit = ini_get('memory_limit');
-                
-                // Инстанция на класа за определяне на размера
+                // Вербалната стойност на максимално допустимите файлове за прикачане
                 $FileSize = cls::get('fileman_FileSize');
+                $maxUploadFileSize = $mvc->getMaxAttachFileSizeLimit();
+                $verbalMaxUploadFileSize = $FileSize->toVerbal($maxUploadFileSize);
                 
-                // Вземаме вербалното им представяне
-                $uploadMaxFilesize = $FileSize->fromVerbal($uploadMaxFilesize);
-                $postMaxSize = $FileSize->fromVerbal($postMaxSize);
-                $memoryLimit = $FileSize->fromVerbal($memoryLimit);
+                // Ако ще прикачваме файлове
+                if (trim($rec->documentsSet)) {
+                    
+                    $checkDocs = TRUE;
+                    
+                    // Ако размера на прикачените документи е над допустимия, сетваме грешка
+                    $checkedDocs = static::getAttachedDocuments($rec);
+                    $docsSizesArr = $mvc->getDocumentsSizes($checkedDocs);
+                    if (!$mvc->checkMaxAttachedSize($docsSizesArr)) {
+                        
+                        $haveError = TRUE;
+                        
+                        // Вербалният размер на документите
+                        $docSizeVerbal = $mvc->getVerbalSizesFromArray($docsSizesArr);
+                        
+                        $form->setError('documentsSet', 'Максималният допустим размер за прикачени документи е|*: ' . $verbalMaxUploadFileSize . ". |Вие сте избрали|*: " . $docSizeVerbal);
+                    }
+                }
                 
-                // Вземаме мининалния размер
-                $min = min($uploadMaxFilesize, $postMaxSize, $memoryLimit);
-                
-                // Обхождаме масива
-                foreach ($attachmentsArr as $attacmentFh) {
+                // Ако ще прикачваме файлове
+                if (trim($rec->attachmentsSet)) {
+                    $checkFiles = TRUE;
                     
-                    // Вземаме метаданните за файла
-                    $meta = fileman::getMeta($attacmentFh);
-                    
-                    // Добавяме към размера
-                    $size += $meta['size'];
-                    
-                    // Ако общия размер на файловете е над допустимия минимум
-                    if ($size > $min) {
+                    // Ако размера на прикачените файлове е над допустимия, сетваме грешка
+                    $attachmentsArr = type_Set::toArray($rec->attachmentsSet);
+                    $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
+                    if (!$mvc->checkMaxAttachedSize($filesSizesArr)) {
+                        
+                        $haveError = TRUE;
+                        
+                        // Вербалният размер на файловете
+                        $fileSizeVerbal = $mvc->getVerbalSizesFromArray($filesSizesArr);
                         
                         // Вдигаме флага за грешка
-                        $form->setError('attachmentsSet', 'Максималният допустим размер за прикачени файлове е|*: ' . $FileSize->toVerbal($min));
+                        $form->setError('attachmentsSet', 'Максималният допустим размер за прикачени файлове е|*: ' . $verbalMaxUploadFileSize . ". |Вие сте избрали|*: " . $fileSizeVerbal);
                         
-                        break;
+                    }
+                }
+                
+                // Ако няма грешки и има прикачени файлове и документи
+                if (!$haveError && $checkDocs && $checkFiles) {
+                    
+                    // Проверяваме дали размерът им е над допсутимият
+                    $allAttachmentsArr = array_merge((array)$docsSizesArr, (array)$filesSizesArr);
+                    if (!$mvc->checkMaxAttachedSize($allAttachmentsArr)) {
+                        
+                        // Вербалният размер на файловете и документите
+                        $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
+                        
+                        $form->setError('attachmentsSet, documentsSet', 'Максималният допустим размер за прикачени файлове и документи|*: ' . $verbalMaxUploadFileSize . ". |Вие сте избрали|*: " . $docAndFilesSizeVerbal);
                     }
                 }
             }
