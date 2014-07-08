@@ -626,7 +626,7 @@ class purchase_Purchases extends core_Master
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
         $Companies = cls::get('crm_Companies');
-        $row->MyCompany = $Companies->getTitleById($ownCompanyData->companyId);
+        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
@@ -637,7 +637,8 @@ class purchase_Purchases extends core_Master
     	
     	// Данните на клиента
         $ContragentClass = cls::get($rec->contragentClassId);
-    	$row->contragentName = $ContragentClass->getTitleById($rec->contragentId);
+    	$cData = $ContragentClass->getContragentData($rec->contragentId);
+    	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
         $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
     }
     

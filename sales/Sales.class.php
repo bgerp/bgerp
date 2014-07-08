@@ -369,7 +369,7 @@ class sales_Sales extends core_Master
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
         $Companies = cls::get('crm_Companies');
-        $row->MyCompany = $Companies->getTitleById($ownCompanyData->companyId);
+        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
@@ -380,7 +380,8 @@ class sales_Sales extends core_Master
     	
     	// Данните на клиента
         $ContragentClass = cls::get($rec->contragentClassId);
-    	$row->contragentName = $ContragentClass->getTitleById($rec->contragentId);
+        $cData = $ContragentClass->getContragentData($rec->contragentId);
+    	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
         $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
     }
     
@@ -1015,26 +1016,6 @@ class sales_Sales extends core_Master
             
             $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($rec->id));
         }
-        
-        /*
-         * if(empty($dRec->packagingId)) continue;
-        	
-        	// Подаваме най-малката опаковка в която е експедиран продукта
-            $push = TRUE;
-            $index = $dRec->classId . "|" . $dRec->productId;
-            $shipped = $aggregator->get('shippedPacks');
-            if($shipped && isset($shipped[$index])){
-            	if($shipped[$index]->inPack < $dRec->quantityInPack){
-            		$push = FALSE;
-            	} 
-            } 
-            
-            // Ако ще обновяваме информацията за опаковката
-            if($push){
-            	$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
-            	$aggregator->push('shippedPacks', $arr, $index);
-            }
-         */
     }
     
     
