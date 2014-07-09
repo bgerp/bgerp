@@ -413,11 +413,7 @@ class sales_SalesDetails extends core_Detail
                 
                 // Изчисляване цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
-                
             }
-            
-    		// Записваме основната мярка на продукта
-            $rec->uomId = $productInfo->productRec->measureId;
             
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if($rec->id){
@@ -427,6 +423,20 @@ class sales_SalesDetails extends core_Detail
             	}
             }
         }
+    }
+    
+    
+    /**
+     * Преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(empty($rec->uomId)){
+    		$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    		 
+    		// Записваме основната мярка на продукта
+    		$rec->uomId = $productInfo->productRec->measureId;
+    	}
     }
     
     
