@@ -461,56 +461,35 @@ class blast_Emails extends core_Master
             // Ако ще се прикачат документи или файлове
             if ($rec->attachments) {
                 
-                // Вербална стойност на максимално допустимата стойност за качване
-                $FileSize = cls::get('fileman_FileSize');
-                $maxUploadSize = $mvc->getMaxAttachFileSizeLimit();
-                $verbalMaxUploadSize = $FileSize->toVerbal($maxUploadSize);
-                
                 $attachArr = type_Set::toArray($rec->attachments);
                 
-                // Ако ще се прикачат файлвете
-                if ($attachArr['files']) {
-                    
-                    // Проверяваме размера на прикачените файлове
-                    $attachmentsArr = $mvc->getAttachments($rec->body);
-                    $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
-                    if (!$mvc->checkMaxAttachedSize($filesSizesArr)) {
-                        $haveError = TRUE;
-                        
-                        // Вербалният размер на файловете
-                        $fileSizeVerbal = $mvc->getVerbalSizesFromArray($filesSizesArr);
-                        
-                        // Вдигаме флага за грешка
-                        $form->setError('attachments', 'Максималният допустим размер за прикачени файлове е|*: ' . $verbalMaxUploadSize . ". |Вие сте избрали|*: " . $fileSizeVerbal);
-                    }
-                }
-                
-                // Ако ще се прикачат документите
                 if ($attachArr['documents']) {
-                    
-                    // Проверяваме размера на прикачените документи
+                    // Прикачените документи
                     $docsArr = $mvc->getDocuments($rec, $rec->body);
                     $docsSizesArr = $mvc->getDocumentsSizes($docsArr);
-                    if (!$mvc->checkMaxAttachedSize($docsSizesArr)) {
-                        $haveError = TRUE;
-                        
-                        // Вербалният размер на документите
-                        $docSizeVerbal = $mvc->getVerbalSizesFromArray($docsSizesArr);
-                        
-                        $form->setError('attachments', 'Максималният допустим размер за прикачени документи е|*: ' . $verbalMaxUploadSize . ". |Вие сте избрали|*: " . $docSizeVerbal);
-                    }
                 }
-                
-                // Проверяваме размера на прикачените файлове и документи заедно
-                if (!$haveError && $attachArr['documents'] && $attachArr['files']) {
-                    $allAttachmentsArr = array_merge((array)$docsSizesArr, (array)$filesSizesArr);
-                    if (!$mvc->checkMaxAttachedSize($allAttachmentsArr)) {
-                        
-                        // Вербалният размер на файловете и документите
-                        $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
-                        
-                        $form->setError('attachments', 'Максималният допустим размер за прикачени файлове и документи|*: ' . $verbalMaxUploadSize . ". |Вие сте избрали|*: " . $docAndFilesSizeVerbal);
+                if ($attachArr['files']) {
+                    // Прикачените файлове
+                    $attachmentsArr = $mvc->getAttachments($rec->body);
+                    $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
+                }
+                   
+                // Проверяваме дали размерът им е над допсутимият
+                $allAttachmentsArr = array_merge((array)$docsSizesArr, (array)$filesSizesArr);
+                if (!$mvc->checkMaxAttachedSize($allAttachmentsArr)) {
+                    
+                    // Вербалният размер на файловете и документите
+                    $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
+                    
+                    if ($attachArr['documents'] && $attachArr['files']) {
+                        $str = "файлове и документи";
+                    } else if ($attachArr['documents']) {
+                        $str = "документи";
+                    } else {
+                        $str = "файлове";
                     }
+                    
+                    $form->setWarning('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
                 }
             }
         }
