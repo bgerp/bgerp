@@ -157,29 +157,38 @@ class doc_RichTextPlg extends core_Plugin
         // Ако не е подадено нищо
         if (!trim($fileName)) return ;
         
-        //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
+        // Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
         preg_match("/(?'name'(?'abbr'[a-z]+)(?'id'[0-9]+))/i", $fileName, $matches);
         
-        //Преобразуваме абревиатурата от намерения стринг в главни букви
+        // Преобразуваме абревиатурата от намерения стринг в главни букви
         $abbr = strtoupper($matches['abbr']);
         
         // Вземаме всички класове и техните абревиатури от документната система
         $abbrArr = doc_Containers::getAbbr();
         
-        //Името на класа
+        // Името на класа
         $className = $abbrArr[$abbr];
         
         //id' то на класа
         $id = $matches['id'];
         
-        //Провяряваме дали имаме права
-        if (($className) && ($className::haveRightFor('single', $id))) {
+        // Вземаме записа от модела
+        if ($id && $className) {
             
-            //Името на класа
-            $info['className'] = $className;
+            // Името на класа
+            $handleInfo['className'] = $className;
             
-            //id' то на класа
-            $info['id'] = $id;
+            // id' то на класа
+            $handleInfo['id'] = $id;
+            
+            $rec = $className::fetchByHandle($handleInfo);
+        }
+        
+        // Провяряваме дали имаме права и дали има такъв запис
+        if (($rec) && ($className::haveRightFor('single', $rec))) {
+            
+            // Масив с id и класа
+            $info = $handleInfo;
             
             return $info;
         }
