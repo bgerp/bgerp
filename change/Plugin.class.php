@@ -43,24 +43,17 @@ class change_Plugin extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        // Ако не е затворено или не е чернов
-        if ($data->rec->state != 'closed' && $data->rec->state != 'draft') {
-
-            // Права за промяна
-            $canChange = $mvc->haveRightFor('changerec', $data->rec);
+        // Ако има права за промяна
+        if ($mvc->haveRightFor('changerec', $data->rec)) {
+            $changeUrl = array(
+                $mvc,
+                'changeFields',
+                $data->rec->id,
+                'ret_url' => array($mvc, 'single', $data->rec->id),
+            );
             
-            // Ако има права за промяна
-            if ($canChange) {
-                $changeUrl = array(
-                    $mvc,
-                    'changeFields',
-                    $data->rec->id,
-                    'ret_url' => array($mvc, 'single', $data->rec->id),
-                );
-                
-                // Добавяме бутона за промяна
-                $data->toolbar->addBtn('Промяна', $changeUrl, 'id=conto,order=20', 'ef_icon = img/16/to_do_list.png');    
-            }
+            // Добавяме бутона за промяна
+            $data->toolbar->addBtn('Промяна', $changeUrl, 'id=conto,order=20', 'ef_icon = img/16/to_do_list.png');    
         }
     }
     
@@ -111,6 +104,9 @@ class change_Plugin extends core_Plugin
         
         // Очакваме потребителя да има права за съответния запис
         $mvc->requireRightFor('single', $rec);
+        
+        // Изискваме да има права за промяна на записа
+        $mvc->requireRightFor('changerec', $rec);
 
         // Генерираме събитие в AfterInputEditForm, след въвеждането на формата
         $mvc->invoke('AfterInputEditForm', array($form));
@@ -215,21 +211,17 @@ class change_Plugin extends core_Plugin
             // Вземаме записитеи за съответния ред
             $gRecArr = change_Log::getRecForVersion($classId, $rec->id, $versionKey, $fieldsArrLogSave);
             
-            // Ако има записи
-            if ($gRec !== FALSE) {
+            // Обхождаме масива
+            foreach ((array)$gRecArr as $field => $gRec) {
                 
-                // Обхождаме масива
-                foreach ((array)$gRecArr as $field => $gRec) {
-                    
-                    // Ако няма запис - прескачаме
-                    if (!$gRec) continue;
-                    
-                    // Добавяме полето към записа
-                    $vRec->$field = $gRec->value;
-                    
-                    // Добавяме версията
-                    $vRec->version = $gRec->version;
-                }
+                // Ако няма запис - прескачаме
+                if (!$gRec) continue;
+                
+                // Добавяме полето към записа
+                $vRec->$field = $gRec->value;
+                
+                // Добавяме версията
+                $vRec->version = $gRec->version;
             }
             
             // Обхождаме стария запис
@@ -444,29 +436,25 @@ class change_Plugin extends core_Plugin
                 // Вземаме записа
                 $rec = $mvc->fetch($id);
                 
-                // Ако състоянието не е чернова
-                if ($rec->state != 'draft') {
+                // Вземаме всички, полета които могат да се променят
+                $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
+                
+                // Обхождаме полетта
+                foreach ((array)$allowedFieldsArr as $field) {
                     
-                    // Вземаме всички, полета които могат да се променят
-                    $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
-                    
-                    // Обхождаме полетта
-                    foreach ((array)$allowedFieldsArr as $field) {
-                        
-                        // Ако има променя
-                        if ($form->rec->$field != $rec->$field) {
-                            
-                            // Вдигаме флага
-                            $haveChange = TRUE;
-                        }
-                    }
-                    
-                    // Ако няма промени
-                    if (!$haveChange) {
+                    // Ако има променя
+                    if ($form->rec->$field != $rec->$field) {
                         
                         // Вдигаме флага
-                        $form->rec->NoChange = TRUE;
+                        $haveChange = TRUE;
                     }
+                }
+                
+                // Ако няма промени
+                if (!$haveChange) {
+                    
+                    // Вдигаме флага
+                    $form->rec->NoChange = TRUE;
                 }
             }
         }
@@ -515,5 +503,43 @@ class change_Plugin extends core_Plugin
             // Ако не е подадено заглавиет, създаваме линк с иконата
             $res = ht::createLink('<img src=' . $editSbf . ' width="12" height="12">', $changeUrl);
         }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec && $action == 'changerec') {
+            if (($requiredRoles != 'no_one') && (!$mvc->canChangeRec($rec))) {
+                $requiredRoles = 'no_one';
+            } 
+        }
+    }
+    
+    
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     * 
+     * @param core_Mvc $mvc
+     * @param boolean $res
+     * @param string $state
+     */
+    function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        $res = TRUE;
+        
+        // Чернова и затворени документи не могат да се променят
+        if ($rec->state == 'draft' || $rec->state == 'closed') {
+            
+            $res = FALSE;
+        } 
     }
 }
