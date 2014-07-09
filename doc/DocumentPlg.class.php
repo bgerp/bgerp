@@ -1401,8 +1401,8 @@ class doc_DocumentPlg extends core_Plugin
         if (!$maxSize) {
             if (!$max) {
                 
-                $conf = core_Packs::getConfig('phpmailer');
-                $smtMessageLimit = $conf->SMTP_MESSAGE_SIZE_LIMIT;
+                $conf = core_Packs::getConfig('email');
+                $maxAttachedLimit = $conf->EMAIL_MAX_ATTACHED_FILE_LIMIT;
                 
                 // Инстанция на класа за определяне на размера
                 $FileSize = cls::get('fileman_FileSize');
@@ -1414,7 +1414,7 @@ class doc_DocumentPlg extends core_Plugin
                 $memoryLimit = $FileSize->fromVerbal($memoryLimit) / 3;
                 
                 // Вземаме мининалния размер
-                $maxSize = min($smtMessageLimit, $memoryLimit);
+                $maxSize = min($maxAttachedLimit, $memoryLimit);
             }
         }
         
