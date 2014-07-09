@@ -69,8 +69,17 @@ class change_Plugin extends core_Plugin
         // Ако има права за промяна
         $mvc->requireRightFor('changerec');
         
+        $data = new stdClass();
+
+        $data->action = 'changefields';
+        
+        // Създаване и подготвяне на формата
+        $mvc->prepareEditForm($data);
+        
         // Вземаме формата към този модел
-        $form = $mvc->getForm();
+        $form = &$data->form;
+        
+        $form->setAction($mvc, 'changefields');
         
         // Вземаме всички позволени полета
         $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
