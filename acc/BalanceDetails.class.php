@@ -515,8 +515,8 @@ class acc_BalanceDetails extends core_Detail
     	$form = cls::get('core_Form');
         
         $form->method = 'GET';
-        $form->view = 'horizontal';
-        $form->fieldsLayout = getTplFromFile("acc/tpl/BalanceFilterFormFields.shtml");
+        
+        //$form->fieldsLayout = getTplFromFile("acc/tpl/BalanceFilterFormFields.shtml");
         $form->FNC("accId", 'int', 'silent,input=hidden');
         $form->input("accId", true);
         $showFields = '';
