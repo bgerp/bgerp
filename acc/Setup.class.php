@@ -78,7 +78,8 @@ class acc_Setup extends core_ProtoSetup
             'acc_Journal',
             'acc_JournalDetails',
     		'acc_OpenDeals',
-    		'acc_Features'
+    		'acc_Features',
+    		'acc_Years'
         );
     
 

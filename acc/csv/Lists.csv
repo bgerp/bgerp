@@ -1,6 +1,6 @@
 1,"Валути","currency_CurrenciesAccRegIntf","currencies","yes"
 3,"Складове","store_AccRegIntf","stores","no"
-4,"Година",,"year","no"
+4,"Година","acc_YearsRegIntf","year","no"
 5,"Видове данъци и такси",,"taxes","no"
 100,"Контрагенти","crm_ContragentAccRegIntf","contractors","no"
 101,"Фирми","crm_CompanyAccRegIntf","companies","no"
