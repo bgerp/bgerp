@@ -1648,8 +1648,10 @@ class doc_DocumentPlg extends core_Plugin
         //Името на класа
         $className = $fileInfo['className'];
         
+        $rec = $className::fetchByHandle($fileInfo);
+        
         //Вземаме containerId' то на документа
-        $containerId = $className::fetchField($fileInfo['id'], 'containerId');
+        $containerId = $rec->containerId;
         
         //Ако няма containerId - прескачаме
         if (!$containerId) return;
