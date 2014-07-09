@@ -8,10 +8,10 @@
 	        [#grouping1#] 
         </td>
         
-        <td>
+        <td class='feat'>
             <!--ET_BEGIN feat1-->
 	        <div class='captionSimple captionProperties'>|Свойства|*</div>
-	        &#x27a1; [#feat1#]
+	        <span class='arrow'>&#x27a1; </span> [#feat1#]
 	        <!--ET_END feat1-->
         </td>
     
@@ -25,10 +25,10 @@
             <div class='captionSimple'>[#caption2#]</div>
             [#grouping2#]
         </td>
-        <td>
+        <td class='feat'>
             <!--ET_BEGIN feat2-->
             <div class='captionSimple captionProperties'>|Свойства|*</div>
-            &#x27a1; [#feat2#]
+            <span class='arrow'>&#x27a1; </span>[#feat2#]
             <!--ET_END feat2-->
         </td>
     
@@ -42,11 +42,11 @@
             <div class='captionSimple'>[#caption3#]</div>
             [#grouping3#]
         </td>
-        <td>
+        <td class='feat'>
             <!--ET_BEGIN feat3-->
             <div class='captionSimple captionProperties'>|Свойства|*</div>
-             &#x27a1; [#feat3#]
-             <!--ET_END feat3-->
+            <span class='arrow'>&#x27a1; </span> [#feat3#]
+            <!--ET_END feat3-->
         </td>
     
     </tr>

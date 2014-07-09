@@ -2542,6 +2542,22 @@ div.location.public {
     padding-bottom: 10px;
     
 }
+.narrow .balance-custom-form tr{
+	margin-bottom: 10px;
+}
+
+.narrow .balance-custom-form td{
+	display: block;
+	.captionProperties{
+	   padding: 0;
+    }
+	&.feat{
+	   padding-bottom: 20px !important;
+	}
+	.arrow{
+	   display:none;
+	}
+}
 .balance-custom-form select{
     width: 99%;
 }

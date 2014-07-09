@@ -454,7 +454,7 @@ class acc_BalanceDetails extends core_Detail
     {
         $res = new ET("
         	[#ListToolbar#]</div>
-        	<div class='fright'>[#ListSummary#]</div>
+        	[#ListSummary#]
         	<div class='clearfix21'></div>
             [#ListTable#]
         ");
