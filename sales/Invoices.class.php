@@ -311,9 +311,9 @@ class sales_Invoices extends core_Master
     	
         $this->sales_InvoiceDetails->calculateAmount($recs, $rec);
         
-        $rec->dealValue = $rec->_total->amount * $rec->rate;
-        $rec->vatAmount = $rec->_total->vat * $rec->rate;
-        $rec->discountAmount = $rec->_total->discount * $rec->rate;
+        $rec->dealValue = round($rec->_total->amount * $rec->rate, 8);
+        $rec->vatAmount = round($rec->_total->vat * $rec->rate, 8);
+        $rec->discountAmount = round($rec->_total->discount * $rec->rate, 8);
     	$this->save($rec);
     }
     
@@ -1115,8 +1115,8 @@ class sales_Invoices extends core_Master
     	
     	// Ако има Авансово плащане може да се активира
     	if(isset($rec->dpAmount)){
-    		$res = ($rec->dealValue <= 0) ? FALSE : TRUE;
-    		$res = ($rec->dpOperation == 'deducted' && $rec->dealValue == 0) ? TRUE : $res; 
+    		$res = (round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)) ? FALSE : TRUE;
+    		
     		return;
     	}
     	
