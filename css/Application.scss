@@ -2525,6 +2525,27 @@ div.location.public {
 /*край на шаблон за пускане в експлоатация на ДА*/
 
 
+/*оборотни ведомости*/
+.balance-filter{
+    margin-bottom: 10px;
+    margin-top: -8px;
+    margin-right: 20px;
+}
+.captionSimple{
+    line-height: 1.2em;
+    margin: 4px 0 2px 0;
+}
+.captionProperties{
+    padding-left:20px;
+}
+.balance-custom-form tr td{
+    padding-bottom: 10px;
+    
+}
+.balance-custom-form select{
+    width: 99%;
+}
+
 /*шаблон за журнал*/
 .acc_JournalDetails {
 	margin-top: 10px;
