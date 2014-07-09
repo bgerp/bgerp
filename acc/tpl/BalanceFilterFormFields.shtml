@@ -10,7 +10,7 @@
         
         <td>
             <!--ET_BEGIN feat1-->
-	        <div class='captionSimple captionProperties'>[#feedcaption1#]</div>
+	        <div class='captionSimple captionProperties'>|Свойства|*</div>
 	        &#x27a1; [#feat1#]
 	        <!--ET_END feat1-->
         </td>
@@ -27,7 +27,7 @@
         </td>
         <td>
             <!--ET_BEGIN feat2-->
-            <div class='captionSimple captionProperties'>[#feedcaption2#]</div>
+            <div class='captionSimple captionProperties'>|Свойства|*</div>
             &#x27a1; [#feat2#]
             <!--ET_END feat2-->
         </td>
@@ -44,7 +44,7 @@
         </td>
         <td>
             <!--ET_BEGIN feat3-->
-            <div class='captionSimple captionProperties'>[#feedcaption3#]</div>
+            <div class='captionSimple captionProperties'>|Свойства|*</div>
              &#x27a1; [#feat3#]
              <!--ET_END feat3-->
         </td>
