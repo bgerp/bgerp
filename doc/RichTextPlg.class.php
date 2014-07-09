@@ -199,10 +199,10 @@ class doc_RichTextPlg extends core_Plugin
      * Прихваща извикването на getInfoFromDocHandle
      * Връща информация за документа, от манипулатора му
      */
-    function on_GetInfoFromDocHandle($mvc, &$res, $fileHnd)
+    function on_GetInfoFromDocHandle($mvc, &$res, $fileName)
     {
         // Вземаме информация за файла
-        $fileInfo = static::getFileInfo($fileHnd);
+        $fileInfo = static::getFileInfo($fileName);
         
         // Ако няма, връщаме
         if (!$fileInfo) return ;
@@ -210,8 +210,10 @@ class doc_RichTextPlg extends core_Plugin
         // Вземаме инстанция на класа
         $class = cls::get($fileInfo['className']);
         
+        $rec = $class->fetchByHandle($fileInfo);
+        
         // Вземаме записа от контейнера на съответния документ
-        $cRec = $class->getContainer($fileInfo['id']);
+        $cRec = $class->getContainer($rec->id);
         
         // Добавяме датата
         $res['date'] = dt::mysql2verbal($cRec->createdOn);
