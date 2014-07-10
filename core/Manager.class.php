@@ -136,6 +136,10 @@ class core_Manager extends core_Mvc
         // Записваме, че потребителя е разглеждал този списък
         $this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
         
+        // Скролира listTable, ако е необходимо
+        if(Mode::is('screenMode', 'wide')){
+        	jquery_Jquery::run($tpl, "scrollLongListTable();");
+        }
         return $tpl;
     }
     

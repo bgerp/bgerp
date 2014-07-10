@@ -1384,6 +1384,20 @@ function setThreadElemWidth(){
 }
 
 /**
+ * Скролира listTable, ако е необходимо
+ */
+function scrollLongListTable(){
+	var winWidth = parseInt($(window).width()) - 45;
+	var tableWidth = parseInt($('.listTable').width());
+	if(winWidth < tableWidth){
+		$('.listRows').addClass('overflow-scroll');
+		$('.main-container').css('display','block');
+		$('.switching-display').css('display','block');
+	}
+}
+
+
+/**
  * При натискане с мишката върху елемента, маркираме текста
  */
 function onmouseUpSelect()
