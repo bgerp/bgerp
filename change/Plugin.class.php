@@ -79,7 +79,14 @@ class change_Plugin extends core_Plugin
         // Вземаме формата към този модел
         $form = &$data->form;
         
+        // Екшъна, който ще се използва
         $form->setAction($mvc, 'changefields');
+        
+        // Записите от формата
+        $fRec = &$form->rec;
+        
+        // Очакваме да има такъв запис
+        expect($rec = $mvc->fetch($fRec->id));
         
         // Вземаме всички позволени полета
         $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
@@ -108,14 +115,11 @@ class change_Plugin extends core_Plugin
         // Въвеждаме полетата
         $form->input($inputFields, 'silent');
         
-        // Очакваме да има такъв запис
-        expect($rec = $mvc->fetch($form->rec->id));
-        
         // Очакваме потребителя да има права за съответния запис
-        $mvc->requireRightFor('single', $rec);
+        $mvc->requireRightFor('single', $fRec);
         
         // Изискваме да има права за промяна на записа
-        $mvc->requireRightFor('changerec', $rec);
+        $mvc->requireRightFor('changerec', $fRec);
 
         // Генерираме събитие в AfterInputEditForm, след въвеждането на формата
         $mvc->invoke('AfterInputEditForm', array($form));
@@ -124,7 +128,7 @@ class change_Plugin extends core_Plugin
         $retUrl = getRetUrl();
         
         // Ако няма такова URL, връщаме към single' а
-        $retUrl = ($retUrl) ? ($retUrl) : array($mvc, 'single', $form->rec->id);
+        $retUrl = ($retUrl) ? ($retUrl) : array($mvc, 'single', $fRec->id);
         
         // id на класа
         $classId = core_Classes::getId($mvc);
@@ -136,17 +140,17 @@ class change_Plugin extends core_Plugin
         if($form->isSubmitted()) {
             
             // Ако не е подадена версия
-            if (!$form->rec->version) {
+            if (!$fRec->version) {
                 
                 // Да е нула
-                $form->rec->version = '0';
+                $fRec->version = '0';
             }
             
             // Ако сме променили версията
-            if ((string)$form->rec->version != (string)$rec->version) {
+            if ((string)$fRec->version != (string)$rec->version) {
                 
                 // Нулираме флага
-                $form->rec->NoChange = FALSE;
+                $fRec->NoChange = FALSE;
                 
                 // Подверсията
                 $subVersion = 0;
@@ -159,10 +163,10 @@ class change_Plugin extends core_Plugin
                 }
                 
                 // Ако я има съответната версия
-                if ($lastSubVersionsArr[$form->rec->version]) {
+                if ($lastSubVersionsArr[$fRec->version]) {
                     
                     // Вземаме подверсията
-                    $subVersion = $lastSubVersionsArr[$form->rec->version];
+                    $subVersion = $lastSubVersionsArr[$fRec->version];
                 }
             } else {
                 
@@ -171,22 +175,22 @@ class change_Plugin extends core_Plugin
             }
             
             // Ако не е зададено да не се променя
-            if (!$form->rec->NoChange) {
+            if (!$fRec->NoChange) {
                 
                 // Увеличаваме подверсията
                 $subVersion++;
             
                 // Добавяме подверсията
-                $form->rec->subVersion = $subVersion;
+                $fRec->subVersion = $subVersion;
                 
                 // Извикваме фунцкията, за да дадем възможност за добавяне от други хора
-                $mvc->invoke('AfterInputChanges', array($rec, $form->rec));
+                $mvc->invoke('AfterInputChanges', array($rec, $fRec));
                 
                 // Записваме промени
-                $mvc->save($form->rec);
+                $mvc->save($fRec);
             
                 // Записваме лога на промените
-                $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $form->rec);
+                $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $fRec);
                 
                 // Извикваме фунцкия, след като запишем
                 $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
@@ -249,7 +253,7 @@ class change_Plugin extends core_Plugin
             if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
                 
                 // Титлата на документа
-                $title = $mvc->getDocumentRow($form->rec->id)->title;
+                $title = $mvc->getDocumentRow($fRec->id)->title;
                 
                 // Ако има открито заглавие
                 if ($title) {
