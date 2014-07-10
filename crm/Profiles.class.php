@@ -718,12 +718,14 @@ class crm_Profiles extends core_Master
                     $attr['class'] .= " {$role}"; break;
                 } 
             }
-
-            $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
             
-            if($before < 5*60) {
+            if ($userRec->lastActivityTime) {
+                $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
+            }
+            
+            if(($before !== NULL) && $before < 5*60) {
                 $attr['class'] .= ' active';
-            } elseif($before > 60*60) {
+            } elseif(!$before || $before > 60*60) {
                 $attr['class'] .= ' inactive';
             }
 
