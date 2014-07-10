@@ -823,8 +823,6 @@ class crm_Profiles extends core_Master
     	 
     	$data->listFilter->showFields = 'search';
         
-        $data->listFilter->input('search', 'silent');
-        
         $data->query->orderBy("lastLoginTime", "DESC");
     }
     
