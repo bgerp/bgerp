@@ -792,6 +792,23 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Създаваме собствена форма за филтриране
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $data
+     */
+    static function on_BeforePrepareListFilter($mvc, $res, &$data)
+    {
+        $formParams = array(
+            'method' => 'GET',
+//            'toolbar' => ht::createSbBtn('Филтър')
+        );
+        $data->listFilter = cls::get('core_Form', $formParams);
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
