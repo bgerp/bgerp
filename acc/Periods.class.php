@@ -170,7 +170,32 @@ class acc_Periods extends core_Manager
         return $rec;
     }
 
-
+	
+    /**
+     * Създава запис в модела за годините, ако не съответства за годинта на подадената дата
+     * 
+     * @param string $date - дата за чиято година ще правим запис
+     * @return stdClass - запис на перо отговарящо на годината на датата
+     */
+    static function forceYearItem($date = NULL)
+    {
+    	// Намираме годината от подадената дата
+    	$year = dt::mysql2verbal($date, 'Y');
+    	
+    	// Ако няма запис за годината създаваме
+    	if(!$yearRec = acc_Years::fetch("#name = {$year}")){
+    		$yearRec = new stdClass();
+    		$yearRec->name = $year;
+    		
+    		// При създаване, автоматично се създава перо в номенклатура години
+    		acc_Years::save($yearRec);
+    	}
+    	
+    	// Връща перото съответстващо на годината (то винаги ще съществува)
+    	return acc_Items::fetchItem(acc_Years::getClassId(), $yearRec->id);
+    }
+    
+    
     /**
      * Връща записа за периода предхождащ зададения.
      *
@@ -522,7 +547,7 @@ class acc_Periods extends core_Manager
     // Създава бъдещи (3 месеца напред) счетоводни периоди
     function cron_CreateFuturePeriods()
     {
-        $this->forcePeriod(dt::getLastDayOfMonth(NULL, 3));
+        $this->forcePeriod($lastDayOfMonth);
         $this->forceActive();
         $this->updateExistingPeriodsState();
     }
