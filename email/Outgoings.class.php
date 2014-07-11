@@ -101,6 +101,12 @@ class email_Outgoings extends core_Master
     
     
     /**
+     * Кой може да затваря имейла
+     */
+    var $canClose = 'user';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
@@ -735,7 +741,7 @@ class email_Outgoings extends core_Master
         
         // В съответните състояние
         $query->where("#state = 'pending'");
-        $query->orWhere("#state = 'active'");
+        $query->orWhere("#state = 'wakeup'");
         $query->orWhere("#state = 'closed'");
         
         // Подредени по последно изпратени
@@ -744,7 +750,10 @@ class email_Outgoings extends core_Master
         
         $rec = $query->fetch();
         
-        return $rec->waiting;
+        if ($rec) {
+            
+            return $rec->waiting;
+        }
     }
     
     
@@ -2001,6 +2010,68 @@ class email_Outgoings extends core_Master
                     'ret_url' => TRUE,
                 ), 'order=20, row=2', 'ef_icon = img/16/email_forward.png'
             );
+        }
+        
+        if ($mvc->haveRightFor('close', $data->rec)) {
+            $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), 'ef_icon = img/16/close16.png, row=2');
+        }
+    }
+    
+    
+    /**
+     * Затваря състоянието на имейла
+     */
+    function act_Close()
+    {
+        $id = Request::get('id', 'int');
+        
+        $rec = $this->fetch($id);
+        
+        expect($rec);
+        
+        $this->requireRightFor('close', $rec);
+        
+        $rec->state = 'closed';
+        
+        if ($this->save($rec)) {
+            $msg = '|Успешно затворен имейл';
+            $type = 'notice';
+        } else {
+            $msg = '|Грешка при затваряне на имейла';
+            $type = 'warning';
+        }
+        
+        $retUrl = array($this, 'single', $id);
+        
+        return new Redirect($retUrl, $msg, $type);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако ще се затваря
+        if ($action == 'close' && $rec) {
+            
+            // Ако не чакащо или събудено състояние, да не може да се затваря
+            if (($rec->state != 'pending') && ($rec->state != 'wakeup')) {
+                $requiredRoles = 'no_one';
+            } else if (!haveRole('admin, ceo')) {
+                
+                // Ако няма роля admin или ceo
+                // Ако не е изпратен от текущия потребител, да не може да се затваря
+                if ($rec->lastSendedBy != $userId) {
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
     
