@@ -65,7 +65,7 @@ class acc_ActiveShortBalance {
 					$index = $accId . "|" . $item1 . "|" . $item2 . "|" . $item3;
 					$b = &$this->balance[$index];
 					
-					$b['accountId'] = $accId;
+					$b['accountSysId'] = acc_Accounts::fetchField($accId, 'systemId');
 					$b['ent1Id'] = $item1;
 					$b['ent2Id'] = $item2;
 					$b['ent3Id'] = $item3;
@@ -90,10 +90,8 @@ class acc_ActiveShortBalance {
 		
 		$res = 0;
 		foreach ($arr as $accSysId){
-			$accId = acc_Accounts::getRecBySystemId($accSysId)->id;
-			
 			foreach ($this->balance as $index => $b){
-				if($b['accountId'] == $accId){
+				if($b['accountSysId'] == $accSysId){
 					$res += $b['blAmount'];
 				}
 			}
@@ -113,10 +111,9 @@ class acc_ActiveShortBalance {
 		
 		$newArr = array();
 		foreach ($arr as $accSysId){
-			$accId = acc_Accounts::getRecBySystemId($accSysId)->id;
 				
 			foreach ($this->balance as $index => $b){
-				if($b['accountId'] == $accId){
+				if($b['accountSysId'] == $accSysId){
 					$newArr[$index] = $b;
 				}
 			}
