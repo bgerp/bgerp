@@ -47,7 +47,7 @@ class acc_journal_Item
 
             $this->id = $classId;
 
-            if ($this->id) {//bp($this);
+            if ($this->id) {
                 expect($this->itemRec = acc_Items::fetch($this->id), func_get_args(), $classId, $objectId);
                 $this->classId  = $this->itemRec->classId;
                 $this->objectId = $this->itemRec->objectId;
