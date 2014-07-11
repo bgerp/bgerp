@@ -1532,6 +1532,8 @@ ul.history {
 	&.summary {
 		font-size: 0.75em;
 		margin: 0 auto;
+		display: table;
+        min-width: 70px;
 		li span {
 			color: #333;
 		}
@@ -1595,10 +1597,6 @@ ul.history {
 	a{
 		white-space:nowrap;
 	}
-}
-
-.wide ul.history.summary {
-	width: 100px;
 }
 
 .narrow ul.history {
@@ -2358,31 +2356,25 @@ fieldset.sharing-history {
 /*край на стилове за скролиране */
 
 
-
 /*стилове за автор в документ*/
 .wide-profile-info {
-	text-align: center;
-	.holder-box {
-		text-align: left;
-		display: inline-block;
-	}
+	margin:0 auto;
 	.name-box {
 		font-size: 0.8em;
 		margin-top: 7px;
 		margin-left: 5px;
 		margin-right: 5px;
-		max-width: 100px;
 	}
 
 	.date-box {
 		font-size: 0.8em;
 		margin-left: 7px;
 		margin-right: 7px; 
-		margin-bottom: 10px;
+		margin-bottom: 5px;
 		margin-top: 5px;
 	}
-	.gravatar-box{
-		margin: 6px !important;
+	.gravatar-box img{
+		margin: 0 6px !important;
 		text-align: center;
 	}
 }

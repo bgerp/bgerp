@@ -257,9 +257,9 @@ class doc_Containers extends core_Manager
                 
             // визуализиране на обобщена информация от лога
         } else {
-            $row->created = new ET("<div class='wide-profile-info'><div class='holder-box'><div class='name-box'>[#3#]</div>
-                                                <div class='date-box'>[#1#]</div>
-                                                <div class='gravatar-box'>[#2#]</div>[#HISTORY#]</div></div>",
+            $row->created = new ET("<table class='wide-profile-info'><tr><td><div class='name-box'>[#3#]</div>
+                                                <div class='date-box'>[#1#]</div></td></tr>
+                                                <tr><td class='gravatar-box'>[#2#]</td></tr><tr><td>[#HISTORY#]</td></tr></table>",
                 $mvc->getVerbal($rec, 'createdOn'),
                 $avatar,
                 $row->created);
