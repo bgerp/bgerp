@@ -65,10 +65,10 @@ class type_Users extends type_Keylist
         // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
         if(!haveRole($this->params['rolesForTeams'])) {
             if(haveRole($this->params['roles'])) {
-                $opt = new stdClass();
-                $opt->keylist = '|' . core_Users::getCurrent() . '|';
-                $opt->title = core_Users::getCurrent('names', TRUE);
-                $this->options = array($opt->keylist => $opt); 
+                $key = static::getUserWithFirstTeam(core_Users::getCurrent());
+                $this->options[$key] = new stdClass();
+                $this->options[$key]->title = core_Users::getCurrent('names', TRUE);
+                $this->options[$key]->keylist = '|' . core_Users::getCurrent() . '|';
             } else {
                 $this->options = array();
             }
@@ -267,5 +267,32 @@ class type_Users extends type_Keylist
         }
         
         return $arr;
-    } 
+    }
+    
+    
+    /**
+     * Връща стринг с първия екип и потребителя в който участва потребителя
+     * 
+     * @param integer $userId
+     * 
+     * @return string
+     */
+    static function getUserWithFirstTeam($userId=NULL)
+    {
+        // Ако не е подаден потребител
+        if (!$userId) {
+            
+            // Вземаме текущия
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Масив с всички екипи, в които участва потребителя
+        $userTeamsArr = static::getUserFromTeams($userId);
+        
+        reset($userTeamsArr);
+        
+        $firstTeamUser = key($userTeamsArr);
+        
+        return $firstTeamUser;
+    }
 }
