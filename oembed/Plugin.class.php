@@ -111,6 +111,7 @@ class oembed_Plugin extends core_Plugin
         'GoogleDrive' => array(
             'regex' => '#https?://docs.google.com/(document|spreadsheets|presentation)/.*#i',
             'func' => array('gdocs_Plugin', 'getOembedRes'),
+            'cache_age' => 1000,
         ),
     );
     
