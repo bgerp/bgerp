@@ -19,7 +19,7 @@ class acc_Years extends core_Manager {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf, acc_YearsRegIntf';
+    var $interfaces = 'acc_RegisterIntf, acc_YearsAccRegIntf';
     
     
     /**
