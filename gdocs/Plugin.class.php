@@ -42,4 +42,44 @@ class gdocs_Plugin extends core_Plugin
             } catch (core_Exception_Expect $expect) {}
         }
     }
+    
+    
+    /**
+     * Ембедва URL-то от параметрите в iframe
+     * 
+     * @param array $params
+     * 
+     * @return mixed
+     */
+    static function getOembedRes($params)
+    {
+        $url = $params['url'];
+        
+        // Ако е презентация, трябва да се промени линка
+        if (strpos($url, '/presentation/')) {
+            $url = str_replace('/pub', '/embed', $url);
+        } else {
+            
+            // Добавяме необходимите параметри
+            $url = core_Url::addParams($url, array('widget' => 'true', 'embedded' => 'true'));
+        }
+        
+        
+        setIfNot($width, $params['width'], 480);
+        setIfNot($height, $params['height'], 389);
+        
+        // Резултатния HTML
+        $res['html'] = "<iframe src='{$url}' frameborder='0' width='{$width}' height='{$height}' allowfullscreen='true' mozallowfullscreen='true' webkitallowfullscreen='true'></iframe>";
+        
+        // Колко време да се кешира
+        $res['cache_age'] = $params['cache_age'];
+        
+        // Ако трябва да се връща като JSON
+        if ($params['format'] == 'json') {
+            
+            $res = json_encode($res);
+        }
+        
+        return $res;
+    }
 }

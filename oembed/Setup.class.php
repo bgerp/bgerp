@@ -10,7 +10,7 @@ defIfNot('OEMBED_MAX_WIDTH', 600);
 /**
  * Списък с услуги на които по подразбиране се ембедват връзките към тяхно съдържание
  */
-defIfNot('OEMBED_SERVICES', 'Flickr Photos,Hulu,Scribd,Vimeo,YouTube,Picasa,Slideshare,Vbox7,Cacco');
+defIfNot('OEMBED_SERVICES', 'Flickr Photos,Hulu,Scribd,Vimeo,YouTube,Picasa,Slideshare,Vbox7,Cacco,GoogleDrive');
 
 
 /**
@@ -60,7 +60,7 @@ class oembed_Setup extends core_ProtoSetup
         
            'OEMBED_MAX_WIDTH' => array ('int', 'caption=Максимална широчина на вградените елементи->Размер в пиксели'),
            'OEMBED_SERVICES' => array ('set(blip.tv,Dailymotion,Flickr Photos,Hulu,Qik Video,Revision3,
-           Scribd,Viddler Video,Vimeo,YouTube,dotSUB.com,YFrog,Clikthrough,Photobucket,Picasa,Slideshare,Vbox7,Cacco,Embed.ly)',
+           Scribd,Viddler Video,Vimeo,YouTube,dotSUB.com,YFrog,Clikthrough,Photobucket,Picasa,Slideshare,Vbox7,Cacco,Embed.ly,GoogleDrive)',
     		'caption=Услуги на които по подразбиране се вграждат връзките към тяхно съдържание->Списък')
 
              );
