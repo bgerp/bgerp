@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Интерфейс за пера - години
  */
-class acc_YearsRegIntf extends acc_RegisterIntf
+class acc_YearsAccRegIntf extends acc_RegisterIntf
 {
     
 }
