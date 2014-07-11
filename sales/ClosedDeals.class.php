@@ -212,43 +212,115 @@ class sales_ClosedDeals extends acc_ClosedDeals
      * Недоплатеното: Dt: 6911. Отписани вземания по продажби
      * 				  Ct:  411. Вземания от клиенти (Клиенти, Сделки, Валути)
      */
-    protected function getCloseEntry($amount, $totalAmount, $docRec, $dealType, $firstDoc)
+    protected function getCloseEntry($amount, &$totalAmount, $docRec, $firstDoc)
     {
     	$entry = array();
-    	$accounts = $this->contoAccounts;
     	
-    	if($amount < 0){
+    	if($amount == 0) return $entry;
+    	if($amount > 0){
     		
-    		// Записа за извънреден разход
-	    	$entry = array(
-	    		'amount' => $totalAmount,
-	    		'debit'  => array('6911', 
-	    							array($docRec->contragentClassId, $docRec->contragentId),
-	            					array($firstDoc->className, $firstDoc->that)),
-	    		'credit' => array('411',
-	    							array($docRec->contragentClassId, $docRec->contragentId), 
-	    							array($firstDoc->className, $firstDoc->that),
-	                        		array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-	                       		'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	    	);
-    	} elseif($amount > 0){
+    		// Ако платеното е по-вече от доставеното (кредитно салдо)
+    		$entry1 = array(
+    				'amount' => -1 * currency_Currencies::round($amount),
+    				'debit'  => array('7911',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),
+    				'credit' => array('411',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that),
+    						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
+    						'quantity' => currency_Currencies::round(-1 * $amount / $docRec->currencyRate)),
+    		);
     		
-    		// Записа за извънреден приход
-    		$entry = array(
-	    		'amount' => $totalAmount,
-	    		'debit'  => array('411',
-	    							array($docRec->contragentClassId, $docRec->contragentId),
-	    							array($firstDoc->className, $firstDoc->that),
-	                        		array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-	                       		  'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	            'credit' => array('7911', 
-	            					array($docRec->contragentClassId, $docRec->contragentId),
-	            					array($firstDoc->className, $firstDoc->that)),
-    		);	
+    		$entry2 = array('amount' => currency_Currencies::round($amount),
+    						 'debit'  => array('7911',
+    								array($docRec->contragentClassId, $docRec->contragentId),
+    								array($firstDoc->className, $firstDoc->that)),
+    						 'credit'  => array('700', array($docRec->contragentClassId, $docRec->contragentId),
+    								array($firstDoc->className, $firstDoc->that)),
+    						);
+    		
+    		static::$incomeAmount -= $amount;
+    		
+    	} elseif($amount < 0){
+    		
+    		// Ако платеното е по-малко от доставеното (дебитно салдо)
+    		$entry1 = array(
+    				'amount' => currency_Currencies::round($amount),
+    				'credit'  => array('6911',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),
+    				'debit' => array('411',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that),
+    						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
+    						'quantity' => currency_Currencies::round($amount / $docRec->currencyRate)),
+    		);
+    		
+    		$entry2 = array('amount' => -1 * currency_Currencies::round($amount),
+    				'debit'  => array('700', array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),
+    				'credit'  => array('6911',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),);
+    		
+    		static::$incomeAmount += -1 * currency_Currencies::round($amount);
+    		
     	}
     	
     	// Връщане на записа
+    	return array($entry1, $entry2);
+    }
+    
+    protected function transferIncomeToYear($dealInfo, $docRec, &$total, $firstDoc)
+    {
+    	$arr1 = array('700', array($docRec->contragentClassId, $docRec->contragentId), array($firstDoc->className, $firstDoc->that));
+    	$arr2 = array('123', $this->year->id);
+    	$total += abs(static::$incomeAmount);
+    	
+    	if(static::$incomeAmount > 0){
+    		$debitArr = $arr2;
+    		$creditArr = $arr1;
+    	} else {
+    		$debitArr = $arr1;
+    		$creditArr = $arr2;
+    	}
+    	
+    	$entry = array('amount' => abs(static::$incomeAmount), 'debit' => $debitArr, 'credit' => $creditArr);
+    	
     	return $entry;
+    }
+    
+    
+    protected function transferIncome($dealInfo, $docRec, &$total, $firstDoc)
+    {
+    	$entries = array();
+    	$balanceArr = $this->shortBalance->getShortBalance('701,706,703');
+    	
+    	$blAmountGoods = $this->shortBalance->getAmount('701,706,703');
+    	$total += abs($blAmountGoods);
+    	
+    	if(!count($balanceArr)) return $entries;
+    	
+    	foreach ($balanceArr as $rec){
+    		$arr1 = array('700', array($docRec->contragentClassId, $docRec->contragentId),
+    					array($firstDoc->className, $firstDoc->that));
+    		$arr2 = array($rec['accountSysId'], $rec['ent1Id'], $rec['ent2Id'], $rec['ent3Id'], 'quantity' => $rec['blQuantity']);
+    		
+    		static::$incomeAmount += $blAmountGoods;
+    		
+    		if($blAmountGoods > 0){
+    			$debitArr = $arr1;
+    			$creditArr = $arr2;
+    		} else {
+    			$debitArr = $arr2;
+    			$creditArr = $arr1;
+    		}
+    		
+    		$entries[] = array('amount' => abs($rec['blAmount']), 'debit' => $debitArr, 'credit' => $creditArr);
+    	}
+    	
+    	return $entries;
     }
     
     
@@ -264,29 +336,29 @@ class sales_ClosedDeals extends acc_ClosedDeals
      */
     protected function transferVatNotCharged($dealInfo, $docRec, &$total, $firstDoc)
     {
-    	$vatToCharge = $dealInfo->invoiced->vatToCharge;
-    	
-    	$total = 0;
     	$entries = array();
-    	foreach ($vatToCharge as $type => $amount){
-    		if($amount){
-    			$amount = currency_Currencies::round($amount);
-    			$total += $amount;
-    			list($classId, $productId, $packagingId) = explode("|", $type);
-    			$meta = cls::get($classId)->getProductInfo($productId)->meta;
-    			$invProduct = $dealInfo->shipped->findProduct($productId, $classId, $packagingId);
-    			
-    			$creditAcc = (isset($meta['canStore'])) ? ((isset($meta['canConvert'])) ? '706' : '701') : '703';
-    				$entries[] = array(
-	    				'amount' => $amount,
-	    				'credit'  => array($creditAcc,
-	    									array($docRec->contragentClassId, $docRec->contragentId), 
-	    									array($firstDoc->className, $firstDoc->that),
-	                        				array($classId, $productId),
-	                       				'quantity' => $invProduct->quantity),
-	            		'debit' => array('4530', array($firstDoc->className, $firstDoc->that)),
-    				);
-    		}
+    	
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+    	
+    	$blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
+    	$total += abs($blAmount);
+    	
+    	if($blAmount == 0) return $entries;
+    	
+    	if($blAmount < 0){
+    		$entries = array('amount' => abs($blAmount),
+	    					 'credit'  => array('4535'),
+	            			 'debit' => array('4530', array($firstDoc->className, $firstDoc->that)));
+    	} elseif($blAmount > 0){
+    		$entries = array('amount' => $blAmount,
+    						 'credit'  => array('4530', array($firstDoc->className, $firstDoc->that)),
+    						 'debit' => array('411',
+    										array($docRec->contragentClassId, $docRec->contragentId),
+    										array($firstDoc->className, $firstDoc->that),
+    										array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
+    						 			'quantity' => $blAmount));
+    		
+    		static::$diffAmount  -= $blAmount;
     	}
     	
     	return $entries;
@@ -325,7 +397,6 @@ class sales_ClosedDeals extends acc_ClosedDeals
     protected function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$total, $firstDoc)
     {
     	$entryArr = array();
-    	$total = 0;
     	
     	$docRec = $firstDoc->rec();
     	
@@ -333,7 +404,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     	
     	// Колко е направеното авансовото плащане
     	$downpaymentAmount = -1 * acc_Balances::getBlAmounts($jRecs, '412')->amount;
-    	if($downpaymentAmount == 0) return;
+    	if($downpaymentAmount == 0) return $entryArr;
     	
     	// Валутата на плащането е тази на сделката
     	$currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
@@ -355,6 +426,6 @@ class sales_ClosedDeals extends acc_ClosedDeals
     	 
     	$total += $entry['amount'];
     	 
-    	return array($entry);
+    	return $entry;
     }
 }

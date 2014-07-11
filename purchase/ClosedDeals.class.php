@@ -193,9 +193,22 @@ class purchase_ClosedDeals extends acc_ClosedDeals
      * Недоплатеното: Dt:  401. Задължения към доставчици (Доставчици, Сделки, Валути)
      * 				  Ct: 7912. Отписани задължения по покупки
      */
-	protected function getCloseEntry($amount, $totalAmount, $docRec, $dealType, $firstDoc)
+	protected function getCloseEntry($amount, $totalAmount, $docRec, $firstDoc)
     {
     	$entry = array();
+    	
+    	$entry = array();
+    	 
+    	if($amount == 0) return $entry;
+    	 
+    	if($amount > 0){
+    		
+    	} elseif($amount < 0){
+    		
+    	}
+    	
+    	// Връщане на записа
+    	return array();//array($entry1, $entry2);
     	
     	if($amount < 0){
     		
@@ -242,33 +255,30 @@ class purchase_ClosedDeals extends acc_ClosedDeals
      */
     protected function transferVatNotCharged($dealInfo, $docRec, &$total, $firstDoc)
     {
-    	$vatToCharge = $dealInfo->invoiced->vatToCharge;
-    	
-    	$total = 0;
     	$entries = array();
-    	foreach ($vatToCharge as $type => $amount){
-    		if($amount){
-    			$amount = currency_Currencies::round($amount);
-    			$total += $amount;
-    			list($classId, $productId, $packagingId) = explode("|", $type);
-    			$meta = cls::get($classId)->getProductInfo($productId)->meta;
-    			$invProduct = $dealInfo->shipped->findProduct($productId, $classId, $packagingId);
-    			
-    			if(isset($meta['canStore'])){
-    				$debitAcc = (isset($meta['canConvert'])) ? '302' : '321';
-    				$storeId = ($dealInfo->shipped->delivery->storeId) ? $dealInfo->shipped->delivery->storeId : $dealInfo->agreed->delivery->storeId;
-    				$debitEnt = array($debitAcc, array('store_Stores', $storeId),array($classId, $productId), 'quantity' => $invProduct->quantity);
-    			} else {
-    				$debitAcc = '602';
-    				$debitEnt = array($debitAcc, array($classId, $productId), 'quantity' => $invProduct->quantity);
-    			}
-    				
-    			$entries[] = array(
-	    			'amount' => $amount,
-	    			'debit'  => $debitEnt,
-	            	'credit' => array('4530', array($firstDoc->className, $firstDoc->that)),
-    			);
-    		}
+    	
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+    	 
+    	$blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
+    	
+    	$total += abs($blAmount);
+    	 
+    	if($blAmount == 0) return $entries;
+    	 
+    	if($blAmount < 0){
+    		$entries = array('amount' => abs($blAmount),
+    				'debit'  => array('4535'),
+    				'credit' => array('4530', array($firstDoc->className, $firstDoc->that)));
+    	} elseif($blAmount > 0){
+    		$entries = array('amount' => $blAmount,
+    				'debit'  => array('4530', array($firstDoc->className, $firstDoc->that)),
+    				'credit' => array('401',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that),
+    						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
+    						'quantity' => $blAmount));
+    	
+    		static::$diffAmount  = $blAmount;
     	}
     	
     	return $entries;
@@ -307,7 +317,6 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     public function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$total, $firstDoc)
     {
     	$entryArr = array();
-    	$total = 0;
     	 
     	$docRec = $firstDoc->rec();
     	 
@@ -315,7 +324,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	 
     	// Колко е направеното авансовото плащане
     	$downpaymentAmount = acc_Balances::getBlAmounts($jRecs, '402')->amount;
-    	if($downpaymentAmount == 0) return;
+    	if($downpaymentAmount == 0) return $entryArr;
     	
     	// Валутата на плащането е тази на сделката
     	$currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
@@ -338,5 +347,17 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	$total += $entry['amount'];
     	
     	return array($entry);
+    }
+    
+    
+    protected function transferIncome($dealInfo, $docRec, &$total, $firstDoc)
+    {
+    	return array();
+    }
+    
+    
+    protected function transferIncomeToYear($dealInfo, $docRec, &$total, $firstDoc)
+    {
+    	return array();
     }
 }

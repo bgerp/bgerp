@@ -68,6 +68,30 @@ abstract class acc_ClosedDeals extends core_Master
     
     
     /**
+     * Още един работен кеш
+     */
+    protected static $diffAmount;
+    
+    
+    /**
+     * Още един работен кеш
+     */
+    protected static $incomeAmount;
+    
+    
+    /**
+     * Още един работен кеш
+     */
+    protected $year;
+    
+    
+    /**
+     * Кратък баланс на записите от журнала засегнали сделката
+     */
+    protected $shortBalance;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -201,8 +225,14 @@ abstract class acc_ClosedDeals extends core_Master
         $paidAmount = currency_Currencies::round($info->get('amountPaid'), 2);
         $shippedAmount = currency_Currencies::round($info->get('deliveryAmount'), 2);
 		
+        $diff = $paidAmount - $shippedAmount;
+        
+        if(static::$diffAmount){
+        	$diff += static::$diffAmount;
+        }
+        
         // Разликата между платеното и доставеното
-        return $paidAmount - $shippedAmount;
+        return $diff;
     }
     
     
@@ -411,38 +441,58 @@ abstract class acc_ClosedDeals extends core_Master
         expect($rec = $this->fetchRec($id));
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $docRec = cls::get($rec->docClassId)->fetch($rec->docId);
-		$amount = $this->getClosedDealAmount($firstDoc);
-       
+		
+        $dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
+        $this->shortBalance = new acc_ActiveShortBalance($dealItem->id);
+		
 		// Създаване на обекта за транзакция
         $result = (object)array(
             'reason'      => $this->singleTitle . " #" . $firstDoc->getHandle(),
             'valior'      => dt::now(),
-            'totalAmount' => currency_Currencies::round(abs($amount)),
+            'totalAmount' => 0,
             'entries'     => array()
         );
         
         $dealInfo = $this->getDealInfo($rec->threadId);
         
-        // Ако има сума различна от нула значи има приход/разход
-        if($amount != 0){
-        	
-        	// Взимаме записа за начисляване на извънредния приход/разход
-        	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $dealInfo->dealType, $firstDoc);
-        
-        	$result->entries[] = $entry;
-        }
+        // Кеширане на перото на текущата година
+        $year = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
+        $listRec = acc_Lists::fetchBySystemId('year');
+        $this->year = acc_Periods::forceYearItem($year);
         
         // Създаване на запис за прехвърляне на всеки аванс
-        $entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $total, $firstDoc);
-        $result->totalAmount += $total;
+        $entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $result->totalAmount, $firstDoc);
         
         // Ако тотала не е нула добавяме ентритата
-    	if($total != 0){
-    		if(count($entry2)){
-    			$result->entries = array_merge($result->entries, $entry2);
-    		}
+    	if(count($entry2)){
+    		$result->entries[] = $entry2;
     	}
-        
+    	
+    	$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $result->totalAmount, $firstDoc);
+    	
+    	// Ако тотала не е нула добавяме ентритата
+    	if(count($entry3)){
+    		$result->entries[] = $entry3;
+    	}
+    	
+    	$entry4 = $this->transferIncome($dealInfo, $docRec, $result->totalAmount, $firstDoc);
+    	if(count($entry4)){
+    		$result->entries = array_merge($result->entries, $entry4);
+    	}
+    	
+    	// Ако има сума различна от нула значи има приход/разход
+    	$amount = $this->getClosedDealAmount($firstDoc);
+    	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $firstDoc);
+    	
+    	if(count($entry)){
+    		$result->entries = array_merge($result->entries, $entry);
+    	}
+    	
+    	$entry5 = $this->transferIncomeToYear($dealInfo, $docRec, $result->totalAmount, $firstDoc);
+    	if(count($entry5)){
+    		$result->entries[] = $entry5;
+    	}
+    	
     	// Връщане на резултата
         return $result;
     }
