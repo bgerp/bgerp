@@ -43,6 +43,7 @@ class purchase_transaction_Service
     		deals_Helper::fillRecs($detailsRecs, $rec);
     		 
     		foreach ($detailsRecs as $dRec) {
+				$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
     			if($rec->chargeVat == 'yes'){
     				$ProductManager = cls::get($dRec->classId);
     				$vat = $ProductManager->getVat($dRec->productId, $rec->valior);
@@ -50,6 +51,9 @@ class purchase_transaction_Service
     			} else {
     				$amount = $dRec->amount;
     			}
+
+				// Ако е "Разходи за услуги" дебит 602, иначе 601
+	        	$costsAccNumber = (isset($pInfo->meta['costsServices'])) ? '602' : '601';
     
     			$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;
     
@@ -57,7 +61,7 @@ class purchase_transaction_Service
     					'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
     					 
     					'debit' => array(
-    							'602', // Сметка "602. Разходи за външни услуги"
+    							$costsAccNumber, // Сметка "602. Разходи за външни услуги" / "601. Разходи за материали"
     							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
     							'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
     					),
