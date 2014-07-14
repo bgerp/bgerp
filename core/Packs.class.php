@@ -555,7 +555,6 @@ class core_Packs extends core_Manager
 
         $res .= '</h2>';
         
-        
         $res .= "<ul>";
         
         // Единственото, което правим, когато версията, която инсталираме
@@ -605,6 +604,9 @@ class core_Packs extends core_Manager
             $res .= "<li>Пропускаме, има налична инсталация</li>";
         }
         
+        if (method_exists($setup, 'checkConfig')) {
+            $res .= $setup->checkConfig();
+        }
         
         $res .= "</ul>";
         
@@ -798,6 +800,10 @@ class core_Packs extends core_Manager
         }
         
         $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close16.png');
+        
+        if (method_exists($setup, 'checkConfig')) {
+            $form->info = $setup->checkConfig();
+        }
         
         return $this->renderWrapping($form->renderHtml());
 
