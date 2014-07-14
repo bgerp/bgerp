@@ -156,4 +156,98 @@ class webkittopdf_Setup extends core_ProtoSetup
         
         return $res;
     }
+    
+    
+    /**
+     * Проверява дали е инсталирана програмата, дали версията е коректна
+     * 
+     * @return string
+     */
+    public function checkConfig()
+    {
+        // Ако не е инсталиране
+        if (!static::isEnabled()) {
+            
+            $conf = core_Packs::getConfig('webkittopdf');
+            
+            return "<li style='color: red;'>" . type_Varchar::escape($conf->WEBKIT_TO_PDF_BIN) . " не е инсталиран" . "</li>";
+        }
+        
+        // Версиите на пакета
+        $versionArr = static::getVersionAndSubVersion();
+        
+        if ($versionArr) {
+            
+            // Ако версията 0,11
+            if (($versionArr['version'] == 0) && ($versionArr['subVersion'] == 11)) {
+                    
+                // Добавяме съобщение
+                return "<li style='color: red;'>" . 'Версията на webkittopdf e 0.11. С тази версия има проблеми. Моля да я обновите' . "</li>";
+            }
+        }
+    }
+    
+    
+    /**
+     * Проверява дали програмата е инсталирана в сървъра
+     * 
+     * @return boolean
+     */
+    static function isEnabled()
+    {
+        $conf = core_Packs::getConfig('webkittopdf');
+        
+        $wkhtmltopdf = escapeshellcmd($conf->WEBKIT_TO_PDF_BIN);
+        
+        // Опитваме се да стартираме програмата
+        $res = exec($wkhtmltopdf . ' --help', $output, $code);
+        
+        if ($code === 0) {
+            
+            return TRUE;
+        } else if ($code === 127) {
+            
+            return FALSE;
+        }
+    }
+    
+    
+    /**
+     * Връща масив с версията и подверсията
+     * 
+     * @return array
+     * ['version']
+     * ['subVersion']
+     */
+    static function getVersionAndSubVersion()
+    {
+        // Вземаме конфига
+        $confWebkit = core_Packs::getConfig('webkittopdf');
+        
+        // Опитваме се да вземем версията на webkit
+        exec(escapeshellarg($confWebkit->WEBKIT_TO_PDF_BIN) . " -V", $resArr, $erroCode);
+        
+        // От масива с резултата вземаме реда с версията
+        foreach ((array)$resArr as $res) {
+            if (stripos($res, 'wkhtmltopdf') !== FALSE) {
+                $trimRes = trim($resArr[1]);
+            }
+        }
+        
+        if (!$trimRes) return ;
+        
+        // Вземаме масива с версията
+        $versionArrExplode = explode(" ", $trimRes);
+        
+        // Вземаме версията и подверсията
+        list($version, $subVersion) = explode(".", trim($versionArrExplode[1]));
+        
+        // Ако не може да се открие версията/подверсията
+        if (!isset($version) || !isset($subVersion)) return ;
+        
+        $versionArr['version'] = $version;
+        $versionArr['subVersion'] = $subVersion;
+        
+        return $versionArr;
+    }
 }
