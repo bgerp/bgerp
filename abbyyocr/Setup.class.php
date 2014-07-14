@@ -95,4 +95,24 @@ class abbyyocr_Setup extends core_ProtoSetup
         
         return $html;
     }
+    
+
+    /**
+     * Проверява дали програмата е инсталирана в сървъра
+     * 
+     * @return boolean
+     */
+    function checkConfig()
+    {
+        $conf = core_Packs::getConfig('abbyyocr');
+        
+        $abbyocr = escapeshellcmd($conf->ABBYYOCR_PATH);
+        
+        $res = exec($abbyocr . 's --help', $output, $code);
+        
+        if ($code == 127) {
+            
+            return "<li style='color: red;'>" . "Програмата " . type_Varchar::escape($conf->ABBYYOCR_PATH) . " не е инталирана." . "</li>";
+        }
+    }
 }

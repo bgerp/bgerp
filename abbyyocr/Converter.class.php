@@ -40,29 +40,6 @@ class abbyyocr_Converter extends core_Manager
     
     
     /**
-     * Проверява дали програмата е инсталирана в сървъра
-     * 
-     * @return boolean
-     */
-    static function isEnabled()
-    {
-        $conf = core_Packs::getConfig('abbyyocr');
-        
-        $abbyocr = escapeshellcmd($conf->ABBYYOCR_PATH);
-        
-        $res = exec($abbyocr . ' --help', $output, $code);
-        
-        if ($code === 0) {
-            
-            return TRUE;
-        } else if ($code === 127) {
-            
-            return FALSE;
-        }
-    }
-    
-    
-    /**
      * Добавя бутон за стартиране на OCR процеса
      * 
      * @param core_Toolbar $toolbar
