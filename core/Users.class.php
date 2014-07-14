@@ -884,8 +884,13 @@ class core_Users extends core_Manager
                     core_Statuses::newStatus($statusText, 'warning');
                 }
                 
-                // Всички успешни лования
-                foreach ((array)$arr['success'] as $loginRec) {
+                // Последното успешно логване от друго IP
+                $successArr = (array)$arr['success'];
+                reset($successArr);
+                $lastSuccessLoginKey = key($successArr);
+                if ($lastSuccessLoginKey) {
+                    
+                    $loginRec = $successArr[$lastSuccessLoginKey];
                     
                     // Времето, когато се е логнал
                     $time = dt::secsBetween(dt::now(), $loginRec->createdOn);

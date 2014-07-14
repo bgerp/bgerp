@@ -420,6 +420,8 @@ class core_LoginLog extends core_Manager
         $sQuery->where("#status = 'success'");
         $sQuery->orWhere("#status = 'first_login'");
         
+        $sQuery->orderBy("createdOn", 'DESC');
+        
         while ($sRec = $sQuery->fetch()) {
             
             if (!$sRec->ip) continue;
