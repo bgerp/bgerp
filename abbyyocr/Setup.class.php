@@ -108,7 +108,7 @@ class abbyyocr_Setup extends core_ProtoSetup
         
         $abbyocr = escapeshellcmd($conf->ABBYYOCR_PATH);
         
-        $res = exec($abbyocr . 's --help', $output, $code);
+        $res = exec($abbyocr . ' --help', $output, $code);
         
         if ($code == 127) {
             
