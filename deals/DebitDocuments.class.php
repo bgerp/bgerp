@@ -180,10 +180,10 @@ class deals_DebitDocuments extends core_Master
     	expect($origin = $mvc->getOrigin($form->rec));
     	expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
     	$dealInfo = $origin->getAggregateDealInfo();
-    	expect(count($dealInfo->allowedPaymentOperations));
+    	expect(count($dealInfo->get('allowedPaymentOperations')));
     	
     	// Показваме само тези финансови операции в които е засегнат контрагента
-    	$options = deals_Deals::fetchDealOptions($dealInfo->involvedContragents);
+    	$options = deals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
     	expect(count($options));
     	$form->setOptions('dealId', $options);
     	
@@ -194,8 +194,8 @@ class deals_DebitDocuments extends core_Master
     	if(empty($form->rec->id)) {
     		 $form->setDefault('description', "Към документ #{$origin->getHandle()}");
     		 
-    		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-    		 $form->rec->rate = $dealInfo->agreed->rate;
+    		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+    		 $form->rec->rate = $dealInfo->get('rate');
     	}
     	
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
@@ -210,7 +210,8 @@ class deals_DebitDocuments extends core_Master
     	$rec = &$form->rec;
     	
     	if ($form->isSubmitted()){
-    		$operation = $form->dealInfo->allowedPaymentOperations[$rec->operationSysId];
+    		$oprtations = $form->dealInfo->get('allowedPaymentOperations');
+    		$operation = $oprtations[$rec->operationSysId];
     		$debitAcc = deals_Deals::fetchField($rec->dealId, 'accountId');
     		
     		$debitAccount = empty($operation['reverse']) ? acc_Accounts::fetchRec($debitAcc)->systemId : $operation['credit'];
@@ -285,7 +286,9 @@ class deals_DebitDocuments extends core_Master
     		if(!count($options)) return FALSE;
     		
     		// Ако няма позволени операции за документа не може да се създава
-    		return isset($dealInfo->allowedPaymentOperations['debitDeals']) ? TRUE : FALSE;
+    		$operations = $dealInfo->get('allowedPaymentOperations');
+    		
+    		return isset($operations['debitDeals']) ? TRUE : FALSE;
     	}
     
     	return FALSE;
@@ -296,23 +299,11 @@ class deals_DebitDocuments extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
      * @param int|object $id
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id)
+    public function pushDealInfo($id, &$aggregator)
     {
-    	$rec = self::fetchRec($id);
-    
-    	/* @var $result bgerp_iface_DealResponse */
-    	$result = new bgerp_iface_DealResponse();
-    	 
-    	// При продажба платеното се увеличава, ако е покупка се намалява
-    	$origin = static::getOrigin($rec);
     	
-    	$sign = ($origin->className == 'sales_Sales') ? 1 : -1;
-    	
-    	$result->paid->amount    = $sign * $rec->amount * $rec->rate;
-    	 
-    	return $result;
     }
 }

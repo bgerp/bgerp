@@ -179,10 +179,10 @@ class deals_CreditDocuments extends core_Master
     	expect($origin = $mvc->getOrigin($form->rec));
     	expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
     	$dealInfo = $origin->getAggregateDealInfo();
-    	expect(count($dealInfo->allowedPaymentOperations));
+    	expect(count($dealInfo->get('allowedPaymentOperations')));
     	
     	// Показваме само тези финансови операции в които е засегнат контрагента
-    	$options = deals_Deals::fetchDealOptions($dealInfo->involvedContragents);
+    	$options = deals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
     	expect(count($options));
     	$form->setOptions('dealId', $options);
     	
@@ -192,8 +192,8 @@ class deals_CreditDocuments extends core_Master
     	// Използваме помощната функция за намиране името на контрагента
     	if(empty($form->rec->id)) {
     		 $form->setDefault('description', "Към документ #{$origin->getHandle()}");
-    		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-    		 $form->rec->rate = $dealInfo->agreed->rate;
+    		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+    		 $form->rec->rate = $dealInfo->get('rate');
     	}
     	
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
@@ -208,7 +208,8 @@ class deals_CreditDocuments extends core_Master
     	$rec = &$form->rec;
     	
     	if ($form->isSubmitted()){
-    		$operation = $form->dealInfo->allowedPaymentOperations[$rec->operationSysId];
+    		$operations = $form->dealInfo->get('allowedPaymentOperations');
+    		$operation = $operations[$rec->operationSysId];
     		
     		$creditAcc = deals_Deals::fetchField($rec->dealId, 'accountId');
     		
@@ -280,11 +281,13 @@ class deals_CreditDocuments extends core_Master
     		$dealInfo = $firstDoc->getAggregateDealInfo();
     		
     		// Ако няма финансови сделки в които  замесен контрагента, не може да се създава
-    		$options = deals_Deals::fetchDealOptions($dealInfo->involvedContragents);
+    		$options = deals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
     		if(!count($options)) return FALSE;
     		
     		// Ако няма позволени операции за документа не може да се създава
-    		return isset($dealInfo->allowedPaymentOperations['creditDeals']) ? TRUE : FALSE;
+    		$operations = $dealInfo->get('allowedPaymentOperations');
+    		
+    		return isset($operations['creditDeals']) ? TRUE : FALSE;
     	}
     
     	return FALSE;
@@ -295,22 +298,11 @@ class deals_CreditDocuments extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
      * @param int|object $id
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id)
+    public function pushDealInfo($id, &$aggregator)
     {
-    	$rec = self::fetchRec($id);
-    
-    	/* @var $result bgerp_iface_DealResponse */
-    	$result = new bgerp_iface_DealResponse();
-    	 
-    	// При продажба платеното се увеличава, ако е покупка се намалява
-    	$origin = static::getOrigin($rec);
-    	$sign = ($origin->className == 'sales_Sales') ? -1 : 1;
     	
-    	$result->paid->amount   = $sign * $rec->amount * $rec->rate;
-    	 
-    	return $result;
     }
 }

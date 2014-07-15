@@ -824,23 +824,19 @@ class pos_Receipts extends core_Master {
         $currencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
         $posRec = pos_Points::fetch($rec->pointId);
         
-        $result = new bgerp_iface_DealResponse();
-        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        $result = new bgerp_iface_DealAggregator();
         
-        $result->agreed->amount                 = $rec->total;
-        $result->agreed->currency               = $currencyId;
-        $result->agreed->vatType 				= 'yes';
-        $result->agreed->payment->method        = cond_PaymentMethods::fetchField("#name = 'COD'", 'id');
-        $result->agreed->payment->currencyId    = $currencyId;
-        $result->agreed->payment->caseId        = $posRec->caseId;
-       
-        $result->shipped->amount                 = $rec->total;
-        $result->shipped->currency               = $currencyId;
-        $result->shipped->vatType 				 = 'yes';
-        $result->shipped->payment->currencyId    = $currencyId;
-        $result->shipped->payment->caseId        = $posRec->caseId;
-        $result->shipped->delivery->storeId      = $posRec->storeId;
-        $result->shipped->delivery->time         = $rec->valior;
+        
+        $result->set('dealType', sales_Sales::AGGREGATOR_TYPE);
+        $result->set('amount', $rec->total);
+        $result->set('currency', $currencyId);
+        $result->set('vatType', 'yes');
+        $result->set('agreedValior', $rec->valior);
+        $result->set('storeId', $posRec->storeId);
+        $result->set('paymentMethodId', cond_PaymentMethods::fetchField("#name = 'COD'", 'id'));
+        $result->set('caseId', $posRec->caseId);
+        $result->set('amountPaid', $rec->total);
+        $result->set('deliveryAmount', $rec->total);
          
         $productManId = cat_Products::getClassId();
         
@@ -855,8 +851,8 @@ class pos_Receipts extends core_Master {
             $p->price       = $pr->price;
             $p->uomId       = $pr->uomId;
             
-            $result->agreed->products[] = $p;
-            $result->shipped->products[] = clone $p;
+            $result->push('products', $p);
+            $result->push('shippedProducts', $p);
         }
         
         return $result;

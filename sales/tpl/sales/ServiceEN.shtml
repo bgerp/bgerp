@@ -25,19 +25,24 @@
 	              </tr>
 	              <tr>
 	                    <td>
-	                    <!--ET_BEGIN contragent-->
-	                        <b>[#contragentName#]</b><br /><br />
-	                        <!--ET_BEGIN contragentAddress-->
-	                            [#contragentAddress#]<br>
-	                        <!--ET_END contragentAddress-->
-						<!--ET_END contragent-->
+	                   <!--ET_BEGIN contragentName-->
+                        <b>[#contragentName#]</b>
+                        <!--ET_BEGIN contragentAddress-->
+                        <div class='address-block'>
+                            [#contragentAddress#]
+                        </div>
+                        <!--ET_END contragentAddress-->
+                        <!--ET_END contragentName-->
 	                    </td>
 	                    <td>
-	                    <!--ET_BEGIN supplier-->
-	                        <b>[#MyCompany#]</b><br />
-	                        <br />
-	                        [#MyAddress#] <br />
-	                    <!--ET_END supplier-->
+	                    <!--ET_BEGIN MyCompany-->
+                        <b>[#MyCompany#]</b>
+                            <!--ET_BEGIN MyAddress-->
+                            <div class='address-block'>
+                            [#MyAddress#]
+                            </div>
+                            <!--ET_END MyAddress-->
+                        <!--ET_END MyCompany-->
 	                    </td>
 	                </tr>
 	                </tbody>

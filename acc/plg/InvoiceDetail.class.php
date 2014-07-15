@@ -197,17 +197,25 @@ class acc_plg_InvoiceDetail extends core_Plugin
 					// Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
 					$origin = $mvc->Master->getOrigin($masterRec);
 					$dealInfo = $origin->getAggregateDealInfo();
-					$aggreedProduct = $dealInfo->shipped->findProduct($rec->productId, $rec->classId, $rec->packagingId);
-					if($aggreedProduct){
-						$policyInfo = new stdClass();
-						$policyInfo->price = $aggreedProduct->price;
-					} else {
+					$products = $dealInfo->get('products');
+					
+					if(count($products)){
+						foreach ($products as $p){
+							if($rec->classId == $p->classId && $rec->productId == $p->productId && $rec->packagingId == $p->packagingId){
+								$policyInfo = new stdClass();
+								$policyInfo->price = $p->price;
+								break;
+							}
+						}
+					}
+					
+					if(!$policyInfo){
 						$ProductMan = ($mvc->Policy) ? $mvc->Policy : $ProductMan;
 						$policyInfo = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity, dt::now());
 					}
 					
 					// Ако няма последна покупна цена и не се обновява запис в текущата покупка
-					if (!isset($policyInfo->price) && empty($pRec)) {
+					if (!isset($policyInfo->price) && empty($pRec)) {bp($policyInfo, $ProductMan);
 						$form->setError('price', 'Продукта няма цена в избраната ценова политика');
 					} else {
 							
@@ -235,11 +243,11 @@ class acc_plg_InvoiceDetail extends core_Plugin
 	
 				// Записваме основната мярка на продукта
 				$rec->uomId = $productInfo->productRec->measureId;
-	
+				$rec->amount = $rec->packPrice * $rec->quantity;
 				// При редакция, ако е променена опаковката слагаме преудпреждение
 				if($rec->id){
 					$oldRec = $mvc->fetch($rec->id);
-            		if($oldRec && $rec->packagingId != $oldPack && trim($rec->packPrice) == trim($oldRec->packPrice)){
+            		if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
 						$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
 					}
 				}

@@ -718,8 +718,10 @@ class doc_Folders extends core_Master
 
         // Ако има избрана кутия по подразбиране
         if ($inboxId = crm_Personalization::getInboxId($userId)) {
+            try {
+                $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, $userId);
+            } catch (Exception $e) { }
             
-            $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, $userId);
         }
         
         if ($emailOptions && $emailOptions[$inboxId]) {

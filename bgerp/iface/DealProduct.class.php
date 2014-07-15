@@ -56,6 +56,14 @@ class bgerp_iface_DealProduct
 
 
     /**
+     * Количество
+     *
+     * @var double
+     */
+    public $quantityDelivered;
+    
+    
+    /**
      * Цена
      *
      * @var double

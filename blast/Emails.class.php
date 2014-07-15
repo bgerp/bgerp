@@ -458,6 +458,45 @@ class blast_Emails extends core_Master
         // Ако сме субмитнали формата
         if ($form->isSubmitted()) {
             
+            // Ако ще се прикачат документи или файлове
+            if ($rec->attachments) {
+                
+                $attachArr = type_Set::toArray($rec->attachments);
+                
+                if ($attachArr['documents']) {
+                    // Прикачените документи
+                    $docsArr = $mvc->getDocuments($rec, $rec->body);
+                    $docsSizesArr = $mvc->getDocumentsSizes($docsArr);
+                }
+                if ($attachArr['files']) {
+                    // Прикачените файлове
+                    $attachmentsArr = $mvc->getAttachments($rec->body);
+                    $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
+                }
+                   
+                // Проверяваме дали размерът им е над допсутимият
+                $allAttachmentsArr = array_merge((array)$docsSizesArr, (array)$filesSizesArr);
+                if (!$mvc->checkMaxAttachedSize($allAttachmentsArr)) {
+                    
+                    // Вербалният размер на файловете и документите
+                    $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
+                    
+                    if ($attachArr['documents'] && $attachArr['files']) {
+                        $str = "файлове и документи";
+                    } else if ($attachArr['documents']) {
+                        $str = "документи";
+                    } else {
+                        $str = "файлове";
+                    }
+                    
+                    $form->setWarning('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
+                }
+            }
+        }
+        
+        // Ако сме субмитнали формата
+        if ($form->isSubmitted()) {
+            
             // Масив с всички записи
             $recArr = (array)$form->rec;
             

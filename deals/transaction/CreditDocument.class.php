@@ -83,8 +83,8 @@ class deals_transaction_CreditDocument
     	$debitArr = array($rec->debitAccount,
     						array($rec->contragentClassId, $rec->contragentId),
     						array($origin->className, $origin->that),
-    						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->agreed->currency)),
-    						'quantity' => $sign * round($amount / $dealInfo->agreed->rate, 2));
+    						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
+    						'quantity' => $sign * round($amount / $dealInfo->get('rate'), 2));
     	
     	// Кредитираме разчетната сметка на избраната финансова сделка
     	$creditArr = array($rec->creditAccount,

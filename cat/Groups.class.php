@@ -155,7 +155,7 @@ class cat_Groups extends core_Master
         						canConvert=Вложими,
         						fixedAsset=ДМА,
         						canManifacture=Производими,
-        						costs=Разходи)', 'caption=Свойства->Списък,columns=2');
+        						costsServices=Разходи за услуги)', 'caption=Свойства->Списък,columns=2');
         
         $this->setDbUnique("sysId");
     }

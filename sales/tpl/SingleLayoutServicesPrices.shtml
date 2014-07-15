@@ -36,22 +36,20 @@
                     <td class="cell custom-header-bg" width="35%"><b>|Доставчик|*</b></td>
                     </tr>
                     <tr>
-                    <td class="cell">
-                    <!--ET_BEGIN contragent-->
-                        <b>[#contragentName#]</b><br>
-                        <br>
-                        <!--ET_BEGIN contragentAddress-->
-                            [#contragentAddress#]<br>
-                        <!--ET_END contragentAddress-->
-					<!--ET_END contragent-->
-					</td>
-					<td class="cell">
-                    <!--ET_BEGIN supplier-->
-                        <b>[#MyCompany#]</b><br>
-                        <br>
-                        [#MyAddress#] <br>
-                    <!--ET_END supplier-->
-                    </td>
+                   <td class="cell">
+		                <b>[#contragentName#]</b>
+		                <div class='address-block'>
+		                   [#contragentCountryId#]
+		                   <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+		               </div>
+		                
+		            </td>
+		            <td class="cell">
+		                 <b>[#MyCompany#]</b>
+		                 <div class='address-block'>
+		                     [#MyAddress#]
+		                 </div>
+		            </td>
                 </tr>
                 </tbody>
             </table>

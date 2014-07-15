@@ -18,6 +18,9 @@ class purchase_Purchases extends core_Master
 {
     
     
+	const AGGREGATOR_TYPE = 'purchase';
+	
+	
     /**
      * Заглавие
      */
@@ -192,7 +195,7 @@ class purchase_Purchases extends core_Master
      */
     public $allowedShipmentOperations = array('stowage'     => array('title' => 'Засклаждане на стока', 'debit' => 'store', 'credit' => '401'),
     										  'buyServices' => array('title' => 'Покупка на услуги', 'debit' => 'service', 'credit' => '401'),
-    										  //'delivery'    => array('title' => 'Връщане на доставена стока', 'debit' => '401', 'credit' => 'store', 'reverse' => TRUE),
+    										  'delivery'    => array('title' => 'Връщане на доставена стока', 'debit' => '401', 'credit' => 'store', 'reverse' => TRUE),
     );
     
     
@@ -623,7 +626,7 @@ class purchase_Purchases extends core_Master
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
         $Companies = cls::get('crm_Companies');
-        $row->MyCompany = $Companies->getTitleById($ownCompanyData->companyId);
+        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
@@ -634,7 +637,8 @@ class purchase_Purchases extends core_Master
     	
     	// Данните на клиента
         $ContragentClass = cls::get($rec->contragentClassId);
-    	$row->contragentName = $ContragentClass->getTitleById($rec->contragentId);
+    	$cData = $ContragentClass->getContragentData($rec->contragentId);
+    	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
         $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
     }
     
@@ -727,22 +731,20 @@ class purchase_Purchases extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      * 
      * @param int|object $id
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id)
+    public function pushDealInfo($id, &$result)
     {
     	$rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
+        
+        $result->setIfNot('dealType', self::AGGREGATOR_TYPE);
         
         // Извличаме продуктите на покупката
         $dQuery = purchase_PurchasesDetails::getQuery();
         $dQuery->where("#requestId = {$rec->id}");
         $detailRecs = $dQuery->fetchAll();
-                
-        $result = new bgerp_iface_DealResponse();
-        
-        $result->dealType = bgerp_iface_DealResponse::TYPE_PURCHASE;
         
         $allowedPaymentOperations = $this->allowedPaymentOperations;
         
@@ -760,68 +762,81 @@ class purchase_Purchases extends core_Master
         		$downPayment = round($paymentRec->downpayment * $rec->amountDeal, 4);
         	}
         }
-       
+        
         // Кои са позволените операции за последващите платежни документи
-        $result->allowedPaymentOperations = $allowedPaymentOperations;
-        $result->allowedShipmentOperations = $this->allowedShipmentOperations;
-        $result->involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
+        $result->set('allowedPaymentOperations', $allowedPaymentOperations);
+        $result->set('allowedShipmentOperations', $this->allowedShipmentOperations);
+        $result->set('involvedContragents', array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId)));
         
-        $result->agreed->amount                 = $rec->amountDeal;
-        $result->agreed->downpayment            = ($downPayment) ? $downPayment : NULL;
-        $result->agreed->currency               = $rec->currencyId;
-        $result->agreed->rate                   = $rec->currencyRate;
-        $result->agreed->vatType 				= $rec->chargeVat;
-        $result->agreed->delivery->location     = $rec->deliveryLocationId;
-        $result->agreed->delivery->term         = $rec->deliveryTermId;
-        $result->agreed->delivery->storeId      = $rec->shipmentStoreId;
-        $result->agreed->delivery->time         = $rec->deliveryTime;
-        $result->agreed->payment->method        = $rec->paymentMethodId;
-        $result->agreed->payment->bankAccountId = bank_Accounts::fetchField("#iban = '{$rec->bankAccountId}'", 'id');
-        $result->agreed->payment->caseId        = $rec->caseId;
+        $result->setIfNot('amount', $rec->amountDeal);
+        $result->setIfNot('currency', $rec->currencyId);
+        $result->setIfNot('rate', $rec->currencyRate);
+        $result->setIfNot('vatType', $rec->chargeVat);
+        $result->setIfNot('agreedValior', $rec->valior);
+        $result->setIfNot('deliveryLocation', $rec->deliveryLocationId);
+        $result->setIfNot('deliveryTime', $rec->deliveryTime);
+        $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
+        $result->setIfNot('storeId', $rec->shipmentStoreId);
+        $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
+        $result->setIfNot('caseId', $rec->caseId);
+        $result->setIfNot('bankAccountId', bank_Accounts::fetchField("#iban = '{$rec->bankAccountId}'", 'id'));
         
-        // Извличаме направените авансови плащания досега
-        $result->paid->downpayment = purchase_transaction_Purchase::getDownpayment($rec->id);
-        
-    	if (isset($actions['pay'])) {
-            $result->paid->amount   			  = $rec->amountDeal;
-            $result->agreed->downpayment          = ($downPayment) ? $downPayment : NULL;
-            $result->paid->payment->method        = $rec->paymentMethodId;
-            $result->paid->payment->bankAccountId = bank_Accounts::fetchField("#iban = '{$rec->bankAccountId}'", 'id');
-            $result->paid->payment->caseId        = $rec->caseId;
-        }
+        purchase_transaction_Purchase::clearCache();
+        $result->setIfNot('agreedDownpayment', $downPayment);
+        $result->setIfNot('downpayment', purchase_transaction_Purchase::getDownpayment($rec->id));
+        $result->setIfNot('amountPaid', purchase_transaction_Purchase::getPaidAmount($rec->id));
+        $result->setIfNot('deliveryAmount', purchase_transaction_Purchase::getDeliveryAmount($rec->id));
 
+        $agreedDp = $result->get('agreedDownpayment');
+        $actualDp = $result->get('downpayment');
+        if($agreedDp && ($actualDp < $agreedDp)){
+        	$result->set('defaultCaseOperation', 'case2supplierAdvance');
+        	$result->set('defaultBankOperation', 'bank2supplierAdvance');
+        } else {
+        	$result->set('defaultCaseOperation', 'case2supplier');
+        	$result->set('defaultBankOperation', 'bank2supplier');
+        }
+        
         if (isset($actions['ship'])) {
-            $result->shipped->amount             = $rec->amountDeal;
-            $result->agreed->downpayment         = ($downPayment) ? $downPayment : NULL;
-            $result->shipped->delivery->location = $rec->deliveryLocationId;
-            $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
-            $result->shipped->delivery->term     = $rec->deliveryTermId;
-            $result->shipped->delivery->time     = $rec->deliveryTime;
+            $result->setIfNot('shippedValior', $rec->valior);
         }
         
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
-            $p->classId     = $dRec->classId;
-            $p->productId   = $dRec->productId;
-            $p->packagingId = $dRec->packagingId;
-            $p->discount    = $dRec->discount;
-            $p->quantity    = $dRec->quantity;
-            $p->price       = $dRec->price;
-            $p->uomId       = $dRec->uomId;
-            
+            $p->classId           = $dRec->classId;
+            $p->productId         = $dRec->productId;
+            $p->packagingId       = $dRec->packagingId;
+            $p->discount          = $dRec->discount;
+            $p->quantity          = $dRec->quantity;
+            $p->quantityDelivered = $dRec->quantityDelivered;
+            $p->price             = $dRec->price;
+            $p->uomId             = $dRec->uomId;
+           
             $ProductMan = cls::get($p->classId);
             $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);
             $p->volume  = $ProductMan->getVolume($p->productId, $p->packagingId);
             
-            $result->agreed->products[] = $p;
+            $result->push('products', $p);
             
-        	if (isset($actions['ship'])) {
-            	$result->shipped->products[] = clone $p;
+        	if (isset($actions['ship']) && !empty($dRec->packagingId)) {
+        		$push = TRUE;
+            	$index = $dRec->classId . "|" . $dRec->productId;
+            	$shipped = $result->get('shippedPacks');
+            	if($shipped && isset($shipped[$index])){
+            		if($shipped[$index]->inPack < $dRec->quantityInPack){
+            			$push = FALSE;
+            		}
+            	}
+            	
+            	if($push){
+            		$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
+            		$result->push('shippedPacks', $arr, $index);
+            	}
             }
         }
         
-        return $result;
+        $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($rec->id));
     }
     
     
@@ -848,13 +863,10 @@ class purchase_Purchases extends core_Master
         
     	$requestDocuments = $this->getDescendants($requestRec->id);
         
+        $aggregateInfo = new bgerp_iface_DealAggregator;
+         
         // Извличаме dealInfo от самата покупка
-        /* @var $saleDealInfo bgerp_iface_DealResponse */
-        $requestDealInfo = $this->getDealInfo($requestRec->id);
-        
-        // dealInfo-то на самата покупка е база, в/у която се натрупват някой от аспектите
-        // на породените от нея документи (платежни, експедиционни, фактури)
-        $aggregateInfo = clone $requestDealInfo;
+        $this->pushDealInfo($requestRec->id, $aggregateInfo);
         
         /* @var $d core_ObjectReference */
         foreach ($requestDocuments as $d) {
@@ -865,29 +877,8 @@ class purchase_Purchases extends core_Master
             }
         
             if ($d->haveInterface('bgerp_DealIntf')) {
-                /* @var $dealInfo bgerp_iface_DealResponse */
-                $dealInfo = $d->getDealInfo();
-                
-                $aggregateInfo->shipped->push($dealInfo->shipped);
-                $aggregateInfo->paid->push($dealInfo->paid);
-                $aggregateInfo->invoiced->push($dealInfo->invoiced);
+                $d->instance->pushDealInfo($d->that, $aggregateInfo);
             }
-        }
-        
-        // Aко няма експедирани/фактурирани продукти, то се копират договорените
-        // но с количество 0 за експедирани/фактурирани
-    	foreach(array('shipped', 'invoiced') as $type){
-    		$aggregateInfo->$type->currency = $aggregateInfo->agreed->currency;
-        	$aggregateInfo->$type->rate     = $aggregateInfo->agreed->rate;
-        	$aggregateInfo->$type->vatType  = $aggregateInfo->agreed->vatType;
-        	
-        	if(!count($aggregateInfo->$type->products)){
-        		foreach ($aggregateInfo->agreed->products as $aProd){
-        			$cloneProd = clone $aProd;
-        			$cloneProd->quantity = 0;
-        			$aggregateInfo->$type->products[] = $cloneProd;
-        		}
-        	}
         }
         
         return $aggregateInfo;
@@ -899,26 +890,13 @@ class purchase_Purchases extends core_Master
      */
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
-    	$aggregatedDealInfo = $mvc->getAggregateDealInfo($rec->id);
-    	$mvc->updateAggregateDealInfo($rec, $aggregatedDealInfo);
-    }
-    
-    
-    /**
-     * Обновява БД с агрегирана бизнес информация за покупка
-     *
-     * @param bgerp_iface_DealResponse $aggregateDealInfo
-     */
-    public function updateAggregateDealInfo($rec, bgerp_iface_DealResponse $aggregateDealInfo)
-    {
-    	$p = purchase_transaction_Purchase::getDeliveryAmount($rec->id);
-    	core_Statuses::newStatus("$p");
+    	$aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
     	
     	// Преизчисляваме общо платената и общо експедираната сума
-    	$rec->amountPaid      = $aggregateDealInfo->paid->amount;
-    	$rec->amountDelivered = $aggregateDealInfo->shipped->amount;
-    	$rec->amountInvoiced  = $aggregateDealInfo->invoiced->amount;
-    
+    	$rec->amountPaid      = $aggregateDealInfo->get('amountPaid');
+    	$rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
+    	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
+    	
     	if($rec->amountPaid && $rec->amountDelivered && $rec->paymentState != 'overdue'){
     		if($rec->amountPaid >= $rec->amountDelivered){
     			$rec->paymentState = 'paid';
@@ -926,27 +904,27 @@ class purchase_Purchases extends core_Master
     			$rec->paymentState = 'pending';
     		}
     	}
-    
-    	$dQuery = $this->purchase_PurchasesDetails->getQuery();
+    	
+    	$mvc->save($rec);
+    	$dQuery = $mvc->purchase_PurchasesDetails->getQuery();
     	$dQuery->where("#requestId = {$rec->id}");
-    
-    	$this->save($rec);
-    
-    	while ($p = $dQuery->fetch) {
-    		$aggrProduct = $aggregateDealInfo->shipped->findProduct($p->productId, $p->classId, $p->packagingId);
-    		if ($aggrProduct) {
-    			$p->quantityDelivered = $aggrProduct->quantity;
-    		} else {
-    			$p->quantityDelivered = 0;
+    	
+    	// Намираме всички експедирани продукти, и обновяваме на договорените колко са експедирани
+    	$shippedProducts = $aggregateDealInfo->get('shippedProducts');
+    	
+    	while($product = $dQuery->fetch()){
+    		$delivered = 0;
+    		if(count($shippedProducts)){
+    			foreach ($shippedProducts as $key => $shipped){
+    				if($product->classId == $shipped->classId && $product->productId == $shipped->productId){
+    					$delivered = $shipped->quantity;
+    					break;
+    				}
+    			}
     		}
-    		$aggrProduct = $aggregateDealInfo->invoiced->findProduct($p->productId, $p->classId, $p->packagingId);
-    		if ($aggrProduct) {
-    			$p->quantityInvoiced = $aggrProduct->quantity;
-    		} else {
-    			$p->quantityInvoiced = 0;
-    		}
-    
-    		$this->purchase_PurchasesDetails->save($p);
+    	
+    		$product->quantityDelivered = $delivered;
+    		$mvc->purchase_PurchasesDetails->save($product);
     	}
     }
     

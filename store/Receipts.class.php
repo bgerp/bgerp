@@ -240,36 +240,36 @@ class store_Receipts extends core_Master
         
         if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
             
-        	//@TODO да го оправя, да взима от журнала експедираното
         	if($rec->isReverse == 'yes') return;
         	
-            /* @var $aggregatedDealInfo bgerp_iface_DealResponse */
             $aggregatedDealInfo = $origin->getAggregateDealInfo();
+            $agreedProducts = $aggregatedDealInfo->get('products');
             
-            $remainingToShip = clone $aggregatedDealInfo->agreed;
-            $remainingToShip->pop($aggregatedDealInfo->shipped);
-            
-            /* @var $product bgerp_iface_DealProduct */
-            foreach ($remainingToShip->products as $product) {
-            	$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
-                
-            	// Пропускат се експедираните и нескладируемите продукти
-            	if (!isset($info->meta['canStore']) || $product->quantity <= 0) continue;
-                
-                $shipProduct = new stdClass();
-                $shipProduct->receiptId   = $rec->id;
-                $shipProduct->classId     = $product->classId;
-                $shipProduct->productId   = $product->productId;
-                $shipProduct->packagingId = $product->packagingId;
-                $shipProduct->quantity    = $product->quantity;
-                $shipProduct->price       = $product->price;
-                $shipProduct->uomId       = $product->uomId;
-                $shipProduct->discount    = $product->discount;
-                $shipProduct->weight      = $product->weight;
-                $shipProduct->volume      = $product->volume;
-                $shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
-                
-                $mvc->store_ReceiptDetails->save($shipProduct);
+            if(count($agreedProducts)){
+            	foreach ($agreedProducts as $product) {
+            		$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
+            	
+            		// Колко остава за експедиране от продукта
+            		$toShip = $product->quantity - $product->quantityDelivered;
+            		 
+            		// Пропускат се експедираните и нескладируемите продукти
+            		if (!isset($info->meta['canStore']) || ($toShip <= 0)) continue;
+            	
+            		$shipProduct = new stdClass();
+            		$shipProduct->receiptId   = $rec->id;
+            		$shipProduct->classId     = $product->classId;
+            		$shipProduct->productId   = $product->productId;
+            		$shipProduct->packagingId = $product->packagingId;
+            		$shipProduct->quantity    = $toShip;
+            		$shipProduct->price       = $product->price;
+            		$shipProduct->uomId       = $product->uomId;
+            		$shipProduct->discount    = $product->discount;
+            		$shipProduct->weight      = $product->weight;
+            		$shipProduct->volume      = $product->volume;
+            		$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
+            	
+            		$mvc->store_ReceiptDetails->save($shipProduct);
+            	}
             }
         }
     }
@@ -282,7 +282,7 @@ class store_Receipts extends core_Master
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
         $Companies = cls::get('crm_Companies');
-        $row->MyCompany = $Companies->getTitleById($ownCompanyData->companyId);
+        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
@@ -293,7 +293,8 @@ class store_Receipts extends core_Master
     	
     	// Данните на клиента
         $ContragentClass = cls::get($rec->contragentClassId);
-    	$row->contragentName = $ContragentClass->getTitleById($rec->contragentId);
+    	$cData = $ContragentClass->getContragentData($rec->contragentId);
+    	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
         $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
     }
     
@@ -331,11 +332,7 @@ class store_Receipts extends core_Master
     {
     	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$data->row->id}</b> ({$data->row->state})";
-    	
-    	if(haveRole('debug')){
-    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
-    	}
-	}
+    }
     
     
     /**
@@ -365,14 +362,14 @@ class store_Receipts extends core_Master
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         $dealInfo = $origin->getAggregateDealInfo();
         
-        $form->setDefault('currencyId', $dealInfo->agreed->currency);
-        $form->setDefault('currencyRate', $dealInfo->agreed->rate);
-        $form->setDefault('locationId', $dealInfo->agreed->delivery->location);
-        $form->setDefault('deliveryTime', $dealInfo->agreed->delivery->time);
-        $form->setDefault('chargeVat', $dealInfo->agreed->vatType);
-        $form->setDefault('storeId', $dealInfo->agreed->delivery->storeId);
+        $form->setDefault('currencyId', $dealInfo->get('currency'));
+        $form->setDefault('currencyRate', $dealInfo->get('rate'));
+        $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
+        $form->setDefault('deliveryTime', $dealInfo->get('deliveryTime'));
+        $form->setDefault('chargeVat', $dealInfo->get('vatType'));
+        $form->setDefault('storeId', $dealInfo->get('storeId'));
         
-        if(!$dealInfo->agreed->vatType){
+        if(!$dealInfo->get('vatType')){
         	$form->setField('chargeVat', 'input=input,important');
         } else {
         	$form->setField('chargeVat', 'input=hidden');
@@ -395,13 +392,15 @@ class store_Receipts extends core_Master
         	$rec = &$form->rec;
         	$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
         	
-        	$operation = $dealInfo->allowedShipmentOperations['stowage'];
+        	$operations = $dealInfo->get('allowedShipmentOperations');
+        	$operation = $operations['stowage'];
         	$rec->accountId = $operation['credit'];
         	$rec->isReverse = (isset($operation['reverse'])) ? 'yes' : 'no';
         	
         	if($rec->lineId){
+        		
         		// Ако има избрана линия и метод на плащане, линията трябва да има подочетно лице
-        		if($pMethods = $dealInfo->agreed->payment->method){
+        		if($pMethods = $dealInfo->get('paymentMethodId')){
         			if(cond_PaymentMethods::isCOD($pMethods) && !trans_Lines::hasForwarderPersonId($rec->lineId)){
         				$form->setError('lineId', 'При наложен платеж, избраната линия трябва да няма материално отговорно лице !');
         			}
@@ -528,44 +527,41 @@ class store_Receipts extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      * 
      * @param int|object $id
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id)
+    public function pushDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
         
-        $result = new bgerp_iface_DealResponse();
-        
-        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-		
-		$result->shipped->amount             = $rec->amountDelivered;
-		$result->shipped->valior 			 = $rec->valior;
-        $result->shipped->delivery->location = $rec->locationId;
-        $result->shipped->delivery->term     = $rec->termId;
-        $result->shipped->delivery->time     = $rec->deliveryTime;
-        $result->shipped->delivery->storeId  = $rec->storeId;
+        $aggregator->setIfNot('deliveryLocation', $rec->locationId);
+        $aggregator->setIfNot('deliveryTime', $rec->deliveryTime);
+        $aggregator->setIfNot('storeId', $rec->storeId);
+        $aggregator->setIfNot('shippedValior', $rec->valior);
+        $aggregator->setIfNot('deliveryTerm', $rec->termId);
         
         $dQuery = store_ReceiptDetails::getQuery();
         $dQuery->where("#receiptId = {$rec->id}");
         
         while ($dRec = $dQuery->fetch()) {
-            $p = new bgerp_iface_DealProduct();
+        	if(empty($dRec->packagingId)) continue;
+        	
+        	// Подаваме най-малката опаковка в която е експедиран продукта
+            $push = TRUE;
+            $index = $dRec->classId . "|" . $dRec->productId;
+            $shipped = $aggregator->get('shippedPacks');
+            if($shipped && isset($shipped[$index])){
+            	if($shipped[$index]->inPack < $dRec->quantityInPack){
+            		$push = FALSE;
+            	} 
+            } 
             
-            $p->classId     = $dRec->classId;
-            $p->productId   = $dRec->productId;
-            $p->packagingId = $dRec->packagingId;
-            $p->discount    = $dRec->discount;
-            $p->quantity    = $dRec->quantity;
-            $p->price       = $dRec->price;
-            $p->uomId       = $dRec->uomId;
-            $p->weight      = $dRec->weight;
-            $p->volume      = $dRec->volume;
-            
-            $result->shipped->products[] = $p;
+            // Ако ще обновяваме информацията за опаковката
+            if($push){
+            	$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
+            	$aggregator->push('shippedPacks', $arr, $index);
+            }
         }
-        
-        return $result;
     }
     
     
@@ -577,18 +573,6 @@ class store_Receipts extends core_Master
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     	}
-    }
-    
-    
- 	/**
-     * Дебъг екшън показващ агрегираните бизнес данни
-     */
-    function act_DealInfo()
-    {
-    	requireRole('debug');
-    	expect($id = Request::get('id', 'int'));
-    	$info = $this->getDealInfo($id);
-    	bp($info->shipped);
     }
     
     

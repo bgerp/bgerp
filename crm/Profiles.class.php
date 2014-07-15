@@ -718,12 +718,14 @@ class crm_Profiles extends core_Master
                     $attr['class'] .= " {$role}"; break;
                 } 
             }
-
-            $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
             
-            if($before < 5*60) {
+            if ($userRec->lastActivityTime) {
+                $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
+            }
+            
+            if(($before !== NULL) && $before < 5*60) {
                 $attr['class'] .= ' active';
-            } elseif($before > 60*60) {
+            } elseif(!$before || $before > 60*60) {
                 $attr['class'] .= ' inactive';
             }
 
@@ -790,6 +792,23 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Създаваме собствена форма за филтриране
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $data
+     */
+    static function on_BeforePrepareListFilter($mvc, $res, &$data)
+    {
+        $formParams = array(
+            'method' => 'GET',
+//            'toolbar' => ht::createSbBtn('Филтър')
+        );
+        $data->listFilter = cls::get('core_Form', $formParams);
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -803,8 +822,6 @@ class crm_Profiles extends core_Master
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	 
     	$data->listFilter->showFields = 'search';
-        
-        $data->listFilter->input('search', 'silent');
         
         $data->query->orderBy("lastLoginTime", "DESC");
     }

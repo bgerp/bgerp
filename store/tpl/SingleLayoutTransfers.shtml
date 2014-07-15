@@ -37,12 +37,16 @@
                     </tr>
                     <tr>
                     <td class="cell">
-                    <b>[#fromStore#]</b><br />
-                    [#fromAdress#]
+                    <b>[#fromStore#]</b>
+                    <div class='address-block'>
+                        [#fromAdress#]
+                     </div>
                     </td>
                     <td class="cell">
-                    <b>[#toStore#]</b><br />
-                    [#toAdress#]
+                    <b>[#toStore#]</b>
+                    <div class='address-block'>
+                        [#toAdress#]
+                    </div>
 					</td>
                 </tr>
                 </tbody>

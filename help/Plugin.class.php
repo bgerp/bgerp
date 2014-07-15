@@ -71,6 +71,7 @@ class help_Plugin extends core_Plugin
                 }
             	$hintText .= ht::createLink($imgEdit, $urlAE, NULL, array('class' => 'edit-tooltip'));
             }  
+            
             $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><a class='close-tooltip'></a>[#1#]</div>", $hintText);
             $url = toUrl(array('help_Log', 'CloseInfo', $rec->id));
             

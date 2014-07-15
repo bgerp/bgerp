@@ -66,6 +66,7 @@ class acc_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+    		'acc_Years',
             'acc_Lists',
             'acc_Items',
             'acc_Periods',
@@ -78,7 +79,7 @@ class acc_Setup extends core_ProtoSetup
             'acc_Journal',
             'acc_JournalDetails',
     		'acc_OpenDeals',
-    		'acc_Features'
+    		'acc_Features',
         );
     
 

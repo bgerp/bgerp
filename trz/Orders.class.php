@@ -269,7 +269,7 @@ class trz_Orders extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if(doc_Threads::haveRightFor('add', $data->сrec->threadId) == FALSE){
+        if(doc_Threads::haveRightFor('add', $data->rec->threadId) == FALSE){
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
         

@@ -141,7 +141,7 @@ class doc_DocumentPlg extends core_Plugin
                     'reject',
                     $data->rec->id
                 ),
-                'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32,title=Оттегляне на документа');
+                'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=Оттегляне на документа');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {
@@ -1358,8 +1358,13 @@ class doc_DocumentPlg extends core_Plugin
         //Превръщаме $res в масив
         $res = (array)$res;
         
-        //Вземаме данните
-        $rec = $mvc::fetch($id);
+        // Ако е обект, използваме го директно
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            //Вземаме данните
+            $rec = $mvc::fetch($id);
+        }
         
         //Обхождаме всички полета
         foreach ($mvc->fields as $field) {
@@ -1380,6 +1385,162 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща максимално допустимия размер за прикачени файлове
+     * 
+     * @param core_Mvc $mvc
+     * @param integer $min
+     */
+    function on_AfterGetMaxAttachFileSizeLimit($mvc, &$max)
+    {
+        static $maxSize;
+                
+        if (!$maxSize) {
+            if (!$max) {
+                
+                $conf = core_Packs::getConfig('email');
+                $maxAttachedLimit = $conf->EMAIL_MAX_ATTACHED_FILE_LIMIT;
+                
+                // Инстанция на класа за определяне на размера
+                $FileSize = cls::get('fileman_FileSize');
+                
+                // Вземаме размерите, които ще влияят за изпращането на файлове
+                $memoryLimit = ini_get('memory_limit');
+                
+                // Вземаме вербалното им представяне
+                $memoryLimit = $FileSize->fromVerbal($memoryLimit) / 3;
+                
+                // Вземаме мининалния размер
+                $maxSize = min($maxAttachedLimit, $memoryLimit);
+            }
+        }
+        
+        $max = $maxSize;
+    }
+    
+    
+    /**
+     * Връща вербалната стойност на размерите подадени в масива
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param array $dataArr
+     */
+    function on_AfterGetVerbalSizesFromArray($mvc, $res, $dataArr)
+    {
+        $sizeAll = 0;
+        
+        // Събираме стойностите от масива
+        foreach ($dataArr as $size) {
+            $sizeAll += $size;
+        } 
+        
+        // Вербализираме стойността
+        $FileSize = cls::get('fileman_FileSize');
+        $res = $verbalMaxUploadFileSize = $FileSize->toVerbal($sizeAll);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param boolean $res
+     * @param array $sizeArr
+     */
+    function on_AfterCheckMaxAttachedSize($mvc, &$res, $sizeArr)
+    {
+        $nSize=0;
+        
+        $min = $mvc->getMaxAttachFileSizeLimit();
+        
+        // Обхождаме масива
+        foreach ((array)$sizeArr as $size) {
+            
+            // Добавяме към размера
+            $nSize += $size;
+            
+            // Ако общия размер на файловете е над допустимия минимум
+            if ($nSize > $min) {
+                
+                $res = FALSE;
+                
+                return ;
+            }
+        }
+        
+        $res = TRUE;
+    }
+    
+    
+    /**
+     * Връща масив с размерите на прикачените файлове
+     * 
+     * @param core_Mvc $mvc
+     * @param array $resArr
+     * @param array $filesArr
+     */
+    function on_AfterGetFilesSizes($mvc, &$resArr, $filesArr)
+    {
+        foreach ((array)$filesArr as $fileHnd) {
+            
+            // Вземаме метаданните за файла
+            $meta = fileman::getMeta($fileHnd);
+            
+            // Добавяме размера за този манипулатор
+            $resArr[$fileHnd] = $meta['size'];
+        }
+    }
+    
+    
+    /**
+     * Връща размера на всички подадени документи
+     * 
+     * @param core_Mvc $mvc
+     * @param array $resArr
+     * @param array $docsArr
+     */
+    function on_AfterGetDocumentsSizes($mvc, &$resArr, $docsArr)
+    {
+        foreach ((array)$docsArr as $doc) {
+            $resArr[$doc['fileName']] = $doc['doc']->getDocumentSize($doc['ext']);
+        }
+    }
+    
+    
+    /**
+     * Връща размера на документа
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param integer $id
+     * @param integer $type
+     */
+    function on_AfterGetDocumentSize($mvc, &$res, $id, $type)
+    {
+        switch (strtolower($type)) {
+            case 'pdf':
+                $res = 300000;
+            break;
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param integer $id
+     * 
+     * @see email_Incomings->on_BeforeGetTypeConvertingsByClass()
+     * @see email_Incomings->on_BeforeCheckSizeForAttach()
+     */
+    function on_AfterCheckSizeForAttach($mvc, &$res, $id)
+    {
     }
     
     
@@ -1487,8 +1648,10 @@ class doc_DocumentPlg extends core_Plugin
         //Името на класа
         $className = $fileInfo['className'];
         
+        $rec = $className::fetchByHandle($fileInfo);
+        
         //Вземаме containerId' то на документа
-        $containerId = $className::fetchField($fileInfo['id'], 'containerId');
+        $containerId = $rec->containerId;
         
         //Ако няма containerId - прескачаме
         if (!$containerId) return;

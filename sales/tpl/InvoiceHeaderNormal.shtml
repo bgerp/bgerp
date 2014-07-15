@@ -29,14 +29,19 @@
 		</tr>           
 		<tr>
 		    <td class="cell">
-		        <b>[#contragentName#]</b><br>
-		       [#contragentCountryId#],  <!--ET_BEGIN contragentPlace-->[#contragentPCode#] [#contragentPlace#]<!--ET_END contragentPlace-->
-		       <!--ET_BEGIN contragentAddress-->, [#contragentAddress#] <!--ET_END contragentAddress-->
+		        <b>[#contragentName#]</b>
+		        <div class='address-block'>
+			       [#contragentCountryId#]<br>
+			       [#contragentPCode#] [#contragentPlace#]<br>
+			       <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+		       </div>
 		        
 		    </td>
 		    <td class="cell">
-		         <b>[#MyCompany#]</b><br>
-		         [#MyAddress#] <br>
+		         <b>[#MyCompany#]</b>
+		         <div class='address-block'>
+		             [#MyAddress#]
+		         </div>
 		    </td>
 		</tr>
 		<tr>
@@ -45,11 +50,11 @@
 		            <tbody>
 		               <!--ET_BEGIN contragentVatNo-->
 		               <tr>
-		                   <td><small><b>|номер по ЗДДС|* / <i>VAT ID: </i></b></small><span class="bigData">[#contragentVatNo#]</span></td>
+		                   <td align="right"><small>№ |по ЗДДС|* / <i>VAT ID </i>:</small></td><td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
 		               </tr>
 		               <!--ET_END contragentVatNo-->
 		               <tr>
-		                   <td><small><b>[#cNum#]:</b></small>: <span class="bigData">[#uicNo#]</span></td>
+		                   <td align="right"><small>[#cNum#] :</small></td><td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
 		               </tr>
 		            </tbody>
 		        </table>
@@ -59,12 +64,12 @@
 		            <tbody>
 		               <!--ET_BEGIN MyCompanyVatNo-->
 		               <tr>
-		                   <td><small><b>|номер по ЗДДС|* / <i>VAT ID: </i></b></small><span class="bigData">[#MyCompanyVatNo#]</span></td>
+		                   <td><small>№ |по ЗДДС|* / <i>VAT ID </i>:</small></td><td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
 		               </tr>
 		               <!--ET_END MyCompanyVatNo-->
 		               <!--ET_BEGIN uicId-->
 		               <tr>
-		                   <td><small><b>|ЕИК|* / <i>UIC: </i></b></small><span class="bigData">[#uicId#]</span></td>
+		                   <td><small>|ЕИК|* / <i>UIC </i>:</small></td><td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
 		               </tr>
 		               <!--ET_END uicId-->
 		             </tbody>

@@ -48,53 +48,53 @@ class acc_CronDealsHelper
     	$query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
     	
     	while($rec = $query->fetch()){
-    			try{
-    				// Намира се метода на плащане от интерфейса
-    				$dealInfo = $Class->getAggregateDealInfo($rec->id);
-    			} catch(Exception $e){
+    		try{
+    			// Намира се метода на плащане от интерфейса
+    			$dealInfo = $Class->getAggregateDealInfo($rec->id);
+    		} catch(Exception $e){
     				
-    				// Ако има проблем при извличането се продължава
-    				core_Logs::add($Class, $rec->id, "Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'");
-    				continue;
-    			}
+    			// Ако има проблем при извличането се продължава
+    			core_Logs::add($Class, $rec->id, "Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'");
+    			continue;
+    		}
     			
-    			$mId = ($dealInfo->agreed->payment->method) ? $dealInfo->agreed->payment->method : $dealInfo->invoiced->payment->method;
-    			if($mId){
-    				// Намира се датата в реда фактура/експедиция/сделка
-    				foreach (array('invoiced', 'shipped', 'agreed') as $asp){
-    					if($date = $dealInfo->$asp->valior){
-    						break;
-    					}
-    				}
-    				
-    				// Извлича се платежния план
-    				$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
-    					
-    				try{
-    					$isOverdue = cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid);
-    				} catch(Exception $e){
-    					
-	    				// Ако има проблем при извличането се продължава
-	    				core_Logs::add($Class, $rec->id, "Несъществуващ платежен план': '{$e->getMessage()}'");
-	    				continue;
-    				}
-    				
-    				// Проверка дали продажбата е просрочена
-    				if($isOverdue){
-    				
-    					// Ако да, то продажбата се отбелязва като просрочена
-    					$rec->paymentState = 'overdue';
-    					
-    					try{
-    						$Class->save($rec);
-    					}catch(Exception $e){
-    						
-    						// Ако има проблем при обновяването
-    						core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");
-    					}
-    				}
+    		$mId = $dealInfo->get('paymentMethodId');
+    		if(!$mId) continue;
+    			
+    		// Намира се датата в реда фактура/експедиция/сделка
+    		foreach (array('invoicedValior', 'shippedValior', 'agreedValior') as $asp){
+    			if($date = $dealInfo->get($asp)){
+    				break;
     			}
     		}
+    				
+    		// Извлича се платежния план
+    		$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
+    			
+    		try{
+    			$isOverdue = cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid);
+    		} catch(Exception $e){
+    					
+	    		// Ако има проблем при извличането се продължава
+	    		core_Logs::add($Class, $rec->id, "Несъществуващ платежен план': '{$e->getMessage()}'");
+	    		continue;
+    		}
+    				
+    		// Проверка дали продажбата е просрочена
+    		if($isOverdue){
+    				
+    			// Ако да, то продажбата се отбелязва като просрочена
+    			$rec->paymentState = 'overdue';
+    					
+    			try{
+    				$Class->save($rec);
+    			} catch(Exception $e){
+    						
+    				// Ако има проблем при обновяването
+    				core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");
+    			}
+    		}
+    	}
     }
     
     

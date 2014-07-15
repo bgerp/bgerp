@@ -482,14 +482,14 @@ class sales_SaleRequests extends core_Master
     	// Данните на "Моята фирма"
         $ownCompanyData = crm_Companies::fetchOwnCompany();
         
-    	$row->MyCompany      = $ownCompanyData->company;
+    	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         $row->MyAddress      = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId);;
         $row->MyCompanyVatNo = $ownCompanyData->vatNo;
         
-        $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $row->contragentAddress = $contragent->getFullAdress();
-        
-        $row->contragentName = $contragent->getTitleById();
+        $ContragentClass = cls::get($rec->contragentClassId);
+        $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
+       	$cData = $ContragentClass->getContragentData($rec->contragentId);
+    	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
     }
     
     

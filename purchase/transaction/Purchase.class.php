@@ -34,6 +34,12 @@ class purchase_transaction_Purchase
     
     
     /**
+     * Работен кеш
+     */
+    private static $cache2 = array();
+    
+    
+    /**
      * Генериране на счетоводните транзакции, породени от покупка.
      * 
      * Счетоводната транзакция за породена от документ-покупка може да се раздели на три
@@ -202,7 +208,12 @@ class purchase_transaction_Purchase
 	        
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	
-    		if(empty($pInfo->meta['canStore'])){
+    		// Ако не е "Складируем" - значи е разход
+			if(empty($pInfo->meta['canStore'])){
+
+				// Ако е "Разходи за услуги" дебит 602, иначе 601
+	        	$costsAccNumber = (isset($pInfo->meta['costsServices'])) ? '602' : '601';
+
     			$entries[] = array(
 	                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
 	                
@@ -215,7 +226,7 @@ class purchase_transaction_Purchase
 	                ),
 	                
 	                'debit' => array(
-	                    '602', 
+	                    $costsAccNumber, 
 	                        array($detailRec->classId, $detailRec->productId),
 	                    'quantity' => $detailRec->quantity,
 	                ),
@@ -269,8 +280,13 @@ class purchase_transaction_Purchase
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
         	$amountBase += $amount * $rec->currencyRate;
-        	$quantityAmountBase += currency_Currencies::round($amount, $rec->currencyId);
         }
+        
+        if($rec->chargeVat == 'separate'){
+        	$amountBase += $rec->_total->vat;
+        }
+        
+        $quantityAmountBase += currency_Currencies::round($amountBase, $rec->currencyId);
         
         $entries[] = array(
                 'amount' => currency_Currencies::round($amountBase), // В основна валута
@@ -449,7 +465,7 @@ class purchase_transaction_Purchase
     	$jRecs = self::getEntries($id);
     
     	// Извличаме тези, отнасящи се за експедиране
-    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,703', 'debit');
+    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,602', 'debit');
     	
     	if(!count($dInfo->recs)) return $res;
     
@@ -471,12 +487,13 @@ class purchase_transaction_Purchase
     						$res[$index] = $obj;
     					}
     					 
+    					$res[$index]->amount += $p->amount;
     					$res[$index]->quantity  += $p->debitQuantity;
     				}
     			}
     		}
     	}
-    	 //bp($res);
+    	
     	// Връщаме масив със всички експедирани продукти по тази сделка
     	return $res;
     }

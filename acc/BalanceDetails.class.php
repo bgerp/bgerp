@@ -454,7 +454,7 @@ class acc_BalanceDetails extends core_Detail
     {
         $res = new ET("
         	[#ListToolbar#]</div>
-        	<div class='fright'>[#ListSummary#]</div>
+        	[#ListSummary#]
         	<div class='clearfix21'></div>
             [#ListTable#]
         ");
@@ -515,7 +515,7 @@ class acc_BalanceDetails extends core_Detail
     	$form = cls::get('core_Form');
         
         $form->method = 'GET';
-        $form->view = 'horizontal';
+        $form->class = 'simpleForm';
         $form->fieldsLayout = getTplFromFile("acc/tpl/BalanceFilterFormFields.shtml");
         $form->FNC("accId", 'int', 'silent,input=hidden');
         $form->input("accId", true);
@@ -554,6 +554,7 @@ class acc_BalanceDetails extends core_Detail
         $features = array('' => '') + $features;
     	$options = array('' => '') + $options;
     	
+    	$form->fieldsLayout->replace($listRec->name, "caption{$i}");
     	$form->FNC("grouping{$i}", 'key(mvc=acc_Items)', "silent,caption={$listRec->name},width=330px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
         $form->FNC("feat{$i}", 'varchar', "silent,caption={$listRec->name}->Свойства,width=330px,input,class=balance-feat");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['grouping{$i}'].value ='';")));
         $form->setOptions("grouping{$i}", $options);

@@ -40,7 +40,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, 
+    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
                         plg_AlignDecimals2, doc_plg_HidePrices';
     
     
@@ -347,10 +347,9 @@ class sales_SalesDetails extends core_Detail
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
         	if(empty($rec->id)){
-    			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
-    			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
+    			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}";
     			if($pRec = $mvc->fetch($where)){
-    				$form->setWarning("productId", "Има вече такъв продукт с тази опаковка. Искате ли да го обновите?");
+    				$form->setWarning("productId", "Има вече такъв продукт. Искате ли да го обновите?");
     				$rec->id = $pRec->id;
     				$update = TRUE;
     			}
@@ -414,20 +413,30 @@ class sales_SalesDetails extends core_Detail
                 
                 // Изчисляване цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
-                
             }
-            
-    		// Записваме основната мярка на продукта
-            $rec->uomId = $productInfo->productRec->measureId;
             
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if($rec->id){
             	$oldRec = $mvc->fetch($rec->id);
-            	if($oldRec && $rec->packagingId != $oldPack && trim($rec->packPrice) == trim($oldRec->packPrice)){
+            	if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
             		$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
             	}
             }
         }
+    }
+    
+    
+    /**
+     * Преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(empty($rec->uomId)){
+    		$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    		 
+    		// Записваме основната мярка на продукта
+    		$rec->uomId = $productInfo->productRec->measureId;
+    	}
     }
     
     

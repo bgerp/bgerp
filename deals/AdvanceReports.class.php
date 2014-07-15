@@ -182,14 +182,14 @@ class deals_AdvanceReports extends core_Master
     	expect($origin = $mvc->getOrigin($data->form->rec));
     	expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
     	$dealInfo = $origin->getAggregateDealInfo();
-    	$options = self::getOperations($dealInfo->allowedPaymentOperations);
+    	$options = self::getOperations($dealInfo->get('allowedPaymentOperations'));
     	expect(count($options));
     	
     	$data->form->dealInfo = $dealInfo;
     	$data->form->setDefault('operationSysId', 'debitDeals');
     	
-    	$data->form->setDefault('currencyId', currency_Currencies::getIdByCode($dealInfo->agreed->currency));
-    	$data->form->setDefault('rate', $dealInfo->agreed->rate);
+    	$data->form->setDefault('currencyId', currency_Currencies::getIdByCode($dealInfo->get('currency')));
+    	$data->form->setDefault('rate', $dealInfo->get('rate'));
     	
     	$data->form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
@@ -203,6 +203,7 @@ class deals_AdvanceReports extends core_Master
     	$rec = &$form->rec;
     	 
     	if ($form->isSubmitted()){
+    		$operations = $form->dealInfo->get('allowedPaymentOperations');
     		$operation = $form->dealInfo->allowedPaymentOperations[$rec->operationSysId];
     		$rec->creditAccount = $operation['credit'];
     		
@@ -412,7 +413,7 @@ class deals_AdvanceReports extends core_Master
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
-    	$data->row->MyCompany = $Companies->getTitleById($ownCompanyData->companyId);
+    	$data->row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
     	$data->row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
     }
     
@@ -449,5 +450,18 @@ class deals_AdvanceReports extends core_Master
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     *
+     * @param int|object $id
+     * @return bgerp_iface_DealAggregator
+     * @see bgerp_DealIntf::getDealInfo()
+     */
+    public function pushDealInfo($id, &$aggregator)
+    {
+    	 
     }
 }

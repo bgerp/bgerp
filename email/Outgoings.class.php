@@ -101,6 +101,12 @@ class email_Outgoings extends core_Master
     
     
     /**
+     * Кой може да затваря имейла
+     */
+    var $canClose = 'user';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
@@ -620,8 +626,10 @@ class email_Outgoings extends core_Master
                 // Масив, с информация за документа
                 $documentInfoArr = doc_RichTextPlg::getFileInfo($name);
                 
+                $rec = $documentInfoArr['className']::fetchByHandle($documentInfoArr);
+                
                 // Вземаме прикачените файлове от линковете към други документи в имейла
-                $filesArr += (array)$documentInfoArr['className']::getAttachments($documentInfoArr['id']);
+                $filesArr += (array)$documentInfoArr['className']::getAttachments($rec->id);
                 
                 //Проверяваме дали документа да се избира по подразбиране
                 if ($checked == 'on') {
@@ -733,7 +741,7 @@ class email_Outgoings extends core_Master
         
         // В съответните състояние
         $query->where("#state = 'pending'");
-        $query->orWhere("#state = 'active'");
+        $query->orWhere("#state = 'wakeup'");
         $query->orWhere("#state = 'closed'");
         
         // Подредени по последно изпратени
@@ -742,7 +750,10 @@ class email_Outgoings extends core_Master
         
         $rec = $query->fetch();
         
-        return $rec->waiting;
+        if ($rec) {
+            
+            return $rec->waiting;
+        }
     }
     
     
@@ -836,45 +847,33 @@ class email_Outgoings extends core_Master
                 }
             }
             
-            // Ако ще прикачваме файлове
-            if (trim($rec->attachmentsSet)) {
+            // Ако ще се прикачат документи или файлове
+            if (trim($rec->documentsSet) || trim($rec->attachmentsSet)) {
                 
-                // Масив с прикачените файлове
+                // Прикачените документи
+                $checkedDocs = static::getAttachedDocuments($rec);
+                $docsSizesArr = $mvc->getDocumentsSizes($checkedDocs);
+                
+                // Прикачените файлове
                 $attachmentsArr = type_Set::toArray($rec->attachmentsSet);
-                
-                // Вземаме размерите, които ще влияят за изпращането на файлове
-                $uploadMaxFilesize = ini_get('upload_max_filesize');
-                $postMaxSize = ini_get('post_max_size');
-                $memoryLimit = ini_get('memory_limit');
-                
-                // Инстанция на класа за определяне на размера
-                $FileSize = cls::get('fileman_FileSize');
-                
-                // Вземаме вербалното им представяне
-                $uploadMaxFilesize = $FileSize->fromVerbal($uploadMaxFilesize);
-                $postMaxSize = $FileSize->fromVerbal($postMaxSize);
-                $memoryLimit = $FileSize->fromVerbal($memoryLimit);
-                
-                // Вземаме мининалния размер
-                $min = min($uploadMaxFilesize, $postMaxSize, $memoryLimit);
-                
-                // Обхождаме масива
-                foreach ($attachmentsArr as $attacmentFh) {
+                $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
+                   
+                // Проверяваме дали размерът им е над допсутимият
+                $allAttachmentsArr = array_merge((array)$docsSizesArr, (array)$filesSizesArr);
+                if (!$mvc->checkMaxAttachedSize($allAttachmentsArr)) {
                     
-                    // Вземаме метаданните за файла
-                    $meta = fileman::getMeta($attacmentFh);
+                    // Вербалният размер на файловете и документите
+                    $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
                     
-                    // Добавяме към размера
-                    $size += $meta['size'];
-                    
-                    // Ако общия размер на файловете е над допустимия минимум
-                    if ($size > $min) {
-                        
-                        // Вдигаме флага за грешка
-                        $form->setError('attachmentsSet', 'Максималният допустим размер за прикачени файлове е|*: ' . $FileSize->toVerbal($min));
-                        
-                        break;
+                    if ($rec->documentsSet && $rec->attachmentsSet) {
+                        $str = "файлове и документи";
+                    } else if ($rec->documentsSet) {
+                        $str = "документи";
+                    } else {
+                        $str = "файлове";
                     }
+                    
+                    $form->setWarning('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
                 }
             }
         }
@@ -2011,6 +2010,68 @@ class email_Outgoings extends core_Master
                     'ret_url' => TRUE,
                 ), 'order=20, row=2', 'ef_icon = img/16/email_forward.png'
             );
+        }
+        
+        if ($mvc->haveRightFor('close', $data->rec)) {
+            $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), 'ef_icon = img/16/close16.png, row=2');
+        }
+    }
+    
+    
+    /**
+     * Затваря състоянието на имейла
+     */
+    function act_Close()
+    {
+        $id = Request::get('id', 'int');
+        
+        $rec = $this->fetch($id);
+        
+        expect($rec);
+        
+        $this->requireRightFor('close', $rec);
+        
+        $rec->state = 'closed';
+        
+        if ($this->save($rec)) {
+            $msg = '|Успешно затворен имейл';
+            $type = 'notice';
+        } else {
+            $msg = '|Грешка при затваряне на имейла';
+            $type = 'warning';
+        }
+        
+        $retUrl = array($this, 'single', $id);
+        
+        return new Redirect($retUrl, $msg, $type);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако ще се затваря
+        if ($action == 'close' && $rec) {
+            
+            // Ако не чакащо или събудено състояние, да не може да се затваря
+            if (($rec->state != 'pending') && ($rec->state != 'wakeup')) {
+                $requiredRoles = 'no_one';
+            } else if (!haveRole('admin, ceo')) {
+                
+                // Ако няма роля admin или ceo
+                // Ако не е изпратен от текущия потребител, да не може да се затваря
+                if ($rec->lastSendedBy != $userId) {
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
     

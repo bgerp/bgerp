@@ -14,6 +14,10 @@
  */
 class deals_Deals extends core_Master
 {
+	
+	const AGGREGATOR_TYPE = 'deal';
+	
+	
     /**
      * Заглавие
      */
@@ -526,31 +530,33 @@ class deals_Deals extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
      * @param int|object $id
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id)
+    public function pushDealInfo($id, &$result)
     {
     	$rec = self::fetchRec($id);
-    
-    	$result = new bgerp_iface_DealResponse();
     	
-    	$result->dealType = bgerp_iface_DealResponse::TYPE_DEAL;
+    	$result->set('dealType', self::AGGREGATOR_TYPE);
     	
     	$this->getAllowedOperations($rec, $paymentOperations, $shipmentOperations);
     	
-    	$result->allowedPaymentOperations = $paymentOperations;
-    	$result->allowedShipmentOperations = $shipmentOperations;
+    	$result->set('allowedPaymentOperations', $paymentOperations);
+    	$result->set('allowedShipmentOperations', $shipmentOperations);
     	
-    	$result->involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
+    	$involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
     	if($rec->secondContragentClassId){
-    		$result->involvedContragents[] = (object)array('classId' => $rec->secondContragentClassId, 'id' => $rec->secondContragentId);
+    		$involvedContragents[] = (object)array('classId' => $rec->secondContragentClassId, 'id' => $rec->secondContragentId);
     	}
+    	$result->set('involvedContragents', $involvedContragents);
     	
-    	$result->agreed->currency = $rec->currencyId;
-    	$result->agreed->rate = $rec->currencyRate;
+    	// Обновяваме крайното салдо на сметката на сделката
+    	$entries = acc_Journal::getEntries(array($this->className, $rec->id));
+    	$blAmount = acc_Balances::getBlAmounts($entries, acc_Accounts::fetchField($rec->accountId, 'systemId'))->amount;
     	
-    	return $result;
+    	$result->set('amount', $blAmount);
+    	$result->set('currency', $rec->currencyId);
+    	$result->set('rate', $rec->currencyRate);
     }
     
     
@@ -604,15 +610,24 @@ class deals_Deals extends core_Master
     {
     	$dealRec = self::fetchRec($id);
     	 
+    	$aggregateInfo = new bgerp_iface_DealAggregator;
+    	
     	$dealDocuments = $this->getDescendants($dealRec->id);
     
     	// Извличаме dealInfo от самата сделка
-    	/* @var $dealDealInfo bgerp_iface_DealResponse */
-    	$aggregateInfo = $this->getDealInfo($dealRec->id);
+    	$this->pushDealInfo($dealRec->id, $aggregateInfo);
     	
-    	$aggregateInfo->paid->amount = $dealRec->blAmount;
-    	$aggregateInfo->paid->currency = $dealRec->currencyId;
-    	$aggregateInfo->paid->rate = $dealRec->currencyRate;
+    	foreach ($dealDocuments as $d) {
+    		$dState = $d->rec('state');
+    		if ($dState == 'draft' || $dState == 'rejected') {
+    			// Игнорираме черновите и оттеглените документи
+    			continue;
+    		}
+    	
+    		if ($d->haveInterface('bgerp_DealIntf')) {
+    			$d->instance->pushDealInfo($d->that, $aggregateInfo);
+    		}
+    	}
     	
     	return $aggregateInfo;
     }
@@ -761,10 +776,8 @@ class deals_Deals extends core_Master
      */
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
-    	$entries = acc_Journal::getEntries(array($mvc->className, $rec->id));
-    	
-    	// Обновяваме крайното салдо на сметката на сделката
-    	$rec->blAmount = acc_Balances::getBlAmounts($entries, acc_Accounts::fetchField($rec->accountId, 'systemId'))->amount;
+    	$aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
+    	$rec->blAmount = $aggregateDealInfo->get('amount');
     	
     	$mvc->save($rec);
     }

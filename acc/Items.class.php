@@ -192,7 +192,7 @@ class acc_Items extends core_Manager
         if (!isset($rec->titleLink)) {
             $mvc->on_CalcTitleLink($mvc, $rec);
         }
-        
+        //bp();
         $rec->numTitleLink = $rec->titleLink . "&nbsp;($rec->num)";
     }
     

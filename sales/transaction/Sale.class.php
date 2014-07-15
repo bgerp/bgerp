@@ -298,8 +298,14 @@ class sales_transaction_Sale
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
         	$amountBase += $amount * $rec->currencyRate;
-        	$quantityAmountBase += currency_Currencies::round($amount, $rec->currencyId);
+        	
         }
+        
+        if($rec->chargeVat == 'separate'){
+        	$amountBase += $rec->_total->vat;
+        }
+        
+        $quantityAmountBase += currency_Currencies::round($amountBase, $rec->currencyId);
         
         $entries[] = array(
                 'amount' => currency_Currencies::round($amountBase), // В основна валута
@@ -392,7 +398,7 @@ class sales_transaction_Sale
         $jRecs = self::getEntries($id);
         
         // Извличаме тези, отнасящи се за експедиране
-        $dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,703', 'credit');
+        $dInfo = acc_Balances::getBlAmounts($jRecs, '703,706,701', 'credit');
         
         if(!count($dInfo->recs)) return $res;
         
@@ -414,6 +420,7 @@ class sales_transaction_Sale
 	         				$res[$index] = $obj;
 	         			}
 	         			
+	         			$res[$index]->amount += $p->amount;
 	         			$res[$index]->quantity  += $p->creditQuantity;
 	         		}
 	         	}
@@ -463,7 +470,7 @@ class sales_transaction_Sale
 	/**
 	 * Колко е платеното по сделка
 	 */
-	public static function getPaidAmount($id, $l = FALSE)
+	public static function getPaidAmount($id)
 	{
 		$jRecs = static::getEntries($id);
 		

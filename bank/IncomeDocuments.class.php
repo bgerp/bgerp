@@ -217,35 +217,9 @@ class bank_IncomeDocuments extends core_Master
     		$form->rec->operationSysId = $form->defaultOperation;	
         }
     	
-     	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
+        $cData = cls::get($contragentClassId)->getContragentData($contragentId);
+        $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
-    }
-     
-    
-	/**
-     * Помощна ф-я връщаща дефолт операцията за документа
-     */
-    private function getDefaultOperation(bgerp_iface_DealResponse $dealInfo)
-    {
-    	$paid = $dealInfo->paid;
-    	$agreed = $dealInfo->agreed;
-    	
-    	// Ако е продажба пораждащия документ
-    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
-    		if(isset($agreed->downpayment)){
-    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'supplierAdvance2bank' : 'supplier2bank';
-    		} else {
-    			$defaultOperation = 'supplier2bank';
-    		}
-    	} elseif($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
-    		if(isset($agreed->downpayment)){
-    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'customer2bankAdvance' : 'customer2bank';
-    		} else {
-    			$defaultOperation = 'customer2bank';
-    		}
-    	}
-    	
-    	return $defaultOperation;	
     }
     
     
@@ -272,32 +246,31 @@ class bank_IncomeDocuments extends core_Master
     	expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
     	
     	$dealInfo = $origin->getAggregateDealInfo();
-    		 
-    	expect(count($dealInfo->allowedPaymentOperations));
     		
-    	$options = static::getOperations($dealInfo->allowedPaymentOperations);
+    	$pOperations = $dealInfo->get('allowedPaymentOperations');
+    	$options = static::getOperations($pOperations);
     	expect(count($options));
     		
-    	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-    		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->agreed->rate;
+    	if($dealInfo->get('dealType') != deals_Deals::AGGREGATOR_TYPE){
+    		$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
     		$amount = ($amount <= 0) ? 0 : $amount;
     			
-    		$form->defaultOperation = $this->getDefaultOperation($dealInfo);
+    		$form->defaultOperation = $dealInfo->get('defaultBankOperation');
     		if($form->defaultOperation == 'customer2bankAdvance'){
-    			$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
+    			$amount = ($dealInfo->get('agreedDownpayment') - $dealInfo->get('downpayment')) / $dealInfo->get('rate');
     		}
     	}
     		 
-    	$cId = $dealInfo->agreed->currency;
+    	$cId = $dealInfo->get('currency');
     	$form->rec->currencyId = currency_Currencies::getIdByCode($cId);
     		 
-    	$form->rec->rate = $dealInfo->agreed->rate;
+    	$form->rec->rate = $dealInfo->get('rate');
     		 	 
-    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
-    		 $form->rec->amount = currency_Currencies::round($amount, $dealInfo->agreed->currency);
+    	if($dealInfo->get('dealType') == sales_Sales::AGGREGATOR_TYPE){
+    		 $form->rec->amount = currency_Currencies::round($amount, $dealInfo->get('currency'));
     		 	
     		 // Ако има банкова сметка по подразбиране
-    		 if($bankId = $dealInfo->agreed->payment->bankAccountId){
+    		 if($bankId = $dealInfo->get('bankAccountId')){
     		 	$bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id');
     		 	if($bankId){
     		 		// Ако потребителя има права, логва се тихо
@@ -339,7 +312,8 @@ class bank_IncomeDocuments extends core_Master
     		$dealInfo = $origin->getAggregateDealInfo();
     		
 	        // Коя е дебитната и кредитната сметка
-	        $operation = $dealInfo->allowedPaymentOperations[$rec->operationSysId];
+	        $opperations = $dealInfo->get('allowedPaymentOperations');
+	        $operation = $opperations[$rec->operationSysId];
 	        $debitAcc = empty($operation['reverse']) ? $operation['debit'] : $operation['credit'];
 	        $creditAcc = empty($operation['reverse']) ? $operation['credit'] : $operation['debit'];
 	        $rec->debitAccId = $debitAcc;
@@ -351,11 +325,11 @@ class bank_IncomeDocuments extends core_Master
 	   	 	if($ownAcc->currencyId != $rec->currencyId) {
 	   	 		$form->setError('currencyId', 'Банковата сметка е в друга валута');
 	   	 	}
+	   	 	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	   	 	
 	   	 	// Ако няма валутен курс, взимаме този от системата
     		if(!$rec->rate) {
-    			$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-		    	$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+    			$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
 	    	} else {
 	    		if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
 	    			$form->setWarning('rate', $msg);
@@ -401,8 +375,11 @@ class bank_IncomeDocuments extends core_Master
 	    	
 	    	$ownCompany = crm_Companies::fetchOwnCompany();
 	    	$Companies = cls::get('crm_Companies');
-	    	$row->companyName = $Companies->getTitleById($ownCompany->companyId);
+	    	$row->companyName = cls::get('type_Varchar')->toVerbal($ownCompany->company);
 	    	$row->companyAddress = $Companies->getFullAdress($ownCompany->companyId);
+	    	
+	    	$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+	    	$row->contragentAddress = $contragent->getFullAdress();
 	    }
     }
     
@@ -515,25 +492,13 @@ class bank_IncomeDocuments extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      * 
      * @param int|object $id
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      * @see bgerp_DealIntf::getDealInfo()
      */
-    public function getDealInfo($id)
+    public function pushDealInfo($id, &$aggregator)
     {
         $rec = self::fetchRec($id);
-        
-        /* @var $result bgerp_iface_DealResponse */
-        $result = new bgerp_iface_DealResponse();
-        
-        // При продажба платеното се увеличава, ако е покупка се намалява
-        $origin = static::getOrigin($rec);
-        $sign = ($origin->className == 'purchase_Purchases') ? -1 : 1;
-        
-        $result->paid->amount                 = $sign * $rec->amount * $rec->rate;
-        $result->paid->payment->bankAccountId = bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId');
-		$result->paid->operationSysId         = $rec->operationSysId;
-    	
-        return $result;
+        $aggregator->setIfNot('bankAccountId', bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId'));
     }
     
     

@@ -1233,6 +1233,9 @@ pre.document {
     }
 }
 
+.address-block{
+	margin-top: 5px;
+}
 /*край на стилове за документи*/
 
 
@@ -1529,6 +1532,8 @@ ul.history {
 	&.summary {
 		font-size: 0.75em;
 		margin: 0 auto;
+		display: table;
+        min-width: 70px;
 		li span {
 			color: #333;
 		}
@@ -1592,10 +1597,6 @@ ul.history {
 	a{
 		white-space:nowrap;
 	}
-}
-
-.wide ul.history.summary {
-	width: 100px;
 }
 
 .narrow ul.history {
@@ -2115,7 +2116,7 @@ fieldset.sharing-history {
 .webdrvIframe {
 	width: 100%;
 	border: solid 0px transparent;
-	min-height: 600px;
+	min-height: 625px;
 }
 
 .narrow .webdrvIframe { 
@@ -2355,31 +2356,25 @@ fieldset.sharing-history {
 /*край на стилове за скролиране */
 
 
-
 /*стилове за автор в документ*/
 .wide-profile-info {
-	text-align: center;
-	.holder-box {
-		text-align: left;
-		display: inline-block;
-	}
+	margin:0 auto;
 	.name-box {
 		font-size: 0.8em;
 		margin-top: 7px;
 		margin-left: 5px;
 		margin-right: 5px;
-		max-width: 100px;
 	}
 
 	.date-box {
 		font-size: 0.8em;
 		margin-left: 7px;
 		margin-right: 7px; 
-		margin-bottom: 10px;
+		margin-bottom: 5px;
 		margin-top: 5px;
 	}
-	.gravatar-box{
-		margin: 6px !important;
+	.gravatar-box img{
+		margin: 0 6px !important;
 		text-align: center;
 	}
 }
@@ -2521,6 +2516,43 @@ div.location.public {
 }
 /*край на шаблон за пускане в експлоатация на ДА*/
 
+
+/*оборотни ведомости*/
+.balance-filter{
+    margin-bottom: 10px;
+    margin-top: -8px;
+    margin-right: 20px;
+}
+.captionSimple{
+    line-height: 1.2em;
+    margin: 4px 0 2px 0;
+}
+.captionProperties{
+    padding-left:20px;
+}
+.balance-custom-form tr td{
+    padding-bottom: 10px;
+    
+}
+.narrow .balance-custom-form tr{
+	margin-bottom: 10px;
+}
+
+.narrow .balance-custom-form td{
+	display: block;
+	.captionProperties{
+	   padding: 0;
+    }
+	&.feat{
+	   padding-bottom: 20px !important;
+	}
+	.arrow{
+	   display:none;
+	}
+}
+.balance-custom-form select{
+    width: 99%;
+}
 
 /*шаблон за журнал*/
 .acc_JournalDetails {

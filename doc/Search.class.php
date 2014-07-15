@@ -285,8 +285,12 @@ class doc_Search extends core_Manager
         // Ако няма информация, да не се изпълнява
         if (!$info || !$info['className'] || !$info['id']) return ;
         
+        $className = $info['className'];
+        
+        $rec = $className::fetchByHandle($info);
+        
         // Ако имаме права за сингъла и ако има такъв документ, да се редиректне там
-        redirect(array($info['className'], 'single', $info['id']));
+        redirect(array($info['className'], 'single', $rec->id));
     }
     
     

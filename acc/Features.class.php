@@ -163,7 +163,7 @@ class acc_Features extends core_Manager
 	    		if(!$self->isUnique($rec, $fields, $exRec)){
 	    			$rec->id = $exRec->id;
 	    		}
-	    		
+	    		//@TODO ДА НЕ СЕ ЗАПИСВА АКО СА СЪЩИТЕ
 	    		// Запис/обновяване
 	    		$self->save($rec);
 	    		

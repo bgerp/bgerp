@@ -1470,8 +1470,44 @@ class email_Incomings extends core_Master
         //Името на файла е с големи букви, както са документите
         $name = strtoupper($name) . '.eml';
         
+        // Ако размера е над допустимите за изпращане, да не се добавя автоматично
+        $attach = 'on';
+        if ($mvc->checkSizeForAttach($id) === FALSE) {
+            $attach = 'off';
+        }
+        
         //Задаваме полето за избор, да е избран по подразбиране
-        $res[$name] = 'on';
+        $res[$name] = $attach;
+    }
+    
+    
+    /**
+     * Проверява дали документа може да се праща по имейл
+     * В зависимост от големината на EML файла
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     * @param unknown_type $id
+     */
+    function on_BeforeCheckSizeForAttach($mvc, &$res, $id)
+    {
+        // Записа
+        $rec = $mvc->fetch($id);
+        $emlFile = $rec->emlFile;
+        
+        if (!$emlFile) return ;
+        
+        // Записа за EML файла
+        $fRec = fileman_Files::fetch($emlFile);
+        
+        if (!$fRec || !$fRec->dataId) return ;
+        
+        // Данните за файла
+        $data = fileman_Data::fetch($fRec->dataId);
+        $sizeArr[$fRec->fileHnd] = $data->fileLen;
+        
+        // Проверавяме дали размера е в допустимите граници
+        $res = $mvc->checkMaxAttachedSize($sizeArr);
     }
     
     
@@ -1502,6 +1538,23 @@ class email_Incomings extends core_Master
                 if ($fh) {
                     $res[$fh] = $fh;
                 } 
+                  
+            break;
+        }
+    }
+
+    function on_BeforeGetDocumentSize($mvc, &$res, $id, $type)
+    {
+        switch (strtolower($type)) {
+            case 'eml':
+        
+                // Вземаме id' то на EML файла
+                $emlFileId = $mvc->fetchField($id, 'emlFile');
+                
+                // Манипулатора на файла
+                $dataId = fileman_Files::fetchField($emlFileId, 'dataId');
+                
+                $res = fileman_Data::fetchField($dataId, 'fileLen');
                   
             break;
         }

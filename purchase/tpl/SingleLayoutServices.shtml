@@ -37,21 +37,17 @@
                     </tr>
                     <tr>
                     <td class="cell">
-                   <!--ET_BEGIN supplier-->
-                        <b>[#MyCompany#]</b><br>
-                        <br>
-                        [#MyAddress#] <br>
-                    <!--ET_END supplier-->
+                        <b>[#MyCompany#]</b>
+                         <div class='address-block'>
+                             [#MyAddress#]
+                         </div>
 					</td>
 					<td class="cell">
-					 <!--ET_BEGIN contragent-->
-                        <b>[#contragentName#]</b><br>
-                        <br>
-                        <!--ET_BEGIN contragentAddress-->
-                            [#contragentAddress#]<br>
-                        <!--ET_END contragentAddress-->
-                    <!--ET_END contragent-->
-                    
+					   <b>[#contragentName#]</b>
+                        <div class='address-block'>
+                           [#contragentCountryId#]
+                           <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                       </div>
                     </td>
                 </tr>
                 </tbody>
