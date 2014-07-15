@@ -2,16 +2,6 @@
 
 
 
-/**
- * @todo Чака за документация...
- */
-defIfNot('AVATAR_DIR', EF_DOWNLOAD_DIR . '/' . 'AVATAR');
-
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('AVATAR_URL', EF_DOWNLOAD_ROOT . '/' . 'AVATAR');
 
 
 /**
