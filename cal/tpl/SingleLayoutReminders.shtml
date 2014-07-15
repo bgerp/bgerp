@@ -1,5 +1,8 @@
 [#SingleToolbar#]  
 	<div class='document'>
+	<!--ET_BEGIN blank-->
+			[#blank#]
+	<!--ET_END blank-->
 		<div class='header [#STATE_CLASS#]'>
 			<div class='docBgIcon' style='[#iconStyle#]'>|Напомняне|* <b>[#ident#]</b> ([#state#])</div>
 		</div>

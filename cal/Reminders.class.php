@@ -32,7 +32,8 @@ class cal_Reminders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = ' cal_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, doc_SharablePlg, plg_Sorting, plg_State, change_Plugin';
+    var $loadList = ' cal_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, doc_SharablePlg, 
+    				  bgerp_plg_Blank, plg_Sorting, plg_State, change_Plugin';
     
 
     /**
