@@ -695,6 +695,35 @@ class core_Packs extends core_Manager
     
     
     /**
+     * Задаваме стойност за ключ от пакета, ако не е зададен
+     * 
+     * @param string $pack
+     * @param string $dataKey
+     * @param string $dataVal
+     * 
+     * @return boolean
+     */
+    static function setIfNotConfigKey($pack, $dataKey, $dataVal)
+    {
+        // Вземаме конфига
+        $confWebkit = core_Packs::getConfig($pack);
+        
+        $oldVal = core_Packs::getConfigKey($confWebkit, $dataKey);
+        
+        // Ако не е избрана нищо
+        if (!isset($oldVal)) {
+            
+            $data[$dataKey] = $dataVal;
+            
+            // Добавяме в конфигурацията
+            core_Packs::setConfig($pack, $data);
+            
+            return TRUE;
+        }
+    }
+    
+    
+    /**
      * Конфирурира даден пакет
      */
     function act_Config()
