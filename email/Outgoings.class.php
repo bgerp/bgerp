@@ -2013,7 +2013,7 @@ class email_Outgoings extends core_Master
         }
         
         if ($mvc->haveRightFor('close', $data->rec)) {
-            $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), 'ef_icon = img/16/close16.png, row=2');
+            $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), 'ef_icon = img/16/gray-close.png, row=2');
         }
     }
     
