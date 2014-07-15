@@ -237,12 +237,19 @@ class webkittopdf_Converter extends core_Manager
             $res .= "<li style='color: green;'>" . 'Активирано е използване на JS при генериране на PDF' . "</li>";
         }
         
+        // В зависимост от версията активира използването на printing media type
+        if (static::checkForActivatePrintMediaType($versionArr)) {
+            
+            // Добавяме съобщение
+            $res .= "<li style='color: green;'>" . 'Активирано е използване на printing media type при генериране на PDF' . "</li>";
+        }
+        
         return $res;
     }
     
     
     /**
-     * // В зависимост от версията активира използването на JS
+     * В зависимост от версията активира използването на JS
      * 
      * @param array $versionArr
      */
@@ -251,20 +258,22 @@ class webkittopdf_Converter extends core_Manager
         // Ако версията е над 0,11 (включително)
         if (($versionArr['version'] > 0) || ($versionArr['subVersion'] >= 11)) {
             
-            // Вземаме конфига
-            $confWebkit = core_Packs::getConfig('webkittopdf');
+            return core_Packs::setIfNotConfigKey('webkittopdf', 'WEBKIT_TO_PDF_USE_JS', 'yes');
+        }
+    }
+    
+    
+    /**
+     * В зависимост от версията активира използването на JS
+     * 
+     * @param array $versionArr
+     */
+    static function checkForActivatePrintMediaType($versionArr)
+    {
+        // Ако версията е над 0,11 (включително)
+        if (($versionArr['version'] > 0) || ($versionArr['subVersion'] >= 11)) {
             
-            // Ако не е избрана нищо
-            if (!core_Packs::getConfigKey($confWebkit, 'WEBKIT_TO_PDF_USE_JS')) {
-                
-                // Избиране по подразбиране
-                $data['WEBKIT_TO_PDF_USE_JS'] = 'yes';
-                
-                // Добавяме в конфигурацията
-                core_Packs::setConfig('webkittopdf', $data);
-                
-                return TRUE;
-            }
+            return core_Packs::setIfNotConfigKey('webkittopdf', 'WEBKIT_TO_PDF_USE_PRINT_MEDIA_TYPE', 'yes');
         }
     }
 }
