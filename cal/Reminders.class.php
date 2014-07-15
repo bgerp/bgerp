@@ -494,12 +494,12 @@ class cal_Reminders extends core_Master
     {  
    
      	if ($mvc->haveRightFor('stop', $data->rec)) { 
-	            $data->toolbar->addBtn('Стоп', array(
+	            $data->toolbar->addBtn('Затваряне', array(
 	                    $mvc,
 	                    'Stop',
 	                    $data->rec->id
 	                ),
-	                'ef_icon = img/16/media_playback_stop.png');
+	                'ef_icon = img/16/close16.png');
 	                
 	                
 	     }
@@ -512,8 +512,6 @@ class cal_Reminders extends core_Master
     
     static function on_AfterInputChanges($mvc, &$res, $rec) 
     {
-    	$now = dt::now(); 
-    	
     	// Ако не е обект, а е подаден id
         if (!is_object($rec)) {
             
