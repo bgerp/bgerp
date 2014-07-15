@@ -277,8 +277,9 @@ class core_Browser extends core_Manager
 
         $browser = "Unknown Browser";
     
-        $browserArray = array( '/mobile/i' => 'Mobile Browser',
+        $browserArray = array(  '/mobile/i' => 'Mobile Browser',
                                 '/opera mobi/i' => 'Opera Mobi',
+                                '/opera mini/i' => 'Opera Mini',
                                 '/opera/i' => 'Opera',
                                 '/msie|trident/i' => 'Internet Explorer',
                                 '/firefox/i' => 'Firefox',
