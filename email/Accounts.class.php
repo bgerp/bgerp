@@ -84,7 +84,7 @@ class email_Accounts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, email, type, applyRouting=Рутиране, protocol, server, user, smtpServer, smtpUser, createdOn, createdBy';
+    var $listFields = 'id, email, type, applyRouting=Рутиране, retreiving=Получаване, sending=Изпращане, lastFetchAll';
     
     
     /**
@@ -115,7 +115,7 @@ class email_Accounts extends core_Master
         // Изтегляне
         $this->FLD('state', 'enum(active=Активен, stopped=Спрян)', 'caption=Изтегляне->Статус');
         $this->FLD('period', 'int', 'caption=Изтегляне->Период');
-        $this->FLD('lastFetchAll', 'datetime', 'caption=Последно източване,input=none');
+        $this->FLD('lastFetchAll', 'datetime', 'caption=Проверка,input=none');
         $this->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)',
             'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
         
@@ -127,6 +127,27 @@ class email_Accounts extends core_Master
         $this->FLD('smtpPassword', 'password(64,autocomplete=off)', 'caption=Изпращане->Парола,width=100%,crypt');
 
         $this->setDbUnique('email');
+    }
+
+
+
+    /**
+     * Изплънява се след подготовката на вербалните стойности за записа
+     */
+    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    {
+        //  protocol, server, user, smtpServer, smtpUser,
+
+        if($fields['-list']) {
+            $row->retreiving  = $mvc->getVerbal($rec, 'protocol');
+            $row->retreiving .= ' / ' . $mvc->getVerbal($rec, 'server');
+            $row->retreiving .= "<br>" . $mvc->getVerbal($rec, 'user');
+
+            $row->sending  = $mvc->getVerbal($rec, 'smtpServer');
+            $row->sending .= "<br>" . $mvc->getVerbal($rec, 'smtpUser');
+        }
+
+
     }
 
     
