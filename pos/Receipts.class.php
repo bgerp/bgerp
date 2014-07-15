@@ -754,7 +754,7 @@ class pos_Receipts extends core_Master {
 	    	$recUrl = array($this, 'printReceipt', $rec->id);
 	    }
 	    $disClass = ($recUrl) ? '' : 'disabledBtn';
-	    $block->append(ht::createBtn('Касов бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка')), 'PAYMENT_TYPE');
+	    $block->append(ht::createBtn('Касов бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка')), 'CLOSE_BTNS');
 	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
 	    if ($this->haveRightFor('close', $rec)) {

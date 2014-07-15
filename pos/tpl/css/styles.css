@@ -501,11 +501,11 @@
 }
 
 .colum-btn{
-	margin-left: 5px;
+	margin-left: 0px;
+	margin-right: 20px;
 	float:left;
 	min-width: 90px;
 	width: 17%;
-	margin-top: -50px;
 }
 
 .payment-type, .close-btn, .tools-btn{

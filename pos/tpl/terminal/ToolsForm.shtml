@@ -62,6 +62,8 @@
 </div>
 <div class='colum-btn'>
 [#PAYMENT_TYPE#]
+</div>
+<div class='colum-btn'>
 [#CLOSE_BTNS#]
 </div>
 <div class='clearfix21'></div>
