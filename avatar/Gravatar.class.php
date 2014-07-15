@@ -28,16 +28,7 @@ class avatar_Gravatar extends core_Manager {
      * Списък плъгини за зареждане
      */
     var $loadList = 'plg_Created';
-    
-    
-    /**
-     * Описание на модела (таблицата)
-     */
-    function description()
-    {
 
-    }
-    
     
     /**
      * Връща URL към аватара на посочения имейл
