@@ -52,8 +52,8 @@ class purchase_transaction_Service
     				$amount = $dRec->amount;
     			}
 
-				// Ако е "Разходи за услуги" дебит 602, иначе 601
-	        	$costsAccNumber = (isset($pInfo->meta['costsServices'])) ? '602' : '601';
+				// Ако е "Материали" дебит 601, иначе 602
+	        	$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
     
     			$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;
     
@@ -61,7 +61,7 @@ class purchase_transaction_Service
     					'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
     					 
     					'debit' => array(
-    							$costsAccNumber, // Сметка "602. Разходи за външни услуги" / "601. Разходи за материали"
+    							$costsAccNumber, // Сметка "602. Разходи за външни услуги" или "601. Разходи за материали"
     							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
     							'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
     					),

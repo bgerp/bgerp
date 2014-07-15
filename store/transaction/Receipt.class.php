@@ -23,7 +23,7 @@ class store_transaction_Receipt
     
     /**
      * Генериране на счетоводните транзакции, породени от складова разписка
-     * Заприхождаване на артикул: Dt:602 или Dt:302 или Dt:321
+     * Заприхождаване на артикул: Dt:302 или Dt:321
      *	  
      *	  Dt: 302. Суровини и материали 	  (Склад, Суровини и Материали) - за вложимите продукти
      *	  	  321. Стоки и Продукти 		  (Склад, Стоки и Продукти) - за всички останали складируеми продукти
@@ -148,8 +148,8 @@ class store_transaction_Receipt
         	
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	
-        	// Ако е вложим дебит 302 иначе 321
-        	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
+        	// Ако е материал дебит 302 иначе 321
+        	$debitAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
         		
         	$debit = array(
                   $debitAccId, 

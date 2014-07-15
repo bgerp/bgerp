@@ -211,8 +211,8 @@ class purchase_transaction_Purchase
     		// Ако не е "Складируем" - значи е разход
 			if(empty($pInfo->meta['canStore'])){
 
-				// Ако е "Разходи за услуги" дебит 602, иначе 601
-	        	$costsAccNumber = (isset($pInfo->meta['costsServices'])) ? '602' : '601';
+				// Ако е "Материали" дебит 601, иначе 602
+	        	$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
 
     			$entries[] = array(
 	                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
@@ -348,8 +348,8 @@ class purchase_transaction_Purchase
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
         		
-        		// Ако е вложим дебит 302 иначе 321
-	        	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
+        		// Ако е материал дебит 302 иначе 321
+	        	$debitAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
 	        		
 	        	$debit = array(
 	                  $debitAccId, 
@@ -465,7 +465,7 @@ class purchase_transaction_Purchase
     	$jRecs = self::getEntries($id);
     
     	// Извличаме тези, отнасящи се за експедиране
-    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,602', 'debit');
+    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,601,602', 'debit');
     	
     	if(!count($dInfo->recs)) return $res;
     
