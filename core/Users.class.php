@@ -167,8 +167,31 @@ class core_Users extends core_Manager
         $this->setDbUnique('nick');
         $this->setDbUnique('email');
     }
-
-
+    
+    
+    /**
+     * Връща масив с потребители в системата Ник => Имена
+     * 
+     * return array
+     */
+    static function getUsersArr_()
+    {
+        static $usersArr = array();
+        
+        if (!$usersArr) {
+            // Всичко, потребители, които не са заличени
+            $query = static::getQuery();
+            $query->where("#state != 'rejected'");
+            while ($rec =  $query->fetch()) {
+                if (!$rec->nick) continue;
+                $usersArr[$rec->nick] = $rec->names;
+            }
+        }
+        
+        return $usersArr;
+    }
+    
+    
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
