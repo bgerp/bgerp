@@ -23,7 +23,10 @@ class phpmailer_Instance extends core_BaseClass
     function init($params = array())
     {
     	$conf = core_Packs::getConfig('phpmailer');
-    	 
+    	
+    	// Зареждаме phpmailer-а за избраната версия
+    	require_once $conf->PML_VERSION . '/class.phpmailer.php';
+    	
         // Създаваме инстанция на PHPMailerLite
         $PML = new PHPMailer();
         
