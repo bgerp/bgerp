@@ -779,7 +779,7 @@ class purchase_Purchases extends core_Master
         $result->setIfNot('storeId', $rec->shipmentStoreId);
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
         $result->setIfNot('caseId', $rec->caseId);
-        $result->setIfNot('bankAccountId', bank_Accounts::fetchField("#iban = '{$rec->bankAccountId}'", 'id'));
+        $result->setIfNot('bankAccountId', bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->bankAccountId), 'id'));
         
         purchase_transaction_Purchase::clearCache();
         $result->setIfNot('agreedDownpayment', $downPayment);
