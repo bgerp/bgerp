@@ -345,12 +345,8 @@ class type_Key extends type_Int {
         
         $options = (array) unserialize(core_Cache::get('SelectOpt', $hnd));
         
-        if(isset($options[''])) {
-            $select = new ET('');
-        } else {
-            $select = new ET('<option value="">&nbsp;</option>');
-        }
-
+        $select = new ET('<option value="">&nbsp;</option>');
+        
         $cnt = 0;
  
         if (is_array($options)) {
