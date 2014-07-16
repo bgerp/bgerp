@@ -87,13 +87,11 @@ class type_Richtext extends type_Blob
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $tpl = new ET("<span class='richEdit' style='width:100%;'>[#TEXTAREA#]<div class='richedit-toolbar {$attr['errorClass']}'>[#TBL_GROUP1#][#TBL_GROUP2#][#TBL_GROUP3#]</div></span>");
+        $tpl = new ET("<span class='richEdit' style='display:table;'>[#TEXTAREA#]<div class='richedit-toolbar {$attr['errorClass']}'>[#TBL_GROUP1#][#TBL_GROUP2#][#TBL_GROUP3#]</div></span>");
         
         if(Mode::is('screenMode', 'narrow')) {
-            $attr['style'] .= 'min-width:260px;width:100%;';
             setIfNot($attr['rows'], $this->params['rows'], 7);
         } else {
-            $attr['style'] .= 'width:100%;';
             setIfNot($attr['rows'], $this->params['rows'], 10);
         }
         
@@ -137,7 +135,7 @@ class type_Richtext extends type_Blob
     	$tpl->append("\n runOnLoad(function(){getEO().saveSelTextInTextarea('{$attr['id']}');});", 'SCRIPTS');
     	
     	$tpl->append("\n runOnLoad(function(){bindEnterOnRicheditTableForm(document.getElementById('{$attr['id']}'))});", 'SCRIPTS');
-    	
+    	 
     	return $tpl;
     }
     
@@ -1165,7 +1163,7 @@ class type_Richtext extends type_Blob
             $toolbarArr->add("<a class=rtbutton  title='" . tr('Списък') .  "' onclick=\"s('[li] ','', document.getElementById('{$formId}'), 1,0,0,1)\">&#9679</a>", 'TBL_GROUP2');
 			$emot7 = 'richtext-holder-group-after';
         	$toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
-            $toolbarArr->add("<a class='open-popup-link rtbutton'  title='" . tr('Таблица') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group7', event); \"'><img src=" . sbf('img/16/table3.png') . " height='15' width='15'/></a>", 'TBL_GROUP2');
+            $toolbarArr->add("<a class='open-popup-link rtbutton'  title='" . tr('Таблица') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group7', event); \"><img src=" . sbf('img/16/table3.png') . " height='15' width='15'/></a>", 'TBL_GROUP2');
             $toolbarArr->add("<span id='{$attr['id']}-group7' class='richtext-emoticons7 richtext-holder-group {$emot7}'>", 'TBL_GROUP2');
             $toolbarArr->add("<div class='popup-table-info'><div class='popupBlock'>" . tr('Колони') . ": <br><input type = 'text' value='5' id='colTable'/></div><div class='popupBlock'>" . tr('Редове') .":<br> <input type = 'text' value='3' id='rowTable'/></div><input type='button' id='getTableInfo' onclick=\"crateRicheditTable(document.getElementById('{$formId}'), 1, document.getElementById('colTable').value, document.getElementById('rowTable').value );\" value='OK' /> </div>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');

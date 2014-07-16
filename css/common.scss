@@ -1895,9 +1895,7 @@ span.richEdit div.richedit-toolbar {
 }
 
 .wide span.richEdit div.richedit-toolbar{
-	min-width:600px !important;
-	*min-width: 0 !important;
-    *width: 494px !important;
+	min-width:300px;
 }
 
 .narrow span.richEdit div.richedit-toolbar {
@@ -1924,9 +1922,8 @@ div.richEdit {
 	margin-bottom: 0px;
 	overflow: auto;
 	border-bottom: 1px solid transparent; 
-	width: 100%;
-	_width:500px !important;
-	*width:500px !important;
+	width: 600px;
+	min-width:310px;
 }
 
 .narrow .richEdit textarea { 
