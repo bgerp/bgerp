@@ -68,7 +68,7 @@ defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
 /**
  * Пътя до gs файла
  */
-defIfNot('FILEMAN_GHOSTSCRIPT_PATH', '');
+defIfNot('FILEMAN_GHOSTSCRIPT_PATH', 'gs');
 
 
 /**
@@ -253,5 +253,91 @@ class fileman_Setup extends core_ProtoSetup
         $Plugins->deinstallPlugin('fileman_RichTextPlg');
         
         return "<h4>Пакета fileman е деинсталиран</h4>";
+    }
+    
+    
+    /**
+     * Проверява дали са инсталирани необходимите пакети и дали версиите им са коректни
+     * 
+     * @see core_ProtoSetup
+     */
+    function checkConfig()
+    {
+        $conf = core_Packs::getConfig('fileman');
+        
+        // Ако не е инсталиране
+        if (!static::isEnabled()) {
+            
+            return "<li style='color: red;'>" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . " не е инсталиран" . "</li>";
+        }
+        
+        // Версиите на пакета
+        $versionArr = static::getVersionAndSubVersion();
+        
+        if ($versionArr) {
+            
+            // Ако версията 8.71
+            if (($versionArr['version'] == 8) && ($versionArr['subVersion'] == 71)) {
+                    
+                // Добавяме съобщение
+                return "<li style='color: red;'>Версията на '" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "' e 8.71. С тази версия има проблеми. Моля да я обновите.</li>";
+            }
+        }
+    }
+    
+    
+    /**
+     * Проверява дали програмата е инсталирана в сървъра
+     * 
+     * @return boolean
+     */
+    static function isEnabled()
+    {
+        $conf = core_Packs::getConfig('fileman');
+        
+        $gs = escapeshellcmd($conf->FILEMAN_GHOSTSCRIPT_PATH);
+        
+        // Опитваме се да стартираме програмата
+        $res = exec($gs . ' --help', $output, $code);
+        
+        if ($code === 0) {
+            
+            return TRUE;
+        } else if ($code === 127) {
+            
+            return FALSE;
+        }
+    }
+    
+    
+    /**
+     * Връща масив с версията и подверсията
+     * 
+     * @return array
+     * ['version']
+     * ['subVersion']
+     */
+    static function getVersionAndSubVersion()
+    {
+        // Вземаме конфига
+        $confWebkit = core_Packs::getConfig('fileman');
+        
+        // Опитваме се да вземем версията на ghostscript
+        exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . " --version", $resArr, $erroCode);
+        
+        $trimRes = trim($resArr[0]);
+        
+        if (!$trimRes) return ;
+        
+        // Вземаме версията и подверсията
+        list($version, $subVersion) = explode(".", $trimRes);
+        
+        // Ако не може да се открие версията/подверсията
+        if (!isset($version) || !isset($subVersion)) return ;
+        
+        $versionArr['version'] = $version;
+        $versionArr['subVersion'] = $subVersion;
+        
+        return $versionArr;
     }
 }

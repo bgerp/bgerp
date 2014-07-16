@@ -28,25 +28,7 @@ class avatar_Gravatar extends core_Manager {
      * Списък плъгини за зареждане
      */
     var $loadList = 'plg_Created';
-    
-    
-    /**
-     * Описание на модела (таблицата)
-     */
-    function description()
-    {
-        // хеш на съдържанието на файла
-        $this->FLD("file", "varchar(32)", array('caption' => 'Файл'));
-        
-        // Дължина на файла в байтове 
-        $this->FLD("md5", "varchar(32)", array('caption' => 'Ключ'));
-        
-        // Кога за последно е проверяван този Gravatar
-        $this->FLD("lastCheck", "datetime", 'caption=Проверка');
-        
-        $this->setDbUnique('md5');
-    }
-    
+
     
     /**
      * Връща URL към аватара на посочения имейл
@@ -79,19 +61,5 @@ class avatar_Gravatar extends core_Manager {
         $av->showPicture();
         
         die;
-    }
-    
-    
-    /**
-     * Създаваме папката, където ще слагаме умалените изображения
-     */
-    static function on_AfterSetupMVC($mvc, &$result)
-    {
-        if(!is_dir(AVATARS_DIR)) {
-            mkdir(AVATARS_DIR, 0777, TRUE);
-            $result .= "<li style='color:green;'> Създадена папка аватари: " . AVATARS_DIR;
-        } else {
-            $result .= "<li> Папката за аватари от преди: " . AVATARS_DIR;
-        }
     }
 }

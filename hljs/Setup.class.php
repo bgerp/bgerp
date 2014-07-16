@@ -49,7 +49,7 @@ class hljs_Setup extends core_ProtoSetup
      */
     function deinstall()
     {
-    	$html = parent::deonstall();
+    	$html = parent::deinstall();
     	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
