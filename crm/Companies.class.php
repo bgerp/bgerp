@@ -1494,7 +1494,7 @@ class crm_Companies extends core_Master
     		$groupName = crm_Groups::getTitleById($groupId);
     		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
     		
-    		core_Statuses::newStatus(tr("|Фирмата е включено в група |* '{$groupName}'"));
+    		core_Statuses::newStatus(tr("|Фирмата е включена в група |* '{$groupName}'"));
     		
     		return $this->save($rec, 'groupList');
     	}
