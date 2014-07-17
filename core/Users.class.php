@@ -167,8 +167,72 @@ class core_Users extends core_Manager
         $this->setDbUnique('nick');
         $this->setDbUnique('email');
     }
-
-
+    
+    
+    /**
+     * Връща масив с потребители в системата Ник => Имена
+     * 
+     * @param array $rolesArr
+     * 
+     * return array
+     */
+    static function getUsersArr_($rolesArr=array())
+    {
+        if ($rolesArr) {
+            
+            // id-та на ролите
+            $roles = core_Roles::getRolesAsKeylist($rolesArr);
+        }
+        
+        static $usersArr = array();
+        
+        if (!$usersArr[$roles]) {
+            
+            // Всичко, потребители, които не са заличени
+            $query = static::getQuery();
+            $query->where("#state != 'rejected'");
+            $query->where("#state != 'draft'");
+            
+            if ($roles) {
+                $query->likeKeylist('roles', $roles);
+            }
+            
+            while ($rec =  $query->fetch()) {
+                if (!$rec->nick) continue;
+                $usersArr[$roles][$rec->nick] = static::prepareUserNames($rec->names);
+            }
+        }
+        
+        return $usersArr[$roles];
+    }
+    
+    
+    /**
+     * От подадените имена връща името и фамилията
+     * 
+     * @param string $names
+     * 
+     * @return string
+     */
+    static function prepareUserNames_($names)
+    {
+        // Масив с именатата
+        $namesArr = explode(' ', $names);
+        
+        // Име с първа главна буква
+        $firstName = array_shift($namesArr);
+        $firstName = str::mbUcfirst($firstName);
+        
+        // Фамилия с първа главна буква
+        $lastName = array_pop($namesArr);
+        $lastName = str::mbUcfirst($lastName);
+        
+        $newName = $firstName . ' ' . $lastName;
+        
+        return $newName;
+    }
+    
+    
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране

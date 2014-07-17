@@ -1325,7 +1325,6 @@ function loginFormPadding()
  */
 function setFormElementsWidth()
 {
-	
 	var form = $('.formTable');
 	var winWidth = parseInt($(window).width());
 	
@@ -1374,17 +1373,20 @@ function setFormElementsWidth()
 /**
  * Задава ширина на елементите от нишката в зависимост от ширината
  */
-function setThreadElemWidth(){
+function setThreadElemWidth()
+{
 	var winWidth = parseInt($(window).width()) - 45;
 	$('.doc_Containers table.listTable > tbody > tr >td').css('maxWidth',winWidth + 8);
 	$('.docStatistic').css('maxWidth',winWidth);
 	$('.scrolling-holder').css('maxWidth',winWidth );
 }
 
+
 /**
  * Скролира listTable, ако е необходимо
  */
-function scrollLongListTable(){
+function scrollLongListTable()
+{
 	var winWidth = parseInt($(window).width()) - 45;
 	var tableWidth = parseInt($('.listTable').width());
 	if(winWidth < tableWidth){
