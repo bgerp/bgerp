@@ -108,9 +108,20 @@ class abbyyocr_Setup extends core_ProtoSetup
         
         $abbyocr = escapeshellcmd($conf->ABBYYOCR_PATH);
         
-        $res = exec($abbyocr . ' --help', $output, $code);
+        if (core_Os::isWindows()) {
+            $res = exec($abbyocr . ' --help', $output, $code);
+            
+            if ($code == 127) {
+                $haveError = TRUE;
+            }
+        } else {
+            $res = exec('which ' . $abbyocr, $output, $code);
+            if (!$res) {
+                $haveError = TRUE;
+            }
+        }
         
-        if ($code == 127) {
+        if ($haveError) {
             
             return "<li style='color: red;'>" . "Програмата " . type_Varchar::escape($conf->ABBYYOCR_PATH) . " не е инталирана." . "</li>";
         }
