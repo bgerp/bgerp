@@ -1325,7 +1325,6 @@ function loginFormPadding()
  */
 function setFormElementsWidth()
 {
-	
 	var form = $('.formTable');
 	var winWidth = parseInt($(window).width());
 	
@@ -1374,17 +1373,20 @@ function setFormElementsWidth()
 /**
  * Задава ширина на елементите от нишката в зависимост от ширината
  */
-function setThreadElemWidth(){
+function setThreadElemWidth()
+{
 	var winWidth = parseInt($(window).width()) - 45;
 	$('.doc_Containers table.listTable > tbody > tr >td').css('maxWidth',winWidth + 8);
 	$('.docStatistic').css('maxWidth',winWidth);
 	$('.scrolling-holder').css('maxWidth',winWidth );
 }
 
+
 /**
  * Скролира listTable, ако е необходимо
  */
-function scrollLongListTable(){
+function scrollLongListTable()
+{
 	var winWidth = parseInt($(window).width()) - 45;
 	var tableWidth = parseInt($('.listTable').width());
 	if(winWidth < tableWidth){
@@ -1394,6 +1396,54 @@ function scrollLongListTable(){
 	}
 }
 
+
+/**
+ * Скролиране надолу и нагоре
+ */
+function fastScroll(hideAfterSec, activateRatio)
+{
+	var bodyHeight = $(document).height();
+	var screenHeight = screen.height;
+    var hideAfterMilisec = hideAfterSec * 1000;
+	if(bodyHeight / screenHeight > activateRatio){
+		$("#maincontent").append('<div class="scroll-btn-container"><div id="scroll-to-top"></div><div id="scroll-to-bottom"></div></div>');
+		$("#scroll-to-top").click(function(){
+			$("html, body").animate({ 
+				scrollTop: 0 
+				}, 500);
+			return false;
+	     });
+		
+		$('#scroll-to-bottom').click(function(){
+			$("html,body").animate({ 
+				scrollTop: $(document).height()  
+				}, 500 );
+			return false;
+	     });
+		
+	     var scrollTimeout;
+	     $(window).scroll(function() {
+	    	  if (scrollTimeout) clearTimeout(scrollTimeout);
+
+		      scrollTimeout = setTimeout(function(){
+				  $('#scroll-to-bottom').fadeOut('slow');
+			      $('#scroll-to-top').fadeOut('slow');
+			  }, hideAfterMilisec);
+		   
+		      if ($(this).scrollTop() > 200) {
+		          $('#scroll-to-top').fadeIn('slow');
+		      } else {
+		          $('#scroll-to-top').fadeOut('slow');
+		      }
+
+			  if ($(this).scrollTop() > bodyHeight - screenHeight) {
+		         $('#scroll-to-bottom').fadeOut('slow');
+		      } else {
+		         $('#scroll-to-bottom').fadeIn('slow');
+		      }
+		 });   
+	}
+}
 
 /**
  * При натискане с мишката върху елемента, маркираме текста
