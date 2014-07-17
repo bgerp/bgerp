@@ -40,6 +40,9 @@ class doc_RichTextPlg extends core_Plugin
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
+        
+        // Прихваща всички никове в ричтекста
+        $html = preg_replace_callback(rtac_Plugin::$pattern, array($this, '_catchNick'), $html);
     }
     
     
@@ -321,5 +324,30 @@ class doc_RichTextPlg extends core_Plugin
             // Добавяне в групата за добавяне на документ
             $toolbarArr->add($documentUpload, 'filesAndDoc', 1000.055);
         }
+    }
+    
+    
+    /**
+     * Прихваща никовете и създава линкове към сингъла на профилите
+     * 
+     * @param array $match
+     */
+    function _catchNick($match)
+    {
+        // Да не сработва в текстов режим
+        if (Mode::is('text', 'plain')) return $match[0];
+        
+        // Вземаме id на записа от ника
+        $nick = $match['nick'];
+        $nick = strtolower($nick);
+        $id = core_Users::fetchField(array("LOWER (#nick) = '[#1#]'", $nick));
+        
+        if (!$id) return $match[0];
+        
+        // Добавяме в борда
+        $place = $this->mvc->getPlace();
+        $this->mvc->_htmlBoard[$place] = crm_Profiles::createLink($id);
+        
+        return "[#{$place}#]";
     }
 }
