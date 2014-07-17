@@ -36,6 +36,42 @@ class doc_SharablePlg extends core_Plugin
     
     
     /**
+     * Преди записване
+     * Добавя споделените потребители в ричтекста
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $rec
+     * @param string $fields
+     */
+    public function on_BeforeSave($mvc, $res, &$rec, $fields=NULL)
+    {
+        // Обхождаме всички полета от модела, за да разберем кои са ричтекст
+        foreach ((array)$mvc->fields as $name=>$field) {
+            if ($field->type instanceof type_Richtext) {
+                
+                // Вземаме споделените потребители
+                $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
+                if (!$sharedUsersArr) continue;
+                
+                // Обединяваме всички потребители от споделянията
+                $sharedUsersArr = array_merge($sharedUsersArr, $sharedUsersArr);
+            }
+        }
+        
+        // Ако има споделяния
+        if ($sharedUsersArr) {
+            
+            // Добавяме id-тата на споделените потребители
+            foreach ((array)$sharedUsersArr as $nick) {
+                $id = core_Users::fetchField(array("#nick = '[#1#]'", $nick), 'id');
+                $rec->sharedUsers = type_Keylist::addKey($rec->sharedUsers, $id);
+            }
+        }
+    }
+    
+    
+    /**
      * След рендиране на документ отбелязва акта на виждането му от тек. потребител
      * 
      * @param core_Mvc $mvc
