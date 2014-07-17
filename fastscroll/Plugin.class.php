@@ -23,6 +23,9 @@ class fastscroll_Plugin extends core_Plugin {
     {
     	$conf = core_Packs::getConfig('fastscroll');
     	
+    	$invoker->push('fastscroll/lib/fastscroll.css', "CSS");
+    	$invoker->push('fastscroll/lib/fastscroll.js', "JS");
+    	
      	// Активираме скролирането
         jquery_Jquery::run($invoker," fastScroll({$conf->FASTSCROLL_HIDE_AFTER_SEC},{$conf->FASTSCROLL_ACTIVE_RATIO});", TRUE);
     }
