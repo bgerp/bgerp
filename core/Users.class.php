@@ -172,23 +172,64 @@ class core_Users extends core_Manager
     /**
      * Връща масив с потребители в системата Ник => Имена
      * 
+     * @param array $rolesArr
+     * 
      * return array
      */
-    static function getUsersArr_()
+    static function getUsersArr_($rolesArr=array())
     {
+        if ($rolesArr) {
+            
+            // id-та на ролите
+            $roles = core_Roles::getRolesAsKeylist($rolesArr);
+        }
+        
         static $usersArr = array();
         
-        if (!$usersArr) {
+        if (!$usersArr[$roles]) {
+            
             // Всичко, потребители, които не са заличени
             $query = static::getQuery();
             $query->where("#state != 'rejected'");
+            $query->where("#state != 'draft'");
+            
+            if ($roles) {
+                $query->likeKeylist('roles', $roles);
+            }
+            
             while ($rec =  $query->fetch()) {
                 if (!$rec->nick) continue;
-                $usersArr[$rec->nick] = $rec->names;
+                $usersArr[$roles][$rec->nick] = static::prepareUserNames($rec->names);
             }
         }
         
-        return $usersArr;
+        return $usersArr[$roles];
+    }
+    
+    
+    /**
+     * От подадените имена връща името и фамилията
+     * 
+     * @param string $names
+     * 
+     * @return string
+     */
+    static function prepareUserNames_($names)
+    {
+        // Масив с именатата
+        $namesArr = explode(' ', $names);
+        
+        // Име с първа главна буква
+        $firstName = array_shift($namesArr);
+        $firstName = str::mbUcfirst($firstName);
+        
+        // Фамилия с първа главна буква
+        $lastName = array_pop($namesArr);
+        $lastName = str::mbUcfirst($lastName);
+        
+        $newName = $firstName . ' ' . $lastName;
+        
+        return $newName;
     }
     
     
