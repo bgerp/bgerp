@@ -50,13 +50,39 @@ class rtac_Plugin extends core_Plugin
         $inst = cls::get($conf->RTAC_AUTOCOMPLETE_CLASS);
         
         // Зареждаме необходимите пакети
-    	$inst->loadPacks($tpl);        
+    	$inst->loadPacks($tpl);
     	
-    	// Стартираме autocomplete-a за добавяне на потребител
-        $inst->runAutocompleteUsers($tpl,$attr['id']);
+    	list($id) = explode(' ', $attr['id']);
+    	
+    	$id = trim($id);
+    	
+        // Ако са подадени роли до които може да се споделя
+        if (!($userRolesForShare = $mvc->params['userRolesForShare'])) {
+            $userRolesForShare = $conf->RTAC_DEFAUL_USER_ROLES_FOR_SHARE;
+        }
         
-        // Добавяме масива с потребителите в JS
-        $usersArr = core_Users::getUsersArr();
-        $tpl->appendOnce("var sharedUsers=" . json_encode($usersArr), 'SCRIPTS');
+        // Ако потребителя име права да споделе
+        $userRolesForShare = str_replace("|", ",", $userRolesForShare);
+        $userRolesForShareArr = arr::make($userRolesForShare);
+        if (core_Users::haveRole($userRolesForShareArr)) {
+        
+            // Ако са подадени роли до които може да се споделя
+            if (!($shareUsersRoles = $mvc->params['shareUsersRoles'])) {
+                $shareUsersRoles = $conf->RTAC_DEFAUL_SHARE_USER_ROLES;
+            }
+            
+            $shareUsersRoles = str_replace("|", ",", $shareUsersRoles);
+            $shareUsersRolesArr = arr::make($shareUsersRoles);
+            
+            // Добавяме масива с потребителите в JS
+            $usersArr = core_Users::getUsersArr($shareUsersRolesArr);
+            
+            // Добавяме потребителите, до които ще се споделя
+            $tpl->appendOnce("sharedUsersObj = {};", 'SCRIPTS');
+            $tpl->appendOnce("sharedUsersObj.{$id} = " . json_encode($usersArr) . ";", 'SCRIPTS');
+            
+            // Стартираме autocomplete-a за добавяне на потребител
+            $inst->runAutocompleteUsers($tpl, $id);
+        }
     }
 }
