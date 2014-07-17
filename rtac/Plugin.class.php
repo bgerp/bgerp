@@ -16,6 +16,39 @@ class rtac_Plugin extends core_Plugin
     
     
     /**
+     * Шаблон за намиране на потребителите
+     */
+    static $pattern = "/\B@(?'nick'(\w|\.)*)/";
+    
+    
+    /**
+     * Масив с всички потребители, споделени в 
+     * 
+     * @param string $text
+     * 
+     * @return array
+     */
+    static function getNicksArr($text)
+    {
+        preg_match_all(static::$pattern, $text, $matches);
+        
+        if (!$matches['nick']) return ;
+        
+        // Масив с никовете на всички потребители
+        $userArr = core_Users::getUsersArr();
+        
+        // Обхождаме всички открити никове и проверяваме дали има такива потребители
+        foreach ((array)$matches['nick'] as $nick) {
+            $nick = strtolower($nick);
+            if (!$userArr[$nick]) continue;
+            $nickArr[$nick] = $nick;
+        }
+        
+        return $nickArr;
+    }
+    
+    
+    /**
      * 
      * Изпълнява се преди рендирането на input
      * 
