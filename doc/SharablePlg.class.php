@@ -33,19 +33,19 @@ class doc_SharablePlg extends core_Plugin
             $mvc->FLD('sharedViews', 'blob', 'caption=Споделяне->Виждания,input=none');
         }
     }
+
     
     
     /**
-     * Преди записване
-     * Добавя споделените потребители в ричтекста
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 
      * @param core_Mvc $mvc
-     * @param object $res
-     * @param object $rec
-     * @param string $fields
+     * @param core_Form $form
      */
-    public function on_BeforeSave($mvc, $res, &$rec, $fields=NULL)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
+        $rec = &$form->rec;
+        
         // Обхождаме всички полета от модела, за да разберем кои са ричтекст
         foreach ((array)$mvc->fields as $name=>$field) {
             if ($field->type instanceof type_Richtext) {
