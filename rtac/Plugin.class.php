@@ -115,11 +115,26 @@ class rtac_Plugin extends core_Plugin
             $usersArr = core_Users::getUsersArr($shareUsersRolesArr);
             
             // Добавяме потребителите, до които ще се споделя
-            $tpl->appendOnce("sharedUsersObj = {};", 'SCRIPTS');
+            $tpl->appendOnce("var sharedUsersObj = {};", 'SCRIPTS');
             $tpl->appendOnce("sharedUsersObj.{$id} = " . json_encode($usersArr) . ";", 'SCRIPTS');
             
             // Стартираме autocomplete-a за добавяне на потребител
             $inst->runAutocompleteUsers($tpl, $id);
+        }
+        
+    
+        // Ако са подадени роли до които може да се споделя
+        if (!($userRolesForBlock = $mvc->params['userRolesForBlock'])) {
+            $userRolesForBlock = $conf->RTAC_DEFAUL_ROLES_FOR_AUTOCOMPLETE_BLOCK;
+        }
+        
+        if (core_Users::haveRole($userRolesForBlock)) {
+            $blockElementsArr = $mvc->getBlockElements();
+            $tpl->appendOnce("var blockElementsObj = {};", 'SCRIPTS');
+            $tpl->appendOnce("blockElementsObj.{$id} = " . json_encode($blockElementsArr) . ";", 'SCRIPTS');
+            
+            // Стартираме autocomplete-a за добавяне на потребител
+            $inst->runAutocompleteBlocks($tpl, $id);
         }
     }
 }

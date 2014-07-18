@@ -31,6 +31,7 @@ class rtac_yuku_Textcomplete extends core_Manager
      * Добавя необходимите неща за да работи плъгина
      * 
      * @param core_Et $tpl
+     * @see rtac_AutocompleteIntf::loadPacks(&$tpl)
      */
     static function loadPacks(&$tpl)
     {
@@ -46,6 +47,7 @@ class rtac_yuku_Textcomplete extends core_Manager
      * 
      * @param core_Et $tpl
      * @param string $id
+     * @see rtac_AutocompleteIntf::runAutocompleteUsers(&$tpl, $rtId)
      */
     static function runAutocompleteUsers(&$tpl, $rtId)
     {
@@ -55,8 +57,6 @@ class rtac_yuku_Textcomplete extends core_Manager
         $maxCount = $conf->RTAC_MAX_SHOW_COUNT;
         
         jquery_Jquery::run($tpl, "
-        	var sharedUsers = sharedUsersObj.{$rtId};
-        	
         	$('#{$rtId}').textcomplete(
                 {
                     match: /\B@((\w|\.)*)$/,
@@ -74,6 +74,54 @@ class rtac_yuku_Textcomplete extends core_Manager
                     cache: true,
                     template: function(val) {
                     	return val + ' ' + '<span class=\'autocomplete-name\'>' + sharedUsersObj.{$rtId}[val] + '</span>';
+    				}
+                }
+            );
+        ");
+    }
+
+    
+    /**
+     * Стартира autocomplete-а за добавяне на блокови елементи
+     * 
+     * @param core_Et $tpl
+     * @param string $id
+     * @see rtac_AutocompleteIntf::runAutocompleteBlocks(&$tpl, $rtId)
+     */
+    static function runAutocompleteBlocks(&$tpl, $rtId)
+    {
+        $conf = core_Packs::getConfig('rtac');
+        
+        // Максималния брой на елементи, които 
+        $maxCount = $conf->RTAC_MAX_SHOW_COUNT;
+        
+        jquery_Jquery::run($tpl, "
+        	$('#{$rtId}').textcomplete(
+                {
+                    match: /\[(\w*)$/,
+                    index: 1,
+                    search: function (term, callback) {
+                        callback($.map(blockElementsObj.{$rtId}, function (element) {
+                        	term = term.toLowerCase();
+                        	var text = element.text.toLowerCase();
+                            return text.indexOf(term) === 0 ? element : null;
+                        }));
+                    },
+                    replace: function (element) {
+                    	var begin = (element.begin) ? element.begin : element.text;
+                    	var end = (element.end) ? element.end : element.text;
+                        return ['[' + begin + ']', '[/' + end + ']'];
+                    },
+                    maxCount: {$maxCount},
+                    cache: true,
+                    template: function(val) {
+                    	var text = '<span class=\'autocomplete-block\'>';
+                    	if (val.icon) {
+                    		text += '<img class=\'autocomplete-block-image\' src=' + val.icon + '></img>';
+    					}
+        				text += '<span class=\'autocomplete-block-title\'>' + val.title + '</span>' + '<span class=\'autocomplete-block-text\'>' + val.text + '</span></span>';
+        				
+        				return text;
     				}
                 }
             );
