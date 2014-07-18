@@ -168,7 +168,7 @@ class support_Issues extends core_Master
     {
         $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
         $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%");
-        $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, mandatory");
+        $this->FLD('description', 'richtext(rows=10,bucket=Support,shareUsersRoles=support,userRolesForShare=support)', "caption=Описание, mandatory");
         $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент, changable');
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
         
