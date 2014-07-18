@@ -1189,15 +1189,8 @@ class type_Richtext extends type_Blob
           	    
           	    // Нагласяме параметрите необходими за фунцкията s()
           	    $newLine = 1;
-          	    $multiline = 0;
-          	    if (($name == 'code') || ($name == 'ul') || ($name == 'ol')) {
-          	        $multiline = 1;
-          	    }
-          	    $maxOneLine = 0;
-          	    if (($name == 'code') || ($name == 'bQuote')) {
-          	        $maxOneLine = static::ONE_LINE_CODE_LENGTH;
-          	    }
-          	    $everyLine = 0;
+          	    $multiline = $blockeElement['multiline'] ? $blockeElement['multiline'] : 0;
+          	    $maxOneLine = $blockeElement['maxOneLine'] ? $blockeElement['maxOneLine'] : 0;
           	    
           	    // Генерираме текста
                 $toolbarTxt = "<a class='rtbutton' title='" . $blockeElement['title'] .  
@@ -1246,47 +1239,63 @@ class type_Richtext extends type_Blob
     function on_AfterGetBlockElements($mvc, &$resArr, $qt='"', $isAbsolute=FALSE)
     {
         $resArr = arr::make($resArr);
+        
+        // Цитат
         $resArr['bQuote']['text'] = 'bQuote';
         $resArr['bQuote']['title'] = tr('Цитат');
         $resArr['bQuote']['icon'] = sbf('img/16/quote.png', $qt, $isAbsolute);
+        $resArr['bQuote']['maxOneLine'] = static::ONE_LINE_CODE_LENGTH;
         
+        // Код
         $resArr['code']['text'] = 'code';
         $resArr['code']['begin'] = 'code=auto';
         $resArr['code']['end'] = 'code';
         $resArr['code']['title'] = tr('Код');
         $resArr['code']['icon'] = sbf('img/16/script_code_red.png', $qt, $isAbsolute);
+        $resArr['code']['multiline'] = 1;
+        $resArr['code']['maxOneLine'] = static::ONE_LINE_CODE_LENGTH;
         
+        // Грешка
         $resArr['bError']['text'] = 'bError';
         $resArr['bError']['title'] = tr('Грешка');
         $resArr['bError']['icon'] = sbf('img/dialog_error-small.png', $qt, $isAbsolute);
         
+        // Успех
         $resArr['bOk']['text'] = 'bOk';
         $resArr['bOk']['title'] = tr('Успех');
         $resArr['bOk']['icon'] = sbf('img/ok-small.png', $qt, $isAbsolute);
         
+        // Съвет
         $resArr['bTip']['text'] = 'bTip';
         $resArr['bTip']['title'] = tr('Съвет');
         $resArr['bTip']['icon'] = sbf('img/App-tip-icon3-small.png', $qt, $isAbsolute);
         
+        // Информация
         $resArr['bInfo']['text'] = 'bInfo';
         $resArr['bInfo']['title'] = tr('Информация');
         $resArr['bInfo']['icon'] = sbf('img/info_blue-small.png', $qt, $isAbsolute);
         
+        // Предупреждение
         $resArr['bWarn']['text'] = 'bWarn';
         $resArr['bWarn']['title'] = tr('Предупреждение');
         $resArr['bWarn']['icon'] = sbf('img/dialog_warning-small.png', $qt, $isAbsolute);
         
+        // Въпрос
         $resArr['bQuestion']['text'] = 'bQuestion';
         $resArr['bQuestion']['title'] = tr('Въпрос');
         $resArr['bQuestion']['icon'] = sbf('img/Help-icon-small.png', $qt, $isAbsolute);
         
+        // Неномериран списък
         $resArr['ul']['text'] = 'ul';
         $resArr['ul']['title'] = tr('Неномериран списък');
         $resArr['ul']['icon'] = sbf('img/16/ul.png', $qt, $isAbsolute);
+        $resArr['ul']['multiline'] = 1;
         
+        // Номериран списък
         $resArr['ol']['text'] = 'ol';
         $resArr['ol']['title'] = tr('Номериран списък');
         $resArr['ol']['icon'] = sbf('img/16/ol.png', $qt, $isAbsolute);
+        $resArr['ul']['multiline'] = 1;
     }
         
     
