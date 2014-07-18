@@ -205,7 +205,7 @@ class purchase_Invoices extends core_Master
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС,input=hidden');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
-		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width=100%');
+		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
         $this->FLD('vatAmount', 'double(decimals=2)', 'caption=Стойност ДДС, input=none,summary=amount');
         $this->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');

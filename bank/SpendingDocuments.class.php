@@ -148,7 +148,7 @@ class bank_SpendingDocuments extends core_Master
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('rate', 'double(smartRound)', 'caption=Курс,width=6em');
-    	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,width=100%,mandatory');
+    	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
     	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Банк. сметка,mandatory,width=16em');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Към->Контрагент,mandatory,width=16em');
     	$this->FLD('contragentIban', 'iban_Type(64)', 'caption=Към->Сметка,width=16em'); 

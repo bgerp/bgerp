@@ -160,7 +160,7 @@ class cash_Rko extends core_Master
     {
     	$this->FLD('operationSysId', 'varchar', 'caption=Операция,width=100%,mandatory');
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=30%,summary=amount');
-    	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,width=100%,mandatory');
+    	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
     	$this->FLD('number', 'int', 'caption=Номер,width=50%,width=30%');
     	$this->FLD('peroCase', 'key(mvc=cash_Cases, select=name)', 'caption=Каса');

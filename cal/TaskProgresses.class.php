@@ -72,7 +72,7 @@ class cal_TaskProgresses extends core_Detail
         $this->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)',     'caption=Отработено време');
         
         // Статус съобщение
-        $this->FLD('message',    'richtext(rows=5)', 'caption=Съобщение,width=300px');
+        $this->FLD('message',    'richtext(rows=5)', 'caption=Съобщение');
     }
 
 

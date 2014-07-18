@@ -105,7 +105,7 @@ class bank_Accounts extends core_Master {
         $this->FLD('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory');     
         $this->FLD('bic', 'varchar(12)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка,width=100%');
-        $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки,width=100%');
+        $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
         
         // Задаваме индексите и уникалните полета за модела
         $this->setDbIndex('contragentCls,contragentId');

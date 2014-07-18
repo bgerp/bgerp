@@ -96,7 +96,7 @@ abstract class acc_ClosedDeals extends core_Master
      */
     public function description()
     {
-    	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележка,width=100%,mandatory');
+    	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележка,mandatory');
     	
     	// Класа на документа, който се затваря
     	$this->FLD('docClassId', 'class(interface=doc_DocumentIntf)', 'input=none');

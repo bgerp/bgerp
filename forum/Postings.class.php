@@ -87,7 +87,7 @@ class forum_Postings extends core_Detail {
 	{
 		$this->FLD('boardId', 'key(mvc=forum_Boards, select=title)', 'caption=Дъска, input=hidden, silent');
 		$this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory, placeholder=Заглавие, width=100%');
-		$this->FLD('body', 'richtext(bucket=Notes)', 'caption=Съдържание, mandatory, placeholder=Добавете вашия коментар, width=100%');
+		$this->FLD('body', 'richtext(bucket=Notes)', 'caption=Съдържание, mandatory, placeholder=Добавете вашия коментар');
 		$this->FLD('type', 'enum(normal=Нормална,sticky=Важна,announcement=Съобщение)', 'caption=Тип, value=normal');
 		$this->FLD('postingsCnt', 'int', 'caption=Коментари, input=none, value=0');
 		$this->FLD('views', 'int', 'caption=Прегледи, input=none, value=0');
