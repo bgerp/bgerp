@@ -18,7 +18,7 @@ class rtac_Plugin extends core_Plugin
     /**
      * Шаблон за намиране на потребителите
      */
-    static $pattern = "/\B@(?'nick'(\w|\.)*)/";
+    static $pattern = "/\B(?'pre'@)(?'nick'(\w|\.)+)/";
     
     
     /**
@@ -39,6 +39,10 @@ class rtac_Plugin extends core_Plugin
         
         // Обхождаме всички открити никове и проверяваме дали има такива потребители
         foreach ((array)$matches['nick'] as $nick) {
+            
+            // Ако няма ник
+            if (!$nick) continue;
+            
             $nick = strtolower($nick);
             if (!$userArr[$nick]) continue;
             $nickArr[$nick] = $nick;
