@@ -44,28 +44,31 @@ class doc_SharablePlg extends core_Plugin
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        $rec = &$form->rec;
-        
-        // Обхождаме всички полета от модела, за да разберем кои са ричтекст
-        foreach ((array)$mvc->fields as $name=>$field) {
-            if ($field->type instanceof type_Richtext) {
-                
-                // Вземаме споделените потребители
-                $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
-                if (!$sharedUsersArr) continue;
-                
-                // Обединяваме всички потребители от споделянията
-                $sharedUsersArr = array_merge($sharedUsersArr, $sharedUsersArr);
-            }
-        }
-        
-        // Ако има споделяния
-        if ($sharedUsersArr) {
+        if ($form->isSubmitted()) {
             
-            // Добавяме id-тата на споделените потребители
-            foreach ((array)$sharedUsersArr as $nick) {
-                $id = core_Users::fetchField(array("#nick = '[#1#]'", $nick), 'id');
-                $rec->sharedUsers = type_Keylist::addKey($rec->sharedUsers, $id);
+            $rec = &$form->rec;
+            
+            // Обхождаме всички полета от модела, за да разберем кои са ричтекст
+            foreach ((array)$mvc->fields as $name=>$field) {
+                if ($field->type instanceof type_Richtext) {
+                    
+                    // Вземаме споделените потребители
+                    $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
+                    if (!$sharedUsersArr) continue;
+                    
+                    // Обединяваме всички потребители от споделянията
+                    $sharedUsersArr = array_merge($sharedUsersArr, $sharedUsersArr);
+                }
+            }
+            
+            // Ако има споделяния
+            if ($sharedUsersArr) {
+                
+                // Добавяме id-тата на споделените потребители
+                foreach ((array)$sharedUsersArr as $nick) {
+                    $id = core_Users::fetchField(array("#nick = '[#1#]'", $nick), 'id');
+                    $rec->sharedUsers = type_Keylist::addKey($rec->sharedUsers, $id);
+                }
             }
         }
     }
