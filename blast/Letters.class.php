@@ -175,7 +175,7 @@ class blast_Letters extends core_Master
     {
         $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Списък, mandatory');
         $this->FLD('group', 'enum(company=Фирми, personBiz=Лица (Бизнес данни), person=Лица (Частни данни))', 'caption=Група, mandatory, input=none');
-        $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, width=100%, mandatory, changable');
+        $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, mandatory, changable');
         $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory, changable');
         $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory, input=none, hint=Колко писма ще се печатат едновременно');
         $this->FLD('template', 'enum(triLeft=3 части - ляво,
