@@ -72,11 +72,24 @@
 	cursor: pointer;
 }
 
-.autocomplete-name{
+.autocomplete-name, .autocomplete-block-text{
     font-size: smaller;
     color: #777;
+    margin-left: 5px;
 }
 
-.dropdown-menu > .active > a .autocomplete-name, .dropdown-menu > li:hover > a .autocomplete-name {
+.dropdown-menu > .active > a .autocomplete-name, .dropdown-menu > li:hover > a .autocomplete-name,
+.dropdown-menu > .active > a .autocomplete-block-text, .dropdown-menu > li:hover > a .autocomplete-block-text {
     color: #fff;
+}
+
+.autocomplete-block{
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.autocomplete-block-image{
+	margin-right: 5px;
+	position: relative;
+	top: 2px;
 }
