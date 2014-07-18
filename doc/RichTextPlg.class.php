@@ -346,7 +346,11 @@ class doc_RichTextPlg extends core_Plugin
         
         // Добавяме в борда
         $place = $this->mvc->getPlace();
-        $this->mvc->_htmlBoard[$place] = crm_Profiles::createLink($id);
+        
+        // За ника използваме и префикса от стринга
+        $nick = $match['pre'] . core_Users::prepareNick($match['nick']);
+        
+        $this->mvc->_htmlBoard[$place] = crm_Profiles::createLink($id, $nick);
         
         return "[#{$place}#]";
     }
