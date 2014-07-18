@@ -56,7 +56,7 @@ class sens2_MockupDrv
     function readInputs($inputs, $config, &$persistentState)
     {
         if($inputs['Temp1']) {
-            $inputs['Temp1'] = time();
+            $inputs['Temp1'] = 5;
         }
 
         if($inputs['Memory']) {

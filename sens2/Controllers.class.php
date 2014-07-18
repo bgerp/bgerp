@@ -230,6 +230,11 @@ class sens2_Controllers extends core_Master
 
             if(is_array($inputs)) {
                 foreach($inputs as $port => $value) {
+
+                    if($expr = $config[$port . '_scale']) {
+                        $expr = str_replace('X', $value, $expr);
+                        $value = str::calcMathExpr($expr);
+                    }
                         
                     // Обновяваме индикатора за стойността на текущия контролерен порт
                     $indicatorId = sens2_Indicators::setValue($rec->id, $port, $config[$port . '_uom'], $value, $time);

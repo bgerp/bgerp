@@ -40,7 +40,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Права за запис
      */
-    var $canWrite = 'ceo,sens, admin';
+    var $canWrite = 'debug';
     
     
     /**
@@ -70,7 +70,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $listFields = 'indicatorId, value, time';
+    var $listFields = 'id,indicatorId, value, time';
     
     
     /**
