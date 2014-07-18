@@ -752,7 +752,7 @@ class core_Form extends core_FieldSet
                     if ($headerRow) {
                         $tpl->append("\n<tr><td colspan=2>$headerRow</td></tr>", 'FIELDS');
                     }
-                    $fld = new ET("\n<tr><td  align=right valign=top class='formFieldCaption'>[#CAPTION#]:</td><td>[#{$field->name}#][#UNIT#]</td></tr>");
+                    $fld = new ET("\n<tr><td  align=right valign=top class='formFieldCaption'>[#CAPTION#]:</td><td class='formElement'>[#{$field->name}#][#UNIT#]</td></tr>");
                     
                     $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');

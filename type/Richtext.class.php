@@ -1173,16 +1173,37 @@ class type_Richtext extends type_Blob
             $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Блок') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group5', event)\"> <img src=" . sbf('img/16/quote.png') . " height='15' width='15'/></a>", 'TBL_GROUP2');
             $emot5 = 'richtext-holder-group-after';
           	$toolbarArr->add("<span id='{$attr['id']}-group5' class='richtext-emoticons5 richtext-holder-group {$emot5}'>", 'TBL_GROUP2');
-            $toolbarArr->add("<a class=rtbutton title='" . tr('Цитат') .  "' onclick=\"s('[bQuote]', '[/bQuote]', document.getElementById('{$formId}'),1,0," . static::ONE_LINE_CODE_LENGTH . ")\"><img src=" . sbf('img/16/quote.png') . " height='15' width='15'/></a>", 'TBL_GROUP2');
-            $toolbarArr->add("<a class=rtbutton title='" . tr("Код") . "' onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'),1,1," . static::ONE_LINE_CODE_LENGTH . ")\"><img src=" . sbf('img/16/script_code_red.png') . " height='15' width='15'/></a>", 'TBL_GROUP2');
-			$toolbarArr->add("<a class=rtbutton title='" . tr('Грешка') .  "' onclick=\"s('[bError]', '[/bError]', document.getElementById('{$formId}'),1)\"><img src=" . sbf('img/dialog_error-small.png') . " height='15' width='15'/></a>", 'TBL_GROUP2'); 
-			$toolbarArr->add("<a class=rtbutton title='" . tr('Успех') .  "' onclick=\"s('[bOk]', '[/bOk]', document.getElementById('{$formId}'),1)\"><img src=" . sbf('img/ok-small.png') . " height='15' width='15'  align='top'/></a>", 'TBL_GROUP2');
-            $toolbarArr->add("<a class=rtbutton title='" . tr('Съвет') .  "' onclick=\"s('[bTip]', '[/bTip]', document.getElementById('{$formId}'),1)\"><img src=" . sbf('img/App-tip-icon3-small.png') . " height='15' width='15'  align='top'/></a><div class='clearfix21'></div>	", 'TBL_GROUP2');
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Информация') .  "' onclick=\"s('[bInfo]', '[/bInfo]', document.getElementById('{$formId}'),1)\"><img src=" . sbf('img/info_blue-small.png') . " height='15' width='15'  align='top'/></a>", 'TBL_GROUP2');
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Предупреждение') .  "' onclick=\"s('[bWarn]', '[/bWarn]', document.getElementById('{$formId}'),1)\"><img src=" . sbf('img/dialog_warning-small.png') . " height='15' width='15'  align='top'/></a>", 'TBL_GROUP2');
-    		$toolbarArr->add("<a class=rtbutton title='" . tr('Въпрос') .  "' onclick=\"s('[bQuestion]', '[/bQuestion]', document.getElementById('{$formId}'),1)\"><img src=" . sbf('img/Help-icon-small.png') . " height='15' width='15'  align='top'/></a>", 'TBL_GROUP2');
-            $toolbarArr->add("<a class=rtbutton title='" . tr('Неномериран списък') .  "' onclick=\"s('[ul]', '[/ul]', document.getElementById('{$formId}'),1,1)\"><img src=" . sbf('img/16/ul.png') . " height='15' width='15'  align='top'/></a>", 'TBL_GROUP2');
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Номериран списък') .  "' onclick=\"s('[ol]', '[/ol]', document.getElementById('{$formId}'),1,1)\"><img src=" . sbf('img/16/ol.png') . " height='15' width='15'  align='top'/></a>", 'TBL_GROUP2');
+          	
+          	$i=0;
+            $maxBlockElementInLine = 5;
+            
+            // Вземаме всички блокови елементи
+            $blockeElementsArr = static::getBlockElements();
+          	foreach ((array)$blockeElementsArr as $name => $blockeElement) {
+          	    
+          	    $i++;
+          	    
+          	    // Начало и край на блока
+          	    $begin = $blockeElement['begin'] ? $blockeElement['begin'] : $blockeElement['text'];
+          	    $end = $blockeElement['end'] ? $blockeElement['end'] : $blockeElement['text'];
+          	    
+          	    // Нагласяме параметрите необходими за фунцкията s()
+          	    $newLine = 1;
+          	    $multiline = $blockeElement['multiline'] ? $blockeElement['multiline'] : 0;
+          	    $maxOneLine = $blockeElement['maxOneLine'] ? $blockeElement['maxOneLine'] : 0;
+          	    
+          	    // Генерираме текста
+                $toolbarTxt = "<a class='rtbutton' title='" . $blockeElement['title'] .  
+          	    		"' onclick=\"s('[{$begin}]', '[/{$end}]', document.getElementById('{$formId}'),{$newLine},{$multiline},{$maxOneLine})\">
+          	    		<img src=" . $blockeElement['icon'] . " height='15' width='15' align='top'/></a>";
+          	    
+                // Ако трябва да се добави разделител за нов ред
+          	    if (!($i % $maxBlockElementInLine)) {
+          	         $toolbarTxt .= "<div class='clearfix21'></div>";
+          	    }
+          	    $toolbarArr->add($toolbarTxt, 'TBL_GROUP2');
+          	}
+          	
     	    $toolbarArr->add("</span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             
@@ -1206,6 +1227,77 @@ class type_Richtext extends type_Blob
         return $toolbarArr;
     }
     
+    
+    /**
+     * Всички блокови елементи и техните стойности
+     * 
+     * @param core_Mvc $mvc
+     * @param array $resArr
+     * @param string $isAbsolute
+     * @param boolean $isAbsolute
+     */
+    function on_AfterGetBlockElements($mvc, &$resArr, $qt='"', $isAbsolute=FALSE)
+    {
+        $resArr = arr::make($resArr);
+        
+        // Цитат
+        $resArr['bQuote']['text'] = 'bQuote';
+        $resArr['bQuote']['title'] = tr('Цитат');
+        $resArr['bQuote']['icon'] = sbf('img/16/quote.png', $qt, $isAbsolute);
+        $resArr['bQuote']['maxOneLine'] = static::ONE_LINE_CODE_LENGTH;
+        
+        // Код
+        $resArr['code']['text'] = 'code';
+        $resArr['code']['begin'] = 'code=auto';
+        $resArr['code']['end'] = 'code';
+        $resArr['code']['title'] = tr('Код');
+        $resArr['code']['icon'] = sbf('img/16/script_code_red.png', $qt, $isAbsolute);
+        $resArr['code']['multiline'] = 1;
+        $resArr['code']['maxOneLine'] = static::ONE_LINE_CODE_LENGTH;
+        
+        // Грешка
+        $resArr['bError']['text'] = 'bError';
+        $resArr['bError']['title'] = tr('Грешка');
+        $resArr['bError']['icon'] = sbf('img/dialog_error-small.png', $qt, $isAbsolute);
+        
+        // Успех
+        $resArr['bOk']['text'] = 'bOk';
+        $resArr['bOk']['title'] = tr('Успех');
+        $resArr['bOk']['icon'] = sbf('img/ok-small.png', $qt, $isAbsolute);
+        
+        // Съвет
+        $resArr['bTip']['text'] = 'bTip';
+        $resArr['bTip']['title'] = tr('Съвет');
+        $resArr['bTip']['icon'] = sbf('img/App-tip-icon3-small.png', $qt, $isAbsolute);
+        
+        // Информация
+        $resArr['bInfo']['text'] = 'bInfo';
+        $resArr['bInfo']['title'] = tr('Информация');
+        $resArr['bInfo']['icon'] = sbf('img/info_blue-small.png', $qt, $isAbsolute);
+        
+        // Предупреждение
+        $resArr['bWarn']['text'] = 'bWarn';
+        $resArr['bWarn']['title'] = tr('Предупреждение');
+        $resArr['bWarn']['icon'] = sbf('img/dialog_warning-small.png', $qt, $isAbsolute);
+        
+        // Въпрос
+        $resArr['bQuestion']['text'] = 'bQuestion';
+        $resArr['bQuestion']['title'] = tr('Въпрос');
+        $resArr['bQuestion']['icon'] = sbf('img/Help-icon-small.png', $qt, $isAbsolute);
+        
+        // Неномериран списък
+        $resArr['ul']['text'] = 'ul';
+        $resArr['ul']['title'] = tr('Неномериран списък');
+        $resArr['ul']['icon'] = sbf('img/16/ul.png', $qt, $isAbsolute);
+        $resArr['ul']['multiline'] = 1;
+        
+        // Номериран списък
+        $resArr['ol']['text'] = 'ol';
+        $resArr['ol']['title'] = tr('Номериран списък');
+        $resArr['ol']['icon'] = sbf('img/16/ol.png', $qt, $isAbsolute);
+        $resArr['ul']['multiline'] = 1;
+    }
+        
     
     /**
      * Парсира вътрешното URL
