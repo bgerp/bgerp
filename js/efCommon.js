@@ -804,18 +804,19 @@ function showImgFrame(name, visibility)
 
 
 // Оцветява входен елемент в зависимост от оставащите символи за писане
-function  colorByLen(input, maxLen) 
+function  colorByLen(input, maxLen, blur = false) 
 {
 	var rest = maxLen - input.value.length; 
 	var color = 'white'; 
-	if(rest <= 0) color = 'red'; 
-	if(rest == 1) color = '#ff4444'; 
-	if(rest == 2) color = '#ff8888'; 
-	if(rest == 3) color = '#ffcccc'; 
-	if(rest >= 4) color = '#ffffff'; 
+	if(rest <  0) color = 'red'; 
+	if(rest == 0 && input.value.length > 3 && !blur) color = '#ff9999'; 
+	if(rest == 1 && input.value.length > 3 && !blur) color = '#ffbbbb'; 
+	if(rest == 2 && input.value.length > 3 && !blur) color = '#ffdddd'; 
+	if(rest >= 3) color = '#ffffff';
 	input.style.backgroundColor = color;
 }
 
+ 
 
 // Конвертира Javascript обект към GET заявка
 function js2php(obj, path, new_path)

@@ -50,8 +50,8 @@ class type_Text extends core_Type {
         }
         
         if($size > 0) {
-             $attr['onblur'] .= "colorByLen(this, {$size}); if(this.value.length > {$size}) alert('" . 
-                 tr("Въведената стойност е над допустимите") . " $size " . tr('символа') . "');";
+             $attr['onblur'] .= "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" . 
+                 tr("Въведената стойност е дълга") . " ' + this.value.length + ' " . tr("символа, което е над допустимите") . " $size " . tr('символа') . "');";
              $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
 

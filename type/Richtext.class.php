@@ -108,8 +108,8 @@ class type_Richtext extends type_Blob
         // Сигнализиране на потребителя, ако въведе по-дълъг текст от допустимото
         setIfNot($size, $this->params['size'], $this->params[0]);
         if($size > 0) {
-             $attr['onblur'] .= "colorByLen(this, {$size}); if(this.value.length > {$size}) alert('" . 
-                 tr("Въведената стойност е над допустимите") . " $size " . tr('символа') . "');";
+             $attr['onblur'] .= "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" . 
+                 tr("Въведената стойност е дълга") . " ' + this.value.length + ' " . tr("символа, което е над допустимите") . " $size " . tr('символа') . "');";
              $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
 
