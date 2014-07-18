@@ -129,7 +129,7 @@ class bgerp_Setup {
         // Добавяме допълнителните пакети, само при първоначален Setup
         $Folders = cls::get('doc_Folders');
         if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen,help,toast,compactor";
+            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen,help,toast,compactor,rtac";
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();
