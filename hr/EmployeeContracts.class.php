@@ -180,7 +180,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('notice', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', "caption=Време->Предизвестие,unit=дни");
         $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month)', "caption=Време->Изпитателен срок, unit=мес");
 
-        $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
+        $this->FLD('descriptions', 'richtext(bucket=humanResources, shareUsersRoles=trz|ceo)', 'caption=Условия->Допълнителни');
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
