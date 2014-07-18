@@ -60,6 +60,8 @@ class type_Varchar extends core_Type {
             $attr['readonly'] = 'readonly';
         }
         
+        $attr['class'] .= ($attr['class'] ? ' ' : '') . 'varchar';
+        
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;

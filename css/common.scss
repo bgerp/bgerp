@@ -559,10 +559,6 @@ legend img {
 	vertical-align: middle;
 }
 
-.wide input.contactData, .wide textarea.contactData, .wide select.contactData {
-	width: 400px;
-}
-
 .narrow input.contactData {
 	width: 100%;
 }
@@ -1207,6 +1203,13 @@ div.hFormField {
     .formFields{
         margin:0;
     }
+}
+
+.wide #main-container .formTable .formElement{
+	min-width: 600px;
+	> .varchar{
+	   width: 100%;
+	}
 }
 
 /*общи стилове за елементите на формите*/
