@@ -119,7 +119,7 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('creditQuantity', 'double', 'width=120px,caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
        
-        $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума');
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума,remember=info');
     }
     
     
