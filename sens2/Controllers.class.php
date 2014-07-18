@@ -221,7 +221,7 @@ class sens2_Controllers extends core_Master
 
 
         if(count($inputs)) {
-                
+
             // Прочитаме състоянието на входовете от драйвера
             $inputs = $drv->readInputs($inputs, $rec->config, $rec->persistentState);
                 
@@ -314,22 +314,29 @@ class sens2_Controllers extends core_Master
      * и извиква $driver->process().
      */
     function act_Update()
-    {
+    { 
         $id = str::checkHash(Request::get('id', 'varchar'));
+        
+        if(!$id && haveRole('debug')) {
+            $id = Request::get('device', 'int');
+        }
+        
         if(!$id) {
-            echo "Controllers::Update - bad id on " . dt::now();
+            echo "Controllers::Update - miss id on " . dt::now();
+            die;
         }
         
         echo "Controllers::Update for device with id={$id} started on " . dt::now();
         
-        core_App::flushAndClose();
+        if(!haveRole('debug')) {
+            core_App::flushAndClose();
+        }
 
         // Освобождава манипулатора на сесията. Ако трябва да се правят
         // записи в сесията, то те трябва да се направят преди shutdown()
         if (session_id()) session_write_close();
 
 
-        echo "@#$@#$234234234234234234 $size";
         if($id) {
             // Извършваме обновяването "на сянка""
             $this->updateInputs($id);

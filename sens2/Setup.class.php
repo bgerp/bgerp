@@ -3,7 +3,7 @@
 
 
 /**
- * class acc_Setup
+ * class sens2_Setup
  *
  * Инсталиране/Деинсталиране на
  * мениджъри свързани със сензорите
@@ -12,7 +12,7 @@
  * @category  bgerp
  * @package   sens
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
