@@ -3,8 +3,9 @@
 
 
 /**
- * Драйвер за IP сензор Teracom TCW-121B - следи състоянието на цифров и аналогов входowe
+ * Драйвер за IP контролер Teracom TCW122B-CM
  *
+ * @see http://www.teracom.cc/index.php/products/monitoring-and-control/ethernet-controllers/tcw122b-cm.html
  *
  * @category  bgerp
  * @package   sens
@@ -12,15 +13,14 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвер за IP сензор Teracom TCW-121B
  */
-class teracom_TCW122B  
+class teracom_TCW122BCM
 {
     
     /**
      * Заглавие на драйвера
      */
-    var $title = 'TCW122B';
+    var $title = 'TCW122B-CM';
     
     
     /**
@@ -33,10 +33,10 @@ class teracom_TCW122B
      * Описание на входовете на драйвера
      */
     var $inputs = array(
-        'T1'   => array('caption'=>'Температура1', 'uom'=>'ºC', 'xmlPath'=>'/Temperature1[1]'),
-        'T2'   => array('caption'=>'Температура2', 'uom'=>'ºC', 'xmlPath'=>'/Temperature2[1]'),
-        'Hr1'  => array('caption'=>'Влажност1', 'uom'=>'%', 'xmlPath'=>'/Humidity1[1]'),
-        'Hr2'  => array('caption'=>'Влажност2', 'uom'=>'%', 'xmlPath'=>'/Humidity2[1]'),
+        'T1'   => array('caption'=>'Температура 1', 'uom'=>'ºC', 'xmlPath'=>'/Temperature1[1]'),
+        'T2'   => array('caption'=>'Температура 2', 'uom'=>'ºC', 'xmlPath'=>'/Temperature2[1]'),
+        'Hr1'  => array('caption'=>'Влажност 1', 'uom'=>'%', 'xmlPath'=>'/Humidity1[1]'),
+        'Hr2'  => array('caption'=>'Влажност 2', 'uom'=>'%', 'xmlPath'=>'/Humidity2[1]'),
     	'InD1' => array('caption'=>'Цифров вход 1', 'uom' => '', 'xmlPath'=>'/DigitalInput1[1]'),
         'InD2' => array('caption'=>'Цифров вход 2', 'uom' => '', 'xmlPath'=>'/DigitalInput2[1]'),
         'InA1' => array('caption'=>'Аналогов вход 1', 'uom' => 'V', 'xmlPath'=>'/AnalogInput1[1]'),

@@ -3,24 +3,24 @@
 
 
 /**
- * Драйвер за IP сензор Teracom TCW-121B - следи състоянието на цифров и аналогов входowe
+ * Драйвер контролер TCW-121 на фирма Тераком ООД
  *
+ * @see http://www.teracom.cc/index.php/component/content/article/1/40-ip-monitoring-tcw121.html
  *
- * @category  bgerp
- * @package   sens
- * @author    Dimiter Minekov <mitko@extrapack.com>
+ * @category  vendors
+ * @package   teracom
+ * @author    Dimiter Minekov <mitko@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвер за IP сензор Teracom TCW-121B
  */
-class teracom_TCW122B  
+class teracom_TCW121
 {
     
     /**
      * Заглавие на драйвера
      */
-    var $title = 'TCW122B';
+    var $title = 'TCW121';
     
     
     /**
@@ -30,29 +30,29 @@ class teracom_TCW122B
 
     
     /**
-     * Описание на входовете на драйвера
+     * Описание на входовете
      */
     var $inputs = array(
-        'T1'   => array('caption'=>'Температура1', 'uom'=>'ºC', 'xmlPath'=>'/Temperature1[1]'),
-        'T2'   => array('caption'=>'Температура2', 'uom'=>'ºC', 'xmlPath'=>'/Temperature2[1]'),
-        'Hr1'  => array('caption'=>'Влажност1', 'uom'=>'%', 'xmlPath'=>'/Humidity1[1]'),
-        'Hr2'  => array('caption'=>'Влажност2', 'uom'=>'%', 'xmlPath'=>'/Humidity2[1]'),
-    	'InD1' => array('caption'=>'Цифров вход 1', 'uom' => '', 'xmlPath'=>'/DigitalInput1[1]'),
-        'InD2' => array('caption'=>'Цифров вход 2', 'uom' => '', 'xmlPath'=>'/DigitalInput2[1]'),
-        'InA1' => array('caption'=>'Аналогов вход 1', 'uom' => 'V', 'xmlPath'=>'/AnalogInput1[1]'),
-        'InA2' => array('caption'=>'Аналогов вход 2', 'uom' => 'V', 'xmlPath'=>'/AnalogInput2[1]')
+        'T1' => array('caption'=>'Температура 1', 'uom' => 'ºC', 'xmlPath'=>'/Entry[5]/Value[1]'),
+        'T2' => array('caption'=>'Температура 2', 'uom' => 'ºC', 'xmlPath'=>'/Entry[6]/Value[1]'),
+        'Hr1' => array('caption'=>'Влажност 1', 'uom' => '%', 'xmlPath'=>'/Entry[7]/Value[1]'),
+        'Hr2' => array('caption'=>'Влажност 2', 'uom' => '%', 'xmlPath'=>'/Entry[8]/Value[1]'),
+    	'InD1' => array('caption'=>'Цифров вход 1', 'uom' => '', 'xmlPath'=>'/Entry[1]/Value[1]'),
+        'InD2' => array('caption'=>'Цифров вход 2', 'uom'=>'(ON,OFF)', 'xmlPath'=>'/Entry[2]/Value[1]'),
+        'InA1' => array('caption'=>'Аналогов вход 1', 'uom'=>'V', 'xmlPath'=>'/Entry[3]/Value[1]'),
+        'InA2' => array('caption'=>'Аналогов вход 2', 'uom'=>'V', 'xmlPath'=>'/Entry[4]/Value[1]'),
     );
     
     
     /**
-     * Описание на изходите на драйвера
+     * Описания на изходите
      */
     var $outputs = array(
-        'OutD1' => array('caption'=>'Цифров изход 1', 'uom' => '', 'xmlPath'=>'/Relay1[1]', 'cmd'=>'?r1'),
-        'OutD2' => array('caption'=>'Цифров изход 2', 'uom' => '', 'xmlPath'=>'/Relay2[1]', 'cmd'=>'?r2')
+        'OutD1' => array('caption'=>'Цифров изход 1', 'uom'=>'', 'xmlPath' => '/Entry[9]/Value[1]', 'cmd' => '/?r1'),
+        'OutD2' => array('caption'=>'Цифров изход 2', 'uom'=>'', 'xmlPath' => '/Entry[10]/Value[1]', 'cmd' => '/?r2'),
     );
-
-
+    
+     
     /**
      *  Информация за входните портове на устройството
      *
@@ -127,9 +127,9 @@ class teracom_TCW122B
      * @return  mixed
      */
     function readInputs($inputs, $config, &$persistentState)
-    {   
+    {
         // Подготвяме URL-то
-        $url = new ET("http://[#user#]:[#password#]@[#ip#]:[#port#]/status.xml");
+        $url = new ET("http://[#ip#]:[#port#]/m.xml");
         $url->placeArray($config);
         $url = $url->getContent();
         
@@ -150,6 +150,9 @@ class teracom_TCW122B
             return "Грешка при четене от {$config->ip}";
         }
         
+        // Малък бъгфикс на фирмуеъра на контролера
+        $xml = str_replace('</strong><sup>o</sup>C', '', $xml);
+
         echo "<br><pre>$xml</pre>";
 
         // Парсираме XML-а
@@ -193,6 +196,70 @@ class teracom_TCW122B
         return $res;
     }
 
+
+
+    
+    
+    /**
+     * Прочита текущото състояние на драйвера/устройството
+     */
+    function updateState()
+    {
+        // Необходимо е само ако ни интересуват предходни стойности на базата на които да правим изчисления 
+        //$stateOld = $this->loadState();
+        
+    	$settingsArr = (array) $this->getSettings();
+    	
+        $state = array();
+        
+        $url = "http://{$this->settings->ip}:{$this->settings->port}/m.xml";
+        
+        $context = stream_context_create(array('http' => array('timeout' => 4)));
+        
+        $xml = @file_get_contents($url, FALSE, $context);
+        
+        if (empty($xml) || !$xml) {
+            $this->stateArr = NULL;
+            
+            return FALSE;
+        }
+        
+        $xml = str_replace('</strong><sup>o</sup>C', '', $xml);
+        
+        $result = array();
+        
+        $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
+        
+        foreach ($this->params as $param => $details) {
+            
+            $state[$param] = $result[$details['xmlPath']];
+            
+            // Ако има изчисляеми параметри
+            if (!empty($settingsArr["name_{$param}"]) && $settingsArr["name_{$param}"] != 'empty') {
+       		 	$paramValue = $settingsArr["angular_{$param}"] * $state["{$param}"] + $settingsArr["linear_{$param}"];
+        		$state["{$settingsArr["name_{$param}"]}"] = $paramValue;
+            }
+       		 	
+            
+            if ($details['details'] == '(ON,OFF)') {
+                $state[$param] = trim(strtoupper($result[$details['xmlPath']]));
+                
+                // Санитизираме цифровите входове и изходи
+                switch ($state[$param]) {
+                    case 'ON' :
+                        $state[$param] = 1;
+                        break;
+                    case 'OFF' :
+                        $state[$param] = 0;
+                        break;
+                }
+            }
+        }
+        
+        $this->stateArr = $state;
+        
+        return TRUE;
+    }
     
     
     /**
@@ -202,13 +269,13 @@ class teracom_TCW122B
      */
     function setOuts($outs)
     {
-        $baseUrl = "http://{$this->settings->user}:{$this->settings->password}@{$this->settings->ip}:{$this->settings->port}/status.xml";
+        $baseUrl = "http://{$this->settings->user}:{$this->settings->password}@{$this->settings->ip}:{$this->settings->port}";
         
         foreach ($this->outs as $out => $attr) {
             $res[] = $baseUrl . $attr['cmd'] . "=" . $outs[$out];
         }
         
-        
+         
         // Превключваме релетата
         foreach ($res as $cmd) {
             $ch = curl_init("$cmd");
@@ -235,7 +302,7 @@ class teracom_TCW122B
         }
         
         if (count($children) == 0){
-            $return[$path] = (string) $xml;
+            $return[$path] = (string)$xml;
             
             return;
         }
