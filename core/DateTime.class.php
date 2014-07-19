@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 
 
@@ -323,7 +323,7 @@ class core_DateTime
             
             $dist = time() - $time;
             
-            $color = static::getColorByTime($dist);
+            $color = static::getColorByTime($mysqlDate);
           
             $title = dt::mysql2verbal($mysqlDate, "d-M-Y H:i (l)");
             $title = "  title='{$title}'";
@@ -390,8 +390,14 @@ class core_DateTime
     /**
      * Връща цвят, според разтояние в секунди
      */
-    static function getColorByTime($dist)
+    static function getColorByTime($datetime, $baseDatetime = NULL)
     {
+        if(!$baseDatetime) {
+            $baseDatetime = self::now();
+        }
+
+        $dist = strtotime($baseDatetime) - strtotime($datetime);
+
         if($dist < 0) {
             $dist = round(pow(log(-$dist, 1.85) - log(20, 1.85), 1.85));
             $g = round(max(4, 8 - $dist/50));

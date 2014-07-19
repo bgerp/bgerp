@@ -53,7 +53,7 @@ class plg_GroupByDate extends core_Plugin
                     $res->day = tr('Без дата');
                 }
 
-                $res->color = dt::getColorByTime(time() - dt::mysql2timestamp($rec->{$field}));
+                $res->color = dt::getColorByTime($rec->{$field});
                 
                 $mvc->invoke('AfterPrepareGroupDate', array(&$res, $d));
                 
@@ -71,7 +71,7 @@ class plg_GroupByDate extends core_Plugin
                         
             if(trim($t) && ($t != '00:00:00')) {
                 list($h, $m, $s) = explode(':', $t);
-                $color = dt::getColorByTime(time() - dt::mysql2timestamp($rec->{$field}));
+                $color = dt::getColorByTime($rec->{$field});
                 $rows[$id]->{$field} = "<span style='color:#{$color}'>{$h}:{$m}</span>";
             } else {
                 $rows[$id]->{$field} = '';
