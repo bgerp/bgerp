@@ -117,8 +117,11 @@ class sens2_Controllers extends core_Master
 
         expect(is_array($ports));
 
-        foreach($ports as $port => $uoms) {
-            $prefix = $port . " (Вход)";
+        foreach($ports as $port => $params) {
+            
+            $prefix = $params->caption . " ({$port})";
+            $uom = $params->uom;
+
             $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
@@ -135,8 +138,11 @@ class sens2_Controllers extends core_Master
             $ports = array();
         }
         
-        foreach($ports as $port => $uoms) {
-            $prefix = "|*" . $port . " (|Изход|*)";
+        foreach($ports as $port => $params) {
+
+            $prefix = $params->caption . " ({$port})";
+            $uom = $params->uom;
+
             $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
             if(trim($uoms)) {
@@ -205,7 +211,7 @@ class sens2_Controllers extends core_Master
         
         $inputs = $force;
 
-        foreach($ports as $port => $uoms) {
+        foreach($ports as $port => $params) {
             
             $updateMinutes = abs(round($config[$port . '_update'] / 60));
             if($updateMinutes && ($nowMinutes % $updateMinutes) == 0) {
@@ -223,19 +229,21 @@ class sens2_Controllers extends core_Master
         if(count($inputs)) {
 
             // Прочитаме състоянието на входовете от драйвера
-            $inputs = $drv->readInputs($inputs, $rec->config, $rec->persistentState);
-                
+            $values = $drv->readInputs($inputs, $rec->config, $rec->persistentState);
+
             // Текущото време
             $time = dt::now();
 
-            if(is_array($inputs)) {
-                foreach($inputs as $port => $value) {
+            if(is_array($values)) {
+                foreach($inputs as $port) {
+                    
+                    $value = $values[$port];
 
-                    if($expr = $config[$port . '_scale']) {
+                    if(($expr = $config[$port . '_scale']) && is_numeric($value)) {
                         $expr = str_replace('X', $value, $expr);
                         $value = str::calcMathExpr($expr);
                     }
-                        
+                       
                     // Обновяваме индикатора за стойността на текущия контролерен порт
                     $indicatorId = sens2_Indicators::setValue($rec->id, $port, $config[$port . '_uom'], $value, $time);
 

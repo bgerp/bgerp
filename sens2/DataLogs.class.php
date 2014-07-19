@@ -129,7 +129,11 @@ class sens2_DataLogs extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->indicatorId = sens2_Indicators::getTitleById($rec->indicatorId);
-        
+        if($rec->time) {
+            $color = dt::getColorByTime($rec->time);
+            $row->time = ht::createElement('span', array('style' => "color:#{$color}"), $row->time);
+        }
+
     }
     
     

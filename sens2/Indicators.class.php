@@ -60,9 +60,10 @@ class sens2_Indicators extends core_Manager
         $this->FLD('port', 'varchar(32)', 'caption=Порт, mandatory');
         $this->FLD('uom', 'varchar(16)', 'caption=Мярка,column=none');
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност');
-        $this->FLD('time', 'datetime', 'caption=Време');
+        $this->FLD('lastValue', 'datetime', 'caption=Време,oldFieldName=time');
+        $this->FLD('lastUpdate', 'datetime', 'caption=Последно обновяване,column=none');
         $this->FLD('error', 'varchar(64)', 'caption=Грешка');
-        $this->FNC('title', 'varchar(64)', 'caption=заглавие');
+        $this->FNC('title', 'varchar(64)', 'caption=Заглавие,column=none');
 
         $this->setDbUnique('controllerId,port,uom');
     }
@@ -89,7 +90,7 @@ class sens2_Indicators extends core_Manager
             $rec = new stdClass();
         } else {
             // Ако имаме повторение на последните данни - не правим запис
-            if( ($rec->value == $value || $rec->error == $value) && $rec->time == $time) {
+            if($rec->value == $value && $rec->lastValue == $time) {
                 return;
             }
         }
@@ -98,13 +99,19 @@ class sens2_Indicators extends core_Manager
         $rec->port         = $port;
         $rec->uom          = $uom;
         $rec->value        = $value;
-        $rec->time         = $time;
-       
+        $rec->lastValue    = $time;
+        $rec->lastUpdate   = $time;
+
         // Ако имаме грешка, поставяме я в правилното място
         $value = trim($value);
+        if($value === '') {
+            $value = "Празна стойност";
+        }
         if(!is_numeric($value)) {
-            unset($rec->value);
+            unset($rec->value, $rec->lastValue);
             $rec->error = $value;
+        } else {
+            $rec->error = '';
         }
 
         self::save($rec);
@@ -186,8 +193,16 @@ class sens2_Indicators extends core_Manager
      * @param stdClass $rec
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-         
+    {   
+        if($rec->lastValue) {
+            $color = dt::getColorByTime($rec->lastValue);
+            $row->lastValue = ht::createElement('span', array('style' => "color:#{$color}"), $row->lastValue);
+        }
+
+        if($rec->error && $rec->lastUpdate) {
+            $color = dt::getColorByTime($rec->lastUpdate);
+            $row->error = ht::createElement('span', array('style' => "color:#{$color}"), $row->error);
+         }
     }
     
 }

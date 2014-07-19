@@ -31,13 +31,16 @@ class sens2_MockupDrv
     
     function getInputPorts()
     {
-        return array('Temp1' => 'ºC', 'Memory' => 'B');
+        return array(
+                'Temp1'  => (object) array('caption' => 'Температура 1', 'uom' => 'ºC'),
+                'Memory' => (object) array('caption' => 'Свободна памет', 'uom' => 'B')
+                );
     }
 
 
     function getOutputPorts()
     {
-        return array('D1' => '');
+        return array('D1' => (object) array('caption' => 'Цифров изход 1', 'uom' => ''));
     }
 
 
@@ -56,15 +59,15 @@ class sens2_MockupDrv
     function readInputs($inputs, $config, &$persistentState)
     {
         if($inputs['Temp1']) {
-            $inputs['Temp1'] = 5;
+            $res['Temp1'] = 5;
         }
 
         if($inputs['Memory']) {
-            $inputs['Memory'] = memory_get_usage(TRUE);
+            $res['Memory'] = memory_get_usage(TRUE);
         }
 
-        sleep(10);
+        sleep(1);
 
-        return $inputs;
+        return $res;
     }
 }
