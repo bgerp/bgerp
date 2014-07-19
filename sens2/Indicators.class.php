@@ -202,7 +202,8 @@ class sens2_Indicators extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
-        static $params = array();
+        static $configs = array();
+        static $params  = array();
 
         if($rec->lastValue) {
             $color = dt::getColorByTime($rec->lastValue);
@@ -213,13 +214,25 @@ class sens2_Indicators extends core_Manager
             $color = dt::getColorByTime($rec->lastUpdate);
             $row->error = ht::createElement('span', array('style' => "color:#{$color}"), $row->error);
         }
-
+        
+        // Определяне на вербалното име на порта
+        
+        if(!$configs[$rec->controllerId]) {
+            $configs[$rec->controllerId] = sens2_Controllers::fetchField($rec->controllerId, 'config');
+        }
+        
         if(!$params[$rec->controllerId]) {
             $driver = cls::get(sens2_Controllers::fetchField($rec->controllerId, 'driver'));
             $params[$rec->controllerId] = arr::combine($driver->getInputPorts(), $driver->getOutputPorts());
         }
 
-        $row->port = type_Varchar::escape($params[$rec->controllerId][$rec->port]->caption . " ($rec->port)");
+        
+        $var = $rec->port . '_name'; 
+        if($configs[$rec->controllerId]->{$var}) {
+            $row->port = type_Varchar::escape($configs[$rec->controllerId]->{$var} . " ($rec->port)");
+        } else {
+            $row->port = type_Varchar::escape($params[$rec->controllerId][$rec->port]->caption . " ($rec->port)");
+        }
 
     }
     
