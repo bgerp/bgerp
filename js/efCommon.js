@@ -804,8 +804,9 @@ function showImgFrame(name, visibility)
 
 
 // Оцветява входен елемент в зависимост от оставащите символи за писане
-function  colorByLen(input, maxLen, blur = false) 
-{
+function  colorByLen(input, maxLen, blur) 
+{	
+	blur = typeof blur !== 'undefined' ? blur : false;
 	var rest = maxLen - input.value.length; 
 	var color = 'white'; 
 	if(rest <  0) color = 'red'; 
@@ -1277,7 +1278,7 @@ function is_touch_device() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt()
-{  
+{ 
 	var ch = document.documentElement.clientHeight;          
 	if(document.getElementById('cmsTop')) {
 		var ct = document.getElementById('cmsTop').offsetHeight;
@@ -1303,7 +1304,7 @@ function setMinHeightExt()
  * Задава padding на логин-формата при малки дисплеи
  */
 function loginFormPadding()
-{
+{  
 	if (typeof jQuery != 'undefined') {
 		var winw = $(window).width();
 	} else {
