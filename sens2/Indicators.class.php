@@ -18,7 +18,7 @@ class sens2_Indicators extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_RowTools, sens2_Wrapper, plg_AlignDecimals';
+    var $loadList = 'plg_RowTools, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows';
     
     
     /**
@@ -26,6 +26,12 @@ class sens2_Indicators extends core_Manager
      */
     var $title = 'Индикатори на входовете и изходите';
     
+    
+    /**
+     * На колко време ще се актуализира листа
+     */
+    var $refreshRowsTime = 25000;
+ 
     
     /**
      * Права за писане
@@ -179,7 +185,9 @@ class sens2_Indicators extends core_Manager
     { 
     	if(is_array($data->rows)) {
             foreach($data->rows as $id => &$row) {
-                $row->value .= "<span class='measure'>" . self::getVerbal($data->recs[$id], 'uom') . "</span>";
+                if($data->recs[$id]->value) {
+                    $row->value .= "<span class='measure'>" . self::getVerbal($data->recs[$id], 'uom') . "</span>";
+                }
             }
     	}
     }
@@ -194,6 +202,8 @@ class sens2_Indicators extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
+        static $params = array();
+
         if($rec->lastValue) {
             $color = dt::getColorByTime($rec->lastValue);
             $row->lastValue = ht::createElement('span', array('style' => "color:#{$color}"), $row->lastValue);
@@ -202,7 +212,15 @@ class sens2_Indicators extends core_Manager
         if($rec->error && $rec->lastUpdate) {
             $color = dt::getColorByTime($rec->lastUpdate);
             $row->error = ht::createElement('span', array('style' => "color:#{$color}"), $row->error);
-         }
+        }
+
+        if(!$params[$rec->controllerId]) {
+            $driver = cls::get(sens2_Controllers::fetchField($rec->controllerId, 'driver'));
+            $params[$rec->controllerId] = arr::combine($driver->getInputPorts(), $driver->getOutputPorts());
+        }
+
+        $row->port = type_Varchar::escape($params[$rec->controllerId][$rec->port]->caption . " ($rec->port)");
+
     }
     
 }

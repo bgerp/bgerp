@@ -44,7 +44,7 @@ class sens2_Controllers extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'no_one';
+    var $canDelete = 'debug';
     
     
     /**
@@ -120,15 +120,14 @@ class sens2_Controllers extends core_Master
         foreach($ports as $port => $params) {
             
             $prefix = $params->caption . " ({$port})";
-            $uom = $params->uom;
 
             $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
             $form->FLD($port . '_update', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Четене през");
             $form->FLD($port . '_log', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Логване през");
-            if(trim($uoms)) {
-                $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($uoms, TRUE)));
+            if(trim($params->uom)) {
+                $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, TRUE)));
             }
         }
 
@@ -141,12 +140,11 @@ class sens2_Controllers extends core_Master
         foreach($ports as $port => $params) {
 
             $prefix = $params->caption . " ({$port})";
-            $uom = $params->uom;
 
             $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
-            if(trim($uoms)) {
-                $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($uoms, TRUE)));
+            if(trim($params->uom)) {
+                $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, TRUE)));
             }
         }
     }
@@ -210,23 +208,25 @@ class sens2_Controllers extends core_Master
         $nowMinutes = round(time()/60);
         
         $inputs = $force;
+        
+        if(is_array($ports)) {
+            foreach($ports as $port => $params) {
+                
+                $updateMinutes = abs(round($config[$port . '_update'] / 60));
+                if($updateMinutes && ($nowMinutes % $updateMinutes) == 0) {
+                    $inputs[$port] = $port;
+                }
 
-        foreach($ports as $port => $params) {
-            
-            $updateMinutes = abs(round($config[$port . '_update'] / 60));
-            if($updateMinutes && ($nowMinutes % $updateMinutes) == 0) {
-                $inputs[$port] = $port;
-            }
-
-            $logMinutes = abs(round($config[$port . '_log'] / 60));
-            if($logMinutes && ($nowMinutes % $logMinutes) == 0) {
-                $inputs[$port] = $port;
-                $log[$port] = $port;
+                $logMinutes = abs(round($config[$port . '_log'] / 60));
+                if($logMinutes && ($nowMinutes % $logMinutes) == 0) {
+                    $inputs[$port] = $port;
+                    $log[$port] = $port;
+                }
             }
         }
 
 
-        if(count($inputs)) {
+        if(is_array($inputs) && count($inputs)) {
 
             // Прочитаме състоянието на входовете от драйвера
             $values = $drv->readInputs($inputs, $rec->config, $rec->persistentState);
@@ -234,27 +234,31 @@ class sens2_Controllers extends core_Master
             // Текущото време
             $time = dt::now();
 
-            if(is_array($values)) {
-                foreach($inputs as $port) {
-                    
+            foreach($inputs as $port) {
+                
+                if(is_array($values)) {
                     $value = $values[$port];
+                } else {
+                    // Ако не получим масив със стойности, приемаме, че сме получили грешка
+                    // и размножаваме грешката за всички входове на контролера
+                    $value = $values;
+                }
+                
 
-                    if(($expr = $config[$port . '_scale']) && is_numeric($value)) {
-                        $expr = str_replace('X', $value, $expr);
-                        $value = str::calcMathExpr($expr);
-                    }
-                       
-                    // Обновяваме индикатора за стойността на текущия контролерен порт
-                    $indicatorId = sens2_Indicators::setValue($rec->id, $port, $config[$port . '_uom'], $value, $time);
+                if(($expr = $config[$port . '_scale']) && is_numeric($value)) {
+                    $expr = str_replace('X', $value, $expr);
+                    $value = str::calcMathExpr($expr);
+                }
+                   
+                // Обновяваме индикатора за стойността на текущия контролерен порт
+                $indicatorId = sens2_Indicators::setValue($rec->id, $port, $config[$port . '_uom'], $value, $time);
 
-                    // Ако е необходимо, записваме стойноста на входа в дата-лог-а
-                    if($log[$port] && $indicatorId) {
-                        sens2_DataLogs::addValue($indicatorId, $value, $time);
-                    }
+                // Ако е необходимо, записваме стойноста на входа в дата-лог-а
+                if($log[$port] && $indicatorId) {
+                    sens2_DataLogs::addValue($indicatorId, $value, $time);
                 }
             }
         }
-
     }
     
     
