@@ -33,7 +33,7 @@ class core_Html
     {
         if ($name) {
 
-            if (count($attributes)) {
+            if (is_array($attributes)) {
                 foreach ($attributes as $atr => $content) {
                     // Смятаме, че всички атрибути с имена, започващи със '#'
                     // са вътрешни и поради това не ги показваме в елемента

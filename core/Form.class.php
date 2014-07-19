@@ -395,9 +395,8 @@ class core_Form extends core_FieldSet
         if (!$this->layout) {
             if($this->view == 'horizontal') {
                 $this->layout = new ET(
-                    "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> id='" .
-                    $this->formAttr['id'] .
-                    "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
+                    "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] " .
+                    "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
                     "\n<div  class='clearfix21 horizontal' style='margin-top:5px;'>" .
                     "<!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
                     "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
@@ -410,9 +409,8 @@ class core_Form extends core_FieldSet
                 );
             } else {
                 $this->layout = new ET(
-                    "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> id='" .
-                    $this->formAttr['id'] .
-                    "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
+                    "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] " .
+                    "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
                     "\n<div  class='clearfix21 vertical' style='margin-top:5px;'>" .
                     "\n<table cellspacing=0 cellpadding=0 class=\"formTable\">\n" .
                     "\n<!--ET_BEGIN FORM_TITLE--><tr><td class=\"formTitle\">[#FORM_TITLE#]</td></tr><!--ET_END FORM_TITLE-->" .
@@ -572,6 +570,10 @@ class core_Form extends core_FieldSet
             foreach ($fields as $name => $field) {
                 
                 expect($field->kind, $name, 'Липсващо поле');
+
+                if(strtolower($field->autocomplete) == 'off') {
+                    $this->formAttr['autocomplete'] = 'off';
+                }
                 
                 $options = $field->options;
                 
@@ -835,7 +837,7 @@ class core_Form extends core_FieldSet
         return $tpl;
     }
     
-
+    
     /**
      * Връща метода на заявката на формата
      */
@@ -844,26 +846,26 @@ class core_Form extends core_FieldSet
         return $this->method ? strtoupper($this->method) : 'POST';
     }
 
-    
+
     /**
      * Рендира метода на формата
      */
-    function renderMethod_()
+    function renderAttr_()
     {
-        return new ET($this->getMethod());
+        $this->formAttr['method'] = $this->getMethod();
+        $this->formAttr['action'] = $this->action ? toUrl($this->action) : "";
+
+        foreach ($this->formAttr as $attr => $content) {
+            if (is_string($content)) {
+                $content = ht::escapeAttr($content);
+            }
+
+            $attrStr .= " " . $attr . "=\"" . $content . "\"";
+        }
+
+        return $attrStr;
     }
-    
-    
-    /**
-     * Рендира екшън-а на формата
-     */
-    function renderAction_()
-    {
-        $tpl = new ET($this->action ? toUrl($this->action) : "");
-        
-        return $tpl;
-    }
-    
+     
     
     /**
      * Рендира лентата с инструменти под формата
@@ -905,8 +907,7 @@ class core_Form extends core_FieldSet
             'FIELDS',
             'HIDDEN',
             'TOOLBAR',
-            'METHOD',
-            'ACTION'
+            'ATTR',
         );
         
         foreach ($views as $view) {
