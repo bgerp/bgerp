@@ -80,6 +80,8 @@ class cat_type_Uom extends type_Varchar {
     	// Ако няма стойност
     	if(!$value) return NULL;
     	
+    	if(empty($value['lP'])) return NULL;
+    	
     	// Ако стойността е масив
     	if(is_array($value)){
     		$numPart = trim($value['lP']);
