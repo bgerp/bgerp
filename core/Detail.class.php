@@ -213,10 +213,10 @@ class core_Detail extends core_Manager
         
         $masterKey = $data->masterKey;
 
-        if(!isset($form->fields[$masterKey]->input)) {
+        if(!isset($form->fields[$masterKey]->input) || $form->fields[$masterKey]->input == 'none') {
             $form->fields[$masterKey]->input = 'hidden';
         }
-
+ 
         expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
         expect($data->masterRec = $data->masterMvc->fetch($data->masterId), $data);
         $title = $data->masterMvc->getTitleById($data->masterId);
