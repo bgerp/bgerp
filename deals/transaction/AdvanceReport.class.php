@@ -65,7 +65,7 @@ class deals_transaction_AdvanceReport
     		$pInfo = cat_Products::getProductInfo($dRec->productId);
     
     		$debitArr = array();
-    		$debitArr[] = ($pInfo->meta['canStore']) ? '601' : '602';
+    		$debitArr[] = ($pInfo->meta['materials']) ? '601' : '602';
     		$debitArr[] = array('cat_Products', $dRec->productId);
     		$debitArr['quantity'] = $dRec->quantity;
     		$arr['debit'] = $debitArr;

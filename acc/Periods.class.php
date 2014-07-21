@@ -551,8 +551,8 @@ class acc_Periods extends core_Manager
         $this->forceActive();
         $this->updateExistingPeriodsState();
     }
-   
- 
+    
+ 	
     /**
      * Връща първичния ключ (id) на базовата валута към определена дата
      * Ако не е зададе

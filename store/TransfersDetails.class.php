@@ -219,7 +219,7 @@ class store_TransfersDetails extends core_Detail
             $rec->uomId = $productInfo->productRec->measureId;
             
             // Дали продукта е вложим
-            $rec->isConvertable = isset($productInfo->meta['canConvert']) ? 'yes' : 'no';
+            $rec->isConvertable = isset($productInfo->meta['materials']) ? 'yes' : 'no';
     	}
     }
     

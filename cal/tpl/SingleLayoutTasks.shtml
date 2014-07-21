@@ -11,32 +11,45 @@
 		<div class='antetka' style='line-height:150%;'>
 			<b>[#title#]</b><br>
 			<small>
-			<div>
-				|Приоритет|*: [#priority#]
-			</div>
-			<div>
-				|Отговорници|*: [#shareLog#]
-			</div>
+			<div class='block_left'>
+			<div class='reminder-half'>
+				<div>
+					|Приоритет|*: [#priority#]
+				</div>
+				<div>
+					|Отговорници|*: [#shareLog#]
+				</div>
+					
+				<!--ET_BEGIN timeStart-->
+	            |Начало|*: [#timeStart#]<br>
+	            <!--ET_END timeStart-->
+	
+				<!--ET_BEGIN timeDuration-->
+	            |Продължителност|*: [#timeDuration#]<br>
+	            <!--ET_END timeDuration-->
+	            
+				<!--ET_BEGIN timeEnd-->
+		        |Краен срок|*: [#timeEnd#] [#remainingTime#]<br />                   
+				<!--ET_END timeEnd-->
 				
-			<!--ET_BEGIN timeStart-->
-            |Начало|*: [#timeStart#]<br>
-            <!--ET_END timeStart-->
-
-			<!--ET_BEGIN timeDuration-->
-            |Продължителност|*: [#timeDuration#]<br>
-            <!--ET_END timeDuration-->
-            
-			<!--ET_BEGIN timeEnd-->
-	        |Краен срок|*: [#timeEnd#] [#remainingTime#]<br />                   
-			<!--ET_END timeEnd-->
-			
-			 
-	        |Прогрес|*: [#progressBar#] [#progress#] <br />
-			
-			<!--ET_BEGIN workingTime-->
-	        |Отработено време|*: [#workingTime#] <br />                   
-			<!--ET_END workingTime-->
-			
+				 
+		        |Прогрес|*: [#progressBar#] [#progress#] <br />
+				
+				<!--ET_BEGIN workingTime-->
+		        |Отработено време|*: [#workingTime#] <br />                   
+				<!--ET_END workingTime-->
+			</div>
+			<div class='reminder-half'>
+				<!--ET_BEGIN afterTask-->
+	            |Започване след задача|*: [#afterTask#]<br>
+	            <!--ET_END afterTask-->
+	            
+	            <!--ET_BEGIN afterTaskProgress-->
+	            |Прогрес на задачата|*: [#afterTaskProgress#]<br>
+	            <!--ET_END afterTaskProgress-->
+			</div>
+			<div class='clearfix21'></div>
+            </div>
 
 			</small>
 		</div>

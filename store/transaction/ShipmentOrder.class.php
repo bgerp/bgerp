@@ -179,7 +179,7 @@ class store_transaction_ShipmentOrder
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
         	
         	// Вложимите кредит 706, другите 701
-        	$creditAccId = (isset($pInfo->meta['canConvert'])) ? '706' : '701';
+        	$creditAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
             
         	$entries[] = array(
                 'amount' => $sign * currency_Currencies::round($amount * $currencyRate), // В основна валута
@@ -251,8 +251,8 @@ class store_transaction_ShipmentOrder
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
         	
         	// Вложимите кредит 706, другите 701
-        	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '706' : '701';
-        	$creditAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
+        	$debitAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
+        	$creditAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
         	
         	$entries[] = array(
 	             'debit' => array(

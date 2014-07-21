@@ -118,7 +118,13 @@ class deals_AdvanceReportDetails extends core_Detail
     	$cCode = currency_Currencies::getCodeById($masterRec->currencyId);
     	$form->setField('amount', "unit={$cCode}");
     	
-    	$products = cat_Products::getByProperty(array('costs'));
+    	// Взимаме всички продаваеми продукти и махаме складируемите от тях
+    	$products = cat_Products::getByProperty('canBuy');
+        $products2 = cat_Products::getByProperty('canStore');
+        $products = array_diff_key($products, $products2);
+         
+        expect(count($products));
+        
     	$form->setOptions('productId', $products);
     	$form->setDefault('quantity', 1);
     	$form->setSuggestions('vat', ',0 %,7 %,20 %');

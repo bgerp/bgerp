@@ -126,7 +126,7 @@ class cat_products_Params extends cat_products_Detail
         $form = &$data->form;
         
     	if(!$form->rec->id){
-    		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['paramValue'].value ='';this.form.submit();"));
+    		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
 	    	expect($productId = $form->rec->productId);
 			$options = self::getRemainingOptions($productId, $form->rec->id);
 			expect(count($options));

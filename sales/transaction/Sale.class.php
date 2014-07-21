@@ -216,10 +216,10 @@ class sales_transaction_Sale
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
         	
     		$storable = isset($pInfo->meta['canStore']);
-    		$convertable = isset($pInfo->meta['canConvert']);
+    		$materials = isset($pInfo->meta['materials']);
     		
     		// Нескладируемите продукти дебит 703. Складируемите и вложими 706 останалите 701
-    		$creditAccId = ($storable) ? (($convertable) ? '706' : '701') : '703';
+    		$creditAccId = ($storable) ? (($materials) ? '706' : '701') : '703';
         	
         	if($rec->chargeVat == 'yes'){
         		$ProductManager = cls::get($detailRec->classId);
@@ -354,12 +354,12 @@ class sales_transaction_Sale
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-        	$convertable = isset($pInfo->meta['canConvert']);
+        	$materials = isset($pInfo->meta['materials']);
     		
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
-        		$creditAccId = ($convertable) ? '302' : '321';
-        		$debitAccId = ($convertable) ? '706' : '701';
+        		$creditAccId = ($materials) ? '302' : '321';
+        		$debitAccId = ($materials) ? '706' : '701';
         		
         		$entries[] = array(
 	                'debit' => array(
