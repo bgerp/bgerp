@@ -75,9 +75,9 @@ class purchase_transaction_Invoice
     		$entries[] = array(
     				'amount' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
     
-    				'credit' => array('4531', array($origin->className, $origin->that)),
+    				'debit' => array('4531', array($origin->className, $origin->that)),
     
-    				'debit' => array('4530', array($origin->className, $origin->that)),
+    				'credit' => array('4530', array($origin->className, $origin->that)),
     		);
     	}
     
