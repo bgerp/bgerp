@@ -105,17 +105,17 @@ class acc_ArticleDetails extends core_Detail
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
             'silent,caption=Дебит->Сметка и пера,mandatory,input','tdClass=articleCell');
-        $this->FLD('debitEnt1', 'acc_type_Item(select=titleLink)', 'caption=Дебит->перо 1');
-        $this->FLD('debitEnt2', 'acc_type_Item(select=titleLink)', 'caption=Дебит->перо 2');
-        $this->FLD('debitEnt3', 'acc_type_Item(select=titleLink)', 'caption=Дебит->перо 3');
+        $this->FLD('debitEnt1', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Дебит->перо 1');
+        $this->FLD('debitEnt2', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Дебит->перо 2');
+        $this->FLD('debitEnt3', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Дебит->перо 3');
         $this->FLD('debitQuantity', 'double', 'width=120px,caption=Дебит->Количество');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         $this->FLD('creditAccId', 'acc_type_Account(remember)',
             'silent,caption=Кредит->Сметка и пера,mandatory,input','tdClass=articleCell');
-        $this->FLD('creditEnt1', 'acc_type_Item(select=titleLink)', 'caption=Кредит->перо 1');
-        $this->FLD('creditEnt2', 'acc_type_Item(select=titleLink)', 'caption=Кредит->перо 2');
-        $this->FLD('creditEnt3', 'acc_type_Item(select=titleLink)', 'caption=Кредит->перо 3');
+        $this->FLD('creditEnt1', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Кредит->перо 1');
+        $this->FLD('creditEnt2', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Кредит->перо 2');
+        $this->FLD('creditEnt3', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Кредит->перо 3');
         $this->FLD('creditQuantity', 'double', 'width=120px,caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
        
