@@ -177,7 +177,8 @@ class acc_ArticleDetails extends core_Detail
             return;
         }
         
-        $query = clone $data->query;
+        $query = acc_ArticleDetails::getQuery();
+        $query->where("#articleId = {$data->masterId}");
         $query->orderBy("id", "DESC");
         $lastRec = $query->fetch();
         
