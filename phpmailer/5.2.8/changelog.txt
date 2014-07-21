@@ -1,0 +1,1 @@
+Вместо `Message-ID` да се използва `Message-Id`.

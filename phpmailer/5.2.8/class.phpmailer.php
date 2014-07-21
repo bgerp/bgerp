@@ -478,7 +478,7 @@ class PHPMailer
     protected $CustomHeader = array();
 
     /**
-     * The most recent Message-ID (including angular brackets).
+     * The most recent Message-Id (including angular brackets).
      * @type string
      * @access protected
      */
@@ -828,7 +828,7 @@ class PHPMailer
     }
 
     /**
-     * Return the Message-ID header of the last email.
+     * Return the Message-Id header of the last email.
      * Technically this is the value from the last time the headers were created,
      * but it's also the message ID of the last sent message except in
      * pathological cases.
@@ -1680,7 +1680,7 @@ class PHPMailer
         } else {
             $this->lastMessageID = sprintf('<%s@%s>', $uniq_id, $this->ServerHostname());
         }
-        $result .= $this->HeaderLine('Message-ID', $this->lastMessageID);
+        $result .= $this->HeaderLine('Message-Id', $this->lastMessageID);
         $result .= $this->headerLine('X-Priority', $this->Priority);
         if ($this->XMailer == '') {
             $result .= $this->headerLine(

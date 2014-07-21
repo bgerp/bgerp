@@ -1194,9 +1194,9 @@ class PHPMailer {
     }
 
     if($this->MessageID != '') {
-      $result .= $this->HeaderLine('Message-ID', $this->MessageID);
+      $result .= $this->HeaderLine('Message-Id', $this->MessageID);
     } else {
-      $result .= sprintf("Message-ID: <%s@%s>%s", $uniq_id, $this->ServerHostname(), $this->LE);
+      $result .= sprintf("Message-Id: <%s@%s>%s", $uniq_id, $this->ServerHostname(), $this->LE);
     }
     $result .= $this->HeaderLine('X-Priority', $this->Priority);
     if($this->XMailer) {
