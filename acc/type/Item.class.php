@@ -72,7 +72,6 @@ class acc_type_Item extends type_Key
                 $this->options["x{$listRec->id}"] = (object)array(
                     'title' => $listRec->caption,
                     'group' => TRUE,
-                    //                    'attr'  => array('class' => 'list'),
                 );
             }
             
@@ -94,9 +93,16 @@ class acc_type_Item extends type_Key
     {
         $this->prepareOptions();
         
+        $conf = core_Packs::getConfig('core');
+        setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
+        
         foreach ($this->options as $key => $val) {
             if (!is_object($val) && intval($key) == $value) {
-                $value = $val;
+            	
+            	// Workaround
+            	// Ако опциите са повече от допустимите и се използва Ajax, подаваме инт еквивалента на стойността за да
+            	// работи, иначе връща грешни данни, ако не се използва Ajax подаваме дробната стойност
+                $value = (count($this->options) > $maxSuggestions) ? intval($key) : $key;
                 break;
             }
         }
