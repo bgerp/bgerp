@@ -62,7 +62,7 @@ class cal_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, sharedUsers';
+    var $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, afterTask, afterTaskProgress, sharedUsers';
     
     
     /**
@@ -186,26 +186,32 @@ class cal_Tasks extends core_Master
      */
     function description()
     {
-        $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%');
+        $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable');
         $this->FLD('priority', 'enum(low=Нисък,
                                     normal=Нормален,
                                     high=Висок,
                                     critical=Критичен)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
-        $this->FLD('description',     'richtext(bucket=calTasks)', 'caption=Описание, changable');
+        $this->FLD('description',     'richtext(bucket=calTasks)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,mandatory');
+        $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,mandatory,changable');
         
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 
             'caption=Времена->Начало, silent, changable');
         
         // Продължителност на задачата
-        $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност, changable');
+        $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable');
         
         // Краен срок на задачата
-        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',     'caption=Времена->Край, changable');
+        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable');
+        
+         // Краен срок на задачата
+        $this->FLD('afterTask', 'key(mvc=cal_Tasks,select=title)',     'caption=Започване след->Задача,changable');
+        
+         // Краен срок на задачата
+        $this->FLD('afterTaskProgress', 'percent(min=0,max=1,decimals=0)',     'caption=Започване след->Прогрес,notNull,value=0,changable');
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -233,13 +239,48 @@ class cal_Tasks extends core_Master
         if(Mode::is('screenMode', 'narrow')){
         	$data->form->fields[priority]->maxRadio = 2;
         }
+        
+        // Да не може да се слага в звена, които са в неговия състав
+        if($id = $data->form->rec->id) { 
+            $notAllowedCond = "#id NOT IN (" . implode(',', self::getInheritors($id, 'afterTask')) . ")";
+        } 
+      
+        // масив с проценти за изпълнение на задачата
+        $progressArr[''] = '';
 
+        for($i = 0; $i <= 100; $i += 10) {
+            if($data->form->afterTaskProgress > ($i/100)) continue;
+            $p = $i . ' %';
+            $progressArr[$p] = $p;
+        }
+        $data->form->setSuggestions('afterTaskProgress', $progressArr);
+        
+        // ще извадим списък с всички задачи на които може да бъде подчинена
+        // текъщата задача
+        // те трябва да са в същата папка
+        $query = self::getQuery();
+        
+        $query->where($notAllowedCond);
+        $query->where("#state = 'active' OR #state = 'draft' OR #state = 'pending'");
+        $query->orderBy('#id', 'DESC');
+        
+        $taskArr[''] = '';
+        while($recTask = $query->fetch()) {
+        
+	    	if ($recTask->folderId == $data->form->rec->folderId) {
+		    	$task = $recTask->id. "." .$recTask->title;
+		        	
+		        $taskArr[$recTask->id] = $task;
+	        }
+        	
+        }
+        $data->form->setOptions('afterTask', $taskArr);
+        
         $rec = $data->form->rec;
  
         if($rec->allDay == 'yes') {
             list($rec->timeStart,) = explode(' ', $rec->timeStart);
         }
-        
     }
 
 
@@ -529,35 +570,23 @@ class cal_Tasks extends core_Master
     
     /**
 	 * 
-     * Функция, която се извиква след активирането на документа
+     * Функция, която се извиква преди активирането на документа
 	 * 
 	 * @param unknown_type $mvc
 	 * @param unknown_type $rec
 	 */
-    public static function on_AfterActivation($mvc, $rec)
+    public static function on_BeforeActivation($mvc, $rec)
     {
-    	$query = self::getQuery();
+    	// проверяваме дали може да стане задачата в активно състояние
+    	$canActivate = self::canActivateTask($rec);
     	
-    	if (!$rec->timeStart) {
-    		
-    		 $subscribedArr = keylist::toArray($rec->sharedUsers); 
-                if(count($subscribedArr)) { 
-                    $message = "Стартирана е задачата \"" . self::getVerbal($rec, 'title') . "\"";
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                    $customUrl = array('cal_Tasks', 'single',  $rec->id);
-                    $priority = 'normal';
-                    foreach($subscribedArr as $userId) {   
-                        if($userId > 0  &&  
-                            doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-                            bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
-                        }
-                    }
-                }
-
-            $rec->notifySent = 'yes';
-
-            self::save($rec, 'notifySent');
+    	if ($canActivate == TRUE) {
+    		$rec->state = 'active';
+        // ако не може, задачата ставачакаща
+    	} else {
+    		$rec->state = 'pending';
     	}
+    	
     }
     
     
@@ -587,10 +616,7 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	
     	$cu = core_Users::getCurrent();
-    	
-       
    
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent');
@@ -744,6 +770,39 @@ class cal_Tasks extends core_Master
 	        $tpl = $tabs->renderHtml($tpl, $chartType);
 	               
 	        $mvc->currentTab = 'Задачи';
+    	}
+    }
+    
+    
+	/**
+     * След подготовка на сингъла
+     */
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        $row = &$data->row;
+        $rec = &$data->rec;
+        
+        if ($rec->afterTaskProgress == "0") {
+            
+            $row->afterTaskProgress = "";
+        }
+    }
+    
+    
+ 	static function on_AfterInputChanges($mvc, &$res, $rec) 
+    {
+    	// Ако не е обект, а е подаден id
+        if (!is_object($rec)) {
+            
+            // Опитваме се да извлечем данните
+            $rec = cal_Tasks::fetch($rec);
+        }
+        
+        // Очакваме да има такъв запис
+        expect($rec, 'Няма такъв запис');
+
+    	if ($res->notifySent === 'yes') {
+    		$rec->notifySent = 'no';
     	}
     }
     
@@ -920,32 +979,24 @@ class cal_Tasks extends core_Master
      */
     function cron_SendNotifications()
     {
-        $query = $this->getQuery();
-        $now = dt::verbal2mysql();
-        $query->where("#state = 'active'  AND #notifySent = 'no' AND #timeStart <= '{$now}'");
-        
-        while($rec = $query->fetch()) {
-            list($date, $time) = explode(' ', $rec->timeStart);  
-            if($time != '00:00:00') {
-                $subscribedArr = keylist::toArray($rec->sharedUsers); 
-                if(count($subscribedArr)) { 
-                    $message = "Стартирана е задачата \"" . $this->getVerbal($rec, 'title') . "\"";
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                    $customUrl = array('cal_Tasks', 'single',  $rec->id);
-                    $priority = 'normal';
-                    foreach($subscribedArr as $userId) {  
-                        if($userId > 0  &&  
-                            doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-                            bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
-                        }
-                    }
-                }
-            }
+       // Обикаляме по всички чакащи задачи 
+       $query = $this->getQuery();
+       $query->where("#state = 'pending'");
 
-            $rec->notifySent = 'yes';
-
-            $this->save($rec, 'notifySent');
-        }
+       do {
+	       while($rec = $query->fetch()) {
+	        	// и проверяваме дали може да я активираме
+	        	if ($this->canActivateTask($rec) == TRUE) {
+		        	$rec->state = 'active';
+		    		self::save($rec, 'state');
+		    		
+		    		$activated = TRUE;
+	        	}
+	        }
+       } while ($activated);
+	   
+       // и да изпратим нотификация на потребителите
+       $this->doNotificationForActiveTasks();
     }
 
 
@@ -1647,6 +1698,100 @@ class cal_Tasks extends core_Master
       
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
       }
+    }
+
+    /**
+     * Може ли една задача да стане в състояние 'active'?
+     * 
+     * @param stdClass $rec
+     * @return boolean
+     */
+    static public function canActivateTask($rec)
+    {
+    	// Имаме две условия, за да може една задача да стане в състояние 'active'
+    	
+    	// Задачата да няма време за начало или времето за начало да е по малко от сега
+    	// да не е зависима от друга задача
+    	$conditionOne = FALSE;
+    	
+    	// Задачата от която зависи да е активна и да има прогрес по-голям
+    	// или равен на посочения в подчинената задача
+    	$conditionTwo = FALSE;
+    	$now = dt::verbal2mysql();
+    	
+    	if (!$rec->timeStart || $rec->timeStart < $now) {
+    		$conditionOne = TRUE;
+    	}
+    	
+    	if (!$rec->afterTask) {
+    		$conditionTwo = TRUE;
+    	}
+    	
+    	if ($rec->afterTask) {
+    		$state = self::fetchField($rec->afterTask, "state");
+    		
+    		if ($state == 'active') {
+	    		$progress = self::fetchField($rec->afterTask, "progress");
+	    		
+	    		if ($progress >= $rec->afterTaskProgress) {
+	    			$conditionTwo = TRUE;
+	    		}
+    		}
+    	} 
+    	
+    	// Трябва и двете условия да са изпълнени
+    	return ($conditionOne and $conditionTwo);
+    }
+    
+    
+    /**
+     * Правим нотификация на всички шернати потребители
+     * че е стартирана задачата
+     */
+    static public function doNotificationForActiveTasks ()
+    {
+    	$query = self::getQuery();
+        $query->where("#state = 'active'  AND #notifySent = 'no'");
+        
+        while($rec = $query->fetch()) {
+  				list($date, $time) = explode(' ', $rec->timeStart);  
+            	
+  				if($time != '00:00:00') {
+	        	    $subscribedArr = keylist::toArray($rec->sharedUsers); 
+			    	if(count($subscribedArr)) { 
+				        $message = "Стартирана е задачата \"" . self::getVerbal($rec, 'title') . "\"";
+				        $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+				        $customUrl = array('cal_Tasks', 'single',  $rec->id);
+				        $priority = 'normal';
+				        foreach($subscribedArr as $userId) {   
+					        if($userId > 0  &&  
+					        		doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+					        	bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
+					        }
+				        }
+			        }
+  			}
+  			
+  			$rec->notifySent = 'yes';
+
+        	self::save($rec, 'notifySent');
+        }
+    }
+    
+    
+    /**
+     * Връща наследниците на даден запис
+     */
+    static function getInheritors($id, $field, &$arr = array())
+    {
+        $arr[$id] = $id;
+        $query = self::getQuery();
+        while($rec = $query->fetch("#{$field} = $id")) {
+ 
+            self::getInheritors($rec->id, $field, $arr);
+        }
+
+        return $arr;
     }
 
 }
