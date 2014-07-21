@@ -336,7 +336,7 @@ class acc_Items extends core_Manager
         
         if($listId = Request::get('listId', 'int')){
         	$form->setDefault('lists', array($listId => $listId));
-        	$form->title = "|Добавяне на перо в|* " . acc_Lists::fetchField($listId, 'name');
+        	$form->title = "|Добавяне на перо в|* " . acc_Lists::getVerbal($listId, 'name');
         }
         
         if ($rec->id) {
@@ -771,7 +771,7 @@ class acc_Items extends core_Manager
     	
     	$intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');
     	$options = core_Classes::getOptionsByInterface($intName);
-    	$listTitle = acc_Lists::fetchField($listId, 'name');
+    	$listTitle = acc_Lists::getVerbal($listId, 'name');
     	
     	$form = cls::get('core_Form');
     	$form->title = "Добавяне на пера към номенклатура|* '{$listTitle}'";
