@@ -120,7 +120,7 @@ class core_Cron extends core_Manager
         while ($rec = $query->fetch()) {
             $rec->state = 'free';
             $this->save($rec, 'state');
-            $this->log("Warning: {$this->className} unlock process {$rec->systemId}");
+            $this->log("Warning: {$this->className} unlock process {$rec->systemId}", NULL, 7);
         }
         
         // Коя е текущата минута?
@@ -151,7 +151,7 @@ class core_Cron extends core_Manager
 
         $apacheProc = $Os->countApacheProc();
         
-        $this->log("{$this->className} is working: {$i} processes was run in $currentMinute, total {$apacheProc} Apaches on server");
+        $this->log("{$this->className} is working: {$i} processes was run in $currentMinute, total {$apacheProc} Apaches on server", NULL, 7);
         
         echo("<li> {$now} {$this->className}: $i processes was run");
         shutdown();
@@ -185,7 +185,7 @@ class core_Cron extends core_Manager
         if (!$id || !is_numeric($id)) {
             $cryptId = Request::get('id');
             $msg = "Error: ProcessRun -> incorrect crypted id: {$cryptId}";
-            $this->log($msg);
+            $this->log($msg, NULL, 7);
             echo("$msg");
             shutdown();
         }
@@ -195,7 +195,7 @@ class core_Cron extends core_Manager
         
         if (!$rec) {
             $msg = "Error: ProcessRun -> missing record for  id = {$id}";
-            $this->log($msg);
+            $this->log($msg, NULL, 7);
             echo(core_Debug::getLog());
             shutdown();
         }
@@ -203,7 +203,7 @@ class core_Cron extends core_Manager
         // Дали процесът не е заключен?
         if ($rec->state == 'locked' && !$forced) {
             $msg = "Error: Process \"{$rec->systemId}\" is locked!";
-            $this->log($msg);
+            $this->log($msg, NULL, 7);
             echo(core_Debug::getLog());
             shutdown();
         }
@@ -213,7 +213,7 @@ class core_Cron extends core_Manager
         
         if ($nowMinute <= $rec->lastStart && !$forced) {
             $msg = "Error: Process \"{$rec->systemId}\" have been started after $nowMinute!";
-            $this->log($msg);
+            $this->log($msg, NULL, 7);
             echo(core_Debug::getLog());
             shutdown();
         }
@@ -239,7 +239,7 @@ class core_Cron extends core_Manager
         if (is_a($handlerObject, $class)) {
             if (method_exists($handlerObject, $act)) {
                 $msg = "ProcessRun found {$rec->controller}->{$act}";
-                $this->log($msg, $rec->id);
+                $this->log($msg, $rec->id, 7);
                 
                 // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
@@ -265,14 +265,14 @@ class core_Cron extends core_Manager
                 $this->log($msg, $rec->id, $logLifeTime);
             } else {
                 $msg = "Error: ProcessRun -> missing method \"$act\" on class  {$rec->controller}";
-                $this->log($msg, $rec->id);
+                $this->log($msg, $rec->id, 7);
                 $this->unlockProcess($rec);
                 echo(core_Debug::getLog());
                 shutdown();
             }
         } else {
             $msg = "Error: ProcessRun -> missing class  {$rec->controller} in process ";
-            $this->log($msg, $rec->id);
+            $this->log($msg, $rec->id, 7);
             $this->unlockProcess($rec);
             echo(core_Debug::getLog());
             shutdown();
