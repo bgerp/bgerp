@@ -188,7 +188,7 @@ class core_Users extends core_Manager
         
         static $usersArr = array();
         
-        $cash = $roles . '_' . $limit;
+        $cash = $roles . '_' . $limit . '_' . $nick;
         
         if (!$usersArr[$cash]) {
             
