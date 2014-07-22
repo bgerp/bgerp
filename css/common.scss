@@ -1207,9 +1207,12 @@ div.hFormField {
 
 .wide #main-container .formTable .formElement{
 	min-width: 600px;
-	> .varchar{
-	   width: 100%;
+	select.combobox, .combo{
+	   min-width: 300px;
 	}
+	> .varchar:not(.combo){
+       width: 100%;
+    }
 }
 
 /*общи стилове за елементите на формите*/
@@ -1428,6 +1431,7 @@ div.hFormField {
 .vertical .formTable select {
 	margin-right: 3px;
 }
+
 /*край на вертикални форми*/
 
 
@@ -1440,6 +1444,9 @@ div.hFormField {
 
 .wide .horizontal .formFields {
 	float: left; 
+	.combobox, select ,input{
+	   max-width: 350px;
+	}
 }
 
 .narrow .horizontal {
@@ -1916,17 +1923,17 @@ span.richEdit div.richedit-toolbar {
 	margin-top:-4px;
 }
 
-div.richEdit {
+.richEdit {
 	display: table;
 	width: 100%;
-	min-width: 100%;
+	
 }
 
 .richEdit textarea {
 	margin-bottom: 0px;
 	overflow: auto;
 	border-bottom: 1px solid transparent; 
-	width: 600px;
+	width: 100%;
 	min-width:310px;
 }
 
