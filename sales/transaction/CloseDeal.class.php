@@ -74,7 +74,6 @@ class sales_transaction_CloseDeal
     	
     	// Кеширане на перото на текущата година
     	$year = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
-    	$listRec = acc_Lists::fetchBySystemId('year');
     	$this->year = acc_Periods::forceYearItem($year);
     	
     	// Създаване на запис за прехвърляне на всеки аванс
