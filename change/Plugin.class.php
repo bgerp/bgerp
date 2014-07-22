@@ -353,7 +353,25 @@ class change_Plugin extends core_Plugin
                         $last = $lastArr[$allowedField];
                         
                         // Сравняваме двата варианта
-                        $data->row->$allowedField = lib_Diff::getDiff($first, $last);
+                        $newFieldVal = lib_Diff::getDiff($first, $last);
+                        
+                        // Добавяме pending полетата от новия запис
+                        if ($first instanceof core_Et) {
+                            $newFieldVal = new ET($newFieldVal);
+                            foreach ((array)$first->pending as $pending) {
+                                $newFieldVal->addSubstitution($pending->str, $pending->place, $pending->once, $pending->mode);
+                            }
+                        }
+                        
+                        // Добавяме pending полетата от стария запис
+                        if ($last instanceof core_Et) {
+                            $newFieldVal = new ET($newFieldVal);
+                            foreach ((array)$last->pending as $pending) {
+                                $newFieldVal->addSubstitution($pending->str, $pending->place, $pending->once, $pending->mode);
+                            }
+                        }
+                        
+                        $data->row->$allowedField = $newFieldVal;
                     }
                 }
             }
