@@ -178,7 +178,7 @@ class core_Users extends core_Manager
      * 
      * return array
      */
-    static function getUsersArr_($rolesArr=array(), $nick=NULL, $limit=10)
+    static function getUsersArr_($rolesArr=array(), $nick=NULL, $limit=NULL)
     {
         if ($rolesArr) {
             
@@ -188,7 +188,9 @@ class core_Users extends core_Manager
         
         static $usersArr = array();
         
-        if (!$usersArr[$roles]) {
+        $cash = $roles . '_' . $limit;
+        
+        if (!$usersArr[$cash]) {
             
             // Всичко, потребители, които не са заличени
             $query = static::getQuery();
@@ -213,11 +215,11 @@ class core_Users extends core_Manager
             
             while ($rec =  $query->fetch()) {
                 if (!$rec->nick) continue;
-                $usersArr[$roles][$rec->nick] = static::prepareUserNames($rec->names);
+                $usersArr[$cash][$rec->nick] = static::prepareUserNames($rec->names);
             }
         }
         
-        return $usersArr[$roles];
+        return $usersArr[$cash];
     }
     
     
