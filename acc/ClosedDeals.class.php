@@ -472,7 +472,7 @@ abstract class acc_ClosedDeals extends core_Master
     	
     	// Ако тотала не е нула добавяме ентритата
     	if(count($entry3)){
-    		if(is_array($entry3)){
+    		if(count($entry3) == 2){
     			$result->entries = array_merge($result->entries, $entry3);
     		} else {
     			$result->entries[] = $entry3;
