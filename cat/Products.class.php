@@ -273,15 +273,19 @@ class cat_Products extends core_Master {
     	}
     	
     	if($rec->id){
+    		$oldRec = $mvc->fetch($rec->id);
+    		
     		// Старите мета данни
-    		$rec->oldGroups = $mvc->fetchField($rec->id, 'groups');
+    		$rec->oldGroups = $oldRec->groups;
+    		$rec->oldName = $oldRec->name;
+    		$rec->oldCode = $oldRec->code;
     	}
     }
     
     
     /**
-     * Извлича мета данните на продукт според групите
-     * в които участва
+     * Извлича мета данните на продукт според групите в които участва
+     * 
      * @param mixed $groups - групи в които участва
      */
     private static function getMetaData($groups)
@@ -573,6 +577,7 @@ class cat_Products extends core_Master {
     
     /**
      * Метод връщаш информация за продукта и неговите опаковки
+     * 
      * @param int $productId - ид на продукта
      * @param int $packagingId - ид на опаковката, по дефолт NULL
      * @return stdClass $res
@@ -642,6 +647,7 @@ class cat_Products extends core_Master {
     
     /**
      * Връща ид на продукта и неговата опаковка по зададен Код/Баркод
+     * 
      * @param mixed $code - Код/Баркод на търсения продукт
      * @return stdClass $res - Информация за намерения продукт
      * и неговата опаковка
@@ -681,9 +687,9 @@ class cat_Products extends core_Master {
     
     
     /**
-     *  Проверява дали съществува продукт с такъв код,
-     *  Кода и ЕАН-то на продукта както и тези на опаковките им
+     *  Проверява дали съществува продукт с такъв код, Кода и ЕАН-то на продукта както и тези на опаковките им
      *  трябва да са уникални
+     *  
      *  @param string $code - Код/Баркод на продукт
      *  @return boolean int/FALSE - id на продукта с такъв код или
      *  FALSE ако няма такъв продукт
@@ -701,6 +707,7 @@ class cat_Products extends core_Master {
     /**
      * Връща всички продукти които са в посочените групи/група 
      * зададени, чрез техни systemId-та
+     * 
      * @param mixed $group - sysId (стринг) или масив от sysId-та на групи
      * @return array $result - Продукти отговарящи на посочената група/групи
      */
@@ -725,6 +732,7 @@ class cat_Products extends core_Master {
     
     /**
      * Връща ДДС на даден продукт
+     * 
      * @param int $productId - Ид на продукт
      * @param date $date - Дата към която начисляваме ДДС-то
      * @return double $vat - ДДС-то на продукта:
@@ -761,9 +769,8 @@ class cat_Products extends core_Master {
             $mvc->updateGroupsCnt = TRUE;
         }
         
-    	if($rec->oldGroups != $rec->groups) {
-        	
-        	// Ако има промяна на групите, Инвалидира се кеша
+        // Ако има промяна в групите, името или кода инвалидираме кеша
+    	if($rec->oldGroups != $rec->groups || $rec->oldName != $rec->name || $rec->oldCode != $rec->code) {
             core_Cache::remove('cat_Products', "productsMeta");
         }
     }
