@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Лог за стойностите на входовете и изходите на контролерите
  *
@@ -28,7 +27,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Лог на индикаторите';
+    var $title = 'Записи на индикаторите';
     
     
     /**
@@ -100,9 +99,8 @@ class sens2_DataLogs extends core_Manager
     
     
     /**
-     * Филтър на on_AfterPrepareListFilter()
-     * Малко манипулации след подготвянето на формата за филтриране
-     *
+     * Изпълнява се след подготовката на списъчния филтър
+     * 
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
