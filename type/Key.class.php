@@ -157,6 +157,7 @@ class type_Key extends type_Int {
         if(!$value) {
             $value = $attr['value'];
         }
+        $attr['class'] .= ($attr['class'] ? ' ' : '') . 'combobox';
         
         if($this->getSelectFld() || count($this->options)) {
             

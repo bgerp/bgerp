@@ -80,7 +80,9 @@ class type_Enum extends core_Type {
                 }
             }
         }
-    
+        
+        $attr['class'] .= ($attr['class'] ? ' ' : '') . 'combobox';
+        
         $tpl = ht::createSmartSelect($arr, $name, $value, $attr,
             $this->params['maxRadio'],
             $this->params['maxColumns'],

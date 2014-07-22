@@ -1385,6 +1385,33 @@ function setThreadElemWidth()
 
 
 /**
+ * Подравнява ширината на текстареата и тулбара при resize
+ */
+function setRicheditWidth(el)
+{
+	el = "#" + el;
+	var allowResize = false;
+	
+	$(el).mousedown(function() {
+		allowResize = true;
+	});
+	
+	$(el).mousemove(function(event) {
+		if (allowResize) {
+			var calcWidth = parseInt($(el).width());
+			$(el).parent().find('.richedit-toolbar ').css('width', calcWidth - 4);
+		 }
+	});
+	
+	$(el).mouseup(function() {
+		var calcWidth = parseInt($(el).width());
+		$(el).parent().find('.richedit-toolbar ').css('width', calcWidth - 4);
+		allowResize = false;
+	});
+}
+
+
+/**
  * Скролира listTable, ако е необходимо
  */
 function scrollLongListTable()

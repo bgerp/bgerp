@@ -136,6 +136,10 @@ class type_Richtext extends type_Blob
     	
     	$tpl->append("\n runOnLoad(function(){bindEnterOnRicheditTableForm(document.getElementById('{$attr['id']}'))});", 'SCRIPTS');
     	 
+    	if(Mode::is('screenMode', 'wide')) {
+    		$tpl->append("\n runOnLoad(function(){setRicheditWidth('{$attr['id']}');});", 'SCRIPTS');
+    	}
+    	
     	return $tpl;
     }
     
