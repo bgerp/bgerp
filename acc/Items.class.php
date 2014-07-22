@@ -122,7 +122,7 @@ class acc_Items extends core_Manager
         $this->FLD('num', 'varchar(64)', "caption=Код,mandatory,remember=info,notNull");
         
         // Заглавие
-        $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
+        $this->FLD('title', 'varchar', 'caption=Наименование,mandatory,remember=info');
         
         // Външен ключ към номенклатурата на това перо.
         $this->FLD('lists', 'keylist(mvc=acc_Lists,select=nameLink)', 'caption=Номенклатури,input');
