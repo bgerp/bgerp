@@ -307,7 +307,7 @@ class acc_Articles extends core_Master
                     'amount' => round($entry->amount, 2),
                 
                     'debit' => array(
-                        $debitRec->num,
+                        $debitRec->systemId,
                         $entry->debitEnt1, // Перо 1
                         $entry->debitEnt2, // Перо 2
                         $entry->debitEnt3, // Перо 3
@@ -315,7 +315,7 @@ class acc_Articles extends core_Master
                     ),
                 
                     'credit' => array(
-                        $creditRec->num,
+                        $creditRec->systemId,
                         $entry->creditEnt1, // Перо 1
                         $entry->creditEnt2, // Перо 2
                         $entry->creditEnt3, // Перо 3
