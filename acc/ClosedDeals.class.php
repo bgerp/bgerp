@@ -472,12 +472,18 @@ abstract class acc_ClosedDeals extends core_Master
     	
     	// Ако тотала не е нула добавяме ентритата
     	if(count($entry3)){
-    		$result->entries[] = $entry3;
+    		if(is_array($entry3)){
+    			$result->entries = array_merge($result->entries, $entry3);
+    		} else {
+    			$result->entries[] = $entry3;
+    		}
     	}
     	
-    	$entry4 = $this->transferIncome($dealInfo, $docRec, $result->totalAmount, $firstDoc);
-    	if(count($entry4)){
-    		$result->entries = array_merge($result->entries, $entry4);
+    	if(method_exists($this, 'transferIncome')){
+    		$entry4 = $this->transferIncome($dealInfo, $docRec, $result->totalAmount, $firstDoc);
+    		if(count($entry4)){
+    			$result->entries = array_merge($result->entries, $entry4);
+    		}
     	}
     	
     	// Ако има сума различна от нула значи има приход/разход
@@ -488,9 +494,11 @@ abstract class acc_ClosedDeals extends core_Master
     		$result->entries = array_merge($result->entries, $entry);
     	}
     	
-    	$entry5 = $this->transferIncomeToYear($dealInfo, $docRec, $result->totalAmount, $firstDoc);
-    	if(count($entry5)){
-    		$result->entries[] = $entry5;
+    	if(method_exists($this, 'transferIncomeToYear')){
+    		$entry5 = $this->transferIncomeToYear($dealInfo, $docRec, $result->totalAmount, $firstDoc);
+    		if(count($entry5)){
+    			$result->entries[] = $entry5;
+    		}
     	}
     	
     	// Връщане на резултата
