@@ -70,12 +70,6 @@ abstract class acc_ClosedDeals extends core_Master
     /**
      * Още един работен кеш
      */
-    protected static $diffAmount;
-    
-    
-    /**
-     * Още един работен кеш
-     */
     protected static $incomeAmount;
     
     
@@ -226,10 +220,6 @@ abstract class acc_ClosedDeals extends core_Master
         $shippedAmount = currency_Currencies::round($info->get('deliveryAmount'), 2);
 		
         $diff = $paidAmount - $shippedAmount;
-        
-        if(static::$diffAmount){
-        	$diff += static::$diffAmount;
-        }
         
         // Разликата между платеното и доставеното
         return $diff;
@@ -433,100 +423,6 @@ abstract class acc_ClosedDeals extends core_Master
     	$rec = $this->fetchRec($id);
     	
     	return $this->getVerbal($rec, 'notes');
-    }
-    
-    
-	/**
-     * Връща транзакцията за документа
-     */
-    public function getTransaction($id)
-    {
-    	// Извличаме мастър-записа
-        expect($rec = $this->fetchRec($id));
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $docRec = cls::get($rec->docClassId)->fetch($rec->docId);
-		
-        $dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
-        $this->shortBalance = new acc_ActiveShortBalance($dealItem->id);
-		
-		// Създаване на обекта за транзакция
-        $result = (object)array(
-            'reason'      => $this->singleTitle . " #" . $firstDoc->getHandle(),
-            'valior'      => dt::now(),
-            'totalAmount' => 0,
-            'entries'     => array()
-        );
-        
-        $dealInfo = $this->getDealInfo($rec->threadId);
-        
-        // Кеширане на перото на текущата година
-        $year = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
-        $listRec = acc_Lists::fetchBySystemId('year');
-        $this->year = acc_Periods::forceYearItem($year);
-        
-        // Създаване на запис за прехвърляне на всеки аванс
-        $entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $result->totalAmount, $firstDoc);
-        
-        // Ако тотала не е нула добавяме ентритата
-    	if(count($entry2)){
-    		$result->entries[] = $entry2;
-    	}
-    	
-    	$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $result->totalAmount, $firstDoc);
-    	
-    	// Ако тотала не е нула добавяме ентритата
-    	if(count($entry3)){
-    		if(count($entry3) == 2){
-    			$result->entries = array_merge($result->entries, $entry3);
-    		} else {
-    			$result->entries[] = $entry3;
-    		}
-    	}
-    	
-    	if(method_exists($this, 'transferIncome')){
-    		$entry4 = $this->transferIncome($dealInfo, $docRec, $result->totalAmount, $firstDoc);
-    		if(count($entry4)){
-    			$result->entries = array_merge($result->entries, $entry4);
-    		}
-    	}
-    	
-    	// Ако има сума различна от нула значи има приход/разход
-    	$amount = $this->getClosedDealAmount($firstDoc);
-    	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $firstDoc);
-    	
-    	if(count($entry)){
-    		$result->entries = array_merge($result->entries, $entry);
-    	}
-    	
-    	if(method_exists($this, 'transferIncomeToYear')){
-    		$entry5 = $this->transferIncomeToYear($dealInfo, $docRec, $result->totalAmount, $firstDoc);
-    		if(count($entry5)){
-    			$result->entries[] = $entry5;
-    		}
-    	}
-    	
-    	// Връщане на резултата
-        return $result;
-    }
-    
-    
-	/**
-     * Финализиране на транзакцията, изпълнява се ако всичко е ок
-     * 
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-        $rec = $this->fetchRec($id);
-        $rec->state = 'active';
-        
-    	if ($id = $this->save($rec)) {
-            $this->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
     }
     
     
