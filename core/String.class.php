@@ -31,7 +31,7 @@ class core_String
         // Опитваме се да прихванем всички символи, които не са ASCII
         // Ако е подаден текст, който е изцяло от неаски символи, ще има само едно извикване на колбек функцията
         $me = get_called_class();
-        $text = preg_replace_callback('/([^\x00-\x7F]+)((\s|\W)*([^\x00-\x7F]+)*)*/iu', array($me, 'convertToAscii'), $text);
+        $text = preg_replace_callback('/([^\x00-\x7F]+)((\s|\W)*([^\x00-\x7F]+)*)/iu', array($me, 'convertToAscii'), $text);
         
         return $text;
     }
