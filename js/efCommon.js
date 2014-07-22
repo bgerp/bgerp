@@ -1385,29 +1385,12 @@ function setThreadElemWidth()
 
 
 /**
- * Подравнява ширината на текстареата и тулбара при resize
+ * Задава ширината на текстареата спрямо ширината на клетката, в която се намира
  */
 function setRicheditWidth(el)
 {
-	el = "#" + el;
-	var allowResize = false;
-	
-	$(el).mousedown(function() {
-		allowResize = true;
-	});
-	
-	$(el).mousemove(function(event) {
-		if (allowResize) {
-			var calcWidth = parseInt($(el).width());
-			$(el).parent().find('.richedit-toolbar ').css('width', calcWidth - 4);
-		 }
-	});
-	
-	$(el).mouseup(function() {
-		var calcWidth = parseInt($(el).width());
-		$(el).parent().find('.richedit-toolbar ').css('width', calcWidth - 4);
-		allowResize = false;
-	});
+	var width = parseInt($('.formElement').width());
+	$('.richEdit textarea').css('width', width);
 }
 
 

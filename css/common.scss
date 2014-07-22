@@ -1923,17 +1923,11 @@ span.richEdit div.richedit-toolbar {
 	margin-top:-4px;
 }
 
-.richEdit {
-	display: table;
-	width: 100%;
-	
-}
-
 .richEdit textarea {
 	margin-bottom: 0px;
 	overflow: auto;
 	border-bottom: 1px solid transparent; 
-	width: 100%;
+	width: 600px;
 	min-width:310px;
 }
 
