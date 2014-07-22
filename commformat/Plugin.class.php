@@ -39,14 +39,14 @@ class commformat_Plugin extends core_Plugin
 	       }
 	       
 	       if (in_array('mob', $format)) {
-	       		 $html = preg_replace_callback("/^\s*((M|Gsm|Mtel|Mobiltel|Vivacom|Vivatel|Globul|Mobile|Mob)\.?\:? *)[^0-9\(\+]{0,4}([\d\(\+][\d\- \,\(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationMobFormat'), $html);
+	       		 $html = preg_replace_callback("/^\s*((Gsm|Mtel|Mobiltel|Vivacom|Vivatel|Globul|Mobile|Mob)\.?\:? *)[^0-9\(\+]{0,4}([\d\(\+][\d\- \,\(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationMobFormat'), $html);
 	       	
 	       }
 	       
 	       if (in_array('email', $format)) {
 	       		 // искаме да намерим изрази като Email|E-mail|Mail|@ , за да сложим пред тях икона
-		         $html = preg_replace_callback("/^\s*(((Имейл|Емайл|Е-майл|Email|E-mail|Mail|@)\.?\:? *)([\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
-		         $html = preg_replace_callback("/^\s*(([\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
+		         $html = preg_replace_callback("/^\s*((Имейл|Емайл|Е-майл|Email|E-mail|Mail|@)\.?\:? *)(([\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
+		         //$html = preg_replace_callback("/^\s*(([\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
 		        // bp($html);
 	       }
 	       
@@ -61,9 +61,9 @@ class commformat_Plugin extends core_Plugin
 	       
 	       if(in_array('web', $format)) {
 	       	     
-	       		$html = preg_replace_callback("/^\s*((((Web|WWW|Site|Сайт|Блог|Blog)\.?\:?\ *)((http|https|ftp):\/\/[A-Za-z0-9\.\-]+|(?:www\.)[A-Za-z0-9\.\-]+))((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/umi", array($this, 'catchCommunicationWebFormat'), $html);
+	       		//$html = preg_replace_callback("/^\s*((((Web|WWW|Site|Сайт|Блог|Blog)\.?\:?\ *)((http|https|ftp):\/\/[A-Za-z0-9\.\-]+|(?:www\.)[A-Za-z0-9\.\-]+))((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/umi", array($this, 'catchCommunicationWebFormat'), $html);
 	       	
-	       	    //$html = preg_replace_callback("/^\s*((((http|https|ftp):\/\/)[A-Za-z0-9\.\-]+|(?:www\.)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/umi", array($this, 'catchCommunicationWebFormat'), $html);
+	       	    $html = preg_replace_callback("/^\s*((((Web|WWW|Site|Сайт|Блог|Blog)\.?\:?\ *)))((((http|https|ftp):\/\/)[A-Za-z0-9\.\-]+|(?:www\.)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/umi", array($this, 'catchCommunicationWebFormat'), $html);
 	       }
        } catch (core_Exception_Expect $exp) {  }
        
@@ -92,22 +92,18 @@ class commformat_Plugin extends core_Plugin
      */
     function catchCommunicationWebFormat($match)
     {
+//bp($match);
     	// намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
+              
+        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-    	if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        	// Иконата на класа
-        	$icon = sbf("img/16/world_link.png", '', $isAbsolute);
-        
-        } else {
-        	$icon = sbf("img/16/world_link.png",''); 
-        }
+        // Иконата на класа
+        $icon = sbf("img/16/world_link.png", '', $isAbsolute);
 	         	    
         // добавяме иконата пред името на услугата
-        $this->mvc->_htmlBoard[$place] =  "<img class='communicationImg' src='{$icon}' />{$match[2]}";
+        $this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" .$match[2]. "</span>";
       
         $communicationFormat = str_replace($match[2], "[#{$place}#]", $match[0]);
 
@@ -130,55 +126,26 @@ class commformat_Plugin extends core_Plugin
         if(!trim($match[3])) {
             return $match[0];
         }
-        //bp($match);
+
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
-        
-        // елемент съдържащ: телефонен номер или потребителско име/номер
-        $matchElement = trim(mb_strtolower($match[2]));
                          		
 	    $PhonesVerbal = cls::get('drdata_PhoneType');
 	        		
 	    // парсирваме всеки телефон
 	    $parsTel = $PhonesVerbal->toArray($match[3]);
-	        	
+
 	    if(!count($parsTel)) {
             return  $match[0];
         }
 	
-		// му задаваме друга икона
-		if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        	// Иконата на класа
-        	$icon = sbf("img/16/telephone2.png", '', $isAbsolute);
-        
-        } else {
-        	$icon = sbf("img/16/telephone2.png",''); 
-        } 
+        $link = crm_Formatter::renderTel($match[3],$match[1], NULL);
+        // няма да правим линк
+        $this->mvc->_htmlBoard[$place] = $link;
 
-	    // ако сме в тесен режим
-	    if (Mode::is('screenMode', 'narrow')) {	
-		    // ако мачнатия елемент прилича на телефон
-		    // го обработваме като телефон
-		    $this->mvc->_htmlBoard[$place] =  "<img class='communicationImg' src='{$icon}' />{$match[1]}<span class='communication'>" . $PhonesVerbal->toVerbal($match[3]) . "</span>";
-		    
-	        // линк е мачнатия елемент, не името на услугата
-		    // посочваме мястото където ще за заменят линковете
-	        $communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
-	        //$communicationFormat = str_replace($match[1], "", $match[0]);
-	
-	        // добавяме иконата пред името на услугата
-	       // $communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $communicationFormat);
-        // ако сме в широк екран
-        } else {
-        	// няма да правим линк
-        	$this->mvc->_htmlBoard[$place] = "<img class='communicationImg' src='{$icon}' />{$match[1]}";
-        	// просто ще сложим икона отпред
-        	$communicationFormat = str_replace($match[1], "[#{$place}#]", $match[0]);
-        }
-              
+        // просто ще сложим икона отпред
+        $communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
+      
         return $communicationFormat;
     }
 
@@ -196,17 +163,6 @@ class commformat_Plugin extends core_Plugin
     {     
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
-        
-    	if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        	// Иконата на класа
-        	$icon = sbf("img/16/fax2.png", '', $isAbsolute);
-        
-        } else {
-        	$icon = sbf("img/16/fax2.png",''); 
-        }
         				       	                
 		// ако сме в тесен режим и имаме възможност за изпращане на факсове
 		if (Mode::is('screenMode', 'narrow') && email_FaxSent::haveRightFor('send')) {
@@ -242,9 +198,9 @@ class commformat_Plugin extends core_Plugin
 			$domain = '@fax.man';
 			// за да може да го изпратим като имейл
 			$email = $value.$domain;
-					
+			
 			// правим линк за изпращане на имейл през системата
-			$href = "<span class='communication'><img class='communicationImg' src='{$icon}' />{$match[1]}" . $Email->addHyperlink($email, $PhonesVerbal->toVerbal($match[3])). "</span>";
+			$href = crm_Formatter::renderFax($Email->addHyperlink($email, $PhonesVerbal->toVerbal($match[3])),$match[1], NULL);
 					        			
 			// и го връщаме
 			$this->mvc->_htmlBoard[$place] = str_replace($email, $toVerbal, $href);
@@ -252,15 +208,13 @@ class commformat_Plugin extends core_Plugin
 			// линк е мачнатия елемент, не името на услугата
 		    // посочваме мястото където ще за заменят линковете
 	        $communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
-	
-	        // добавяме иконата пред името на услугата
-	        //$communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $communicationFormat);
+	        
 		// ако сме в широк екран	
 		} else {
 		    // няма да правим линк   	
-			$this->mvc->_htmlBoard[$place] = "<img class='communicationImg' src='{$icon}' />{$match[1]}";
+			$this->mvc->_htmlBoard[$place] = crm_Formatter::renderFax($match[3],$match[1], NULL);
 			// просто ще добавим иконка
-			$communicationFormat = str_replace($match[1], "[#{$place}#]", $match[0]);
+			$communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
 		}
       
         return $communicationFormat;
@@ -284,18 +238,6 @@ class commformat_Plugin extends core_Plugin
             return $match[0];
         }
         
-        // иконка
-		if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        	// Иконата на класа
-        	$icon = sbf("img/16/mobile2.png", '', $isAbsolute);
-        
-        } else {
-        	$icon = sbf("img/16/mobile2.png",''); 
-        }
-		
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
                                		
@@ -308,27 +250,12 @@ class commformat_Plugin extends core_Plugin
             return $match[0];
         }
 
-	    // ако сме в тесен режим
-	    if (Mode::is('screenMode', 'narrow')) {	
-		   // ако мачнатия елемент прилича на телефон
-		   // го обработваме като телефон 
+        $link = crm_Formatter::renderMob($match[3],$match[1], NULL);
+        // няма да правим линк
+        $this->mvc->_htmlBoard[$place] = $link;
 
-		   $this->mvc->_htmlBoard[$place] =  "<span class='communication'><img class='communicationImg' src='{$icon}' />{$match[1]}" . $PhonesVerbal->toVerbal($match[3]) . "</span>";
-		   
-		   // линк е мачнатия елемент, не името на услугата
-		   // посочваме мястото където ще за заменят линковете
-	       $communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
-	
-	       // добавяме иконата пред името на услугата
-	       //$communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $communicationFormat);
-        
-	    // ако сме в широк
-        } else {
-        	// няма да правим линк
-       		$this->mvc->_htmlBoard[$place] = "<img class='communicationImg' src='{$icon}' />{$match[1]}";
-        	// просто ще сложим иконка отпред
-        	$communicationFormat = str_replace($match[1], "[#{$place}#]", $match[0]);
-        }  
+        // просто ще сложим икона отпред
+        $communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
   
         return $communicationFormat;
     }
@@ -354,21 +281,15 @@ class commformat_Plugin extends core_Plugin
         // елемент съдържащ: телефонен номер или потребителско име/номер
         $matchElement = trim(mb_strtolower($match[2]));
         
-        
         // Намираме иконата в sbf папката
         $nameIcon = str::utf2ascii($matchElement);
-	  	    
-    	if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-        	// Иконата на класа
-        	$icon = sbf("img/16/{$nameIcon}.png", '', $isAbsolute);
+        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-        } else {
-        	$icon = sbf("img/16/{$nameIcon}.png",''); 
-        }
-        
+        // Иконата на класа
+        $icon = sbf("img/16/{$nameIcon}.png", '', $isAbsolute);
+
         $Email = cls::get('type_Email');
         
         // Ако мачнатият елемент е валиден имейл за системата
@@ -380,63 +301,40 @@ class commformat_Plugin extends core_Plugin
         switch ($matchElement) {
         	        	    
         	case 'msnim' :
-        		
-		        if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-		        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-		        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-		        
-		        	// Иконата на класа
-		        	$icon = sbf("img/16/msn.png", '', $isAbsolute);
-		        
-		        } else {
-		        	$icon = sbf("img/16/msn.png",''); 
-		        }
+        		// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        		$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        		// Иконата на класа
+        		$icon = sbf("img/16/msn.png.png", '', $isAbsolute);
 
         	case 'msn' :
-        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><img class='communicationImg' src='{$icon}' /><a class='url' href='msnim:chat?contact={$match[3]}' title='MSN'>{$match[1]}</a></span>{$email}";
+        		$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' href='msnim:chat?contact={$match[3]}' title='MSN'>{$match[1]}</a></span>{$email}";
         		break;
 
         	case 'xmpp' :
         	case 'jabber' :
-        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><img class='communicationImg' src='{$icon}' /><a class='url' href='xmpp:{$match[3]}' title='{$match[2]}'>{$match[1]}</a></span>{$email}";
+        		$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' href='xmpp:{$match[3]}' title='{$match[2]}'>{$match[1]}</a></span>{$email}";
         	    break;
         		 
 	        case 'skype' : 
 		        $skypeUser = trim($match[3]);
         	
-        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><img class='communicationImg' src='{$icon}' />{$match[1]}<a class='url' href='skype:{$skypeUser}?call' title='Skype'>{$match[3]}</a></span>";
+        		$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>{$match[1]}<a class='url' href='skype:{$skypeUser}?call' title='Skype'>{$match[3]}</a></span>";
 		        break;
 		        
 	        case 'aim' : 
-		        $this->mvc->_htmlBoard[$place] = "<span class='communication'><img class='communicationImg' src='{$icon}' /><a class='url' href='aim:goim?screenname={$match[3]}' title='AOL Instant Messenger (AIM)'>{$match[1]}</a></span>{$email}";
+		        $this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' href='aim:goim?screenname={$match[3]}' title='AOL Instant Messenger (AIM)'>{$match[1]}</a></span>{$email}";
 		        break;
 		        
 	        case 'yim' :
-		        $this->mvc->_htmlBoard[$place] = "<span class='communication'><img class='communicationImg' src='{$icon}' /><a class='url' href='ymsgr:sendIM?{$match[3]}' title='Yahoo! Messenger'>{$match[1]}</a></span>{$email}";
+		        $this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' href='ymsgr:sendIM?{$match[3]}' title='Yahoo! Messenger'>{$match[1]}</a></span>{$email}";
 		        break;
 		 		        
         }        
-    	//$Email = cls::get('type_Email');
-	    
-    	// Ако мачнатият елемент е валиден имейл за системата
-	    //if($Email->isValidEmail($match[3])){
-	    	 
-	    	// оставяме връзката на имейла : изпращана на имейл от системата
-	    //	$communicationFormat = str_replace($match[3], $Email->toVerbal($match[3]), $match[0]);
-	    	
-	    	// и правим линк името на услугата
-	    	// посочваме мястото където ще за заменят линковете
-        //	$communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
-	   // } else {
-	    	
-	    	// линк е мачнатия елемент, не името на услугата
-	    	// посочваме мястото където ще за заменят линковете
-        	$communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
-        	
-        	// добавяме иконата пред името на услугата
-        	//$communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $communicationFormat);
-	    //}
     	
+	    // посочваме мястото където ще за заменят линковете
+        $communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
+
         return $communicationFormat;
     }
     
@@ -461,21 +359,13 @@ class commformat_Plugin extends core_Plugin
         // елемент съдържащ: телефонен номер или потребителско име/номер
         $matchElement = trim(mb_strtolower($match[2]));
         
-        // Намираме иконата в sbf папката
-        $nameIcon = str::utf2ascii($matchElement); 
-	    
-    	if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-        	// Иконата на класа
-        	$icon = sbf("img/16/{$matchElement}.png", '', $isAbsolute);
-        
-        } else {
-        	$icon = sbf("img/16/{$matchElement}.png",''); 
-        }
-
-		$this->mvc->_htmlBoard[$place] = "<img class='communicationImg' src='{$icon}' />{$match[1]}<span class='communication'><a class='url' type='application/x-icq' 
+        // Иконата на класа
+        $icon = sbf("img/16/{$matchElement}.png", '', $isAbsolute);
+    
+		$this->mvc->_htmlBoard[$place] = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' type='application/x-icq' 
 		href='http://www.icq.com/people/cmd.php?uin={$match[3]}&action=message'>{$match[3]}</a></span>";
 		
 	    // линк е мачнатия елемент, не името на услугата
@@ -496,8 +386,6 @@ class commformat_Plugin extends core_Plugin
      */
     function catchCommunicationEmailFormat($match)
     {   
-    	
-    	//bp($match);
         if(!trim($match[2])) {
             return  $match[0];
         }
@@ -505,21 +393,25 @@ class commformat_Plugin extends core_Plugin
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
         
-        if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-        	// Иконата на класа
-        	$icon = sbf("img/16/email.png", '', $isAbsolute);
+        // Иконата на класа
+        $icon = sbf("img/16/email.png", '', $isAbsolute);
         
-        } else {
-        	$icon = sbf("img/16/email.png",''); 
-        }
-	         	    
-        // добавяме иконата пред името на услугата
-        $this->mvc->_htmlBoard[$place] =  "<img class='communicationImg' src='{$icon}' />{$match[2]}";
+    	$Email = cls::get('type_Email');
+        
+        // Ако мачнатият елемент е валиден имейл за системата
+	    if($Email->isValidEmail($match[3])){
+	    	$email = $Email->toVerbal($match[3]);
+	    	
+	    	// добавяме иконата пред името на услугата
+        	$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $match[2]. " " . $email . "</span>";
+	    } else {
+	    	$this->mvc->_htmlBoard[$place] =  $match[3];
+	    }
       
-        $communicationFormat = str_replace($match[2], "[#{$place}#]", $match[0]);
+        $communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
 
         return $communicationFormat;
     }
