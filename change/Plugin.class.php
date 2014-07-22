@@ -236,6 +236,17 @@ class change_Plugin extends core_Plugin
                 // Добавяме версията
                 $vRec->version = $gRec->version;
             }
+            
+            // Ако има избрана версия, от нея да се вземат всичките данни
+            if ($versionKey) {
+                
+                // Обхождаме стария запис
+                foreach ((array)$fieldsArrShow as $field) {
+                    
+                    // Добавяме старта стойност
+                    $form->rec->$field = $vRec->$field;
+                }
+            }
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
