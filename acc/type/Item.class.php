@@ -78,6 +78,7 @@ class acc_type_Item extends type_Key
             // Извличаме перата на текущата номенклатура
             $query = clone($cleanQuery);
             $query->where("#lists LIKE '%|{$listRec->id}|%'");
+            $query->where("#state = 'active'");
             
             while ($itemRec = $query->fetch()) {
                 $this->options["{$itemRec->id}.{$listRec->id}"] = strip_tags($itemRec->{$select});
