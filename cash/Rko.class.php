@@ -559,15 +559,13 @@ class cash_Rko extends core_Master
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
     	
-    	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
-    	if($action == 'conto' && isset($rec)){
-	    	$origin = $mvc->getOrigin($rec);
-	    	if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
-	    		$originState = $origin->fetchField('state');
-		    	if($originState === 'closed'){
-		        	$res = 'no_one';
-		        }
-	    	}
+    	// Документа не може да се контира/оттегля/възстановява, ако ориджина му е в състояние 'closed'
+    	if(($action == 'conto' || $action == 'reject' || $action == 'restore') && isset($rec)){
+    		$origin = $mvc->getOrigin($rec);
+	    	$originState = $origin->fetchField('state');
+		    if($originState === 'closed'){
+		        $res = 'no_one';
+		    }
         }
     }
     

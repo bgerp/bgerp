@@ -729,4 +729,19 @@ class store_ShipmentOrders extends core_Master
     {
         return tr("|Експедиционно нареждане|* №") . $rec->id;
     }
+    
+    
+    /**
+     * Извиква се след изчисляването на необходимите роли за това действие
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	// Документа не може да се контира/оттегля/възстановява, ако ориджина му е в състояние 'closed'
+    	if(($action == 'conto' || $action == 'reject' || $action == 'restore') && isset($rec)){
+    		$originState = $mvc->getOrigin($rec)->fetchField('state');
+    		if($originState === 'closed'){
+    			$res = 'no_one';
+    		}
+    	}
+    }
 }

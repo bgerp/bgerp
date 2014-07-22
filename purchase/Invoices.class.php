@@ -1076,8 +1076,8 @@ class purchase_Invoices extends core_Master
     		}
     	}
     	
-    	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
-    	if($action == 'conto' && isset($rec)){
+    	// Документа не може да се контира/оттегля/възстановява, ако ориджина му е в състояние 'closed'
+    	if(($action == 'conto' || $action == 'reject' || $action == 'restore') && isset($rec)){
 	    	$originState = $mvc->getOrigin($rec)->fetchField('state');
 	        if($originState === 'closed'){
 	        	$res = 'no_one';
