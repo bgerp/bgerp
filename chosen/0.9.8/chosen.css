@@ -2,7 +2,6 @@
 .chzn-container {
   position: relative;
   zoom: 1;
-  max-width:500px;
   *display: inline;
 }
 
@@ -17,7 +16,6 @@
   position: absolute;
   top: 29px;
   left: 0;
-  max-width:498px;
   z-index: 1010;
 }
 .narrow .chzn-container .chzn-drop {
@@ -263,7 +261,7 @@
   display: list-item;
 }
 .chzn-container .chzn-results .highlighted {
-  background-color: #3875d7;
+  background-color: #2a82ff;
   color: #fff !important;
 }
 .chzn-container .chzn-results li em {
