@@ -1895,11 +1895,19 @@ efae.prototype.getObjectKeysCnt = function(subscribedObj)
  * 
  * @param object subscribedObj - Обект с URL-то, което трябва да се вика
  * @param object otherData - Обект с допълнителни параметри, които ще се пратят по POST
+ * @param boolean async - Дали да се стартира асинхронно. По подразбиране не true
  */
-efae.prototype.process = function(subscribedObj, otherData)
+efae.prototype.process = function(subscribedObj, otherData, async)
 {
 	// Ако няма URL, което трябва да се извика, връщаме
 	if (!this.getObjectKeysCnt(subscribedObj)) return;
+	
+	// Ако не е подададена стойност
+	if (typeof async == 'undefined') {
+		
+		// По подразбиране да се стартира асинхронно
+		async = true;
+	}
 	
 	// URL-то, което да се вика
 	var efaeUrl = this.getUrl();
@@ -1959,6 +1967,7 @@ efae.prototype.process = function(subscribedObj, otherData)
 		
 		// Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
 		$.ajax({
+			  async: async,
 			  type: "POST",
 			  url: efaeUrl,
 			  data: dataObj,
