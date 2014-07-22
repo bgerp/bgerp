@@ -32,17 +32,15 @@ class rtac_Plugin extends core_Plugin
     {
         preg_match_all(static::$pattern, $text, $matches);
         
-        if (!$matches['nick']) return ;
+        if (!$matches['nick']) return;
         
         // Масив с никовете на всички потребители
         $userArr = core_Users::getUsersArr();
         
-        // Обхождаме всички открити никове и проверяваме дали има такива потребители
-        foreach ((array)$matches['nick'] as $nick) {
+        // Обхождаме всички открити никове и, ако има такива потребители добавяме в масива
+        foreach ((array) $matches['nick'] as $nick) {
             
-            // Ако няма ник
-            if (!$nick) continue;
-            
+            if (! $nick) continue;
             $nick = strtolower($nick);
             if (!$userArr[$nick]) continue;
             $nickArr[$nick] = $nick;
@@ -50,8 +48,8 @@ class rtac_Plugin extends core_Plugin
         
         return $nickArr;
     }
-    
-    
+
+
     /**
      * 
      * Изпълнява се преди рендирането на input
@@ -87,54 +85,113 @@ class rtac_Plugin extends core_Plugin
         $inst = cls::get($conf->RTAC_AUTOCOMPLETE_CLASS);
         
         // Зареждаме необходимите пакети
-    	$inst->loadPacks($tpl);
-    	
-    	list($id) = explode(' ', $attr['id']);
-    	
-    	$id = trim($id);
-    	
+        $inst->loadPacks($tpl);
+        
+        // id на ричтекста
+        list ($id) = explode(' ', $attr['id']);
+        $id = trim($id);
+        
         // Ако са подадени роли до които може да се споделя
-        if (!($userRolesForShare = $mvc->params['userRolesForShare'])) {
+        if (! ($userRolesForShare = $mvc->params['userRolesForShare'])) {
             $userRolesForShare = $conf->RTAC_DEFAUL_USER_ROLES_FOR_SHARE;
         }
         
-        // Ако потребителя име права да споделе
+        // Масив с потребителите
         $userRolesForShare = str_replace("|", ",", $userRolesForShare);
         $userRolesForShareArr = arr::make($userRolesForShare);
-        if (core_Users::haveRole($userRolesForShareArr)) {
         
+        // Обект за данните
+        $tpl->appendOnce("var rtacObj = {};", 'SCRIPTS');
+        
+        // Ако потребителя име права да споделе
+        if (core_Users::haveRole($userRolesForShareArr)) {
+            
             // Ако са подадени роли до които може да се споделя
-            if (!($shareUsersRoles = $mvc->params['shareUsersRoles'])) {
+            if (! ($shareUsersRoles = $mvc->params['shareUsersRoles'])) {
                 $shareUsersRoles = $conf->RTAC_DEFAUL_SHARE_USER_ROLES;
             }
-            
             $shareUsersRoles = str_replace("|", ",", $shareUsersRoles);
-            $shareUsersRolesArr = arr::make($shareUsersRoles);
             
-            // Добавяме масива с потребителите в JS
-            $usersArr = core_Users::getUsersArr($shareUsersRolesArr);
+            // Обекти за данните
+            $tpl->appendOnce("rtacObj.shareUsersURL = {};", 'SCRIPTS');
+            $tpl->appendOnce("rtacObj.shareUserRoles = {};", 'SCRIPTS');
+            $tpl->appendOnce("rtacObj.sharedUsers = {};", 'SCRIPTS');
             
             // Добавяме потребителите, до които ще се споделя
-            $tpl->appendOnce("var sharedUsersObj = {};", 'SCRIPTS');
-            $tpl->appendOnce("sharedUsersObj.{$id} = " . json_encode($usersArr) . ";", 'SCRIPTS');
+            $tpl->appendOnce("rtacObj.shareUserRoles.{$id} = '{$shareUsersRoles}';", 'SCRIPTS');
+            
+            // Фунцкията, която ще приеме управелението след извикване на екшъна, в която ще се добавят потребителите
+            $tpl->appendOnce("\n function render_sharedUsers(data){rtacObj.sharedUsers[data.id] = data.users;}", 'SCRIPTS');
+            
+            // Локално URL
+            $localUrl = toUrl(array(get_called_class(), 'getUsers'), 'local');
+            
+            // Ескейпваме
+            $localUrl = urlencode($localUrl);
+            $tpl->appendOnce("rtacObj.shareUsersURL.{$id} = '{$localUrl}';", 'SCRIPTS');
             
             // Стартираме autocomplete-a за добавяне на потребител
             $inst->runAutocompleteUsers($tpl, $id);
         }
         
-    
         // Ако са подадени роли до които може да се споделя
-        if (!($userRolesForBlock = $mvc->params['userRolesForBlock'])) {
+        if (! ($userRolesForBlock = $mvc->params['userRolesForBlock'])) {
             $userRolesForBlock = $conf->RTAC_DEFAUL_ROLES_FOR_AUTOCOMPLETE_BLOCK;
         }
         
+        // Ако потребителя има права за добавяне на блокови елементи
         if (core_Users::haveRole($userRolesForBlock)) {
             $blockElementsArr = $mvc->getBlockElements();
-            $tpl->appendOnce("var blockElementsObj = {};", 'SCRIPTS');
-            $tpl->appendOnce("blockElementsObj.{$id} = " . json_encode($blockElementsArr) . ";", 'SCRIPTS');
-            
+            $tpl->appendOnce("rtacObj.blockElementsObj = {};", 'SCRIPTS');
+            $tpl->appendOnce("rtacObj.blockElementsObj.{$id} = " . json_encode($blockElementsArr) . ";", 'SCRIPTS');
             // Стартираме autocomplete-a за добавяне на потребител
             $inst->runAutocompleteBlocks($tpl, $id);
+        }
+    }
+    
+    
+    /**
+     * Връща потребителите и имената им по AJAX
+     */
+    function act_GetUsers()
+    {
+        // Ако заявката е по ajax
+        if (Request::get('ajax_mode')) {
+            
+            // id на ричтекста
+            $id = Request::get('rtid');
+            
+            // Началото на ника на потребителя
+            $term = Request::get('term');
+            
+            // Роли на потребителите
+            $roles = Request::get('roles');
+            $roles = str_replace("|", ",", $roles);
+            $rolesArr = arr::make($rolesArr);
+            
+            $conf = core_Packs::getConfig('rtac');
+            
+            // Лимит на показване
+            $limit = $conf->RTAC_MAX_SHOW_COUNT;
+            
+            // Масив с потребителите
+            $usersArr = core_Users::getUsersArr($roles, $term, $limit);
+            $i = 0;
+            $usersArrRes = array();
+            
+            // Добавяме потребителите в нов масив
+            foreach ((array) $usersArr as $key => $users) {
+                $usersArrRes[$i]['nick'] = $key;
+                $usersArrRes[$i]['names'] = $users;
+                $i++;
+            }
+            
+            // Добавяме резултата
+            $resObj = new stdClass();
+            $resObj->func = 'sharedUsers';
+            $resObj->arg = array('id' => $id, 'users' => $usersArrRes);
+            
+            return array($resObj);
         }
     }
 }

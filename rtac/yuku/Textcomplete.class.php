@@ -62,22 +62,20 @@ class rtac_yuku_Textcomplete extends core_Manager
                     match: /\B@((\w|\.)*)$/,
                     index: 1,
                     search: function (term, callback) {
-                        callback($.map(sharedUsersObj.{$rtId}, function (name, nick) {
-                        	term = term.toLowerCase();
-                        	return nick.indexOf(term) === 0 ? nick : null;
-                        }));
+                        getEfae().process({url: rtacObj.shareUsersURL.{$rtId}}, {term:term, roles:rtacObj.shareUserRoles.{$rtId}, rtid: '{$rtId}'}, false);
+                        callback(rtacObj.sharedUsers.{$rtId});
                     },
-                    replace: function (nick) {
-                        return '@' + nick + ' ';
+                    replace: function (userObj) {
+                        return '@' + userObj.nick + ' ';
                     },
                     maxCount: {$maxCount},
                     cache: true,
-                    template: function(val) {
-                    	return val + ' ' + '<span class=\'autocomplete-name\'>' + sharedUsersObj.{$rtId}[val] + '</span>';
+                    template: function(userObj) {
+                    	return userObj.nick + ' ' + '<span class=\'autocomplete-name\'>' + userObj.names + '</span>';
     				}
                 }
             );
-        ");
+        ", TRUE);
     }
 
     
@@ -101,7 +99,7 @@ class rtac_yuku_Textcomplete extends core_Manager
                     match: /\[(\w*)$/,
                     index: 1,
                     search: function (term, callback) {
-                        callback($.map(blockElementsObj.{$rtId}, function (element) {
+                        callback($.map(rtacObj.blockElementsObj.{$rtId}, function (element) {
                         	term = term.toLowerCase();
                         	var text = element.text.toLowerCase();
                             return text.indexOf(term) === 0 ? element : null;
@@ -125,6 +123,6 @@ class rtac_yuku_Textcomplete extends core_Manager
     				}
                 }
             );
-        ");
+        ", TRUE);
     }
 }
