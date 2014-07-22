@@ -150,7 +150,7 @@ class email_Incomings extends core_Master
      */
     function description()
     {
-        $this->FLD('accId', 'key(mvc=email_Accounts,select=email, allowEmpty)', 'caption=Акаунт, autoFilter');
+        $this->FLD('accId', 'key(mvc=email_Accounts,select=email, allowEmpty)', 'caption=Имейл акаунт, autoFilter');
         $this->FLD("subject", "varchar", "caption=Тема");
         $this->FLD("fromEml", "email", 'caption=От->Имейл');
         $this->FLD("fromName", "varchar", 'caption=От->Име');
@@ -223,7 +223,7 @@ class email_Incomings extends core_Master
         $lockKey = 'Inbox:' . $accRec->id;
                    
         if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
-            $this->log("Кутията {$accRec->email} е заключена от друг процес");
+            $this->log("Кутията {$accRec->email} е заключена от друг процес", NULL, 7);
 
             return;
         }
@@ -237,7 +237,7 @@ class email_Incomings extends core_Master
         // Логването и генериране на съобщение при грешка е винаги в контролерната част
         if ($imapConn->connect() === FALSE) {
             $errMsg = "Грешка на <b>\"{$accRec->user} ({$accRec->server})\"</b>:  " . $imapConn->getLastError() . "";
-            $this->log($errMsg);
+            $this->log($errMsg, NULL, 14);
             $htmlRes .= $errMsg;
             
             return;
@@ -264,7 +264,7 @@ class email_Incomings extends core_Master
 
                 if(($i % 100) == 1 || ( ($i - $firstUnreadMsg) < 100)) {
                     $logMsg = "Fetching message {$i} from {$accRec->email}: {$status}";
-                    $this->log($logMsg);
+                    $this->log($logMsg, NULL, 7);
                 }
                 
                 // Изтриване на писмото, ако ако сметката е настроена така
@@ -324,7 +324,7 @@ class email_Incomings extends core_Master
         // Показваме стринга
         echo "<h3> $msg </h3>";
 
-        $this->log($msg);
+        $this->log($msg, NULL, 7);
     }
 
 
@@ -578,12 +578,12 @@ class email_Incomings extends core_Master
     protected function isDownloaded($imapConn, $msgNum)
     {
         static $isDown = array();
-        $this->log("Check Down: $msgNum  ");
+        $this->log("Check Down: $msgNum  ", NULL, 7);
         $accId = $imapConn->accRec->id;
 
         // Номерата почват от 1
         if($msgNum < 1) {
-            $this->log("TRUE: $msgNum < 1");
+            $this->log("TRUE: $msgNum < 1", NULL, 7);
 
             return TRUE;
         }
@@ -594,7 +594,7 @@ class email_Incomings extends core_Master
 
             // Ако няма хедъри, значи има грешка
             if(!$headers) {
-                $this->log("[{$accId}][{$msgNum}] - missing headers");
+                $this->log("[{$accId}][{$msgNum}] - missing headers", NULL, 7);
 
                 return TRUE;
             }
@@ -602,7 +602,7 @@ class email_Incomings extends core_Master
             $isDown[$accId][$msgNum] = email_Fingerprints::isDown($headers);
         }
         
-        $this->log("Result: $msgNum  " . $isDown[$accId][$msgNum]);
+        $this->log("Result: $msgNum  " . $isDown[$accId][$msgNum], NULL, 7);
 
         return $isDown[$accId][$msgNum];
     }
@@ -1407,7 +1407,7 @@ class email_Incomings extends core_Master
             $i++;
             
             if($i % 100 == 1) {
-                $this->log("Update email $i");
+                $this->log("Update email $i", NULL, 7);
             }
             self::save($rec);
         }
