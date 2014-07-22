@@ -266,12 +266,16 @@ abstract class acc_ClosedDeals extends core_Master
     public static function on_AfterReject($mvc, &$res, $id)
     {
     	$rec = $mvc->fetch((is_object($id)) ? $id->id : $id);
+    	
     	if($rec->brState == 'active'){
     		$DocClass = cls::get($rec->docClassId);
 		    $firstRec = $DocClass->fetch($rec->docId);
-		    $firstRec->state = 'active';
 		    
-		    $DocClass->save($firstRec);
+		    // Обновяваме състоянието на сделката, само ако не е оттеглена
+		    if($firstRec->state != 'rejected'){
+		    	$firstRec->state = 'active';
+		    	$DocClass->save($firstRec);
+		    }
 		    
 		    // Ако има перо сделката, обновяваме му състоянието
 		    if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
