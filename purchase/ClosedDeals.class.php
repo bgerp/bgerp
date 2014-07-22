@@ -185,72 +185,115 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     
     
     /**
-     * Връща записа за начисляване на извънредния приход/разход
-     * ------------------------------------------------------
-     * Надплатеното:  Dt: 6912. Надплатени по покупки
-     * 				  Ct:  401. Задължения към доставчици (Доставчици, Сделки, Валути)
+     * Отчитане на извънредните приходи/разходи от сделката
+     * Ако в текущата сделка салдото по сметка 401 е различно от "0"
      * 
-     * Недоплатеното: Dt:  401. Задължения към доставчици (Доставчици, Сделки, Валути)
-     * 				  Ct: 7912. Отписани задължения по покупки
+     * Сметка 401 има Кредитно (Ct) салдо
+     * 		
+     * 		Намаляваме задълженията си към Доставчика с неиздължената сума с обратна (revers) операция, 
+     *		със сумата на кредитното салдо на с/ка 401 но с отрицателен знак
+     * 
+     * 			Dt: 7912 - Отписани задължения по Покупки
+     * 			Ct: 401 - Задължения към доставчици
+     * 		
+     * 		Отнасяме отписаните задължения (извънредния приход) по сделката като печалба по сметка 123 - Печалби и загуби от текущата година
+     * 		със сумата на кредитното салдо на с/ка 401
+     * 
+     * 			Dt: 7912 - Отписани задължения по Покупки
+     * 			Ct: 123 - Печалби и загуби от текущата година
+     * 
+     * Сметка 401 има Дебитно (Dt) салдо
+     * 		
+     * 		Намаляваме плащанията към Доставчика с надплатената сума с обратна (revers) операция, със сумата
+     * 		на дебитното салдо на с/ка 401 но с отрицателен знак
+     * 
+     * 			Dt: 401 - Задължения към доставчици
+     * 			Ct: 6912 - Извънредни разходи по Покупки
+     * 
+     * 		Отнасяме извънредните разходи по сделката като загуба по сметка 123 - Печалби и загуби от текущата година, със сумата на дебитното салдо на с/ка 401
+     * 
+     * 			Dt: 123 - Печалби и загуби от текущата година
+     * 			Ct: 6912 - Извънредни разходи по Покупки
+     * 
      */
 	protected function getCloseEntry($amount, $totalAmount, $docRec, $firstDoc)
     {
     	$entry = array();
-    	
-    	$entry = array();
     	 
     	if($amount == 0) return $entry;
-    	 
+    	
+    	// Сметка 401 има Дебитно (Dt) салдо
     	if($amount > 0){
+    		$entry1 = array(
+    				'amount' => -1 * $amount,
+    				'debit' => array('401',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that),
+    						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
+    						'quantity' => currency_Currencies::round($amount / $docRec->currencyRate)),
+    				'credit'  => array('6912',
+    								array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that)),
+    				);
     		
+    		$entry2 = array(
+    				'amount' => $amount,
+    				'debit' => array('123', $this->year->id),
+    				'credit'  => array('6912',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),
+    				);
+    		
+        // Сметка 401 има Кредитно (Ct) салдо
     	} elseif($amount < 0){
-    		
-    	}
-    	
-    	// Връщане на записа
-    	return array();//array($entry1, $entry2);
-    	
-    	if($amount < 0){
-    		
-    		// Записа за извънреден приход
-	    	$entry = array(
-	    		'amount' => $totalAmount,
-	    		'debit'  => array('401',
-	    								array($docRec->contragentClassId, $docRec->contragentId),
+    		$entry1 = array(
+    				'amount' => $amount,
+    				'debit'  => array('7912',
+    								array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that)),
+    				'credit' => array('401',
+    									array($docRec->contragentClassId, $docRec->contragentId),
 	    								array($firstDoc->className, $firstDoc->that), 
 	                        			array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-	                       			'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	            'credit' => array('7912',
-	            					array($docRec->contragentClassId, $docRec->contragentId),
-	            					array($firstDoc->className, $firstDoc->that)),
-	    	);
-    	} elseif($amount > 0){
-    		// Записа за извънреден разход
-	    	$entry = array(
-	    		'amount' => $totalAmount,
-	    		'debit'  => array('6912',
-	    							array($docRec->contragentClassId, $docRec->contragentId),
-	            					array($firstDoc->className, $firstDoc->that)),
-	    		'credit' => array('401',
-	    								array($docRec->contragentClassId, $docRec->contragentId),
-	    								array($firstDoc->className, $firstDoc->that),
-	                        			array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-	                       			'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	    	);
+	                       			'quantity' => currency_Currencies::round($amount / $docRec->currencyRate)));
+    		
+    		$entry2 = array(
+    				'amount' => abs($amount),
+    				'debit'  => array('7912',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),
+    				'credit' => array('123', $this->year->id));
     	}
     	
     	// Връщане на записа
-    	return $entry;
+    	return array($entry1, $entry2);
     }
     
     
 	/**
      * Прехвърля не неначисленото ДДС
-     * 		Dt: 302. Суровини и материали     		(Складове, Суровини и Материали)
-     * 			321. Стоки и продукти			    (Складове, Стоки и Продукти)
-     * 			602. Разходи за външни услуги       (Услуги)
+     * Ако в текущата сделка салдото по сметка 4530 е различно от "0":
      * 
-     * 		Ct: 4530. ДДС за начисляване
+     * Сметка 4530 има Кредитно (Ct) салдо;
+     * 
+     * 		Увеличаваме задълженията си към Доставчика със сумата на надфактурираното ДДС, със сумата на кредитното салдо на с/ка 4530
+     * 
+     * 			Dt: 4530 - ДДС за начисляване
+     * 			Ct: 401 - Задължения към доставчици
+     * 
+     * Сметка 4530 има Дебитно (Dt) салдо;
+     * 
+     * 		Тъй като отделеното за начисляване и нефактурирано (неначислено) ДДС не може да бъде възстановено, както се е 
+     * 		очаквало при отделянето му за начисляване по с/ка 4530, го отнасяме като извънреден разход по сделката,
+     * 		със сумата на дебитното салдо (отделеното, но неначислено ДДС) на с/ка 4530
+     * 
+     * 			Dt: 6912 - Извънредни разходи по Покупки
+     * 			Ct: 4530 - ДДС за начисляване
+     * 
+     * 		и го приключваме като намаление на финансовия резултат за годината със същата сума
+     * 
+     * 			Dt: 123 - Печалби и загуби от текущата година
+     * 			Ct: 6912 - Извънредни разходи по Покупки
      * 
      */
     protected function transferVatNotCharged($dealInfo, $docRec, &$total, $firstDoc)
@@ -258,29 +301,45 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	$entries = array();
     	
     	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
-    	 
     	$blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
     	
     	$total += abs($blAmount);
-    	 
+    	
     	if($blAmount == 0) return $entries;
-    	 
+    	
+    	// Сметка 4530 има Кредитно (Ct) салдо
     	if($blAmount < 0){
     		$entries = array('amount' => abs($blAmount),
-    				'debit'  => array('4535'),
-    				'credit' => array('4530', array($firstDoc->className, $firstDoc->that)));
-    	} elseif($blAmount > 0){
-    		$entries = array('amount' => $blAmount,
     				'debit'  => array('4530', array($firstDoc->className, $firstDoc->that)),
     				'credit' => array('401',
-    						array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that),
-    						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
-    						'quantity' => $blAmount));
-    	
-    		static::$diffAmount  = $blAmount;
+    								array($docRec->contragentClassId, $docRec->contragentId),
+    								array($firstDoc->className, $firstDoc->that),
+    								array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
+    							'quantity' => abs($blAmount)));
+    	} elseif($blAmount > 0){
+    		
+    		// Сметка 4530 има Дебитно (Dt) салдо
+    		$entries1 = array('amount' => $blAmount,
+    							'debit' => array('6912',
+	    							array($docRec->contragentClassId, $docRec->contragentId),
+	            					array($firstDoc->className, $firstDoc->that)),
+    							'credit'  => array('4530', 
+    								array($firstDoc->className, $firstDoc->that),
+    								'quantity' => $blAmount));
+    		
+    		$entries2 = array('amount' => $blAmount,
+    							'debit' => array('123', $this->year->id),
+    							'credit' => array('6912',
+    								array($docRec->contragentClassId, $docRec->contragentId),
+    								array($firstDoc->className, $firstDoc->that)),
+    							);
+    		
+    		$total += $blAmount;
+    		$entries = array($entries1, $entries2);
+    		
     	}
     	
+    	// Връщаме ентритата
     	return $entries;
     }
     
@@ -304,15 +363,15 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     
     
     /**
-     * Ако има направени авансови плащания към сделката се приключва и аванса
-     * Направените аванси са сумирани по валута, така за всяко авансово плащане в различна валута
-     * има запис за неговото приключване
-     *
-     *
-     * Приключване на аванс на покупка:
-     * -------------------------------------------------------
-     * Dt: 401. Задължения към доставчици (Доставчици, Валути)
-     * Ct: 402. Вземания от доставчици по аванси
+     * Ако в текущата сделка салдото по сметка 402 е различно от "0"
+     * 
+     * 		Намаляваме задължението си към доставчика със сумата на платения му аванс, респективно - намаляваме 
+     * 		направените към Доставчика плащания с отрицателната сума на евентуално върнат ни аванс, без да сме
+     * 		платили такъв (т.к. системата допуска създаването на revert операция без наличието на права такава преди това),
+     * 		със сумата 1:1 (включително и ако е отрицателна) на дебитното салдо на с/ка 402
+     * 
+     * 			Dt: 401 Задължения към доставчици
+     * 			Ct: 402 Вземания от доставчици по аванси
      */
     public function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$total, $firstDoc)
     {
@@ -346,18 +405,6 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	
     	$total += $entry['amount'];
     	
-    	return array($entry);
-    }
-    
-    
-    protected function transferIncome($dealInfo, $docRec, &$total, $firstDoc)
-    {
-    	return array();
-    }
-    
-    
-    protected function transferIncomeToYear($dealInfo, $docRec, &$total, $firstDoc)
-    {
-    	return array();
+    	return $entry;
     }
 }

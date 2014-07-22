@@ -1718,8 +1718,16 @@ class cal_Tasks extends core_Master
     	// или равен на посочения в подчинената задача
     	$conditionTwo = FALSE;
     	$now = dt::verbal2mysql();
+        
+    	$nowTimeStamp = dt::mysql2timestamp($now);
+        $yesterday = $nowTimeStamp - (24 * 60 * 60); 
+    	$yesterdayDate =  dt::timestamp2Mysql($yesterday);
     	
-    	if (!$rec->timeStart || $rec->timeStart < $now) {
+    	if (!$rec->timeStart) {
+    		$conditionOne = TRUE;
+    	}
+    	
+    	if ($yesterdayDate > $rec->timeStart && $rec->timeStart < $now) {
     		$conditionOne = TRUE;
     	}
     	

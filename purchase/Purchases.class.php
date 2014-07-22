@@ -386,7 +386,9 @@ class purchase_Purchases extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-         // Името на шаблона е и име на документа
+    	$rec = static::fetchRec($rec);
+    	
+        // Името на шаблона е и име на документа
         $templateId = static::getTemplate($rec);
         $templateName = doc_TplManager::getTitleById($templateId);
     	

@@ -701,9 +701,10 @@ class crm_Profiles extends core_Master
         if(!$userId) {
             $userId = core_Users::getCurrent();
         }
-
+        
+        $userRec = core_Users::fetch($userId);
+        
         if(!$title) {
-            $userRec = core_Users::fetch($userId);
             $title = self::getUserTitle($userRec->nick);
         }
 
