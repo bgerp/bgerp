@@ -173,10 +173,12 @@ class core_Users extends core_Manager
      * Връща масив с потребители в системата Ник => Имена
      * 
      * @param array $rolesArr
+     * @param string $nick
+     * @param integer $limit
      * 
      * return array
      */
-    static function getUsersArr_($rolesArr=array())
+    static function getUsersArr_($rolesArr=array(), $nick=NULL, $limit=10)
     {
         if ($rolesArr) {
             
@@ -193,8 +195,20 @@ class core_Users extends core_Manager
             $query->where("#state != 'rejected'");
             $query->where("#state != 'draft'");
             
+            // Ако са зададени роли
             if ($roles) {
                 $query->likeKeylist('roles', $roles);
+            }
+            
+            // Ако е зададен ник
+            if ($nick) {
+                $nick = strtolower($nick);
+                $query->where(array("LOWER(#nick) LIKE '[#1#]%'", $nick));
+            }
+            
+            // Ако е зададено ограничение
+            if ($limit) {
+                $query->limit($limit);
             }
             
             while ($rec =  $query->fetch()) {
