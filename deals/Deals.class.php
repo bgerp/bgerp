@@ -157,7 +157,7 @@ class deals_Deals extends core_Master
     public function description()
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,width=100%');
-    	$this->FLD('blAmount', 'double(decimals=2)', 'input=none,notNull');
+    	$this->FLD('amountDeal', 'double(decimals=2)', 'input=none,notNull,oldFieldName=blAmount');
     	$this->FLD('accountId', 'acc_type_Account', 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
@@ -309,8 +309,8 @@ class deals_Deals extends core_Master
     		$row->accountId = ht::createLink($row->accountId, $accUrl);
     	}
     	
-    	@$rec->blAmount /= $rec->currencyRate;
-    	$row->blAmount = $mvc->fields['blAmount']->type->toVerbal($rec->blAmount);
+    	@$rec->amountDeal /= $rec->currencyRate;
+    	$row->amountDeal = $mvc->fields['amountDeal']->type->toVerbal($rec->amountDeal);
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     }
@@ -777,7 +777,7 @@ class deals_Deals extends core_Master
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
     	$aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
-    	$rec->blAmount = $aggregateDealInfo->get('amount');
+    	$rec->amountDeal = $aggregateDealInfo->get('amount');
     	
     	$mvc->save($rec);
     }
