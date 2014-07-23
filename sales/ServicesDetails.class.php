@@ -2,7 +2,7 @@
 /**
  * Клас 'sales_ServicesDetails'
  *
- * Детайли на мениджър на протокол за доставка на услуги (@see sales_ServicesDetails)
+ * Детайли на мениджър на предавателните протоколи
  *
  * @category  bgerp
  * @package   sales
@@ -16,7 +16,7 @@ class sales_ServicesDetails extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Детайли на протокола за доставка на услуги';
+    public $title = 'Детайли на предавателния протокол';
 
 
     /**
