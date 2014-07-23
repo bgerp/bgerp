@@ -43,8 +43,8 @@ class deals_transaction_CloseDeal
     			'entries'     => array(),
     	);
     	
-    	$year = ($info->get('invoicedValior')) ? $info->get('invoicedValior') : $info->get('agreedValior');
-    	$this->year = acc_Periods::forceYearItem($year);
+    	$date = ($info->get('invoicedValior')) ? $info->get('invoicedValior') : $info->get('agreedValior');
+    	$this->date = acc_Periods::forceYearAndMonthItems($date);
     	
     	if($amount == 0) return $result;
     	
@@ -106,7 +106,7 @@ class deals_transaction_CloseDeal
 		    					array($firstDoc->className, $firstDoc->that)),);
     		
     		$entry2 = array('amount' => $amount,
-    						'debit' => array('123', $this->year->id),
+    						'debit' => array('123', $this->date->year, $this->date->month),
     						'credit' => array('6913',
 		    					array($docRec->contragentClassId, $docRec->contragentId),
 		    					array($firstDoc->className, $firstDoc->that)),);
@@ -126,7 +126,7 @@ class deals_transaction_CloseDeal
     				'debit' => array('7913',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
-    				'credit' => array('123', $this->year->id));
+    				'credit' => array('123', $this->date->year, $this->date->month));
     	}
     	
     	return array($entry1, $entry2);
