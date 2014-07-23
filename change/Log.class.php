@@ -73,7 +73,7 @@ class change_Log extends core_Manager
      * Плъгини за зареждане
      * @todo Да се премахне
      */
-    var $loadList = 'plg_Created';
+//    var $loadList = 'plg_Created';
     
     
     /**
@@ -87,8 +87,8 @@ class change_Log extends core_Manager
         $this->FLD('value', 'blob(1000000,compress,serialize)', 'caption=Стойности');
         
         // @todo Да се добавя след премахване на plg_Created
-//        $this->FNC('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, input=none'); 
-//        $this->FNC('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, input=none');
+        $this->FNC('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, input=none'); 
+        $this->FNC('createdBy', 'key(mvc=core_Users, select=nick)', 'caption=Създаване->От, input=none');
         
         $this->FLD('version', 'varchar', 'caption=Версия,input=none'); // @todo Да се премахне
         $this->FLD('subVersion', 'int', 'caption=Подверсия,input=none'); // @todo Да се премахне
@@ -246,7 +246,7 @@ class change_Log extends core_Manager
                 );
                 
                 // Записите във вербален вид
-                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+                $row = static::recToVerbal($row, array_merge(array_keys(get_object_vars($row)), array('-single')));
                 
                 // Стринга на версията
                 $versionStr = static::getVersionStr($value->version, $value->subVersion);
@@ -276,7 +276,7 @@ class change_Log extends core_Manager
         if (isset($docRec->modifiedBy) && isset($docRec->modifiedOn)) {
             
             // Вземаме вербалните им стойности
-            $lastVerRow = $class->recToVerbal($docRec, 'modifiedBy, modifiedOn');
+            $lastVerRow = $class->recToVerbal($docRec, 'modifiedBy, modifiedOn, -single');
             $row->createdBy = $lastVerRow->modifiedBy;
             $row->createdOn = $lastVerRow->modifiedOn;
         }
