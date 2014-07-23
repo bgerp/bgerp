@@ -26,9 +26,8 @@ class doc_RichTextPlg extends core_Plugin
      * @param name     - Името на шаблона, без # отпред
      * @param abbr     - Абревиатурата на шаблона
      * @param id       - id' то на шаблона
-     * @param end      - Символа след шаблона
      */
-    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'\#(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})))(?'end'[^a-z0-9а-я]|$){1}/iu";
+    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'\#(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))){1}/iu";
     
     
     /**
@@ -103,7 +102,7 @@ class doc_RichTextPlg extends core_Plugin
 
         //Стойността, която ще заместим в регулярния израз
         //Добавяме символите отркити от регулярниярния израз, за да не се развали текста
-        $res = $match['begin'] . "[#{$place}#]" . $match['end'];
+        $res = $match['begin'] . "[#{$place}#]";
 
         return  $res;
     }
