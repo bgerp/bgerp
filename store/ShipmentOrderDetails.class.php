@@ -148,7 +148,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
-        $this->FLD('info', "varchar(125)", 'caption=Колети');
+        $this->FLD('info', "varchar(125)", 'caption=Колети,width=7em');
     }
 
 
