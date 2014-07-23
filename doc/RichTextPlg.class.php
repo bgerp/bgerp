@@ -22,12 +22,13 @@ class doc_RichTextPlg extends core_Plugin
      * Шаблона трябва да не започва и/или да не завършва с буква и/или цифра
      * 
      * @param begin    - Символа преди шаблона
+     * @param dsSign    - Символа за документа
      * @param dsName  - Името на шаблона, с # отпред
      * @param name     - Името на шаблона, без # отпред
      * @param abbr     - Абревиатурата на шаблона
      * @param id       - id' то на шаблона
      */
-    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'\#(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))){1}/iu";
+    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'(?'dsSign'\#)(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))){1}/iu";
     
     
     /**
@@ -62,7 +63,7 @@ class doc_RichTextPlg extends core_Plugin
         $abbr = ($doc->instance->abbr) ? $doc->instance->abbr : $match['abbr'];
         
         //Име на файла
-        $docName = $abbr . $match['id'];
+        $docName = $match['dsSign'] . $abbr . $match['id'];
         
         $mvc    = $doc->instance;
         $docRec = $doc->rec();
