@@ -749,7 +749,7 @@ class crm_Profiles extends core_Master
     static function getUserTitle($nick)
     {
         list($l, $r) = explode('@', $nick);
-        $title = str_replace(' ', '&nbsp;', mb_convert_case(str_replace(array('.', '_'), array(' ', ' '), $l), MB_CASE_TITLE, "UTF-8"));
+        $title = core_Users::stringToNickCase($l);
         if($r) {
             $title .= '@' . $r;
         }
