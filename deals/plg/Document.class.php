@@ -136,7 +136,9 @@ class deals_plg_Document extends core_Plugin
 		$count = $query->count();
 		while($rec = $query->fetch()){
 			try{
-				$mvc->restore($rec->id);
+				if($mvc->haveRightFor('restore', $rec)){
+					$mvc->restore($rec->id);
+				}
 			} catch(Exception $e){
 				$mvc->log("Проблем с възстановяване на {$mvc->singleTitle}, {$rec->id}");
 			}
