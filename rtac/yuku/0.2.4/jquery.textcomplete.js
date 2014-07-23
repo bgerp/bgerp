@@ -397,6 +397,10 @@
         }
         dir = this.$el.attr('dir') || this.$el.css('direction');
         if (dir === 'rtl') { position.left -= this.listView.$el.width(); }
+    
+        if (position.left + this.$el.offset().left > $(window).width()/2) {  
+        	position.left = $(window).width()/2 - this.$el.offset().left;
+        }
         
         return position;
       },
