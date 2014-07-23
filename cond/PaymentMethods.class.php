@@ -303,6 +303,9 @@ class cond_PaymentMethods extends core_Master
     	// Ако няма ид, няма очакван аванс
     	if(!$id) return NULL;
     	
+    	// Ако сумата е 0, няма очакван аванс
+    	if($amount == 0) return NULL;
+    	
     	// Трябва да са подадени валидни данни
     	expect(is_numeric($amount));
     	expect($rec = static::fetch($id));
