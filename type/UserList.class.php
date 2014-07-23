@@ -219,4 +219,13 @@ class type_UserList extends type_Keylist
         // Връщаме keylist
         return type_Keylist::fromArray($retTypeArr);
     }
+    
+    
+    /**
+     * Връща ролите зададени в полето за избор
+     */
+    public function getRoles()
+    {
+    	return $this->params['roles'];
+    }
 }
