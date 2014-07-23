@@ -54,12 +54,15 @@ class doc_RichTextPlg extends core_Plugin
      */
     function _catchFile($match)
     {
-        //Име на файла
-        $docName = $match['dsName'];
-
         if (!$doc = doc_Containers::getDocumentByHandle($match)) {
             return $match[0];
         }
+        
+        // Абревиатурарата
+        $abbr = ($doc->instance->abbr) ? $doc->instance->abbr : $match['abbr'];
+        
+        //Име на файла
+        $docName = $abbr . $match['id'];
         
         $mvc    = $doc->instance;
         $docRec = $doc->rec();
