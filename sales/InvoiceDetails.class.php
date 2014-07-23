@@ -174,7 +174,7 @@ class sales_InvoiceDetails extends core_Detail
      */
     public function calculateAmount_(&$recs, &$rec)
     {
-    	deals_Helper::fillRecs($recs, $rec, static::$map);
+    	deals_Helper::fillRecs($this->Master, $recs, $rec, static::$map);
     }
     
     

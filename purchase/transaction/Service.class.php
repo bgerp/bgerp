@@ -40,7 +40,7 @@ class purchase_transaction_Service
     	}
     	
     	if(count($detailsRecs)){
-    		deals_Helper::fillRecs($detailsRecs, $rec);
+    		deals_Helper::fillRecs($this->class, $detailsRecs, $rec);
     		 
     		foreach ($detailsRecs as $dRec) {
 				$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
@@ -76,8 +76,8 @@ class purchase_transaction_Service
     			);
     		}
     		 
-    		if($rec->_total->vat){
-    			$vatAmount = currency_Currencies::round($rec->_total->vat * $rec->currencyRate);
+    		if($this->class->_total->vat){
+    			$vatAmount = currency_Currencies::round($this->class->_total->vat * $rec->currencyRate);
     			$entries[] = array(
     					'amount' => $vatAmount, // В основна валута
     

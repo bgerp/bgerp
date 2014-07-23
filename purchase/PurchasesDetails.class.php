@@ -208,7 +208,7 @@ class purchase_PurchasesDetails extends core_Detail
         $purchaseRec = $data->masterData->rec;
         
         if (empty($recs)) return;
-        deals_Helper::fillRecs($recs, $purchaseRec);
+        deals_Helper::fillRecs($mvc->Master, $recs, $purchaseRec);
     }
     
     

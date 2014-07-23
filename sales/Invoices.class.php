@@ -311,9 +311,9 @@ class sales_Invoices extends core_Master
     	
         $this->sales_InvoiceDetails->calculateAmount($recs, $rec);
         
-        $rec->dealValue = round($rec->_total->amount * $rec->rate, 8);
-        $rec->vatAmount = round($rec->_total->vat * $rec->rate, 8);
-        $rec->discountAmount = round($rec->_total->discount * $rec->rate, 8);
+        $rec->dealValue = round($this->_total->amount * $rec->rate, 8);
+        $rec->vatAmount = round($this->_total->vat * $rec->rate, 8);
+        $rec->discountAmount = round($this->_total->discount * $rec->rate, 8);
     	$this->save($rec);
     }
     
@@ -789,16 +789,16 @@ class sales_Invoices extends core_Master
     	
     	if(empty($data->noTotal)){
     		if($rec->type != 'invoice'){
-    			$rec->_total = new stdClass();
-    			$rec->_total->amount = $rec->dealValue / $rec->rate;
-    			$rec->_total->vat = $rec->vatAmount / $rec->rate;
+    			$this->_total = new stdClass();
+    			$this->_total->amount = $rec->dealValue / $rec->rate;
+    			$this->_total->vat = $rec->vatAmount / $rec->rate;
     		}
     		
-    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
+    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
     	 	if($rec->paymentMethodId && $rec->type == 'invoice' && $rec->dpOperation != 'accrued') {
-    	 		$total = $rec->_total->amount + $rec->_total->vat - $rec->_total->discount;
+    	 		$total = $this->_total->amount + $this->_total->vat - $this->_total->discount;
                 cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
             }
     	}

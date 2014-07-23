@@ -272,14 +272,14 @@ class sales_Sales extends core_Master
         $query->where("#saleId = '{$id}'");
         $recs = $query->fetchAll();
         
-        deals_Helper::fillRecs($recs, $rec);
+        deals_Helper::fillRecs($this, $recs, $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amountDeal = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
-        $amountDeal -= $rec->_total->discount;
+        $amountDeal = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+        $amountDeal -= $this->_total->discount;
         $rec->amountDeal = $amountDeal * $rec->currencyRate;
-        $rec->amountVat  = $rec->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
+        $rec->amountVat  = $this->_total->vat * $rec->currencyRate;
+        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
         
         $this->save($rec);
     }
@@ -819,11 +819,11 @@ class sales_Sales extends core_Master
     	if(empty($data->noTotal)){
     		
     		$fromProforma = ($data->fromProforma) ? TRUE : FALSE;
-    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, $fromProforma, $rec->tplLang);
+    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, $fromProforma, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
     		if($rec->paymentMethodId) {
-    			$total = $rec->_total->amount- $rec->_total->discount;
+    			$total = $this->_total->amount- $this->_total->discount;
     			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
     		}
     	}

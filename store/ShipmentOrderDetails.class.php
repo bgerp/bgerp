@@ -223,7 +223,7 @@ class store_ShipmentOrderDetails extends core_Detail
         
         if (empty($recs)) return;
         
-        deals_Helper::fillRecs($recs, $orderRec);
+        deals_Helper::fillRecs($mvc->Master, $recs, $orderRec);
         
         // Преброява броя на колетите, само ако се показва тази информация
         if(isset($data->listFields['info'])){

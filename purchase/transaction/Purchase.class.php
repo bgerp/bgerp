@@ -80,7 +80,7 @@ class purchase_transaction_Purchase
         if ($actions['ship'] || $actions['pay']) {
             
             $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
-			deals_Helper::fillRecs($rec->details, $rec); 
+			deals_Helper::fillRecs($this->class, $rec->details, $rec); 
             
             if ($actions['ship']) {
                 // Покупката играе роля и на складова разписка.
@@ -234,8 +234,8 @@ class purchase_transaction_Purchase
     		}
         }
         
-    	if($rec->_total->vat){
-	        $vatAmount = currency_Currencies::round($rec->_total->vat * $rec->currencyRate);
+    	if($this->class->_total->vat){
+	        $vatAmount = currency_Currencies::round($this->class->_total->vat * $rec->currencyRate);
 	        $entries[] = array(
 	             'amount' => $vatAmount, // В основна валута
 	                
@@ -283,7 +283,7 @@ class purchase_transaction_Purchase
         }
         
         if($rec->chargeVat == 'separate'){
-        	$amountBase += $rec->_total->vat;
+        	$amountBase += $this->class->_total->vat;
         }
         
         $quantityAmountBase += currency_Currencies::round($amountBase, $rec->currencyId);

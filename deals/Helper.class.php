@@ -113,7 +113,7 @@ abstract class deals_Helper
 	 * @param array $map - масив с мапващи стойностите на полета от фунцкията
 	 * с полета в модела, има стойности по подрабзиране (@see static::$map)
 	 */
-	public static function fillRecs(&$recs, &$masterRec, $map = array())
+	public static function fillRecs(&$mvc, &$recs, &$masterRec, $map = array())
 	{
 		if(count($recs) === 0) return;
 		expect(is_object($masterRec));
@@ -155,10 +155,10 @@ abstract class deals_Helper
         	$amountVat       		+= $amountObj->vatAmount;
 		}
 		
-		$masterRec->_total           = new stdClass();
-        $masterRec->_total->amount   = $amount;
-        $masterRec->_total->vat      = $amountVat;
-        $masterRec->_total->discount = $discount;
+		$mvc->_total           = new stdClass();
+        $mvc->_total->amount   = $amount;
+        $mvc->_total->vat      = $amountVat;
+        $mvc->_total->discount = $discount;
 	}
 	
 	

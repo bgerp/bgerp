@@ -255,7 +255,7 @@ class sales_SalesDetails extends core_Detail
         $salesRec = $data->masterData->rec;
         
         $map = ($data->masterData->fromProforma) ? array('alwaysHideVat' => TRUE) : array();
-        deals_Helper::fillRecs($recs, $salesRec, $map);
+        deals_Helper::fillRecs($mvc->Master, $recs, $salesRec, $map);
     }
     
     

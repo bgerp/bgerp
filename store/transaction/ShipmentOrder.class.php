@@ -164,7 +164,7 @@ class store_transaction_ShipmentOrder
         $currencyRate = $rec->currencyRate;
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
-        deals_Helper::fillRecs($rec->details, $rec);
+        deals_Helper::fillRecs($this->class, $rec->details, $rec);
         
         foreach ($rec->details as $detailRec) {
         	if($rec->chargeVat == 'yes'){
@@ -202,8 +202,8 @@ class store_transaction_ShipmentOrder
             );
         }
         
-        if($rec->_total->vat){
-        	$vatAmount = currency_Currencies::round($rec->_total->vat * $currencyRate);
+        if($this->class->_total->vat){
+        	$vatAmount = currency_Currencies::round($this->class->_total->vat * $currencyRate);
         	$entries[] = array(
                 'amount' => $sign * $vatAmount, // В основна валута
                 

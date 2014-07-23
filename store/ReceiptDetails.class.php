@@ -194,7 +194,7 @@ class store_ReceiptDetails extends core_Detail
         
         if (empty($recs)) return;
         
-        deals_Helper::fillRecs($recs, $receiptRec);
+        deals_Helper::fillRecs($mvc->Master, $recs, $receiptRec);
     }
     
     
