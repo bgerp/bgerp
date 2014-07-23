@@ -995,11 +995,14 @@ class purchase_Invoices extends core_Master
      */
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
+    	// ДИ и КИ могат да се активират винаги
+    	if($rec->type != 'invoice' && isset($rec->changeAmount)){
+    		$res = ($rec->changeAmount >= 0) ? TRUE : FALSE;
+    		return;
+    	}
+    	
     	// Ако няма ид, не може да се активира документа
     	if(empty($rec->id) && !isset($rec->dpAmount)) return $res = FALSE;
-    	
-    	// ДИ и КИ могат да се активират винаги
-    	if($rec->type != 'invoice') return $res = TRUE;
     	
     	// Ако има Авансово плащане може да се активира
     	if(isset($rec->dpAmount)){
@@ -1008,7 +1011,7 @@ class purchase_Invoices extends core_Master
     		return;
     	}
     	
-    	$dQuery = $mvc->purchase_InvoiceDetails->getQuery();
+    	$dQuery = $mvc->sales_InvoiceDetails->getQuery();
     	$dQuery->where("#invoiceId = {$rec->id}");
     	$dQuery->where("#quantity = 0");
     	
@@ -1016,7 +1019,6 @@ class purchase_Invoices extends core_Master
     	if($dQuery->fetch()){
     		$res = FALSE;
     	}
-    	
     }
     
     

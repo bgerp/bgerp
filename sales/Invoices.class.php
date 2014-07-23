@@ -1103,7 +1103,6 @@ class sales_Invoices extends core_Master
      */
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
-    	
     	// ДИ и КИ могат да се активират винаги
     	if($rec->type != 'invoice' && isset($rec->changeAmount)){
     		$res = ($rec->changeAmount >= 0) ? TRUE : FALSE;
