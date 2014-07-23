@@ -42,7 +42,7 @@
 .dropdown-submenu:focus > a {
   color: #ffffff;
   text-decoration: none;
-  background: #8080f0;
+  background: #3399ff;
 }
 
 .dropdown-menu > .active > a,
@@ -50,7 +50,7 @@
 .dropdown-menu > .active > a:focus {
   color: #ffffff;
   text-decoration: none;
-  background: #8080f0;
+  background: #3399ff;
 }
 
 .dropdown-menu > .active > a,.dropdown-menu > li:hover > a{
