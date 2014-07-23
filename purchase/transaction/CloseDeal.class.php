@@ -230,10 +230,10 @@ class purchase_transaction_CloseDeal
      * Сметка 401 има Кредитно (Ct) салдо
      *
      * 		Намаляваме задълженията си към Доставчика с неиздължената сума с обратна (revers) операция,
-     *		със сумата на кредитното салдо на с/ка 401 но с отрицателен знак
+     *		със сумата на кредитното салдо на с/ка 401
      *
-     * 			Dt: 7912 - Отписани задължения по Покупки
-     * 			Ct: 401 - Задължения към доставчици
+     * 			Dt: 401 - Задължения към доставчици
+     * 			Ct: 7912 - Отписани задължения по Покупки
      *
      * 		Отнасяме отписаните задължения (извънредния приход) по сделката като печалба по сметка 123 - Печалби и загуби от текущата година
      * 		със сумата на кредитното салдо на с/ка 401
@@ -244,10 +244,11 @@ class purchase_transaction_CloseDeal
      * Сметка 401 има Дебитно (Dt) салдо
      *
      * 		Намаляваме плащанията към Доставчика с надплатената сума с обратна (revers) операция, със сумата
-     * 		на дебитното салдо на с/ка 401 но с отрицателен знак
+     * 		на дебитното салдо на с/ка 401
      *
-     * 			Dt: 401 - Задължения към доставчици
-     * 			Ct: 6912 - Извънредни разходи по Покупки
+     * 			Dt: 6912 - Извънредни разходи по Покупки
+     * 			Ct: 401 - Задължения към доставчици
+     * 			
      *
      * 		Отнасяме извънредните разходи по сделката като загуба по сметка 123 - Печалби и загуби от текущата година, със сумата на дебитното салдо на с/ка 401
      *
@@ -255,7 +256,7 @@ class purchase_transaction_CloseDeal
      * 			Ct: 6912 - Извънредни разходи по Покупки
      *
      */
-    private function getCloseEntry($amount, $totalAmount, $docRec, $firstDoc)
+    private function getCloseEntry($amount, &$totalAmount, $docRec, $firstDoc)
     {
     	$entry = array();
     
@@ -264,13 +265,13 @@ class purchase_transaction_CloseDeal
     	// Сметка 401 има Дебитно (Dt) салдо
     	if($amount > 0){
     		$entry1 = array(
-    				'amount' => -1 * $amount,
-    				'debit' => array('401',
+    				'amount' => $amount,
+    				'credit' => array('401',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
     						'quantity' => currency_Currencies::round($amount / $docRec->currencyRate)),
-    				'credit'  => array('6912',
+    				'debit'  => array('6912',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
     		);
@@ -283,18 +284,20 @@ class purchase_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that)),
     		);
     
+    		$totalAmount += 2 * $amount;
+    		
     		// Сметка 401 има Кредитно (Ct) салдо
     	} elseif($amount < 0){
     		$entry1 = array(
-    				'amount' => $amount,
-    				'debit'  => array('7912',
+    				'amount' => -1 * $amount,
+    				'credit'  => array('7912',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
-    				'credit' => array('401',
+    				'debit' => array('401',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => currency_Currencies::round($amount / $docRec->currencyRate)));
+    						'quantity' => currency_Currencies::round(-1 * $amount / $docRec->currencyRate)));
     
     		$entry2 = array(
     				'amount' => abs($amount),
@@ -302,6 +305,8 @@ class purchase_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
     				'credit' => array('123', $this->date->year, $this->date->month));
+    		
+    		$totalAmount += -2 * $amount;
     	}
     	 
     	// Връщане на записа
