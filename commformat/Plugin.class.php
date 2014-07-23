@@ -92,7 +92,7 @@ class commformat_Plugin extends core_Plugin
      */
     function catchCommunicationWebFormat($match)
     {
-//bp($match);
+
     	// намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
               
@@ -408,7 +408,7 @@ class commformat_Plugin extends core_Plugin
 	    	// добавяме иконата пред името на услугата
         	$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $match[2]. " " . $email . "</span>";
 	    } else {
-	    	$this->mvc->_htmlBoard[$place] =  $match[3];
+	    	return $match[0];
 	    }
       
         $communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
