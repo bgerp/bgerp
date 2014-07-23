@@ -1240,4 +1240,13 @@ class purchase_Purchases extends core_Master
     
     	return $result;
     }
+    
+    
+    /**
+     * Документа винаги може да се активира, дори и да няма детайли
+     */
+    public static function canActivate($rec)
+    {
+    	return TRUE;
+    }
 }

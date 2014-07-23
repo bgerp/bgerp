@@ -1426,4 +1426,13 @@ class sales_Sales extends core_Master
     		$mvc->sales_SalesDetails->save($product);
     	}
     }
+    
+    
+    /**
+     * Документа винаги може да се активира, дори и да няма детайли
+     */
+    public static function canActivate($rec)
+    {
+    	return TRUE;
+    }
 }
