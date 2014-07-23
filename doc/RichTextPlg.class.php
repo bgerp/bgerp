@@ -77,8 +77,6 @@ class doc_RichTextPlg extends core_Plugin
             $this->mvc->_htmlBoard[$place] = "{$docName} ( $link )";
         } else {
             
-            $title = substr($docName, 1);
-            
             // Икона на линка
             $attr['ef_icon'] = $doc->getIcon($doc->that);
             
@@ -97,7 +95,7 @@ class doc_RichTextPlg extends core_Plugin
                 $attr['target'] = "_parent";
             }
             
-            $href = ht::createLink($title, $link, NULL, $attr);
+            $href = ht::createLink($docName, $link, NULL, $attr);
             
             //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
             $this->mvc->_htmlBoard[$place] = $href->getContent();
