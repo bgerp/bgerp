@@ -406,7 +406,7 @@ class commformat_Plugin extends core_Plugin
 	    	$email = $Email->toVerbal($match[3]);
 	    	
 	    	// добавяме иконата пред името на услугата
-        	$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $match[2]. " " . $email . "</span>";
+        	$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $match[1]. " " . $email . "</span>";
 	    } else {
 	    	return $match[0];
 	    }
