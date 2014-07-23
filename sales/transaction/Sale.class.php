@@ -474,9 +474,7 @@ class sales_transaction_Sale
 	{
 		$jRecs = static::getEntries($id);
 		
-		$paid = acc_Balances::getBlAmounts($jRecs, '411', 'credit')->amount;
-		$paid += -1 * acc_Balances::getBlAmounts($jRecs, '412')->amount;
-		$paid -= acc_Balances::getBlAmounts($jRecs,  '411', 'credit', '6911')->amount;
+		$paid = acc_Balances::getBlAmounts($jRecs, '501,503', 'debit')->amount;
 		
 		return $paid;
 	}

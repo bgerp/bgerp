@@ -418,10 +418,8 @@ class purchase_transaction_Purchase
     {
     	$jRecs = static::getEntries($jRecs);
     	
-    	$paid = acc_Balances::getBlAmounts($jRecs, '401', 'debit')->amount;
-    	$paid += acc_Balances::getBlAmounts($jRecs, '402')->amount;
-    	$paid -= acc_Balances::getBlAmounts($jRecs,  '401', 'debit', '7912')->amount;
-    
+    	$paid = acc_Balances::getBlAmounts($jRecs, '501,503', 'credit')->amount;
+    	
     	return $paid;
     }
     
