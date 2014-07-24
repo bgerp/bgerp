@@ -147,7 +147,7 @@ class acc_ArticleDetails extends core_Detail
                             $num = $Varchar->toVerbal(acc_Items::fetchField($rec->{$ent}, 'num'));
                             $listGroupTitle = acc_Lists::fetchField($accRec->{"groupId{$i}"}, 'name');
                             
-                            $ents .= "<tr><td> <span style='margin-left:10px'>{$i}. {$row->{$ent}}</span></td</tr>";
+                            $ents .= "<tr><td> <span style='margin-left:10px'><b>{$i}</b>: {$row->{$ent}}</span></td</tr>";
                         }
                     }
                     
