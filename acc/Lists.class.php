@@ -506,45 +506,6 @@ class acc_Lists extends core_Manager {
         
         return $itemRec;
     }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function act_Lists()
-    {
-        $form = cls::get('core_Form');
-        $form->setAction('acc_Lists', 'lists');
-        $form->FLD('classId', 'varchar', 'input=hidden,silent');
-        $form->FLD('objectId', 'int', 'input=hidden,silent');
-        $form->FLD('ret_url', 'varchar(1024)', 'input=hidden,silent');
-        $form->FLD('lists', 'keylist', 'caption=Номенклатури');
-        
-        $form->input(null, true);
-        
-        $form->fields['lists']->type->suggestions = self::getPossibleLists($form->rec->classId);
-        $form->fields['lists']->value = keylist::fromArray(self::getItemLists($form->rec->classId, $form->rec->objectId));
-        
-        $form->input();
-        
-        if ($form->isSubmitted()) {
-            if (self::updateItem($form->rec->classId, $form->rec->objectId, $form->rec->lists)) {
-                return new Redirect(getRetUrl());
-            }
-        }
-        
-        $AccRegister = cls::getInterface('acc_RegisterIntf', $form->rec->classId);
-        $form->title = 'Номенклатури на|* ' . strip_tags($AccRegister->getLinkToObj($form->rec->objectId));
-        
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
-        
-        $class = cls::get($form->rec->classId);
-        
-        $tpl = $class->renderWrapping($form->renderHtml());
-        
-        return $tpl;
-    }
 
     
     /**
