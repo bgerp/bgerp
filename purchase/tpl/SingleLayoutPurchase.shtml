@@ -50,7 +50,9 @@
 				  </tr>
 				  <tr style='height:5px'></tr>
 				    <tr>
-				        <td rowspan='2' style = 'border:0px;'></td>
+				        <td class = 'sum-th'>
+			            	|Салдо|*, [#currencyId#]
+			       	 	</td>
 				        <td class = 'sum-th'>
 				            |За доставяне|*, [#currencyId#]
 				        </td>
@@ -62,6 +64,7 @@
 				        </td>
 				    </tr>
 				    <tr>
+				    	<td>[#amountBl#]</td>
 				    	<td>[#amountToDeliver#]</td>
 				    	<td>[#amountToPay#]</td>
 				    	<td>[#amountToInvoice#]</td>

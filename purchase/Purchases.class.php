@@ -208,6 +208,7 @@ class purchase_Purchases extends core_Master
         
         $this->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none,summary=amount'); // Сумата на доставената стока
+        $this->FLD('amountBl', 'double(decimals=2)', 'caption=Стойности->Крайно салдо,input=none,summary=amount');
         $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
         $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е фактурирана
         $this->FLD('amountVat', 'double(decimals=2)', 'input=none');
@@ -503,7 +504,7 @@ class purchase_Purchases extends core_Master
 		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
 		$rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
 		
-    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice') as $amnt) {
+    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0,00</span>';
             } else {
@@ -512,7 +513,7 @@ class purchase_Purchases extends core_Master
             }
         }
         
-    	foreach (array('ToPay', 'ToDeliver', 'ToInvoice') as $amnt){
+    	foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt){
         	$color = ($rec->{"amount{$amnt}"} < 0) ? 'red' : 'green';
         	$row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
@@ -784,11 +785,12 @@ class purchase_Purchases extends core_Master
         $result->setIfNot('bankAccountId', bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->bankAccountId), 'id'));
         
         purchase_transaction_Purchase::clearCache();
-        $result->setIfNot('agreedDownpayment', $downPayment);
-        $result->setIfNot('downpayment', purchase_transaction_Purchase::getDownpayment($rec->id));
-        $result->setIfNot('amountPaid', purchase_transaction_Purchase::getPaidAmount($rec->id));
-        $result->setIfNot('deliveryAmount', purchase_transaction_Purchase::getDeliveryAmount($rec->id));
-
+        $result->set('agreedDownpayment', $downPayment);
+        $result->set('downpayment', purchase_transaction_Purchase::getDownpayment($rec->id));
+        $result->set('amountPaid', purchase_transaction_Purchase::getPaidAmount($rec->id));
+        $result->set('deliveryAmount', purchase_transaction_Purchase::getDeliveryAmount($rec->id));
+        $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($rec->id));
+        
         $agreedDp = $result->get('agreedDownpayment');
         $actualDp = $result->get('downpayment');
         if($agreedDp && ($actualDp < $agreedDp)){
@@ -898,6 +900,7 @@ class purchase_Purchases extends core_Master
     	$rec->amountPaid      = $aggregateDealInfo->get('amountPaid');
     	$rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
     	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
+    	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
     	
     	if($rec->amountPaid && $rec->amountDelivered && $rec->paymentState != 'overdue'){
     		if($rec->amountPaid >= $rec->amountDelivered){

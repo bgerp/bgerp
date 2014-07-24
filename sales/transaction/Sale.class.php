@@ -481,6 +481,19 @@ class sales_transaction_Sale
 	
 	
 	/**
+	 * Колко е платеното по сделка
+	 */
+	public static function getBlAmount($id)
+	{
+		$jRecs = static::getEntries($id);
+	
+		$paid = acc_Balances::getBlAmounts($jRecs, '411')->amount;
+	
+		return $paid;
+	}
+	
+	
+	/**
 	 * Колко е доставено по сделката
 	 */
 	public static function getDeliveryAmount($id)

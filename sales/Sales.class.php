@@ -207,6 +207,7 @@ class sales_Sales extends core_Master
         // Стойности
         $this->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none,summary=amount'); // Сумата на доставената стока
+        $this->FLD('amountBl', 'double(decimals=2)', 'caption=Стойности->Крайно салдо,input=none,summary=amount'); 
         $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
         $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
         $this->FLD('amountToInvoice', 'double(decimals=2)', 'input=none,summary=amount'); // Сумата която е платена
@@ -594,7 +595,7 @@ class sales_Sales extends core_Master
 		$rec->amountToPay = round($rec->amountDelivered - $rec->amountPaid, 2);
 		//$rec->amountToInvoice = round($rec->amountDelivered - $rec->amountInvoiced, 2);
 		
-		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice') as $amnt) {
+		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0,00</span>';
             } else {
@@ -603,7 +604,7 @@ class sales_Sales extends core_Master
             }
         }
         
-        foreach (array('ToPay', 'ToDeliver', 'ToInvoice') as $amnt){
+        foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt){
         	$color = ($rec->{"amount{$amnt}"} < 0) ? 'red' : 'green';
         	$row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
@@ -964,6 +965,7 @@ class sales_Sales extends core_Master
         $result->set('downpayment', sales_transaction_Sale::getDownpayment($rec->id));
         $result->set('amountPaid', sales_transaction_Sale::getPaidAmount($rec->id));
         $result->set('deliveryAmount', sales_transaction_Sale::getDeliveryAmount($rec->id));
+        $result->set('blAmount', sales_transaction_Sale::getBlAmount($rec->id));
         
         // Спрямо очакваното авансово плащане ако има, кои са дефолт платежните операции
         $agreedDp = $result->get('agreedDownpayment');
@@ -1396,6 +1398,7 @@ class sales_Sales extends core_Master
     	$rec->amountPaid      = $aggregateDealInfo->get('amountPaid');
     	$rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
     	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
+    	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
     	
     	if($rec->amountPaid && $rec->amountDelivered && $rec->paymentState != 'overdue'){
     		if($rec->amountPaid >= $rec->amountDelivered){
