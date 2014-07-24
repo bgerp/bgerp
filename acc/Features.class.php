@@ -101,7 +101,7 @@ class acc_Features extends core_Manager
      */
     function description()
     {
-    	$this->FLD('itemId', 'key(mvc=acc_Items, select=numTitleLink)', 'caption=Перо,mandatory');
+    	$this->FLD('itemId', 'key(mvc=acc_Items, select=titleLink)', 'caption=Перо,mandatory');
     	$this->FLD('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory');
     	$this->FLD('value', 'varchar(80)', 'caption=Стойност,mandatory');
     	

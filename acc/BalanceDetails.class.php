@@ -102,9 +102,9 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('balanceId', 'key(mvc=acc_Balances)', 'caption=Баланс');
         $this->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption=Сметка->име,column=none');
         $this->EXT('accountNum', 'acc_Accounts', 'externalName=num,externalKey=accountId', 'caption=Сметка->#');
-        $this->FLD('ent1Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 1');
-        $this->FLD('ent2Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 2');
-        $this->FLD('ent3Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 3');
+        $this->FLD('ent1Id', 'key(mvc=acc_Items,title=titleLink)', 'caption=Сметка->перо 1');
+        $this->FLD('ent2Id', 'key(mvc=acc_Items,title=titleLink)', 'caption=Сметка->перо 2');
+        $this->FLD('ent3Id', 'key(mvc=acc_Items,title=titleLink)', 'caption=Сметка->перо 3');
         $this->FLD('baseQuantity', 'double', 'caption=База->Количество,tdClass=ballance-field');
         $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума,tdClass=ballance-field');
         $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество,tdClass=ballance-field');
@@ -1170,7 +1170,7 @@ class acc_BalanceDetails extends core_Detail
     	
     	foreach(range(1, 3) as $i){
     		if ($accountRec->{"groupId{$i}"} && $rec->{"ent{$i}Id"}) {
-    			$row->{"ent{$i}Id"} = acc_Items::fetchField($rec->{"ent{$i}Id"}, 'numTitleLink');
+    			$row->{"ent{$i}Id"} = acc_Items::fetchField($rec->{"ent{$i}Id"}, 'titleLink');
     		}
     	}
     	

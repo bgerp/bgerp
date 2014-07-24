@@ -679,12 +679,12 @@ class deals_Deals extends core_Master
     		$detailedName = $rec->contragentName . " / {$createdOn} / " . $rec->dealName;
     		$detailedName = $self->fields['detailedName']->type->toVerbal($detailedName);
     		if ($self->haveRightFor('single', $objectId)) {
-    			$detailedName = ht::createLink($detailedName, array($self, 'single', $objectId));
+    			$detailedName = ht::createLinkRef($detailedName, array($self, 'single', $objectId));
     		}
     		
     		$result = $detailedName;
     	} else {
-    		$result = '<i>' . tr('неизвестно') . '</i>';
+    		$result = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
     	}
     
     	return $result;

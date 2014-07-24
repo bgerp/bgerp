@@ -1366,25 +1366,6 @@ class sales_Sales extends core_Master
      static function itemInUse($objectId)
      {
      }
-     
-     
-     /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        $self->recTitleTpl = NULL;
-    	
-        if ($rec = self::fetch($objectId)) {
-            $result = $self->getHyperlink($objectId);
-        } else {
-            $result = '<i>' . tr('неизвестно') . '</i>';
-        }
-        
-        return $result;
-    }
     
     
     /**

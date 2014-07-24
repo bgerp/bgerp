@@ -150,9 +150,6 @@ class acc_Items extends core_Manager
         // Титла - хипервръзка
         $this->FNC('titleLink', 'html', 'column=none');
         
-        // Номер и титла - хипервръзка
-        $this->FNC('numTitleLink', 'html', 'column=none');
-        
         // Наименование 
         $this->FNC('caption', 'html', 'column=none');
         
@@ -168,32 +165,37 @@ class acc_Items extends core_Manager
     static function on_CalcTitleLink($mvc, $rec)
     {
         $title = $mvc->getVerbal($rec, 'title');
-        $rec->titleLink = $title;
+        $num = $mvc->getVerbal($rec, 'num');
+        $rec->titleLink = $title . "&nbsp;($num)";
         
+        $cantShow = FALSE;
+        
+        // Ако може да бъде зареден регистъра
         if ($rec->classId && cls::load($rec->classId, TRUE)) {
             $AccRegister = cls::get($rec->classId);
             
+            // Ако го има итнерфейсния метод
             if(method_exists($AccRegister, 'getLinkToObj')) {
                 $rec->titleLink = $AccRegister->getLinkToObj($rec->objectId);
             } elseif(method_exists($AccRegister, 'act_Single')) {
-                if($AccRegister->haveRightFor('single', $rec->objectId)) {
-                    $rec->titleLink = ht::createLink($title, array($AccRegister, 'Single', $rec->objectId));
+                
+            	// По дефолт е линк към сингъла, ако имаме права
+            	if($AccRegister->haveRightFor('single', $rec->objectId)) {
+                	if($AccRegister->fetch($rec->objectId)){
+                		$rec->titleLink = ht::createLinkRef($rec->titleLink, array($AccRegister, 'Single', $rec->objectId));
+                	} else {
+                		$cantShow = TRUE;
+                	}
                 }
             }
+        } else {
+        	$cantShow = TRUE;
         }
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_CalcNumTitleLink($mvc, $rec)
-    {
-        if (!isset($rec->titleLink)) {
-            $mvc->on_CalcTitleLink($mvc, $rec);
+        
+        // Ако има проблем при извличането на записа показваме съобщение
+        if($cantShow){
+        	$rec->titleLink = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
         }
-        //bp();
-        $rec->numTitleLink = $rec->titleLink . "&nbsp;($rec->num)";
     }
     
     
@@ -323,12 +325,12 @@ class acc_Items extends core_Manager
                 // Попълва полетата на $rec с данни извлечени от съотв. регистър
                 static::syncItemRec($rec, $register, $rec->objectId);
                 
-                $mvc::on_CalcNumTitleLink($mvc, $rec);
+                $mvc::on_CalcTitleLink($mvc, $rec);
             }
             
-            expect(isset($rec->numTitleLink));
+            expect(isset($rec->titleLink));
             
-            $form->info = $rec->numTitleLink;
+            $form->info = $rec->titleLink;
         }
         
         $form->setSuggestions('lists', acc_Lists::getPossibleLists($rec->classId));
