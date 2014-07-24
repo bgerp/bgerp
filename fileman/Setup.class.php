@@ -189,12 +189,6 @@ class fileman_Setup extends core_ProtoSetup
     
     
     /**
-     * Път до css файла
-     */
-    var $commonCSS = 'fileman/css/default.css, fileman/css/dialogGallery.css';
-    
-    
-    /**
      * Инсталиране на пакета
      */
     function install()
