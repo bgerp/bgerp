@@ -217,7 +217,7 @@ abstract class acc_ClosedDeals extends core_Master
     	expect($info = static::getDealInfo($threadId));
 		
         $diff = currency_Currencies::round($info->get('blAmount'), 2);
-        
+       
         // Разликата между платеното и доставеното
         return $diff;
     }
@@ -285,14 +285,11 @@ abstract class acc_ClosedDeals extends core_Master
     	$Double->params['decimals'] = 2;
     	
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    	$amount = (!$rec->amount) ? static::getClosedDealAmount($rec->threadId) : $rec->amount;
+    	if(!$rec->amount){
+    		$rec->amount = static::getClosedDealAmount($rec->threadId);
+    	}
     	
     	$row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-    	$row->amount = $Double->toVerbal($amount);
-    	
-    	if($firstDoc->instance()->haveRightFor('single', $firstDoc->that)){
-	        $row->docId = $firstDoc->getLink();
-	    }
 	    
 	    $abbr = cls::get(get_called_class())->abbr;
 	    $row->header = cls::get(get_called_class())->singleTitle . " #<b>{$abbr}{$row->id}</b> ({$row->state})";
