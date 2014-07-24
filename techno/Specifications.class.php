@@ -478,7 +478,14 @@ class techno_Specifications extends core_Manager {
 	*/
     function getLinkToObj($objectId)
     {
-    	return static::getHyperlink($objectId);
+    	$Driver = static::getDriver($objectId);
+    	
+    	$link = $Driver->getTitleById();
+    	if($Driver->instance->haveRightFor('single', $Driver->that)) {
+    		$link = ht::createLinkRef($link , array($Driver->className, 'Single', $Driver->that));
+    	}
+    	
+    	return $link;
     }
     
     
