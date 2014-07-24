@@ -61,7 +61,7 @@ class compactor_Setup extends core_ProtoSetup
      */
     public function loadSetupData()
     {
-        parent::loadSetupData();
+        $res .= parent::loadSetupData();
         
         // JS и CSS файловете от конфигурацията
         $conf = core_Packs::getConfig('compactor');
