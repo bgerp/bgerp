@@ -244,7 +244,7 @@ class email_FaxSent extends core_Manager
         //Всички факс номера
         $faxToArr = static::faxToArray($options->faxTo);
         
-//        $emailCss = getFileContent('css/email.css'); //TODO
+//        $emailCss = file_get_contents(sbf('css/email.css', "", TRUE)); //TODO
         $success  = $failure = array(); // списъци с изпратени и проблемни получатели
         
         // Инстанция на log_Documents за да работи on_Shutdown

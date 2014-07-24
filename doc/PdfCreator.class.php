@@ -114,8 +114,8 @@ class doc_PdfCreator extends core_Manager
             //Вземаме всичките css стилове
             $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
                 "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . 
-                "\n" . getFileContent('css/email.css') . 
-                "\n" . getFileContent('css/pdf.css');
+                "\n" . file_get_contents(sbf('css/email.css', "", TRUE)) . 
+                "\n" . file_get_contents(sbf('css/pdf.css', "", TRUE));
             
             // Ако е инстанция на core_ET
             if ($htmlET instanceof core_ET) {

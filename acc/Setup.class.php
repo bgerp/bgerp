@@ -97,7 +97,12 @@ class acc_Setup extends core_ProtoSetup
             array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
         );
 	
-	
+    /**
+     * Път до js файла
+     */
+    var $commonJS = 'acc/js/balance.js';
+    
+    
     /**
      * Инсталиране на пакета
      */

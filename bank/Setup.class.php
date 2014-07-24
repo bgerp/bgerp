@@ -77,6 +77,11 @@ class bank_Setup extends core_ProtoSetup
             array(2.2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', "bank, ceo"),
         );
         
+    /**
+     * Път до css файла
+     */
+    var $commonCSS = 'bank/tpl/css/belejka.css, bank/tpl/css/styles.css';
+    
     
 	/**
      * Инсталиране на пакета

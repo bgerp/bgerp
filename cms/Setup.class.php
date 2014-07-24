@@ -133,6 +133,12 @@ class cms_Setup extends core_ProtoSetup
  
     
     /**
+     * Път до css файла
+     */
+    var $commonCSS = 'cms/css/Wide.css';
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
