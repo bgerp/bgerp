@@ -292,10 +292,15 @@ class acc_Lists extends core_Manager {
     {
         $result = array ();
         
+        // Ако няма изискване за клас
         if (is_null($class)) {
             $query = static::getQuery();
-            $query->where("#regInterfaceId IS NULL OR #regInterfaceId = ''");
+            
+            // Извличаме всички номенклатури без интерфейс и без systemId
+            $query->where("(#regInterfaceId IS NULL OR #regInterfaceId = '') AND (#systemId IS NULL || #systemId = '')");
         } else {
+        	
+        	// Ако има клас проверяваме за тези номенклатури, чийто интерфейс е поддържан от класа
             $ifaceIds = array_keys(core_Interfaces::getInterfaceIds($class));
             
             if (count($ifaceIds)) {
