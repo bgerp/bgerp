@@ -225,11 +225,7 @@ class acc_ReportDetails extends core_Manager
     			$total = $arr['total'];
     			
     			// Името на сметката и нейните групи
-    			$accNum = acc_Accounts::getTitleById($accId);
-    			if(acc_Balances::haveRightFor('read')){
-    				$accNum = ht::createLink($accNum, array('acc_Balances', 'single', $lastBalance->id, 'accId' => $accId));
-    			}
-    			
+    			$accNum = acc_Balances::getAccountLink($accId);
     			$accGroups = acc_Accounts::getAccountInfo($accId)->groups;
     			
     			// Името на сметката излиза над таблицата

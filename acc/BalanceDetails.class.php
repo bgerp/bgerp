@@ -579,20 +579,7 @@ class acc_BalanceDetails extends core_Detail
         // Бутон за детайлизиран преглед на историята
         $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
         
-        if ($row->accountId && strlen($row->accountNum) >= 3) {
-        	$attr['class'] = 'linkWithIcon';
-    		$attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
-        	
-            $accRec = $mvc->Accounts->fetch($rec->accountId, 'groupId1,groupId2,groupId3');
-            
-            if ($accRec->groupId1 || $accRec->groupId2 || $accRec->groupId3) {
-                $row->accountId = ht::createLink($row->accountId,
-                    array($mvc->master, 'single', $rec->balanceId, 'accId'=>$rec->accountId), NULL, array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/filter.png') . ');'));
-            } else{
-            	$row->accountId = ht::createLink($row->accountId,
-                    array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum), NULL, array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/clock_history.png') . ');'));
-            }
-        }
+        $row->accountId = acc_Balances::getAccountLink($rec->accountId, $masterRec, FALSE, TRUE);
         
         $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
         

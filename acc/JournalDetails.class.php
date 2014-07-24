@@ -113,12 +113,9 @@ class acc_JournalDetails extends core_Detail
                         if ($rec->{$ent}) {
                             $row->{$ent} = $mvc->recToVerbal($rec, $ent)->{$ent};
                             $listGroupTitle = $Lists->fetchField($accRec->{"groupId{$i}"}, 'name');
-                            
                             $ents .= '<li>' . $row->{$ent} . '</li>';
                         }
                     }
-                    
-                    $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . $accRec->title;
                     
                     if (!empty($ents)) {
                         $row->{"{$type}AccId"} .=
@@ -231,5 +228,21 @@ class acc_JournalDetails extends core_Detail
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$valior = $mvc->Master->fetchField($rec->journalId, 'valior');
+    	
+    	// В кой баланс е влязал записа
+    	$balanceValior = acc_Balances::fetch("#fromDate <= '{$valior}' AND '{$valior}' <= #toDate");
+    	
+    	// Линкове към сметките в баланса
+    	$row->debitAccId = acc_Balances::getAccountLink($rec->debitAccId, $balanceValior);
+    	$row->creditAccId = acc_Balances::getAccountLink($rec->creditAccId, $balanceValior);
     }
 }
