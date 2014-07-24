@@ -241,7 +241,7 @@ class fileman_GalleryImages extends core_Manager
                 // Ако не е 'ceo', трябва да има достъп до групата, за да редактира картина от нея
                 if (!haveRole('ceo')) {
                     
-                    if ($rec->groupId && !fileman_GalleryGroups::fetch($rec->groupId)) {
+                    if ($rec->groupId && !fileman_GalleryGroups::haveRightFor('usegroup', $rec->groupId)) {
                         $requiredRoles = 'no_one';
                     } else if ($action == 'delete') {
                         
