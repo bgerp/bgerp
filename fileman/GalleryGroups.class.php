@@ -131,6 +131,28 @@ class fileman_GalleryGroups extends core_Manager
     	$res .= $cntObj->html;
     }
     
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        // Ако не са подадени роли
+        if (!$rec->roles) return ;
+        
+        // Обхождаме всички роли и от името им определяме id-то
+        $rolesStrArr = arr::make($rec->roles);
+        foreach ($rolesStrArr as $role) {
+            
+            $roleId = core_Roles::fetchByName($role);
+            
+            if (!$roleId) continue;
+            
+            $roleArr[$roleId] = $roleId;
+        }
+        
+        // Добавяме id-тата на записите
+        $rec->roles = type_Keylist::fromArray($roleArr);
+    }
     
     /**
      * Връща id на групата по подразбиране
