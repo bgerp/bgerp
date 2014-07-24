@@ -638,6 +638,35 @@ class core_String
 	    
 	    return $str;
 	}
+	
+	
+	/**
+	 * Преобразува в първа главна буква първия елемент и всеки следващ след подадения разделител
+	 * 
+	 * @param string $str
+	 * @param string $delimiter
+	 */
+    static function toUpperAfter($str, $delimiter=NULL)
+    {
+        // Ако е подаден разделите
+        if ($delimiter) {
+            
+            // Разделяме стринга с разделителя
+            $strArr = explode($delimiter, $str);
+            
+            // За всеки елемент в масива конвертираме към главна буква
+            $strArr = array_map('static::mbUcfirst', $strArr);
+            
+            // Обединяваме масива в стринг
+            $nStr = implode($delimiter, $strArr);
+        } else {
+            
+            // Ако не е подаден разделител, само първата буква да е главна
+            $nStr = static::mbUcfirst($str);
+        }
+        
+	    return $nStr;
+    }
     
 
     /**

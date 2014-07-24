@@ -15,6 +15,21 @@
  */
 class plg_Current extends core_Plugin
 {
+	/**
+     * След дефиниране на полетата на модела
+     */
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+    	// Ако има поле за отговорник
+    	if(isset($mvc->inChargeField)){
+    		
+    		// Трябва в модела да има такова поле
+    		$field = $mvc->getField($mvc->inChargeField);
+    		
+    		// Трябва да е инстанция на type_UserList
+    		expect($field->type instanceof type_UserList, 'Полето за отговорник трябва да е от типа type_UserList');
+    	}
+    }
     
     
     /**

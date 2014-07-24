@@ -1631,14 +1631,32 @@ class core_Users extends core_Manager
      */
     static function prepareNick($nick)
     {
-        // Всички точки и долни черти ги правим на празен символ
-        $nick = str_replace(array('_', '.'), array(' ', ' '), $nick);
-        
         // Преобразуваме в показване като име
-        $nick = str::stringToNameCase($nick);
+        $nick = static::stringToNickCase($nick);
         
         return $nick;
     }
+
+	
+	
+	/**
+	 * Преобразува подадения стринг да се показва като ник
+	 * 
+	 * @param string $str
+	 * 
+	 * @return string
+	 */
+	static function stringToNickCase($str)
+	{
+	    // Всички букви в долния регистър
+	    // След долна черта и интервал първата буква да е главна
+	    $str = mb_strtolower($str);
+	    $str = str::toUpperAfter($str);
+	    $str = str::toUpperAfter($str, '.');
+	    $str = str::toUpperAfter($str, '_');
+	    
+	    return $str;
+	}
     
     
     /**
