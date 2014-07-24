@@ -140,16 +140,16 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	// Подготовка за показване на задължителнтие продукти
-    	deals_Helper::fillRecs($notOptional, $masterRec, static::$map);
+    	deals_Helper::fillRecs($mvc, $notOptional, $masterRec, static::$map);
     	
     	if(empty($data->noTotal)){
     		
     		// Запомня се стойноста и ддс-то само на опционалните продукти
-    		$data->summary = deals_Helper::prepareSummary($masterRec->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
     	}
     	
     	// Подготовка за показване на опционалните продукти
-    	deals_Helper::fillRecs($optional, $masterRec, static::$map);
+    	deals_Helper::fillRecs($mvc, $optional, $masterRec, static::$map);
     	$recs = $notOptional + $optional;
     	
     	// Изчисляване на цената с отстъпка

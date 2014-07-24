@@ -22,13 +22,13 @@ class doc_RichTextPlg extends core_Plugin
      * Шаблона трябва да не започва и/или да не завършва с буква и/или цифра
      * 
      * @param begin    - Символа преди шаблона
+     * @param dsSign    - Символа за документа
      * @param dsName  - Името на шаблона, с # отпред
      * @param name     - Името на шаблона, без # отпред
      * @param abbr     - Абревиатурата на шаблона
      * @param id       - id' то на шаблона
-     * @param end      - Символа след шаблона
      */
-    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'\#(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})))(?'end'[^a-z0-9а-я]|$){1}/iu";
+    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'(?'dsSign'\#)(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))){1}/iu";
     
     
     /**
@@ -55,12 +55,15 @@ class doc_RichTextPlg extends core_Plugin
      */
     function _catchFile($match)
     {
-        //Име на файла
-        $docName = $match['dsName'];
-
         if (!$doc = doc_Containers::getDocumentByHandle($match)) {
             return $match[0];
         }
+        
+        // Абревиатурарата
+        $abbr = ($doc->instance->abbr) ? $doc->instance->abbr : $match['abbr'];
+        
+        //Име на файла
+        $docName = $match['dsSign'] . $abbr . $match['id'];
         
         $mvc    = $doc->instance;
         $docRec = $doc->rec();
@@ -76,8 +79,6 @@ class doc_RichTextPlg extends core_Plugin
             //Добавяме линк към системата
             $this->mvc->_htmlBoard[$place] = "{$docName} ( $link )";
         } else {
-            
-            $title = substr($docName, 1);
             
             // Икона на линка
             $attr['ef_icon'] = $doc->getIcon($doc->that);
@@ -97,7 +98,7 @@ class doc_RichTextPlg extends core_Plugin
                 $attr['target'] = "_parent";
             }
             
-            $href = ht::createLink($title, $link, NULL, $attr);
+            $href = ht::createLink($docName, $link, NULL, $attr);
             
             //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
             $this->mvc->_htmlBoard[$place] = $href->getContent();
@@ -105,7 +106,7 @@ class doc_RichTextPlg extends core_Plugin
 
         //Стойността, която ще заместим в регулярния израз
         //Добавяме символите отркити от регулярниярния израз, за да не се развали текста
-        $res = $match['begin'] . "[#{$place}#]" . $match['end'];
+        $res = $match['begin'] . "[#{$place}#]";
 
         return  $res;
     }
@@ -348,8 +349,7 @@ class doc_RichTextPlg extends core_Plugin
         $place = $this->mvc->getPlace();
         
         // За ника използваме и префикса от стринга
-//        $nick = $match['pre'] . core_Users::prepareNick($match['nick']);
-        $nick = $match['pre'] . $match['nick'];
+        $nick = $match['pre'] . core_Users::prepareNick($match['nick']);
         
         $this->mvc->_htmlBoard[$place] = crm_Profiles::createLink($id, $nick);
         

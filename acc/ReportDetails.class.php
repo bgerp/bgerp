@@ -160,7 +160,7 @@ class acc_ReportDetails extends core_Manager
 	    		if(isset($entry) && isset($accGroups[$pos])){
 	    				
 	    			// Ако перото не е групиращото, ще се показва в справката
-	    			$row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'numTitleLink');
+	    			$row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'titleLink');
 	    			$row["ent{$pos}Id"] = "<span class='feather-title'>{$row["ent{$pos}Id"]}</span>";
 	    		}
 	    	}

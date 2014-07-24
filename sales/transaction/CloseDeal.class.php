@@ -22,8 +22,7 @@ class sales_transaction_CloseDeal
     
     
     /**
-     * 
-     * @var unknown
+     * Работен кеш за запомняне на направения, оборот докато не е влязал в счетоводството
      */
     private static $incomeAmount;
     
@@ -73,8 +72,8 @@ class sales_transaction_CloseDeal
     	$dealInfo = $this->class->getDealInfo($rec->threadId);
     	
     	// Кеширане на перото на текущата година
-    	$year = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
-    	$this->year = acc_Periods::forceYearItem($year);
+    	$date = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
+    	$this->date = acc_Periods::forceYearAndMonthItems($date);
     	
     	// Създаване на запис за прехвърляне на всеки аванс
     	$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $result->totalAmount, $firstDoc);
@@ -121,10 +120,10 @@ class sales_transaction_CloseDeal
      * Сметка 411 има Дебитно (Dt) салдо
      *
      * 		Намаляваме вземанията си от Клиента с неиздължената сума с обратна (revers) операция,
-     * 		със сумата на дебитното салдо на с/ка 411 но с отрицателен знак
+     * 		със сумата на дебитното салдо на с/ка 411
      *
-     * 			Dt: 411 - Вземания от клиенти
-     * 			Ct: 6911 - Отписани вземания по Продажби
+     * 			Dt: 6911 - Отписани вземания по Продажби
+     * 			Ct: 411 - Вземания от клиенти
      *
      * 		Отнасяме отписаните вземания (извънредния разход) по сделката като разход по дебита на обобщаващата сметка 700,
      * 		със сумата на дебитното салдо на с/ка 411
@@ -135,10 +134,10 @@ class sales_transaction_CloseDeal
      * Сметка 411 има Кредитно (Ct) салдо
      *
      * 		Намаляваме прихода от Клиента с надвнесената сума с обратна (revers) операция,
-     * 		със сумата на кредитното салдо на с/ка 411 но с отрицателен знак
+     * 		със сумата на кредитното салдо на с/ка 411
     
-     * 			Dt: 7911 - Извънредни приходи по Продажби
-     * 			Ct: 411 - Вземания от клиенти
+     * 			Dt: 411 - Вземания от клиенти
+     * 			Ct: 7911 - Извънредни приходи по Продажби
      *
      * 		Отнасяме извънредния приход по сделката като приход по кредита на обобщаващата сметка 700,
      * 		със сумата на кредитното салдо на с/ка 411
@@ -155,15 +154,15 @@ class sales_transaction_CloseDeal
     
     		// Ако платеното е по-вече от доставеното (кредитно салдо)
     		$entry1 = array(
-    				'amount' => -1 * currency_Currencies::round($amount),
-    				'debit'  => array('7911',
+    				'amount' => currency_Currencies::round($amount),
+    				'credit'  => array('7911',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
-    				'credit' => array('411',
+    				'debit' => array('411',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => currency_Currencies::round(-1 * $amount / $docRec->currencyRate)),
+    						'quantity' => currency_Currencies::round($amount / $docRec->currencyRate)),
     		);
     
     		$entry2 = array('amount' => currency_Currencies::round($amount),
@@ -174,21 +173,23 @@ class sales_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that)),
     		);
     
+    		// Добавяме към общия оборот удвоената сума
+    		$totalAmount += 2 * currency_Currencies::round($amount);
     		static::$incomeAmount -= $amount;
     
     	} elseif($amount < 0){
     
     		// Ако платеното е по-малко от доставеното (дебитно салдо)
     		$entry1 = array(
-    				'amount' => currency_Currencies::round($amount),
-    				'credit'  => array('6911',
+    				'amount' => -1 * currency_Currencies::round($amount),
+    				'debit'  => array('6911',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
-    				'debit' => array('411',
+    				'credit' => array('411',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => currency_Currencies::round($amount / $docRec->currencyRate)),
+    						'quantity' => currency_Currencies::round(-1 * $amount / $docRec->currencyRate)),
     		);
     
     		$entry2 = array('amount' => -1 * currency_Currencies::round($amount),
@@ -197,7 +198,9 @@ class sales_transaction_CloseDeal
     				'credit'  => array('6911',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),);
-    
+    		
+    		// Добавяме към общия оборот удвоената сума
+    		$totalAmount += -2 * currency_Currencies::round($amount);
     		static::$incomeAmount += -1 * currency_Currencies::round($amount);
     
     	}
@@ -227,7 +230,7 @@ class sales_transaction_CloseDeal
     protected function transferIncomeToYear($dealInfo, $docRec, &$total, $firstDoc)
     {
     	$arr1 = array('700', array($docRec->contragentClassId, $docRec->contragentId), array($firstDoc->className, $firstDoc->that));
-    	$arr2 = array('123', $this->year->id);
+    	$arr2 = array('123', $this->date->year, $this->date->month);
     	$total += abs(static::$incomeAmount);
     	 
     	// Дебитно салдо

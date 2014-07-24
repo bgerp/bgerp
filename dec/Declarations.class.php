@@ -419,24 +419,6 @@ class dec_Declarations extends core_Master
         
         return $result;
     }
-    
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec = $self->fetch($objectId)) {
-            $result = $self->getHyperlink($objectId);
-        } else {
-            $result = '<i>неизвестно</i>';
-        }
-        
-        return $result;
-    }
 
 	
     /**

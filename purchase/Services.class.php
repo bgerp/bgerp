@@ -2,7 +2,7 @@
 /**
  * Клас 'purchase_Services'
  *
- * Мениджър на Приемателен протокол за услуги
+ * Мениджър на Приемателен протокол
  *
  *
  * @category  bgerp
@@ -17,7 +17,7 @@ class purchase_Services extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Приемателни протоколи за услуги';
+    public $title = 'Приемателни протоколи';
 
 
     /**
@@ -92,7 +92,7 @@ class purchase_Services extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Приемателен протокол за услуги';
+    public $singleTitle = 'Приемателен протокол';
     
     
     /**
@@ -183,14 +183,14 @@ class purchase_Services extends core_Master
     	$query = $this->purchase_ServicesDetails->getQuery();
         $query->where("#shipmentId = '{$id}'");
         
-        deals_Helper::fillRecs($query->fetchAll(), $rec);
+        deals_Helper::fillRecs($this, $query->fetchAll(), $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amount = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
-        $amount -= $rec->_total->discount;
+        $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+        $amount -= $this->_total->discount;
         $rec->amountDelivered = $amount * $rec->currencyRate;
-        $rec->amountDeliveredVat = $rec->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
+        $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
+        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
         $this->save($rec);
     }
     
@@ -293,7 +293,7 @@ class purchase_Services extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }

@@ -207,12 +207,6 @@ class cal_Tasks extends core_Master
         // Краен срок на задачата
         $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable');
         
-         // Краен срок на задачата
-        $this->FLD('afterTask', 'key(mvc=cal_Tasks,select=title)',     'caption=Започване след->Задача,changable');
-        
-         // Краен срок на задачата
-        $this->FLD('afterTaskProgress', 'percent(min=0,max=1,decimals=0)',     'caption=Започване след->Прогрес,notNull,value=0,changable');
-        
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
         
@@ -239,42 +233,6 @@ class cal_Tasks extends core_Master
         if(Mode::is('screenMode', 'narrow')){
         	$data->form->fields[priority]->maxRadio = 2;
         }
-        
-        // Да не може да се слага в звена, които са в неговия състав
-        if($id = $data->form->rec->id) { 
-            $notAllowedCond = "#id NOT IN (" . implode(',', self::getInheritors($id, 'afterTask')) . ")";
-        } 
-      
-        // масив с проценти за изпълнение на задачата
-        $progressArr[''] = '';
-
-        for($i = 0; $i <= 100; $i += 10) {
-            if($data->form->afterTaskProgress > ($i/100)) continue;
-            $p = $i . ' %';
-            $progressArr[$p] = $p;
-        }
-        $data->form->setSuggestions('afterTaskProgress', $progressArr);
-        
-        // ще извадим списък с всички задачи на които може да бъде подчинена
-        // текъщата задача
-        // те трябва да са в същата папка
-        $query = self::getQuery();
-        
-        $query->where($notAllowedCond);
-        $query->where("#state = 'active' OR #state = 'draft' OR #state = 'pending'");
-        $query->orderBy('#id', 'DESC');
-        
-        $taskArr[''] = '';
-        while($recTask = $query->fetch()) {
-        
-	    	if ($recTask->folderId == $data->form->rec->folderId) {
-		    	$task = $recTask->id. "." .$recTask->title;
-		        	
-		        $taskArr[$recTask->id] = $task;
-	        }
-        	
-        }
-        $data->form->setOptions('afterTask', $taskArr);
         
         $rec = $data->form->rec;
  
@@ -486,6 +444,10 @@ class cal_Tasks extends core_Master
             $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png');
             $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2');
         }
+        
+        /*if($data->rec->state == 'draft') {
+        	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/');
+        }*/
         
         // ако имаме зададена продължителност
     	if($data->rec->timeDuration){
@@ -1785,21 +1747,5 @@ class cal_Tasks extends core_Master
         	self::save($rec, 'notifySent');
         }
     }
-    
-    
-    /**
-     * Връща наследниците на даден запис
-     */
-    static function getInheritors($id, $field, &$arr = array())
-    {
-        $arr[$id] = $id;
-        $query = self::getQuery();
-        while($rec = $query->fetch("#{$field} = $id")) {
- 
-            self::getInheritors($rec->id, $field, $arr);
-        }
-
-        return $arr;
-    }
-
+   
 }

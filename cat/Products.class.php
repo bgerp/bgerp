@@ -433,25 +433,6 @@ class cat_Products extends core_Master {
     
     
     /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        $self->recTitleTpl = NULL;
-    	
-        if ($rec = self::fetch($objectId)) {
-            $result = $self->getHyperlink($objectId);
-        } else {
-            $result = '<i>' . tr('неизвестно') . '</i>';
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
      * @see acc_RegisterIntf::itemInUse()
      * @param int $objectId
      */

@@ -119,7 +119,7 @@ class sales_SaleRequestDetails extends core_Detail {
     	$recs = &$data->recs;
     	$masterRec = $data->masterData->rec;
     	
-    	deals_Helper::fillRecs($data->recs, $masterRec, static::$map);
+    	deals_Helper::fillRecs($mvc->Master, $data->recs, $masterRec, static::$map);
     }
     
     

@@ -21,7 +21,7 @@
                 <tr>
                     <td class="cell custom-header-bg" width="35%"><b>|Получател|*</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
-                        <div class="document-title">|ПРОТОКОЛ|*<br /><span>|ЗА ИЗВЪРШЕНИ УСЛУГИ|*</span></div>
+                        <div class="document-title">|ПРЕДАВАТЕЛЕН ПРОТОКОЛ|*</div>
                         
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 

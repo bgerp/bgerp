@@ -208,7 +208,7 @@ class acc_plg_Deals extends core_Plugin
     	}
     	
     	// ако има каса, метода за плащане е COD и текущия потрбител може да се логне в касата
-    	if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::haveRightFor('select', $rec->caseId)){
+    	if($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::haveRightFor('select', $rec->caseId)){
     		
     		// може да се плати с продуктите
     		$caseName = cash_Cases::getTitleById($rec->caseId);

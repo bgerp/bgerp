@@ -66,7 +66,6 @@ class acc_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-    		'acc_Years',
             'acc_Lists',
             'acc_Items',
             'acc_Periods',
@@ -80,6 +79,7 @@ class acc_Setup extends core_ProtoSetup
             'acc_JournalDetails',
     		'acc_OpenDeals',
     		'acc_Features',
+    		'migrate::removeYearIntf',
         );
     
 
@@ -143,5 +143,17 @@ class acc_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция, която премахва данните останали от мениджъра за годините
+     */
+    function removeYearIntf()
+    {
+    	// Изтриваме интерфейса на годините от таблицата с итнерфейсите
+    	if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsAccRegIntf'")){
+    		core_Interfaces::delete($oldIntRec->id);
+    	}
     }
 }

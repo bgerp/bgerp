@@ -2341,7 +2341,13 @@ class log_Documents extends core_Manager
         		$row = new stdClass();
         		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
         		$state = $class::fetchField($d->id, 'state');
-        		$row->link = ht::createLink($d->title, array($class, 'single', $d->id), NULL, $iconStles);
+        		if ($class::haveRightFor('single', $d->id)) {
+        		    $singleUrl = array($class, 'single', $d->id);
+        		} else {
+        		    $singleUrl = array();
+        		}
+        		
+        		$row->link = ht::createLink($d->title, $singleUrl, NULL, $iconStles);
 	        	$row->link = "<span style ='text-align:left;margin-left:2px;display:block'>{$row->link}</span>";
 	        	$row->author = $d->author;
 	        	$time =  dt::mysql2verbal($d->lastUsedOn, 'smartTime');

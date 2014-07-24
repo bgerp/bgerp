@@ -56,7 +56,7 @@ class sales_transaction_Service
     	}
     	
     	if(count($detailsRec)){
-    		deals_Helper::fillRecs($detailsRec, $rec);
+    		deals_Helper::fillRecs($this->class, $detailsRec, $rec);
     		 
     		foreach ($detailsRec as $dRec) {
     			if($rec->chargeVat == 'yes'){
@@ -90,8 +90,8 @@ class sales_transaction_Service
     			);
     		}
     		 
-    		if($rec->_total->vat){
-    			$vatAmount = currency_Currencies::round($rec->_total->vat * $rec->currencyRate);
+    		if($this->class->vat){
+    			$vatAmount = currency_Currencies::round($this->class->_total->vat * $rec->currencyRate);
     			$entries[] = array(
     					'amount' => $vatAmount, // В основна валута
     					 

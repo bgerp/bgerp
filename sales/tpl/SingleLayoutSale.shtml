@@ -66,7 +66,7 @@
 			        </td>
 			    </tr>
 			    <tr>
-			    	<td>[#blAmount#]</td>
+			    	<td>[#amountBl#]</td>
 			    	<td>[#amountToDeliver#]</td>
 			    	<td>[#amountToPay#]</td>
 			    	<td>[#amountToInvoice#]</td>

@@ -1378,21 +1378,25 @@ class doc_Containers extends core_Manager
         
         // Полетата на документа във вербален вид
         $docRow = $doc->getDocumentRow();
-
+        
+        // Ако има права за сингъла на документа
         if ($doc->instance->haveRightFor('single', $doc->that)) {
             
-            // Атрибутеите на линка
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
-            $attr['title'] = tr('Документ') . ': ' . $docRow->title;
-            
-            // Документа да е линк към single' а на документа
-            $res = ht::createLink(str::limitLen($docRow->title, 35), array($doc, 'single', $doc->that), NULL, $attr);
+            // Да е линк към сингъла
+            $url = array($doc, 'single', $doc->that);
         } else {
             
-            // Само заглавието
-            $res = $docRow->title;
+            // Ако няма права, да не е линк
+            $url = array();
         }
+        
+        // Атрибутеите на линка
+        $attr['class'] = 'linkWithIcon';
+        $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
+        $attr['title'] = tr('Документ') . ': ' . $docRow->title;
+        
+        // Документа да е линк към single' а на документа
+        $res = ht::createLink(str::limitLen($docRow->title, 35), $url, NULL, $attr);
         
         return $res;
     }

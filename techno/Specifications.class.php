@@ -239,7 +239,11 @@ class techno_Specifications extends core_Manager {
     {
     	expect($rec = static::fetchRec($id));
     	
-    	return new core_ObjectReference($rec->docClassId, $rec->docId);
+    	if(cls::load($rec->docClassId, TRUE)){
+    		return new core_ObjectReference($rec->docClassId, $rec->docId);
+    	} else {
+    		return NULL;
+    	}
     }
     
     
@@ -489,7 +493,7 @@ class techno_Specifications extends core_Manager {
     		
     		$link =  $Driver->getHyperlink($icon);
     	} catch(Exception $e){
-    		$link = tr('Проблем с показването');
+    		$link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
     	}
     	
     	return $link;

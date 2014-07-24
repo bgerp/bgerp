@@ -201,12 +201,12 @@ class sales_SaleRequests extends core_Master
     		$this->sales_SaleRequestDetails->save($item);
     	}
     	
-    	deals_Helper::fillRecs($items, $rec, sales_SaleRequestDetails::$map);
-    	$amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
-        $amountDeal -= $rec->_total->discount;
+    	deals_Helper::fillRecs($this, $items, $rec, sales_SaleRequestDetails::$map);
+    	$amountDeal = ($rec->chargeVat == 'no') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+        $amountDeal -= $this->_total->discount;
         $rec->amountDeal = $amountDeal * $rec->currencyRate;
-        $rec->amountVat  = $rec->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
+        $rec->amountVat  = $this->_total->vat * $rec->currencyRate;
+        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
         $this->save($rec);
         
     	if($cmd == 'active'){
@@ -465,7 +465,7 @@ class sales_SaleRequests extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }

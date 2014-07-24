@@ -292,7 +292,7 @@ class acc_plg_DpInvoice extends core_Plugin
     public static function on_AfterCalculateAmount($mvc, &$res, &$recs, &$masterRec)
     {
     	if(!isset($masterRec->dpAmount)) return;
-    	$total = &$masterRec->_total;
+    	$total = &$mvc->Master->_total;
     	
     	// Ако няма детайли, инстанцираме обекта
     	if(!$total){

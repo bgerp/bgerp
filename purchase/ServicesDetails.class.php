@@ -2,7 +2,7 @@
 /**
  * Клас 'purchase_ServicesDetails'
  *
- * Детайли на мениджър на протокол за доставка на услуги (@see purchase_ServicesDetails)
+ * Детайли на мениджър на приемателния протокол
  *
  * @category  bgerp
  * @package   purchase
@@ -16,7 +16,7 @@ class purchase_ServicesDetails extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Детайли на протокола за покупка на услуги';
+    public $title = 'Детайли на приемателния протокол';
 
 
     /**
@@ -168,7 +168,7 @@ class purchase_ServicesDetails extends core_Detail
         
         if (empty($recs)) return;
         
-        deals_Helper::fillRecs($recs, $orderRec);
+        deals_Helper::fillRecs($mvc->Master, $recs, $orderRec);
     }
     
     
