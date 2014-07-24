@@ -1018,7 +1018,7 @@ en,Предупреждение,Warning
 en,Игнорирай пред_32cc,Ignore the warning
 en,Възможно е дуб_6e72b,Possible duplication with the following person
 en,Полето трябва _35b3d,The field must contain 10 digits.
-en,Не е валидно ЕГ_50e3,Not valid Personal Number./Not valid Foreign Personal Number.
+en,Не е валидно ЕГ_50e3,Not valid Personal ID./Not valid Foreign Personal ID.
 en,Управители,Managers
 en,Служители,Personnel
 en,Човешки ресурси,Human Resources
@@ -1182,7 +1182,7 @@ en,Банка,Bank
 en,Валидност,Validity
 en,Издаване,Issuance
 en,Лична карта,Identity card
-en,Служебна инфор_c0d2,Work communcations
+en,Служебна инфор_c0d2,Business information
 en,Вътрешно,Internally
 en,Фото,Picture
 en,Мобилен,Mobile
@@ -1190,7 +1190,7 @@ en,Лични комуника_9a93,Personal communications
 en,Служебни комун_382c,Work communcations
 en,Нас. място,City
 en,Пощ. код,Postal code
-en,ЕГН,Personal Number
+en,ЕГН,Personal ID
 en,Обръщение,Salutation
 en,Импорт,Import
 en,Рожден ден,Birthday
