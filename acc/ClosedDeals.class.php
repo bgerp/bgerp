@@ -215,11 +215,8 @@ abstract class acc_ClosedDeals extends core_Master
     public static function getClosedDealAmount($threadId)
     {
     	expect($info = static::getDealInfo($threadId));
-    	
-        $paidAmount = currency_Currencies::round($info->get('amountPaid'), 2);
-        $shippedAmount = currency_Currencies::round($info->get('deliveryAmount'), 2);
 		
-        $diff = $paidAmount - $shippedAmount;
+        $diff = currency_Currencies::round($info->get('blAmount'), 2);
         
         // Разликата между платеното и доставеното
         return $diff;
@@ -288,25 +285,12 @@ abstract class acc_ClosedDeals extends core_Master
     	$Double->params['decimals'] = 2;
     	
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    	if(!$rec->amount){
-    		$info = static::getDealInfo($rec->threadId);
-    		$baseAmount = static::getClosedDealAmount($rec->threadId);
-    		
-    		$amount = $baseAmount / $info->get('rate');
-    		$row->currencyId = $info->get('currency');
-    	} else {
-    		@$amount =  $rec->amount / $rec->rate;
-    	}
+    	$amount = (!$rec->amount) ? static::getClosedDealAmount($rec->threadId) : $rec->amount;
     	
-    	$rec->amount = round($amount, 4);
-    	if(abs($rec->amount) == 0){
-    		$rec->amount = 0;
-    	} 
-    	
+    	$row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	$row->amount = $Double->toVerbal($amount);
     	
-    	$docRec = $firstDoc->fetch();
-    	if($firstDoc->instance()->haveRightFor('single', $docRec->id)){
+    	if($firstDoc->instance()->haveRightFor('single', $firstDoc->that)){
 	        $row->docId = $firstDoc->getLink();
 	    }
 	    
