@@ -94,8 +94,14 @@ class purchase_Setup extends core_ProtoSetup
 			'PURCHASE_OVERDUE_CHECK_DELAY' => array("time", "caption=Покупки->Толеранс за просрочване"),
 			'PURCHASE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Покупки->Затваряне на по-стари от'),
 		);
-		
-		
+	
+	
+	/**
+	 * Път до css файла
+	 */
+	var $commonCSS = 'purchase/tpl/invoiceStyles.css';
+	
+	
 	/**
      * Инсталиране на пакета
      */

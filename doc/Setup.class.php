@@ -77,7 +77,19 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array ('time', 'caption=Крайно време на нотифициране за незавършени действия с докуемнти->Време'),
     );
     
+    
+    /**
+     * Път до js файла
+     */
+    var $commonJS = 'doc/js/accordion.js';
         
+    
+    /**
+     * Път до css файла
+     */
+    var $commonCSS = 'doc/tpl/style.css, doc/css/dialogDoc.css';
+    
+    
     /**
      * Инсталиране на пакета
      */

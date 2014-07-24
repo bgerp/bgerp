@@ -83,6 +83,12 @@ class bgerp_Setup {
     
     
     /**
+     * Път до js файла
+     */
+    var $commonJS = 'js/PortalSearch.js';
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install($Plugins = NULL)
