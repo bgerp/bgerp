@@ -92,7 +92,7 @@ class acc_Lists extends core_Manager {
         $this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none');
         
         // System ID
-        $this->FLD('systemId', 'varchar(32)', 'caption=System ID, export, mandatory');
+        $this->FLD('systemId', 'varchar(32)', 'caption=System ID, export, input=hidden');
         
         // Заглавие 
         $this->FNC('caption', 'html', 'column=none');
@@ -104,12 +104,11 @@ class acc_Lists extends core_Manager {
         $this->FNC('title', 'html', 'column=none');
 
         // Дали елементите имат размерност
-        $this->FLD('isDimensional', 'enum(no=Не,yes=Да)', 'caption=Размерност, export');
+        $this->FLD('isDimensional', 'enum(no=Не,yes=Да)', 'caption=Размерност, export,maxRadio=2,width=8em');
         
         // Уникални индекси
         $this->setDbUnique('num');
         $this->setDbUnique('name');
-        $this->setDbUnique('systemId');
     }
     
     
