@@ -151,8 +151,6 @@ class acc_ArticleDetails extends core_Detail
                         }
                     }
                     
-                    $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . acc_Accounts::getVerbal($accRec, 'title');
-                    
                     if (!empty($ents)) {
                         $row->{"{$type}AccId"} .=
                         "<table class='acc-article-entries'>" .
@@ -433,5 +431,13 @@ class acc_ArticleDetails extends core_Detail
     			$row->$fld = acc_Items::recToVerbal($rec->$fld, 'titleLink')->titleLink;
     		}
     	}
+    	
+    	// В кой баланс е влязал записа
+    	$valior = $mvc->Master->fetchField($rec->articleId, 'valior');
+    	$balanceValior = acc_Balances::fetch("#fromDate <= '{$valior}' AND '{$valior}' <= #toDate");
+    	
+    	// Линкове към сметките в баланса
+    	$row->debitAccId = acc_Balances::getAccountLink($rec->debitAccId, $balanceValior);
+    	$row->creditAccId = acc_Balances::getAccountLink($rec->creditAccId, $balanceValior);
     }
 }

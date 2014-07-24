@@ -236,9 +236,8 @@ class acc_JournalDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$valior = $mvc->Master->fetchField($rec->journalId, 'valior');
-    	
     	// В кой баланс е влязал записа
+    	$valior = $mvc->Master->fetchField($rec->journalId, 'valior');
     	$balanceValior = acc_Balances::fetch("#fromDate <= '{$valior}' AND '{$valior}' <= #toDate");
     	
     	// Линкове към сметките в баланса
