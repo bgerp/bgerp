@@ -319,7 +319,7 @@ class email_Outgoings extends core_Master
         }
 
         // CSS' а за имейли
-        $emailCss = getFileContent('css/email.css');
+        $emailCss = file_get_contents(sbf('css/email.css', "", TRUE));
         
         // списъци с изпратени и проблеми получатели
         $success  = $failure = array();
