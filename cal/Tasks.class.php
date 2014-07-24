@@ -445,9 +445,9 @@ class cal_Tasks extends core_Master
             $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2');
         }
         
-        if($data->rec->state == 'draft') {
+        /*if($data->rec->state == 'draft') {
         	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/');
-        }
+        }*/
         
         // ако имаме зададена продължителност
     	if($data->rec->timeDuration){
