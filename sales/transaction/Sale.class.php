@@ -488,7 +488,8 @@ class sales_transaction_Sale
 		$jRecs = static::getEntries($id);
 	
 		$paid = acc_Balances::getBlAmounts($jRecs, '411')->amount;
-	
+		$paid += acc_Balances::getBlAmounts($jRecs, '412')->amount;
+		
 		return $paid;
 	}
 	
