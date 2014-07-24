@@ -21,6 +21,18 @@ class context_Setup extends core_ProtoSetup
     
     
     /**
+     * Път до js файла
+     */
+    var $commonJS = 'context/lib/contextMenu.js';
+    
+    
+    /**
+     * Път до css файла
+     */
+    var $commonCSS = 'context/lib/contextMenu.css';
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()

@@ -29,6 +29,18 @@ class fastscroll_Setup extends core_ProtoSetup
     
 	
 	/**
+	 * Път до js файла
+	 */
+	var $commonJS = 'fastscroll/lib/fastscroll.js';
+	
+	
+	/**
+	 * Път до css файла
+	 */
+	var $commonCSS = 'fastscroll/lib/fastscroll.css';
+	
+	
+	/**
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
