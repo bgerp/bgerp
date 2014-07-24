@@ -451,6 +451,13 @@ class acc_Items extends core_Manager
 	    				$res = 'no_one';
 	    			}
 	    		}
+	    	} else {
+	    		if(!empty($listRec->systemId)){
+	    			
+	    			// Ако няма интерфейс и има систем ид, не може да се добавя от интерфейса
+	    			$res = 'no_one';
+	    		}
+	    		
 	    	}
     	}
     	
