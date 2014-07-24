@@ -963,6 +963,7 @@ class core_App
             
             // Новия път до SBF на файла
             $newPath = EF_SBF_PATH . "/" . $newFile;
+                    
 
             // Ако файла не съществува в SBF
             if(!file_exists($newPath)) {
@@ -982,7 +983,6 @@ class core_App
                 if ($convertCss) {
                     
                     // TODO след промяна на import' натите файлове, без оригиналния, все още ще работи със стария код
-                    
                     // Конвертираме файла и вземаме CSS' а
                     $css = core_Converter::convertSass($f, 'scss');  
                     
@@ -1000,10 +1000,10 @@ class core_App
                         } 
     
                         // Записваме файла
-                        if (@file_put_contents($newPath, $css) !== FALSE) {
+                        if (core_Sbf::saveFile($css, $newFile) !== FALSE) {
                             
                             // Задаваме пътя
-                            $rPath = $newFile;
+                            $rPath = $newFile;  
                         } else {
                             
                              // Записваме в лога
@@ -1013,7 +1013,9 @@ class core_App
                 } else {
                     
                     // Ако не трябва да се конвертира, записваме новия файл
-                    if(@copy($f, $newPath)) {
+                    $content = file_get_contents($f);
+
+                    if(core_Sbf::saveFile($content, $newFile)) {
                         
                         // Записваме в лога, всеки път след като създадам файл в sbf
                         core_Logs::add(get_called_class(), NULL, "Генериране на файл в 'sbf' за '{$rPath}'", 5);
