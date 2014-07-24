@@ -79,6 +79,7 @@ class acc_Setup extends core_ProtoSetup
             'acc_JournalDetails',
     		'acc_OpenDeals',
     		'acc_Features',
+    		'migrate::removeYearManager',
         );
     
 
@@ -142,5 +143,17 @@ class acc_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция, която премахва данните останали от мениджъра за годините
+     */
+    function removeYearManager()
+    {
+    	// Изтриваме интерфейса на годините от таблицата с итнерфейсите
+    	if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsAccRegIntf'")){
+    		core_Interfaces::delete($oldIntRec->id);
+    	}
     }
 }
