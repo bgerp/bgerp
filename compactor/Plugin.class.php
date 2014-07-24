@@ -130,9 +130,10 @@ class compactor_Plugin extends core_Plugin
         
         // Пътя до файла
         $newPath = $cssDirName . '/' . $newFileName;
-        
+       
         // Добавяме файла в масива
         $resArr = static::addNewFileToArr($newPath, $cssArr);
+
     }
 	
     
@@ -287,7 +288,8 @@ class compactor_Plugin extends core_Plugin
             }
             
             // Добавяме във файла
-            if (!@file_put_contents($tempPath, $content)) {
+             
+            if (!core_Sbf::saveFile($content, $tempPath, TRUE)) {
                 
                 // Записваме грешката
                 core_Logs::add(get_called_class(), NULL, "Грешка при записване в '{$tempPath}'");
@@ -335,8 +337,8 @@ class compactor_Plugin extends core_Plugin
 	static function getContentFromPath($path, $changePath=FALSE)
 	{
 	    // Съдържанието на файла
-	    $content = @file_get_contents(sbf($path, '', TRUE));
-	    
+	    $content = file_get_contents(sbf($path, '', TRUE));
+	 
 	    if ($content === FALSE) {
 	        core_Logs::add(get_called_class(), NULL, "Грешка при извличане на съдържание от '{$path}'");
 	    }
@@ -371,8 +373,8 @@ class compactor_Plugin extends core_Plugin
         // Шаблон за намиране на всички линкове, към файлове
         // Трябва да започават с ../
         // Да завършват с .css, .jpg, .jpeg, .png или .gif
-        $pattern = '/(\.\.\/)+(.)+((\.css)+|(\.jpg)+|(\.jpeg)+|(\.png)+|(\.gif)+)+/i';
-        
+        $pattern = '/url\(([^\)]+?)\);/i';
+      
         // Заместваме локалните линкове към файловете с абсолютни
 	    $textChanged = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
         
@@ -392,10 +394,10 @@ class compactor_Plugin extends core_Plugin
 	 * @return string
 	 */
     protected function changeImgPaths($matches)
-    {
+    {  
         // Ако не е задаен пътя до файла
         if (!($path = $this->filePath)) return $matches[0];
-        
+
         // Открития файла
         $file = $matches[0];
         
