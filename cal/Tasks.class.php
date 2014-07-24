@@ -44,7 +44,7 @@ class cal_Tasks extends core_Master
     /**
      * Какви детайли има този мастер
      */
-    var $details = 'cal_TaskProgresses, cal_TaskConditions';
+    var $details = 'cal_TaskProgresses';
 
     
     /**
