@@ -131,6 +131,7 @@ class fileman_GalleryGroups extends core_Manager
     	$res .= $cntObj->html;
     }
     
+    
     /**
      * Изпълнява се преди импортирването на данните
      */
@@ -153,6 +154,7 @@ class fileman_GalleryGroups extends core_Manager
         // Добавяме id-тата на записите
         $rec->roles = type_Keylist::fromArray($roleArr);
     }
+    
     
     /**
      * Връща id на групата по подразбиране
