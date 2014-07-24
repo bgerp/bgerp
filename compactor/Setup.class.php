@@ -64,9 +64,13 @@ class compactor_Setup extends core_ProtoSetup
         $res .= parent::loadSetupData();
         
         // JS и CSS файловете от конфигурацията
-        $conf = core_Packs::getConfig('compactor');
-        $jsFilesArr = arr::make($conf->COMPACTOR_JS_FILES, TRUE);
-        $cssFilesArr = arr::make($conf->COMPACTOR_CSS_FILES, TRUE);
+//        $conf = core_Packs::getConfig('compactor');
+//        $jsFilesArr = arr::make($conf->COMPACTOR_JS_FILES, TRUE);
+//        $cssFilesArr = arr::make($conf->COMPACTOR_CSS_FILES, TRUE);
+        
+        // JS и CSS файловете от конфигурацията от константите
+        $jsFilesArr = arr::make(COMPACTOR_JS_FILES, TRUE);
+        $cssFilesArr = arr::make(COMPACTOR_CSS_FILES, TRUE);
         
         // Всички записани пакети
         $query = core_Packs::getQuery();
@@ -81,19 +85,26 @@ class compactor_Setup extends core_ProtoSetup
             // Ако файлът съществува
             if (cls::load($pack, TRUE)) {
                 
+                $cssAndJsArr = array();
+                
                 // Инстанция на пакета
                 $inst = cls::get($pack);
+                if (method_exists($inst, 'getCommonCssAndJs')) {
+                    $cssAndJsArr = $inst->getCommonCssAndJs();
+                }
+                
+                if (!$cssAndJsArr) continue;
                 
                 // Добавяме зададените CSS файлове към главния
-                if ($inst->commonCSS) {
-                    $commonCssArr = arr::make($inst->commonCSS, TRUE);
+                if ($cssAndJsArr['css']) {
+                    $commonCssArr = arr::make($cssAndJsArr['css'], TRUE);
                     $cssFilesArr = array_merge((array)$cssFilesArr, (array)$commonCssArr);
                     $haveCss = TRUE;
                 }
                 
                 // Добавяме зададените JS файлове към главния
-                if ($inst->commonJS) {
-                    $commonJsArr = arr::make($inst->commonJS, TRUE);
+                if ($cssAndJsArr['js']) {
+                    $commonJsArr = arr::make($cssAndJsArr['js'], TRUE);
                     $jsFilesArr = array_merge((array)$jsFilesArr, (array)$commonJsArr);
                     $haveJs = TRUE;
                 }
