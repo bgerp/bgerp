@@ -264,6 +264,26 @@ class core_ProtoSetup
     
     
     /**
+     * Връща масив с css и js файловете дефинирани в commonJS и commonCSS
+     * 
+     * @return array - Двумерен масив с 'css' и 'js' пътищатата
+     */
+    public function getCommonCssAndJs()
+    {
+        $resArr = array();
+        // Добавяме зададените CSS файлове към главния
+        if ($this->commonCSS) {
+            $resArr['css'] = arr::make($this->commonCSS, TRUE);
+        }
+        if ($this->commonJS) {
+            $resArr['js'] = arr::make($this->commonJS, TRUE);
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Проверяваме дали всичко е сетнато, за да работи пакета
      * Ако има грешки, връщаме текст
      */
