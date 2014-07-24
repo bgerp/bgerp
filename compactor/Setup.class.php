@@ -44,8 +44,6 @@ class compactor_Setup extends core_ProtoSetup
      */
     function install()
     {
-        $me = cls::get(get_called_class());
-        $html = $me->loadSetupData();
     	$html .= parent::install();
     	
         // Зареждаме мениджъра на плъгините
