@@ -36,7 +36,7 @@ class rtac_yuku_Textcomplete extends core_Manager
     static function loadPacks(&$tpl)
     {
         $conf = core_Packs::getConfig('rtac');
-        $tpl->push("rtac/yuku/" . $conf->RTAC_YUKU_VERSION . "/jquery.textcomplete.min.js", "JS");
+        $tpl->push("rtac/yuku/" . $conf->RTAC_YUKU_VERSION . "/jquery.textcomplete.js", "JS");
         
         $tpl->push("rtac/yuku/autocomplete.css", "CSS");
     }
