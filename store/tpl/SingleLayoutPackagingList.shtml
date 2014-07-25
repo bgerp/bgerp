@@ -86,7 +86,61 @@
                             <td class='nowrap quiet' align=right>Transport: </td>
                             <td>[#lineId#]</td>
                         </tr>
-                    <!--ET_END lineId--> 
+                    <!--ET_END lineId-->
+                    
+                    <!--ET_BEGIN DELIVERY_ADRESS-->
+		                    [#DELIVERY_ADRESS#]
+		                    <tr>
+		                    	<td colspan='2'>&nbsp;</td>
+		                    </tr>
+		                    <tr>
+		                    	<td colspan='2' style='border-bottom:1px solid #999;' class='quiet nowrap'>Delivery address</td>
+		                    </tr>
+		                    
+		                    <!--ET_BEGIN company-->
+		                    <tr>
+		                    	<td class='quiet' align=right>Company:</td>
+		                    	<td>[#company#]</td>
+		                    </tr>
+		                    <!--ET_END company-->
+		                    <!--ET_BEGIN person-->
+		                    <tr>
+		                    	<td class='quiet' align=right>Person:</td>
+		                    	<td>[#person#]</td>
+		                    </tr>
+		                    <!--ET_END person-->
+		                    <!--ET_BEGIN country-->
+		                    <tr>
+		                    	<td class='quiet' align=right>Country*:</td>
+		                    	<td>[#country#]</td>
+		                    </tr>
+		                    <!--ET_END country-->
+		                    <!--ET_BEGIN tel-->
+		                    <tr class='quiet'>
+		                    	<td align='right'>Phones:</td>
+		                    	<td>[#tel#]</td>
+		                    </tr>
+		                    <!--ET_END tel-->
+		                    <!--ET_BEGIN pCode-->
+		                    <tr>
+		                    	<td class='quiet' align=right>Post code:</td>
+		                    	<td>[#pCode#]</td>
+		                    </tr>
+		                    <!--ET_END pCode-->
+		                    <!--ET_BEGIN place-->
+		                    <tr>
+		                    	<td class='quiet' align=right>City:</td>
+		                    	<td>[#place#]</td>
+		                    </tr>
+		                    <!--ET_END place-->
+		                    <!--ET_BEGIN address-->
+		                    <tr>
+		                    	<td class='quiet' align=right>Address:</td>
+		                    	<td>[#address#]</td>
+		                    </tr>
+		                    <!--ET_END address-->
+		                    <!--ET_END DELIVERY_ADRESS-->
+		                     
                     <!--ET_BEGIN note-->
                         <tr>
                             <td colspan=2 > 

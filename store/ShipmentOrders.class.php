@@ -172,6 +172,15 @@ class store_ShipmentOrders extends core_Master
         // Допълнително
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
+        
+        $this->FLD('company', 'key(mvc=crm_Companies,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Адрес за доставка->Фирма, width=contactData');
+        $this->FLD('person', 'key(mvc=crm_Persons,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Адрес за доставка->Лице, changable, class=contactData');
+        $this->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., changable, class=contactData');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава, class=contactData');
+        $this->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData');
+        $this->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, changable, class=contactData');
+        $this->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData');
+        
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -413,6 +422,15 @@ class store_ShipmentOrders extends core_Master
         			if(cond_PaymentMethods::isCOD($pMethods) && !trans_Lines::hasForwarderPersonId($rec->lineId)){
         				$form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице!');
         			}
+        		}
+        	}
+        	
+        	if($rec->locationId){
+        		foreach (array('company','person','tel','country','pCode','place','address',) as $del){
+        			 if($rec->$del){
+        			 	$form->setError("locationId,{$del}", 'Не може да има избрана локация, и въведени адресни данни');
+        			 	break;
+        			 }
         		}
         	}
         }
