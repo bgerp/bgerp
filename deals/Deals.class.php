@@ -553,24 +553,14 @@ class deals_Deals extends core_Master
     	// Обновяваме крайното салдо на сметката на сделката
     	$entries = acc_Journal::getEntries(array($this->className, $rec->id));
     	$blAmount = acc_Balances::getBlAmounts($entries, acc_Accounts::fetchField($rec->accountId, 'systemId'))->amount;
+    	$paid = acc_Balances::getBlAmounts($entries, '501,503')->amount;
     	
-    	$result->set('amount', $blAmount);
-    	$result->set('amountPaid', $this->getPaidAmount($rec));
+    	$result->set('amount', 0);
+    	$result->set('amountPaid', $paid);
+    	$result->set('blAmount', $blAmount);
     	$result->set('agreedValior', $rec->createdOn);
     	$result->set('currency', $rec->currencyId);
     	$result->set('rate', $rec->currencyRate);
-    }
-    
-    
-    /**
-     * Колко е платеното по сделката
-     */
-    private function getPaidAmount($rec)
-    {
-    	$jRecs = acc_Journal::getEntries(array($this, $rec->id));
-    	$paid = acc_Balances::getBlAmounts($jRecs, '501,503')->amount;
-    	
-    	return $paid;
     }
     
     
@@ -791,7 +781,7 @@ class deals_Deals extends core_Master
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
     	$aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
-    	$rec->amountDeal = $aggregateDealInfo->get('amount');
+    	$rec->amountDeal = $aggregateDealInfo->get('blAmount');
     	
     	$mvc->save($rec);
     }
