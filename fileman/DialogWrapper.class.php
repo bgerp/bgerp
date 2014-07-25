@@ -97,6 +97,8 @@ class fileman_DialogWrapper extends core_Plugin
             // Добавяме клас към бодито
             $tpl->append('dialog-window', 'BODY_CLASS_NAME');
             
+            $tpl->push('css/dialog.css', 'CSS');
+            
             return TRUE;
         }
     }
