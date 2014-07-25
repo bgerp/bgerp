@@ -374,11 +374,10 @@ class compactor_Plugin extends core_Plugin
         // Шаблон за намиране на всички линкове, към файлове
         // Трябва да започават с ../
         // Да завършват с .css, .jpg, .jpeg, .png или .gif
-        $pattern = '/url\(([^\)]+?)\);/i';
-//        $pattern = '/(\.\.\/)+(.)+((\.css)+|(\.jpg)+|(\.jpeg)+|(\.png)+|(\.gif)+)+/i';
-      
+        $pattern = "/url\((?'file'[^\)]{1,200}?)\)/i";
+        
         // Заместваме локалните линкове към файловете с абсолютни
-	    $textChanged = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
+        $textChanged = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
         
 	    if (!$textChanged && $text) {
 	        core_Logs::add(get_called_class(), NULL, "Грешка при извикване на регулярен израз: " . preg_last_error());
@@ -401,7 +400,7 @@ class compactor_Plugin extends core_Plugin
         if (!($path = $this->filePath)) return $matches[0];
 
         // Открития файла
-        $file = $matches[0];
+        $file = trim($matches['file'], "'\"");
         
         // Директорията
         $dir = dirname($path);
@@ -435,6 +434,8 @@ class compactor_Plugin extends core_Plugin
             $filePath = $matches[0];
         }
         
-        return $filePath;
+        $res = str_ireplace($matches['file'], $filePath, $matches[0]);
+        
+        return $res;
     }
 }
