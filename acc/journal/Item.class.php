@@ -13,19 +13,19 @@ class acc_journal_Item
      *
      * @var int key(mvc=core_Classes)
      */
-    protected $classId;
+    public $classId;
 
 
     /**
      * @var int key(mvc=$classId)
      */
-    protected $objectId;
+    public $objectId;
 
     /**
      *
      * @var stdClass
      */
-    private $itemRec = NULL;
+    public $itemRec = NULL;
 
 
     /**
@@ -109,5 +109,20 @@ class acc_journal_Item
         }
         
         return core_Cls::getClassName($this->classId);
+    }
+    
+    
+    /**
+     * Дали перото е затворено
+     */
+    public function isClosed()
+    {
+    	if(!$this->id){
+    		$this->id = acc_Items::fetchItem($this->classId, $this->objectId)->id;
+    	}
+    	
+    	$state = acc_Items::fetchField($this->id, 'state');
+    	
+    	return ($state == 'closed') ? TRUE : FALSE;
     }
 }

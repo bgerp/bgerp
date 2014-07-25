@@ -32,7 +32,7 @@ class acc_journal_EntrySide
      *
      * @var array
      */
-    protected $items;
+    public $items;
 
 
     /**
@@ -60,8 +60,8 @@ class acc_journal_EntrySide
      * @var string
      */
     protected $type;
-
-
+    
+    
     /**
      * Конструктор
      *
@@ -133,9 +133,10 @@ class acc_journal_EntrySide
                                 new acc_journal_Account($data->account);
 
         $this->items = array();
-
+		
         if (is_array($data->items)) {
             foreach ($data->items as $item) {
+            	
                 $this->items[] = $item instanceof acc_journal_Item ? $item :
                                     new acc_journal_Item($item);
             }
@@ -226,7 +227,7 @@ class acc_journal_EntrySide
     public function forceItems()
     {
         /* @var $item acc_journal_Item */
-        foreach ($this->items as $i=>$item) {
+        foreach ($this->items as $i => $item) {
             $item->force($this->account->{'groupId' . ($i+1)});
         }
     }
@@ -289,5 +290,28 @@ class acc_journal_EntrySide
         }
         
         return NULL;
+    }
+    
+    
+    /**
+     * Намираме всички затворени пера в ентрито
+     */
+    public function getClosedItems()
+    {
+    	$closedItems = array();
+    	
+    	// Ако има пера, обхождаме ги
+    	if(count($this->items)){
+    		foreach ($this->items as $item){
+    			
+    			// Запомняме затворените пера
+    			if($item->isClosed() && isset($item->id)){
+    				$closedItems[$item->id] = $item->id;
+    			}
+    		}
+    	}
+    	
+    	// Връщаме затворените пера или празен масив, ако всички са отворени
+    	return $closedItems;
     }
 }
