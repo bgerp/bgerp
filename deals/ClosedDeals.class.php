@@ -29,7 +29,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=deals_transaction_CloseDeal';
     
     
     /**
@@ -179,54 +179,5 @@ class deals_ClosedDeals extends acc_ClosedDeals
     	if($dealInfo->get('dealType') != deals_Deals::AGGREGATOR_TYPE) return FALSE;
     
     	return TRUE;
-    }
-    
-    
-    /**
-     * Връща транзакцията за документа
-     */
-    public function getTransaction($id)
-    {
-    	expect($rec = $this->fetchRec($id));
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $info = static::getDealInfo($rec->threadId);
-        $docRec = $firstDoc->fetch();
-        $account = acc_Accounts::fetchField($docRec->accountId, 'systemId');
-       
-        $amount = round($info->get('amount') / $info->get('rate'), 2);
-        
-        // Извънреден разход
-        if($amount < 0){
-        	$debitArr = array('6913', 
-        							array($docRec->contragentClassId, $docRec->contragentId),
-	            					array($firstDoc->className, $firstDoc->that));
-        	$creditArr = array($account,
-        						array($docRec->contragentClassId, $docRec->contragentId),
-        						array('deals_Deals', $docRec->id),
-	    						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-	                        'quantity' =>  abs($amount));
-        } else {
-        	// Извънреден приход
-        	$debitArr = array($account,
-        					array($docRec->contragentClassId, $docRec->contragentId),
-	    					array('deals_Deals', $docRec->id), 
-	                        array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-	                    'quantity' =>  abs($amount));
-        	$creditArr = array('7913', 
-        							array($docRec->contragentClassId, $docRec->contragentId),
-	            					array($firstDoc->className, $firstDoc->that));
-        }
-        
-        // Създаване на обекта за транзакция
-        $result = (object)array(
-        		'reason'      => $this->singleTitle . " #" . $firstDoc->getHandle(),
-        		'valior'      => dt::now(),
-        		'totalAmount' => abs($amount),
-        		'entries'     => array(),
-        );
-        
-        $result->entries[] = array('amount' => abs($amount), 'debit' => $debitArr, 'credit' => $creditArr);
-        
-        return $result;
     }
 }

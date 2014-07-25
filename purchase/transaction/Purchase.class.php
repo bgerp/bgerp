@@ -430,9 +430,10 @@ class purchase_transaction_Purchase
     public static function getBlAmount($id)
     {
     	$jRecs = static::getEntries($id);
-    
+    	
     	$paid = acc_Balances::getBlAmounts($jRecs, '401')->amount;
-    
+    	$paid += acc_Balances::getBlAmounts($jRecs, '402')->amount;
+    	
     	return $paid;
     }
     

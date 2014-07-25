@@ -437,4 +437,57 @@ class acc_Balances extends core_Master
     	// Връщане на резултата
     	return $res;
     }
+    
+    
+    /**
+     * Ф-я връщаща името на сметка като линк към баланса
+     * 
+     * @param int $accountId - ид на сметката
+     * @param $rec - запис на баланс, ако е NULL взима последния баланс
+     * @param $showNum - дали да се показва Номера на сметката до името й
+     * @param $showIcon - дали да се показва иконка
+     * 
+     * @return html $title - името на сметката като линк (ако имаме права)
+     */
+    public static function getAccountLink($accountId, $rec = NULL, $showNum = TRUE, $showIcon = FALSE)
+    {
+    	expect($accountRec = acc_Accounts::fetchRec($accountId));
+    	$title = acc_Accounts::getVerbal($accountRec, 'title');
+    	$num = acc_Accounts::getVerbal($accountRec, 'num');
+    	
+    	// Ако трябва да се показва num-а го показваме до името на сметката
+    	if($showNum){
+    		$title = $num . " . " . $title;
+    	}
+    	
+    	// Ако не е подаден баланс, взимаме последния
+    	if(!$rec){
+    		$rec = static::getLastBalance();
+    	}
+    	 
+    	if ($accountRec->id && strlen($num) >= 3) {
+    		if(acc_Balances::haveRightFor('read', $rec)){
+    			
+    			// Ако има номенклатури, правим линк към обобщението на сметката
+    			if ($accountRec->groupId1 || $accountRec->groupId2 || $accountRec->groupId3) {
+    				$balImg = ($showIcon) ? array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/filter.png') . ');') : NULL;
+    				
+    				$title = ht::createLink($title,
+    						array('acc_Balances', 'single', $rec->id, 'accId' => $accountRec->id), NULL, $balImg);
+    			} else{
+    				
+    				// Ако няма номенклатури, линка е към хронологията на сметката
+    				if(acc_BalanceDetails::haveRightFor('history', $dRec)){
+    					$balImg = ($showIcon) ? array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/clock_history.png') . ');') : NULL;
+    					
+    					$title = ht::createLink($title,
+    							array('acc_BalanceDetails', 'History', 'fromDate' => $rec->fromDate, 'toDate' => $rec->toDate, 'accNum' => $accountRec->num), NULL, $balImg);
+    				}
+    			}
+    		}
+    	}
+    	 
+    	// Връщаме линка
+    	return $title;
+    }
 }

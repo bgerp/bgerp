@@ -32,7 +32,7 @@ li.dimension{
 	padding:0;
 }
 
-.last-dimention,li:last-child{
+.last-dimention, li.dimension:last-child{
 	border-bottom: solid 1px #bbb;
 	border-radius:0 0 5px 5px;
 }

@@ -118,17 +118,17 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	if($rec->amount == 0){
     		$costAmount = $incomeAmount = 0;
     	} elseif($rec->amount < 0){
-    		$incomeAmount = -1 * $rec->amount;
+    		$incomeAmount = $rec->amount;
     		$costAmount = 0;
     		$row->type = tr('Приход');
     	} elseif($rec->amount > 0){
-    		$costAmount = -1 * $rec->amount;
+    		$costAmount = $rec->amount;
     		$incomeAmount = 0;
     		$row->type = tr('Разход');
     	}
     	
-    	$row->costAmount = $mvc->fields['amount']->type->toVerbal($costAmount);
-    	$row->incomeAmount = $mvc->fields['amount']->type->toVerbal($incomeAmount);
+    	$row->costAmount = $mvc->fields['amount']->type->toVerbal(abs($costAmount));
+    	$row->incomeAmount = $mvc->fields['amount']->type->toVerbal(abs($incomeAmount));
     }
     
     

@@ -90,8 +90,14 @@ class forum_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(3.5, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms,forum, admin, ceo"),
         );
-	
-        
+    
+    
+    /**
+     * Път до css файла
+     */
+    var $commonCSS = 'forum/tpl/styles.css';
+    
+    
     /**
      * Инсталиране на пакета
      */

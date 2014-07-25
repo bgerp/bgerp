@@ -215,12 +215,9 @@ abstract class acc_ClosedDeals extends core_Master
     public static function getClosedDealAmount($threadId)
     {
     	expect($info = static::getDealInfo($threadId));
-    	
-        $paidAmount = currency_Currencies::round($info->get('amountPaid'), 2);
-        $shippedAmount = currency_Currencies::round($info->get('deliveryAmount'), 2);
 		
-        $diff = $paidAmount - $shippedAmount;
-        
+        $diff = currency_Currencies::round($info->get('blAmount'), 2);
+       
         // Разликата между платеното и доставеното
         return $diff;
     }
@@ -289,26 +286,10 @@ abstract class acc_ClosedDeals extends core_Master
     	
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	if(!$rec->amount){
-    		$info = static::getDealInfo($rec->threadId);
-    		$baseAmount = static::getClosedDealAmount($rec->threadId);
-    		
-    		$amount = $baseAmount / $info->get('rate');
-    		$row->currencyId = $info->get('currency');
-    	} else {
-    		@$amount =  $rec->amount / $rec->rate;
+    		$rec->amount = static::getClosedDealAmount($rec->threadId);
     	}
     	
-    	$rec->amount = round($amount, 4);
-    	if(abs($rec->amount) == 0){
-    		$rec->amount = 0;
-    	} 
-    	
-    	$row->amount = $Double->toVerbal($amount);
-    	
-    	$docRec = $firstDoc->fetch();
-    	if($firstDoc->instance()->haveRightFor('single', $docRec->id)){
-	        $row->docId = $firstDoc->getLink();
-	    }
+    	$row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
 	    
 	    $abbr = cls::get(get_called_class())->abbr;
 	    $row->header = cls::get(get_called_class())->singleTitle . " #<b>{$abbr}{$row->id}</b> ({$row->state})";
@@ -326,7 +307,7 @@ abstract class acc_ClosedDeals extends core_Master
     	$row = new stdClass();
     	
         $row->authorId = $rec->createdBy;
-        $row->author = $this->recToVerbal($rec)->createdBy;
+        $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
 		$row->saleId = cls::get($rec->docClassId)->getHandle($rec->docId);
         

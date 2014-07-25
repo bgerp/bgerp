@@ -274,6 +274,9 @@ class techno_Specifications extends core_Manager {
     public function getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId = NULL, $quantity = 1, $datetime = NULL)
     {
     	$TechnoClass = static::getDriver($id);
+    	
+    	if(empty($TechnoClass)) return NULL;
+    	
     	$priceInfo = $TechnoClass->getPriceInfo($packagingId, $quantity, $datetime);
     	
     	if($priceInfo->price){
@@ -306,6 +309,9 @@ class techno_Specifications extends core_Manager {
     public function getSelfValue($productId, $packagingId = NULL, $quantity = 1, $date = NULL)
     {
     	$TechnoClass = static::getDriver($productId);
+    	
+    	if(empty($TechnoClass)) return NULL;
+    	
     	$priceInfo = $TechnoClass->getPriceInfo($packagingId, $quantity, $date);
     	
     	if($priceInfo->price){
@@ -332,6 +338,10 @@ class techno_Specifications extends core_Manager {
      {
 	    $TechnoClass = static::getDriver($id);
      	
+	    if(empty($TechnoClass)){
+	    	return "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+	    }
+	    
      	if($full !== TRUE) {
     		return $TechnoClass->getTitleById($escaped);
     	}
@@ -354,6 +364,8 @@ class techno_Specifications extends core_Manager {
     {
     	$TechnoClass = static::getDriver($id);
     	
+    	if(empty($TechnoClass)) return NULL;
+    	
     	return $TechnoClass->getProductInfo($packagingId);
     }
     
@@ -364,6 +376,8 @@ class techno_Specifications extends core_Manager {
 	public function getPacks($productId)
     {
     	$TechnoClass = static::getDriver($productId);
+    	
+    	if(empty($TechnoClass)) return NULL;
     	
     	return $TechnoClass->getPacks();
     }
@@ -478,7 +492,18 @@ class techno_Specifications extends core_Manager {
 	*/
     function getLinkToObj($objectId)
     {
-    	return static::getHyperlink($objectId);
+    	$Driver = static::getDriver($objectId);
+    	
+    	if(isset($Driver)){
+    		$link = $Driver->getTitleById();
+    		if($Driver->instance->haveRightFor('single', $Driver->that)) {
+    			$link = ht::createLinkRef($link , array($Driver->className, 'Single', $Driver->that));
+    		}
+    	} else {
+    		$link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+    	}
+    	
+    	return $link;
     }
     
     
@@ -509,6 +534,8 @@ class techno_Specifications extends core_Manager {
     {
     	$TechnoClass = static::getDriver($id);
     	
+    	if(empty($TechnoClass)) return NULL;
+    	
     	return $TechnoClass->getParam($sysId);
     }
     
@@ -524,7 +551,11 @@ class techno_Specifications extends core_Manager {
     {
     	$TechnoClass = static::getDriver($productId);
     	
-    	return $TechnoClass->getWeight($productId, $packagingId);
+    	if(isset($TechnoClass)){
+    		return $TechnoClass->getWeight($productId, $packagingId);
+    	} else {
+    		return FALSE;
+    	}
     }
     
     
@@ -539,7 +570,11 @@ class techno_Specifications extends core_Manager {
     {
     	$TechnoClass = static::getDriver($productId);
     	
-    	return $TechnoClass->getVolume($productId, $packagingId);
+    	if(isset($TechnoClass)){
+    		return $TechnoClass->getVolume($productId, $packagingId);
+    	} else {
+    		return FALSE;
+    	}
     }
     
     
@@ -555,11 +590,15 @@ class techno_Specifications extends core_Manager {
      */
     public function getBasePackInfo($id)
     {
+    	$res = (object)array('name' => NULL, 'quantity' => 1);
+    	
     	try{
     		$TechnoClass = static::getDriver($id);
-    		$res = $TechnoClass->getBasePackInfo();
+    		if(isset($TechnoClass)){
+    			$res = $TechnoClass->getBasePackInfo();
+    		}
     	} catch(Exception $e){
-    		$res = (object)array('name' => NULL, 'quantity' => 1);
+    		
     	}
     	
     	return $res;

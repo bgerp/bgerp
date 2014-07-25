@@ -19,6 +19,12 @@ class acc_Items extends core_Manager
 {
     
     
+	/**
+	 * Интерфейси, поддържани от този мениджър
+	 */
+	var $interfaces = 'acc_RegisterIntf';
+	
+	
     /**
      * Плъгини за зареждане
      */
@@ -445,6 +451,13 @@ class acc_Items extends core_Manager
 	    				$res = 'no_one';
 	    			}
 	    		}
+	    	} else {
+	    		if(!empty($listRec->systemId)){
+	    			
+	    			// Ако няма интерфейс и има систем ид, не може да се добавя от интерфейса
+	    			$res = 'no_one';
+	    		}
+	    		
 	    	}
     	}
     	
@@ -751,10 +764,10 @@ class acc_Items extends core_Manager
      */
     public static function notifyObject($id)
     {
-    	expect($rec = static::fetchRec($id));
+    	$rec = static::fetchRec($id);
     	
     	// Опитваме се да заредим класа на перото
-    	if(cls::load($rec->classId, TRUE)){
+    	if($rec && cls::load($rec->classId, TRUE)){
     		$Class = cls::get($rec->classId);
     		$objectRec = $Class->fetch($rec->objectId);
     		$Class->invoke('AfterJournalItemAffect', array($objectRec, $rec));
@@ -869,5 +882,25 @@ class acc_Items extends core_Manager
     	}
     	
     	core_Debug::$isLogging = TRUE;
+    }
+    
+    
+    /**
+     * @see crm_ContragentAccRegIntf::getItemRec
+     * @param int $objectId
+     */
+    static function getItemRec($objectId)
+    {
+    	$self = cls::get(__CLASS__);
+    	$result = NULL;
+    
+    	if ($rec = $self->fetch($objectId)) {
+    		$result = (object)array(
+    				'num' => $rec->objectId,
+    				'title' => $rec->title,
+    		);
+    	}
+    
+    	return $result;
     }
 }

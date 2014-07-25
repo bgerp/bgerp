@@ -72,8 +72,14 @@ class cash_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(2.2, 'Финанси', 'Каси', 'cash_Cases', 'default', "cash, ceo"),
         );
-
-        
+    
+    
+    /**
+     * Път до css файла
+     */
+    var $commonCSS = 'cash/tpl/styles.css';
+    
+    
     /**
      * Инсталиране на пакета
      */

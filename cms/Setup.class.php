@@ -130,7 +130,7 @@ class cms_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(3.5, 'Сайт', 'CMS', 'cms_Content', 'default', "cms, ceo, admin"),
         );
- 
+    
     
     /**
      * Инсталиране на пакета
