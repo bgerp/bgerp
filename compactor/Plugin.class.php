@@ -400,7 +400,7 @@ class compactor_Plugin extends core_Plugin
         if (!($path = $this->filePath)) return $matches[0];
 
         // Открития файла
-        $file = trim($matches['file'], "'\"");
+        $trimFile = $file = trim($matches['file'], "'\"");
         
         // Директорията
         $dir = dirname($path);
@@ -434,7 +434,7 @@ class compactor_Plugin extends core_Plugin
             $filePath = $matches[0];
         }
         
-        $res = str_ireplace($matches['file'], $filePath, $matches[0]);
+        $res = str_ireplace($trimFile, $filePath, $matches[0]);
         
         return $res;
     }
