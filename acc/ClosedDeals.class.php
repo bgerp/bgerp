@@ -416,4 +416,26 @@ abstract class acc_ClosedDeals extends core_Master
     	
     	return $self->singleTitle . " №{$rec->id}";
     }
+    
+    
+    /**
+     * Дали документа има приключени пера в транзакцията му
+     */
+    public function getClosedItemsInTransaction_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	// Намираме приключените пера от транзакцията
+    	$transaction = $this->getValidatedTransaction($id);
+    	if($transaction){
+    		$closedItems = $transaction->getClosedItems();
+    	}
+    	
+    	// От списъка с приключените пера, премахваме това на приключения документ, така че да може
+    	// приключването да се оттегля/възстановява въпреки че има в нея приключено перо
+    	$dealItemId = acc_Items::fetchItem($rec->docClassId, $rec->docId)->id;
+    	unset($closedItems[$dealItemId]);
+    	
+    	return $closedItems;
+    }
 }

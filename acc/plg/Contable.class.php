@@ -65,6 +65,69 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
+     * Кои са затворените пера в транзакцията на документа
+     */
+    public static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
+    {
+    	// Ако няма пера
+    	if(!is_array($res)){
+    		
+    		// Взима всички от текущата транзакция
+    		$transaction = $mvc->getValidatedTransaction($id);
+    		if($transaction){
+    			$res = $transaction->getClosedItems();
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Дали документа може да бъде възстановен/оттеглен, ако в транзакцията му има
+     * поне едно затворено перо връща FALSE
+     */
+    public static function canRejectOrRestore($mvc, $id)
+    {
+    	$closedItems = $mvc->getClosedItemsInTransaction($id);
+    	
+    	if(count($closedItems)){
+    		$msg = tr('Документа не може да бъде оттеглен/възстановен докато перата:');
+    		foreach ($closedItems as $itemId){
+    			$msg .= "'" . acc_Items::getVerbal($itemId, 'title') . "', ";
+    		}
+    		$msg = trim($msg, ', ');
+    		$msg .= " " . tr("са затворени");
+    		
+    		core_Statuses::newStatus($msg, 'warning');
+    		
+    		return FALSE;
+    	} else {
+    		
+    		return TRUE;
+    	}
+    }
+    
+    
+    /**
+     * Преди оттегляне, ако има затворени пера в транзакцията, не може да се оттегля
+     */
+    public static function on_BeforeReject($mvc, &$res, $id)
+    {
+    	// Ако не може да се оттегля, връща FALSE за да се стопира оттеглянето
+    	return self::canRejectOrRestore($mvc, $id);
+    }
+    
+    
+    /**
+     * Преди възстановяване, ако има затворени пера в транзакцията, не може да се възстановява
+     */
+    public static function on_BeforeRestore($mvc, &$res, $id)
+    {
+    	// Ако не може да се възстановява, връща FALSE за да се стопира възстановяването
+    	return self::canRejectOrRestore($mvc, $id);
+    }
+    
+    
+    /**
      * Преди запис на документ, изчислява стойността на полето `isContable`
      * 
      * @param core_Manager $mvc
