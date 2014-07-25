@@ -262,6 +262,7 @@ function comboSelectOnChange(id, value, suffix)
 
 	var selCombo = get$(id + suffix);
 	selCombo.value = '?';
+	$('#' + id).change();
 }
 
 // Присвоява стойност на вътрешния елемент, като отчита проблемите на IE

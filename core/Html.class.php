@@ -102,7 +102,7 @@ class core_Html
 
         if ($attr['ajaxAutoRefreshOptions']) {
             $attr['onkeydown'] = "focusSelect(event, '{$id}{$suffix}');";
-            $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  document.getElementById('" . $id . "').onchange();\", 1500); ";
+            $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
             if($attr['onchange']) {
                 $attr['onchange'] = "if(isOptionExists('" . $id . $suffix . "', this.value)) {" . $attr['onchange'] . "} ";
             }
