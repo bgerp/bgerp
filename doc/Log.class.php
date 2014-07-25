@@ -245,6 +245,9 @@ class doc_Log extends core_Manager
         // Заместваме страницирането
         $tpl->append($this->RenderDialogAddDocPager($data), 'pager');
        	
+        // Добавяме клас към бодито
+        $tpl->append('dialog-window', 'BODY_CLASS_NAME');
+        
        	return $tpl;
 	}
     
