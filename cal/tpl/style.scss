@@ -142,10 +142,14 @@ table.mc-calendar.mc-calendar-month td.mc-day,table.mc-calendar td.mc-today {
 	vertical-align:top;
 	font-weight:bold;
 	cursor: pointer;
-	height:8em;
 	padding:1px;
 	background-color: #e8efe8;
 }
+
+table.mc-calendar.mc-calendar-month td.mc-day{
+    height:8em;
+}
+
 table.mc-calendar.mc-calendar-month td.mc-day{
 	border:solid 2px #e8efe8;
 }
