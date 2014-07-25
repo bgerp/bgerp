@@ -764,10 +764,10 @@ class acc_Items extends core_Manager
      */
     public static function notifyObject($id)
     {
-    	expect($rec = static::fetchRec($id));
+    	$rec = static::fetchRec($id);
     	
     	// Опитваме се да заредим класа на перото
-    	if(cls::load($rec->classId, TRUE)){
+    	if($rec && cls::load($rec->classId, TRUE)){
     		$Class = cls::get($rec->classId);
     		$objectRec = $Class->fetch($rec->objectId);
     		$Class->invoke('AfterJournalItemAffect', array($objectRec, $rec));
