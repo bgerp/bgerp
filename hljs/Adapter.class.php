@@ -2,12 +2,6 @@
 
 
 /**
- * Версията на продукта
- */
-defIfNot('HLJS_VERSION', '7.3');
-
-
-/**
  * Оцветяването на кода
  * 
  * @category  vendors
@@ -46,8 +40,10 @@ class hljs_Adapter
      */
     static function enableHlJs($tpl, $style = 'default')
     {
+    	$conf = core_Packs::getConfig('hljs');
+    	
         // CSS fajla
-        $css = 'hljs/' . HLJS_VERSION . "/styles/{$style}.css";
+        $css = 'hljs/' . $conf->HLJS_VERSION . "/styles/{$style}.css";
         
         // Ако стила не е по подразбиране
         if ($style != 'default') {
@@ -56,7 +52,7 @@ class hljs_Adapter
             if (!getFullPath($css)) {
                 
                 // Ако няма такъв файл, използваме стила по подразбиране
-                $css = 'hljs/' . HLJS_VERSION . "/styles/default.css";     
+                $css = 'hljs/' . $conf->HLJS_VERSION . "/styles/default.css";     
             }
         }
 
@@ -64,7 +60,7 @@ class hljs_Adapter
         $tpl->push($css, 'CSS');
 
         // Добавяме JS
-    	$tpl->push('hljs/' . HLJS_VERSION . '/highlight.pack.js', 'JS');
+    	$tpl->push('hljs/' . $conf->HLJS_VERSION . '/highlight.pack.js', 'JS');
     	$tpl->appendOnce("if(typeof hljs != 'undefined') {
     						hljs.tabReplace = '    ';
 					  		hljs.initHighlightingOnLoad();

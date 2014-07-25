@@ -2,6 +2,12 @@
 
 
 /**
+ * Версията на продукта
+ */
+defIfNot('HLJS_VERSION', '7.3');
+
+
+/**
  * Инсталиране/Деинсталиране на плъгини свързани с hljs
  *
  * @category  vendors
@@ -62,5 +68,29 @@ class hljs_Setup extends core_ProtoSetup
         }
         
         return $html;
+    }
+    
+    
+    /**
+     * Връща масив с css и js файловете дефинирани в commonJS и commonCSS
+     *
+     * @return array - Двумерен масив с 'css' и 'js' пътищатата
+     *
+     * @see core_ProtoSetup->getCommonCssAndJs()
+     */
+    function getCommonCssAndJs()
+    {
+    	$cssAnaJsArr = parent::getCommonCssAndJs();
+    	$conf = core_Packs::getConfig('hljs');
+    
+    	// Пътя до js файла
+    	$jsFile = 'hljs/' . $conf->HLJS_VERSION . '/highlight.pack.js';
+    	$cssAnaJsArr['js'][$jsFile] = $jsFile;
+    		
+    	// Пътя до css файла
+    	$cssFile =  'hljs/' . $conf->HLJS_VERSION . "/styles/default.css";  ;
+    	$cssAnaJsArr['css'][$cssFile] = $cssFile;
+    
+    	return $cssAnaJsArr;
     }
 }
