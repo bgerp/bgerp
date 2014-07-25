@@ -1,13 +1,6 @@
 <?php
 
 
-
-/**
- * Път до външния пакет
- */
-defIfNot('FANCYBOX_PATH', 'fancybox/1.3.4');
-
-
 /**
  * Клас 'fancybox_Fancybox'
  *
@@ -101,8 +94,10 @@ class fancybox_Fancybox extends core_Manager {
         $aAttr['class'] .= 'fancybox';
         $tpl = ht::createElement('a', $aAttr, $imgTpl);
 
-        $tpl->push(FANCYBOX_PATH . '/jquery.fancybox-1.3.4.css', 'CSS');
-        $tpl->push(FANCYBOX_PATH . '/jquery.fancybox-1.3.4.js', 'JS');
+        $conf = core_Packs::getConfig('fancybox');
+        
+        $tpl->push($conf->FANCYBOX_PATH . '/jquery.fancybox.css', 'CSS');
+        $tpl->push($conf->FANCYBOX_PATH . '/jquery.fancybox.js', 'JS');
         
         jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", TRUE);
         
