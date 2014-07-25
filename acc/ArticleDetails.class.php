@@ -147,7 +147,7 @@ class acc_ArticleDetails extends core_Detail
                     foreach (range(1, 3) as $i) {
                         $ent = "{$type}Ent{$i}";
                         if ($rec->{$ent}) {
-                            $ents .= "<tr><td> <span style='margin-left:10px; font-size: 11px; color: #747474;'>{$i}.</span> {$row->{$ent}}</td</tr>";
+                            $ents .= "<tr><td> <span style='margin-left:10px; font-size: 11px; color: #747474;'>{$i}.</span> <span>{$row->{$ent}}</span></td</tr>";
                         }
                     }
                     
