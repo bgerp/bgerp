@@ -452,10 +452,12 @@ class acc_Balances extends core_Master
     public static function getAccountLink($accountId, $rec = NULL, $showNum = TRUE, $showIcon = FALSE)
     {
     	expect($accountRec = acc_Accounts::fetchRec($accountId));
-    	$accountRow = acc_Accounts::recToVerbal($accountRec);
-    	$title = $accountRow->title;
+    	$title = acc_Accounts::getVerbal($accountRec, 'title');
+    	$num = acc_Accounts::getVerbal($accountRec, 'num');
+    	
+    	// Ако трябва да се показва num-а го показваме до името на сметката
     	if($showNum){
-    		$title = $accountRow->num . "." . $title;
+    		$title = $num . " . " . $title;
     	}
     	
     	// Ако не е подаден баланс, взимаме последния
@@ -463,7 +465,7 @@ class acc_Balances extends core_Master
     		$rec = static::getLastBalance();
     	}
     	 
-    	if ($accountRow->id && strlen($accountRow->num) >= 3) {
+    	if ($accountRec->id && strlen($num) >= 3) {
     		if(acc_Balances::haveRightFor('read', $rec)){
     			
     			// Ако има номенклатури, правим линк към обобщението на сметката
