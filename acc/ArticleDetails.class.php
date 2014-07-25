@@ -97,6 +97,12 @@ class acc_ArticleDetails extends core_Detail
     
     
     /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -130,23 +136,17 @@ class acc_ArticleDetails extends core_Detail
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
-        $Varchar = cls::get('type_Varchar');
         
         if (count($recs)) {
             foreach ($recs as $id=>$rec) {
                 $row = &$rows[$id];
-                
+               
                 foreach (array('debit', 'credit') as $type) {
                     $ents = "";
-                    $accRec = acc_Accounts::fetch($rec->{"{$type}AccId"});
                     
                     foreach (range(1, 3) as $i) {
                         $ent = "{$type}Ent{$i}";
                         if ($rec->{$ent}) {
-                            $row->{$ent} = $mvc->recToVerbal($rec, $ent)->{$ent};
-                            $num = $Varchar->toVerbal(acc_Items::fetchField($rec->{$ent}, 'num'));
-                            $listGroupTitle = acc_Lists::fetchField($accRec->{"groupId{$i}"}, 'name');
-                            
                             $ents .= "<tr><td> <span style='margin-left:10px; font-size: 11px; color: #747474;'>{$i}.</span> {$row->{$ent}}</td</tr>";
                         }
                     }
@@ -428,7 +428,13 @@ class acc_ArticleDetails extends core_Detail
     {
     	foreach (array('debitEnt1', 'debitEnt2', 'debitEnt3', 'creditEnt1', 'creditEnt2', 'creditEnt3') as $fld){
     		if(isset($rec->$fld)){
-    			$row->$fld = acc_Items::recToVerbal($rec->$fld, 'titleLink')->titleLink;
+    			
+    			// Кешираме името на перото
+    			if(!isset(static::$cache['items'][$rec->$fld])){
+    				static::$cache['items'][$rec->$fld] = acc_Items::getVerbal($rec->$fld, 'titleLink');
+    			}
+    			
+    			$row->$fld = static::$cache['items'][$rec->$fld];
     		}
     	}
     	
@@ -436,8 +442,17 @@ class acc_ArticleDetails extends core_Detail
     	$valior = $mvc->Master->fetchField($rec->articleId, 'valior');
     	$balanceValior = acc_Balances::fetch("#fromDate <= '{$valior}' AND '{$valior}' <= #toDate");
     	
+    	// Кешираме линковете към сметките
+    	foreach (array('debitAccId', 'creditAccId') as $accId){
+    		if(!isset(static::$cache['accs'][$rec->$accId])){
+    			static::$cache['accs'][$rec->$accId] = acc_Balances::getAccountLink($rec->$accId, $balanceValior);
+    		}
+    	}
+    	
+    	
+    	
     	// Линкове към сметките в баланса
-    	$row->debitAccId = acc_Balances::getAccountLink($rec->debitAccId, $balanceValior);
-    	$row->creditAccId = acc_Balances::getAccountLink($rec->creditAccId, $balanceValior);
+    	$row->debitAccId = static::$cache['accs'][$rec->debitAccId];
+    	$row->creditAccId = static::$cache['accs'][$rec->creditAccId];
     }
 }
