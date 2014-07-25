@@ -307,7 +307,7 @@ abstract class acc_ClosedDeals extends core_Master
     	$row = new stdClass();
     	
         $row->authorId = $rec->createdBy;
-        $row->author = $this->recToVerbal($rec)->createdBy;
+        $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
 		$row->saleId = cls::get($rec->docClassId)->getHandle($rec->docId);
         
