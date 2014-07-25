@@ -346,8 +346,10 @@ class img_Thumb
                 case 'url':
                 case 'path':
                     $this->format = fileman_Files::getExt($this->source);
+                break;
                 case 'fileman':
                     $this->format = fileman_Files::getExt(fileman_Files::fetchByFh($this->source, 'name'));
+                break;
             }
 
             if($this->format == 'jpeg') {
