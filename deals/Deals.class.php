@@ -555,8 +555,22 @@ class deals_Deals extends core_Master
     	$blAmount = acc_Balances::getBlAmounts($entries, acc_Accounts::fetchField($rec->accountId, 'systemId'))->amount;
     	
     	$result->set('amount', $blAmount);
+    	$result->set('amountPaid', $this->getPaidAmount($rec));
+    	$result->set('agreedValior', $rec->createdOn);
     	$result->set('currency', $rec->currencyId);
     	$result->set('rate', $rec->currencyRate);
+    }
+    
+    
+    /**
+     * Колко е платеното по сделката
+     */
+    private function getPaidAmount($rec)
+    {
+    	$jRecs = acc_Journal::getEntries(array($this, $rec->id));
+    	$paid = acc_Balances::getBlAmounts($jRecs, '501,503')->amount;
+    	
+    	return $paid;
     }
     
     
@@ -812,7 +826,7 @@ class deals_Deals extends core_Master
     /**
      * Извиква се след успешен запис в модела
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterSave($mvc, &$id, $rec)
     {
     	if($rec->state != 'draft'){
     		$state = $rec->state;

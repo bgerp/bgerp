@@ -69,7 +69,7 @@ class acc_OpenDeals extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title)', 'caption=Документ->Клас');
+    	$this->FLD('docClass', 'class(interface=bgerp_DealAggregatorIntf,select=title)', 'caption=Документ->Клас');
         $this->FLD('docId', 'int(cellAttr=left)', 'caption=Документ->Обект');
     	$this->FLD('valior', 'date', 'caption=Дата');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума->Поръчано, summary = amount');
@@ -146,12 +146,13 @@ class acc_OpenDeals extends core_Manager {
     public static function saveRec($rec, $docClass)
     {
     	// Записа се записва само при активация на документа със сума на сделката
+    	$info = $docClass->getAggregateDealInfo($rec->id);
     	
     	$classId = $docClass::getClassId();
     	$new = array(
-    		'valior' => $rec->valior,
-    		'amountDeal' => $rec->amountDeal,
-    		'amountPaid' => $rec->amountPaid, 
+    		'valior' => $info->get('agreedValior'),
+    		'amountDeal' => $info->get('amount'),
+    		'amountPaid' => $info->get('amountPaid'), 
     		'state' => $rec->state,
     		'docClass' => $classId,
     		'docId' => $rec->id,
