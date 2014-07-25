@@ -1685,16 +1685,16 @@ class crm_Persons extends core_Master
         }
         
         if(empty($form->rec->buzCompanyId)){
-        	$form->setReadOnly('buzLocationId');
+		    $form->setField('buzLocationId', 'input=none');
         }
         
-        $form->addAttr('buzCompanyId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['buzLocationId'].value ='';this.form.submit();"));
+        $form->addAttr('buzCompanyId', array('onchange' => "addCmdRefresh(this.form); if(document.forms['{$form->formAttr['id']}'].elements['buzLocationId'] != undefined) document.forms['{$form->formAttr['id']}'].elements['buzLocationId'].value ='';this.form.submit();"));
     	
         if($form->rec->buzCompanyId){
         	$locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
 			$form->setOptions('buzLocationId', $locations);
 			if(!count($locations)){
-				$form->setReadOnly('buzLocationId');
+				$form->setField('buzLocationId', 'input=none');
 			}
         }
     }
