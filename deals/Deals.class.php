@@ -807,4 +807,20 @@ class deals_Deals extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if($rec->state != 'draft'){
+    		$state = $rec->state;
+    		$rec = $mvc->fetch($id);
+    		$rec->state = $state;
+    
+    		// Записване на продажбата като отворена сделка
+    		acc_OpenDeals::saveRec($rec, $mvc);
+    	}
+    }
 }
