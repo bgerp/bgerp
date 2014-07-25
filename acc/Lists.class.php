@@ -218,6 +218,8 @@ class acc_Lists extends core_Manager {
         } else {
             $data->form->setField('regInterfaceId', 'allowEmpty');
         }
+        
+        $data->form->setDefault('isDimensional', 'no');
     }
     
     
