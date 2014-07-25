@@ -95,9 +95,9 @@ class type_Key extends type_Int {
         $options = $this->options;
         
         if(($field = $this->getSelectFld()) && (!count($options))) {
-            $options = $mvc->makeArray4select($field);
+            $options = $this->prepareOptions();
         }
-        
+
         if(!is_numeric($value) && count($options)) {
             foreach($options as $id => $v) {
                 if (!is_string($v)) {
@@ -142,12 +142,74 @@ class type_Key extends type_Int {
         }
     }
     
+
+    private function prepareOptions()
+    {   
+        $mvc = cls::get($this->params['mvc']);
+
+        if($this->getSelectFld() == '*') {
+            $field = NULL;
+        } else {
+            $field = $this->getSelectFld();
+        }
+        
+        if ($this->params['where']) {
+            $where = $this->params['where'];
+        }
+        
+        // Ако е зададено поле group='sysId'
+        if ($this->params['group']) {
+        	$where = $this->filterByGroup($mvc);
+        }
+        
+        Debug::startTimer('prepareOPT ' . $this->params['mvc']);
+        
+        $options = array();
+        
+        $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this));
+
+        if(!count($options)) {
+            
+            if($this->params['allowEmpty']) {
+                $options = array('' => (object) array('title' => $this->params['allowEmpty'] ? $attr['placeholder'] : '&nbsp;', 'attr' => array('style' => 'color:#777;')));
+            }
+           
+            if (!is_array($this->options)) {
+                foreach($mvc->makeArray4select($field, $where) as $id => $v) {
+                    $options[$id] = $v;
+                }
+                $this->handler = md5($field . $where . $this->params['mvc']);
+            } else {
+                foreach($this->options as $id => $v) {
+                    $options[$id] = $v;
+                }
+            }
+        }
+        
+        // Правим титлите на опциите да са уникални
+        foreach($options as $id => &$title) {
+            if(is_object($title)) continue;
+            if($titles[$title]) {
+                $title .= " ({$id})";
+            }
+            $titles[$title] = TRUE;
+        }
+  
+        $this->options = &$options;
+
+        $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
+        
+        setIfNot($this->handler, md5(json_encode($options[$id])));
+        Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
+        
+        return $options;
+    }
     
     /**
      * Рендира HTML поле за въвеждане на данни чрез форма
      */
     function renderInput_($name, $value = "", &$attr = array())
-    {
+    { 
         $conf = core_Packs::getConfig('core');
         
         expect($this->params['mvc']);
@@ -161,56 +223,10 @@ class type_Key extends type_Int {
         
         if($this->getSelectFld() || count($this->options)) {
             
-            if($this->getSelectFld() == '*') {
-                $field = NULL;
-            } else {
-                $field = $this->getSelectFld();
-            }
-            
 
-            
-            if ($this->params['where']) {
-                $where = $this->params['where'];
-            }
-            
-            // Ако е зададено поле group='sysId'
-            if ($this->params['group']) {
-            	$where = $this->filterByGroup($mvc);
-            }
-            
-            Debug::startTimer('prepareOPT ' . $this->params['mvc']);
-            
-            $options = array();
-            
-            $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this));
-
-            if(!count($options)) {
-                
-                if($this->params['allowEmpty']) {
-                    $options = array('' => (object) array('title' => $this->params['allowEmpty'] ? $attr['placeholder'] : '&nbsp;', 'attr' => array('style' => 'color:#777;')));
-                }
-                
-                if (!is_array($this->options)) {
-                    foreach($mvc->makeArray4select($field, $where) as $id => $v) {
-                        $options[$id] = $v;
-                    }
-                    $handler = md5($field . $where . $this->params['mvc']);
-                } else {
-                    foreach($this->options as $id => $v) {
-                        $options[$id] = $v;
-                    }
-                }
-            }
-            
-            $this->options = &$options;
-
-            $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
-            
-            setIfNot($handler, md5(json_encode($options[$id])));
-            
+            $options = $this->prepareOptions();
+         
             setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
-
-            Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
              
             // Ако трябва да показваме combo-box
             if(count($options) > $maxSuggestions) {
@@ -220,7 +236,7 @@ class type_Key extends type_Int {
                 }
                 
                 // Генериране на cacheOpt ако не са в кеша
-            	$cacheOpt = core_Cache::get('SelectOpt', $handler, 20, array($this->params['mvc']));
+            	$cacheOpt = core_Cache::get('SelectOpt', $this->handler, 20, array($this->params['mvc']));
             	  
                 if(FALSE === $cacheOpt || 1) {
                     
@@ -248,7 +264,7 @@ class type_Key extends type_Int {
                         $cacheOpt[$vNorm] = $v;
                     }
  
-                    core_Cache::set('SelectOpt', $handler, serialize($cacheOpt), 20, array($this->params['mvc']));
+                    core_Cache::set('SelectOpt', $this->handler, serialize($cacheOpt), 20, array($this->params['mvc']));
                 } else {
                 	$cacheOpt = (array) unserialize($cacheOpt);
                 }
@@ -269,7 +285,6 @@ class type_Key extends type_Int {
                     
                     $selOpt[trim($key)] = $v;
                 }
-
                 $title = self::getOptionTitle($options[$value]);
 
                 $selOpt[$title] =  $options[$value];
@@ -277,15 +292,15 @@ class type_Key extends type_Int {
                 $this->options = $selOpt;
 
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key\"" .
-                ", Act:\"ajax_GetOptions\", hnd:\"{$handler}\", maxSugg:\"{$maxSuggestions}\", ajax_mode:1}";
+                ", Act:\"ajax_GetOptions\", hnd:\"{$this->handler}\", maxSugg:\"{$maxSuggestions}\", ajax_mode:1}";
                 
                 // Ако е id определяме стойността която ще се показва, като вербализираме
                 // Иначе - запазваме предходния вариянт. Работил ли е някога?
-                if(is_numeric($value)) {
+                $setVal = self::getOptionTitle($options[$value]);
+
+                if(!$setVal && is_numeric($value)) {
                     $setVal = $this->toVerbal($value); 
-                } else {
-                    $setVal = self::getOptionTitle($options[$value]);
-                }
+                }  
 
                 $tpl = ht::createCombo($name, $setVal, $attr, $selOpt); 
             } else {

@@ -45,10 +45,6 @@ class type_Group extends type_Key
      */
     private function prepareOptions()
     {
-        if (isset($this->options)) {
-            return;
-        }
-        
         expect($base = $this->params['base']);     // Базов модел
         expect($keylist = $this->params['keylist']);     // Името на keylist полето
         $mvc = cls::get($this->params['mvc']);
@@ -70,6 +66,8 @@ class type_Group extends type_Key
                 $this->options[$id] = $mvc->getTitleById($id) . " ({$cnt})";
             }
         }
+
+        parent::prepareOptions();
     }
     
     
