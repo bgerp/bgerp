@@ -1,13 +1,6 @@
-.document table {
+.cash-order table {
 	border-collapse:collapse;
 	border-bottom-style:none;
-}
-
-@media print {
-	table {width:97% !important;}
-}
-h2{
-	line-height:120%;
 }
 
 .order-table td{
@@ -34,18 +27,13 @@ h2{
 	vertical-align:top;
 }
 
-h2{
+.cash-order h2{
 	text-transform:uppercase;
+	line-height:120%;
 }
 
-th {
+.cash-order th {
 	background-color: rgba(200, 200, 200, 0.4);
-}
-
-#notes {
-	text-align:left;
-	height:80px;
-	vertical-align:top;
 }
 
 .align-top-td {
@@ -84,6 +72,8 @@ th {
 }
 
 #notes {
+	text-align:left;
+    vertical-align:top;
 	height:53px;
 	padding-left:10px;
 	padding-top:5px;
