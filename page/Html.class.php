@@ -20,6 +20,7 @@ class page_Html extends core_ET {
      */
     function page_Html() {
         
+        $bodyClass = Mode::is('screenMode', 'narrow') ? "narrow" : "wide";
         $this->core_ET(
             "<!doctype html>" .
             
@@ -38,8 +39,7 @@ class page_Html extends core_ET {
             "<!--ET_BEGIN STYLES-->\n<style type=\"text/css\">[#STYLES#]\n</style><!--ET_END STYLES-->" .
             "<!--ET_BEGIN HEAD-->[#HEAD#]<!--ET_END HEAD-->" .
             "\n</head>" .
-            "\n<body<!--ET_BEGIN ON_LOAD--> onload=\"[#ON_LOAD#]\"<!--ET_END ON_LOAD-->" .
-            (Mode::is('screenMode', 'narrow') ? " class=\"narrow\"" : " class=\"wide\"") . ">" .
+            "\n<body<!--ET_BEGIN ON_LOAD--> onload=\"[#ON_LOAD#]\"<!--ET_END ON_LOAD--> class=\"{$bodyClass} [#BODY_CLASS_NAME#]\">" .
         	"<!--ET_BEGIN START_SCRIPTS-->\n<script type=\"text/javascript\">[#START_SCRIPTS#]\n</script><!--ET_END START_SCRIPTS-->" .
             "<!--ET_BEGIN PAGE_CONTENT-->[#PAGE_CONTENT#]<!--ET_END PAGE_CONTENT-->" .
             "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n</script><!--ET_END JQRUN-->" .
