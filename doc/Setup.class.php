@@ -87,7 +87,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Път до css файла
      */
-    var $commonCSS = 'doc/tpl/style.css, doc/css/dialogDoc.css';
+    var $commonCSS = 'doc/tpl/style.css';
     
     
     /**
