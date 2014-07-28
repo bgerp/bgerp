@@ -263,7 +263,16 @@ class core_Html
                 if(is_object($opt) && $opt->group) continue;
 
                 $value = is_object($opt) ? $opt->title : $opt;
-                $attr = is_object($opt) ? $opt->attr : array();
+
+                // Запазваме класа и стила на опцията
+                if(is_object($opt) && is_array($opt->attr)) {
+                    if($opt->attr['class']) {
+                        $attr['class'] .= ($attr['class']? ' ' : '') . $opt->attr['class'];
+                    }
+                    if($opt->attr['style']) {
+                        $attr['style'] .= ($attr['style']? ';' : '') . $opt->attr['style'];
+                    }
+                }
 
                 break;
             }
@@ -271,6 +280,7 @@ class core_Html
             if(empty($value)) {
                 $value = '&nbsp;';
             }
+            
             $input = ht::createElement('select', array(
                     'readonly' => 'readonly',
                     'class' => 'readonly ' .
@@ -309,7 +319,7 @@ class core_Html
             }
 
             $i = 0;
-
+            
             foreach($options as $id => $opt) {
 
                 $input = new ET();
@@ -349,6 +359,9 @@ class core_Html
 
                 $i++;
             }
+            
+            // Добавка (временна) за да не се свиват радио бутоните от w25 - w75
+            $attr['style'] .= 'width:100%';
 
             $input = ht::createElement('div', $attr, $tpl);
         } else {
