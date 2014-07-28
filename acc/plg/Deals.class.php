@@ -219,8 +219,44 @@ class acc_plg_Deals extends core_Plugin
     }
     
     
-    public static function on_AfterCanRejectOrRestore($mvc, &$res, $id)
+    /**
+     * Преди да се проверят имали приключени пера в транзакцията
+     * 
+     * Обхождат се всички документи в треда и ако един има приключено перо, документа начало на нишка
+     * не може да се оттегля/възстановява/контира
+     */
+    public static function on_BeforeGetClosedItemsInTransaction($mvc, &$res, $id)
     {
-    	//bp($res);
+    	$closedItems = array();
+    	$rec = $mvc->fetchRec($id);
+    	
+    	// Масив с документи участващи в нишката
+    	$docs = array();
+    	
+    	// Записите от журнала засягащи това перо
+    	$entries = acc_Journal::getEntries(array($mvc, $rec->id), $item);
+    	
+    	// Към тях добавяме и самия документ
+    	$entries[] = (object)array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
+    	
+    	// За всеки запис
+    	foreach ($entries as $ent){
+    		
+    		// Ако има метод 'getValidatedTransaction'
+    		$Doc = cls::get($ent->docType);
+    		if(cls::existsMethod($Doc, 'getValidatedTransaction')){
+    			
+    			// Ако има валидна транзакция, проверяваме дали има затворени пера
+    			$transaction = $Doc->getValidatedTransaction($ent->docId);
+    			if($transaction){
+    					 
+    				// Добавяме всички приключени пера
+    				$closedItems += $transaction->getClosedItems();
+    			}
+    		}
+    	}
+    	
+    	// Връщаме намерените пера
+    	$res = $closedItems;
     }
 }
