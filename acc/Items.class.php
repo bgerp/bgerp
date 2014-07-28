@@ -333,10 +333,6 @@ class acc_Items extends core_Manager
                 
                 $mvc::on_CalcTitleLink($mvc, $rec);
             }
-            
-            expect(isset($rec->titleLink));
-            
-            $form->info = $rec->titleLink;
         }
         
         $form->setSuggestions('lists', acc_Lists::getPossibleLists($rec->classId));
@@ -348,7 +344,8 @@ class acc_Items extends core_Manager
         }
         
         if ($rec->id) {
-            $form->title = 'Редактиране на перо';
+        	$title = $mvc->getVerbal($rec, 'title');
+            $form->title = "Редактиране на перо \" {$title}\"";
         }
     }
     
