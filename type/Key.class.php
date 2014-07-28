@@ -170,10 +170,6 @@ class type_Key extends type_Int {
 
         if(!count($options)) {
             
-            if($this->params['allowEmpty']) {
-                $options = array('' => (object) array('title' => $this->params['allowEmpty'] ? $attr['placeholder'] : '&nbsp;', 'attr' => array('style' => 'color:#777;')));
-            }
-           
             if (!is_array($this->options)) {
                 foreach($mvc->makeArray4select($field, $where) as $id => $v) {
                     $options[$id] = $v;
@@ -231,6 +227,16 @@ class type_Key extends type_Int {
             
             if(!is_array($options)) {
                 $options = $this->options;
+            }
+
+            if($this->params['allowEmpty']) {
+                $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : '&nbsp;', 'attr' => 
+                    array('style' => 'color:#777;')));
+                $options = arr::combine($placeHolder, $options);
+            } elseif($attr['placeholder']) {
+                $placeHolder = array('' => (object) array('title' => $attr['placeholder'], 'attr' => 
+                    array('style' => 'color:#777;', 'disabled' => 'disabled')));
+                $options = arr::combine($placeHolder, $options);
             }
 
             setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);

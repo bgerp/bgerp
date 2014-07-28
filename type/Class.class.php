@@ -15,7 +15,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class type_Class extends type_Key {
+class type_Class  extends type_Key {
     
     
     /**
@@ -28,24 +28,13 @@ class type_Class extends type_Key {
         $this->params['mvc'] = 'core_Classes';
         setIfNot($this->params['select'], 'name');
     }
-    
-    
-    /**
-     * Рендира INPUT-a
-     */
-    function renderInput_($name, $value = "", &$attr = array())
+
+
+    public function prepareOptions()
     {
         expect($this->params['mvc'], $this);
         
         $mvc = cls::get($this->params['mvc']);
-        
-        if(!$value) {
-            $value = $attr['value'];
-        }
-
-        if(!is_numeric($value)) {
-            $value = $this->fromVerbal($value);
-        }
         
         $interface = $this->params['interface'];
         
@@ -54,21 +43,26 @@ class type_Class extends type_Key {
         } else {
             $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
         }
-        
-        if($this->params['allowEmpty']) {
-            $options = arr::combine(array(NULL => ''), $options);
-        }
-        
+                
         $this->options = $options;
- 
-        parent::setFieldWidth($attr);
-         
-        $tpl = ht::createSmartSelect($options, $name, $value, $attr,
-            $this->params['maxRadio'],
-            $this->params['maxColumns'],
-            $this->params['columns']);
-        
-        return $tpl;
+    }
+    
+    
+    /**
+     * Рендира INPUT-a
+     */
+    function renderInput_($name, $value = "", &$attr = array())
+    {
+        if(!$value) {
+            $value = $attr['value'];
+        }
+
+        if(!is_numeric($value)) {
+            $value = $this->fromVerbal($value);
+        }
+
+          
+        return parent::renderInput_($name, $value, $attr);
     }
     
     

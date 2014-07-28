@@ -56,8 +56,6 @@ class type_Interface extends type_Key
                 }
             }
         }
-
-        parent::prepareOptions();
     }
     
     
