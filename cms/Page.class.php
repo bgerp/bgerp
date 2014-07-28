@@ -81,10 +81,7 @@ class cms_Page extends page_Html {
         
         // Скрипт за генериране на min-height, според устройството
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
-        
-        // Падинг за логин формата
-        $this->append("runOnLoad(loginFormPadding);", "JQRUN");
-        
+                
         // Добавка за разпознаване на браузъра
         $Browser = cls::get('core_Browser');
         $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
