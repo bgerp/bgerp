@@ -55,7 +55,7 @@ class sales_SaleRequestDetails extends core_Detail {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, quantity, uomId=Мярка, price, discount, amount=Сума';
+    public $listFields = 'productId, uomId=Мярка, quantity, price, discount, amount=Сума';
     
     
     /**
@@ -156,6 +156,6 @@ class sales_SaleRequestDetails extends core_Detail {
     	}
     	
     	$measureId = $productMan->getProductInfo($rec->productId, NULL)->productRec->measureId;
-    	$row->uomId = cat_UoM::getTitleById($measureId);
+    	$row->uomId = cat_UoM::getShortName($measureId);
     }
 }
