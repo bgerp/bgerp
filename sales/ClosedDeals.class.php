@@ -189,14 +189,15 @@ class sales_ClosedDeals extends acc_ClosedDeals
     		if($origin = $mvc->getOrigin($rec)){
     			$originRec = $origin->fetch();
     			
-    			if($res == 'no_one') return;
-    			
-    			// Ако разликата между доставеното/платеното е по голяма, се изисква
-    			// потребителя да има по-големи права за да създаде документа
-    			if(!self::isSaleDiffAllowed($originRec)){
-    				$res = 'ceo,salesMaster';
-    			} else {
-    				$res = 'ceo,sales';
+    			if($originRec->state == 'active'){
+    				
+    				// Ако разликата между доставеното/платеното е по голяма, се изисква
+    				// потребителя да има по-големи права за да създаде документа
+    				if(!self::isSaleDiffAllowed($originRec)){
+    					$res = 'ceo,salesMaster';
+    				} else {
+    					$res = 'ceo,sales';
+    				}
     			}
     		}
     	}

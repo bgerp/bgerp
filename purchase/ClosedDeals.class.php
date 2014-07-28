@@ -169,15 +169,16 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
 	    		$originRec = $origin->fetch();
-	    			
-	    		if($res == 'no_one') return;
     			
-	    		// Ако разликата между доставеното/платеното е по голяма, се изисква
-	    		// потребителя да има по-големи права за да създаде документа
-	    		if(!self::isPurchaseDiffAllowed($originRec)){
-	    			$res = 'ceo,purchaseMaster';
-	    		} else {
-	    			$res = 'ceo,purchase';
+	    		if($originRec->state == 'active'){
+	    			
+	    			// Ако разликата между доставеното/платеното е по голяма, се изисква
+	    			// потребителя да има по-големи права за да създаде документа
+	    			if(!self::isPurchaseDiffAllowed($originRec)){
+	    				$res = 'ceo,purchaseMaster';
+	    			} else {
+	    				$res = 'ceo,purchase';
+	    			}
 	    		}
     		}
     	}
