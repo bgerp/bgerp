@@ -219,30 +219,8 @@ class acc_plg_Deals extends core_Plugin
     }
     
     
-    /**
-     * Преди оттегляне, ако има затворени пера в транзакцията, не може да се оттегля
-     */
-    public static function on_BeforeReject($mvc, &$res, $id)
+    public static function on_AfterCanRejectOrRestore($mvc, &$res, $id)
     {
-    	// Ако 'acc_plg_Contable' е зареден, не правим нищо, плъгина ще изпълни действието
-    	$plugins = $mvc->getPlugins();
-    	if(isset($plugins['acc_plg_Contable'])) return;
-    	
-    	// Ако не може да се оттегля, връща FALSE за да се стопира оттеглянето
-    	return acc_plg_Contable::canRejectOrRestore($mvc, $id);
-    }
-    
-    
-    /**
-     * Преди оттегляне, ако има затворени пера в транзакцията, не може да се оттегля
-     */
-    public static function on_BeforeRestore($mvc, &$res, $id)
-    {
-    	// Ако 'acc_plg_Contable' е зареден, не правим нищо, плъгина ще изпълни действието
-    	$plugins = $mvc->getPlugins();
-    	if(isset($plugins['acc_plg_Contable'])) return;
-    	 
-    	// Ако не може да се оттегля, връща FALSE за да се стопира възстановяването
-    	return acc_plg_Contable::canRejectOrRestore($mvc, $id);
+    	//bp($res);
     }
 }
