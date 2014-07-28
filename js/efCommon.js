@@ -1301,75 +1301,34 @@ function setMinHeightExt()
 	}
 }
 
-/**
- * Задава padding на логин-формата при малки дисплеи
- */
-function loginFormPadding()
-{  
-	if (typeof jQuery != 'undefined') {
-		var winw = $(window).width();
-	} else {
-		var winw = window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
-	}
-	
-	if(document.body.className.match('narrow') && (winw<400) && document.getElementById('login-form')){
-		var lf = document.getElementById('login-form');
-		var form = lf.getElementsByTagName("table")[0].offsetWidth;
-		var dist = ((winw - form - 12)/2);
-		lf.style.marginLeft = dist  + 'px';
-		lf.style.paddingLeft ='0px';
-		lf.style.paddingTop = dist  + 'px';
-	}
-}
-
 
 /**
  * Задава ширина на елементите от форма в зависимост от ширината
  */
 function setFormElementsWidth()
 {
-	var form = $('.formTable');
 	var winWidth = parseInt($(window).width());
 	
-	var off = form.offset();
-	var formOffsetL = parseInt(off.left);
-	var paddingL = parseInt(form.css('paddingLeft'));
-	var inlinePadding = 14;
-	var formElWidth = winWidth - 2 * formOffsetL - 2 * paddingL - inlinePadding;
-	var preferredSizeInEm = 42;
+	// Приемаме, че най-малкият екран е 320px
+	if(winWidth < 320) {
+		winWidth = 320;
+	}
+
 	var outsideWidth = 44;
 	
-	// колко ЕМ е широка страницата
-	var sizeInEm = winWidth / parseFloat($(".formTable input[type=text]").css("font-size")); 
-	
-	// колко РХ е 1 ЕМ
-	var em = parseInt(winWidth / sizeInEm);
-	var width = preferredSizeInEm * em;
-
-	if(winWidth > (width + outsideWidth)){
-		formElWidth =  width;
-		form.css('maxWidth', '42em');
-	} else {
-		formElWidth =  winWidth - outsideWidth;
-		form.css('maxWidth', parseInt(formElWidth/sizeInEm) + 'em' );
-	}
+	formElWidth =  winWidth - outsideWidth;
 	
 	$('.formTable label').each(function() {
 		var colsInRow = parseInt($(this).attr('data-colsInRow'));
 		if(!colsInRow) {
 			colsInRow = 1;
-		}
+		}		
+
 		$(this).css('maxWidth', parseInt((formElWidth - 25)/colsInRow));
 	});
-	
-	$('.formTable').css('width', formElWidth);
-	$('.formTable textarea').css('width', formElWidth);
-	$('.formTable input').not(':input[type=button], :input[type=submit], :input[type=reset], :input[type=radio],:input[type=checkbox]').css('maxWidth', formElWidth);
-	$('.formTable label').css('whiteSpace','pre-wrap');
-	$('.formTable select').css('maxWidth',formElWidth);
-	$('.formTable .chzn-container').css('maxWidth',formElWidth);
-	$('.formTable .chzn-container .chzn-drop').css('maxWidth',formElWidth - 2 );
-	$('.formTable .chzn-container-single .chzn-search input').css('maxWidth',formElWidth - 12);
+
+	$('.formSection').css('width', formElWidth);
+	$('.formTable textarea').css('width', formElWidth );
 }
 
 
@@ -1389,9 +1348,9 @@ function setThreadElemWidth()
  * Задава ширината на текстареата спрямо ширината на клетката, в която се намира
  */
 function setRicheditWidth(el)
-{
+{ 
 	var width = parseInt($('.formElement').width());
-	$('.richEdit textarea').css('width', width);
+	$('.formElement textarea').css('width', width);
 }
 
 
