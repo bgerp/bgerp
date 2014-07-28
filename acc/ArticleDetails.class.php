@@ -114,7 +114,7 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('debitEnt1', 'acc_type_Item(select=title,allowEmpty)', 'caption=Дебит->перо 1,remember');
         $this->FLD('debitEnt2', 'acc_type_Item(select=title,allowEmpty)', 'caption=Дебит->перо 2,remember');
         $this->FLD('debitEnt3', 'acc_type_Item(select=title,allowEmpty)', 'caption=Дебит->перо 3,remember');
-        $this->FLD('debitQuantity', 'double', 'width=120px,caption=Дебит->Количество');
+        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         $this->FLD('creditAccId', 'acc_type_Account(remember)',
@@ -122,7 +122,7 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('creditEnt1', 'acc_type_Item(select=title,allowEmpty)', 'caption=Кредит->перо 1,remember');
         $this->FLD('creditEnt2', 'acc_type_Item(select=title,allowEmpty)', 'caption=Кредит->перо 2,remember');
         $this->FLD('creditEnt3', 'acc_type_Item(select=title,allowEmpty)', 'caption=Кредит->перо 3,remember');
-        $this->FLD('creditQuantity', 'double', 'width=120px,caption=Кредит->Количество');
+        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
        
         $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума,remember=info');
@@ -189,9 +189,9 @@ class acc_ArticleDetails extends core_Detail
         );
         $form->view = 'horizontal';
         $form->FLD('debitAccId', 'acc_type_Account(allowEmpty)',
-            'silent,caption=Дебит,mandatory,width=300px');
+            'silent,caption=Дебит,mandatory');
         $form->FLD('creditAccId', 'acc_type_Account(allowEmpty)',
-            'silent,caption=Кредит,mandatory,width=300px');
+            'silent,caption=Кредит,mandatory');
         
         $form->setDefault('debitAccId', $lastRec->debitAccId);
         $form->setDefault('creditAccId', $lastRec->creditAccId);

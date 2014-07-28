@@ -81,14 +81,14 @@ class acc_plg_InvoiceDetail extends core_Plugin
 		}
 		 
 		$pInfo = $ProductMan->getProductInfo($rec->productId);
-		 
+		$measureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
+		
 		if($rec->packagingId){
-			$measureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
 			$row->quantityInPack = $mvc->fields['quantityInPack']->type->toVerbal($rec->quantityInPack);
 			$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
 			$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
 		} else {
-			$row->packagingId = cat_UoM::getTitleById($pInfo->productRec->measureId);
+			$row->packagingId = $measureShort;
 		}
 	}
 	

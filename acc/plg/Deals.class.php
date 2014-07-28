@@ -220,29 +220,43 @@ class acc_plg_Deals extends core_Plugin
     
     
     /**
-     * Преди оттегляне, ако има затворени пера в транзакцията, не може да се оттегля
+     * Преди да се проверят имали приключени пера в транзакцията
+     * 
+     * Обхождат се всички документи в треда и ако един има приключено перо, документа начало на нишка
+     * не може да се оттегля/възстановява/контира
      */
-    public static function on_BeforeReject($mvc, &$res, $id)
+    public static function on_BeforeGetClosedItemsInTransaction($mvc, &$res, $id)
     {
-    	// Ако 'acc_plg_Contable' е зареден, не правим нищо, плъгина ще изпълни действието
-    	$plugins = $mvc->getPlugins();
-    	if(isset($plugins['acc_plg_Contable'])) return;
+    	$closedItems = array();
+    	$rec = $mvc->fetchRec($id);
     	
-    	// Ако не може да се оттегля, връща FALSE за да се стопира оттеглянето
-    	return acc_plg_Contable::canRejectOrRestore($mvc, $id);
-    }
-    
-    
-    /**
-     * Преди оттегляне, ако има затворени пера в транзакцията, не може да се оттегля
-     */
-    public static function on_BeforeRestore($mvc, &$res, $id)
-    {
-    	// Ако 'acc_plg_Contable' е зареден, не правим нищо, плъгина ще изпълни действието
-    	$plugins = $mvc->getPlugins();
-    	if(isset($plugins['acc_plg_Contable'])) return;
-    	 
-    	// Ако не може да се оттегля, връща FALSE за да се стопира възстановяването
-    	return acc_plg_Contable::canRejectOrRestore($mvc, $id);
+    	// Масив с документи участващи в нишката
+    	$docs = array();
+    	
+    	// Записите от журнала засягащи това перо
+    	$entries = acc_Journal::getEntries(array($mvc, $rec->id), $item);
+    	
+    	// Към тях добавяме и самия документ
+    	$entries[] = (object)array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
+    	
+    	// За всеки запис
+    	foreach ($entries as $ent){
+    		
+    		// Ако има метод 'getValidatedTransaction'
+    		$Doc = cls::get($ent->docType);
+    		if(cls::existsMethod($Doc, 'getValidatedTransaction')){
+    			
+    			// Ако има валидна транзакция, проверяваме дали има затворени пера
+    			$transaction = $Doc->getValidatedTransaction($ent->docId);
+    			if($transaction){
+    					 
+    				// Добавяме всички приключени пера
+    				$closedItems += $transaction->getClosedItems();
+    			}
+    		}
+    	}
+    	
+    	// Връщаме намерените пера
+    	$res = $closedItems;
     }
 }

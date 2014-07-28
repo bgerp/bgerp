@@ -333,10 +333,6 @@ class acc_Items extends core_Manager
                 
                 $mvc::on_CalcTitleLink($mvc, $rec);
             }
-            
-            expect(isset($rec->titleLink));
-            
-            $form->info = $rec->titleLink;
         }
         
         $form->setSuggestions('lists', acc_Lists::getPossibleLists($rec->classId));
@@ -348,7 +344,8 @@ class acc_Items extends core_Manager
         }
         
         if ($rec->id) {
-            $form->title = 'Редактиране на перо';
+        	$title = $mvc->getVerbal($rec, 'title');
+            $form->title = "Редактиране на перо \" {$title}\"";
         }
     }
     
@@ -902,5 +899,34 @@ class acc_Items extends core_Manager
     	}
     
     	return $result;
+    }
+    
+    
+    /**
+     * Форсира системно перо, такова което не идва от мениджър, 
+     * уникалноста на перото е името и номенклатурите му
+     * 
+     * @param string $title - име на перото
+     * @param string $num - номер на перото
+     * @param string $listSysId - систем ид на номенклатура
+     */
+    public static function forceSystemItem($title, $num, $listSysId)
+    {
+    	$lists = keylist::addKey('', acc_Lists::fetchBySystemId($listSysId)->id);
+    	
+    	// Имали от същата номенклатура перо с такова име
+    	$item = static::fetch("#title = '{$title}' AND #lists LIKE '%$lists%'");
+    	
+    	// Ако няма го създаваме
+    	if(empty($item)){
+    		$item = new stdClass();
+    		$item->title = $title;
+    		$item->num = $num;
+    		$item->lists = $lists;
+    			
+    		static::save($item);
+    	}
+    	
+    	return $item;
     }
 }

@@ -183,7 +183,7 @@ class purchase_Invoices extends core_Master
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
         $this->FLD('number', 'int', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата');
-        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ, width=50%');
+        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Доставчик');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('contragentName', 'varchar', 'caption=Доставчик->Име, mandatory, class=contactData');
@@ -194,12 +194,12 @@ class purchase_Invoices extends core_Master
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Доставчик->П. код,recently,class=pCode,contragentDataField=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Доставчик->Град,class=contactData,contragentDataField=place');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Доставчик->Адрес,class=contactData,contragentDataField=address');
-        $this->FLD('changeAmount', 'double(decimals=2)', 'input=none,width=10em');
+        $this->FLD('changeAmount', 'double(decimals=2)', 'input=none');
         $this->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description)', 'caption=Плащане->Начин');
-        $this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
-		$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em,input=hidden');
-        $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
+        $this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv');
+		$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
+        $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden'); 
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');

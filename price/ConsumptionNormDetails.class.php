@@ -71,9 +71,9 @@ class price_ConsumptionNormDetails extends core_Detail {
     function description()
     {
     	$this->FLD('normId', 'key(mvc=price_ConsumptionNorms)', 'caption=Норма, input=hidden, silent');
-    	$this->FLD('dProductId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
-    	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,width=10em');
-    	$this->FLD('quantity', 'int', 'caption=Количество,mandatory,width=10em');
+    	$this->FLD('dProductId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт');
+    	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка');
+    	$this->FLD('quantity', 'int', 'caption=Количество,mandatory');
     }
     
     

@@ -131,15 +131,15 @@ class cash_ExchangeDocument extends core_Master
      */
     function description()
     {
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=23em,input,mandatory');
-    	$this->FLD('peroFrom', 'key(mvc=cash_Cases, select=name)','caption=От->Каса,width=12em');
-    	$this->FLD('creditCurrency', 'key(mvc=currency_Currencies, select=code)','caption=От->Валута,width=6em');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
+    	$this->FLD('peroFrom', 'key(mvc=cash_Cases, select=name)','caption=От->Каса');
+    	$this->FLD('creditCurrency', 'key(mvc=currency_Currencies, select=code)','caption=От->Валута');
     	$this->FLD('creditPrice', 'double(smartRound)', 'input=none');
-    	$this->FLD('creditQuantity', 'double(smartRound)', 'width=6em,caption=От->Сума');
-        $this->FLD('peroTo', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=12em');
-        $this->FLD('debitCurrency', 'key(mvc=currency_Currencies, select=code)','caption=Към->Валута,width=6em');
-        $this->FLD('debitQuantity', 'double(smartRound)', 'width=6em,caption=Към->Сума');
+    	$this->FLD('creditQuantity', 'double(smartRound)', 'caption=От->Сума');
+        $this->FLD('peroTo', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса');
+        $this->FLD('debitCurrency', 'key(mvc=currency_Currencies, select=code)','caption=Към->Валута');
+        $this->FLD('debitQuantity', 'double(smartRound)', 'caption=Към->Сума');
        	$this->FLD('debitPrice', 'double(smartRound)', 'input=none');
         $this->FLD('equals', 'double(smartRound)', 'input=none,caption=Общо,summary=amount');
        	$this->FLD('rate', 'double(smartRound)', 'input=none');

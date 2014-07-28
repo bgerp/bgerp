@@ -338,6 +338,7 @@ div.folder-cover {
 	}
 	.groupList {
 		font-size: 0.95em;
+		max-width: 725px;
 		div.rowtools {
 		  display: inline-block;
 		  width: auto;
@@ -2383,9 +2384,11 @@ fieldset.sharing-history {
 		margin-bottom: 5px;
 		margin-top: 5px;
 	}
-	.gravatar-box img{
-		margin: 0 6px !important;
-		text-align: center;
+	.gravatar-box{
+	    text-align: center;
+		img {
+		  margin: 0 6px !important;
+	    }	
 	}
 }
 /*стилове за автор в документ*/

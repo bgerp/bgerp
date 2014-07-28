@@ -75,31 +75,6 @@ class deals_plg_Document extends core_Plugin
 	
 	
 	/**
-	 * Извиква се след изчисляването на необходимите роли за това действие
-	 */
-	function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-	{
-		if($action == 'restore' && isset($rec)){
-			$dealState = deals_Deals::fetchField($rec->dealId, 'state');
-			if($dealState != 'active'){
-				$res = 'no_one';
-			}
-		}
-		
-		// Документа не може да се контира, ако ориджина му е в състояние 'closed'
-		if($action == 'conto' && isset($rec)){
-			$origin = $mvc->getOrigin($rec);
-			if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
-				$originState = $origin->fetchField('state');
-				if($originState === 'closed'){
-					$res = 'no_one';
-				}
-			}
-		}
-	}
-	
-	
-	/**
 	 * Извиква се след оттегляне на сделка, оттегля всички документи, които са я прехванали
 	 */
 	function on_AfterRejectAll($mvc, &$res, $dealId)

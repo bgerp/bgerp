@@ -143,16 +143,16 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'enum(bank2bank=Вътрешен банков трансфер,bank2case=Захранване на каса)', 'caption=Операция,width=100%,mandatory,silent');
-    	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,width=6em,mandatory,summary=amount');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=20em,input,mandatory');
-    	$this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,width=300px,input=none');
-    	$this->FLD('creditBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=От->Банк. сметка,width=300px');
-    	$this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
-        $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=300px,input=none');
-    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,width=300px,input=none');
+    	$this->FLD('operationSysId', 'enum(bank2bank=Вътрешен банков трансфер,bank2case=Захранване на каса)', 'caption=Операция,mandatory,silent');
+    	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
+    	$this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,input=none');
+    	$this->FLD('creditBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=От->Банк. сметка');
+    	$this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,input=none');
+        $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,input=none');
+    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'

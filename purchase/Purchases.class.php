@@ -235,7 +235,7 @@ class purchase_Purchases extends core_Master
         $this->FLD('dealerId', 'user(rolesForAll=purchase|ceo,allowEmpty,roles=ceo|purchase)', 'caption=Наш персонал->Закупчик');
 
         // Допълнително
-        $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Бележки,width=100%', array('attr' => array('rows' => 3)));
+        $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Бележки');
     	$this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         
@@ -570,10 +570,10 @@ class purchase_Purchases extends core_Master
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
     	if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=13em');
+        	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',dealerId,type';
-			$data->listFilter->setField('dealerId', 'caption=Търговец,width=13em');
+			$data->listFilter->setField('dealerId', 'caption=Търговец');
 			$data->listFilter->setDefault('dealerId', core_Users::getCurrent());
 		}
 		

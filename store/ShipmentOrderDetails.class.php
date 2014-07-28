@@ -124,7 +124,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field');
-        $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
+        $this->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.', 'tdClass=small-field');
         $this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
@@ -148,7 +148,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
-        $this->FLD('info', "varchar(125)", 'caption=Колети,width=7em');
+        $this->FLD('info', "varchar(50)", 'caption=Колети');
     }
 
 

@@ -140,16 +140,16 @@ class bank_DepositSlips extends core_Master
      */
     function description()
     {
-    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('execBank', 'varchar(255)', 'caption=До->Банка,width=16em,mandatory');
-    	$this->FLD('execBankBranch', 'varchar(255)', 'caption=До->Клон,width=16em');
-        $this->FLD('execBankAdress', 'varchar(255)', 'caption=До->Адрес,width=16em');
-    	$this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
-    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
-    	$this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка,width=16em');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
+    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,mandatory');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('execBank', 'varchar(255)', 'caption=До->Банка,mandatory');
+    	$this->FLD('execBankBranch', 'varchar(255)', 'caption=До->Клон');
+        $this->FLD('execBankAdress', 'varchar(255)', 'caption=До->Адрес');
+    	$this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory');
+    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory');
+    	$this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка');
     	$this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory');
     }
     

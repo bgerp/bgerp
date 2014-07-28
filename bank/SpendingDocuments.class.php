@@ -143,19 +143,19 @@ class bank_SpendingDocuments extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,width=100%,mandatory');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
-    	$this->FLD('rate', 'double(smartRound)', 'caption=Курс,width=6em');
+    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
+    	$this->FLD('rate', 'double(smartRound)', 'caption=Курс');
     	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
-    	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Банк. сметка,mandatory,width=16em');
-    	$this->FLD('contragentName', 'varchar(255)', 'caption=Към->Контрагент,mandatory,width=16em');
-    	$this->FLD('contragentIban', 'iban_Type(64)', 'caption=Към->Сметка,width=16em'); 
+    	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Банк. сметка,mandatory');
+    	$this->FLD('contragentName', 'varchar(255)', 'caption=Към->Контрагент,mandatory');
+    	$this->FLD('contragentIban', 'iban_Type(64)', 'caption=Към->Сметка'); 
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
-    	$this->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)','caption=debit,width=300px,input=none');
-        $this->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)','caption=Кредит,width=300px,input=none');
+    	$this->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)','caption=debit,input=none');
+        $this->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)','caption=Кредит,input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -505,25 +505,6 @@ class bank_SpendingDocuments extends core_Master
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
-    }
-    
-    
-	/**
-     * Извиква се след изчисляването на необходимите роли за това действие
-     */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {
-        // Ако резултата е 'no_one' пропускане
-    	if($res == 'no_one') return;
-    	
-    	// Документа не може да се контира/оттегля/възстановява, ако ориджина му е в състояние 'closed'
-    	if($action == 'conto' && isset($rec)){
-	    	$origin = $mvc->getOrigin($rec);
-	    	$originState = $origin->fetchField('state');
-		    if($originState === 'closed'){
-		        $res = 'no_one';
-		    }
-        }
     }
     
     

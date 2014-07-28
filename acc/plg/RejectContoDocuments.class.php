@@ -22,7 +22,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
 	{
 		// Ако няма пера
 		if(!is_array($res)){
-	
+			
 			// Взима всички от текущата транзакция
 			$transaction = $mvc->getValidatedTransaction($id);
 			if($transaction){
