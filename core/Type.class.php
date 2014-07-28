@@ -496,7 +496,7 @@ class core_Type extends core_BaseClass
 
         if($size > 0 && $size <= 15) {
             $wClass = 'w25';
-        } elseif($size > 0 && $size <= 40) {
+        } elseif($size > 0 && $size <= 35) {
             $wClass = 'w50';
         } elseif($size > 0 && $size <= 55) {
             $wClass = 'w75';
