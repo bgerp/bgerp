@@ -9,7 +9,13 @@ class acc_journal_Transaction
      */
     protected $entries = array(); 
     
+    
+    /**
+     * 
+     * @var stdClass
+     */
     public $rec;
+    
     
     /**
      * @var acc_Journal
@@ -65,7 +71,7 @@ class acc_journal_Transaction
         foreach ($data->entries as $entryData) {
             $this->add()->initFromTransactionSource($entryData);
         }
-
+       
         unset($data->entries);
         $this->rec = clone $data;
     }
@@ -252,5 +258,23 @@ class acc_journal_Transaction
         foreach ($transaction->entries as $entry) {
             $this->add($entry);
         }
+    }
+    
+    
+    /**
+     * Кои са затворените пера в транзакцията
+     */
+    public function getClosedItems()
+    {
+    	$closedEntries = array();
+    	if(isset($this->entries)){
+    		
+    		foreach ($this->entries as $entry){
+    			$closedEntries += $entry->debit->getClosedItems();
+    			$closedEntries += $entry->credit->getClosedItems();
+    		}
+    	}
+    	
+    	return $closedEntries;
     }
 }

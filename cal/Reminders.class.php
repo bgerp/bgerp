@@ -470,16 +470,17 @@ class cal_Reminders extends core_Master
     
     function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-    	//$res = new ET('[#repetition#]');
-		foreach($data->recs as $id => $rec){
-		    $row = $this->recToVerbal($rec);
-		    
-		    if ($rec->repetitionEach != NULL) {
-				$data->rows[$id]->repetition = $row->repetitionEach . " " . $row->repetitionType;
-		    } else {
-		    	$data->rows[$id]->repetition = " ";
-		    }
-		}
+    	if ($data->recs) {
+        	foreach((array)$data->recs as $id => $rec){
+    		    $row = $this->recToVerbal($rec);
+    		    
+    		    if ($rec->repetitionEach != NULL) {
+    				$data->rows[$id]->repetition = $row->repetitionEach . " " . $row->repetitionType;
+    		    } else {
+    		    	$data->rows[$id]->repetition = " ";
+    		    }
+    		}
+    	}
     }
     
 

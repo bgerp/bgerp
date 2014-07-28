@@ -69,7 +69,7 @@ class acc_OpenDeals extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title)', 'caption=Документ->Клас');
+    	$this->FLD('docClass', 'class(interface=bgerp_DealAggregatorIntf,select=title)', 'caption=Документ->Клас');
         $this->FLD('docId', 'int(cellAttr=left)', 'caption=Документ->Обект');
     	$this->FLD('valior', 'date', 'caption=Дата');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума->Поръчано, summary = amount');
@@ -146,20 +146,20 @@ class acc_OpenDeals extends core_Manager {
     public static function saveRec($rec, $docClass)
     {
     	// Записа се записва само при активация на документа със сума на сделката
-    	if($rec->amountDeal){
-    		$classId = $docClass::getClassId();
-    		$new = array(
-    			'valior' => $rec->valior,
-    			'amountDeal' => $rec->amountDeal,
-    			'amountPaid' => $rec->amountPaid, 
-    			'state' => $rec->state,
-    			'docClass' => $classId,
-    			'docId' => $rec->id,
-    			'id' => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
-    		);
+    	$info = $docClass->getAggregateDealInfo($rec->id);
+    	
+    	$classId = $docClass::getClassId();
+    	$new = array(
+    		'valior' => $info->get('agreedValior'),
+    		'amountDeal' => $info->get('amount'),
+    		'amountPaid' => $info->get('amountPaid'), 
+    		'state' => $rec->state,
+    		'docClass' => $classId,
+    		'docId' => $rec->id,
+    		'id' => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
+    	);
     		
-	    	static::save((object)$new);
-    	}
+	    static::save((object)$new);
     }
     
     
@@ -253,19 +253,11 @@ class acc_OpenDeals extends core_Manager {
 	    		$btns .= ht::createBtn('РБД', array('bank_SpendingDocuments', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/bank_rem.png,title=Нов разходен банков документ');
 				break;
 	    	case 'store':
-	    		if($docClass instanceof purchase_Purchases){
-	    			if($docClass->hasStorableProducts($id)){
-	    				
-		    			// Ако документа е Покупка със скалдируеми артикули, бутона генерира Складова разписка
-		    			$btns = ht::createBtn('СР', array('store_Receipts', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/shipment.png,title=Нова складова разписка');
-	    			}
-	    		} elseif($docClass instanceof sales_Sales){
-	    			if($docClass->hasStorableProducts($id)){
-	    				
-	    				// Ако документа е Продажба със скалдируеми артикули, бутона генерира Експедиционно нареждане
-	    				$btns = ht::createBtn('ЕН', array('store_ShipmentOrders', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/shipment.png,title=Ново експедиционно нареждане');
-	    			}
-	    		}
+	    		
+	    		// Бутони за Складова разписка и Експедиционно нареждане
+	    		$btns = ht::createBtn('СР', array('store_Receipts', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/shipment.png,title=Нова складова разписка');
+	    		$btns .= ht::createBtn('ЕН', array('store_ShipmentOrders', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/shipment.png,title=Ново експедиционно нареждане');
+	    		
 	    		break;
 	    }
 	    

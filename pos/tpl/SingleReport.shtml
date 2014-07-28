@@ -42,7 +42,7 @@
 			</tr>
 		</table>
 	<span>|Създаден на|* <b>[#createdDate#]</b> |от|* <b>[#createdBy#]</b></span>
-	<div class='overflow-scroll'>
+	<div class='overflow-scroll' style='margin: 15px 0;'>
 		[#SALES#]
 	<!--ET_BEGIN SALE_PAGINATOR-->
 		[#SALE_PAGINATOR#]

@@ -553,8 +553,12 @@ class deals_Deals extends core_Master
     	// Обновяваме крайното салдо на сметката на сделката
     	$entries = acc_Journal::getEntries(array($this->className, $rec->id));
     	$blAmount = acc_Balances::getBlAmounts($entries, acc_Accounts::fetchField($rec->accountId, 'systemId'))->amount;
+    	$paid = acc_Balances::getBlAmounts($entries, '501,503')->amount;
     	
-    	$result->set('amount', $blAmount);
+    	$result->set('amount', 0);
+    	$result->set('amountPaid', $paid);
+    	$result->set('blAmount', $blAmount);
+    	$result->set('agreedValior', $rec->createdOn);
     	$result->set('currency', $rec->currencyId);
     	$result->set('rate', $rec->currencyRate);
     }
@@ -777,7 +781,7 @@ class deals_Deals extends core_Master
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
     	$aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
-    	$rec->amountDeal = $aggregateDealInfo->get('amount');
+    	$rec->amountDeal = $aggregateDealInfo->get('blAmount');
     	
     	$mvc->save($rec);
     }
@@ -805,6 +809,22 @@ class deals_Deals extends core_Master
     				$mvc->save($rec);
     			}
     		}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+    	if($rec->state != 'draft'){
+    		$state = $rec->state;
+    		$rec = $mvc->fetch($id);
+    		$rec->state = $state;
+    
+    		// Записване на продажбата като отворена сделка
+    		acc_OpenDeals::saveRec($rec, $mvc);
     	}
     }
 }

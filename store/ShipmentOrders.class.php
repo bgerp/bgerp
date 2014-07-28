@@ -191,7 +191,6 @@ class store_ShipmentOrders extends core_Master
     }
 
 
-
     /**
      * След промяна в детайлите на обект от този клас
      */

@@ -457,7 +457,7 @@ class acc_Balances extends core_Master
     	
     	// Ако трябва да се показва num-а го показваме до името на сметката
     	if($showNum){
-    		$title = $num . " . " . $title;
+    		$title = $num . ". " . $title;
     	}
     	
     	// Ако не е подаден баланс, взимаме последния

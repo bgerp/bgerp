@@ -1,4 +1,4 @@
-div.document {
+.survey-doc {
 	padding:0px;
 	box-shadow:none;
 	border:none;
@@ -7,11 +7,11 @@ div.document {
 	min-width:100%;
 }
 
-div.document ul {
+.survey-doc ul {
 	list-style:none;
 }
 
-h2{
+.survey-doc h2{
 	margin:0;
 }
 
@@ -35,23 +35,23 @@ h2{
 	padding-left:3px;
 }
 
-.wide .answers{
+.wide .survey-doc .answers{
 	width:70%;
 	padding-left:15px;
 	float:left;
 }
 
-.wide .image{
+.wide .survey-doc .image{
 	width:20%;
 	float:right;
 }
 
-.narrow .answers{
+.narrow .survey-doc .answers{
 	width:100%;
 	float:left;
 }
 
-.narrow .image{
+.narrow .survey-doc .image{
 	float:left;
 	padding:0 !important;
 	margin:10px;
@@ -92,7 +92,7 @@ h2{
 	font-weight:bold;
 }
 
-#summary{
+.survey-doc #summary{
 	padding-left:0px;
 	margin-top:0px !important;
 	margin-bottom:0px !important;
@@ -107,7 +107,8 @@ h2{
 #survey-info span{
 	display:inline-block;
 }
-#title {
+
+.survey-doc #title {
 	font-size:26px;
 	margin-bottom:20px;
 }
@@ -167,7 +168,7 @@ h2{
 	vertical-align:top;
 }
 
-.tools {
+.survey-doc .tools {
 	float:right;
 }
 
@@ -177,14 +178,6 @@ h2{
 
 .question-label img{
 	margin-right:5px;
-}
-
-div.richtext li {
-	margin-left:0;
-}
-
-.richtext {
-	line-height:normal !important;
 }
 
 .after-vote {
@@ -208,9 +201,8 @@ div.richtext li {
 	text-decoration:underline;
 }
 
-#summary{
+.survey-doc #survey-summary{
 	list-style-type:none !important;
-
 }
 
 .opTools{
