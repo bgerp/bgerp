@@ -48,7 +48,7 @@ class type_User extends type_Key
     /**
      * Подготвя опциите според зададените параметри.
      */
-    private function prepareOptions()
+    public function prepareOptions()
     {
         $mvc = cls::get($this->params['mvc']);
         

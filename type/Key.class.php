@@ -143,7 +143,7 @@ class type_Key extends type_Int {
     }
     
 
-    private function prepareOptions()
+    public function prepareOptions()
     {   
         $mvc = cls::get($this->params['mvc']);
 
@@ -188,7 +188,7 @@ class type_Key extends type_Int {
 
         
         // Правим титлите на опциите да са уникални и изчисляваме най-дългото заглавие
-        $this->maxLenTitle = 0;
+        $this->maxFieldSize = 0;
         if(is_array($options)) {
             foreach($options as $id => &$title) {
                 if(is_object($title)) continue;
@@ -196,7 +196,7 @@ class type_Key extends type_Int {
                     $title .= " ({$id})";
                 }
                 $titles[$title] = TRUE;
-                $this->maxLenTitle = max($this->maxLenTitle, mb_strlen($title));
+                $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
             }
         }
   

@@ -50,7 +50,7 @@ class type_Users extends type_Keylist
      * Ако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
      */
-    private function prepareOptions($defUser =  NULL)
+    public function prepareOptions($defUser =  NULL)
     {
         $mvc = cls::get($this->params['mvc']);
         
