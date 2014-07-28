@@ -494,7 +494,7 @@ class core_Type extends core_BaseClass
             $size =  $this->params[0];
         }
 
-        if($size > 0 && $size <= 15) {
+        if($size > 0 && $size <= 13) {
             $wClass = 'w25';
         } elseif($size > 0 && $size <= 35) {
             $wClass = 'w50';

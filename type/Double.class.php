@@ -50,7 +50,7 @@ class type_Double extends core_Type {
     /**
      * Параметър определящ максималната широчина на полето
      */
-    var $maxFieldSize = 15;
+    var $maxFieldSize = 12;
 
 
     /**
