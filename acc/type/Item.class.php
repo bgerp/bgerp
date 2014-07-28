@@ -42,7 +42,7 @@ class acc_type_Item extends type_Key
      *
      * `$this->params['root']` е префикс, който трябва да имат номерата на всички опции
      */
-    private function prepareOptions()
+    public function prepareOptions()
     {
         expect($lists = $this->params['lists'], $this);
         

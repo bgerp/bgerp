@@ -46,7 +46,7 @@ class acc_type_Account extends type_Key
      *
      * `$this->params['root']` е префикс, който трябва да имат номерата на всички сметки-опции
      */
-    private function prepareOptions()
+    public function prepareOptions()
     {
         if (isset($this->options)) {
             return;
