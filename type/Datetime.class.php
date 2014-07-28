@@ -60,24 +60,21 @@ class type_Datetime extends type_Date {
             }
         }
         
-        $attr['size'] = 10;
         $attr['value'] = $date;
         $input = $this->dt->renderInput($name . '[d]', NULL, $attr);
-        $attr['size'] = 6;
         $input->append('&nbsp;');
         
         $attr['value'] = $time;
-        $attr['style'] .= 'vertical-align:top;';
+        $attr['style'] .= ';vertical-align:top; max-width:4em;';
         unset($attr['id']);
 
-        if($ts = $this->params['timeSuggestions']) {
-            if(!is_array($ts)) {
-                $ts = array('' => '') + arr::make(str_replace('|', ',', $ts), TRUE);
-            }
-            $timeInput = ht::createCombo($name . '[t]', $time, $attr, $ts);
-        } else {
-            $timeInput = $this->createInput($name . '[t]', NULL, $attr);
+        setIfNot($ts, $this->params['timeSuggestions'], '8:00|9:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00');
+        
+        if(!is_array($ts)) {
+            $ts = array('' => '') + arr::make(str_replace('|', ',', $ts), TRUE);
         }
+
+        $timeInput = ht::createCombo($name . '[t]', $time, $attr, $ts);
 
         $input->append($timeInput);
 

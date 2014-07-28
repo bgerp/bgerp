@@ -185,14 +185,19 @@ class type_Key extends type_Int {
                 }
             }
         }
+
         
-        // Правим титлите на опциите да са уникални
-        foreach($options as $id => &$title) {
-            if(is_object($title)) continue;
-            if($titles[$title]) {
-                $title .= " ({$id})";
+        // Правим титлите на опциите да са уникални и изчисляваме най-дългото заглавие
+        $this->maxLenTitle = 0;
+        if(is_array($options)) {
+            foreach($options as $id => &$title) {
+                if(is_object($title)) continue;
+                if($titles[$title]) {
+                    $title .= " ({$id})";
+                }
+                $titles[$title] = TRUE;
+                $this->maxLenTitle = max($this->maxLenTitle, mb_strlen($title));
             }
-            $titles[$title] = TRUE;
         }
   
         $this->options = &$options;
@@ -219,7 +224,6 @@ class type_Key extends type_Int {
         if(!$value) {
             $value = $attr['value'];
         }
-        $attr['class'] .= ($attr['class'] ? ' ' : '') . 'combobox';
         
         if($this->getSelectFld() || count($this->options)) {
             
@@ -227,7 +231,9 @@ class type_Key extends type_Int {
             $options = $this->prepareOptions();
          
             setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
-             
+
+            parent::setFieldWidth($attr);
+
             // Ако трябва да показваме combo-box
             if(count($options) > $maxSuggestions) {
 

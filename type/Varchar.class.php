@@ -48,10 +48,6 @@ class type_Varchar extends core_Type {
             $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
         
-        if($this->params['size']) {
-            $attr['size'] = $this->params['size'];
-        }
-        
         if($this->inputType) {
             $attr['type'] = $this->inputType;
         }
@@ -59,9 +55,7 @@ class type_Varchar extends core_Type {
         if($this->params['readonly']) {
             $attr['readonly'] = 'readonly';
         }
-        
-        $attr['class'] .= ($attr['class'] ? ' ' : '') . 'varchar';
-        
+
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;

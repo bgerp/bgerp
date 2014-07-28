@@ -113,11 +113,7 @@ class type_Int extends core_Type {
      */
     function renderInput_($name, $value = '', &$attr = array())
     {
-        setIfNot($attr['size'],
-            $this->params[0],
-            $this->params['size'],
-            Mode::is('screenMode', 'narrow') ? 10 : 20
-        );
+        setIfNot($this->params[0], $this->params['size'], 11);
         
         setIfNot($attr['maxlen'], 16);
         

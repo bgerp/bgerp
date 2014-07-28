@@ -222,9 +222,11 @@ class type_Time extends type_Varchar {
                     '7 дена'  => '7 дена');
             }
         }
+
+        $this->params['size'] = 10;
         
         $this->fromVerbalSuggestions($value);
-
+        
         return parent::renderInput_($name, $value, $attr);
     }
     

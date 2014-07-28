@@ -87,9 +87,7 @@ class type_Date extends core_Type {
     function renderInput_($name, $value = "", &$attr = array())
     {
         $attr['name'] = $name;
-        
-        setIfNot($attr['size'], 12);
-        
+               
         if($value && !$this->error) {
             $value = dt::mysql2verbal($value, 'd.m.Y');
         } else {
@@ -97,6 +95,8 @@ class type_Date extends core_Type {
         }
 
         setIfNot($attr['type'], 'text');
+
+        $attr['style'] .= ';width:8em;';
         
         return $this->createInput($name, $value, $attr);
     }

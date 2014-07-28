@@ -59,6 +59,10 @@ class type_Class extends type_Key {
             $options = arr::combine(array(NULL => ''), $options);
         }
         
+        $this->options = $options;
+ 
+        parent::setFieldWidth($attr);
+         
         $tpl = ht::createSmartSelect($options, $name, $value, $attr,
             $this->params['maxRadio'],
             $this->params['maxColumns'],

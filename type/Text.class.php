@@ -36,12 +36,12 @@ class type_Text extends core_Type {
     {
         if(Mode::is('screenMode', 'narrow')) {
             setIfnot($attr['rows'], $this->params['rows'], 5);
-            setIfnot($attr['cols'], $this->params['cols'], 20);
         } else {
             setIfnot($attr['rows'], $this->params['rows'], 10);
-            setIfnot($attr['cols'], $this->params['cols'], 30);
         }
         
+        $attr['class'] .= ' w100';
+
         // Сигнализиране на потребителя, ако въведе по-дълъг текст от допустимото
         setIfNot($size, $this->params['size'], $this->params[0], $this->dbFieldLen);
         

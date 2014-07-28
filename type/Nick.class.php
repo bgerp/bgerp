@@ -22,6 +22,12 @@ class type_Nick extends type_Varchar {
      */
     var $dbFieldLen = 64;
     
+
+    /**
+     * Параметър определящ максималната широчина на полето
+     */
+    var $maxFieldSize = 10;
+
     
     /**
      * Конвертира от вербална стойност

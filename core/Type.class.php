@@ -269,7 +269,9 @@ class core_Type extends core_BaseClass
      * Създава input поле или комбо-бокс
      */
     function createInput($name, $value, $attr)
-    {
+    {   
+        $this->setFieldWidth($attr);
+
     	setIfNot($attr['type'], 'text');
         if(count($this->suggestions)) {
             $tpl = ht::createCombo($name, $value, $attr, $this->suggestions);
@@ -461,5 +463,48 @@ class core_Type extends core_BaseClass
         $i--;
 
         return $r;
+    }
+
+
+    function setFieldWidth(&$attr, $size = NULL)
+    {
+        
+        if(!$size && !$this->maxFieldSize && is_array($this->options)) {
+            $this->maxFieldSize = 1;
+            foreach($this->options as $opt) {
+                if(is_object($opt)) {
+                    $title = $opt->title;
+                } else {
+                    $title = $opt;
+                }
+                $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
+            }
+        }
+ 
+        // Определяме размера на най-дългия възможен стринг, като най-дългата опция
+        if(!$size && $this->maxFieldSize > 0) {
+            $size = $this->maxFieldSize;
+        }
+
+        if(!$size && $this->params['size']) {
+            $size =  $this->params['size'];
+        }
+
+        if(!$size && $this->params[0]) {
+            $size =  $this->params[0];
+        }
+
+        if($size > 0 && $size <= 15) {
+            $wClass = 'w25';
+        } elseif($size > 0 && $size <= 40) {
+            $wClass = 'w50';
+        } elseif($size > 0 && $size <= 55) {
+            $wClass = 'w75';
+        } else {
+            $wClass = 'w100';
+        }
+        //    if(cls::getClassName($this) == 'type_Key' && count($this->options) == 1) bp($this);
+
+        $attr['class'] .= ($attr['class'] ? ' ' : '') . $wClass;
     }
 }

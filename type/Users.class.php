@@ -173,7 +173,9 @@ class type_Users extends type_Keylist
                 break;
             }
         }
-        
+
+        parent::setFieldWidth($attr);
+
         return ht::createSelect($name, $this->options, $key, $attr);
     }
     

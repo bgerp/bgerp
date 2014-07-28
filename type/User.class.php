@@ -151,6 +151,8 @@ class type_User extends type_Key
             }
         }
         
+        parent::setFieldWidth($attr);
+
         return ht::createSelect($name, $this->options, $key, $attr);
     }
     
