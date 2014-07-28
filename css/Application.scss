@@ -1843,22 +1843,24 @@ fieldset.sharing-history {
 
 .wide #login-form .formTable {
 	margin: 0;
-	input[type='text'], input[type='password']{
-	   min-width: 15em;
-	}
 }
 
-.narrow #login-form {
-	padding: 10px;
-	.formTable{
-	   width: auto !important;
-	}
+.narrow #login-form {	   
+	max-width:17em !important;
+	margin:20px auto;
 	input[type='text'], input[type='password']{
        font-size:20px;
     }
     input[type='submit']{
         font-size: 16px;
     }
+	.formSection {
+		padding:0 5px;
+	}
+	
+	.formToolbar {
+		padding:3px 8px !important;
+	}
 }
 
 #cmsNavigation div.nav_item {
@@ -3604,9 +3606,15 @@ body.narrow {
 	.narrow .formTable{
 	   max-width: 268px;
 	}
+
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
 		max-width: 278px;
 	}
+
+	.formFields textarea {
+		min-width: 278px;
+	}
+
 	.narrow .chzn-container .chzn-drop {
 		max-width: 268px;
 	}
