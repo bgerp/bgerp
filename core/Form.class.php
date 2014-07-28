@@ -582,10 +582,7 @@ class core_Form extends core_FieldSet
                 if ($field->hint) {
                     $attr['title'] = tr($field->hint);
                 }
-                
-                if ($field->width) {
-                    $attr['style'] .= "width:{$field->width};";
-                }
+
                 if ($field->class) {
                     $attr['class'] = trim($attr['class']) . " {$field->class}";
                 }
