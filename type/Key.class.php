@@ -227,9 +227,12 @@ class type_Key extends type_Int {
         
         if($this->getSelectFld() || count($this->options)) {
             
-
             $options = $this->prepareOptions();
-         
+            
+            if(!is_array($options)) {
+                $options = $this->options;
+            }
+
             setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
 
             parent::setFieldWidth($attr);
