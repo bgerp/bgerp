@@ -199,33 +199,11 @@ class acc_Periods extends core_Manager
 		// Кода на месеца
 		$monthNum = dt::mysql2verbal($date, 'm');
 		
-		// Кои са ид-тата на номенкалтурите 'месец' и 'година'
-		$monthKey = keylist::addKey('', acc_Lists::fetchBySystemId('month')->id);
-		$yearKey = keylist::addKey('', acc_Lists::fetchBySystemId('year')->id);
-		
 		// Ако има перо за този месец го връщаме, ако няма създаваме ново
-		$monthItem = acc_Items::fetch("#title = '{$month}' AND #lists LIKE '%$monthKey%'");
-		if(empty($monthItem)){
-			$monthItem = new stdClass();
-			$monthItem->title = $month;
-			$monthItem->num = $monthNum;
-			$monthItem->lists = $monthKey;
-			
-			acc_Items::save($monthItem);
-			static::log("Създадено ново перо за месец '{$month}'");
-		}
+		$monthItem = acc_Items::forceSystemItem($month, $monthNum, 'month');
 		
 		// Ако има перо за тази година го връщаме, ако няма създаваме ново
-		$yearItem = acc_Items::fetch("#title = '{$year}' AND #lists LIKE '%$yearKey%'");
-		if(empty($yearItem)){
-			$yearItem = new stdClass();
-			$yearItem->title = $year;
-			$yearItem->num = $year;
-			$yearItem->lists = $yearKey;
-				
-			acc_Items::save($yearItem);
-			static::log("Създадено ново перо за година '{$year}'");
-		}
+		$yearItem = acc_Items::forceSystemItem($year, $year, 'year');
 		
 		// Връщаме ид-то на перата на годината и месеца
 		return (object)array('year' => $yearItem->id, 'month' => $monthItem->id);
