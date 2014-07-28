@@ -72,7 +72,7 @@
 	white-space:nowrap;
 }
 
-.task{
+.gantt-task{
 	height:18px;
 	padding-top:2px;
 	position:absolute;
@@ -88,19 +88,19 @@
 	font-weight:bold;
 }
 
-.task:hover{
+.gantt-task:hover{
 	cursor:pointer;
 }
 
-.task.first{
+.gantt-task.first{
 	border-radius:0px 5px 5px 0px;
 }
 
-.task.last{
+.gantt-task.last{
 	border-radius:5px 0px 0px 5px;
 }
 
-.progress{
+.gantt-progress{
 	border-radius:5px 0px 0px 5px;
 	box-shadow:none;
 	opacity:0.3;
@@ -109,7 +109,7 @@
 	background-color:#000;
 }
 
-.task.dashed-right{
+.gantt-task.dashed-right{
 	border-right: 1px dashed #000;
 	-moz-border-radius-topright: 0px;
 	-webkit-border-top-right-radius: 0px;
@@ -119,7 +119,7 @@
 	border-bottom-right-radius: 0px;
 }
 
-.task.dashed-left{
+.gantt-task.dashed-left{
 	-moz-border-radius-topleft: 0px;
 	-webkit-border-top-left-radius: 0px;
 	 border-top-left-radius: 0px;
@@ -169,7 +169,7 @@
 	white-space: nowrap;
 }
 @media print{
-	.task{
+	.gantt-task{
 		box-shadow:none;
 		border:1px solid #333 !important;
 	}

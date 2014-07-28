@@ -337,7 +337,7 @@ function ganttRender(elem,ganttData) {
 						$(addedAnchor).css('zIndex', zIndex);
 						$(addedAnchor).css('width', parseInt(widthTask));
 						$(addedAnchor).css('background-color', color);
-						$(addedAnchor).addClass('task');
+						$(addedAnchor).addClass('gantt-task');
 						$(addedAnchor).attr('title', hint );
 						$(addedAnchor).attr('href', url);
 						$(addedAnchor).attr('target', '_blank');
@@ -353,8 +353,8 @@ function ganttRender(elem,ganttData) {
 							$(progressAnchor).css('top', parseInt(offsetFromTop));
 							$(progressAnchor).css('zIndex', zIndex + 1);
 							$(progressAnchor).css('width', parseInt(progressWidth));
-							$(progressAnchor).addClass('task');
-							$(progressAnchor).addClass('progress');
+							$(progressAnchor).addClass('gantt-task');
+							$(progressAnchor).addClass('gantt-progress');
 							$(progressAnchor).attr('title', hint );
 							$(progressAnchor).css('color', textColor);
 							$(progressAnchor).attr('href', url);
