@@ -30,6 +30,13 @@ class location_Type extends type_Varchar {
 
 
     /**
+     * Параметър определящ максималната широчина на полето
+     */
+    var $maxFieldSize = 30;
+    
+    
+    
+    /**
      * @todo Чака за документация...
      */
     function renderInput_($name, $value = "", &$attr = array())
