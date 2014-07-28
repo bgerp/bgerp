@@ -13,13 +13,13 @@ class acc_journal_Item
      *
      * @var int key(mvc=core_Classes)
      */
-    public $classId;
+    private $classId;
 
 
     /**
      * @var int key(mvc=$classId)
      */
-    public $objectId;
+    private $objectId;
 
     /**
      *
@@ -121,7 +121,10 @@ class acc_journal_Item
     		$this->id = acc_Items::fetchItem($this->classId, $this->objectId)->id;
     	}
     	
-    	$state = acc_Items::fetchField($this->id, 'state');
+    	// Ако има такова перо извличаме му състоянието
+    	if($this->id){
+    		$state = acc_Items::fetchField($this->id, 'state');
+    	}
     	
     	return ($state == 'closed') ? TRUE : FALSE;
     }

@@ -32,7 +32,7 @@ class acc_journal_EntrySide
      *
      * @var array
      */
-    public $items;
+    protected $items;
 
 
     /**
