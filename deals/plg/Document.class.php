@@ -85,17 +85,6 @@ class deals_plg_Document extends core_Plugin
 				$res = 'no_one';
 			}
 		}
-		
-		// Документа не може да се контира, ако ориджина му е в състояние 'closed'
-		if($action == 'conto' && isset($rec)){
-			$origin = $mvc->getOrigin($rec);
-			if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
-				$originState = $origin->fetchField('state');
-				if($originState === 'closed'){
-					$res = 'no_one';
-				}
-			}
-		}
 	}
 	
 	

@@ -517,25 +517,6 @@ class bank_IncomeDocuments extends core_Master
     
     
 	/**
-     * Извиква се след изчисляването на необходимите роли за това действие
-     */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {
-    	// Ако резултата е 'no_one' пропускане
-    	if($res == 'no_one') return;
-    	
-    	// Документа не може да се контира/оттегля/възстановява, ако ориджина му е в състояние 'closed'
-    	if($action == 'conto' && isset($rec)){
-    		$origin = $mvc->getOrigin($rec);
-	    	$originState = $origin->fetchField('state');
-		    if($originState === 'closed'){
-		        $res = 'no_one';
-		    }
-        }
-    }
-    
-    
-	/**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
     function on_AfterPrepareEditToolbar($mvc, &$res, $data)
