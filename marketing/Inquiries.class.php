@@ -165,9 +165,9 @@ class marketing_Inquiries extends core_Master
     function description()
     {
     	$this->FLD('drvId', 'class(interface=techno_ProductsIntf,select=title,allowEmpty)', 'caption=Тип,silent,mandatory');
-    	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,width=6em');
-    	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,width=6em');
-    	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,width=6em');
+    	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество');
+    	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество');
+    	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество');
     	
     	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Лице за връзка,contragentDataField=person');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава,mandatory');

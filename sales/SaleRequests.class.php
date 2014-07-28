@@ -118,13 +118,13 @@ class sales_SaleRequests extends core_Master
     {
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,fromOffer');
         $this->FLD('contragentId', 'int', 'input=hidden,fromOffer');
-		$this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description)','caption=Плащане->Метод,width=8em,fromOffer');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,fromOffer,oldFieldName=paymentCurrencyId');
-        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em,fromOffer,oldFieldName=rate');
+		$this->FLD('others', 'text(rows=4)', 'caption=Условия');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description)','caption=Плащане->Метод,fromOffer');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,fromOffer,oldFieldName=paymentCurrencyId');
+        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,fromOffer,oldFieldName=rate');
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat,fromOffer');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,fromOffer');
-        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,fromOffer');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,fromOffer');
+        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,fromOffer');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Поръчано,input=none,summary=amount'); // Сумата на договорената стока
         $this->FLD('amountVat', 'double(decimals=2)', 'input=none');
         $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
@@ -309,7 +309,7 @@ class sales_SaleRequests extends core_Master
 	    		}
     		}
     		
-    		$form->FNC($index, "double(decimals=2)", "width=7em,input,caption={$product->title},{$mandatory}");
+    		$form->FNC($index, "double(decimals=2)", "input,caption={$product->title},{$mandatory}");
     		if($product->suggestions){
     			$form->setSuggestions($index, $product->options);
     		} else {

@@ -101,10 +101,10 @@ class sales_Routes extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация,width=20em,mandatory,silent');
-    	$this->FLD('salesmanId', 'user(roles=sales)', 'caption=Търговец,width=15em,mandatory');
-    	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,width=6em,mandatory');
-    	$this->FLD('repeatWeeks', 'int', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението,width=6em');
+    	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация,mandatory,silent');
+    	$this->FLD('salesmanId', 'user(roles=sales)', 'caption=Търговец,mandatory');
+    	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
+    	$this->FLD('repeatWeeks', 'int', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
     	$this->FLD('state','enum(active=Активен, rejected=Оттеглен)','caption=Статус,input=none,value=active');
     }
     
@@ -220,8 +220,8 @@ class sales_Routes extends core_Manager {
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-		$data->listFilter->FNC('user', 'user(roles=sales,allowEmpty)', 'input,caption=Търговец,width=15em,placeholder=Потребител,silent');
-        $data->listFilter->FNC('date', 'date', 'input,caption=Дата,width=6em,silent');
+		$data->listFilter->FNC('user', 'user(roles=sales,allowEmpty)', 'input,caption=Търговец,placeholder=Потребител,silent');
+        $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
 
         $data->listFilter->showFields = 'user, date';
 		

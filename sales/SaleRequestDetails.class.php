@@ -78,9 +78,9 @@ class sales_SaleRequestDetails extends core_Detail {
     	$this->FLD('requestId', 'key(mvc=sales_SaleRequests)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden,oldFieldName=productManId');
-    	$this->FLD('quantity', 'double', 'caption=К-во,width=8em', 'tdClass=small-field');
-    	$this->FLD('price', 'double', 'caption=Ед. цена,width=8em');
-        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
+    	$this->FLD('quantity', 'double', 'caption=К-во', 'tdClass=small-field');
+    	$this->FLD('price', 'double', 'caption=Ед. цена');
+        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка');
         $this->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
     }
     

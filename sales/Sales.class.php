@@ -688,10 +688,10 @@ class sales_Sales extends core_Master
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=13em');
+        	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',dealerId,type';
-			$data->listFilter->setField('dealerId', 'caption=Търговец,width=13em');
+			$data->listFilter->setField('dealerId', 'caption=Търговец');
 			$data->listFilter->setDefault('dealerId', core_Users::getCurrent());
 		}
 		

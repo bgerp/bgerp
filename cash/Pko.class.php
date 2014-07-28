@@ -153,16 +153,16 @@ class cash_Pko extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,width=100%,mandatory');
+    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
     	
     	// Платена сума във валута, определена от полето `currencyId`
-    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=30%,summary=amount');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
     	
     	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
-    	$this->FLD('number', 'int', 'caption=Номер,width=50%,width=30%');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('number', 'int', 'caption=Номер');
     	$this->FLD('peroCase', 'key(mvc=cash_Cases, select=name)', 'caption=Каса');
-    	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory,width=100%');
+    	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
     	$this->FLD('contragentAdress', 'varchar(255)', 'input=hidden');
@@ -172,8 +172,8 @@ class cash_Pko extends core_Master
     	$this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
-    	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс,width=6em');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
+    	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс');
     	$this->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Контиран)', 

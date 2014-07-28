@@ -91,8 +91,8 @@ class forum_Boards extends core_Master {
 	 */
 	function description()
 	{
-		$this->FLD('title', 'varchar(50)', 'caption=Име, mandatory, width=400px');
-		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, width=100%');
+		$this->FLD('title', 'varchar(50)', 'caption=Име, mandatory');
+		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory');
 		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория, mandatory');
 		$this->FLD('boardType', 'enum(normal=Нормална,confidential=Конфиденциална)', 'caption=Достъп->Тип, notNull, value=normal');
 		$this->FLD('shared', 'userList', 'caption=Достъп->Споделяне');

@@ -140,12 +140,12 @@ class deals_DebitDocuments extends core_Master
     function description()
     {
     	$this->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
-    	$this->FLD('name', 'varchar(255)', 'caption=Име,mandatory,width=100%');
-    	$this->FLD('dealId', 'key(mvc=deals_Deals,select=detailedName,allowEmpty)', 'mandatory,caption=Сделка,width=100%');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
+    	$this->FLD('dealId', 'key(mvc=deals_Deals,select=detailedName,allowEmpty)', 'mandatory,caption=Сделка');
     	$this->FLD('amount', 'double(smartRound)', 'caption=Сума,mandatory,summary=amount');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
-    	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс,width=6em');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
+    	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс');
     	$this->FLD('description', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');

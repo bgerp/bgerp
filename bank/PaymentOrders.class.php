@@ -124,20 +124,20 @@ class bank_PaymentOrders extends core_Master
      */
     function description()
     {
-    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('moreReason', 'text(rows=2)', 'caption=Допълнително,width=100%');
-    	$this->FLD('paymentSystem', 'enum(bisera=БИСЕРА,rings=РИНГС)','caption=Пл. система,default=bisera,width=6em');
-    	$this->FLD('orderer', 'varchar(255)', 'caption=Наредител->Име,mandatory,width=16em');
-    	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Банк. сметка,mandatory,width=16em');
-    	$this->FLD('execBank', 'varchar(255)', 'caption=Наредител->Банка,width=16em');
-    	$this->FLD('execBankBic', 'varchar(12)', 'caption=Наредител->BIC,width=16em');
-    	$this->FLD('execBranch', 'varchar(255)', 'caption=Наредител->Клон,width=16em');
-        $this->FLD('execBranchAddress', 'varchar(255)', 'caption=Наредител->Адрес,width=16em');
-        $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
-    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
+    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,mandatory');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('moreReason', 'text(rows=2)', 'caption=Допълнително');
+    	$this->FLD('paymentSystem', 'enum(bisera=БИСЕРА,rings=РИНГС)','caption=Пл. система,default=bisera');
+    	$this->FLD('orderer', 'varchar(255)', 'caption=Наредител->Име,mandatory');
+    	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Банк. сметка,mandatory');
+    	$this->FLD('execBank', 'varchar(255)', 'caption=Наредител->Банка');
+    	$this->FLD('execBankBic', 'varchar(12)', 'caption=Наредител->BIC');
+    	$this->FLD('execBranch', 'varchar(255)', 'caption=Наредител->Клон');
+        $this->FLD('execBranchAddress', 'varchar(255)', 'caption=Наредител->Адрес');
+        $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory');
+    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory');
      	$this->FLD('originClassId', 'key(mvc=core_Classes,select=name)', 'input=none');
     }
     

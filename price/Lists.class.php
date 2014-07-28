@@ -113,7 +113,7 @@ class price_Lists extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика,width=100%');
+        $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика');
         $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,noChange');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');

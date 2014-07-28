@@ -88,7 +88,7 @@ class survey_Alternatives extends core_Detail {
     function description()
     {
     	$this->FLD('surveyId', 'key(mvc=survey_Surveys, select=title)', 'caption=Тема, input=hidden, silent');
-		$this->FLD('label', 'varchar(64)', 'caption=Въпрос, mandatory, width=100%');
+		$this->FLD('label', 'varchar(64)', 'caption=Въпрос, mandatory');
 		$this->FLD('image', 'fileman_FileType(bucket=survey_Images)', 'caption=Картинка');
     }
     
@@ -175,7 +175,7 @@ class survey_Alternatives extends core_Detail {
 			}
 			
 			$imgLink = sbf('survey/img/question.png', '');
-			$row->icon = ht::createElement('img', array('src' => $imgLink, 'width' => '16px', 'valign' =>"middle"));
+			$row->icon = ht::createElement('img', array('src' => $imgLink, 'valign' =>"middle"));
 				
 			if($rec->image) {
 				$Fancybox = cls::get('fancybox_Fancybox');

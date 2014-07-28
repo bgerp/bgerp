@@ -132,11 +132,11 @@ class price_ListDocs extends core_Master
      */
     function description()
     {
-    	$this->FLD('date', 'date(smartTime)', 'caption=Дата,mandatory,width=6em;');
-    	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em');
-    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,width=8em,input');
+    	$this->FLD('date', 'date(smartTime)', 'caption=Дата,mandatory');
+    	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,input');
     	$this->FLD('vat', 'enum(yes=с ДДС,no=без ДДС)','caption=ДДС');
-    	$this->FLD('title', 'varchar(155)', 'caption=Заглавие,width=15em');
+    	$this->FLD('title', 'varchar(155)', 'caption=Заглавие');
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');

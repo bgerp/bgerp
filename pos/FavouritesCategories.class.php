@@ -81,7 +81,7 @@ class pos_FavouritesCategories extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory,width=19em');
+    	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
         
         $this->setDbUnique('name');
     }

@@ -150,9 +150,9 @@ class price_ConsumptionNorms extends core_Master {
      */
     function description()
     {
-    	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
-    	$this->FLD('uom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,width=18em');
-    	$this->FLD('info', 'text(rows=4)', 'caption=Информация,width=18em');
+    	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт');
+    	$this->FLD('uom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка');
+    	$this->FLD('info', 'text(rows=4)', 'caption=Информация');
     	$this->FLD('groups', 'keylist(mvc=price_ConsumptionNormGroups, select=title)', 'caption=Групи, mandatory');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     
@@ -538,8 +538,8 @@ class price_ConsumptionNorms extends core_Master {
     private function prepareCalcPrice(&$data)
     {
     	$form = cls::get("core_Form");
-    	$form->FNC('uom', 'key(mvc=cat_UoM, select=name)', 'input,caption=Мярка,width=11em');
-    	$form->FNC('quantity', 'int', 'input,caption=Количество,width=11em');
+    	$form->FNC('uom', 'key(mvc=cat_UoM, select=name)', 'input,caption=Мярка');
+    	$form->FNC('quantity', 'int', 'input,caption=Количество');
     	if(!$data->rec->uom){
     		$data->rec->uom = cat_Products::fetchField($data->rec->productId, 'measureId');
     	}
@@ -610,8 +610,8 @@ class price_ConsumptionNorms extends core_Master {
 	{	
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
-		$data->listFilter->FNC('gr', 'key(mvc=price_ConsumptionNormGroups, select=title, allowEmpty)', 'placeholder=Група,width=9em,silent');
-		$data->listFilter->FNC('measure', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'width=9em,caption=Мярка,silent');
+		$data->listFilter->FNC('gr', 'key(mvc=price_ConsumptionNormGroups, select=title, allowEmpty)', 'placeholder=Група,silent');
+		$data->listFilter->FNC('measure', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,silent');
 		$data->listFilter->showFields = 'search,gr,measure';
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {

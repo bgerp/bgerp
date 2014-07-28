@@ -156,13 +156,13 @@ class deals_Deals extends core_Master
      */
     public function description()
     {
-    	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование,width=100%');
+    	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'input=none,notNull,oldFieldName=blAmount');
     	$this->FLD('accountId', 'acc_type_Account', 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
-    	$this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=4em');
+    	$this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс');
     	
     	$this->FLD('companyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Втори контрагент->Фирма,input');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Втори контрагент->Лице,input');

@@ -152,7 +152,7 @@ class store_ShipmentOrders extends core_Master
     {
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
-        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
+        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden'); 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory'); 
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=ДДС,input=hidden');
         
@@ -173,7 +173,7 @@ class store_ShipmentOrders extends core_Master
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
-        $this->FLD('company', 'key(mvc=crm_Companies,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Адрес за доставка->Фирма, width=contactData');
+        $this->FLD('company', 'key(mvc=crm_Companies,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Адрес за доставка->Фирма');
         $this->FLD('person', 'key(mvc=crm_Persons,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Адрес за доставка->Лице, changable, class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., changable, class=contactData');
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава, class=contactData');

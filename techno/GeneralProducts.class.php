@@ -123,12 +123,12 @@ class techno_GeneralProducts extends core_Master {
      */
     function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%');
+    	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory,remember=info');
     	$this->FLD('description', 'richtext(rows=6, bucket=Notes)', 'caption=Описание,mandatory');
 		$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory');
     	$this->FLD('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение');
-		$this->FLD('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em');
-        $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em');
+		$this->FLD('code', 'varchar(64)', 'caption=Параметри->Код,remember=info');
+        $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN');
 		$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2');
@@ -484,7 +484,7 @@ class techno_GeneralProducts extends core_Master {
      	$params = $this->getInquiryParams();
      	
 		foreach ($params as $name => $obj){
-		    $form->FNC($name, $obj->type, "caption=Информация за продукта->{$obj->title},input,params,width=100%,after=drvId");
+		    $form->FNC($name, $obj->type, "caption=Информация за продукта->{$obj->title},input,params,after=drvId");
 		    if($obj->mandatory){
 		    	$form->setField($name, 'mandatory');
 		    }

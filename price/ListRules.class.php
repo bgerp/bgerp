@@ -138,7 +138,7 @@ class price_ListRules extends core_Detail
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('from', 'date', 'input,caption=В сила,width=6em');
+        $data->listFilter->FNC('from', 'date', 'input,caption=В сила');
 		$data->listFilter->setField('id', 'input=none');
 		$data->listFilter->setField('type', 'input=none');
         $data->listFilter->showFields = 'search, from';

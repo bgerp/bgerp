@@ -143,19 +143,19 @@ class bank_IncomeDocuments extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,width=100%,mandatory');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
-    	$this->FLD('rate', 'double(smartRound)', 'caption=Курс,width=6em');
+    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
+    	$this->FLD('rate', 'double(smartRound)', 'caption=Курс');
     	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
-    	$this->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory,width=16em');
-    	$this->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка,width=16em'); 
-    	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=В->Сметка,mandatory,width=16em');
+    	$this->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
+    	$this->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка'); 
+    	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=В->Сметка,mandatory');
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
-    	$this->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)','caption=debit,width=300px,input=none');
-        $this->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)','caption=Кредит,width=300px,input=none');
+    	$this->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)','caption=debit,input=none');
+        $this->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)','caption=Кредит,input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'

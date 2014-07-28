@@ -86,7 +86,7 @@ class forum_Postings extends core_Detail {
 	function description()
 	{
 		$this->FLD('boardId', 'key(mvc=forum_Boards, select=title)', 'caption=Дъска, input=hidden, silent');
-		$this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory, placeholder=Заглавие, width=100%');
+		$this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory, placeholder=Заглавие');
 		$this->FLD('body', 'richtext(bucket=Notes)', 'caption=Съдържание, mandatory, placeholder=Добавете вашия коментар');
 		$this->FLD('type', 'enum(normal=Нормална,sticky=Важна,announcement=Съобщение)', 'caption=Тип, value=normal');
 		$this->FLD('postingsCnt', 'int', 'caption=Коментари, input=none, value=0');
@@ -699,7 +699,7 @@ class forum_Postings extends core_Detail {
 	{
 		// Форма за местене на тема
 		$data->form = cls::get('core_Form');
-		$data->form->FNC('boardTo', 'key(mvc=forum_Boards,select=title)', 'caption = Избери,input,width=100%');
+		$data->form->FNC('boardTo', 'key(mvc=forum_Boards,select=title)', 'caption = Избери,input');
 		$data->form->setHidden('theme', $data->rec->id);
 		$data->form->setDefault('boardTo', $data->board->id);
 		$data->form->title = "Местене на тема|* : <b>{$data->row->title}</b>";

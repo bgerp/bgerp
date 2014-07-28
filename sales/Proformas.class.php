@@ -146,7 +146,7 @@ class sales_Proformas extends core_Master
     {
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=hidden,mandatory');
     	$this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
-        $this->FLD('note', 'text(rows=3)', 'caption=Допълнително->Условия,width=100%');
+        $this->FLD('note', 'text(rows=3)', 'caption=Допълнително->Условия');
     }
     
     
