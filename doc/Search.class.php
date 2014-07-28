@@ -77,9 +77,9 @@ class doc_Search extends core_Manager
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->title = 'Tърсене на документи';
+        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=100%,caption=Обхват');
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
-        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=100%,caption=Обхват');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
         
         // Търсим дали има посочена или текуща
@@ -108,7 +108,7 @@ class doc_Search extends core_Manager
         
         $data->listFilter->setDefault('author', 'all_users');
 
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass, state, author, fromDate, toDate';
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input(NULL, 'silent');
