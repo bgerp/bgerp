@@ -1102,6 +1102,7 @@ table.listTable {
 /*общи стилове за елементите на формите*/
 .formFields {
 	margin-bottom: 10px;
+	/* не може display:table; защото полетата са първоначално свити */
 }
 
 .formFields > table {
@@ -1206,14 +1207,42 @@ div.hFormField {
 }
 
 .wide #main-container .formTable .formElement{
-	min-width: 600px;
-	select.combobox, .combo{
-	   min-width: 300px;
-	}
-	> .varchar:not(.combo){
+	min-width: 32em;
+
+}
+
+.wide .vertical .formFields  {
+	.w100 {
        width: 100%;
     }
+	  .w75 {
+       width: 24em;
+    }
+	  .w50 {
+       width: 16em;
+    }
+	  .w25 {
+       width: 8em;
+    }
 }
+
+.narrow .vertical .formFields  {
+	 .w100 {
+       width: 100%;
+    }
+	  .w75 {
+       width: 100%;
+    }
+	  .w50 {
+       width: 100%;
+    }
+	  .w25 {
+       width: 50%;
+    }
+}
+
+
+
 
 /*общи стилове за елементите на формите*/
 
@@ -1265,6 +1294,7 @@ div.hFormField {
 
 .listTopContainer {
 	width: 100%;
+	min-width:760px;
 }
 
 .narrow .ListToolbar, .narrow .SingleToolbar { 
@@ -1411,7 +1441,7 @@ div.hFormField {
 	background-image: none;
 	border: solid 1px $gray4;
 	border-top: none;
-	padding: 0 6px 3px 6px !important;
+	padding: 9px 6px 3px 6px !important;
     background-color: #ffffee;
     input {
 	    margin-right: 5px;
@@ -1927,7 +1957,7 @@ span.richEdit div.richedit-toolbar {
 	margin-bottom: 0px;
 	overflow: auto;
 	border-bottom: 1px solid transparent; 
-	width: 600px;
+	width: 32em;
 	min-width:310px;
 }
 
@@ -2768,4 +2798,8 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 .fracPart{
 	display: inline-block;
 	text-align: left;
+}
+
+body.narrow {
+	min-width:320px;
 }
