@@ -174,9 +174,8 @@ class plg_Current extends core_Plugin
     {
     	if($action == 'select' && isset($rec)){
     		
-    		// Ако има поле за отговорник и текущия потребител
-    		// не е отговорник, той няма права да избира
-    		if(!(isset($mvc->canSelectAll) && haveRole($mvc->canSelectAll)) && isset($mvc->inChargeField) && ($rec->{$mvc->inChargeField} != $userId && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE)){
+    		// Ако има поле за отговорник и текущия потребител, не е отговорник, той няма права да избира
+    		if(!(isset($mvc->canSelectAll) && haveRole($mvc->canSelectAll)) && isset($mvc->inChargeField) && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE){
 	    		$res = 'no_one';
 	    	} 
     	}
