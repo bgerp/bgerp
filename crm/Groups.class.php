@@ -119,7 +119,7 @@ class crm_Groups extends core_Master
     function description()
     {
         $this->FLD('sysId', 'varchar(16)', 'caption=СисИД,input=none,column=none');
-        $this->FLD('name', 'varchar(128,ci)', 'caption=Група,width=100%,mandatory,translate');
+        $this->FLD('name', 'varchar(128,ci)', 'caption=Група,mandatory,translate');
         $this->FLD('allow', 'enum(companies_and_persons=Фирми и лица,companies=Само фирми,persons=Само лица)', 'caption=Съдържание,notNull');
         $this->FLD('companiesCnt', 'int', 'caption=Брой->Фирми,input=none');
         $this->FLD('personsCnt', 'int', 'caption=Брой->Лица,input=none');

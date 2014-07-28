@@ -107,21 +107,21 @@ class crm_Locations extends core_Master {
     {
         $this->FLD('contragentCls', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Собственик->Клас,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
-        $this->FLD('title', 'varchar', 'caption=Наименование,width=100%');
+        $this->FLD('title', 'varchar', 'caption=Наименование');
         $this->FLD('type', 'enum(correspondence=За кореспонденция,
             headquoter=Главна квартира,
             shipping=За получаване на пратки,
             office=Офис,shop=Магазин,
             storage=Склад,
             factory=Фабрика,
-            other=Друг)', 'caption=Тип,mandatory,width=15.4em');
+            other=Друг)', 'caption=Тип,mandatory');
         $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава,class=contactData');
         $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
-        $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код,width=15.4em');
+        $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код');
         $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
         $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
