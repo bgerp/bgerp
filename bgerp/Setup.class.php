@@ -149,7 +149,7 @@ class bgerp_Setup {
 
     	if (Request::get('SHUFFLE')) {
         	
-        	// Ако е зададен параметър shuffle  в урл-то разбуркваме пакетите
+        	// Ако е зададен параметър shuffle  в урл-то разбъркваме пакетите
         	if (!is_array($packs)) {
         		$packs = arr::make($packs);
 	        }
@@ -186,7 +186,8 @@ class bgerp_Setup {
                     $packsInst[$p] = cls::get($p . '_Setup');
                     if (method_exists($packsInst[$p], 'loadSetupData')) {
                         try {
-                            $packsInst[$p]->loadSetupData();
+                            $html .= "<h3>Инициализиране на $p</h3>";
+                            $html .= $packsInst[$p]->loadSetupData();
                             $isLoad[$p] = TRUE;
                             // Махаме грешките, които са възникнали, но все пак са се поправили
                             // в не дебъг режим
