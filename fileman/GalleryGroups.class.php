@@ -35,6 +35,12 @@ class fileman_GalleryGroups extends core_Manager
     
     
     /**
+	 * Кой може да използва групите
+	 */
+    var $canUsegroup = 'user';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'user';
@@ -127,6 +133,30 @@ class fileman_GalleryGroups extends core_Manager
     
     
     /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        // Ако не са подадени роли
+        if (!$rec->roles) return ;
+        
+        // Обхождаме всички роли и от името им определяме id-то
+        $rolesStrArr = arr::make($rec->roles);
+        foreach ($rolesStrArr as $role) {
+            
+            $roleId = core_Roles::fetchByName($role);
+            
+            if (!$roleId) continue;
+            
+            $roleArr[$roleId] = $roleId;
+        }
+        
+        // Добавяме id-тата на записите
+        $rec->roles = type_Keylist::fromArray($roleArr);
+    }
+    
+    
+    /**
      * Връща id на групата по подразбиране
      * 
      * @return integer
@@ -163,6 +193,17 @@ class fileman_GalleryGroups extends core_Manager
                     $requiredRoles = 'no_one';
                 }
             }
+            
+            if ($action == 'usegroup') {
+                $groupQuery = fileman_GalleryGroups::getQuery();
+                $mvc->restrictQuery($groupQuery, $userId);
+                $groupQuery->where($rec->id);
+                $groupQuery->limit(1);
+                
+                if (!$groupQuery->fetch()) {
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
         
         // Ако все още има права за изтриване
@@ -176,28 +217,55 @@ class fileman_GalleryGroups extends core_Manager
     }
     
     
+    /**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+	    // Ограничаваме записите, които да се показват
+	    $mvc->restrictQuery($data->query);
+	}
+	
+	
+	/**
+     * Поставя изискване да се селектират достъпните записи
+     */
+    function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    {
+        $nQuery = $mvc->getQuery();
+        
+        // Ако има условие, от преди това
+        $nQuery->where($where);
+        
+        $mvc->restrictQuery($nQuery);
+        
+        $nWhere = $nQuery->getWhereAndHaving(TRUE)->w;
+        
+        $where = trim($nWhere);
+    }
+	
+    
 	/**
 	 * 
 	 * 
-	 * @param fileman_GalleryGroups $mvc
 	 * @param core_Query $query
 	 */
-    function on_AfterGetQuery($mvc, $query)
+    static function restrictQuery(&$query, $userId=NULL)
     {
         $orToPrevious = FALSE;
         
         // Ограничаваме заявката да се показват само групите споделени с определени потребители
-        if (static::restrictRoles($query, $orToPrevious)) {
+        if (static::restrictRoles($query, $orToPrevious, 'roles', $userId)) {
             $orToPrevious = TRUE;
         }
         
         // Ограничаваме заявката да се показват само групите споделени до определени потребители
-        if (static::restrictSharedTo($query, $orToPrevious)) {
+        if (static::restrictSharedTo($query, $orToPrevious, 'sharedTo', $userId)) {
             $orToPrevious = TRUE;
         }
         
         // Ограничаваме да се показва само групите създадени от съответния потребител
-        static::restrictCreated($query, $orToPrevious);
+        static::restrictCreated($query, $orToPrevious, 'createdBy', $userId);
     }
     
     

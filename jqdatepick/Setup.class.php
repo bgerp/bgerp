@@ -88,4 +88,31 @@ class jqdatepick_Setup extends core_ProtoSetup
         
         return $html;
     }
+    
+    
+    /**
+     * Връща масив с css и js файловете дефинирани в commonJS и commonCSS
+     *
+     * @return array - Двумерен масив с 'css' и 'js' пътищатата
+     *
+     * @see core_ProtoSetup->getCommonCssAndJs()
+     */
+    function getCommonCssAndJs()
+    {
+    	$cssAnaJsArr = parent::getCommonCssAndJs();
+    	$conf = core_Packs::getConfig('jqdatepick');
+    	$confCore = core_Packs::getConfig('core');
+    
+    	// Пътя до js файла
+    	$jsFile = "jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.js";
+    	$jsLang = "jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick-" . $confCore->EF_DEFAULT_LANGUAGE . ".js";
+    	$cssAnaJsArr['js'][$jsFile] = $jsFile;
+    	$cssAnaJsArr['js'][$jsLang] = $jsLang;
+    	 
+    	// Пътя до css файла
+    	$cssFile = "jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.css";
+    	$cssAnaJsArr['css'][$cssFile] = $cssFile;
+    
+    	return $cssAnaJsArr;
+    }
 }

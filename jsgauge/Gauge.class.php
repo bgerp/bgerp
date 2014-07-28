@@ -1,13 +1,6 @@
 <?php
 
 
-
-/**
- * Път до външния файл
- */
-defIfNot('GAUGE_PATH', 'jsgauge/0.4.1');
-
-
 /**
  * Клас 'jsgauge_Gauge'
  *
@@ -305,7 +298,9 @@ class jsgauge_Gauge
                     }
                 }
             ", 'SCRIPTS');
-        $tpl->push(GAUGE_PATH . '/' . "gauge.js", "JS");
+        
+        $conf = core_Packs::getConfig('jsgauge');
+        $tpl->push($conf->GAUGE_PATH . '/' . "gauge.js", "JS");
         $tpl->appendOnce("\n" . '<!--[if IE]><script type="text/javascript" src="' .
             GAUGE_PATH . '/' . 'excanvas.js"></script><![endif]-->', "HEAD");
         

@@ -76,6 +76,9 @@ class fileman_GalleryDialogWrapper extends core_Plugin
         
         // Добавяме титлата
         $res->prepend(tr("Картинка") . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
+        
+        // Добавяме клас към бодито
+        $res->append('dialog-window', 'BODY_CLASS_NAME');
     }
     
     

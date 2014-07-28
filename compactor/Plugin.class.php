@@ -39,15 +39,15 @@ class compactor_Plugin extends core_Plugin
         $conf = core_Packs::getConfig('compactor');
         
         // Всички CSS файлове
-        $confCss = strtolower($conf->COMPACTOR_CSS_FILES);
+        $confCss = $conf->COMPACTOR_CSS_FILES;
         
         // Масив с файловете
-        $confCssArr = arr::make($confCss);
+        $confCssArr = arr::make($confCss, TRUE);
         
         // Ако няма зададени в конфигурацията
         if (!$confCssArr) return ;
         
-        // Всички файлове от конфигурацията, които са идват от пуш
+        // Всички файлове от конфигурацията, които идват от пуш
         $sArr = static::getSameFiles($confCssArr, $cssArr);
         
         // Ако няма файлове
@@ -56,7 +56,7 @@ class compactor_Plugin extends core_Plugin
         // Стринг за имената
         $nameStr = '';
         
-        foreach ((array)$sArr as $ePath) {
+        foreach ((array)$confCssArr as $ePath) {
             
             $error = FALSE;
             
@@ -81,6 +81,7 @@ class compactor_Plugin extends core_Plugin
                     $filePath = $ePath;
                 }
                 
+                // TODO за scss файлове трябва да се измисли по-добър начин
                 // Новия файл
                 $nPath = $filePath . '.scss';
                 
@@ -126,11 +127,11 @@ class compactor_Plugin extends core_Plugin
         $tempDir = EF_SBF_PATH . '/' . $cssDirName;
         
         // Пътя до новия файл
-        if (!static::compactFilesFromArr($newFileName, $sArr, $tempDir, TRUE)) return ;
+        if (!static::compactFilesFromArr($newFileName, $confCssArr, $tempDir, TRUE)) return ;
         
         // Пътя до файла
         $newPath = $cssDirName . '/' . $newFileName;
-       
+        
         // Добавяме файла в масива
         $resArr = static::addNewFileToArr($newPath, $cssArr);
 
@@ -155,15 +156,15 @@ class compactor_Plugin extends core_Plugin
         $conf = core_Packs::getConfig('compactor');
         
         // Всички JS файлове
-        $confJs = strtolower($conf->COMPACTOR_JS_FILES);
+        $confJs = $conf->COMPACTOR_JS_FILES;
         
         // Масив с файловете
-        $confJSArr = arr::make($confJs);
+        $confJSArr = arr::make($confJs, TRUE);
         
         // Ако няма зададени в конфигурацията
         if (!$confJSArr) return ;
         
-        // Всички файлове от конфигурацията, които са идват от пуш
+        // Всички файлове от конфигурацията, които идват от пуш
         $sArr = static::getSameFiles($confJSArr, $jsArr);
         
         // Ако няма файлове
@@ -171,8 +172,8 @@ class compactor_Plugin extends core_Plugin
         
         // Стринг за имената
         $nameStr = '';
-    
-        foreach ((array)$sArr as $ePath) {
+        
+        foreach ((array)$confJSArr as $ePath) {
             
             // Ако има такъв файл
             if ($f = getFullPath($ePath)) {
@@ -205,7 +206,7 @@ class compactor_Plugin extends core_Plugin
         $tempDir = EF_SBF_PATH . '/' . $jsDirName;
         
         // Пътя до новия файл
-        if (!static::compactFilesFromArr($newFileName, $sArr, $tempDir, FALSE)) return ;
+        if (!static::compactFilesFromArr($newFileName, $confJSArr, $tempDir, FALSE)) return ;
         
         // Пътя до файла
         $newPath = $jsDirName . '/' . $newFileName;
@@ -258,13 +259,13 @@ class compactor_Plugin extends core_Plugin
      * Обединява масива с файловете в един файл
      * 
      * @param string $newFileName
-     * @param array $sArr
+     * @param array $confFilesArr
      * @param string $tempDir
      * @param boolean $changePath
      * 
      * @return string
      */
-    static function compactFilesFromArr($newFileName, $sArr, $tempDir, $changePath=TRUE)
+    static function compactFilesFromArr($newFileName, $confFilesArr, $tempDir, $changePath=TRUE)
 	{
         // Пътя до временния файл
         $tempPath = $tempDir . '/' . $newFileName;
@@ -274,7 +275,7 @@ class compactor_Plugin extends core_Plugin
             
             $content = '';
             
-            foreach ((array)$sArr as $ePath) {
+            foreach ((array)$confFilesArr as $ePath) {
                 
                 // Вземаме съдържанието
                 $content .= static::getContentFromPath($ePath, $changePath) . "\n";
@@ -298,7 +299,7 @@ class compactor_Plugin extends core_Plugin
             } else {
                 
                 // Имената на файловете
-                $filesStr = implode(', ', $sArr);
+                $filesStr = implode(', ', $confFilesArr);
                 
                 // Записваме в лога 
                 core_Logs::add(get_called_class(), NULL, "Компактиране на '{$filesStr}'");
@@ -373,10 +374,10 @@ class compactor_Plugin extends core_Plugin
         // Шаблон за намиране на всички линкове, към файлове
         // Трябва да започават с ../
         // Да завършват с .css, .jpg, .jpeg, .png или .gif
-        $pattern = '/url\(([^\)]+?)\);/i';
-      
+        $pattern = "/url\((?'file'[^\)]{1,200}?)\)/i";
+        
         // Заместваме локалните линкове към файловете с абсолютни
-	    $textChanged = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
+        $textChanged = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
         
 	    if (!$textChanged && $text) {
 	        core_Logs::add(get_called_class(), NULL, "Грешка при извикване на регулярен израз: " . preg_last_error());
@@ -399,7 +400,7 @@ class compactor_Plugin extends core_Plugin
         if (!($path = $this->filePath)) return $matches[0];
 
         // Открития файла
-        $file = $matches[0];
+        $trimFile = $file = trim($matches['file'], "'\"");
         
         // Директорията
         $dir = dirname($path);
@@ -433,6 +434,8 @@ class compactor_Plugin extends core_Plugin
             $filePath = $matches[0];
         }
         
-        return $filePath;
+        $res = str_ireplace($trimFile, $filePath, $matches[0]);
+        
+        return $res;
     }
 }

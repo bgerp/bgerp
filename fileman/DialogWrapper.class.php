@@ -94,6 +94,11 @@ class fileman_DialogWrapper extends core_Plugin
             // Сетвама, таба който сме използвали
             static::setLastUploadTab($invoker->className);
             
+            // Добавяме клас към бодито
+            $tpl->append('dialog-window', 'BODY_CLASS_NAME');
+            
+            $tpl->push('css/dialog.css', 'CSS');
+            
             return TRUE;
         }
     }

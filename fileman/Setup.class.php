@@ -186,6 +186,14 @@ class fileman_Setup extends core_ProtoSetup
             // Установяваме модела за галериите 
             'fileman_GalleryImages',
         );
+    
+    
+    /**
+     * Път до css файла
+     */
+    var $commonCSS = 'fileman/css/default.css, fileman/css/dialogGallery.css';
+    
+    
     /**
      * Инсталиране на пакета
      */
