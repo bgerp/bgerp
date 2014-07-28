@@ -37,7 +37,7 @@ class bank_SpendingDocuments extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Printing, acc_plg_Contable,
+    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Printing, acc_plg_RejectContoDocuments, acc_plg_Contable,
      	plg_Sorting,doc_DocumentPlg, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg';
     
@@ -517,7 +517,7 @@ class bank_SpendingDocuments extends core_Master
     	if($res == 'no_one') return;
     	
     	// Документа не може да се контира/оттегля/възстановява, ако ориджина му е в състояние 'closed'
-    	if(($action == 'conto' || $action == 'reject' || $action == 'restore') && isset($rec)){
+    	if($action == 'conto' && isset($rec)){
 	    	$origin = $mvc->getOrigin($rec);
 	    	$originState = $origin->fetchField('state');
 		    if($originState === 'closed'){
