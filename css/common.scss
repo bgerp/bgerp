@@ -1415,6 +1415,7 @@ div.hFormField {
     @include shadow4(2px,2px,8px,3px,#aab);
     margin-bottom: 20px;
     border-collapse: separate;
+    max-width: 48em;
 }
 
 .narrow .vertical .formTable {
