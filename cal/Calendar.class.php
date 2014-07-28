@@ -147,7 +147,7 @@ class cal_Calendar extends core_Master
         $this->FLD('key', 'varchar(40)', 'caption=Ключ');
 
         // Дата на събититието
-        $this->FLD('time', new type_Datetime(array('cellAttr' => 'class="portal-date"', 'format' => 'smartTime')), 'caption=Време');
+        $this->FLD('time', 'datetime(format=smartTime)', 'caption=Време,tdClass=portal-date');
         
         // Продължителност на събитието
         $this->FLD('duration', 'time', 'caption=Продължителност');
