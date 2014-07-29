@@ -510,7 +510,7 @@ class sales_SaleRequests extends core_Master
 	    	}
 	    	$row->id .= " {$id}";
 	    	@$rec->amountDeal = $rec->amountDeal / $rec->currencyRate;
-	    	$row->amountDeal = "<span class='cCode' style='float:left;margin-right:3px'>{$rec->currencyId}</span>" . $mvc->fields['amountDeal']->type->toVerbal($rec->amountDeal);
+	    	$row->amountDeal = "<span class='cCode' style='float:left;margin-right:3px'>{$rec->currencyId}</span>" . $mvc->getFieldType('amountDeal')->toVerbal($rec->amountDeal);
     	}
 	    
 	    if($fields['-single']){

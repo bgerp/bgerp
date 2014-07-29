@@ -1098,7 +1098,7 @@ class forum_Postings extends core_Detail {
         if($filter = $data->listFilter->rec) {
 	    	if($filter->board > 0) {
 					$data->query->where("#boardId = {$filter->board}");
-					$verbalBoard = $data->listFilter->fields['board']->type->toVerbal($filter->board);
+					$verbalBoard = $data->listFilter->getFieldType('board')->toVerbal($filter->board);
 					$data->title .= ' в дъска |*<font color="darkblue">"' . $verbalBoard . '"</font>';
 				}
 				

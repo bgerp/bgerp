@@ -347,7 +347,7 @@ class bank_InternalMoneyTransfer extends core_Master
 	    		$double = cls::get('type_Double');
 	    		$double->params['decimals'] = 2;
 	    		$equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
-    			$row->equals = $mvc->fields['amount']->type->toVerbal($equals);
+    			$row->equals = $mvc->getFieldType('amount')->toVerbal($equals);
 	    		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
     		}
     		

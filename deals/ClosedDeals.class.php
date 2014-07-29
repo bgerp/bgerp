@@ -132,8 +132,8 @@ class deals_ClosedDeals extends acc_ClosedDeals
     		$row->type = tr('Разход');
     	}
     	
-    	$row->costAmount = $mvc->fields['amount']->type->toVerbal($costAmount);
-    	$row->incomeAmount = $mvc->fields['amount']->type->toVerbal($incomeAmount);
+    	$row->costAmount = $mvc->getFieldType('amount')->toVerbal($costAmount);
+    	$row->incomeAmount = $mvc->getFieldType('amount')->toVerbal($incomeAmount);
     }
     
     

@@ -203,7 +203,7 @@ class acc_OpenDeals extends core_Manager {
 		    	if(empty($rec->$field)){
 		    		$row->$field = "<span class='quiet'>0,00</span>";
 		    	} else {
-		    		$row->$field = $mvc->fields[$field]->type->toVerbal($rec->$field / $docRec->currencyRate);
+		    		$row->$field = $mvc->getFieldType($field)->toVerbal($rec->$field / $docRec->currencyRate);
 		    	}
 	    	}
 	    	

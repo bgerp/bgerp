@@ -189,7 +189,7 @@ class purchase_InvoiceDetails extends core_Detail
     		$data->rows = array();
     		
     		// Показване на сумата за промяна на известието
-    		$amount = $mvc->fields['amount']->type->toVerbal($masterRec->dealValue / $masterRec->rate); 
+    		$amount = $mvc->getFieldType('amount')->toVerbal($masterRec->dealValue / $masterRec->rate); 
     		
     		$data->rows[] = (object) array('number' => 1,
     									   'reason' => $masterRec->reason,

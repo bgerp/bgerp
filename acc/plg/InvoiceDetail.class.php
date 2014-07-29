@@ -35,7 +35,7 @@ class acc_plg_InvoiceDetail extends core_Plugin
 			$data->rows = array();
 	
 			// Показване на сумата за промяна на известието
-			$amount = $mvc->fields['amount']->type->toVerbal($masterRec->dealValue / $masterRec->rate);
+			$amount = $mvc->getFieldType('amount')->toVerbal($masterRec->dealValue / $masterRec->rate);
 	
 			$data->rows[] = (object) array('number' => 1,
 					'reason' => $masterRec->reason,
@@ -84,7 +84,7 @@ class acc_plg_InvoiceDetail extends core_Plugin
 		$measureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
 		
 		if($rec->packagingId){
-			$row->quantityInPack = $mvc->fields['quantityInPack']->type->toVerbal($rec->quantityInPack);
+			$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
 			$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
 			$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
 		} else {

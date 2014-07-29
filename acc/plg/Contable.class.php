@@ -26,7 +26,7 @@ class acc_plg_Contable extends core_Plugin
     {
         $mvc->declareInterface('acc_TransactionSourceIntf');
         
-        $mvc->fields['state']->type->options['revert'] = 'Сторниран';
+        $mvc->getFieldType('state')->options['revert'] = 'Сторниран';
         
         // Добавяне на кеш-поле за контируемостта на документа. Обновява се при (преди) всеки 
         // запис. Използва се при определяне на правата за контиране.

@@ -310,7 +310,7 @@ class deals_Deals extends core_Master
     	}
     	
     	@$rec->amountDeal /= $rec->currencyRate;
-    	$row->amountDeal = $mvc->fields['amountDeal']->type->toVerbal($rec->amountDeal);
+    	$row->amountDeal = $mvc->getFieldType('amountDeal')->toVerbal($rec->amountDeal);
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     }
@@ -681,7 +681,7 @@ class deals_Deals extends core_Master
     	if ($rec = self::fetch($objectId)) {
     		$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
     		$detailedName = $rec->contragentName . " / {$createdOn} / " . $rec->dealName;
-    		$detailedName = $self->fields['detailedName']->type->toVerbal($detailedName);
+    		$detailedName = $self->getFieldType('detailedName')->toVerbal($detailedName);
     		if ($self->haveRightFor('single', $objectId)) {
     			$detailedName = ht::createLinkRef($detailedName, array($self, 'single', $objectId));
     		}

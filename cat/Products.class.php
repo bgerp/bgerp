@@ -329,7 +329,7 @@ class cat_Products extends core_Master {
         	// извличане на мета данните според групите
     		if($meta = $mvc->getMetaData($rec->groups)){
     			$Groups = cls::get(cat_Groups);
-        		$row->meta = $Groups->fields['meta']->type->toVerbal($meta);
+        		$row->meta = $Groups->getFieldType('meta')->toVerbal($meta);
     		}
     		
             // fancybox ефект за картинките

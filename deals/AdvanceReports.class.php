@@ -242,7 +242,7 @@ class deals_AdvanceReports extends core_Master
     	}
     		
     	$rec->total /= $rec->rate;
-    	$row->total = $mvc->fields['total']->type->toVerbal($rec->total);
+    	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
     	
     	if($fields['-single']){
     

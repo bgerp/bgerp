@@ -275,9 +275,10 @@ class price_ListRules extends core_Detail
 		
         $availableProducts = price_GroupOfProducts::getAllProducts();
         if(count($availableProducts)){
+        	$form->getFieldType('id')->params['decimals'] = 5;
         	$form->setOptions('productId', $availableProducts);
         } else {
-        	$form->fields['productId']->type->options = array('' => '');
+        	$form->getFieldType('productId')->options = array('' => '');
         }
         
     	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
@@ -505,12 +506,12 @@ class price_ListRules extends core_Detail
 
         // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
         if(strlen(substr(strrchr($rec->price, "."), 1) > 2)){
-        	$mvc->fields['price']->type->params['decimals'] = 5;
+        	$mvc->getFieldType('price')->params['decimals'] = 5;
         } else {
-        	$mvc->fields['price']->type->params['decimals'] = 2;
+        	$mvc->getFieldType('price')->params['decimals'] = 2;
         }
         
-        $price = $mvc->fields['price']->type->toVerbal($rec->price);
+        $price = $mvc->getFieldType('price')->toVerbal($rec->price);
         
         // Област
         if($rec->productId) {

@@ -596,7 +596,7 @@ class purchase_Invoices extends core_Master
     			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
     		}
     		
-    		@$row->dealValue = $mvc->fields['dealValue']->type->toVerbal($rec->dealValue / $rec->rate);
+    		@$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($rec->dealValue / $rec->rate);
     		$row->dealValue = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>" . $row->dealValue;
     		
     		$baseCode = acc_Periods::getBaseCurrencyCode($rec->date);

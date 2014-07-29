@@ -236,9 +236,9 @@ class sales_Quotations extends core_Master
 	       		
        			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
 	       		if(!$price){
-	       			$data->form->fields['row1']->type->params['require'] = 'both';
-	       			$data->form->fields['row2']->type->params['require'] = 'both';
-	       			$data->form->fields['row3']->type->params['require'] = 'both';
+	       			$data->form->getFieldType('row1')->params['require'] = 'both';
+	       			$data->form->getFieldType('row1')->params['require'] = 'both';
+	       			$data->form->getFieldType('row1')->params['require'] = 'both';
 	       		}
        		}
        }

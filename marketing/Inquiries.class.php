@@ -653,7 +653,7 @@ class marketing_Inquiries extends core_Master
     	$rec = $this->fetchRec($id);
     	$Driver = cls::get($rec->drvId);
     	
-    	$name = $this->fields['name']->type->toVerbal((($rec->company) ? $rec->company : $rec->name));
+    	$name = $this->getFieldType('name')->toVerbal((($rec->company) ? $rec->company : $rec->name));
     	
     	return $subject = "{$name} / {$Driver->getProductTitle((object)$rec->data)}";
     }

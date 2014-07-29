@@ -345,7 +345,7 @@ class cash_Pko extends core_Master
     		
             if($rec->rate != 1) {
 		   		$rec->equals = round($rec->amount * $rec->rate, 2);
-		   		$row->equals = $mvc->fields['amount']->type->toVerbal($rec->equals);
+		   		$row->equals = $mvc->getFieldType('amount')->toVerbal($rec->equals);
 		   		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
 		    } 
 		    

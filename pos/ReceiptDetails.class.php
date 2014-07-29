@@ -132,8 +132,8 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->requireRightFor('add', $rec);
     	
     	$discount = Request::get('amount');
-    	$this->fields['discountPercent']->type->params['Max']=1;
-    	$discount = $this->fields['discountPercent']->type->fromVerbal($discount);
+    	$this->getFieldType('discountPercent')->params['Max']=1;
+    	$discount = $this->getFieldType('discountPercent')->fromVerbal($discount);
     	if(!isset($discount)){
     		core_Statuses::newStatus(tr('|Не е въведено валидна процентна отстъпка|*!'), 'error');
     		return $this->returnError($rec->receiptId);
@@ -263,7 +263,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$quantityId = Request::get('amount');
     	
     	// Трябва да е подадено валидно количество
-    	$quantityId = $this->fields['quantity']->type->fromVerbal($quantityId);
+    	$quantityId = $this->getFieldType('quantity')->fromVerbal($quantityId);
     	if(!$quantityId){
     		core_Statuses::newStatus(tr('|Не е въведено валидно количество|*!'), 'error');
     		return $this->returnError($rec->receiptId);

@@ -278,7 +278,7 @@ class store_Stores extends core_Master
     		// Ако не може да избира склада, проверяваме дали е складов работник, и имали още тази роля
     		if($res == 'no_one'){
     			$cu = core_Users::getCurrent();
-    			if(keylist::isIn($cu, $rec->workersIds) && haveRole($mvc->fields['workersIds']->type->getRoles())){
+    			if(keylist::isIn($cu, $rec->workersIds) && haveRole($mvc->getFieldType('workersIds')->getRoles())){
     				$res = 'ceo,storeWorker';
     			}
     		}

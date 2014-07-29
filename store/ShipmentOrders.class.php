@@ -442,7 +442,7 @@ class store_ShipmentOrders extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	@$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
-    	$row->amountDelivered = $mvc->fields['amountDelivered']->type->toVerbal($amountDelivered);
+    	$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($amountDelivered);
     		
     	if(!$rec->weight) {
     		$row->weight = "<span class='quiet'>0</span>";
@@ -619,7 +619,7 @@ class store_ShipmentOrders extends core_Master
     	
     	$row->weight = $oldRow->weight;
     	$row->volume = $oldRow->volume;
-    	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->fields['amountDelivered']->type->toVerbal($amount);
+    	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount);
     	$row->rowNumb = $rec->rowNumb;
     	
     	$row->address = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
