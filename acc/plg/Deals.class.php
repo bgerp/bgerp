@@ -239,6 +239,19 @@ class acc_plg_Deals extends core_Plugin
     	// Към тях добавяме и самия документ
     	$entries[] = (object)array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
     	
+    	// Намираме оттеглените документи в треда, те нямат транзакция и няма да фигурират в $entries, за това
+    	// ги добавяме ръчно, за да участват и те в проверката
+    	$descendants = $mvc->getDescendants($rec->id);
+    	if($descendants){
+    		foreach ($descendants as $doc){
+    			
+    			// ако е оттеглен го добавяме в масива за проверка
+    			if($doc->fetchField('state') == 'rejected'){
+    				$entries[] = (object)array('docType' => $doc->getClassId(), 'docId' => $doc->that);
+    			}
+    		}
+    	}
+    	
     	// За всеки запис
     	foreach ($entries as $ent){
     		
@@ -258,5 +271,22 @@ class acc_plg_Deals extends core_Plugin
     	
     	// Връщаме намерените пера
     	$res = $closedItems;
+    }
+    
+    
+    /**
+     *
+     * Функция, която се извиква след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+    	$rec = $mvc->fetchRec($rec);
+    
+    	// Ако валутата е активна, добавя се като перо
+    	$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
+    	acc_Lists::updateItem($mvc, $rec->id, $lists);
+    
+    	$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
+    	core_Statuses::newStatus($msg);
     }
 }
