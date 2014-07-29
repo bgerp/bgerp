@@ -275,7 +275,6 @@ class price_ListRules extends core_Detail
 		
         $availableProducts = price_GroupOfProducts::getAllProducts();
         if(count($availableProducts)){
-        	$form->getFieldType('id')->params['decimals'] = 5;
         	$form->setOptions('productId', $availableProducts);
         } else {
         	$form->getFieldType('productId')->options = array('' => '');
