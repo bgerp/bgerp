@@ -188,7 +188,7 @@ class acc_BalanceDetails extends core_Detail
     	
     	$data->summary = new stdClass();
     	foreach ($arr as $param){
-    		$data->summary->$param = $mvc->getFieldType($param)->toVerbal(${$param});
+    		$data->summary->$param = $this->getFieldType($param)->toVerbal(${$param});
     	}
     }
     
