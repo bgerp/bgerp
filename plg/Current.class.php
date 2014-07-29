@@ -43,28 +43,42 @@ class plg_Current extends core_Plugin
     function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = TRUE)
     {
         if(!$res) {
+        	
+        	// Опитваме се да вземем от сесията текущия обект
             $res = Mode::get('currentPlg_' . $mvc->className)->{$part};
             
-            if($bForce && (!$res) && ($mvc->className != Request::get('Ctr'))) {
+            // Ако в сесията го има обекта, връщаме го
+            if($res) return;
             
-            	if(isset($mvc->inChargeField)){
-            		
-	            	// Ако потребителя има достъп само до 1 запис,
-		            // той се приема за избран
-		            $query = $mvc->getQuery();
-		            $cu = core_Users::getCurrent();
-					$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%'");
-		           
-					if($query->count() == 1){
-		            	$rec = $query->fetch();
-		            	Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
-		            	return $res = $rec->id;
-		            }
-            	}
+            // Ако форсираме
+            if($bForce){
             	
+            	// И има поле за отговорник
+            	if(isset($mvc->inChargeField)){
+            	
+            		// Извличаме обектите, на които е отговорник потребителя
+            		$query = $mvc->getQuery();
+            		$cu = core_Users::getCurrent('id', FALSE);
+            		$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%'");
+            		
+            		// Ако е точно един обект и все още потребителя има права да му бъде отговорник, го връщаме
+            		if($query->count() == 1 && haveRole($mvc->fields[$mvc->inChargeField]->type->getRoles())){
+            			$rec = $query->fetch();
+            			Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
+            			$res = $rec->id;
+            			
+            			return;
+            		}
+            	}
+            }
+            
+            // Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
+            if(empty($res) && ($mvc->className != Request::get('Ctr'))){
             	$msg = tr("Моля, изберете текущ/а");
             	$msg .= " " . tr($mvc->singleTitle);
-            	redirect(array($mvc,'ret_url' => TRUE), FALSE, $msg);
+            	 
+            	// Подканваме потребителя да избере обект от модела, като текущ
+            	redirect(array($mvc, 'list', 'ret_url' => TRUE), FALSE, $msg);
             }
         }
     }
@@ -158,11 +172,19 @@ class plg_Current extends core_Plugin
         $currentId = $mvc->getCurrent();
         
         if ($rec->id == $currentId) {
+        	
+        	// Ако записа е текущия обект, маркираме го като избран
             $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'style' => 'margin-left:20px;', 'width' => '16px', 'height' => '16px'));
             $row->ROW_ATTR['class'] .= ' state-active';
         } elseif($mvc->haveRightFor('select', $rec)) {
+        	
+        	// Ако записа не е текущия обект, но може да бъде избран добавяме бутон за избор
             $row->currentPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()), NULL, NULL, 'ef_icon = img/16/key.png');
             $row->ROW_ATTR['class'] .= ' state-closed';
+        } else {
+        	
+        	// Ако записа не е текущия обект и не може да бъде избран оставяме го така
+        	$row->ROW_ATTR['class'] .= ' state-closed';
         }
     }
 	
@@ -174,9 +196,11 @@ class plg_Current extends core_Plugin
     {
     	if($action == 'select' && isset($rec)){
     		
-    		// Ако има поле за отговорник и текущия потребител, не е отговорник, той няма права да избира
-    		if(!(isset($mvc->canSelectAll) && haveRole($mvc->canSelectAll)) && isset($mvc->inChargeField) && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE){
-	    		$res = 'no_one';
+    		// Ако има поле за отговорник и текущия потребител, не е отговорник или е отговорник но с премахнати права, той няма права да избира
+    		if(!(isset($mvc->canSelectAll) && haveRole($mvc->canSelectAll)) && isset($mvc->inChargeField) 
+    		&& (!keylist::isIn($userId, $rec->{$mvc->inChargeField}) || (keylist::isIn($userId, $rec->{$mvc->inChargeField}) && !haveRole($mvc->fields[$mvc->inChargeField]->type->getRoles())))){
+	    		
+    			$res = 'no_one';
 	    	} 
     	}
     }
