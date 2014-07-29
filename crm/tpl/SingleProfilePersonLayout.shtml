@@ -17,13 +17,7 @@
 			<legend class="groupTitle">|Адрес и контакти|*</legend>
 			<div class="groupList">
 				<table>
-					<!--ET_BEGIN place-->
-						<tr>
-							<td class='dt'>п.к Град</td>
-							<td>[#pCode#] [#place#]</td>
-						<tr>
-					<!--ET_END place-->
-					
+										
 					<!--ET_BEGIN buzAddress-->
 						<tr>
 						    <td class='dt'>|Адрес|*</td>
