@@ -395,11 +395,6 @@ class crm_Companies extends core_Master
             // Да има само 2 колони
             $data->form->setField('groupList', array('maxColumns' => 2));    
         }
-        
-        // Не може да се променят номенклатурите от формата
-    	if($form->fields['lists']){
-        	$form->setField('lists', 'input=none');
-        }
     }
     
     

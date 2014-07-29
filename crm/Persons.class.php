@@ -1679,11 +1679,6 @@ class crm_Persons extends core_Master
             $data->form->setField('groupList', array('maxColumns' => 2));    
         }
         
-    	// Не може да се променят номенклатурите от формата
-    	if($form->fields['lists']){
-        	$form->setField('lists', 'input=none');
-        }
-        
         if(empty($form->rec->buzCompanyId)){
 		    $form->setField('buzLocationId', 'input=none');
         }
