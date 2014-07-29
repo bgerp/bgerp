@@ -103,7 +103,7 @@ class sales_SalesDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, quantity=К-во: Д / П, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, packQuantityDelivered, packQuantity, packPrice, discount, amount';
     
         
     /**
@@ -127,13 +127,13 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.', 'tdClass=small-field');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка', 'tdClass=small-field');
 
         // Количество в основна мярка
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         
         $this->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Експедирано количество (в основна мярка)
-        $this->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=К-во->Доставено,input=none'); // Експедирано количество (в брой опаковки)
+        $this->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=Дост.,input=none'); // Експедирано количество (в брой опаковки)
         
         $this->FLD('quantityInvoiced', 'double', 'caption=К-во->Фактурирано,input=none'); // Фактурирано количество (в основна мярка)
         
@@ -508,13 +508,15 @@ class sales_SalesDetails extends core_Detail
         
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
+        $haveQuantityDelivered = FALSE;
         
         if(count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = $data->recs[$i];
                 
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
-    			
+                $haveQuantityDelivered = $haveQuantityDelivered || !empty($rec->quantityDelivered);
+                
                 if (empty($rec->packagingId)) {
                 	$row->packagingId = ($rec->uomId) ? $row->uomId : $row->packagingId;
                 } else {
@@ -522,19 +524,16 @@ class sales_SalesDetails extends core_Detail
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
                 	$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
                 }
-                
-                $quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
-                $quantity->placeObject($row);
-                if($rec->packQuantityDelivered == 0){
-                	$quantity->removeBlock('packQuantityDelivered');
-                }
-                $row->quantity = $quantity;
-                
             }
         }
 		
         if(!$haveDiscount) {
             unset($data->listFields['discount']);
+        }
+        
+        // Ако няма записи, в режим xhtml или няма поне едно доставено к-во не показваме колонкта за доставено
+        if (empty($data->rows) || Mode::is('text', 'xhtml') || !$haveQuantityDelivered) {
+        	unset($data->listFields['packQuantityDelivered']);
         }
     }
 }
