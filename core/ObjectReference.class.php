@@ -133,6 +133,18 @@ class core_ObjectReference
     
     
     /**
+     * Предизвиква събитие в класа на тази референция
+     * 
+     * @param string $event
+     * @param array $args
+     */
+    public function invoke($event, $args = array())
+    {
+    	$this->instance->invoke($event, $args);
+    }
+    
+    
+    /**
      * Записа, към който е референция този обект
      * 
      * @return stdClass
