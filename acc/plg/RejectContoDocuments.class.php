@@ -48,7 +48,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
 			$msg = trim($msg, ', ');
 			$msg .= " " . tr("са затворени");
 	
-			core_Statuses::newStatus($msg, 'warning');
+			core_Statuses::newStatus($msg, 'error');
 	
 			$res = FALSE;
 		} else {
