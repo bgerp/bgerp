@@ -23,11 +23,8 @@ class plg_Current extends core_Plugin
     	// Ако има поле за отговорник
     	if(isset($mvc->inChargeField)){
     		
-    		// Трябва в модела да има такова поле
-    		$field = $mvc->getField($mvc->inChargeField);
-    		
     		// Трябва да е инстанция на type_UserList
-    		expect($field->type instanceof type_UserList, 'Полето за отговорник трябва да е от типа type_UserList');
+    		expect($mvc->getFieldType($mvc->inChargeField) instanceof type_UserList, 'Полето за отговорник трябва да е от типа type_UserList');
     	}
     }
     
@@ -62,7 +59,7 @@ class plg_Current extends core_Plugin
             		$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%'");
             		
             		// Ако е точно един обект и все още потребителя има права да му бъде отговорник, го връщаме
-            		if($query->count() == 1 && haveRole($mvc->fields[$mvc->inChargeField]->type->getRoles())){
+            		if($query->count() == 1 && haveRole($mvc->getFieldType($mvc->inChargeField)->getRoles())){
             			$rec = $query->fetch();
             			Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
             			$res = $rec->id;
@@ -198,7 +195,7 @@ class plg_Current extends core_Plugin
     		
     		// Ако има поле за отговорник и текущия потребител, не е отговорник или е отговорник но с премахнати права, той няма права да избира
     		if(!(isset($mvc->canSelectAll) && haveRole($mvc->canSelectAll)) && isset($mvc->inChargeField) 
-    		&& (!keylist::isIn($userId, $rec->{$mvc->inChargeField}) || (keylist::isIn($userId, $rec->{$mvc->inChargeField}) && !haveRole($mvc->fields[$mvc->inChargeField]->type->getRoles())))){
+    		&& (!keylist::isIn($userId, $rec->{$mvc->inChargeField}) || (keylist::isIn($userId, $rec->{$mvc->inChargeField}) && !haveRole($mvc->getFieldType($mvc->inChargeField)->getRoles())))){
 	    		
     			$res = 'no_one';
 	    	} 
