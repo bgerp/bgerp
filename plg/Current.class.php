@@ -62,20 +62,21 @@ class plg_Current extends core_Plugin
             		if($query->count() == 1 && haveRole($mvc->getFieldType($mvc->inChargeField)->getRoles())){
             			$rec = $query->fetch();
             			Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
+            			
             			$res = $rec->id;
             			
             			return;
             		}
             	}
-            }
-            
-            // Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
-            if(empty($res) && ($mvc->className != Request::get('Ctr'))){
-            	$msg = tr("Моля, изберете текущ/а");
-            	$msg .= " " . tr($mvc->singleTitle);
-            	 
-            	// Подканваме потребителя да избере обект от модела, като текущ
-            	redirect(array($mvc, 'list', 'ret_url' => TRUE), FALSE, $msg);
+            	
+            	// Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
+            	if(empty($res) && ($mvc->className != Request::get('Ctr'))){
+            		$msg = tr("Моля, изберете текущ/а");
+            		$msg .= " " . tr($mvc->singleTitle);
+            	
+            		// Подканваме потребителя да избере обект от модела, като текущ
+            		redirect(array($mvc, 'list', 'ret_url' => TRUE), FALSE, $msg);
+            	}
             }
         }
     }
