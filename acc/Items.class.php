@@ -392,7 +392,7 @@ class acc_Items extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('listId', 'key(mvc=acc_Lists,select=name)', 'input,caption=xxx', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('listId', 'key(mvc=acc_Lists,select=name)', 'input,caption=Номенклатура', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent');
         
         $data->listFilter->view = 'horizontal';
