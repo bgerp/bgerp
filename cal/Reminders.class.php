@@ -239,7 +239,7 @@ class cal_Reminders extends core_Master
 							
 		if($folderClass == $idCompanies || $folderClass == $idPersons){
 
-			$mvc->fields[action]->type->options[notifyNoAns] = tr("Нотификация-ако няма отговор");
+			$mvc->getFieldType(action)->options[notifyNoAns] = tr("Нотификация-ако няма отговор");
 		}
 
 		$data->form->setSuggestions('repetitionEach', static::$suggestions);

@@ -184,8 +184,8 @@ class email_Inboxes extends core_Master
         $form->showFields = 'accountId, inChargeF';
         
         $form->input('accountId, inChargeF', 'silent');
-        $form->fields['accountId']->type->params['allowEmpty'] = TRUE;
-        
+        $form->getFieldType('accountId')->params['allowEmpty'] = TRUE;
+       
         if($form->rec->accountId){
         	$data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
         }

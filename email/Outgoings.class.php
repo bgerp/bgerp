@@ -601,7 +601,7 @@ class email_Outgoings extends core_Master
         // Трябва да имаме достъп до нишката, за да можем да изпращаме писма от нея
         doc_Threads::requireRightFor('single', $data->rec->threadId);
         
-        $data->form->fields['boxFrom']->type->params['folderId'] = $data->rec->folderId;
+        $data->form->getFieldType('boxFrom')->params['folderId'] = $data->rec->folderId;
         
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
@@ -772,7 +772,7 @@ class email_Outgoings extends core_Master
                 
                 if($deconverted  != $html) {
                     $form->setWarning('encoding', 'Писмото съдържа символи, които не могат да се конвертират към|* ' .
-                        $form->fields['encoding']->type->toVerbal($rec->encoding));
+                        $form->getFieldType('encoding')->toVerbal($rec->encoding));
                 }
             }
             

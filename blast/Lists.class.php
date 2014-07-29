@@ -168,7 +168,7 @@ class blast_Lists extends core_Master
      */
     static function on_CalcAllFields($mvc, $rec)
     {
-        $rec->allFields = $rec->keyField . '=' . $mvc->fields['keyField']->type->options[$rec->keyField] . "\n" . $mvc->clearFields($rec->fields);
+        $rec->allFields = $rec->keyField . '=' . $mvc->getFieldType('keyField')->options[$rec->keyField] . "\n" . $mvc->clearFields($rec->fields);
     }
     
     
