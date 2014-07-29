@@ -274,9 +274,13 @@ class store_Stores extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'select' && $rec){
-    		$cu = core_Users::getCurrent();
-    		if(keylist::isIn($cu, $rec->chiefs) || keylist::isIn($cu, $rec->workersIds)){
-    			$res = 'ceo,storeWorker';
+    		
+    		// Ако не може да избира склада, проверяваме дали е складов работник, и имали още тази роля
+    		if($res == 'no_one'){
+    			$cu = core_Users::getCurrent();
+    			if(keylist::isIn($cu, $rec->workersIds) && haveRole($mvc->fields['workersIds']->type->getRoles())){
+    				$res = 'ceo,storeWorker';
+    			}
     		}
     	}
     }
