@@ -332,7 +332,9 @@ class survey_Alternatives extends core_Detail {
      */
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	 $data->toolbar->removeBtn('btnAdd');
+    	 if(empty($data->masterMvc)){
+    	 	$data->toolbar->removeBtn('btnAdd');
+    	 }
     }
     
     
