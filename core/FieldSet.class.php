@@ -334,6 +334,27 @@ class core_FieldSet extends core_BaseClass
     
     
     /**
+     * Връща типа на посоченото поле. Ако полето
+     * липсва, а $strict е истина, генерира се грешка
+     */
+    public function getFieldType($name, $strict = TRUE)
+    {
+    	// Ако има такова поле в модела
+    	if ($this->fields[$name]) {
+    		
+    		// Връщаме му типа
+    		return $this->fields[$name]->type;
+    	} else {
+    		
+    		// Ако го няма и $strict е TRUE, предизвикваме грешка
+            if ($strict) {
+                error("Липсващо поле", "'{$name}'" . ($strict ? ' (strict)' : ''));
+            }
+        }
+    }
+    
+    
+    /**
      * Връща масив с елементи име_на_поле => структура - описание
      * $where е условие, с PHP синтаксис, като имената на атрибутите на
      * полето са предхождани от #
