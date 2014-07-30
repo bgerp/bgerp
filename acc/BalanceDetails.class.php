@@ -1180,7 +1180,9 @@ class acc_BalanceDetails extends core_Detail
     	$this->historyFor = array('accId' => $rec->accountId, 'item1' => $rec->ent1Id, 'item2' => $rec->ent2Id, 'item3' => $rec->ent3Id);
     	
     	// Извличане на всички записи към избрания период за посочените пера
-    	$this->prepareDetailedBalanceForPeriod($data->fromDate, $data->toDate, $rec->accountNum, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, TRUE, $data->pager);
+    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
+    	$this->prepareDetailedBalanceForPeriod($data->fromDate, $data->toDate, $accSysId, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, TRUE, $data->pager);
+    	
     	$b = $this->balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id];
     	
     	$rec->baseAmount = $b['baseAmount'];
