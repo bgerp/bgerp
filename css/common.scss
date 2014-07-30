@@ -63,17 +63,6 @@ $orange: #f90; /*оранжево като при ховър на менюто*/
     box-shadow: none;
 }
 
-@mixin richtext-message() {
-	font-family: Courier New,mono;
-	border: 1px dotted;
-    margin: 0px 30px;
-    padding: 7px 10px 5px 55px;
-    min-height: 37px;
-    background-repeat: no-repeat;
-    background-position: 9px 7px;
-    @include border-radius(5px);
-    position: relative;
-}
  /*край на общи функции и параметри*/
 
 /*! normalize.css v2.1.2 | MIT License | git.io/normalize */
@@ -2283,6 +2272,19 @@ div.richtext ol ol {
 }
 
 /*richtext message-box*/
+
+.richtext-message {
+	font-family: Courier New,mono;
+    border: 1px dotted;
+    margin: 0px 30px;
+    padding: 7px 10px 5px 55px;
+    min-height: 37px;
+    background-repeat: no-repeat;
+    background-position: 9px 7px;
+    @include border-radius(5px);
+    position: relative;
+}
+
 .richtext-text {
 	background-color: rgba(255,255,128,0.3); 
 	padding: 10px;
@@ -2292,7 +2294,6 @@ div.richtext ol ol {
 }
 
 .richtext-info {
-	@include richtext-message();
     color: #00529B;
     border-color: lighten(#00529B, 30%);
     background-color: #BDE5F8;
@@ -2300,7 +2301,6 @@ div.richtext ol ol {
 }
 
 .richtext-tip {
-	@include richtext-message();
 	color: #c9841a;
 	border-color: lighten(#c9841a, 30%);
     background-color: #FEFED8;
@@ -2308,7 +2308,6 @@ div.richtext ol ol {
 }
 
 .richtext-warning {
-	@include richtext-message();
     color: #9F6000;
     border-color: lighten(#9F6000, 30%);
     background-color: #ffdc7a;
@@ -2316,7 +2315,6 @@ div.richtext ol ol {
 }
 
 .richtext-success {
-	@include richtext-message();
     color: #4F8A10;
     border-color: lighten(#4F8A10, 30%);
     background-color: #DFF2BF;
@@ -2324,7 +2322,6 @@ div.richtext ol ol {
 }
 
 .richtext-error {
-	@include richtext-message();
     color: #D8000C;
     border-color: lighten(#D8000C, 30%);
     background-color: #FFBABA;
@@ -2332,22 +2329,20 @@ div.richtext ol ol {
 }
 
 .richtext-question {
-	@include richtext-message();
     color: #132c5c;
     border-color: lighten(#132c5c, 30%);
     background-color: #92aee6;
     background-image: url('../img/Help-icon.png');
 }
 
-.narrow .richtext-question, .narrow .richtext-info, .narrow .richtext-error, .narrow .richtext-success,
-.narrow .richtext-warning, .narrow .richtext-tip, .narrow .richtext-text {
+.narrow .richtext-message {
 	margin-left: 0px;
 	margin-right: 0;
 	font-size: 0.9em;
 }
 
 
-.richtext-question, .richtext-info, .richtext-error, .richtext-success, .richtext-warning, .richtext-tip, .richtext-text {
+.richtext-message {
 	h1{
 	   font-size: 1.8em;
 	}
@@ -2387,7 +2382,7 @@ div.richtext ol ol {
 }
 
 .document {
-	.richtext-question, .richtext-info, .richtext-error, .richtext-success, .richtext-warning, .richtext-tip, .richtext-text {
+	.richtext-message {
 	    .header:first-child h2 {
 	       margin-top: 0.35em !important;
 	       margin-bottom: 0.3em !important;
@@ -2395,8 +2390,7 @@ div.richtext ol ol {
     }
 }
 
-.richtext-question a[href], .richtext-info a[href], .richtext-error a[href], .richtext-success a[href],
-.richtext-warning a[href], .richtext-tip a[href], .richtext-text a[href] {
+.richtext-message a[href] {
 	color: inherit;
 	border-bottom: 1px dashed;
 	&:hover{
@@ -2405,9 +2399,8 @@ div.richtext ol ol {
 	}
 }
 
-.richtext > .richtext-info:last-of-type, .richtext > .richtext-tip:last-of-type, .richtext > .richtext-warning:last-of-type, .richtext > .richtext-error:last-of-type,
-.richtext > .richtext-success:last-of-type, .richtext > .richtext-success:last-of-type, .richtext > .richtext-question:last-of-type {
-    margin-bottom: -15px;
+.richtext > .richtext-message:last-of-type {
+    margin-bottom: 0;
 }
 
 /*край на richtext message-box*/
@@ -2437,20 +2430,22 @@ div.notification-info {
 	@include border-radius(0px);
 }
 
-div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-error {
-    display: table;
-	border: solid 1px $orange;
+div.statuses-message {
+	display: table;
 	text-align: center;
-    padding-top: 15px !important;
-    padding-bottom: 15px !important;
     font-size: 1.3em; 
     min-height: 21px !important;
     @include border-radius(15px);
+    font-family: Courier New,mono;
+    border: 1px dotted;
+    margin: 10px auto;
+    padding: 10px 10px 10px 55px;
+    background-repeat: no-repeat !important;
+    background-position: 9px 7px;
+    position: relative;
 }
 
 div.statuses-warning {
-	@include richtext-message();
-	margin: 10px auto; 
     color: #9F6000;
     border-color: lighten(#9F6000, 30%);
     background-color: #ffdc7a;
@@ -2458,17 +2453,13 @@ div.statuses-warning {
 }
 
 div.statuses-success {
-    @include richtext-message();
-    margin: 10px auto; 
     color: #4F8A10;
     border-color: lighten(#4F8A10, 30%);
     background-color: #DFF2BF;
     background-image: url('../img/ok.png');
 }
 
-div.statuses-notice {
-    @include richtext-message();
-    margin: 10px auto; 
+div.statuses-notice { 
     color: #00529B;
     border-color: lighten(#00529B, 30%);
     background-color: #BDE5F8;
@@ -2476,30 +2467,23 @@ div.statuses-notice {
 }
 
 div.statuses-error {
-    @include richtext-message();
-    margin: 10px auto; 
     color: #D8000C;
     border-color: lighten(#D8000C, 30%);
     background-color: #FFBABA;
     background-image: url('../img/dialog_error.png');
 }
 
-div.statuses-notice h2,  div.statuses-success h2, 
-div.statuses-warning h2, div.statuses-error h2{
+div.statuses-message h2 {
 	margin: 0;
 }   
 
-.narrow div.statuses-notice, .narrow div.statuses-success, 
-.narrow div.statuses-warning, .narrow div.statuses-error {
+.narrow div.statuses-message {
 	margin: 5px 0;
 	padding: 5px 5px 5px 55px;
-	font-size: 1.2em; 
+	font-size: 1.1em; 
 	@include border-radius(0px);
 }
 
-div.statuses-success , div.statuses-error, div.statuses-warning{
-	`background-color: $beige;	
-}
 /*край на нотификации*/
 
 
