@@ -726,38 +726,6 @@ class deals_Deals extends core_Master
     
     
     /**
-     * След оттеглянето на сделката се оттеглят и всички прихващащи документи, които я използват
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int|object $id първичен ключ или запис на $mvc
-     */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-    	$rec = $mvc->fetchRec($id);
-    	
-    	deals_DebitDocuments::rejectAll($rec->id);
-    	deals_CreditDocuments::rejectAll($rec->id);
-    }
-    
-    
-    /**
-     * След възстановяването на сделка се възстановяват всички документи, които я използват
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int|object $id първичен ключ или запис на $mvc
-     */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
-    {
-    	$rec = $mvc->fetchRec($id);
-    	 
-    	deals_DebitDocuments::restoreAll($rec->id);
-    	deals_CreditDocuments::restoreAll($rec->id);
-    }
-    
-    
-    /**
      * Връща опции на всички сделки в които са замесени посочените контрагенти
      * 
      * @param array $involvedContragents - масив от обекти с 'classId' и 'id'
