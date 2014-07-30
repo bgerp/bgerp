@@ -53,9 +53,6 @@ class type_ComplexType extends type_Varchar {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        // Ширина по дефолт
-    	setIfNot($attr['size'], '6em');
-    	
     	// Разбиване на стойноста и извличане на лявата и дясната част
         if($value) {
         	extract(type_ComplexType::getParts($value));

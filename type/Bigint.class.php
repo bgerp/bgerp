@@ -35,4 +35,10 @@ class type_Bigint extends type_Int {
     var $dbFieldLen = '21';
     
     
+    /**
+     * Параметър определящ максималната широчина на полето
+     */
+    var $maxFieldSize = 21;
+    
+    
 }
