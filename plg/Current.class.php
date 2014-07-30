@@ -167,7 +167,8 @@ class plg_Current extends core_Plugin
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $currentId = $mvc->getCurrent();
+        // Проверяваме имали текущ обект
+    	$currentId = $mvc->getCurrent('id', FALSE);
         
         if ($rec->id == $currentId) {
         	
