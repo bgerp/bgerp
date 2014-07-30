@@ -300,8 +300,10 @@ class price_ListRules extends core_Detail
             case 'discount' :
                 $form->setField('groupId,price,currency,vat', 'input=none');
                 $title = "Правило за марж в ценова политика|* \"$masterTitle\"";
-                $unit = ($masterRec->vat == 'yes') ? "с ДДС" : "без ДДС";
-                $form->setField('targetPrice', "unit = {$unit}");
+                
+                $form->getField('targetPrice')->unit = "|*" . $masterRec->currency . ", ";
+                $form->getField('targetPrice')->unit .= ($masterRec->vat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
+                
                 break;
             case 'value' :
                 $form->setField('groupId,discount,calculation,targetPrice', 'input=none');
