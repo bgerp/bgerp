@@ -11,7 +11,7 @@
         <td class='feat'>
             <!--ET_BEGIN feat1-->
 	        <div class='captionSimple captionProperties'>|Свойства|*</div>
-	        <span class='arrow'>&#x27a1; </span> [#feat1#]
+	        <div class='nowrap'><span class='arrow'>&#x27a1; </span> [#feat1#]</div>
 	        <!--ET_END feat1-->
         </td>
     
@@ -28,7 +28,7 @@
         <td class='feat'>
             <!--ET_BEGIN feat2-->
             <div class='captionSimple captionProperties'>|Свойства|*</div>
-            <span class='arrow'>&#x27a1; </span>[#feat2#]
+            <div class='nowrap'><span class='arrow'>&#x27a1; </span>[#feat2#]</div>
             <!--ET_END feat2-->
         </td>
     
@@ -45,7 +45,7 @@
         <td class='feat'>
             <!--ET_BEGIN feat3-->
             <div class='captionSimple captionProperties'>|Свойства|*</div>
-            <span class='arrow'>&#x27a1; </span> [#feat3#]
+            <div class='nowrap'><span class='arrow'>&#x27a1; </span> [#feat3#]</div>
             <!--ET_END feat3-->
         </td>
     

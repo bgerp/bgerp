@@ -2564,7 +2564,8 @@ div.location.public {
 	}
 }
 .balance-custom-form select{
-    width: 99%;
+    width: 100% !important;
+    max-width: 400px;
 }
 
 /*шаблон за журнал*/
