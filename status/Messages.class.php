@@ -301,7 +301,7 @@ class status_Messages extends core_Manager
             $res = '';
             
             // Записваме всеки статус в отделен div и класа се взема от типа на статуса
-            $res = "<div class='statuses-{$value['type']}'> {$value['text']} </div>";
+            $res = "<div class='statuses-message statuses-{$value['type']}'> {$value['text']} </div>";
             
             // Добавяме резултата
             $resObj = new stdClass();
