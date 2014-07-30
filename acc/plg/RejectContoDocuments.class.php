@@ -25,7 +25,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
 			
 			// Взима всички от текущата транзакция
 			$transaction = $mvc->getValidatedTransaction($id);
-			//bp($transaction->getClosedItems(), $transaction);
+			
 			if($transaction){
 				$res = $transaction->getClosedItems();
 			}
