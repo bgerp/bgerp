@@ -322,14 +322,15 @@ class acc_BalanceDetails extends core_Detail
             // Групиране на данните
             $r['accountNum'] 	  = $rec->accountNum;
             $r['balanceId']       = $rec->balanceId;
-            $r['baseQuantity']   += $rec->baseQuantity;
-            $r['baseAmount']     += $rec->baseAmount;
-            $r['debitQuantity']  += $rec->debitQuantity;
-            $r['debitAmount']    += $rec->debitAmount;
-            $r['creditQuantity'] += $rec->creditQuantity;
-            $r['creditAmount']   += $rec->creditAmount;
-            $r['blQuantity']     += $rec->blQuantity;
-            $r['blAmount']       += $rec->blAmount;
+            
+            // Събираме числовите данни
+            foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+            	
+            	// Ако е NULL полето да не се добавя
+            	if (!is_null($rec->$fld)) {
+            		$r[$fld] += $rec->$fld;
+            	}
+            }
         }
        
         // Ако има филтриране по свойства, не показваме бутона за хронология
@@ -341,10 +342,13 @@ class acc_BalanceDetails extends core_Detail
         
         // Конвертираме групираните записи към вербални стойности
         $data->rows = array();
-        foreach ($data->recs as $rec) {
+        foreach ($data->recs as &$rec) {
         	$rec = (object)$rec;
             $data->rows[] = $this->recToVerbal($rec, $data->listFields);
         }
+        
+        // Задействаме събитие в plg_StyleNumbers да за да се оцветята отрицателните числа
+        plg_StyleNumbers::on_AfterPrepareListRows($this, $data);
     } 
     
     
