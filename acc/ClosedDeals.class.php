@@ -241,6 +241,9 @@ abstract class acc_ClosedDeals extends core_Master
 	    	// Ако има перо сделката, затваряме го
 	    	if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
 	    		acc_Lists::removeItem($DocClass, $firstRec->id);
+	    		
+	    		$title = $DocClass->getTitleById($firstRec->id);
+	    		core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
 	    	}
     	}
     }
@@ -267,6 +270,9 @@ abstract class acc_ClosedDeals extends core_Master
 		    // Ако има перо сделката, обновяваме му състоянието
 		    if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
 		    	acc_Lists::updateItem($DocClass, $firstRec->id, $item->lists);
+		    	
+		    	$msg = tr("Активирано е перо|* '") . $DocClass->getTitleById($firstRec->id) . tr("' |в номенклатура 'Сделки'|*");
+    			core_Statuses::newStatus($msg);
 		    }
     	}
     }
