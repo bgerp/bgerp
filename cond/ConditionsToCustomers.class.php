@@ -170,8 +170,13 @@ class cond_ConditionsToCustomers extends core_Manager
     {
     	$type = cond_Parameters::fetchField($rec->conditionId, 'type');
         if($type != 'enum' && $type != 'delCond' && $type != 'payMethod'){
-            $Type = cls::get("type_{$type}");
-            $row->value = $Type->toVerbal($rec->value);
+        	try{
+        		$Type = cls::get("type_{$type}");
+        		$row->value = $Type->toVerbal($rec->value);
+        	} catch(Exception $e){
+        		$row->value = "??????????????";
+        	}
+            
         } elseif($type == 'delCond'){
             $row->value = cond_DeliveryTerms::recToVerbal($rec->value, 'codeName')->codeName;
         } elseif($type == 'payMethod'){
