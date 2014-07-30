@@ -1309,8 +1309,8 @@ class acc_BalanceDetails extends core_Detail
     	$daysInPeriod = dt::daysBetween($data->toDate, $data->fromDate) + 1;
     	
     	// Средното салдо е събраната сума върху дните в периода
-    	$data->rec->midQuantity = $quantity / $daysInPeriod;
-    	$data->rec->midAmount = $amount / $daysInPeriod;
+    	@$data->rec->midQuantity = $quantity / $daysInPeriod;
+    	@$data->rec->midAmount = $amount / $daysInPeriod;
     	
     	// Вербално представяне на средното салдо
     	$Double = cls::get('type_Double');
@@ -1442,10 +1442,12 @@ class acc_BalanceDetails extends core_Detail
     	
     	// Проверка дали всички к-ва равнят на сумите  
     	$equalBl = TRUE;
-    	foreach ($data->rows as $row){
-    		if($row->blQuantity != $row->blAmount){
-        		$equalBl = FALSE;
-        	}
+    	if(count($data->rows)){
+    		foreach ($data->rows as $row){
+    			if($row->blQuantity != $row->blAmount){
+    				$equalBl = FALSE;
+    			}
+    		}
     	}
     	
     	// Подготвяме таблицата с данните извлечени от журнала
