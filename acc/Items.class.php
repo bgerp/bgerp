@@ -798,19 +798,29 @@ class acc_Items extends core_Manager
     	$form->input();
     	
     	if($form->isSubmitted()){
+    		
+    		$areAdded = FALSE;
+    		$fieldNames = '';
     		$fields = $form->selectFields();
     		foreach ($fields as $name => $fld){
-    			$items = keylist::toArray($form->rec->{$name});
-    			if($items){
+    			$fieldNames .= "$name,";
+    			if($items = keylist::toArray($form->rec->{$name})){
     				foreach($items as $id){
-    					
     					// Всеки избран запис, се добавя като перо към номенклатурата
     					acc_Lists::addItem($listId, $name, $id);
+    					$areAdded = TRUE;
     				}
     			}
     		}
     		
-    		return followRetUrl(NULL, tr('Перата са добавени успешно'));
+    		// Трябва да има поне едно избрано перо да се добави
+    		if(empty($areAdded)){
+    			$form->setError($fieldNames, 'Не са избрани пера');
+    		}
+    			
+    		if(!$form->gotErrors()){
+    			return followRetUrl(NULL, tr('Перата са добавени успешно'));
+    		}
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
