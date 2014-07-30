@@ -58,9 +58,9 @@ class location_Type extends type_Varchar {
             $tpl->push('location/js/jquery.locationpicker.js', 'JS');
         }
         
-        jquery_Jquery::run($tpl, "$(\".location-input input\").locationPicker();");
+        jquery_Jquery::run($tpl, "$(\".location-input input\").locationPicker();", TRUE);
         
-        $tpl->prepend( "<div class='location-input'>");
+        $tpl->prepend("<div class='location-input'>");
 		$tpl->append("</div>");
 		
         return $tpl;
