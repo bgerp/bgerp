@@ -25,6 +25,12 @@ class bglocal_EgnType extends type_Varchar
     
     
     /**
+     * Параметър определящ максималната широчина на полето
+     */
+    var $maxFieldSize = 10;
+    
+    
+    /**
      * @todo Чака за документация...
      */
     function isValid($value)

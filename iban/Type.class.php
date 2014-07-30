@@ -26,7 +26,10 @@ class iban_Type extends type_Varchar
      * Максималната дължина на полето
      */
     var $dbFieldLen = 35;
-    
+    /**
+     *  Параметър определящ максималната широчина на полето
+     */ 
+     var $maxFieldSize = 35;
     
     /**
      * Проверява дали въведения IBAN е коректен
@@ -116,7 +119,7 @@ class iban_Type extends type_Varchar
         setIfNot($attr['size'], intval($this->dbFieldLen * 1.3));
         setIfNot($attr['maxlength'], $this->dbFieldLen);
         setIfNot($attr['title'], tr('За номер извън IBAN стандарта, започнете със знака "#"'));
-        
+      
         return parent::renderInput_($name, $value, $attr);
     }
     
