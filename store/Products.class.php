@@ -311,7 +311,11 @@ class store_Products extends core_Manager
     {
     	// Всички записи, които са останали но не идват от баланса
     	$query = static::getQuery();
-    	$query->notIn('id', static::$cache);
+    	
+    	// Изключваме продуктите, които са дошли от счетоводството, ако има такива
+    	if(count(static::$cache)){
+    		$query->notIn('id', static::$cache);
+    	}
     	
     	// За всеки запис
     	while($rec = $query->fetch()){
