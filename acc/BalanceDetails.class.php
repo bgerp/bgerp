@@ -357,7 +357,7 @@ class acc_BalanceDetails extends core_Detail
         $data->query->orderBy('#accountNum', 'ASC');
         
         $data->listFields = array(
-            'accountNum' => 'Сметка->#',
+            'accountNum' => 'Сметка->№',
             'accountId' => 'Сметка->Име',
             'debitAmount' => 'Обороти->Дебит',
             'creditAmount' => 'Обороти->Кредит',
