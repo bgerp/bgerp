@@ -1430,7 +1430,12 @@ class acc_BalanceDetails extends core_Detail
     	
     	if(!Mode::is('printing')){
     		if(acc_Balances::haveRightFor('read')){
-    			$btn = ht::createBtn("Обобщена", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
+    			if(empty($data->balanceRec->id)){
+    				$btn = ht::createErrBtn("Обобщена", "Невалиден период");
+    			} else {
+    				$btn = ht::createBtn("Обобщена", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
+    			}
+    			
 	    		$tpl->append($btn, 'SingleToolbar');
     		}
     		
