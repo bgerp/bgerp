@@ -210,7 +210,7 @@ class sales_Sales extends core_Master
         $this->FLD('amountBl', 'double(decimals=2)', 'caption=Стойности->Крайно салдо,input=none,summary=amount'); 
         $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
         $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
-        $this->FLD('amountToInvoice', 'double(decimals=2)', 'input=none,summary=amount'); // Сумата която е платена
+        $this->FLD('amountToInvoice', 'double(decimals=2)', 'input=none'); // Сумата която е платена
         
         $this->FLD('amountVat', 'double(decimals=2)', 'input=none');
         $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
@@ -415,7 +415,7 @@ class sales_Sales extends core_Master
         $maxMonths =  $conf->SALE_MAX_FUTURE_PRICE / type_Time::SECONDS_IN_MONTH;
 		$minMonths =  $conf->SALE_MAX_PAST_PRICE / type_Time::SECONDS_IN_MONTH;
         
-        $priceAtDateFld = &$form->getFieldType('pricesAtDate');
+        $priceAtDateFld = $form->getFieldType('pricesAtDate');
         $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
         $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
         

@@ -253,14 +253,19 @@ class acc_plg_DocumentSummary extends core_Plugin
     	$tpl = new ET(tr('|*' . getFileContent("acc/plg/tpl/Summary.shtml")));
     	$rowTpl = $tpl->getBlock("ROW");
     	if(count($res)) {
-	    	foreach($res as $row) {
-	    		if($row->amount) {
-	    			$row->amount = $double->toVerbal($row->amount);
-	    		} elseif($row->quantity) {
-	    			$row->quantity = $int->toVerbal($row->quantity);
+	    	foreach($res as $rec) {
+	    		$row = new stdClass();
+	    		$row->measure = $rec->measure;
+	    		
+	    		if($rec->amount) {
+	    			$row->amount = $double->toVerbal($rec->amount);
+	    			$row->amount = ($rec->amount < 0) ? "<span style='color:red'>{$row->amount}</span>" : $row->amount;
+	    		} elseif($rec->quantity) {
+	    			$row->quantity = $int->toVerbal($rec->quantity);
+	    			$row->quantity = ($rec->quantity < 0) ? "<span style='color:red'>{$row->quantity}</span>" : $row->quantity;
 	    		}
 	    		
-	    		$row->caption = str_replace("->", ": ", $row->caption);
+	    		$row->caption = str_replace("->", ": ", $rec->caption);
 	    		$rowTpl->placeObject($row);
 	    		$rowTpl->removeBlocks();
 	    		$rowTpl->append2master();
