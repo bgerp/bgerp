@@ -500,6 +500,9 @@ class acc_BalanceDetails extends core_Detail
     
     /**
      * Създаване и подготовка на формата за групиране.
+     * 
+     * Формата предлага двойка полета за всяка аналитичност, от първото може да се избира перо от
+     * номенклатурата за филтриране а от второто свойство на перото
      *
      * @param int $balanceId ИД на баланса, в контекста на който се случва това
      */
@@ -561,11 +564,11 @@ class acc_BalanceDetails extends core_Detail
     	
     	$features = acc_Features::getFeatureOptions(array_keys($options));
         $features = array('' => '') + $features;
-    	$options = array('' => '') + $options;
+    	$options = $options;
     	
     	$listName = acc_Lists::getVerbal($listRec, 'name');
     	$form->fieldsLayout->replace($listName, "caption{$i}");
-    	$form->FNC("grouping{$i}", 'key(mvc=acc_Items)', "silent,caption={$listName},width=330px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
+    	$form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty)', "silent,caption={$listName},width=330px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
         $form->FNC("feat{$i}", 'varchar', "silent,caption={$listName}->Свойства,width=330px,input,class=balance-feat");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['grouping{$i}'].value ='';")));
         $form->setOptions("grouping{$i}", $options);
         $form->setOptions("feat{$i}", $features);
