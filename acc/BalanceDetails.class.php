@@ -554,9 +554,10 @@ class acc_BalanceDetails extends core_Detail
         $features = array('' => '') + $features;
     	$options = array('' => '') + $options;
     	
-    	$form->fieldsLayout->replace($listRec->name, "caption{$i}");
-    	$form->FNC("grouping{$i}", 'key(mvc=acc_Items)', "silent,caption={$listRec->name},width=330px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
-        $form->FNC("feat{$i}", 'varchar', "silent,caption={$listRec->name}->Свойства,width=330px,input,class=balance-feat");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['grouping{$i}'].value ='';")));
+    	$listName = acc_Lists::getVerbal($listRec, 'name');
+    	$form->fieldsLayout->replace($listName, "caption{$i}");
+    	$form->FNC("grouping{$i}", 'key(mvc=acc_Items)', "silent,caption={$listName},width=330px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
+        $form->FNC("feat{$i}", 'varchar', "silent,caption={$listName}->Свойства,width=330px,input,class=balance-feat");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['grouping{$i}'].value ='';")));
         $form->setOptions("grouping{$i}", $options);
         $form->setOptions("feat{$i}", $features);
         $form->showFields .= "grouping{$i},";
