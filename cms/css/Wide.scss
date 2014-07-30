@@ -1,47 +1,25 @@
 body{
-	margin: 0;
-	padding: 0;
-	border: 0;
 	background-color:#ccc;
-	font-family:Verdana,Helvetica,Arial,Sans-serif;
-	font-size:16px;
-	text-align:center;
-}
-
-#cmsTop{
-	position: relative;
-}
-
-.narrow #cmsTop  img{
-	float:left;
-	width:100%;
-	background-color:white !important;
 }
 
 #cmsMenu {
-	  background-color:#333;
-	  color:#333 !important;
+    background-color:#333;
 }
 
 #cmsMenu a {
 	color:#ddd;
 	border:solid 1px #333;
-	text-shadow:2px 2px 2px #000;
-	-moz-border-radius:5px;
-	border-radius: 5px;
-	margin-left:15px;
-	line-height:normal;
+	text-shadow:2px 2px 2px #000;s
 }
 
 #cmsMenu a:hover {
-  color:#fff;
+    color:#fff;
 }
 
 #cmsMenu a.selected {
-  color:#fff;
-  background-color:#99f;
+    color:#fff;
+    background-color:#99f;
 }
-
 
 #cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
 	color: white;
@@ -50,7 +28,6 @@ body{
 #all #cmsTop, #cmsTop img {
     background-color:white !important;
 }
-
 
 #cmsBottom {
 	background-color: #333;
@@ -67,7 +44,6 @@ body{
 
 #cmsNavigation .nav_item a {
 	color:#336;
-	border:none;
 }
 
 #cmsNavigation .sel_page a {
@@ -80,45 +56,7 @@ body{
 	color:#333;
 }
 
-#cmsNavigation div:first-child {
-}
-
-#cmsNavigation .level2 {
-}
-
-#cmsNavigation .level3 {
-}
-
-
-
 .richtext h2 { 
 	background-color: #ddf;
 	padding:5px;
-}
-
-/*Ако newsbar е пуснат и искаме да се показва под картинката трябва да има паддинг */
-#cmsTop{
-    1padding-bottom:42px;
-}
-
-.newsbar{
-    width:100%; 
-    text-align:center; 
-    position:absolute; 
-    bottom:0px; 
-    margin:0px; 
-    display:block;
-    font-size:0.9em; 
-    padding-top:12px; 
-    padding-bottom:10px; 
-    left: 0;
-    z-index: 100;
-}
-
-.newsbar .richtext{
-    line-height:1.1em;
-}
-
-.narrow .newsbar{
-    padding-bottom:8px; 
 }
