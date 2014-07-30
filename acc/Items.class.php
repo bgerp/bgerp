@@ -314,6 +314,8 @@ class acc_Items extends core_Manager
         $form = &$data->form;
         $rec  = &$form->rec;
         
+        
+        
         if (!$rec->id && $rec->classId && $rec->objectId) {
             if ($_rec = $mvc::fetchItem($rec->classId, $rec->objectId)) {
                 $rec = $_rec;
@@ -321,6 +323,7 @@ class acc_Items extends core_Manager
         }
         
         if ($rec->classId && $rec->objectId) {
+        	
             /* @var $register acc_RegisterIntf */
             expect($register = core_Cls::getInterface('acc_RegisterIntf', $rec->classId));
             
@@ -333,6 +336,8 @@ class acc_Items extends core_Manager
                 
                 $mvc::on_CalcTitleLink($mvc, $rec);
             }
+            
+            $form->title = "|Добавяне на|* \"{$mvc->getVerbal($rec, 'title')}\" |в \"Пера\"|*";
         }
         
         $form->setSuggestions('lists', acc_Lists::getPossibleLists($rec->classId));
@@ -345,7 +350,7 @@ class acc_Items extends core_Manager
         
         if ($rec->id) {
         	$title = $mvc->getVerbal($rec, 'title');
-            $form->title = "Редактиране на перо \" {$title}\"";
+        	$form->title = "|Редактиране на перо|* \"{$title}\"";
         }
     }
     
