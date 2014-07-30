@@ -730,18 +730,18 @@ a.header:hover {
     padding-left: 3px !important; /* IE6 */
 }
 
-.narrow .picker-search-button {
-	height: 2em !important;
+.location-input{
 	position: relative;
-	top: -2px;
+	display: inline-block;
 }
 
-@-moz-document url-prefix() {	
-	.picker-search-button {
-		position: relative;
-		top: -2px;
-	}
+.picker-search-button {
+	height: 2em !important;
+	position: absolute;
+	right: 0;
+	margin: 0 !important;
 }
+
 .wide .btn-with-selected {
     background-image: url('../img/16/checked.png');
     @include btn-style();
