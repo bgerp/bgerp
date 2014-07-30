@@ -229,11 +229,13 @@ class acc_BalanceDetails extends core_Detail
      */
     private function doGrouping(&$data, $by)
     {
+        
         // Ако няма записи не правим нищо
     	if(!count($data->recs)) return;
         
     	$show = $groupedBy = array();
-
+		$Varchar = cls::get('type_Varchar');
+    	
     	// Намираме избраните свойства/пера
     	foreach (range(1, 3) as $i){
         	if($by["grouping{$i}"]){
@@ -241,7 +243,7 @@ class acc_BalanceDetails extends core_Detail
         	}
         	if($by["feat{$i}"]){
         		$groupedBy[$i] = $by["feat{$i}"];
-        		$data->listFields["ent{$i}Id"] = $groupedBy[$i];
+        		$data->listFields["ent{$i}Id"] = $Varchar->toVerbal($groupedBy[$i]);
         	}
         }
        
@@ -411,7 +413,7 @@ class acc_BalanceDetails extends core_Detail
             $bShowQuantities = $bShowQuantities || ($listRec->isDimensional == 'yes');
             
             
-                $data->listFields["ent{$i}Id"] = $listRec->name;
+                $data->listFields["ent{$i}Id"] = acc_Lists::getVerbal($listRec, 'name');
                 
                 if (!$flag) {
                     // Не можем да използваме следните редове повече от веднъж, това е проблем
