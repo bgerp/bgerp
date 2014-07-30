@@ -18,7 +18,7 @@
        		 	</table>
 		       	<br>	
 	 	 </div>
-		  <div class='fleft fleft-special'>
+		 <div class='fleft fleft-special' style='max-width:760px'>
 		  	<table>
 		            <!--ET_BEGIN docType-->
                     <tr valign=top>
