@@ -101,7 +101,7 @@ class acc_BalanceDetails extends core_Detail
     {
         $this->FLD('balanceId', 'key(mvc=acc_Balances)', 'caption=Баланс');
         $this->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption=Сметка->име,column=none');
-        $this->EXT('accountNum', 'acc_Accounts', 'externalName=num,externalKey=accountId', 'caption=Сметка->#');
+        $this->EXT('accountNum', 'acc_Accounts', 'externalName=num,externalKey=accountId', 'caption=Сметка->№');
         $this->FLD('ent1Id', 'key(mvc=acc_Items,title=titleLink)', 'caption=Сметка->перо 1');
         $this->FLD('ent2Id', 'key(mvc=acc_Items,title=titleLink)', 'caption=Сметка->перо 2');
         $this->FLD('ent3Id', 'key(mvc=acc_Items,title=titleLink)', 'caption=Сметка->перо 3');
