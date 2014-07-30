@@ -367,7 +367,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      	if(!$res){
      		$res = array();
      		foreach ((array)$rec as $name => $value){
-     			if($mvc->fields[$name]->type instanceof type_Richtext){
+     			if($mvc->getFieldType($name) instanceof type_Richtext){
      				$files = fileman_RichTextPlg::getFiles($value);
      				$res = array_merge($res, $files);
      			}

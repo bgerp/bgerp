@@ -415,7 +415,7 @@ class sales_Sales extends core_Master
         $maxMonths =  $conf->SALE_MAX_FUTURE_PRICE / type_Time::SECONDS_IN_MONTH;
 		$minMonths =  $conf->SALE_MAX_PAST_PRICE / type_Time::SECONDS_IN_MONTH;
         
-        $priceAtDateFld = &$form->fields['pricesAtDate']->type;
+        $priceAtDateFld = &$form->getFieldType('pricesAtDate');
         $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
         $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
         

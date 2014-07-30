@@ -309,7 +309,7 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Трябва да е подадена валидна сума
     	$amount = Request::get('amount');
-    	$amount = $this->fields['amount']->type->fromVerbal($amount);
+    	$amount = $this->getFieldType('amount')->fromVerbal($amount);
     	if(!$amount || $amount <= 0){
     		core_Statuses::newStatus(tr('|Трябва да въведете положителна сума|*!'), 'error');
 	    	return $this->returnError($recId);

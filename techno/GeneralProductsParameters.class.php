@@ -98,7 +98,7 @@ class techno_GeneralProductsParameters extends core_Manager
     	}
     	
         if($form->rec->paramId){
-        	$form->fields['value']->type = cat_Params::getParamTypeClass($form->rec->paramId, 'cat_Params');
+        	$form->getField('value')->type = cat_Params::getParamTypeClass($form->rec->paramId, 'cat_Params');
         } else {
         	$form->setField('value', 'input=hidden');
         }

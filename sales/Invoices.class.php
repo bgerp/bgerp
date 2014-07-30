@@ -350,7 +350,7 @@ class sales_Invoices extends core_Master
         if($className == 'crm_Persons'){
         	$numType = 'bglocal_EgnType';
         	$form->setField('uicNo', 'caption=Получател->ЕГН');
-        	$form->fields['uicNo']->type = cls::get($numType);
+        	$form->$mvc->getField('uicNo')->type = cls::get($numType);
         }
         
         $type = ($t = Request::get('type')) ? $t : $form->rec->type;

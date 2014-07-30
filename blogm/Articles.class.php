@@ -886,7 +886,7 @@ class blogm_Articles extends core_Master {
     	$query->likeKeylist('categories', keylist::fromArray($categories));
     	
     	if($like){
-    		$fldType = $this->fields[$this->feedFilterField]->type;
+    		$fldType = $this->getFieldType($this->feedFilterField);
     		if($fldType instanceof type_Keylist){
     			$query->likeKeylist($this->feedFilterField, $like);
     		} else {

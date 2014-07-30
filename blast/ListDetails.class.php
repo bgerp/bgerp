@@ -683,7 +683,7 @@ class blast_ListDetails extends core_Detail
             
             foreach($mvc->fields as $field => $dummy) {
                 
-                $type = $mvc->fields[$field]->type;
+                $type = $mvc->getFieldType($field);
                 
                 if ($type instanceof type_Key) {
                     $value = $mvc->getVerbal($cRec, $field);

@@ -118,7 +118,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     		$products = array($rec->componentId => $products[$rec->componentId]);
     	}
     	
-    	$form->fields['componentId']->type = cls::get("type_Enum", array('options' => $products));
+    	$form->getField('componentId')->type = cls::get("type_Enum", array('options' => $products));
     }
     
     
