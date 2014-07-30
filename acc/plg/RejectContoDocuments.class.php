@@ -25,6 +25,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
 			
 			// Взима всички от текущата транзакция
 			$transaction = $mvc->getValidatedTransaction($id);
+			//bp($transaction->getClosedItems(), $transaction);
 			if($transaction){
 				$res = $transaction->getClosedItems();
 			}
@@ -36,19 +37,44 @@ class acc_plg_RejectContoDocuments extends core_Plugin
 	 * Дали документа може да бъде възстановен/оттеглен/контиран, ако в транзакцията му има
 	 * поне едно затворено перо връща FALSE
 	 */
-	public static function on_AfterCanRejectOrRestore($mvc, &$res, $id)
+	public static function on_AfterCanRejectOrRestore($mvc, &$res, $id, $ignoreArr = array())
 	{
 		$closedItems = $mvc->getClosedItemsInTransaction($id);
-		 
-		if(count($closedItems)){
-			$msg = tr('Документа не може да бъде оттеглен/възстановен докато перата:');
-			foreach ($closedItems as $itemId){
-				$msg .= "'" . acc_Items::getVerbal($itemId, 'title') . "', ";
+		
+		// Ако има пера за игнориране, игнорираме ги
+		if(count($ignoreArr)){
+			foreach ($ignoreArr as $ignore){
+				unset($closedItems[$ignore]);
 			}
-			$msg = trim($msg, ', ');
-			$msg .= " " . tr("са затворени");
-	
-			core_Statuses::newStatus($msg, 'error');
+		}
+		
+		// Ако има затворено перо в транзакциите или документа е използван като перо в документ от друг тред
+		if(count($closedItems) || (isset($mvc->usedIn) && is_array($mvc->usedIn))){
+			
+			// Ако има затворени пера, показваме съобщение и връщаме FALSE
+			if(count($closedItems)){
+				$msg = tr('Документа не може да бъде оттеглен/възстановен докато перата:');
+				foreach ($closedItems as $itemId){
+					$msg .= "'" . acc_Items::getVerbal($itemId, 'title') . "', ";
+				}
+				
+				$msg .= " " . tr("са затворени");
+				core_Statuses::newStatus($msg, 'error');
+			}
+			
+			// Ако документа е използван в контировката на документ от друг тред, показваме съобщение и връщаме FALSE
+			if(count($mvc->usedIn)){
+				foreach ($mvc->usedIn as $itemId => $used){
+					$itemName = acc_Items::getVerbal($itemId, 'title');
+					$msg = tr("|Документа |* \"{$itemName}\" |не може да бъде оттеглен/възстановен докато е контиран от следните документи извън нишката|*:");
+					foreach ($used as $doc){
+						$msg .= "#" . $doc . ", ";
+					}
+				}
+				
+				$msg = trim($msg, ', ');
+				core_Statuses::newStatus($msg, 'error');
+			}
 	
 			$res = FALSE;
 		} else {
@@ -93,8 +119,17 @@ class acc_plg_RejectContoDocuments extends core_Plugin
 		// Ако не може да се възстановява, връща FALSE за да се стопира възстановяването
 		if($rec->brState != 'draft'){
 			
-			// Ако не може да се оттегля, връща FALSE за да се стопира оттеглянето
-			return $mvc->canRejectOrRestore($id);
+			// Ако документа не е сделка
+			if(!cls::haveInterface('deals_DealsAccRegIntf', $mvc)){
+				$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+				
+				// и състоянието и е отворено, игнорираме перото и
+				if($firstDoc->fetchField('state') == 'active'){
+					$ignore[] = acc_items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
+				}
+			}
+			
+			return $mvc->canRejectOrRestore($id, $ignore);
 		}
 	}
 }

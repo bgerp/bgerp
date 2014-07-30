@@ -229,6 +229,7 @@ class acc_plg_Deals extends core_Plugin
     {
     	$closedItems = array();
     	$rec = $mvc->fetchRec($id);
+    	$dealItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
     	
     	// Масив с документи участващи в нишката
     	$docs = array();
@@ -236,12 +237,13 @@ class acc_plg_Deals extends core_Plugin
     	// Записите от журнала засягащи това перо
     	$entries = acc_Journal::getEntries(array($mvc, $rec->id), $item);
     	
-    	// Към тях добавяме и самия документ
-    	$entries[] = (object)array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
-    	
     	// Намираме оттеглените документи в треда, те нямат транзакция и няма да фигурират в $entries, за това
     	// ги добавяме ръчно, за да участват и те в проверката
     	$descendants = $mvc->getDescendants($rec->id);
+    	
+    	// Към тях добавяме и самия документ
+    	$entries[] = (object)array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
+    	
     	if($descendants){
     		foreach ($descendants as $doc){
     			
@@ -257,16 +259,27 @@ class acc_plg_Deals extends core_Plugin
     		
     		// Ако има метод 'getValidatedTransaction'
     		$Doc = cls::get($ent->docType);
+    		
+    		// Ако транзакцията е направена от друг тред запомняме от кой документ е направена
+    		$threadId = $Doc->fetchField($ent->docId, 'threadId');
+    		if($threadId != $rec->threadId){
+    			$mvc->usedIn[$dealItem->id][] = $Doc->getHandle($ent->docId);
+    		}
+    		
     		if(cls::existsMethod($Doc, 'getValidatedTransaction')){
     			
     			// Ако има валидна транзакция, проверяваме дали има затворени пера
     			$transaction = $Doc->getValidatedTransaction($ent->docId);
+    			
     			if($transaction){
-    					 
     				// Добавяме всички приключени пера
     				$closedItems += $transaction->getClosedItems();
     			}
     		}
+    	}
+    	
+    	if($rec->state != 'closed'){
+    		unset($closedItems[$dealItem->id]);
     	}
     	
     	// Връщаме намерените пера
@@ -280,13 +293,52 @@ class acc_plg_Deals extends core_Plugin
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
-    	$rec = $mvc->fetchRec($rec);
+    	if($rec->state == 'active'){
+    		
+    		// Ако валутата е активна, добавя се като перо
+    		$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
+    		acc_Lists::updateItem($mvc, $rec->id, $lists);
+    		
+    		$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
+    		core_Statuses::newStatus($msg);
+    	}
+    }
     
-    	// Ако валутата е активна, добавя се като перо
-    	$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
-    	acc_Lists::updateItem($mvc, $rec->id, $lists);
     
-    	$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
-    	core_Statuses::newStatus($msg);
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	// Ако документа се е оттеглил успешно, записваме му ид-то в модела
+    	$rec = $mvc->fetchRec($id);
+    	$mvc->rejectedQueue[$rec->id] = $rec->id;
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     */
+    public static function on_AfterRestore1(core_Mvc $mvc, &$res, $id)
+    {
+    	self::on_AfterActivation($mvc, $id);
+    }
+    
+    
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_Shutdown($mvc)
+    {
+    	// Ако има оттеглени записи, затваряме им перата
+    	if(count($mvc->rejectedQueue)){
+    		foreach ($mvc->rejectedQueue as $id) {
+    			$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
+    			acc_Lists::removeItem($mvc, $id, $lists);
+    			
+    			$title = $mvc->getTitleById($id);
+    			core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
+    		}
+    	}
     }
 }

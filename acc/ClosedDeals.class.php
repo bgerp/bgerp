@@ -240,7 +240,7 @@ abstract class acc_ClosedDeals extends core_Master
 	    	
 	    	// Ако има перо сделката, затваряме го
 	    	if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
-	    		acc_Lists::removeItem($DocClass, $firstRec->id);
+	    		acc_Lists::removeItem($DocClass, $firstRec->id, $item->lists);
 	    		
 	    		$title = $DocClass->getTitleById($firstRec->id);
 	    		core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
