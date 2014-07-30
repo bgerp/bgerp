@@ -189,6 +189,9 @@ class acc_BalanceDetails extends core_Detail
     	$data->summary = new stdClass();
     	foreach ($arr as $param){
     		$data->summary->$param = $this->getFieldType($param)->toVerbal(${$param});
+    		if(${$param} < 0){
+    			$data->summary->$param = "<span style='color:red'>{$data->summary->$param}</span>";
+    		}
     	}
     }
     
@@ -347,7 +350,7 @@ class acc_BalanceDetails extends core_Detail
             $data->rows[] = $this->recToVerbal($rec, $data->listFields);
         }
         
-        // Задействаме събитие в plg_StyleNumbers да за да се оцветята отрицателните числа
+        // Задействаме събитие в plg_StyleNumbers да за да се оцветят отрицателните числа
         plg_StyleNumbers::on_AfterPrepareListRows($this, $data);
     } 
     
