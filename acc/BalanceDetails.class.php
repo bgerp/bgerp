@@ -580,7 +580,9 @@ class acc_BalanceDetails extends core_Detail
         // Бутон за детайлизиран преглед на историята
         $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
         
-        $row->accountId = acc_Balances::getAccountLink($rec->accountId, $masterRec, FALSE, TRUE);
+        if($rec->accountId){
+        	$row->accountId = acc_Balances::getAccountLink($rec->accountId, $masterRec, FALSE, TRUE);
+        }
         
         $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
         
