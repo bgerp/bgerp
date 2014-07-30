@@ -463,7 +463,13 @@ class cms_Content extends core_Manager
     static function getShortUrl()
     {
         $cUrl = getCurrentUrl();
- 
+        
+        // За да не влезе в безкраен цикъл, да не вика себе си
+        if (strtolower($cUrl['Ctr']) == 'cms_content') {
+            
+            return $cUrl;
+        }
+        
         if(cls::existsMethod($cUrl['Ctr'], 'getShortUrl')) {
             $man = cls::get($cUrl['Ctr']);
             $cUrl = $man->getShortUrl($cUrl);
