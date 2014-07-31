@@ -1011,7 +1011,7 @@ class purchase_Invoices extends core_Master
     		return;
     	}
     	
-    	$dQuery = $mvc->sales_InvoiceDetails->getQuery();
+    	$dQuery = $mvc->purchase_InvoiceDetails->getQuery();
     	$dQuery->where("#invoiceId = {$rec->id}");
     	$dQuery->where("#quantity = 0");
     	
