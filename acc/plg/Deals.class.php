@@ -299,8 +299,10 @@ class acc_plg_Deals extends core_Plugin
     		$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
     		acc_Lists::updateItem($mvc, $rec->id, $lists);
     		
-    		$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
-    		core_Statuses::newStatus($msg);
+    		if(haveRole('ceo,acc,debug')){
+    			$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
+    			core_Statuses::newStatus($msg);
+    		}
     	}
     }
     
@@ -317,15 +319,6 @@ class acc_plg_Deals extends core_Plugin
     
     
     /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
-     */
-    public static function on_AfterRestore1(core_Mvc $mvc, &$res, $id)
-    {
-    	self::on_AfterActivation($mvc, $id);
-    }
-    
-    
-    /**
      * Изчиства записите, заопашени за запис
      */
     public static function on_Shutdown($mvc)
@@ -336,8 +329,10 @@ class acc_plg_Deals extends core_Plugin
     			$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
     			acc_Lists::removeItem($mvc, $id, $lists);
     			
-    			$title = $mvc->getTitleById($id);
-    			core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
+    			if(haveRole('ceo,acc,debug')){
+    				$title = $mvc->getTitleById($id);
+    				core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
+    			}
     		}
     	}
     }
