@@ -30,6 +30,12 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Интерфейси
+     */
+    var $interfaces = 'custom_SettingsIntf';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     var $canList = 'powerUser';
@@ -39,6 +45,12 @@ class doc_Threads extends core_Manager
      * 
      */
     var $canWrite = 'no_one';
+    
+    
+    /**
+     * Кой може да модофицира
+     */
+    var $canModify = 'powerUser';
     
     
     /**
@@ -59,12 +71,17 @@ class doc_Threads extends core_Manager
     var $listFields = 'title=Заглавие,author=Автор,last=Последно,hnd=Номер,allDocCnt=Документи,createdOn=Създаване';
     
     
+    /**
+     * 
+     */
     var $canNewdoc = 'powerUser';
+    
     
     /**
      * Какви действия са допустими с избраните редове?
      */
     var $doWithSelected = 'open=Отваряне,close=Затваряне,restore=Възстановяване,reject=Оттегляне,move=Преместване';
+    
     
     /**
      * Данните на адресата, с най - много попълнени полета
@@ -79,6 +96,7 @@ class doc_Threads extends core_Manager
      * @see doc_Threads::updateThread()
      */
     protected static $updateQueue = array();
+    
     
     /**
      * Описание на модела на нишките от контейнери за документи
@@ -943,7 +961,7 @@ class doc_Threads extends core_Manager
             $data->rejectedCnt = $mvc->count("#folderId = {$data->folderId} AND #state = 'rejected'");
             
             if($data->rejectedCnt) {
-                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})" . $rejectedCntVerb , 
+                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", 
                     array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
             }
         }
@@ -1006,6 +1024,13 @@ class doc_Threads extends core_Manager
             if($rec->state == 'opened' || $rec->state == 'closed') {
                 $res = $mvc->getRequiredRoles('single', $rec, $userId);
             } else {
+                $res = 'no_one';
+            }
+        }
+        
+        // @see custom_Settings
+        if ($action == 'modify' && $rec) {
+            if (!$mvc->haveRightFor('single', $rec)) {
                 $res = 'no_one';
             }
         }
@@ -1389,5 +1414,55 @@ class doc_Threads extends core_Manager
     function on_AfterPrepareListFields($mvc, $res, $data)
     {
         $data->listFields['title'] = "|*<div style='min-width:240px'>|" . $data->listFields['title'] . '|*</div>';
+    }
+    
+    
+    /**
+     * Интерфейсен метод на custom_SettingsIntf
+     * Подготвяме формата за персонализиране на настройките за нишката
+     * 
+     * @param core_Form $form
+     * @see custom_SettingsIntf
+     */
+    function prepareCustomizationForm(&$form)
+    {
+        // Задаваме таба на менюто да сочи към документите
+        Mode::set('pageMenu', 'Документи');
+        Mode::set('pageSubMenu', 'Всички');
+        
+        // Определяме заглавито
+        $rec = $this->fetch($form->rec->objectId);
+        $row = $this->recToVerbal($rec, 'title');
+        $form->title .= ' на нишка|*: ' . $row->title;
+        
+        // Добавяме функционални полета
+        $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Добавяне на документ->Известяване, input=input');
+        $form->FNC('shortLinks', 'enum(default=Автоматично, yes=Да, no=Не)', 'caption=Бързи връзки->Показване, input=input');
+        
+        // Задаваме стойностите по подразбиране
+        $form->setDefault('shortLinks', 'default');
+        $form->setDefault('notify', 'default');
+        
+        $form->setParams('notify', array('hint' => 'По подразбиране|*: ' . '|Винаги'));
+        $form->setParams('shortLinks', array('hint' => 'По подразбиране|*: ' . '|Не'));
+        
+//        $form->setParams('notify', array('unit' => 'Винаги'));
+//        $form->setParams('shortLinks', array('unit' => 'Не'));
+        
+        $this->currentTab = 'Нишка';
+    }
+    
+    
+    /**
+     * Интерфейсен метод на custom_SettingsIntf
+     * Проверява въведените данни във формата
+     * 
+     * @param core_Form $form
+     * @see custom_SettingsIntf
+     */
+    function checkCustomizationForm(&$form)
+    {
+        
+        return ;
     }
 }

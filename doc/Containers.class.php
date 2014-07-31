@@ -303,6 +303,14 @@ class doc_Containers extends core_Manager
             }
             $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png');
         }
+        
+        // Ако има права за модифициране на настройките за персоналзиране
+        if (doc_Threads::haveRightFor('modify', $data->threadId)) {
+            
+            // Добавяме бутон в тулбара
+            $threadClassId = core_Classes::fetchIdByName('doc_Threads');
+            custom_Settings::addBtn($data->toolbar, $threadClassId, $data->threadId);
+        }
     }
     
     

@@ -247,7 +247,11 @@ class custom_Settings extends core_Manager
         
         // Сетваме по подразбиране стойностите на зададените свойства
         foreach ((array)$propertiesArrFromAdmin as $property => $value) {
+            
+            // Вербалната стойност
             $verbalVal = $form->getFieldType($property, FALSE)->toVerbal($value);
+            
+            // Променяме хинта
             $form->setParams($property, array('hint' => 'По подразбиране|*: ' . "|{$verbalVal}"));
         }
         
