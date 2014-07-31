@@ -211,6 +211,7 @@ class cal_Calendar extends core_Master
         // Обновяваме информацията за новопостъпилите събития
         if(count($events)) {
             foreach($events as $e) {
+          
                 if(!trim($e->users)) {
                     unset($e->users);
                 }
@@ -334,6 +335,7 @@ class cal_Calendar extends core_Master
         if($url['Ctr'] == 'crm_Persons') {
         	$isLink = crm_Persons::haveRightFor('single', $url['id']);
         }
+       
         // TODO
         $attr['class'] = 'linkWithIcon';
         if($rec->type == 'leave'){
@@ -1308,6 +1310,8 @@ class cal_Calendar extends core_Master
 	    		
 	     	    // Картинката за задачите
 	     		$img = self::getIconByType($rec->type, $rec->key);
+	     		
+	     		$rec->title = type_Varchar::escape($rec->title);
 				
 	     		if($hourKey == "allDay" ){
 	     			if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel') {
@@ -1370,6 +1374,8 @@ class cal_Calendar extends core_Master
 	    		
 	     	    // Картинката за задачите
 	            $img = self::getIconByType($rec->type, $rec->key);
+	            
+	            $rec->title = type_Varchar::escape($rec->title);
 	            
 	            if($hourKey == "allDay"){
 	            	if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel'){
@@ -1443,6 +1449,8 @@ class cal_Calendar extends core_Master
 	    		
 	     	    // Картинката за задачите
 	            $img = self::getIconByType($rec->type, $rec->key);
+	            
+	            $rec->title = type_Varchar::escape($rec->title);
 	            
 	        	if($hourKey == "allDay" ){
 	     			if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel') {
