@@ -52,6 +52,18 @@ class rtac_Setup extends core_ProtoSetup
     
     
     /**
+     * Пътища до CSS файлове
+     */
+    var $commonCSS = 'rtac/yuku/autocomplete.css';
+    
+    
+    /**
+     * Пътища до JS файлове
+     */
+    var $commonJS = "rtac/yuku/[#RTAC_YUKU_VERSION#]/jquery.textcomplete.js";
+    
+    
+    /**
      * Версия на пакета
      */
     var $version = '0.1';
@@ -98,33 +110,5 @@ class rtac_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Richtext autocomplete', 'rtac_Plugin', 'type_Richtext', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Връща масив с css и js файловете дефинирани в commonJS и commonCSS
-     * 
-     * @return array - Двумерен масив с 'css' и 'js' пътищатата
-     * 
-     * @see core_ProtoSetup->getCommonCssAndJs()
-     */
-    function getCommonCssAndJs()
-    {
-        $cssAnaJsArr = parent::getCommonCssAndJs();
-        $conf = core_Packs::getConfig('rtac');
-        
-        // Ако се използва YUKU
-        if ($conf->RTAC_AUTOCOMPLETE_CLASS == 'rtac_yuku_Textcomplete') {
-            
-            // Пътя до js файла
-            $jsFile = "rtac/yuku/" . $conf->RTAC_YUKU_VERSION . "/jquery.textcomplete.js";
-            $cssAnaJsArr['js'][$jsFile] = $jsFile;
-            
-            // Пътя до css файла
-            $cssFile = "rtac/yuku/autocomplete.css";
-            $cssAnaJsArr['css'][$cssFile] = $cssFile;
-        }
-        
-        return $cssAnaJsArr;
     }
 }
