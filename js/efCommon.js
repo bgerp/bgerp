@@ -966,7 +966,7 @@ if (!Array.prototype.forEach)
   {
     var len = this.length;
     if (typeof fun != "function")
-      throw new TypeError();
+    	return;
 
     var thisp = arguments[1];
     for (var i = 0; i < len; i++)
