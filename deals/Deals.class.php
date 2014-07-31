@@ -782,14 +782,23 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Изпълнява се след възстановяване на документа
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	// След възстановяване се предизвиква събитие в модел
+    	$mvc->invoke('AfterActivation', array($id));
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      */
     public static function on_AfterSave($mvc, &$id, $rec)
     {
     	if($rec->state != 'draft'){
-    		$state = $rec->state;
-    		$rec = $mvc->fetch($id);
-    		$rec->state = $state;
+    		
+    		$rec = $mvc->fetchRec($id);
     
     		// Записване на продажбата като отворена сделка
     		acc_OpenDeals::saveRec($rec, $mvc);

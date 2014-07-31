@@ -288,11 +288,12 @@ class acc_plg_Deals extends core_Plugin
     
     
     /**
-     *
      * Функция, която се извиква след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
+    	$rec = $mvc->fetchRec($rec);
+    	
     	if($rec->state == 'active'){
     		
     		// Ако валутата е активна, добавя се като перо
@@ -308,7 +309,7 @@ class acc_plg_Deals extends core_Plugin
     
     
     /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     * След оттегляме запомняме записа, чието перо трябва да се затври на shutdown
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
