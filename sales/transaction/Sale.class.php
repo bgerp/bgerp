@@ -148,11 +148,8 @@ class sales_transaction_Sale
             }
         }
         
-         // Ако има активиран приключващ документ, продажбата става затворена иначе е активирана
-        $state = (sales_ClosedDeals::fetch("#threadId = {$rec->threadId} AND #state = 'active'")) ? 'closed' : 'active';
-        
         // Активиране и запис
-        $rec->state = $state;
+        $rec->state = 'active';
         
         if ($this->class->save($rec)) {
             $this->class->invoke('AfterActivation', array($rec));
