@@ -114,6 +114,9 @@ class doc_Threads extends core_Manager
         // Създателя на последния документ в нишката
         $this->FLD('lastAuthor', 'key(mvc=core_Users)', 'caption=Последно->От, input=none');
         
+        // Ид-та на контейнерите оттеглени при цялостното оттегляне на треда, при възстановяване на треда се занулява
+        $this->FLD('rejectedContainersInThread', 'keylist(mvc=doc_Containers)', 'caption=Заглавие');
+        
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
     }
@@ -876,7 +879,19 @@ class doc_Threads extends core_Manager
         static::save($rec);
 
         // Оттегляме всички контейнери в нишката
-        doc_Containers::rejectByThread($rec->id);
+        $rejectedIds = doc_Containers::rejectByThread($rec->id);
+        
+        if(count($rejectedIds)){
+        	
+        	// Добавяме и контейнера на първия документ в треда
+        	$rejectedIds[] = $rec->firstContainerId;
+        	$rejectedIds = array_flip($rejectedIds);
+        	
+        	// Ако има оттеглени контейнери с треда, запомняме ги, за да може при възстановяване да възстановим само тях
+        	$rec->rejectedContainersInThread = keylist::fromArray($rejectedIds);
+        	
+        	static::save($rec, 'rejectedContainersInThread');
+        }
     }
     
     
@@ -900,6 +915,10 @@ class doc_Threads extends core_Manager
 
         // Възстановяваме всички контейнери в нишката
         doc_Containers::restoreByThread($rec->id);
+        
+        // Зануляваме списъка с оттеглените ид-та
+        unset($rec->rejectedContainersInThread);
+        static::save($rec, 'rejectedContainersInThread');
     }
     
     
