@@ -1303,6 +1303,17 @@ function setFormElementsWidth()
 	var outsideWidth = 44;
 	
 	formElWidth =  winWidth - outsideWidth;
+	// колко ЕМ е широка страницата
+		var sizeInEm = winWidth / parseFloat($(".formTable input[type=text]").css("font-size")); 
+	 	
+	// колко РХ е 1 ЕМ
+	var preferredSizeInEm = 42;
+	var em = parseInt(winWidth / sizeInEm);
+	// изчислена ширина, равна на ширината в ем, която предпочитаме
+	var preferredSizeInPx = preferredSizeInEm * em;
+	
+	if(formElWidth > preferredSizeInPx) 
+		formElWidth = preferredSizeInPx;
 	
 	$('.formTable label').each(function() {
 		var colsInRow = parseInt($(this).attr('data-colsInRow'));
@@ -1312,9 +1323,10 @@ function setFormElementsWidth()
 
 		$(this).css('maxWidth', parseInt((formElWidth - 25)/colsInRow));
 	});
-
+	
 	$('.formSection').css('width', formElWidth);
 	$('.formTable textarea').css('width', formElWidth );
+	$('.formTable .chzn-container').css('maxWidth',formElWidth);
 }
 
 
