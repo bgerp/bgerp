@@ -49,6 +49,7 @@ class doc_Threads extends core_Manager
     
     /**
      * Кой може да модофицира
+     * @see custom_SettingsIntf
      */
     var $canModify = 'powerUser';
     
@@ -965,6 +966,14 @@ class doc_Threads extends core_Manager
                     array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
             }
         }
+        
+        // Ако има права за модифициране на настройките за персоналзиране
+        if (doc_Folders::haveRightFor('modify', $data->folderId)) {
+            
+            // Добавяме бутон в тулбара
+            $folderClassId = core_Classes::fetchIdByName('doc_Folders');
+            custom_Settings::addBtn($data->toolbar, $folderClassId, $data->folderId);
+        }
     }
     
     
@@ -1429,6 +1438,7 @@ class doc_Threads extends core_Manager
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
         Mode::set('pageSubMenu', 'Всички');
+        $this->currentTab = 'Нишка';
         
         // Определяме заглавито
         $rec = $this->fetch($form->rec->objectId);
@@ -1443,13 +1453,15 @@ class doc_Threads extends core_Manager
         $form->setDefault('shortLinks', 'default');
         $form->setDefault('notify', 'default');
         
-        $form->setParams('notify', array('hint' => 'По подразбиране|*: ' . '|Винаги'));
-        $form->setParams('shortLinks', array('hint' => 'По подразбиране|*: ' . '|Не'));
+        // Сетваме стринг за подразбиране
+        $defaultStr = 'По подразбиране|*: ';
+        
+        // Подсказки за позразбиране
+        $form->setParams('notify', array('hint' => $defaultStr . '|Винаги'));
+        $form->setParams('shortLinks', array('hint' => $defaultStr . '|Не'));
         
 //        $form->setParams('notify', array('unit' => 'Винаги'));
 //        $form->setParams('shortLinks', array('unit' => 'Не'));
-        
-        $this->currentTab = 'Нишка';
     }
     
     
