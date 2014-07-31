@@ -392,4 +392,22 @@ class core_FieldSet extends core_BaseClass
     {
         return '$this->fields[$name]->' . $name;
     }
+    
+    
+    /**
+     * Задава подадените параметри към полето
+     * 
+     * @param string $name
+     * @param array $params
+     */
+    function setParams($name, $params=array())
+    {
+        $params = arr::make($params, TRUE);
+        
+        $field = $this->getField($name);
+        
+        foreach ($params as $param => $value) {
+            $field->$param = $value;
+        }
+    }
 }
