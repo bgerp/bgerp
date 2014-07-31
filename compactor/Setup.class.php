@@ -85,26 +85,34 @@ class compactor_Setup extends core_ProtoSetup
             // Ако файлът съществува
             if (cls::load($pack, TRUE)) {
                 
-                $cssAndJsArr = array();
-                
                 // Инстанция на пакета
                 $inst = cls::get($pack);
-                if (method_exists($inst, 'getCommonCssAndJs')) {
-                    $cssAndJsArr = $inst->getCommonCssAndJs();
+                
+                // Вземаме CSS файловете и заместваме плейсхолдерите от конфига
+                if (method_exists($inst, 'getCommonCss')) {
+                    $commonCss = $inst->getCommonCss();
+                    $commonCss = $inst->preparePacksPath($rec->name, $commonCss);
                 }
                 
-                if (!$cssAndJsArr) continue;
+                // Вземаме JS файловете и заместваме плейсхолдерите от конфига
+                if (method_exists($inst, 'getCommonJs')) {
+                    $commonJs = $inst->getCommonJs();
+                    $commonJs = $inst->preparePacksPath($rec->name, $commonJs);
+                }
+                
+                // Ако няма файлове за добавяне
+                if (!$commonCss && !$commonJs) continue;
                 
                 // Добавяме зададените CSS файлове към главния
-                if ($cssAndJsArr['css']) {
-                    $commonCssArr = arr::make($cssAndJsArr['css'], TRUE);
+                if ($commonCss) {
+                    $commonCssArr = arr::make($commonCss, TRUE);
                     $cssFilesArr = array_merge((array)$cssFilesArr, (array)$commonCssArr);
                     $haveCss = TRUE;
                 }
                 
                 // Добавяме зададените JS файлове към главния
-                if ($cssAndJsArr['js']) {
-                    $commonJsArr = arr::make($cssAndJsArr['js'], TRUE);
+                if ($commonJs) {
+                    $commonJsArr = arr::make($commonJs, TRUE);
                     $jsFilesArr = array_merge((array)$jsFilesArr, (array)$commonJsArr);
                     $haveJs = TRUE;
                 }
