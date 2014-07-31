@@ -2434,8 +2434,8 @@ div.statuses-message {
 	display: table;
 	text-align: center;
     font-size: 1.3em; 
-    min-height: 21px !important;
-    @include border-radius(15px);
+    min-height: 32px !important;
+    @include border-radius(5px);
     font-family: Courier New,mono;
     border: 1px dotted;
     margin: 10px auto;
