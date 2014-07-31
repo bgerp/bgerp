@@ -401,7 +401,7 @@ class sales_Invoices extends core_Master
 	   	
 	   	$form->setReadOnly('vatRate');
 	   	
-	   	// Метод който да бъде прихванат от sales_plg_DpInvoice
+	   	// Метод който да бъде прихванат от acc_plg_DpInvoice
 	   	$mvc->prepareDpInvoicePlg($data);
     }
     
@@ -458,6 +458,9 @@ class sales_Invoices extends core_Master
         }
 
         acc_Periods::checkDocumentDate($form);
+        
+        // Метод който да бъде прихванат от acc_plg_DpInvoice
+        $mvc->inputDpInvoice($form);
 	}
 	
 	

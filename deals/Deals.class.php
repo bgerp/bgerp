@@ -786,7 +786,7 @@ class deals_Deals extends core_Master
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
-    	// След възстановяване се предизвиква събитие в модел
+    	// След възстановяване се предизвиква събитие в модела
     	$mvc->invoke('AfterActivation', array($id));
     }
     

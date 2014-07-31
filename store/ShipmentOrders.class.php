@@ -173,8 +173,8 @@ class store_ShipmentOrders extends core_Master
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
-        $this->FLD('company', 'key(mvc=crm_Companies,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Адрес за доставка->Фирма');
-        $this->FLD('person', 'key(mvc=crm_Persons,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Адрес за доставка->Лице, changable, class=contactData');
+        $this->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма');
+        $this->FLD('person', 'varchar', 'caption=Адрес за доставка->Лице, changable, class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., changable, class=contactData');
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава, class=contactData');
         $this->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData');

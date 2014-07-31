@@ -133,7 +133,7 @@ class acc_plg_DpInvoice extends core_Plugin
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputDpInvoice($mvc, &$res, &$form)
     {
         // Ако сме в детайла пропускаме
     	if($mvc->Master) return;

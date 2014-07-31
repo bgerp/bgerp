@@ -420,6 +420,9 @@ class purchase_Invoices extends core_Master
         }
 
         acc_Periods::checkDocumentDate($form);
+        
+        // Метод който да бъде прихванат от acc_plg_DpInvoice
+        $mvc->inputDpInvoice($form);
 	}
 	
 	
