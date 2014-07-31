@@ -71,8 +71,7 @@ class editwatch_Plugin extends core_Plugin
         core_Ajax::subscribe($info, array($mvc, 'showEditwatchStatus', $recId, 'refreshUrl' => $refreshUrlLocal), 'editwatch', $time);
         
         // Добавяме информация
-        $data->form->info = new core_ET($data->form->info);
-        $data->form->info->append($info);
+        $data->form->info = new core_ET('[#1#][#2#]', $data->form->info, $info);
     }
     
     
