@@ -256,12 +256,6 @@ class acc_Accounts extends core_Manager
                 // Сетваме грешката
                 $form->setError('systemId', 'Недопустими символи в число/израз');
             }
-            
-            if(isset($form->rec->title)){
-            	if (preg_match('/[^0-9a-zа-я\ ]/iu', $form->rec->title)) {
-            		$form->setError('title', 'Полето може да съдържа само букви, цифри и интервал!');
-            	}
-            }
         }
         
         // Изчисление на FNC поле "isSynthetic"

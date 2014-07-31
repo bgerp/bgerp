@@ -230,21 +230,6 @@ class acc_Lists extends core_Manager {
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	if($form->isSubmitted()){
-    		if(isset($form->rec->name)){
-    			if (preg_match('/[^0-9a-zа-я\ ]/iu', $form->rec->name)) {
-    				$form->setError('name', 'Полето може да съдържа само букви, цифри и интервал!');
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
      * Предизвиква обновяване на обобщената информация за
      * номенклатура с посоченото id
      */
