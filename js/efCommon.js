@@ -1299,16 +1299,21 @@ function setFormElementsWidth()
 	if(winWidth < 320) {
 		winWidth = 320;
 	}
-
+	// разстояние около формата
 	var outsideWidth = 44;
 	
+	// предпочитана ширина в em
+	var preferredSizeInEm = 42;
+	
+	// изчислена максимална ширина формата
 	formElWidth =  winWidth - outsideWidth;
+	
 	// колко ЕМ е широка страницата
-		var sizeInEm = winWidth / parseFloat($(".formTable input[type=text]").css("font-size")); 
+	var sizeInEm = winWidth / parseFloat($(".formTable input[type=text]").css("font-size")); 
 	 	
 	// колко РХ е 1 ЕМ
-	var preferredSizeInEm = 42;
 	var em = parseInt(winWidth / sizeInEm);
+	
 	// изчислена ширина, равна на ширината в ем, която предпочитаме
 	var preferredSizeInPx = preferredSizeInEm * em;
 	
