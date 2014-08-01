@@ -46,8 +46,6 @@
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                     
-                   
                     <td class="topCell" valign="top" width='35%'>
                         <!--ET_BEGIN paymentMethodId-->
                             <div class='cellRow'>
@@ -87,6 +85,10 @@
                             </div>
                             <!--ET_END currencyId-->
                             
+                            <!--ET_BEGIN isPaid-->
+                        		<div style='color:red'>[#isPaid#]</div>
+                       		<!--ET_END isPaid-->
+                       		
                             <!--ET_BEGIN bankAccountId-->
                             <hr>
                             <div class='cellRow'>
