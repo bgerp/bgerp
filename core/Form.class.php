@@ -519,9 +519,9 @@ class core_Form extends core_FieldSet
     function renderInfo_()
     {
         if (!$this->info) return NULL;
-
         
-        return new ET($this->info);
+        // Обръщаме инфото в шаблон и го експейваме
+        return new core_ET('[#1#]', $this->info);
     }
     
     

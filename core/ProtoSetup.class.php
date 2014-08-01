@@ -264,22 +264,56 @@ class core_ProtoSetup
     
     
     /**
-     * Връща масив с css и js файловете дефинирани в commonJS и commonCSS
+     * Връща CSS файлове за компактиране
      * 
-     * @return array - Двумерен масив с 'css' и 'js' пътищатата
+     * @return string
      */
-    public function getCommonCssAndJs()
+    public function getCommonCss()
     {
-        $resArr = array();
-        // Добавяме зададените CSS файлове към главния
-        if ($this->commonCSS) {
-            $resArr['css'] = arr::make($this->commonCSS, TRUE);
-        }
-        if ($this->commonJS) {
-            $resArr['js'] = arr::make($this->commonJS, TRUE);
+        
+        return $this->commonCSS;
+    }
+    
+    
+    /**
+     * Връща JS файлове за компактиране
+     * 
+     * @return string
+     */
+    public function getCommonJs()
+    {
+        
+        return $this->commonJS;
+    }
+    
+    
+    /**
+     * Замества зададените плейсхолдери в стринга с конфигурационната им стойност
+     * 
+     * @param $packName
+     * @param $pathStr
+     * 
+     * @return string
+     */
+    public function preparePacksPath($packName, $pathStr)
+    {
+        if (!trim($pathStr)) return $pathStr;
+        
+        // Хващаме всички плейсхолдери
+        preg_match_all('/\[\#(.+?)\#\]/', $pathStr, $matches);
+        
+        // Ако няма плейсхолдер
+        if (!$matches[0]) return $pathStr;
+        
+        $conf = core_Packs::getConfig($packName);
+        
+        foreach ((array)$matches[1] as $key => $constName) {
+            
+            // Заместваме плейсхолдерите
+            $pathStr = str_replace($matches[0][$key], $conf->$constName, $pathStr);
         }
         
-        return $resArr;
+        return $pathStr;
     }
     
     

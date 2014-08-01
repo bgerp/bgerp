@@ -966,7 +966,7 @@ if (!Array.prototype.forEach)
   {
     var len = this.length;
     if (typeof fun != "function")
-      throw new TypeError();
+    	return;
 
     var thisp = arguments[1];
     for (var i = 0; i < len; i++)
@@ -987,14 +987,9 @@ if(typeof String.prototype.trim !== 'function') {
 
 /****************************************************************************************
  *																				        *
- *	Финкции за плъгина plg_Select    													*
+ *	Функции за плъгина plg_Select    													*
  *																						*
  ****************************************************************************************/
-
-/**
- * Масив с оригиналните цветове на редовете от listView, където има checkbox-ове
- */
-var trColorOriginals = new Array();
 
 
 /**
@@ -1002,23 +997,17 @@ var trColorOriginals = new Array();
  */
 function chRwCl(id)
 {
-    var markColor = "#ffffbb";
-
-    var pTR = get$("lr_" + id);
-    var pTarget = get$("cb_" + id);
-
-    if(pTR.nodeName.toLowerCase() != "tr") {
+    var pTR = $("#lr_" + id);
+    var pTarget = $("#cb_" + id);
+   
+    if(!$(pTR).is( "tr" )) {
         return;
     }
-    if(pTarget.checked == true) {
-        trColorOriginals[id] = pTR.style.backgroundColor;
-        pTR.style.backgroundColor = markColor;
+    
+    if($(pTarget).is(":checked")) {
+        $(pTR).addClass('highlight-row');
     } else {
-        if(trColorOriginals[id] != undefined) {
-            pTR.style.backgroundColor = trColorOriginals[id];
-        } else {
-            trColorOriginals[id] = pTR.style.backgroundColor;
-        }
+    	$(pTR).removeClass('highlight-row'); 
     }
 }
 
@@ -1038,12 +1027,12 @@ function chRwClSb(id)
  */
 function toggleAllCheckboxes()
 {
-    trColorOriginals.forEach( function (el, id, all) {
-        var pTarget = get$("cb_" + id);
-        if(pTarget.checked == true) {
-            pTarget.checked = false;
+    $('[id^=cb_]').each(function(){
+    	var id = $(this).attr('id').replace( /^\D+/g, '');
+        if($(this).is( ":checked" )==true) {
+            $(this).removeAttr("checked"); 
         } else {
-            pTarget.checked = true;
+        	$(this).attr("checked","checked"); 
         }
         chRwCl(id);
     });
@@ -1060,28 +1049,25 @@ function toggleAllCheckboxes()
 function SetWithCheckedButton()
 { 
 	var state = false;
-	trColorOriginals.forEach( function (el, id, all) {
-	    var pTarget = get$("cb_" + id);
-	    if(pTarget.checked == true) {
+	 $('[id^=cb_]').each(function(i){
+	    if($(this).is( ":checked" )==true) {
 	    	state = true;
-	    } 
+	    }
 	});
 
-	var btn = get$('with_selected');
+	var btn = $('#with_selected');
 	
-	// Ако не може да се определи
 	if (!btn) return;
 	
-	btn.className = btn.className.replace(' btn-with-selected-disabled', '');
-	btn.className = btn.className.replace(' btn-with-selected', '');
+	btn.removeClass('btn-with-selected-disabled');
+	btn.removeClass('btn-with-selected');
 	
 	if(state) {
-		btn.className += ' btn-with-selected';
-		btn.disabled = false;
+		btn.addClass('btn-with-selected');
+		btn.removeAttr("disabled");        
 	} else {
-		btn.className += ' btn-with-selected-disabled';
-		btn.disabled = true;
-		btn.blur();
+		btn.addClass('btn-with-selected-disabled');
+		btn.attr("disabled", "disabled");
 	}
 }
 
@@ -1313,10 +1299,26 @@ function setFormElementsWidth()
 	if(winWidth < 320) {
 		winWidth = 320;
 	}
-
+	// разстояние около формата
 	var outsideWidth = 44;
 	
+	// предпочитана ширина в em
+	var preferredSizeInEm = 42;
+	
+	// изчислена максимална ширина формата
 	formElWidth =  winWidth - outsideWidth;
+	
+	// колко ЕМ е широка страницата
+	var sizeInEm = winWidth / parseFloat($(".formTable input[type=text]").css("font-size")); 
+	 	
+	// колко РХ е 1 ЕМ
+	var em = parseInt(winWidth / sizeInEm);
+	
+	// изчислена ширина, равна на ширината в ем, която предпочитаме
+	var preferredSizeInPx = preferredSizeInEm * em;
+	
+	if(formElWidth > preferredSizeInPx) 
+		formElWidth = preferredSizeInPx;
 	
 	$('.formTable label').each(function() {
 		var colsInRow = parseInt($(this).attr('data-colsInRow'));
@@ -1326,9 +1328,10 @@ function setFormElementsWidth()
 
 		$(this).css('maxWidth', parseInt((formElWidth - 25)/colsInRow));
 	});
-
+	
 	$('.formSection').css('width', formElWidth);
 	$('.formTable textarea').css('width', formElWidth );
+	$('.formTable .chzn-container').css('maxWidth',formElWidth);
 }
 
 
