@@ -128,7 +128,9 @@ class acc_Features extends core_Manager
      */
     public static function syncItem($itemId)
     {
-    	expect($itemRec = acc_Items::fetch($itemId));
+    	$itemRec = acc_Items::fetch($itemId);
+    	if(empty($itemRec)) return;
+    	
     	$ItemClass = cls::get($itemRec->classId);
     	
     	// Класа трябва да поддържа 'acc_RegisterIntf'
