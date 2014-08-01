@@ -154,6 +154,11 @@ class acc_Articles extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,input=none');
+    
+        // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
+        if(haveRole('accMaster')){
+        	$this->canUseClosedItems = TRUE;
+        }
     }
     
     
