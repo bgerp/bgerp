@@ -252,6 +252,8 @@ class acc_ArticleDetails extends core_Detail
         $quantityOnly = ($debitAcc->rec->type == 'passive' && $debitAcc->rec->strategy) ||
         ($creditAcc->rec->type == 'active' && $creditAcc->rec->strategy);
         
+        $masterRec = $mvc->Master->fetch($form->rec->articleId);
+        
         foreach (array('debit' => 'Дебит', 'credit' => 'Кредит') as $type => $caption) {
             
             $acc = ${"{$type}Acc"};
@@ -269,6 +271,11 @@ class acc_ArticleDetails extends core_Detail
                 
                 $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
                 $form->setField("{$type}Ent{$i}", "mandatory,input,caption={$caption}->" . $list->rec->name);
+                
+                // Ако може да се избират приключени пера, сетваме параметър в типа на перата
+                if($masterRec->useCloseItems == 'yes'){
+                	$form->getField("{$type}Ent{$i}")->type->params['showAll'] = TRUE;
+                }
             }
             
             if (!$acc->isDimensional) {
