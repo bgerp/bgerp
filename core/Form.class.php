@@ -520,10 +520,8 @@ class core_Form extends core_FieldSet
     {
         if (!$this->info) return NULL;
         
-        // Експейпваме инфото за всеки случай, ако случайно има плейсхолдъри в него
-		$this->info = core_ET::escape($this->info);
-        
-        return new ET($this->info);
+        // Обръщаме инфото в шаблон и го експейваме
+        return new core_ET('[#1#]', $this->info);
     }
     
     
