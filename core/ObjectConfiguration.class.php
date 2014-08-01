@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class core_ObjectConfiguration
+class core_ObjectConfiguration extends core_BaseClass
 {
     
     /**
@@ -20,16 +20,20 @@ class core_ObjectConfiguration
      */
     var $_description = array();
     
+
     /**
      * Стойности на константите
      */
     var $_data = array();
     
+
     /**
      * Конструктор
      */
-    public function __construct($description, $data)
+    public function init($params = array())
     {
+        list($description, $data) = $params;
+
         if (is_string($description)) {
             $description = unserialize($description);
         }
@@ -53,8 +57,10 @@ class core_ObjectConfiguration
      */
     function __get($name)
     { 
+        $this->invoke('BeforeGetConfConst', array(&$value, $name));
+
         // Търси константата в данните въведени през уеб-интерфейса
-        if(!empty($this->_data[$name])) {
+        if(!isset($value) && !empty($this->_data[$name])) {
 
             $value = $this->_data[$name];
         }

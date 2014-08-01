@@ -672,7 +672,7 @@ class core_Packs extends core_Manager
         //                                'suggestions' => $suggestions, 
         //        'CONSTANT_NAME2' => .....
                
-        $conf = new core_ObjectConfiguration($setup->configDescription, $rec->configData);
+        $conf = cls::get('core_ObjectConfiguration', array($setup->configDescription, $rec->configData));
     
         return $conf;
     }
