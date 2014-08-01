@@ -163,9 +163,9 @@ class acc_plg_DocumentSummary extends core_Plugin
     	$baseCurrency = acc_Periods::getBaseCurrencyCode();
     	
     	// Подготовка на обобщаващите данни
-    	while($rec = $data->listSummary->query->fetch()){
-    		static::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
-    	}
+    	static::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
+    	
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	
     	// Преброяване на черновите документи
     	$activeQuery = clone $data->listSummary->query;
@@ -176,12 +176,13 @@ class acc_plg_DocumentSummary extends core_Plugin
     	$activeQuery->where("#state = 'active' || #state = 'closed'");
     	$activeCount = $activeQuery->count();
     	
+    	
     	// Изчистване на клонираната заявка
     	unset($activeQuery);
     	
     	// Добавяне в обобщението на броя активирани и броя чернови документи
-    	$data->listSummary->summary['countA'] = (object)array('caption' => tr('Активирани'), 'measure' => tr('бр'), 'quantity' => $activeCount);
-    	$data->listSummary->summary['countB'] = (object)array('caption' => tr('Чернови'), 'measure' => tr('бр'), 'quantity' => $draftCount);
+    	$data->listSummary->summary['countA'] = (object)array('caption' => tr('Активирани'), 'measure' => tr('бр'), 'quantity' => $Double->toVerbal($activeCount));
+    	$data->listSummary->summary['countB'] = (object)array('caption' => tr('Чернови'), 'measure' => tr('бр'), 'quantity' => $Double->toVerbal($draftCount));
     }
 	
 	
@@ -257,10 +258,10 @@ class acc_plg_DocumentSummary extends core_Plugin
 	    		$row = new stdClass();
 	    		$row->measure = $rec->measure;
 	    		
-	    		if($rec->amount) {
+	    		if(isset($rec->amount)) {
 	    			$row->amount = $double->toVerbal($rec->amount);
 	    			$row->amount = ($rec->amount < 0) ? "<span style='color:red'>{$row->amount}</span>" : $row->amount;
-	    		} elseif($rec->quantity) {
+	    		} elseif(isset($rec->quantity)) {
 	    			$row->quantity = $int->toVerbal($rec->quantity);
 	    			$row->quantity = ($rec->quantity < 0) ? "<span style='color:red'>{$row->quantity}</span>" : $row->quantity;
 	    		}
