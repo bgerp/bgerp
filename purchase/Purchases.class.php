@@ -558,7 +558,6 @@ class purchase_Purchases extends core_Master
 			$row->$fld = ' ';
 			
 			$actions = type_Set::toArray($rec->contoActions);
-			//bp($actions);
 			if(isset($actions['ship'])){
 				$row->isDelivered .= tr('ДОСТАВЕНО');
 			}
