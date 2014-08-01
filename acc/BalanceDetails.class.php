@@ -178,8 +178,8 @@ class acc_BalanceDetails extends core_Detail
     	
     	$recs = $data->recs;
     	
-    	$arr = array('debitAmount', 'baseAmount', 'creditAmount', 'baseAmount', 'blAmount');
-    	$debitQuantity = $debitAmount = $creditQuantity = $creditAmount = $baseQuantity = $baseAmount = $blAmount = $blQuantity = 0;
+    	$arr = array('debitAmount', 'creditAmount', 'baseAmount', 'blAmount');
+    	$debitQuantity = $debitAmount = $creditAmount = $baseQuantity = $baseAmount = $blAmount =  0;
     	foreach ($recs as $rec){
     		foreach ($arr as $param){
     			${$param} += $rec->{$param};
