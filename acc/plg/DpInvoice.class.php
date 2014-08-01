@@ -133,7 +133,7 @@ class acc_plg_DpInvoice extends core_Plugin
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputDpInvoice($mvc, &$res, &$form)
     {
         // Ако сме в детайла пропускаме
     	if($mvc->Master) return;
@@ -305,12 +305,13 @@ class acc_plg_DpInvoice extends core_Plugin
     		$vat = 0;
     	}
     	
-    	// Умно закръгляне на сумите
-    	$dpVat = currency_Currencies::round($masterRec->dpAmount * $vat / $masterRec->rate);
-    	$dpAmount = currency_Currencies::round($masterRec->dpAmount / $masterRec->rate);
+    	// Закръгляне на сумите
+    	$dpVat = $masterRec->dpAmount * $vat / $masterRec->rate;
+    	$dpAmount = $masterRec->dpAmount / $masterRec->rate;
     	
     	// Добавяне на авансовите данни в тотала
     	$total->vat    += $dpVat;
     	$total->amount += $dpAmount;
+    	
     }
 }

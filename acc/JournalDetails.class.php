@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -32,19 +32,13 @@ class acc_JournalDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, Accounts=acc_Accounts, plg_AlignDecimals';
+    var $loadList = 'plg_Created, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'debitAccId, debitQuantity, debitPrice, creditAccId, creditQuantity, creditPrice, amount';
-
-
-    /**
-     * @var acc_Accounts
-     */
-    var $Accounts;
     
     
     /**
@@ -85,6 +79,15 @@ class acc_JournalDetails extends core_Detail
     
     
     /**
+     * След подготовката на филтър формата
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->query->orderBy("#id", 'ASC');
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
@@ -96,23 +99,20 @@ class acc_JournalDetails extends core_Detail
         $rows = &$res->rows;
         $recs = &$res->recs;
         
-        $Lists = &cls::get('acc_Lists');
-        $Accounts = &cls::get('acc_Accounts');
-        
         if (count($recs)) {
-            foreach ($recs as $id=>$rec) {
+            foreach ($recs as $id => $rec) {
                 $row = &$rows[$id];
                 
                 foreach (array('debit', 'credit') as $type) {
                     $ents = "";
-                    $accRec = $Accounts->fetch($rec->{"{$type}AccId"});
+                    $accRec = acc_Accounts::fetch($rec->{"{$type}AccId"});
                     
                     foreach (range(1, 3) as $i) {
                         $ent = "{$type}Item{$i}";
                         
                         if ($rec->{$ent}) {
                             $row->{$ent} = $mvc->recToVerbal($rec, $ent)->{$ent};
-                            $listGroupTitle = $Lists->fetchField($accRec->{"groupId{$i}"}, 'name');
+                            $listGroupTitle = acc_Lists::fetchField($accRec->{"groupId{$i}"}, 'name');
                             $ents .= "<li><span style='margin-left:10px; font-size: 11px; color: #747474;'>{$i}.</span> " . $row->{$ent} . '</li>';
                         }
                     }
@@ -236,7 +236,7 @@ class acc_JournalDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	// В кой баланс е влязал записа
+    	// В кой баланс е влязъл записа
     	$valior = $mvc->Master->fetchField($rec->journalId, 'valior');
     	$balanceValior = acc_Balances::fetch("#fromDate <= '{$valior}' AND '{$valior}' <= #toDate");
     	

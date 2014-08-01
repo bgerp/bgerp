@@ -94,6 +94,10 @@
                             </div>
 	                        <!--ET_END currencyId-->
 	                        
+	                        <!--ET_BEGIN isPaid-->
+                        		<div style='color:red'>[#isPaid#]</div>
+                       		<!--ET_END isPaid-->
+                       		
 	                        <!--ET_BEGIN bankAccountId-->
 	                        <hr>
 	                        <div class='cellRow'>
@@ -107,7 +111,6 @@
                                 <span class='quiet'>|Каса|*: </span>[#caseId#]
                             </div> 
 	                        <!--ET_END caseId-->
-                        
                     </td>
                     <!--ET_BEGIN conditions-->
                          [#conditions#]
@@ -148,7 +151,7 @@
                         <!--ET_BEGIN notes-->
                             [#notes#]
                         <!--ET_END notes-->
-                        </ol>  
+                        </ol>
                     </td>
                      <!--ET_END conditions-->
                     <td class="topCell" align="right" valign="top" width='33%'>

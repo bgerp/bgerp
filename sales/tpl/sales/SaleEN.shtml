@@ -97,6 +97,10 @@
                             </div>
                             <!--ET_END currencyId-->
                             
+                            <!--ET_BEGIN isPaid-->
+                        		<div style='color:red'>[#isPaid#]</div>
+                       		<!--ET_END isPaid-->
+                       		
                             <!--ET_BEGIN bankAccountId-->
                             <hr>
                             <div class='cellRow'>

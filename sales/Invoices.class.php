@@ -311,9 +311,10 @@ class sales_Invoices extends core_Master
     	
         $this->sales_InvoiceDetails->calculateAmount($recs, $rec);
         
-        $rec->dealValue = round($this->_total->amount * $rec->rate, 8);
-        $rec->vatAmount = round($this->_total->vat * $rec->rate, 8);
-        $rec->discountAmount = round($this->_total->discount * $rec->rate, 8);
+        $rec->dealValue = round($this->_total->amount * $rec->rate, 2);
+        $rec->vatAmount = round($this->_total->vat * $rec->rate, 2);
+        
+        $rec->discountAmount = round($this->_total->discount * $rec->rate, 2);
     	$this->save($rec);
     }
     
@@ -350,7 +351,7 @@ class sales_Invoices extends core_Master
         if($className == 'crm_Persons'){
         	$numType = 'bglocal_EgnType';
         	$form->setField('uicNo', 'caption=Получател->ЕГН');
-        	$form->$mvc->getField('uicNo')->type = cls::get($numType);
+        	$form->getField('uicNo')->type = cls::get($numType);
         }
         
         $type = ($t = Request::get('type')) ? $t : $form->rec->type;
@@ -400,7 +401,7 @@ class sales_Invoices extends core_Master
 	   	
 	   	$form->setReadOnly('vatRate');
 	   	
-	   	// Метод който да бъде прихванат от sales_plg_DpInvoice
+	   	// Метод който да бъде прихванат от acc_plg_DpInvoice
 	   	$mvc->prepareDpInvoicePlg($data);
     }
     
@@ -457,6 +458,9 @@ class sales_Invoices extends core_Master
         }
 
         acc_Periods::checkDocumentDate($form);
+        
+        // Метод който да бъде прихванат от acc_plg_DpInvoice
+        $mvc->inputDpInvoice($form);
 	}
 	
 	

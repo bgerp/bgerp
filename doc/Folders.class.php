@@ -23,6 +23,19 @@ class doc_Folders extends core_Master
     
     
     /**
+     * Интерфейси
+     */
+    var $interfaces = 'custom_SettingsIntf';
+    
+    
+    /**
+     * Кой може да модофицира
+     * @see custom_SettingsIntf
+     */
+    var $canModify = 'powerUser';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf';
@@ -1025,5 +1038,81 @@ class doc_Folders extends core_Master
         }
         
         return $sharedUsersArr;
+    }
+    
+    
+    /**
+     * Извиква се след изчисляване на ролите необходими за дадено действие
+     * 
+     * @param doc_Folders $mvc
+     * @param string $res
+     * @param string $action
+     * @param object $rec
+     * @param integer $userId
+     */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
+    {
+        // @see custom_Settings
+        if ($action == 'modify' && $rec) {
+            if (!$mvc->haveRightFor('single', $rec)) {
+                $res = 'no_one';
+            }
+        }
+    }
+    
+    
+    /**
+     * Интерфейсен метод на custom_SettingsIntf
+     * Подготвяме формата за персонализиране на настройките за нишката
+     * 
+     * @param core_Form $form
+     * @see custom_SettingsIntf
+     */
+    function prepareCustomizationForm(&$form)
+    {
+        // Задаваме таба на менюто да сочи към документите
+        Mode::set('pageMenu', 'Документи');
+        Mode::set('pageSubMenu', 'Всички');
+        $this->currentTab = 'Теми';
+        
+        // Определяме заглавито
+        $rec = $this->fetch($form->rec->objectId);
+        $row = $this->recToVerbal($rec, 'title');
+        $form->title .= ' на папка|*: ' . $row->title;
+        
+        // Добавяме функционални полета
+        $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени нишки->Известяване, input=input');
+        $form->FNC('shortLinks', 'enum(default=Автоматично, yes=Да, no=Не)', 'caption=Бързи връзки->Показване, input=input');
+        $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
+        $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
+        
+        // Задаваме стойностите по подразбиране
+        $form->setDefault('folOpenings', 'default');
+        $form->setDefault('shortLinks', 'default');
+        $form->setDefault('perPage', 'default');
+        $form->setDefault('ordering', 'default');
+        
+        // Сетваме стринг за подразбиране
+        $defaultStr = 'По подразбиране|*: ';
+        
+        // Сетваме стойност по подразбиране
+        $form->setParams('folOpenings', array('hint' => $defaultStr . '|Винаги'));
+        $form->setParams('shortLinks', array('hint' => $defaultStr . '|Не'));
+        $form->setParams('perPage', array('hint' => $defaultStr . '20'));
+        $form->setParams('ordering', array('hint' => $defaultStr . '|Първо отворените'));
+    }
+    
+    
+    /**
+     * Интерфейсен метод на custom_SettingsIntf
+     * Проверява въведените данни във формата
+     * 
+     * @param core_Form $form
+     * @see custom_SettingsIntf
+     */
+    function checkCustomizationForm(&$form)
+    {
+        
+        return ;
     }
 }

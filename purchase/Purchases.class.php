@@ -557,6 +557,15 @@ class purchase_Purchases extends core_Master
 			}
 			$row->$fld = ' ';
 			
+			$actions = type_Set::toArray($rec->contoActions);
+			if(isset($actions['ship'])){
+				$row->isDelivered .= tr('ДОСТАВЕНО');
+			}
+				
+			if(isset($actions['pay'])){
+				$row->isPaid .= tr('ПЛАТЕНО');
+			}
+			
 	    	if($rec->makeInvoice == 'no'){
 				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
 			}

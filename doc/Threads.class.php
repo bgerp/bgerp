@@ -30,6 +30,12 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Интерфейси
+     */
+    var $interfaces = 'custom_SettingsIntf';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     var $canList = 'powerUser';
@@ -39,6 +45,13 @@ class doc_Threads extends core_Manager
      * 
      */
     var $canWrite = 'no_one';
+    
+    
+    /**
+     * Кой може да модофицира
+     * @see custom_SettingsIntf
+     */
+    var $canModify = 'powerUser';
     
     
     /**
@@ -59,12 +72,17 @@ class doc_Threads extends core_Manager
     var $listFields = 'title=Заглавие,author=Автор,last=Последно,hnd=Номер,allDocCnt=Документи,createdOn=Създаване';
     
     
+    /**
+     * 
+     */
     var $canNewdoc = 'powerUser';
+    
     
     /**
      * Какви действия са допустими с избраните редове?
      */
     var $doWithSelected = 'open=Отваряне,close=Затваряне,restore=Възстановяване,reject=Оттегляне,move=Преместване';
+    
     
     /**
      * Данните на адресата, с най - много попълнени полета
@@ -79,6 +97,7 @@ class doc_Threads extends core_Manager
      * @see doc_Threads::updateThread()
      */
     protected static $updateQueue = array();
+    
     
     /**
      * Описание на модела на нишките от контейнери за документи
@@ -113,6 +132,9 @@ class doc_Threads extends core_Manager
         
         // Създателя на последния документ в нишката
         $this->FLD('lastAuthor', 'key(mvc=core_Users)', 'caption=Последно->От, input=none');
+        
+        // Ид-та на контейнерите оттеглени при цялостното оттегляне на треда, при възстановяване на треда се занулява
+        $this->FLD('rejectedContainersInThread', 'keylist(mvc=doc_Containers)', 'caption=Заглавие, input=none');
         
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
@@ -876,7 +898,21 @@ class doc_Threads extends core_Manager
         static::save($rec);
 
         // Оттегляме всички контейнери в нишката
-        doc_Containers::rejectByThread($rec->id);
+        $rejectedIds = doc_Containers::rejectByThread($rec->id);
+        
+        if(count($rejectedIds)){
+        	
+        	// Добавяме и контейнера на първия документ в треда
+        	$rejectedIds[] = $rec->firstContainerId;
+        	
+        	// Обръщаме последователността на обратно
+        	$rejectedIds = array_flip($rejectedIds);
+        	
+        	// Ако има оттеглени контейнери с треда, запомняме ги, за да може при възстановяване да възстановим само тях
+        	$rec->rejectedContainersInThread = keylist::fromArray($rejectedIds);
+        	
+        	static::save($rec, 'rejectedContainersInThread');
+        }
     }
     
     
@@ -900,6 +936,13 @@ class doc_Threads extends core_Manager
 
         // Възстановяваме всички контейнери в нишката
         doc_Containers::restoreByThread($rec->id);
+        
+        if($rec->rejectedContainersInThread){
+        	
+        	// Зануляваме при нужда списъка с оттеглените ид-та
+        	unset($rec->rejectedContainersInThread);
+        	static::save($rec, 'rejectedContainersInThread');
+        }
     }
     
     
@@ -919,9 +962,17 @@ class doc_Threads extends core_Manager
             $data->rejectedCnt = $mvc->count("#folderId = {$data->folderId} AND #state = 'rejected'");
             
             if($data->rejectedCnt) {
-                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})" . $rejectedCntVerb , 
+                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", 
                     array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
             }
+        }
+        
+        // Ако има права за модифициране на настройките за персоналзиране
+        if (doc_Folders::haveRightFor('modify', $data->folderId)) {
+            
+            // Добавяме бутон в тулбара
+            $folderClassId = core_Classes::fetchIdByName('doc_Folders');
+            custom_Settings::addBtn($data->toolbar, $folderClassId, $data->folderId);
         }
     }
     
@@ -982,6 +1033,13 @@ class doc_Threads extends core_Manager
             if($rec->state == 'opened' || $rec->state == 'closed') {
                 $res = $mvc->getRequiredRoles('single', $rec, $userId);
             } else {
+                $res = 'no_one';
+            }
+        }
+        
+        // @see custom_Settings
+        if ($action == 'modify' && $rec) {
+            if (!$mvc->haveRightFor('single', $rec)) {
                 $res = 'no_one';
             }
         }
@@ -1365,5 +1423,58 @@ class doc_Threads extends core_Manager
     function on_AfterPrepareListFields($mvc, $res, $data)
     {
         $data->listFields['title'] = "|*<div style='min-width:240px'>|" . $data->listFields['title'] . '|*</div>';
+    }
+    
+    
+    /**
+     * Интерфейсен метод на custom_SettingsIntf
+     * Подготвяме формата за персонализиране на настройките за нишката
+     * 
+     * @param core_Form $form
+     * @see custom_SettingsIntf
+     */
+    function prepareCustomizationForm(&$form)
+    {
+        // Задаваме таба на менюто да сочи към документите
+        Mode::set('pageMenu', 'Документи');
+        Mode::set('pageSubMenu', 'Всички');
+        $this->currentTab = 'Нишка';
+        
+        // Определяме заглавито
+        $rec = $this->fetch($form->rec->objectId);
+        $row = $this->recToVerbal($rec, 'title');
+        $form->title .= ' на нишка|*: ' . $row->title;
+        
+        // Добавяме функционални полета
+        $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Добавяне на документ->Известяване, input=input');
+        $form->FNC('shortLinks', 'enum(default=Автоматично, yes=Да, no=Не)', 'caption=Бързи връзки->Показване, input=input');
+        
+        // Задаваме стойностите по подразбиране
+        $form->setDefault('shortLinks', 'default');
+        $form->setDefault('notify', 'default');
+        
+        // Сетваме стринг за подразбиране
+        $defaultStr = 'По подразбиране|*: ';
+        
+        // Подсказки за позразбиране
+        $form->setParams('notify', array('hint' => $defaultStr . '|Винаги'));
+        $form->setParams('shortLinks', array('hint' => $defaultStr . '|Не'));
+        
+//        $form->setParams('notify', array('unit' => 'Винаги'));
+//        $form->setParams('shortLinks', array('unit' => 'Не'));
+    }
+    
+    
+    /**
+     * Интерфейсен метод на custom_SettingsIntf
+     * Проверява въведените данни във формата
+     * 
+     * @param core_Form $form
+     * @see custom_SettingsIntf
+     */
+    function checkCustomizationForm(&$form)
+    {
+        
+        return ;
     }
 }

@@ -303,6 +303,14 @@ class doc_Containers extends core_Manager
             }
             $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png');
         }
+        
+        // Ако има права за модифициране на настройките за персоналзиране
+        if (doc_Threads::haveRightFor('modify', $data->threadId)) {
+            
+            // Добавяме бутон в тулбара
+            $threadClassId = core_Classes::fetchIdByName('doc_Threads');
+            custom_Settings::addBtn($data->toolbar, $threadClassId, $data->threadId);
+        }
     }
     
     
@@ -1303,6 +1311,7 @@ class doc_Containers extends core_Manager
      * съдържащи се в контейнерите.
      * 
      * @param int $threadId
+     * @return array $rejectedIds - ид-та на документите оттеглени, при оттеглянето на треда
      */
     public static function rejectByThread($threadId)
     {
@@ -1311,6 +1320,10 @@ class doc_Containers extends core_Manager
         $query->where("#threadId = {$threadId}");
         $query->where("#state <> 'rejected'");
         
+        // Подреждаме ги последно модифициране
+        $query->orderBy("#modifiedOn" , 'DESC');
+        
+        $rejectedIds = array();
         while ($rec = $query->fetch()) {
             try{
             	$doc = static::getDocument($rec);
@@ -1318,7 +1331,12 @@ class doc_Containers extends core_Manager
             } catch(Exception $e){
             	continue;
             }
+            
+            // Запомняме ид-та на контейнерите, които сме оттеглили
+            $rejectedIds[] = $rec->id;
         }
+        
+        return $rejectedIds;
     }
     
     
@@ -1330,21 +1348,45 @@ class doc_Containers extends core_Manager
      */
     public static function restoreByThread($threadId)
     {
+        // При възстановяване на треда, гледаме кои контейнери са били оттеглени със него
+    	$rejectedInThread = doc_Threads::fetchField($threadId, 'rejectedContainersInThread');
+        $rejectedInThread = keylist::toArray($rejectedInThread);
+        
         /* @var $query core_Query */
         $query = static::getQuery();
         
         $query->where("#threadId = {$threadId}");
         $query->where("#state = 'rejected'");
+        $query->orderBy("#id", ASC);
         
-        while ($rec = $query->fetch()) {
-            $doc = static::getDocument($rec);
-            $doc->restore();
+        // Ако има документи оттеглени със треда
+        if(count($rejectedInThread)){
+        	// Възстановяваме само тези контейнери от тях
+        	$query->in('id', $rejectedInThread);
+        	
+        	// резултатите са в същата последователност като тази на реда на оттегляне на контейнерите
+        	// така въстановяваме документите в обратната последователност на оттеглянето им
+        	$recs = $query->fetchAll();
+        	$recs = array_replace($rejectedInThread, $recs);
+        } else {
+        	$recs = $query->fetchAll();
+        }
+        
+        if(count($recs)){
+        	foreach ($recs as $rec){
+        		try{
+        			$doc = static::getDocument($rec);
+        			$doc->restore();
+        		} catch(Exception $e){
+        			continue;
+        		}
+        	}
         }
     }
     
     
     /**
-     * 
+     * Връща контрагент данните на контейнера
      */
     static function getContragentData($id)
     {

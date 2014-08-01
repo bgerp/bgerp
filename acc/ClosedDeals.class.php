@@ -242,8 +242,10 @@ abstract class acc_ClosedDeals extends core_Master
 	    	if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
 	    		acc_Lists::removeItem($DocClass, $firstRec->id, $item->lists);
 	    		
-	    		$title = $DocClass->getTitleById($firstRec->id);
-	    		core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
+	    		if(haveRole('ceo,acc,debug')){
+	    			$title = $DocClass->getTitleById($firstRec->id);
+	    			core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
+	    		}
 	    	}
     	}
     }
@@ -271,8 +273,10 @@ abstract class acc_ClosedDeals extends core_Master
 		    if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
 		    	acc_Lists::updateItem($DocClass, $firstRec->id, $item->lists);
 		    	
-		    	$msg = tr("Активирано е перо|* '") . $DocClass->getTitleById($firstRec->id) . tr("' |в номенклатура 'Сделки'|*");
-    			core_Statuses::newStatus($msg);
+		    	if(haveRole('ceo,acc,debug')){
+		    		$msg = tr("Активирано е перо|* '") . $DocClass->getTitleById($firstRec->id) . tr("' |в номенклатура 'Сделки'|*");
+		    		core_Statuses::newStatus($msg);
+		    	}
 		    }
     	}
     }

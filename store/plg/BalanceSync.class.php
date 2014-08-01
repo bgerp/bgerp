@@ -27,11 +27,15 @@ class store_plg_BalanceSync extends core_Plugin
 		// Извличане на данните за склада от баланса
 		$all = self::prepareStoreData();
 		
-		// Синхронизиране на складовите продукти с тези от баланса (@see store_Products)
-		store_Products::sync($all);
-		
-		// Синхронизиране на pos наличностите с тези от баланса (@see pos_Stocks)
-		pos_Stocks::sync($all);
+		// Ако има данни за синхронизиране
+		if($all){
+			
+			// Синхронизиране на складовите продукти с тези от баланса (@see store_Products)
+			store_Products::sync($all);
+			
+			// Синхронизиране на pos наличностите с тези от баланса (@see pos_Stocks)
+			pos_Stocks::sync($all);
+		}
 	}
 	
 	
@@ -43,6 +47,9 @@ class store_plg_BalanceSync extends core_Plugin
 		$all = array();
 		$balanceRec = acc_Balances::getLastBalance();
 		 
+		// Ако няма баланс няма какво да подготвяме
+		if(empty($balanceRec)) return FALSE;
+		
 		// Извличане на сметките по които ще се ситематизират данните
 		$conf = core_Packs::getConfig('store');
 		$storeAccs = keylist::toArray($conf->STORE_ACC_ACCOUNTS);

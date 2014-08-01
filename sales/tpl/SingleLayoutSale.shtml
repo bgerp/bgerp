@@ -48,6 +48,10 @@
 				        <!--ET_BEGIN shipmentStoreId-->
 				        <div style='font-weight:normal'>|от склад|*: <b>[#shipmentStoreId#]</b></div> 
                         <!--ET_END shipmentStoreId-->
+                        
+                        <!--ET_BEGIN isDelivered-->
+                        <div style='color:red'>[#isDelivered#]</div>
+                        <!--ET_END isDelivered-->
 			        </td>
 			    </tr>
 			    <tr style='height:5px'></tr>

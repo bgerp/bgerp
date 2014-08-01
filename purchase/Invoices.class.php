@@ -420,6 +420,9 @@ class purchase_Invoices extends core_Master
         }
 
         acc_Periods::checkDocumentDate($form);
+        
+        // Метод който да бъде прихванат от acc_plg_DpInvoice
+        $mvc->inputDpInvoice($form);
 	}
 	
 	
@@ -1011,7 +1014,7 @@ class purchase_Invoices extends core_Master
     		return;
     	}
     	
-    	$dQuery = $mvc->sales_InvoiceDetails->getQuery();
+    	$dQuery = $mvc->purchase_InvoiceDetails->getQuery();
     	$dQuery->where("#invoiceId = {$rec->id}");
     	$dQuery->where("#quantity = 0");
     	

@@ -288,40 +288,34 @@ class acc_plg_Deals extends core_Plugin
     
     
     /**
-     *
      * Функция, която се извиква след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
+    	$rec = $mvc->fetchRec($rec);
+    	
     	if($rec->state == 'active'){
     		
     		// Ако валутата е активна, добавя се като перо
     		$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
     		acc_Lists::updateItem($mvc, $rec->id, $lists);
     		
-    		$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
-    		core_Statuses::newStatus($msg);
+    		if(haveRole('ceo,acc,debug')){
+    			$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
+    			core_Statuses::newStatus($msg);
+    		}
     	}
     }
     
     
     /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     * След оттегляме запомняме записа, чието перо трябва да се затври на shutdown
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
     	// Ако документа се е оттеглил успешно, записваме му ид-то в модела
     	$rec = $mvc->fetchRec($id);
     	$mvc->rejectedQueue[$rec->id] = $rec->id;
-    }
-    
-    
-    /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
-     */
-    public static function on_AfterRestore1(core_Mvc $mvc, &$res, $id)
-    {
-    	self::on_AfterActivation($mvc, $id);
     }
     
     
@@ -336,8 +330,10 @@ class acc_plg_Deals extends core_Plugin
     			$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
     			acc_Lists::removeItem($mvc, $id, $lists);
     			
-    			$title = $mvc->getTitleById($id);
-    			core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
+    			if(haveRole('ceo,acc,debug')){
+    				$title = $mvc->getTitleById($id);
+    				core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
+    			}
     		}
     	}
     }

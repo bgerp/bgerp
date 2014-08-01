@@ -420,7 +420,7 @@ class acc_BalanceDetails extends core_Detail
             $bShowQuantities = $bShowQuantities || ($listRec->isDimensional == 'yes');
             
             
-                $data->listFields["ent{$i}Id"] = acc_Lists::getVerbal($listRec, 'name');
+                $data->listFields["ent{$i}Id"] = "|*" . acc_Lists::getVerbal($listRec, 'name');
                 
                 if (!$flag) {
                     // Не можем да използваме следните редове повече от веднъж, това е проблем

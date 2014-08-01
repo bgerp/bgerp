@@ -593,7 +593,6 @@ class sales_Sales extends core_Master
 		$amountType = $mvc->getField('amountDeal')->type;
 		$rec->amountToDeliver = round($rec->amountDeal - $rec->amountDelivered, 2);
 		$rec->amountToPay = round($rec->amountDelivered - $rec->amountPaid, 2);
-		//$rec->amountToInvoice = round($rec->amountDelivered - $rec->amountInvoiced, 2);
 		
 		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
@@ -651,6 +650,15 @@ class sales_Sales extends core_Master
 					break;
 			}
 			$row->$fld = ' ';
+			
+			$actions = type_Set::toArray($rec->contoActions);
+			if(isset($actions['ship'])){
+				$row->isDelivered .= tr('ДОСТАВЕНО');
+			}
+			
+			if(isset($actions['pay'])){
+				$row->isPaid .= tr('ПЛАТЕНО');
+			}
 	    }
     }
     
