@@ -519,7 +519,9 @@ class core_Form extends core_FieldSet
     function renderInfo_()
     {
         if (!$this->info) return NULL;
-
+        
+        // Експейпваме инфото за всеки случай, ако случайно има плейсхолдъри в него
+		$this->info = core_ET::escape($this->info);
         
         return new ET($this->info);
     }
