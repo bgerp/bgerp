@@ -81,15 +81,15 @@ class xmpphp_Setup extends core_ProtoSetup
     var $configDescription = array(
         
                
-           'XMPPHP_SERVER'   => array ('varchar', 'caption=Адрес на xmpp чат сървър->URL адрес'),
+           'XMPPHP_SERVER'   => array ('varchar', 'caption=XMPP чат сървър->URL адрес'),
     
-           'XMPPHP_PORT'   => array ('int', 'caption=Порт за връзка->Порт'),
+           'XMPPHP_PORT'   => array ('int', 'caption=XMPP чат сървър->Порт'),
      
-           'XMPPHP_DOMAIN'   => array ('varchar', 'caption=Домейн->Домейн'),
+           'XMPPHP_DOMAIN'   => array ('varchar', 'caption=XMPP чат сървър->Домейн'),
     
-           'XMPPHP_USER'   => array ('identifier', 'mandatory, caption=Име на потребител->Ник'),
+           'XMPPHP_USER'   => array ('identifier', 'mandatory, class=w25,caption=Сметка->Ник'),
     
-           'XMPPHP_PASSWORD'   => array ('password', 'mandatory, caption=Парола->Парола')
+           'XMPPHP_PASSWORD'   => array ('password', 'mandatory, caption=Сметка->Парола')
     
     
         );

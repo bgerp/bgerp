@@ -119,15 +119,15 @@ class backup_Setup extends core_ProtoSetup
      */
     var $configDescription = array (
             
-       'BACKUP_PREFIX'   => array ('varchar', 'caption=Префикс за архивираните файлове'),
-       'BACKUP_STORAGE_TYPE'   => array ('enum(local=локален, ftp=ФТП, rsync=rsync)', 'caption=Тип на мястото за архивиране'),
-       'BACKUP_LOCAL_PATH' => array ('varchar', 'notNull, value=/storage, caption=Настройки локален архив->Локален път'),
-       'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Връзка към MySQL->Потребител в MySQL сървъра с права за бекъп, title=(SELECT, RELOAD, SUPER)'),
-       'BACKUP_MYSQL_USER_PASS'   => array ('password', 'caption=Връзка към MySQL->Парола'),
+       'BACKUP_PREFIX'   => array ('varchar', 'caption=Имена на архивираните файлове->Префикс'),
+       'BACKUP_STORAGE_TYPE'   => array ('enum(local=Локално, ftp=FTP, rsync=Rsync)', 'caption=Място за съхранение на архива->Тип'),
+       'BACKUP_LOCAL_PATH' => array ('varchar', 'notNull, value=/storage, caption=Локален архив->Път'),
+       'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Връзка към MySQL (с права за бекъп)->Потребител, hint=(SELECT, RELOAD, SUPER)'),
+       'BACKUP_MYSQL_USER_PASS'   => array ('password', 'caption=Връзка към MySQL (с права за бекъп)->Парола'),
        'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Връзка към MySQL->Хост'),
-       'BACKUP_CLEAN_KEEP'     => array ('int', 'caption=Брой пълни архиви->Брой пълни бекъп-и които да се пазят'),
-       'BACKUP_CRYPT'     => array ('enum(yes=Да, no=Не)', 'notNull,value=no,maxRadio=2,caption=Данни за криптиране->Криптиране на архивите?'),
-       'BACKUP_PASS'     => array ('varchar', 'caption=Данни за криптиране->Парола за криптиране')
+       'BACKUP_CLEAN_KEEP'     => array ('int', 'caption=Колко пълни бекъп-и да се пазят?->Брой'),
+       'BACKUP_CRYPT'     => array ('enum(yes=Да, no=Не)', 'notNull,value=no,maxRadio=2,caption=Сигурност на архивите->Криптиране'),
+       'BACKUP_PASS'     => array ('password', 'caption=Сигурност на архивите->Парола')
     );
     
     

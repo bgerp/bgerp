@@ -170,7 +170,7 @@ class webkittopdf_Setup extends core_ProtoSetup
             
             $conf = core_Packs::getConfig('webkittopdf');
             
-            return "<li style='color: red;'>" . type_Varchar::escape($conf->WEBKIT_TO_PDF_BIN) . " не е инсталиран" . "</li>";
+            return type_Varchar::escape($conf->WEBKIT_TO_PDF_BIN) . " не е инсталиран";
         }
         
         // Версиите на пакета

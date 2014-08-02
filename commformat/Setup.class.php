@@ -59,7 +59,7 @@ class commformat_Setup extends core_ProtoSetup
                                                      icq=ICQ,
                                                      social=AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype,
                                                      web=Уеб адреси
-                                                     )', 'caption=Форматиране на комуникационни услуги->Услуги'),
+                                                     )', 'caption=Форматиране на адреси за комуникация->Услуги'),
     
              );
     

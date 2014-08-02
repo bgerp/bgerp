@@ -276,7 +276,7 @@ class fileman_Setup extends core_ProtoSetup
         // Ако не е инсталиране
         if (!static::isEnabled()) {
             
-            return "<li style='color: red;'>" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . " не е инсталиран" . "</li>";
+            return type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . " не е инсталиран";
         }
         
         // Версиите на пакета
