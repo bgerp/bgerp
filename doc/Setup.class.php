@@ -72,9 +72,9 @@ class doc_Setup extends core_ProtoSetup
     var $configDescription = array(
     
         // Кой пакет да използваме за генериране на PDF от HTML ?
-        'BGERP_PDF_GENERATOR' => array ('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да използваме за генериране на PDF от HTML->Пакет'),
-        'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array ('time', 'caption=Начално време на нотифициране за незавършени действия с докуемнти->Време'),
-        'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array ('time', 'caption=Крайно време на нотифициране за незавършени действия с докуемнти->Време'),
+        'BGERP_PDF_GENERATOR' => array ('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да се използва за генериране на PDF?->Пакет'),
+        'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Начало,unit=преди проверката'),
+        'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Край,unit=преди проверката'),
     );
     
     

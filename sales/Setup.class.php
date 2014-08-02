@@ -86,11 +86,11 @@ class sales_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'SALE_OVERDUE_CHECK_DELAY' => array("time", "caption=Продажби->Толеранс за просрочване"),
-			'SALE_CLOSE_TOLERANCE'     => array("double(decimals=2)", 'caption=Продажби->Толеранс за приключване'),
-			'SALE_MAX_FUTURE_PRICE'    => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
-			'SALE_MAX_PAST_PRICE'      => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),
-			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Затваряне на по-стари от'),
+			'SALE_OVERDUE_CHECK_DELAY' => array("time", "caption=Толеранс за просрочване на продажбата->Време"),
+			'SALE_CLOSE_TOLERANCE'     => array("double(decimals=2)", 'caption=Толеранс за приключване на продажбата->Сума'),
+			'SALE_MAX_FUTURE_PRICE'    => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Допустим ценови период за продажбата->В бъдещето'),
+			'SALE_MAX_PAST_PRICE'      => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Допустим ценови период за продажбата->В миналото'),
+			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
 			'SALE_INV_MIN_NUMBER'      => array('int', 'caption=Номер на фактура->Долна граница'),
 			'SALE_INV_MAX_NUMBER'      => array('int', 'caption=Номер на фактура->Горна граница'),
 	);

@@ -70,19 +70,19 @@ class blast_Setup extends core_ProtoSetup
     var $configDescription = array(
         
            // Текст за потвърждаване на отписването
-           'BGERP_BLAST_UNSUBSCRIBE' => array ('text', 'caption=Потвърждаване на отписването от списъка за изпращане->Съобщение'),
+           'BGERP_BLAST_UNSUBSCRIBE' => array ('text(rows=5)', 'caption=Потвърждаване на отписването от списъка за изпращане->Съобщение'),
     
          
            // Текст, който се показва, ако не може да се намери имейл адреса в системата
-           'BGERP_BLAST_NO_MAIL'   => array ('text', 'caption=Липсващ имейл за отписване от списъка за изпращане->Съобщение'),
+           'BGERP_BLAST_NO_MAIL'   => array ('text(rows=5)', 'caption=Липсващ имейл за отписване от списъка за изпращане->Съобщение'),
     
              
            // Teкст, който се показва когато премахнем имейл-а от блокираните
-           'BGERP_BLAST_SUCCESS_ADD'   => array ('text', 'caption=Успешно премахване от списъка с блокираните->Съобщение'),
+           'BGERP_BLAST_SUCCESS_ADD'   => array ('text(rows=5)', 'caption=Успешно премахване от списъка с блокираните->Съобщение'),
     
             
            // Текст, който се показва когато добавим имейл-а в списъка на блокираните имейли
-           'BGERP_BLAST_SUCCESS_REMOVED'   => array ('text', 'caption=Успешно добавяне в списъка с блокираните->Съобщение')
+           'BGERP_BLAST_SUCCESS_REMOVED'   => array ('text(rows=5)', 'caption=Успешно добавяне в списъка с блокираните->Съобщение')
         );
     
     

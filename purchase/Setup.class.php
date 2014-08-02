@@ -90,9 +90,9 @@ class purchase_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'PURCHASE_CLOSE_TOLERANCE'     => array("double(decimals=2)", 'caption=Покупки->Толеранс за приключване'),
-			'PURCHASE_OVERDUE_CHECK_DELAY' => array("time", "caption=Покупки->Толеранс за просрочване"),
-			'PURCHASE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Покупки->Затваряне на по-стари от'),
+			'PURCHASE_CLOSE_TOLERANCE'     => array("double(decimals=2)", 'caption=Толеранс за приключване на покупката->Сума'),
+			'PURCHASE_OVERDUE_CHECK_DELAY' => array("time", "caption=Толеранс за просрочване на покупката->Време"),
+			'PURCHASE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на покупката->Дни'),
 		);
 	
 	
