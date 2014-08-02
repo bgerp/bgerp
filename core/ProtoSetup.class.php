@@ -367,11 +367,17 @@ class core_ProtoSetup
         			defIfNot($view."_".$id, 'yes');
         			
         		    $numbMenu =  $id + 1;
-        		    
+
+        		    if($numbMenu == 1) {
+                        $numbMenu = '';
+                    } else {
+                        $numbMenu = " ({$numbMenu})";
+                    }
+
         			$this->configDescription[$position."_".$id] = array ('double', 'caption=Меню '.$numbMenu.'->Позиция');
-        			$this->configDescription[$menuName."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Меню');
+        			$this->configDescription[$menuName."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Група');
         			$this->configDescription[$subMenu."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Подменю');
-        			$this->configDescription[$view."_".$id] = array ('enum(yes=Да, no=Не),row=2', 'caption=Меню '.$numbMenu.'->Видимо,maxRadio=2');
+        			$this->configDescription[$view."_".$id] = array ('enum(yes=Да, no=Не),row=2', 'caption=Меню '.$numbMenu.'->Показване,maxRadio=2');
         			        			
         		}
         	}

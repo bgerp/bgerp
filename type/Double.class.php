@@ -66,7 +66,7 @@ class type_Double extends core_Type {
         
         $originalVal = $value;
         
-        $from = array(',', EF_TYPE_DOUBLE_DEC_POINT, ' ', "'", EF_TYPE_DOUBLE_THOUSANDS_SEP);
+        $from = array(',', '.', ' ', "'", '`');
         
         $to = array('.', '.', '', '', '');
         
@@ -121,14 +121,17 @@ class type_Double extends core_Type {
     {
         if(!strlen($value)) return NULL;
         
+        
+        $conf = core_Packs::getConfig('core');
+        $decPoint = $conf->EF_NUMBER_DEC_POINT;
+        $thousandsSep = $conf->EF_NUMBER_THOUSANDS_SEP;
+        
         setIfNot($decimals, $this->params['decimals'], EF_NUMBER_DECIMALS);
+        
         if($this->params['smartRound']){
-        	$decimals = min(strlen(substr(strrchr($value, "."), 1)), $decimals);
+        	$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
         }
-        
-        $decPoint = EF_NUMBER_DEC_POINT;
-        $thousandsSep = EF_NUMBER_THOUSANDS_SEP;
-        
+
         $value = number_format($value, $decimals, $decPoint, $thousandsSep);
         
         if(!Mode::is('text', 'plain')) {

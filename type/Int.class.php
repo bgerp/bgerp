@@ -3,12 +3,6 @@
 
 
 /**
- * Кой символ да използваме за разделител на хилядите?
- */
-defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
-
-
-/**
  * Клас  'type_Int' - Тип за цели числа
  *
  *
@@ -54,9 +48,9 @@ class type_Int extends core_Type {
     {
         $originalVal = $val;
         
-        $from = array(',', EF_TYPE_DOUBLE_DEC_POINT, ' ', "'", EF_TYPE_DOUBLE_THOUSANDS_SEP);
+        $from = array(',', ' ', "'", '`');
         
-        $to = array('.', '.', '', '', '');
+        $to = array('.', '', '', '');
         
         $val = str_replace($from, $to, trim($val));
         
@@ -135,10 +129,10 @@ class type_Int extends core_Type {
     {
         if(!isset($value)) return NULL;
         
-        $thousandsSep = EF_NUMBER_THOUSANDS_SEP;
+        $conf = core_Packs::getConfig('core');
         
         if(strlen($value) > 4) {
-            $value = number_format($value, 0, '', $thousandsSep);
+            $value = number_format($value, 0, $conf->EF_TYPE_DOUBLE_DEC_POINT, $conf->EF_NUMBER_THOUSANDS_SEP);
         }
         
     	if(!Mode::is('text', 'plain')) {

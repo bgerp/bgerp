@@ -28,7 +28,7 @@ class type_Enum extends core_Type {
      */
     function toVerbal($value)
     {
-        if(empty($value)) return NULL;
+        if(!isset($value)) return NULL;
         
         if(!isset($this->options[$value])) return "{$value}?";
         

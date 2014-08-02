@@ -99,6 +99,18 @@ defIfNot('CORE_TEMP_PATH_MAX_AGE', 864000);
 
 
 /**
+ * Разделител за хилядите при форматирането на числата
+ */
+defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
+
+
+/**
+ * Дробен разделител при форматирането на числата
+ */
+defIfNot('EF_NUMBER_DEC_POINT', '.');
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -145,6 +157,10 @@ class core_Setup extends core_ProtoSetup {
            'EF_DATE_FORMAT'   => array ('varchar', 'caption=Формат по подразбиране за датата при широки екрани->Формат'),
     
            'EF_DATE_NARROW_FORMAT'   => array ('varchar', 'caption=Формат по подразбиране за датата при мобилни екрани->Формат'),
+            
+           'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=|*&#x20;,\'=\',`=`)', 'caption=Форматиране на числа->Разделител за хилядите'),
+
+           'EF_NUMBER_DEC_POINT' => array( 'enum(.=|*.,&#44;=|*&#44;)', 'caption=Форматиране на числа->Дробен разделител'),
          
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'), 
     
@@ -152,11 +168,11 @@ class core_Setup extends core_ProtoSetup {
            
            'EF_MAX_EXPORT_CNT' => array ('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
            
-           'PLG_SEACH_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи, от които ще се генерират ключови думи->Брой символи'),
+           'PLG_SEACH_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи за генериране на ключови думи->Брой символи'),
            
            'CORE_LOGIN_TIMESTAMP_DEVIATION' => array ('time(suggestions=30 мин|1 час|90 мин|2 часа)', 'caption=Максималното отклоненение в таймстампа при логване в системата->Време'),
            
-           'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array ('int', 'caption=Логвания от един и същи потребител, за показване на ника по подразбиране->Брой'),
+           'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array ('int', 'caption=Запомняне на потребителя при логване от един браузър->Брой логвания'),
            
            'CORE_LOGIN_LOG_FETCH_DAYS_LIMIT' => array ('time(suggestions=1 месец|45 дни|2 месеца|3 месеца)', 'caption=Колко време назад да се търси в лога->Време'),
            

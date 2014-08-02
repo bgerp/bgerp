@@ -777,7 +777,7 @@ class core_Packs extends core_Manager
 
             $form->FNC($field, $type, $params);
             
-            if ($data[$field]) { 
+            if ($data[$field] && ($data[$field] != constant($field))) { 
                 $form->setDefault($field, $data[$field]);
             } elseif(defined($field)) {
                 $form->setDefault($field, constant($field));
@@ -830,8 +830,8 @@ class core_Packs extends core_Manager
         
         $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close16.png');
         
-        if (method_exists($setup, 'checkConfig')) {
-            $form->info = $setup->checkConfig();
+        if (method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
+            $form->info = "<div style='padding:10px;border:dotted 1px red;background-color:#ffff66;color:red;'>{$errMsg}</div>";
         }
         
         return $this->renderWrapping($form->renderHtml());
