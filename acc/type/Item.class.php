@@ -56,7 +56,7 @@ class acc_type_Item extends type_Key
         $this->options = array();
         
         $cleanQuery = $mvc->getQuery();
-        $cleanQuery->show("id, {$select}");
+        $cleanQuery->show("id, {$select}, state");
         
         // За всяка от зададените в `lists` номенклатури, извличаме заглавието и принадлежащите 
         // й пера. Заглавието става <OPTGROUP> елемент, перата - <OPTION> елементи
@@ -78,12 +78,22 @@ class acc_type_Item extends type_Key
             // Извличаме перата на текущата номенклатура
             $query = clone($cleanQuery);
             $query->where("#lists LIKE '%|{$listRec->id}|%'");
-            $query->where("#state = 'active'");
+            
+            // Показваме само активните, само ако е не е зададено в типа 'showAll'
+            if(empty($this->params['showAll'])){
+            	$query->where("#state = 'active'");
+            }
             
             while ($itemRec = $query->fetch()) {
+            	$title = acc_Items::getVerbal($itemRec, $select);
+            	
+            	// Ако перото е затворено, указваме го в името му
+            	if($itemRec->state == 'closed'){
+            		$title .= " (" . tr('затворено') . ")";
+            	}
             	
             	// Слагаме вербалното име на перата, и за всеки случай премахваме html таговете ако има
-                $this->options["{$itemRec->id}.{$listRec->id}"] = strip_tags(acc_Items::getVerbal($itemRec, $select));
+                $this->options["{$itemRec->id}.{$listRec->id}"] = strip_tags($title);
             }
         }
     }

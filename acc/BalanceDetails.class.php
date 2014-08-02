@@ -178,8 +178,8 @@ class acc_BalanceDetails extends core_Detail
     	
     	$recs = $data->recs;
     	
-    	$arr = array('debitAmount', 'baseAmount', 'creditAmount', 'baseAmount', 'blAmount');
-    	$debitQuantity = $debitAmount = $creditQuantity = $creditAmount = $baseQuantity = $baseAmount = $blAmount = $blQuantity = 0;
+    	$arr = array('debitAmount', 'creditAmount', 'baseAmount', 'blAmount');
+    	$debitQuantity = $debitAmount = $creditAmount = $baseQuantity = $baseAmount = $blAmount =  0;
     	foreach ($recs as $rec){
     		foreach ($arr as $param){
     			${$param} += $rec->{$param};
@@ -1349,9 +1349,11 @@ class acc_BalanceDetails extends core_Detail
     	
     	$optionsTo = $optionsFrom = array();
     	
-    	// За начална и крайна дата, слагаме по пдоразбиране, датите на периодите
-    	// за коиот има изчислени оборотни ведомости
+    	// За начална и крайна дата, слагаме по подразбиране, датите на периодите
+    	// за които има изчислени оборотни ведомости
     	$balanceQuery = acc_Balances::getQuery();
+    	$balanceQuery->orderBy("#fromDate", "ASC");
+    	
     	while($bRec = $balanceQuery->fetch()){
     		$bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
     		$optionsFrom[$bRec->fromDate] = $bRow->periodId . " ({$bRow->fromDate})";

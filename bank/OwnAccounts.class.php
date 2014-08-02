@@ -38,7 +38,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, bankAccountId, type';
+    var $listFields = 'tools=Пулт, title, bankAccountId, currency=Валута, type';
     
     
     /**
@@ -177,6 +177,9 @@ class bank_OwnAccounts extends core_Master {
     {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
     	$row->bankAccountId = ht::createLink($row->bankAccountId, array('bank_Accounts', 'single', $rec->bankAccountId));
+    	
+    	$currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+    	$row->currency = currency_Currencies::getCodeById($currencyId);
     }
     
     

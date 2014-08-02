@@ -154,6 +154,26 @@ class acc_Articles extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,input=none');
+        $this->FLD('useCloseItems', 'enum(no=Не,yes=Да)', 'caption=Използване на приключени пера->Избор,maxRadio=2,notNull,default=no,input=none');
+        
+        // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
+        if(haveRole('accMaster')){
+        	$this->canUseClosedItems = TRUE;
+        }
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	// Ако потребителя може да избира приключени пера, показваме опцията за избор на формата
+    	if($mvc->canUseClosedItems === TRUE){
+    		
+    		$data->form->setField('useCloseItems', 'input');
+    		$data->form->setDefault('useCloseItems', 'no');
+    	}
     }
     
     
@@ -200,7 +220,11 @@ class acc_Articles extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
+      	if(empty($rec->totalAmount)){
+      		$row->totalAmount = $mvc->getFieldType('totalAmount')->toVerbal(0);
+      	}
+      	
+    	$row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
     }
     
     
