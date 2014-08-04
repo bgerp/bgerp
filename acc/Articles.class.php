@@ -34,7 +34,7 @@ class acc_Articles extends core_Master
      */
     var $loadList = 'plg_RowTools, plg_Printing, doc_plg_HidePrices,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, bgerp_plg_Blank, plg_Search';
+                     doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search';
     
     
     /**
@@ -173,37 +173,6 @@ class acc_Articles extends core_Master
     		
     		$data->form->setField('useCloseItems', 'input');
     		$data->form->setDefault('useCloseItems', 'no');
-    	}
-    }
-    
-    
-	/**
-     * Малко манипулации след подготвянето на формата за филтриране
-     */
-    static function on_AfterPrepareListFilter($mvc, $data)
-    {
-    	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->FNC('dateFrom', 'date', 'input,caption=От');
-    	$data->listFilter->FNC('dateTo', 'date', 'input,caption=До');
-    	$data->listFilter->setDefault('dateFrom', date('Y-m-01'));
-		$data->listFilter->setDefault('dateTo', date("Y-m-t", strtotime(dt::now())));
-		if(!isset($data->listFilter->fields['Rejected'])) {
-			$data->listFilter->FNC('Rejected', 'int', 'input=hidden');
-		}
-		$data->listFilter->setDefault('Rejected', Request::get('Rejected', 'int'));
-		
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
-    	$data->listFilter->showFields = 'dateFrom, dateTo, search';
-    	$data->listFilter->input();
-    	
-    	$data->query->orderBy('id', 'DESC');
-    	
-    	if($data->listFilter->rec->dateFrom){
-    		$data->query->where(array("#valior >= '[#1#]'", $data->listFilter->rec->dateFrom));
-    	}
-    	
-    	if($data->listFilter->rec->dateTo){
-    		$data->query->where(array("#valior <= '[#1#] 23:59:59'", $data->listFilter->rec->dateTo));
     	}
     }
     
