@@ -1309,7 +1309,12 @@ function setFormElementsWidth()
 	formElWidth =  winWidth - outsideWidth;
 	
 	// колко ЕМ е широка страницата
-	var sizeInEm = winWidth / parseFloat($(".formTable input[type=text]").css("font-size")); 
+	var currentEm = parseFloat($(".formTable input[type=text]").css("font-size"));
+	if(!currentEm){
+		currentEm = parseFloat($(".formTable select").css("font-size"));
+	}
+	
+	var sizeInEm = winWidth / currentEm; 
 	 	
 	// колко РХ е 1 ЕМ
 	var em = parseInt(winWidth / sizeInEm);
