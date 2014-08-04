@@ -83,7 +83,7 @@ class acc_ActiveShortBalance {
 	 * @param mixxed $accs - масив от систем ид-та на сметка
 	 * @return stdClass $res - масив с 'amount' - крайното салдо
 	 */
-	public function getAmount($accs)
+	public function getAmount($accs, $itemId = FALSE)
 	{
 		$arr = arr::make($accs);
 		expect(count($arr));
@@ -91,6 +91,13 @@ class acc_ActiveShortBalance {
 		$res = 0;
 		foreach ($arr as $accSysId){
 			foreach ($this->balance as $index => $b){
+				
+				// Ако филтрираме и по перо, пропускаме тези записи, в които то не участва
+				if($itemId){
+					$indexArr = explode('|', $index);
+					if(!in_array($itemId, $indexArr)) continue;
+				}
+				
 				if($b['accountSysId'] == $accSysId){
 					$res += $b['blAmount'];
 				}
