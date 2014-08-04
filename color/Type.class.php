@@ -16,7 +16,13 @@
  */
 class color_Type extends type_Varchar {
     
-    
+	
+	/**
+	 * Параметър определящ максималната широчина на полето
+	 */
+	var $maxFieldSize = 10;
+	
+	
     /**
      * @todo Чака за документация...
      */
