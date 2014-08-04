@@ -290,7 +290,7 @@ class sales_transaction_Sale
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         expect($rec->caseId, 'Генериране на платежна част при липсваща каса!'); 
-        $amountBase = $quantityAmountBase = 0;
+        $amountBase = $quantityAmount = 0;
         
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
@@ -302,7 +302,7 @@ class sales_transaction_Sale
         	$amountBase += $this->class->_total->vat;
         }
         
-        $quantityAmountBase += currency_Currencies::round($amountBase, $rec->currencyId);
+        $quantityAmount += currency_Currencies::round($amountBase / $rec->currencyRate, $rec->currencyId);
         
         $entries[] = array(
                 'amount' => currency_Currencies::round($amountBase), // В основна валута
@@ -311,7 +311,7 @@ class sales_transaction_Sale
                     '501', // Сметка "501. Каси"
                         array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
                         array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                    'quantity' => $quantityAmountBase, // "брой пари" във валутата на продажбата
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
@@ -319,7 +319,7 @@ class sales_transaction_Sale
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                 		array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
                         array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-                    'quantity' => $quantityAmountBase, // "брой пари" във валутата на продажбата
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
                 ),
             );
             
