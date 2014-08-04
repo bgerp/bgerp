@@ -1283,6 +1283,9 @@ div.hFormField {
 
 .listTopContainer {
 	width: 100%;
+}
+
+.wide .listTopContainer {
 	min-width:760px;
 }
 
@@ -2787,7 +2790,7 @@ div.statuses-message h2 {
 }
 
 body.narrow {
-	min-width:320px;
+	1min-width:320px;
 }
 
 .highlight-row{
