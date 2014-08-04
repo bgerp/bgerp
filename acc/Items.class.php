@@ -750,9 +750,20 @@ class acc_Items extends core_Manager
      */
     public static function on_Shutdown($mvc)
     {
-        foreach ($mvc->touched as $rec) {
-            $mvc->save($rec, 'lastUseOn');
-        }
+        $mvc->flushTouched();
+    }
+    
+    
+    /**
+     * Обновява последното използване на всички заопашени пера
+     */
+    public function flushTouched()
+    {
+    	if(count($this->touched)){
+    		foreach ($this->touched as $rec) {
+    			$this->save($rec, 'lastUseOn');
+    		}
+    	}
     }
     
     
