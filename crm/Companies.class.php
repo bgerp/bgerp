@@ -625,6 +625,26 @@ class crm_Companies extends core_Master
     }
     
     
+    /**
+     * Подготвяме опциите на тип key
+     *
+     * @param std Class $mvc
+     * @param array $options
+     * @param std Class $typeKey
+     */    
+    static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
+    {
+       if ($typeKey->params['select'] == 'name') {
+	       $query = $mvc->getQuery();
+	       $mvc->restrictAccess($query);
+	       
+	       while($rec = $query->fetch("#state != 'rejected'")) {
+	       	   $typeKey->options[$rec->id] = type_Varchar::escape($rec->name) . " ({$rec->id})";
+	       }
+       }
+    }
+    
+    
 	/**
      * Обновява номера за фирмата
      */
