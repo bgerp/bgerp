@@ -147,7 +147,9 @@ class doc_UnsortedFolders extends core_Master
      */
     function description()
     {
-        $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory,width=400px');
+        $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory');
+        $this->FLD('description' , 'richtext', 'caption=Описание');
+        $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време');
         $this->setDbUnique('name');
     }
     
@@ -164,4 +166,5 @@ class doc_UnsortedFolders extends core_Master
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
         }
     }
+
 }
