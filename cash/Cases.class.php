@@ -165,19 +165,21 @@ class cash_Cases extends core_Master {
 	/**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$mvc, &$row, &$rec)
+    function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
         
-        $caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-        $Balance = new acc_ActiveShortBalance($caseItem->id);
-        $rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $caseItem->id);
-        
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "<span>";
-        if($rec->blAmount < 0){
-        	$row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+        if(isset($fields['-list'])){
+        	$caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+        	$Balance = new acc_ActiveShortBalance($caseItem->id);
+        	$rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $caseItem->id);
+        	
+        	$Double = cls::get('type_Double');
+        	$Double->params['decimals'] = 2;
+        	$row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "<span>";
+        	if($rec->blAmount < 0){
+        		$row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+        	}
         }
     }
     

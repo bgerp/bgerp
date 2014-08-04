@@ -173,20 +173,22 @@ class bank_OwnAccounts extends core_Master {
 	/**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$mvc, &$row, &$rec)
+    function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
     	$row->bankAccountId = ht::createLink($row->bankAccountId, array('bank_Accounts', 'single', $rec->bankAccountId));
     	
-    	$bankItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-    	$Balance = new acc_ActiveShortBalance($bankItem->id);
-    	$rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $bankItem->id);
-    	
-    	$Double = cls::get('type_Double');
-    	$Double->params['decimals'] = 2;
-    	$row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "<span>";
-    	if($rec->blAmount < 0){
-    		$row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+    	if(isset($fields['-list'])){
+    		$bankItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+    		$Balance = new acc_ActiveShortBalance($bankItem->id);
+    		$rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $bankItem->id);
+    		 
+    		$Double = cls::get('type_Double');
+    		$Double->params['decimals'] = 2;
+    		$row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "<span>";
+    		if($rec->blAmount < 0){
+    			$row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+    		}
     	}
     	
     	$currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
