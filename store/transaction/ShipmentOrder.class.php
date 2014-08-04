@@ -3,9 +3,9 @@
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_ShipmentOrders
  *
  * @category  bgerp
- * @package   sales
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @package   store
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 

@@ -29,7 +29,7 @@ class store_Transfers extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_Transfer';
     
     
     /**
@@ -352,63 +352,6 @@ class store_Transfers extends core_Master
     public static function getAllowedFolders()
     {
     	return array('store_iface_TransferFolderCoverIntf');
-    }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function getTransaction($id)
-    {
-        // Извличане на мастър-записа
-        expect($rec = self::fetchRec($id));
-
-        $result = (object)array(
-            'reason' => "Междускладов трансфер №{$rec->id}",
-            'valior' => $rec->valior,
-            'totalAmount' => NULL,
-            'entries' => array()
-        );
-        
-        $dQuery = store_TransfersDetails::getQuery();
-        $dQuery->where("#transferId = '{$rec->id}'");
-        while($dRec = $dQuery->fetch()){
-        	$sProd = store_Products::fetch($dRec->productId);
-        	
-        	// Ако артикула е вложим сметка 302 иначе 321
-        	$accId = ($dRec->isConvertable == 'yes') ? '302' : '321';
-        	$result->entries[] = array(
-        		 'credit'  => array($accId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
-                       array('store_Stores', $rec->fromStore), // Перо 1 - Склад
-                       array($sProd->classId, $sProd->productId),  // Перо 2 - Артикул
-                  'quantity' => $dRec->quantity, // Количество продукт в основната му мярка,
-	             ),
-	             
-                  'debit' => array($accId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
-                       array('store_Stores', $rec->toStore), // Перо 1 - Склад
-                       array($sProd->classId, $sProd->productId),  // Перо 2 - Артикул
-                  'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
-	             ),
-	       );
-        }
-        
-        return $result;
-    }
-        
-    
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        $rec->state = 'active';
-        
-        return self::save($rec, 'state');
     }
     
     
