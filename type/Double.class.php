@@ -121,15 +121,17 @@ class type_Double extends core_Type {
     {
         if(!strlen($value)) return NULL;
         
-        
         $conf = core_Packs::getConfig('core');
         $decPoint = $conf->EF_NUMBER_DEC_POINT;
         $thousandsSep = $conf->EF_NUMBER_THOUSANDS_SEP;
         
         setIfNot($decimals, $this->params['decimals'], EF_NUMBER_DECIMALS);
         
+        // Ако закръгляме умно
         if($this->params['smartRound']){
-        	$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
+        	
+        	// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
+        	$decimals = min(strlen(substr(strrchr($value, '.'), 1)), $decimals);
         }
 
         $value = number_format($value, $decimals, $decPoint, $thousandsSep);
