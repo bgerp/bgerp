@@ -426,9 +426,11 @@ class acc_Items extends core_Manager
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'edit') && isset($rec->classId)){
-    		$Class = cls::get($rec->classId);
-    		if(!$Class->haveRightFor('edit', (object)array( 'id' => $rec->objectId))){
-    			$res = 'no_one';
+    		if(cls::load($rec->classId, TRUE)){
+    			$Class = cls::get($rec->classId);
+    			if(!$Class->haveRightFor('edit', (object)array( 'id' => $rec->objectId))){
+    				$res = 'no_one';
+    			}
     		}
     	}
     	
@@ -939,5 +941,43 @@ class acc_Items extends core_Manager
     	}
     	
     	return $item;
+    }
+    
+    
+    /**
+     * Изтрива всички затворени и неизползвани пера
+     */
+    public function cron_DeleteUnusedItems()
+    {
+    	$numRows = $this->delete("#state = 'closed' AND #lastUseOn IS NULL");
+    	
+    	if($numRows){
+    		$this->log("Изтрити са {$numRows} неизползвани, затворени пера");
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	// Крон метод за затваряне на остарели продажби
+    	$rec = new stdClass();
+    	$rec->systemId = "Delete Items";
+    	$rec->description = "Изтриване на неизползвани затворени пера";
+    	$rec->controller = "acc_Items";
+    	$rec->action = "DeleteUnusedItems";
+    	$rec->period = 1440;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 100;
+    	
+    	$Cron = cls::get('core_Cron');
+    	if($Cron->addOnce($rec)) {
+    		$res .= "<li><font color='green'>Задаване на крон да изтрива затворени, неизползвани пера.</font></li>";
+    	} else {
+    		$res .= "<li>Отпреди Cron е бил нагласен да  изтрива затворени, неизползвани пера.</li>";
+    	}
     }
 }
