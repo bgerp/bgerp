@@ -187,10 +187,14 @@ class acc_Articles extends core_Master
     	$data->listFilter->FNC('dateTo', 'date', 'input,caption=До');
     	$data->listFilter->setDefault('dateFrom', date('Y-m-01'));
 		$data->listFilter->setDefault('dateTo', date("Y-m-t", strtotime(dt::now())));
-    	
+		if(!isset($data->listFilter->fields['Rejected'])) {
+			$data->listFilter->FNC('Rejected', 'int', 'input=hidden');
+		}
+		$data->listFilter->setDefault('Rejected', Request::get('Rejected', 'int'));
+		
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
-    	$data->listFilter->showFields = 'dateFrom,dateTo,search';
-    	$data->listFilter->input(NULL, 'silent');
+    	$data->listFilter->showFields = 'dateFrom, dateTo, search';
+    	$data->listFilter->input();
     	
     	$data->query->orderBy('id', 'DESC');
     	
