@@ -17,7 +17,11 @@
 								<td><b>[#bankAccountId#]</b></td>
 							</tr>
 							<tr>
-								<td class='dt'>|Тип|*:</dt>
+								<td class='dt'>|Валута|*:</td>
+								<td><b>[#currency#]</b></td>
+							</tr>
+							<tr>
+								<td class='dt'>|Тип|*:</td>
 								<td><b>[#type#]</b></td>
 							</tr>
 							<tr>
