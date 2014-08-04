@@ -43,7 +43,7 @@ class cash_Cases extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, name, cashiers';
+    var $listFields = 'tools=Пулт, name, cashiers, blAmount=Сума';
     
     
     /**
@@ -165,9 +165,29 @@ class cash_Cases extends core_Master {
 	/**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
+    function on_AfterRecToVerbal(&$mvc, &$row, &$rec)
     {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
+        
+        $caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+        $Balance = new acc_ActiveShortBalance($caseItem->id);
+        $rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $caseItem->id);
+        
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+        $row->blAmount = $Double->toVerbal($rec->blAmount);
+        if($rec->blAmount < 0){
+        	$row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+        }
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     */
+    static function on_AfterPrepareListFields($mvc, $data)
+    {
+    	$data->listFields['blAmount'] .= ", " . acc_Periods::getBaseCurrencyCode();
     }
     
     
@@ -191,6 +211,31 @@ class cash_Cases extends core_Master {
 				}
 			}
 		}
+    }
+    
+    
+    /**
+     * След рендиране на лист таблицата
+     */
+    public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+    	if(!count($data->rows)) return;
+    	foreach ($data->recs as $rec){
+    		$total += $rec->blAmount;
+    	}
+    	
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	$total = $Double->toVerbal($total);
+    	if($rec->blAmount < 0){
+    		$total = "<span style='color:red'>{$total}</span>";
+    	}
+    	
+    	$lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='3'>[#caption#]: &nbsp;</td><td colspan='2' ><b>[#total#]</b></td></tr>");
+    	$lastRow->replace(tr("Общо"), 'caption');
+    	$lastRow->replace($total, 'total');
+    	
+    	$tpl->append($lastRow, 'ROW_AFTER');
     }
     
     

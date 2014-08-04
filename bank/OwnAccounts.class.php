@@ -38,7 +38,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, bankAccountId, currency=Валута, type';
+    var $listFields = 'tools=Пулт, title, bankAccountId, currency=Валута, type, blAmount=Сума';
     
     
     /**
@@ -173,13 +173,58 @@ class bank_OwnAccounts extends core_Master {
 	/**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
+    function on_AfterRecToVerbal(&$mvc, &$row, &$rec)
     {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
     	$row->bankAccountId = ht::createLink($row->bankAccountId, array('bank_Accounts', 'single', $rec->bankAccountId));
     	
+    	$bankItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+    	$Balance = new acc_ActiveShortBalance($bankItem->id);
+    	$rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $bankItem->id);
+    	
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	$row->blAmount = $Double->toVerbal($rec->blAmount);
+    	if($rec->blAmount < 0){
+    		$row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+    	}
+    	
     	$currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
     	$row->currency = currency_Currencies::getCodeById($currencyId);
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     */
+    static function on_AfterPrepareListFields($mvc, $data)
+    {
+    	$data->listFields['blAmount'] .= ", " . acc_Periods::getBaseCurrencyCode();
+    }
+    
+    
+    /**
+     * След рендиране на лист таблицата
+     */
+    public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+    	if(!count($data->rows)) return;
+    	foreach ($data->recs as $rec){
+    		$total += $rec->blAmount;
+    	}
+    	 
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	$total = $Double->toVerbal($total);
+    	if($rec->blAmount < 0){
+    		$total = "<span style='color:red'>{$total}</span>";
+    	}
+    	 
+    	$lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='5'>[#caption#]: &nbsp;</td><td colspan='2' ><b>[#total#]</b></td></tr>");
+    	$lastRow->replace(tr("Общо"), 'caption');
+    	$lastRow->replace($total, 'total');
+    	 
+    	$tpl->append($lastRow, 'ROW_AFTER');
     }
     
     
