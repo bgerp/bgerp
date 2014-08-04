@@ -216,13 +216,14 @@ class acc_Lists extends core_Manager {
     /**
      * Изпълнява се след подготовка на формата за редактиране
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->form->rec->id && $data->form->rec->itemsCnt) {
+    	if (($data->form->rec->id && $data->form->rec->itemsCnt) || $data->form->rec->systemId) {
+            
             // Забрана за промяна на интерфейса на непразните номенклатури
             $data->form->setReadonly('regInterfaceId');
         } else {
-            $data->form->setField('regInterfaceId', 'allowEmpty');
+           $data->form->setField('regInterfaceId', 'allowEmpty');
         }
         
         $data->form->setDefault('isDimensional', 'no');
@@ -494,11 +495,11 @@ class acc_Lists extends core_Manager {
              
              // Перото е използвано - маркираме като 'closed', но не изтриваме
              $itemRec->state = 'closed';
-             $result = !!acc_Items::save($itemRec);
+             $result = acc_Items::save($itemRec);
         }
         
         $AccRegister = cls::getInterface('acc_RegisterIntf', $class);
-        $AccRegister->itemInUse($objectId, false);
+        $AccRegister->itemInUse($objectId, FALSE);
         
         return $result;
     }
