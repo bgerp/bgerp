@@ -32,7 +32,7 @@ class acc_JournalDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals';
+    var $loadList = 'plg_Created, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, Accounts=acc_Accounts, plg_AlignDecimals';
     
     
     /**
