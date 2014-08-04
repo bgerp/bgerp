@@ -60,16 +60,16 @@
 		        </table>
 		     </td>
 			 <td class="cell">
-		         <table>
+		         <table cellpadding="0" cellspacing="2">
 		            <tbody>
 		               <!--ET_BEGIN MyCompanyVatNo-->
 		               <tr>
-		                   <td><small>№ |по ЗДДС|* / <i>VAT ID </i>:</small></td><td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
+		                   <td align="right"><small>№ |по ЗДДС|* / <i>VAT ID </i>:</small></td><td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
 		               </tr>
 		               <!--ET_END MyCompanyVatNo-->
 		               <!--ET_BEGIN uicId-->
 		               <tr>
-		                   <td><small>|ЕИК|* / <i>UIC </i>:</small></td><td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
+		                   <td align="right"><small>|ЕИК|* / <i>UIC </i>:</small></td><td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
 		               </tr>
 		               <!--ET_END uicId-->
 		             </tbody>
