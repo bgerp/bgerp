@@ -162,8 +162,9 @@ class acc_plg_DocumentSummary extends core_Plugin
 		// Основната валута за периода
     	$baseCurrency = acc_Periods::getBaseCurrencyCode();
     	
-    	// Подготовка на обобщаващите данни
-    	static::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
+    	while($rec = $data->listSummary->query->fetch()){
+    		static::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
+    	}
     	
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	
@@ -207,7 +208,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      * @param string $currencyCode - основната валута за периода
      */
     private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
-    {
+    {//bp($rec);
     	if(count($fieldsArr) == 0) return;
     	
     	foreach($fieldsArr as $fld){
