@@ -491,14 +491,10 @@ class acc_Lists extends core_Manager {
         
         // Извличаме съществуващия запис за перо
         if ($itemRec = self::fetchItem($class, $objectId)) {
-            if ($itemRec->lastUseOn) {
-                // Перото е използвано - маркираме като 'closed', но не изтриваме
-                $itemRec->state = 'closed';
-                $result = !!acc_Items::save($itemRec);
-            } else {
-                // Перото никога не е използвано - изтриваме го от БД.
-                $result = (acc_Items::delete($itemRec->id) == 1);
-            }
+             
+             // Перото е използвано - маркираме като 'closed', но не изтриваме
+             $itemRec->state = 'closed';
+             $result = !!acc_Items::save($itemRec);
         }
         
         $AccRegister = cls::getInterface('acc_RegisterIntf', $class);
