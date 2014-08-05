@@ -41,6 +41,18 @@ class toast_Setup extends core_ProtoSetup
     
     
     /**
+     * Пътища до CSS файлове
+     */
+    var $commonCSS = "toast/[#TOAST_MESSAGE_VERSION#]/resources/css/jquery.toastmessage.css";
+    
+    
+    /**
+     * Пътища до JS файлове
+     */
+    var $commonJS = "toast/[#TOAST_MESSAGE_VERSION#]/javascript/jquery.toastmessage.js";
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
