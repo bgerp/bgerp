@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -81,17 +81,6 @@ class acc_plg_Registry extends core_Plugin
     	
         if(empty($fieldList) || $fieldListArr['lists']) {
             acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-        }
-    }
-    
-    
-    /**
-     * Преди изтриване се обновяват перата
-     */
-    function on_AfterDelete($mvc, &$res, $query)
-    {
-        foreach ($query->getDeletedRecs() as $rec) {
-            acc_Lists::updateItem($mvc, $rec->id, NULL);
         }
     }
     
