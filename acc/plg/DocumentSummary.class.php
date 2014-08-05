@@ -166,7 +166,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     		static::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
     	}
     	
-    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => 0)));
     	
     	// Преброяване на черновите документи
     	$activeQuery = clone $data->listSummary->query;
@@ -182,8 +182,8 @@ class acc_plg_DocumentSummary extends core_Plugin
     	unset($activeQuery);
     	
     	// Добавяне в обобщението на броя активирани и броя чернови документи
-    	$data->listSummary->summary['countA'] = (object)array('caption' => tr('Активирани'), 'measure' => tr('бр'), 'quantity' => $Double->toVerbal($activeCount));
-    	$data->listSummary->summary['countB'] = (object)array('caption' => tr('Чернови'), 'measure' => tr('бр'), 'quantity' => $Double->toVerbal($draftCount));
+    	$data->listSummary->summary['countA'] = (object)array('caption' => tr('Активирани'), 'measure' => tr('бр') . ":", 'quantity' => $Double->toVerbal($activeCount));
+    	$data->listSummary->summary['countB'] = (object)array('caption' => tr('Чернови'), 'measure' => tr('бр') . ":", 'quantity' => $Double->toVerbal($draftCount));
     }
 	
 	
@@ -208,7 +208,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      * @param string $currencyCode - основната валута за периода
      */
     private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
-    {//bp($rec);
+    {
     	if(count($fieldsArr) == 0) return;
     	
     	foreach($fieldsArr as $fld){
