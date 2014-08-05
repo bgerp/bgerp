@@ -591,8 +591,11 @@ class sales_Sales extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		$amountType = $mvc->getField('amountDeal')->type;
-		$rec->amountToDeliver = round($rec->amountDeal - $rec->amountDelivered, 2);
-		$rec->amountToPay = round($rec->amountDelivered - $rec->amountPaid, 2);
+		if($rec->state == 'active'){
+			$rec->amountToDeliver = round($rec->amountDeal - $rec->amountDelivered, 2);
+			$rec->amountToPay = round($rec->amountDelivered - $rec->amountPaid, 2);
+			$rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
+		}
 		
 		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {

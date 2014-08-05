@@ -500,9 +500,11 @@ class purchase_Purchases extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$amountType = $mvc->getField('amountDeal')->type;
-		$rec->amountToDeliver = $rec->amountDeal - $rec->amountDelivered;
-		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
-		$rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
+    	if($rec->state == 'active'){
+    		$rec->amountToDeliver = $rec->amountDeal - $rec->amountDelivered;
+    		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
+    		$rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
+    	}
 		
     	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
