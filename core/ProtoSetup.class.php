@@ -305,9 +305,17 @@ class core_ProtoSetup
         // Ако няма плейсхолдер
         if (!$matches[0]) return $pathStr;
         
-        $conf = core_Packs::getConfig($packName);
-        
         foreach ((array)$matches[1] as $key => $constName) {
+            
+            // Ако е подаден и пакета
+            if (strpos($constName, '::')) {
+                
+                // Вземаме пакета за конфигурацията от константата
+                list($confPackName, $constName) = explode('::', $constName);
+                $conf = core_Packs::getConfig($confPackName);
+            } else {
+                $conf = core_Packs::getConfig($packName);
+            }
             
             // Заместваме плейсхолдерите
             $pathStr = str_replace($matches[0][$key], $conf->$constName, $pathStr);
