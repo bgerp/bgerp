@@ -328,7 +328,9 @@ class acc_Balances extends core_Master
     public static function getLastBalance()
     {
     	$query = static::getQuery();
-    	$query->orderBy('#lastCalculate', 'DESC');
+    	
+    	// Подреждаме ги по последно калкулиране и по начална дата в обратен ред
+    	$query->orderBy('#lastCalculate,#fromDate', 'DESC');
     	
     	return $query->fetch();
     }
