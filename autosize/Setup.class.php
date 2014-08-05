@@ -59,6 +59,12 @@ class autosize_Setup extends core_ProtoSetup
     
     
     /**
+     * Пътища до JS файлове
+     */
+    var $commonJS = "autosize/[#AUTOSIZE_VERSION#]/jquery.autosize.min.js";
+    
+    
+    /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
@@ -100,25 +106,4 @@ class autosize_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Връща масив с css и js файловете дефинирани в commonJS и commonCSS
-     *
-     * @return array - Двумерен масив с 'css' и 'js' пътищатата
-     *
-     * @see core_ProtoSetup->getCommonCssAndJs()
-     */
-    function getCommonCssAndJs()
-    {
-    	$cssAnaJsArr = parent::getCommonCssAndJs();
-    	$conf = core_Packs::getConfig('autosize');
-    	
-    	// Пътя до js файла
-    	$jsFile = "autosize/" . $conf->AUTOSIZE_VERSION . "/jquery.autosize.min.js";
-    	$cssAnaJsArr['js'][$jsFile] = $jsFile;
-    	
-    	return $cssAnaJsArr;
-    }
-    
 }

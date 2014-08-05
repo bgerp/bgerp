@@ -62,6 +62,19 @@ class chosen_Setup extends core_ProtoSetup {
     
         );
     
+    
+    /**
+     * Пътища до CSS файлове
+     */
+    var $commonCSS = "[#CHOSEN_PATH#]/chosen.css";
+    
+    
+    /**
+     * Пътища до JS файлове
+     */
+    var $commonJS = "[#CHOSEN_PATH#]/chosen.jquery.js";
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -101,29 +114,5 @@ class chosen_Setup extends core_ProtoSetup {
         $html .= "<li>Премахнати са всички инсталации на 'chosen_PluginSelect'";
        
         return $html;
-    }
-    
-    
-    /**
-     * Връща масив с css и js файловете дефинирани в commonJS и commonCSS
-     *
-     * @return array - Двумерен масив с 'css' и 'js' пътищатата
-     *
-     * @see core_ProtoSetup->getCommonCssAndJs()
-     */
-    function getCommonCssAndJs()
-    {
-    	$cssAnaJsArr = parent::getCommonCssAndJs();
-    	$conf = core_Packs::getConfig('chosen');
-    
-    	// Пътя до js файла
-    	$jsFile = $conf->CHOSEN_PATH . "/chosen.jquery.js";
-    	$cssAnaJsArr['js'][$jsFile] = $jsFile;
-    	
-    	// Пътя до css файла
-    	$cssFile = $conf->CHOSEN_PATH . "/chosen.css";
-    	$cssAnaJsArr['css'][$cssFile] = $cssFile;
-    
-    	return $cssAnaJsArr;
     }
 }

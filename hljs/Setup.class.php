@@ -34,6 +34,18 @@ class hljs_Setup extends core_ProtoSetup
     
 
     /**
+     * Пътища до CSS файлове
+     */
+    var $commonCSS = "hljs/[#HLJS_VERSION#]/styles/default.css";
+    
+    
+    /**
+     * Пътища до JS файлове
+     */
+    var $commonJS = "hljs/[#HLJS_VERSION#]/highlight.pack.js";
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
@@ -68,29 +80,5 @@ class hljs_Setup extends core_ProtoSetup
         }
         
         return $html;
-    }
-    
-    
-    /**
-     * Връща масив с css и js файловете дефинирани в commonJS и commonCSS
-     *
-     * @return array - Двумерен масив с 'css' и 'js' пътищатата
-     *
-     * @see core_ProtoSetup->getCommonCssAndJs()
-     */
-    function getCommonCssAndJs()
-    {
-    	$cssAnaJsArr = parent::getCommonCssAndJs();
-    	$conf = core_Packs::getConfig('hljs');
-    
-    	// Пътя до js файла
-    	$jsFile = 'hljs/' . $conf->HLJS_VERSION . '/highlight.pack.js';
-    	$cssAnaJsArr['js'][$jsFile] = $jsFile;
-    		
-    	// Пътя до css файла
-    	$cssFile =  'hljs/' . $conf->HLJS_VERSION . "/styles/default.css";  ;
-    	$cssAnaJsArr['css'][$cssFile] = $cssFile;
-    
-    	return $cssAnaJsArr;
     }
 }

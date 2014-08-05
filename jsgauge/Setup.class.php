@@ -25,22 +25,8 @@ defIfNot('GAUGE_PATH', 'jsgauge/0.4.1');
 class jsgauge_Setup extends core_ProtoSetup
 {
 	/**
-	 * Връща масив с css и js файловете дефинирани в commonJS и commonCSS
-	 *
-	 * @return array - Двумерен масив с 'css' и 'js' пътищатата
-	 *
-	 * @see core_ProtoSetup->getCommonCssAndJs()
+	 * Пътища до JS файлове
 	 */
-	function getCommonCssAndJs()
-	{
-		$cssAnaJsArr = parent::getCommonCssAndJs();
-		$conf = core_Packs::getConfig('jsgauge');
-	
-		// Пътя до js файла
-		$jsFile = $conf->GAUGE_PATH . '/' . "gauge.js";
-		$cssAnaJsArr['js'][$jsFile] = $jsFile;
-		
-		return $cssAnaJsArr;
-	}
+	var $commonJS = "[#GAUGE_PATH#]/gauge.js";
 }
 

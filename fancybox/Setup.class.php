@@ -26,26 +26,15 @@ defIfNot('FANCYBOX_PATH', 'fancybox/1.3.4');
 class fancybox_Setup extends core_ProtoSetup
 {
 	/**
-	 * Връща масив с css и js файловете дефинирани в commonJS и commonCSS
-	 *
-	 * @return array - Двумерен масив с 'css' и 'js' пътищатата
-	 *
-	 * @see core_ProtoSetup->getCommonCssAndJs()
+	 * Пътища до CSS файлове
 	 */
-	function getCommonCssAndJs()
-	{
-		$cssAnaJsArr = parent::getCommonCssAndJs();
-		$conf = core_Packs::getConfig('fancybox');
+	var $commonCSS = "[#FANCYBOX_PATH#]/jquery.fancybox.css";
 	
-		// Пътя до js файла
-		$jsFile = $conf->FANCYBOX_PATH . '/jquery.fancybox.js';
-		$cssAnaJsArr['js'][$jsFile] = $jsFile;
-		 
-		// Пътя до css файла
-		$cssFile = $conf->FANCYBOX_PATH . '/jquery.fancybox.css';
-		$cssAnaJsArr['css'][$cssFile] = $cssFile;
 	
-		return $cssAnaJsArr;
-	}
+	/**
+	 * Пътища до JS файлове
+	 */
+	var $commonJS = "[#FANCYBOX_PATH#]/jquery.fancybox.js";
+	
 }
 
