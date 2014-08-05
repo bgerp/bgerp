@@ -134,4 +134,19 @@ class acc_plg_Registry extends core_Plugin
     {
         return $mvc instanceof core_Master && $mvc->hasDetail($detailAlias, $detailName);
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete' && isset($rec)){
+    		if(acc_Items::fetchItem($mvc, $rec->id)){
+    			
+    			// Не може да се изтрива ако обекта вече е перо
+    			$res = 'no_one';
+    		}
+    	}
+    }
 }
