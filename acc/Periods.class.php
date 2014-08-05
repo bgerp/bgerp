@@ -529,7 +529,7 @@ class acc_Periods extends core_Manager
         $rec->controller = "acc_Periods";
         $rec->action = "createFuturePeriods";
         $rec->period = 1440;
-        $rec->offset = 1320;
+        $rec->offset = 60;
         
         $Cron->addOnce($rec);
 
