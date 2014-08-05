@@ -564,7 +564,7 @@ class sales_SaleRequests extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if ($data->rec->state == 'active') {
-    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'order=22,ef_icon = img/16/star_2.png,title=Създаване на нова продажба по заявката');
+    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'order=22,ef_icon = img/16/cart_go.png,title=Създаване на нова продажба по заявката');
     	}
     	
     	if($data->rec->state == 'draft') {
