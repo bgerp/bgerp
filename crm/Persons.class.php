@@ -1017,15 +1017,15 @@ class crm_Persons extends core_Master
         		$tpl->append("<div style='font-weight:bold;'>{$row->name}</div>", 'persons');
         		
         		if($row->mobile) {
-        			$tpl->append("<div class='mobile'>{$row->mobile}</div>", 'persons');
+        			$tpl->append("<div class='crm-icon mobile'>{$row->mobile}</div>", 'persons');
         		}
         	
         		if($row->buzTel) {
-        			$tpl->append("<div class='telephone'>{$row->buzTel}</div>", 'persons');
+        			$tpl->append("<div class='crm-icon telephone'>{$row->buzTel}</div>", 'persons');
         		}
         	
         		if($row->buzEmail) {
-        			$tpl->append("<div class='email'>{$row->buzEmail}</div>", 'persons');
+        			$tpl->append("<div class='crm-icon email'>{$row->buzEmail}</div>", 'persons');
         		}
         	
         		$tpl->append("</div>", 'persons');
