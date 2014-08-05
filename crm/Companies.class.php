@@ -567,9 +567,9 @@ class crm_Companies extends core_Master
             $eml = $mvc->getVerbal($rec, 'email');
             
             // phonesBox
-            $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
-            $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
-            $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
+            $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : "";
+            $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : "";
+            $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : "";
             $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
         } else {
             
