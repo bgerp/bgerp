@@ -519,8 +519,6 @@ class acc_Periods extends core_Manager
 		// Форсира създаването на периоди от текущия месец до ACC_FIRST_PERIOD_START
     	$this->forcePeriod(dt::verbal2mysql());
 
-        $this->forceActive();
-
         $this->updateExistingPeriodsState();
         
         $Cron = cls::get('core_Cron');
@@ -530,8 +528,8 @@ class acc_Periods extends core_Manager
         $rec->description = "Създава нови счетоводни периоди";
         $rec->controller = "acc_Periods";
         $rec->action = "createFuturePeriods";
-        $rec->period = 24*60*30;
-        $rec->offset = 3777;
+        $rec->period = 1440;
+        $rec->offset = 1320;
         
         $Cron->addOnce($rec);
 
@@ -562,7 +560,6 @@ class acc_Periods extends core_Manager
     function cron_CreateFuturePeriods()
     {
         $this->forcePeriod(dt::getLastDayOfMonth(NULL, 3));
-        $this->forceActive();
         $this->updateExistingPeriodsState();
     }
     
