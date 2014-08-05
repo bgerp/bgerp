@@ -376,6 +376,7 @@ class purchase_Purchases extends core_Master
     	
     		if($rec->paymentMethodId) {
     			$total = $this->_total->amount- $this->_total->discount;
+    			$total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
     			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
     		}
     	}

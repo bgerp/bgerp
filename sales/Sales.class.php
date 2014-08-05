@@ -835,7 +835,8 @@ class sales_Sales extends core_Master
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
     		if($rec->paymentMethodId) {
-    			$total = $this->_total->amount- $this->_total->discount;
+    			$total = $this->_total->amount - $this->_total->discount;
+    			$total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
     			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
     		}
     	}
