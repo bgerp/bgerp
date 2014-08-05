@@ -2,13 +2,6 @@
 
 
 /**
- * Версията на JQueryUI, която се използва
- */
-defIfNot(JQUERYUI_VERSION, '1.8.2');
-
-
-
-/**
  * Клас 'jqueryui_Ui' - Работа с JQuery UI библиотеката
  *
  *
@@ -42,27 +35,15 @@ class jqueryui_Ui
     
     
     /**
-     * Пътя спрямо версията
-     * 
-     * @return string
-     */
-    static function getPath()
-    {
-        
-        $uiPath = 'jqueryui/' . JQUERYUI_VERSION;
-        
-        return $uiPath;
-    }
-    
-    
-    /**
      * Активира JS
      * 
      * @param core_ET $tpl
      */
     static function enableJS(&$tpl)
     {
-        $jsPath = static::getPath() . '/js/jquery-ui-1.8.2.custom.min.js';
+        $conf = core_Packs::getConfig('jqueryui');
+        
+        $jsPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/js/jquery-ui-1.8.2.custom.min.js";
         
         $tpl->push($jsPath, "JS");
     }
@@ -75,7 +56,9 @@ class jqueryui_Ui
      */
     static function enableCSS(&$tpl)
     {
-        $cssPath = static::getPath() . '/css/custom-theme/jquery-ui-1.8.2.custom.css';
+        $conf = core_Packs::getConfig('jqueryui');
+        
+        $cssPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/css/custom-theme/jquery-ui-1.8.2.custom.css";
         
         $tpl->push($cssPath, "CSS");
         
