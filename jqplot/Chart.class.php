@@ -360,7 +360,7 @@ class jqplot_Chart
      * @param string $name име на jqplot файл относително спрямо базовата jqplot директория.
      * @return string име на файл, готово за sbf()
      */
-    protected static function resource($name)
+    public static function resource($name)
     {
         if (core_App::isDebug() && ($dot = strrpos($name, '.')) !== FALSE) {
             $name = substr($name, 0, $dot) . '.min' . substr($name, $dot);
