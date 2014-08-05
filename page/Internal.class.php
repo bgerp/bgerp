@@ -36,6 +36,7 @@ class page_Internal extends page_Html {
         
         $this->push('css/common.css','CSS');
         $this->push('css/Application.css','CSS');
+        $this->push('css/default-theme.css','CSS');
 
         $browserInfo = Mode::get("getUserAgent");
         
