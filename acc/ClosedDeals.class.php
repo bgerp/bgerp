@@ -304,6 +304,8 @@ abstract class acc_ClosedDeals extends core_Master
 	    $abbr = cls::get(get_called_class())->abbr;
 	    $row->header = cls::get(get_called_class())->singleTitle . " #<b>{$abbr}{$row->id}</b> ({$row->state})";
 	    
+	    $row->docId = cls::get($rec->docClassId)->getHyperLink($rec->docId, TRUE);
+	    
 	    return $row;
     }
     
