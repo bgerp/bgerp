@@ -19,6 +19,18 @@ class calendarpicker_Setup extends core_ProtoSetup
     
     
     /**
+     * 
+     */
+    var $commonCSS = 'calendarpicker/skins/aqua/theme.css';
+    
+    
+    /**
+     * 
+     */
+    var $commonJS = 'calendarpicker/calendar.js, calendarpicker/lang/calendar-[#CORE::EF_DEFAULT_LANGUAGE#].js, calendarpicker/calendar-setup.js';
+    
+    
+    /**
      * Версия на пакета
      */
     var $version = '0.1';
