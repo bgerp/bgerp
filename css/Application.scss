@@ -55,12 +55,6 @@ $orange: #f90; /*оранжево като при ховър на менюто*/
     box-shadow: none;
 }
 
-@mixin crm-icon() {
-	padding-top:3px;
-	padding-left:22px; ;
-	background-repeat:no-repeat;
-	background-position: 3px center;
-}
 
 
  /*common elements*/
@@ -162,11 +156,8 @@ tr.noHover td:hover {
 
 .narrow a.subMenu, .narrow span.subMenu {
     font-size: 0.9em; 
-    margin-top: 1px;
-    margin-bottom: 4px; 
+    margin: 1px 2px 4px 8px;
     display: inline-block !important; 
-    margin-right: 2px;
-    margin-left: 8px;
 }
 
 #mainMenu {
@@ -183,9 +174,9 @@ tr.noHover td:hover {
 }
 
 .selectLang img {
-  padding: 0px;
-  margin: 0px;
-  vertical-align: middle;
+	padding: 0px;
+	margin: 0px;
+	vertical-align: middle;
 }
 
 #maincontent {
@@ -476,7 +467,7 @@ div.folder-cover {
 		font-weight: bold;
 		border-radius: 5px 5px 0 0;
 	}
-   .profile-image>a, .profile-image div {
+   .profile-image > a, .profile-image div {
 		position: absolute;
 		top: 15px;
 		left: 15px;
@@ -593,32 +584,35 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 	background: #ffffe8;
 }
 
-div.telephone { 
-	@include crm-icon();
+.crm-icon{
+	padding-top:3px;
+    padding-left:22px;
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+ 
+div.telephone {
 	background-image: url('../img/16/telephone2.png');
 }
 
-div.fax { 
-	@include crm-icon();
+div.fax {
 	background-image: url('../img/16/fax2.png');
 }
 
-div.email { 
-	@include crm-icon();
+div.email {
 	background-image: url('../img/16/email_link.png');
 }
 
-div.mobile { 
-	@include crm-icon();
+div.mobile {
 	background-image: url('../img/16/mobile2.png');
 	background-position: 5px center;
 }
 
-.telephone a, .fax a, .email a, .mobile a, .communication a {
+.crm-icon a {
 	color: #031;
 }
 
-.telephone a:hover, .fax a:hover, .email a:hover, .mobile a:hover, .communication a:hover {
+.crm-icon a:hover, .communication a:hover {
 	color: #093;
 }
 
@@ -675,28 +669,29 @@ div.acc-detail {
 	border: solid 1px #ccc;
 	background-color: $gray1;
 }
- .acc_ArticleDetails .listTable th{
+
+.acc_ArticleDetails .listTable th{
     white-space: nowrap;
- }
+}
  
 .wide .acc_ArticleDetails .horizontal .formToolbar{
     float: none;
 }
  
- .accCell{
-    padding-left: 10px !important;
-    width: 130px;
- }
- 
- .accToolsCell{
-    width: 1%;
-    a.linkWithIcon{
-        width: 20px;
-        height: 20px;
-        display: inline-block;
-        padding: 0 !important;
-    }
- }
+.accCell{
+   padding-left: 10px !important;
+   width: 130px;
+}
+
+.accToolsCell{
+   width: 1%;
+   a.linkWithIcon{
+       width: 20px;
+       height: 20px;
+       display: inline-block;
+       padding: 0 !important;
+   }
+}
  
 /*детайли*/
 .detail-info {
@@ -751,9 +746,7 @@ div.acc-detail {
 		      margin-top: 10px;
 		    }
 		}
-		table.listTable{
-		    1border: 2px solid #eee;
-		    
+		table.listTable{		    
 			th{
 				background-color: #eee;
 				border: none !important;
@@ -1146,9 +1139,9 @@ pre.document {
 }
 
 .bigData {
-  font-family: "Courier New";
-  font-size: 1em; 
-  font-weight: bold;
+	font-family: "Courier New";
+	font-size: 1em; 
+	font-weight: bold;
 }
 
 .cell {
@@ -1979,11 +1972,11 @@ fieldset.sharing-history {
 }
 
 
-/*Ако newsbar е пуснат и искаме да се показва под картинката трябва да има паддинг */
+/*Ако newsbar е пуснат и искаме да се показва под картинката трябва да има паддинг 
 #cmsTop{
-    1padding-bottom:42px;
+    padding-bottom:42px;
 }
-
+*/
 .newsbar{
     width:100%; 
     text-align:center; 
@@ -2574,17 +2567,21 @@ div.location.public {
     margin-top: -8px;
     margin-right: 20px;
 }
+
 .captionSimple{
     line-height: 1.2em;
     margin: 4px 0 2px 0;
 }
+
 .captionProperties{
     padding-left:20px;
 }
+
 .balance-custom-form tr td{
     padding-bottom: 10px;
     
 }
+
 .narrow .balance-custom-form tr{
 	margin-bottom: 10px;
 }
@@ -2601,6 +2598,7 @@ div.location.public {
 	   display:none;
 	}
 }
+
 .balance-custom-form select{
     width: 100% !important;
     max-width: 400px;
@@ -2626,7 +2624,6 @@ div.location.public {
 #doc_Comments-EditForm {
 	display: inline-block;
 }
-
 
 .btn-group .button {
 	display: inline-block;
@@ -2765,7 +2762,6 @@ div.location.public {
 	width: 87% !important;
 	height: 1.3em;
 }
-
 
 .narrow .portal-filter input {
 	height: 1.2em;
@@ -3715,22 +3711,6 @@ body.narrow {
 		width: 10px;
 		text-align: center;
 	}
-	table.mc-calendar td.rest span, .cal-legend td.rest {
-		color:#D00 important!;
-	}
-	table.mc-calendar td.first span, .cal-legend td.first {
-		color: #008400 important!;
-	}
-	table.mc-calendar td.second span, .cal-legend td.second {
-		color:#df770b important!;
-	}
-	table.mc-calendar td.third span, .cal-legend td.third {
-		color: #0005c1 important!;
-	}
-	
-	table.mc-calendar td.diurnal span, .cal-legend td.diurnal {
-		color: #770ea3 important!;
-	}
 	.cal-legend td {
 		font-weight: bold;
 		text-align: center;
@@ -3905,6 +3885,7 @@ body.narrow {
 #summary b#count {
     margin-left:5px;
 }
+
 #summary td{
     padding:3px;    
 }
@@ -3921,12 +3902,43 @@ body.narrow {
     margin-left:3px;
 }
 
+/*статистика на продажби*/
+.sale-summary {
+    margin-top: 10px;
+    table {
+       width: 100%;
+       td, th {
+           text-align: center;
+           border: 1px solid #ccc;
+           border-collapse: collapse;
+       }
+       .sum-th {
+           background-color: #efefef;
+           font-weight: normal;
+           color: #555;
+           border-bottom: none;
+           padding:0px;
+           font-size:13px;
+       }
+       td {
+           font-size: 1.3em;
+           font-weight: bold;
+           padding: 5px 3px;
+           .quiet {
+               color: #ccc;
+               font-weight: normal;
+           }
+       }
+    }
+}
+
 .feather-icon{
 	background-image: url('../img/16/feather.png');
 	@include btn-style();
 	margin-top: 7px;
 	display: block;
 }
+
 .notBolded{
 	font-weight: normal;
 	font-size: 0.9em;
@@ -3938,13 +3950,10 @@ body.narrow {
 	height: 12px;
 }
     
-@import "partials/sales";
-
 .vislog {
 	white-space:nowrap;
 	display: inline;
 }
-
 
 .vislog_History .vislog {
 	font-size:0.8em;

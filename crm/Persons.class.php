@@ -543,19 +543,19 @@ class crm_Persons extends core_Master
             
                 // Мобилен телефон
                 $mob = $mvc->getVerbal($rec, 'mobile');
-                $row->phonesBox .= $mob ? "<div class='mobile'>{$mob}</div>" : "";
+                $row->phonesBox .= $mob ? "<div class='crm-icon mobile'>{$mob}</div>" : "";
                 
                 // Телефон
                 $tel = $mvc->getVerbal($rec, $rec->buzTel ? 'buzTel' : 'tel');
-                $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
+                $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : "";
                 
                 // Факс
                 $fax = $mvc->getVerbal($rec, $rec->buzFax ? 'buzFax' : 'fax');
-                $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
+                $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : "";
                 
                 // Email
                 $eml = $mvc->getVerbal($rec, $rec->buzEmail ? 'buzEmail' : 'email');
-                $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
+                $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : "";
     
                 $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
             } else {
