@@ -120,7 +120,7 @@ class callcenter_Fax extends core_Manager
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         // Добавяме стил за телефони        
-        $row->faxNum = "<div class='fax'>" . $row->faxNum . "</div>";
+        $row->faxNum = "<div class='fax crm-icon'>" . $row->faxNum . "</div>";
         
         // Ако има данни за търсещия
         if ($rec->faxNumData) {

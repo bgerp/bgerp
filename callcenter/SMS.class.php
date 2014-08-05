@@ -309,7 +309,7 @@ class callcenter_SMS extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         // Добавяме стил за телефони        
-        $row->mobileNum = "<div class='mobile'>" . $row->mobileNum . "</div>";
+        $row->mobileNum = "<div class='mobile crm-icon'>" . $row->mobileNum . "</div>";
         
         // Ако има данни за търсещия
         if ($rec->mobileNumData) {
