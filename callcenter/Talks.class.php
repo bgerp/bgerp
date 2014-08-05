@@ -188,7 +188,7 @@ class callcenter_Talks extends core_Master
             $externalClass = ($externalNumArr[0]->mobile) ? 'mobile' : 'telephone';
             
             // Добавяме стил за телефони        
-            $row->externalNum = "<div class='{$externalClass}'>" . $row->externalNum . "</div>";
+            $row->externalNum = "<div class='{$externalClass} crm-icon'>" . $row->externalNum . "</div>";
         } else {
             
             // Вероятно е обаждане от вътрешен номер. Да няма оцветяване.
