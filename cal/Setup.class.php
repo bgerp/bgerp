@@ -55,7 +55,8 @@ class cal_Setup extends core_ProtoSetup
             'cal_Tasks',
             'cal_TaskProgresses',
             'cal_Holidays',
-        	'cal_Reminders'
+        	'cal_Reminders',
+    		'cal_TaskConditions'
         );
 
         
