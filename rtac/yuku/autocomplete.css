@@ -39,18 +39,11 @@
 .dropdown-menu > li > a:hover,
 .dropdown-menu > li > a:focus,
 .dropdown-submenu:hover > a,
-.dropdown-submenu:focus > a {
-  color: #ffffff;
-  text-decoration: none;
-  background: #3399ff;
-}
-
+.dropdown-submenu:focus > a ,
 .dropdown-menu > .active > a,
 .dropdown-menu > .active > a:hover,
 .dropdown-menu > .active > a:focus {
-  color: #ffffff;
   text-decoration: none;
-  background: #3399ff;
 }
 
 .dropdown-menu > .active > a,.dropdown-menu > li:hover > a{

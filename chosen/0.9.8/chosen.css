@@ -25,11 +25,9 @@
 
 /* @group Single Chosen */
 .chzn-container-single .chzn-single {
-  background-color: #ffffff;
   -moz-background-clip   : padding;
   -webkit-background-clip: padding-box;
   background-clip        : padding-box;
-  border: 1px solid #99f;
   display: block;
   overflow: hidden;
   white-space: nowrap;
@@ -38,7 +36,6 @@
   font-size: 1.07em;
   line-height:normal;
   padding: 0 0 0 3px;
-  color: #222;
   text-decoration: none;
 }
 
@@ -260,10 +257,7 @@
   cursor: pointer;
   display: list-item;
 }
-.chzn-container .chzn-results .highlighted {
-  background-color: #3399ff;
-  color: #fff !important;
-}
+
 .chzn-container .chzn-results li em {
   background: #feffde;
   font-style: normal;
@@ -313,15 +307,8 @@
 /* @end */
 
 /* @group Active  */
-.chzn-container-active .chzn-single {
-  1-webkit-box-shadow: 0 0 5px rgba(0,0,0,.3);
-  1-moz-box-shadow   : 0 0 5px rgba(0,0,0,.3);
-  1box-shadow        : 0 0 5px rgba(0,0,0,.3);
-  border: 1px solid #99f;
-}
+
 .chzn-container-active .chzn-single-with-drop {
-  border: 1px solid #99F;
-  background-color: #FFF;
   -webkit-border-bottom-left-radius : 0;
   -webkit-border-bottom-right-radius: 0;
   -moz-border-radius-bottomleft : 0;
