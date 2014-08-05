@@ -548,10 +548,6 @@ legend img {
 	vertical-align: middle;
 }
 
-.narrow input.contactData {
-	width: 100%;
-}
-
 select {
 	margin-left: 0;
 }
@@ -571,14 +567,11 @@ textarea {
 }
 
 select, input, textarea {
-	background: #fff;
 	-ms-box-sizing: border-box;
 	box-sizing: border-box;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
-	border: solid 1px $violet;
 	font-size: 1.07em;
-	color: #222;
 }
 
 select.combo {  
@@ -662,7 +655,6 @@ a.button, input[type="button"], input[type="submit"], button {
 	margin-right: 0.5em;
 	margin-left: 0;
 	margin-top: 1px;
-    color: $dark-blue;
     font-weight: bold;
     text-decoration: none;
     cursor: pointer;
@@ -671,22 +663,15 @@ a.button, input[type="button"], input[type="submit"], button {
     font-family: Arial,sans-serif;
     overflow: visible;
     display: inline-block;
-    background-color: $gray3; 
-    border: 1px solid $gray4; 
     @include border-radius(3px);
     -webkit-appearance: none;	  
 }
 
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit], .narrow button { 
-	border: 1px solid #999; 
 	padding: 0.3em 0.4em;
     font-family: Tahoma, Arial, sans-serif;
     margin-top: 0;
     margin-bottom: 0;
-}
-
-a.button:hover, input:hover[type=button] , input:hover[type=submit], button:hover {
-    background-color: #ffb; 
 }
 
 a.header:target  {
@@ -900,19 +885,9 @@ th .rowtools .r, th .rowtools .l {
 a {
   &:link, &:visited {
     text-decoration: none;
-    color: $blue;
   }
-  &:hover {
-  	color: $orange;
-  }
-  &.out {
-    color: #0066ff;
-    &:visited {
-      color: #6600cc;
-    }
-    &:hover{
-    	text-decoration: underline;
-    }
+  &.out:hover{
+    text-decoration: underline;
   }
 }
 
@@ -927,7 +902,6 @@ a {
 /*Хипервръзки към профилите на потребители*/
 a.profile {
 	padding: 2px;
-	@include border-radius(2px);
 	&.ceo {
 		color: #0000cc;
 		&.inactive {
@@ -1091,7 +1065,6 @@ table.listTable {
 /*общи стилове за елементите на формите*/
 .formFields {
 	margin-bottom: 10px;
-	/* не може display:table; защото полетата са първоначално свити */
 }
 
 .formFields > table {
@@ -1328,22 +1301,7 @@ div.hFormField {
 	float: right;
 }
 
-.wide form[method="post"] input[type="submit"] {
-	border: solid 1px $quiet-gray !important;
-	background-color: $violet !important;
-	color: white;
-}
 
-.wide form[method=post]  input[type=button], .wide form[method=post]  a.button { 
-	border: solid 1px $quiet-gray;
-	background-color: #999;
-	color: white;
-}
-
-.narrow form[method=post] input[type=submit]:first-child { 
-	background-color: $violet;
-	color: white;
-}
 /*край на тулбар*/
 
 
@@ -1351,9 +1309,6 @@ div.hFormField {
 .vertical .formTitle { 
     padding: 10px;
     font-size: 1.2em;
-    color: white;
-    background-color: $violet;
-	border: solid 1px #88e;
 	border-bottom: none;
 	padding: 8px;
 	vertical-align: middle !important;
@@ -1376,8 +1331,6 @@ div.hFormField {
 .vertical .formGroup {
     padding: 5px;
     margin: 10px 0 5px;
-    background-color: $violet;
-	color: white;
     border-radius: 3px;
 }
 
@@ -1532,10 +1485,7 @@ td.keylist-group {
 td.keylist-group > div {
     padding: 4px !important;
     font-size: 0.95em;
-    background-color: #eeeeff;
-    border: 1px solid #e0e0f0;
     margin-top: 1px;
-    color: #333;
     cursor: pointer; 
     img {
     	display: none;
@@ -1601,18 +1551,9 @@ a.pager {
     border: solid  1px transparent; 
     @include border-radius(4px);
     cursor: pointer;
-    &:hover {
-	    border: solid  1px #aaaaaa; 
-		@include border-radius(4px);
-	    padding: 2px;   
-	    background-color: $gray1;    
-	    text-decoration: none;
-	}
-	&.pagerSelected { 
-	    border: solid 1px #aaaaaa;
+	 &:hover, &.pagerSelected { 
 	    @include border-radius(4px);
 	    padding: 2px;
-	    background-color: $beige;
 	    font-weight: bold;
 	}
 }
@@ -1651,9 +1592,6 @@ div.tab-control div.tab-row .tab {
 	margin: 1px -16px -1px 18px;
 	padding: 4px 5px 4px 5px;
 	float: left;
-	background: $gray3;
-	border: 1px solid $gray4;
-	border-bottom: none;
 	z-index: 1;
 	white-space: nowrap;
 	position: relative;
@@ -1661,12 +1599,8 @@ div.tab-control div.tab-row .tab {
 	@include border-radius4(5px, 5px, 0px, 0px);
 	border-top: 2px solid $blue;
 	&.selected {
-		background: #ffffff;
-		border: 1px solid $gray4;
-		border-top: 2px solid $blue;
-		border-bottom: none;
 		z-index: 3;
-		padding: 4px 5px 6px 5px;
+		padding: 3px 5px 6px 5px;
 		margin: 1px -16px -3px 18px;
 		top: 0px;
 	}
@@ -1690,8 +1624,6 @@ div.tab-control div.tab-row .tab {
 	
 div.tab-control div.tab-page {
 	clear: both;
-	border: 1px solid $gray4;
-	background: #ffffff;
 	position: relative;
 	top: 1px;
 	padding: 1em;
@@ -1715,11 +1647,9 @@ div.tab-control div.tab-page {
 
 /*таб alphabet*/
 div.alphabet div.tab-row .tab {
-	background: $gray3;
 	line-height: 1.1em;
 	padding: 5px;
 	font-size: 0.7em;
-	border: 1px solid #aaa;
 	text-align: center;
 	margin: 2px 4px 5px 0;
 	@include border-radius(5px);
@@ -1744,8 +1674,6 @@ div.alphabet div.tab-row .tab {
 }
 
 div.alphabet div.tab-page {
-	border: none;
-	background: transparent;
 	margin: 0px;
 	padding: 7px 0 0 0;
 }
@@ -1917,9 +1845,6 @@ div.alphabet div.tab-page {
 
 /* Стилове за елемента 'RichEdit' */
 span.richEdit div.richedit-toolbar {
-    background: $gray2; 
-    border: 1px solid $violet; 
-    border-top: none; 
     padding: 4px; 
     font-size: 0.85em; 
     text-align: left;
@@ -2781,9 +2706,7 @@ div.statuses-message h2 {
 }
 
 /* цвят за маркиране на текста */
-.highlight {
-    background-color: #ffff66;
-}
+
 .fracPart{
 	display: inline-block;
 	text-align: left;
@@ -2791,8 +2714,4 @@ div.statuses-message h2 {
 
 body.narrow {
 	min-width:320px;
-}
-
-.highlight-row{
-	background-color: #ffffbb;
 }
