@@ -245,6 +245,9 @@ class custom_Settings extends core_Manager
         // Вземаме всички зададени свойства от админа потребител за текущия обект и лице
         $propertiesArrFromAdmin = static::fetchValues($form->rec->classId, $form->rec->objectId, -1, FALSE);
         
+        // Ако сме в мобилен режим, да не е хинт
+        $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
+        
         // Сетваме по подразбиране стойностите на зададените свойства
         foreach ((array)$propertiesArrFromAdmin as $property => $value) {
             
@@ -252,7 +255,7 @@ class custom_Settings extends core_Manager
             $verbalVal = $form->getFieldType($property, FALSE)->toVerbal($value);
             
             // Променяме хинта
-            $form->setParams($property, array('hint' => 'По подразбиране|*: ' . "|{$verbalVal}"));
+            $form->setParams($property, array($paramType => 'По подразбиране|*: ' . "|{$verbalVal}"));
         }
         
         // Инпутваме данните

@@ -1456,12 +1456,12 @@ class doc_Threads extends core_Manager
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
         
-        // Подсказки за позразбиране
-        $form->setParams('notify', array('hint' => $defaultStr . '|Винаги'));
-        $form->setParams('shortLinks', array('hint' => $defaultStr . '|Не'));
+        // Ако сме в мобилен режим, да не е хинт
+        $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
         
-//        $form->setParams('notify', array('unit' => 'Винаги'));
-//        $form->setParams('shortLinks', array('unit' => 'Не'));
+        // Подсказки за позразбиране
+        $form->setParams('notify', array($paramType => $defaultStr . '|Винаги'));
+        $form->setParams('shortLinks', array($paramType => $defaultStr . '|Не'));
     }
     
     

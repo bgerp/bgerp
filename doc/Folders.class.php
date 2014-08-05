@@ -1095,11 +1095,14 @@ class doc_Folders extends core_Master
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
         
+        // Ако сме в мобилен режим, да не е хинт
+        $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
+        
         // Сетваме стойност по подразбиране
-        $form->setParams('folOpenings', array('hint' => $defaultStr . '|Винаги'));
-        $form->setParams('shortLinks', array('hint' => $defaultStr . '|Не'));
-        $form->setParams('perPage', array('hint' => $defaultStr . '20'));
-        $form->setParams('ordering', array('hint' => $defaultStr . '|Първо отворените'));
+        $form->setParams('folOpenings', array($paramType => $defaultStr . '|Винаги'));
+        $form->setParams('shortLinks', array($paramType => $defaultStr . '|Не'));
+        $form->setParams('perPage', array($paramType => $defaultStr . '20'));
+        $form->setParams('ordering', array($paramType => $defaultStr . '|Първо отворените'));
     }
     
     
