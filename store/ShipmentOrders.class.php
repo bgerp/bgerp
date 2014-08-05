@@ -316,6 +316,7 @@ class store_ShipmentOrders extends core_Master
     	$cData = $ContragentClass->getContragentData($rec->contragentId);
     	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
         $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
+        $row->vatNo = $cData->vatNo;
     }
     
     
@@ -327,6 +328,15 @@ class store_ShipmentOrders extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
+    	
+    	$tpl->append(sbf('img/16/plus.png', "'"), 'iconPlus');
+    	if($data->rec->country){
+    		$deliveryAddress = "{$data->row->country} <br/> {$data->row->pCode} {$data->row->place} <br /> {$data->row->address}";
+    	} else {
+    		$deliveryAddress = $data->row->contragentAddress;
+    	}
+    	
+    	$tpl->append($deliveryAddress, 'deliveryAddress');
     }
     
     
@@ -431,6 +441,10 @@ class store_ShipmentOrders extends core_Master
         			 	break;
         			 }
         		}
+        	}
+        	
+        	if((!empty($rec->tel) || !empty($rec->country)|| !empty($rec->pCode)|| !empty($rec->place)|| !empty($rec->address)) && (empty($rec->tel) || empty($rec->country)|| empty($rec->pCode)|| empty($rec->place)|| empty($rec->address))){
+        		$form->setError('tel,country,pCode,place,address', 'Трябва или да са попълнени всички полета за адрес или нито едно');
         	}
         }
     }
