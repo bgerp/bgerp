@@ -90,7 +90,7 @@ class sales_transaction_Service
     			);
     		}
     		 
-    		if($this->class->vat){
+    		if($this->class->_total->vat){
     			$vatAmount = currency_Currencies::round($this->class->_total->vat * $rec->currencyRate);
     			$entries[] = array(
     					'amount' => $vatAmount, // В основна валута
