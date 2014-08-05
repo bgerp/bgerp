@@ -534,6 +534,10 @@ body {
 	font-size: 16px; 
 }
 
+body.narrow {
+    min-width:320px;
+}
+
 hr{
 	border-color: #eee;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
@@ -590,10 +594,10 @@ select.combo {
 }
 
 input[type=radio] + label, input[type=checkbox] + label {
-  color: $quiet-gray;
-  background-color: transparent !important;
-  display: inline-block;
-  vertical-align: baseline;
+	color: $quiet-gray;
+	background-color: transparent !important;
+	display: inline-block;
+	vertical-align: baseline;
 }
 
 input[type=radio]:checked + label, input[type=checkbox]:checked + label {
@@ -652,16 +656,13 @@ tr.zebra1 {
 
 /* BUTTONS */
 a.button, input[type="button"], input[type="submit"], button {
-	margin-right: 0.5em;
-	margin-left: 0;
-	margin-top: 1px;
+	margin: 1px 0.5em 0 0;
     font-weight: bold;
     text-decoration: none;
     cursor: pointer;
     font-size: 0.8em;
     padding: 0.34em 0.5em;
     font-family: Arial,sans-serif;
-    overflow: visible;
     display: inline-block;
     @include border-radius(3px);
     -webkit-appearance: none;	  
@@ -1437,22 +1438,18 @@ div.hFormField {
 
 
 /*Загвавие, състоящо се от пътека*/
-.wide .path-title {
-	font-size: 0.9em;
-	margin-top: 2px;
-	display: inline;
+.path-title {
+    font-size: 0.9em;
+    display: inline;
 }
 
-.narrow .path-title {
-	font-size: 0.9em;
-	display: inline;
+.wide .path-title {
+	margin-top: 2px;
 }
+
 /*Загвавие, състоящо се от пътека*/
 
-/*
- * Опциите на keylist (и enum) не заемат цялата ширина на контейнера, а се подравняват
- * вляво
- */
+
 table.keylist {
 	width: 100%;
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
@@ -2271,9 +2268,6 @@ div.richtext ol ol {
 
 
 .richtext-message {
-	h1{
-	   font-size: 1.8em;
-	}
 	h1, h2, h3, h4, h5, h6{
 	   line-height:1;
 	   margin: 0 !important;
@@ -2290,10 +2284,11 @@ div.richtext ol ol {
 	   margin: 0.2em 0 0.5em 0 !important;
 	}
 	h1 {
+	   font-size: 1.8em;
        margin-top: 0.17em !important;
     }
     h2 {
-      margin-top: -0.15em !important ;
+       margin-top: -0.15em !important ;
     }
     h3 {
        margin-top: 0.6em !important;
@@ -2643,18 +2638,18 @@ div.statuses-message h2 {
 
 
 /* Стилове за diff между html текстове */
-	span.del { 
-		background-color: #fcc;
-        text-decoration: line-through;
-        color: #777;
-	}
-	span.ins { 
-        background-color: #cfc;
-	}
-	span.cng { 
-		background-color: #ffa;
-		border-bottom: dotted 1px #cc9;
-	}
+span.del { 
+	background-color: #fcc;
+       text-decoration: line-through;
+       color: #777;
+}
+span.ins { 
+       background-color: #cfc;
+}
+span.cng { 
+	background-color: #ffa;
+	border-bottom: dotted 1px #cc9;
+}
 /* Край на стилове за diff */
 
 /* Стилове за core_Packs */
@@ -2683,9 +2678,9 @@ div.statuses-message h2 {
 	}
 }
 .toast-item-wrapper p{
-   max-height: 150px;
-   overflow-y: auto;
-   padding-right: 10px;
+	max-height: 150px;
+	overflow-y: auto;
+	padding-right: 10px;
 }
 
 .rightAlign {
@@ -2702,16 +2697,11 @@ div.statuses-message h2 {
 	 background-color: #fee1e4 !important;
 }
 .core_LoginLog .group-by-date-row{
-       background-color: transparent !important;
+     background-color: transparent !important;
 }
-
-/* цвят за маркиране на текста */
 
 .fracPart{
 	display: inline-block;
 	text-align: left;
 }
 
-body.narrow {
-	min-width:320px;
-}
