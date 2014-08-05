@@ -324,6 +324,7 @@ class sales_SalesDetails extends core_Detail
         expect($ProductMan = cls::get($rec->classId));
     	if($form->rec->productId){
     		$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
+    		unset($form->getFieldType('packagingId')->params['allowEmpty']);
     		
     		// Само при рефреш слагаме основната опаковка за дефолт
     		if($form->cmd == 'refresh'){

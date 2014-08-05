@@ -310,6 +310,7 @@ class purchase_PurchasesDetails extends core_Detail
     	$ProductMan = cls::get($form->rec->classId);
     	if($form->rec->productId){
     		$form->setOptions('packagingId', $ProductMan->getPacks($form->rec->productId));
+    		unset($form->getFieldType('packagingId')->params['allowEmpty']);
     		
     		// Само при рефреш слагаме основната опаковка за дефолт
     		if($form->cmd == 'refresh'){
