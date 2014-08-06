@@ -831,9 +831,10 @@ class sales_Invoices extends core_Master
     	$caption = ($form->rec->type == 'debit_note') ? 'Увеличение' : 'Намаление';
         
     	$invArr = (array)$origin->fetch();
-    	$invHandle = $origin->getHandle();
+    	$number = $origin->instance->recToVerbal((object)$invArr)->number;
+    	
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
-    	$invArr['reason'] = tr("|{$caption} към фактура|* #{$invHandle} |издадена на|* {$invDate}");
+    	$invArr['reason'] = tr("|{$caption} към фактура|* №{$number} |издадена на|* {$invDate}");
         
     	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount') as $key){
         	 unset($invArr[$key]);
