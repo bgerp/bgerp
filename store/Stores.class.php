@@ -69,6 +69,18 @@ class store_Stores extends core_Master
 
 	
 	/**
+	 * Кой може да пише
+	 */
+	var $canReject = 'ceo, storeMaster';
+	
+	
+	/**
+	 * Кой може да пише
+	 */
+	var $canRestore = 'ceo, storeMaster';
+	
+	
+	/**
      * Детайла, на модела
      */
     var $details = 'AccReports=acc_ReportDetails';

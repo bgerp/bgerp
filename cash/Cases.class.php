@@ -81,6 +81,18 @@ class cash_Cases extends core_Master {
     
     
     /**
+     * Кой може да пише
+     */
+    var $canReject = 'ceo, cashMaster';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canRestore = 'ceo, cashMaster';
+    
+    
+    /**
      * Кой  може да вижда счетоводните справки?
      */
     var $canReports = 'ceo,cash,acc';

@@ -65,6 +65,18 @@ class bank_OwnAccounts extends core_Master {
 	var $canSelect = 'ceo,bank';
 	
 	
+	/**
+	 * Кой може да пише
+	 */
+	var $canReject = 'ceo, bankMaster';
+	
+	
+	/**
+	 * Кой може да пише
+	 */
+	var $canRestore = 'ceo, bankMaster';
+	
+	
     /**
      * Кой може да пише?
      */
