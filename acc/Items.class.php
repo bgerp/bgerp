@@ -253,9 +253,16 @@ class acc_Items extends core_Manager
             $mvc->Lists->updateSummary($listId);
         }
         
+        // Ако няма информация за мениджър, acc_Items става мениджър
         if(empty($rec->classId) && empty($rec->objectId)){
         	$rec->classId = $mvc->getClassId();
         	$rec->objectId = $rec->id;
+        	$mvc->save($rec);
+        }
+        
+        // Ако няма номенклатури, и перото е активно - затваряме го
+        if(empty($rec->lists) && $rec->state == 'active'){
+        	$rec->state = 'closed';
         	$mvc->save($rec);
         }
         
