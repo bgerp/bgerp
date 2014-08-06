@@ -280,7 +280,7 @@ class purchase_transaction_Purchase
         }
         
         if($rec->chargeVat == 'separate'){
-        	$amountBase += $this->class->_total->vat;
+        	$amountBase += $this->class->_total->vat * $rec->currencyRate;
         }
         
         $quantityAmount += currency_Currencies::round($amountBase / $rec->currencyRate, $rec->currencyId);

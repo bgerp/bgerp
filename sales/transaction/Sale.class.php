@@ -299,7 +299,7 @@ class sales_transaction_Sale
         }
         
         if($rec->chargeVat == 'separate'){
-        	$amountBase += $this->class->_total->vat;
+        	$amountBase += $this->class->_total->vat * $rec->currencyRate;
         }
         
         $quantityAmount += currency_Currencies::round($amountBase / $rec->currencyRate, $rec->currencyId);
@@ -322,7 +322,7 @@ class sales_transaction_Sale
                     'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
                 ),
             );
-            
+        
         return $entries;
     }
     
