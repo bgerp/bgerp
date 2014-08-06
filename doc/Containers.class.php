@@ -1350,7 +1350,6 @@ class doc_Containers extends core_Manager
     {
         // При възстановяване на треда, гледаме кои контейнери са били оттеглени със него
     	$rejectedInThread = doc_Threads::fetchField($threadId, 'rejectedContainersInThread');
-        $rejectedInThread = keylist::toArray($rejectedInThread);
         
         /* @var $query core_Query */
         $query = static::getQuery();
@@ -1364,10 +1363,9 @@ class doc_Containers extends core_Manager
         	// Възстановяваме само тези контейнери от тях
         	$query->in('id', $rejectedInThread);
         	
-        	// резултатите са в същата последователност като тази на реда на оттегляне на контейнерите
+        	// Резултатите са в същата последователност като тази на реда на оттегляне на контейнерите
         	// така въстановяваме документите в обратната последователност на оттеглянето им
         	$recs = $query->fetchAll();
-        	$recs = array_replace($rejectedInThread, $recs);
         } else {
         	$recs = $query->fetchAll();
         }
