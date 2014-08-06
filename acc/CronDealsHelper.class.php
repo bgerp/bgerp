@@ -116,7 +116,6 @@ class acc_CronDealsHelper
     	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
     	
     	// Закръглената оставаща сума за плащане
-    	$query->XPR('toPay', 'double', 'ROUND(#amountDelivered - #amountPaid, 2)');
     	$query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - #amountInvoiced, 2)');
     	
     	// Само активни продажби
@@ -126,8 +125,8 @@ class acc_CronDealsHelper
     	// На които треда им не е променян от определено време
     	$query->where("#threadModifiedOn <= '{$oldBefore}'");
     	
-    	// Доставеното - платеното трябва да е в допустимия толеранс
-    	$query->where("#toPay BETWEEN -{$tolerance} AND {$tolerance}");
+    	// Крайното салдо по сметката на сделката трябва да е в допустимия толеранс
+    	$query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
     	
     	// Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници
     	$query->where("#makeInvoice = 'yes' AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
