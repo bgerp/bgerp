@@ -473,6 +473,16 @@ class doc_Containers extends core_Manager
         // Къде да сочи линка при натискане на нотификацията
         $customUrl = array($docMvc, 'single', $rec->docId);
         
+        // Ако няма да се споделя, а ще се добавя
+        if ($action != 'сподели') {
+            
+            // id на класа
+            $threadClassId = doc_Threads::getClassId();
+            
+            // Вземаме данните
+            $noNotificationsUsersArr = custom_Settings::fetchUsers($threadClassId, $rec->threadId, 'notify');
+        }
+        
         // Обхождаме масива с всички потребители, които ще имат съответната нотификация
         foreach((array)$usersArr as $userId) {
             
@@ -481,6 +491,18 @@ class doc_Containers extends core_Manager
             
             // Ако потребителя, вече е бил нотифициран
             if ($notifiedUsersArr[$userId]) continue;
+            
+            // Ако има масив с потребители, които да не се нотифицират
+            if ($noNotificationsUsersArr) {
+                
+                // Ако текущия потребител не трябва да се нотифицира
+                if ($noNotificationsUsersArr[$userId] == 'no') continue;
+                
+                // Ако текущия потребител не трябва да се нотифицира, когато настройката е по-подразбиране
+                if ($noNotificationsUsersArr[$userId] != 'yes') {
+                    if ($noNotificationsUsersArr[-1] == 'no') continue;
+                }
+            }
             
             // Ако е зададено да се проверява и няма права до сингъла на нишката, да не се нотифицира
             if ($checkThreadRight && !doc_Threads::haveRightFor('single', $rec->threadId, $userId)) continue;

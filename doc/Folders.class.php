@@ -412,19 +412,33 @@ class doc_Folders extends core_Master
                 // ако имаме повече отворени теми от преди
                 if($exOpenThreadsCnt < $rec->openThreadsCnt) {
                     
-                    $msg = '|Отворени теми в|*' . " \"$rec->title\"";
+                    // id на класа
+                    $folderClassId = doc_Folders::getClassId();
                     
-                    $url = array('doc_Threads', 'list', 'folderId' => $id);
+                    // Вземаме данните
+                    $noNotificationsUsersArr = custom_Settings::fetchUsers($folderClassId, $rec->id, 'folOpenings');
                     
                     $userId = $rec->inCharge;
                     
+                    $msg = '|Отворени теми в|*' . " \"$rec->title\"";
+                    
+                    $url = array('doc_Threads', 'list', 'folderId' => $id);
+                        
                     $priority = 'normal';
                     
-                    bgerp_Notifications::add($msg, $url, $userId, $priority);
+                    // В зависимост от персонализацията избираме дали да покажим нотификацията
+                    if ($noNotificationsUsersArr[$userId] == 'yes' || ($noNotificationsUsersArr[$userId] != 'no' && (!$noNotificationsUsersArr[-1] || $noNotificationsUsersArr[-1] == 'yes'))) {                        
+                        
+                        bgerp_Notifications::add($msg, $url, $userId, $priority);
+                    }
                     
                     if($rec->shared) {
                         foreach(keylist::toArray($rec->shared) as $userId) {
-                            bgerp_Notifications::add($msg, $url, $userId, $priority);
+                            
+                            // В зависимост от персонализацията избираме дали да покажим нотификацията
+                            if ($noNotificationsUsersArr[$userId] == 'yes' || ($noNotificationsUsersArr[$userId] != 'no' && (!$noNotificationsUsersArr[-1] || $noNotificationsUsersArr[-1] == 'yes'))) {
+                                bgerp_Notifications::add($msg, $url, $userId, $priority);
+                            }
                         }
                     }
                 } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
