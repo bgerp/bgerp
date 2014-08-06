@@ -282,7 +282,7 @@ class cond_PaymentMethods extends core_Master
             3 => 'downpayment',
             4 => 'paymentBeforeShipping',
             5 => 'paymentOnDelivery',
-            6 => 'daysForBalancePayment');
+            6 => 'timeBalancePayment');
             
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
