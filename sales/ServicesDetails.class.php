@@ -95,7 +95,7 @@ class sales_ServicesDetails extends core_Detail
         $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка,input=none');
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');

@@ -106,7 +106,7 @@ class purchase_InvoiceDetails extends core_Detail
         $this->FLD('invoiceId', 'key(mvc=purchase_Invoices)', 'caption=Фактура, input=hidden, silent');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт','tdClass=large-field');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.','tdClass=small-field');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field');
         $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory','tdClass=small-field');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $this->FLD('price', 'double', 'caption=Цена, input=none');
