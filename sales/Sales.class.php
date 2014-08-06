@@ -1027,9 +1027,9 @@ class sales_Sales extends core_Master
             		$result->push('shippedPacks', $arr, $index);
             	}
             }
-            
-            $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($rec->id));
-        }
+         }
+         
+         $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($rec->id));
     }
     
     
