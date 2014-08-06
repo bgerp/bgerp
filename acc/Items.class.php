@@ -603,13 +603,15 @@ class acc_Items extends core_Manager
     /**
      * Помощен метод за извличане на перо със зададени регистър и ключ в регистъра
      * 
-     * @param int $classId
+     * @param int $class
      * @param int $objectId
      * @param mixed $fields списък от полета на acc_Items, които да бъдат извлечени
      */
-    public static function fetchItem($classId, $objectId, $fields = NULL)
+    public static function fetchItem($class, $objectId, $fields = NULL)
     {
-        return static::fetch("#classId = '{$classId}' AND #objectId = '{$objectId}'", $fields);
+        $Class = cls::get($class);
+        
+    	return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'", $fields);
     }
     
     
