@@ -1360,15 +1360,14 @@ class doc_Containers extends core_Manager
         
         // Ако има документи оттеглени със треда
         if(count($rejectedInThread)){
+        	
         	// Възстановяваме само тези контейнери от тях
         	$query->in('id', $rejectedInThread);
-        	
-        	// Резултатите са в същата последователност като тази на реда на оттегляне на контейнерите
-        	// така въстановяваме документите в обратната последователност на оттеглянето им
         	$recs = $query->fetchAll();
-        } else {
-        	$recs = $query->fetchAll();
-        }
+			$recs = array_replace(array_flip($rejectedInThread), $recs);
+		} else {
+			$recs = $query->fetchAll();
+		}
         
         if(count($recs)){
         	foreach ($recs as $rec){

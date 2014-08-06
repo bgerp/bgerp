@@ -906,7 +906,7 @@ class doc_Threads extends core_Manager
         	$rejectedIds[] = $rec->firstContainerId;
         	
         	// Обръщаме последователността на обратно
-        	$rejectedIds = array_reverse($rejectedIds, TRUE);
+        	$rejectedIds = array_reverse($rejectedIds);
         	
         	// Ако има оттеглени контейнери с треда, запомняме ги, за да може при възстановяване да възстановим само тях
         	$rec->rejectedContainersInThread = $rejectedIds;
