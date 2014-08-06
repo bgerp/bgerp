@@ -224,6 +224,12 @@ class doc_Threads extends core_Manager
     }
     
     
+    /**
+     * 
+     * 
+     * @param doc_Threads $mvc
+     * @param object $data
+     */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
@@ -237,8 +243,27 @@ class doc_Threads extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->showFields = 'folderId,search,order';
-
+        
         $data->listFilter->input(NULL, 'silent');
+        
+        // id на класа
+        $folderClassId = doc_Folders::getClassId();
+        
+        // id на папката
+        $folderId = $data->listFilter->rec->folderId;
+        
+        // id на потребителя
+        $userId = core_Users::getCurrent();
+        
+        // Вземаме данните
+        $vals = custom_Settings::fetchValues($folderClassId, $folderId, $userId);
+        
+        // Ако е зададено подреждане в персонализацията
+        if ($vals['ordering']) {
+            
+            // Подреждаме по зададената стойност
+            $data->listFilter->setDefault('order', $vals['ordering']);
+        }
         
         expect($folderId = $data->listFilter->rec->folderId);
         
@@ -1476,5 +1501,35 @@ class doc_Threads extends core_Manager
     {
         
         return ;
+    }
+    
+    
+    /**
+     * Преди подготвяне на пейджъра, ако има персонализация да се използва
+     * 
+     * @param doc_Threads $mvc
+     * @param object $res
+     * @param object $data
+     */
+    function on_BeforePrepareListPager($mvc, &$res, &$data)
+    {
+        // id на класа
+        $folderClassId = doc_Folders::getClassId();
+        
+        // id на папката
+        $folderId = Request::get('folderId');
+        
+        // id на потребителя
+        $userId = core_Users::getCurrent();
+        
+        // Вземаме данните
+        $vals = custom_Settings::fetchValues($folderClassId, $folderId, $userId);
+        
+        // Ако е зададено да се страницира
+        if ($vals['perPage']) {
+            
+            // Променяме броя на страниците
+            $mvc->listItemsPerPage = $vals['perPage'];
+        }
     }
 }
