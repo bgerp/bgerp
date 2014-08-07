@@ -48,92 +48,6 @@ class sales_transaction_CloseDeal
     
     
     /**
-     * Подготвя записите за приключване на дадена сделка с друга сделка
-     * 
-     * 1. Занулява салдата на първата сделка, прави обратни транзакции на всички записи от журнала свързани с тази сделка
-     * 2. Прави същите операции но подменя перото на първата сделка с това на второто, така всички салда са
-     * прихвърлени по втората сделка, а първата е приключена
-     */
-    private function getTransferEntries($dealItem, &$total, $closeDealItem, $rec)
-    {
-    	$newEntries = array();
-    	$docs = array();
-    	
-    	// Намираме записите в които участва перото
-    	$entries = acc_Journal::getEntries($dealItem);
-    	
-    	// Намираме документите, които имат транзакции към перото
-    	if(count($entries)){
-    		foreach ($entries as $ent){
-    			if($ent->docType != $rec->classId && $ent->docId != $rec->id){
-    				$docs[$ent->docType . "|" . $ent->docId] = (object)array('docType' => $ent->docType, 'docId' => $ent->docId);
-    			}
-    		}
-    	}
-    	$dealItem->docClassName = cls::get($dealItem->classId)->className;
-    	
-    	if(count($docs)){
-    		
-    		// За всеки транзакционен клас
-    		foreach ($docs as $doc){
-    			
-    			// Взимаме му редовете на транзакцията
-    			$transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
-    			$entries = $transactionSource->getTransaction($doc->docId)->entries;
-    			
-    			$copyEntries = $entries;
-    			
-    			// За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
-    			// Така зануляване салдата по следката
-    			if(count($entries)){
-    				foreach ($copyEntries as &$entry){
-    					
-    					// Ако има сума добавяме я към общата сума на транзакцията
-    					if(isset($entry['amount'])){
-    						$entry['amount'] *= -1;
-    						$total += $entry['amount'];
-    					}
-    					if(isset($entry['debit']['quantity'])){
-    						$entry['debit']['quantity'] *= -1;
-    					}
-    					if(isset($entry['credit']['quantity'])){
-    						$entry['credit']['quantity'] *= -1;
-    					}
-    					
-    					$newEntries[] = $entry;
-    				}
-    				
-    				// Втори път обхождаме записите
-    				foreach ($entries as &$entry2){
-    					if(isset($entry2['amount'])){
-    						$total += $entry2['amount'];
-    					}
-    					
-    					// Генерираме запис, който прави същите действия но с перо новата сделка
-    					foreach (array('debit', 'credit') as $type){
-    						foreach ($entry2[$type] as $index => &$item){
-    							
-    							// Намираме кое перо отговаря на перото на текущата сделка и го заменяме с това на новата сделка
-    							if($index != 0){
-    								if(is_array($item) && $item[0] == $dealItem->docClassName && $item[1] == $dealItem->objectId){
-    									$item = $closeDealItem->id;
-    								}
-    							}
-    						}
-    					}
-    					
-    					$newEntries[] = $entry2;
-    				}
-    			}
-    		}
-    	}
-    	
-    	// Връщаме генерираните записи
-    	return $newEntries;
-    }
-    
-    
-    /**
      *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      *  Създава транзакция която се записва в Журнала, при контирането
      */
@@ -157,7 +71,7 @@ class sales_transaction_CloseDeal
     	
     	if($rec->closeWith){
     		$closeDealItem = acc_Items::fetchItem('sales_Sales', $rec->closeWith);
-    		$closeEntries = $this->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
+    		$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
     		$result->entries = array_merge($result->entries, $closeEntries);
     	} else {
     		$dealInfo = $this->class->getDealInfo($rec->threadId);

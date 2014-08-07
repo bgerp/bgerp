@@ -76,47 +76,52 @@ class deals_transaction_CloseDeal
     	
     	if($amount == 0) return $result;
     	
-    	$date = ($info->get('invoicedValior')) ? $info->get('invoicedValior') : $info->get('agreedValior');
-    	$this->date = acc_Periods::forceYearAndMonthItems($date);
-    	
-    	$dealArr = array(acc_Accounts::fetchField($docRec->accountId, 'systemId'),
-			    		array($docRec->contragentClassId, $docRec->contragentId),
-			    		array('deals_Deals', $docRec->id),
-			    		array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-			    		'quantity' =>  abs($amount));
-    	
-    	if($amount > 0){
+    	if($rec->closeWith){
+    		$closeDealItem = acc_Items::fetchItem('purchase_Purchases', $rec->closeWith);
+    		$closeEntries = $this->class->getTransferEntries($firstDoc->instance->getClassId(), $result->totalAmount, $closeDealItem, $rec);
+    		$result->entries = array_merge($result->entries, $closeEntries);
+    	} else {
+    		$date = ($info->get('invoicedValior')) ? $info->get('invoicedValior') : $info->get('agreedValior');
+    		$this->date = acc_Periods::forceYearAndMonthItems($date);
+    		 
+    		$dealArr = array(acc_Accounts::fetchField($docRec->accountId, 'systemId'),
+    				array($docRec->contragentClassId, $docRec->contragentId),
+    				array('deals_Deals', $docRec->id),
+    				array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
+    				'quantity' =>  abs($amount));
+    		 
+    		if($amount > 0){
     		
-    		// Ако РС има дебитно салдо
-    		$result->entries[] = array('amount' => $amount,
-    						'debit' => array('6913',
+    			// Ако РС има дебитно салдо
+    			$result->entries[] = array('amount' => $amount,
+    					'debit' => array('6913',
     							array($docRec->contragentClassId, $docRec->contragentId),
     							array($firstDoc->className, $firstDoc->that)),
-    						'credit' => $dealArr);
+    					'credit' => $dealArr);
     		
-    		$result->entries[] = array('amount' => $amount,
-    						'debit' => array('123', $this->date->year, $this->date->month),
-    						'credit' => array('6913',
+    			$result->entries[] = array('amount' => $amount,
+    					'debit' => array('123', $this->date->year, $this->date->month),
+    					'credit' => array('6913',
     							array($docRec->contragentClassId, $docRec->contragentId),
     							array($firstDoc->className, $firstDoc->that)),);
     		
-    	} else {
+    		} else {
     		
-    		// Ако РС има кредитно салдо
-    		$result->entries[] = array('amount' => abs($amount),
-    				'debit' => $dealArr,
-    				'credit' => array('7913',
-    						array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that))
-    				);
+    			// Ако РС има кредитно салдо
+    			$result->entries[] = array('amount' => abs($amount),
+    					'debit' => $dealArr,
+    					'credit' => array('7913',
+    							array($docRec->contragentClassId, $docRec->contragentId),
+    							array($firstDoc->className, $firstDoc->that))
+    			);
     		
-    		$result->entries[] = array('amount' => abs($amount),
-    				'debit' => array('7913',
-    						array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that)),
-    				'credit' => array('123', $this->date->year, $this->date->month),);
+    			$result->entries[] = array('amount' => abs($amount),
+    					'debit' => array('7913',
+    							array($docRec->contragentClassId, $docRec->contragentId),
+    							array($firstDoc->className, $firstDoc->that)),
+    					'credit' => array('123', $this->date->year, $this->date->month),);
+    		}
     	}
-    	
     	
     	return $result;
     }

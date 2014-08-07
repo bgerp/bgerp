@@ -64,39 +64,45 @@ class purchase_transaction_CloseDeal
     			'entries'     => array()
     	);
     	
-    	$dealInfo = $this->class->getDealInfo($rec->threadId);
-    	
-    	// Кеширане на перото на текущата година
-    	$date = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
-    	$this->date = acc_Periods::forceYearAndMonthItems($date);
-    	
-    	// Създаване на запис за прехвърляне на всеки аванс
-    	$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downpaymentAmounts, $firstDoc);
-    	$result->totalAmount += $downpaymentAmounts;
-    	
-    	// Ако тотала не е нула добавяме ентритата
-    	if(count($entry2)){
-    		$result->entries[] = $entry2;
-    	}
-    	 
-    	$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $result->totalAmount, $firstDoc);
-    	
-    	// Ако тотала не е нула добавяме ентритата
-    	if(count($entry3)){
-    		if(count($entry3) == 2){
-    			$result->entries = array_merge($result->entries, $entry3);
-    		} else {
-    			$result->entries[] = $entry3;
+    	if($rec->closeWith){
+    		$closeDealItem = acc_Items::fetchItem('purchase_Purchases', $rec->closeWith);
+    		$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
+    		$result->entries = array_merge($result->entries, $closeEntries);
+    	} else {
+    		$dealInfo = $this->class->getDealInfo($rec->threadId);
+    		 
+    		// Кеширане на перото на текущата година
+    		$date = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
+    		$this->date = acc_Periods::forceYearAndMonthItems($date);
+    		 
+    		// Създаване на запис за прехвърляне на всеки аванс
+    		$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downpaymentAmounts, $firstDoc);
+    		$result->totalAmount += $downpaymentAmounts;
+    		 
+    		// Ако тотала не е нула добавяме ентритата
+    		if(count($entry2)){
+    			$result->entries[] = $entry2;
     		}
-    	}
-    	 
-    	// Ако има сума различна от нула значи има приход/разход
-    	$amount = $this->blAmount + $downpaymentAmounts;
-    	
-    	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $firstDoc);
-    	 
-    	if(count($entry)){
-    		$result->entries = array_merge($result->entries, $entry);
+    		
+    		$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $result->totalAmount, $firstDoc);
+    		 
+    		// Ако тотала не е нула добавяме ентритата
+    		if(count($entry3)){
+    			if(count($entry3) == 2){
+    				$result->entries = array_merge($result->entries, $entry3);
+    			} else {
+    				$result->entries[] = $entry3;
+    			}
+    		}
+    		
+    		// Ако има сума различна от нула значи има приход/разход
+    		$amount = $this->blAmount + $downpaymentAmounts;
+    		 
+    		$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $firstDoc);
+    		
+    		if(count($entry)){
+    			$result->entries = array_merge($result->entries, $entry);
+    		}
     	}
     	 
     	// Връщане на резултата
