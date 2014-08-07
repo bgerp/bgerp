@@ -440,9 +440,9 @@ class cash_Pko extends core_Master
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
 			
     		// Ако няма позволени операции за документа не може да се създава
-    		$dealInfo = $firstDoc->getAggregateDealInfo();
-    		$options = self::getOperations($dealInfo->allowedPaymentOperations);
-    			
+    		$operations = $firstDoc->getPaymentOperations();
+    		$options = self::getOperations($operations);
+    		
     		return count($options) ? TRUE : FALSE;
     	}
 		

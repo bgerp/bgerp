@@ -742,6 +742,39 @@ class purchase_Purchases extends core_Master
     }
     
     
+    /**
+     * Кои са позволените операции за експедиране
+     */
+    public function getShipmentOperations($id)
+    {
+    	return $this->allowedShipmentOperations;
+    }
+    
+    
+    /**
+     * Кои са позволените платежни операции за тази сделка
+     */
+    public function getPaymentOperations($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	$allowedPaymentOperations = $this->allowedPaymentOperations;
+    	
+    	if($rec->paymentMethodId){
+    		
+    		// Ако има метод за плащане и той няма авансова част, махаме авансовите операции
+    		if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
+    			unset($allowedPaymentOperations['case2supplierAdvance'],
+    				$allowedPaymentOperations['bank2supplierAdvance'],
+    				$allowedPaymentOperations['supplierAdvance2case'],
+    				$allowedPaymentOperations['supplierAdvance2bank']);
+    		}
+    	}
+    	
+    	return $allowedPaymentOperations;
+    }
+    
+    
 	/**
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      * 
@@ -761,17 +794,10 @@ class purchase_Purchases extends core_Master
         $dQuery->where("#requestId = {$rec->id}");
         $detailRecs = $dQuery->fetchAll();
         
-        $allowedPaymentOperations = $this->allowedPaymentOperations;
-        
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
         if($rec->paymentMethodId){
-        	if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        		unset($allowedPaymentOperations['case2supplierAdvance'], 
-        			  $allowedPaymentOperations['bank2supplierAdvance'],
-        		      $allowedPaymentOperations['supplierAdvance2case'],
-        			  $allowedPaymentOperations['supplierAdvance2bank']);
-        	} else {
+        	if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
         		// Колко е очакваното авансово плащане
         		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
         		$downPayment = round($paymentRec->downpayment * $rec->amountDeal, 4);
@@ -779,8 +805,8 @@ class purchase_Purchases extends core_Master
         }
         
         // Кои са позволените операции за последващите платежни документи
-        $result->set('allowedPaymentOperations', $allowedPaymentOperations);
-        $result->set('allowedShipmentOperations', $this->allowedShipmentOperations);
+        $result->set('allowedPaymentOperations', $this->getPaymentOperations($rec));
+        $result->set('allowedShipmentOperations', $this->getShipmentOperations($rec));
         $result->set('involvedContragents', array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId)));
         
         $result->setIfNot('amount', $rec->amountDeal);

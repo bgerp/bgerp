@@ -338,12 +338,10 @@ class deals_AdvanceReports extends core_Master
     	$docState = $firstDoc->fetchField('state');
     
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
-    
-    		$dealInfo = $firstDoc->getAggregateDealInfo();
     		
-    		if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL) return FALSE;
+    		if($firstDoc->className != 'deals_AdvanceDeals') return FALSE;
     		
-    		$options = self::getOperations($dealInfo->allowedPaymentOperations);
+    		$options = self::getOperations($firstDoc->getPaymentOperations());
     			
     		return count($options) ? TRUE : FALSE;
     	}

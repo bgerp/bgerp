@@ -509,9 +509,9 @@ class store_ShipmentOrders extends core_Master
     	if($docState == 'active'){
     		
     		if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
-    			$dealInfo = $firstDoc->getAggregateDealInfo();
+    			$operations = $firstDoc->getShipmentOperations();
     			
-    			return ($dealInfo->allowedShipmentOperations['delivery']) ? TRUE : FALSE;
+    			return (isset($operations['delivery'])) ? TRUE : FALSE;
     		}
     	}
     	

@@ -43,9 +43,9 @@ class bgerp_DealAggregatorIntf
      * 								 ['reverse'] - TRUE/FALSE  дали да е обратна операция
      * 
      */
-    public function getPaymentOptions($id)
+    public function getPaymentOperations($id)
     {
-    	return $this->class->getPaymentOptions($id);
+    	return $this->class->getPaymentOperations($id);
     }
     
     
@@ -53,8 +53,8 @@ class bgerp_DealAggregatorIntf
      * Връща масив с кои операции са позволени за експедиране/доставяне на услуги
      *
      */
-    public function getShipmentOptions($id)
+    public function getShipmentOperations($id)
     {
-    	return $this->class->getShipmentOptions($id);
+    	return $this->class->getShipmentOperations($id);
     }
 }

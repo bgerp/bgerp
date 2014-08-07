@@ -805,11 +805,11 @@ class sales_Sales extends core_Master
 	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 		    }
 		    
-		    if(cash_Pko::haveRightFor('add')){
+		    if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 		    	$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер');
 		    }
 		    
-    		if(bank_IncomeDocuments::haveRightFor('add')){
+    		if(bank_IncomeDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 		    	$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
 		    }
     	}
@@ -944,19 +944,15 @@ class sales_Sales extends core_Master
         $dQuery = sales_SalesDetails::getQuery();
         $dQuery->where("#saleId = {$rec->id}");
         $detailRecs = $dQuery->fetchAll();
-        
-        $allowedPaymentOperations = $this->allowedPaymentOperations;
        
-        if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        	unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'], $allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
-        } else {
+        if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
         	// Колко е очакваното авансово плащане
         	$downPayment = cond_PaymentMethods::getDownpayment($rec->paymentMethodId, $rec->amountDeal);
 		}
         
         // Кои са позволените операции за последващите платежни документи
-        $result->set('allowedPaymentOperations', $allowedPaymentOperations);
-        $result->set('allowedShipmentOperations', $this->allowedShipmentOperations);
+        $result->set('allowedPaymentOperations', $this->getPaymentOperations($rec));
+        $result->set('allowedShipmentOperations', $this->getShipmentOperations($rec));
         $result->set('involvedContragents', array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId)));
         
         $result->set('amount', $rec->amountDeal);
@@ -1030,6 +1026,39 @@ class sales_Sales extends core_Master
          }
          
          $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($rec->id));
+    }
+    
+    
+    /**
+     * Кои са позволените операции за експедиране
+     */
+    public function getShipmentOperations($id)
+    {
+    	return $this->allowedShipmentOperations;
+    }
+    
+    
+    /**
+     * Кои са позволените платежни операции за тази сделка
+     */
+    public function getPaymentOperations($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	 
+    	$allowedPaymentOperations = $this->allowedPaymentOperations;
+    	 
+    	if($rec->paymentMethodId){
+    
+    		// Ако има метод за плащане и той няма авансова част, махаме авансовите операции
+    		if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
+    			unset($allowedPaymentOperations['customer2caseAdvance'], 
+    					$allowedPaymentOperations['customer2bankAdvance'], 
+    					$allowedPaymentOperations['caseAdvance2customer'],
+    					$allowedPaymentOperations['bankAdvance2customer']);
+    		}
+    	}
+    	 
+    	return $allowedPaymentOperations;
     }
     
     

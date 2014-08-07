@@ -539,10 +539,8 @@ class deals_Deals extends core_Master
     	
     	$result->set('dealType', self::AGGREGATOR_TYPE);
     	
-    	$this->getAllowedOperations($rec, $paymentOperations, $shipmentOperations);
-    	
-    	$result->set('allowedPaymentOperations', $paymentOperations);
-    	$result->set('allowedShipmentOperations', $shipmentOperations);
+    	$result->set('allowedPaymentOperations', $this->getPaymentOperations($id));
+    	$result->set('allowedShipmentOperations', $this->getShipmentOperations($id));
     	
     	$involvedContragents = array((object)array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId));
     	if($rec->secondContragentClassId){
@@ -590,6 +588,32 @@ class deals_Deals extends core_Master
     	
     	$paymentOperations['debitDeals'] = array('title' => 'Приход по финансова сделка', 'debit' => '*', 'credit' => $sysId);
     	$paymentOperations['creditDeals'] = array('title' => 'Разход по финансова сделка', 'debit' => $sysId, 'credit' => '*');
+    }
+    
+    
+    /**
+     * Кои са позволените платежни операции за тази сделка
+     */
+    public function getPaymentOperations($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	$this->getAllowedOperations($rec, $paymentOperations, $shipmentOperations);
+    	
+    	return $paymentOperations;
+    }
+    
+    
+    /**
+     * Кои са позволените операции за експедиране
+     */
+    public function getShipmentOperations($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	 
+    	$this->getAllowedOperations($rec, $paymentOperations, $shipmentOperations);
+    	 
+    	return $shipmentOperations;
     }
     
     

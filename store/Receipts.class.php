@@ -463,14 +463,14 @@ class store_Receipts extends core_Master
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
-    
+     		
     	// Може да се добавя само към активиран документ
     	if($docState == 'active'){
     		
     		if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
-    			$dealInfo = $firstDoc->getAggregateDealInfo();
+    			$operations = $firstDoc->getShipmentOperations();
     			
-    			return ($dealInfo->allowedShipmentOperations['stowage']) ? TRUE : FALSE;
+    			return (isset($operations['stowage'])) ? TRUE : FALSE;
     		}
     	}
     	
