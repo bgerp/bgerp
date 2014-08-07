@@ -569,7 +569,7 @@ class purchase_Purchases extends core_Master
 				$row->isPaid .= tr('ПЛАТЕНО');
 			}
 			
-	    	if($rec->makeInvoice == 'no'){
+	    	if($rec->makeInvoice == 'no' && isset($rec->amountToInvoice)){
 				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
 			}
 	    }

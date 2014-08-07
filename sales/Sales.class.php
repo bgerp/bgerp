@@ -662,6 +662,10 @@ class sales_Sales extends core_Master
 			if(isset($actions['pay'])){
 				$row->isPaid .= tr('ПЛАТЕНО');
 			}
+			
+			if($rec->makeInvoice == 'no' && isset($rec->amountToInvoice)){
+				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
+			}
 	    }
     }
     
