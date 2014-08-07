@@ -235,7 +235,7 @@ class acc_plg_Deals extends core_Plugin
     	$docs = array();
     	
     	// Записите от журнала засягащи това перо
-    	$entries = acc_Journal::getEntries(array($mvc, $rec->id), $item);
+    	$entries = acc_Journal::getEntries(array($mvc, $rec->id));
     	
     	// Намираме оттеглените документи в треда, те нямат транзакция и няма да фигурират в $entries, за това
     	// ги добавяме ръчно, за да участват и те в проверката
