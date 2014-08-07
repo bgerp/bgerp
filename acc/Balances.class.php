@@ -433,7 +433,7 @@ class acc_Balances extends core_Master
     			$res->recs[$rec->id] = $rec;
     		}
     		
-    		$res->amount = round($res->amount, 2);
+    		$res->amount = round($res->amount, 4);
     	}
     	
     	// Връщане на резултата
