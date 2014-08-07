@@ -500,9 +500,11 @@ class acc_Journal extends core_Master
       * 
       * @param mixed $item - масив с име на мениджър и ид на запис, или ид на перо
       * @param stdClass $itemRec - върнатия запис на перото
+      * @param boolean $showAllRecs - дали да се връщат само записите с перата или всички записи от д-те в чиято транзакция
+      * участва посоченото перо
       * @return array $res - извлечените движения
       */
-     public static function getEntries($item, &$itemRec = NULL)
+     public static function getEntries($item, &$itemRec = NULL, $showAllRecs = FALSE)
      {
      	expect($item);
      	
@@ -517,11 +519,14 @@ class acc_Journal extends core_Master
      	// Извличаме ид-та на журналите, имащи ред с участник това перо
      	expect($itemRec = acc_Items::fetchRec($item));
      	$jQuery = acc_JournalDetails::getQuery();
-     	$jQuery->show('journalId');
      	
      	$now = dt::now();
-     	$jIds = array();
      	acc_JournalDetails::filterQuery($jQuery, NULL, $now, NULL, $itemRec->id);
+     	
+     	if($showAllRecs === FALSE) return $jQuery->fetchAll();
+     	
+     	$jIds = array();
+     	$jQuery->show('journalId');
      	while($jRec = $jQuery->fetch()){
      		$jIds[$jRec->journalId] = $jRec->journalId;
      	}
