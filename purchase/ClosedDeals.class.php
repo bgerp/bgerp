@@ -94,6 +94,16 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     
     
     /**
+     * След дефиниране на полетата на модела
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+    	// Добавяме към модела, поле за избор на с коя сделка да се приключи
+    	$mvc->FLD('closeWith', 'key(mvc=purchase_Purchases,allowEmpty)', 'caption=Приключи с');
+    }
+    
+    
+    /**
      * Имплементиране на интерфейсен метод
      * @see acc_ClosedDeals::getDocumentRow()
      */
@@ -129,6 +139,10 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	
     	$row->costAmount = $mvc->getFieldType('amount')->toVerbal(abs($costAmount));
     	$row->incomeAmount = $mvc->getFieldType('amount')->toVerbal(abs($incomeAmount));
+    	
+    	if($rec->closeWith){
+    		$row->closeWith = ht::createLink($row->closeWith, array('purchase_Purchases', 'single', $rec->closeWith));
+    	}
     }
     
     

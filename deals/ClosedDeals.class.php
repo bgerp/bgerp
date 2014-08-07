@@ -100,6 +100,16 @@ class deals_ClosedDeals extends acc_ClosedDeals
     
     
     /**
+     * След дефиниране на полетата на модела
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+    	// Добавяме към модела, поле за избор на с коя сделка да се приключи
+    	$mvc->FLD('closeWith', 'key(mvc=deals_Deals,allowEmpty)', 'caption=Приключи с');
+    }
+    
+    
+    /**
      * Имплементиране на интерфейсен метод
      * @see acc_ClosedDeals::getDocumentRow()
      */
@@ -134,6 +144,11 @@ class deals_ClosedDeals extends acc_ClosedDeals
     	
     	$row->costAmount = $mvc->getFieldType('amount')->toVerbal($costAmount);
     	$row->incomeAmount = $mvc->getFieldType('amount')->toVerbal($incomeAmount);
+    	
+    	//@TODO а ако е авансов отчет ??
+    	if($rec->closeWith){
+    		$row->closeWith = ht::createLink($row->closeWith, array('deals_Deals', 'single', $rec->closeWith));
+    	}
     }
     
     

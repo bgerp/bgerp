@@ -7,6 +7,11 @@
 	<!--ET_END header-->
 	<h3 class='centered'>|ПРИКЛЮЧВАНЕ НА|* [#DOC_NAME#]</h3>
 	<p class='centered'>№ [#id#] / [#createdDate#]</p>
+	
+	<!--ET_BEGIN closeWith-->
+	<p class='centered'>|с|* [#closeWith#]</p>
+	<!--ET_END closeWith-->
+	
 	<br>
 	<div class='scrolling-holder'>
 	<table class='border-table' border=1 cellpadding="5" width=100%>

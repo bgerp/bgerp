@@ -100,7 +100,7 @@ abstract class acc_ClosedDeals extends core_Master
     	$this->FLD('amount', 'double(decimals=2)', 'input=none,caption=Сума');
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,input=none');
         $this->FLD('rate', 'double', 'caption=Плащане->Курс,input=none');
-    	
+        
     	// От кой клас наследник на acc_ClosedDeals идва записа
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
     }
@@ -134,6 +134,38 @@ abstract class acc_ClosedDeals extends core_Master
     }
     
     
+    /**
+     * След подготовка на формата
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$firstDoc = doc_Threads::getFirstDocument($form->rec->threadId);
+    	
+    	// Избираме всички други активни сделки от същия тип като началния документ в същата папка
+    	$docs = array();
+    	$dealQuery = $firstDoc->getQuery();
+    	$dealQuery->where("#id != {$firstDoc->that}");
+    	$dealQuery->where("#folderId = {$form->rec->folderId}");
+    	$dealQuery->where("#state = 'active'");
+    	
+    	while($dealRec = $dealQuery->fetch()){
+    		$docs[$dealRec->id] = $firstDoc->instance->getRecTitle($dealRec);
+    	}
+    	
+    	if(count($docs)){
+    		// Добавяме ги като опции за приключване
+    		$form->setOptions('closeWith', $docs);
+    	} else {
+    		$form->setReadOnly('closeWith');
+    	}
+    	
+    	if(!haveRole('debug')){
+    		$form->setField('closeWith', 'input=none');
+    	}
+    }
+    
+    
 	/**
      * Преди показване на форма за добавяне/промяна
      */
@@ -144,6 +176,12 @@ abstract class acc_ClosedDeals extends core_Master
     	$rec->docId = $firstDoc->that;
     	$rec->docClassId = $firstDoc->instance()->getClassId();
     	$rec->classId = $mvc->getClassId();
+    	
+    	if($form->isSubmitted()){
+    		if($rec->closeWith){
+    			$form->setWarning('closeWith', 'Всички салда ще бъдат прехвърлени до избраната сделка');
+    		}
+    	}
     }
     
     
@@ -240,6 +278,11 @@ abstract class acc_ClosedDeals extends core_Master
 	    	
 	    	// Ако има перо сделката, затваряме го
 	    	if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
+	    		
+	    		// Изчистваме заопашените пера, ако ги има за да им се обнови 'lastUsedOn'
+	    		$Items = cls::get('acc_Items');
+	    		$Items->flushTouched();
+	    		
 	    		acc_Lists::removeItem($DocClass, $firstRec->id, $item->lists);
 	    		
 	    		if(haveRole('ceo,acc,debug')){
