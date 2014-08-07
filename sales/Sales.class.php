@@ -601,13 +601,13 @@ class sales_Sales extends core_Master
             if ($rec->{"amount{$amnt}"} == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0,00</span>';
             } else {
-            	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
+            	$value = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
             	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
         }
         
         foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt){
-        	$color = ($rec->{"amount{$amnt}"} < 0) ? 'red' : 'green';
+        	$color = (round($rec->{"amount{$amnt}"}, 2)< 0) ? 'red' : 'green';
         	$row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
         
