@@ -875,6 +875,69 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         $mvc->invoke('AfterPrepareDocumentLocation', array($data->form));
+        
+        $userListRolesArr = array();
+        
+        // Обхождаме всичко полета в модела
+        foreach ((array)$mvc->fields as $fieldName => $field) {
+            
+            // Ако са от type_Richtext
+            if ($field->type instanceof type_Richtext) {
+                $richTextFieldsArr[$fieldName] = $field;
+            } else if ($field->type instanceof type_UserList) {
+                
+                // Ако са от type_UserList
+                
+                $userListFieldsArr[$fieldName] = $field;
+                
+                // Ако са зададени роли за полето
+                if ($field->type->params['roles']) {
+                    
+                    // Масив с всички роли
+                    $userRolesArr = arr::make($field->type->params['roles'], TRUE);
+                    $userListRolesArr = array_merge($userRolesArr, $userRolesArr);
+                }
+                
+            }
+        }
+        
+        // Ако има поне едно поле от тип type_UserList
+        if (!$userListFieldsArr) {
+            $shareUserRoles = 'no_one';
+            $userRolesForShare = 'no_one';
+        } else {
+            
+            // Ако са зададени роли в type_UserList
+            if ($userListRolesArr) {
+                $shareUserRoles = implode(',', $userListRolesArr);
+            }
+        }
+        
+        // Ако има поне едно поле от тип type_Richtext
+        if ($richTextFieldsArr) {
+            
+            // Обхождаме всички ричтекст полета
+            foreach ((array)$richTextFieldsArr as $fieldName => $field) {
+                
+                // Ако не са зададени роли за споделяне в ричтекст полето 
+                if (!$mvc->fields[$fieldName]->type->params['shareUsersRoles']) {
+                    
+                    // Добавяме в параметрите ролите за споделяне
+                    $mvc->fields[$fieldName]->type->params['shareUsersRoles'] = $shareUserRoles;
+                    
+                    // Ако има роли за споделяне
+                    if ($userRolesForShare) {
+                        
+                        // Ако не са зададени в ричтекст
+                        if (!$mvc->fields[$fieldName]->type->params['userRolesForShare']) {
+                            
+                            // Добавяме ролите, които могат да споделят към потребители
+                            $mvc->fields[$fieldName]->type->params['userRolesForShare'] = $userRolesForShare;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     
