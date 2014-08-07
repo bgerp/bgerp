@@ -54,6 +54,7 @@ class purchase_transaction_CloseDeal
     	
     	$dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
     	$this->shortBalance = new acc_ActiveShortBalance($dealItem->id);
+    	$this->blAmount = $this->shortBalance->getAmount('401');
     	
     	// Създаване на обекта за транзакция
     	$result = (object)array(
@@ -70,7 +71,8 @@ class purchase_transaction_CloseDeal
     	$this->date = acc_Periods::forceYearAndMonthItems($date);
     	
     	// Създаване на запис за прехвърляне на всеки аванс
-    	$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $result->totalAmount, $firstDoc);
+    	$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downpaymentAmounts, $firstDoc);
+    	$result->totalAmount += $downpaymentAmounts;
     	
     	// Ако тотала не е нула добавяме ентритата
     	if(count($entry2)){
@@ -89,8 +91,8 @@ class purchase_transaction_CloseDeal
     	}
     	 
     	// Ако има сума различна от нула значи има приход/разход
-    	$amount = $this->class->getClosedDealAmount($firstDoc);
-    	$amount += $this->diffAmount;
+    	$amount = $this->blAmount + $downpaymentAmounts;
+    	
     	$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $firstDoc);
     	 
     	if(count($entry)){
@@ -113,7 +115,7 @@ class purchase_transaction_CloseDeal
      * 			Dt: 401 Задължения към доставчици
      * 			Ct: 402 Вземания от доставчици по аванси
      */
-    private function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$total, $firstDoc)
+    private function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$downpaymentAmounts, $firstDoc)
     {
     	$entryArr = array();
     
@@ -143,7 +145,7 @@ class purchase_transaction_CloseDeal
     			array('currency_Currencies', $currencyId),
     			'quantity' => $amount);
     	 
-    	$total += $entry['amount'];
+    	$downpaymentAmounts += $entry['amount'];
     	 
     	return $entry;
     }
