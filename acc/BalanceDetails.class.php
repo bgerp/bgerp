@@ -564,13 +564,17 @@ class acc_BalanceDetails extends core_Detail
     	
     	$features = acc_Features::getFeatureOptions(array_keys($options));
         $features = array('' => '') + $features;
-    	$options = $options;
-    	
+        
     	$listName = acc_Lists::getVerbal($listRec, 'name');
     	$form->fieldsLayout->replace($listName, "caption{$i}");
-    	$form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty)', "silent,caption={$listName},width=330px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
+    	$form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title)', "silent,caption={$listName},width=330px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
         $form->FNC("feat{$i}", 'varchar', "silent,caption={$listName}->Свойства,width=330px,input,class=balance-feat");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['grouping{$i}'].value ='';")));
-        $form->setOptions("grouping{$i}", $options);
+        if(count($options)){
+        	$form->setOptions("grouping{$i}", $options);
+        } else {
+        	$form->setReadOnly("grouping{$i}");
+        }
+        
         $form->setOptions("feat{$i}", $features);
         $form->showFields .= "grouping{$i},";
         if(count($features) > 1){
