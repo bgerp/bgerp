@@ -24,7 +24,7 @@ class sales_transaction_CloseDeal
     /**
      * Работен кеш за запомняне на направения, оборот докато не е влязал в счетоводството
      */
-    private static $incomeAmount;
+    private  $blAmount = 0;
     
     
     /**
@@ -162,45 +162,48 @@ class sales_transaction_CloseDeal
     	} else {
     		$dealInfo = $this->class->getDealInfo($rec->threadId);
     		 
+    		$this->blAmount = $this->shortBalance->getAmount('411');
+    		
     		// Кеширане на перото на текущата година
     		$date = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
     		$this->date = acc_Periods::forceYearAndMonthItems($date);
     		 
     		// Създаване на запис за прехвърляне на всеки аванс
-    		$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $result->totalAmount, $firstDoc);
-    		 
+    		$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downPaymentAmount, $firstDoc);
+    		$result->totalAmount += $downPaymentAmount;
+    		
     		// Ако тотала не е нула добавяме ентритата
     		if(count($entry2)){
     			$result->entries[] = $entry2;
     		}
     		
-    		$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $result->totalAmount, $firstDoc);
-    		 
+    		$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $vatNotCharge, $firstDoc);
+    		$result->totalAmount += $vatNotCharge;
+    		
     		// Ако тотала не е нула добавяме ентритата
     		if(count($entry3)){
     			$result->entries[] = $entry3;
     		}
     		 
-    		$entry4 = $this->transferIncome($dealInfo, $docRec, $result->totalAmount, $firstDoc);
+    		$entry4 = $this->transferIncome($dealInfo, $docRec, $result->totalAmount, $firstDoc, $incomeFromProducts);
     		if(count($entry4)){
     			$result->entries = array_merge($result->entries, $entry4);
     		}
     		
     		// Ако има сума различна от нула значи има приход/разход
-    		$amount = $this->class->getClosedDealAmount($firstDoc);
-    		$amount += $this->diffAmount;
-    		$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $firstDoc);
+    		$entry = $this->getCloseEntry($this->blAmount, $result->totalAmount, $docRec, $firstDoc, $incomeFromClosure);
     		
     		if(count($entry)){
     			$result->entries = array_merge($result->entries, $entry);
     		}
     		 
-    		$entry5 = $this->transferIncomeToYear($dealInfo, $docRec, $result->totalAmount, $firstDoc);
+    		//bp($incomeFromClosure, $incomeFromProducts);
+    		$totalIncome = $incomeFromClosure + $incomeFromProducts;
+    		$entry5 = $this->transferIncomeToYear($docRec, $result->totalAmount, $firstDoc, $totalIncome);
     		if(count($entry5)){
     			$result->entries[] = $entry5;
     		}
     	}
-    	
     	
     	// Връщане на резултата
     	return $result;
@@ -238,14 +241,14 @@ class sales_transaction_CloseDeal
      * 			Dt: 7911 - Извънредни приходи по Продажби
      * 			Ct: 700 - Приходи от продажби (по сделки)
      */
-    private function getCloseEntry($amount, &$totalAmount, $docRec, $firstDoc)
+    private function getCloseEntry($amount, &$totalAmount, $docRec, $firstDoc, &$incomeFromClosure)
     {
     	$entry = array();
     	 
     	if($amount == 0) return $entry;
     	
     	if($amount < 0){
-    
+    		
     		// Ако платеното е по-вече от доставеното (кредитно салдо)
     		$entry1 = array(
     				'amount' => abs(currency_Currencies::round($amount)),
@@ -269,7 +272,7 @@ class sales_transaction_CloseDeal
     
     		// Добавяме към общия оборот удвоената сума
     		$totalAmount += -2 * currency_Currencies::round($amount);
-    		static::$incomeAmount -= -1 * $amount;
+    		$incomeFromClosure -= -1 * $amount;
     
     	} elseif($amount > 0){
     
@@ -295,9 +298,9 @@ class sales_transaction_CloseDeal
     		
     		// Добавяме към общия оборот удвоената сума
     		$totalAmount += 2 * currency_Currencies::round($amount);
-    		static::$incomeAmount += currency_Currencies::round($amount);
+    		$incomeFromClosure += currency_Currencies::round($amount);
     	}
-    	 
+    	
     	// Връщане на записа
     	return array($entry1, $entry2);
     }
@@ -320,14 +323,14 @@ class sales_transaction_CloseDeal
      * 			Dt: 700 - Приходи от продажби (по сделки)  (вече на ниво "Сделка")
      * 			Ct: 123 - Печалби и загуби от текущата година
      */
-    protected function transferIncomeToYear($dealInfo, $docRec, &$total, $firstDoc)
+    protected function transferIncomeToYear($docRec, &$total, $firstDoc, $incomeFromClosure)
     {
     	$arr1 = array('700', array($docRec->contragentClassId, $docRec->contragentId), array($firstDoc->className, $firstDoc->that));
     	$arr2 = array('123', $this->date->year, $this->date->month);
-    	$total += abs(static::$incomeAmount);
-    	 
+    	$total += abs($incomeFromClosure);
+    	
     	// Дебитно салдо
-    	if(static::$incomeAmount > 0){
+    	if($incomeFromClosure > 0){
     		$debitArr = $arr2;
     		$creditArr = $arr1;
     	} else {
@@ -337,8 +340,8 @@ class sales_transaction_CloseDeal
     		$creditArr = $arr2;
     	}
     	 
-    	$entry = array('amount' => abs(static::$incomeAmount), 'debit' => $debitArr, 'credit' => $creditArr);
-    	 
+    	$entry = array('amount' => abs($incomeFromClosure), 'debit' => $debitArr, 'credit' => $creditArr);
+    	
     	return $entry;
     }
     
@@ -365,22 +368,22 @@ class sales_transaction_CloseDeal
      * 				Dt: 703 - Приходи от продажби на Услуги
      * 			Ct: 700 - Приходи от продажби (по сделки)
      */
-    protected function transferIncome($dealInfo, $docRec, &$total, $firstDoc)
+    protected function transferIncome($dealInfo, $docRec, &$total, $firstDoc, &$incomeFromProducts)
     {
     	$entries = array();
     	$balanceArr = $this->shortBalance->getShortBalance('701,706,703');
     	
     	$blAmountGoods = $this->shortBalance->getAmount('701,706,703');
+    	$incomeFromProducts += $blAmountGoods;
+    	
     	$total += abs($blAmountGoods);
     	 
     	if(!count($balanceArr)) return $entries;
-    	 
+    	
     	foreach ($balanceArr as $rec){
     		$arr1 = array('700', array($docRec->contragentClassId, $docRec->contragentId),
     				array($firstDoc->className, $firstDoc->that));
     		$arr2 = array($rec['accountSysId'], $rec['ent1Id'], $rec['ent2Id'], $rec['ent3Id'], 'quantity' => $rec['blQuantity']);
-    
-    		static::$incomeAmount += $blAmountGoods;
     
     		if($blAmountGoods > 0){
     			$debitArr = $arr1;
@@ -407,7 +410,7 @@ class sales_transaction_CloseDeal
      * 			706. Приходи от продажба на суровини/материали   (Клиенти, Сделки, Суровини и Материали)
      *
      */
-    private function transferVatNotCharged($dealInfo, $docRec, &$total, $firstDoc)
+    private function transferVatNotCharged($dealInfo, $docRec, &$vatNotCharge, $firstDoc)
     {
     	$entries = array();
     	 
@@ -415,7 +418,7 @@ class sales_transaction_CloseDeal
     	
     	$blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
     	
-    	$total += abs($blAmount);
+    	$vatNotCharge += abs($blAmount);
     	
     	if($blAmount == 0) return $entries;
     	 
@@ -432,7 +435,7 @@ class sales_transaction_CloseDeal
     						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
     						'quantity' => $blAmount));
     
-    		$this->diffAmount  -= $blAmount;
+    		$this->blAmount  += $blAmount;
     	}
     	 
     	return $entries;
@@ -449,7 +452,7 @@ class sales_transaction_CloseDeal
      * 			Dt: 412 - Задължения към клиенти (по аванси)
      * 			Ct: 411 - Вземания от клиенти
      */
-    private function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$total, $firstDoc)
+    private function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$downPaymentAmount, $firstDoc)
     {
     	$entryArr = array();
     	 
@@ -479,8 +482,9 @@ class sales_transaction_CloseDeal
     			array('currency_Currencies', $currencyId),
     			'quantity' => $amount);
     
-    	$total += $entry['amount'];
-    
+    	$downPaymentAmount += $entry['amount'];
+    	$this->blAmount -= $entry['amount'];
+    	
     	return $entry;
     }
 }
