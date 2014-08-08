@@ -121,22 +121,6 @@ class purchase_transaction_Purchase
     public function finalizeTransaction($id)
     {
         $rec = $this->fetchPurchaseData($id);
-		$actions = type_Set::toArray($rec->contoActions);
-        
-        // Обновяване на кеша (платено)
-        if ($actions['pay']) {
-            $rec->amountPaid = $rec->amountDeal;
-        }
-
-        // Обновяване на кеша (доставено)
-        if ($actions['ship']) {
-            $rec->amountDelivered = $rec->amountDeal;
-        
-            foreach ($rec->details as $dRec) {
-                $dRec->quantityDelivered = $dRec->quantity;
-                purchase_PurchasesDetails::save($dRec, 'id, quantityDelivered');
-            }
-        }
         
         // Активиране и запис
         $rec->state = 'active';

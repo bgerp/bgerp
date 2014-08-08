@@ -124,29 +124,6 @@ class sales_transaction_Sale
     public function finalizeTransaction($id)
     {
         $rec = $this->class->fetchRec($id);
-		$actions = type_Set::toArray($rec->contoActions);
-        
-        // Обновяване на кеша (платено)
-        if ($actions['pay']) {
-            $rec->amountPaid = $rec->amountDeal;
-        }
-
-        // Обновяване на кеша (доставено)
-        if ($actions['ship']) {
-            $rec->amountDelivered = $rec->amountDeal;
-            
-            // Извличане на детайлите на продажбата
-            $SalesDetails = cls::get('sales_SalesDetails');
-        
-            $detailQuery = $SalesDetails->getQuery();
-            $detailQuery->where("#saleId = '{$rec->id}'");
-            $detailQuery->show('id, quantity');
-        
-            while ($dRec = $detailQuery->fetch()) {
-                $dRec->quantityDelivered = $dRec->quantity;
-                $SalesDetails->save_($dRec, 'id, quantityDelivered');
-            }
-        }
         
         // Активиране и запис
         $rec->state = 'active';
