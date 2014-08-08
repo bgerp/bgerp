@@ -717,6 +717,10 @@ class sales_Sales extends core_Master
 				$data->query->where("#dealerId = {$filter->dealerId}");
 			}
 		
+			$data->query->XPR('paidRound', 'double', 'ROUND(#amountPaid, 2)');
+			$data->query->XPR('dealRound', 'double', 'ROUND(#amountDeal, 2)');
+			$data->query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered , 2)');
+			
 			if($filter->type) {
 				switch($filter->type){
 					case "all":
@@ -731,22 +735,22 @@ class sales_Sales extends core_Master
 						$data->query->where("#state = 'closed'");
 						break;
 					case 'paid':
-						$data->query->where("#amountPaid = #amountDeal");
+						$data->query->where("#paidRound = #dealRound");
 						$data->query->where("#state = 'active' || #state = 'closed'");
 						break;
 					case 'overdue':
 						$data->query->where("#paymentState = 'overdue'");
 						break;
 					case 'delivered':
-						$data->query->where("#amountDelivered = #amountDeal");
+						$data->query->where("#deliveredRound = #dealRound");
 						$data->query->where("#state = 'active' || #state = 'closed'");
 						break;
 					case 'undelivered':
-						$data->query->orWhere("#amountDelivered < #amountDeal");
+						$data->query->where("#deliveredRound < #dealRound");
 						$data->query->where("#state = 'active' || #state = 'closed'");
 						break;
 					case 'unpaid':
-						$data->query->where("#amountPaid < #amountDelivered");
+						$data->query->where("#paidRound < #deliveredRound");
 						$data->query->where("#state = 'active' || #state = 'closed'");
 						break;
 				}
