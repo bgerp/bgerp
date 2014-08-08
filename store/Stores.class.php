@@ -188,7 +188,7 @@ class store_Stores extends core_Master
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
         $this->FLD('strategy', 'class(interface=store_iface_ArrangeStrategyIntf)', 'caption=Стратегия');
     	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
-    	$this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
+    	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
     }
     
     
@@ -354,6 +354,6 @@ class store_Stores extends core_Master
      */
     function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
     {
-    	$where .= ($where ? " AND " : "") . " #state = 'active'";
+    	$where .= ($where ? " AND " : "") . " #state != 'rejected'";
     }
 }
