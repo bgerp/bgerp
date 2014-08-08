@@ -173,7 +173,7 @@ class sales_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => abs($amount) / $docRec->currencyRate,
+    						'quantity' => abs($amount) / $docRec->currencyRate),
     		);
     
     		$entry2 = array('amount' => abs($amount),
