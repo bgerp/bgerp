@@ -164,4 +164,34 @@ class type_Text extends core_Type {
         
         return $chunk;
     }
+    
+    
+    /**
+     * Връща масив със всички предложения за този списък
+     */
+    public function getSuggestions()
+    {
+        if(!$this->suggestions) {
+            $this->prepareSuggestions();
+        }
+
+        return $this->suggestions;
+    }
+    
+    
+    /**
+     * Подготвя предложенията за списъка
+     */
+    private function prepareSuggestions()
+    {
+        $this->suggestions = arr::make($this->suggestions);
+        
+        if ($this->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this)) === FALSE) return ;
+        
+        // Добавяме 
+        $suggestionsStr = str_replace('|', ',', $this->params['suggestions']);
+        $this->suggestions = arr::make($suggestionsStr, TRUE);
+        
+        $this->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
+    }
 }
