@@ -483,12 +483,21 @@ class acc_Journal extends core_Master
      		}
      		
      		// Ако състоянието на документа е чернова
-     		$state = $document->fetchField('state');
+     		$state = $document->fetchField('state', FALSE);
      		if($state == 'draft'){
+     			
+     			// Изчакваме малко, защото документа може още да не е актириван от транзакцията
+     			sleep(2);
+     			
+     			// Отново проверяваме състоянието, ако не е чернова не трием от журнала
+     			if($document->fetchField('state', FALSE) != 'draft') continue;
      			
      			// Изтриване на замърсените данни
      			acc_JournalDetails::delete("#journalId = {$rec->id}");
      			acc_Journal::delete("#id = {$rec->id}");
+     			
+     			// Логваме в журнала
+     			acc_Articles::log("Изтрит ред '{$rec->id}' от журнала На документ {$document->className}:{$rec->docId}");
      		}
      	}
      }
