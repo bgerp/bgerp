@@ -541,7 +541,7 @@ class img_Thumb
             if($this->ratio != 1 || $this->rotation) {
                 
                 if($this->rotation) {
-                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledHeight, $this->scaledWidth);
+                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledHeight, $this->scaledWidth, $this->format);
                     
                     $white = imagecolorallocatealpha($newGdRes, 255, 255, 255, 127);
                     
@@ -549,7 +549,7 @@ class img_Thumb
                     
                     $newGdRes = imagerotate($newGdRes, $angle, $white);
                 } else {
-                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledWidth, $this->scaledHeight);
+                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledWidth, $this->scaledHeight, $this->format);
                 }
             } elseif($this->sourceType == 'gdRes') {
                 $newGdRes = $gdRes;
@@ -651,21 +651,39 @@ class img_Thumb
      *
      * @return  GD resource                 Резултатно изображение
      */
-    static function scaleGdImg($im, $dstWidth, $dstHeight)
+    static function scaleGdImg($im, $dstWidth, $dstHeight, $format=NULL)
     {
         $width  = imagesx($im);
         $height = imagesy($im);
-
+        
         $newImg = imagecreatetruecolor($dstWidth, $dstHeight);
-
-        imagealphablending($newImg, FALSE);
-        imagesavealpha($newImg, TRUE);
-
-        $transparent = imagecolorallocatealpha($newImg, 255, 255, 255, 127);
-        imagefilledrectangle($newImg, 0, 0, $dstWidth, $dstWidth, $transparent);
+        
+        if (!$format || $format == 'gif') {
+            $transparentIndex = imagecolortransparent($im);
+            if (!$format && $transparentIndex > 0) {
+                $isGif = TRUE;
+            } elseif ($format) {
+                $isGif = TRUE;
+            }
+        }
+        
+        if ($isGif == TRUE) {
+            // is GIF
+            imagepalettecopy($im, $newImg);
+            imagefill($newImg, 0, 0, $transparentIndex);
+            imagecolortransparent($newImg, $transparentIndex);
+            imagetruecolortopalette($newImg, true, 256);
+        } else {
+            // is PNG
+            imagealphablending($newImg, FALSE);
+            imagesavealpha($newImg, TRUE);
+    
+            $transparent = imagecolorallocatealpha($newImg, 255, 255, 255, 127);
+            imagefilledrectangle($newImg, 0, 0, $dstWidth, $dstWidth, $transparent);
+        }
+        
         imagecopyresampled($newImg, $im, 0, 0, 0, 0, $dstWidth, $dstHeight, $width, $height);
  
         return $newImg;
     }
-
 }
