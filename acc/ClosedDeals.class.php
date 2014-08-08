@@ -419,7 +419,7 @@ abstract class acc_ClosedDeals extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	if($rec->state == 'active'){
     		
-    		$rec->amount = static::getClosedDealAmount($rec->threadId);
+    		//$rec->amount = static::getClosedDealAmount($rec->threadId);
     		if($rec->amount == 0){
     			$costAmount = $incomeAmount = 0;
     		} elseif($rec->amount > 0){
