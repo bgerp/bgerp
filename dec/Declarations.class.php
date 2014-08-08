@@ -180,15 +180,16 @@ class dec_Declarations extends core_Master
     		$firstDoc = doc_Threads::getFirstDocument($data->form->rec->threadId);
     		if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
     			$deal = $firstDoc->getAggregateDealInfo();
-    		} elseif($firstDoc->haveInterface('bgerp_DealIntf')){bp();
+    		} elseif($firstDoc->haveInterface('bgerp_DealIntf')){
     			$deal = $firstDoc->getDealInfo();
     		}
     		expect($deal);
 
 	       	// Продуктите
-	       	if (count($deal->invoiced->products)) {
+	       	$invoicedProducts = $deal->get('invoicedProducts');
+	       	if (count($invoicedProducts)) {
 	       		
-		       	foreach($deal->invoiced->products as $iProduct){
+		       	foreach($invoicedProducts as $iProduct){
 		    		$ProductMan = cls::get($iProduct->classId);
 		        	$productName [$iProduct->classId."|".$iProduct->productId] = $ProductMan::getTitleById($iProduct->productId);
 				}
