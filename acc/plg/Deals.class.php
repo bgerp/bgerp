@@ -48,26 +48,33 @@ class acc_plg_Deals extends core_Plugin
     
     
     /**
-     * След подготовка на тулбара на единичен изглед
+     * Преди рендиране на тулбара
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_BeforeRenderSingleToolbar($mvc, &$res, &$data)
     {
     	$rec = &$data->rec;
-	    
+    	
+    	// Ако има бутон за принтиране, подменяме го с такъв стоящ на първия ред
+    	if(isset($data->toolbar->buttons['btnPrint'])){
+    		$data->toolbar->removeBtn('btnPrint');
+    		$url = array($mvc, 'single', $rec->id, 'Printing' => 'yes');
+    		$data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank', 'ef_icon = img/16/printer.png,title=Печат на страницата');
+    	}
+    	
     	// Ако има опции за избор на контирането, подмяна на бутона за контиране
-	    if(isset($data->toolbar->buttons['btnConto'])){
-	    	$options = $mvc->getContoOptions($rec->id);
-	    	if(count($options)){
-	    		$data->toolbar->removeBtn('btnConto');
-	    		
-		    	// Проверка на счетоводния период, ако има грешка я показваме
-	        	if(!acc_plg_Contable::checkPeriod($rec->valior, $error)){
-	        		$error = ",error={$error}";
-	        	}
-	        	
-	    		$data->toolbar->addBtn('Активиране', array($mvc, 'chooseAction', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
-	    	}
-	    }
+    	if(isset($data->toolbar->buttons['btnConto'])){
+    		$options = $mvc->getContoOptions($rec->id);
+    		if(count($options)){
+    			$data->toolbar->removeBtn('btnConto');
+    			 
+    			// Проверка на счетоводния период, ако има грешка я показваме
+    			if(!acc_plg_Contable::checkPeriod($rec->valior, $error)){
+    				$error = ",error={$error}";
+    			}
+    	
+    			$data->toolbar->addBtn('Активиране', array($mvc, 'chooseAction', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
+    		}
+    	}
     }
     
     
