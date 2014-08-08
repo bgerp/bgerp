@@ -75,14 +75,14 @@ class cash_transaction_Rko
     private function getEntry($rec, $origin, $reverse = FALSE)
     {
     	$dealInfo = $origin->getAggregateDealInfo();
-    	$amount = round($rec->rate * $rec->amount, 2);
+    	$amount = $rec->rate * $rec->amount;
     	
     	// Ако е обратна транзакцията, сумите и к-та са с минус
     	$sign = ($reverse) ? -1 : 1;
     	
     	// Дебита е винаги във валутата на пораждащия документ,
     	$debitCurrency = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-    	$debitQuantity = round($amount / $dealInfo->get('rate'), 2);
+    	$debitQuantity = $amount / $dealInfo->get('rate');
     	
     	// Дебитираме разчетната сметка
     	$debitArr = array($rec->debitAccount,

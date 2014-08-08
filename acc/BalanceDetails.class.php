@@ -20,7 +20,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'acc_Wrapper, Accounts=acc_Accounts, Lists=acc_Lists, plg_StyleNumbers, plg_AlignDecimals,plg_Printing';
+    var $loadList = 'acc_Wrapper, Accounts=acc_Accounts, Lists=acc_Lists, plg_StyleNumbers, plg_AlignDecimals, plg_Printing';
     
     
     /**
@@ -105,13 +105,13 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('ent1Id', 'key(mvc=acc_Items,title=titleLink)', 'caption=Сметка->перо 1');
         $this->FLD('ent2Id', 'key(mvc=acc_Items,title=titleLink)', 'caption=Сметка->перо 2');
         $this->FLD('ent3Id', 'key(mvc=acc_Items,title=titleLink)', 'caption=Сметка->перо 3');
-        $this->FLD('baseQuantity', 'double', 'caption=База->Количество,tdClass=ballance-field');
+        $this->FLD('baseQuantity', 'double(maxDecimals=3)', 'caption=База->Количество,tdClass=ballance-field');
         $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума,tdClass=ballance-field');
-        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество,tdClass=ballance-field');
+        $this->FLD('debitQuantity', 'double(maxDecimals=3)', 'caption=Дебит->Количество,tdClass=ballance-field');
         $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума,tdClass=ballance-field');
-        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество,tdClass=ballance-field');
+        $this->FLD('creditQuantity', 'double(maxDecimals=3)', 'caption=Кредит->Количество,tdClass=ballance-field');
         $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума,tdClass=ballance-field');
-        $this->FLD('blQuantity', 'double', 'caption=Салдо->Количество,tdClass=ballance-field');
+        $this->FLD('blQuantity', 'double(maxDecimals=3)', 'caption=Салдо->Количество,tdClass=ballance-field');
         $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума,tdClass=ballance-field');
     }
     

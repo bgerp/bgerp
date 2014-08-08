@@ -135,10 +135,10 @@ class purchase_transaction_CloseDeal
     	 
     	// Валутата на плащането е тази на сделката
     	$currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-    	$amount = currency_Currencies::round($downpaymentAmount / $dealInfo->get('rate'), 2);
+    	$amount = $downpaymentAmount / $dealInfo->get('rate');
     	 
     	$entry = array();
-    	$entry['amount'] = currency_Currencies::round($downpaymentAmount);
+    	$entry['amount'] = $downpaymentAmount;
     	$entry['debit'] = array('401',
     			array($docRec->contragentClassId, $docRec->contragentId),
     			array($firstDoc->className, $firstDoc->that),
@@ -278,7 +278,7 @@ class purchase_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => currency_Currencies::round($amount / $docRec->currencyRate)),
+    						'quantity' => $amount / $docRec->currencyRate),
     				'debit'  => array('6912',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
@@ -305,7 +305,7 @@ class purchase_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => currency_Currencies::round(-1 * $amount / $docRec->currencyRate)));
+    						'quantity' => -1 * $amount / $docRec->currencyRate));
     
     		$entry2 = array(
     				'amount' => abs($amount),

@@ -61,7 +61,7 @@ class deals_transaction_AdvanceReport
     		$arr = array();
     
     		$vatAmount += $dRec->amount * $dRec->vat;
-    		$arr['amount'] = round($dRec->amount, 2);
+    		$arr['amount'] = $dRec->amount;
     		$pInfo = cat_Products::getProductInfo($dRec->productId);
     
     		$debitArr = array();
@@ -70,14 +70,14 @@ class deals_transaction_AdvanceReport
     		$debitArr['quantity'] = $dRec->quantity;
     		$arr['debit'] = $debitArr;
     
-    		$creditArr['quantity'] = round($dRec->amount / $rec->rate, 2);
+    		$creditArr['quantity'] = $dRec->amount / $rec->rate;
     
     		$arr['credit'] = $creditArr;
     
     		$entries[] = $arr;
     	}
     	
-    	$vatAmount = round($vatAmount, 2);
+    	$vatAmount = $vatAmount;
     	$entries[] = array(
     			'amount' => $vatAmount, // В основна валута
     			'credit' => array(

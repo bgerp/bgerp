@@ -159,20 +159,20 @@ class store_transaction_Receipt
             );
         	
         	$entries[] = array(
-        		 'amount' => $sign * currency_Currencies::round($amount * $rec->currencyRate),
+        		 'amount' => $sign * $amount * $rec->currencyRate,
         		 'debit'  => $debit,
 	             'credit' => array(
 	                   $rec->accountId, 
                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
 	             	   array($origin->className, $origin->that),		   // Перо 2 - Сделка
                        array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-                    'quantity' => $sign * currency_Currencies::round($amount, $currencyCode), // "брой пари" във валутата на покупката
+                    'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
 	             ),
 	        );
         }
         
     	if($this->class->_total->vat){
-        	$vatAmount = currency_Currencies::round($this->class->_total->vat * $currencyRate);
+        	$vatAmount = $this->class->_total->vat * $currencyRate;
         	$entries[] = array(
                 'amount' => $sign * $vatAmount, // В основна валута
                 

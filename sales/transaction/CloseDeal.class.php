@@ -165,7 +165,7 @@ class sales_transaction_CloseDeal
     		
     		// Ако платеното е по-вече от доставеното (кредитно салдо)
     		$entry1 = array(
-    				'amount' => abs(currency_Currencies::round($amount)),
+    				'amount' => abs($amount),
     				'credit'  => array('7911',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
@@ -173,10 +173,10 @@ class sales_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => currency_Currencies::round(abs($amount) / $docRec->currencyRate)),
+    						'quantity' => abs($amount) / $docRec->currencyRate,
     		);
     
-    		$entry2 = array('amount' => abs(currency_Currencies::round($amount)),
+    		$entry2 = array('amount' => abs($amount),
     				'debit'  => array('7911',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
@@ -185,14 +185,14 @@ class sales_transaction_CloseDeal
     		);
     
     		// Добавяме към общия оборот удвоената сума
-    		$totalAmount += -2 * currency_Currencies::round($amount);
+    		$totalAmount += -2 * $amount;
     		$incomeFromClosure -= -1 * $amount;
     
     	} elseif($amount > 0){
     
     		// Ако платеното е по-малко от доставеното (дебитно салдо)
     		$entry1 = array(
-    				'amount' => currency_Currencies::round($amount),
+    				'amount' => $amount,
     				'debit'  => array('6911',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
@@ -200,10 +200,10 @@ class sales_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => currency_Currencies::round($amount / $docRec->currencyRate)),
+    						'quantity' => $amount / $docRec->currencyRate),
     		);
     
-    		$entry2 = array('amount' => currency_Currencies::round($amount),
+    		$entry2 = array('amount' => $amount,
     				'debit'  => array('700', array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
     				'credit'  => array('6911',
@@ -211,8 +211,8 @@ class sales_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that)),);
     		
     		// Добавяме към общия оборот удвоената сума
-    		$totalAmount += 2 * currency_Currencies::round($amount);
-    		$incomeFromClosure += currency_Currencies::round($amount);
+    		$totalAmount += 2 * $amount;
+    		$incomeFromClosure += $amount;
     	}
     	
     	// Връщане на записа
@@ -380,10 +380,10 @@ class sales_transaction_CloseDeal
     	 
     	// Валутата на плащането е тази на сделката
     	$currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-    	$amount = currency_Currencies::round($downpaymentAmount / $dealInfo->get('rate'), 2);
+    	$amount = $downpaymentAmount / $dealInfo->get('rate');
     
     	$entry = array();
-    	$entry['amount'] = currency_Currencies::round($downpaymentAmount);
+    	$entry['amount'] = $downpaymentAmount;
     	$entry['debit'] = array('412',
     			array($docRec->contragentClassId, $docRec->contragentId),
     			array($firstDoc->className, $firstDoc->that),

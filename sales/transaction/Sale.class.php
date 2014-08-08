@@ -229,14 +229,14 @@ class sales_transaction_Sale
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             
         	$entries[] = array(
-                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
+                'amount' => $amount * $rec->currencyRate, // В основна валута
                 
                 'debit' => array(
                     '411', 
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                 		array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
                         array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-                    'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на продажбата
+                    'quantity' => $amount, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
@@ -250,7 +250,7 @@ class sales_transaction_Sale
         }
         
      	if($this->class->_total->vat){
-        	$vatAmount = currency_Currencies::round($this->class->_total->vat * $rec->currencyRate);
+        	$vatAmount = $this->class->_total->vat * $rec->currencyRate;
         	$entries[] = array(
                 'amount' => $vatAmount, // В основна валута
                 
@@ -302,10 +302,10 @@ class sales_transaction_Sale
         	$amountBase += $this->class->_total->vat * $rec->currencyRate;
         }
         
-        $quantityAmount += currency_Currencies::round($amountBase / $rec->currencyRate, $rec->currencyId);
+        $quantityAmount += $amountBase / $rec->currencyRate;
         
         $entries[] = array(
-                'amount' => currency_Currencies::round($amountBase), // В основна валута
+                'amount' => $amountBase, // В основна валута
                 
                 'debit' => array(
                     '501', // Сметка "501. Каси"

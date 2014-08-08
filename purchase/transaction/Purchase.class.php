@@ -212,14 +212,14 @@ class purchase_transaction_Purchase
 	        	$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
 
     			$entries[] = array(
-	                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
+	                'amount' => $amount * $rec->currencyRate, // В основна валута
 	                
 	                'credit' => array(
 	                    '401', 
 	                        array($rec->contragentClassId, $rec->contragentId),
 	                		array('purchase_Purchases', $rec->id),
 	                        array('currency_Currencies', $currencyId),          
-	                    'quantity' => currency_Currencies::round($amount, $rec->currencyId),
+	                    'quantity' => $amount,
 	                ),
 	                
 	                'debit' => array(
@@ -232,7 +232,7 @@ class purchase_transaction_Purchase
         }
         
     	if($this->class->_total->vat){
-	        $vatAmount = currency_Currencies::round($this->class->_total->vat * $rec->currencyRate);
+	        $vatAmount = $this->class->_total->vat * $rec->currencyRate;
 	        $entries[] = array(
 	             'amount' => $vatAmount, // В основна валута
 	                
@@ -283,10 +283,10 @@ class purchase_transaction_Purchase
         	$amountBase += $this->class->_total->vat * $rec->currencyRate;
         }
         
-        $quantityAmount += currency_Currencies::round($amountBase / $rec->currencyRate, $rec->currencyId);
+        $quantityAmount += $amountBase / $rec->currencyRate;
         
         $entries[] = array(
-                'amount' => currency_Currencies::round($amountBase), // В основна валута
+                'amount' => $amountBase, // В основна валута
                 
                 'credit' => array(
                     '501', // Сметка "501. Каси"
@@ -356,14 +356,14 @@ class purchase_transaction_Purchase
 	            );
 	        	
 	        	$entries[] = array(
-	        		 'amount' => currency_Currencies::round($amount * $rec->currencyRate),
+	        		 'amount' => $amount * $rec->currencyRate,
 	        		 'debit'  => $debit,
 		             'credit' => array(
 		                   '401', 
 	                       array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
 		             	   array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
 	                       array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-	                    'quantity' => currency_Currencies::round($amount, $currencyCode), // "брой пари" във валутата на покупката
+	                    'quantity' => $amount, // "брой пари" във валутата на покупката
 		             ),
 		        );
         	}

@@ -72,7 +72,7 @@ class deals_transaction_CreditDocument
      */
     private function getEntry($rec, $origin, $reverse = FALSE)
     {
-    	$amount = round($rec->rate * $rec->amount, 2);
+    	$amount = $rec->rate * $rec->amount;
     	$dealInfo = $origin->getAggregateDealInfo();
     	$dealRec = deals_Deals::fetch($rec->dealId);
     	
@@ -84,14 +84,14 @@ class deals_transaction_CreditDocument
     						array($rec->contragentClassId, $rec->contragentId),
     						array($origin->className, $origin->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
-    						'quantity' => $sign * round($amount / $dealInfo->get('rate'), 2));
+    						'quantity' => $sign * $amount / $dealInfo->get('rate'));
     	
     	// Кредитираме разчетната сметка на избраната финансова сделка
     	$creditArr = array($rec->creditAccount,
     							array($dealRec->contragentClassId, $dealRec->contragentId),
     							array($dealRec->dealManId, $rec->dealId),
     							array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
-    							'quantity' => $sign * round($amount / $dealRec->currencyRate, 2));
+    							'quantity' => $sign * $amount / $dealRec->currencyRate);
     	
     	$entry = array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,);
     

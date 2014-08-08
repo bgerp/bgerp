@@ -182,14 +182,14 @@ class store_transaction_ShipmentOrder
         	$creditAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
             
         	$entries[] = array(
-                'amount' => $sign * currency_Currencies::round($amount * $currencyRate), // В основна валута
+                'amount' => $sign * $amount * $currencyRate, // В основна валута
                 
                 'debit' => array(
                     $rec->accountId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                 		array($origin->className, $origin->that),			// Перо 2 - Сделка
                         array('currency_Currencies', $currencyId),     		// Перо 3 - Валута
-                    'quantity' => $sign * currency_Currencies::round($amount, $currencyCode), // "брой пари" във валутата на продажбата
+                    'quantity' => $sign * $amount, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
@@ -203,7 +203,7 @@ class store_transaction_ShipmentOrder
         }
         
         if($this->class->_total->vat){
-        	$vatAmount = currency_Currencies::round($this->class->_total->vat * $currencyRate);
+        	$vatAmount = $this->class->_total->vat * $currencyRate;
         	$entries[] = array(
                 'amount' => $sign * $vatAmount, // В основна валута
                 

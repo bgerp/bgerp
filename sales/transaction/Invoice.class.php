@@ -77,7 +77,7 @@ class sales_transaction_Invoice
     
     	if(isset($cloneRec->vatAmount)){
     		$entries[] = array(
-    				'amount' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
+    				'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
     
     				'debit' => array('4530', array($origin->className, $origin->that)),
     
