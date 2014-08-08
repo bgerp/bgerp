@@ -44,6 +44,8 @@ class acc_plg_Deals extends core_Plugin
     	if(empty($mvc->fields['contoActions']) && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
     		$mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
     	}
+    	
+    	$mvc->declareInterface('doc_AddToFolderIntf');
     }
     
     
@@ -343,5 +345,19 @@ class acc_plg_Deals extends core_Plugin
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_AfterMustShowButton($mvc, &$res, $folderRec, $userId = NULL)
+    {
+    	// Ако не можем да добавяме нов документ в тази папка
+    	if(!$mvc->haveRightFor('add', (object)array('folderId' => $folderRec->id))) return FALSE;
+    	
+    	// Ако корицата на папката е на контрагент, може да се показва бутон за добавяне на нов документ
+    	$Cover = doc_Folders::getCover($folderRec->id);
+    	$res = ($Cover->haveInterface('doc_ContragentDataIntf')) ? TRUE : FALSE;
     }
 }
