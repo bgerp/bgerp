@@ -77,4 +77,44 @@ class rtac_yuku_Textcomplete extends core_Manager
             );
         ", TRUE);
     }
+    
+    
+    /**
+     * Стартира autocomplete-а за добавяне на текст
+     * 
+     * @param core_Et $tpl
+     * @param string $id
+     * @see rtac_AutocompleteIntf::runAutocompleteUsers(&$tpl, $rtId)
+     */
+    static function runAutocompleteText(&$tpl, $textId)
+    {
+        $conf = core_Packs::getConfig('rtac');
+        
+        // Максималния брой на елементи, които 
+        $maxCount = $conf->RTAC_MAX_SHOW_COUNT;
+        
+        jquery_Jquery::run($tpl, "
+        	$('#{$textId}').textcomplete(
+                {
+                    match: /\[([^\]]*)$/,
+                    index: 1,
+                    search: function (term, callback) {
+                        callback($.map(rtacObj.textCompleteObj.{$textId}, function (element) {
+                        	term = term.toLowerCase();
+                        	var text = element.toLowerCase();
+                        	return text.indexOf(term) === 0 ? element : null;
+                    	}));
+                    },
+                    replace: function (textComplete) {
+                        return '[' + textComplete + '] ';
+                    },
+                    maxCount: {$maxCount},
+                    cache: true,
+                    template: function(textComplete) {
+                    	return textComplete;
+    				}
+                }
+            );
+        ", TRUE);
+    }
 }

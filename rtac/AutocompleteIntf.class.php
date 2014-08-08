@@ -38,4 +38,17 @@ class rtac_AutocompleteIntf
         
         return $this->class->runAutocompleteUsers($tpl, $rtId);
     }
+    
+    
+    /**
+     * Стартира autocomplete-а за добавяне на текст
+     * 
+     * @param core_Et $tpl
+     * @param string $id
+     */
+    static function runAutocompleteText(&$tpl, $rtId)
+    {
+        
+        return $this->class->runAutocompleteText($tpl, $rtId);
+    }
 }
