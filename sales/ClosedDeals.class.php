@@ -100,6 +100,25 @@ class sales_ClosedDeals extends acc_ClosedDeals
     
     
     /**
+     * Връща разликата с която ще се приключи сделката
+     * @param mixed  $threadId - ид на нишката или core_ObjectReference
+     * 							 към първия документ в нишката
+     * @return double $amount - разликата на платеното и експедираното
+     */
+    public static function getClosedDealAmount($threadId)
+    {
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->instance, $firstDoc->that));
+    	 
+    	$cost = acc_Balances::getBlAmounts($jRecs, '6911', 'debit')->amount;
+    	$inc = acc_Balances::getBlAmounts($jRecs, '7911', 'credit')->amount;
+    	 
+    	// Разликата между платеното и доставеното
+    	return $inc - $cost;
+    }
+    
+    
+    /**
      * След дефиниране на полетата на модела
      */
     public static function on_AfterDescription(core_Master &$mvc)
@@ -130,20 +149,6 @@ class sales_ClosedDeals extends acc_ClosedDeals
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->DOC_NAME = tr("ПРОДАЖБА");
-    	if($rec->amount == 0){
-    		$costAmount = $incomeAmount = 0;
-    	} elseif($rec->amount < 0){
-    		$incomeAmount = $rec->amount;
-    		$costAmount = 0;
-    		$row->type = tr('Приход');
-    	} elseif($rec->amount > 0){
-    		$costAmount = $rec->amount;
-    		$incomeAmount = 0;
-    		$row->type = tr('Разход');
-    	}
-    	
-    	$row->costAmount = $mvc->getFieldType('amount')->toVerbal(abs($costAmount));
-    	$row->incomeAmount = $mvc->getFieldType('amount')->toVerbal(abs($incomeAmount));
     	
     	if($rec->closeWith){
     		$row->closeWith = ht::createLink($row->closeWith, array('sales_Sales', 'single', $rec->closeWith));

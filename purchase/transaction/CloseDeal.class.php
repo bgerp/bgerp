@@ -203,6 +203,7 @@ class purchase_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
     						'quantity' => abs($blAmount)));
+    		$this->blAmount -= abs($blAmount);
     	} elseif($blAmount > 0){
     
     		// Сметка 4530 има Дебитно (Dt) салдо

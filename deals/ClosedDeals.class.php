@@ -110,6 +110,25 @@ class deals_ClosedDeals extends acc_ClosedDeals
     
     
     /**
+     * Връща разликата с която ще се приключи сделката
+     * @param mixed  $threadId - ид на нишката или core_ObjectReference
+     * 							 към първия документ в нишката
+     * @return double $amount - разликата на платеното и експедираното
+     */
+    public static function getClosedDealAmount($threadId)
+    {
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->instance, $firstDoc->that));
+    
+    	$cost = acc_Balances::getBlAmounts($jRecs, '6913', 'debit')->amount;
+    	$inc = acc_Balances::getBlAmounts($jRecs, '7913', 'credit')->amount;
+    
+    	// Разликата между платеното и доставеното
+    	return $inc - $cost;
+    }
+    
+    
+    /**
      * Имплементиране на интерфейсен метод
      * @see acc_ClosedDeals::getDocumentRow()
      */

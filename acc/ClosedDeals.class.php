@@ -271,20 +271,6 @@ abstract class acc_ClosedDeals extends core_Master
     }
     
     
-    /**
-     * Преди запис на документ
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, &$rec)
-    {
-    	if($rec->state == 'active'){
-    		$info = static::getDealInfo($rec->threadId);
-    		$rec->amount = $mvc::getClosedDealAmount($mvc->fetchField($rec->id, 'threadId'));
-    		$rec->currencyId = $info->get('currency');
-    		$rec->rate = $info->get('rate');
-    	}
-    }
-    
-    
 	/**
      * Може ли документ-продажба да се добави в посочената папка?
      */
@@ -338,19 +324,21 @@ abstract class acc_ClosedDeals extends core_Master
      */
     public static function getClosedDealAmount($threadId)
     {
-    	expect($info = static::getDealInfo($threadId));
-		
-        $diff = currency_Currencies::round($info->get('blAmount'), 2);
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->instance, $firstDoc->that));
+    	
+    	$cost = acc_Balances::getBlAmounts($jRecs, '6911,6912', 'debit')->amount;
+    	$inc = acc_Balances::getBlAmounts($jRecs, '7911,7912', 'credit')->amount;
        
         // Разликата между платеното и доставеното
-        return $diff;
+        return $inc - $cost;
     }
     
     
 	/**
 	 * Изпълнява се след запис
 	 */
-	public static function on_AfterSave($mvc, &$id, $rec)
+	public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	// При активация на документа
     	$rec = $mvc->fetch($id);
@@ -375,6 +363,11 @@ abstract class acc_ClosedDeals extends core_Master
 	    			$title = $DocClass->getTitleById($firstRec->id);
 	    			core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
 	    		}
+	    	}
+	    	
+	    	if(empty($saveFileds)){
+	    		$rec->amount = static::getClosedDealAmount($rec->threadId);
+	    		$mvc->save($rec, 'amount');
 	    	}
     	}
     }
@@ -424,8 +417,26 @@ abstract class acc_ClosedDeals extends core_Master
     	$Double->params['decimals'] = 2;
     	
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    	if(!$rec->amount){
+    	if($rec->state == 'active'){
+    		
     		$rec->amount = static::getClosedDealAmount($rec->threadId);
+    		if($rec->amount == 0){
+    			$costAmount = $incomeAmount = 0;
+    		} elseif($rec->amount > 0){
+    			$incomeAmount = $rec->amount;
+    			$costAmount = 0;
+    			$row->type = tr('Приход');
+    		} elseif($rec->amount < 0){
+    			$costAmount = $rec->amount;
+    			$incomeAmount = 0;
+    			$row->type = tr('Разход');
+    		}
+    		
+    		$Double = cls::get('type_Double');
+    		$Double->params['decimals'] = 2;
+    		
+    		$row->costAmount = $Double->toVerbal(abs($costAmount));
+    		$row->incomeAmount = $Double->toVerbal(abs($incomeAmount));
     	}
     	
     	$row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
