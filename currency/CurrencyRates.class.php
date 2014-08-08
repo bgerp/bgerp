@@ -40,6 +40,12 @@ class currency_CurrencyRates extends core_Detail
     
     
     /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = "Валутен курс";
+
+    
+    /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 20;
