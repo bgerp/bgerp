@@ -195,12 +195,19 @@ class plg_Current extends core_Plugin
     {
     	if($action == 'select' && isset($rec)){
     		
-    		// Ако има поле за отговорник и текущия потребител, не е отговорник или е отговорник но с премахнати права, той няма права да избира
-    		if(!(isset($mvc->canSelectAll) && haveRole($mvc->canSelectAll)) && isset($mvc->inChargeField) 
-    		&& (!keylist::isIn($userId, $rec->{$mvc->inChargeField}) || (keylist::isIn($userId, $rec->{$mvc->inChargeField}) && !haveRole($mvc->getFieldType($mvc->inChargeField)->getRoles())))){
-	    		
+    		if($rec->state == 'rejected'){
+    			
+    			// Никой не може да се логва в оттеглен обект
     			$res = 'no_one';
-	    	} 
+    		} else {
+    			
+    			// Ако има поле за отговорник и текущия потребител, не е отговорник или е отговорник но с премахнати права, той няма права да избира
+    			if(!(isset($mvc->canSelectAll) && haveRole($mvc->canSelectAll)) && isset($mvc->inChargeField)
+    			&& (!keylist::isIn($userId, $rec->{$mvc->inChargeField}) || (keylist::isIn($userId, $rec->{$mvc->inChargeField}) && !haveRole($mvc->getFieldType($mvc->inChargeField)->getRoles())))){
+    				 
+    				$res = 'no_one';
+    			}
+    		}
     	}
     }
 }
