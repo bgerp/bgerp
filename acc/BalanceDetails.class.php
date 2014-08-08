@@ -1458,7 +1458,7 @@ class acc_BalanceDetails extends core_Detail
     	$equalBl = TRUE;
     	if(count($data->rows)){
     		foreach ($data->rows as $row){
-    			if($row->blQuantity != $row->blAmount){
+    			if(trim($row->blQuantity) != trim($row->blAmount)){
     				$equalBl = FALSE;
     			}
     		}
