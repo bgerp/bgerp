@@ -207,10 +207,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     	$res = parent::canAddToThread($threadId);
     	if(!$res) return FALSE;
     
-    	$dealInfo = static::getDealInfo($threadId);
-    
-    	// Може само към нишка, породена от финансова сделка
-    	if($dealInfo->get('dealType') != deals_Deals::AGGREGATOR_TYPE) return FALSE;
+    	if(!($firstDoc->instance instanceof deals_Deals)) return FALSE;
     
     	return TRUE;
     }

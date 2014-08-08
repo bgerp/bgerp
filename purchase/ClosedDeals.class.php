@@ -212,10 +212,10 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	$res = parent::canAddToThread($threadId);
     	if(!$res) return FALSE;
     	 
-    	$dealInfo = static::getDealInfo($threadId);
-    	 
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
     	// Може само към нишка, породена от продажба
-    	if($dealInfo->dealType != purchase_Purchases::AGGREGATOR_TYPE) return FALSE;
+    	if(!($firstDoc->instance instanceof purchase_Purchases)) return FALSE;
     	 
     	return TRUE;
     }
