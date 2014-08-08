@@ -228,11 +228,12 @@ abstract class acc_ClosedDeals extends core_Master
     	$form = &$data->form;
     	$firstDoc = doc_Threads::getFirstDocument($form->rec->threadId);
     	
-    	// Избираме всички други активни сделки от същия тип като началния документ в същата папка
+    	// Избираме всички други активни сделки от същия тип и валута, като началния документ в същата папка
     	$docs = array();
     	$dealQuery = $firstDoc->getQuery();
     	$dealQuery->where("#id != {$firstDoc->that}");
     	$dealQuery->where("#folderId = {$form->rec->folderId}");
+    	$dealQuery->where("#currencyId = '{$firstDoc->fetchField('currencyId')}'");
     	$dealQuery->where("#state = 'active'");
     	
     	while($dealRec = $dealQuery->fetch()){
@@ -417,12 +418,11 @@ abstract class acc_ClosedDeals extends core_Master
     	$Double->params['decimals'] = 2;
     	
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    	$costAmount = $incomeAmount = 0;
     	if($rec->state == 'active'){
     		
     		//$rec->amount = static::getClosedDealAmount($rec->threadId);
-    		if($rec->amount == 0){
-    			$costAmount = $incomeAmount = 0;
-    		} elseif($rec->amount > 0){
+    		if($rec->amount > 0){
     			$incomeAmount = $rec->amount;
     			$costAmount = 0;
     			$row->type = tr('Приход');
@@ -434,10 +434,10 @@ abstract class acc_ClosedDeals extends core_Master
     		
     		$Double = cls::get('type_Double');
     		$Double->params['decimals'] = 2;
-    		
-    		$row->costAmount = $Double->toVerbal(abs($costAmount));
-    		$row->incomeAmount = $Double->toVerbal(abs($incomeAmount));
     	}
+    	
+    	$row->costAmount = $Double->toVerbal(abs($costAmount));
+    	$row->incomeAmount = $Double->toVerbal(abs($incomeAmount));
     	
     	$row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
 	    
@@ -535,9 +535,6 @@ abstract class acc_ClosedDeals extends core_Master
 	    $newRec->notes      = "Автоматично приключване";
 	    $newRec->docClassId = $Class->getClassId();
 	    $newRec->docId      = $docRec->id;
-	    $newRec->amount     = $docRec->toPay;
-	    $newRec->currencyId = $docRec->currencyId;
-	    $newRec->rate       = $docRec->currencyRate;
 	    $newRec->folderId   = $docRec->folderId;
 	    $newRec->threadId   = $docRec->threadId;
 	    $newRec->state      = 'draft';

@@ -68,7 +68,7 @@ class deals_transaction_CloseDeal
     	
     	// Създаване на обекта за транзакция
     	$result = (object)array(
-    			'reason'      => $this->singleTitle . " #" . $firstDoc->getHandle(),
+    			'reason'      => $rec->notes,
     			'valior'      => dt::now(),
     			'totalAmount' => 2 * abs($amount),
     			'entries'     => array(),
