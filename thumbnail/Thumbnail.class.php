@@ -199,9 +199,12 @@ class thumbnail_Thumbnail extends core_Manager
         $tWidth = ceil($ratio * $width);
         
         // Ако изображението е PNG, ресайзваме го и запазваме прозрачността
-        if($type == IMAGETYPE_PNG) {
+        if ($type == IMAGETYPE_PNG) {
 
-            return self::resizePng($sourceImage, $tWidth, $tHeight);
+            return self::resizePng($sourceImage, $tWidth, $tHeight, 'png');
+        } else if ($type == IMAGETYPE_GIF) {
+            
+            return self::resizePng($sourceImage, $tWidth, $tHeight, 'gif');
         }
 
         $thumb = imagecreatetruecolor($tWidth, $tHeight);
@@ -213,19 +216,39 @@ class thumbnail_Thumbnail extends core_Manager
         return $thumb;
     }
 
-    static function resizePng($im, $dst_width, $dst_height)
+    static function resizePng($im, $dstWidth, $dstHeight, $format=NULL)
     {
-        $width = imagesx($im);
+        $width  = imagesx($im);
         $height = imagesy($im);
-
-        $newImg = imagecreatetruecolor($dst_width, $dst_height);
-
-        imagealphablending($newImg, false);
-        imagesavealpha($newImg, true);
-        $transparent = imagecolorallocatealpha($newImg, 255, 255, 255, 127);
-        imagefilledrectangle($newImg, 0, 0, $width, $height, $transparent);
-        imagecopyresampled($newImg, $im, 0, 0, 0, 0, $dst_width, $dst_height, $width, $height);
-
+        
+        $newImg = imagecreatetruecolor($dstWidth, $dstHeight);
+        
+        if (!$format || $format == 'gif') {
+            $transparentIndex = imagecolortransparent($im);
+            if (!$format && $transparentIndex > 0) {
+                $isGif = TRUE;
+            } elseif ($format) {
+                $isGif = TRUE;
+            }
+        }
+        
+        if ($isGif == TRUE) {
+            // if GIF
+            imagepalettecopy($im, $newImg);
+            imagefill($newImg, 0, 0, $transparentIndex);
+            imagecolortransparent($newImg, $transparentIndex);
+            imagetruecolortopalette($newImg, true, 256);
+        } else {
+            // if PNG
+            imagealphablending($newImg, FALSE);
+            imagesavealpha($newImg, TRUE);
+    
+            $transparent = imagecolorallocatealpha($newImg, 255, 255, 255, 127);
+            imagefilledrectangle($newImg, 0, 0, $dstWidth, $dstWidth, $transparent);
+        }
+        
+        imagecopyresampled($newImg, $im, 0, 0, 0, 0, $dstWidth, $dstHeight, $width, $height);
+ 
         return $newImg;
     }
     
