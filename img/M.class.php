@@ -21,27 +21,39 @@ class img_M extends core_Mvc
         $id = Request::get('t');
         
         // Премахва фиктивното файлово разширение
-        list($id,) = explode('.', $id);
+        list($id, $ext) = explode('.', $id);
 
         $arguments = core_Crypt::decodeVar($id, img_Thumb::getCryptKey());
 
         $thumb = new img_Thumb($arguments);
         
         if( file_exists($file = $thumb->getThumbPath()) ) {
-            $type = fileman_Files::getExt($file);
-            if($type == 'jpg') {
-                $type = 'jpeg';
-            }
-            header("Content-Type: image/{$type}");
+            $ext = fileman_Files::getExt($file);
+            self::addTypeHeader($ext);
             header('Content-Length: ' . filesize($file));
             readfile($file);
             flush();
             $this->thumb = $thumb;
 
             shutdown();
-        }
+        } else {
 
-        redirect($thumb->getUrl('forced'));
+            self::addTypeHeader($ext);
+
+            redirect($thumb->getUrl('forced'));
+        }
+    }
+
+    
+    /**
+     * Добавя хедър за mime тип, в зависимост от разширението на графичния файл
+     */
+    static function addTypeHeader($ext)
+    {
+        $typeByExt = array('jpg' => 'jpeg', 'jpeg' => 'jpeg', 'gif' => 'gif', 'bmp' => 'bmp', 'png' => 'png');
+        if($type = $typeByExt[strtolower($ext)]) {
+            header("Content-Type: image/{$type}");
+        }
     }
 
 
