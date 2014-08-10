@@ -45,29 +45,4 @@ class core_Sbf extends core_Mvc
         return FALSE;
     }
     
-
-
-    /**
-     * Примерно минифициране на css файлове
-     */
-    static function on_BeforeSaveFile1($mvc, $res, &$content, $path, $isFullPath = NULL)
-    {
-        $ext = str::getFileExt($path);
-
-        if($ext == 'css') {
-               // Remove comments
-                $content = preg_replace('#/\*.*?\*/#s', '', $content);
-                
-                // Remove whitespace
-                $content = preg_replace('/\s*([{}|:;,])\s+/', '$1', $content);
-                
-                // Remove trailing whitespace at the start
-                $content = preg_replace('/\s\s+(.*)/', '$1', $content);
-                
-                // Remove unnecesairy ;'s
-                $content = str_replace(';}', '}', $content);
-        }
-    }
-
-    
 }

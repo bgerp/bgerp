@@ -444,6 +444,7 @@ class core_App
     public static function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'notice')
     { 
     	expect(ob_get_length() <= 3, ob_get_length(), ob_get_contents());
+
     	$url = static::toUrl($url, $absolute ? 'absolute' : 'relative');
     	
     	if(Request::get('ajax_mode')){

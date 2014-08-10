@@ -198,13 +198,13 @@ class core_Setup extends core_ProtoSetup {
     /**
      * Път до js файла
      */
-    var $commonJS = 'js/dtree.js, js/login.js';
+    var $commonJS = '';
     
 
     /**
      * Път до css файла
      */
-    var $commonCSS = 'css/dtree.css';
+    var $commonCSS = '';
     
     
     /**
