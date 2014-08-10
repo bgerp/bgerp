@@ -129,7 +129,7 @@ class social_Sharings extends core_Master
 			}
 				
 			// Създаваме иконата за бутона
-			$img = ht::createElement('img', array('src' => $icon));
+			$img = ht::createElement('img', array('src' => $icon, 'alt' => "{$name}"));
  
 			// Генерираме URL-то на бутона
 			$url =  substr(toUrl(array(  'social_Sharings',
