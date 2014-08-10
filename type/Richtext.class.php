@@ -56,8 +56,13 @@ class type_Richtext extends type_Blob
     /**
      * Шаблон за намиране на линкове в текст
      */
-    const URL_PATTERN = "/(((http(s?)|ftp(s?)):\/\/)|(www\.))([^<>\x{A0}\s]+)/i";
+    const URL_PATTERN = "/(((http(s?)|ftp(s?)):\/\/)|(www\.))([^<>\x{A0}\s\"\']+[a-z0-9_\/\#\%\+\*\$\@\-\=\\\\:])/i";
     
+
+    /**
+     * Шаблон за намиране на цитати в текст
+     */
+    const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))+)\[\/bQuote\]#mis";
     
 	/**
      * Инициализиране на типа
@@ -286,17 +291,18 @@ class type_Richtext extends type_Blob
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
 
         // Обработваме елемента [li]
-        $html = preg_replace_callback("/\[li](.*?)((<br>)|(\n)|($))/is", array($this, '_catchLi'), $html);
+        //$html = preg_replace_callback("/\[li](.*?)((<br>)|(\n)|($))/is", array($this, '_catchLi'), $html);
         
-        // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код
-        $html = preg_replace_callback("/\[bQuote(=([a-zA-Z0-9]+))?\](.*?)\[\/bQuote\]/s", array($this, '_catchBQuote'), $html);
+        // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код \[bQuote
+        $html = preg_replace_callback(self::QUOTE_PATTERN, array($this, '_catchBQuote'), $html);
+        
         $from = array("[bQuote]", "[/bQuote]");
         if(!Mode::is('text', 'plain')) {
             $to = array("<div class='richtext-quote'>", "</div>");
         } else {
             $to = array("", "");
         }
-        $html = str_replace($from, $to, $html);
+       // $html = str_replace($from, $to, $html);
         
         // Обработваме хипервръзките, зададени в явен вид
         $html = preg_replace_callback(self::URL_PATTERN, array($this, '_catchUrls'), $html);
@@ -378,9 +384,10 @@ class type_Richtext extends type_Blob
         $nbspUtf8 = chr(0xC2) . chr(0xA0);
  
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
-        $from = array("\r\n", "\n\r", "\r", "\n", "\t", $nbspUtf8, '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
-        // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
-        
+        $from = array("\r\n", "\n\r", "\r", "\n", "\t", $nbspUtf8, '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', 
+            
+        '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
+         
         $textMode = Mode::get('text');
         
         if($textMode != 'plain') { 
@@ -580,10 +587,21 @@ class type_Richtext extends type_Blob
     {
         // Мястото
         $place = $this->getPlace();
-        
+        //bp($match);
         // Цитата
-        $quote = $match[3];
+        $quote = trim($match[3]);
         
+        // Рекурсивно извикване
+        if(strpos($quote, '[bQuote')) {
+             $quote = preg_replace_callback(self::QUOTE_PATTERN, array($this, '_catchBQuote'), $quote);
+        }  
+        
+        // Премахваме водещия празен ред
+        $quote = trim($quote);
+        if(stripos($quote, '<br>') === 0) {
+            $quote = substr($quote, 4);
+        }
+
         // Тримваме цитата
         $quote = trim($quote);
         
@@ -597,7 +615,7 @@ class type_Richtext extends type_Blob
         if (Mode::is('text', 'plain')) {
             
             // Стринга за цитата
-            $quoteStr = "  > ";
+            $quoteStr = "> ";
             
             // Добавяме в начлоато на всеки ред стринга за цитат
             $quote = str_ireplace(array( "\r\n", "\n\r", "\n"), array("\r\n{$quoteStr}", "\n\r{$quoteStr}", "\n{$quoteStr}"), $quote);
@@ -939,7 +957,7 @@ class type_Richtext extends type_Blob
         
         if(!Mode::is('text', 'plain')) {
             $name = str::canonize($text);
-            $res = "<a name=\"{$name}\" class='header'><h{$level}>{$text}</h{$level}></a>";
+            $res = "<a id=\"{$name}\" class='header'><h{$level}>{$text}</h{$level}></a>";
         } else {
             $res =   mb_strtoupper($text) . "\n" . str_repeat('=', mb_strlen($text)) . "\n";
         }
@@ -955,7 +973,7 @@ class type_Richtext extends type_Blob
     {    
         $html[0] = str_replace("&amp;", "&", $html[0]); 
 
-        $url = rtrim($html[0], ',.;');
+        $url = $html[0];
         
         if($tLen = (strlen($html[0]) - strlen($url))) {
             $trim = substr($html[0], 0 - $tLen);
