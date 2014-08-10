@@ -142,7 +142,7 @@ class phpmailer_Setup extends core_ProtoSetup
             'PML_FROM_EMAIL'   => array ('email', 'mandatory, caption=Имейл съобщение->Адрес `From`'),
             'PML_FROM_NAME'  => array ('varchar', 'mandatory, caption=Имейл съобщение->Име `From`'),
     		'PML_SINGLE_TO' => array('enum(1=Индивидуални имейли, 0=Общ имейл)', 'caption=При повече от един адрес в `To`->Изпращане като,row=2'),
-            'PML_MAILER' => array ('enum(mail=mail, sendmail=sendmail, smtp=smtp)', 'caption=Изпращане на писма->Метод'), //"mail", "sendmail", or "smtp") 
+            'PML_MAILER' => array ('enum(mail=mail, sendmail=sendmail, smtp=smtp)', 'caption=Изпращане на писма->Метод'),  
             'SENDMAIL_PATH'  => array ('varchar', 'caption=Sendmail->Пътя до папката'),
             'PML_HOST'  => array ('varchar', 'caption=Smtp->Хост'),
        		'PML_PORT'  => array ('int', 'caption=Smtp->Порт'),
