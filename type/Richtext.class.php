@@ -291,8 +291,8 @@ class type_Richtext extends type_Blob
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
 
         // Обработваме елемента [li]
-        //$html = preg_replace_callback("/\[li](.*?)((<br>)|(\n)|($))/is", array($this, '_catchLi'), $html);
-        
+        $html = self::replaceList($html);
+
         // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код \[bQuote
         $html = preg_replace_callback(self::QUOTE_PATTERN, array($this, '_catchBQuote'), $html);
         
@@ -378,6 +378,70 @@ class type_Richtext extends type_Blob
     }
 
 
+    /**
+     * Функция за заместване на [li] елементите
+     */
+    static function replaceList($text)
+    { 
+        $lines = explode("\n", $text);
+
+        $state = array();
+
+        foreach($lines as $l) {
+            $type = '';
+            $level = 0;
+            if(preg_match("/^( *)(\[li\]|\* |[0-9]+\.)(.*)/i", $l, $matches) ) {
+                $level = round((strlen($matches[1]))/2); 
+                $level = max($level, 1);
+                                // 1,2,3,4,
+                if(is_numeric($matches[2])) {
+                    $type = 'ol';
+                } else {
+                    $type = 'ul';
+                }
+
+                $l = "<li> " . $matches[3] . "</li>";            
+                expect($matches[3], $matches);
+
+            }
+
+            while(($oldLevel = count($state)) < $level) {
+                $state[$oldLevel] = $type;
+                $res .= "<{$type}>\n";
+            }
+            
+            while(($oldLevel = count($state)) > $level) {  
+                $oldType = $state[$oldLevel-1]; 
+                unset($state[$oldLevel-1]);
+                $res .= "</{$oldType}>\n";
+            }
+
+            if($level == $oldLevel) {
+                if($type != ($oldType = $state[$oldLevel-1])) {
+                    if($oldType) {  
+                        $res .= "</{$oldType}>\n";
+                    }
+                    if($type) {
+                        $res .= "<{$type}>\n";
+                    }
+                }
+                
+                if($oldType && $type  ) {
+                    $state[$oldLevel-1] = $type;
+                }
+            }
+
+            $res .= "{$l}\n";
+
+            $debug[] = array($l, $state, $level, $oldLevel);
+            
+
+        }
+
+        return $res;
+    }
+
+
     function replaceTags($html)
     {
         // Уникод UTF-8 символ за неприкъсваем интервал
@@ -433,24 +497,7 @@ class type_Richtext extends type_Blob
 		return $res;
     }
     
-    
-    /**
-     * Заменя [html] ... [/html]
-     */
-    function _catchLi($match)
-    {
-        $text = $match[1];
         
-        if(!Mode::is('text', 'plain')) {
-            $res = "<li>$text</li>\n";
-        } else {
-            $res = " o {$text}\n";
-        }
-        
-        return $res;
-    }
-    
-    
     /**
      * Шаблон за вкарване даден текст, в richText [b] [/b] тагове
      * нов ред или начало на текст и/или интервали един от текстовете RICHTEXT_BOLD_TEXT две точки интервал произволен текст нов ред или край на текст
