@@ -58,12 +58,12 @@ class help_Plugin extends core_Plugin
             }
 
             $imageUrl = sbf("img/mark.png","");
-            $img = ht::createElement("img", array('src' => $imageUrl));
+            $img = ht::createElement("img", array('src' => $imageUrl, 'alt' => 'help'));
             $hintBtn = new ET("<a class='tooltip-button'>[#1#]</a>", $img);
             $convertText = cls::get('type_Richtext');
             $hintText = $convertText->toVerbal($rec->text . '');
             if(haveRole('help')){
-            	$imgEdit = ht::createElement("img", array('src' => sbf("img/16/edit-icon.png","")));
+            	$imgEdit = ht::createElement("img", array('src' => sbf("img/16/edit-icon.png",""), 'alt' => 'edit'));
                 if(!$rec->id) {
                     $urlAE = array("help_Info", "add", 'class' => $ctr, 'action' => $act, 'lg' => $lg, 'ret_url' => TRUE);
                 } else {

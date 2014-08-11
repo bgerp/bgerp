@@ -572,7 +572,7 @@ class bgerp_Menu extends core_Manager
         if(Mode::is('screenMode', 'narrow')) {
             $tpl = new ET("
                 <div id='mainMenu'>
-                     <div class='menuRow clearfix21'><img class='favicon' src=".sbf("img/favicon.ico").">[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
+                     <div class='menuRow clearfix21'><img class='favicon' src=".sbf("img/favicon.ico")." alt=''>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
                 </div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
         } else {
@@ -586,9 +586,9 @@ class bgerp_Menu extends core_Manager
                 </div> <div class='clearfix'></div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
             
-            $logo = ht::createLink("<IMG  SRC=" .
-                sbf('img/bgerp.png') . "  BORDER=\"0\" ALT=\"\" style='border-top:5px solid transparent;'>",
-                array('bgerp_Portal', 'Show'));
+            $img = ht::createElement('img', array('src' => sbf('img/bgerp.png', ''), 'alt' => '', 'style' => 'border:0; border-top:5px solid transparent;'));
+
+            $logo = ht::createLink($img, array('bgerp_Portal', 'Show'));
             
             $tpl->replace($logo, 'logo');
         }
@@ -599,7 +599,7 @@ class bgerp_Menu extends core_Manager
         
         $tpl->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $tpl->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
-        $tpl->prepend("\n<meta name=\"google\" value=\"notranslate\">", 'HEAD');
+        $tpl->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
 
         return $tpl;
     }

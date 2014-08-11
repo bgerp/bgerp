@@ -38,9 +38,9 @@ class page_InternalHeader extends core_ET {
                 </div> <div class='clearfix'></div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
             
-            $logo = ht::createLink("<IMG  SRC=" .
-                sbf('img/bgerp.png') . "  BORDER=\"0\" ALT=\"\" style='border-top:5px solid transparent;'>",
-                array('bgerp_Portal', 'Show'));
+            $img = ht::createElement('img', array('src' => sbf('img/bgerp.png', ''), 'alt' => '', 'style' => 'border:0; border-top:5px solid transparent;'));
+
+            $logo = ht::createLink($img, array('bgerp_Portal', 'Show'));
             
             $this->header->replace($logo, 'logo');
         }

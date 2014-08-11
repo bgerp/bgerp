@@ -97,7 +97,7 @@
                                 <!--ET_END additionalInfo-->
                         </td>
 		                <td id='invoice-info' width='40%'>
-				          <table border='0'cellpadding='3px' cellspacing='0px' style='margin-bottom: 20px;' id='business-doc-summary-table' width='100%' >
+				          <table border='0' cellpadding='3' cellspacing='0' style='margin-bottom: 20px;' id='business-doc-summary-table' width='100%' >
 						     <tr class='nowrap'>
 						      <td align='right'>|Стойност|*:</td>
 						      <td class='info-right' width='1%'><span class='cCode'>[#currencyId#]</span></td>

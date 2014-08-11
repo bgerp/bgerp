@@ -56,7 +56,7 @@
 		</td>
 		<td colspan='2' align='right' class='nowrap total-quote-td'>
 		<!--ET_BEGIN SUMMARY-->
-		<table border='0'cellpadding='3px' cellspacing='0px' style='float:right' id='business-doc-summary-table' width='100%'>
+		<table border='0'cellpadding='3' cellspacing='0' style='float:right' id='business-doc-summary-table' width='100%'>
 				     <tr class='nowrap'>
 				      <td align='right'>|Стойност|* :</td>
 				      <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
