@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class jqdatepick_Setup extends core_ProtoSetup
+class jqcolorpicker_Setup extends core_ProtoSetup
 {
 	/**
 	 * Път до js файла
