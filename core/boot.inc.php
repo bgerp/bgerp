@@ -80,9 +80,9 @@ function requireRole($roles)
 /**
  * Проверява дали потребителя има посочената роля
  */
-function haveRole($roles)
+function haveRole($roles, $userId = NULL)
 {
-    return core_Users::haveRole($roles);
+    return core_Users::haveRole($roles, $userId);
 }
 
 
