@@ -79,7 +79,7 @@ class acc_Setup extends core_ProtoSetup
             'acc_JournalDetails',
     		'acc_OpenDeals',
     		'acc_Features',
-    		'migrate::removeYearIntf',
+    		'migrate::removeYearIntfAndItem',
         );
     
 
@@ -154,11 +154,18 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Миграция, която премахва данните останали от мениджъра за годините
      */
-    function removeYearIntf()
+    function removeYearIntfAndItem()
     {
     	// Изтриваме интерфейса на годините от таблицата с итнерфейсите
     	if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsAccRegIntf'")){
     		core_Interfaces::delete($oldIntRec->id);
+    	}
+    	
+    	// Изтриваме и перата за години със стария меджър 'години'
+    	if($oldYearManId = core_Classes::fetchIdByName('acc_Years')){
+    		if(acc_Items::fetch("#classId = '{$oldYearManId}'")){
+    			acc_Items::delete("#classId = '{$oldYearManId}'");
+    		}
     	}
     }
 }
