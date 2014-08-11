@@ -990,6 +990,14 @@ class doc_Threads extends core_Manager
                 $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", 
                     array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
             }
+            
+            // Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
+            if($managersIds = self::getFastButtons($data->folderId)){
+            	foreach ($managersIds as $classId){
+            		$Cls = cls::get($classId);
+            		$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на {$Cls->singleTitle}");
+            	}
+            }
         }
         
         // Ако има права за модифициране на настройките за персоналзиране
@@ -999,6 +1007,47 @@ class doc_Threads extends core_Manager
             $folderClassId = core_Classes::fetchIdByName('doc_Folders');
             custom_Settings::addBtn($data->toolbar, $folderClassId, $data->folderId);
         }
+    }
+    
+    
+    /**
+     * Връща масив с ид-та на мениджърите за които ще има бързи, ако няма връща NULL
+     */
+    private static function getFastButtons($folderId)
+    {
+    	$managersIds = array();
+    	
+    	// Ако няма кеширани, $managersIds намираме ги
+    	if(!count($managersIds)){
+    		
+    		// Намираме имали класове с интерфейса за добавяне
+    		$classesToAdd = core_Classes::getOptionsByInterface('doc_AddToFolderIntf');
+    		
+    		if(count($classesToAdd)){
+    			$folderRec = doc_Folders::fetch($folderId);
+    			$cu = core_Users::getCurrent();
+    		
+    			// За всеки мениджър
+    			foreach ($classesToAdd as $classId => $className){
+    						
+    				// Проверяваме дали може да се добавя като бърз бутон
+    				if(cls::load($className, TRUE)){
+    					
+    					$Cls = cls::get($className);
+    					if($Cls->haveRightFor('add', (object)array('folderId' => $folderRec->id))){
+    						
+    						// Ако имплементира интерфейсния метод 'mustShowButton', и той върне TRUE
+    						if(cls::existsMethod($Cls, 'mustShowButton') && $Cls->mustShowButton($folderRec, $cu)){
+    							$managersIds[$classId] = $classId;
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	// Връщаме ид-та на всички мениджъри, които да имат бързи бутони
+    	return count($managersIds) ? $managersIds : NULL;
     }
     
     

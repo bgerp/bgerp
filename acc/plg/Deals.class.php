@@ -353,9 +353,6 @@ class acc_plg_Deals extends core_Plugin
      */
     public static function on_AfterMustShowButton($mvc, &$res, $folderRec, $userId = NULL)
     {
-    	// Ако не можем да добавяме нов документ в тази папка
-    	if(!$mvc->haveRightFor('add', (object)array('folderId' => $folderRec->id))) return FALSE;
-    	
     	// Ако корицата на папката е на контрагент, може да се показва бутон за добавяне на нов документ
     	$Cover = doc_Folders::getCover($folderRec->id);
     	$res = ($Cover->haveInterface('doc_ContragentDataIntf')) ? TRUE : FALSE;
