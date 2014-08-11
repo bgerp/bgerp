@@ -77,7 +77,7 @@ class hr_Setup extends core_ProtoSetup
     /**
      * Път до css файла
      */
-    var $commonCSS = 'hr/tpl/style.css';
+//    var $commonCSS = 'hr/tpl/style.css';
     
     
     /**

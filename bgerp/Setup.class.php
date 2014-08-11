@@ -85,7 +85,7 @@ class bgerp_Setup {
     /**
      * Път до js файла
      */
-    var $commonJS = 'js/PortalSearch.js';
+//    var $commonJS = 'js/PortalSearch.js';
     
     
     /**

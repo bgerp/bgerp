@@ -100,7 +100,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Път до js файла
      */
-    var $commonJS = 'acc/js/balance.js';
+//    var $commonJS = 'acc/js/balance.js';
     
     
     /**

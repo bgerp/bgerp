@@ -69,7 +69,7 @@ class techno_Setup extends core_ProtoSetup
     /**
      * Път до css файла
      */
-    var $commonCSS = 'techno/tpl/GeneralProductsStyles.css';
+//    var $commonCSS = 'techno/tpl/GeneralProductsStyles.css';
    
     
     /**

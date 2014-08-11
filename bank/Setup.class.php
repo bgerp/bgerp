@@ -80,7 +80,7 @@ class bank_Setup extends core_ProtoSetup
     /**
      * Път до css файла
      */
-    var $commonCSS = 'bank/tpl/css/belejka.css, bank/tpl/css/styles.css';
+//    var $commonCSS = 'bank/tpl/css/belejka.css, bank/tpl/css/styles.css';
     
     
 	/**

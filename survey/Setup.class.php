@@ -71,13 +71,13 @@ class survey_Setup extends core_ProtoSetup
     /**
      * Път до js файла
      */
-    var $commonJS = 'survey/js/scripts.js';
+//    var $commonJS = 'survey/js/scripts.js';
     
     
     /**
      * Път до css файла
      */
-    var $commonCSS = 'survey/tpl/css/styles.css';
+//    var $commonCSS = 'survey/tpl/css/styles.css';
     
     
 	/**

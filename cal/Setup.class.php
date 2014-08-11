@@ -77,13 +77,13 @@ class cal_Setup extends core_ProtoSetup
     /**
      * Път до js файла
      */
-    var $commonJS = 'cal/js/mouseEvent.js';
+//    var $commonJS = 'cal/js/mouseEvent.js';
     
     
     /**
      * Път до css файла
      */
-    var $commonCSS = 'cal/tpl/style.css';
+//    var $commonCSS = 'cal/tpl/style.css';
    
     /**
      * Деинсталиране

@@ -77,7 +77,7 @@ class cash_Setup extends core_ProtoSetup
     /**
      * Път до css файла
      */
-    var $commonCSS = 'cash/tpl/styles.css';
+//    var $commonCSS = 'cash/tpl/styles.css';
     
     
     /**

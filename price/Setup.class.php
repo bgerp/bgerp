@@ -75,7 +75,7 @@ class price_Setup extends core_ProtoSetup
     /**
      * Път до css файла
      */
-    var $commonCSS = 'price/tpl/NormStyles.css';
+//    var $commonCSS = 'price/tpl/NormStyles.css';
     
     
     /**
