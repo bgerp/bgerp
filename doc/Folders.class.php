@@ -191,7 +191,7 @@ class doc_Folders extends core_Master
     			$data->listFilter->setDefault('users', 'all_users'); 
     			//$data->query->fetchAll();
     		} else{
-    			$data->listFilter->rec->users = "|" . core_Users::getCurent() . "|";
+    			$data->listFilter->rec->users = "|" . core_Users::getCurrent() . "|";
     		}
     	}
         
