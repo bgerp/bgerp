@@ -1230,7 +1230,7 @@ class type_Richtext extends type_Blob
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             
                 
-            $toolbarArr->add("<a class=rtbutton  title='" . tr('Списък') .  "' onclick=\"s('[li] ','', document.getElementById('{$formId}'), 1,0,0,1)\">&#9679</a>", 'TBL_GROUP2');
+            $toolbarArr->add("<a class=rtbutton  title='" . tr('Списък') .  "' onclick=\"s('* ','', document.getElementById('{$formId}'), 1,0,0,1)\">&#9679</a>", 'TBL_GROUP2');
 			$emot7 = 'richtext-holder-group-after';
         	$toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
             $toolbarArr->add("<a class='open-popup-link rtbutton'  title='" . tr('Таблица') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group7', event); \"><img src=" . sbf('img/16/table3.png') . " height='15' width='15'/></a>", 'TBL_GROUP2');
@@ -1245,7 +1245,7 @@ class type_Richtext extends type_Blob
           	$toolbarArr->add("<span id='{$attr['id']}-group5' class='richtext-emoticons5 richtext-holder-group {$emot5}'>", 'TBL_GROUP2');
           	
           	$i=0;
-            $maxBlockElementInLine = 5;
+            $maxBlockElementInLine = 4;
             
             // Вземаме всички блокови елементи
             $blockeElementsArr = static::getBlockElements();
@@ -1354,18 +1354,6 @@ class type_Richtext extends type_Blob
         $resArr['bQuestion']['text'] = 'bQuestion';
         $resArr['bQuestion']['title'] = tr('Въпрос');
         $resArr['bQuestion']['icon'] = sbf('img/Help-icon-small.png', $qt, $isAbsolute);
-        
-        // Неномериран списък
-        $resArr['ul']['text'] = 'ul';
-        $resArr['ul']['title'] = tr('Неномериран списък');
-        $resArr['ul']['icon'] = sbf('img/16/ul.png', $qt, $isAbsolute);
-        $resArr['ul']['multiline'] = 1;
-        
-        // Номериран списък
-        $resArr['ol']['text'] = 'ol';
-        $resArr['ol']['title'] = tr('Номериран списък');
-        $resArr['ol']['icon'] = sbf('img/16/ol.png', $qt, $isAbsolute);
-        $resArr['ul']['multiline'] = 1;
     }
         
     
