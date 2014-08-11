@@ -20,6 +20,6 @@ class swf_Setup extends core_ProtoSetup
 	/**
 	 * Път до js файла
 	 */
-	var $commonJS = 'swf/2.2/swfobject.js';
+//	var $commonJS = 'swf/2.2/swfobject.js';
 }
 
