@@ -23,6 +23,12 @@ class custom_SettingsIntf
     
     
     /**
+     * Кой може да модифицира по-подразбиране за всички
+     */
+    var $canModifydefault;
+    
+    
+    /**
      * Подготвя формата за персонализация
      * 
      * @param core_Form $form
