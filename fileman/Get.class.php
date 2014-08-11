@@ -256,10 +256,10 @@ class fileman_Get extends core_Manager {
                     if(!$ext) $ext = $exts[0];
                 }
             }
- 
+
             $fileName = $headers['filename'];
              
-            if(!$fileName) {
+            if(!$fileName && $ext) {
 
                 $fPattern = "/[^\\?\\/*:;{}\\\\]+\\.{$ext}/i";
 
@@ -335,7 +335,7 @@ class fileman_Get extends core_Manager {
         $form->addAttr('url', array('style' => 'width:100%;'));
         
         $form->layout = new ET("
-            <form style='margin:0px;' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n 
+            <form style='margin:0px;' [#FORM_ATTR#] <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n 
             <!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->
             <!--ET_BEGIN FORM_WARNING--><div class=\"formWarning\">[#FORM_WARNING#]</div><!--ET_END FORM_WARNING-->
 
