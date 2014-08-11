@@ -565,8 +565,8 @@ class crm_Persons extends core_Master
             }
         }
         $currentId = $mvc->getVerbal($rec, 'id');
-        $row->nameList = '<span class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
-        "</span><span class='custom-rowtools'>". $row->id .' </span></span>';
+        $row->nameList = '<div class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
+        "</span><div class='custom-rowtools'>". $row->id .' </div></div>';
       
         $row->title =  $mvc->getTitleById($rec->id);
 

@@ -586,8 +586,8 @@ class crm_Companies extends core_Master
         }
       
        	$currentId = $mvc->getVerbal($rec, 'id');
-        $row->nameList = '<span class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
-        "</span><span class='custom-rowtools'>". $row->id .' </span></span>';
+        $row->nameList = '<div class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
+        "</span><div class='custom-rowtools'>". $row->id .' </div></div>';
         
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
         
