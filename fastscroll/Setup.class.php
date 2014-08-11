@@ -44,7 +44,7 @@ class fastscroll_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'FASTSCROLL_HIDE_AFTER_SEC' => array ('time(suggestions=1сек|2сек|3сек|4сек|5сек)', 'caption=Изчакване за скриване на стрелките->Време'),
+			'FASTSCROLL_HIDE_AFTER_SEC' => array ('time(suggestions=1сек|2сек|3сек|4сек|5сек)', 'caption=Скриване на стрелките за бързо скролиране след->Време за изчакване'),
 			'FASTSCROLL_ACTIVE_RATIO' => array ('double', 'caption=Съотношение между височините на страницата и прозореца->Съотношение'),
 	);
 	
