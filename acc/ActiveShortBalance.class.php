@@ -72,6 +72,12 @@ class acc_ActiveShortBalance {
 					$b['blQuantity'] += $rec->{"{$type}Quantity"} * $sign;
 					$b['blAmount'] += $rec->amount * $sign;
 				}
+				
+				// Закръгляме крайните суми и количества
+				foreach ($this->balance as &$bl){
+					$bl['blQuantity'] = round($bl['blQuantity'], 6);
+					$bl['blAmount'] = round($bl['blAmount'], 6);
+				}
 			}
 		}
 	}
