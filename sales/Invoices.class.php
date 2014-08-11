@@ -312,7 +312,7 @@ class sales_Invoices extends core_Master
         $this->sales_InvoiceDetails->calculateAmount($recs, $rec);
         
         $rec->dealValue = round($this->_total->amount * $rec->rate, 2);
-        $rec->vatAmount = round($this->_total->vat * $rec->rate, 2);
+        $rec->vatAmount = $this->_total->vat * $rec->rate;
         
         $rec->discountAmount = round($this->_total->discount * $rec->rate, 2);
     	$this->save($rec);
