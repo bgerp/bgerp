@@ -742,7 +742,7 @@ class expert_Expert extends core_FieldSet {
                 
                 $form->layout = new ET(
                     "<!--ET_BEGIN FORM_STYLE--><style>[#FORM_STYLE#]\n</style><!--ET_END FORM_STYLE-->" .
-                    "<form style='margin:0px;' id='expertForm' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
+                    "<form style='margin:0px;' id='expertForm' [#FORM_ATTR#] <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
                     "<!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
                     "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
                     "<!--ET_BEGIN FORM_FIELDS--><div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
