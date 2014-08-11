@@ -384,17 +384,18 @@ class type_Richtext extends type_Blob
     static function replaceList($text)
     { 
         $lines = explode("\n", $text);
+        $lines[] = '';
 
         $state = array();
 
         foreach($lines as $l) {
             $type = '';
             $level = 0;
-            if(preg_match("/^( *)(\[li\]|\* |[0-9]+\.)(.*)/i", $l, $matches) ) {
+            if(preg_match("/^( *)(\[li\]|\* |[1-9][0-9\.]*)(.*)/i", $l, $matches) ) {
                 $level = round((strlen($matches[1]))/2); 
                 $level = max($level, 1);
                                 // 1,2,3,4,
-                if(is_numeric($matches[2])) {
+                if(is_numeric($matches[2]{0})) {
                     $type = 'ol';
                 } else {
                     $type = 'ul';
