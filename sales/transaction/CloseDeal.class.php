@@ -290,7 +290,7 @@ class sales_transaction_CloseDeal
     	$blAmountGoods = $this->shortBalance->getAmount('701,706,703');
     	$incomeFromProducts += $blAmountGoods;
     	
-    	$total += abs($blAmountGoods);
+    	$total += $blAmountGoods;
     	 
     	if(!count($balanceArr)) return $entries;
     	
@@ -307,7 +307,7 @@ class sales_transaction_CloseDeal
     			$creditArr = $arr1;
     		}
     
-    		$entries[] = array('amount' => abs($rec['blAmount']), 'debit' => $debitArr, 'credit' => $creditArr);
+    		$entries[] = array('amount' => $rec['blAmount'], 'debit' => $debitArr, 'credit' => $creditArr);
     	}
     	
     	return $entries;
