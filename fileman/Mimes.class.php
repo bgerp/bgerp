@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_Mimes extends core_BaseClass {
+class fileman_Mimes extends core_Mvc {
     
     
     /**
@@ -82,7 +82,35 @@ class fileman_Mimes extends core_BaseClass {
 
         return self::$ext2mime[$ext];
     }
+    
 
+    /**
+     * регенериране на ext2mime
+     */
+    function act_Ext()
+    {
+        requireRole('admin,debug');
+
+        self::loadExt2Mime();
+        self::loadMime2Ext();
+
+        foreach(self::$mime2ext as $mime => $exts) {
+            foreach(explode(' ', $exts) as $ext) {
+                if(!isset(self::$ext2mime[$ext])) {
+                    self::$ext2mime[$ext] = $mime;
+                }
+            }
+        }
+        
+        ksort(self::$ext2mime);
+
+        foreach(self::$ext2mime as $ext => $mime) {
+            $res .= "    \"{$ext}\" => \"{$mime}\",<br>";
+        }
+        
+        return $res;
+    }
+    
 
     /**
      * Връща масив с файловите разширения за даден mime тип
