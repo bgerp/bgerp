@@ -1240,7 +1240,7 @@ class sales_Sales extends core_Master
         $rec->description = "Затваря приключените продажби";
         $rec->controller = "sales_Sales";
         $rec->action = "CloseOldSales";
-        $rec->period = 1440;
+        $rec->period = 180;
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;

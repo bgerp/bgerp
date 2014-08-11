@@ -1119,7 +1119,7 @@ class purchase_Purchases extends core_Master
         $rec->description = "Затваря приключените покупки";
         $rec->controller = "purchase_Purchases";
         $rec->action = "CloseOldPurchases";
-        $rec->period = 1440;
+        $rec->period = 180;
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;

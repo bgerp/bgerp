@@ -136,6 +136,9 @@ class acc_CronDealsHelper
     	
     	// Подреждаме ги в низходящ ред
     	$query->orderBy('id', 'DESC');
+
+    	// Лимитираме заявката до 15
+    	$query->limit('15');
     	
     	// Всяка намерената сделка, се приключва като платена
     	while($rec = $query->fetch()){
