@@ -232,13 +232,12 @@ class core_Toolbar extends core_BaseClass
             $layout = $this->getToolbarLayout($rowId);
             
             foreach ($this->buttons as $id => $btn) {
-                $attr = $btn->attr;
-                
                 $place = ($btn->attr['row'] == 2) ? 'ROW2' : 'ROW1' ;
 				if($place == 'ROW2'){
 					$flagRow2 = TRUE;
 				}
 				unset($btn->attr['row']);
+                $attr = $btn->attr;
 				if($btn->error){
 					$layout->append(ht::createErrBtn($btn->title, $btn->error, $attr), $place);
 				} elseif ($btn->type == 'submit') {
