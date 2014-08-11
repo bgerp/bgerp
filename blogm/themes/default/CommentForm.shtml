@@ -1,7 +1,7 @@
 <div class='blogm-comment-form'>
 <h3 class='comment-form-title'>|Добавете коментар|*</h3>
 
-<form style="" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
+<form [#FORM_ATTR#]> 
  
  
 <!--ET_BEGIN FORM_ERROR-->

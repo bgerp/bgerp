@@ -1,4 +1,4 @@
-<form style="float:left" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
+<form style="float:left" [#FORM_ATTR#]> 
 	<!--ET_BEGIN FORM_ERROR-->
 	<div class="formError">
 		[#FORM_ERROR#]

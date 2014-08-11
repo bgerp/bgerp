@@ -1,4 +1,4 @@
-<form action="[#ACTION#]" id="searchform">
+<form [#FORM_ATTR#] id="searchform">
 	<div id="simpleSearch">
 	<input tabindex="1" autocomplete="off" placeholder="Търсене" name="q" title="Търсене в блога [alt-shift-f]" accesskey="f" id="searchInput">
 	<button type="submit" title="Търси тази тема" class='forumbtn' id="searchButton">

@@ -1,5 +1,5 @@
 <!--ET_BEGIN FORM-->
-	<form style="width:70%" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
+	<form style="width:70%" [#FORM_ATTR#]> 
 	<!--ET_BEGIN FORM_ERROR-->
 	<div class="formError">
 		[#FORM_ERROR#]

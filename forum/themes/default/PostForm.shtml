@@ -1,5 +1,5 @@
 <!--ET_BEGIN FORM-->
-<form method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
+<form [#FORM_ATTR#]> 
 <a name='comment'></a>
 <div class='formFields'>
 	[#FORM_FIELDS#]
