@@ -25,7 +25,7 @@ class cal_Tasks extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf';
     
     
     /**
@@ -1851,4 +1851,15 @@ class cal_Tasks extends core_Master
     	}
     }
    
+    
+    /**
+     * Да се показвали бърз бутон за създаване на документа в папка
+     */
+    public function mustShowButton($folderRec, $userId = NULL)
+    {
+    	$Cover = doc_Folders::getCover($folderRec->id);
+    	 
+    	// Показваме бутона само ако корицата на папката е 'проект'
+    	return ($Cover->instance instanceof doc_UnsortedFolders) ? TRUE : FALSE;
+    }
 }
