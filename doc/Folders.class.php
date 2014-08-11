@@ -185,21 +185,31 @@ class doc_Folders extends core_Master
         // на модела ще се появят
         $data->listFilter->showFields = 'search,users,order';
         $data->listFilter->input('search,users,order', 'silent');
-        
+
     	if(!$data->listFilter->rec->users) {
-            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
-        }
+    		if(haveRole('officer')){
+    			$data->listFilter->setDefault('users', 'all_users'); 
+    			//$data->query->fetchAll();
+    		} else{
+    			$data->listFilter->rec->users = "|" . core_Users::getCurent() . "|";
+    		}
+    	}
         
-        if(!$data->listFilter->rec->search) {
+    	if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {  
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+        }
+              
+        if(!$data->listFilter->rec->search) {
+            //$data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
+            //$data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
             $data->title = 'Папките на |*<font color="green">' .
             $data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</font>';
         } else {
             $data->title = 'Търсене на папки отговарящи на |*<font color="green">"' .
             $data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</font>';
         }
-        
+
         // Ограничения при показване на папките
         static::restrictAccess($data->query);
         
