@@ -1468,4 +1468,39 @@ class sales_Sales extends core_Master
     {
     	return TRUE;
     }
+    
+    
+    /**
+     * Да се показвали бърз бутон за създаване на документа в папка
+     */
+    public function mustShowButton($folderRec, $userId = NULL)
+    {
+    	$Cover = doc_Folders::getCover($folderRec->id);
+    	
+    	// Ако папката е на контрагент
+    	if($Cover->haveInterface('doc_ContragentDataIntf')){
+    		$groupList = $Cover->fetchField($Cover->instance->groupsField);
+    		$clientGroupId = crm_Groups::fetchField("#sysId = 'customers'");
+    		
+    		// и той е в група 'клиенти'
+    		if(keylist::isIn($clientGroupId, $groupList)){
+    			
+    			return TRUE;
+    		}
+    	}
+    	
+    	// Ако не е контрагент или не е в група 'клиенти' не слагаме бутон
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+    	//Ако потребителя не е в група доставчици го включваме
+    	$rec = $mvc->fetchRec($rec);
+    	cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, 'customers');
+    }
 }

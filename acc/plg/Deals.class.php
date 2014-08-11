@@ -346,15 +346,4 @@ class acc_plg_Deals extends core_Plugin
     		}
     	}
     }
-    
-    
-    /**
-     * Изчиства записите, заопашени за запис
-     */
-    public static function on_AfterMustShowButton($mvc, &$res, $folderRec, $userId = NULL)
-    {
-    	// Ако корицата на папката е на контрагент, може да се показва бутон за добавяне на нов документ
-    	$Cover = doc_Folders::getCover($folderRec->id);
-    	$res = ($Cover->haveInterface('doc_ContragentDataIntf')) ? TRUE : FALSE;
-    }
 }

@@ -1275,4 +1275,28 @@ class purchase_Purchases extends core_Master
     {
     	return TRUE;
     }
+    
+    
+    /**
+     * Да се показвали бърз бутон за създаване на документа в папка
+     */
+    public function mustShowButton($folderRec, $userId = NULL)
+    {
+    	$Cover = doc_Folders::getCover($folderRec->id);
+    	 
+    	// Ако папката е на контрагент
+    	if($Cover->haveInterface('doc_ContragentDataIntf')){
+    		$groupList = $Cover->fetchField($Cover->instance->groupsField);
+    		$supGroupId = crm_Groups::fetchField("#sysId = 'suppliers'");
+    
+    		// и той е в група 'доставчици'
+    		if(keylist::isIn($supGroupId, $groupList)){
+    			 
+    			return TRUE;
+    		}
+    	}
+    	 
+    	// Ако не е контрагент или не е в група 'доставчици' не слагаме бутон
+    	return FALSE;
+    }
 }

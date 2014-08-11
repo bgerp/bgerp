@@ -94,13 +94,13 @@ class pos_Setup extends core_ProtoSetup
     /**
      * Път до js файла
      */
-    var $commonJS = 'pos/js/scripts.js';
+//    var $commonJS = 'pos/js/scripts.js';
     
     
     /**
      * Път до css файла
      */
-    var $commonCSS = 'pos/tpl/css/styles.css';
+//    var $commonCSS = 'pos/tpl/css/styles.css';
     
     
     /**

@@ -31,7 +31,7 @@ class email_Outgoings extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, doc_AddToFolderIntf';
     
     
     /**
@@ -2518,5 +2518,17 @@ class email_Outgoings extends core_Master
         
         // Ако не може да се определи по никакъв начин
         return FALSE;
+    }
+    
+    
+    /**
+     * Да се показвали бърз бутон за създаване на документа в папка
+     */
+    public function mustShowButton($folderRec, $userId = NULL)
+    {
+    	$Cover = doc_Folders::getCover($folderRec->id);
+    	 
+    	// Показваме бутона само ако корицата на папката е 'Кутия'
+    	return ($Cover->instance instanceof email_Inboxes) ? TRUE : FALSE;
     }
 }

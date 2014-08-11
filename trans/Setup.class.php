@@ -78,7 +78,7 @@ class trans_Setup extends core_ProtoSetup
 	/**
 	 * Път до css файла
 	 */
-	var $commonCSS = 'trans/tpl/LineStyles.css';
+//	var $commonCSS = 'trans/tpl/LineStyles.css';
 	
 	
     /**

@@ -81,13 +81,13 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Път до js файла
      */
-    var $commonJS = 'doc/js/accordion.js';
+//    var $commonJS = 'doc/js/accordion.js';
         
     
     /**
      * Път до css файла
      */
-    var $commonCSS = 'doc/tpl/style.css, doc/css/dialogDoc.css';
+//    var $commonCSS = 'doc/tpl/style.css, doc/css/dialogDoc.css';
     
     
     /**

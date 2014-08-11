@@ -99,7 +99,7 @@ class purchase_Setup extends core_ProtoSetup
 	/**
 	 * Път до css файла
 	 */
-	var $commonCSS = 'purchase/tpl/invoiceStyles.css';
+//	var $commonCSS = 'purchase/tpl/invoiceStyles.css';
 	
 	
 	/**

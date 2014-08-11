@@ -133,13 +133,13 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Път до js файла
      */
-    var $commonJS = 'sales/js/ResizeQuoteTable.js';
+//    var $commonJS = 'sales/js/ResizeQuoteTable.js';
     
     
     /**
      * Път до css файла
      */
-    var $commonCSS = 'sales/tpl/invoiceStyles.css, sales/tpl/styles.css';
+//    var $commonCSS = 'sales/tpl/invoiceStyles.css, sales/tpl/styles.css';
     
     
 	/**
