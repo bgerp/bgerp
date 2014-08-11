@@ -140,18 +140,10 @@ class acc_CronDealsHelper
     	// Всяка намерената сделка, се приключва като платена
     	while($rec = $query->fetch()){
     		try{
+    			
     			// Създаване на приключващ документ-чернова
     			$clId = $ClosedDeals->create($this->className, $rec);
-    			
-    			// Контиране на документа
-    			acc_Journal::saveTransaction($ClosedDeals->getClassId(), $clId);
-    			
-    			// Продажбата/покупката се отбелязват като птиключени и платени
-    			$rec->state = 'closed';
-    			$rec->paymentState = 'paid';
-    	
-    			// Обновяване състоянието на документа
-    			$className::save($rec);
+    			$ClosedDeals->conto($clId);
     			
     		} catch(Exception $e){
     			
