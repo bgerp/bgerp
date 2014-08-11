@@ -14,12 +14,6 @@ defIfNot(BGERP_COMPANY_LOGO, '');
 
 
 /**
- * Офсет преди текущото време при липса на 'Затворено на' в нотификциите
- */
-defIfNot(BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE, '60');
-
-
-/**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
@@ -67,8 +61,6 @@ class bgerp_Setup {
        'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка на английски (750х100 px)->Изображение'),
 
        'BGERP_COMPANY_LOGO'   => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка на български (750х100 px)->Изображение'),
-       
-       'BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE'   => array ('time(suggestions=10 сек.|30 сек.|1 мин|2 мин|30 мин|1 час)', "caption=Офсет преди текущото време при липса на 'Затворено на' в нотификциите->Време"),
      );
     
     
