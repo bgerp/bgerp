@@ -238,7 +238,7 @@ class core_Toolbar extends core_BaseClass
 				if($place == 'ROW2'){
 					$flagRow2 = TRUE;
 				}
-				
+				unset($btn->attr['row']);
 				if($btn->error){
 					$layout->append(ht::createErrBtn($btn->title, $btn->error, $attr), $place);
 				} elseif ($btn->type == 'submit') {

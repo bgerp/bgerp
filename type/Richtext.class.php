@@ -402,8 +402,6 @@ class type_Richtext extends type_Blob
                 }
 
                 $l = "<li> " . $matches[3] . "</li>";            
-                expect($matches[3], $matches);
-
             }
 
             while(($oldLevel = count($state)) < $level) {

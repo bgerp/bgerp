@@ -116,6 +116,7 @@ class core_Tabs extends core_BaseClass
                 $options[$url] = $title;
             } else {
                 if ($url) {
+                    $url = ht::escapeAttr($url);
                     $head .= "<div onclick='document.location=\"{$url}\"' style='cursor:pointer;' class='tab {$selected}'>";
                     $head .= "<a href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
                     if($selected) {
