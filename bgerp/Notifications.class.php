@@ -72,6 +72,12 @@ class bgerp_Notifications extends core_Manager
 	var $canList = 'admin';
 	
 	
+	/**
+     * Офсет преди текущото време при липса на 'Затворено на' в нотификциите
+     */
+	const NOTIFICATIONS_LAST_CLOSED_BEFORE = 60;
+	
+	
     /**
      * Описание на модела
      */
