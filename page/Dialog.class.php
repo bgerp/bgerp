@@ -23,6 +23,7 @@ class page_Dialog extends page_Html
         $this->replace("UTF-8", 'ENCODING');
         $this->push('css/common.css', 'CSS');
         $this->push('css/dialog.css', 'CSS');
+        $this->push('css/default-theme.css', 'CSS');
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
     }
