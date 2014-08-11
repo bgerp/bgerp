@@ -853,11 +853,13 @@ class core_Form extends core_FieldSet
         $this->formAttr['action'] = $this->action ? toUrl($this->action) : "";
 
         foreach ($this->formAttr as $attr => $content) {
-            if (is_string($content)) {
-                $content = ht::escapeAttr($content);
+            if($content === TRUE) {
+                $content = $attr;
             }
-
-            $attrStr .= " " . $attr . "=\"" . $content . "\"";
+            if (trim($content)) {
+                $content = ht::escapeAttr($content);
+                $attrStr .= " " . $attr . "=\"" . $content . "\"";
+            }            
         }
 
         return $attrStr;
