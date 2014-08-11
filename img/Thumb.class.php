@@ -588,6 +588,8 @@ class img_Thumb
         setIfNot($attr['height'], $this->scaledHeight);
         
         setIfNot($attr['alt'], $this->verbalName);
+        
+        unset($attr['isAbsolute']);
 
         $img = ht::createElement('img', $attr);
 

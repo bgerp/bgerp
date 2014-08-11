@@ -108,6 +108,8 @@ class avatar_Plugin extends core_Plugin
         $attr['src']   =  $imgUrl;
         unset($attr['baseName']);
         
+        unset($attr['isAbsolute']);
+
         $img = ht::createElement('img', $attr);
         
         return $img;
