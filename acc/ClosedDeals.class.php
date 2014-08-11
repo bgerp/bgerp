@@ -52,7 +52,7 @@ abstract class acc_ClosedDeals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id, docId=Документ, type=Вид, amount, createdBy, createdOn';
+    protected $listFields = 'id, docId=Документ, createdBy, createdOn';
 	
 	
 	/**
@@ -420,16 +420,12 @@ abstract class acc_ClosedDeals extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	$costAmount = $incomeAmount = 0;
     	if($rec->state == 'active'){
-    		
-    		//$rec->amount = static::getClosedDealAmount($rec->threadId);
-    		if($rec->amount > 0){
+    		if(round($rec->amount, 2) > 0){
     			$incomeAmount = $rec->amount;
     			$costAmount = 0;
-    			$row->type = tr('Приход');
-    		} elseif($rec->amount < 0){
+    		} elseif(round($rec->amount, 2) < 0){
     			$costAmount = $rec->amount;
     			$incomeAmount = 0;
-    			$row->type = tr('Разход');
     		}
     		
     		$Double = cls::get('type_Double');
