@@ -116,8 +116,10 @@ class acc_journal_Transaction
         
         if (isset($this->rec->totalAmount)) {
             $sumItemsAmount = $this->amount();
-            acc_journal_Exception::expect(trim($this->rec->totalAmount) == trim($sumItemsAmount),
-                "Несъответствие между изчислената ({$sumItemsAmount}) и зададената ({$this->rec->totalAmount}) суми на транзакция");
+            $roundTotal = core_Math::roundNumber($this->rec->totalAmount);
+            
+            acc_journal_Exception::expect(trim($roundTotal) == trim($sumItemsAmount),
+                "Несъответствие между изчислената ({$sumItemsAmount}) и зададената ({$roundTotal}) суми на транзакция");
         }
         
         return TRUE;
@@ -138,7 +140,8 @@ class acc_journal_Transaction
             $totalAmount += $entry->amount();
         }
         
-        return $totalAmount;
+        
+        return core_Math::roundNumber($totalAmount);
     }
     
     
