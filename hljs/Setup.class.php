@@ -36,13 +36,13 @@ class hljs_Setup extends core_ProtoSetup
     /**
      * Пътища до CSS файлове
      */
-    var $commonCSS = "hljs/[#HLJS_VERSION#]/styles/default.css";
+//    var $commonCSS = "hljs/[#HLJS_VERSION#]/styles/default.css";
     
     
     /**
      * Пътища до JS файлове
      */
-    var $commonJS = "hljs/[#HLJS_VERSION#]/highlight.pack.js";
+//    var $commonJS = "hljs/[#HLJS_VERSION#]/highlight.pack.js";
     
     
     /**

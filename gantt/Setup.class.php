@@ -15,12 +15,12 @@ class gantt_Setup extends core_ProtoSetup
 	/**
 	 * Път до js файла
 	 */
-	var $commonJS = 'gantt/lib/ganttCustom.js';
+//	var $commonJS = 'gantt/lib/ganttCustom.js';
 	
 	
 	/**
 	 * Път до css файла
 	 */
-	var $commonCSS = 'gantt/lib/ganttCustom.css';
+//	var $commonCSS = 'gantt/lib/ganttCustom.css';
 }
 

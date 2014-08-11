@@ -16,12 +16,12 @@ class orgchart_Setup extends core_ProtoSetup
 	/**
 	 * Път до js файла
 	 */
-	var $commonJS = 'orgchart/lib/jquery.orgchart.js';
+//	var $commonJS = 'orgchart/lib/jquery.orgchart.js';
 	
 	
 	/**
 	 * Път до css файла
 	 */
-	var $commonCSS = 'orgchart/lib/jquery.orgchart.css';
+//	var $commonCSS = 'orgchart/lib/jquery.orgchart.css';
 }
 

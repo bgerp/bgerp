@@ -27,6 +27,6 @@ class jsgauge_Setup extends core_ProtoSetup
 	/**
 	 * Пътища до JS файлове
 	 */
-	var $commonJS = "[#GAUGE_PATH#]/gauge.js";
+//	var $commonJS = "[#GAUGE_PATH#]/gauge.js";
 }
 

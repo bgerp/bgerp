@@ -10,7 +10,7 @@ defIfNot('COMPACTOR_JS_FILES', 'jquery/1.7.1/jquery.min.js, js/efCommon.js, toas
 /**
  * CSS файловете
  */
-defIfNot('COMPACTOR_CSS_FILES', 'css/common.css, css/Application.css, toast/0.3.0f/resources/css/jquery.toastmessage.css');
+defIfNot('COMPACTOR_CSS_FILES', 'css/common.css, css/Application.css, toast/0.3.0f/resources/css/jquery.toastmessage.css, css/default-theme.css');
 
 
 /**
