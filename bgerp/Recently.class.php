@@ -493,4 +493,21 @@ class bgerp_Recently extends core_Manager
     {
         return $this->className . '_PortalTable';
     }
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
+     * 
+     * @param string $status
+     * 
+     * @return string
+     * @see bgerp_RefreshRowsPlg
+     */
+    function getContentHash($status)
+    {
+        // Премахваме всички тагове
+        $hash = md5(trim(strip_tags($status, '<a>')));
+        
+        return $hash;
+    }
 }

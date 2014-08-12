@@ -548,12 +548,12 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Връща хеша за листовия изглед. Вика се от plg_RefreshRows
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
      * 
      * @param string $status
      * 
      * @return string
-     * @see plg_RefreshRows
+     * @see bgerp_RefreshRowsPlg
      */
     function getContentHash($status)
     {
