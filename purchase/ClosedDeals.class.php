@@ -219,4 +219,26 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	 
     	return TRUE;
     }
+    
+    
+    /**
+     * След успешно контиране на документа
+     */
+    public static function on_AfterConto($mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetch($id);
+    	 
+    	// Ако ще се приключва с друга продажба
+    	if(!empty($rec->closeWith) && $rec->state == 'active'){
+    		$Purchases = cls::get('purchase_Purchases');
+    
+    		// взимаме договорените продукти, от покупката която е приключена
+    		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    		$dealInfo = $firstDoc->getAggregateDealInfo();
+    		$details = $dealInfo->get('products');
+    
+    		// Прехвърляме ги към детайлите на покупката с която сме я приключили
+    		$Purchases->invoke('AfterTransferDataFromDeal', array($rec->closeWith, $details));
+    	}
+    }
 }

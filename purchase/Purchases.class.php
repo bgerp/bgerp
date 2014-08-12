@@ -1268,4 +1268,42 @@ class purchase_Purchases extends core_Master
     	// Ако не е контрагент или не е в група 'доставчици' не слагаме бутон
     	return FALSE;
     }
+    
+    
+    /**
+     * Ако с тази продажба е приключена друга продажба
+     */
+    public static function on_AfterTransferDataFromDeal($mvc, $id, $details)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	 
+    	// Ако ще се прехвърлят договорени продукти
+    	if(count($details)){
+    		foreach ($details as $d){
+    			 
+    			// Ако има запис за този продукт, обновяваме му к-то, сумата и отстъпката
+    			if($dRec = $mvc->purchase_PurchasesDetails->fetch("#requestId = {$rec->id} AND #classId = {$d->classId} AND #productId = {$d->productId}")){
+    				$dRec->quantity += $d->quantity;
+    				$dRec->price = ($dRec->price + $d->price) / 2;
+    				if(!empty($dRec->discount) || !empty($d->discount)){
+    					$dRec->discount = ($dRec->discount + $d->discount) / 2;
+    				}
+    			} else {
+    
+    				// Ако няма го добавяме като нов детайл
+    				$info = cls::get($d->classId)->getProductInfo($d->productId, $d->packagingId);
+    
+    				$dRec = new stdClass();
+    				$dRec->requestId = $rec->id;
+    				foreach (array('classId', 'productId', 'packagingId', 'quantity', 'discount', 'price', 'uomId',) as $val){
+    					$dRec->$val = $d->$val;
+    				}
+    				$dRec->quantityInPack = ($d->packagingId) ? $info->packagingRec->quantity : 1;
+    			}
+    			 
+    			// Записваме/обновяваме детайла
+    			$mvc->purchase_PurchasesDetails->save($dRec);
+    		}
+    	}
+    }
 }
