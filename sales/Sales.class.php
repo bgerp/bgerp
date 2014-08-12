@@ -1222,10 +1222,11 @@ class sales_Sales extends core_Master
     	$conf = core_Packs::getConfig('sales');
     	$tolerance = $conf->SALE_CLOSE_TOLERANCE;
     	$olderThan = $conf->SALE_CLOSE_OLDER_THAN;
+    	$limit = $conf->SALE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('sales_ClosedDeals');
     	
     	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->closeOldDeals($olderThan, $tolerance, $ClosedDeals);
+    	$CronHelper->closeOldDeals($olderThan, $tolerance, $ClosedDeals, $limit);
     }
     
     

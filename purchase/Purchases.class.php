@@ -1171,10 +1171,11 @@ class purchase_Purchases extends core_Master
     	$conf = core_Packs::getConfig('purchase');
     	$tolerance = $conf->PURCHASE_CLOSE_TOLERANCE;
     	$olderThan = $conf->PURCHASE_CLOSE_OLDER_THAN;
+    	$limit 	   = $conf->PURCHASE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('purchase_ClosedDeals');
     	
     	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->closeOldDeals($olderThan, $tolerance, $ClosedDeals);
+    	$CronHelper->closeOldDeals($olderThan, $tolerance, $ClosedDeals, $limit);
     }
     
     
