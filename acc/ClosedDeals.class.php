@@ -263,12 +263,6 @@ abstract class acc_ClosedDeals extends core_Master
     	$rec->docId = $firstDoc->that;
     	$rec->docClassId = $firstDoc->instance()->getClassId();
     	$rec->classId = $mvc->getClassId();
-    	
-    	if($form->isSubmitted()){
-    		if($rec->closeWith){
-    			$form->setWarning('closeWith', 'Всички салда ще бъдат прехвърлени до избраната сделка');
-    		}
-    	}
     }
     
     
