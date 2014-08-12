@@ -68,12 +68,6 @@ class purchase_Invoices extends core_Master
     
     
     /**
-     * В кой плейсхолдър ще се слага шаблона от doc_plg_TplManager
-     */
-    public $templateFld = 'INVOICE_HEADER';
-    
-    
-    /**
      * Кой има право да чете?
      */
     public $canRead = 'ceo,invoicer';

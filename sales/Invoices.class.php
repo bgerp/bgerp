@@ -74,12 +74,6 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * В кой плейсхолдър ще се слага шаблона от doc_plg_TplManager
-     */
-    public $templateFld = 'INVOICE_HEADER';
-    
-    
-    /**
      * Кой има право да чете?
      */
     public $canRead = 'ceo,invoicer';
@@ -125,12 +119,6 @@ class sales_Invoices extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'number,folderId';
-    
-    
-    /**
-     * Нов темплейт за показване
-     */
-    public $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
     
     
     /**
