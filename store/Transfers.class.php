@@ -155,17 +155,6 @@ class store_Transfers extends core_Master
     	// Запомняне кои документи трябва да се обновят
     	$mvc->updated[$id] = $id;
     }
-    
-    
-	/**
-     * Малко манипулации след подготвянето на формата за филтриране
-     */
-	static function on_AfterPrepareListFilter($mvc, $data)
-	{
-		$data->listFilter->showFields = 'search,from,to';
-		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-		$data->listFilter->input();
-	}
 	
 	
     /**

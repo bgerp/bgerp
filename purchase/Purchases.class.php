@@ -72,6 +72,12 @@ class purchase_Purchases extends core_Master
 
 
 	/**
+	 * Кое поле да се използва за филтър по потребители
+	 */
+	public $filterFieldUsers = 'dealerId';
+	
+	
+	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'ceo, purchase';
@@ -287,9 +293,6 @@ class purchase_Purchases extends core_Master
         
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($form->rec->valior));
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
-        
-        // Текущия потребител е търговеца, щом се е стигнало до тук значи има права
-        $form->setDefault('dealerId', core_Users::getCurrent());
     }
 
     
@@ -551,17 +554,11 @@ class purchase_Purchases extends core_Master
     	if(!Request::get('Rejected', 'int')){
         	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
 	        $data->listFilter->setDefault('type', 'active');
-			$data->listFilter->showFields .= ',dealerId,type';
-			$data->listFilter->setField('dealerId', 'caption=Търговец');
-			$data->listFilter->setDefault('dealerId', core_Users::getCurrent());
+			$data->listFilter->showFields .= ',type';
 		}
 		
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
-			
-			if($filter->dealerId){
-				$data->query->where("#dealerId = {$filter->dealerId}");
-			}
 		
 			$data->query->XPR('paidRound', 'double', 'ROUND(#amountPaid, 2)');
 			$data->query->XPR('dealRound', 'double', 'ROUND(#amountDeal, 2)');

@@ -107,6 +107,12 @@ class sales_Sales extends core_Master
     
 
     /**
+     * Кое поле да се използва за филтър по потребители
+     */
+    public $filterFieldUsers = 'dealerId';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Продажба';
@@ -672,17 +678,11 @@ class sales_Sales extends core_Master
         if(!Request::get('Rejected', 'int')){
         	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
 	        $data->listFilter->setDefault('type', 'active');
-			$data->listFilter->showFields .= ',dealerId,type';
-			$data->listFilter->setField('dealerId', 'caption=Търговец');
-			$data->listFilter->setDefault('dealerId', core_Users::getCurrent());
+			$data->listFilter->showFields .= ',type';
 		}
 		
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
-			
-			if($filter->dealerId){
-				$data->query->where("#dealerId = {$filter->dealerId}");
-			}
 		
 			$data->query->XPR('paidRound', 'double', 'ROUND(#amountPaid, 2)');
 			$data->query->XPR('dealRound', 'double', 'ROUND(#amountDeal, 2)');
