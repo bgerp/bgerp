@@ -716,6 +716,12 @@ class store_ShipmentOrders extends core_Master
     	$tplArr[] = array('name' => 'Packing list', 
     					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packaging list',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Експедиционно нареждане с декларация',
+    					  'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Packing list with Declaration',
+    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	
     	$skipped = $added = $updated = 0;
     	foreach ($tplArr as $arr){

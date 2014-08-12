@@ -175,24 +175,6 @@
                        
                 </tbody>
             </table>
-            	<div style='margin-top:7px'>
-            <a href="javascript:toggleDisplay([#id#])"  style="font-weight:bold; background-image:url([#iconPlus#]);" 
-                   class="linkWithIcon">Delivery confirmation</a><div class='clearfix21 richtextHide' id='[#id#]'>
-			We, [#contragentName#]<br/>
-			address: [#contragentAddress#]<br/>
-			VAT ID: [#vatNo#]<br/>
-			<br/>
-			confirm that <br/>
-			the goods shown in invoice No.......<br/>
-			were received on the following address:<br/>
-			[#deliveryAddress#]
-			<br/>
-			Date:<br/>
-			<br/>
-			comapny stamp and signature:<br/>
-                   <br/>
-                   </div>
-            </div>
  				<!--ET_BEGIN DETAILS-->
 				<div class='details'>
 					[#DETAILS#]

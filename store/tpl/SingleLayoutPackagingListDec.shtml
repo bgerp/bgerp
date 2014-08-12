@@ -19,9 +19,9 @@
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                    <td class="cell custom-header-bg" width="35%"><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg" width="35%"><b>Receiver</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
-                        <div class="document-title">|ЕКСПЕДИЦИОННО НАРЕЖДАНЕ|*</div>
+                        <div class="document-title">PACKAGING LIST</div>
                         
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 
@@ -33,7 +33,7 @@
                         <div class="[#STATE_CLASS#]">[#state#]</div>
                         <!--ET_END state-->
                     </td>
-                    <td class="cell custom-header-bg" width="35%"><b>|Доставчик|*</b></td>
+                    <td class="cell custom-header-bg" width="35%"><b>Supplier</b></td>
                     </tr>
                     <tr>
                     <td class="cell">
@@ -60,29 +60,30 @@
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="1" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
-                    <td class="topCell first" valign="top" width='50%'>
-                    <table class='shipment-table' width=100%>
+                    <td class="topCell first" valign="top" width=50%>
+                    
+                    <table class='shipment-table' width=100% >
                     <!--ET_BEGIN deliveryTime-->
                         <tr>
-                            <td align='right' class='quiet nowrap' width=1%>|Срок до|*:</td>
+                            <td width='1%' class='nowrap quiet' align=right>Delivery time:</td>
                             <td>[#deliveryTime#]</td>
                         </tr>
                     <!--ET_END deliveryTime-->
                     <!--ET_BEGIN storeId-->
                         <tr>
-                            <td align='right' class='quiet nowrap'>|От склад|*:</td>
+                            <td class='nowrap quiet' align=right>From store:</td>
                             <td>[#storeId#]</td>
                         </tr>
                     <!--ET_END storeId-->
                     <!--ET_BEGIN locationId-->
                         <tr>
-                            <td align='right' class='quiet nowrap'>|До|*:</td>
+                            <td class='nowrap quiet' align=right>Delivery place:</td>
                             <td>[#locationId#]</td>
                         </tr>
                     <!--ET_END locationId-->
                     <!--ET_BEGIN lineId-->
                         <tr>
-                            <td align='right' class='quiet nowrap'>|Транспорт|*: </td>
+                            <td class='nowrap quiet' align=right>Transport: </td>
                             <td>[#lineId#]</td>
                         </tr>
                     <!--ET_END lineId-->
@@ -93,53 +94,53 @@
 		                    	<td colspan='2'>&nbsp;</td>
 		                    </tr>
 		                    <tr>
-		                    	<td colspan='2' style='border-bottom:1px solid #999;' class='quiet nowrap'>|Адрес за доставка|*</td>
+		                    	<td colspan='2' style='border-bottom:1px solid #999;' class='quiet nowrap'>Delivery address</td>
 		                    </tr>
 		                    
 		                    <!--ET_BEGIN company-->
 		                    <tr>
-		                    	<td class='quiet' align=right>|Фирма|*:</td>
+		                    	<td class='quiet' align=right>Company:</td>
 		                    	<td>[#company#]</td>
 		                    </tr>
 		                    <!--ET_END company-->
 		                    <!--ET_BEGIN person-->
 		                    <tr>
-		                    	<td class='quiet' align=right>|Лице|*:</td>
+		                    	<td class='quiet' align=right>Person:</td>
 		                    	<td>[#person#]</td>
 		                    </tr>
 		                    <!--ET_END person-->
 		                    <!--ET_BEGIN country-->
 		                    <tr>
-		                    	<td class='quiet' align=right>|Държава|*:</td>
+		                    	<td class='quiet' align=right>Country*:</td>
 		                    	<td>[#country#]</td>
 		                    </tr>
 		                    <!--ET_END country-->
 		                    <!--ET_BEGIN tel-->
 		                    <tr class='quiet'>
-		                    	<td align='right'>|Телефони|*:</td>
+		                    	<td align='right'>Phones:</td>
 		                    	<td>[#tel#]</td>
 		                    </tr>
 		                    <!--ET_END tel-->
 		                    <!--ET_BEGIN pCode-->
 		                    <tr>
-		                    	<td class='quiet' align=right>|П. код|*:</td>
+		                    	<td class='quiet' align=right>Post code:</td>
 		                    	<td>[#pCode#]</td>
 		                    </tr>
 		                    <!--ET_END pCode-->
 		                    <!--ET_BEGIN place-->
 		                    <tr>
-		                    	<td class='quiet' align=right>|Град|*:</td>
+		                    	<td class='quiet' align=right>City:</td>
 		                    	<td>[#place#]</td>
 		                    </tr>
 		                    <!--ET_END place-->
 		                    <!--ET_BEGIN address-->
 		                    <tr>
-		                    	<td class='quiet' align=right>|Адрес|*:</td>
+		                    	<td class='quiet' align=right>Address:</td>
 		                    	<td>[#address#]</td>
 		                    </tr>
 		                    <!--ET_END address-->
 		                    <!--ET_END DELIVERY_ADRESS-->
-                    
+		                     
                     <!--ET_BEGIN note-->
                         <tr>
                             <td colspan=2 > 
@@ -149,15 +150,16 @@
                         </tr>
                      <!--ET_END note-->
                     </table>
-        		</td>
-        		<td>	
-        		
-                <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; Общ обем|*:&nbsp;<b>[#volume#]</b></div>
-                        <hr>
+                    </td>
+                    <td>
+                        <div>Total weight:&nbsp;[#weight#] &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;[#volume#] &nbsp;&nbsp;&nbsp;&nbsp;Collets count:&nbsp;[#colletsCount#]</div>
+	                
+	                    <hr>
+                           
                               <table align=center width='100%'>
                                    <tr>
-                                        <td width='50%' align=center style='border-right:1px solid #999'>|Получил|*:</td>
-                                        <td align=center>|Съставил|*:</td>
+                                        <td width='50%' align=center style='border-right:1px solid #999'>Received:</td>
+                                        <td align=center>Created by:</td>
                                     </tr>
                                     <tr>
                                         <td style='height:40px;border-right:1px solid #999'>&nbsp;</td><td></td>
@@ -168,12 +170,28 @@
                                           <td class='nowrap' align=center><span class="sign_names">[#username#]</span></td>
                                         
                                     </tr>           
-                              </table>       
+                              </table> 
                     </td>
-                </tr>
+                       
                 </tbody>
             </table>
-            </div>
+            	<div style='margin-top:7px'>
+            <a href="javascript:toggleDisplay([#id#])"  style="font-weight:bold; background-image:url([#iconPlus#]);" 
+                   class="linkWithIcon">Delivery confirmation</a><div class='clearfix21 richtextHide' id='[#id#]'>
+			We, [#contragentName#]<br/>
+			address: [#contragentAddress#]<br/>
+			VAT ID: [#vatNo#]<br/>
+			<br/>
+			confirm that <br/>
+			the goods shown in invoice No.......<br/>
+			were received on the following address:<br/>
+			[#deliveryAddress#]
+			<br/>
+			Date:<br/>
+			<br/>
+			comapny stamp and signature:<br/>
+                   <br/>
+                   </div>
             </div>
  				<!--ET_BEGIN DETAILS-->
 				<div class='details'>
