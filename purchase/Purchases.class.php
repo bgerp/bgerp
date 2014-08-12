@@ -154,7 +154,6 @@ class purchase_Purchases extends core_Master
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
     	'makeInvoice'        => 'lastDocUser|lastDoc',
-    	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc',
     	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
@@ -288,6 +287,9 @@ class purchase_Purchases extends core_Master
         
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($form->rec->valior));
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
+        
+        // Текущия потребител е търговеца, щом се е стигнало до тук значи има права
+        $form->setDefault('dealerId', core_Users::getCurrent());
     }
 
     
@@ -395,41 +397,6 @@ class purchase_Purchases extends core_Master
         $templateName = doc_TplManager::getTitleById($templateId);
     	
     	return "{$templateName} №{$rec->id}";
-    }
-    
-    
-    /**
-     * Помощен метод за определяне на закупчик по подразбиране.
-     *
-     * Правило за определяне: първия, който има права за създаване на покупки от списъка:
-     *
-     *  1/ Отговорника на папката на контрагента
-     *  2/ Текущият потребител
-     *
-     *  Ако никой от тях няма права за създаване - резултатът е NULL
-     *
-     * @param stdClass $rec запис на модела purchase_Purchases
-     * @return int|NULL user(roles=purchase)
-     */
-    public static function getDefaultDealerId($rec)
-    {
-        expect($rec->folderId);
-    
-        // Отговорника на папката на контрагента ...
-        $inChargeUserId = doc_Folders::fetchField($rec->folderId, 'inCharge');
-        if (self::haveRightFor('add', NULL, $inChargeUserId)) {
-            // ... има право да създава покупки - той става закупчик по подразбиране.
-            return $inChargeUserId;
-        }
-    
-        // Текущия потребител ...
-        $currentUserId = core_Users::getCurrent('id');
-        if (self::haveRightFor('add', NULL, $currentUserId)) {
-            // ... има право да създава покупки
-            return $currentUserId;
-        }
-    
-        return NULL;
     }
     
 

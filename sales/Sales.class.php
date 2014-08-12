@@ -152,7 +152,6 @@ class sales_Sales extends core_Master
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
     	'makeInvoice'        => 'lastDocUser|lastDoc|defMethod',
-    	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
@@ -421,6 +420,9 @@ class sales_Sales extends core_Master
         
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     	$form->setField('sharedUsers', 'input=none');
+    	
+    	// Текущия потребител е търговеца, щом се е стигнало до тук значи има права
+    	$form->setDefault('dealerId', core_Users::getCurrent());
     }
     
     
@@ -520,41 +522,6 @@ class sales_Sales extends core_Master
     public static function getDefaultMakeInvoice($rec)
     {
        return 'yes';
-    }
-    
-    
-    /**
-     * Помощен метод за определяне на търговец по подразбиране.
-     * 
-     * Правило за определяне: първия, който има права за създаване на продажби от списъка:
-     * 
-     *  1/ Отговорника на папката на контрагента
-     *  2/ Текущият потребител
-     *  
-     *  Ако никой от тях няма права за създаване - резултатът е NULL
-     *
-     * @param stdClass $rec запис на модела sales_Sales
-     * @return int|NULL user(roles=sales)
-     */
-    public static function getDefaultDealerId($rec)
-    {
-        expect($rec->folderId);
-
-        // Отговорника на папката на контрагента ...
-        $inChargeUserId = doc_Folders::fetchField($rec->folderId, 'inCharge');
-        if (self::haveRightFor('add', NULL, $inChargeUserId)) {
-            // ... има право да създава продажби - той става дилър по подразбиране.
-            return $inChargeUserId;
-        }
-        
-        // Текущия потребител ...
-        $currentUserId = core_Users::getCurrent('id');
-        if (self::haveRightFor('add', NULL, $currentUserId)) {
-            // ... има право да създава продажби
-            return $currentUserId;
-        }
-        
-        return NULL;
     }
     
     
