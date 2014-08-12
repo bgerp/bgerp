@@ -1787,6 +1787,14 @@ function toggleKeylistGroups(el) {
 }
 
 
+// проверява дали могат да се съберат 2 документа на една страница
+function checkForPrintBreak(maxHeightPerDoc){
+	if($(".print-break").height() < maxHeightPerDoc) { 
+		$(".print-break").addClass("print-nobreak");
+	}
+}
+
+
 /**
  *  Плъгин за highlight на текст
  */
