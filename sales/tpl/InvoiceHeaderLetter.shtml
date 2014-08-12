@@ -4,7 +4,7 @@
 	    <div class='title-subInfo'>|Номер|* / Number: <span class='subtitle-text'>[#number#]</span></div>
 	    <div class='title-subInfo'>|Дата|* / Date: <span class='subtitle-text'>[#date#]</span></div>
 		<div class='title-subInfo'>|Място|* / Place: <span class='subtitle-text'>[#dealPlace#]</span></div>
-		<div class='title-subInfo original'>|ОРИГИНАЛ|* / <i>ORIGINAL</i></div>
+		<div class='title-subInfo original'>[#INV_STATUS#]</div>
 		<div style='font-weight:normal;'>[#POS#]</div>
 		<!--ET_BEGIN originInv-->
 		<div id='origin-title'>|към Фактура|* <b>[#originInv#]</b> |от|* [#originInvDate#]</div>

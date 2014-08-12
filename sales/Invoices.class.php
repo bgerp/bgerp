@@ -45,7 +45,7 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,acc_plg_DpInvoice,
+					doc_EmailCreatePlg, doc_plg_MultiPrint, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,acc_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
     
     
@@ -661,6 +661,10 @@ class sales_Invoices extends core_Master
     		$tpl->removeBlock('header');
     	}
     	
+    	if(!Mode::is('printing')){
+    		$tpl->replace(tr('ОРИГИНАЛ') . "/<i>ORIGINAL</i>", 'INV_STATUS');
+    	}
+    	
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     	
     	if($data->paymentPlan){
@@ -1189,5 +1193,20 @@ class sales_Invoices extends core_Master
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * След рендиране на копия за принтиране
+     * @see doc_plg_MultiPrint
+     * 
+     * @param core_Mvc $mvc - мениджър
+     * @param core_ET $copyTpl - копие за рендиране
+     * @param int $copyNum - пореден брой на копието за принтиране
+     */
+    public static function on_AfterRenderPrintCopy($mvc, &$copyTpl, $copyNum)
+    {
+    	$inv_status = ($copyNum == '1') ? tr('ОРИГИНАЛ') . "/<i>ORIGINAL</i>" : tr('КОПИЕ') . "/<i>COPY</i>";
+    	$copyTpl->replace($inv_status, 'INV_STATUS');
     }
 }
