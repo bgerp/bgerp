@@ -109,8 +109,8 @@ class type_Double extends core_Type {
         if(!strlen($value)) return NULL;
         
         $conf = core_Packs::getConfig('core');
-        $decPoint = $conf->EF_NUMBER_DEC_POINT;
-        $thousandsSep = $conf->EF_NUMBER_THOUSANDS_SEP;
+        $decPoint = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
+        $thousandsSep = html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP);
         
         setIfNot($decimals, $this->params['decimals'], EF_NUMBER_DECIMALS);
         
