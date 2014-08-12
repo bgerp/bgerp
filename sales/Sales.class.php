@@ -1399,7 +1399,7 @@ class sales_Sales extends core_Master
     	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
     	
     	if($rec->amountPaid && $rec->amountDelivered && $rec->paymentState != 'overdue'){
-    		if($rec->amountPaid >= $rec->amountDelivered){
+    		if(round($rec->amountPaid, 6) >= round($rec->amountDelivered, 6)){
     			$rec->paymentState = 'paid';
     		} else {
     			$rec->paymentState = 'pending';
