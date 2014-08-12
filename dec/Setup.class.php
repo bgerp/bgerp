@@ -52,7 +52,7 @@ class dec_Setup extends core_ProtoSetup
 			'dec_Statements',
    			'dec_DeclarationDetails',
    			'dec_DeclarationTypes',
-
+			'dec_Materials',
         );
 
         

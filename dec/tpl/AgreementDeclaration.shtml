@@ -1,7 +1,7 @@
 <div class='dec-document'>
 <div class='scrolling-holder'>
 <br><div class='indent'>Долуподписаният, [#manager#],  <!--ET_BEGIN manager--></div><!--ET_END manager-->
-<div>представляващ производителя/доставчика:
+<div>представляващ доставчика:
 [#MyCompany#], <!--ET_BEGIN MyCountry-->с адрес [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> номер по ЗДДС [#MyCompanyVatNo#], <!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId--> ЕИК [#uicId#],<!--ET_END uicId--></div>
 
 	
@@ -20,23 +20,21 @@
 <!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress--> 
 <!--ET_BEGIN contragentCompanyVatNo-->номер по ЗДДС [#contragentCompanyVatNo#],<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> ЕИК [#contragentUicId#]<!--ET_END contragentUicId-->,
 </div>
-<br><br>
-<p class="centered"><b>Д Е К Л А Р И Р А М</b> </p>
 <br>
-<div>на собствена отговорност, че:</div>
+<p class="centered"><b>Д Е К Л А Р И Р А М, Ч Е</b> </p>
 
 <!--ET_BEGIN statements-->
-	<div>
+	
 		[#statements#]
-	</div>
+
 <!--ET_END statements-->
 
 <!--ET_BEGIN note-->
 	<div>
-		[#note#]
+		[#note#]<br>
 	</div>
 <!--ET_END note-->
-<br>
+
 <div class='indent'>Декларирам, че ми е известна отговорността, която нося съгласно чл.313 от НК и другите нормативни актове на Република България и Европейския съюз.</div>
 
  <br>

@@ -1245,7 +1245,10 @@ pre.document {
 }
 
 .dec-document{
-    line-height: 150%;
+	font-size: 0.95em;
+	ul{
+		margin: 5px 0;
+	}
     table.signiture{
         width: 10% !important;
     }
