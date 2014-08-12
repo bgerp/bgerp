@@ -65,6 +65,7 @@ class acc_ActiveShortBalance {
 					$index = $accId . "|" . $item1 . "|" . $item2 . "|" . $item3;
 					$b = &$this->balance[$index];
 					
+					$b['accountId'] = $accId;
 					$b['accountSysId'] = acc_Accounts::fetchField($accId, 'systemId');
 					$b['ent1Id'] = $item1;
 					$b['ent2Id'] = $item2;
