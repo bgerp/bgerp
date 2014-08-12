@@ -388,10 +388,24 @@ class type_Richtext extends type_Blob
 
         $state = array();
 
-        foreach($lines as $l) {
+        for($i = 0; $i < count($lines); $i++) {
+
+            $l = $lines[$i];
+
             $type = '';
             $level = 0;
             if(preg_match("/^( *)(\[li\]|\* |[1-9][0-9]*[\.]{1})(.+)/i", $l, $matches) ) {
+
+                $indent = mb_strlen($l, 'UTF8') - mb_strlen(ltrim($matches[3]), 'UTF8');  
+                 while(isset($lines[$i+1]) && (($indent == (mb_strlen($lines[$i+1]) - mb_strlen(ltrim($lines[$i+1], ' ')))) || (trim($lines[$i+1]) == '<br>'))) {
+                    if(trim($lines[$i+1]) == '<br>') {
+                        $matches[3] .= "\n" . "<div style='height:5px;'></div>";
+                    } else {
+                        $matches[3] .= "\n" . ltrim($lines[$i+1]);
+                    }
+                    $i++;
+                 }
+
                 $level = round((strlen($matches[1]))/2);
                 $level = max($level, 1);
                                 // 1,2,3,4,
