@@ -3752,6 +3752,10 @@ body.narrow {
 	.printing-page-break {
 	    page-break-after: always;
 	}
+	.print-auto{
+        page-break-after: auto;
+        page-break-inside: avoid;
+    }
 	#statuses, .toast-container{
        display: none;
     }
