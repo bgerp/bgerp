@@ -188,7 +188,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     		if($origin = $mvc->getOrigin($rec)){
 	    		$originRec = $origin->fetch();
     			
-	    		if($originRec->state == 'active' && $mvc instanceof purchase_Purchases){
+	    		if($originRec->state == 'active' && $origin->instance instanceof purchase_Purchases){
 	    			
 	    			// Ако разликата между доставеното/платеното е по голяма, се изисква
 	    			// потребителя да има по-големи права за да създаде документа
