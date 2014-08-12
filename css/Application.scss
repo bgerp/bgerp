@@ -3752,8 +3752,14 @@ body.narrow {
 	.printing-page-break {
 	    page-break-after: always;
 	}
-	.print-auto{
-        page-break-after: auto;
+	.print-break{
+        page-break-after: always;
+        &.print-nobreak{
+            page-break-after: avoid;
+        }
+    }
+    .footer-notes{
+        page-break-before: auto;
         page-break-inside: avoid;
     }
 	#statuses, .toast-container{

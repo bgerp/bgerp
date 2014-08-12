@@ -82,12 +82,16 @@ class doc_plg_MultiPrint extends core_Plugin
 		    }
 		    		
 		    // Контейнер в който ще вкараме документа + шаблона с параметрите му
-		    $container = new ET("<div class='print-auto' style='margin:0px;padding:0px;min-width:0px;border-bottom:1px dotted #999'>[#clone#]</div>");
+		    $container = new ET("<div class='print-break'>[#clone#]</div>");
 		    $container->replace($clone, 'clone');
 		    		
 		    // За всяко копие предизвикваме ивент в документа, ако той иска да добави нещо към шаблона на копието
 		    $mvc->invoke('AfterRenderPrintCopy', array($container, $i));
-		    		
+
+		    // проверка дали можем да съберем 2 копия в една страница
+		    jquery_Jquery::run($tpl, 'checkForPrintBreak(500);');
+		    
+		    
 		    $tpl->append($container);
 	    				
 	    	$tpl->removeBlocks();
