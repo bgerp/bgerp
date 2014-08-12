@@ -1111,10 +1111,10 @@ class doc_Folders extends core_Master
         $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
         
         // Задаваме стойностите по подразбиране
-        $form->setDefault('folOpenings', 'default');
-        $form->setDefault('shortLinks', 'default');
-        $form->setDefault('perPage', 'default');
-        $form->setDefault('ordering', 'default');
+//        $form->setDefault('folOpenings', 'default');
+//        $form->setDefault('shortLinks', 'default');
+//        $form->setDefault('perPage', 'default');
+//        $form->setDefault('ordering', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
