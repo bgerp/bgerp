@@ -158,7 +158,7 @@ class core_Setup extends core_ProtoSetup {
     
            'EF_DATE_NARROW_FORMAT'   => array ('varchar', 'caption=Формат по подразбиране за датата при мобилни екрани->Формат'),
             
-           'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=|*&#x20;,\'=\',`=`)', 'caption=Форматиране на числа->Разделител за хилядите'),
+           'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=|*&#x20;,\'=|*\',`=|*`)', 'caption=Форматиране на числа->Разделител за хилядите'),
 
            'EF_NUMBER_DEC_POINT' => array( 'enum(.=|*.,&#44;=|*&#44;)', 'caption=Форматиране на числа->Дробен разделител'),
          
