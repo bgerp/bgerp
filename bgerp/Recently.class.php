@@ -506,7 +506,7 @@ class bgerp_Recently extends core_Manager
     function getContentHash($status)
     {
         // Премахваме всички тагове
-        $hash = md5(trim(strip_tags($status, '<a>')));
+        $hash = md5(trim(strip_tags($status)));
         
         return $hash;
     }
