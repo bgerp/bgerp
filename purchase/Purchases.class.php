@@ -249,7 +249,7 @@ class purchase_Purchases extends core_Master
             'caption=Статус, input=none'
         );
         
-        $this->FLD('paymentState', 'enum(pending=Чакащо,overdue=Просроченo,paid=Платенo)', 'caption=Плащане, input=none, notNull, default=pending');
+        $this->FLD('paymentState', 'enum(pending=Чакащо,overdue=Просроченo,paid=Платенo,repaid=Издължено)', 'caption=Плащане, input=none, notNull, default=pending');
     }
     
     
@@ -491,13 +491,13 @@ class purchase_Purchases extends core_Master
         	$row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
         
-    	if($rec->paymentState == 'overdue'){
+    	if($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid'){
         	$row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . "</span>";
         }
         
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-	    	$row->paymentState = ($rec->paymentState == 'overdue') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
+	    	$row->paymentState = ($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
     	}
 	    
 	    if($fields['-single']){
@@ -909,12 +909,11 @@ class purchase_Purchases extends core_Master
     	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
     	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
     	
-    	if($rec->paymentState != 'overdue'){
-    		$conf = core_Packs::getConfig('purchase');
-    		$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo, $conf->PURCHASE_TOLERANCE);
-    	}
+    	$conf = core_Packs::getConfig('purchase');
+    	$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo, $conf->PURCHASE_TOLERANCE, $rec->paymentState);
     	
     	$mvc->save($rec);
+    	
     	$dQuery = $mvc->purchase_PurchasesDetails->getQuery();
     	$dQuery->where("#requestId = {$rec->id}");
     	

@@ -236,6 +236,8 @@ class cond_PaymentMethods extends core_Master
     		$today = dt::verbal2mysql();
     	}
     	
+    	$restAmount = round($restAmount, 4);
+    	
     	// Ако остатъка за плащане е 0 или по-малко
     	if($restAmount <= 0) return FALSE;
     	

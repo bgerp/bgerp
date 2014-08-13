@@ -41,12 +41,12 @@ class acc_CronDealsHelper
     	$now = dt::now();
     	expect(cls::haveInterface('bgerp_DealAggregatorIntf', $Class));
     	
-    	// Проверяват се всички активирани и продажби с чакащо плащане
+    	// Проверяват се всички активирани и продажби с чакащо плащане или просрочените
     	$query = $Class->getQuery();
-    	$query->where("#paymentState = 'pending'");
+    	$query->where("#paymentState = 'pending' || #paymentState = 'overdue'");
     	$query->where("#state = 'active'");
     	$query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
-    	$query->show('id,amountDeal,amountPaid,amountDelivered');
+    	$query->show('id,amountDeal,amountPaid,amountDelivered,paymentState');
     	
     	while($rec = $query->fetch()){
     		try{
@@ -58,7 +58,7 @@ class acc_CronDealsHelper
     			core_Logs::add($Class, $rec->id, "Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'");
     			continue;
     		}
-    			
+    		
     		$mId = $dealInfo->get('paymentMethodId');
     		if($mId){
     			
@@ -81,7 +81,7 @@ class acc_CronDealsHelper
     				continue;
     			}
     		}
-    			
+    		
     		// Проверка дали продажбата е просрочена
     		if($isOverdue){
     				
@@ -90,7 +90,7 @@ class acc_CronDealsHelper
     		} else {
     			
     			// Ако не е просрочена проверяваме дали е платена
-    			$rec->paymentState = $Class->getPaymentState($dealInfo, $paidTolerance);
+    			$rec->paymentState = $Class->getPaymentState($dealInfo, $paidTolerance, $rec->paymentState);
     		}
     		
     		try{
