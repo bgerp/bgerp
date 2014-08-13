@@ -1187,7 +1187,7 @@ class sales_Sales extends core_Master
     function cron_CloseOldSales()
     {
     	$conf = core_Packs::getConfig('sales');
-    	$tolerance = $conf->SALE_CLOSE_TOLERANCE;
+    	$tolerance = $conf->SALE_TOLERANCE;
     	$olderThan = $conf->SALE_CLOSE_OLDER_THAN;
     	$limit = $conf->SALE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('sales_ClosedDeals');
@@ -1321,9 +1321,10 @@ class sales_Sales extends core_Master
     {
     	$conf = core_Packs::getConfig('sales');
     	$overdueDelay = $conf->SALE_OVERDUE_CHECK_DELAY;
+    	$paidTolerance = $conf->SALE_TOLERANCE;
     	
     	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->checkPayments($overdueDelay);
+    	$CronHelper->checkPayments($overdueDelay, $paidTolerance);
     }
     
     
@@ -1397,13 +1398,10 @@ class sales_Sales extends core_Master
     	$rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
     	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
     	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
-    	
-    	if($rec->amountPaid && $rec->amountDelivered && $rec->paymentState != 'overdue'){
-    		if(round($rec->amountPaid, 6) >= round($rec->amountDelivered, 6)){
-    			$rec->paymentState = 'paid';
-    		} else {
-    			$rec->paymentState = 'pending';
-    		}
+    
+    	if($rec->paymentState != 'overdue'){
+    		$conf = core_Packs::getConfig('sales');
+    		$rec->paymentState  = 'pending';//$mvc->getPaymentState($aggregateDealInfo, $conf->SALE_TOLERANCE);
     	}
     	
     	$mvc->save($rec);
@@ -1476,6 +1474,10 @@ class sales_Sales extends core_Master
     
     /**
      * Ако с тази продажба е приключена друга продажба
+     * 
+     * 
+     * 
+     * ЛЕЕЕК РЕФАКТОРИНГ
      */
     public static function on_AfterTransferDataFromDeal($mvc, $id, $details)
     {

@@ -191,7 +191,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     {
     	$diff = round($saleRec->amountDelivered - $saleRec->amountPaid, 2);
     	$conf = core_Packs::getConfig('sales');
-    	$res = ($diff >= -1 * $conf->SALE_CLOSE_TOLERANCE && $diff <= $conf->SALE_CLOSE_TOLERANCE);
+    	$res = ($diff >= -1 * $conf->SALE_TOLERANCE && $diff <= $conf->SALE_TOLERANCE);
     	
     	return $res;
     }

@@ -346,4 +346,27 @@ class acc_plg_Deals extends core_Plugin
     		}
     	}
     }
+    
+    
+    /**
+     * Какво е платежното състояние на сделката
+     */
+    public static function on_AfterGetPaymentState($mvc, &$res, $aggregateDealInfo, $tolerance)
+    {
+    	$amountPaid      = $aggregateDealInfo->get('amountPaid');
+    	$amountDelivered = $aggregateDealInfo->get('deliveryAmount');
+    	
+    	// Ако имаме платено и доставено
+    	if($amountPaid && $amountDelivered){
+    		$diff = round($amountDelivered - $amountPaid, 4);
+    
+    		// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
+    		if($diff >= -1 * $tolerance && $diff <= $tolerance){
+    			$res = 'paid';
+    			return;
+    		}
+    	}
+    
+    	$res = 'pending';
+    }
 }

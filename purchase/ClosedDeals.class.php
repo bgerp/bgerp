@@ -171,7 +171,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     {
     	$diff = round($purchaseRec->amountDelivered - $purchaseRec->amountPaid, 2);
     	$conf = core_Packs::getConfig('purchase');
-    	$res = ($diff >= -1 * $conf->PURCHASE_CLOSE_TOLERANCE && $diff <= $conf->PURCHASE_CLOSE_TOLERANCE);
+    	$res = ($diff >= -1 * $conf->PURCHASE_TOLERANCE && $diff <= $conf->PURCHASE_TOLERANCE);
     	
     	return $res;
     }
