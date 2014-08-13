@@ -107,7 +107,7 @@ defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
 /**
  * Дробен разделител при форматирането на числата
  */
-defIfNot('EF_NUMBER_DEC_POINT', '.');
+defIfNot('EF_NUMBER_DEC_POINT', ',');
 
 
 /**
