@@ -1214,10 +1214,10 @@ class acc_BalanceDetails extends core_Detail
     	$row->baseAmount = $Double->toVerbal($rec->baseAmount);
     	$row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
     	
-    	if($rec->baseAmount < 0){
+    	if(round($rec->baseAmount, 4) < 0){
     		$row->baseAmount = "<span style='color:red'>{$row->baseAmount}</span>";
     	}
-    	if($rec->baseQuantity < 0){
+    	if(round($rec->baseQuantity, 4) < 0){
     		$row->baseQuantity = "<span style='color:red'>{$row->baseQuantity}</span>";
     	}
     	
@@ -1401,7 +1401,7 @@ class acc_BalanceDetails extends core_Detail
     	foreach (array('debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld){
     		
     		$arr[$fld] = $Double->toVerbal($rec[$fld]);
-    		if($rec[$fld] < 0){
+    		if(round($rec[$fld], 6) < 0){
     			$arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
     		}	
     	}
@@ -1415,9 +1415,10 @@ class acc_BalanceDetails extends core_Detail
 	    		$arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
 	    	} else {
 	    		$arr['docId'] = $rec['docId'];
+	    		$arr['reason'] = $rec['reason'];
 	    	}
 	    }
-    	
+	    
 	    if($rec['ROW_ATTR']){
 	    	$arr['ROW_ATTR'] = $rec['ROW_ATTR'];
 	    }
@@ -1479,7 +1480,7 @@ class acc_BalanceDetails extends core_Detail
         
         // Ако равнят не показваме количествата
         if($equalBl){
-        	unset($data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
+        	//unset($data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
         }
             
         // Ако сумите на крайното салдо са отрицателни - оцветяваме ги
