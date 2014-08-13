@@ -9,7 +9,7 @@
      
       <div class='fleft'>[#listFilter#]</div>
       
-      <div class='fright' id='summary'>
+      <div class='fright summary-block' >
       <table style='min-width:200px;'>
       <tr>
       	<th>|Салдо|*</th>

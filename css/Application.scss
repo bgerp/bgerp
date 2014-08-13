@@ -3893,7 +3893,7 @@ body.narrow {
 }
 
 /*стилове за summary*/
-#summary {
+.summary-block {
     float:right;
     padding:7px;
     background:#eee;
@@ -3901,37 +3901,37 @@ body.narrow {
     margin-bottom:20px;
 }
 
-.narrow #summary{
+.narrow .summary-block{
 	margin-top: 10px;
 	float: left;
 	clear: both;
 }
 
-#summary table{
+.summary-block table{
     border-collapse:separate;
 }
 
-#summary b {
+.summary-block b {
     color:rgb(0, 68, 136);
 }
 
-#summary b#count {
+.summary-block b#count {
     margin-left:5px;
 }
 
-#summary td{
+.summary-block td{
     padding:3px;    
 }
 
-#summary td.summary-cell{
+.summary-block td.summary-cell{
 	padding-left: 15px;
 }
 
-.narrow #summary b#count {
+.narrow .summary-block b#count {
     margin-left:3px;
 }
 
-#summary .money-info{
+.summary-block .money-info{
     margin-left:3px;
 }
 
