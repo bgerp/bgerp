@@ -397,7 +397,7 @@ abstract class acc_ClosedDeals extends core_Master
 		    }
     	}
     	
-    	$mvc->notificateSaleUsedForClosure($id);
+    	$mvc->notificateDealUsedForClosure($id);
     }
     
     
@@ -601,7 +601,7 @@ abstract class acc_ClosedDeals extends core_Master
      */
     public static function on_AfterRestore($mvc, &$res, $id)
     {
-    	$mvc->notificateSaleUsedForClosure($id);
+    	$mvc->notificateDealUsedForClosure($id);
     }
     
     
@@ -610,14 +610,14 @@ abstract class acc_ClosedDeals extends core_Master
      */
     public static function on_AfterConto($mvc, &$res, $id)
     {
-    	$mvc->notificateSaleUsedForClosure($id);
+    	$mvc->notificateDealUsedForClosure($id);
     }
     
     
     /**
      * Нотифицира продажбата която е използвана да се приключи продажбата на документа
      */
-    private function notificateSaleUsedForClosure($id)
+    private function notificateDealUsedForClosure($id)
     {
     	$rec = $this->fetchRec($id);
     
