@@ -912,6 +912,15 @@ class core_Users extends core_Manager
         // Обновяваме времето на BRID кукито
         core_Browser::updateBridCookieLifetime();
         
+        $conf = core_Packs::getConfig('core');
+        
+        // Ако е зададен език на интерфейса след логване
+        if ($conf->EF_USER_LANG) {
+            
+            // Форсираме езика
+            core_Lg::set($conf->EF_USER_LANG, TRUE);
+        }
+        
         // IP адреса на потребителя
         $currIp = $mvc->getRealIpAddr();
         
