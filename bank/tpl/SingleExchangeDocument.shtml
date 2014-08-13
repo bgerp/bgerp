@@ -1,60 +1,78 @@
 [#SingleToolbar#]
 <div class='document'>
-	
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
-	</div>
-	<div class='scrolling-holder' style='margin-top:10px'>
-		<div class='fleft'>
-				<table class='default-table'>
-					<tr><td class="quiet" align="right">|Номер|*:</td><td>[#number#]</td></tr>
-					<!--ET_BEGIN createdBy--><tr><td class="quiet" align="right">|Създаден|*:</td><td>|на|* <b>[#createdDate#] </b>|от|* <b>[#createdBy#]</b></td></tr><!--ET_END createdBy-->	
-					<tr><td class="quiet" align="right">|Вальор|*:</td><td><b>[#valior#]</b></td></tr>
-					<tr><td class="quiet" align="right">|От|*:</td><td>[#peroFrom#]</td></tr>
-					<tr><td class="quiet" align="right">|Към|*:</td><td>[#peroTo#]</td></tr>
-					<tr><td class="quiet" align="right">|Основание|*:</td><td>[#reason#]</td></tr>
-				</table>
-				<br>
-		</div>
-		<div class='fleft internal-amount'>	
-				<div class="amounts">
-					<table class='default-table'>
-					<tr>
-						<td>|Обменени |*:</td>
-					</tr>
-					<!--ET_BEGIN creditQuantity-->
-						<tr>
-							<td>
-							<span class='cCode'>[#creditCurrency#]</span> &nbsp;
-							<b><span style='color:darkgreen'>[#creditQuantity#]</span></b>&nbsp; в &nbsp;<span class='cCode'>[#debitCurrency#]</span> &nbsp;
-							<b><span style='color:darkgreen'>[#debitQuantity#]</span></b><br>
-							</td>
-						</tr>
-						<!--ET_END creditQuantity-->
-						<!--ET_BEGIN rate-->
-						<tr>
-							<td>
-								|При курс|*: &nbsp;<b><span style='color:darkgreen'>[#rate#]</span></b>	
-							</td>
-						</tr>
-						<!--ET_END rate-->
-					</table>
-				</div>
-		</div>
-	</div>
-	<!--ET_BEGIN DETAILS-->
-		<div class='details'>
-			[#DETAILS#]
-		</div>
-	<!--ET_END DETAILS-->
-	<!--ET_BEGIN shareLog-->
-    	<div class='sharing-history clearfix21'>
-        	<span class='sharing-history-title'>|Споделяне|*</span>
-        	[#shareLog#]
-    	</div>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <div class='scrolling-holder' style='margin-top:10px'>
+        <div class='fleft'>
+            <table class='default-table'>
+                <tr>
+                    <td class="quiet aright">|Номер|*:</td>
+                    <td>[#number#]</td>
+                </tr>
+                <!--ET_BEGIN createdBy-->
+                <tr>
+                    <td class="quiet aright">|Създаден|*:</td>
+                    <td>|на|* <b>[#createdDate#] </b>|от|* <b>[#createdBy#]</b></td>
+                </tr>
+                <!--ET_END createdBy-->	
+                <tr>
+                    <td class="quiet aright">|Вальор|*:</td>
+                    <td><b>[#valior#]</b></td>
+                </tr>
+                <tr>
+                    <td class="quiet aright">|От|*:</td>
+                    <td>[#peroFrom#]</td>
+                </tr>
+                <tr>
+                    <td class="quiet aright">|Към|*:</td>
+                    <td>[#peroTo#]</td>
+                </tr>
+                <tr>
+                    <td class="quiet aright">|Основание|*:</td>
+                    <td>[#reason#]</td>
+                </tr>
+            </table>
+            <br>
+        </div>
+        <div class='fleft internal-amount'>
+            <div class="amounts">
+                <table class='default-table'>
+                    <tr>
+                        <td>|Обменени |*:</td>
+                    </tr>
+                    <!--ET_BEGIN creditQuantity-->
+                    <tr>
+                        <td>
+                            <span class='cCode'>[#creditCurrency#]</span> &nbsp;
+                            <b><span style='color:darkgreen'>[#creditQuantity#]</span></b>&nbsp; в &nbsp;<span class='cCode'>[#debitCurrency#]</span> &nbsp;
+                            <b><span style='color:darkgreen'>[#debitQuantity#]</span></b><br>
+                        </td>
+                    </tr>
+                    <!--ET_END creditQuantity-->
+                    <!--ET_BEGIN rate-->
+                    <tr>
+                        <td>
+                            |При курс|*: &nbsp;<b><span style='color:darkgreen'>[#rate#]</span></b>	
+                        </td>
+                    </tr>
+                    <!--ET_END rate-->
+                </table>
+            </div>
+        </div>
+    </div>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
+    <!--ET_BEGIN shareLog-->
+    <div class='sharing-history clearfix21'>
+        <span class='sharing-history-title'>|Споделяне|*</span>
+        [#shareLog#]
+    </div>
     <!--ET_END shareLog-->	
-	
 </div>
