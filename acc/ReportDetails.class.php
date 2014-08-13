@@ -39,6 +39,13 @@ class acc_ReportDetails extends core_Manager
 	public $canWrite = 'no_one';
 	
 	
+	
+	/**
+	 * С колко да не показва числа близки до нулата
+	 */
+	public $zeroTolerance = 0.01;
+	
+	
 	/**
      * Подготовка на данните за справка
      */
