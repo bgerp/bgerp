@@ -1222,17 +1222,15 @@ class acc_BalanceDetails extends core_Detail
     	}
     	
     	// Нулевия ред е винаги началното салдо
-    	$zeroRec = array('docId'      => "Баланс", 
+    	$zeroRec = array('docId'      => "Начален баланс", 
     					 'valior'	  => $data->fromDate,
-    					 'reason'	  => 'Начално салдо',
     					 'blAmount'   => $rec->baseAmount, 
     					 'blQuantity' => $rec->baseQuantity,
     					 'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
     	
     	// Нулевия ред е винаги началното салдо
-    	$lastRec = array('docId'      => "Баланс",
+    	$lastRec = array('docId'      => "Краен баланс",
     					 'valior'	  => $data->toDate,
-    					 'reason'	  => 'Крайно салдо',
     					 'blAmount'   => $rec->blAmount, 
     					 'blQuantity' => $rec->blQuantity,
     					 'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
@@ -1415,7 +1413,6 @@ class acc_BalanceDetails extends core_Detail
 	    		$arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
 	    	} else {
 	    		$arr['docId'] = $rec['docId'];
-	    		$arr['reason'] = $rec['reason'];
 	    	}
 	    }
 	    
