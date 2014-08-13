@@ -194,6 +194,12 @@ class acc_ReportDetails extends core_Manager
 	    	$row['amountRec'] = $dRec->blAmount;
 	    	$row['id'] = $dRec->id;
 	    	
+	    	// Ако количеството и сумата са близки до нулата в орпеделена граница ги пропускаме
+	    	if(($dRec->blQuantity > (-1 * $this->zeroTolerance) &&  $dRec->blQuantity < $this->zeroTolerance) &&
+	    	(($dRec->blAmount > (-1 * $this->zeroTolerance) &&  $dRec->blAmount < $this->zeroTolerance))) {
+	    		continue;
+	    	}
+	    	
 	    	$rows[$dRec->accountId]['rows'][] = $row;
 	    	$rows[$dRec->accountId]['total'] += $dRec->blAmount;
     	}
