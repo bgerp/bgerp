@@ -1301,4 +1301,70 @@ class purchase_Purchases extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Ако с тази продажба е приключена друга продажба
+     */
+    public static function on_AfterClosureWithDeal($mvc, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	// Намираме всички продажби които са приключени с тази
+    	$details = array();
+    	$closedDeals = purchase_ClosedDeals::getClosedWithDeal($rec->id);
+    	//$closedDeals = array((object)array('threadId' => $rec->threadId)) + $closedDeals;
+    	if(count($closedDeals)){
+    
+    		// За всяка от тях, включително и този документ
+    		foreach ($closedDeals as $doc){
+    
+    			// Взимаме договорените продукти от продажбата начало на нейната нишка
+    			$firstDoc = doc_Threads::getFirstDocument($doc->threadId);
+    			$dealInfo = $firstDoc->getAggregateDealInfo();
+    			$products = (array)$dealInfo->get('products');
+    			if(count($products)){
+    				foreach ($products as $p){
+    
+    					// Обединяваме множествата на договорените им продукти
+    					$index = $p->classId . "|" . $p->productId;
+    					$d = &$details[$index];
+    					$d = (object)$d;
+    
+    					$d->classId = $p->classId;
+    					$d->productId = $p->productId;
+    					$d->uomId = $p->uomId;
+    					$d->quantity += $p->quantity;
+    					$d->price = ($d->price) ? ($d->price + $p->price) / 2 : $p->price;
+    					if(!empty($d->discount) || !empty($p->discount)){
+    						$d->discount = ($d->discount + $p->discount) / 2;
+    					}
+    
+    					$info = cls::get($p->classId)->getProductInfo($p->productId, $p->packagingId);
+    					$p->quantityInPack = ($p->packagingId) ? $info->packagingRec->quantity : 1;
+    					if(empty($d->packagingId)){
+    						$d->packagingId = $p->packagingId;
+    						$d->quantityInPack = $p->quantityInPack;
+    					} else {
+    						if($p->quantityInPack < $d->quantityInPack){
+    							$d->packagingId = $p->packagingId;
+    							$d->quantityInPack = $p->quantityInPack;
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    	 
+    	// Изтриваме досегашните детайли на продажбата
+    	purchase_PurchasesDetails::delete("#requestId = {$rec->id}");
+    	 
+    	// Записваме новите
+    	if(count($details)){
+    		foreach ($details as $d1){
+    			$d1->requestId = $rec->id;
+    			$mvc->purchase_PurchasesDetails->save($d1);
+    		}
+    	}
+    }
 }

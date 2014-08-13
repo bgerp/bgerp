@@ -1474,41 +1474,65 @@ class sales_Sales extends core_Master
     
     /**
      * Ако с тази продажба е приключена друга продажба
-     * 
-     * 
-     * 
-     * ЛЕЕЕК РЕФАКТОРИНГ
      */
-    public static function on_AfterTransferDataFromDeal($mvc, $id, $details)
+    public static function on_AfterClosureWithDeal($mvc, $id)
     {
     	$rec = $mvc->fetchRec($id);
     	
-    	// Ако ще се прехвърлят договорени продукти
-    	if(count($details)){
-    		foreach ($details as $d){
-    			
-    			// Ако има запис за този продукт, обновяваме му к-то, сумата и отстъпката
-    			if($dRec = $mvc->sales_SalesDetails->fetch("#saleId = {$rec->id} AND #classId = {$d->classId} AND #productId = {$d->productId}")){
-    				$dRec->quantity += $d->quantity;
-    				$dRec->price = ($dRec->price + $d->price) / 2;
-    				if(!empty($dRec->discount) || !empty($d->discount)){
-    					$dRec->discount = ($dRec->discount + $d->discount) / 2;
+    	// Намираме всички продажби които са приключени с тази
+    	$details = array();
+    	$closedDeals = sales_ClosedDeals::getClosedWithDeal($rec->id);
+    	//$closedDeals = array((object)array('threadId' => $rec->threadId)) + $closedDeals;
+    	if(count($closedDeals)){
+    		
+    		// За всяка от тях, включително и този документ
+    		foreach ($closedDeals as $doc){
+    		
+    			// Взимаме договорените продукти от продажбата начало на нейната нишка
+    			$firstDoc = doc_Threads::getFirstDocument($doc->threadId);
+    			$dealInfo = $firstDoc->getAggregateDealInfo();
+    			$products = (array)$dealInfo->get('products');
+    			if(count($products)){
+    				foreach ($products as $p){
+    		
+    					// Обединяваме множествата на договорените им продукти
+    					$index = $p->classId . "|" . $p->productId;
+    					$d = &$details[$index];
+    					$d = (object)$d;
+    		
+    					$d->classId = $p->classId;
+    					$d->productId = $p->productId;
+    					$d->uomId = $p->uomId;
+    					$d->quantity += $p->quantity;
+    					$d->price = ($d->price) ? ($d->price + $p->price) / 2 : $p->price;
+    					if(!empty($d->discount) || !empty($p->discount)){
+    						$d->discount = ($d->discount + $p->discount) / 2;
+    					}
+    		
+    					$info = cls::get($p->classId)->getProductInfo($p->productId, $p->packagingId);
+    					$p->quantityInPack = ($p->packagingId) ? $info->packagingRec->quantity : 1;
+    					if(empty($d->packagingId)){
+    						$d->packagingId = $p->packagingId;
+    						$d->quantityInPack = $p->quantityInPack;
+    					} else {
+    						if($p->quantityInPack < $d->quantityInPack){
+    							$d->packagingId = $p->packagingId;
+    							$d->quantityInPack = $p->quantityInPack;
+    						}
+    					}
     				}
-    			} else {
-    				
-    				// Ако няма го добавяме като нов детайл
-    				$info = cls::get($d->classId)->getProductInfo($d->productId, $d->packagingId);
-    				
-    				$dRec = new stdClass();
-    				$dRec->saleId = $rec->id;
-    				foreach (array('classId', 'productId', 'packagingId', 'quantity', 'discount', 'price', 'uomId',) as $val){
-    					$dRec->$val = $d->$val;
-    				}
-    				$dRec->quantityInPack = ($d->packagingId) ? $info->packagingRec->quantity : 1;
     			}
-    			
-    			// Записваме/обновяваме детайла
-    			$mvc->sales_SalesDetails->save($dRec);
+    		}
+    	}
+    	
+    	// Изтриваме досегашните детайли на продажбата
+    	sales_SalesDetails::delete("#saleId = {$rec->id}");
+    	
+    	// Записваме новите
+    	if(count($details)){
+    		foreach ($details as $d1){
+    			$d1->saleId = $rec->id;
+    			$mvc->sales_SalesDetails->save($d1);
     		}
     	}
     }

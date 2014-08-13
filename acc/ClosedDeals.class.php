@@ -396,6 +396,8 @@ abstract class acc_ClosedDeals extends core_Master
 		    	}
 		    }
     	}
+    	
+    	$mvc->notificateSaleUsedForClosure($id);
     }
     
     
@@ -576,5 +578,55 @@ abstract class acc_ClosedDeals extends core_Master
     	unset($closedItems[$dealItemId]);
     	
     	return $closedItems;
+    }
+    
+    
+    /**
+     * Връща всички документи, които са приключили сделки с подадената сделка
+     */
+    public static function getClosedWithDeal($dealId)
+    {
+    	$closedDealQuery = self::getQuery();
+    	$closeClassId = self::getClassId();
+    	$closedDealQuery->where("#closeWith = {$dealId}");
+    	$closedDealQuery->where("#classId = {$closeClassId}");
+    	$closedDealQuery->where("#state = 'active'");
+    	
+    	return $closedDealQuery->fetchAll();
+    }
+
+
+    /**
+     * След успешно контиране на документа
+     */
+    public static function on_AfterRestore($mvc, &$res, $id)
+    {
+    	$mvc->notificateSaleUsedForClosure($id);
+    }
+    
+    
+    /**
+     * След успешно контиране на документа
+     */
+    public static function on_AfterConto($mvc, &$res, $id)
+    {
+    	$mvc->notificateSaleUsedForClosure($id);
+    }
+    
+    
+    /**
+     * Нотифицира продажбата която е използвана да се приключи продажбата на документа
+     */
+    private function notificateSaleUsedForClosure($id)
+    {
+    	$rec = $this->fetchRec($id);
+    
+    	// Ако ще се приключва с друга продажба
+    	if(!empty($rec->closeWith) || $rec->state == 'active'){
+    		 
+    		// Прехвърляме ги към детайлите на продажбата с която сме я приключили
+    		$Doc = cls::get($rec->docClassId);
+    		$Doc->invoke('AfterClosureWithDeal', array($rec->closeWith));
+    	}
     }
 }
