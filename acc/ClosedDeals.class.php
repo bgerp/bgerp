@@ -622,7 +622,7 @@ abstract class acc_ClosedDeals extends core_Master
     	$rec = $this->fetchRec($id);
     
     	// Ако ще се приключва с друга продажба
-    	if(!empty($rec->closeWith) || $rec->state == 'active'){
+    	if(!empty($rec->closeWith) && $rec->state == 'active'){
     		 
     		// Прехвърляме ги към детайлите на продажбата с която сме я приключили
     		$Doc = cls::get($rec->docClassId);
