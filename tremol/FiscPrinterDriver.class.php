@@ -18,7 +18,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'pos_FiscPrinterIntf';
+    var $interfaces = 'sales_FiscPrinterIntf';
     
     
     /**
