@@ -1,41 +1,38 @@
 <div class="singleView">
-      [#SingleToolbar#]
-     
-      <h3 style='margin-top:15px'><b style='font-size: 1.2em'>[#accountId#]</b>
-      <!--ET_BEGIN ent1Id--><b class='feather-icon'>[#ent1Id#]</b> <!--ET_END ent1Id-->
-      <!--ET_BEGIN ent2Id--><b class='feather-icon'>[#ent2Id#]</b> <!--ET_END ent2Id-->
-      <!--ET_BEGIN ent3Id--><b class='feather-icon'>[#ent3Id#]</b><!--ET_END ent3Id--></h3>
-     
-     
-      <div class='fleft'>[#listFilter#]</div>
-      
-      <div class='fright summary-block' >
-      <table style='min-width:200px;'>
-      <tr>
-      	<th>|Салдо|*</th>
-      	<th>|К-во|*</th>
-      	<th>|Сума|*</th>
-      </tr>
-      <tr>
-      	<td align='right'>|Крайно|*</td>
-      	<td align='right' class='summary-cell'><b>[#blQuantity#]</b></td>
-      	<td align='right' class='summary-cell'><b>[#blAmount#]</b></td>
-      </tr>
-      <tr>
-      	<td align='right'>|Средно|*</td>
-      	<td align='right' class='summary-cell'><b>[#midQuantity#]</b></td>
-      	<td align='right' class='summary-cell'><b>[#midAmount#]</b></td>
-      </tr>
-      <tr>
-      	<td align='right'>|Начално|*</td>
-      	<td align='right' class='summary-cell'><b>[#baseQuantity#]</b></td>
-      	<td align='right' class='summary-cell'><b>[#baseAmount#]</b></td>
-      </tr>
-      </table>
-      </div>
-      <div class='clearfix21'></div>
-      <div class='scrolling-holder'>
+    [#SingleToolbar#]
+    <h3 style='margin-top:15px'>
+        <b style='font-size: 1.2em'>[#accountId#]</b>
+        <!--ET_BEGIN ent1Id--><b class='feather-icon'>[#ent1Id#]</b> <!--ET_END ent1Id-->
+        <!--ET_BEGIN ent2Id--><b class='feather-icon'>[#ent2Id#]</b> <!--ET_END ent2Id-->
+        <!--ET_BEGIN ent3Id--><b class='feather-icon'>[#ent3Id#]</b><!--ET_END ent3Id-->
+    </h3>
+    <div class='fleft'>[#listFilter#]</div>
+    <div class='fright summary-block' >
+        <table style='min-width:200px;'>
+            <tr>
+                <th>|Салдо|*</th>
+                <th>|К-во|*</th>
+                <th>|Сума|*</th>
+            </tr>
+            <tr>
+                <td class='aright'>|Крайно|*</td>
+                <td class='summary-cell aright'><b>[#blQuantity#]</b></td>
+                <td class='summary-cell aright'><b>[#blAmount#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright'>|Средно|*</td>
+                <td class='summary-cell aright'><b>[#midQuantity#]</b></td>
+                <td class='summary-cell aright'><b>[#midAmount#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright'>|Начално|*</td>
+                <td class='summary-cell aright'><b>[#baseQuantity#]</b></td>
+                <td class='summary-cell aright'><b>[#baseAmount#]</b></td>
+            </tr>
+        </table>
+    </div>
+    <div class='clearfix21'></div>
+    <div class='scrolling-holder'>
         [#DETAILS#]
-      </div>
-      
- </div>  
+    </div>
+</div>

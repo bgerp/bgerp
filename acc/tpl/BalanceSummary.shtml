@@ -1,27 +1,25 @@
 <div class='summary-block'>
-
-<table>
-	<tr>
-		<th></th>
-		<th>|Сума|*</th>
-	</tr>
-	<tr  align='right'>
-		<td class='quiet'>|Начално салдо|*:</td>
-		<td class='summary-cell'>[#baseAmount#]</td>
-	</tr>
-	<tr  align='right'>
-		<td class='quiet'>|Дебит|*:</td>
-		<td class='summary-cell'>[#debitAmount#]</td>
-	</tr>
-	<tr  align='right'>
-		<td class='quiet'>|Кредит|*:</td>
-		<td class='summary-cell'>[#creditAmount#]</td>
-	</tr>
-	<tr  align='right'>
-		<td class='quiet'>|Крайно салдо|*:</td>
-		<td class='summary-cell'>[#blAmount#]</td>
-	</tr>
-</table>
-
+    <table>
+        <tr>
+            <th></th>
+            <th>|Сума|*</th>
+        </tr>
+        <tr  class='aright'>
+            <td class='quiet'>|Начално салдо|*:</td>
+            <td class='summary-cell'>[#baseAmount#]</td>
+        </tr>
+        <tr  class='aright'>
+            <td class='quiet'>|Дебит|*:</td>
+            <td class='summary-cell'>[#debitAmount#]</td>
+        </tr>
+        <tr  class='aright'>
+            <td class='quiet'>|Кредит|*:</td>
+            <td class='summary-cell'>[#creditAmount#]</td>
+        </tr>
+        <tr  class='aright'>
+            <td class='quiet'>|Крайно салдо|*:</td>
+            <td class='summary-cell'>[#blAmount#]</td>
+        </tr>
+    </table>
 </div>
 

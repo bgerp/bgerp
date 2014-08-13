@@ -1,56 +1,49 @@
 <div class='balance-filter'>
-<table class='balance-custom-form'>
-    <!--ET_BEGIN group1-->
-    [#group1#]
-    <tr>
-        <td>
-	        <div class='captionSimple'>[#caption1#]</div>
-	        [#grouping1#] 
-        </td>
-        
-        <td class='feat'>
-            <!--ET_BEGIN feat1-->
-	        <div class='captionSimple captionProperties'>|Свойства|*</div>
-	        <div class='nowrap'><span class='arrow'>&#x27a1; </span> [#feat1#]</div>
-	        <!--ET_END feat1-->
-        </td>
-    
-    </tr>
-    <!--ET_END group1-->
-    
-    <!--ET_BEGIN group2-->
-    [#group2#]
-    <tr>
-        <td>
-            <div class='captionSimple'>[#caption2#]</div>
-            [#grouping2#]
-        </td>
-        <td class='feat'>
-            <!--ET_BEGIN feat2-->
-            <div class='captionSimple captionProperties'>|Свойства|*</div>
-            <div class='nowrap'><span class='arrow'>&#x27a1; </span>[#feat2#]</div>
-            <!--ET_END feat2-->
-        </td>
-    
-    </tr>
-    <!--ET_END group2-->
-    
-    <!--ET_BEGIN group3-->
-    [#group3#]
-    <tr>
-        <td>
-            <div class='captionSimple'>[#caption3#]</div>
-            [#grouping3#]
-        </td>
-        <td class='feat'>
-            <!--ET_BEGIN feat3-->
-            <div class='captionSimple captionProperties'>|Свойства|*</div>
-            <div class='nowrap'><span class='arrow'>&#x27a1; </span> [#feat3#]</div>
-            <!--ET_END feat3-->
-        </td>
-    
-    </tr>
-    <!--ET_END group3-->
-</table>
-	
+    <table class='balance-custom-form'>
+        <!--ET_BEGIN group1-->
+        [#group1#]
+        <tr>
+            <td>
+                <div class='captionSimple'>[#caption1#]</div>
+                [#grouping1#] 
+            </td>
+            <td class='feat'>
+                <!--ET_BEGIN feat1-->
+                <div class='captionSimple captionProperties'>|Свойства|*</div>
+                <div class='nowrap'><span class='arrow'>&#x27a1; </span> [#feat1#]</div>
+                <!--ET_END feat1-->
+            </td>
+        </tr>
+        <!--ET_END group1-->
+        <!--ET_BEGIN group2-->
+        [#group2#]
+        <tr>
+            <td>
+                <div class='captionSimple'>[#caption2#]</div>
+                [#grouping2#]
+            </td>
+            <td class='feat'>
+                <!--ET_BEGIN feat2-->
+                <div class='captionSimple captionProperties'>|Свойства|*</div>
+                <div class='nowrap'><span class='arrow'>&#x27a1; </span>[#feat2#]</div>
+                <!--ET_END feat2-->
+            </td>
+        </tr>
+        <!--ET_END group2-->
+        <!--ET_BEGIN group3-->
+        [#group3#]
+        <tr>
+            <td>
+                <div class='captionSimple'>[#caption3#]</div>
+                [#grouping3#]
+            </td>
+            <td class='feat'>
+                <!--ET_BEGIN feat3-->
+                <div class='captionSimple captionProperties'>|Свойства|*</div>
+                <div class='nowrap'><span class='arrow'>&#x27a1; </span> [#feat3#]</div>
+                <!--ET_END feat3-->
+            </td>
+        </tr>
+        <!--ET_END group3-->
+    </table>
 </div>

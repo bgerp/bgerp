@@ -1,34 +1,38 @@
 [#SingleToolbar#]
-<div class='document'>		
-		<!--ET_BEGIN blank-->
-			[#blank#]
-		<!--ET_END blank-->
-
-		<div class='header [#STATE_CLASS#]'>
-		   <div class='docBgIcon' style='[#iconStyle#]'>|Мемориален ордер|* №<b>[#id#]/[#valior#]</b> ([#state#])</div>
-		</div>
-		
-			<div>
-			<div class='fleft half_block'>
-						<table>
-							<tr><td class="quiet" align="right">|Вальор|*:</td><td style='padding-left: 5px;'>[#valior#]</td></tr>
-							<tr><td class="quiet" align="right">|Номер|*:</td><td style='padding-left: 5px;'>[#id#]</td></tr>
-							<tr><td class="amounts quiet"  align="right">|Оборот|*:</td><td style='padding-left: 5px;'>[#totalAmount#]</td></tr>
-							
-						</table>
-					</div>
-					
-					<div class='fright half_block' style='width:60%'>
-						<span class="quiet" style='padding-right: 3px;'>|Основание|*:</span> [#reason#]
-					</div>
-					<div class='clearfix21'></div>
-			</div>
-					
-			<div class='scrolling-holder'>
-			<!--ET_BEGIN DETAILS-->
-				<div class='details' style="margin-top:10px">
-					[#DETAILS#]
-				</div>
-			<!--ET_END DETAILS-->
-			</div>
-		</div>
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#]'>|Мемориален ордер|* №<b>[#id#]/[#valior#]</b> ([#state#])</div>
+    </div>
+    <div>
+        <div class='fleft half_block'>
+            <table>
+                <tr>
+                    <td class="quiet aright">|Вальор|*:</td>
+                    <td style='padding-left: 5px;'>[#valior#]</td>
+                </tr>
+                <tr>
+                    <td class="quiet aright">|Номер|*:</td>
+                    <td style='padding-left: 5px;'>[#id#]</td>
+                </tr>
+                <tr>
+                    <td class="amounts quiet aright">|Оборот|*:</td>
+                    <td style='padding-left: 5px;'>[#totalAmount#]</td>
+                </tr>
+            </table>
+        </div>
+        <div class='fright half_block' style='width:60%'>
+            <span class="quiet" style='padding-right: 3px;'>|Основание|*:</span> [#reason#]
+        </div>
+        <div class='clearfix21'></div>
+    </div>
+    <div class='scrolling-holder'>
+        <!--ET_BEGIN DETAILS-->
+        <div class='details' style="margin-top:10px">
+            [#DETAILS#]
+        </div>
+        <!--ET_END DETAILS-->
+    </div>
+</div>
