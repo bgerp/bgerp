@@ -186,15 +186,18 @@ class doc_Folders extends core_Master
         $data->listFilter->showFields = 'search,users,order';
         $data->listFilter->input('search,users,order', 'silent');
 
+        // Вземаме стойността по подразбиране, която може да се покаже
+		$default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
+		
     	if(!$data->listFilter->rec->users) {
     		if(haveRole('officer')){
-    			$data->listFilter->setDefault('users', 'all_users'); 
-    			//$data->query->fetchAll();
+    			// Задаваме стойността по подразбиране
+				$data->listFilter->setDefault('users', $default);
     		} else{
     			$data->listFilter->rec->users = "|" . core_Users::getCurrent() . "|";
     		}
     	}
-        
+           
     	if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {  
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
