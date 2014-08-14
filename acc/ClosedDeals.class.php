@@ -242,7 +242,7 @@ abstract class acc_ClosedDeals extends core_Master
     		$actions = $dealInfo->get('contoActions');
     		
     		// Ако е бърза сделка, пропускаме я
-    		if(isset($actions['ship']) && isset($actions['pay'])) continue;
+    		if(isset($actions['ship']) || isset($actions['pay'])) continue;
     		
     		$docs[$dealRec->id] = $firstDoc->instance->getRecTitle($dealRec);
     	}
