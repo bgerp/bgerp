@@ -1,33 +1,34 @@
 <div class="singleView">
-[#SingleToolbar#]
-	<div class="folder-cover [#STATE_CLASS#]">
-		<div class="inner-folder">
-			<div class="block_title state-active special-title">[#SingleIcon#] |Каса|* <b style="color:green;">[#name#]</b></div>
-			<fieldset class="detail-info">
-				<legend class="groupTitle">|Информация|*</legend>
-				<div class="groupList">
-					<table>
-						<tr>
-							<td class='dt'>|Номер|*:</td>
-							<td> [#id#]</td>
-						</tr>
-						<tr>
-							<td class='dt'>|Касиери|*:</td>
-							<td> <b>[#cashiers#]</b></td>
-						</tr>
-						<!--ET_BEGIN creation-->
-						<tr>
-						[#creation#]
-							<td  class='dt'>|Създаден:|*</td>
-							<td> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
-							<span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span></td>
-						</tr>
-						<!--ET_END creation-->
-					</table>
-				</div>
-			</fieldset>
-			[#DETAILS#]
-        <div style="clear:both;"></div>
-		</div>
-	</div>
+    [#SingleToolbar#]
+    <div class="folder-cover [#STATE_CLASS#]">
+        <div class="inner-folder">
+            <div class="block_title state-active special-title">[#SingleIcon#] |Каса|* <b style="color:green;">[#name#]</b></div>
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Информация|*</legend>
+                <div class="groupList">
+                    <table>
+                        <tr>
+                            <td class='dt'>|Номер|*:</td>
+                            <td> [#id#]</td>
+                        </tr>
+                        <tr>
+                            <td class='dt'>|Касиери|*:</td>
+                            <td> <b>[#cashiers#]</b></td>
+                        </tr>
+                        <!--ET_BEGIN creation-->
+                        <tr>
+                            [#creation#]
+                            <td  class='dt'>|Създаден:|*</td>
+                            <td> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
+                                <span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span>
+                            </td>
+                        </tr>
+                        <!--ET_END creation-->
+                    </table>
+                </div>
+            </fieldset>
+            [#DETAILS#]
+            <div style="clear:both;"></div>
+        </div>
+    </div>
 </div>
