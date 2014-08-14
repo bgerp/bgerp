@@ -1368,12 +1368,14 @@ function setRicheditWidth(el)
  */
 function scrollLongListTable()
 {
-	var winWidth = parseInt($(window).width()) - 45;
-	var tableWidth = parseInt($('.listTable').width());
-	if(winWidth < tableWidth){
-		$('.listRows').addClass('overflow-scroll');
-		$('.main-container').css('display','block');
-		$('.switching-display').css('display','block');
+	if($('body').hasClass('wide') && !$('.listBlock').hasClass('doc_Containers')){
+		var winWidth = parseInt($(window).width()) - 45;
+		var tableWidth = parseInt($('.listBlock .listTable').width());
+		if(winWidth < tableWidth){
+			$('.listBlock .listRows').addClass('overflow-scroll');
+			$('.main-container').css('display','block');
+			$('.listBlock').css('display','block');
+		}
 	}
 }
 
@@ -2362,6 +2364,7 @@ function render_html(data)
 			idObj.append(html);
 		}
 	}
+	scrollLongListTable();
 }
 
 

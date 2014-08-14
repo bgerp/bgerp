@@ -136,10 +136,6 @@ class core_Manager extends core_Mvc
         // Записваме, че потребителя е разглеждал този списък
         $this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
         
-        // Скролира listTable, ако е необходимо
-        if(Mode::is('screenMode', 'wide')){
-        	jquery_Jquery::run($tpl, "scrollLongListTable();");
-        }
         return $tpl;
     }
     
@@ -607,7 +603,7 @@ class core_Manager extends core_Mvc
         
         // Шаблон за листовия изглед
         $listLayout = new ET("
-            <div class='clearfix21 switching-display {$className}'>
+            <div class='clearfix21 listBlock {$className}'>
                 [#ListTitle#]
                 <div class='listTopContainer clearfix21'>
                     [#ListFilter#]
