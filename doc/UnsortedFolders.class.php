@@ -205,27 +205,21 @@ class doc_UnsortedFolders extends core_Master
      	
     	// търсим всички проекти, които не са отхвърлени и имат време за автоматично затваряне
         $query->where("#state != 'rejected' AND #closeTime IS NOT NULL");
-            	    
-        do {
-        	// взимаме всички такива проекти
-        	if ($rec = $query->fetch()) {
-        		// търсим нишка, която отговаря на тази папка и е отворена
-        		$queryThread->where("#folderId = '{$rec->folderId}' AND #state = 'opened'");
-        		// и я взимаме
-        		if ($recThread = $queryThread->fetch()) {
-        			// ако тя последно е модифицирана преди (сега - времето за затваряне)
-        		    if ($recThread->modifiedOn <= dt::timestamp2mysql($now - $rec->closeTime)){
-        		    	// автоматично я затваряме
-        		    	$recThread->state = 'closed';
+
+        while ($rec = $query->fetch()) {
+        	// търсим нишка, която отговаря на тази папка и е отворена
+        	$queryThread->where("#folderId = '{$rec->folderId}' AND #state = 'opened'");
+        	// и я взимаме
+        	while ($recThread = $queryThread->fetch()) {
+        		// ако тя последно е модифицирана преди (сега - времето за затваряне)
+        		if ($recThread->modifiedOn <= dt::timestamp2mysql($now - $rec->closeTime)){
+        		// автоматично я затваряме
+        			$recThread->state = 'closed';
                    
-        		    	doc_Threads::save($recThread, 'state');
-        		    }		
-        		}
-        		$canClosed = TRUE;
-        	} else {
-        		$canClosed = FALSE;
+        			doc_Threads::save($recThread, 'state');
+        		}		
         	}
-        } while ($canClosed);
+        }
     }
 
 }
