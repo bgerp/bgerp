@@ -237,6 +237,12 @@ abstract class acc_ClosedDeals extends core_Master
     	$dealQuery->where("#state = 'active'");
     	
     	while($dealRec = $dealQuery->fetch()){
+    		$doc = new core_ObjectReference($firstDoc->instance, $dealRec->id);
+    		$dealInfo = $doc->getAggregateDealInfo();
+    		$products = $dealInfo->get('products');
+    		
+    		if(is_array($products) && count($products)) continue;
+    		
     		$docs[$dealRec->id] = $firstDoc->instance->getRecTitle($dealRec);
     	}
     	
@@ -622,7 +628,7 @@ abstract class acc_ClosedDeals extends core_Master
     	$rec = $this->fetchRec($id);
     
     	// Ако ще се приключва с друга продажба
-    	if(!empty($rec->closeWith) && $rec->state == 'active'){
+    	if(!empty($rec->closeWith) && $rec->state != 'draft'){
     		 
     		// Прехвърляме ги към детайлите на продажбата с която сме я приключили
     		$Doc = cls::get($rec->docClassId);
