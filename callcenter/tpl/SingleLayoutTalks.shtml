@@ -1,104 +1,87 @@
 <div class="singleView email-class">
-	
-	[#SingleToolbar#]
-	
-	<h2><div style="padding:5px;" class=" [#DialStatusClass#] ">|Разговор|* <b style="color:green;">№ [#id#]</b></div></h2>
-	
-	<table class="styled-table" width="100%">
-		<tr>
-			<th colspan="2">|Външен|*</th>
-		</tr>
-		
-		<!--ET_BEGIN externalData-->
-			<tr>
-				<td class="title-style">|Контакт|*</td>
-				<td>[#externalData#]</td>
-			</tr>
-		<!--ET_END externalData-->
-		
-		<tr>
-			<td class="title-style" width="150px">|Номер|*</td>
-			<td> [#externalNum#]</td>
-		</tr>
-	</table>
-	
-	<table class="styled-table" width="100%">
-		<tr>
-			<th colspan="2">|Вътрешен|*</th>
-		</tr>
-		
-		<tr>
-			<td class="title-style">|Потребител|*</td>
-			<td>[#internalData#]</td>
-		</tr>
-		
-		<tr>
-			<td class="title-style" width="150px">|Номер|*</td>
-			<td> [#internalNum#]</td>
-		</tr>
-	</table>
-	
-	<table class="styled-table" width="100%">
-		<tr>
-			<th colspan="2">|Време|*</th>
-		</tr>
-		
-		<tr>
-			<td class="title-style" width="150px">|Начало|*</td>
-			<td> [#startTime#]</td>
-		</tr>
-		
-		<!--ET_BEGIN answerTime-->
-			<tr>
-				<td class="title-style">|Отговор|*</td>
-				<td>[#answerTime#]</td>
-			</tr>
-		<!--ET_END answerTime-->
-		
-		<!--ET_BEGIN endTime-->
-			<tr>
-				<td class="title-style">|Край|*</td>
-				<td>[#endTime#]</td>
-			</tr>
-		<!--ET_END endTime-->
-		
-		<!--ET_BEGIN duration-->
-			<tr>
-				<td class="title-style">|Продължителност|*</td>
-				<td>[#duration#]</td>
-			</tr>
-		<!--ET_END duration-->
-		
-	</table>
-	
-	<!--ET_BEGIN TALKS_INFO-->
-		[#TALKS_INFO#]
-		
-		<table class="styled-table" width="100%">
-			<tr>
-				<th colspan="2">|Информация|*</th>
-			</tr>
-			
-			<!--ET_BEGIN callType-->
-				<tr>
-					<td class="title-style" width="150px">|Тип|*</td>
-					<td> [#callType#]</td>
-				</tr>
-			<!--ET_END callType-->
-			
-			<!--ET_BEGIN dialStatus-->
-				<tr>
-					<td class="title-style" width="150px">|Статус|*</td>
-					<td> [#dialStatus#]</td>
-				</tr>
-			<!--ET_END dialStatus-->
-			
-			<!--ET_BEGIN mp3-->
-				<tr>
-					<td class="title-style" width="150px">|Аудио|*</td>
-					<td> [#mp3#]</td>
-				</tr>
-			<!--ET_END mp3-->
-		</table>
-	<!--ET_END TALKS_INFO-->
+    [#SingleToolbar#]
+    <h2>
+        <div style="padding:5px;" class=" [#DialStatusClass#] ">|Разговор|* <b style="color:green;">№ [#id#]</b></div>
+    </h2>
+    <table class="styled-table" style='width:100%'>
+        <tr>
+            <th colspan="2">|Външен|*</th>
+        </tr>
+        <!--ET_BEGIN externalData-->
+        <tr>
+            <td class="title-style">|Контакт|*</td>
+            <td>[#externalData#]</td>
+        </tr>
+        <!--ET_END externalData-->
+        <tr>
+            <td class="title-style" style='width:150%'>|Номер|*</td>
+            <td> [#externalNum#]</td>
+        </tr>
+    </table>
+    <table class="styled-table" style='width:100%'>
+        <tr>
+            <th colspan="2">|Вътрешен|*</th>
+        </tr>
+        <tr>
+            <td class="title-style">|Потребител|*</td>
+            <td>[#internalData#]</td>
+        </tr>
+        <tr>
+            <td class="title-style" style='width:150%'>|Номер|*</td>
+            <td> [#internalNum#]</td>
+        </tr>
+    </table>
+    <table class="styled-table" style='width:100%'>
+        <tr>
+            <th colspan="2">|Време|*</th>
+        </tr>
+        <tr>
+            <td class="title-style" style='width:150%'>|Начало|*</td>
+            <td> [#startTime#]</td>
+        </tr>
+        <!--ET_BEGIN answerTime-->
+        <tr>
+            <td class="title-style">|Отговор|*</td>
+            <td>[#answerTime#]</td>
+        </tr>
+        <!--ET_END answerTime-->
+        <!--ET_BEGIN endTime-->
+        <tr>
+            <td class="title-style">|Край|*</td>
+            <td>[#endTime#]</td>
+        </tr>
+        <!--ET_END endTime-->
+        <!--ET_BEGIN duration-->
+        <tr>
+            <td class="title-style">|Продължителност|*</td>
+            <td>[#duration#]</td>
+        </tr>
+        <!--ET_END duration-->
+    </table>
+    <!--ET_BEGIN TALKS_INFO-->
+    [#TALKS_INFO#]
+    <table class="styled-table" style='width:100%'>
+        <tr>
+            <th colspan="2">|Информация|*</th>
+        </tr>
+        <!--ET_BEGIN callType-->
+        <tr>
+            <td class="title-style" style='width:150%'>|Тип|*</td>
+            <td> [#callType#]</td>
+        </tr>
+        <!--ET_END callType-->
+        <!--ET_BEGIN dialStatus-->
+        <tr>
+            <td class="title-style" style='width:150%'>|Статус|*</td>
+            <td> [#dialStatus#]</td>
+        </tr>
+        <!--ET_END dialStatus-->
+        <!--ET_BEGIN mp3-->
+        <tr>
+            <td class="title-style" style='width:150%'>|Аудио|*</td>
+            <td> [#mp3#]</td>
+        </tr>
+        <!--ET_END mp3-->
+    </table>
+    <!--ET_END TALKS_INFO-->
 </div>
