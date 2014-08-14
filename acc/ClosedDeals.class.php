@@ -239,9 +239,10 @@ abstract class acc_ClosedDeals extends core_Master
     	while($dealRec = $dealQuery->fetch()){
     		$doc = new core_ObjectReference($firstDoc->instance, $dealRec->id);
     		$dealInfo = $doc->getAggregateDealInfo();
-    		$products = $dealInfo->get('products');
+    		$actions = $dealInfo->get('contoActions');
     		
-    		if(is_array($products) && count($products)) continue;
+    		// Ако е бърза сделка, пропускаме я
+    		if(isset($actions['ship']) && isset($actions['pay'])) continue;
     		
     		$docs[$dealRec->id] = $firstDoc->instance->getRecTitle($dealRec);
     	}

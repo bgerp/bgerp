@@ -559,6 +559,7 @@ class deals_Deals extends core_Master
     	$result->set('agreedValior', $rec->createdOn);
     	$result->set('currency', $rec->currencyId);
     	$result->set('rate', $rec->currencyRate);
+    	$result->set('contoActions', FALSE);
     }
     
     

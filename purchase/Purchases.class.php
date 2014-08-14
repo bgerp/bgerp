@@ -847,6 +847,7 @@ class purchase_Purchases extends core_Master
             }
         }
         
+        $result->set('contoActions', $actions);
         $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($rec->id));
     }
     

@@ -1000,6 +1000,7 @@ class sales_Sales extends core_Master
             }
          }
          
+         $result->set('contoActions', $actions);
          $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($rec->id));
     }
     
