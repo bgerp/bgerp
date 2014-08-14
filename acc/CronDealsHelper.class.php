@@ -73,7 +73,7 @@ class acc_CronDealsHelper
     			$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
     			 
     			try{
-    				$isOverdue = cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid);
+    				$isOverdue = cond_PaymentMethods::isOverdue($plan, round($rec->amountDelivered, 2) - round($rec->amountPaid, 2));
     			} catch(Exception $e){
     					
     				// Ако има проблем при извличането се продължава
