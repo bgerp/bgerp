@@ -100,6 +100,9 @@ class acc_type_Item extends type_Key
                 $this->options["{$itemRec->id}.{$listRec->id}"] = strip_tags($title);
             }
         }
+        
+        $where = ($query->where) ? $query->getWhereAndHaving()->w : ' ';
+        $this->handler = md5($this->getSelectFld() . $where . $this->params['mvc']);
     }
     
     
