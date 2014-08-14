@@ -1,7 +1,6 @@
 <fieldset class='detail-info portal' style='margin-bottom:10px;' id="[#DetailName#]">
-	<legend class='groupTitle'>[#TITLE#]</legend>
-
-	<div class='groupList'>
-	    [#CONTENT#]
-	</div>
+    <legend class='groupTitle'>[#TITLE#]</legend>
+    <div class='groupList'>
+        [#CONTENT#]
+    </div>
 </fieldset>
