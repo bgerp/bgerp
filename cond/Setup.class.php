@@ -57,6 +57,7 @@ class cond_Setup  extends core_ProtoSetup
         	'cond_DeliveryTerms',
         	'cond_Parameters',
         	'cond_ConditionsToCustomers',
+    		'cond_Payments'
         );
 
         

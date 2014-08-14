@@ -7,15 +7,21 @@
  *
  *
  * @category  bgerp
- * @package   pos
+ * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
-class pos_Payments extends core_Manager {
+class cond_Payments extends core_Manager {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'pos_Payments';
+	
+	
     /**
      * Заглавие
      */
@@ -25,7 +31,7 @@ class pos_Payments extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_State2, pos_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, plg_State2, cond_Wrapper';
 
     
     /**
@@ -37,37 +43,37 @@ class pos_Payments extends core_Manager {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo, pos';
+    var $canRead = 'ceo, cond';
     
     
     /**
      * Кой може да променя?
      */
-    var $canWrite = 'ceo, pos';
+    var $canWrite = 'ceo, cond';
     
     
     /**
 	 * Кой може да променя състоянието на валутата
 	 */
-    var $canChangestate = 'ceo,pos,admin';
+    var $canChangestate = 'ceo,cond,admin';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'ceo, pos';
+    var $canReject = 'ceo, cond';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,pos';
+	var $canList = 'ceo,cond';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,pos';
+	var $canSingle = 'ceo,cond';
     
 
 	/**
@@ -94,7 +100,7 @@ class pos_Payments extends core_Manager {
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$file = "pos/csv/PaymentMethods.csv";
+    	$file = "cond/csv/Pospayments.csv";
     	
     	$fields = array(
 	    	0 => "title", 

@@ -744,7 +744,7 @@ class pos_Receipts extends core_Master {
     	
     	// Показваме всички активни методи за плащания
     	$disClass = ($payUrl) ? '' : 'disabledBtn';
-    	$payments = pos_Payments::fetchSelected();
+    	$payments = cond_Payments::fetchSelected();
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "$payment->id", 'data-url' => $payUrl);
 	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
