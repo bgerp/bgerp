@@ -1,52 +1,42 @@
 [#SingleToolbar#]
-           
-
-		<div class='header'>
-			<p class="calTitle">[#title#]</p>
-			<span style='width:150px;'>[#ListFilter#]</span>
-			
-		</div>
-
-	    <div class="clearfix" style="min-height:10px;"></div>
-		<!--ET_BEGIN event-->	
-         <div class='scrolling-holder'>
-       
-	            <table class='mc-header' width='1000px' cellpadding='0'>
-	                <tr>
-	                    <td align='left'><a href='[#prevtLink#]'>[#prevMonth#]</a></td>
-	                    <td align='center'><b>[#currentMonth#]</b></td>
-	                    <td align='right'><a href='[#nextLink#]'>[#nextMonth#]</a></td>
-	                </tr>
-	            </table>
-	    
-                <table class='mc-calendar mc-calendar-month'>
-				     
-				 <tr>
-				 	<th class='mc-wd-name'>|Сд|*</th>
-				 	<td class='mc-wd-name'>[#0#]</td>
-				 	<td class='mc-wd-name'>[#1#]</td>
-				 	<td class='mc-wd-name'>[#2#]</td>
-				 	<td class='mc-wd-name'>[#3#]</td>
-				 	<td class='mc-wd-name'>[#4#]</td>
-				 	<td class='mc-wd-name saturday'>[#5#]</td>
-				 	<td class='mc-wd-name sunday'>[#6#]</td>
-				 </tr>  
-			            
-                 <!--ET_BEGIN COMMENT_LI-->
-                 <tr> 
-                     <th class='mc-week-nb'>[#weekNum#]</th>
-                     <td onclick="createMonthLink('[#date1Js#]');" data-cal-date="[#date1Js#]" class="[#now1#] relative-holder">[#d1#]</td>
-                     <td onclick="createMonthLink('[#date2Js#]');" data-cal-date="[#date2Js#]" class="[#now2#] relative-holder">[#d2#]</td>
-                     <td onclick="createMonthLink('[#date3Js#]');" data-cal-date="[#date3Js#]" class="[#now3#] relative-holder">[#d3#]</td>
-                     <td onclick="createMonthLink('[#date4Js#]');" data-cal-date="[#date4Js#]" class="[#now4#] relative-holder">[#d4#]</td>
-					 <td onclick="createMonthLink('[#date5Js#]');" data-cal-date="[#date5Js#]" class="[#now5#] relative-holder">[#d5#]</td>                     
-					 <td onclick="createMonthLink('[#date6Js#]');" data-cal-date="[#date6Js#]" class="[#now6#] relative-holder">[#d6#]</td>
-                     <td onclick="createMonthLink('[#date7Js#]');" data-cal-date="[#date7Js#]" class="[#now7#] relative-holder">[#d7#]</td>
-                 </tr>
-                 <!--ET_END COMMENT_LI-->
-                               
-                 </table>
-			</div>
-         <!--ET_END event-->
-         
-         <div style='clear: both;'></div>
+<div class='header'>
+    <p class="calTitle">[#title#]</p>
+    <span style='width:150px;'>[#ListFilter#]</span>
+</div>
+<div class="clearfix" style="min-height:10px;"></div>
+<!--ET_BEGIN event-->	
+<div class='scrolling-holder'>
+    <table class='mc-header' style='width:1000px'>
+        <tr>
+            <td class='aleft'><a href='[#prevtLink#]'>[#prevMonth#]</a></td>
+            <td class='centered'><b>[#currentMonth#]</b></td>
+            <td class='aright'><a href='[#nextLink#]'>[#nextMonth#]</a></td>
+        </tr>
+    </table>
+    <table class='mc-calendar mc-calendar-month'>
+        <tr>
+            <th class='mc-wd-name'>|Сд|*</th>
+            <td class='mc-wd-name'>[#0#]</td>
+            <td class='mc-wd-name'>[#1#]</td>
+            <td class='mc-wd-name'>[#2#]</td>
+            <td class='mc-wd-name'>[#3#]</td>
+            <td class='mc-wd-name'>[#4#]</td>
+            <td class='mc-wd-name saturday'>[#5#]</td>
+            <td class='mc-wd-name sunday'>[#6#]</td>
+        </tr>
+        <!--ET_BEGIN COMMENT_LI-->
+        <tr>
+            <th class='mc-week-nb'>[#weekNum#]</th>
+            <td onclick="createMonthLink('[#date1Js#]');" data-cal-date="[#date1Js#]" class="[#now1#] relative-holder">[#d1#]</td>
+            <td onclick="createMonthLink('[#date2Js#]');" data-cal-date="[#date2Js#]" class="[#now2#] relative-holder">[#d2#]</td>
+            <td onclick="createMonthLink('[#date3Js#]');" data-cal-date="[#date3Js#]" class="[#now3#] relative-holder">[#d3#]</td>
+            <td onclick="createMonthLink('[#date4Js#]');" data-cal-date="[#date4Js#]" class="[#now4#] relative-holder">[#d4#]</td>
+            <td onclick="createMonthLink('[#date5Js#]');" data-cal-date="[#date5Js#]" class="[#now5#] relative-holder">[#d5#]</td>
+            <td onclick="createMonthLink('[#date6Js#]');" data-cal-date="[#date6Js#]" class="[#now6#] relative-holder">[#d6#]</td>
+            <td onclick="createMonthLink('[#date7Js#]');" data-cal-date="[#date7Js#]" class="[#now7#] relative-holder">[#d7#]</td>
+        </tr>
+        <!--ET_END COMMENT_LI-->
+    </table>
+</div>
+<!--ET_END event-->
+<div style='clear: both;'></div>
