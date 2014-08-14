@@ -1,119 +1,103 @@
 [#SingleToolbar#]
 <!-- BEGIN container -->
 <div class='document'>
-
-	<!-- BEGIN Заглавие --> 
-	 <div class='header [#STATE_CLASS#]'>
-	 	<span style='[#iconStyle#]'>|Циркулярно писмо|* - [#ident#]</span>
-	 </div>
-	<!-- END Заглавие -->       
-             
-		<!-- BEGIN Писмо -->
-				<div class='antetka' ><small>
-					<div class='fleft'><b>[#subject#]</b></div>
-				    	<table class='fright'>
-					    	<!--ET_BEGIN attn-->          
-								<tr>
-								    <td align='right'>|Лице|*:</td>
-								    <td>[#attn#]</td>
-								</tr>
-							<!--ET_END attn-->
-							
-							<!--ET_BEGIN position-->          
-								<tr>
-								    <td align='right'>|Длъжност|*:</td>
-								    <td>[#position#]</td>
-								</tr>
-							<!--ET_END position-->
-							
-					    	<!--ET_BEGIN recipient-->          
-								<tr>
-								    <td align='right'>|Фирма|*:</td>
-								    <td>[#recipient#]</td>
-								</tr>
-							<!--ET_END recipient-->
-							
-							<!--ET_BEGIN place-->          
-								<tr>
-								    <td align='right'>|Град/с|*:</td>
-								    <td>[#place#]</td>
-								</tr>
-							<!--ET_END place-->
-							
-							<!--ET_BEGIN pcode-->          
-								<tr>
-								    <td align='right'>|П. код|*:</td>
-								    <td>[#pcode#]</td>
-								</tr>
-							<!--ET_END pcode-->
-							
-							<!--ET_BEGIN address-->          
-								<tr>
-								    <td align='right'>|Адрес|*:</td>
-								    <td>[#address#]</td>
-								</tr>
-							<!--ET_END address-->
-							
-							<!--ET_BEGIN country-->          
-								<tr>
-								    <td align='right'>|Държава|*:</td>
-								    <td>[#country#]</td>
-								</tr>
-							<!--ET_END country-->
-				    	</table>
-					<div style='clear: both;'></div>  
-					</small></div>  
-					
-
-		<!-- END Писмо -->
-		
-		<div style='clear: both;'></div>  
-		
-	 	<!--ET_BEGIN text--> 
-		<div style='padding:10px;'>
-			<div>[#body#]</div>
-		</div>
-		<!--ET_END text--> 
-		
-	
-		<div style='clear: both;'></div>
-		
-		<!-- BEGIN Блок долу --> 
-		<div class='scrolling-holder'>
-			<div class='display-table'> 
-				<div class='additional-info'>
-					<!--ET_BEGIN ListLink--><div><b style="margin-bottom:10px; display:block">|Лист|*: [#ListLink#]</b></div><!--ET_END ListLink-->
-					
-					<!--ET_BEGIN GroupLink--><div><b style="margin-bottom:10px; display:block">|Група|*: [#GroupLink#] - [#group#]</b></div><!--ET_END GroupLink-->
-					
-					<!--ET_BEGIN template-->          
-						<div>|Шаблон|*: [#template#]</div>
-					<!--ET_END template-->
-					
-					<!--ET_BEGIN numLetters-->          
-						<div>|Печат едновременно|*: [#numLetters#]</div>
-					<!--ET_END numLetters-->
-												
-					<div class='blast-table'>
-						<div style='background-color:#ddd;border-top:solid 1px #000; border-left:solid 1px #000; color:#333;
-							border-right:solid 1px #000; padding:5px; font-size:1em;font-weight:bold;margin-top:10px;'>|Писма за печатане|*:
-						</div>
-						<!--ET_BEGIN blast_LetterDetails-->
-							[#blast_LetterDetails#]
-						<!--ET_END blast_LetterDetails-->
-					</div>
-					
-					<!--ET_BEGIN DETAILS-->
-						<div class='details'>
-							[#DETAILS#]
-						</div>
-					<!--ET_END DETAILS-->
-				
-				<!-- END Блок долу -->
-				
-					<div style='clear: both;'></div>
-				</div>
-			</div>
-		</div>
-        <!-- END container -->
- </div>
+    <!-- BEGIN Заглавие --> 
+    <div class='header [#STATE_CLASS#]'>
+        <span style='[#iconStyle#]'>|Циркулярно писмо|* - [#ident#]</span>
+    </div>
+    <!-- END Заглавие -->       
+    <!-- BEGIN Писмо -->
+    <div class='antetka' >
+        <small>
+            <div class='fleft'><b>[#subject#]</b></div>
+            <table class='fright'>
+                <!--ET_BEGIN attn-->          
+                <tr>
+                    <td class='aright'>|Лице|*:</td>
+                    <td>[#attn#]</td>
+                </tr>
+                <!--ET_END attn-->
+                <!--ET_BEGIN position-->          
+                <tr>
+                    <td class='aright'>|Длъжност|*:</td>
+                    <td>[#position#]</td>
+                </tr>
+                <!--ET_END position-->
+                <!--ET_BEGIN recipient-->          
+                <tr>
+                    <td class='aright'>|Фирма|*:</td>
+                    <td>[#recipient#]</td>
+                </tr>
+                <!--ET_END recipient-->
+                <!--ET_BEGIN place-->          
+                <tr>
+                    <td class='aright'>|Град/с|*:</td>
+                    <td>[#place#]</td>
+                </tr>
+                <!--ET_END place-->
+                <!--ET_BEGIN pcode-->          
+                <tr>
+                    <td class='aright'>|П. код|*:</td>
+                    <td>[#pcode#]</td>
+                </tr>
+                <!--ET_END pcode-->
+                <!--ET_BEGIN address-->          
+                <tr>
+                    <td class='aright'>|Адрес|*:</td>
+                    <td>[#address#]</td>
+                </tr>
+                <!--ET_END address-->
+                <!--ET_BEGIN country-->          
+                <tr>
+                    <td class='aright'>|Държава|*:</td>
+                    <td>[#country#]</td>
+                </tr>
+                <!--ET_END country-->
+            </table>
+            <div style='clear: both;'></div>
+        </small>
+    </div>
+    <!-- END Писмо -->
+    <div style='clear: both;'></div>
+    <!--ET_BEGIN text--> 
+    <div style='padding:10px;'>
+        <div>[#body#]</div>
+    </div>
+    <!--ET_END text--> 
+    <div style='clear: both;'></div>
+    <!-- BEGIN Блок долу --> 
+    <div class='scrolling-holder'>
+        <div class='display-table'>
+            <div class='additional-info'>
+                <!--ET_BEGIN ListLink-->
+                <div><b style="margin-bottom:10px; display:block">|Лист|*: [#ListLink#]</b></div>
+                <!--ET_END ListLink-->
+                <!--ET_BEGIN GroupLink-->
+                <div><b style="margin-bottom:10px; display:block">|Група|*: [#GroupLink#] - [#group#]</b></div>
+                <!--ET_END GroupLink-->
+                <!--ET_BEGIN template-->          
+                <div>|Шаблон|*: [#template#]</div>
+                <!--ET_END template-->
+                <!--ET_BEGIN numLetters-->          
+                <div>|Печат едновременно|*: [#numLetters#]</div>
+                <!--ET_END numLetters-->
+                <div class='blast-table'>
+                    <div style='background-color:#ddd;border-top:solid 1px #000; border-left:solid 1px #000; color:#333;
+                        border-right:solid 1px #000; padding:5px; font-size:1em;font-weight:bold;margin-top:10px;'>|Писма за печатане|*:
+                    </div>
+                    <!--ET_BEGIN blast_LetterDetails-->
+                    [#blast_LetterDetails#]
+                    <!--ET_END blast_LetterDetails-->
+                </div>
+                <!--ET_BEGIN DETAILS-->
+                <div class='details'>
+                    [#DETAILS#]
+                </div>
+                <!--ET_END DETAILS-->
+                <!-- END Блок долу -->
+                <div style='clear: both;'></div>
+            </div>
+        </div>
+    </div>
+    <!-- END container -->
+</div>
