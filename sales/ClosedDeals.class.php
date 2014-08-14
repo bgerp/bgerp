@@ -202,6 +202,8 @@ class sales_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
+    	if($res == 'no_one') return;
+    	
     	if(($action == 'add' || $action == 'conto') && isset($rec)){
     		
     		// Ако има ориджин
