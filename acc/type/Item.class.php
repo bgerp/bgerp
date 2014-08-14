@@ -18,12 +18,6 @@ class acc_type_Item extends type_Key
     
     
     /**
-     * @todo Чака за документация...
-     */
-    const MAX_SUGGESTIONS = 50;
-    
-    
-    /**
      * Инициализиране на обекта
      */
     function init($params = array())
@@ -31,7 +25,6 @@ class acc_type_Item extends type_Key
         $params['params']['mvc'] = 'acc_Items';
         
         setIfNot($params['params']['select'], 'title');
-        setIfNot($params['params']['maxSuggestions'], self::MAX_SUGGESTIONS);
         
         parent::init($params);
     }

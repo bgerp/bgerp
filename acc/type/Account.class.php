@@ -20,12 +20,6 @@ class acc_type_Account extends type_Key
     
     
     /**
-     * Максимум предложения
-     */
-    const MAX_SUGGESTIONS = 1000;
-    
-    
-    /**
      * Инициализиране на обекта
      */
     function init($params = array())
@@ -35,7 +29,6 @@ class acc_type_Account extends type_Key
         setIfNot($params['params']['select'], 'title');
         setIfNot($params['params']['root'], '');
         setIfNot($params['params']['regInterfaces'], '');
-        setIfNot($params['params']['maxSuggestions'], self::MAX_SUGGESTIONS);
         
         parent::init($params);
     }
