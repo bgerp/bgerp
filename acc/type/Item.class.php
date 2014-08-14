@@ -99,9 +99,10 @@ class acc_type_Item extends type_Key
             	// Слагаме вербалното име на перата, и за всеки случай премахваме html таговете ако има
                 $this->options["{$itemRec->id}.{$listRec->id}"] = strip_tags($title);
             }
+            
+            $where .= ($query->where) ? $query->getWhereAndHaving()->w : ' ';
         }
         
-        $where = ($query->where) ? $query->getWhereAndHaving()->w : ' ';
         $this->handler = md5($this->getSelectFld() . $where . $this->params['mvc']);
     }
     
