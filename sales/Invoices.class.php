@@ -154,7 +154,7 @@ class sales_Invoices extends core_Master
     	'responsible'         => 'lastDocUser|lastDoc',
     	'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
     	'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
-    	'uicNo'     		  => 'lastDocUser|lastDoc',
+    	'uicNo'     		  => 'lastDocUser|lastDoc|clientData',
 		'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
     	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
@@ -183,7 +183,7 @@ class sales_Invoices extends core_Master
         $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo');
-        $this->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №');
+        $this->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №,contragentDataField=uicId');
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode,contragentDataField=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData,contragentDataField=place');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
