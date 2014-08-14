@@ -115,7 +115,11 @@ abstract class deals_Helper
 	 */
 	public static function fillRecs(&$mvc, &$recs, &$masterRec, $map = array())
 	{
-		if(count($recs) === 0) return;
+		if(count($recs) === 0) {
+			unset($mvc->_total);
+			return;
+		}
+		
 		expect(is_object($masterRec));
 		
 		// Комбиниране на дефолт стойнсотите с тези подадени от потребителя
