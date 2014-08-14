@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<TremolFpServer Command="Receipt" Description="*** Описание в дневникa ***">
+[#ITEMS#]
+   <!--ET_BEGIN ITEM-->
+       [#ITEM#]<Item Description=\'[#name#]\' Price="[#price#]" Quantity="[#quantity#]" VatInfo="[#vatGroup#]" UnitName="[#measure#]" <!--ET_BEGIN discount-->Discount="[#discount#]"<!--ET_END discount--> />
+   <!--ET_END ITEM-->
+   [#PAYMENTS#]
+   <!--ET_BEGIN PAY-->
+       [#PAY#]<Payment Type="[#type#]" Amount="[#amount#]" />
+   <!--ET_END PAY-->
+</TremolFpServer>
