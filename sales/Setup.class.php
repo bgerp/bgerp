@@ -44,6 +44,12 @@ defIfNot('SALE_CLOSE_OLDER_NUM', 15);
 
 
 /**
+ * Кой да е по подразбиране драйвера за фискален принтер
+ */
+defIfNot('SALE_FISC_PRINTER_DRIVER', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -91,6 +97,7 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_MAX_PAST_PRICE'      => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Допустим ценови период за продажбата->В миналото'),
 			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
 			'SALE_CLOSE_OLDER_NUM'     => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
+			'SALE_FISC_PRINTER_DRIVER' => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
 			'SALE_INV_MIN_NUMBER'      => array('int', 'caption=Номер на фактура->Долна граница'),
 			'SALE_INV_MAX_NUMBER'      => array('int', 'caption=Номер на фактура->Горна граница'),
 	);
