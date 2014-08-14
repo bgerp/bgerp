@@ -16,6 +16,12 @@ defIfNot('BASE_CURRENCY_CODE', 'BGN');
 
 
 /**
+ * Толеранс за допустимо разминаване на суми
+ */
+defIfNot('ACC_MONEY_TOLERANCE', '0.01');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -83,6 +89,14 @@ class acc_Setup extends core_ProtoSetup
         );
     
 
+    /**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+		'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми->Сума'),
+	);
+    
+    
     /**
      * Роли за достъп до модула
      */

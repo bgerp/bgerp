@@ -1187,13 +1187,12 @@ class sales_Sales extends core_Master
     function cron_CloseOldSales()
     {
     	$conf = core_Packs::getConfig('sales');
-    	$tolerance = $conf->SALE_TOLERANCE;
     	$olderThan = $conf->SALE_CLOSE_OLDER_THAN;
     	$limit = $conf->SALE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('sales_ClosedDeals');
     	
     	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->closeOldDeals($olderThan, $tolerance, $ClosedDeals, $limit);
+    	$CronHelper->closeOldDeals($olderThan, $ClosedDeals, $limit);
     }
     
     
@@ -1321,10 +1320,9 @@ class sales_Sales extends core_Master
     {
     	$conf = core_Packs::getConfig('sales');
     	$overdueDelay = $conf->SALE_OVERDUE_CHECK_DELAY;
-    	$paidTolerance = $conf->SALE_TOLERANCE;
     	
     	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->checkPayments($overdueDelay, $paidTolerance);
+    	$CronHelper->checkPayments($overdueDelay);
     }
     
     
@@ -1399,8 +1397,7 @@ class sales_Sales extends core_Master
     	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
     	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
     
-    	$conf = core_Packs::getConfig('sales');
-    	$rec->paymentState  = $mvc->getPaymentState($aggregateDealInfo, $conf->SALE_TOLERANCE, $rec->paymentState);
+    	$rec->paymentState  = $mvc->getPaymentState($aggregateDealInfo, $rec->paymentState);
     	
     	$mvc->save($rec);
     	

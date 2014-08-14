@@ -39,13 +39,6 @@ class acc_ReportDetails extends core_Manager
 	public $canWrite = 'no_one';
 	
 	
-	
-	/**
-	 * С колко да не показва числа близки до нулата
-	 */
-	public $zeroTolerance = 0.01;
-	
-	
 	/**
      * Подготовка на данните за справка
      */
@@ -194,9 +187,12 @@ class acc_ReportDetails extends core_Manager
 	    	$row['amountRec'] = $dRec->blAmount;
 	    	$row['id'] = $dRec->id;
 	    	
+	    	$conf = core_Packs::getConfig('acc');
+	    	$tolerance = $conf->ACC_MONEY_TOLERANCE;
+	    	
 	    	// Ако количеството и сумата са близки до нулата в орпеделена граница ги пропускаме
-	    	if(($dRec->blQuantity > (-1 * $this->zeroTolerance) &&  $dRec->blQuantity < $this->zeroTolerance) &&
-	    	(($dRec->blAmount > (-1 * $this->zeroTolerance) &&  $dRec->blAmount < $this->zeroTolerance))) {
+	    	if(($dRec->blQuantity > (-1 * $tolerance) &&  $dRec->blQuantity < $tolerance) &&
+	    	(($dRec->blAmount > (-1 * $tolerance) &&  $dRec->blAmount < $tolerance))) {
 	    		continue;
 	    	}
 	    	

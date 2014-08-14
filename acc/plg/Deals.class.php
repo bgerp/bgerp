@@ -351,7 +351,7 @@ class acc_plg_Deals extends core_Plugin
     /**
      * Какво е платежното състояние на сделката
      */
-    public static function on_AfterGetPaymentState($mvc, &$res, $aggregateDealInfo, $tolerance, $state)
+    public static function on_AfterGetPaymentState($mvc, &$res, $aggregateDealInfo, $state)
     {
     	$amountPaid      = $aggregateDealInfo->get('amountPaid');
     	$amountDelivered = $aggregateDealInfo->get('deliveryAmount');
@@ -360,8 +360,10 @@ class acc_plg_Deals extends core_Plugin
     	if($amountPaid && $amountDelivered){
     		$diff = round($amountDelivered - $amountPaid, 4);
     
+    		$conf = core_Packs::getConfig('acc');
+    		
     		// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
-    		if(($diff >= -1 * $tolerance && $diff <= $tolerance) || $diff < -1 * $tolerance){
+    		if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
     			
     			// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
     			$res = ($state != 'overdue') ? 'paid' : 'repaid';

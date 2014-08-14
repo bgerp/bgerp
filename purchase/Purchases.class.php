@@ -909,8 +909,7 @@ class purchase_Purchases extends core_Master
     	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
     	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
     	
-    	$conf = core_Packs::getConfig('purchase');
-    	$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo, $conf->PURCHASE_TOLERANCE, $rec->paymentState);
+    	$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo, $rec->paymentState);
     	
     	$mvc->save($rec);
     	
@@ -1118,10 +1117,9 @@ class purchase_Purchases extends core_Master
     {
     	$conf = core_Packs::getConfig('purchase');
     	$overdueDelay = $conf->PURCHASE_OVERDUE_CHECK_DELAY;
-    	$paidTolerance = $conf->PURCHASE_TOLERANCE;
     	
     	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->checkPayments($overdueDelay, $paidTolerance);
+    	$CronHelper->checkPayments($overdueDelay);
     }
     
     
@@ -1131,13 +1129,12 @@ class purchase_Purchases extends core_Master
     function cron_CloseOldPurchases()
     {
     	$conf = core_Packs::getConfig('purchase');
-    	$tolerance = $conf->PURCHASE_TOLERANCE;
     	$olderThan = $conf->PURCHASE_CLOSE_OLDER_THAN;
     	$limit 	   = $conf->PURCHASE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('purchase_ClosedDeals');
     	
     	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->closeOldDeals($olderThan, $tolerance, $ClosedDeals, $limit);
+    	$CronHelper->closeOldDeals($olderThan, $ClosedDeals, $limit);
     }
     
     

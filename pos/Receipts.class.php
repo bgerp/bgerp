@@ -797,6 +797,7 @@ class pos_Receipts extends core_Master {
     	$this->requireRightFor('printReceipt', $rec);
     	
     	$Driver = cls::get(pos_Points::fetchField($rec->pointId, 'driver'));
+    	$driverData = $this->getFiscPrinterData($rec);
     	
     	return $Driver->createFile($id);
     }
@@ -1163,5 +1164,40 @@ class pos_Receipts extends core_Master {
     	}
     	
     	return $table->get($data->rows, $fields)->getContent();
+    }
+    
+    
+    private function getFiscPrinterData($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	$payments = $products = array();
+    	$query = pos_ReceiptDetails::getQuery();
+    	$query->where("#receiptId = '{$rec->id}'");
+    	
+    	// Разделяме детайлите на плащания и продажби
+    	while($rec = $query->fetch()){
+    		if(strpos($rec->action, 'sale') !== false){
+    			$nRec['id'] = $rec->productId;
+    			$nRec['managerId'] = cat_Products::getClassId();
+    			$nRec['quantity'] = $rec->quantity;
+    			if($rec->discountPercent){
+    				$nRec['discount'] = (round($rec->discountPercent, 2) * 100) . "%";
+    			}
+    			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
+    			
+    			$nRec['measure'] = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    			$nRec['vat'] = $rec->param;
+    			$nRec['price'] = $rec->price;
+    			
+    			$products[] = (object)$nRec;
+    		} elseif(strpos($rec->action, 'payment') !== false) {
+    			
+    			bp($rec);
+    			$payments[] = $rec;
+    		}
+    	}
+    	
+    	return (object)array('products' => $products, 'payments' => $payments);
     }
 }

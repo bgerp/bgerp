@@ -1,10 +1,5 @@
 <?php
 
-/**
- * Толеранс за допустимо разминаване при покупката
- */
-defIfNot('PURCHASE_TOLERANCE', '0.01');
-
 
 /**
  * Покупки до колко дни назад без да са модифицирани да се затварят автоматично
@@ -96,7 +91,6 @@ class purchase_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'PURCHASE_TOLERANCE'     => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване при покупка->Сума'),
 			'PURCHASE_OVERDUE_CHECK_DELAY' => array("time", "caption=Толеранс за просрочване на покупката->Време"),
 			'PURCHASE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на покупката->Дни'),
 			'PURCHASE_CLOSE_OLDER_NUM'     => array("int", 'caption=По колко покупки да се приключват автоматично на опит->Брой'),

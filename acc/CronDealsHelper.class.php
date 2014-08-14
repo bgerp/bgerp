@@ -34,7 +34,7 @@ class acc_CronDealsHelper
     /**
      * Проверява дали сделките са с просрочено плащане
      */
-    public function checkPayments($overdueDelay, $paidTolerance)
+    public function checkPayments($overdueDelay)
     {
     	$Class = cls::get($this->className);
     	
@@ -90,7 +90,7 @@ class acc_CronDealsHelper
     		} else {
     			
     			// Ако не е просрочена проверяваме дали е платена
-    			$rec->paymentState = $Class->getPaymentState($dealInfo, $paidTolerance, $rec->paymentState);
+    			$rec->paymentState = $Class->getPaymentState($dealInfo, $rec->paymentState);
     		}
     		
     		try{
@@ -107,13 +107,15 @@ class acc_CronDealsHelper
     /**
      * Приключва остарялите сделки
      */
-    public function closeOldDeals($olderThan, $tolerance, $closeDocName, $limit)
+    public function closeOldDeals($olderThan, $closeDocName, $limit)
     {
     	$className = $this->className;
     	
     	expect(cls::haveInterface('bgerp_DealAggregatorIntf', $this->className));
     	$query = $className::getQuery();
     	$ClosedDeals = cls::get($closeDocName);
+    	$conf = core_Packs::getConfig('acc');
+    	$tolerance = $conf->ACC_MONEY_TOLERANCE;
     	
     	// Текущата дата
     	$now = dt::mysql2timestamp(dt::now());
