@@ -121,12 +121,14 @@ class type_Double extends core_Type {
         	$decimals = min(strlen(substr(strrchr($value, '.'), 1)), $decimals);
         }
 
+        // Закръгляме числото преди да го обърнем в нормален вид
+        $value = round($value, $decimals + 1);
         $value = number_format($value, $decimals, $decPoint, $thousandsSep);
         
         if(!Mode::is('text', 'plain')) {
             $value = str_replace(' ', '&nbsp;', $value);
         }
-
+		
         return $value;
     }
     
