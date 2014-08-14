@@ -46,7 +46,7 @@ class plg_StyleNumbers extends core_Plugin
             if (is_a($field->type, 'type_Double')) {
                 foreach ($recs as $i => $rec) {
                 	
-                    if(core_Math::roundNumber($rec->{$name}) < 0) {
+                    if(round($rec->{$name}, 4) < 0) {
                         $rows[$i]->{$name} = "<font color='red'>" . $rows[$i]->{$name} . "</font>";
                     }
                 }
