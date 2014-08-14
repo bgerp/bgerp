@@ -1,17 +1,17 @@
 <div id='rss-feeds'>
-<h2 class='rss-feeds-header'>[#HEADER#]</h2>
-<ul style='list-style:none'>
-	<!--ET_BEGIN ROW-->
-	<li style = 'margin-top:5px'>
-		<table border='0'>
-			<tr>
-				<td>
-					<b>[#title#]</b>
-					<div style='color:darkgreen;font-style:italic;'>[#description#]</div>
-				</td>
-			</tr>
-		</table>
-	</li>
-	<!--ET_END ROW-->
-</ul>
+    <h2 class='rss-feeds-header'>[#HEADER#]</h2>
+    <ul style='list-style:none'>
+        <!--ET_BEGIN ROW-->
+        <li style = 'margin-top:5px'>
+            <table border='0'>
+                <tr>
+                    <td>
+                        <b>[#title#]</b>
+                        <div style='color:darkgreen;font-style:italic;'>[#description#]</div>
+                    </td>
+                </tr>
+            </table>
+        </li>
+        <!--ET_END ROW-->
+    </ul>
 </div>

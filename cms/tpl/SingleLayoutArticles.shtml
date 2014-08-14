@@ -1,26 +1,23 @@
 <div class="singleView email-class">
-	
-	[#SingleToolbar#]
-	<h2 class="[#DialStatusClass#]">[#title#]</h2>
-	<h3> |Статия|* <b style="color:green;">№ [#level#]</b> - |вер|*. <b>[#LastVersion#]</b>
-			<!--ET_BEGIN VERSION_REMOVE-->[#VERSION_REMOVE#]
-				<!--ET_BEGIN LastSelectedVersion-->
-					<b style='color: red;'>[#LastSelectedVersion#]</b> / 
-				<!--ET_END LastSelectedVersion-->
-				<!--ET_BEGIN FirstSelectedVersion-->
-					<b style='color: red;'>[#FirstSelectedVersion#]</b>
-				<!--ET_BEGIN FirstSelectedVersion-->
-			<!--ET_END VERSION_REMOVE-->
-	</h3>
-	
-	<div class="cms-body">
-		[#body#]
-	</div>
-	
-	<!--ET_END CHANGE_LOG-->
-		<div class="change-log">
-			[#CHANGE_LOG#]
-		</div>
-	<!--ET_END CHANGE_LOG-->
-	
+    [#SingleToolbar#]
+    <h2 class="[#DialStatusClass#]">[#title#]</h2>
+    <h3>
+        |Статия|* <b style="color:green;">№ [#level#]</b> - |вер|*. <b>[#LastVersion#]</b>
+        <!--ET_BEGIN VERSION_REMOVE-->[#VERSION_REMOVE#]
+        <!--ET_BEGIN LastSelectedVersion-->
+        <b style='color: red;'>[#LastSelectedVersion#]</b> / 
+        <!--ET_END LastSelectedVersion-->
+        <!--ET_BEGIN FirstSelectedVersion-->
+        <b style='color: red;'>[#FirstSelectedVersion#]</b>
+        <!--ET_BEGIN FirstSelectedVersion-->
+        <!--ET_END VERSION_REMOVE-->
+    </h3>
+    <div class="cms-body">
+        [#body#]
+    </div>
+    <!--ET_END CHANGE_LOG-->
+    <div class="change-log">
+        [#CHANGE_LOG#]
+    </div>
+    <!--ET_END CHANGE_LOG-->
 </div>
