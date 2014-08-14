@@ -1,12 +1,8 @@
 [#SingleToolbar#]
-<!-- BEGIN container -->
 <div class='document'>
-    <!-- BEGIN Заглавие --> 
     <div class='header [#STATE_CLASS#]'>
         <span style='[#iconStyle#]'>|Циркулярно писмо|* - [#ident#]</span>
     </div>
-    <!-- END Заглавие -->       
-    <!-- BEGIN Писмо -->
     <div class='antetka' >
         <small>
             <div class='fleft'><b>[#subject#]</b></div>
@@ -57,7 +53,6 @@
             <div style='clear: both;'></div>
         </small>
     </div>
-    <!-- END Писмо -->
     <div style='clear: both;'></div>
     <!--ET_BEGIN text--> 
     <div style='padding:10px;'>
@@ -65,7 +60,6 @@
     </div>
     <!--ET_END text--> 
     <div style='clear: both;'></div>
-    <!-- BEGIN Блок долу --> 
     <div class='scrolling-holder'>
         <div class='display-table'>
             <div class='additional-info'>
@@ -94,10 +88,8 @@
                     [#DETAILS#]
                 </div>
                 <!--ET_END DETAILS-->
-                <!-- END Блок долу -->
                 <div style='clear: both;'></div>
             </div>
         </div>
     </div>
-    <!-- END container -->
 </div>

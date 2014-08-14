@@ -1,5 +1,4 @@
 [#SingleToolbar#]
-<!-- BEGIN container -->
 <div class='document cash-order'>
     <!--ET_BEGIN blank-->
     [#blank#]
@@ -122,4 +121,3 @@
     </div>
     <!--ET_END DETAILS-->
 </div>
-<!-- END container -->

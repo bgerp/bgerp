@@ -1,9 +1,6 @@
 [#SingleToolbar#]
-<!-- BEGIN container -->
 <div class='document'>
-    <!-- BEGIN Заглавие -->
     <div class='header [#STATE_CLASS#]'><span>[#ident#] - |[#singleTitle#]|*, |[#state#]|*</span></div>
-    <!-- END Заглавие -->
     <div class='scrolling-holder'>
         <div class='display-table'>
             <div class='antetka'>
@@ -97,9 +94,7 @@
     <div style='padding: 10px 0 5px 10px;'>[#body#]</div>
     <!--ET_END body-->
     <div style='clear: both;'></div>
-    <!-- BEGIN footer -->
     <div class='clear_l f_left block_subtitle mt_50px'></div>
-    <!-- END footer -->
     <div class='scrolling-holder'>
         <div class='display-table'>
             <div class="additional-info">
@@ -128,7 +123,6 @@
                 <div>Знаци: [#encoding#]</div>
                 <!--ET_END encoding-->
                 <div style='clear: both;'></div>
-                <!-- BEGIN Блок долу -->
                 <div  style='margin-top: 10px; margin-bottom: 10px;'>
                     <div class='blast-table'>
                         <div
@@ -140,10 +134,8 @@
                     <div class='details'>[#DETAILS#]</div>
                     <!--ET_END DETAILS-->
                 </div>
-                <!-- END Блок долу -->
             </div>
         </div>
     </div>
     <div style='clear: both;'></div>
 </div>
-<!-- END container -->

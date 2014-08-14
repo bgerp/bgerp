@@ -1,6 +1,3 @@
-
-
-<!-- BEGIN container -->
 <div class='document'>
     <!--ET_BEGIN blank-->
     [#blank#]
@@ -66,9 +63,6 @@
     </div>
     <!--ET_END body--> 
     <div style='clear: both;'></div>
-    <!-- BEGIN footer -->        
-    <div class='clear_l f_left block_subtitle mt_50px'></div>
-    <!-- END footer -->
+	<div class='clear_l f_left block_subtitle mt_50px'></div>
     <div style='clear: both;'></div>
 </div>
-<!-- END container -->

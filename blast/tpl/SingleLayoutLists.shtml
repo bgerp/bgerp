@@ -1,5 +1,4 @@
 #SingleToolbar#]
-<!-- BEGIN container -->
 <div class='document'>
     <div class='header [#STATE_CLASS#]'>
         <span style='[#iconStyle#]'>|Списък за масово разпращане|* - [#ident#]</span>
@@ -51,10 +50,8 @@
             <div style='clear: both;'></div>
         </div>
         <div style='clear: both;'></div>
-        <!-- BEGIN footer -->        
         <div class='clear_l f_left block_subtitle mt_50px'>
         </div>
-        <!-- END footer -->
         <div style='clear: both;'></div>
         <div class='overflow-scroll'>
             <!-- ET_BEGIN DETAILS --> 
@@ -69,5 +66,4 @@
         </div>
     </div>
 </div>
-<!-- END container -->
 <div style='clear: both;'></div>

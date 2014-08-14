@@ -3,7 +3,6 @@
     <div class='header'>
         <span style='[#iconStyle#]'>[#title#]</span>
     </div>
-    <!-- BEGIN Блок ляво -->
     <table class='top-table'>
         <tr>
             <td class="quiet aright" style='width:1%'>|Дата|*:</td>
@@ -30,6 +29,5 @@
         </tr>
         <!--ET_END nameday-->
     </table>
-    <!-- END Блок ляво -->   
     <div style='clear: both;'></div>
 </div>
