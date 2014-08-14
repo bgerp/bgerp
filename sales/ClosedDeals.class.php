@@ -214,8 +214,6 @@ class sales_ClosedDeals extends acc_ClosedDeals
     				// потребителя да има по-големи права за да създаде документа
     				if(!self::isSaleDiffAllowed($originRec)){
     					$res = 'ceo,salesMaster';
-    				} else {
-    					$res = 'ceo,sales';
     				}
     			}
     		}

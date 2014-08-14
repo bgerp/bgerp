@@ -194,8 +194,6 @@ class purchase_ClosedDeals extends acc_ClosedDeals
 	    			// потребителя да има по-големи права за да създаде документа
 	    			if(!self::isPurchaseDiffAllowed($originRec)){
 	    				$res = 'ceo,purchaseMaster';
-	    			} else {
-	    				$res = 'ceo,purchase';
 	    			}
 	    		}
     		}
