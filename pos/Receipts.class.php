@@ -799,7 +799,7 @@ class pos_Receipts extends core_Master {
     	$Driver = cls::get(pos_Points::fetchField($rec->pointId, 'driver'));
     	$driverData = $this->getFiscPrinterData($rec);
     	
-    	return $Driver->createFile($id);
+    	return $Driver->createFile($driverData);
     }
     
     
@@ -1167,34 +1167,42 @@ class pos_Receipts extends core_Master {
     }
     
     
+    /**
+     * Подготвя данните за драйвера на фискалния принтер
+     */
     private function getFiscPrinterData($id)
     {
-    	$rec = $this->fetchRec($id);
+    	$receiptRec = $this->fetchRec($id);
     	
     	$payments = $products = array();
     	$query = pos_ReceiptDetails::getQuery();
-    	$query->where("#receiptId = '{$rec->id}'");
+    	$query->where("#receiptId = '{$receiptRec->id}'");
     	
     	// Разделяме детайлите на плащания и продажби
     	while($rec = $query->fetch()){
-    		if(strpos($rec->action, 'sale') !== false){
-    			$nRec['id'] = $rec->productId;
-    			$nRec['managerId'] = cat_Products::getClassId();
-    			$nRec['quantity'] = $rec->quantity;
+    		$nRec = new stdClass();
+    		
+    		// Всеки продукт
+    		if(strpos($rec->action, 'sale') !== FALSE){
+    			$nRec->id = $rec->productId;
+    			$nRec->managerId = cat_Products::getClassId();
+    			$nRec->quantity = $rec->quantity;
     			if($rec->discountPercent){
-    				$nRec['discount'] = (round($rec->discountPercent, 2) * 100) . "%";
+    				$nRec->discount = (round($rec->discountPercent, 2) * 100) . "%";
     			}
     			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
+    			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    			$nRec->vat = $rec->param;
+    			$nRec->price = $rec->price;
+    			$products[] = $nRec;
+    		} elseif(strpos($rec->action, 'payment') !== FALSE) {
     			
-    			$nRec['measure'] = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
-    			$nRec['vat'] = $rec->param;
-    			$nRec['price'] = $rec->price;
+    			// Всяко плащане
+    			list(, $type) = explode('|', $rec->action);
+    			$nRec->type = cond_Payments::fetchField($type, 'code');
+    			$nRec->amount = round($rec->amount, 2);
     			
-    			$products[] = (object)$nRec;
-    		} elseif(strpos($rec->action, 'payment') !== false) {
-    			
-    			bp($rec);
-    			$payments[] = $rec;
+    			$payments[] = $nRec;
     		}
     	}
     	
