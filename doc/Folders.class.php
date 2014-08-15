@@ -739,16 +739,7 @@ class doc_Folders extends core_Master
         $rec->inCharge = $userId;
         $rec->access = 'private';
 
-        // Ако има избрана кутия по подразбиране
-        if ($inboxId = crm_Personalization::getInboxId($userId)) {
-            try {
-                $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, $userId);
-            } catch (Exception $e) { }
-            
-        }
-        
-        if ($emailOptions && $emailOptions[$inboxId]) {
-            
+        if ($inboxId = email_Outgoings::getDefaultInboxId(NULL, $userId)) {
             $inboxRec = email_Inboxes::fetch($inboxId);
             
             $rec->email = $inboxRec->email;
