@@ -1,11 +1,11 @@
 <div class="public user-profile">
-			<!--ET_BEGIN personInfo-->
-				[#personInfo#]
-			<!--ET_END personInfo-->
-			<!--ET_BEGIN userStat-->
-				[#userStat#]
-			<!--ET_END userStat-->
-			<div style="clear:both;"></div>
-		</div>
-	</div>	
+    <!--ET_BEGIN personInfo-->
+    [#personInfo#]
+    <!--ET_END personInfo-->
+    <!--ET_BEGIN userStat-->
+    [#userStat#]
+    <!--ET_END userStat-->
+    <div style="clear:both;"></div>
+</div>
+</div>	
 </div>

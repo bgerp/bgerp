@@ -1,33 +1,27 @@
 <div style="display: inline-block;">
-	[#SingleToolbar#]
-	
-	<div class="user-profile">
-			<!--ET_BEGIN personInfo-->
-				[#personInfo#]
-			<!--ET_END personInfo-->
-			<!--ET_BEGIN userStat-->
-				[#userStat#]
-			<!--ET_END userStat-->
-			<div style="clear:both;"></div>
-			
-			<!--ET_BEGIN userInfo-->
-				[#userInfo#]
-			<!--ET_END userInfo-->
-			
-			<div style="clear:both;"></div>
-			
-			<!--ET_BEGIN DETAILS-->
-				[#DETAILS#]
-			<!--ET_END DETAILS-->
-			
-			<div style="clear:both;"></div>
-			
-			<!--ET_BEGIN loginLog-->
-				[#loginLog#]
-			<!--ET_END loginLog-->
-			
-			<div style="clear:both;"></div>
-		</div>
-	</div>
-	</div>	
+    [#SingleToolbar#]
+    <div class="user-profile">
+        <!--ET_BEGIN personInfo-->
+        [#personInfo#]
+        <!--ET_END personInfo-->
+        <!--ET_BEGIN userStat-->
+        [#userStat#]
+        <!--ET_END userStat-->
+        <div style="clear:both;"></div>
+        <!--ET_BEGIN userInfo-->
+        [#userInfo#]
+        <!--ET_END userInfo-->
+        <div style="clear:both;"></div>
+        <!--ET_BEGIN DETAILS-->
+        [#DETAILS#]
+        <!--ET_END DETAILS-->
+        <div style="clear:both;"></div>
+        <!--ET_BEGIN loginLog-->
+        [#loginLog#]
+        <!--ET_END loginLog-->
+        <div style="clear:both;"></div>
+    </div>
 </div>
+</div>	
+</div>
+
