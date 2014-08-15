@@ -599,6 +599,22 @@ class core_String
     
     
     /**
+     * Проверява дали подадения символ е пунктуационен
+     * 
+     * @param char $char
+     * 
+     * @return boolean
+     */
+    static function isPunctuation($char)
+    {
+        
+        $isPunctuation = in_array($char, array( '.',  ',',  '!',  '?',  ';',  ':'));
+        
+        return (boolean)$isPunctuation;
+    }
+    
+    
+    /**
      * Проверява даден символ дали е съгласна буква
      * 
      * @param char $char - Симвът, който ще проверяваме
