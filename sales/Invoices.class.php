@@ -706,7 +706,7 @@ class sales_Invoices extends core_Master
 	    		$row->bic = $Varchar->toVerbal($ownAcc->bic);
 	    	}
 	    	
-	    	$row->header = "{$row->type} #<b>{$mvc->abbr}{$rec->id}</b> ({$row->state})" ;
+	    	$row->header = "{$row->type} #<b>{$mvc->getHandle($rec->id)}</b> ({$row->state})" ;
 	    	$userRec = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     		
