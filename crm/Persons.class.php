@@ -1260,9 +1260,10 @@ class crm_Persons extends core_Master
             $contrData->pFax = $person->fax;
             $contrData->pAddress = $person->address;
             $contrData->pEmail = $person->email;
-
+			
+            $contrData->salutationRec = $person->salutation;
             $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');
-            
+			
             // Ако е свързан с фирма
             if ($person->buzCompanyId) {
                 
