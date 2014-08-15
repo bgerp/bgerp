@@ -461,4 +461,21 @@ class core_Lg extends core_Manager
 
         return $res;
     }
+    
+    
+    /**
+     * Връща позволените езици за работа в системата
+     * 
+     * @param core_Type $type
+     * 
+     * @return array
+     */
+    static function getLangOptions($type)
+    {
+        $langArr = static::getLangs();
+        
+        $langArr = array(''=>'') + $langArr;
+        
+        return $langArr;
+    }
 }
