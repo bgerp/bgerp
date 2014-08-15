@@ -1,4 +1,4 @@
-#SingleToolbar#]
+[#SingleToolbar#]
 <div class='document'>
     <div class='header [#STATE_CLASS#]'>
         <span style='[#iconStyle#]'>|Списък за масово разпращане|* - [#ident#]</span>
