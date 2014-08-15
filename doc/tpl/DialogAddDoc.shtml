@@ -1,7 +1,7 @@
 <div class='dialogDocTitle'>[#title#]</div>
 <!--ET_BEGIN pager-->
 <div class='dialogPager'>
-[#pager#]
+    [#pager#]
 </div>
 <!--ET_END pager-->
 <div class='dialogDocTable'>
