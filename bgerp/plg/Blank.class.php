@@ -73,66 +73,41 @@ class bgerp_plg_Blank extends core_Plugin
         // Езика на писмото
         $lg = core_Lg::getCurrent();
         
-        // Прихващаме грешката
-        try {
-        
-            // Ако езика не е английски
-            if ($lg != 'en') {
-                
-                // Вземаме логото на потребителя
-                $companyLogoFh = crm_Personalization::getLogo();    
-            } else {
-                
-                // Вземамем логото на потребителя на ЕН
-                $companyLogoFh = crm_Personalization::getLogo(FALSE, TRUE);
-            }
-        
-        } catch (Exception $e) {}
-        
-        // Ако няма лого на потребителя
-        if (!$companyLogoFh) {
-            
-            // Вземема конфигурационните константи
-            $conf = core_Packs::getConfig('bgerp');   
+        // Вземема конфигурационните константи
+        $conf = core_Packs::getConfig('bgerp');   
 
-            // Ако езика не е английски
-            if ($lg != 'en') {
+        // Ако езика не е английски
+        if ($lg != 'en') {
+            
+            // Логото на компанията (BG)
+            $companyLogo = $conf->BGERP_COMPANY_LOGO;
+        } else {
                 
-                // Ако не е дефинирана константата за българско лого
-                if (!$companyLogoFh = $conf->BGERP_COMPANY_LOGO) {
-                    
-                    // Логото на компанията по поразбиране (BG)
-                    $companyLogo = 'bgerp/img/companyLogo.png';
-                }    
-            } else {
-                // Ако не е дефинирана константата за английско лого
-                if (!$companyLogoFh = $conf->BGERP_COMPANY_LOGO_EN) {
-                    
-                    // Логото на компанията по поразбиране (EN)
-                    $companyLogo = 'bgerp/img/companyLogoEn.png';
-                }
-            }
+            // Логото на компанията (EN)
+            $companyLogo = $conf->BGERP_COMPANY_LOGO_EN;
         }
         
-        // Ако има открито лог на потребителя
-        if ($companyLogoFh) {
-            
-            // Ако сме дефинирали логото на компанията с fileHandler
-            // Масив със стойности, необходими за създаване на thumbnail
-            $attr = array('baseName' => 'companyLogo', 'isAbsolute' => TRUE, 'qt' => '"');
-            
-            // Размера на thumbnail изображението
-            $size = array('750', '87');
-            
-            // Създаваме тумбнаил с параметрите
-            $companyLogoPath = thumbnail_Thumbnail::getLink($companyLogoFh, $size, $attr);
-        } elseif ($companyLogo) {
-            
-            // Намираме абсолютния път до файла
-            $companyLogoPath = sbf($companyLogo, '"', TRUE);
-        } 
+        $filemanInst = cls::get('fileman_Files');
         
-        // За генериране на PDF логото трябва да е с абсолютен път
+        $sourceType = 'path';
+        
+        // Проверяваме дали е манипулатор на файл
+        if ((strlen($companyLogo) == FILEMAN_HANDLER_LEN) && ($filemanInst->fetchByFh($companyLogo))) {
+            $sourceType = 'fileman';
+        } else {
+            
+            // Ако не е манипулатор, очакваме да е път
+            $companyLogo = core_App::getFullPath($companyLogo);
+        }
+        
+        // Създаваме thumbnail с определени размери
+        $thumb = new img_Thumb($companyLogo, 750, 87, $sourceType, 'companyLog');
+        
+        if (Mode::is('text', 'xhtml')) {
+            $thumb->isAbsolute = TRUE;
+        }
+        
+        $companyLogoPath = $thumb->getUrl();
         
         return $companyLogoPath;
     }
