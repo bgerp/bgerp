@@ -700,6 +700,51 @@ class core_Packs extends core_Manager
     
     
     /**
+     * Връща стойността на конфига, в зависимост от езика
+     * 
+     * @param mixed $packConfig - Инстанция на пакета или името на пакета
+     * @param string $key - Името на полето
+     * 
+     * @return string
+     */
+    static function getConfigValue($packConfig, $key)
+    {
+        $value = NULL;
+        
+        if (!is_object($packConfig)) {
+            $packConfig = static::getConfig($packConfig);
+        }
+        
+        // Ако текущия език не отговаря на езика по подразбиране
+        $currLg = core_Lg::getCurrent();
+        $defaultLg = core_Lg::getDefaultLang();
+        if ($defaultLg != $currLg) {
+            try {
+                
+                // Опитаваме се да вземем данните за текущия език
+                $currLgHeader = $key . '_' . strtoupper($currLg);
+                $value = $packConfig->$currLgHeader;
+                
+                if (is_null($value) && ($currLg != 'en')) {
+                    
+                    // Ако няма данни за текущия език използваме на английски
+                    $value = EMAIL_OUTGOING_HEADER_TEXT_EN;
+                }
+            } catch (Exception $e) {
+            }
+        }
+        
+        if (is_null($value)) {
+            
+            // Вземаме хедъра по подразбиране
+            $value = $packConfig->$key;
+        }
+        
+        return $value;
+    }
+    
+    
+    /**
      * Задаваме стойност за ключ от пакета, ако не е зададен
      * 
      * @param string $pack
