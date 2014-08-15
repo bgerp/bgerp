@@ -4,13 +4,13 @@
 /**
  * FileHandler на логото на фирмата на английски
  */
-defIfNot(BGERP_COMPANY_LOGO_EN, '');
+defIfNot(BGERP_COMPANY_LOGO_EN, 'bgerp/img/companyLogo.png');
 
 
 /**
  * FileHandler на логото на фирмата на български
  */
-defIfNot(BGERP_COMPANY_LOGO, '');
+defIfNot(BGERP_COMPANY_LOGO, 'bgerp/img/companyLogoEn.png');
 
 
 /**
@@ -56,10 +56,9 @@ class bgerp_Setup {
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-           
-       'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка на английски (750х100 px)->Изображение'),
-
-       'BGERP_COMPANY_LOGO'   => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка на български (750х100 px)->Изображение'),
+       'BGERP_COMPANY_LOGO' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На български, customizeBy=powerUser'),
+    
+       'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
      );
     
     
