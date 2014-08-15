@@ -69,6 +69,12 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Кой може да принтира фискална бележка
+     */
+    public $canPrintfiscreceipt = 'debug';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,sales';
@@ -634,6 +640,10 @@ class sales_Sales extends core_Master
 			
 			if(isset($actions['pay'])){
 				$row->isPaid .= tr('ПЛАТЕНО');
+				
+				if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && $mvc->haveRightFor('printFiscReceipt', $rec)){
+					$row->isPaid .= " " . ht::createBtn('КБ', array($mvc, 'printReceipt', $rec->id), NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка'));
+				}
 			}
 			
 			if($rec->makeInvoice == 'no' && isset($rec->amountToInvoice)){
@@ -792,6 +802,57 @@ class sales_Sales extends core_Master
     	if(haveRole('debug')){
             $data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
     	}
+    }
+    
+    
+    /**
+     * Принтиране на касова бележка
+     */
+    public function act_PrintReceipt()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetchRec($id));
+    	$this->requireRightFor('printFiscReceipt', $rec);
+    	
+    	$conf = core_Packs::getConfig('sales');
+    	$Driver = cls::get($conf->SALE_FISC_PRINTER_DRIVER);
+    	$driverData = $this->prepareFiscPrinterData($rec);
+    	
+    	return $Driver->createFile($driverData);
+    }
+    
+    
+    /**
+     * Подготвя данните за фискалния принтер
+     */
+    private function prepareFiscPrinterData($rec)
+    {
+    	$dQuery = $this->sales_SalesDetails->getQuery();
+    	$dQuery->where("#saleId = {$rec->id}");
+    	
+    	$data = (object)array('products' => array(), 'payments' => array());
+    	while($dRec = $dQuery->fetch()){
+    		$nRec = new stdClass();
+    		$nRec->id = $dRec->productId;
+    		$nRec->managerId = $dRec->classId;
+    		$nRec->quantity = $dRec->packQuantity;
+    		if($dRec->discount){
+    			$nRec->discount = (round($dRec->discount, 2) * 100) . "%";
+    		}
+    		$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    		$nRec->measure = ($dRec->packagingId) ? cat_Packagings::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    		$nRec->vat = cls::get($dRec->classId)->getVat($dRec->productId, $rec->valior);
+    		$nRec->price = $dRec->packPrice;
+    		
+    		$data->products[] = $nRec;
+    	}
+    	
+    	$nRec = new stdClass();
+    	$nRec->type = 0;
+    	$nRec->amount = round($rec->amountPaid, 2);
+    	$data->payments[] = $nRec;
+    	
+    	return $data;
     }
     
     
@@ -1478,7 +1539,7 @@ class sales_Sales extends core_Master
     	// Намираме всички продажби които са приключени с тази
     	$details = array();
     	$closedDeals = sales_ClosedDeals::getClosedWithDeal($rec->id);
-    	//$closedDeals = array((object)array('threadId' => $rec->threadId)) + $closedDeals;
+    	
     	if(count($closedDeals)){
     		
     		// За всяка от тях, включително и този документ
@@ -1529,6 +1590,28 @@ class sales_Sales extends core_Master
     		foreach ($details as $d1){
     			$d1->saleId = $rec->id;
     			$mvc->sales_SalesDetails->save($d1);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'printfiscreceipt' && isset($rec)){
+    		
+    		$actions = type_Set::toArray($rec->contoActions);
+    		if ($actions['ship'] && $actions['pay']) {
+    			$conf = core_Packs::getConfig('sales');
+    			
+    			// Ако няма избран драйвер за принтер или той е деинсталиран никой не може да издава касова бележка
+    			if($conf->SALE_FISC_PRINTER_DRIVER == '' || core_Classes::fetchField($conf->SALE_FISC_PRINTER_DRIVER, 'state') == 'closed'){
+    				$res = 'no_one';
+    			}
+    		} else {
+    			$res = 'no_one';
     		}
     	}
     }
