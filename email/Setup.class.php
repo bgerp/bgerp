@@ -85,6 +85,56 @@ defIfNot('EMAIL_MAX_ATTACHED_FILE_LIMIT', 20971520);
 
 
 /**
+ * Имейла по подразбиране, при изпращане
+ */
+defIfNot('EMAIL_DEFAULT_SENT_INBOX', '');
+
+
+/**
+ * Хедъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл
+ */
+defIfNot('EMAIL_OUTGOING_HEADER_TEXT', "[#hello#] [#salutation#] [#name#]");
+
+
+/**
+ * Хедъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл - на английски
+ */
+defIfNot('EMAIL_OUTGOING_HEADER_TEXT_EN', "[#hello#] [#salutation#] [#name#]");
+
+
+/**
+ * Футъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл
+ */
+defIfNot('EMAIL_OUTGOING_FOOTER_TEXT', "Сърдечни поздрави,
+[#name#]
+[#company#]
+[#position#]
+[#country#]
+[#pCodeAndCity#]
+[#street#]
+Тел.: [#tel#]
+Факс: [#fax#]
+[#email#]
+[#website#]");
+
+
+/**
+ * Футъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл - на английски
+ */
+defIfNot('EMAIL_OUTGOING_FOOTER_TEXT_EN', "Best regards,
+[#name#]
+[#company#]
+[#position#]
+[#country#]
+[#pCodeAndCity#]
+[#street#]
+Tel.: [#tel#]
+Fax: [#fax#]
+[#email#]
+[#website#]");
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -162,7 +212,7 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи в текстовата част на входящите имейли->Символи'),
             
             // Тип на манипулатора в събджекта
-            'EMAIL_THREAD_HANDLE_POS' => array ('enum(BEFORE_SUBJECT=Преди събдекта,AFTER_SUBJECT=След събджекта)', 'caption=Манипулатор на нишка в събджект на имейл->Позиция'),
+            'EMAIL_THREAD_HANDLE_POS' => array ('enum(BEFORE_SUBJECT=Преди събджекта,AFTER_SUBJECT=След събджекта)', 'caption=Манипулатор на нишка в събджект на имейл->Позиция'),
             
             // Позиция на манипулатора в събджекта
             'EMAIL_THREAD_HANDLE_TYPE' => array ('enum(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Тип'),
@@ -172,6 +222,16 @@ class email_Setup extends core_ProtoSetup
             
             // Максимален размер на прикачените файлове и документи
             'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array ('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
+            
+            'EMAIL_DEFAULT_SENT_INBOX' => array ('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изходящ имейл->По подразбиране, customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
+    
+            'EMAIL_OUTGOING_HEADER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Привет, customizeBy=powerUser'),
+    
+            'EMAIL_OUTGOING_HEADER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Привет EN, customizeBy=powerUser'),
+    
+            'EMAIL_OUTGOING_FOOTER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Подпис, customizeBy=powerUser'),
+    
+            'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Подпис EN, customizeBy=powerUser'),
         );
         
         
