@@ -49,6 +49,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
             $block = clone $itemBlock;
             
             $p->name = cls::get($p->managerId)->getVerbal($p->id, 'name');
+            $p->name = str_replace('"', "'", $p->name);
             $p->price = round($p->price * (1 + $p->vat), 2);
             
             // @TODO да не е 2
