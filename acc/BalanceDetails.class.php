@@ -592,31 +592,27 @@ class acc_BalanceDetails extends core_Detail
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $masterRec = $mvc->Master->fetch($rec->balanceId);
-    	
-        // Бутон за детайлизиран преглед на историята
-        $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
         
-        if($rec->accountId){
-        	$row->accountId = acc_Balances::getAccountLink($rec->accountId, $masterRec, FALSE, TRUE);
-        }
-        
-        $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
-        
-        if(!$mvc->isDetailed()) return;
-        
-        $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
-        $row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
-        $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
-        
-        $groupingRec = $mvc->getGroupingForm($rec->balanceId)->rec;
-        
-        foreach (range(1, 3) as $i) {
-        	if(isset($rec->{"grouping{$i}"})){
-        		$row->{"ent{$i}Id"} = $rec->{"grouping{$i}"};
-        		if($row->{"ent{$i}Id"} == 'others'){
-        			$row->{"ent{$i}Id"} = "<i>" . tr('Други') . "</i>";
+        if($mvc->isDetailed()){
+        	
+        	$histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
+        	$url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
+        	$row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
+        	$row->history = "<span style='margin:0 4px'>{$row->history}</span>";
+        	
+        	$groupingRec = $mvc->getGroupingForm($rec->balanceId)->rec;
+        	
+        	foreach (range(1, 3) as $i) {
+        		if(isset($rec->{"grouping{$i}"})){
+        			$row->{"ent{$i}Id"} = $rec->{"grouping{$i}"};
+        			if($row->{"ent{$i}Id"} == 'others'){
+        				$row->{"ent{$i}Id"} = "<i>" . tr('Други') . "</i>";
+        			}
         		}
         	}
+        } else {
+        	$row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
+        	$row->accountId = acc_Balances::getAccountLink($rec->accountId, $masterRec, FALSE, TRUE);
         }
     }
     
