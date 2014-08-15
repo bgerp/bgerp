@@ -26,7 +26,7 @@ class purchase_Invoices extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Inv';
+    public $abbr = 'Ini';
     
     
     /**

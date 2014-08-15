@@ -26,7 +26,7 @@ class sales_Proformas extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Prof';
+    public $abbr = 'Prf';
     
     
     /**
