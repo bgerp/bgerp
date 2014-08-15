@@ -1,25 +1,21 @@
 <div style='margin-bottom:5px;'>[#repoTitle#]</div>
 <!--ET_BEGIN otherInfo-->
-	[#otherInfo#]
+[#otherInfo#]
 <!--ET_END otherInfo-->
-
 <!--ET_BEGIN table-->
-	[#table#]
-	<div class='scrolling-holder'>
-	<table class="listTable" width="100%" cellpadding='3' style='margin-bottom:20px'>
-	
-		<!--ET_BEGIN repoRow-->
-		<thead>
-			<tr>
-				<th colspan="1">✍</th>
-				<th colspan="1">|Файл|*</th>
-				<th colspan="1">|Последно|*</th>
-			            
-			</tr>
-			[#repoRow#]
-		</thead>
-		<!--ET_END repoRow-->
-		
-	</table>
-	</div>
+[#table#]
+<div class='scrolling-holder'>
+    <table class="listTable" cellpadding='3' style='margin-bottom:20px;width:100%'>
+        <!--ET_BEGIN repoRow-->
+        <thead>
+            <tr>
+                <th colspan="1">✍</th>
+                <th colspan="1">|Файл|*</th>
+                <th colspan="1">|Последно|*</th>
+            </tr>
+            [#repoRow#]
+        </thead>
+        <!--ET_END repoRow-->
+    </table>
+</div>
 <!--ET_BEGIN table-->
