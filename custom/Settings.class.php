@@ -71,8 +71,8 @@ class custom_Settings extends core_Manager
         $this->FLD('userId', 'user', 'caption=Потрбител, input=none');
         $this->FLD('classId', 'class(interface=custom_SettingsIntf)', 'caption=Обект->Клас, silent, input=none');
         $this->FLD('objectId', 'int', 'caption=Обект->ID, silent, input=none');
-        $this->FLD('property', 'varchar(16)', 'caption=Свойство->Име, input=none');
-        $this->FLD('value', 'varchar(32)', 'caption=Свойство->Стойност, input=none');
+        $this->FLD('property', 'varchar(32)', 'caption=Свойство->Име, input=none');
+        $this->FLD('value', 'varchar(256)', 'caption=Свойство->Стойност, input=none');
         
         $this->setDbUnique('userId, classId, objectId, property');
     }
@@ -295,7 +295,7 @@ class custom_Settings extends core_Manager
             foreach ((array)$recsArr as $property => $value) {
                 
                 // Ако имат стойност по подразбиране
-                if ($value == 'default') {
+                if ($value == 'default' || $value == '' || is_null($value)) {
                     
                     // 
                     $allPropertiesArr = array_merge((array)$propertiesArrFromAdmin, (array)$propertiesArrFromUser);
