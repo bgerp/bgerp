@@ -703,18 +703,63 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('emailsCc', $data->rec->emailCc);
         
         // Стойността на полето От, дефинирано в персонализацията на профилите
-        $defaultBoxFromId = crm_Personalization::getInboxId();
+        $defaultBoxFromId = static::getDefaultInboxId($data->rec->folderId);
         $data->form->setDefault('boxFrom', $defaultBoxFromId);
         
         // Ако имам папка
         if ($data->rec->folderId) {
-            
             
             // Времето за изчакване да се вземе от последно изпратения имейл от паката, в което е използвано изчакване
             $waitingTime = $mvc->getLastWaitingTime($data->rec->folderId, $data->rec->email);
             
             $data->form->setDefault('waiting', $waitingTime);
         }
+    }
+    
+    
+    /**
+     * Връща кутията по-подразбиране за съответния потребител
+     * Ако е зададено в конфигурацията ще използваме нея
+     * Ако няма зададен имейл, ще върне първия достъпен
+     * 
+     * @param integer $folderId
+     * @param integer $userId
+     * 
+     * @return integer
+     */
+    static function getDefaultInboxId($folderId=NULL, $userId=NULL)
+    {
+        // Имейла от конфигурацията
+        $conf = core_Packs::getConfig('email');
+        $defaultSentBox = $conf->EMAIL_DEFAULT_SENT_INBOX;
+        
+        try {
+            // Всички достъпни имейл кутии
+            $emailOptions = email_Inboxes::getFromEmailOptions($folderId, $userId);
+        }  catch (Exception $e) {
+            $emailOptions = array();
+        }
+        
+        // Ако не е зададена кутия в конфигурацията, използваме първия имейл от масива
+        if (!$defaultSentBox) {
+            
+            if ($emailOptions) {
+                reset($emailOptions);
+                $boxId = key($emailOptions);
+            }
+        } else {
+            
+            // Ако има кутия за изпращане и конфигурацията и е в допустимите, използваме нея
+            if ($emailOptions[$defaultSentBox]) {
+                $boxId = $defaultSentBox;
+            } elseif(!is_numeric($defaultSentBox)) {
+                
+                // Ако е подаден, като стринг
+                $boxId = array_search($defaultSentBox, $emailOptions);
+            }
+        }
+        
+        return $boxId;
     }
     
     
@@ -960,16 +1005,7 @@ class email_Outgoings extends core_Master
             
             $lg = email_Outgoings::getLanguage($rec->originId, $rec->threadId, $rec->folderId);
             
-            $fromEmailOptions = email_Inboxes::getFromEmailOptions($rec->folderId);
-            
-            
-            $defaultBoxFromId = crm_Personalization::getInboxId();
-            
-            if ($defaultBoxFromId && $fromEmailOptions[$defaultBoxFromId]) {
-                $boxFromId = $defaultBoxFromId;
-            } else {
-                $boxFromId = key($fromEmailOptions);
-            }
+            $boxFromId = static::getDefaultInboxId($rec->folderId);
             
             $options['boxFrom'] = $boxFromId;
             $options['encoding'] = 'utf-8';
@@ -1285,28 +1321,28 @@ class email_Outgoings extends core_Master
                 }
             }
             
+            $contragentDataHeader = (array)$contragentData;
+            
             //Данни необходими за създаване на хедър-а на съобщението
             $contragentDataHeader['name'] = $contragentData->person;
             
             // Ако има обръщение
-            if($contragentData->salutation) {
-                
-                $contragentDataHeader['salutation'] = $contragentData->salutation;
-                if(mb_strtolower($contragentData->salutation) != 'г-н') {
-                    $hello = "Уважаема";
+            if($contragentData->salutationRec) {
+                if($contragentData->salutationRec == 'mrs' || $contragentData->salutationRec == 'miss') {
+                    $contragentDataHeader['hello'] = tr("Уважаема");
                 } else {
-                    $hello = "Уважаеми";
+                    $contragentDataHeader['hello'] = tr("Уважаеми");
                 }
             }
             
-            if($contragentData->person) {
-                setIfNot($hello, 'Здравейте');
-            } else {
-                setIfNot($hello, 'Уважаеми колеги');
+            if (!$contragentDataHeader['hello']) {
+                if($contragentData->person) {
+                    $contragentDataHeader['hello'] = tr('Здравейте');
+                } else {
+                    $contragentDataHeader['hello'] = tr('Уважаеми колеги');
+                }
             }
-    
-            $contragentDataHeader['hello'] = $hello;
-     
+            
             //Създаваме тялото на постинга
             $rec->body = $mvc->createDefaultBody($contragentDataHeader, $rec, $forward);
             
@@ -1459,16 +1495,16 @@ class email_Outgoings extends core_Master
     /**
      * Създава тялото на постинга
      */
-    function createDefaultBody($HeaderData, $rec, $forward=FALSE)
+    function createDefaultBody($headerData, $rec, $forward=FALSE)
     {
         //Хедър на съобщението
-        $header = $this->getHeader($HeaderData, $rec);
+        $header = $this->getHeader($headerData, $rec);
         
         //Текста между заглавието и подписа
         $body = $this->getBody($rec->originId, $forward);
         
         //Футър на съобщението
-        $footer = $this->getFooter();
+        $footer = $this->getFooter($headerData['countryId']);
         
         //Текста по подразбиране в "Съобщение"
         $defaultBody = $header . "\n\n" . $body . "\n\n" . $footer;
@@ -1479,8 +1515,11 @@ class email_Outgoings extends core_Master
     
     /**
      * Създава хедър към постинга
+     * 
+     * @param array $headerDataArr
+     * @param object $rec
      */
-    function getHeader($data, $rec)
+    function getHeader($headerDataArr, $rec)
     {  
         // Вземаме обръщението
         $salutation = email_Salutations::get($rec->folderId, $rec->threadId);
@@ -1488,29 +1527,38 @@ class email_Outgoings extends core_Master
         // Ако сме открили обръщение използваме него
         if ($salutation) return $salutation;
         
-        $tpl = new ET(getFileContent("email/tpl/OutgoingHeader.shtml"));
+        $conf = core_Packs::getConfig('email');
         
-        // Вземаме привета от потребителя
-        $header = crm_Personalization::getHeader();
+        $headerStr = core_Packs::getConfigValue($conf, 'EMAIL_OUTGOING_HEADER_TEXT');
         
-        // Ако е зададен привет
-        if ($header) {
-            
-            // Използваме него
-            $data['hello'] = $header;
+        // Шаблона за хедъра
+        $tpl = new ET($headerStr);
+        
+        // Заместваме плейсхолдерите
+        $tpl->placeArray($headerDataArr);
+        
+        // Вземаме съдържанието
+        $content = $tpl->getContent();
+        
+        // Премахваме ненужните празни стойности
+        $content = preg_replace('/\s+/', ' ', $content);
+        $content = trim($content);
+        
+        // Ако последният символ не е пунктуация, добавяме запетая накрая
+        $lastChar = mb_substr($content, -1);
+        if (!core_String::isPunctuation($lastChar)) {
+            $content .= ',';
         }
         
-        //Заместваме шаблоните
-        $tpl->replace(tr($data['hello']), 'hello');
-        $tpl->replace(tr($data['salutation']), 'salutation');
-        $tpl->replace($data['name'], 'name');
-
-        return $tpl->getContent();
+        return $content;
     }
     
     
     /**
      * Създава текста по подразбиране
+     * 
+     * @param integer $originId
+     * @param boolean $forward
      */
     function getBody($originId, $forward=FALSE)
     {
@@ -1533,99 +1581,112 @@ class email_Outgoings extends core_Master
     
     /**
      * Създава футър към постинга в зависимост от типа на съобщението
+     * 
+     * @param integer $contragentCountryId
      */
-    function getFooter()
+    function getFooter($contragentCountryId=NULL)
     {
-        // Вземаме подписа от потребителя
-        $signature = crm_Personalization::getSignature();
-
-        // Ако има подпис, превеждаме го и го връщаме
-        if ($signature) {
-            
-            return tr($signature);
-        }
-        
-        // Вземаме езика
-        $lg = core_Lg::getCurrent();
+        $conf = core_Packs::getConfig('email');
         
         // Профила на текущият потребител
-        $crmPersonRec = crm_Profiles::getProfile();
+        $personRec = crm_Profiles::getProfile();
         
         // Ако текущия потребител няма фирма
-        if (!($companyId = $crmPersonRec->buzCompanyId)) {
+        if (!($companyId = $personRec->buzCompanyId)) {
             
             // Вземаме фирмата по подразбиране
             $companyId = crm_Setup::BGERP_OWN_COMPANY_ID;        
         }
         
         // Вземаме данните за нашата фирма
-        $myCompany = crm_Companies::fetch($companyId);
+        $companyRec = crm_Companies::fetch($companyId);
+        
+        $footerData = array();
         
         // Името на компанията
-        $companyName = $myCompany->name;
+        $footerData['company'] = tr($companyRec->name);
 
         // Името на потребителя
-        $userName = $crmPersonRec->name;
+//        $footerData['name'] = tr($personRec->name);
+//        $footerData['name'] = transliterate(tr($personRec->name));
+        $footerData['name'] = transliterate($personRec->name);
         
         // Телефон
-        $tel = $crmPersonRec->buzTel;
-        $tel = ($tel) ? ($tel) : $myCompany->tel;
+        $footerData['tel'] = ($personRec->buzTel) ? ($personRec->buzTel) : $companyRec->tel;
         
         // Факс
-        $fax = $crmPersonRec->buzFax;
-        $fax = ($fax) ? ($fax) : $myCompany->fax;
+        $footerData['fax'] = ($personRec->buzFax) ? ($personRec->buzFax) : $companyRec->fax;
         
         // Имейл
-        $email = $crmPersonRec->buzEmail;
-        $email = ($email) ? ($email) : $myCompany->email;
+        $footerData['email'] = ($personRec->buzEmail) ? ($personRec->buzEmail) : $companyRec->email;
         
         // Длъжност
-        $buzPosition = $crmPersonRec->buzPosition;
-        
-        // Адреса
-        $buzAddress = $crmPersonRec->buzAddress;
+        $footerData['position'] = tr($personRec->buzPosition);
         
         // Ако няма въведен адрес на бизнеса на потребителя
-        if (!$buzAddress) {
+        if ($personRec->buzAddress) {
             
-            // Определяме адреса от фирмата
-            $pCode = $myCompany->pCode;
-            $city = $myCompany->place;
-            $address = $myCompany->address;
-            $country = crm_Companies::getVerbal($myCompany, 'country');
+            // Адреса
+            $footerData['street'] = transliterate(tr($personRec->buzAddress));
         } else {
-            $address = $buzAddress;
+            // Определяме адреса от фирмата
+            $footerData['pCode'] = transliterate($companyRec->pCode);
+            $footerData['city'] = transliterate(tr($companyRec->place));
+            $footerData['street'] = transliterate(tr($companyRec->address));
+            if ($footerData['pCode']) {
+                $footerData['pCodeAndCity'] = $footerData['pCode'] . ' ';
+            }
+            
+            $footerData['pCodeAndCity'] .= ' ' . $footerData['city'];
+            
+            // Ако няма държава на контрагента
+            if (!$contragentCountryId) {
+                
+                // Езиците в съответната държава
+                $companyCountryLang = drdata_Countries::fetchField($companyRec->country, 'languages');
+                $companyCountryLangArr = arr::make($companyCountryLang, TRUE);
+                
+                // Вземаме езика
+                $lg = core_Lg::getCurrent();
+                
+                // Ако текущия език не е на държавата
+                if (!$companyCountryLangArr[$lg]) {
+                    
+                    $getCountry = TRUE;
+                }
+            } elseif($companyRec->country != $contragentCountryId) {
+                
+                // Ако контрагента не е от държавата на фирмата
+                
+                $getCountry = TRUE;
+            }
+            
+            // Ако ще се добавя държавата
+            if ($getCountry) {
+                $footerData['country'] = crm_Companies::getVerbal($companyRec, 'country');
+            }
         }
         
         // Страницата
-        $webSite = $myCompany->website;
-        
-        // Държавата
-        $country = crm_Companies::getVerbal($myCompany, 'country');
-        
-        //Ако езика е на български и държавата е България, да не се показва държавата
-        if ((strtolower($lg) == 'bg') && (strtolower($country) == 'bulgaria')) {
-            
-            unset($country);
-        }
+        $footerData['website'] = $companyRec->website;
         
         // Зареждаме шаблона
-        $tpl = new ET(tr('|*' . getFileContent("email/tpl/OutgoingFooter.shtml")));
-
-        //Заместваме шаблоните
-        $tpl->replace(tr($userName), 'name');
-        $tpl->replace(tr($companyName), 'company');
-        $tpl->replace($tel, 'tel');
-        $tpl->replace($fax, 'fax');
-        $tpl->replace($email, 'email');
-        $tpl->replace($webSite, 'website');
-        $tpl->replace(tr($country), 'country');
-        $tpl->replace($pCode, 'pCode');
-        $tpl->replace(tr($city), 'city');
-        $tpl->replace(tr($address), 'street');
-        $tpl->replace(tr($buzPosition), 'position');
-         
-        return $tpl->getContent();
+        $tpl = new ET(core_Packs::getConfigValue($conf, 'EMAIL_OUTGOING_FOOTER_TEXT'));
+        
+        // Заместваме плейсхолдерите
+        $tpl->placeArray($footerData);
+        
+        $content = $tpl->getContent();
+        
+        // Премахваме празните редове, в които няма никаква стойност
+        $contentArr = explode("\n", $content);
+        foreach ((array)$contentArr as $line) {
+            if (!$line) continue;
+            
+            $nContent .= ($nContent) ? "\n" . $line : $line;
+        }
+        
+        return $nContent;
     }
     
     
