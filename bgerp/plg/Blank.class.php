@@ -75,17 +75,9 @@ class bgerp_plg_Blank extends core_Plugin
         
         // Вземема конфигурационните константи
         $conf = core_Packs::getConfig('bgerp');   
-
-        // Ако езика не е английски
-        if ($lg != 'en') {
-            
-            // Логото на компанията (BG)
-            $companyLogo = $conf->BGERP_COMPANY_LOGO;
-        } else {
-                
-            // Логото на компанията (EN)
-            $companyLogo = $conf->BGERP_COMPANY_LOGO_EN;
-        }
+        
+        // Вземам бланката в зависимост от езика
+        $companyLogo = core_Packs::getConfigValue($conf, 'BGERP_COMPANY_LOGO');
         
         $filemanInst = cls::get('fileman_Files');
         
