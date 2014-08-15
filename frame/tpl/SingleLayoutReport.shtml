@@ -1,19 +1,14 @@
 [#SingleToolbar#]
-	<div class='document'>
-		
-		<!--ET_BEGIN header-->
-		<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
-		</div>
-		<!--ET_END header-->
-
-		<div class='listTitle'>[#name#]</div>
-		
-		<div class='clear_l f_left'>
-			<div>[#data#]</div>
-		</div>
- 		<!-- END Блок долу -->
- 		<div style='clear: both;'></div>
- 	</div>   
- 	<!-- END container -->
- <div style='clear: both;'></div>
+<div class='document'>
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <!--ET_END header-->
+    <div class='listTitle'>[#name#]</div>
+    <div class='clear_l f_left'>
+        <div>[#data#]</div>
+    </div>
+    <div style='clear: both;'></div>
+</div>
+<div style='clear: both;'></div>
