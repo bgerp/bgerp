@@ -714,4 +714,25 @@ class email_Inboxes extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Връща key опциите за достъпните имейли на потребителя
+     * 
+     * @param core_Type $type
+     * 
+     * @return array
+     */
+    function getAllowedFromEmailOptions($type)
+    {
+        try {
+            
+            // Личните имейли на текущия потребител
+            $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, NULL, TRUE);
+        } catch (Exception $e) {
+            $emailOptions[] = '';
+        }
+        
+        return $emailOptions;
+    }
 }
