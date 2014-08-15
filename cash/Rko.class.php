@@ -444,18 +444,6 @@ class cash_Rko extends core_Master
     }
     
     
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public static function getHandle($id)
-    {
-    	$rec = static::fetch($id);
-    	$self = cls::get(get_called_class());
-    	
-    	return $self->abbr . $rec->number;
-    }
-    
-    
 	/**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
@@ -492,15 +480,6 @@ class cash_Rko extends core_Master
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     	}
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public static function fetchByHandle($parsedHandle)
-    {
-        return static::fetch("#number = '{$parsedHandle['id']}'");
     }
     
     

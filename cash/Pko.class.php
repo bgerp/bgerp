@@ -450,27 +450,6 @@ class cash_Pko extends core_Master
     }
     
     
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public static function getHandle($id)
-    {
-    	$rec = static::fetch($id);
-    	$self = cls::get(get_called_class());
-    	
-    	return $self->abbr . $rec->number;
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public static function fetchByHandle($parsedHandle)
-    {
-        return static::fetch("#number = '{$parsedHandle['id']}'");
-    } 
-    
-    
    	/*
      * Реализация на интерфейса sales_PaymentIntf
      */

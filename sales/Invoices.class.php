@@ -886,6 +886,7 @@ class sales_Invoices extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
+       
         $type = static::fetchField($id, 'type');
         switch($type){
         	case 'invoice':
@@ -952,8 +953,10 @@ class sales_Invoices extends core_Master
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
+        $number = static::fetchField($id, 'number');
+        $number = str_pad($number, '10', '0', STR_PAD_LEFT);
         
-        return $self->abbr . $id;
+        return $self->abbr . $number;
     } 
     
     
