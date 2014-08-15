@@ -4,14 +4,14 @@
 	<td colspan=2><h1 style='font-size:1.5em'>[#name#]</h1></td>
 </tr>
 <tr>
-	<td valign="top" width=120 class='eshop-product-images'>
+	<td class='eshop-product-images vtop' style='width:120px'>
 		[#image#]
 		[#image2#]
 		[#image3#]
 		[#image4#]
 		[#image5#]
 	</td>
-	<td valign="top" style='padding-left:8px;'>
+	<td class="vtop" style='padding-left:8px;'>
 		<div class='eshop-product-labels'>
 			[#code#] [#coMoq#] [#coInquiry#]
 		</div>

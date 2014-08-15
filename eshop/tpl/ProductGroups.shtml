@@ -1,18 +1,15 @@
 <div class='cms-row'>
-	<!--ET_BEGIN NAVIGATION-->
-	<div class='fourcol' id='cmsNavigation'  style='margin-left:2%'>
-		[#NAVIGATION#] 
-	</div>
-	<!--ET_END NAVIGATION-->
-						
-	<div class='eightcol cms-last' style='margin-right:2%;'>
-		[#PAGE_CONTENT#] 
-		
-		<!--ET_BEGIN SOCIAL-->
-		<div class='clearfix21'></div>
-		[#SOCIAL#]
-		[#social_Sharings::getButtons#]
-		<!--ET_END SOCIAL-->
-		
-	</div>
+    <!--ET_BEGIN NAVIGATION-->
+    <div class='fourcol' id='cmsNavigation'  style='margin-left:2%'>
+        [#NAVIGATION#] 
+    </div>
+    <!--ET_END NAVIGATION-->
+    <div class='eightcol cms-last' style='margin-right:2%;'>
+        [#PAGE_CONTENT#] 
+        <!--ET_BEGIN SOCIAL-->
+        <div class='clearfix21'></div>
+        [#SOCIAL#]
+        [#social_Sharings::getButtons#]
+        <!--ET_END SOCIAL-->
+    </div>
 </div>
