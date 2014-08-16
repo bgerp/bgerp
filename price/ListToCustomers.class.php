@@ -142,7 +142,7 @@ class price_ListToCustomers extends core_Detail
 	    
         // Кой може да добавя не-публичните политики
         if(haveRole('price,ceo')) {
-	       	$cond .= " OR #public = 'no' OR #public IS NULL";
+	       	$cond .= " OR ((#public = 'no' OR #public IS NULL) AND !(#cId > 0))";
 	    }
 	    	
 	    $data->form->setOptions('listId', price_Lists::makeArray4select('title', $cond));
