@@ -432,7 +432,7 @@ class pos_Receipts extends core_Master {
 			$pointRec = pos_Points::fetch($rec->pointId);
 			
 			// Трябва точката да има драйвър, да има инсталирани драйвъри и бележката да е чернова
-			if($pointRec->driver && array_key_exists($pointRec->driver, core_Classes::getOptionsByInterface('pos_FiscPrinterIntf')) && $rec->state == 'draft'){
+			if($pointRec->driver && array_key_exists($pointRec->driver, core_Classes::getOptionsByInterface('sales_FiscPrinterIntf')) && $rec->state == 'draft'){
 				$res = $mvc->getRequiredRoles('close', $rec);
 			} else {
 				$res = 'no_one';
@@ -744,7 +744,7 @@ class pos_Receipts extends core_Master {
     	
     	// Показваме всички активни методи за плащания
     	$disClass = ($payUrl) ? '' : 'disabledBtn';
-    	$payments = pos_Payments::fetchSelected();
+    	$payments = cond_Payments::fetchSelected();
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "$payment->id", 'data-url' => $payUrl);
 	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
@@ -797,8 +797,9 @@ class pos_Receipts extends core_Master {
     	$this->requireRightFor('printReceipt', $rec);
     	
     	$Driver = cls::get(pos_Points::fetchField($rec->pointId, 'driver'));
+    	$driverData = $this->getFiscPrinterData($rec);
     	
-    	return $Driver->createFile($id);
+    	return $Driver->createFile($driverData);
     }
     
     
@@ -1163,5 +1164,48 @@ class pos_Receipts extends core_Master {
     	}
     	
     	return $table->get($data->rows, $fields)->getContent();
+    }
+    
+    
+    /**
+     * Подготвя данните за драйвера на фискалния принтер
+     */
+    private function getFiscPrinterData($id)
+    {
+    	$receiptRec = $this->fetchRec($id);
+    	
+    	$payments = $products = array();
+    	$query = pos_ReceiptDetails::getQuery();
+    	$query->where("#receiptId = '{$receiptRec->id}'");
+    	
+    	// Разделяме детайлите на плащания и продажби
+    	while($rec = $query->fetch()){
+    		$nRec = new stdClass();
+    		
+    		// Всеки продукт
+    		if(strpos($rec->action, 'sale') !== FALSE){
+    			$nRec->id = $rec->productId;
+    			$nRec->managerId = cat_Products::getClassId();
+    			$nRec->quantity = $rec->quantity;
+    			if($rec->discountPercent){
+    				$nRec->discount = (round($rec->discountPercent, 2) * 100) . "%";
+    			}
+    			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
+    			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    			$nRec->vat = $rec->param;
+    			$nRec->price = $rec->price;
+    			$products[] = $nRec;
+    		} elseif(strpos($rec->action, 'payment') !== FALSE) {
+    			
+    			// Всяко плащане
+    			list(, $type) = explode('|', $rec->action);
+    			$nRec->type = cond_Payments::fetchField($type, 'code');
+    			$nRec->amount = round($rec->amount, 2);
+    			
+    			$payments[] = $nRec;
+    		}
+    	}
+    	
+    	return (object)array('products' => $products, 'payments' => $payments);
     }
 }

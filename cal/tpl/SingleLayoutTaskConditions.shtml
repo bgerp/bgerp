@@ -1,22 +1,22 @@
 <div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
-	<div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black;margin-top:-30px;">|Условия за стартиране|*</div>
-		<div class="listRows">
-			<table class="listTable progress-table"> 
-				<!--ET_BEGIN COMMENT_LI-->
-					<tr>
-	                	<td>
-							<!--ET_BEGIN condition-->
-							<span class="nowrap">[#condition#]</span>&nbsp;
-							<!--ET_END condition--> 
-						</td>
-						<td>
-							[#createdOn#]&nbsp;&nbsp;&nbsp;
-							[#createdBy#]&nbsp;
-						</td>
-					</tr>
-				<!--ET_END COMMENT_LI-->
-			</table>
-	    </div>
-	</div>
+    <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black;margin-top:-30px;">|Условия за стартиране|*</div>
+    <div class="listRows">
+        <table class="listTable progress-table">
+            <!--ET_BEGIN COMMENT_LI-->
+            <tr>
+                <td>
+                    <!--ET_BEGIN condition-->
+                    <span class="nowrap">[#condition#]</span>&nbsp;
+                    <!--ET_END condition--> 
+                </td>
+                <td>
+                    [#createdOn#]&nbsp;&nbsp;&nbsp;
+                    [#createdBy#]&nbsp;
+                </td>
+            </tr>
+            <!--ET_END COMMENT_LI-->
+        </table>
+    </div>
+</div>
 </div> 
-<div style='clear: both;'></div>    
+<div style='clear: both;'></div>

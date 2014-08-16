@@ -1,20 +1,12 @@
-	<fieldset class="detail-info fright">
-		<legend class="groupTitle">|Статуси|*</legend>
-		<div class="groupList">
-	
-			<div class='linkWithIcon sick'>|В болнични|*: |от|* 11.04.2013г. |до|* 11.05.2013г.</div>
-			
-			<div class='linkWithIcon trip'>|В командировка|*: |от|* 11.04.2013г. |до|* 11.05.2013г.</div>
-	
-			<div class='linkWithIcon leave'>|В отпуска|*: |от|* 11.04.2013г. |до|* 11.05.2013г.</div>
-	
-			<div>IP: <span class='linkWithIcon home'>вкъщи</span>/<icon class='linkWithIcon office'>фирмата</div>
-		
-			<div>|Работи в|* <span class='linkWithIcon work'>работно</span>/<span class='linkWithIcon after-work'>извънработно</span> време</div>
-			
-			<div class='linkWithIcon birthday'>|Има рожден ден|*</div>
-			
-			<div class='linkWithIcon nameday'>|Има имен ден|*</div>
-		
-		</div>
-	</fieldset>
+<fieldset class="detail-info fright">
+    <legend class="groupTitle">|Статуси|*</legend>
+    <div class="groupList">
+        <div class='linkWithIcon sick'>|В болнични|*: |от|* 11.04.2013г. |до|* 11.05.2013г.</div>
+        <div class='linkWithIcon trip'>|В командировка|*: |от|* 11.04.2013г. |до|* 11.05.2013г.</div>
+        <div class='linkWithIcon leave'>|В отпуска|*: |от|* 11.04.2013г. |до|* 11.05.2013г.</div>
+        <div>IP: <span class='linkWithIcon home'>|вкъщи|*</span>/<span class='linkWithIcon office'>|фирмата|*</span></div>
+        <div>|Работи в|* <span class='linkWithIcon work'>|работно|*</span>/<span class='linkWithIcon after-work'>извънработно</span> време</div>
+        <div class='linkWithIcon birthday'>|Има рожден ден|*</div>
+        <div class='linkWithIcon nameday'>|Има имен ден|*</div>
+    </div>
+</fieldset>

@@ -187,6 +187,15 @@ class acc_ReportDetails extends core_Manager
 	    	$row['amountRec'] = $dRec->blAmount;
 	    	$row['id'] = $dRec->id;
 	    	
+	    	$conf = core_Packs::getConfig('acc');
+	    	$tolerance = $conf->ACC_MONEY_TOLERANCE;
+	    	
+	    	// Ако количеството и сумата са близки до нулата в орпеделена граница ги пропускаме
+	    	if(($dRec->blQuantity > (-1 * $tolerance) &&  $dRec->blQuantity < $tolerance) &&
+	    	(($dRec->blAmount > (-1 * $tolerance) &&  $dRec->blAmount < $tolerance))) {
+	    		continue;
+	    	}
+	    	
 	    	$rows[$dRec->accountId]['rows'][] = $row;
 	    	$rows[$dRec->accountId]['total'] += $dRec->blAmount;
     	}

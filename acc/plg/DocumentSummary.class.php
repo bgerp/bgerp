@@ -32,6 +32,9 @@
  * 
  * За търсене по дата, когато документа има начална и крайна дата се дефинират
  * 'filterFieldDateFrom' и 'filterFieldDateTo'
+ * 
+ * За кое поле да се изпозлва за търсене по потребители се дефинира - 'filterFieldUsers'
+ * 
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
@@ -55,6 +58,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
+        setIfNot($mvc->filterFieldUsers, 'createdBy');
     }
     
     
@@ -88,6 +92,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
 		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
+		
 		if(!isset($data->listFilter->fields['Rejected'])) {
 		 	$data->listFilter->FNC('Rejected', 'int', 'input=hidden');
 		}
@@ -101,12 +106,28 @@ class acc_plg_DocumentSummary extends core_Plugin
 		}
 		$data->listFilter->showFields .= 'from, to';
 		
+		if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
+			$data->listFilter->FNC('users', 'users', 'caption=Потребители');
+			$data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
+			$data->listFilter->showFields .= ',users';
+		}
+		
         // Активиране на филтъра
         $data->listFilter->input(NULL, 'silent');
         
         // Ако формата за търсене е изпратена
 		if($filter = $data->listFilter->rec) {
 			
+			// Филтрираме по потребители
+			if($filter->users && $isDocument){
+				$userIds = keylist::toArray($filter->users);
+				$userIds = array_values($userIds);
+				foreach ($userIds as $index => $userId){
+					$or = ($index == 0) ? FALSE : TRUE;
+					$data->query->where("#{$mvc->filterFieldUsers} = {$userId}", $or);
+				}
+			}
+		
 			if($filter->search){
 				plg_Search::applySearch($filter->search, $data->query);
 			}

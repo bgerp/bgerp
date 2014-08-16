@@ -166,5 +166,60 @@ class doc_UnsortedFolders extends core_Master
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
         }
     }
+    
+    
+    /**
+     * Зареждане на Cron задачите за автоматично затваряне на папка след setup на класа
+     *
+     * @param core_MVC $mvc
+     * @param string $res
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        $Cron = cls::get('core_Cron');
+        
+        $rec = new stdClass();
+        $rec->systemId = "self_closed_unsorted_folders";
+        $rec->description = "Автоматично затваряне на папки";
+        $rec->controller = "doc_UnsortedFolders";
+        $rec->action = "SelfClosed";
+        $rec->period = 24 * 60;
+        $rec->offset = 17 * 60;
+        $Cron->addOnce($rec);
+        
+        $res .= "<li style='color:#660000'>Автоматично затваряне на папки по крон</li>";
+    }
+    
+    
+    /**
+     * Метод за Cron за зареждане на валутите
+     */
+    function cron_SelfClosed()
+    {   
+    	// сегашно време в секунди
+    	$now = dt::mysql2timestamp(dt::now());
+    	// заявка към текущата база
+    	$query = $this->getQuery();
+    	// заявка към базата на "нишките"
+    	$queryThread = doc_Threads::getQuery();
+     	
+    	// търсим всички проекти, които не са отхвърлени и имат време за автоматично затваряне
+        $query->where("#state != 'rejected' AND #closeTime IS NOT NULL");
+
+        while ($rec = $query->fetch()) {
+        	// търсим нишка, която отговаря на тази папка и е отворена
+        	$queryThread->where("#folderId = '{$rec->folderId}' AND #state = 'opened'");
+        	// и я взимаме
+        	while ($recThread = $queryThread->fetch()) {
+        		// ако тя последно е модифицирана преди (сега - времето за затваряне)
+        		if ($recThread->modifiedOn <= dt::timestamp2mysql($now - $rec->closeTime)){
+        		// автоматично я затваряме
+        			$recThread->state = 'closed';
+                   
+        			doc_Threads::save($recThread, 'state');
+        		}		
+        	}
+        }
+    }
 
 }

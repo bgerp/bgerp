@@ -190,8 +190,8 @@ class sales_ClosedDeals extends acc_ClosedDeals
     public static function isSaleDiffAllowed($saleRec)
     {
     	$diff = round($saleRec->amountDelivered - $saleRec->amountPaid, 2);
-    	$conf = core_Packs::getConfig('sales');
-    	$res = ($diff >= -1 * $conf->SALE_CLOSE_TOLERANCE && $diff <= $conf->SALE_CLOSE_TOLERANCE);
+    	$conf = core_Packs::getConfig('acc');
+    	$res = ($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE);
     	
     	return $res;
     }
@@ -202,20 +202,20 @@ class sales_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
+    	if($res == 'no_one') return;
+    	
     	if(($action == 'add' || $action == 'conto') && isset($rec)){
     		
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
     			$originRec = $origin->fetch();
     			
-    			if($originRec->state == 'active' && $mvc instanceof sales_Sales){
+    			if($originRec->state == 'active' && $origin->instance instanceof sales_Sales){
     				
     				// Ако разликата между доставеното/платеното е по голяма, се изисква
     				// потребителя да има по-големи права за да създаде документа
     				if(!self::isSaleDiffAllowed($originRec)){
     					$res = 'ceo,salesMaster';
-    				} else {
-    					$res = 'ceo,sales';
     				}
     			}
     		}

@@ -45,7 +45,7 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,acc_plg_DpInvoice,
+					doc_EmailCreatePlg, doc_plg_MultiPrint, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,acc_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
     
     
@@ -71,12 +71,6 @@ class sales_Invoices extends core_Master
      * Старо име на класа
      */
     public $oldClassName = 'acc_Invoices';
-    
-    
-    /**
-     * В кой плейсхолдър ще се слага шаблона от doc_plg_TplManager
-     */
-    public $templateFld = 'INVOICE_HEADER';
     
     
     /**
@@ -128,12 +122,6 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * Нов темплейт за показване
-     */
-    public $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
-    
-    
-    /**
      * Икона за фактура
      */
     public $singleIcon = 'img/16/invoice.png';
@@ -166,7 +154,7 @@ class sales_Invoices extends core_Master
     	'responsible'         => 'lastDocUser|lastDoc',
     	'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
     	'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
-    	'uicNo'     		  => 'lastDocUser|lastDoc',
+    	'uicNo'     		  => 'lastDocUser|lastDoc|clientData',
 		'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
     	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
@@ -195,7 +183,7 @@ class sales_Invoices extends core_Master
         $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo');
-        $this->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №');
+        $this->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №,contragentDataField=uicId');
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode,contragentDataField=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData,contragentDataField=place');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
@@ -312,7 +300,7 @@ class sales_Invoices extends core_Master
         $this->sales_InvoiceDetails->calculateAmount($recs, $rec);
         
         $rec->dealValue = round($this->_total->amount * $rec->rate, 2);
-        $rec->vatAmount = round($this->_total->vat * $rec->rate, 2);
+        $rec->vatAmount = $this->_total->vat * $rec->rate;
         
         $rec->discountAmount = round($this->_total->discount * $rec->rate, 2);
     	$this->save($rec);
@@ -661,6 +649,10 @@ class sales_Invoices extends core_Master
     		$tpl->removeBlock('header');
     	}
     	
+    	if(!Mode::is('printing')){
+    		$tpl->replace(tr('ОРИГИНАЛ') . "/<i>ORIGINAL</i>", 'INV_STATUS');
+    	}
+    	
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     	
     	if($data->paymentPlan){
@@ -714,7 +706,7 @@ class sales_Invoices extends core_Master
 	    		$row->bic = $Varchar->toVerbal($ownAcc->bic);
 	    	}
 	    	
-	    	$row->header = "{$row->type} #<b>{$mvc->abbr}{$rec->id}</b> ({$row->state})" ;
+	    	$row->header = "{$row->type} #<b>{$mvc->getHandle($rec->id)}</b> ({$row->state})" ;
 	    	$userRec = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     		
@@ -894,6 +886,7 @@ class sales_Invoices extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
+       
         $type = static::fetchField($id, 'type');
         switch($type){
         	case 'invoice':
@@ -960,8 +953,10 @@ class sales_Invoices extends core_Master
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
+        $number = static::fetchField($id, 'number');
+        $number = str_pad($number, '10', '0', STR_PAD_LEFT);
         
-        return $self->abbr . $id;
+        return $self->abbr . $number;
     } 
     
     
@@ -1189,5 +1184,20 @@ class sales_Invoices extends core_Master
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * След рендиране на копия за принтиране
+     * @see doc_plg_MultiPrint
+     * 
+     * @param core_Mvc $mvc - мениджър
+     * @param core_ET $copyTpl - копие за рендиране
+     * @param int $copyNum - пореден брой на копието за принтиране
+     */
+    public static function on_AfterRenderPrintCopy($mvc, &$copyTpl, $copyNum)
+    {
+    	$inv_status = ($copyNum == '1') ? tr('ОРИГИНАЛ') . "/<i>ORIGINAL</i>" : tr('КОПИЕ') . "/<i>COPY</i>";
+    	$copyTpl->replace($inv_status, 'INV_STATUS');
     }
 }

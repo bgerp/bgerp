@@ -1,4 +1,4 @@
-#callSummary {
+.callSummary {
 	float:right;
 	padding:7px;
 	background:#eee;
@@ -11,18 +11,18 @@
 	float:left;
 }
 
-#callSummary table{
+.callSummary table{
 	border-collapse:separate;
 }
 
-#callSummary td{
+.callSummary td{
 	padding:3px;	
 }
 
-#callSummary {
+.callSummary {
 	margin-left:3px;
 }
 
-#callSummary .border-top td{
+.callSummary .border-top td{
 	border-top:1px solid #ccc;
 }

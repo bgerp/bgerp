@@ -1,79 +1,70 @@
 <div>
-	<div class="user-title" >
-	      	[#name#]
-	<!--ET_BEGIN image-->
-		<div class="profile-image">
-			<div>  
-				[#image#]
-			</div>
-		</div>
-	<!--ET_END image-->
-	</div>
-
-    <div class="inner-holder">
-	<!--ET_BEGIN contacts-->
-		[#contacts#]
-		<fieldset class="detail-info">
-			<legend class="groupTitle">|Адрес и контакти|*</legend>
-			<div class="groupList">
-				<table>
-										
-					<!--ET_BEGIN buzAddress-->
-						<tr>
-						    <td class='dt'>|Адрес|*</td>
-							<td>[#buzAddress#]</td>
-						<tr>
-					<!--ET_END buzAddress-->
-					
-					<!--ET_BEGIN buzLocationId-->
-						<tr>
-							<td class='dt'>|Локация|*</td>
-							<td>[#buzLocationId#]</td>
-						<tr>
-					<!--ET_END buzLocationId-->
-					
-					<!--ET_BEGIN buzPosition-->
-						<tr>
-							<td class='dt'>|Позиция|*</td>
-							<td>[#buzPosition#]</td>
-						<tr>
-					<!--ET_END buzPosition-->
-					
-					<!--ET_BEGIN buzMob-->
-						<tr>
-							<td class='dt'>|Моб.|*</td>
-							<td>[#buzMob#]</td>
-						<tr>
-					<!--ET_END buzMob-->
-					
-					<!--ET_BEGIN buzTel-->
-						<tr>
-							<td class='dt'>|Тел.|*
-							<td>[#buzTel#]</td>
-						<tr>
-					<!--ET_END buzTel-->
-					
-					<!--ET_BEGIN buzFax-->
-						<tr>
-							<td class='dt'>|Факс|*</td>
-							<td>[#buzFax#]</td>
-						<tr>
-					<!--ET_END buzFax-->
-					
-					<!--ET_BEGIN buzEmail-->
-						<tr>
-							<td class='dt'>|Имейл|*</td>
-							<td>[#buzEmail#]</td>
-						<tr>
-					<!--ET_END buzEmail-->
-					
-					<!--ET_BEGIN website-->
-						<tr>
-							<td class='dt'>|Сайт/Блог|*</td>
-							<td>[#website#]</td>
-						<tr>
-					<!--ET_END website-->
-			</table>
-		</div>
-	</fieldset>
-	<!--ET_END contacts-->
+<div class="user-title" >
+    [#name#]
+    <!--ET_BEGIN image-->
+    <div class="profile-image">
+        <div>  
+            [#image#]
+        </div>
+    </div>
+    <!--ET_END image-->
+</div>
+<div class="inner-holder">
+<!--ET_BEGIN contacts-->
+[#contacts#]
+<fieldset class="detail-info">
+    <legend class="groupTitle">|Адрес и контакти|*</legend>
+    <div class="groupList">
+        <table>
+            <!--ET_BEGIN buzAddress-->
+            <tr>
+                <td class='dt'>|Адрес|*</td>
+                <td>[#buzAddress#]</td>
+            </tr>
+            <!--ET_END buzAddress-->
+            <!--ET_BEGIN buzLocationId-->
+            <tr>
+                <td class='dt'>|Локация|*</td>
+                <td>[#buzLocationId#]</td>
+            </tr>
+            <!--ET_END buzLocationId-->
+            <!--ET_BEGIN buzPosition-->
+            <tr>
+                <td class='dt'>|Позиция|*</td>
+                <td>[#buzPosition#]</td>
+            </tr>
+            <!--ET_END buzPosition-->
+            <!--ET_BEGIN buzMob-->
+            <tr>
+                <td class='dt'>|Моб.|*</td>
+                <td>[#buzMob#]</td>
+            </tr>
+            <!--ET_END buzMob-->
+            <!--ET_BEGIN buzTel-->
+            <tr>
+                <td class='dt'>|Тел.|*
+                <td>[#buzTel#]</td>
+            </tr>
+            <!--ET_END buzTel-->
+            <!--ET_BEGIN buzFax-->
+            <tr>
+                <td class='dt'>|Факс|*</td>
+                <td>[#buzFax#]</td>
+            </tr>
+            <!--ET_END buzFax-->
+            <!--ET_BEGIN buzEmail-->
+            <tr>
+                <td class='dt'>|Имейл|*</td>
+                <td>[#buzEmail#]</td>
+            </tr>
+            <!--ET_END buzEmail-->
+            <!--ET_BEGIN website-->
+            <tr>
+                <td class='dt'>|Сайт/Блог|*</td>
+                <td>[#website#]</td>
+            </tr>
+            <!--ET_END website-->
+        </table>
+    </div>
+</fieldset>
+<!--ET_END contacts-->

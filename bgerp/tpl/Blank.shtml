@@ -1,16 +1,14 @@
-<table style="width: 100%; margin-bottom:5px;" cellspacing=0 cellpadding=0>
-	<tr>
-	<td class='blankImage'>
-		<!--ET_BEGIN blankImage-->
-			[#blankImage#]
-		<!--ET_END blankImage-->
-	</td>
-	
-	<td align=right valign="bottom" class='qrcode'>
-		<!--ET_BEGIN blankQr-->
-			[#blankQr#]
-		<!--ET_END blankQr-->
-	</td>
-	</tr>
-		
+<table style="width: 100%; margin-bottom:5px;">
+    <tr>
+        <td class='blankImage'>
+            <!--ET_BEGIN blankImage-->
+            [#blankImage#]
+            <!--ET_END blankImage-->
+        </td>
+        <td class='qrcode aright vbottom'>
+            <!--ET_BEGIN blankQr-->
+            [#blankQr#]
+            <!--ET_END blankQr-->
+        </td>
+    </tr>
 </table>

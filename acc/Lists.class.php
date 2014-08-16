@@ -448,7 +448,7 @@ class acc_Lists extends core_Manager {
                 $listIfaceId = static::fetchField($listId, 'regInterfaceId');
                 expect(
                     empty($listIfaceId) || !empty($itemInterfaceIds[$listIfaceId]), 
-                    "Класът не поддържа нужния интерфейс"
+                    "Класът '" . core_Classes::fetchField($itemRec->classId, 'name') . "' не поддържа нужния интерфейс '" . core_Interfaces::fetchField($listIfaceId, 'name'). "'"
                 );
             }
         }

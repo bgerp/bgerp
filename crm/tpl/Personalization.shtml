@@ -1,36 +1,32 @@
 <table>
-	<!--ET_BEGIN inbox-->
-	<tr>
-	    <td class='dt'>|Кутия|*</td>
-	    <td>[#inbox#]</td>
-	</tr>
-	<!--ET_END inbox-->
-	
-	<!--ET_BEGIN signature-->
-	<tr>
-	    <td class='dt'>|Подпис|*</td>
-	    <td>[#signature#]</td>
-	</tr>
-	<!--ET_END signature-->
-
-	<!--ET_BEGIN header-->
-	<tr>
-	    <td class='dt'>|Привет|*</td>
-	    <td>[#header#]</td>
-	</tr>
-	<!--ET_END header-->
-
-	<!--ET_BEGIN logo-->
-	<tr>
-	    <td class='dt'>|Бланка|*</td>
-	    <td>[#logo#]</td>
-	</tr>
-	<!--ET_END logo-->
-	
-	<!--ET_BEGIN logoEn-->
-	<tr>
-	    <td class='dt'>|Бланка|* EN</td>
-	    <td>[#logoEn#]</td>
-	</tr>
-	<!--ET_END logoEn-->
+    <!--ET_BEGIN inbox-->
+    <tr>
+        <td class='dt'>|Кутия|*</td>
+        <td>[#inbox#]</td>
+    </tr>
+    <!--ET_END inbox-->
+    <!--ET_BEGIN signature-->
+    <tr>
+        <td class='dt'>|Подпис|*</td>
+        <td>[#signature#]</td>
+    </tr>
+    <!--ET_END signature-->
+    <!--ET_BEGIN header-->
+    <tr>
+        <td class='dt'>|Привет|*</td>
+        <td>[#header#]</td>
+    </tr>
+    <!--ET_END header-->
+    <!--ET_BEGIN logo-->
+    <tr>
+        <td class='dt'>|Бланка|*</td>
+        <td>[#logo#]</td>
+    </tr>
+    <!--ET_END logo-->
+    <!--ET_BEGIN logoEn-->
+    <tr>
+        <td class='dt'>|Бланка|* EN</td>
+        <td>[#logoEn#]</td>
+    </tr>
+    <!--ET_END logoEn-->
 </table>

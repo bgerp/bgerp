@@ -1,10 +1,10 @@
-<form method='[#ACTION#]' class='portal-filter'>
-<div class='hFormField'>
-<input value="[#VALUE#]" name="[#FLD_NAME#]"  placeholder="Търсене" list="[#LIST#]" autocomplete="off"/>
-<div style = 'display:none'>
-[#DATA_LIST#]
-</div>
-</div>
-<input class='SearchBtnPortal button linkWithIcon' type='submit' style='background-image:url([#ICON#]);' value='' name='Cmd[]'></input>
-[#FORM_HIDDEN#]
+<form method="[#ACTION#]" class='portal-filter'>
+    <div class='hFormField'>
+        <input value="[#VALUE#]" name="[#FLD_NAME#]"  placeholder="Търсене" list="[#LIST#]" autocomplete="off"/>
+        <div style = 'display:none'>
+            [#DATA_LIST#]
+        </div>
+    </div>
+    <input class='SearchBtnPortal button linkWithIcon' type='submit' style='background-image:url([#ICON#]);' value='' name='Cmd[]'/>
+    [#FORM_HIDDEN#]
 </form>

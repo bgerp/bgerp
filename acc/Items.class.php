@@ -187,7 +187,7 @@ class acc_Items extends core_Manager
                 
             	// По дефолт е линк към сингъла, ако имаме права
             	if($AccRegister->haveRightFor('single', $rec->objectId)) {
-                	if($AccRegister->fetch($rec->objectId)){
+                	if($AccRegister->fetchField($rec->objectId)){
                 		$rec->titleLink = ht::createLinkRef($rec->titleLink, array($AccRegister, 'Single', $rec->objectId));
                 	} else {
                 		$cantShow = TRUE;

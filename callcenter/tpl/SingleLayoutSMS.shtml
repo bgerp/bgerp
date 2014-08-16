@@ -1,84 +1,71 @@
 <div class="singleView email-class">
-	
-	[#SingleToolbar#]
-	
-	<h2><div style="padding:5px;" class=" [#SMSStatusClass#] ">|SMS|* <b style="color:green;">№ [#id#]</b></div></h2>
-	
-	<table class="styled-table" width="100%">
-		<tr>
-			<th colspan="2">|Получател|*</th>
-		</tr>
-		
-		<!--ET_BEGIN mobileNumData-->
-			<tr>
-				<td class="title-style">|Контакт|*</td>
-				<td>[#mobileNumData#]</td>
-			</tr>
-		<!--ET_END mobileNumData-->
-		
-		<tr>
-			<td class="title-style" width="150px">|Номер|*</td>
-			<td> [#mobileNum#]</td>
-		</tr>
-	</table>
-	
-	<table class="styled-table" width="100%">
-		<tr>
-			<th colspan="2">|Изпращач|*</th>
-		</tr>
-		
-		<tr>
-			<td class="title-style">|Потребител|*</td>
-			<td>[#createdBy#]</td>
-		</tr>
-		
-		<!--ET_BEGIN sender-->
-			<tr>
-				<td class="title-style" width="150px">|Титла|*</td>
-				<td> [#sender#]</td>
-			</tr>
-		<!--ET_END sender-->
-		
-		<tr>
-			<td class="title-style" width="150px">|Услуга|*</td>
-			<td> [#service#]</td>
-		</tr>
-	</table>
-	
-	<table class="styled-table" width="100%">
-		<tr>
-			<th colspan="2">|Текст|*</th>
-		</tr>
-		
-		<!--ET_BEGIN createdOn-->
-			<tr>
-				<td> [#text#]</td>
-			</tr>
-		<!--ET_END createdOn-->
-	</table>
-	
-	<table class="styled-table" width="100%">
-		<tr>
-			<th colspan="2">|Информация|*</th>
-		</tr>
-		
-		<!--ET_BEGIN createdOn-->
-			<tr>
-				<td class="title-style" width="150px">|Изпратено на|*</td>
-				<td> [#createdOn#]</td>
-			</tr>
-		<!--ET_END createdOn-->
-		
-		<!--ET_BEGIN receivedTime-->
-			<tr>
-				<td class="title-style" width="150px">|Получено на|*</td>
-				<td> [#receivedTime#]</td>
-			</tr>
-		<!--ET_END receivedTime-->
-		
-		<tr>
-			<td class="title-style" width="150px">|Статус|*</td>
-			<td> [#status#]</td>
-		</tr>
-	</table>
+    [#SingleToolbar#]
+    <h2>
+        <div style="padding:5px;" class=" [#SMSStatusClass#] ">|SMS|* <b style="color:green;">№ [#id#]</b></div>
+    </h2>
+    <table class="styled-table" style='width:100px'>
+        <tr>
+            <th colspan="2">|Получател|*</th>
+        </tr>
+        <!--ET_BEGIN mobileNumData-->
+        <tr>
+            <td class="title-style">|Контакт|*</td>
+            <td>[#mobileNumData#]</td>
+        </tr>
+        <!--ET_END mobileNumData-->
+        <tr>
+            <td class="title-style" style='width:150px'>|Номер|*</td>
+            <td> [#mobileNum#]</td>
+        </tr>
+    </table>
+    <table class="styled-table" style='width:100px'>
+        <tr>
+            <th colspan="2">|Изпращач|*</th>
+        </tr>
+        <tr>
+            <td class="title-style">|Потребител|*</td>
+            <td>[#createdBy#]</td>
+        </tr>
+        <!--ET_BEGIN sender-->
+        <tr>
+            <td class="title-style" style='width:150px'>|Титла|*</td>
+            <td> [#sender#]</td>
+        </tr>
+        <!--ET_END sender-->
+        <tr>
+            <td class="title-style" style='width:150px'>|Услуга|*</td>
+            <td> [#service#]</td>
+        </tr>
+    </table>
+    <table class="styled-table" style='width:100px'>
+        <tr>
+            <th colspan="2">|Текст|*</th>
+        </tr>
+        <!--ET_BEGIN createdOn-->
+        <tr>
+            <td> [#text#]</td>
+        </tr>
+        <!--ET_END createdOn-->
+    </table>
+    <table class="styled-table" style='width:100px'>
+        <tr>
+            <th colspan="2">|Информация|*</th>
+        </tr>
+        <!--ET_BEGIN createdOn-->
+        <tr>
+            <td class="title-style" style='width:150px'>|Изпратено на|*</td>
+            <td> [#createdOn#]</td>
+        </tr>
+        <!--ET_END createdOn-->
+        <!--ET_BEGIN receivedTime-->
+        <tr>
+            <td class="title-style" style='width:150px'>|Получено на|*</td>
+            <td> [#receivedTime#]</td>
+        </tr>
+        <!--ET_END receivedTime-->
+        <tr>
+            <td class="title-style" style='width:150px'>|Статус|*</td>
+            <td> [#status#]</td>
+        </tr>
+    </table>
 </div>

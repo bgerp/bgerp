@@ -205,10 +205,13 @@ class deals_ClosedDeals extends acc_ClosedDeals
     {
     	// Можели да се добави към нишката
     	$res = parent::canAddToThread($threadId);
+    	
     	if(!$res) return FALSE;
     
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
     	if(!($firstDoc->instance instanceof deals_Deals)) return FALSE;
-    
+    	
     	return TRUE;
     }
 }

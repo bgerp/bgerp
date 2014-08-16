@@ -1,69 +1,95 @@
 [#SingleToolbar#]
-
 <div class='document'>
-	
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
-	</div>
-	<div class='scrolling-holder'>
-		<div style='margin-top:10px;'>
-			<div class='fleft'>
-					<table class='default-table'>
-						<tr><td class="quiet" align="right" width='130px'>|Номер|*:</td><td>[#number#]</td></tr>
-						<!--ET_BEGIN createdBy--><tr><td class="quiet" align="right">|Създаден|*:</td><td>|на|* <b>[#createdDate#] </b>|от|* <b>[#createdBy#]</b></td></tr><!--ET_END createdBy-->	
-						<tr><td class="quiet" align="right">|Вальор|*:</td><td><b>[#valior#]</b></td></tr>
-						<tr><td class="quiet" align="right">|Операция|*:</td><td><b>[#operationSysId#]</b></td></tr>
-						<!--ET_BEGIN creditCase-->
-						<tr><td class="quiet" align="right">|От|*:</td><td>[#creditCase#]</td></tr>
-						<!--ET_END creditCase-->
-						<!--ET_BEGIN creditBank-->
-						<tr><td class="quiet" align="right">|От|*:</td><td>[#creditBank#]</td></tr>
-						<!--ET_END creditBank-->
-						<!--ET_BEGIN debitCase-->
-						<tr><td class="quiet" align="right">|Към|*:</td><td>[#debitCase#]</td></tr>
-						<!--ET_END debitCase-->
-						<!--ET_BEGIN debitBank-->
-						<tr><td class="quiet" align="right">|Към|*:</td><td>[#debitBank#]</td></tr>
-						<!--ET_END debitBank-->
-						<tr><td class="quiet" align="right">|Основание|*:</td><td>[#reason#]</td></tr>
-					</table>
-			</div>
-			<div class="fleft internal-amount">
-					<table class='default-table'>
-						<!--ET_BEGIN amount-->
-						<tr>
-							<td class="quiet" align="right">|Сума|*:</td>
-							<td><span class="cCode">[#currency#]</span> 
-								<b><span style='color:darkgreen'>[#amount#]</span></b>
-							</td>
-						</tr>
-						<!--ET_END amount-->
-						<!--ET_BEGIN equals-->
-						<tr>
-							<td class='quiet'>|Равностойност|*:</td>
-							<td>
-							 <span class="cCode">[#baseCurrency#]</span>
-							<b><span style='color:darkgreen'>[#equals#]</span></b>
-							</td>
-						</tr>
-						<!--ET_END equals-->
-					</table>
-			</div>		
-		</div>
-	  </div>
-		<!--ET_BEGIN DETAILS-->
-			<div class='details'>
-				[#DETAILS#]
-			</div>
-		<!--ET_END DETAILS-->
-		<!--ET_BEGIN shareLog-->
-	    	<div class='sharing-history clearfix21'>
-	        	<span class='sharing-history-title'>|Споделяне|*</span>
-	        	[#shareLog#]
-	    	</div>
-	    <!--ET_END shareLog-->	
-  
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <div class='scrolling-holder'>
+        <div style='margin-top:10px;'>
+            <div class='fleft'>
+                <table class='default-table'>
+                    <tr>
+                        <td class="quiet aright" style='width:130px'>|Номер|*:</td>
+                        <td>[#number#]</td>
+                    </tr>
+                    <!--ET_BEGIN createdBy-->
+                    <tr>
+                        <td class="quiet aright">|Създаден|*:</td>
+                        <td>|на|* <b>[#createdDate#] </b>|от|* <b>[#createdBy#]</b></td>
+                    </tr>
+                    <!--ET_END createdBy-->	
+                    <tr>
+                        <td class="quiet aright">|Вальор|*:</td>
+                        <td><b>[#valior#]</b></td>
+                    </tr>
+                    <tr>
+                        <td class="quiet aright">|Операция|*:</td>
+                        <td><b>[#operationSysId#]</b></td>
+                    </tr>
+                    <!--ET_BEGIN creditCase-->
+                    <tr>
+                        <td class="quiet aright">|От|*:</td>
+                        <td>[#creditCase#]</td>
+                    </tr>
+                    <!--ET_END creditCase-->
+                    <!--ET_BEGIN creditBank-->
+                    <tr>
+                        <td class="quiet aright">|От|*:</td>
+                        <td>[#creditBank#]</td>
+                    </tr>
+                    <!--ET_END creditBank-->
+                    <!--ET_BEGIN debitCase-->
+                    <tr>
+                        <td class="quiet aright">|Към|*:</td>
+                        <td>[#debitCase#]</td>
+                    </tr>
+                    <!--ET_END debitCase-->
+                    <!--ET_BEGIN debitBank-->
+                    <tr>
+                        <td class="quiet aright">|Към|*:</td>
+                        <td>[#debitBank#]</td>
+                    </tr>
+                    <!--ET_END debitBank-->
+                    <tr>
+                        <td class="quiet aright">|Основание|*:</td>
+                        <td>[#reason#]</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="fleft internal-amount">
+                <table class='default-table'>
+                    <!--ET_BEGIN amount-->
+                    <tr>
+                        <td class="quiet aright">|Сума|*:</td>
+                        <td><span class="cCode">[#currency#]</span> 
+                            <b><span style='color:darkgreen'>[#amount#]</span></b>
+                        </td>
+                    </tr>
+                    <!--ET_END amount-->
+                    <!--ET_BEGIN equals-->
+                    <tr>
+                        <td class='quiet'>|Равностойност|*:</td>
+                        <td>
+                            <span class="cCode">[#baseCurrency#]</span>
+                            <b><span style='color:darkgreen'>[#equals#]</span></b>
+                        </td>
+                    </tr>
+                    <!--ET_END equals-->
+                </table>
+            </div>
+        </div>
+    </div>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
+    <!--ET_BEGIN shareLog-->
+    <div class='sharing-history clearfix21'>
+        <span class='sharing-history-title'>|Споделяне|*</span>
+        [#shareLog#]
+    </div>
+    <!--ET_END shareLog-->	
 </div>

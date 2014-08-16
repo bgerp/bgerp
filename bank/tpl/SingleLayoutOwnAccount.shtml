@@ -1,48 +1,47 @@
 <div class="singleView">
-[#SingleToolbar#]
-	<div class='scrolling-holder'>
-		<div class="folder-cover [#STATE_CLASS#]">
-			<div class="inner-folder">
-				<div class="block_title state-active special-title">[#SingleIcon#] |Банкова сметка|* <b style="color:green;">[#title#]</b></div>
-				<fieldset class="detail-info">
-					<legend class="groupTitle">|Информация|*</legend>
-					<div class="groupList">
-						<table>
-							<tr>
-								<td class='dt'>|Номер|*:</td>
-								<td>[#id#]</td>
-							</tr>
-							<tr>
-								<td class='dt'>|Сметка|*:</td>
-								<td><b>[#bankAccountId#]</b></td>
-							</tr>
-							<tr>
-								<td class='dt'>|Валута|*:</td>
-								<td><b>[#currency#]</b></td>
-							</tr>
-							<tr>
-								<td class='dt'>|Тип|*:</td>
-								<td><b>[#type#]</b></td>
-							</tr>
-							<tr>
-								<td class='dt'>|Титуляри|*:</td>
-								<td><b>[#titulars#]</b></td>
-							</tr>
-							<tr>
-								<td class='dt'>|Представляват|*:</td>
-								<td>[#together#]</td>
-							</tr>
-							<tr>
-								<td class='dt'>|Oператори|*:</td>
-								<td>[#operators#]</td>
-							</tr>
-							
-						</table>
-					</div>
-				</fieldset>
-			[#DETAILS#]
-        <div style="clear:both;"></div>
-			</div>
-		</div>
-	</div>
+    [#SingleToolbar#]
+    <div class='scrolling-holder'>
+        <div class="folder-cover [#STATE_CLASS#]">
+            <div class="inner-folder">
+                <div class="block_title state-active special-title">[#SingleIcon#] |Банкова сметка|* <b style="color:green;">[#title#]</b></div>
+                <fieldset class="detail-info">
+                    <legend class="groupTitle">|Информация|*</legend>
+                    <div class="groupList">
+                        <table>
+                            <tr>
+                                <td class='dt'>|Номер|*:</td>
+                                <td>[#id#]</td>
+                            </tr>
+                            <tr>
+                                <td class='dt'>|Сметка|*:</td>
+                                <td><b>[#bankAccountId#]</b></td>
+                            </tr>
+                            <tr>
+                                <td class='dt'>|Валута|*:</td>
+                                <td><b>[#currency#]</b></td>
+                            </tr>
+                            <tr>
+                                <td class='dt'>|Тип|*:</td>
+                                <td><b>[#type#]</b></td>
+                            </tr>
+                            <tr>
+                                <td class='dt'>|Титуляри|*:</td>
+                                <td><b>[#titulars#]</b></td>
+                            </tr>
+                            <tr>
+                                <td class='dt'>|Представляват|*:</td>
+                                <td>[#together#]</td>
+                            </tr>
+                            <tr>
+                                <td class='dt'>|Oператори|*:</td>
+                                <td>[#operators#]</td>
+                            </tr>
+                        </table>
+                    </div>
+                </fieldset>
+                [#DETAILS#]
+                <div style="clear:both;"></div>
+            </div>
+        </div>
+    </div>
 </div>

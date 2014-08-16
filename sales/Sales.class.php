@@ -39,7 +39,7 @@ class sales_Sales extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager, acc_plg_Deals, doc_DocumentPlg, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_plg_MultiPrint, plg_Printing, doc_plg_TplManager, acc_plg_Deals, doc_DocumentPlg, acc_plg_Contable,
                     acc_plg_DocumentSummary, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, doc_SharablePlg';
     
@@ -66,6 +66,12 @@ class sales_Sales extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,sales';
+    
+    
+    /**
+     * Кой може да принтира фискална бележка
+     */
+    public $canPrintfiscreceipt = 'debug';
     
     
     /**
@@ -106,6 +112,12 @@ class sales_Sales extends core_Master
     public $details = 'sales_SalesDetails' ;
     
 
+    /**
+     * Кое поле да се използва за филтър по потребители
+     */
+    public $filterFieldUsers = 'dealerId';
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -152,7 +164,6 @@ class sales_Sales extends core_Master
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
     	'makeInvoice'        => 'lastDocUser|lastDoc|defMethod',
-    	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
@@ -247,7 +258,7 @@ class sales_Sales extends core_Master
             'caption=Статус, input=none'
         );
         
-    	$this->FLD('paymentState', 'enum(pending=Чакащо,overdue=Просроченo,paid=Платенo)', 'caption=Плащане, input=none');
+    	$this->FLD('paymentState', 'enum(pending=Чакащо,overdue=Просроченo,paid=Платенo,repaid=Издължено)', 'caption=Плащане, input=none');
     }
     
     
@@ -421,6 +432,9 @@ class sales_Sales extends core_Master
         
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     	$form->setField('sharedUsers', 'input=none');
+    	
+    	// Текущия потребител е търговеца, щом се е стигнало до тук значи има права
+    	$form->setDefault('dealerId', core_Users::getCurrent());
     }
     
     
@@ -524,41 +538,6 @@ class sales_Sales extends core_Master
     
     
     /**
-     * Помощен метод за определяне на търговец по подразбиране.
-     * 
-     * Правило за определяне: първия, който има права за създаване на продажби от списъка:
-     * 
-     *  1/ Отговорника на папката на контрагента
-     *  2/ Текущият потребител
-     *  
-     *  Ако никой от тях няма права за създаване - резултатът е NULL
-     *
-     * @param stdClass $rec запис на модела sales_Sales
-     * @return int|NULL user(roles=sales)
-     */
-    public static function getDefaultDealerId($rec)
-    {
-        expect($rec->folderId);
-
-        // Отговорника на папката на контрагента ...
-        $inChargeUserId = doc_Folders::fetchField($rec->folderId, 'inCharge');
-        if (self::haveRightFor('add', NULL, $inChargeUserId)) {
-            // ... има право да създава продажби - той става дилър по подразбиране.
-            return $inChargeUserId;
-        }
-        
-        // Текущия потребител ...
-        $currentUserId = core_Users::getCurrent('id');
-        if (self::haveRightFor('add', NULL, $currentUserId)) {
-            // ... има право да създава продажби
-            return $currentUserId;
-        }
-        
-        return NULL;
-    }
-    
-    
-    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 
      * @param core_Mvc $mvc
@@ -607,17 +586,17 @@ class sales_Sales extends core_Master
         }
         
         foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt){
-        	$color = (round($rec->{"amount{$amnt}"}, 2)< 0) ? 'red' : 'green';
+        	$color = (round($rec->{"amount{$amnt}"}, 2) < 0) ? 'red' : 'green';
         	$row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
         
-        if($rec->paymentState == 'overdue'){
+        if($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid'){
         	$row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . "</span>";
         }
         
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-	    	$row->paymentState = ($rec->paymentState == 'overdue') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
+	    	$row->paymentState = ($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
     	}
 	    
 	    if($fields['-single']){
@@ -661,6 +640,10 @@ class sales_Sales extends core_Master
 			
 			if(isset($actions['pay'])){
 				$row->isPaid .= tr('ПЛАТЕНО');
+				
+				if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && $mvc->haveRightFor('printFiscReceipt', $rec)){
+					$row->isPaid .= " " . ht::createBtn('КБ', array($mvc, 'printReceipt', $rec->id), NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка'));
+				}
 			}
 			
 			if($rec->makeInvoice == 'no' && isset($rec->amountToInvoice)){
@@ -705,17 +688,11 @@ class sales_Sales extends core_Master
         if(!Request::get('Rejected', 'int')){
         	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
 	        $data->listFilter->setDefault('type', 'active');
-			$data->listFilter->showFields .= ',dealerId,type';
-			$data->listFilter->setField('dealerId', 'caption=Търговец');
-			$data->listFilter->setDefault('dealerId', core_Users::getCurrent());
+			$data->listFilter->showFields .= ',type';
 		}
 		
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
-			
-			if($filter->dealerId){
-				$data->query->where("#dealerId = {$filter->dealerId}");
-			}
 		
 			$data->query->XPR('paidRound', 'double', 'ROUND(#amountPaid, 2)');
 			$data->query->XPR('dealRound', 'double', 'ROUND(#amountDeal, 2)');
@@ -825,6 +802,57 @@ class sales_Sales extends core_Master
     	if(haveRole('debug')){
             $data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
     	}
+    }
+    
+    
+    /**
+     * Принтиране на касова бележка
+     */
+    public function act_PrintReceipt()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetchRec($id));
+    	$this->requireRightFor('printFiscReceipt', $rec);
+    	
+    	$conf = core_Packs::getConfig('sales');
+    	$Driver = cls::get($conf->SALE_FISC_PRINTER_DRIVER);
+    	$driverData = $this->prepareFiscPrinterData($rec);
+    	
+    	return $Driver->createFile($driverData);
+    }
+    
+    
+    /**
+     * Подготвя данните за фискалния принтер
+     */
+    private function prepareFiscPrinterData($rec)
+    {
+    	$dQuery = $this->sales_SalesDetails->getQuery();
+    	$dQuery->where("#saleId = {$rec->id}");
+    	
+    	$data = (object)array('products' => array(), 'payments' => array());
+    	while($dRec = $dQuery->fetch()){
+    		$nRec = new stdClass();
+    		$nRec->id = $dRec->productId;
+    		$nRec->managerId = $dRec->classId;
+    		$nRec->quantity = $dRec->packQuantity;
+    		if($dRec->discount){
+    			$nRec->discount = (round($dRec->discount, 2) * 100) . "%";
+    		}
+    		$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    		$nRec->measure = ($dRec->packagingId) ? cat_Packagings::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    		$nRec->vat = cls::get($dRec->classId)->getVat($dRec->productId, $rec->valior);
+    		$nRec->price = $dRec->packPrice;
+    		
+    		$data->products[] = $nRec;
+    	}
+    	
+    	$nRec = new stdClass();
+    	$nRec->type = 0;
+    	$nRec->amount = round($rec->amountPaid, 2);
+    	$data->payments[] = $nRec;
+    	
+    	return $data;
     }
     
     
@@ -1033,6 +1061,7 @@ class sales_Sales extends core_Master
             }
          }
          
+         $result->set('contoActions', $actions);
          $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($rec->id));
     }
     
@@ -1220,12 +1249,12 @@ class sales_Sales extends core_Master
     function cron_CloseOldSales()
     {
     	$conf = core_Packs::getConfig('sales');
-    	$tolerance = $conf->SALE_CLOSE_TOLERANCE;
     	$olderThan = $conf->SALE_CLOSE_OLDER_THAN;
+    	$limit = $conf->SALE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('sales_ClosedDeals');
     	
     	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->closeOldDeals($olderThan, $tolerance, $ClosedDeals);
+    	$CronHelper->closeOldDeals($olderThan, $ClosedDeals, $limit);
     }
     
     
@@ -1240,7 +1269,7 @@ class sales_Sales extends core_Master
         $rec->description = "Затваря приключените продажби";
         $rec->controller = "sales_Sales";
         $rec->action = "CloseOldSales";
-        $rec->period = 1440;
+        $rec->period = 180;
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;
@@ -1429,14 +1458,9 @@ class sales_Sales extends core_Master
     	$rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
     	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
     	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
+    
+    	$rec->paymentState  = $mvc->getPaymentState($aggregateDealInfo, $rec->paymentState);
     	
-    	if($rec->amountPaid && $rec->amountDelivered && $rec->paymentState != 'overdue'){
-    		if($rec->amountPaid >= $rec->amountDelivered){
-    			$rec->paymentState = 'paid';
-    		} else {
-    			$rec->paymentState = 'pending';
-    		}
-    	}
     	$mvc->save($rec);
     	
     	$dQuery = $mvc->sales_SalesDetails->getQuery();
@@ -1502,5 +1526,93 @@ class sales_Sales extends core_Master
     	//Ако потребителя не е в група доставчици го включваме
     	$rec = $mvc->fetchRec($rec);
     	cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, 'customers');
+    }
+    
+    
+    /**
+     * Ако с тази продажба е приключена друга продажба
+     */
+    public static function on_AfterClosureWithDeal($mvc, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	// Намираме всички продажби които са приключени с тази
+    	$details = array();
+    	$closedDeals = sales_ClosedDeals::getClosedWithDeal($rec->id);
+    	
+    	if(count($closedDeals)){
+    		
+    		// За всяка от тях, включително и този документ
+    		foreach ($closedDeals as $doc){
+    		
+    			// Взимаме договорените продукти от продажбата начало на нейната нишка
+    			$firstDoc = doc_Threads::getFirstDocument($doc->threadId);
+    			$dealInfo = $firstDoc->getAggregateDealInfo();
+    			$products = (array)$dealInfo->get('products');
+    			if(count($products)){
+    				foreach ($products as $p){
+    		
+    					// Обединяваме множествата на договорените им продукти
+    					$index = $p->classId . "|" . $p->productId;
+    					$d = &$details[$index];
+    					$d = (object)$d;
+    		
+    					$d->classId = $p->classId;
+    					$d->productId = $p->productId;
+    					$d->uomId = $p->uomId;
+    					$d->quantity += $p->quantity;
+    					$d->price = ($d->price) ? ($d->price + $p->price) / 2 : $p->price;
+    					if(!empty($d->discount) || !empty($p->discount)){
+    						$d->discount = ($d->discount + $p->discount) / 2;
+    					}
+    		
+    					$info = cls::get($p->classId)->getProductInfo($p->productId, $p->packagingId);
+    					$p->quantityInPack = ($p->packagingId) ? $info->packagingRec->quantity : 1;
+    					if(empty($d->packagingId)){
+    						$d->packagingId = $p->packagingId;
+    						$d->quantityInPack = $p->quantityInPack;
+    					} else {
+    						if($p->quantityInPack < $d->quantityInPack){
+    							$d->packagingId = $p->packagingId;
+    							$d->quantityInPack = $p->quantityInPack;
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	// Изтриваме досегашните детайли на продажбата
+    	sales_SalesDetails::delete("#saleId = {$rec->id}");
+    	
+    	// Записваме новите
+    	if(count($details)){
+    		foreach ($details as $d1){
+    			$d1->saleId = $rec->id;
+    			$mvc->sales_SalesDetails->save($d1);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'printfiscreceipt' && isset($rec)){
+    		
+    		$actions = type_Set::toArray($rec->contoActions);
+    		if ($actions['ship'] && $actions['pay']) {
+    			$conf = core_Packs::getConfig('sales');
+    			
+    			// Ако няма избран драйвер за принтер или той е деинсталиран никой не може да издава касова бележка
+    			if($conf->SALE_FISC_PRINTER_DRIVER == '' || core_Classes::fetchField($conf->SALE_FISC_PRINTER_DRIVER, 'state') == 'closed'){
+    				$res = 'no_one';
+    			}
+    		} else {
+    			$res = 'no_one';
+    		}
+    	}
     }
 }

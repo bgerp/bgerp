@@ -16,6 +16,12 @@ defIfNot('BASE_CURRENCY_CODE', 'BGN');
 
 
 /**
+ * Толеранс за допустимо разминаване на суми
+ */
+defIfNot('ACC_MONEY_TOLERANCE', '0.01');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -79,10 +85,18 @@ class acc_Setup extends core_ProtoSetup
             'acc_JournalDetails',
     		'acc_OpenDeals',
     		'acc_Features',
-    		'migrate::removeYearIntf',
+    		'migrate::removeYearIntfAndItem',
         );
     
 
+    /**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+		'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
+	);
+    
+    
     /**
      * Роли за достъп до модула
      */
@@ -154,11 +168,18 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Миграция, която премахва данните останали от мениджъра за годините
      */
-    function removeYearIntf()
+    function removeYearIntfAndItem()
     {
     	// Изтриваме интерфейса на годините от таблицата с итнерфейсите
     	if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsAccRegIntf'")){
     		core_Interfaces::delete($oldIntRec->id);
+    	}
+    	
+    	// Изтриваме и перата за години със стария меджър 'години'
+    	if($oldYearManId = core_Classes::fetchIdByName('acc_Years')){
+    		if(acc_Items::fetch("#classId = '{$oldYearManId}'")){
+    			acc_Items::delete("#classId = '{$oldYearManId}'");
+    		}
     	}
     }
 }

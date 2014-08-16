@@ -1,33 +1,26 @@
 [#SingleToolbar#]
-
-		<div class='header'>
-			<p class="calTitle [#colTitle#]">[#title#]</p>
-			<span>[#ListFilter#]</span>
-	    </div>
-
-        <div class="clearfix" style="min-height:10px;"></div>
-					
-		<!--ET_BEGIN event-->
-		<div class='block_left'>
-         		<div class="clearfix21"></div>
-                <table cellspacing='1' class='mc-calendar mc-calendar-day'>
-				<tr>
-                     <th class="calDayTime">|Време|*</th>
-                     <td class="calDayTime">|Заглавие|*</td>
-                     
-                 </tr>
-                
-                 
-                 <!--ET_BEGIN COMMENT_LI-->
-                 <tr class="[#colTr#]" data-cal-time="[#timeJs#]"> 
-                     <th class="calDayH [#fromTask#]">[#time#]</th>
-                     <td ondblclick="createDblTask('[#dateJs#]');" [#over0#] [#out0#] class="[#now#]" data-cal-date="[#dateJs#]"><div class="relative-holder">[#tasktitle#]<a class="add-task-btn" onclick="createTask('[#dateJs#]');">[#href0#]</a></div></td>
-                     
-                 </tr>
-                 <!--ET_END COMMENT_LI-->
-                               
-                 </table>
-			</div>
-         <!--ET_END event-->
-         
-         <div style='clear: both;'></div>
+<div class='header'>
+    <p class="calTitle [#colTitle#]">[#title#]</p>
+    <div>[#ListFilter#]</div>
+</div>
+<div class="clearfix" style="min-height:10px;"></div>
+<!--ET_BEGIN event-->
+<div class='block_left'>
+    <div class="clearfix21"></div>
+    <table class='mc-calendar mc-calendar-day'>
+        <tr>
+            <th class="calDayTime">|Време|*</th>
+            <td class="calDayTime">|Заглавие|*</td>
+        </tr>
+        <!--ET_BEGIN COMMENT_LI-->
+        <tr class="[#colTr#]" data-cal-time="[#timeJs#]">
+            <th class="calDayH [#fromTask#]">[#time#]</th>
+            <td ondblclick="createDblTask('[#dateJs#]');" class="[#now#]" data-cal-date="[#dateJs#]">
+                <div class="relative-holder">[#tasktitle#]<a class="add-task-btn" onclick="createTask('[#dateJs#]');">[#href0#]</a></div>
+            </td>
+        </tr>
+        <!--ET_END COMMENT_LI-->
+    </table>
+</div>
+<!--ET_END event-->
+<div style='clear: both;'></div>

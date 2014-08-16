@@ -232,7 +232,12 @@ class acc_plg_Contable extends core_Plugin
             if (isset($rec) && $rec->isContable == 'no'){
             	$requiredRoles = 'no_one';
             }
-
+            
+            // '@sys' може да контира документи
+            if($userId == '-1'){
+            	$requiredRoles = 'every_one';
+            }
+            
             // Кой може да реконтира документа( изпълнява се след възстановяване на оттеглен документ)
         } elseif($action == 'reconto' && isset($rec)){
         	
@@ -361,7 +366,7 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     { 
         $rec = $mvc->fetchRec($id);
-        
+       
         // Дали имаме права за контиране
         if($mvc->haveRightFor('conto', $rec)){
         	self::conto($mvc, $id);

@@ -635,14 +635,15 @@ div.mobile {
 }
 
 .namelist{
-    margin-bottom: 3px;
+	padding-top:2px;
+    margin-bottom: 4px;
     display: block;
 }
 
 .number-block{
 	padding: 2px;
 	margin-left: 3px;
-    margin-right: 2px;
+    margin-right: 3px;
 	color: #444;
 	border: solid 1px #BBB;
 	background-color: rgba(0, 0, 0, 0.05);
@@ -1060,6 +1061,26 @@ td.portal-date {
 	width: 50%;
 }
 
+.aright {
+	text-align: right;
+}
+
+.aleft {
+	text-align: left;
+}
+
+.vtop {
+	vertical-align: top;
+}
+
+.vmiddle {
+	vertical-align: middle;
+}
+
+.vbottom{
+	vertical-align: bottom;
+}
+
 .ballance-field{
 	padding-left: 10px !important;
 }
@@ -1190,6 +1211,9 @@ pre.document {
 
 .signature-table{
 	margin-top: 5px;
+	td{
+	   border: none !important;
+	}
 }
 
 .sign_names {
@@ -1225,7 +1249,10 @@ pre.document {
 }
 
 .dec-document{
-    line-height: 150%;
+	font-size: 0.95em;
+	ul{
+		margin: 5px 0;
+	}
     table.signiture{
         width: 10% !important;
     }
@@ -2282,11 +2309,11 @@ fieldset.sharing-history {
 	display: block;
 }
 
-.switching-display {
+.listBlock {
 	display: table;
 }
 
-.narrow .narrow-scroll .switching-display {
+.narrow .narrow-scroll .listBlock {
 	display: block;
 }
 
@@ -3752,6 +3779,16 @@ body.narrow {
 	.printing-page-break {
 	    page-break-after: always;
 	}
+	.print-break{
+        page-break-after: always;
+        &.print-nobreak{
+            page-break-after: avoid;
+        }
+    }
+    .footer-notes{
+        page-break-before: auto;
+        page-break-inside: avoid;
+    }
 	#statuses, .toast-container{
        display: none;
     }
@@ -3860,7 +3897,7 @@ body.narrow {
 }
 
 /*стилове за summary*/
-#summary {
+.summary-block {
     float:right;
     padding:7px;
     background:#eee;
@@ -3868,37 +3905,37 @@ body.narrow {
     margin-bottom:20px;
 }
 
-.narrow #summary{
+.narrow .summary-block{
 	margin-top: 10px;
 	float: left;
 	clear: both;
 }
 
-#summary table{
+.summary-block table{
     border-collapse:separate;
 }
 
-#summary b {
+.summary-block b {
     color:rgb(0, 68, 136);
 }
 
-#summary b#count {
+.summary-block b#count {
     margin-left:5px;
 }
 
-#summary td{
+.summary-block td{
     padding:3px;    
 }
 
-#summary td.summary-cell{
+.summary-block td.summary-cell{
 	padding-left: 15px;
 }
 
-.narrow #summary b#count {
+.narrow .summary-block b#count {
     margin-left:3px;
 }
 
-#summary .money-info{
+.summary-block .money-info{
     margin-left:3px;
 }
 
@@ -3966,3 +4003,40 @@ body.narrow {
 	border:solid 1px #ccc;
 	background-color:#eee;
 } 
+
+/* Стилове за езика във външната част*/
+.wide .langSelect{
+	margin:10px 20px;
+}
+
+.narrow .langSelect{
+	margin:20px auto;
+}
+
+.langSelect .langLink a {
+	margin-top:10px;
+	font-size:1.1em;
+	display:block;
+	padding:5px 10px;
+	background-color:#eee;
+	border:solid 1px #ccc;
+	max-width:600px;
+	color:#333 !important;
+}
+
+.langSelect .langLink a:hover{
+	background-color:#f3fbfb;
+	outline:none;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.langSelect .langLink a.selected {
+	background-color:#CCEEEE;
+	color:#333 !important;
+}
+
+.langSelect .langLink img{
+	position:relative;
+	top:3px;
+	margin-right:10px;
+}

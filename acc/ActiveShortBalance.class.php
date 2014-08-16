@@ -65,12 +65,19 @@ class acc_ActiveShortBalance {
 					$index = $accId . "|" . $item1 . "|" . $item2 . "|" . $item3;
 					$b = &$this->balance[$index];
 					
+					$b['accountId'] = $accId;
 					$b['accountSysId'] = acc_Accounts::fetchField($accId, 'systemId');
 					$b['ent1Id'] = $item1;
 					$b['ent2Id'] = $item2;
 					$b['ent3Id'] = $item3;
 					$b['blQuantity'] += $rec->{"{$type}Quantity"} * $sign;
 					$b['blAmount'] += $rec->amount * $sign;
+				}
+				
+				// Закръгляме крайните суми и количества
+				foreach ($this->balance as &$bl){
+					$bl['blQuantity'] = round($bl['blQuantity'], 6);
+					$bl['blAmount'] = round($bl['blAmount'], 6);
 				}
 			}
 		}

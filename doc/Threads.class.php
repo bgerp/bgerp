@@ -1005,7 +1005,7 @@ class doc_Threads extends core_Manager
             
             // Добавяме бутон в тулбара
             $folderClassId = core_Classes::fetchIdByName('doc_Folders');
-            custom_Settings::addBtn($data->toolbar, $folderClassId, $data->folderId);
+            custom_Settings::addBtn($data->toolbar, $folderClassId, $data->folderId, 'Изглед');
         }
     }
     
@@ -1524,8 +1524,8 @@ class doc_Threads extends core_Manager
         $form->FNC('shortLinks', 'enum(default=Автоматично, yes=Да, no=Не)', 'caption=Бързи връзки->Показване, input=input');
         
         // Задаваме стойностите по подразбиране
-        $form->setDefault('shortLinks', 'default');
-        $form->setDefault('notify', 'default');
+//        $form->setDefault('shortLinks', 'default');
+//        $form->setDefault('notify', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';

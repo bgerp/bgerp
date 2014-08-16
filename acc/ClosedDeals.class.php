@@ -52,7 +52,7 @@ abstract class acc_ClosedDeals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id, docId=Документ, type=Вид, amount, createdBy, createdOn';
+    protected $listFields = 'id, docId=Документ, createdBy, createdOn';
 	
 	
 	/**
@@ -237,6 +237,13 @@ abstract class acc_ClosedDeals extends core_Master
     	$dealQuery->where("#state = 'active'");
     	
     	while($dealRec = $dealQuery->fetch()){
+    		$doc = new core_ObjectReference($firstDoc->instance, $dealRec->id);
+    		$dealInfo = $doc->getAggregateDealInfo();
+    		$actions = $dealInfo->get('contoActions');
+    		
+    		// Ако е бърза сделка, пропускаме я
+    		if(isset($actions['ship']) || isset($actions['pay'])) continue;
+    		
     		$docs[$dealRec->id] = $firstDoc->instance->getRecTitle($dealRec);
     	}
     	
@@ -263,12 +270,6 @@ abstract class acc_ClosedDeals extends core_Master
     	$rec->docId = $firstDoc->that;
     	$rec->docClassId = $firstDoc->instance()->getClassId();
     	$rec->classId = $mvc->getClassId();
-    	
-    	if($form->isSubmitted()){
-    		if($rec->closeWith){
-    			$form->setWarning('closeWith', 'Всички салда ще бъдат прехвърлени до избраната сделка');
-    		}
-    	}
     }
     
     
@@ -402,6 +403,8 @@ abstract class acc_ClosedDeals extends core_Master
 		    	}
 		    }
     	}
+    	
+    	$mvc->notificateDealUsedForClosure($id);
     }
     
     
@@ -420,16 +423,12 @@ abstract class acc_ClosedDeals extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	$costAmount = $incomeAmount = 0;
     	if($rec->state == 'active'){
-    		
-    		//$rec->amount = static::getClosedDealAmount($rec->threadId);
-    		if($rec->amount > 0){
+    		if(round($rec->amount, 2) > 0){
     			$incomeAmount = $rec->amount;
     			$costAmount = 0;
-    			$row->type = tr('Приход');
-    		} elseif($rec->amount < 0){
+    		} elseif(round($rec->amount, 2) < 0){
     			$costAmount = $rec->amount;
     			$incomeAmount = 0;
-    			$row->type = tr('Разход');
     		}
     		
     		$Double = cls::get('type_Double');
@@ -586,5 +585,55 @@ abstract class acc_ClosedDeals extends core_Master
     	unset($closedItems[$dealItemId]);
     	
     	return $closedItems;
+    }
+    
+    
+    /**
+     * Връща всички документи, които са приключили сделки с подадената сделка
+     */
+    public static function getClosedWithDeal($dealId)
+    {
+    	$closedDealQuery = self::getQuery();
+    	$closeClassId = self::getClassId();
+    	$closedDealQuery->where("#closeWith = {$dealId}");
+    	$closedDealQuery->where("#classId = {$closeClassId}");
+    	$closedDealQuery->where("#state = 'active'");
+    	
+    	return $closedDealQuery->fetchAll();
+    }
+
+
+    /**
+     * След успешно контиране на документа
+     */
+    public static function on_AfterRestore($mvc, &$res, $id)
+    {
+    	$mvc->notificateDealUsedForClosure($id);
+    }
+    
+    
+    /**
+     * След успешно контиране на документа
+     */
+    public static function on_AfterConto($mvc, &$res, $id)
+    {
+    	$mvc->notificateDealUsedForClosure($id);
+    }
+    
+    
+    /**
+     * Нотифицира продажбата която е използвана да се приключи продажбата на документа
+     */
+    private function notificateDealUsedForClosure($id)
+    {
+    	$rec = $this->fetchRec($id);
+    
+    	// Ако ще се приключва с друга продажба
+    	if(!empty($rec->closeWith) && $rec->state != 'draft'){
+    		 
+    		// Прехвърляме ги към детайлите на продажбата с която сме я приключили
+    		$Doc = cls::get($rec->docClassId);
+    		$Doc->invoke('AfterClosureWithDeal', array($rec->closeWith));
+    	}
     }
 }

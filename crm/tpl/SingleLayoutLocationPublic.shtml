@@ -1,57 +1,53 @@
 <div class="public location">
-			<h2 style='line-height:26px' class='[#headerRejected#]'>|Локация|* <b style="color:green;">[#title#]</b> |на|* [#contragent#]</h2>
-			
-			<!--ET_BEGIN image-->
-		     <div class="crmImage locImage">
-			 	<div>  
-			    	[#image#]
-			 	</div>
-		     </div>
-	      	<!--ET_END image-->
-	        
-			<!--ET_BEGIN type-->
-			<fieldset class="detail-info">
-	        <legend class="groupTitle">|Информация|*</legend>
-	        <div class="groupList">
-		         <ul>  
-					<!--ET_BEGIN type-->
-			        <li class="info">
-			        	<span class="gray-title">|Тип|*:</span> [#type#]
-					</li>
-					<!--ET_END type-->
-					<!--ET_BEGIN gln-->
-					<li class="info">
-			        	<span class="gray-title">GLN |код|*:</span> [#gln#]
-					</li>
-					<!--ET_END gln-->
-					<!--ET_BEGIN comment-->
-					<li class="info">
-			        	[#comment#]
-					</li>
-					<!--ET_END comment-->
-		         </ul> 
-			</div>
-		</fieldset>
-		<!--ET_END type-->
-
-		<fieldset class="detail-info">
-	        <legend class="groupTitle">|Адрес|*</legend>
-	         <div class="groupList">
-	          <!--ET_BEGIN countryId-->
-				<div>[#countryId#]</div>
-			  <!--ET_END countryId-->
-			  <!--ET_BEGIN place-->
-				<div>[#pCode#] [#place#]</div>
-			  <!--ET_END place-->
-			 <!--ET_BEGIN address-->
-				<div>[#address#]</div>
-			 <!--ET_END address-->
-			</div>
-		</fieldset>
-		 
-		<!--ET_BEGIN gpsCoords-->
-		<div class="loc-map">
-			[#gpsCoords#]
-		</div>
-		<!--ET_END gpsCoords-->
+    <h2 style='line-height:26px' class='[#headerRejected#]'>|Локация|* <b style="color:green;">[#title#]</b> |на|* [#contragent#]</h2>
+    <!--ET_BEGIN image-->
+    <div class="crmImage locImage">
+        <div>  
+            [#image#]
+        </div>
+    </div>
+    <!--ET_END image-->
+    <!--ET_BEGIN type-->
+    <fieldset class="detail-info">
+        <legend class="groupTitle">|Информация|*</legend>
+        <div class="groupList">
+            <ul>
+                <!--ET_BEGIN type-->
+                <li class="info">
+                    <span class="gray-title">|Тип|*:</span> [#type#]
+                </li>
+                <!--ET_END type-->
+                <!--ET_BEGIN gln-->
+                <li class="info">
+                    <span class="gray-title">GLN |код|*:</span> [#gln#]
+                </li>
+                <!--ET_END gln-->
+                <!--ET_BEGIN comment-->
+                <li class="info">
+                    [#comment#]
+                </li>
+                <!--ET_END comment-->
+            </ul>
+        </div>
+    </fieldset>
+    <!--ET_END type-->
+    <fieldset class="detail-info">
+        <legend class="groupTitle">|Адрес|*</legend>
+        <div class="groupList">
+            <!--ET_BEGIN countryId-->
+            <div>[#countryId#]</div>
+            <!--ET_END countryId-->
+            <!--ET_BEGIN place-->
+            <div>[#pCode#] [#place#]</div>
+            <!--ET_END place-->
+            <!--ET_BEGIN address-->
+            <div>[#address#]</div>
+            <!--ET_END address-->
+        </div>
+    </fieldset>
+    <!--ET_BEGIN gpsCoords-->
+    <div class="loc-map">
+        [#gpsCoords#]
+    </div>
+    <!--ET_END gpsCoords-->
 </div>

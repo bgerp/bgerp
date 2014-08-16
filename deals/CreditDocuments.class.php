@@ -88,7 +88,7 @@ class deals_CreditDocuments extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Cdd";
+    public $abbr = "Cdc";
     
     
     /**

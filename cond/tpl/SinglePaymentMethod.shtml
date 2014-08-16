@@ -1,45 +1,42 @@
 <div class="singleView">
-[#SingleToolbar#]
-<div class="info-table">
-<h2>[#SingleTitle#]</h2>
-<fieldset class="detail-info">
-	<legend class="groupTitle">|Описание|*</legend>
-	[#description#]
-</fieldset>
-<fieldset class="detail-info">
-	<legend class="groupTitle">|Авансово плащане|*</legend>
-	<ul>  
-		<li class="info">
-			 <span class="gray-title">|Дял|*: </span> [#downpayment#]
-		</li>
-	</ul>
-</fieldset>
-
-<fieldset class="detail-info">
-	<legend class="groupTitle">|Плащане преди експедиция|*</legend>
-	<ul>  
-		<li class="info">
-			 <span class="gray-title">|Дял|*: </span> [#paymentBeforeShipping#]
-		</li>
-	</ul>
-</fieldset>
-
-<fieldset class="detail-info">
-	<legend class="groupTitle">|Плащане при доставка|*</legend>
-	<ul>  
-		<li class="info">
-			 <span class="gray-title">|Дял|*: </span> [#paymentOnDelivery#]
-		</li>
-	</ul>
-</fieldset>
-
-<fieldset class="detail-info">
-	<legend class="groupTitle">|Плащане след фактуриране|*</legend>
-	<ul>  
-		<li class="info">
-			 <span class="gray-title">|Срок|*: </span> [#timeBalancePayment#]
-		</li>
-	</ul>
-</fieldset>
-</div>
+    [#SingleToolbar#]
+    <div class="info-table">
+        <h2>[#SingleTitle#]</h2>
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Описание|*</legend>
+            [#description#]
+        </fieldset>
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Авансово плащане|*</legend>
+            <ul>
+                <li class="info">
+                    <span class="gray-title">|Дял|*: </span> [#downpayment#]
+                </li>
+            </ul>
+        </fieldset>
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Плащане преди експедиция|*</legend>
+            <ul>
+                <li class="info">
+                    <span class="gray-title">|Дял|*: </span> [#paymentBeforeShipping#]
+                </li>
+            </ul>
+        </fieldset>
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Плащане при доставка|*</legend>
+            <ul>
+                <li class="info">
+                    <span class="gray-title">|Дял|*: </span> [#paymentOnDelivery#]
+                </li>
+            </ul>
+        </fieldset>
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Плащане след фактуриране|*</legend>
+            <ul>
+                <li class="info">
+                    <span class="gray-title">|Срок|*: </span> [#timeBalancePayment#]
+                </li>
+            </ul>
+        </fieldset>
+    </div>
 </div>

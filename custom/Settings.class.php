@@ -58,6 +58,12 @@ class custom_Settings extends core_Manager
     
     
     /**
+     * Кой може да модифицира по-подразбиране за всички
+     */
+    var $canModifydefault = 'admin';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -78,14 +84,15 @@ class custom_Settings extends core_Manager
      * @param core_Toolbar $toolbar
      * @param integer $classId
      * @param integer $objectId
+     * @param string $title
      */
-    static function addBtn(core_Toolbar $toolbar, $classId, $objectId)
+    static function addBtn(core_Toolbar $toolbar, $classId, $objectId, $title = 'Персонализиране')
     {
         // Защитаваме get параметрите
         Request::setProtected(array('classId', 'objectId'));
         
         // Добавяме бутона, който сочи към екшъна за персонализиране
-        $toolbar->addBtn('Персонализиране', array('custom_Settings', 'modify', 'classId' => $classId, 'objectId' => $objectId, 'ret_url' => TRUE), 'ef_icon=img/16/customize.png,title=Дебъг,row=2');
+        $toolbar->addBtn($title, array('custom_Settings', 'modify', 'classId' => $classId, 'objectId' => $objectId, 'ret_url' => TRUE), 'ef_icon=img/16/customize.png,title=Дебъг,row=2');
     }
     
     
@@ -337,8 +344,15 @@ class custom_Settings extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
-        // Ако има права admin, добавяме и бутон за запис за всички
-        if (haveRole('admin')) {
+        // Ако в класа не са дефинирани права за модифициране по подразбиране
+        if (!$class->canModifydefault) {
+            
+            // Използваме правата зададени в този клас
+            $class->canModifydefault = $this->canModifydefault;
+        }
+        
+        // Ако има права за модифициране за всички
+        if ($class->haveRightFor('modifydefault')) {
             $form->toolbar->addSbBtn('Запис по подразбиране', 'save_default',
             	'id=save-default, order=100,class=fright', 'ef_icon = img/16/disk.png, warning=Наистина ли искате да промените настройките по-подразбиране за всички?');
         }

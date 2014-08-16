@@ -1712,12 +1712,8 @@ class cal_Calendar extends core_Master
 			         
 			      
 			    // Заместваме всички масиви
-			
-			    $cTpl->placeArray($aHrefs);
-			    $cTpl->placeArray($overs);
-			    $cTpl->placeArray($outs);
-	   
-	    		$cTpl->placeArray($hourArr);
+				$cTpl->placeArray($aHrefs);
+			    $cTpl->placeArray($hourArr);
 	    		
 	    		//Връщаме към мастера
 	    		$cTpl->append2master();
@@ -1841,8 +1837,6 @@ class cal_Calendar extends core_Master
 
              // Заместваме всички масиви в шаблона
 		     $cTpl->placeArray($aHrefs);
-		     $cTpl->placeArray($overs);
-		     $cTpl->placeArray($outs);
 		     $cTpl->placeArray($hourArr);
      
     		   			

@@ -1,53 +1,53 @@
 [#SingleToolbar#]  
-	<div class='document'>
-	<!--ET_BEGIN blank-->
-			[#blank#]
-	<!--ET_END blank-->
-		<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#]'>|Напомняне|* <b>[#ident#]</b> ([#state#])</div>
-		</div>
-
-		<div class='antetka' style='line-height:150%;'>
-			<b>[#title#]</b><br>
-			<small>
-			<div class='block_left'>
-			<div class='reminder-half'>
-				<div>|Приоритет|*: [#priority#]</div>
-				<!--ET_BEGIN timeStart--><div>|Начало|*: [#timeStart#]</div><!--ET_END timeStart-->
-				<div>|Действие|*: [#action#]</div>
-				<!--ET_BEGIN timePreviously--><div>|Предварително|*: [#timePreviously#]</div><!--ET_END timePreviously-->
-			</div>
-			<div class='reminder-half'>
-				<div>|Споделяне|*: [#shareLog#]</div>
-				<!--ET_BEGIN repetition--> 
-					<div>
-						<!--ET_BEGIN nextStartTime-->|Следващо напомняне|*: [#nextStartTime#]<!--ET_END nextStartTime--> 
-						<!--ET_BEGIN rem-->|Напомняне|*: [#rem#]<!--ET_END rem--> 
-					</div>
-				<!--ET_END repetition-->
-				
-				<!--ET_BEGIN repetitionEach-->   
-					<div>
-				     	 <!--ET_BEGIN each-->|Повторение|* [#each#]<!--ET_END each--> 
-				     	 <!--ET_BEGIN repetitionEach-->[#repetitionEach#]<!--ET_END repetitionEach-->
-				     	 <!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->
-			     	 </div> 
-			     <!--ET_END repetitionEach-->
-				<!--ET_BEGIN repetitionTypeMonth-->
-			     	<div>|Съблюдаване на|* [#repetitionTypeMonth#]</div>
-			     	<!--ET_END repetitionTypeMonth-->
-			</div>
-	    	<div class='clearfix21'></div>
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#]'>|Напомняне|* <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <div class='antetka' style='line-height:150%;'>
+        <b>[#title#]</b><br>
+        <small>
+            <div class='block_left'>
+                <div class='reminder-half'>
+                    <div>|Приоритет|*: [#priority#]</div>
+                    <!--ET_BEGIN timeStart-->
+                    <div>|Начало|*: [#timeStart#]</div>
+                    <!--ET_END timeStart-->
+                    <div>|Действие|*: [#action#]</div>
+                    <!--ET_BEGIN timePreviously-->
+                    <div>|Предварително|*: [#timePreviously#]</div>
+                    <!--ET_END timePreviously-->
+                </div>
+                <div class='reminder-half'>
+                    <div>|Споделяне|*: [#shareLog#]</div>
+                    <!--ET_BEGIN repetition--> 
+                    <div>
+                        <!--ET_BEGIN nextStartTime-->|Следващо напомняне|*: [#nextStartTime#]<!--ET_END nextStartTime--> 
+                        <!--ET_BEGIN rem-->|Напомняне|*: [#rem#]<!--ET_END rem--> 
+                    </div>
+                    <!--ET_END repetition-->
+                    <!--ET_BEGIN repetitionEach-->   
+                    <div>
+                        <!--ET_BEGIN each-->|Повторение|* [#each#]<!--ET_END each--> 
+                        <!--ET_BEGIN repetitionEach-->[#repetitionEach#]<!--ET_END repetitionEach-->
+                        <!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->
+                    </div>
+                    <!--ET_END repetitionEach-->
+                    <!--ET_BEGIN repetitionTypeMonth-->
+                    <div>|Съблюдаване на|* [#repetitionTypeMonth#]</div>
+                    <!--ET_END repetitionTypeMonth-->
+                </div>
+                <div class='clearfix21'></div>
             </div>
-			</small>
-		</div>
- 	    <div style='padding-top:10px;'>[#description#]</div>
-		
-		<!--ET_BEGIN DETAILS-->
-			<div class='details'>
-				[#DETAILS#]
-			</div>
-		<!--ET_END DETAILS-->
-		
-        <div style='clear: both;'></div>
-    </div>         
+        </small>
+    </div>
+    <div style='padding-top:10px;'>[#description#]</div>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
+    <div style='clear: both;'></div>
+</div>

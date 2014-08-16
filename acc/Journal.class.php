@@ -471,9 +471,10 @@ class acc_Journal extends core_Master
       */
      public static function clearDrafts()
      {
-     	// Избиране на всички чернови в журнала
+     	// Избиране на всички чернови в журнала, По стари от 5 минути
      	$query = self::getQuery();
      	$query->where("#state = 'draft'");
+     	$query->where('#createdOn < (NOW() - INTERVAL 5 MINUTE)');
      	
      	while($rec = $query->fetch()){
      		try{
@@ -485,12 +486,6 @@ class acc_Journal extends core_Master
      		// Ако състоянието на документа е чернова
      		$state = $document->fetchField('state', FALSE);
      		if($state == 'draft'){
-     			
-     			// Изчакваме малко, защото документа може още да не е актириван от транзакцията
-     			sleep(2);
-     			
-     			// Отново проверяваме състоянието, ако не е чернова не трием от журнала
-     			if($document->fetchField('state', FALSE) != 'draft') continue;
      			
      			// Изтриване на замърсените данни
      			acc_JournalDetails::delete("#journalId = {$rec->id}");

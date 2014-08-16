@@ -2,12 +2,6 @@
 
 
 /**
- * Толеранс за автоматичното затваряне на продажба за доставеното - платеното
- */
-defIfNot('SALE_CLOSE_TOLERANCE', '0.01');
-
-
-/**
  * Начален номер на фактурите
  */
 defIfNot('SALE_INV_MIN_NUMBER', '0');
@@ -41,6 +35,18 @@ defIfNot('SALE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
  * Колко време да се изчака след активиране на продажба, преди да се провери дали е просрочена
  */
 defIfNot('SALE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
+
+
+/**
+ * Колко продажби да се приключват автоматично брой
+ */
+defIfNot('SALE_CLOSE_OLDER_NUM', 15);
+
+
+/**
+ * Кой да е по подразбиране драйвера за фискален принтер
+ */
+defIfNot('SALE_FISC_PRINTER_DRIVER', '');
 
 
 /**
@@ -87,10 +93,11 @@ class sales_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
 			'SALE_OVERDUE_CHECK_DELAY' => array("time", "caption=Толеранс за просрочване на продажбата->Време"),
-			'SALE_CLOSE_TOLERANCE'     => array("double(decimals=2)", 'caption=Толеранс за приключване на продажбата->Сума'),
 			'SALE_MAX_FUTURE_PRICE'    => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Допустим ценови период за продажбата->В бъдещето'),
 			'SALE_MAX_PAST_PRICE'      => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Допустим ценови период за продажбата->В миналото'),
 			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
+			'SALE_CLOSE_OLDER_NUM'     => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
+			'SALE_FISC_PRINTER_DRIVER' => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
 			'SALE_INV_MIN_NUMBER'      => array('int', 'caption=Номер на фактура->Долна граница'),
 			'SALE_INV_MAX_NUMBER'      => array('int', 'caption=Номер на фактура->Горна граница'),
 	);

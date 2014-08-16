@@ -592,31 +592,27 @@ class acc_BalanceDetails extends core_Detail
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $masterRec = $mvc->Master->fetch($rec->balanceId);
-    	
-        // Бутон за детайлизиран преглед на историята
-        $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
         
-        if($rec->accountId){
-        	$row->accountId = acc_Balances::getAccountLink($rec->accountId, $masterRec, FALSE, TRUE);
-        }
-        
-        $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
-        
-        if(!$mvc->isDetailed()) return;
-        
-        $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
-        $row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
-        $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
-        
-        $groupingRec = $mvc->getGroupingForm($rec->balanceId)->rec;
-        
-        foreach (range(1, 3) as $i) {
-        	if(isset($rec->{"grouping{$i}"})){
-        		$row->{"ent{$i}Id"} = $rec->{"grouping{$i}"};
-        		if($row->{"ent{$i}Id"} == 'others'){
-        			$row->{"ent{$i}Id"} = "<i>" . tr('Други') . "</i>";
+        if($mvc->isDetailed()){
+        	
+        	$histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
+        	$url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
+        	$row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
+        	$row->history = "<span style='margin:0 4px'>{$row->history}</span>";
+        	
+        	$groupingRec = $mvc->getGroupingForm($rec->balanceId)->rec;
+        	
+        	foreach (range(1, 3) as $i) {
+        		if(isset($rec->{"grouping{$i}"})){
+        			$row->{"ent{$i}Id"} = $rec->{"grouping{$i}"};
+        			if($row->{"ent{$i}Id"} == 'others'){
+        				$row->{"ent{$i}Id"} = "<i>" . tr('Други') . "</i>";
+        			}
         		}
         	}
+        } else {
+        	$row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
+        	$row->accountId = acc_Balances::getAccountLink($rec->accountId, $masterRec, FALSE, TRUE);
         }
     }
     
@@ -1214,25 +1210,23 @@ class acc_BalanceDetails extends core_Detail
     	$row->baseAmount = $Double->toVerbal($rec->baseAmount);
     	$row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
     	
-    	if($rec->baseAmount < 0){
+    	if(round($rec->baseAmount, 4) < 0){
     		$row->baseAmount = "<span style='color:red'>{$row->baseAmount}</span>";
     	}
-    	if($rec->baseQuantity < 0){
+    	if(round($rec->baseQuantity, 4) < 0){
     		$row->baseQuantity = "<span style='color:red'>{$row->baseQuantity}</span>";
     	}
     	
     	// Нулевия ред е винаги началното салдо
-    	$zeroRec = array('docId'      => "Баланс", 
+    	$zeroRec = array('docId'      => "Начален баланс", 
     					 'valior'	  => $data->fromDate,
-    					 'reason'	  => 'Начално салдо',
     					 'blAmount'   => $rec->baseAmount, 
     					 'blQuantity' => $rec->baseQuantity,
     					 'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
     	
     	// Нулевия ред е винаги началното салдо
-    	$lastRec = array('docId'      => "Баланс",
+    	$lastRec = array('docId'      => "Краен баланс",
     					 'valior'	  => $data->toDate,
-    					 'reason'	  => 'Крайно салдо',
     					 'blAmount'   => $rec->blAmount, 
     					 'blQuantity' => $rec->blQuantity,
     					 'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
@@ -1401,7 +1395,7 @@ class acc_BalanceDetails extends core_Detail
     	foreach (array('debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld){
     		
     		$arr[$fld] = $Double->toVerbal($rec[$fld]);
-    		if($rec[$fld] < 0){
+    		if(round($rec[$fld], 6) < 0){
     			$arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
     		}	
     	}
@@ -1417,7 +1411,7 @@ class acc_BalanceDetails extends core_Detail
 	    		$arr['docId'] = $rec['docId'];
 	    	}
 	    }
-    	
+	    
 	    if($rec['ROW_ATTR']){
 	    	$arr['ROW_ATTR'] = $rec['ROW_ATTR'];
 	    }
@@ -1479,7 +1473,7 @@ class acc_BalanceDetails extends core_Detail
         
         // Ако равнят не показваме количествата
         if($equalBl){
-        	unset($data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
+        	//unset($data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
         }
             
         // Ако сумите на крайното салдо са отрицателни - оцветяваме ги

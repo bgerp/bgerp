@@ -1,33 +1,32 @@
 <fieldset class="detail-info">
     <legend class="groupTitle">|Права|*</legend>
     <div class="groupList">
-		<table>
-			<tr>
-				<td class='dt'>|Отговорник|*:</td>
-				<td> <b>[#inCharge#]</b></td>
-			</tr>
-			<tr>
-				<td class='dt'>|Достъп|*:</td>
-				<td> <b>[#access#]</b></td>
-			</tr>
-			<!--ET_BEGIN shared-->
-			<tr>
-				<td class='dt'>|Споделяне|*:</td>
-				<td> <b>[#shared#]</b></td>
-			</tr>
-			<!--ET_END shared-->
-			
-			<!--ET_BEGIN mod-->
-			<tr>
-				[#mod#]
-				<td class='dt'>|Модифициране|*: </td>
-				<td>|от|* <b>[#modifiedBy#]</b> |на|* <b>[#modifiedOn#]</b></td>
-			</tr>
-			<!--ET_END mod-->
-			<tr>
-				<td class='dt'>|Създаване|*: </td>
-				<td>|от|* <b>[#createdBy#]</b> |на|* <b>[#createdOn#]</b></td>
-			</tr>
-		</table>
-     </div>
+        <table>
+            <tr>
+                <td class='dt'>|Отговорник|*:</td>
+                <td> <b>[#inCharge#]</b></td>
+            </tr>
+            <tr>
+                <td class='dt'>|Достъп|*:</td>
+                <td> <b>[#access#]</b></td>
+            </tr>
+            <!--ET_BEGIN shared-->
+            <tr>
+                <td class='dt'>|Споделяне|*:</td>
+                <td> <b>[#shared#]</b></td>
+            </tr>
+            <!--ET_END shared-->
+            <!--ET_BEGIN mod-->
+            <tr>
+                [#mod#]
+                <td class='dt'>|Модифициране|*: </td>
+                <td>|от|* <b>[#modifiedBy#]</b> |на|* <b>[#modifiedOn#]</b></td>
+            </tr>
+            <!--ET_END mod-->
+            <tr>
+                <td class='dt'>|Създаване|*: </td>
+                <td>|от|* <b>[#createdBy#]</b> |на|* <b>[#createdOn#]</b></td>
+            </tr>
+        </table>
+    </div>
 </fieldset>

@@ -288,10 +288,7 @@ class sales_transaction_CloseDeal
     	$balanceArr = $this->shortBalance->getShortBalance('701,706,703');
     	
     	$blAmountGoods = $this->shortBalance->getAmount('701,706,703');
-    	$incomeFromProducts += $blAmountGoods;
     	
-    	$total += abs($blAmountGoods);
-    	 
     	if(!count($balanceArr)) return $entries;
     	
     	foreach ($balanceArr as $rec){
@@ -299,7 +296,7 @@ class sales_transaction_CloseDeal
     				array($firstDoc->className, $firstDoc->that));
     		$arr2 = array($rec['accountSysId'], $rec['ent1Id'], $rec['ent2Id'], $rec['ent3Id'], 'quantity' => $rec['blQuantity']);
     
-    		if($blAmountGoods > 0){
+    		if($rec['blAmount'] > 0){
     			$debitArr = $arr1;
     			$creditArr = $arr2;
     		} else {
@@ -307,6 +304,8 @@ class sales_transaction_CloseDeal
     			$creditArr = $arr1;
     		}
     
+    		$incomeFromProducts += $rec['blAmount'];
+    		$total += abs($rec['blAmount']);
     		$entries[] = array('amount' => abs($rec['blAmount']), 'debit' => $debitArr, 'credit' => $creditArr);
     	}
     	

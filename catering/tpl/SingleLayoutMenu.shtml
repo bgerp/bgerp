@@ -1,22 +1,16 @@
 [#SingleToolbar#]
-	<div class='document' style='min-width:80px;border:none;padding:0'>
-
-		<div class='listTitle'>|Меню на фирма|* [#companyId#]</div>
-		
-		<div>
-			<!--ET_BEGIN date-->|За дата|*: <b>[#date#]</b><!--ET_END date-->
-		</div>
-		<div>
-			<!--ET_BEGIN repeatDay-->|Повторение|*: <b>[#repeatDay#]</b><!--ET_END repeatDay-->
-		</div>
-		
-		<!-- BEGIN Блок долу --> 
-		<br>
-		<div class='clear_l f_left'>
-			<div>[#DETAILS#]</div>
-		</div>
- 		<!-- END Блок долу -->
- 		<div style='clear: both;'></div>
- 	</div>   
- 	<!-- END container -->
- <div style='clear: both;'></div>
+<div class='document' style='min-width:80px;border:none;padding:0'>
+    <div class='listTitle'>|Меню на фирма|* [#companyId#]</div>
+    <div>
+        <!--ET_BEGIN date-->|За дата|*: <b>[#date#]</b><!--ET_END date-->
+    </div>
+    <div>
+        <!--ET_BEGIN repeatDay-->|Повторение|*: <b>[#repeatDay#]</b><!--ET_END repeatDay-->
+    </div>
+    <br>
+    <div class='clear_l f_left'>
+        <div>[#DETAILS#]</div>
+    </div>
+    <div style='clear: both;'></div>
+</div>
+<div style='clear: both;'></div>

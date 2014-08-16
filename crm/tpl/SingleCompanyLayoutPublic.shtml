@@ -1,5 +1,5 @@
 <div class="public folder-cover [#STATE_CLASS#]">
-       <div class="inner-folder">
+    <div class="inner-folder">
         <div class="block_title [#STATE_CLASS#] special-title">
             [#SingleIcon#] [#title#]
         </div>
@@ -34,5 +34,4 @@
         <!--ET_END address-->
         <div style="clear:both;"></div>
     </div>
-    <!-- END container -->
 </div>

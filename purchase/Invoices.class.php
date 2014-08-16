@@ -26,7 +26,7 @@ class purchase_Invoices extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Inv';
+    public $abbr = 'Ini';
     
     
     /**
@@ -65,12 +65,6 @@ class purchase_Invoices extends core_Master
      * Детайла, на модела
      */
     public $details = 'purchase_InvoiceDetails';
-    
-    
-    /**
-     * В кой плейсхолдър ще се слага шаблона от doc_plg_TplManager
-     */
-    public $templateFld = 'INVOICE_HEADER';
     
     
     /**
@@ -160,7 +154,7 @@ class purchase_Invoices extends core_Master
     	'responsible'         => 'lastDocUser|lastDoc',
     	'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
     	'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
-    	'uicNo'     		  => 'lastDocUser|lastDoc',
+    	'uicNo'     		  => 'lastDocUser|lastDoc|clientData',
 		'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
     	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
@@ -190,7 +184,7 @@ class purchase_Invoices extends core_Master
         $this->FLD('responsible', 'varchar(255)', 'caption=Доставчик->Отговорник, class=contactData');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Доставчик->Държава,mandatory,contragentDataField=countryId');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Доставчик->VAT №,contragentDataField=vatNo');
-        $this->FLD('uicNo', 'type_Varchar', 'caption=Доставчик->Национален №');
+        $this->FLD('uicNo', 'type_Varchar', 'caption=Доставчик->Национален №,contragentDataField=uicId');
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Доставчик->П. код,recently,class=pCode,contragentDataField=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Доставчик->Град,class=contactData,contragentDataField=place');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Доставчик->Адрес,class=contactData,contragentDataField=address');
@@ -286,7 +280,7 @@ class purchase_Invoices extends core_Master
         $this->purchase_InvoiceDetails->calculateAmount($recs, $rec);
         
         $rec->dealValue = round($this->_total->amount * $rec->rate, 8);
-        $rec->vatAmount = round($this->_total->vat * $rec->rate, 8);
+        $rec->vatAmount = $this->_total->vat * $rec->rate;
         $rec->discountAmount = round($this->_total->discount * $rec->rate, 8);
     	$this->save($rec);
     }
@@ -856,26 +850,6 @@ class purchase_Invoices extends core_Master
         $row->recTitle = $row->title;
         
         return $row;
-    }
-    
-    
-   /**
-    * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-    */
-    public static function getHandle($id)
-    {
-        $self = cls::get(get_called_class());
-        
-        return $self->abbr . $id;
-    } 
-    
-    
-   /**
-    * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-    */
-    public static function fetchByHandle($parsedHandle)
-    {
-        return static::fetch("#number = '{$parsedHandle['id']}'");
     }
     
     

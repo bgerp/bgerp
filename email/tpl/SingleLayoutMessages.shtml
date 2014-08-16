@@ -1,89 +1,72 @@
 [#SingleToolbar#]
-<!-- BEGIN container -->
 <div class='document'>
-
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-	
-	 <div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#]'>|Входящ имейл|*  <b>[#ident#]</b> ([#state#])</div>
-	 </div>
-		
-	<!-- END Заглавие -->                     
-	
-	<div  class='clearfix21 antetka'>
-		
-		  <!--ET_BEGIN subject-->          
-				<div style='margin-bottom:10px;'>
-				     |Относно|*: <b>[#subject#]</b>
-				</div>
-			<!--ET_END subject-->
-			<div class="em-holder" style='float:left;margin-right:10px;'>
-			  <small>   
-				<table cellspacing='1' class='top-table'>
-				<!--ET_BEGIN fromEml-->          
-					<tr>
-					    <td  align='right' style='vertical-align:top'>|От|*:</td>
-					    <td>[#fromEml#]</td>
-					</tr>
-				<!--ET_END fromEml-->
-				<!--ET_BEGIN allTo-->          
-					<tr>
-					    <td  align='right'>|До|*:</td>
-					    <td>[#allTo#]</td>
-					</tr>
-				<!--ET_END allTo-->
-				<!--ET_BEGIN allCc-->          
-					<tr>
-					    <td  align='right'>|Кп|*:</td>
-					    <td>[#allCc#]</td>
-					</tr>
-				<!--ET_END allCc-->
-				<!--ET_BEGIN date-->          
-					<tr>
-					    <td align='right'>|На|*:</td>
-					    <td>[#date#]</td>
-					</tr>
-				<!--ET_END date-->
-		
-				<!--ET_BEGIN fromIp-->          
-					<tr>
-					    <td  align='right'>IP:</td>
-					    <td>[#fromIp#]</td>
-					</tr>
-				<!--ET_END fromIp-->
-							
-				</table>   
-			</small>  
-		</div>    
-		
-		
-		<!--ET_BEGIN files-->
-		<small class="sm-att" >
-			<div class='attachments'>   
-				<div class="aHeader">|Прикачени файлове|*:</div>
-				<div style='display:block; margin:5px 0'>[#files#]</div>
-			</div>
-		</small>
-		<!--ET_END files--> 
-	
-		<div class="clearfix21"></div>
-	</div>
-	
-	<div style='clear: both;'></div>  
-	
-	<!--ET_BEGIN textPart--> 
-	<div style='padding:5px;margin-top:10px;'>
-		<div>[#textPart#]</div>
-	</div>
-	<!--ET_END textPart--> 
-	
-	<!--ET_BEGIN DETAILS-->
-		<div class='details'>
-			[#DETAILS#]
-		</div>
-	<!--ET_END DETAILS-->
-    
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#]'>|Входящ имейл|*  <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <div  class='clearfix21 antetka'>
+        <!--ET_BEGIN subject-->          
+        <div style='margin-bottom:10px;'>
+            |Относно|*: <b>[#subject#]</b>
+        </div>
+        <!--ET_END subject-->
+        <div class="em-holder" style='float:left;margin-right:10px;'>
+            <small>
+                <table class='top-table'>
+                    <!--ET_BEGIN fromEml-->          
+                    <tr>
+                        <td  class='aright' style='vertical-align:top'>|От|*:</td>
+                        <td>[#fromEml#]</td>
+                    </tr>
+                    <!--ET_END fromEml-->
+                    <!--ET_BEGIN allTo-->          
+                    <tr>
+                        <td  class='aright'>|До|*:</td>
+                        <td>[#allTo#]</td>
+                    </tr>
+                    <!--ET_END allTo-->
+                    <!--ET_BEGIN allCc-->          
+                    <tr>
+                        <td  class='aright'>|Кп|*:</td>
+                        <td>[#allCc#]</td>
+                    </tr>
+                    <!--ET_END allCc-->
+                    <!--ET_BEGIN date-->          
+                    <tr>
+                        <td class='aright'>|На|*:</td>
+                        <td>[#date#]</td>
+                    </tr>
+                    <!--ET_END date-->
+                    <!--ET_BEGIN fromIp-->          
+                    <tr>
+                        <td  class='aright'>IP:</td>
+                        <td>[#fromIp#]</td>
+                    </tr>
+                    <!--ET_END fromIp-->
+                </table>
+            </small>
+        </div>
+        <!--ET_BEGIN files-->
+        <small class="sm-att" >
+            <div class='attachments'>
+                <div class="aHeader">|Прикачени файлове|*:</div>
+                <div style='display:block; margin:5px 0'>[#files#]</div>
+            </div>
+        </small>
+        <!--ET_END files--> 
+        <div class="clearfix21"></div>
+    </div>
+    <div style='clear: both;'></div>
+    <!--ET_BEGIN textPart--> 
+    <div style='padding:5px;margin-top:10px;'>
+        <div>[#textPart#]</div>
+    </div>
+    <!--ET_END textPart--> 
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
 </div>
-<!-- END document -->

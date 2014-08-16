@@ -1,20 +1,17 @@
 <div class='cms-row'>
-						
-	<div style='margin:0 2%;'>
-		[#PAGE_CONTENT#] 
-	
-	<!--ET_BEGIN SOCIAL-->
+    <div style='margin:0 2%;'>
+        [#PAGE_CONTENT#] 
+        <!--ET_BEGIN SOCIAL-->
         [#SOCIAL#]
-		[#social_Sharings::getButtons#]
-	<!--ET_END SOCIAL-->
-	</div>
-	
-	<!--ET_BEGIN NAVIGATION-->
-	<div   id='cmsNavigation'  style='margin:2%'>
-	<div class='articles-navigation'>
-	|Навигация|*
-	</div>
-		[#NAVIGATION#] 
-	</div>
-	<!--ET_END NAVIGATION-->
+        [#social_Sharings::getButtons#]
+        <!--ET_END SOCIAL-->
+    </div>
+    <!--ET_BEGIN NAVIGATION-->
+    <div   id='cmsNavigation'  style='margin:2%'>
+        <div class='articles-navigation'>
+            |Навигация|*
+        </div>
+        [#NAVIGATION#] 
+    </div>
+    <!--ET_END NAVIGATION-->
 </div>

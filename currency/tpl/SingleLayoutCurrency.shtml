@@ -1,48 +1,37 @@
 [#SingleToolbar#]
-                 
-	
-		<div>
-		<div class='header'>
-			<p style='font: small Arial,sans-serif;font-size: 1em; text-align:left; font-weight:bold;'>[#name#]</p>
-		</div>
+<div>
+    <div class='header'>
+        <p style='font: small Arial,sans-serif;font-size: 1em; text-align:left; font-weight:bold;'>[#name#]</p>
+    </div>
+    <div class='block_left'>
+        <table class='top-table'>
+            <tr>
+                <td class="quiet aleft" style='width:18%'>|Към дата|*:</td>
+                <td> [#lastUpdate#]</td>
+            </tr>
+            <tr>
+                <td class="quiet aleft" style='width:1%'>|Код|*:</td>
+                <td>[#code#]</td>
+            </tr>
+            <!--ET_BEGIN info-->
+            <tr>
+                <td class="quiet aleft" style='width:1%'>|Курс|*:</td>
+                <td>[#lastRate#]</td>
+            </tr>
+            <!--ET_END info-->
+            <!--ET_BEGIN groups-->
+            <tr>
+                <td class="quiet aleft" style='width:1%'>|Групи|*:</td>
+                <td>[#groups#]</td>
+            </tr>
+            <!--ET_END groups-->
+            <tr>
+                <td class="quiet aleft" colspan="2" style='padding-top:10px;'>|Исторически курсове|*:</td>
+            </tr>
+        </table>
+        <div class='scrolling-holder'>[#DETAILS#]</div>
+    </div>
+    <div style='clear: both;'></div>
+</div>
 
-        <!-- BEGIN Блок ляво -->
-        <div class='block_left'>
-        
-			 <table cellspacing='1' class='top-table'>
-			     
-	             <tr>
-	                 <td class="quiet" align="left" width='18%'>|Към дата|*:</td>
-	                 <td> [#lastUpdate#]</td>
-	             </tr>
-	            
-	             <tr>
-	                 <td class="quiet" align="left" width='1%'>|Код|*:</td>
-	                 <td>[#code#]</td>
-	             </tr>
-				
-				<!--ET_BEGIN info-->
-				<tr>
-					<td class="quiet" align="left" width='1%'>|Курс|*:</td>
-					<td>[#lastRate#]</td>
-				</tr>
-				<!--ET_END info-->
-				<!--ET_BEGIN groups-->
-				<tr>
-					<td class="quiet" align="left" width='1%'>|Групи|*:</td>
-					<td>[#groups#]</td>
-				</tr>
-				<!--ET_END groups-->
-				<tr>
-                     <td class="quiet" colspan="2" style='padding-top:10px;'>|Исторически курсове|*:</td>
-                 </tr>
-			  </table>
-             	<div class='scrolling-holder'>[#DETAILS#]</div>
-				
-           
-             
-         </div>    
-         <!-- END Блок ляво -->   
-                     
-         <div style='clear: both;'></div>
- </div>       
+      

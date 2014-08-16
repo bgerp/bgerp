@@ -170,8 +170,8 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     public static function isPurchaseDiffAllowed($purchaseRec)
     {
     	$diff = round($purchaseRec->amountDelivered - $purchaseRec->amountPaid, 2);
-    	$conf = core_Packs::getConfig('purchase');
-    	$res = ($diff >= -1 * $conf->PURCHASE_CLOSE_TOLERANCE && $diff <= $conf->PURCHASE_CLOSE_TOLERANCE);
+    	$conf = core_Packs::getConfig('acc');
+    	$res = ($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE);
     	
     	return $res;
     }
@@ -182,20 +182,20 @@ class purchase_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
+    	if($res == 'no_one') return;
+    	
     	if(($action == 'add' || $action == 'conto') && isset($rec)){
     		
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
 	    		$originRec = $origin->fetch();
     			
-	    		if($originRec->state == 'active' && $mvc instanceof purchase_Purchases){
+	    		if($originRec->state == 'active' && $origin->instance instanceof purchase_Purchases){
 	    			
 	    			// Ако разликата между доставеното/платеното е по голяма, се изисква
 	    			// потребителя да има по-големи права за да създаде документа
 	    			if(!self::isPurchaseDiffAllowed($originRec)){
 	    				$res = 'ceo,purchaseMaster';
-	    			} else {
-	    				$res = 'ceo,purchase';
 	    			}
 	    		}
     		}
@@ -218,5 +218,27 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	if(!($firstDoc->instance instanceof purchase_Purchases)) return FALSE;
     	 
     	return TRUE;
+    }
+    
+    
+    /**
+     * След успешно контиране на документа
+     */
+    public static function on_AfterConto($mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetch($id);
+    	 
+    	// Ако ще се приключва с друга продажба
+    	if(!empty($rec->closeWith) && $rec->state == 'active'){
+    		$Purchases = cls::get('purchase_Purchases');
+    
+    		// взимаме договорените продукти, от покупката която е приключена
+    		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    		$dealInfo = $firstDoc->getAggregateDealInfo();
+    		$details = $dealInfo->get('products');
+    
+    		// Прехвърляме ги към детайлите на покупката с която сме я приключили
+    		$Purchases->invoke('AfterTransferDataFromDeal', array($rec->closeWith, $details));
+    	}
     }
 }

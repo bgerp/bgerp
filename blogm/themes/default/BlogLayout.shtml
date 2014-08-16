@@ -1,11 +1,8 @@
 <div class='cms-row'>
-	
-						
-	<div class='eightcol cms-last' style='margin-right:2%;'>
-		[#PAGE_CONTENT#] 
-	</div>
-	
-	<!--ET_BEGIN NAVIGATION-->
+    <div class='eightcol cms-last' style='margin-right:2%;'>
+        [#PAGE_CONTENT#] 
+    </div>
+    <!--ET_BEGIN NAVIGATION-->
     <div class='fourcol' id='cmsNavigation' style='margin-left:2%'>
         [#NAVIGATION#] 
     </div>

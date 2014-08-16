@@ -122,7 +122,7 @@ class bgerp_plg_Blank extends core_Plugin
             $attr = array('baseName' => 'companyLogo', 'isAbsolute' => TRUE, 'qt' => '"');
             
             // Размера на thumbnail изображението
-            $size = array('750', '100');
+            $size = array('750', '87');
             
             // Създаваме тумбнаил с параметрите
             $companyLogoPath = thumbnail_Thumbnail::getLink($companyLogoFh, $size, $attr);

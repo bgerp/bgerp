@@ -309,7 +309,7 @@ class doc_Containers extends core_Manager
             
             // Добавяме бутон в тулбара
             $threadClassId = core_Classes::fetchIdByName('doc_Threads');
-            custom_Settings::addBtn($data->toolbar, $threadClassId, $data->threadId);
+            custom_Settings::addBtn($data->toolbar, $threadClassId, $data->threadId, 'Изглед');
         }
     }
     
@@ -669,8 +669,7 @@ class doc_Containers extends core_Manager
         if (!$lastClosedOn) {
             
             // Вадим от текущото време, зададените секунди за търсене преди
-            $notifConf = core_Packs::getConfig('bgerp');
-            $lastClosedOn = dt::subtractSecs($notifConf->BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE);
+            $lastClosedOn = dt::subtractSecs(bgerp_Notifications::NOTIFICATIONS_LAST_CLOSED_BEFORE);
         }
         
         // Вземаме всички записи

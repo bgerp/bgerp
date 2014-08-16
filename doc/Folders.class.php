@@ -173,53 +173,39 @@ class doc_Folders extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $data->listFilter->showFields = 'search,users,order';
-        $data->listFilter->input('search,users,order', 'silent');
-
-    	if(!$data->listFilter->rec->users) {
-    		if(haveRole('officer')){
-    			$data->listFilter->setDefault('users', 'all_users'); 
-    			//$data->query->fetchAll();
-    		} else{
-    			$data->listFilter->rec->users = "|" . core_Users::getCurent() . "|";
-    		}
-    	}
-        
-    	if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {  
-            $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
-            $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
-        }
-              
-        if(!$data->listFilter->rec->search) {
-            //$data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
-            //$data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
-            $data->title = 'Папките на |*<font color="green">' .
-            $data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</font>';
-        } else {
-            $data->title = 'Търсене на папки отговарящи на |*<font color="green">"' .
-            $data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</font>';
-        }
-
-        // Ограничения при показване на папките
-        static::restrictAccess($data->query);
-        
-        switch($data->listFilter->rec->order) {
-            case 'last' :
-                $data->query->orderBy('#last', 'DESC');
-            case 'pending' :
-            default :
-            $data->query->orderBy('#state=DESC,#last=DESC');
-        }
+     	// Добавяме поле във формата за търсене
+		$data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+		$data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+		// Показваме само това поле. Иначе и другите полета
+		// на модела ще се появят
+		$data->listFilter->showFields = 'search,users,order';
+		$data->listFilter->input('search,users,order', 'silent');
+		
+		if(!$data->listFilter->rec->users) {
+			$data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+		}
+		
+		if(!$data->listFilter->rec->search) {
+			$data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
+			$data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+			$data->title = 'Папките на |*<font color="green">' .
+			$data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</font>';
+		} else {
+			$data->title = 'Търсене на папки отговарящи на |*<font color="green">"' .
+			$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</font>';
+		}
+		
+		// Ограничения при показване на папките
+		static::restrictAccess($data->query);
+		switch($data->listFilter->rec->order) {
+			case 'last' :
+				$data->query->orderBy('#last', 'DESC');
+			case 'pending' :
+		default :
+				$data->query->orderBy('#state=DESC,#last=DESC');
+		}
     }
     
     
@@ -1111,10 +1097,10 @@ class doc_Folders extends core_Master
         $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
         
         // Задаваме стойностите по подразбиране
-        $form->setDefault('folOpenings', 'default');
-        $form->setDefault('shortLinks', 'default');
-        $form->setDefault('perPage', 'default');
-        $form->setDefault('ordering', 'default');
+//        $form->setDefault('folOpenings', 'default');
+//        $form->setDefault('shortLinks', 'default');
+//        $form->setDefault('perPage', 'default');
+//        $form->setDefault('ordering', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';

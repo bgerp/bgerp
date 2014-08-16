@@ -1,109 +1,107 @@
 <div class="singleView email-class">
-[#SingleToolbar#]
-
-	<h3><div style="padding:5px;" class=" [#STATE_CLASS#]">|Имейл акаунт|* <b style="color:green;display:inline-block;word-break:break-all">[#email#]</b></div></h3>
-			<div class='scrolling-holder'>
-			<table class="styled-table" width="99%">
-				<tr>
-					<td class="title-style" width="150px">|Имейл|*</td>
-					<td> [#email#]</td>
-				</tr>
-				<tr>
-					<td class="title-style">|Рутиране|*</td>
-					<td>[#applyRouting#]</td>
-				</tr>
-				<tr>
-					<td class="title-style">|Тип|*</td>
-					<td>[#type#]</td>
-				</tr>
-			</table>
-			</div>
-			<div class='scrolling-holder'>
-			<table class="styled-table" width="99%">
-				<tr>
-					<th colspan="2">|Получаване|*</th>
-				</tr>
-				<tr>
-					<td width="150px"><span class="title-style">|Сървър|*</span></td>
-					<td> [#server#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">|Протокол|*</span></td>
-					<td> [#protocol#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">|Сигурност|*</span> </td>
-					<td>[#security#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">|Сертификат|*</span></td>
-					<td> [#cert#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">IMAP |папка|*</span> </td>
-					<td>[#folder#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">|Потребител|*</span> </td>
-					<td>[#user#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">|Парола|*</span></td>
-					<td> [#password#]</td>
-				</tr>
-			</table>
-			</div>
-			<table class="styled-table" width="99%">
-				<tr>
-					<th colspan="2">|Изтегляне|*</th>
-				</tr>
-				<tr>
-					<td  width="150px"><span class="title-style">|Статус|* </span></td>
-					<td> [#state#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">|Период|*</span> </td>
-					<td> [#period#]</td>
-				</tr>
-				 <!--ET_BEGIN lastFetchAll-->
-				<tr>
-					<td class="title-style">|Последно източване|*</td>
-					<td>[#lastFetchAll#]</td>
-				</tr>
-				 <!--ET_END lastFetchAll-->
-				<tr>
-					<td class="title-style">|Изтриване|*?</td>
-					<td>[#deleteAfterRetrieval#]</td>
-				</tr>
-			</table>
-			
-			<table class="styled-table" width="99%">
-				<tr>
-					<th colspan="2">Изпращане</th>
-				</tr>
-				<tr>
-					<td width="150px"> <span class="title-style">|Сигурност|*</span> </td>
-					<td>[#smtpSecure#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">|Аутентикация|*</span></td>
-					<td> [#smtpAuth#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">|SMTP сървър|*</span></td>
-					<td> [#smtpServer#]</td>
-				</tr>	
-				<tr>
-					<td><span class="title-style">|Потребител|*</span></td>
-					<td> [#smtpUser#]</td>
-				</tr>		
-				<tr>
-					<td><span class="title-style">|Парола|*</span></td>
-					<td> [#smtpPassword#]</td>
-				</tr>		
-			</table>
-		
-			<div><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
-			<div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
-		
+    [#SingleToolbar#]
+    <h3>
+        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Имейл акаунт|* <b style="color:green;display:inline-block;word-break:break-all">[#email#]</b></div>
+    </h3>
+    <div class='scrolling-holder'>
+        <table class="styled-table" style='width:99%'>
+            <tr>
+                <td class="title-style" style='width:150px'>|Имейл|*</td>
+                <td> [#email#]</td>
+            </tr>
+            <tr>
+                <td class="title-style">|Рутиране|*</td>
+                <td>[#applyRouting#]</td>
+            </tr>
+            <tr>
+                <td class="title-style">|Тип|*</td>
+                <td>[#type#]</td>
+            </tr>
+        </table>
+    </div>
+    <div class='scrolling-holder'>
+        <table class="styled-table" style='width:99%'>
+            <tr>
+                <th colspan="2">|Получаване|*</th>
+            </tr>
+            <tr>
+                <td style='width:150px'><span class="title-style">|Сървър|*</span></td>
+                <td> [#server#]</td>
+            </tr>
+            <tr>
+                <td><span class="title-style">|Протокол|*</span></td>
+                <td> [#protocol#]</td>
+            </tr>
+            <tr>
+                <td><span class="title-style">|Сигурност|*</span> </td>
+                <td>[#security#]</td>
+            </tr>
+            <tr>
+                <td><span class="title-style">|Сертификат|*</span></td>
+                <td> [#cert#]</td>
+            </tr>
+            <tr>
+                <td><span class="title-style">IMAP |папка|*</span> </td>
+                <td>[#folder#]</td>
+            </tr>
+            <tr>
+                <td><span class="title-style">|Потребител|*</span> </td>
+                <td>[#user#]</td>
+            </tr>
+            <tr>
+                <td><span class="title-style">|Парола|*</span></td>
+                <td> [#password#]</td>
+            </tr>
+        </table>
+    </div>
+    <table class="styled-table" style='width:99%'>
+        <tr>
+            <th colspan="2">|Изтегляне|*</th>
+        </tr>
+        <tr>
+            <td style='width:150px'><span class="title-style">|Статус|* </span></td>
+            <td> [#state#]</td>
+        </tr>
+        <tr>
+            <td><span class="title-style">|Период|*</span> </td>
+            <td> [#period#]</td>
+        </tr>
+        <!--ET_BEGIN lastFetchAll-->
+        <tr>
+            <td class="title-style">|Последно източване|*</td>
+            <td>[#lastFetchAll#]</td>
+        </tr>
+        <!--ET_END lastFetchAll-->
+        <tr>
+            <td class="title-style">|Изтриване|*?</td>
+            <td>[#deleteAfterRetrieval#]</td>
+        </tr>
+    </table>
+    <table class="styled-table" style='width:99%'>
+        <tr>
+            <th colspan="2">Изпращане</th>
+        </tr>
+        <tr>
+            <td style='width:150px'> <span class="title-style">|Сигурност|*</span> </td>
+            <td>[#smtpSecure#]</td>
+        </tr>
+        <tr>
+            <td><span class="title-style">|Аутентикация|*</span></td>
+            <td> [#smtpAuth#]</td>
+        </tr>
+        <tr>
+            <td><span class="title-style">|SMTP сървър|*</span></td>
+            <td> [#smtpServer#]</td>
+        </tr>
+        <tr>
+            <td><span class="title-style">|Потребител|*</span></td>
+            <td> [#smtpUser#]</td>
+        </tr>
+        <tr>
+            <td><span class="title-style">|Парола|*</span></td>
+            <td> [#smtpPassword#]</td>
+        </tr>
+    </table>
+    <div><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
+    <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
 </div>

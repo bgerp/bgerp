@@ -1,36 +1,36 @@
 <div class="singleView" >
-	[#SingleToolbar#]
-	<h2>[#SingleTitle#]</h2>
-	<table border='0' style='' cellpadding='1px' class='default-table'>
-		<tr valign=top>
-			<td width='120px'>|Титуляр|*:</td>
-			<td><b>[#contragent#]</b></td>
-		</tr>
-		<tr valign=top>
-			<td>|Валута|*:</td>
-			<td><b>[#currencyId#]</b></td>
-		</tr>
-		<tr  valign=top>
-			<td>IBAN:</td>
-			<td>[#iban#]</td>
-		</tr>
-		<!--ET_BEGIN bank-->
-		<tr  valign=top>
-			<td>|Банка|*:</td>
-			<td>[#bank#]</td>
-		</tr>
-		<!--ET_END bank-->
-		<!--ET_BEGIN bic-->
-		<tr  valign=top>
-			<td>BIC:</td>
-			<td>[#bic#]</td>
-		</tr>
-		<!--ET_END bic-->
-		<tr  valign=top>
-		<!--ET_BEGIN lastUsedOn-->
-			<td>|Последно|*:</td>
-			<td>[#lastUsedOn#]</td>
-		<!--ET_END lastUsedOn-->
-		</tr>
-	</table>
+    [#SingleToolbar#]
+    <h2>[#SingleTitle#]</h2>
+    <table class='default-table border-table'>
+        <tr class='vtop'>
+            <td style='width: 120px'>|Титуляр|*:</td>
+            <td><b>[#contragent#]</b></td>
+        </tr>
+        <tr class='vtop'>
+            <td>|Валута|*:</td>
+            <td><b>[#currencyId#]</b></td>
+        </tr>
+        <tr class='vtop'>
+            <td>IBAN:</td>
+            <td>[#iban#]</td>
+        </tr>
+        <!--ET_BEGIN bank-->
+        <tr class='vtop'>
+            <td>|Банка|*:</td>
+            <td>[#bank#]</td>
+        </tr>
+        <!--ET_END bank-->
+        <!--ET_BEGIN bic-->
+        <tr class='vtop'>
+            <td>BIC:</td>
+            <td>[#bic#]</td>
+        </tr>
+        <!--ET_END bic-->
+        <tr class='vtop'>
+            <!--ET_BEGIN lastUsedOn-->
+            <td>|Последно|*:</td>
+            <td>[#lastUsedOn#]</td>
+            <!--ET_END lastUsedOn-->
+        </tr>
+    </table>
 </div>

@@ -306,6 +306,8 @@ class doc_ThreadRefreshPlg extends core_Plugin
         // Ако няма промени, да не се изпълнява
         if ($data->noChanges) {
             
+            $res = new ET($res);
+            
             return FALSE;
         }
     }

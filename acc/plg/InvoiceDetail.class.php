@@ -120,6 +120,18 @@ class acc_plg_InvoiceDetail extends core_Plugin
 	
 	
 	/**
+	 * Преди подготвяне на едит формата
+	 */
+	static function on_BeforePrepareEditForm($mvc, &$res, $data)
+	{
+		if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){
+			$data->ProductManager = cls::get($classId);
+			$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name', 'maxSuggestions' => 1000000000)));
+		}
+	}
+	
+	
+	/**
 	 * Преди извличане на записите филтър по number
 	 */
 	static function on_AfterPrepareListFilter($mvc, &$data)

@@ -119,7 +119,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         $hitTime = Request::get('hitTime');
         
         // Текущото URL
-        $currUrl = getCurrentUrl();
+        $currUrl = $mvc->getRefreshRowsUrl(getCurrentUrl());
         
         // Кеша зе името
         $nameHash = static::getNameHash($currUrl, $hitTime);

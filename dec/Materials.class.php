@@ -12,20 +12,20 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class dec_Statements extends core_Master
+class dec_Materials extends core_Master
 {
     
     
     /**
      * Заглавие
      */
-    var $title = "Твърдения";
+    var $title = "Материали";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Твърдение";
+    var $singleTitle = "Материал";
     
     
     /**
@@ -87,7 +87,7 @@ class dec_Statements extends core_Master
     {
     	
     	// Подготвяме пътя до файла с данните 
-    	$file = "dec/data/Statements.csv";
+    	$file = "dec/data/Materials.csv";
     	
     	// Кои колонки ще вкарваме
     	$fields = array( 

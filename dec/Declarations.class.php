@@ -123,6 +123,7 @@ class dec_Declarations extends core_Master
     public static $defaultStrategies = array(
     
     	'statements' => 'lastDocUser|lastDoc|LastDocSameCuntry',
+        'materials' => 'lastDocUser|lastDoc|LastDocSameCuntry',
     	'note'       => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
@@ -149,6 +150,9 @@ class dec_Declarations extends core_Master
     
     	// на какви твърдения отговарят
 		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения и материали->Отговарят на, mandatory');
+		
+		// от какви материали е
+		$this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Твърдения и материали->Материали, mandatory');
         
 		// допълнителен текст
 		$this->FLD('note', 'richtext(bucket=Notes)', 'caption=Бележки->Допълнения');
@@ -331,22 +335,42 @@ class dec_Declarations extends core_Master
        		$invoiceNo = str_pad($rec->number, '10', '0', STR_PAD_LEFT) . " / " . dt::mysql2verbal($rec->date, "d.m.Y");
        		$row->invoiceNo = $invoiceNo;
          }
+         
+    
+        // вземаме материалите
+    	if ($recDec->materials) {
+    		
+    		$materials = type_Keylist::toArray($recDec->materials);
+    		
+            $cTpl = $decContent->getBlock("material");    
+    		foreach ($materials as $material) {  
+    			
+    			$m = dec_Materials::fetch($material);
+    			$text = "изделията са произведени от";
+    			$text2 .= " ". $m->text . ",";
+    		}
+    			$cTpl->replace($text2, 'material'); //bp($text); 
+    			$cTpl->append2master();
+    		
+//    		/$row->material = "</ol>";
+    	}
     	
     	// вземаме твърденията
-    	if ($recDec->statements) { 
+    	if ($recDec->statements) {
     		
     		$statements = type_Keylist::toArray($recDec->statements);
     		
-            $cTpl = $decContent->getBlock("statements");
-    		foreach ($statements as $statement) { 
+            $cTpl = $decContent->getBlock("statements");    
+    		foreach ($statements as $statement) {  
     			
     			$s = dec_Statements::fetch($statement);
-    			$text = "<ul><li>изделията отговарят на ". $s->title. " ". $s->text ."</li></ul>";
-    			$cTpl->replace($text, 'statements');
+    			$text = "<ul><li>изделията отговарят на изискванията"." ". $s->text ."</li></ul>";
+    			$cTpl->replace($text, 'statements'); //bp($text); 
     			$cTpl->append2master();
     		}
     		$row->statements = "</ol>";
     	}
+    	
     	
     	// ако има допълнителни бележки
     	if($recDec->note) { 

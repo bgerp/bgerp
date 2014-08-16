@@ -41,11 +41,12 @@ class acc_CronDealsHelper
     	$now = dt::now();
     	expect(cls::haveInterface('bgerp_DealAggregatorIntf', $Class));
     	
-    	// Проверяват се всички активирани и продажби с чакащо плащане
+    	// Проверяват се всички активирани и продажби с чакащо плащане или просрочените
     	$query = $Class->getQuery();
-    	$query->where("#paymentState = 'pending'");
+    	$query->where("#paymentState = 'pending' || #paymentState = 'overdue'");
     	$query->where("#state = 'active'");
     	$query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
+    	$query->show('id,amountDeal,amountPaid,amountDelivered,paymentState');
     	
     	while($rec = $query->fetch()){
     		try{
@@ -57,42 +58,47 @@ class acc_CronDealsHelper
     			core_Logs::add($Class, $rec->id, "Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'");
     			continue;
     		}
-    			
+    		
     		$mId = $dealInfo->get('paymentMethodId');
-    		if(!$mId) continue;
+    		if($mId){
     			
-    		// Намира се датата в реда фактура/експедиция/сделка
-    		foreach (array('invoicedValior', 'shippedValior', 'agreedValior') as $asp){
-    			if($date = $dealInfo->get($asp)){
-    				break;
+    			// Намира се датата в реда фактура/експедиция/сделка
+    			foreach (array('invoicedValior', 'shippedValior', 'agreedValior') as $asp){
+    				if($date = $dealInfo->get($asp)){
+    					break;
+    				}
+    			}
+    			
+    			// Извлича се платежния план
+    			$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
+    			 
+    			try{
+    				$isOverdue = cond_PaymentMethods::isOverdue($plan, round($rec->amountDelivered, 2) - round($rec->amountPaid, 2));
+    			} catch(Exception $e){
+    					
+    				// Ако има проблем при извличането се продължава
+    				core_Logs::add($Class, $rec->id, "Несъществуващ платежен план': '{$e->getMessage()}'");
+    				continue;
     			}
     		}
-    				
-    		// Извлича се платежния план
-    		$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
-    			
-    		try{
-    			$isOverdue = cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid);
-    		} catch(Exception $e){
-    					
-	    		// Ако има проблем при извличането се продължава
-	    		core_Logs::add($Class, $rec->id, "Несъществуващ платежен план': '{$e->getMessage()}'");
-	    		continue;
-    		}
-    				
+    		
     		// Проверка дали продажбата е просрочена
     		if($isOverdue){
     				
     			// Ако да, то продажбата се отбелязва като просрочена
     			$rec->paymentState = 'overdue';
-    					
-    			try{
-    				$Class->save($rec);
-    			} catch(Exception $e){
-    						
-    				// Ако има проблем при обновяването
-    				core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");
-    			}
+    		} else {
+    			
+    			// Ако не е просрочена проверяваме дали е платена
+    			$rec->paymentState = $Class->getPaymentState($dealInfo, $rec->paymentState);
+    		}
+    		
+    		try{
+    			$Class->save_($rec);
+    		} catch(Exception $e){
+    		
+    			// Ако има проблем при обновяването
+    			core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");
     		}
     	}
     }
@@ -101,13 +107,15 @@ class acc_CronDealsHelper
     /**
      * Приключва остарялите сделки
      */
-    public function closeOldDeals($olderThan, $tolerance, $closeDocName)
+    public function closeOldDeals($olderThan, $closeDocName, $limit)
     {
     	$className = $this->className;
     	
     	expect(cls::haveInterface('bgerp_DealAggregatorIntf', $this->className));
     	$query = $className::getQuery();
     	$ClosedDeals = cls::get($closeDocName);
+    	$conf = core_Packs::getConfig('acc');
+    	$tolerance = $conf->ACC_MONEY_TOLERANCE;
     	
     	// Текущата дата
     	$now = dt::mysql2timestamp(dt::now());
@@ -136,22 +144,17 @@ class acc_CronDealsHelper
     	
     	// Подреждаме ги в низходящ ред
     	$query->orderBy('id', 'DESC');
+
+    	// Лимитираме заявката
+    	$query->limit($limit);
     	
     	// Всяка намерената сделка, се приключва като платена
     	while($rec = $query->fetch()){
     		try{
+    			
     			// Създаване на приключващ документ-чернова
     			$clId = $ClosedDeals->create($this->className, $rec);
-    			
-    			// Контиране на документа
-    			acc_Journal::saveTransaction($ClosedDeals->getClassId(), $clId);
-    			
-    			// Продажбата/покупката се отбелязват като птиключени и платени
-    			$rec->state = 'closed';
-    			$rec->paymentState = 'paid';
-    	
-    			// Обновяване състоянието на документа
-    			$className::save($rec);
+    			$ClosedDeals->conto($clId);
     			
     		} catch(Exception $e){
     			

@@ -1,5 +1,4 @@
 [#SingleToolbar#]
-<!-- BEGIN container -->
 <div class='document'>
     <!--ET_BEGIN blank-->
         [#blank#]
@@ -11,7 +10,7 @@
     <!--ET_END header-->
     <div class='scrolling-holder'>
         <div class='display-table'>
-                    <table class='border-table' cellpadding='4px' >
+                    <table class='border-table'>
                     <tr>
                         <td class='top-head'>
                             <b>|Платец|*</b>
@@ -46,16 +45,16 @@
                     <div class='lines'></div>
                     <table  class='border-table'>
                         <tr>
-                            <td width='67%' align='left' style='padding-left:10px;'>
-                                <table class='no-border' cellpadding=0 cellspacing=0>
+                            <td class='aleft' style='padding-left:10px;width:67%'>
+                                <table class='no-border'>
                                    <!--ET_BEGIN contragentIban-->
                                     <tr>
-                                        <td width=98px>|От сметка|*: </td>
+                                        <td style='width:98px'>|От сметка|*: </td>
                                         <td><b>[#contragentIban#]</b></td>
                                     </tr>
                                     <!--ET_END contragentIban-->
                                     <tr>
-                                        <td width=98px>|Към сметка|*:</td>
+                                        <td style='width:98px'>|Към сметка|*:</td>
                                         <td><b>[#ownAccount#]</b> </td>
                                     </tr>
                                     
@@ -68,9 +67,9 @@
                             </td>
                             <td>
                             
-                            <table class='no-border' cellpadding=0 cellspacing=0>
+                            <table class='no-border'>
                                <tr>
-                                   <td width='20%'>|Сума|*: </td>
+                                   <td style='width:20%'>|Сума|*: </td>
                                    <td><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b >[#amount#]</b></span></td>
                                </tr>
                                <!--ET_BEGIN equals-->
@@ -93,7 +92,5 @@
         <div class='details'>
             [#DETAILS#]
         </div>
-    <!--ET_END DETAILS-->
-    
+    <!--ET_END DETAILS-->   
 </div>
-<!-- END container -->
