@@ -1681,7 +1681,7 @@ class doc_Containers extends core_Manager
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да нотифицира за незавършени действия с документи.</font></li>";
+            $res .= "<li class='green'>Задаване на крон да нотифицира за незавършени действия с документи.</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да нотифицира за незавършени действия с документи</li>";
         }

@@ -8,7 +8,7 @@
     </div>
     <div class='antetka' style='line-height:150%;'>
         <b>[#title#]</b><br>
-        <small>
+        <div class="small">>
             <table class='full-width'>
                 <tr>
                     <td>
@@ -45,7 +45,7 @@
                     </td>
                 </tr>
             </table>
-        </small>
+        </div>
     </div>
     <div style='padding-top:10px;'>[#description#]</div>
     <!--ET_BEGIN DETAILS-->

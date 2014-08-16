@@ -23,7 +23,7 @@ class tpl_PageHeader extends ET {
     function tpl_PageHeader()
     {
         $this->header = new ET("
-                    <IMG style=\"float:right;padding-right:10px;\" SRC=" . sbf('img/sourcingbg.png') . " WIDTH=\"278\" HEIGHT=\"64\" ID=\"logo\" BORDER=\"0\" align=\"absmiddle\" ALT=\"\"> 
+                    <IMG style=\"float:right;padding-right:10px;\" SRC=" . sbf('img/sourcingbg.png') . " WIDTH=\"278\" HEIGHT=\"64\" ID=\"logo\" align=\"absmiddle\" ALT=\"\"> 
                     <div class=\"menuRow\" >[#MENU_ROW#]</div>");
         
         $this->addMenuItem('Четци', 'MENU_ROW', array('Readers'));

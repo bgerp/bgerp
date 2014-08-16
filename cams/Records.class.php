@@ -579,7 +579,7 @@ class cams_Records extends core_Master
         $camUrl = toUrl(array('cams_Cameras', 'Single', $fRec->cameraId));
         
         $data->title = "Записи на камера|* <a href='{$camUrl}'>{$camTitle}</a> |от" .
-        "|* <font color='green'>{$startPage}</font> |до|* <font  color='green'>{$startPageEnd}</font>";
+        "|* <span class=\"green\">{$startPage}</font> |до|* <font  color='green'>{$startPageEnd}</span>";
         
         $startPageMysql = dt::verbal2mysql($startPage);
         

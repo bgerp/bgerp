@@ -5,8 +5,6 @@
     </div>
     <div class='scrolling-holder'>
         <div class='antetka'>
-            <div style='float:left;'>
-                <small>
                     <table class='top-table'>
                         <!--ET_BEGIN title-->          
                         <tr>
@@ -45,8 +43,6 @@
                         </tr>
                         <!--ET_END createdBy-->
                     </table>
-                </small>
-            </div>
             <div style='clear: both;'></div>
         </div>
         <div style='clear: both;'></div>

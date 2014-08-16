@@ -1098,13 +1098,13 @@ class purchase_Purchases extends core_Master
         
         $Cron = cls::get('core_Cron');
     	if($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да приключва стари покупки.</font></li>";
+            $res .= "<li class='green'>Задаване на крон да приключва стари покупки.</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да приключва стари покупки.</li>";
         }
         
     	if($Cron->addOnce($rec2)) {
-            $res .= "<li><font color='green'>Задаване на крон да проверява дали покупката е просрочена.</font></li>";
+            $res .= "<li class='green'>Задаване на крон да проверява дали покупката е просрочена.</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да проверява дали покупката е просрочена.</li>";
         }
@@ -1155,7 +1155,7 @@ class purchase_Purchases extends core_Master
     		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
     	}
     	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за покупки, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+    	$res .= "<li class='green'>Добавени са {$added} шаблона за покупки, обновени са {$updated}, пропуснати са {$skipped}</li>";
     }
     
     

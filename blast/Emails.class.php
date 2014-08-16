@@ -1847,7 +1847,7 @@ class blast_Emails extends core_Master
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да изпраща много имейли.</font></li>";
+            $res .= "<li><span class=\"green\">Задаване на крон да изпраща много имейли.</span></li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да изпраща имейли.</li>";
         }

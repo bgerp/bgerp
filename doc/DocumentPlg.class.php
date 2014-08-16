@@ -239,7 +239,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         if(Request::get('Rejected')) {
             $data->title = new ET('[#1#]', tr($data->title));
-            $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</font>");
+            $data->title->append("&nbsp;<span class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</span>");
         }
     }
     

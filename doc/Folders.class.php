@@ -190,11 +190,11 @@ class doc_Folders extends core_Master
 		if(!$data->listFilter->rec->search) {
 			$data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
 			$data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
-			$data->title = 'Папките на |*<font color="green">' .
-			$data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</font>';
+			$data->title = 'Папките на |*<span class="green">' .
+			$data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</span>';
 		} else {
-			$data->title = 'Търсене на папки отговарящи на |*<font color="green">"' .
-			$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</font>';
+			$data->title = 'Търсене на папки отговарящи на |*<span class="green">"' .
+			$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
 		}
 		
 		// Ограничения при показване на папките

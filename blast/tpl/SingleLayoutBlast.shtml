@@ -2,11 +2,11 @@
     <!--ET_BEGIN blank-->
     [#blank#]
     <!--ET_END blank-->
-    <div class='scrolling-holder'>
-        <div class='display-table'>
-            <div class='antetka'>
-                <small>
-                    <div style='width: 50%; display: inline-block; vertical-align: top; text-align: left;'>
+    <div class="scrolling-holder">
+        <div class="display-table">
+            <div class="antetka">
+                <div class="small">
+                    <div style="width: 50%; display: inline-block; vertical-align: top; text-align: left;">
                         <!--ET_BEGIN handle-->
                         <div>|Реф.|*: [#handle#]</div>
                         <!--ET_END handle-->
@@ -25,8 +25,8 @@
                         <div>|Имейл|*: <b>[#emailLeft#]</b></div>
                         <!--ET_END emailLeft-->
                     </div>
-                    <div style='display: inline-block;'></div>
-                    <div style='width: 49%; display: inline-block; text-align: right; vertical-align: top;'>
+                    <div style="display: inline-block;"></div>
+                    <div style="width: 49%; display: inline-block; text-align: right; vertical-align: top;">
                         <!--ET_BEGIN email-->
                         <div>|Имейл|*: <b>[#email#]</b></div>
                         <!--ET_END email-->
@@ -44,9 +44,9 @@
                         </div>
                         <!--ET_END address-->
                     </div>
-                </small>
+                </div>
             </div>
-            <div style='clear: both;'></div>
+            <div style="clear: both;"></div>
         </div>
     </div>
     <!--ET_BEGIN subject--> 
@@ -56,13 +56,13 @@
         </div>
     </div>
     <!--ET_END subject--> 
-    <div style='clear: both;'></div>
+    <div style="clear: both;"></div>
     <!--ET_BEGIN body--> 
     <div>
         <div>[#body#]</div>
     </div>
     <!--ET_END body--> 
-    <div style='clear: both;'></div>
-	<div class='clear_l f_left block_subtitle mt_50px'></div>
-    <div style='clear: both;'></div>
+    <div style="clear: both;"></div>
+	<div class="clear_l f_left block_subtitle mt_50px"></div>
+    <div style="clear: both;"></div>
 </div>

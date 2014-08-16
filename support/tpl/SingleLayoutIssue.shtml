@@ -11,17 +11,18 @@
 	</div>
 	
 	<div  class='clearfix21 antetka'>
-		<div class='clearfix21'>  <small>
-		<div><b>[#title#]</b></div>
-		<!--ET_BEGIN componentId-->
-			<div>|Компонент|*: [#componentId#]</div>
-		<!--ET_END componentId-->
-		<div>|Тип|*: [#typeId#]</div>
-		<div>|Приоритет|*: [#priority#]</div>
-		<!--ET_BEGIN assign-->
-			<div>|Възложено на|*: <i>[#assign#]</i> |от|* <i>[#assignedBy#]</i> |на|* [#assignedOn#]</div>
-		<!--ET_END assign-->
-		</small>
+		<div class='clearfix21'>  
+		<div class="small">
+			<div><b>[#title#]</b></div>
+			<!--ET_BEGIN componentId-->
+				<div>|Компонент|*: [#componentId#]</div>
+			<!--ET_END componentId-->
+			<div>|Тип|*: [#typeId#]</div>
+			<div>|Приоритет|*: [#priority#]</div>
+			<!--ET_BEGIN assign-->
+				<div>|Възложено на|*: <i>[#assign#]</i> |от|* <i>[#assignedBy#]</i> |на|* [#assignedOn#]</div>
+			<!--ET_END assign-->
+		</div>
 		</div>
 	</div>
 

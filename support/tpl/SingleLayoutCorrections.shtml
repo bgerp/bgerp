@@ -11,9 +11,8 @@
 	</div>
 	
 	<div  class='clearfix21 antetka'>
-		<div class='clearfix21'>  <small>  
-		<b>[#subject#]</b>
-		</small>
+		<div class='clearfix21'>    
+		<small><b>[#subject#]</b></small>
 		</div>
 	</div>
 

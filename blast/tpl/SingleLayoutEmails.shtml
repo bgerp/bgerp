@@ -4,7 +4,7 @@
     <div class='scrolling-holder'>
         <div class='display-table'>
             <div class='antetka'>
-                <small>
+                <div class='small'>
                     <table class='top-table' style='width: 100%'>
                         <tr>
                             <td colspan='2'>
@@ -51,7 +51,7 @@
                                 </table>
                             </td>
                             <td class='aright vtop'>
-                                <table class='top-table'>
+                                <table class='top-table fright'>
                                     <!--ET_BEGIN email-->
                                     <tr>
                                         <td class='aright'>|Имейл|*:</td>
@@ -84,7 +84,7 @@
                             </td>
                         </tr>
                     </table>
-                </small>
+                </div>
                 <div style='clear: both;'></div>
             </div>
         </div>

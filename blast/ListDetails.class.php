@@ -447,7 +447,7 @@ class blast_ListDetails extends core_Detail
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
         $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
-        $exp->question("#priority", tr("Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето") . " <font color=green>'" . $fieldsArr[$listRec->keyField] . "'</font> ?", TRUE, 'title=' . tr('Приоритет на данните'));
+        $exp->question("#priority", tr("Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето") . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", TRUE, 'title=' . tr('Приоритет на данните'));
         
         $exp->question($qFields, tr("Въведете съответстващите полета") . ":", TRUE, 'title=' . tr('Съответствие между полетата на източника и списъка'));
         

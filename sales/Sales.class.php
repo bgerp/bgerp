@@ -673,7 +673,7 @@ class sales_Sales extends core_Master
     
                 // Търговец (чрез инициатор)
                 if (!empty($rec->initiatorId)) {
-                    $row->dealerId .= '<small style="display: block;"><span class="quiet">чрез</span> ' . $row->initiatorId;
+                    $row->dealerId .= '<small><span class="quiet">чрез</span> ' . $row->initiatorId . "</small>";
                 }
             }
         }
@@ -1287,13 +1287,13 @@ class sales_Sales extends core_Master
         
         $Cron = cls::get('core_Cron');
     	if($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да приключва стари продажби.</font></li>";
+            $res .= "<li class='green'>Задаване на крон да приключва стари продажби.</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да приключва стари продажби.</li>";
         }
         
     	if($Cron->addOnce($rec2)) {
-            $res .= "<li><font color='green'>Задаване на крон да проверява дали продажбата е просрочена.</font></li>";
+            $res .= "<li class='green'>Задаване на крон да проверява дали продажбата е просрочена.</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да проверява дали продажбата е просрочена.</li>";
         }
@@ -1318,7 +1318,7 @@ class sales_Sales extends core_Master
     		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
     	}
     	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+    	$res .= "<li class='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}, пропуснати са {$skipped}</li>";
     }
     
     

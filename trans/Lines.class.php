@@ -440,7 +440,7 @@ class trans_Lines extends core_Master
         
         $Cron = cls::get('core_Cron');
         if($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да приключва и да създава нови транспортни линии.</font></li>";
+            $res .= "<li class='green'>Задаване на крон да приключва и да създава нови транспортни линии.</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да приключва и да създава нови транспортни линии.</li>";
         }

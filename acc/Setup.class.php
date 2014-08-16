@@ -139,7 +139,7 @@ class acc_Setup extends core_ProtoSetup
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $html .= "<li><font color='green'>Задаване по крон да преизчислява баланси</font></li>";
+            $html .= "<li><span class=\"green\">Задаване по крон да преизчислява баланси</span></li>";
         } else {
             $html .= "<li>Отпреди Cron е бил нагласен да преизчислява баланси</li>";
         }

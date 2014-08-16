@@ -158,7 +158,7 @@ class sens_Sensors extends core_Master
         if(!cls::load($rec->driver, TRUE)) {
             
             $className = cls::getClassName($rec->driver) ? : $rec->driver;
-            $row->driver = "<font color='red'>{$className}</font>";
+            $row->driver = "<span class='red'>{$className}</span>";
             
             return;
         }

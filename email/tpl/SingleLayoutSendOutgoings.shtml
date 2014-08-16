@@ -5,7 +5,7 @@
     <div class='scrolling-holder'>
         <div class='display-table'>
             <div class='antetka'>
-                <small>
+                <div class="small">
                     <div style='width: 50%; display: inline-block; vertical-align: top; text-align: left;'>
                         <!--ET_BEGIN handle-->
                         <div>|Реф.|*: [#handle#]</div>
@@ -51,7 +51,7 @@
                         </div>
                         <!--ET_END address-->
                     </div>
-                </small>
+                </div>
             </div>
         </div>
     </div>

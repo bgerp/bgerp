@@ -1099,7 +1099,7 @@ class forum_Postings extends core_Detail {
 	    	if($filter->board > 0) {
 					$data->query->where("#boardId = {$filter->board}");
 					$verbalBoard = $data->listFilter->getFieldType('board')->toVerbal($filter->board);
-					$data->title .= ' в дъска |*<font color="darkblue">"' . $verbalBoard . '"</font>';
+					$data->title .= ' в дъска |*<span style="color:darkblue;">"' . $verbalBoard . '"</font>';
 				}
 				
         	if($filter->posting == 'all') {

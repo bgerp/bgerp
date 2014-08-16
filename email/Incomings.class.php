@@ -835,7 +835,7 @@ class email_Incomings extends core_Master
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да сваля имейлите в модела.</font></li>";
+            $res .= "<li class='green'>Задаване на крон да сваля имейлите в модела.</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да сваля имейлите.</li>";
         }

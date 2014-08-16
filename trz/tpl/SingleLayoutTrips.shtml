@@ -1,40 +1,47 @@
 [#SingleToolbar#]
-                 
-	<div class='document'>
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-		<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#]'>|Командировка|* <b>[#ident#]</b> ([#state#])</div>
-		</div>
-
-		<div class='antetka' style='line-height:160%;'>
-			<small>
-			<div>
-				<div><b>|Командировка|*</b></div>
-				<!--ET_BEGIN createdDate--><div>№ [#id#] / [#createdDate#]|г|*.</div><!--ET_END createdDate-->
-			</div>
-		 	</small>
-	   	
-		<div style='clear: both;'></div>
-	</div> 
-			
-			<div class='block_left'>
-			<!--ET_BEGIN personId--><p><b>|Служител|*:</b> [#personId#]</p><!--ET_END personId-->
-			<p><b>|Период|*:</b> от <b>[#startDate#]</b> до <b>[#toDate#]</b></p>
-	    	<!--ET_BEGIN place--><div class='richtext-holder'><b>|Място|*:</b> [#place#]</div><!--ET_END place-->
-	    	<!--ET_BEGIN purpose--><div class='richtext-holder'><b>|Цел|*:</b> [#purpose#]</div><!--ET_END purpose-->
-	    	<!--ET_BEGIN amountRoad--><p><b>|Пътни|*:</b> [#amountRoad#] [#roadCurrencyId#]</p><!--ET_END amountRoad-->
-	    	<!--ET_BEGIN amountDaily--><p><b>|Дневни|*:</b> [#amountDaily#] [#dailyCurrencyId#]</p><!--ET_END amountDaily-->
-	    	<!--ET_BEGIN amountHouse--><p><b>|Квартирни|*:</b> [#amountHouse#] [#houseCurrencyId#]</p><!--ET_END amountHouse-->
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#]'>|Командировка|* <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <div class='antetka' style='line-height:160%;'>
+        <div class="small">
+            <div>
+                <div><b>|Командировка|*</b></div>
+                <!--ET_BEGIN createdDate-->
+                <div>№ [#id#] / [#createdDate#]|г|*.</div>
+                <!--ET_END createdDate-->
             </div>
-
+        </div>
         <div style='clear: both;'></div>
-        
-		<!--ET_BEGIN DETAILS-->
-			<div class='details'>
-				[#DETAILS#]
-			</div>
-		<!--ET_END DETAILS-->
-		
-    </div>         
+    </div>
+    <div class='block_left'>
+        <!--ET_BEGIN personId-->
+        <p><b>|Служител|*:</b> [#personId#]</p>
+        <!--ET_END personId-->
+        <p><b>|Период|*:</b> от <b>[#startDate#]</b> до <b>[#toDate#]</b></p>
+        <!--ET_BEGIN place-->
+        <div class='richtext-holder'><b>|Място|*:</b> [#place#]</div>
+        <!--ET_END place-->
+        <!--ET_BEGIN purpose-->
+        <div class='richtext-holder'><b>|Цел|*:</b> [#purpose#]</div>
+        <!--ET_END purpose-->
+        <!--ET_BEGIN amountRoad-->
+        <p><b>|Пътни|*:</b> [#amountRoad#] [#roadCurrencyId#]</p>
+        <!--ET_END amountRoad-->
+        <!--ET_BEGIN amountDaily-->
+        <p><b>|Дневни|*:</b> [#amountDaily#] [#dailyCurrencyId#]</p>
+        <!--ET_END amountDaily-->
+        <!--ET_BEGIN amountHouse-->
+        <p><b>|Квартирни|*:</b> [#amountHouse#] [#houseCurrencyId#]</p>
+        <!--ET_END amountHouse-->
+    </div>
+    <div style='clear: both;'></div>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
+</div>

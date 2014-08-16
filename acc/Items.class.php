@@ -307,7 +307,7 @@ class acc_Items extends core_Manager
         $listId = $mvc->getCurrentListId();
         $listRec = $mvc->Lists->fetch($listId);
         
-        $data->title = "Пера в номенклатурата|* <font color=green> {$listRec->caption} </font>";
+        $data->title = "Пера в номенклатурата|* <span class=\"green\"> {$listRec->caption} </span>";
         
         return FALSE;
     }
@@ -995,7 +995,7 @@ class acc_Items extends core_Manager
     	
     	$Cron = cls::get('core_Cron');
     	if($Cron->addOnce($rec)) {
-    		$res .= "<li><font color='green'>Задаване на крон да изтрива затворени, неизползвани пера.</font></li>";
+    		$res .= "<li><span class=\"green\">Задаване на крон да изтрива затворени, неизползвани пера.</span></li>";
     	} else {
     		$res .= "<li>Отпреди Cron е бил нагласен да  изтрива затворени, неизползвани пера.</li>";
     	}

@@ -713,6 +713,6 @@ class store_Receipts extends core_Master
     		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
     	}
     	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за складови разписки, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+    	$res .= "<li class='green'>Добавени са {$added} шаблона за складови разписки, обновени са {$updated}, пропуснати са {$skipped}</li>";
     }
 }

@@ -7,9 +7,10 @@
         <div class='docBgIcon' style='[#iconStyle#];'>|Група файлове|* <b>[#ident#]</b> ([#state#]) </div>
     </div>
     <div  class='clearfix21 antetka'>
-        <div class='clearfix21'>  <small>  
+        <div class='clearfix21'>
+			<span class='small'>  
             <b>[#title#]</b>
-            </small>
+            </span>
         </div>
     </div>
     <!--ET_BEGIN [#repos#]--> 

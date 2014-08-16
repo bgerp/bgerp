@@ -358,7 +358,7 @@ class crm_Persons extends core_Master
             $date = Request::get('date', 'date');
 
             if($date) {
-                $data->title = "Именници на <font color='green'>" . dt::mysql2verbal($date, 'd.m.Y, l') . "</font>";
+                $data->title = "Именници на <span class=\"green\">" . dt::mysql2verbal($date, 'd.m.Y, l') . "</span>";
             } else {
                 $data->title = "Именници";
             }

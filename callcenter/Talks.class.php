@@ -1531,7 +1531,7 @@ class callcenter_Talks extends core_Master
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да променя статуса на обажданията без статуси на без отговор.</font></li>";
+            $res .= "<li><span class=\"green\">Задаване на крон да променя статуса на обажданията без статуси на без отговор.</span></li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да променя статуса на обажданията без статуси на без отговор.</li>";
         }
@@ -1573,7 +1573,7 @@ class callcenter_Talks extends core_Master
                 
                 $changetTalksStr = implode(', ', $changedTalksArr);
                 
-                $res .= "<li><font color='green'>Бяха съкратение времената на {$cnt} {$word} - {$changetTalksStr}</font></li>";
+                $res .= "<li><span class=\"green\">Бяха съкратение времената на {$cnt} {$word} - {$changetTalksStr}</span></li>";
             }
         }
         
@@ -1648,7 +1648,7 @@ class callcenter_Talks extends core_Master
             
             $changetTalksStr = implode(', ', $nChangedTalksArr);
             
-            $res .= "<li><font color='green'>Бяха променени времената на {$cnt} {$word} - {$changetTalksStr}</font></li>";
+            $res .= "<li><span class=\"green\">Бяха променени времената на {$cnt} {$word} - {$changetTalksStr}</span></li>";
         }
     }
     

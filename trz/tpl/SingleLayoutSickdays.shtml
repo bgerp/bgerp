@@ -1,49 +1,57 @@
 [#SingleToolbar#]  
-	<div class='document'>
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-		<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#]'>Болничен лист <b>[#ident#]</b> ([#state#])</div>
-		</div>
-
-			<div class='antetka' style='line-height:160%;'>
-			<small>
-			<div>
-				<div><b>|БОЛНИЧЕН ЛИСТ|*</b></div>
-				<!--ET_BEGIN createdDate--><div>№ [#fitNoteNum#] / [#createdDate#]|г|*.</div><!--ET_END createdDate-->
-			</div>
-		 	</small>
-	   	
-		<div style='clear: both;'></div>
-	</div> 
-			
-			<div class='block_left'>
-			<!--ET_BEGIN personId--><p><b>|Служител|*:</b> [#personId#]</p><!--ET_END personId-->
-			<p><b>|Период|*:</b> |от|* <b>[#startDate#]</b> |до|* <b>[#toDate#]</b></p>
-	    	
-	    	<!--ET_BEGIN fitNoteNum--><p><b>|Болничен лист|*:</b> № [#fitNoteNum#]</p><!--ET_END fitNoteNum-->
-	    	<!--ET_BEGIN fitNoteFile--><p><b>|Файл|*:</b>[#fitNoteFile#]</p>	<!--ET_END fitNoteFile-->
-	    	<p><b>|Причина|*:</b> [#reason#]</p>
-	    	<!--ET_BEGIN note--><div class='richtext-holder'><b>|Забележка|*:</b> [#note#]</div><!--ET_END note-->
-	    	<!--ET_BEGIN icdCode--><p><b>|Код по MKB|*:</b> [#icdCode#]</p><!--ET_END icdCode-->
-	    	<!--ET_BEGIN paidByEmployer--><p><b>|Заплащане от работодателя|*:</b> [#paidByEmployer#]</p><!--ET_END paidByEmployer-->
-	    	<!--ET_BEGIN paidByHI--><p><b>|Заплащане от НЗК|*:</b> [#paidByHI#]</p><!--ET_END paidByHI-->
-	    	<p><b>|По време на отсъствието|*:</b></p>
-	 		<ul class='custom-ul'>
-			 	<li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
-			 	<li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
-			 	<li>|ще ме замества|*: <b>[#alternatePerson#]</b></li>
-	 		</ul>
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#]'>Болничен лист <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <div class='antetka' style='line-height:160%;'>
+        <div class="small">
+            <div>
+                <div><b>|БОЛНИЧЕН ЛИСТ|*</b></div>
+                <!--ET_BEGIN createdDate-->
+                <div>№ [#fitNoteNum#] / [#createdDate#]|г|*.</div>
+                <!--ET_END createdDate-->
             </div>
-
-
+        </div>
         <div style='clear: both;'></div>
-        
-		<!--ET_BEGIN DETAILS-->
-			<div class='details'>
-				[#DETAILS#]
-			</div>
-		<!--ET_END DETAILS-->
-		
-    </div>         
+    </div>
+    <div class='block_left'>
+        <!--ET_BEGIN personId-->
+        <p><b>|Служител|*:</b> [#personId#]</p>
+        <!--ET_END personId-->
+        <p><b>|Период|*:</b> |от|* <b>[#startDate#]</b> |до|* <b>[#toDate#]</b></p>
+        <!--ET_BEGIN fitNoteNum-->
+        <p><b>|Болничен лист|*:</b> № [#fitNoteNum#]</p>
+        <!--ET_END fitNoteNum-->
+        <!--ET_BEGIN fitNoteFile-->
+        <p><b>|Файл|*:</b>[#fitNoteFile#]</p>
+        <!--ET_END fitNoteFile-->
+        <p><b>|Причина|*:</b> [#reason#]</p>
+        <!--ET_BEGIN note-->
+        <div class='richtext-holder'><b>|Забележка|*:</b> [#note#]</div>
+        <!--ET_END note-->
+        <!--ET_BEGIN icdCode-->
+        <p><b>|Код по MKB|*:</b> [#icdCode#]</p>
+        <!--ET_END icdCode-->
+        <!--ET_BEGIN paidByEmployer-->
+        <p><b>|Заплащане от работодателя|*:</b> [#paidByEmployer#]</p>
+        <!--ET_END paidByEmployer-->
+        <!--ET_BEGIN paidByHI-->
+        <p><b>|Заплащане от НЗК|*:</b> [#paidByHI#]</p>
+        <!--ET_END paidByHI-->
+        <p><b>|По време на отсъствието|*:</b></p>
+        <ul class='custom-ul'>
+            <li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
+            <li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
+            <li>|ще ме замества|*: <b>[#alternatePerson#]</b></li>
+        </ul>
+    </div>
+    <div style='clear: both;'></div>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
+</div>

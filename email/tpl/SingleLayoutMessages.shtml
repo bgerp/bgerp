@@ -13,7 +13,7 @@
         </div>
         <!--ET_END subject-->
         <div class="em-holder" style='float:left;margin-right:10px;'>
-            <small>
+            <div class="small">>
                 <table class='top-table'>
                     <!--ET_BEGIN fromEml-->          
                     <tr>
@@ -46,15 +46,15 @@
                     </tr>
                     <!--ET_END fromIp-->
                 </table>
-            </small>
+            </div>
         </div>
         <!--ET_BEGIN files-->
-        <small class="sm-att" >
+        <div class="sm-att" >
             <div class='attachments'>
                 <div class="aHeader">|Прикачени файлове|*:</div>
                 <div style='display:block; margin:5px 0'>[#files#]</div>
             </div>
-        </small>
+        </div>
         <!--ET_END files--> 
         <div class="clearfix21"></div>
     </div>

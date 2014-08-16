@@ -584,7 +584,7 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 	background: #ffffe8;
 }
 
-.crm-icon{
+.crm-icon, div.telephone, div.fax, div.email, div.email, div.mobile {
 	padding-top:3px;
     padding-left:22px;
     background-repeat:no-repeat;
@@ -2433,6 +2433,7 @@ fieldset.sharing-history {
 		margin-top: 7px;
 		margin-left: 5px;
 		margin-right: 5px;
+		max-width:100px;
 	}
 
 	.date-box {
@@ -2442,6 +2443,7 @@ fieldset.sharing-history {
 		margin-bottom: 5px;
 		margin-top: 5px;
 	}
+
 	.gravatar-box{
 	    text-align: center;
 		img {

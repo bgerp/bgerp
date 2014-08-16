@@ -52,10 +52,10 @@ class sens2_LogicActionAssign
 
     function toVerbal($rec)
     {
-        $res = "<font color='#999999'>Променлива:</font> <b>{$rec->var}</b><br>";
-        $res .= "<font color='#999999'>Израз:</font> <b>{$rec->expr}</b><br>";
+        $res = "<span style='color:#999999'>Променлива:</span> <b>{$rec->var}</b><br>";
+        $res .= "<span style='color:#999999'>Израз:</span> <b>{$rec->expr}</b><br>";
         if($rec->cond) {
-            $res .= "<font color='#999999'>Израз:</font> <b>{$rec->cond}</b><br>";
+            $res .= "<span style='color:#999999'>Израз:</span> <b>{$rec->cond}</b><br>";
         }
 
         return $res;

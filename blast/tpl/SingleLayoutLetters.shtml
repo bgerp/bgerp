@@ -4,7 +4,7 @@
         <span style='[#iconStyle#]'>|Циркулярно писмо|* - [#ident#]</span>
     </div>
     <div class='antetka' >
-        <small>
+        <div class="small">
             <div class='fleft'><b>[#subject#]</b></div>
             <table class='fright'>
                 <!--ET_BEGIN attn-->          
@@ -51,7 +51,7 @@
                 <!--ET_END country-->
             </table>
             <div style='clear: both;'></div>
-        </small>
+        </div>
     </div>
     <div style='clear: both;'></div>
     <!--ET_BEGIN text--> 

@@ -135,13 +135,13 @@ class tracking_Setup extends core_ProtoSetup
         $rec->offset = 0;
     
         if ($Cron->addOnce($rec)) {
-            $html .= "<li><font color='green'>Задаване по крон WatchDog tracking</font></li>";
+            $html .= "<li class='green'>Задаване по крон WatchDog tracking</li>";
         } else {
             $html .= "<li>Отпреди Cron е бил нагласен за WatchDog tracking</li>";
         }
         
         if ($pid = self::Start()) {
-            $html .= "<li><font color='green'>Стартиран слушач за тракерите - pid={$pid}</font></li>";
+            $html .= "<li class='green'>Стартиран слушач за тракерите - pid={$pid}</li>";
         } else {
             $html .= "<li>Процеса за тракерите е стартиран от преди това.</li>";
         }

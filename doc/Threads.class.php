@@ -213,7 +213,7 @@ class doc_Threads extends core_Manager
         $title->replace($user, 'user');
         
         if(Request::get('Rejected')) {
-            $title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</font>", 'folder');
+            $title->append("&nbsp;<span class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</span>", 'folder');
         }
         
         $title->replace($user, 'user');

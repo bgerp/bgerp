@@ -6,7 +6,7 @@
     <div class='scrolling-holder'>
         <div class='display-table'>
             <div class='antetka'>
-                <small>
+				<div class="small">
                     <table class='top-table' style='width:100%'>
                         <tr>
                             <td colspan='2'>
@@ -98,7 +98,7 @@
                             </td>
                         </tr>
                     </table>
-                </small>
+                </div>
                 <div style='clear: both;'></div>
             </div>
         </div>

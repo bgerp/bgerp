@@ -291,7 +291,7 @@ class bgerp_Menu extends core_Manager
                 
                 foreach($subMenus as $key => $rec) {
                     if($notFirst) {
-                        $tpl->append("<font style='color:#ccc;font-size:0.8em;vertical-align: 20%;'>&nbsp;|&nbsp;</font>", 'SUB_MENU');
+                        $tpl->append("<span style='color:#ccc;font-size:0.8em;vertical-align: 20%;'>&nbsp;|&nbsp;</span>", 'SUB_MENU');
                     }
                     $link = $this->createLink($rec->subMenuTr, $rec);
                     $tpl->append($link, 'SUB_MENU');
