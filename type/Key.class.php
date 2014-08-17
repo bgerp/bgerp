@@ -145,6 +145,11 @@ class type_Key extends type_Int {
 
     public function prepareOptions()
     {   
+        // Ако опциите вече са генерирани - не ги подготвяме отново
+        if(is_array($this->options) && count($this->options)) {
+
+            return;
+        }
         $mvc = cls::get($this->params['mvc']);
 
         if($this->getSelectFld() == '*') {
@@ -210,7 +215,7 @@ class type_Key extends type_Int {
      * Рендира HTML поле за въвеждане на данни чрез форма
      */
     function renderInput_($name, $value = "", &$attr = array())
-    { 
+    {
         $conf = core_Packs::getConfig('core');
         
         expect($this->params['mvc']);
