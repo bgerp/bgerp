@@ -90,7 +90,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 	{
 		$data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent,suggestions=wqeqw|qweqwe');
+        $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
 		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
 		
 		if(!isset($data->listFilter->fields['Rejected'])) {
