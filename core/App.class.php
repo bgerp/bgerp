@@ -791,47 +791,38 @@ class core_App
             }
         }
         
-        foreach ($params as $name => $value) {
-
-            if ($name == '#') continue;
-
-            if ($value !== FALSE && $value !== NULL) {
-                if (is_int($name)) {
-                    $name = $value;
-                    $value = $Request->get($name);
-                }
-
-                if (is_array($value)) {
-                    foreach ($value as $key => $v) {
-                        $v = urlencode($v);
-                        $url .= ($url ? '&' : '?') . "{$name}[{$key}]={$v}";
-                    }
-                } else {
-                    $value = urlencode($value);
-                    $url .= ($url ? '&' : '?') . "{$name}={$value}";
-                }
-            }
+        if($urlHash = $params['#']) {
+            unset($params['#']);
         }
         
+        if(count($params)) {
+            $urlQuery =  http_build_query($params);
+        }
+
+        if($urlQuery) {
+            $urlQuery = '?' . $urlQuery;
+        }
+
+        if ($urlHash) {
+            $urlQuery .= '#' . $urlHash;
+        }
+
         switch($type) {
             case 'local' :
-                $url1 = ltrim($pre . $url, '/');
+                $url = ltrim($pre . $urlQuery, '/');
                 break;
 
             case 'relative' :
-                $url1 = rtrim(static::getBoot(FALSE), '/') . $pre . $url;
+                $url = rtrim(static::getBoot(FALSE), '/') . $pre . $urlQuery;
                 break;
 
             case 'absolute' :
-                $url1 = rtrim(static::getBoot(TRUE), '/') . $pre . $url;
+                $url = rtrim(static::getBoot(TRUE), '/') . $pre . $urlQuery;
                 break;
         }
 
-        if ($params['#']) {
-            $url1 .= '#' . $params['#'];
-        }
         
-        return $url1;
+        return $url;
     }
 
 
@@ -1199,8 +1190,8 @@ class core_App
 
         $errHtml .= "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
         "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
-        "<h1>Прекъсване на линия <font color=red>$breakLine</font> в " .
-        "<font color=red>$breakFile</font></h1>";
+        "<h1>Прекъсване на линия <span style=\"color:red\">$breakLine</span> в " .
+        "<span style=\"color:red\">$breakFile</span></h1>";
 
         $errHtml .= $html;
 
@@ -1394,6 +1385,15 @@ function sbf($rPath, $qt = '"', $absolute = FALSE)
 function toUrl($params = array(), $type = 'relative', $protect = TRUE, $preParamsArr = array())
 {
     return core_App::toUrl($params, $type, $protect, $preParamsArr);
+}
+
+
+/**
+ * Също като toUrl, но връща ескейпнат за html атрибут стринг
+ */
+function toUrlEsc($params = array(), $type = NULL, $protect = TRUE, $preParamsArr = array())
+{
+    return ht::escapeAttr(toUrl($params, $type, $protect, $preParamsArr));
 }
 
 

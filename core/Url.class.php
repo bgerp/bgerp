@@ -678,18 +678,8 @@ class core_Url
             $params[$key] = $value;
         }
         
-        $purl["query"] = "";
-        
-        foreach ($params as $name => $value) {
-            if (is_array($value)) {
-                foreach ($value as $key => $v) {
-                    $purl["query"] .= ($purl["query"] ? '&' : '') . "{$name}[{$key}]=" . urlencode($v);
-                }
-            } else {
-                $purl["query"] .= ($purl["query"] ? '&' : '') . "{$name}=" . urlencode($value);
-            }
-        }
-        
+        $purl["query"] = http_build_query($params);
+
         $res = "";
         
         if (isset($purl["scheme"])) {

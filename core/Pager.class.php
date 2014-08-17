@@ -200,7 +200,7 @@ class core_Pager extends core_BaseClass
 
 
     /**
-     *
+     * Връща линкове за предишна и следваща страница, спрямо текущата
      */
     function getPrevNext($nextTitle, $prevTitle)
     {
@@ -211,16 +211,15 @@ class core_Pager extends core_BaseClass
 
         if($p > 1) {
             $link[$this->pageVar] = $p-1;
-            $prev = "<a href=\"" . toUrl($link) . "\" class=\"pager\">{$prevTitle}</a>";
+            $prev = "<a href=\"" . toUrlEsc($link) . "\" class=\"pager\">{$prevTitle}</a>";
         }
 
         if($p < $cnt) {
             $link[$this->pageVar] = $p+1;
-            $next = "<a href=\"" . toUrl($link) . "\" class=\"pager\">{$nextTitle}</a>";
+            $next = "<a href=\"" . toUrlEsc($link) . "\" class=\"pager\">{$nextTitle}</a>";
         }
 
-        return "<div><small><div style='float:left;'>{$next}</div><div style='float:right;'>{$prev}</div></small></div>";
-
+        return "<div class=\"small\"><div style='float:left;'>{$next}</div><div style='float:right;'>{$prev}</div></div>";
     }
     
     
@@ -253,12 +252,12 @@ class core_Pager extends core_BaseClass
             //Ако имаме страници, които не се показват в посока към началото, показваме <
             if ($this->getPage() > 1) {
                 if ($start > 1) {
-                    $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => 1)) . "\" class=\"pager\">1</a>";
+                    $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => 1)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\">1</a>";
                     
                     if ($start > $this->minPagesForMid) {
                         $mid = round($start / 2);
                         $html .= " .. ";
-                        $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => $mid)) . "\" class=\"pager\">{$mid}</a>";
+                        $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\">{$mid}</a>";
                         $html .= " .. ";
                     } else {
                         $html .= " ... ";
@@ -272,7 +271,7 @@ class core_Pager extends core_BaseClass
                 if ($start == $this->getPage()) {
                     $sel = "class='pager pagerSelected'";
                 }
-                $html .= "<a href=\"" . Url::AddParams($link, array($this->pageVar => $start)) . "\"  $sel>{$start}</a> ";
+                $html .= "<a href=\"" . htmlspecialchars(Url::AddParams($link, array($this->pageVar => $start)), ENT_QUOTES, "UTF-8") . "\"  $sel>{$start}</a> ";
             } while ($start++ < $end);
             
             //Ако имаме страници, които не се показват в посока към края, показваме >
@@ -283,12 +282,12 @@ class core_Pager extends core_BaseClass
                     if ($mid > $this->minPagesForMid) {
                         $mid = round($mid / 2) + $end;
                         $html .= " .. ";
-                        $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => $mid)) . "\" class=\"pager\">{$mid}</a>";
+                        $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\">{$mid}</a>";
                         $html .= " .. ";
                     } else {
                         $html .= " ... ";
                     }
-                    $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => $this->getPagesCount())) .
+                    $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $this->getPagesCount())), ENT_QUOTES, "UTF-8") .
                     "\" class=\"pager\">" . $this->getPagesCount() . "</a>";
                 }
             }
