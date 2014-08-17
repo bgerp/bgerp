@@ -1,7 +1,5 @@
 <?php
 
-
-
 /**
  * @todo Чака за документация...
  */
@@ -22,7 +20,13 @@ defIfNot('EF_PERCENT_DECIMALS', 2);
  */
 class type_Percent extends type_Double {
     
+
+    /**
+     * Клас за <td> елемент, който показва данни от този тип
+     */
+    var $tdClass = 'rightCol';
     
+
     /**
      * Инициализиране на типа
      */
@@ -75,12 +79,4 @@ class type_Percent extends type_Double {
         return parent::renderInput_($name, $value, $attr);
     }
     
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function getCellAttr()
-    { 
-        return 'align="right" nowrap';
-    }
 }

@@ -25,9 +25,9 @@ class type_Date extends core_Type {
     
     
     /**
-     * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
+     * Клас за <td> елемент, който показва данни от този тип
      */
-    var $cellAttr = 'align="center" nowrap';
+    var $tdClass = 'centerCol';
     
     
     /**

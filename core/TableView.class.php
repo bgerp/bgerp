@@ -93,15 +93,22 @@ class core_TableView extends core_BaseClass
                 $colHeaders = $fields[$place];
                 
                 if ($colHeaders[0]{0} != '@') {
+                    
                     // Задаваме класа на колоната
+                    $class = '';
+
                     if (is_object($this->mvc->fields[$place]->type)) {
-                        $attr = " " . $this->mvc->fields[$place]->type->getCellAttr() . " ";
-                    } else {
-                        $attr = '';
+                        $class = $this->mvc->fields[$place]->type->getTdClass();
                     }
                     
                     if($this->mvc->fields[$place]->tdClass) {
-                        $attr .= ' class="' . $this->mvc->fields[$place]->tdClass . '" ';
+                        $class .= ' ' . $this->mvc->fields[$place]->tdClass;
+                    }
+
+                    if($class = trim($class)) {
+                        $attr = " class=\"{$class}\"";
+                    } else {
+                        $attr = '';
                     }
                     
                     foreach ($colHeaders as $i => $name) {
@@ -184,7 +191,7 @@ class core_TableView extends core_BaseClass
             $this->tableClass = 'listTable';
         }
         
-        $tpl = new ET("\n<table border=1 class=\"{$this->tableClass}\"  cellpadding=\"3\" cellspacing=\"0\" ><thead>{$tableHeader}</thead>[#ROW_BEFORE#]{$row}[#ROW_AFTER#]</table>\n");
+        $tpl = new ET("\n<table class=\"{$this->tableClass}\"><thead>{$tableHeader}</thead>[#ROW_BEFORE#]{$row}[#ROW_AFTER#]</table>\n");
         
         if (count($rows)) {
             foreach ($rows as $r) {

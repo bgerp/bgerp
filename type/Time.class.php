@@ -39,11 +39,13 @@ class type_Time extends type_Varchar {
      */
     const SECONDS_IN_MONTH = 2629746;
 
+
     /**
-     * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
+     * Клас за <td> елемент, който показва данни от този тип
      */
-    var $cellAttr = 'align="right"';
+    var $tdClass = 'centerCol';
     
+
     /**
      * Стойности, означаващи 0, на момента, on time
      */ 

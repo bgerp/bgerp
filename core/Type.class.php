@@ -76,9 +76,9 @@ class core_Type extends core_BaseClass
      * Връща атрибутите на елемента TD необходими при таблично
      * представяне на стойността
      */
-    function getCellAttr()
+    function getTdClass()
     {
-        return $this->params['cellAttr'] ? $this->params['cellAttr'] : ($this->cellAttr ? $this->cellAttr : '');
+        return $this->tdClass;
     }
     
     

@@ -41,6 +41,12 @@ class type_Double extends core_Type {
 
 
     /**
+     * Клас за <td> елемент, който показва данни от този тип
+     */
+    var $tdClass = 'rightCol';
+
+
+    /**
      * Намира стойността на числото, от стринга, който е въвел потребителя
      * Входния стринг може да не е форматиран добре, също може да съдържа прости
      * аритметически изрази
@@ -132,12 +138,4 @@ class type_Double extends core_Type {
         return $value;
     }
     
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function getCellAttr()
-    {
-        return 'align="right" nowrap';
-    }
 }
