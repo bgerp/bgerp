@@ -38,9 +38,9 @@ class cat_type_Uom extends type_Varchar {
     
 
     /**
-     * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
+     * Клас за <td> елемент, който показва данни от този тип
      */
-    public $cellAttr = 'align="right"';
+    public $tdClass = 'rightCol';
     
     
     /**

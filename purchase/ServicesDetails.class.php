@@ -93,7 +93,7 @@ class purchase_ServicesDetails extends core_Detail
     {
         $this->FLD('shipmentId', 'key(mvc=purchase_Services)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
-        $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field');
+        $this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка,input=none');
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');

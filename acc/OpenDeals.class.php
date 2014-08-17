@@ -70,7 +70,7 @@ class acc_OpenDeals extends core_Manager {
     function description()
     {
     	$this->FLD('docClass', 'class(interface=bgerp_DealAggregatorIntf,select=title)', 'caption=Документ->Клас');
-        $this->FLD('docId', 'int(cellAttr=left)', 'caption=Документ->Обект');
+        $this->FLD('docId', 'int', 'caption=Документ->Обект,tdClass=leftCol');
     	$this->FLD('valior', 'date', 'caption=Дата');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума->Поръчано, summary = amount');
     	$this->FLD('amountPaid', 'double(decimals=2)', 'caption=Сума->Платено, summary = amount');
