@@ -233,7 +233,7 @@ class core_Cache extends core_Manager
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на Cron да почиства кеша</font></li>";
+            $res .= "<li class='green'>Задаване на Cron да почиства кеша</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да почиства кеша</li>";
         }

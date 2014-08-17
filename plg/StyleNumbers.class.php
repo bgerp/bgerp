@@ -47,7 +47,7 @@ class plg_StyleNumbers extends core_Plugin
                 foreach ($recs as $i => $rec) {
                 	
                     if(round($rec->{$name}, 4) < 0) {
-                        $rows[$i]->{$name} = "<font color='red'>" . $rows[$i]->{$name} . "</font>";
+                        $rows[$i]->{$name} = "<span class='red'>" . $rows[$i]->{$name} . "</span>";
                     }
                 }
             }

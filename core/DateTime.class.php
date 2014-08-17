@@ -328,7 +328,7 @@ class core_DateTime
             $title = dt::mysql2verbal($mysqlDate, "d-M-Y H:i (l)");
             $title = "  title='{$title}'";
             
-            $verbDate = "<font color='#$color' $title>{$verbDate}</font>";
+            $verbDate = "<span style=\"color:#{$color}\" $title>{$verbDate}</span>";
         }
         
         return $verbDate;

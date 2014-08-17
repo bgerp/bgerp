@@ -907,22 +907,22 @@ class core_Mvc extends core_FieldSet
                     // bp($indexes, $this->dbIndexes, $exFieldsList, $indRec->fields);
 
                     $this->db->forceIndex($this->dbTableName, $indRec->fields, $indRec->type, $name);
-                    $html .= "<li><font color='{$color}'>{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</font></li>";
+                    $html .= "<li><span style=\"color:{$color}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</span></li>";
                 }
             }
 
             if(count($indexes)) {
                 foreach($indexes as $name => $dummy) {
                     $this->db->forceIndex($this->dbTableName, "", "DROP", $name);
-                    $html .= "<li><font color='green'>Премахнат е индекс '<b>{$name}</b>'</font></li>";
+                    $html .= "<li class='green'>Премахнат е индекс '<b>{$name}</b>'</li>";
                 }
             }
         } else {
             $html .= "<li>" . ('Без установяване на DB таблици, защото липсва модел');
         }
 
-        // Правим опит да добавим класа в списъка с устройства.
-        // Той ще се появи там, само ако в него има описани някакви адаптери
+        // Правим опит да добавим класа в списъка с класовете, имащи интерфейси
+        // Той ще се появи там, само ако в него има описани някакви интерфейси
         try {
 	        $html .= core_Classes::add($this);
 	    } catch ( core_exception_Expect $e ) {};

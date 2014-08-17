@@ -49,8 +49,8 @@ class core_Html
                          */
                         $content = self::escapeAttr($content);
                     }
-
-                    $attrStr .= " " . $atr . "=\"" . $content . "\"";
+                    
+                    $attrStr .= " " . $atr . "=\"" . $content . "\"";                 
                 }
             }
 
@@ -144,8 +144,10 @@ class core_Html
         foreach ($selAttr as $atr => $content) {
             // Смятаме, че всички атрибути с имена, започващи със '#'
             // са вътрешни и поради това не ги показваме в елемента
-            if ($atr{0} == '#')
-            continue;
+            // Същото правим и за атрибутите placeholder и value
+            if ($atr{0} == '#' || $atr == 'placeholder' || $atr == 'value') {
+                continue;
+            }
 
             if (is_string($content)) {
                 $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);

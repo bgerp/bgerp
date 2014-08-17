@@ -100,9 +100,9 @@ class type_Blob extends core_Type {
                         $str .= htmlentities($c, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                     } else {
                         if(ord($c)<32) {
-                            $str .= '<font color=grey>&copy;</font>';
+                            $str .= '<span style=\"color:grey\">&copy;</span>';
                         } else {
-                            $str .= '<font color=grey>&reg;</font>';
+                            $str .= '<span style=\"color:grey\">&reg;</span>';
                         }
                     }
                     $hex .= sprintf("%02X", ord($c)) . '&nbsp;';

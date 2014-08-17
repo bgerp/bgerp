@@ -144,7 +144,7 @@ class type_Keylist extends core_Type {
         min(($this->params['maxColumns'] ? $this->params['maxColumns'] : ((Mode::is('screenMode', 'wide')) ? 4 : 2)),
             round(sqrt(max(0, count($this->suggestions) + 1))));
         
-        $i = 0; $html = ''; $trOpen = TRUE;
+        $i = 0; $html = ''; $trOpen = FALSE;
         $j = 0; //за конструиране на row-1,row-2 и т.н.
         
         if(count($this->suggestions)) {
@@ -183,8 +183,7 @@ class type_Keylist extends core_Type {
                         $class .= ' group-autoOpen';
                     }
                     
-                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group' colspan='" . 
-                        $col . "'><div onclick='toggleKeylistGroups(this)'>". $plusImg . $minusImg . $v->title . "</div></td></tr>" .
+                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group'><div onclick='toggleKeylistGroups(this)'>". $plusImg . $minusImg . $v->title . "</div></td></tr>" .
                         "<tr><td><table class='inner-keylist'>";
                     
                     $groupOpen = 1;
@@ -224,7 +223,11 @@ class type_Keylist extends core_Type {
  
             }  
             if ($groupOpen){
-            	$html .= "</table></td>";
+                while($i < $col) {
+                    $html .= "<td></td>";
+                    $i++;
+                }
+            	$html .= "</tr></table></td>";
             } 
         } else {
             $html = '<tr><td></td></tr>';

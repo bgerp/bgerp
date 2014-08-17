@@ -412,7 +412,7 @@ class core_Form extends core_FieldSet
                     "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] " .
                     "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
                     "\n<div  class='clearfix21 vertical' style='margin-top:5px;'>" .
-                    "\n<table cellspacing=0 cellpadding=0 class=\"formTable\">\n" .
+                    "\n<table class=\"formTable\">\n" .
                     "\n<!--ET_BEGIN FORM_TITLE--><tr><td class=\"formTitle\">[#FORM_TITLE#]</td></tr><!--ET_END FORM_TITLE-->" .
                     "\n<tr><td class=\"formSection\">" .
                     "<!--ET_BEGIN FORM_ERROR-->\n<div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
@@ -703,7 +703,7 @@ class core_Form extends core_FieldSet
             
             $lastCaptionArr = array();
             
-            $tpl = new ET("<table cellpadding=\"3\" border=0 cellspacing=\"0\" width='100%'>[#FIELDS#]</table>");
+            $tpl = new ET('<table class="vFormField">[#FIELDS#]</table>');
             
             foreach ($fields as $name => $field) {
                 
@@ -751,7 +751,7 @@ class core_Form extends core_FieldSet
                     if ($headerRow) {
                         $tpl->append("\n<tr><td colspan=2>$headerRow</td></tr>", 'FIELDS');
                     }
-                    $fld = new ET("\n<tr><td  align=right valign=top class='formFieldCaption'>[#CAPTION#]:</td><td class='formElement'>[#{$field->name}#][#UNIT#]</td></tr>");
+                    $fld = new ET("\n<tr><td class='formFieldCaption'>[#CAPTION#]:</td><td class='formElement'>[#{$field->name}#][#UNIT#]</td></tr>");
                     
                     $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');

@@ -205,7 +205,7 @@ class plg_Select extends core_Plugin
         
         $url = toUrl(array($mvc, 'DoWithSelected'));
         
-        $tpl->prepend("\n<form action='{$url}' 1method='post'>\n");
+        $tpl->prepend("\n<form action='{$url}'>\n");
     }
 
 

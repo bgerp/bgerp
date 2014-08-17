@@ -115,7 +115,7 @@ class plg_Sorting extends core_Plugin
                 $lastF = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
                 toUrl($currUrl) .
                 "' ><img  src=" . sbf($img) .
-                " width='16' height='16' border='0' alt='*'></a></div>";
+                " width='16' height='16' alt='sort'></a></div>";
                 
                 $data->listFields[$field] = implode('->', $fArr);
             }

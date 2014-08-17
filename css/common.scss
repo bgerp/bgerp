@@ -75,6 +75,7 @@ $orange: #f90; /*оранжево като при ховър на менюто*/
  * Correct `block` display not defined in IE 8/9.
  */
 
+
 article,
 aside,
 details,
@@ -264,7 +265,7 @@ q {
  * Address inconsistent and variable font size in all browsers.
  */
 
-small {
+small, .small {
     font-size: 80%;
 }
 
@@ -470,8 +471,10 @@ textarea {
 table {
     border-collapse: collapse;
     border-spacing: 0;
+	border: none;
 }
 
+ 
 /*височини на някои от елементите, за да няма разминавания при някои устройства*/
  input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"] {
 	height: 1.5em;
@@ -1085,6 +1088,16 @@ table.listTable {
 	margin-left: 0;
 }
 
+
+.vFormField {
+	border:none;
+	width:100%;
+}
+
+.formTable>tr>td {	
+	padding: 3px;
+}
+
 .wide .listTopContainer .formTable { 
 	@include no-shadow();
 	border-collapse: separate;
@@ -1116,6 +1129,14 @@ div.hFormField {
 	margin-bottom: 0.3em;
 }
 
+table.vFormField {
+	width:100%;
+}
+
+td.formElement {
+	padding:3px;
+}
+
 .narrow div.hFormField {
 	float:none ;
 	margin: 0;
@@ -1142,6 +1163,7 @@ div.hFormField {
 	white-space: nowrap;
 	width: 1px;
 	vertical-align: top;
+	text-align:right;
 	_width:auto;
 	*width: auto;
 }
@@ -1171,7 +1193,6 @@ div.hFormField {
 
 .wide #main-container .formTable .formElement{
 	min-width: 32em;
-
 }
 
 .formFields .fileLink {
@@ -2015,7 +2036,7 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
 	.popupBlock{
 	   margin-bottom: 5px;
 	}
-}
+} 
 /* край на стилове за елемента 'RichEdit' */
 
 
@@ -2584,13 +2605,15 @@ div.statuses-message h2 {
 				opacity: 1;
 			}
 	}
-	small {
+	
+	.pack-info {
 		display: block;
 		margin: 0.5em 0;
 		font-size: 0.9em;
 		line-height: 1.2em;
 		height: 2.4em;
 	}
+
 	b {
 		margin-top: 3px;
 		font-size: 1.2em;
@@ -2624,7 +2647,7 @@ div.statuses-message h2 {
 
 .narrow .elem-holder {
 	width: 265px;
-	small {
+	.pack-info {
 		font-size: 0.8em;
 		line-height: 1.15em;
 		margin: 0em 0.1em 0.3em 0;
@@ -2730,3 +2753,17 @@ span.cng {
 	text-align: left;
 }
 
+td.centerCol {
+	white-space:nowrap;
+	text-align:center;
+}
+
+td.rightCol {
+	white-space:nowrap;
+	text-align:right;
+}
+
+td.leftCol {
+	white-space:nowrap;
+	text-align:left;
+}

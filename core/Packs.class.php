@@ -134,13 +134,13 @@ class core_Packs extends core_Manager
                 $setup = cls::get($cls);
                 
                 if (!method_exists($setup, 'deinstall')) {
-                    $res = "<h2>Пакета <font color=\"\">'{$pack}'</font> няма деинсталатор.</h2>";
+                    $res = "<h2>Пакета <span class=\"green\">'{$pack}'</span> няма деинсталатор.</h2>";
                 } else {
-                    $res = "<h2>Деинсталиране на пакета <font color=\"\">'{$pack}'</font></h2>";
+                    $res = "<h2>Деинсталиране на пакета <span class=\"green\">'{$pack}'</span></h2>";
                     $res .= (string) "<ul>" . $setup->deinstall() . "</ul>";
                 }
             } else {
-                $res = "<h2 style='color:red;''>Липсва кода на пакета <font color=\"\">'{$pack}'</font></h2>";
+                $res = "<h2 class='red''>Липсва кода на пакета '{$pack}'</h2>";
             }
         }
         
@@ -330,7 +330,7 @@ class core_Packs extends core_Manager
        		$imageUrl = sbf("{$rec->name}/icon.png","");
        	}
        	
-       	$row->img = ht::createElement("img", array('src' => $imageUrl));
+       	$row->img = ht::createElement("img", array('src' => $imageUrl, 'alt' => 'icon-' . $rec->name));
        	
         $row->name = "<b>" . $mvc->getVerbal($rec, 'name') . "</b>";
          
@@ -374,7 +374,7 @@ class core_Packs extends core_Manager
         }
         
         $row->name .= $row->deinstall;
-        $row->name .= "<div><small>{$rec->info}</small></div>";
+        $row->name .= "<div class=\"pack-info\">{$rec->info}</div>";
        	
         $row->install = ht::createLink(tr("Инициализиране"), array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
         
@@ -521,8 +521,8 @@ class core_Packs extends core_Manager
         
         // Проверка дали Setup класа съществува
         if (!cls::load($pack . "_Setup", TRUE)) {
-            return "<h4>Невъзможност да се инсталира <font color='red'>{$pack}</font>. " .
-            "Липсва <font color='red'>Setup</font> клас.</h4>";
+            return "<h4>Невъзможност да се инсталира <span class=\"red\">{$pack}</span>. " .
+            "Липсва <span class=\"red\">Setup</span> клас.</h4>";
         }
         
         // Вземаме Setup класа, за дадения пакет

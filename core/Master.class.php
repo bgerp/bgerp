@@ -42,7 +42,7 @@ class core_Master extends core_Manager
      * Връща единичния изглед на обекта
      */
     function act_Single()
-    {        
+    {         
         // Създаваме обекта $data
         $data = new stdClass();
         
@@ -329,7 +329,7 @@ class core_Master extends core_Manager
                     $tabHtml = $this->{$selected}->$method($data->{$selected});
                 }
 
-                $tabHtml = new ET("<div style='margin-top:20px;' class='clearfix21'></div><div class='docStatistic'><a name='detailTabs'></a>[#1#]</div>", $tabHtml);
+                $tabHtml = new ET("<div style='margin-top:20px;' class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
 
                 $tpl->append($tabHtml, 'DETAILS');
             }

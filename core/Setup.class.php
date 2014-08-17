@@ -343,7 +343,7 @@ class core_Setup extends core_ProtoSetup {
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $html .= "<li><font color='green'>Задаване по крон да се изтриват старите файлове от " . EF_TEMP_PATH . "</font></li>";
+            $html .= "<li class=\"green\">Задаване по крон да се изтриват старите файлове от " . EF_TEMP_PATH . "</style></li>";
         } else {
             $html .= "<li>Отпреди Cron е бил нагласен да изтрива старите файлове от " . EF_TEMP_PATH . "</li>";
         }

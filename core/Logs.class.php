@@ -229,7 +229,7 @@ class core_Logs extends core_Manager
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на Cron да изтрива старите логове</font></li>";
+            $res .= "<li class='green'>Задаване на Cron да изтрива старите логове</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да изтрива старите логове</li>";
         }

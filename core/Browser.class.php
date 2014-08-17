@@ -479,7 +479,7 @@ class core_Browser extends core_Manager
                         'noJs',
                         rand(1, 1000000000)
                     ));
-                $code .= '<noscript><span class="checkBrowser"><img src="' . $url . '" width="1" height="1"></span></noscript>';
+                $code .= '<noscript><span class="checkBrowser"><img src="' . $url . '" width="1" height="1" alt="cb"></span></noscript>';
             }
             
             if (!Mode::is('javascript', 'yes')) {

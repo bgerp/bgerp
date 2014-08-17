@@ -68,10 +68,10 @@ class unit_Tests extends core_Manager
                             }
 
                             if($this->errorLog) {
-                                $msg = "<font color='red'>{$this->errorLog}</font>";
+                                $msg = "<span class=\"red\">{$this->errorLog}</span>";
                                 $errCnt++;
                             } else {
-                                $msg = "<font color='green'>OK</font>";
+                                $msg = "<span class=\"green\">OK</span>";
                             }
 
                             $testsCnt++;

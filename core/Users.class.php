@@ -1398,7 +1398,7 @@ class core_Users extends core_Manager
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на Cron да изтрива неактивните потребители</font></li>";
+            $res .= "<li class=\"green\">Задаване на Cron да изтрива неактивните потребители</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да изтрива неактивните потребители</li>";
         }
