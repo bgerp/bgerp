@@ -492,5 +492,26 @@ class php_Formater extends core_Manager
         
         return $files;
     }
+
+
+    function act_Css()
+    {
+        $css = file_get_contents(sbf('css/common.css', '', TRUE));
+
+        //bp($css);
+
+        $CP = cls::get('php_CssParser');
+        $CP->ParseCSS($css);
+
+        foreach($CP->GetCSSArray(1) as $key => $val) {
+            if(preg_match("/\.[a-z0-9\_\-]{0,}/i", $key, $matches)) {
+                foreach($matches as $class) {
+                    $classes[$class] = TRUE;
+                }
+            }
+        }
+
+        bp($classes);
+    }
 }
 
