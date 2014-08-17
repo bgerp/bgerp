@@ -90,7 +90,7 @@ class abbyyocr_Setup extends core_ProtoSetup
 	        // Добавяме в записите
             core_Packs::setConfig('fileman', $data);
             
-            $html .= "<li><font color='green'>Премахнат е 'abbyyocr_Converter' от конфигурацията</font></li>";
+            $html .= "<li class=\"green\">Премахнат е 'abbyyocr_Converter' от конфигурацията</li>";
     	}
         
         return $html;

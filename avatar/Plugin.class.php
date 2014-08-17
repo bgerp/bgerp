@@ -105,7 +105,8 @@ class avatar_Plugin extends core_Plugin
         }
         
         $attr['width'] = $width;
-        $attr['src']   =  $imgUrl;
+        $attr['src']   = $imgUrl;
+        $attr['alt']   = '';
         unset($attr['baseName']);
         
         unset($attr['isAbsolute']);

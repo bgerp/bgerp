@@ -392,7 +392,7 @@ class fileman_Upload extends core_Manager {
                 $(btnId).hide();
                 
                 // Линк за премахване на файла
-                var crossImg = '<img src=" .  sbf('img/16/cross.png') . " align=\"absmiddle\" border=\"0\">';
+                var crossImg = '<img src=" .  sbf('img/16/cross.png') . " align=\"absmiddle\" alt=\"\">';
                 
                 // id на качения файл
                 var uploadedFileId = 'uploaded-file';

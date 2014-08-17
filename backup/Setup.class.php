@@ -174,7 +174,7 @@ class backup_Setup extends core_ProtoSetup
     	$Cron = cls::get('core_Cron');
     	
     	if ($Cron->addOnce($rec)) {
-    	    $html .= "<li><font color='green'>Задаване по крон да стартира пълния бекъп.</font></li>";
+    	    $html .= "<li class='green'>Задаване по крон да стартира пълния бекъп.</li>";
     	} else {
     	    $html .= "<li>Отпреди Cron е бил нагласен да стартира full бекъп.</li>";
     	}
@@ -190,7 +190,7 @@ class backup_Setup extends core_ProtoSetup
     	$rec->timeLimit = 50;
 
     	if ($Cron->addOnce($rec)) {
-    	    $html .= "<li><font color='green'>Задаване по крон да стартира binlog бекъп.</font></li>";
+    	    $html .= "<li class='green'>Задаване по крон да стартира binlog бекъп.</li>";
     	} else {
     	    $html .= "<li>Отпреди Cron е бил нагласен да стартира binlog бекъп.</li>";
     	}
@@ -222,7 +222,7 @@ class backup_Setup extends core_ProtoSetup
     	$rec->timeLimit = 50;
     	 
     	if ($Cron->addOnce($rec)) {
-    	    $html .= "<li><font color='green'>Задаване по крон да стартира бекъп на fileman-a.</font></li>";
+    	    $html .= "<li class='green'>Задаване по крон да стартира бекъп на fileman-a.</li>";
     	} else {
     	    $html .= "<li>Отпреди Cron е бил нагласен да стартира бекъп на fileman-a.</li>";
     	}

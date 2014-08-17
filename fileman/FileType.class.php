@@ -55,7 +55,7 @@ class fileman_FileType extends type_Varchar {
         $attrInp['style'] = 'padding:5px;font-weight:bold;';
         
         if($fileName) {
-            $crossImg = "<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" border=\"0\">";
+            $crossImg = "<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" alt=\"\">";
             $html = $this->toVerbal($value) . "&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile('" . $name . "')\">" . $crossImg . '</a>';
         }
         
@@ -85,7 +85,7 @@ class fileman_FileType extends type_Varchar {
         $tpl->appendOnce("
             function setInputFile(name, fh, fName) {
                 var divFileName = document.getElementById(name + '_file_name_id');
-                var crossImg = '<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" border=\"0\">';
+                var crossImg = '<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" alt=\"\">';
                 divFileName.innerHTML = getDownloadLink(fName, fh) + 
                 '&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\')\">' + crossImg + '</a>';
 

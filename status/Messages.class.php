@@ -359,7 +359,7 @@ class status_Messages extends core_Manager
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да премахва старите статус съобщения.</font></li>";
+            $res .= "<li class='green'>Задаване на крон да премахва старите статус съобщения.</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да премахва старите статус съобщения.</li>";
         }

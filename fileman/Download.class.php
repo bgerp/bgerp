@@ -391,11 +391,11 @@ class fileman_Download extends core_Manager {
     {
         if(!is_dir(EF_DOWNLOAD_DIR)) {
             if(!mkdir(EF_DOWNLOAD_DIR, 0777, TRUE)) {
-                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') .
-                ' "' . EF_DOWNLOAD_DIR . '</font>';
+                $res .= '<li class="red">' . tr('Не може да се създаде директорията') .
+                ' "' . EF_DOWNLOAD_DIR . '</li>';
             } else {
-                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' .
-                EF_DOWNLOAD_DIR . '"</font>';
+                $res .= '<li class="green">' . tr('Създадена е директорията') . ' "' .
+                EF_DOWNLOAD_DIR . '"</li>';
             }
         }
         
@@ -406,9 +406,9 @@ class fileman_Download extends core_Manager {
             
             foreach($filesToCopy as $src => $dest) {
                 if(copy($src, $dest)) {
-                        $res .= "<li style='color:green;'>Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                    $res .= "<li class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 } else {
-                        $res .= "<li style='color:red;'>Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                    $res .= "<li class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 }
             }
         }
@@ -429,7 +429,7 @@ class fileman_Download extends core_Manager {
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да изчиства линкове и директории, с изтекъл срок.</font></li>";
+            $res .= "<li class=\"green\">Задаване на крон да изчиства линкове и директории, с изтекъл срок.</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да изчиства линкове и директории, с изтекъл срок.</li>";
         }

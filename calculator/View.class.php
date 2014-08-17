@@ -26,7 +26,7 @@ class calculator_View
         
         $url = sbf('calculator/html/calculator.html', '');
         
-        $icon = ht::createElement('img', array('src' => sbf('calculator/img/calc.png', ''), 'width' => 32, 'height' => 16, 'style' => 'vertical-align:middle;margin-bottom:2px;'));
+        $icon = ht::createElement('img', array('src' => sbf('calculator/img/calc.png', ''), 'width' => 32, 'height' => 16, 'style' => 'vertical-align:middle;margin-bottom:2px;', 'alt' => 'calculator'));
         
         $tpl->replace($url, 'url');
         

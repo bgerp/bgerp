@@ -184,7 +184,7 @@ class drdata_Phones extends core_Manager {
                     $html .= "<A class=none href='callto:{$t->countryCode}{$t->areaCode}{$t->number}' title='{$t->country} - {$t->area}'>+" . $t->countryCode . " " . $t->areaCode . " " . $t->number . ";</A> ";
                 }
             } else {
-                $html .= "<font color=red>ERROR</font>";
+                $html .= "<span class=\"red\">ERROR</span>";
             }
         }
         

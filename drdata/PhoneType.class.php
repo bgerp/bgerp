@@ -94,7 +94,8 @@ class drdata_PhoneType extends type_Varchar
         $telNumber = parent::toVerbal_($telNumber);
 
         if ($parsedTel == FALSE) {
-            return "<font color='red'>{$telNumber}</font>";
+
+            return "<span class='red'>{$telNumber}</span>";
         } else {
             $res = new ET();
             $value = '';

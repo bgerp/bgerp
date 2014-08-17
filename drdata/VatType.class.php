@@ -81,14 +81,10 @@ class drdata_VatType extends type_Varchar
             case 'invalid' : $color = "#ff3300"; break;
             case 'syntax' : $color = "#990066"; break;
             case 'not_vat' : $color = "#3300ff"; break;
+
+            default: expect(FALSE, $status, $value);
         }
-        
-        if($status == 'not_vat') {
-            
-            return "<font color='{$color}'>{$value}</font>";
-        } else {
-            
-            return "<font color='{$color}'>{$value}</font>";
-        }
+
+        return "<span style=\"color:{$color}\">{$value}</span>";
     }
 }

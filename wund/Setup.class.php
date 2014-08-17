@@ -95,7 +95,7 @@ class wund_Setup extends core_ProtoSetup
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $html .= "<li><font color='green'>Задаване по крон да извлича прогнози.</font></li>";
+            $html .= "<li class='green'>Задаване по крон да извлича прогнози.</li>";
         } else {
             $html .= "<li>Отпреди Cron е бил нагласен да извлича прогнози.</li>";
         }

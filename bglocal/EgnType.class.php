@@ -84,6 +84,6 @@ class bglocal_EgnType extends type_Varchar
             $type = 'ЕГН';
         }
         
-        return "<font color='{$color}'>" . tr($type) . " {$value}</font>";
+        return "<span style=\"color:{$color}\">" . tr($type) . " {$value}</span>";
     }
 }

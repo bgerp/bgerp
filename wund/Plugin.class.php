@@ -26,7 +26,7 @@ class wund_Plugin extends core_Plugin
             $thumb = new img_Thumb($forRec->iconUrl, 20, 20, 'url');
             $iconUrl = $thumb->getUrl();
             
-            $res->day .= "<div style='float:right;font-size:0.85em;color:#999;'><font color='blue'>{$forRec->low}</font>&#126;<font color='red'>{$forRec->high}</font>&#8451;&nbsp;<img height=20 style='float:right;position:relative;top:-2px;' src=\"" . $iconUrl . "\"></div>";
+            $res->day .= "<div style='float:right;font-size:0.85em;color:#999;'><span style=\"color:blue\">{$forRec->low}</span>&#126;<span style=\"color:red\">{$forRec->high}</span>&#8451;&nbsp;<img height=20 style='float:right;position:relative;top:-2px;' src=\"" . $iconUrl . "\"></div>";
         }
     }
 }

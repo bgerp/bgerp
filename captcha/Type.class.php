@@ -70,7 +70,7 @@ class captcha_Type extends core_Type {
         $url = toUrl(array('captcha_Type', 'img', $handler));
         
         $tpl->prepend("<img  align='absmiddle'  src='{$url}' width='" .
-            CAPTCHA_WIDTH . "' height='" . CAPTCHA_HEIGHT . "' alt='captcha' border='0'>");
+            CAPTCHA_WIDTH . "' height='" . CAPTCHA_HEIGHT . "' alt='captcha'>");
         
         $tpl->append("<input type='hidden' name='{$name}[handler]' value='{$handler}'>");
         

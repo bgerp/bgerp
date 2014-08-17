@@ -1026,7 +1026,7 @@ class expert_Expert extends core_FieldSet {
         
         $form->info = "<div class='formError'>$info</info>";
         
-        $form->title = "|*<img width=32 height=32 border=0 align=absmiddle  src=" . sbf('img/32/error.png') . "> " . $this->getTitle($kRec);
+        $form->title = "|*<img width=32 height=32 alt='' align=absmiddle  src=" . sbf('img/32/error.png') . "> " . $this->getTitle($kRec);
         $form->method = 'POST';
         
         $this->setButtons($form, $this->currentStep >= 1, FALSE);
@@ -1065,7 +1065,7 @@ class expert_Expert extends core_FieldSet {
             $form->layout = $layout;
         }
         
-        $form->title = "|*<img width=32 height=32 border=0 align=absmiddle  src=" . sbf('img/32/warning.png', "'", TRUE) . "> " . $this->getTitle($kRec);
+        $form->title = "|*<img width=32 height=32 alt='' align=absmiddle  src=" . sbf('img/32/warning.png', "'", TRUE) . "> " . $this->getTitle($kRec);
         
         $form->method = 'POST';
         
@@ -1107,7 +1107,7 @@ class expert_Expert extends core_FieldSet {
             $form->layout = $layout;
         }
         
-        $form->title = "|*<img width=32 height=32 border=0 align=absmiddle  src=" . sbf('img/32/info.png', "'", TRUE) . "> " . $this->getTitle($kRec);
+        $form->title = "|*<img width=32 height=32 alt='' align=absmiddle  src=" . sbf('img/32/info.png', "'", TRUE) . "> " . $this->getTitle($kRec);
         $form->method = 'POST';
         
         $form->info = $info;
@@ -1373,7 +1373,7 @@ class expert_Expert extends core_FieldSet {
             }
         }
         
-        $form->title = "|*<img width=32 height=32 border=0 align=absmiddle  src=" . sbf('img/32/question.png', "'", TRUE) . "> " . $this->getTitle($kRec);
+        $form->title = "|*<img width=32 height=32 alt='' align=absmiddle  src=" . sbf('img/32/question.png', "'", TRUE) . "> " . $this->getTitle($kRec);
         $form->method = 'POST';
         
         $this->setButtons($form, $this->currentStep >= 1);

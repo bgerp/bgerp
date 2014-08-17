@@ -41,9 +41,7 @@ class location_Type extends type_Varchar {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        
-        setIfNot($attr['size'], $this->params[0], $this->params['size']);
-        
+                
         $attr['class'] .= 'lnglat';
         
         $tpl = parent::createInput($name, $value, $attr);
