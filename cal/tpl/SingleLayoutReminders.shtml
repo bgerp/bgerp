@@ -8,7 +8,7 @@
     </div>
     <div class='antetka' style='line-height:150%;'>
         <b>[#title#]</b><br>
-        <div class="small">>
+        <div class="small">
             <div class='block_left'>
                 <div class='reminder-half'>
                     <div>|Приоритет|*: [#priority#]</div>
