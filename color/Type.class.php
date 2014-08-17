@@ -24,9 +24,9 @@ class color_Type extends type_Varchar {
 	
 	
     /**
-     * @todo Чака за документация...
+     * Клас за <td> елемент, който показва данни от този тип
      */
-    var $cellAttr = 'align="center" nowrap';
+    var $tdClass = 'centerCol';
     
     
     /**
