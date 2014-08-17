@@ -214,17 +214,17 @@ class plg_PrevAndNext extends core_Plugin
     {
         $selKey = static::getModeKey($mvc);
         
-        if(Mode::is($selKey)) {
+        if(Mode::is($selKey)  ) {
             if (isset($data->buttons->nextId)) {
-                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=fright noicon,order=30');
+                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=noicon fright,order=30');
             } else {
-                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=fright btn-disabled noicon,disabled,order=30');
+                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=btn-disabled noicon fright,disabled,order=30');
             }
             
             if (isset($data->buttons->prevId)) {
-                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=fright noicon,order=30');
+                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30');
             } else {
-                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=fright btn-disabled noicon,disabled,order=30');
+                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=btn-disabled noicon fright,disabled,order=30');
             }
 
             $data->form->setHidden('ret_url', Request::get('ret_url'));
@@ -242,17 +242,17 @@ class plg_PrevAndNext extends core_Plugin
     {
      	$selKey = static::getModeKey($mvc);
         
-        if(Mode::is($selKey)) {
+        if(Mode::is($selKey) ) {
             if (isset($data->buttons->nextId)) {
-                $data->toolbar->addBtn('»»»', array($mvc, 'browse', $data->buttons->nextId), 'class=fright noicon');
+                $data->toolbar->addBtn('»»»', array($mvc, 'browse', $data->buttons->nextId), 'class=noicon fright');
             } else {
-                $data->toolbar->addBtn('»»»', array(), 'class=fright btn-disabled noicon,disabled');
+                $data->toolbar->addBtn('»»»', array(), 'class=btn-disabled noicon fright,disabled');
             }
             
             if (isset($data->buttons->prevId)) {
-                $data->toolbar->addBtn('«««', array($mvc, 'browse', $data->buttons->prevId), 'class=fright noicon', array('style' => 'margin-left:5px;'));
+                $data->toolbar->addBtn('«««', array($mvc, 'browse', $data->buttons->prevId), 'class=noicon fright', array('style' => 'margin-left:5px;'));
             } else {
-                $data->toolbar->addBtn('«««', array(), 'class=fright btn-disabled noicon,disabled', array('style' => 'margin-left:5px;'));
+                $data->toolbar->addBtn('«««', array(), 'class=btn-disabled noicon fright,disabled', array('style' => 'margin-left:5px;'));
             }
         }
     }
