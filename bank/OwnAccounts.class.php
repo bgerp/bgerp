@@ -234,7 +234,7 @@ class bank_OwnAccounts extends core_Master {
     		$total = "<span style='color:red'>{$total}</span>";
     	}
     	 
-    	$lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='5'>[#caption#]: &nbsp;</td><td colspan='2' ><b>[#total#]</b></td></tr>");
+    	$lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='6'>[#caption#]: &nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
     	$lastRow->replace(tr("Общо"), 'caption');
     	$lastRow->replace($total, 'total');
     	 
