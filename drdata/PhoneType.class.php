@@ -19,7 +19,7 @@ class drdata_PhoneType extends type_Varchar
 	/**
 	 * Параметър определящ максималната широчина на полето
 	 */
-	var $maxFieldSize = 20;
+	var $maxFieldSize = 80;
     
 	
     /**
@@ -55,6 +55,19 @@ class drdata_PhoneType extends type_Varchar
         }
         
         return $resNumStr;
+    }
+
+
+    /**
+     * Рендиране на input-поле
+     */
+    public function renderInput_($name, $value = '', &$attr = array())
+    {
+        if($this->params['type'] == 'fax') {
+            $this->maxFieldSize = 14;
+        }
+
+        return parent::renderInput_($name, $value, $attr);
     }
     
     
