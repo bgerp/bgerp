@@ -173,7 +173,7 @@ class cams_Cameras extends core_Master
         
         $row->title = "<b>{$row->title}</b>";
         $row->caption = new ET('[#1#]<br>', $row->title);
-        $row->caption->append("<small style='font-size:0.8em'><i>{$row->driver}</i></small>&nbsp;");
+        $row->caption->append("<small><i>{$row->driver}</i></small>&nbsp;");
         $row->caption->append(ht::createLink("<img width=16 height=16 src=" . sbf('img/16/testing.png') . ">", array($mvc, 'Settings', $rec->id)));
         
         if($driver->havePtzControl()) {

@@ -54,7 +54,7 @@
                         <!--ET_END isDelivered-->
 			        </td>
 			    </tr>
-			    <tr style='height:5px'></tr>
+			    <tr><td colspan="4" style='height:5px; padding:0;'></td></tr>
 			    <tr>
 			        <td class = 'sum-th'>
 			            |Салдо|*, [#currencyId#]
