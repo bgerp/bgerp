@@ -139,7 +139,7 @@ class core_Tabs extends core_BaseClass
         $html .= "<div class='tab-row'>\n";
         $html .= "[#1#]\n";
         $html .= "</div>\n";
-        if($id) {
+        if($this->htmlId) {
             $idAttr = " id=\"{$this->htmlId}\"";
         }
         $html .= "<div class=\"tab-page clearfix21\"{$idAttr}>{$hint}[#2#]</div>\n";
