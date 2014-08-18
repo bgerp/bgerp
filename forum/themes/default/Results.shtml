@@ -1,65 +1,60 @@
-<div id='forum-index'>
-<div id='navigation'>
-[#NAVIGATION#]
-</div>
-<div class='results-row'>
-<div class='fleft results'>Резултати за <span class='search-text'>[#SEARCH_FOR#]</span></div> 
-
-<div class='fright'>[#SEARCH_FORM#]</div>
-
-<div class='clearfix21'></div>
-</div>
-<div class='thread-header'>
-	<table border='0' width='100%' cellpadding="0" cellspacing="0" class="header-table">
-			<tr>
-				<td colspan='2'  style='text-indent:10px' width=74.5%>|Теми|*</td>
-				<td width=12% style='padding-left:20px;'>|Дъска|*</td>
-				<td style='text-align:left'>|Последно|*</td>
-			</tr>
-	</table>
-</div>
-
-<table width='100%' id='forum-themes' border='0' cellspacing='0'>
-<!--ET_BEGIN ROW-->	
-	<tr class='theme-row'>
-		<td class='theme-row-title' width='58%' >
-				<div class='forum-icon'>[#ICON#]</div>
-				<div class='forum-row'>
-				<!--ET_BEGIN type-->	
-					[#type#]&nbsp;
-				<!--ET_END type-->
-					<span class='theme-title'>[#title#]</span>
-					[#THEME_PAGER#]
-					<!--ET_BEGIN LOCKED-->
-					<span class='locked'>[#locked#]</span>
-					<!--ET_END LOCKED-->
-					<span class='authored'>|започната от|*:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
-				</div>
-			</td>
-			<td class='right' width='8%'>
-				<span class='forum-counts'>[#postingsCnt#]</span><br>
-				<span class='forum-counts'>[#views#]</span>
-			</td>
-			<td width='12%' style='font-size:14px;padding-left:15px;'>
-				[#boardId#]
-			</td>
-			<td class='last-info'>
-				<!--ET_BEGIN nick-->
-				<span class='last-user'>|от|*:&nbsp;&nbsp;[#nick#]</span><br>
-				<!--ET_END nick-->
-				
-				<!--ET_BEGIN last-->
-				<span class='last-comment'>[#last#]</span>
-				<!--ET_END last-->
-				
-				<!--ET_BEGIN noComment-->
-				<span class='no-comment'>[#noComment#]</span>
-				<!--ET_END noComment-->
-			</td>
-		</tr>
-	<!--ET_END ROW-->
-	</table>
-	<!-- ET_BEGIN PAGER -->
-	<div id='themes-pager'>[#PAGER#]</div>
-	<!-- ET_END PAGER -->
+<div class='forum-index'>
+    <div class='navigation'>
+        [#NAVIGATION#]
+    </div>
+    <div class='results-row'>
+        <div class='fleft results'>Резултати за <span class='search-text'>[#SEARCH_FOR#]</span></div>
+        <div class='fright'>[#SEARCH_FORM#]</div>
+        <div class='clearfix21'></div>
+    </div>
+    <div class='thread-header'>
+        <table class="header-table no-border" style='width:100%'>
+            <tr>
+                <td colspan='2'  style='text-indent:10px; width:74.5%;'>|Теми|*</td>
+                <td style='padding-left:20px;width:12%;'>|Дъска|*</td>
+                <td style='text-align:left'>|Последно|*</td>
+            </tr>
+        </table>
+    </div>
+    <table class="forum-themes no-border" style='width:100%'>
+        <!--ET_BEGIN ROW-->	
+        <tr class='theme-row'>
+            <td class='theme-row-title' style='width:58%' >
+                <div class='forum-icon'>[#ICON#]</div>
+                <div class='forum-row'>
+                    <!--ET_BEGIN type-->	
+                    [#type#]&nbsp;
+                    <!--ET_END type-->
+                    <span class='theme-title'>[#title#]</span>
+                    [#THEME_PAGER#]
+                    <!--ET_BEGIN LOCKED-->
+                    <span class='locked'>[#locked#]</span>
+                    <!--ET_END LOCKED-->
+                    <span class='authored'>|започната от|*:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
+                </div>
+            </td>
+            <td class='right-align' style='width:8%'>
+                <span class='forum-counts'>[#postingsCnt#]</span><br>
+                <span class='forum-counts'>[#views#]</span>
+            </td>
+            <td style='font-size:14px;padding-left:15px;width:12%;'>
+                [#boardId#]
+            </td>
+            <td class='last-info'>
+                <!--ET_BEGIN nick-->
+                <span class='last-user'>|от|*:&nbsp;&nbsp;[#nick#]</span><br>
+                <!--ET_END nick-->
+                <!--ET_BEGIN last-->
+                <span class='last-comment'>[#last#]</span>
+                <!--ET_END last-->
+                <!--ET_BEGIN noComment-->
+                <span class='no-comment'>[#noComment#]</span>
+                <!--ET_END noComment-->
+            </td>
+        </tr>
+        <!--ET_END ROW-->
+    </table>
+    <!-- ET_BEGIN PAGER -->
+    <div class='themes-pager'>[#PAGER#]</div>
+    <!-- ET_END PAGER -->
 </div>

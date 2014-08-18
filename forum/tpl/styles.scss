@@ -1,12 +1,12 @@
-#topic-layout {
+.topic-layout {
 	width:70%;
 }
 
-#topic-layout .toolbar{
+.topic-layout .toolbar{
 	margin-bottom:8px;
 }
 
-#topic-layout .document{
+.topic-layout .document{
 	border: none;
 	background: transparent;
 	-moz-box-shadow: none;
@@ -19,20 +19,20 @@
 	margin-top: 0px;
 }
 
-table#topic-layout, table#topic-layout td, table#topic-layout th{
+table.topic-layout, table.topic-layout td, table.topic-layout th{
 	border-color:rgb(153, 153, 153);
 	border-width:1px;
 	border-style:solid;
 	border-collapse:collapse;
 }
 
-#topic-layout th {
+.topic-layout th {
 	background: rgb(221, 221, 221);
     height:25px;
 }
 
 
-#topic-comments {
+.topic-comments {
 	width:50%;
 }
 
@@ -50,7 +50,7 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 	vertical-align:top;
 }
 
-#topic-header {
+.topic-header {
 	background:rgba(250, 221, 187, 0.5);
 	font-family:Arial;
 	-moz-border-radius: 3px;
@@ -84,28 +84,28 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 	font-family:Arial;
 }
 
-#td-misc {
+.td-misc {
 	padding:10px;
 }
 
-#created-td {
+.created-td {
 	vertical-align:top;
 	padding:10px;
 	font-size:0.8em;
 }
 
-#topic-createdOn {
+.topic-createdOn {
 	margin-top:5px;
 	margin-bottom:10px;
 	display:block
 }
 
-#topic, .comment-body{
+.topic, .comment-body{
 	padding:8px;
 	vertical-align:top;
 }
 
-.comment-body #topic-header {
+.comment-body .topic-header {
 	background: rgba(250, 221, 187, 0.5);
 }
 

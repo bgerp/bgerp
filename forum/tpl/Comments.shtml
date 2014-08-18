@@ -1,13 +1,13 @@
 <!--ET_BEGIN ROW-->
 <tr>
-	<td id='created-td'>
+	<td class='created-td'>
 		<span style='display:block'>[#createdBy#]</span>
-		<span id='topic-createdOn'>[#createdOn#]</span>
+		<span class='topic-createdOn'>[#createdOn#]</span>
 		<div style='text-align:center'>[#avatar#]</div>
 	</td>
 	<td class='comment-body'>
-		<div id='header-td'>
-		<div id='topic-header'><a name='[#anchor#]'></a>[#title#]</div>
+		<div class='header-td'>
+		<div class='topic-header'><a name='[#anchor#]'></a>[#title#]</div>
 		</div>
 		<div class='body-comment'>[#body#]</div>
 	</td>
