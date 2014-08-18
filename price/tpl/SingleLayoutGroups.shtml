@@ -1,12 +1,10 @@
 <div class="singleView">
-[#SingleToolbar#]
-	<h2 style="margin-top:10px">|Ценова група|* <b style="color:green">"[#SingleTitle#]"</b></h2>
-	
-	<div class='free-text'>[#description#]</div>
-	
-	<div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
-	<br/>
-	<div class='scrolling-holder'>
-	[#DETAILS#]
-	</div>
+    [#SingleToolbar#]
+    <h2 style="margin-top:10px">|Ценова група|* <b style="color:green">"[#SingleTitle#]"</b></h2>
+    <div class='free-text'>[#description#]</div>
+    <div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+    <br>
+    <div class='scrolling-holder'>
+        [#DETAILS#]
+    </div>
 </div>
