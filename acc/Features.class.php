@@ -246,14 +246,15 @@ class acc_Features extends core_Manager
      * @param array $itemsArr - списък с пера
      * @return array $res - всички с-ва които имат перата
      */
-    public static function getFeaturesByItems($itemsArr)
+    public static function getFeaturesByItems($itemsArr = array())
     {
     	$res = array();
     	
-    	if(!count($itemsArr)) return $res;
-    	
     	$query = self::getQuery();
-    	$query->in('itemId', $itemsArr);
+    	if(count($itemsArr)){
+    		$query->in('itemId', $itemsArr);
+    	}
+    	
     	while($rec = $query->fetch()){
     		$res[$rec->itemId][$rec->feature] = $rec->value;
     	}
