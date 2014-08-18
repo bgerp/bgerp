@@ -27,7 +27,7 @@ class drdata_Vats extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    const statusUnknow = 'unknown';
+    const statusUnknown = 'unknown';
     
     
     /**
@@ -271,7 +271,7 @@ class drdata_Vats extends core_Manager
         } catch (Exception $e) {
         }
         
-        $res = self::statusUnknow;
+        $res = self::statusUnknown;
         
         if ($result->valid === true) {
             $res = self::statusValid;
