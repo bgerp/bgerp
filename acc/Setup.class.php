@@ -22,6 +22,12 @@ defIfNot('ACC_MONEY_TOLERANCE', '0.01');
 
 
 /**
+ * Колко реда да се показват в детайлния баланс
+ */
+defIfNot('ACC_DETAILED_BALANCE_ROWS', 1000);
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -31,7 +37,7 @@ defIfNot('ACC_MONEY_TOLERANCE', '0.01');
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -94,6 +100,7 @@ class acc_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
 		'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
+		'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Баланс->Редове в детайлния баланс,unit=бр.'),
 	);
     
     
