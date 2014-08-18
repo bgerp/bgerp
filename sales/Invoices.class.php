@@ -965,7 +965,9 @@ class sales_Invoices extends core_Master
     */
     public static function fetchByHandle($parsedHandle)
     {
-        return static::fetch("#number = '{$parsedHandle['id']}'");
+    	$number = ltrim($parsedHandle['id'], '0');
+    	
+        return static::fetch("#number = '{$number}'");
     }
     
     
