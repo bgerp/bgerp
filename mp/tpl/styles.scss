@@ -3,16 +3,16 @@
 	font-weight:bold;
 }
 
-.document #jobSpec{
+.document .jobSpec{
 	padding: 5px !important;
 }
 
-.document #jobTable{
+.document .jobTable{
 	border:1px solid #ccc;
 	border-collapse:collapse;
 }
 
-.document #jobTable > tbody > tr > td{
+.document .jobTable > tbody > tr > td{
 	border:1px solid #ccc;
 	padding:0.3em;
 }
