@@ -84,9 +84,18 @@ class bgerp_plg_Blank extends core_Plugin
         $sourceType = 'path';
         
         // Проверяваме дали е манипулатор на файл
-        if ((strlen($companyLogo) == FILEMAN_HANDLER_LEN) && ($filemanInst->fetchByFh($companyLogo))) {
+        if ($companyLogo && (strlen($companyLogo) == FILEMAN_HANDLER_LEN) && ($filemanInst->fetchByFh($companyLogo))) {
             $sourceType = 'fileman';
         } else {
+            
+            // Ако не е зададено логото
+            if (!$companyLogo) {
+                if ($lg == 'bg') {
+                    $companyLogo = 'bgerp/img/companyLogo.png';
+                } else {
+                    $companyLogo = 'bgerp/img/companyLogoEn.png';
+                }
+            }
             
             // Ако не е манипулатор, очакваме да е път
             $companyLogo = core_App::getFullPath($companyLogo);
