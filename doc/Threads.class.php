@@ -1005,7 +1005,7 @@ class doc_Threads extends core_Manager
             
             // Добавяме бутон в тулбара
             $folderClassId = core_Classes::fetchIdByName('doc_Folders');
-            custom_Settings::addBtn($data->toolbar, $folderClassId, $data->folderId, 'Изглед');
+            custom_Settings::addBtn($data->toolbar, $folderClassId, $data->folderId, 'Настройки');
         }
     }
     
