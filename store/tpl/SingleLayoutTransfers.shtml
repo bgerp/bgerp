@@ -1,106 +1,102 @@
 [#SingleToolbar#]
 <div class='document'>
- 
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-
-	<!--ET_BEGIN header-->
-		<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
-		</div>
-	<!--ET_END header-->
-<table width=100% cellpadding="0" cellspacing="0">
-    <tbody>
-    <tr>
-        <td>
-           	<div class='scrolling-holder'>
-           	<div class='display-table'>
-            <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
-                <tbody>
-                <tr>
-                    <td class="cell custom-header-bg" width="33%" height='20px'><b>|От склад|*</b></td>
-                    <td class="cell" align="center" width="34%" rowspan='2'>
-                        <div class="document-title">|Междускладов Трансфер|*</div>
-                        
-                        <div style="padding-top:5px;">
-                        	№ <span class="bigData">[#id#]</span> / 
-                        	<span class="bigData">[#valior#]</span>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <!--ET_END header-->
+    <table class='no-border' style='width:100%;'>
+        <tbody>
+            <tr>
+                <td>
+                    <div class='scrolling-holder'>
+                        <div class='display-table'>
+                            <table class="innerTable border-table paddingCells">
+                                <tbody>
+                                    <tr>
+                                        <td class="cell custom-header-bg" style='width:33%;height:20px;'><b>|От склад|*</b></td>
+                                        <td class="cell centered" rowspan='2' style='width:34%;'>
+                                            <div class="document-title">|Междускладов Трансфер|*</div>
+                                            <div style="padding-top:5px;">
+                                                № <span class="bigData">[#id#]</span> / 
+                                                <span class="bigData">[#valior#]</span>
+                                            </div>
+                                            <!--ET_BEGIN state-->
+                                            <br>
+                                            <div class="[#STATE_CLASS#]">[#state#]</div>
+                                            <!--ET_END state-->
+                                        </td>
+                                        <td class="cell custom-header-bg vtop" style='width:33%;'><b>|До склад|*</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="cell">
+                                            <b>[#fromStore#]</b>
+                                            <div class='address-block'>
+                                                [#fromAdress#]
+                                            </div>
+                                        </td>
+                                        <td class="cell">
+                                            <b>[#toStore#]</b>
+                                            <div class='address-block'>
+                                                [#toAdress#]
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="lines"></div>
+                            <div class="details">
+                                [#store_TransfersDetails#]
+                            </div>
+                            <div class="lines"></div>
+                            <table class="innerTable footer-notes no-border paddingCells" style='width:100%;'>
+                                <tbody>
+                                    <tr>
+                                        <!--ET_BEGIN leftColum-->
+                                        [#leftColum#]
+                                        <td class="topCell first vtop" style='width:50%;'>
+                                            <table class='shipment-table' style='width:100%;'>
+                                                <!--ET_BEGIN deliveryTime-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Срок до|*:</td>
+                                                    <td>[#deliveryTime#]</td>
+                                                </tr>
+                                                <!--ET_END deliveryTime-->
+                                                <!--ET_BEGIN lineId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Транспорт|*: </td>
+                                                    <td>[#lineId#]</td>
+                                                </tr>
+                                                <!--ET_END lineId--> 
+                                                <!--ET_BEGIN note-->
+                                                <tr>
+                                                    <td colspan=2 >
+                                                        <hr>
+                                                        [#note#]
+                                                    </td>
+                                                </tr>
+                                                <!--ET_END note-->
+                                            </table>
+                                        </td>
+                                        <!--ET_END leftColum-->
+                                        <td>
+                                            <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        
-                        <!--ET_BEGIN state-->
-                        <br/>
-                        <div class="[#STATE_CLASS#]">[#state#]</div>
-                        <!--ET_END state-->
-                    </td>
-                    <td class="cell custom-header-bg" width="33%" valign="top"><b>|До склад|*</b></td>
-                    </tr>
-                    <tr>
-                    <td class="cell">
-                    <b>[#fromStore#]</b>
-                    <div class='address-block'>
-                        [#fromAdress#]
-                     </div>
-                    </td>
-                    <td class="cell">
-                    <b>[#toStore#]</b>
-                    <div class='address-block'>
-                        [#toAdress#]
                     </div>
-					</td>
-                </tr>
-                </tbody>
-            </table>
-			<div class="lines"></div>
-			<div class="details">
-            		[#store_TransfersDetails#]
-           	</div>
-           	<div class="lines"></div>		
-            <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
-                <tbody><tr>
-                <!--ET_BEGIN leftColum-->
-                [#leftColum#]
-                    <td class="topCell first" valign="top" width=50%>
-                        <table class='shipment-table' width=100%>
-		                    <!--ET_BEGIN deliveryTime-->
-		                        <tr>
-		                            <td align='right' class='quiet nowrap' width=1%>|Срок до|*:</td>
-		                            <td>[#deliveryTime#]</td>
-		                        </tr>
-		                    <!--ET_END deliveryTime-->
-		                    <!--ET_BEGIN lineId-->
-		                        <tr>
-		                            <td align='right' class='quiet nowrap' width=1%>|Транспорт|*: </td>
-		                            <td>[#lineId#]</td>
-		                        </tr>
-		                    <!--ET_END lineId--> 
-		                     <!--ET_BEGIN note-->
-		                        <tr>
-		                            <td colspan=2 > 
-		                                    <hr>
-		                                    [#note#]
-		                            </td>
-		                        </tr>
-		                     <!--ET_END note-->
-		                </table>
-                
-                        </td>
-                      <!--ET_END leftColum-->
-                        <td>
-                        <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b></div>
-                        </td>
-                </tr>           
-                </tbody>
-            </table>
-            </div>
-            </div>
- 				<!--ET_BEGIN DETAILS-->
-				<div class='details'>
-					[#DETAILS#]
-				</div>
-				<!--ET_END DETAILS-->
-        </td>
-    </tr>
-    </tbody>
-</table>
+                    <!--ET_BEGIN DETAILS-->
+                    <div class='details'>
+                        [#DETAILS#]
+                    </div>
+                    <!--ET_END DETAILS-->
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </div>
