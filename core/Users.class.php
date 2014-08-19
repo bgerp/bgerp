@@ -125,8 +125,14 @@ class core_Users extends core_Manager
      * URL за javascript
      */
     var $httpsURL = '';
-
-
+    
+    
+    /**
+     * Кой може да персонализира конфигурационните данни за потребителя
+     */
+    var $canPersonalize = 'user';
+    
+    
     /**
      * По кои полета да се прави пълнотекстово търсене
      */
@@ -163,6 +169,8 @@ class core_Users extends core_Manager
         $this->FLD('lastLoginTime', 'datetime(format=smartTime)', 'caption=Последно->Логване,input=none');
         $this->FLD('lastLoginIp', 'type_Ip', 'caption=Последно->IP,input=none');
         $this->FLD('lastActivityTime', 'datetime(format=smartTime)', 'caption=Последно->Активност,input=none');
+        
+        $this->FLD('configData', 'blob(serialize,compress)', 'caption=Конфигурационни данни,input=none');
 
         $this->setDbUnique('nick');
         $this->setDbUnique('email');
@@ -697,12 +705,21 @@ class core_Users extends core_Manager
     /**
      * Изпълнява се след получаването на необходимите роли
      */
-    static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles)
+    static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         $query = $invoker->getQuery();
         
         if ($query->count() == 0) {
             $requiredRoles = 'every_one';
+        }
+        
+        // Ако ще се персонализира
+        if (($action == 'personalize') && ($rec)) {
+            
+            // Текущия потребител да може да персонализира само своите, а admin на всички
+            if (($rec->id != $userId) && !haveRole('admin', $userId)) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
@@ -883,7 +900,7 @@ class core_Users extends core_Manager
         }
         
         $userRec->refreshTime = $now;
-         
+        
         Mode::setPermanent('currentUserRec', $userRec);
         
         if(!Request::get('ajax_mode') && dt::mysql2timestamp($userRec->lastActivityTime) < (time() - 3*60)) {
@@ -1701,5 +1718,148 @@ class core_Users extends core_Manager
         }
         
         return $nick;
+    }
+    
+    
+    /**
+     * Екшън за персонализиране на конфигурационните данни
+     */
+    function act_Personalize()
+    {
+        // Изиксваме да има права за персонализиране
+        $this->requireRightFor('personalize');
+        
+        // id на потребителя
+        $userId = Request::get('id', 'int');
+        
+        // Очакваме да има такъв запис за потребител
+        $userRec = $this->fetch($userId);
+        expect($userRec);
+        
+        // Очакваме да има права за персонализиране на записа
+        $this->requireRightFor('personalize', $userRec);
+        
+        $retUrl = getRetUrl();
+        
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        
+        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
+        $form->input(NULL, 'silent');
+        
+        // Всички записани пакети
+        $query = core_Packs::getQuery();
+        while ($rec = $query->fetch()) {
+            
+            // Зареждаме сетъп пакета
+            $clsName = $rec->name . "_Setup";
+            if (!cls::load($clsName, TRUE)) continue;
+            $clsInst = core_Cls::get($clsName);
+            
+            // Ако няма полета за конфигуриране
+            if (!$clsInst->configDescription) continue;
+            
+            // Обхождаме всички полета за конфигуриране
+            foreach ((array)$clsInst->configDescription as $field => $arguments) {
+                
+                // Типа на полета
+                $type = $arguments[0];
+                
+                // Параметри на полето
+                $params = arr::combine($arguments[1], $arguments[2]);
+                
+                // Ако не е зададено, че може да се конфигурира или текущия потребител няма съответната роля
+                if (!$params['customizeBy'] || !haveRole($params['customizeBy'], $form->rec->userId)) continue;
+                
+                // Ако не е зададено, заглавието на полето е неговото име
+                setIfNot($params['caption'], '|*' . $field);
+                
+                $typeInst = core_Type::getByName($type);
+                
+                // Ако е enum поле, добавя в началото да може да се избира автоматично
+                if ($typeInst instanceof type_Enum) {
+                    $typeInst->options = array('default' => 'Автоматично') + (array)$typeInst->options;
+                }
+                
+                // Полето ще се въвежда
+                $params['input'] = 'input';
+                
+                // Добавяме функционално поле
+                $form->FNC($field, $typeInst, $params);
+                
+                // Масив с всички полета
+                $fieldsArr[$field] = $field;
+                
+                // Вземаме стойността от конфигурацията
+                $conf = core_Packs::getConfig($rec->name);
+                $valArr[$field] = $conf->$field;
+            }
+        }
+        
+        // Инпутваме всички полета
+        $form->input($fieldsArr);
+        
+        // Ако формата е изпратена без грешки
+        if($form->isSubmitted()) {
+            
+            // Обхождаме всички полета от конфигурацията
+            foreach ((array)$fieldsArr as $name) {
+                
+                // Ако няма промяна в стойностите
+                if ($form->rec->$name == $valArr[$name]) continue;
+                
+                // Ако типа е enum, трябва стойността да не е default
+                if ($form->fields[$name]->type instanceof type_Enum) {
+                    if (($form->rec->$name != 'default') && $form->rec->$name) {
+                        $configDataArr[$name] = $form->rec->$name;
+                    }
+                } else if ($form->rec->$name) {
+                    // Ако има стойност добавяме в масива
+                    $configDataArr[$name] = $form->rec->$name;
+                }
+            }
+            
+            // Записваме новата стойност
+            $nRec = new stdClass();
+            $nRec->id = $form->rec->id;
+            $nRec->configData = $configDataArr;
+            $this->save($nRec, 'configData');
+            
+            return new Redirect($retUrl);
+        }
+        
+        // Обхождаме всички поелта
+        foreach ((array)$fieldsArr as $name) {
+            
+            // Ако има записана стойност
+            if ($userRec->configData[$name]) {
+                
+                // Задаваме стойността
+                $form->setDefault($name, $userRec->configData[$name]);
+                
+                // Показваме стойността по подразбиране
+                $form->setParams($name, array('hint' => tr("По подразбиране|*: ") . $valArr[$name]));
+            } else {
+                
+                // Сетваме default стойността от конфигурацията и променяме стила
+                $form->setDefault($name, $valArr[$name]);
+                $form->setField($name, array('attr' => array('class' => 'const-default-value')));
+            }
+        }
+        
+        // Показваме всички конфигурационни полета
+        $form->showFields = $fieldsArr;
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        
+        // Вербалние стойности
+        $userRow = $this->recToVerbal($userRec, 'nick');
+        
+        // Добавяме титлата на формата
+        $form->title = "Персонализиране на настройките на|* " . $userRow->nick;
+        
+        return $this->renderWrapping($form->renderHtml());
     }
 }
