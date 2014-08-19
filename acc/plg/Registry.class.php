@@ -130,7 +130,7 @@ class acc_plg_Registry extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'delete' && isset($rec)){
+    	if($res != 'no_one' && $action == 'delete' && isset($rec)){
     		if(acc_Items::fetchItem($mvc->getClassId(), $rec->id)){
     			
     			// Не може да се изтрива ако обекта вече е перо
