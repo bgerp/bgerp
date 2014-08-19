@@ -3671,7 +3671,7 @@ body.narrow {
 /*стилове за принтиране*/
 @media print{
 	.document{
-	   width: 98%;
+        width: 840px;
 	}
 	.blankImage img, .qrcode img{
         width: 100%;
