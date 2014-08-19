@@ -1,38 +1,38 @@
- <div class='scrolling-holder'>
- <table class="innerTable quote-header"  cellpadding="5" cellspacing="0" width="100%">
-          <tbody><tr>
-              <td class="cell custom-header-bg" width="35%"><b>|Получател|*</b></td>
-              <td class="cell" rowspan="2" align="center" width="30%">
-                  <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>|ОФЕРТА|* </b></div>
-                  <div class='invInfo'>|Номер|*</div>
-                  <div class="bigData">[#number#]</div>
-                  <div class='invInfo'>|Дата|*</div>
-                  <div class="bigData">[#date#]</div>
-                   <!--ET_BEGIN place-->
-				  <div class='invInfo'>|Място|*</div>
-                  <div class="bigData">[#place#]</div>
-                   <!--ET_END place-->
-                  <!--ET_BEGIN reff-->
-                  <div class='invInfo'>|Ваш реф|*.</div>
-                  <div class="bigData">[#reff#]</div>
-                  <!--ET_END reff-->
-       </td>
-       <td class="cell custom-header-bg" width="35%"><b>|Доставчик|*</b> </td>
-   </tr>           
-   <tr>
-       <td class="cell">
-           <div><b>[#company#]</b></div>
-		   <div><b>[#person#]</b></div>
-		   <div class='address-block'>[#contragentAddress#]</div>
-       </td>
-
-       <td class="cell">
-           <b>[#MyCompany#]</b>
-            <div class='address-block'>[#MyAddress#]</div>
-       </td>
-   </tr>
-   <tr>
-	</tr>
-	</tbody>
-</table>
+<div class='scrolling-holder'>
+    <table class="innerTable quote-header paddingCells" style='width:100%;'>
+        <tbody>
+            <tr>
+                <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
+                <td class="cellm cetered" rowspan="2" style='width:30%;'>
+                    <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>|ОФЕРТА|* </b></div>
+                    <div class='invInfo'>|Номер|*</div>
+                    <div class="bigData">[#number#]</div>
+                    <div class='invInfo'>|Дата|*</div>
+                    <div class="bigData">[#date#]</div>
+                    <!--ET_BEGIN place-->
+                    <div class='invInfo'>|Място|*</div>
+                    <div class="bigData">[#place#]</div>
+                    <!--ET_END place-->
+                    <!--ET_BEGIN reff-->
+                    <div class='invInfo'>|Ваш реф|*.</div>
+                    <div class="bigData">[#reff#]</div>
+                    <!--ET_END reff-->
+                </td>
+                <td class="cell custom-header-bg" style='width:35%;'><b>|Доставчик|*</b> </td>
+            </tr>
+            <tr>
+                <td class="cell">
+                    <div><b>[#company#]</b></div>
+                    <div><b>[#person#]</b></div>
+                    <div class='address-block'>[#contragentAddress#]</div>
+                </td>
+                <td class="cell">
+                    <b>[#MyCompany#]</b>
+                    <div class='address-block'>[#MyAddress#]</div>
+                </td>
+            </tr>
+            <tr>
+            </tr>
+        </tbody>
+    </table>
 </div>
