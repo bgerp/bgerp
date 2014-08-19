@@ -145,6 +145,47 @@ class acc_BalanceDetails extends core_Detail
     		if($data->groupingForm->isSubmitted()){
     			$mvc->doGrouping($data, (array)$data->groupingForm->rec, $data->groupingForm->cmd);
     		}
+    		
+    		usort($data->recs, array($mvc, "sortRecsByCode"));
+    	}
+    }
+    
+    
+    /**
+     * Филтриране на записите по код
+     * Подрежда кодовете или свойствата във възходящ ред.
+     * Ако първата аналитичност са еднакви, сравнява по кодовете на втората ако и те по тези на третата
+     */
+    private function sortRecsByCode($a, $b)
+    {
+    	$cache = static::$cache;
+    	
+    	foreach (range(1, 3) as $i){
+    		if(isset($a->{"grouping{$i}"})){
+    			${"cmpA{$i}"} = $a->{"grouping{$i}"};
+    			${"cmpB{$i}"} = $b->{"grouping{$i}"};
+    		} else {
+    			${"cmpA{$i}"} = $cache[$a->{"ent{$i}Id"}];
+    			${"cmpB{$i}"} = $cache[$b->{"ent{$i}Id"}];
+    		}
+    	}
+    	
+    	if($cmpA1 == $cmpB1){
+    		if(isset($cmpA2) && isset($cmpB2)){
+    			if($cmpA2 == $cmpB2){
+    				if(isset($cmpA3) && isset($cmpB3)){
+    					return (strnatcasecmp($cmpA3, $cmpB3) < 0) ? -1 : 1;
+    				} else {
+    					return 0;
+    				}
+    			} else {
+    				return (strnatcasecmp($cmpA2, $cmpB2) < 01) ? -1 : 1;
+    			}
+    		} else {
+    			return 0;
+    		}
+    	} else {
+    		return (strnatcasecmp($cmpA1, $cmpB1) < 0) ? -1 : 1;
     	}
     }
     
@@ -323,6 +364,8 @@ class acc_BalanceDetails extends core_Detail
         	}
         	
         	unset($data->listFields['history'], $data->listFields['baseQuantity'], $data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
+        
+        	$data->groupByFeature = TRUE;
         }
     	
         // Сумиране на еднаквите редове
@@ -424,6 +467,15 @@ class acc_BalanceDetails extends core_Detail
        	$data->qCopy = clone $data->query;
         
         $data->groupingForm = $this->getGroupingForm($data->masterId, $data->query);
+        
+        if(count(static::$cache)){
+        	$iQuery = acc_Items::getQuery();
+        	$iQuery->show("num");
+        	$iQuery->in('id', static::$cache);
+        	while($iRec = $iQuery->fetch()){
+        		static::$cache[$iRec->id] = $iRec->num;
+        	}
+        }
         
         // Извличаме записите за номенклатурите, по които е разбита сметката
         $listRecs = array();
@@ -552,7 +604,7 @@ class acc_BalanceDetails extends core_Detail
     	$items = array();
     	$cQuery = clone $query;
     	$cQuery->show('ent1Id,ent2Id,ent3Id');
-    	while ($rec = $cQuery->fetch()) {
+    	while (FALSE || $rec = $cQuery->fetch()) {
     		foreach (range(1, 3) as $i){
     			if(!empty($rec->{"ent{$i}Id"})){
     				static::$cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
@@ -597,9 +649,8 @@ class acc_BalanceDetails extends core_Detail
     	$form->formAttr['id'] = 'groupForm';
     	
     	if(count($options)){
-    		foreach ($options as $id => &$opt){
-    			$opt = acc_Items::getTitleById($id);
-    		}
+    		$options = implode(',', $options);
+    		$options = acc_Items::makeArray4Select(NULL, "#id IN ({$options})");
     	}
         
     	if(!count($options)){
