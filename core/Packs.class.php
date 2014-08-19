@@ -663,7 +663,7 @@ class core_Packs extends core_Manager
     /**
      * Връща конфигурационните данни за даден пакет
      */
-    static function getConfig($packName) 
+    static function getConfig($packName, $userId=NULL) 
     {
         $rec = static::fetch("#name = '{$packName}'");
         $setup = cls::get("{$packName}_Setup");
@@ -677,7 +677,7 @@ class core_Packs extends core_Manager
         //                                'suggestions' => $suggestions, 
         //        'CONSTANT_NAME2' => .....
                
-        $conf = cls::get('core_ObjectConfiguration', array($setup->configDescription, $rec->configData));
+        $conf = cls::get('core_ObjectConfiguration', array($setup->configDescription, $rec->configData, $userId));
     
         return $conf;
     }

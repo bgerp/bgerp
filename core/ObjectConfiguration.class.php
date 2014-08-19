@@ -32,7 +32,7 @@ class core_ObjectConfiguration extends core_BaseClass
      */
     public function init($params = array())
     {
-        list($description, $data) = $params;
+        list($description, $data, $userId) = $params;
         
         if (is_string($description)) {
             $description = unserialize($description);
@@ -50,8 +50,13 @@ class core_ObjectConfiguration extends core_BaseClass
             $this->_data = $data;
         }
         
-        // Данните от конфигурацията на съответния потребител
-        $configDataArr = (array)core_Users::getCurrent('configData');
+        if (($userId < 1) || ($userId == core_Users::getCurrent())) {
+            // Данните от конфигурацията на текущия потребител
+            $configDataArr = (array)core_Users::getCurrent('configData');
+        } else {
+            // Данните от конфигурацията на съответния потребител
+            $configDataArr = (array)core_Users::fetchField($userId, 'configData');
+        }
         
         // Сетваме данните
         foreach ($configDataArr as $name => $value) {

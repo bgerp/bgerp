@@ -1791,7 +1791,7 @@ class core_Users extends core_Manager
                 $fieldsArr[$field] = $field;
                 
                 // Вземаме стойността от конфигурацията
-                $conf = core_Packs::getConfig($rec->name);
+                $conf = core_Packs::getConfig($rec->name, $userId);
                 $valArr[$field] = $conf->$field;
             }
         }
