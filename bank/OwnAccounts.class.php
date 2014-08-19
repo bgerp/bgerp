@@ -408,7 +408,7 @@ class bank_OwnAccounts extends core_Master {
         	$account = bank_Accounts::fetch($rec->bankAccountId);
         	$cCode = currency_Currencies::getCodeById($account->currencyId);
             $result = (object)array(
-                'num'      => $rec->id,
+                'num'      => "B" . $rec->id,
 			    'title'    => $cCode . " - " . $rec->title,
                 'features' => 'foobar' // @todo!
             );

@@ -148,10 +148,11 @@ class accda_Da extends core_Master
     static function getItemRec($objectId)
     {
         $result = NULL;
+        $self = cls::get(get_called_class());
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->num,
+                'num' => $self->abbr . $rec->num,
                 'title' => $rec->title,
                 'features' => 'foobar' // @todo!
             );

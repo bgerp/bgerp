@@ -1029,7 +1029,7 @@ class crm_Companies extends core_Master
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->id,
+                'num' => "F" . $rec->id,
                 'title' => $rec->name,
                 'features' => array('Държава' => $self->getVerbal($rec, 'country'),
             						'Град' => $self->getVerbal($rec, 'place'),)

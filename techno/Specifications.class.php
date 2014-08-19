@@ -436,7 +436,7 @@ class techno_Specifications extends core_Manager {
     {
         $info = $this->getProductInfo($objectId);
         $itemRec = (object)array(
-            'num' => 'SPC' . $objectId,
+            'num' => 'Sp' . $objectId,
             'title' => $info->productRec->title,
             'uomId' => $info->productRec->measureId,
         );

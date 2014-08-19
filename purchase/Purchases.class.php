@@ -1204,7 +1204,7 @@ class purchase_Purchases extends core_Master
     	if ($rec = self::fetch($objectId)) {
     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
     		$result = (object)array(
-    				'num' => $objectId,
+    				'num' => $self->abbr . $objectId,
     				'title' => static::getRecTitle($objectId),
     				'features' => array('Контрагент' => $contragentName)
     		);

@@ -947,7 +947,7 @@ class crm_Persons extends core_Master
 
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->id,
+                'num' => "P" . $rec->id,
                 'title' => $rec->name,
                 'features' => array('Държава' => static::getVerbal($rec, 'country'),
             						'Град' => static::getVerbal($rec, 'place'),)

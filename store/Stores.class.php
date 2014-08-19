@@ -220,7 +220,7 @@ class store_Stores extends core_Master
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->id,
+                'num' => "St" . $rec->id,
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );
