@@ -158,6 +158,12 @@ class core_Form extends core_FieldSet
             
             $value = Request::get($name);
             
+            if ($field->optionsFunc) {
+                try {
+                    $field->options = cls::callFunctArr($field->optionsFunc, array($field->type));
+                } catch (Exception $e) { }
+            }
+            
             $captions = str_replace('->', '|* » |', $field->caption);
 
             // Ако $silent, не сме критични към празните стойности
@@ -573,6 +579,12 @@ class core_Form extends core_FieldSet
 
                 if(strtolower($field->autocomplete) == 'off') {
                     $this->formAttr['autocomplete'] = 'off';
+                }
+                
+                if ($field->optionsFunc) {
+                    try {
+                        $field->options = cls::callFunctArr($field->optionsFunc, array($field->type));
+                    } catch (Exception $e) { }
                 }
                 
                 $options = $field->options;
