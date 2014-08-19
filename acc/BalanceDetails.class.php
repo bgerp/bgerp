@@ -423,7 +423,7 @@ class acc_BalanceDetails extends core_Detail
         $data->query->where('#ent1Id IS NOT NULL OR #ent2Id IS NOT NULL OR #ent3Id IS NOT NULL');
        	$data->qCopy = clone $data->query;
         
-        $data->groupingForm = $this->getGroupingForm($data->masterId);
+        $data->groupingForm = $this->getGroupingForm($data->masterId, $data->query);
         
         // Извличаме записите за номенклатурите, по които е разбита сметката
         $listRecs = array();
@@ -528,7 +528,7 @@ class acc_BalanceDetails extends core_Detail
      *
      * @param int $balanceId ИД на баланса, в контекста на който се случва това
      */
-    private function getGroupingForm($balanceId)
+    private function getGroupingForm($balanceId, $query)
     {
         expect($this->Master->accountRec);
         
@@ -548,6 +548,19 @@ class acc_BalanceDetails extends core_Detail
         
     	$form = cls::get('core_Form');
         
+    	// Запомняме кои пера участват в баланса на тази сметка и показваме само тях в списъка
+    	$items = array();
+    	$cQuery = clone $query;
+    	$cQuery->show('ent1Id,ent2Id,ent3Id');
+    	while ($rec = $cQuery->fetch()) {
+    		foreach (range(1, 3) as $i){
+    			if(!empty($rec->{"ent{$i}Id"})){
+    				static::$cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
+    				$items[$i][$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
+    			}
+    		}
+    	}
+    	
         $form->method = 'GET';
         $form->class = 'simpleForm';
         $form->fieldsLayout = getTplFromFile("acc/tpl/BalanceFilterFormFields.shtml");
@@ -555,7 +568,7 @@ class acc_BalanceDetails extends core_Detail
         $form->input("accId", true);
         $showFields = '';
         foreach ($listRecs as $i => $listRec) {
-        	$this->setGroupingForField($i, $listRec, $form);
+        	$this->setGroupingForField($i, $listRec, $form, $items[$i]);
         }
         $form->showFields = trim($form->showFields, ',');
         
@@ -579,14 +592,23 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Подготвя полетата за филтриране
      */
-    private function setGroupingForField($i, $listRec, &$form)
+    private function setGroupingForField($i, $listRec, &$form, $options)
     {
     	$form->formAttr['id'] = 'groupForm';
-    	$options = acc_Items::makeArray4Select(NULL, "#lists LIKE '%|{$listRec->id}|%' AND #state = 'active'");
+    	
+    	if(count($options)){
+    		foreach ($options as $id => &$opt){
+    			$opt = acc_Items::getTitleById($id);
+    		}
+    	}
+        
+    	if(!count($options)){
+    		$options = array();
+    	}
     	
     	$features = acc_Features::getFeatureOptions(array_keys($options));
-        $features = array('' => '') + $features;
-        
+    	$features = array('' => '') + $features;
+    	
     	$listName = acc_Lists::getVerbal($listRec, 'name');
     	$form->fieldsLayout->replace($listName, "caption{$i}");
     	$form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title)', "silent,caption={$listName},width=330px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
