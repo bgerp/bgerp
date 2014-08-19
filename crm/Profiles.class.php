@@ -9,7 +9,7 @@
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
- * @since     v 0.12
+ * @since     0.12
  */
 class crm_Profiles extends core_Master
 {
@@ -18,7 +18,7 @@ class crm_Profiles extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = array('crm_ProfileIntf');
+    var $interfaces = 'crm_ProfileIntf';
     
     
     /**
@@ -263,6 +263,14 @@ class crm_Profiles extends core_Master
             } else {
                 unset($data->User->row->lastLoginIp);
             }
+        }
+        
+        // Ако има права за модифициране на настройките за персоналзиране
+        // @see custom_SettingsIntf
+        if (core_Users::haveRightFor('personalize', $data->rec->id)) {
+            
+            // Добавяме бутона, който сочи към екшъна за персонализиране
+            $data->toolbar->addBtn('Персонализиране', array('core_Users', 'Personalize', $data->rec->userId, 'ret_url' => TRUE), 'ef_icon=img/16/customize.png,title=Дебъг,row=2');
         }
     }
     
