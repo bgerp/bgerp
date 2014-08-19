@@ -6,7 +6,7 @@
                     <tbody>
                         <tr>
                             <td class="cell custom-header-bg vtop" style='width:35%'><b>|Supplier|*</b></td>
-                            <td class="cell acenter" style='width:30%' rowspan='2'>
+                            <td class="cell centered" style='width:30%' rowspan='2'>
                                 <div class="document-title">|PURCHASE OF SERVICE CONTRACT|*</div>
                                 <div style="padding-top:5px;">
                                     № <span class="bigData">[#id#]</span> / 
