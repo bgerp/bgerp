@@ -63,7 +63,9 @@ class drdata_VatType extends type_Varchar
 
         $res['value'] = $value = strtoupper(trim($value));
         
-        $status = $this->statuses[$Vats->check($value)];
+        list($status, ) = $Vats->check($value);
+
+        $status = $this->statuses[$status];
          
         if ($status[1] == 'red') {
             $res['warning'] = $status[0];
@@ -87,14 +89,22 @@ class drdata_VatType extends type_Varchar
         
         $Vats = cls::get('drdata_Vats');
         $value = parent::escape($value);
-        $status = $this->statuses[$Vats->check($value)];
+        
+        list($status, $info) = $Vats->check($value);
+ 
+        $status = $this->statuses[$status];
+        
         if(!$status) {
             $status = $this->statuses[''];
         }
 
-        $title = tr($status[0]);
-        $class = $status[1];
+        $attr['title'] = tr($status[0]);
+        
+        if(trim($info)) {
+            $attr['title'] .= "\n" . $info;  
+        }
+        $attr['class'] = $status[1];
  
-        return "<span class=\"{$class}\" title=\"{$title}\">{$value}</span>";
+        return ht::createElement('span', $attr, $value);
     }
 }

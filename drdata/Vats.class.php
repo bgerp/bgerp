@@ -110,7 +110,8 @@ class drdata_Vats extends core_Manager
         $this->FLD('vat', 'drdata_vatType(64)', 'caption=VAT');
         $this->FLD('status', 'enum(not_vat,bulstat,syntax,unknown,valid,invalid)', 'caption=Състояние,input2=none');
         $this->FLD('lastChecked', 'datetime', 'caption=Проверен на,input2=none');
-        
+        $this->FLD('info', 'varchar', 'caption=Информация');
+
         $this->setDbUnique('vat');
     }
     
@@ -130,7 +131,8 @@ class drdata_Vats extends core_Manager
             if (!(strlen($vat = core_Type::escape(trim($form->input()->vat))))) {
                 $res = new Redirect (array($this, 'Check'), 'Не сте въвели VAT номер');
             } else {
-                switch($this->check($vat)) {
+                list($status, ) = $this->check($vat);  
+                switch($status) {
                     case 'valid' :
                         $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е валиден");
                         break;
@@ -193,7 +195,7 @@ class drdata_Vats extends core_Manager
         if(!$rec) {
             // Ако нямаме кеширан запис за този VAT номер, създаваме нов и го записваме
             $rec = new stdClass();
-            $rec->status = $this->checkStatus($canonocalVat);
+            list($rec->status, $rec->info) = $this->checkStatus($canonocalVat);
             $rec->vat = $canonocalVat;
             $rec->lastChecked = dt::verbal2mysql();
             if(in_array($rec->status, array('valid', 'invalid', 'unknown'))) {
@@ -214,8 +216,8 @@ class drdata_Vats extends core_Manager
                 }
             }
         }
-
-        return $rec->status;        
+ 
+        return array($rec->status, $rec->info);        
     }
     
     
@@ -256,17 +258,18 @@ class drdata_Vats extends core_Manager
                 $result = $client->checkVat($params);
             } catch (Exception $e) {
             }
-            
+
             $res = self::statusUnknown;
             
             if ($result->valid === TRUE) {
                 $res = self::statusValid;
+                $info = $result->name . "\n" . $result->address;
             } elseif ($result->valid === FALSE) {
                 $res = self::statusInvalid;
             }
         }
         
-        return $res;
+        return array($res, $info);
     }
 
     
@@ -276,7 +279,7 @@ class drdata_Vats extends core_Manager
     function on_Shutdown()
     {
         foreach ($this->updateOnShutdown as $rec) {
-            $rec->status = $this->check($rec->vat);
+            list($rec->status, $rec->info) = $this->checkStatus($rec->vat);
             $rec->lastChecked = dt::verbal2mysql();
             $this->save($rec);
         }
