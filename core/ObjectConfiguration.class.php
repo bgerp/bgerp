@@ -33,7 +33,7 @@ class core_ObjectConfiguration extends core_BaseClass
     public function init($params = array())
     {
         list($description, $data) = $params;
-
+        
         if (is_string($description)) {
             $description = unserialize($description);
         }
@@ -48,6 +48,16 @@ class core_ObjectConfiguration extends core_BaseClass
         
         if(is_array($data)) {
             $this->_data = $data;
+        }
+        
+        // Данните от конфигурацията на съответния потребител
+        $configDataArr = (array)core_Users::getCurrent('configData');
+        
+        // Сетваме данните
+        foreach ($configDataArr as $name => $value) {
+            if (isset($this->_data[$name])) {
+                $this->_data[$name] = $value;
+            }
         }
     }
 
