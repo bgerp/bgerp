@@ -1062,7 +1062,7 @@ class purchase_Purchases extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc ($mvc, &$res)
     {
     	$mvc->setCron($res);
     	$mvc->setTemplates($res);
@@ -1148,14 +1148,8 @@ class purchase_Purchases extends core_Master
     	$tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/Service.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en');
     	$tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract');
-    	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li class='green'>Добавени са {$added} шаблона за покупки, обновени са {$updated}, пропуснати са {$skipped}</li>";
+        
+        $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
     

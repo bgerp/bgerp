@@ -391,10 +391,8 @@ class purchase_Invoices extends core_Master
 	            $mvc->invoke('Validate' . ucfirst($fName), array($rec, $form));
 	        }
 	        
-	        if(strlen($rec->contragentVatNo) && !strlen($rec->vatNo)){
-	        	$uic = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
-	        	$rec->uicNo = $uic;
-	        	
+	        if(strlen($rec->contragentVatNo) && !strlen($rec->uicNo)){
+	            $rec->uicNo = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
 	        } elseif(!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)){
 	        	$form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
 	        }
@@ -1065,13 +1063,7 @@ class purchase_Invoices extends core_Master
     {
     	$tplArr[] = array('name' => 'Входяща фактура нормален изглед', 'content' => 'purchase/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Входяща фактура изглед за писмо', 'content' => 'purchase/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
-    	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $mvc->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li class='green'>Добавени са {$added} шаблона за фактури, обновени са {$updated}, пропуснати са {$skipped}</li>";
+        
+        $res .= doc_TplManager::addOnce($mvc, $tplArr);
     }
 }

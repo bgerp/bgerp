@@ -515,14 +515,8 @@ class sales_Services extends core_Master
     	$tplArr[] = array('name' => 'Протокол за извършени услуги с цени', 
     					  'content' => 'sales/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
-    	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li class='green'>Добавени са {$added} шаблона за протоколи за извършени услуги, обновени са {$updated}, пропуснати са {$skipped}</li>";
+        
+        $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
     

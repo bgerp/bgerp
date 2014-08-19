@@ -723,13 +723,7 @@ class store_ShipmentOrders extends core_Master
     					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li class='green'>Добавени са {$added} шаблона за експедиционни нареждания, обновени са {$updated}, пропуснати са {$skipped}</li>";
+        $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
     

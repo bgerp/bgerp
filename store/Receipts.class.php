@@ -707,12 +707,6 @@ class store_Receipts extends core_Master
     					  'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li class='green'>Добавени са {$added} шаблона за складови разписки, обновени са {$updated}, пропуснати са {$skipped}</li>";
+        $res .= doc_TplManager::addOnce($this, $tplArr);
     }
 }

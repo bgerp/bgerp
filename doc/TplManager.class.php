@@ -311,44 +311,55 @@ class doc_TplManager extends core_Master
      * @param int $updated - брой обновени шаблони
      * @param int $skipped - брой пропуснати шаблони
      */
-    public static function addOnce($object, &$added = 0, &$updated = 0, &$skipped = 0)
+    public static function addOnce($mvc, $tplArr, &$added = 0, &$updated = 0, &$skipped = 0)
     {
-    	$object = (object)$object;
+        $skipped = $added = $updated = 0;
     	
-    	// Ако има старо име на шаблона
-    	if($object->oldName){
+        foreach ($tplArr as $object){
     		
-    		// Извличане на записа на стария шаблон
-    		$exRec = static::fetch("#name = '{$object->oldName}'");
-    	}
-    	
-    	// Ако няма старо име проверка имали шаблон с текущото име
-    	if(!$exRec){
-    		$exRec = static::fetch("#name = '{$object->name}'");
-    	}
-    	
-    	if($exRec){
-    		$object->id = $exRec->id;
-    		$object->hash = $exRec->hash;
+            $object['docClassId'] = $mvc->getClassId();
     		
-    		// Обновяване на името
-    		$object->name = $object->name;
-    	}
-    	
-    	// Ако файла на шаблона не е променян, то записа не се обновява
-    	expect($fileHash = md5_file(getFullPath($object->content)));
-    	if(empty($object->oldName) && isset($object->hash) && $object->hash == $fileHash){
-    		$skipped++;
-    		return;
-    	}
-    	
-    	$object->hash = $fileHash;
-    	$object->content = getFileContent($object->content);
-    	$object->createdBy = -1;
-    	$object->state = 'active';
-    	
-    	static::save($object);
-    	($object->id) ? $updated++ : $added++;
+            $object = (object)$object;
+            
+            // Ако има старо име на шаблона
+            if($object->oldName){
+                // Извличане на записа на стария шаблон
+                $exRec = static::fetch("#name = '{$object->oldName}'");
+            } else {
+                $exRec = NULL;
+            }
+            
+            // Ако няма старо име проверка имали шаблон с текущото име
+            if(!$exRec){
+                $exRec = static::fetch("#name = '{$object->name}'");
+            }
+            
+            if($exRec){
+                $object->id = $exRec->id;
+            }
+
+            // Ако файла на шаблона не е променян, то записа не се обновява
+            expect($object->hash = md5_file(getFullPath($object->content)));
+            
+            if($exRec && ($exRec->name == $object->name) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields)){
+                $skipped++;
+                continue;
+            }
+
+            $object->content = getFileContent($object->content);
+            $object->createdBy = -1;
+            $object->state = 'active';
+         
+            static::save($object);
+
+            ($object->id) ? $updated++ : $added++;
+        }
+        
+        $class = ($added > 0 || $updated > 0) ? ' class="green"' : '';
+
+    	$res = "<li{$class}>Добавени са {$added} шаблона за " . mb_strtolower($mvc->title) . ", обновени са {$updated}, пропуснати са {$skipped}</li>";
+
+        return $res;
     }
     
     

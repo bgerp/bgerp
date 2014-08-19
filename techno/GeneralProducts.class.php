@@ -155,13 +155,7 @@ class techno_GeneralProducts extends core_Master {
     	$tplArr[] = array('name' => 'Универсален продукт кратък изглед без компоненти', 
     					  'content' => 'techno/tpl/SingleLayoutGeneralProductsShortComponents.shtml', 'lang' => 'bg');
     	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li class='green'>Добавени са {$added} шаблона за универсални продукти, обновени са {$updated}, пропуснати са {$skipped}</li>";
+        $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
     

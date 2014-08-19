@@ -554,12 +554,6 @@ class purchase_Services extends core_Master
     					  'content' => 'purchase/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li class='green'>Добавени са {$added} шаблона за приемателен протокол за услуги, обновени са {$updated}, пропуснати са {$skipped}</li>";
+        $res .= doc_TplManager::addOnce($this, $tplArr);
     }
 }

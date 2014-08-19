@@ -247,14 +247,8 @@ class sales_Invoices extends core_Master
     {
     	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Фактура изглед за писмо', 'content' => 'sales/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
-    	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $mvc->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li class='green'>Добавени са {$added} шаблона за фактури, обновени са {$updated}, пропуснати са {$skipped}</li>";
+        
+        $res .= doc_TplManager::addOnce($mvc, $tplArr);
     }
     
     
@@ -417,10 +411,8 @@ class sales_Invoices extends core_Master
 	            $mvc->invoke('Validate' . ucfirst($fName), array($rec, $form));
 	        }
 	        
-	        if(strlen($rec->contragentVatNo) && !strlen($rec->vatNo)){
-	        	$uic = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
-	        	$rec->uicNo = $uic;
-	        	
+	        if(strlen($rec->contragentVatNo) && !strlen($rec->uicNo)){
+	            $rec->uicNo = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
 	        } elseif(!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)){
 	        	$form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
 	        }
@@ -737,7 +729,7 @@ class sales_Invoices extends core_Master
         $Companies = cls::get('crm_Companies');
         $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
-        
+   
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
     		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
