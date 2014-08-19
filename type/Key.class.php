@@ -357,8 +357,6 @@ class type_Key extends type_Int {
     {
         $conf = core_Packs::getConfig('core');
         
-        Mode::set('wrapper', 'page_Ajax');
-        
         // Приключваме, ако няма заявка за търсене
         $hnd = Request::get('hnd');
         
