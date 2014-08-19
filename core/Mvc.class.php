@@ -668,7 +668,6 @@ class core_Mvc extends core_FieldSet
      */
     function setupMVC()
     {
-        // echo "<li> $this->className"; flush();
         $html .= "<h3>" . ('Начално установяване на модела') .
         ": <i>" . $this->className . "</i></h3><ol style='margin-bottom:10px;'>";
 
@@ -761,7 +760,7 @@ class core_Mvc extends core_FieldSet
 
                 //bp($mfAttr, $dfAttr);
 
-                $green = " style='color:green;'";     // Стил за маркиране
+                $green = " style='background-color:#ffff99;'";     // Стил за маркиране
                 $info = '';     // Тук ще записваме текущия ред с информация какво правим
                 // Дали ще създаваме или променяме името на полето
                 if ($mfAttr->name != $mfAttr->field) {
@@ -858,16 +857,21 @@ class core_Mvc extends core_FieldSet
                         if ($mfAttr->field != $mfAttr->name) {
                             $title = "<span{$green}>Преименуване <b>{$mfAttr->field}</b> => <b>{$mfAttr->name}</b></span>";
                         } else {
-                            $title = "<span{$green}>Обновяване на <b>{$mfAttr->name}</b></span>";
+                            $title = "<span>Обновяване на поле <b>{$mfAttr->name}</b></span>";
                         }
                     } else {
-                        $title = "<span{$green}>Създаване на <b>{$mfAttr->name}</b></span>";
+                        $title = "<span{$green}>Създаване на поле <b>{$mfAttr->name}</b></span>";
                     }
                 } else {
                     $title = "Съществуващо поле <b>{$mfAttr->name}</b>";
                 }
-
-                $html .= "<li>" . $title . ": " . $info;
+                
+                if(strpos($info, $green)) {
+                    $liClass = ' class="green"';
+                } else {
+                    $liClass = '';
+                }
+                $html .= "<li{$liClass}>" . $title . ": " . $info . "</li>";
             }
 
             $indexes = $this->db->getIndexes($this->dbTableName);
@@ -890,10 +894,12 @@ class core_Mvc extends core_FieldSet
                         
                         // За да не бъде премахнат този индекс по-нататък
                         unset($indexes[$name]);  
+                        
+                        $indRec->fields = str_replace(' ', '', $indRec->fields);
 
                         // Ако полетата на съществуващия индекс са същите като на зададения, не се прави нищо
                         if($exFieldsList == $indRec->fields) {
-                            $html .= "<li>Съществуващ от преди индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
+                            $html .= "<li>Съществуващ индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
                             continue;
                         }
 
@@ -903,11 +909,11 @@ class core_Mvc extends core_FieldSet
                         $act = 'Добавен';
                         $color = 'green';
                     }
-
+ 
                     // bp($indexes, $this->dbIndexes, $exFieldsList, $indRec->fields);
 
                     $this->db->forceIndex($this->dbTableName, $indRec->fields, $indRec->type, $name);
-                    $html .= "<li><span style=\"color:{$color}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</span></li>";
+                    $html .= "<li style=\"color:{$color}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
                 }
             }
 
@@ -918,7 +924,7 @@ class core_Mvc extends core_FieldSet
                 }
             }
         } else {
-            $html .= "<li>" . ('Без установяване на DB таблици, защото липсва модел');
+            $html .= "<li>" . ('Без установяване на DB таблици, защото липсва модел') . "</li>";
         }
 
         // Правим опит да добавим класа в списъка с класовете, имащи интерфейси

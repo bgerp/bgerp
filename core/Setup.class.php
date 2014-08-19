@@ -298,12 +298,11 @@ class core_Setup extends core_ProtoSetup {
 
         // Изтриваме всички поддиректории на sbf които не започват със символа '_'
 	    if ($handle = opendir(EF_SBF_PATH)) {
-		    while (false !== ($entry = readdir($handle))) {
-		        if ($entry != "." && $entry != ".." && false === strpos($entry, '_') && $entry != '.htaccess') {
+		    while (FALSE !== ($entry = readdir($handle))) {
+		        if ($entry != "." && $entry != ".." && false === strpos($entry, '_') && is_dir(EF_SBF_PATH . "/{$entry}")) {
 		        	if (core_Os::deleteDir(EF_SBF_PATH . "/{$entry}")) {
 		        		$html .= "<li style='color:green;'>Директория: <b>" . EF_SBF_PATH . "/{$entry}</b> е изтрита</li>";
-		        	}
-		        	else {
+		        	} else {
 		        		$html .= "<li style='color:red;'>Директория: <b>" . EF_SBF_PATH . "/{$entry}</b> не беше изтрита</li>";	
 		        	}
 		        }

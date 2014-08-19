@@ -104,7 +104,7 @@ class core_Packs extends core_Manager
         
         if (!$pack) error('Missing pack name.');
         
-        $res = $this->setupPack($pack);
+        $res = $this->setupPack($pack, 0, TRUE, TRUE);
         
         return $this->renderWrapping($res);
     }
@@ -494,7 +494,7 @@ class core_Packs extends core_Manager
      * Setup-а на пакета е указано, че той зависи от други пакети
      * (var $depends = ... ), прави се опит и те да се установят
      */
-    function setupPack($pack, $version = 0, $force = TRUE)
+    function setupPack($pack, $version = 0, $force = TRUE, $loadData = FALSE)
     {
         // Максиламно време за инсталиране на пакет
         set_time_limit(400);
@@ -534,7 +534,7 @@ class core_Packs extends core_Manager
             $depends = arr::make($setup->depends, TRUE);
             
             foreach($depends as $p => $v) {
-                $res .= $this->setupPack($p, $v, FALSE);
+                $res .= $this->setupPack($p, $v, FALSE, $loadData);
             }
         }
 
@@ -584,6 +584,11 @@ class core_Packs extends core_Manager
  
             // Правим началното установяване
             $res .= $setup->install();
+
+            if($loadData) {
+                $res .= $setup->loadSetupData();
+            }
+
             Request::pop('full');
 
             // Де-форсираме системния потребител
