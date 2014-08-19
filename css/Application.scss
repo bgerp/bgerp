@@ -1199,6 +1199,10 @@ pre.document {
 	border: 1px solid #999;
 }
 
+.paddingCells > tbody > tr > td{
+	padding: 5px;
+}
+
 #invoice-info {
 	border-left: 1px solid #999;
 }
