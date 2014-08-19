@@ -10,6 +10,8 @@
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.12
+ * 
+ * @deprecated
  */
 class crm_Personalization extends core_Detail
 {
@@ -316,15 +318,6 @@ class crm_Personalization extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        // Ако променяме или добавяме
-        if ($action == 'edit' || $action == 'add') {
-            
-            // Ако има профил и userId не е текущия потребител
-            if ($rec->profileId && crm_Profiles::fetch($rec->profileId)->userId != core_Users::getCurrent()) {
-                
-                // Само админ
-                $requiredRoles = 'admin';
-            }
-        }
+        $requiredRoles = 'no_one';
     }
 }
