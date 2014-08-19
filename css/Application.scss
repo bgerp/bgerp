@@ -1219,6 +1219,15 @@ pre.document {
 	   border: none !important;
 	}
 }
+.document .special-borders  td {
+	border: none; 
+	&.border-right{
+        border-right: 1px solid #999 !important;
+    }
+    &.border-left{
+        border-left: 1px solid #999 !important;
+    }
+}
 
 .sign_names {
     display:inline-block;
