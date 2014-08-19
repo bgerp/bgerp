@@ -86,7 +86,7 @@ class crm_Setup extends core_ProtoSetup
             'crm_Profiles',
             'crm_Locations',
             'crm_Formatter',
-    
+            'migrate::movePersonalizationData',
         );
     
 
@@ -161,5 +161,48 @@ class crm_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Фунцкия за миграция
+     * Премества персонализационните данни за потребителя от crm_Personalization в core_Users
+     */
+    static function movePersonalizationData()
+    {
+        $query = crm_Personalization::getQuery();
+        $query->where('1=1');
+        while($rec = $query->fetch()) {
+            try {
+                $userId = crm_Profiles::fetchField($rec->profileId, 'userId');
+                
+                if ($rec->inbox) {
+                    $nArr['EMAIL_DEFAULT_SENT_INBOX'] = $rec->inbox;
+                }
+                
+                if ($rec->header) {
+                    $nArr['EMAIL_OUTGOING_HEADER_TEXT'] = $rec->header;
+                }
+                
+                if ($rec->signature) {
+                    $nArr['EMAIL_OUTGOING_FOOTER_TEXT'] = $rec->signature;
+                }
+                
+                if ($rec->logo) {
+                    $nArr['BGERP_COMPANY_LOGO'] = $rec->logo;
+                }
+                
+                if ($rec->logoEn) {
+                    $nArr['BGERP_COMPANY_LOGO_EN'] = $rec->logoEn;
+                }
+                
+                if ($nArr) {
+                    $nRec = new stdClass();
+                    $nRec->id = $userId;
+                    $nRec->configData = $nArr;
+                    core_Users::save($nRec, 'configData');
+                }
+            } catch (Exception $e) { }
+        }
     }
 }
