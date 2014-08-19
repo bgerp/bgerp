@@ -196,7 +196,7 @@ class fileman_Upload extends core_Manager {
             <style>
         		.uploaded-title{background-image:url(' . sbf('img/16/tick-circle-frame.png', '') . ');}
         		.btn-ulfile{background-image:url(' . sbf('img/16/paper_clip.png', '') . ');}
-        		.ui-progressbar-value {background-image: url(' . sbf('jquery/ui-1.8.2/css/custom-theme/images/pbar-ani.gif', '') . '); }
+        		.ui-progressbar-value {background-image: url(' . sbf('jqueryui/1.8.2/css/custom-theme/images/pbar-ani.gif', '') . '); }
         	</style>
             <form id="uploadform" enctype="multipart/form-data" method="post">
             
