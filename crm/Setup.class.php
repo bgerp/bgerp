@@ -174,29 +174,45 @@ class crm_Setup extends core_ProtoSetup
         $query->where('1=1');
         while($rec = $query->fetch()) {
             try {
+                
+                $nArr = array();
+                
                 $userId = crm_Profiles::fetchField($rec->profileId, 'userId');
                 
+                $oldConfigData = core_Users::fetchField($userId, 'configData');
+                
                 if ($rec->inbox) {
-                    $nArr['EMAIL_DEFAULT_SENT_INBOX'] = $rec->inbox;
+                    if (!isset($oldConfigData['EMAIL_DEFAULT_SENT_INBOX'])) {
+                        $nArr['EMAIL_DEFAULT_SENT_INBOX'] = $rec->inbox;
+                    }
                 }
                 
                 if ($rec->header) {
-                    $nArr['EMAIL_OUTGOING_HEADER_TEXT'] = $rec->header;
+                    if (!isset($oldConfigData['EMAIL_OUTGOING_HEADER_TEXT'])) {
+                        $nArr['EMAIL_OUTGOING_HEADER_TEXT'] = $rec->header;
+                    }
                 }
                 
                 if ($rec->signature) {
-                    $nArr['EMAIL_OUTGOING_FOOTER_TEXT'] = $rec->signature;
+                    if (!isset($oldConfigData['EMAIL_OUTGOING_FOOTER_TEXT'])) {
+                        $nArr['EMAIL_OUTGOING_FOOTER_TEXT'] = $rec->signature;
+                    }
                 }
                 
                 if ($rec->logo) {
-                    $nArr['BGERP_COMPANY_LOGO'] = $rec->logo;
+                    if (!isset($oldConfigData['BGERP_COMPANY_LOGO'])) {
+                        $nArr['BGERP_COMPANY_LOGO'] = $rec->logo;
+                    }
                 }
                 
                 if ($rec->logoEn) {
-                    $nArr['BGERP_COMPANY_LOGO_EN'] = $rec->logoEn;
+                    if (!isset($oldConfigData['BGERP_COMPANY_LOGO_EN'])) {
+                        $nArr['BGERP_COMPANY_LOGO_EN'] = $rec->logoEn;
+                    }
                 }
                 
                 if ($nArr) {
+                    $nArr = $nArr + $oldConfigData;bp($nArr, $oldConfigData);
                     $nRec = new stdClass();
                     $nRec->id = $userId;
                     $nRec->configData = $nArr;
