@@ -23,23 +23,26 @@ class acc_ActiveShortBalance {
 	/**
 	 * Конструктор на обекта
 	 * 
-	 * @param string $itemsAll - списък от ид-та на пера, които може да са на всяка позиция
-	 * @param string $item1 - списък от ид-та на пера, поне едно от които може да е на първа позиция
-	 * @param string $item2 - списък от ид-та на пера, поне едно от които може да е на втора позиция
-	 * @param string $item3 - списък от ид-та на пера, поне едно от които може да е на трета позиция
+	 * Масив $params с атрибути
+	 * 			['itemsAll'] - списък от ид-та на пера, които може да са на всяка позиция
+	 * 			['item1']    - списък от ид-та на пера, поне едно от които може да е на първа позиция
+	 * 			['item2']    - списък от ид-та на пера, поне едно от които може да е на втора позиция
+	 * 			['item3']    - списък от ид-та на пера, поне едно от които може да е на трета позиция
+	 * 			['from']     - От дата
+	 * 			['to']       - До дата
 	 */
-	function __construct($itemsAll = NULL, $item1 = NULL, $item2 = NULL , $item3 = NULL)
+	function __construct($params = array())
 	{
-		// Тряба да има поне едно перо
-		if($itemsAll || $item1 || $item2 || $item3){
-			
-			// Подготвяме заявката към базата данни
-			$jQuery = acc_JournalDetails::getQuery();
-			acc_JournalDetails::filterQuery($jQuery, NULL, dt::now(), NULL, $itemsAll, $item1, $item2, $item3);
-			
-			// Изчисляваме мини баланса
-			$this->calcBalance($jQuery->fetchAll());
+		if(!isset($params['to'])){
+			$params['to'] = dt::now();
 		}
+		
+		// Подготвяме заявката към базата данни
+		$jQuery = acc_JournalDetails::getQuery();
+		acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], NULL, $params['itemsAll'], $params['item1'], $params['item2'], $params['item3']);
+		
+		// Изчисляваме мини баланса
+		$this->calcBalance($jQuery->fetchAll());
 	}
 	
 	
@@ -70,6 +73,8 @@ class acc_ActiveShortBalance {
 					$b['ent1Id'] = $item1;
 					$b['ent2Id'] = $item2;
 					$b['ent3Id'] = $item3;
+					$b['debitQuantity'] += $rec->{"debitQuantity"};
+					$b['creditQuantity'] += $rec->{"creditQuantity"};
 					$b['blQuantity'] += $rec->{"{$type}Quantity"} * $sign;
 					$b['blAmount'] += $rec->amount * $sign;
 				}

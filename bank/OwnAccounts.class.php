@@ -192,7 +192,7 @@ class bank_OwnAccounts extends core_Master {
     	
     	if(isset($fields['-list'])){
     		$bankItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-    		$Balance = new acc_ActiveShortBalance($bankItem->id);
+    		$Balance = new acc_ActiveShortBalance(array('itemsAll' => $bankItem->id));
     		$rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $bankItem->id);
     		 
     		$Double = cls::get('type_Double');

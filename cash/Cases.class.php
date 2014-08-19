@@ -183,7 +183,7 @@ class cash_Cases extends core_Master {
         
         if(isset($fields['-list'])){
         	$caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-        	$Balance = new acc_ActiveShortBalance($caseItem->id);
+        	$Balance = new acc_ActiveShortBalance(array('itemsAll' => $caseItem->id));
         	$rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $caseItem->id);
         	
         	$Double = cls::get('type_Double');

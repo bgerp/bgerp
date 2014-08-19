@@ -53,7 +53,7 @@ class purchase_transaction_CloseDeal
     	$docRec = cls::get($rec->docClassId)->fetch($rec->docId);
     	
     	$dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
-    	$this->shortBalance = new acc_ActiveShortBalance($dealItem->id);
+    	$this->shortBalance = new acc_ActiveShortBalance(array('itemsAll' => $dealItem->id));
     	$this->blAmount = $this->shortBalance->getAmount('401');
     	
     	// Създаване на обекта за транзакция
