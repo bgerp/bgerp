@@ -124,9 +124,11 @@ class acc_BalanceDetails extends core_Detail
      */
     static function on_AfterPrepareListFields($mvc, $data)
     {
-        if ($mvc->isDetailed()) {
+        
+    	if ($mvc->isDetailed()) {
             // Детайлизиран баланс на конкретна аналитична сметка
             $mvc->prepareDetailedBalance($data);
+            $info = acc_Accounts::getAccountInfo($mvc->Master->accountRec->id);
         } else {
             // Обобщен баланс на синтетичните сметки
             $mvc->prepareOverviewBalance($data);
@@ -319,6 +321,8 @@ class acc_BalanceDetails extends core_Detail
         	if(count($groupedBy)){
         		unset($data->listFields['history']);
         	}
+        	
+        	unset($data->listFields['history'], $data->listFields['baseQuantity'], $data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
         }
     	
         // Сумиране на еднаквите редове
@@ -443,21 +447,11 @@ class acc_BalanceDetails extends core_Detail
          * @var boolean true - показват се и количества, false - не се показват
          */
         $bShowQuantities = FALSE;
-        
-        foreach ($listRecs as $i=>$listRec) {
+        foreach ($listRecs as $i => $listRec) {
             $bShowQuantities = $bShowQuantities || ($listRec->isDimensional == 'yes');
-            
-            
-                $data->listFields["ent{$i}Id"] = "|*" . acc_Lists::getVerbal($listRec, 'name');
-                
-                if (!$flag) {
-                    // Не можем да използваме следните редове повече от веднъж, това е проблем
-                    $flag = TRUE;
-                    $data->query->EXT("ent{$i}Num", 'acc_Items', "externalName=num,externalKey=ent{$i}Id");
-                    $data->query->orderBy("#ent{$i}Num", 'ASC');
-                }
+            	$data->listFields["ent{$i}Id"] = "|*" . acc_Lists::getVerbal($listRec, 'name');
         }
-        
+       
         if ($bShowQuantities) {
             $data->listFields += array(
                 'baseQuantity' => 'Начално салдо->ДК->К-во',
