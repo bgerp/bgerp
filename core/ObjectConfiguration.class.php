@@ -55,9 +55,7 @@ class core_ObjectConfiguration extends core_BaseClass
         
         // Сетваме данните
         foreach ($configDataArr as $name => $value) {
-            if (isset($this->_data[$name])) {
-                $this->_data[$name] = $value;
-            }
+            $this->_data[$name] = $value;
         }
     }
 
