@@ -22,8 +22,21 @@ class drdata_VatType extends type_Varchar
      * Колко символа е дълго полето в базата
      */
     var $dbFieldLen = 18;
+
     
-    
+    /**
+     * Описание на различните видове статуси за VAT номера
+     */
+    var $statuses = array (
+                        'not_vat' => array('Липсва двубуквен префикс', 'red'),
+                        'bulstat' => array('Валиден ЕИК, но липсва BG в началото', 'red'),
+                        'syntax'  => array('Невалидна дължина на цифрите', 'red'),
+                        'invalid' => array('Невалиден VAT номер', 'red'),
+                        'unknown' => array('VAT номер с неизвестна валидност', 'quiet'),
+                        'valid'   => array('Валиден VAT номер', ''),
+                        ''        => array('Грешка при определяне на валидността', 'red')
+                    );
+
     /**
      * Инициализиране на дължината
      */
@@ -36,7 +49,9 @@ class drdata_VatType extends type_Varchar
     
     
     /**
-     * @todo Чака за документация...
+     * Проверка за валидност на VAT номер
+     * 
+     * Ако проверката е неуспешна - връща само предупреждение
      */
     function isValid($value)
     {
@@ -45,46 +60,41 @@ class drdata_VatType extends type_Varchar
         $Vats = cls::get('drdata_Vats');
         
         $res = array();
-        $res['value'] = strtoupper(trim($value));
+
+        $res['value'] = $value = strtoupper(trim($value));
         
-        $status = $Vats->check($res['value']);
-        
-        if ($status == 'unknown') {
-            $res['warning'] = $status;
-        } elseif ($status != 'valid'  && $status != 'bulstat') {
-            $res['error'] = $status;
-        }
-        
-        if ((isset($res['error'])) || (isset($res['warning']))) {
+        $status = $this->statuses[$Vats->check($value)];
+         
+        if ($status[1] == 'red') {
+            $res['warning'] = $status[0];
+            
             return $res;
         }
-        
-        return parent::isValid($value);
+         
+        $res = parent::isValid($value);
+        $res['value'] = $value;
+
+        return $res;
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Преобразува във вербален изглед посочения VAT номер
      */
-    static function toVerbal($value)
+    function toVerbal_($value)
     {
         if(!$value) return NULL;
         
         $Vats = cls::get('drdata_Vats');
         $value = parent::escape($value);
-        $status = $Vats->check($value);
-        
-        switch($status) {
-            case 'unknown' : $color = "#339900"; break;
-            case 'bulstat' : $color = "#000000"; break;
-            case 'valid' : $color = "#000000"; break;
-            case 'invalid' : $color = "#ff3300"; break;
-            case 'syntax' : $color = "#990066"; break;
-            case 'not_vat' : $color = "#3300ff"; break;
-
-            default: $color = "#FF9999";
+        $status = $this->statuses[$Vats->check($value)];
+        if(!$status) {
+            $status = $this->statuses[''];
         }
 
-        return "<span style=\"color:{$color}\">{$value}</span>";
+        $title = tr($status[0]);
+        $class = $status[1];
+ 
+        return "<span class=\"{$class}\" title=\"{$title}\">{$value}</span>";
     }
 }

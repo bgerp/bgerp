@@ -25,41 +25,53 @@ class drdata_Vats extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Не е VAT номер, дори не е ЕИК
+     * color:red
+     */
+    const statusNotVat = 'not_vat';
+    
+    
+    /**
+     * Това е ЕИК
+     * color:red
+     */
+    const statusBulstat = 'bulstat';
+
+
+    /**
+     * Това е VAT номер, но с невалиден синтаксис
+     * color:red
+     */
+    const statusSyntax = 'syntax';
+
+
+    /**
+     * Това е VAT номер с правилен синтаксис, но не е известно дали е валиден
+     * color:green
      */
     const statusUnknown = 'unknown';
     
     
     /**
-     * @todo Чака за документация...
-     */
-    const statusBulstat = 'bulstat';
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    const statusValid = 'valid';
-    
-    
-    /**
-     * @todo Чака за документация...
+     * Това е VAT номер с правилен синтаксис, но не е валиден
+     * color:red
      */
     const statusInvalid = 'invalid';
     
     
     /**
-     * @todo Чака за документация...
+     * Това е валиден VAT номер
+     * color:black
      */
-    const statusSyntax = 'syntax';
+    const statusValid = 'valid';
     
-    
+
     /**
-     * @todo Чака за документация...
+     * Колко най-много vat номера да бъдат обновени след залез?
      */
-    const statusNotVat = 'not_vat';
-    
-    
+    const MAX_CNT_VATS_FOR_UPDATE = 5;
+
+
     /**
      * Заглавие
      */
@@ -83,16 +95,21 @@ class drdata_Vats extends core_Manager
      */
     var $canList = 'admin';
     
-    
+
+    /**
+     * Списък с VAT номера, които трябва да се обновят на shutdown
+     */
+    var $updateOnShutdown = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
         $this->FLD('vat', 'drdata_vatType(64)', 'caption=VAT');
-        $this->FLD('status', 'enum(syntax,valid,invalid,unknown)', 'caption=Състояние,input=none');
-        $this->FLD('lastChecked', 'datetime', 'caption=Проверен на,input=none');
-        $this->FLD('lastUsed', 'datetime', 'caption=Използван на,input=none');
+        $this->FLD('status', 'enum(not_vat,bulstat,syntax,unknown,valid,invalid)', 'caption=Състояние,input2=none');
+        $this->FLD('lastChecked', 'datetime', 'caption=Проверен на,input2=none');
         
         $this->setDbUnique('vat');
     }
@@ -144,11 +161,20 @@ class drdata_Vats extends core_Manager
     
     
     /**
-     * @todo Генерира бутон, който препраща в страница за проверка на VAT номер
+     * Генерира бутон, който препраща в страница за проверка на VAT номер
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Проверка на VAT номер', array($mvc, 'Check'));
+    }
+
+
+    /**
+     * Подреждане - първо новите
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('lastChecked', 'DESC');
     }
     
     
@@ -158,46 +184,111 @@ class drdata_Vats extends core_Manager
      * @param string $vat
      * @return string 'syntax', 'valid', 'invalid', 'unknown'
      */
-    public function check(&$vat)
+    public function check($vat)
     {
         $canonocalVat = $this->canonize($vat);
         
         $rec = $this->fetch(array("#vat = '[#1#]'", $canonocalVat));
-        
-        if(!$this->isHaveVatPrefix($vat)) {
-            if(self::isBulstat($vat)) {
-                $status = self::statusBulstat;
-            } else {
-                $status = self::statusNotVat;
-            }
-        } elseif (!$this->checkSyntax($canonocalVat)) {
-            $status = self::statusSyntax;
-        } elseif ($rec) {
-            $status = $rec->status;
-            $rec->lastUsed = dt::verbal2mysql();
-        } else {
+                
+        if(!$rec) {
+            // Ако нямаме кеширан запис за този VAT номер, създаваме нов и го записваме
             $rec = new stdClass();
-            $status = $this->checkStatus($canonocalVat);
+            $rec->status = $this->checkStatus($canonocalVat);
             $rec->vat = $canonocalVat;
-            $rec->status = $status;
-            $rec->lastUsed = dt::verbal2mysql();
             $rec->lastChecked = dt::verbal2mysql();
+            if(in_array($rec->status, array('valid', 'invalid', 'unknown'))) {
+                $this->save($rec);
+            }
+        } else {
+            // Проверяваме дали кеша не е изтекъл
+            $conf = core_Packs::getConfig('drdata');
+            $expDate = dt::addSecs(-$conf->DRDATA_VAT_TTL);
+            $expUnknown = dt::addSecs(-24*60*60);
+            
+            // Ако информацията за данъчния номер е остаряла или той е неизвестен и не сме го проверявали последните 24 часа 
+            if(($rec->lastChecked < $expDate) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown) ) {
+
+                // Ако не е достигнат максимума, добавяме и този запис за обновяване
+                if(count($this->updateOnShutdown) < self::MAX_CNT_VATS_FOR_UPDATE) {
+                    $this->updateOnShutdown[] = $rec;
+                }
+            }
         }
-        
-        if ($rec) {
-            $this->save($rec);
-        }
-        
-        return $status;
+
+        return $rec->status;        
     }
     
     
+    /**
+     * Проверка за валидността на VAT номер, включително и чрез сървиз на EC
+     *
+     * @param string $vat Каноничен ват
+     * @return string 'valid', 'invalid', 'unknown'
+     */
+    function checkStatus($vat)
+    {   
+        // Ако номера не е VAT, тогава само проверяваме, дали не е валиден BULSTAT
+        if(!$this->isHaveVatPrefix($vat)) {
+            if(self::isBulstat($vat)) {
+                $res = self::statusBulstat;
+            } else {
+                $res = self::statusNotVat;
+            }
+        }
+        
+        // Ако синтаксиса не отговаря на VAT, статуса сигнализира за това
+        if(!$res && !$this->checkSyntax($vat)) {
+            $res = self::statusSyntax;
+        }
+        
+        if(!$res) {
+            // Конвериране на български 13-цифрени данъчни номера към 9-цифрени
+            if((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
+                $vat = substr($vat, 0, 11);
+            }
+            
+            $countryCode = substr($vat, 0, 2);
+            $vatNumber = substr($vat, 2);
+            
+            try {
+                $client = new SoapClient("http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl");
+                $params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
+                $result = $client->checkVat($params);
+            } catch (Exception $e) {
+            }
+            
+            $res = self::statusUnknown;
+            
+            if ($result->valid === TRUE) {
+                $res = self::statusValid;
+            } elseif ($result->valid === FALSE) {
+                $res = self::statusInvalid;
+            }
+        }
+        
+        return $res;
+    }
+
+    
+    /**
+     * Обновяване на статуса на VAT номера след залез
+     */
+    function on_Shutdown()
+    {
+        foreach ($this->updateOnShutdown as $rec) {
+            $rec->status = $this->check($rec->vat);
+            $rec->lastChecked = dt::verbal2mysql();
+            $this->save($rec);
+        }
+    }
+    
+
     /**
      * Проверява дали номерът започва с префикс, като за VAT
      */
     public static function isHaveVatPrefix($value)
     {
-        $vatPrefixes = arr::make("BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT", TRUE);
+        $vatPrefixes = arr::make("BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HR,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT", TRUE);
         
         if($vatPrefixes[substr($value, 0, 2)]) {
  
@@ -210,80 +301,6 @@ class drdata_Vats extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
-     */
-    function act_UpdateStatus()
-    {
-        expect(isDebug());
-        
-        return $this->cron_UpdateStatus();
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function cron_UpdateStatus()
-    {
-        $query = $this->getQuery();
-        $before2Month = dt::addDays(-60);
-        $query->where('DATE_SUB(#lastUsed, INTERVAL 1 MONTH) >= #lastChecked');
-        $query->where("#lastChecked < '{$before2Month}'");
-        $query->limit(1);
-        
-        $nAffected = 0;
-        
-        while ($rec = $query->fetch()) {
-            $recentStatus = $this->check($rec->vat);
-            
-            if ($recentStatus != self::statusUnknown && $recentStatus != $rec->status) {
-                $rec->status = $recentStatus;
-            }
-            $rec->lastChecked = dt::verbal2mysql();
-            $this->save($rec);
-            $nAffected++;
-        }
-        
-        return "Обновени {$nAffected} VAT номера.";
-    }
-    
-    
-    /**
-     * Онлайн проверка за валидността на VAT номер.
-     *
-     * @param string $vat
-     * @return string 'valid', 'invalid', 'unknown'
-     */
-    function checkStatus($vat)
-    {
-        // Поправка за българските 13-цифрени данъчни номера
-        if((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
-            $vat = substr($vat, 0, 11);
-        }
-        
-        $countryCode = substr($vat, 0, 2);
-        $vatNumber = substr($vat, 2);
-        
-        try {
-            $client = new SoapClient("http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl");
-            $params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
-            $result = $client->checkVat($params);
-        } catch (Exception $e) {
-        }
-        
-        $res = self::statusUnknown;
-        
-        if ($result->valid === true) {
-            $res = self::statusValid;
-        } elseif ($result->valid === false) {
-            $res = self::statusInvalid;
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
      * Синтактична валидация на VAT номер от Европейския съюз
      *
      * @see http://php.net/manual/de/function.preg-match.php
@@ -291,76 +308,79 @@ class drdata_Vats extends core_Manager
      * @param integer $vat VAT number to test e.g. GB123 4567 89
      * @return integer -1 if country not included OR 1 if the VAT Num matches for the country OR 0 if no match
      */
-    function checkSyntax($vat) {
+    function checkSyntax($vat)
+    {
         switch(strtoupper(substr($vat, 0, 2))) {
             case 'AT' :
-                $regex = '/^(AT){0,1}U[0-9]{8}$/i';
+                $regex = '/^ATU[0-9]{8}$/i';
                 break;
             case 'BE' :
-                $regex = '/^(BE){0,1}[0]{0,1}[0-9]{9}$/i';
+                $regex = '/^BE[0]{0,1}[0-9]{9}$/i';
                 break;
             case 'BG' :
-                $regex = '/^(BG){0,1}[0-9]{9,13}$/i';
+                $regex = '/^BG[0-9]{9,10}$/i';
                 break;
             case 'CY' :
-                $regex = '/^(CY){0,1}[0-9]{8}[A-Z]$/i';
+                $regex = '/^CY[0-9]{8}[A-Z]$/i';
                 break;
             case 'CZ' :
-                $regex = '/^(CZ){0,1}[0-9]{8,10}$/i';
+                $regex = '/^CZ[0-9]{8,10}$/i';
                 break;
             case 'DK' :
-                $regex = '/^(DK){0,1}([0-9]{2}[\ ]{0,1}){3}[0-9]{2}$/i';
+                $regex = '/^DK([0-9]{2}[\ ]{0,1}){3}[0-9]{2}$/i';
                 break;
             case 'EE' :
             case 'DE' :
             case 'PT' :
             case 'EL' :
-                $regex = '/^(EE|EL|DE|PT){0,1}[0-9]{9}$/i';
+                $regex = '/^(EE|EL|DE|PT)[0-9]{9}$/i';
                 break;
             case 'FR' :
-                $regex = '/^(FR){0,1}[0-9A-Z]{2}[\ ]{0,1}[0-9]{9}$/i';
+                $regex = '/^FR[0-9A-Z]{2}[\ ]{0,1}[0-9]{9}$/i';
                 break;
             case 'FI' :
             case 'HU' :
             case 'LU' :
             case 'MT' :
             case 'SI' :
-                $regex = '/^(FI|HU|LU|MT|SI){0,1}[0-9]{8}$/i';
+                $regex = '/^(FI|HU|LU|MT|SI)[0-9]{8}$/i';
                 break;
+            case 'HR' : 
+                $regex = '/^HR(\d{11})$/';
+                break; 
             case 'IE' :
-                $regex = '/^(IE){0,1}[0-9][0-9A-Z\+\*][0-9]{5}[A-Z]$/i';
+                $regex = '/^IE[0-9][0-9A-Z\+\*][0-9]{5}[A-Z]$/i';
                 break;
             case 'IT' :
             case 'LV' :
-                $regex = '/^(IT|LV){0,1}[0-9]{11}$/i';
+                $regex = '/^(IT|LV)[0-9]{11}$/i';
                 break;
             case 'LT' :
-                $regex = '/^(LT){0,1}([0-9]{9}|[0-9]{12})$/i';
+                $regex = '/^LT([0-9]{9}|[0-9]{12})$/i';
                 break;
             case 'NL' :
-                $regex = '/^(NL){0,1}[0-9]{9}B[0-9]{2}$/i';
+                $regex = '/^NL[0-9]{9}B[0-9]{2}$/i';
                 break;
             case 'PL' :
             case 'SK' :
-                $regex = '/^(PL|SK){0,1}[0-9]{10}$/i';
+                $regex = '/^(PL|SK)[0-9]{10}$/i';
                 break;
             case 'RO' :
-                $regex = '/^(RO){0,1}[0-9]{2,10}$/i';
+                $regex = '/^RO[0-9]{2,10}$/i';
                 break;
             case 'SE' :
-                $regex = '/^(SE){0,1}[0-9]{12}$/i';
+                $regex = '/^SE[0-9]{12}$/i';
                 break;
             case 'ES' :
-                $regex = '/^(ES){0,1}([0-9A-Z][0-9]{7}[A-Z])|([A-Z][0-9]{7}[0-9A-Z])$/i';
+                $regex = '/^ES([0-9A-Z][0-9]{7}[A-Z])|([A-Z][0-9]{7}[0-9A-Z])$/i';
                 break;
             case 'GB' :
-                $regex = '/^(GB){0,1}([1-9][0-9]{2}[\ ]{0,1}[0-9]{4}[\ ]{0,1}[0-9]{2})|([1-9][0-9]{2}[\ ]{0,1}[0-9]{4}[\ ]{0,1}[0-9]{2}[\ ]{0,1}[0-9]{3})|((GD|HA)[0-9]{3})$/i';
+                $regex = '/^GB([1-9][0-9]{2}[\ ]{0,1}[0-9]{4}[\ ]{0,1}[0-9]{2})|([1-9][0-9]{2}[\ ]{0,1}[0-9]{4}[\ ]{0,1}[0-9]{2}[\ ]{0,1}[0-9]{3})|((GD|HA)[0-9]{3})$/i';
                 break;
-            default :
-            return -1;
-            break;
+            default : 
+                return FALSE;
         }
-        
+        //bp(preg_match($regex, $vat), $regex, $vat);
         return preg_match($regex, $vat);
     }
     
@@ -436,20 +456,22 @@ class drdata_Vats extends core_Manager
     
     
     /**
-     * Функция връщаща ЕИК то по зададен Ват номер, Ако е подаден ЕИК се връща
+     * Функция връщаща ЕИК то по зададен VAT номер, Ако е подаден ЕИК се връща
      * директно
      * @param string $vatNo - Ват номер
      * @return string - ЕИК номера извлечен от Ват-а, или ако е ЕИК
      * директно го връща
      */
-    public static function getUicByVatNo($vatNo)
+    public static function getUicByVatNo($vat)
     {
     	$self = cls::get(get_called_class());
-    	$vatNo = $self->canonize($vatNo);
-    	if($self->check($vatNo) == 'valid'){
-    		return substr($vatNo, '2');
-    	}
     	
-    	return $vatNo;
+        $vat = $self->canonize($vat);
+    	
+        if(substr($vat, 0, 2) == 'BG') {
+            $uic = substr($vat, 2);
+        }
+    	
+    	return $uic;
     }
 }
