@@ -52,7 +52,6 @@ class bgerp_Setup {
     var $info = "Основно меню и портал на bgERP";
     
         
-    
     /**
      * Описание на конфигурационните константи
      */
@@ -178,8 +177,10 @@ class bgerp_Setup {
                     $packsInst[$p] = cls::get($p . '_Setup');
                     if (method_exists($packsInst[$p], 'loadSetupData')) {
                         try {
-                            $html .= "<h3>Инициализиране на $p</h3>";
+                            $html .= "<h2>Инициализиране на $p</h2>";
+                            $html .= "<ul>";
                             $html .= $packsInst[$p]->loadSetupData();
+                            $html .= "</ul>";
                             $isLoad[$p] = TRUE;
                             // Махаме грешките, които са възникнали, но все пак са се поправили
                             // в не дебъг режим
@@ -232,6 +233,14 @@ class bgerp_Setup {
 
 
         return $html;
+    }
+
+
+    /**
+     * Временно, преди този клас да стане наследник на core_ProtoSetup
+     */
+    function loadSetupData()
+    {
     }
     
     
