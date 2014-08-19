@@ -24,7 +24,7 @@ defIfNot('ACC_MONEY_TOLERANCE', '0.01');
 /**
  * Колко реда да се показват в детайлния баланс
  */
-defIfNot('ACC_DETAILED_BALANCE_ROWS', 1000);
+defIfNot('ACC_DETAILED_BALANCE_ROWS', 500);
 
 
 /**
