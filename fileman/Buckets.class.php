@@ -188,7 +188,7 @@ class fileman_Buckets extends core_Manager {
         $rec->id = static::fetchField(array("#name = '[#1#]'", $name), 'id');
 
         if($rec->id) {
-            $res = "<li> Обновяване на отпреди съществуващата кофа \"{$name}\"</li>";
+            $res = "<li> Съществуваща кофа за файлове \"{$name}\"</li>";
         } else {
             $res = "<li style='color:green;'> Създаване на кофа за файлове \"{$name}\"</li>";
         }
