@@ -1,5 +1,5 @@
 <div class='singleView'>
-	<div id='forum-board'>
+	<div class='forum-board'>
 		[#NAVIGATION#]
 		[#SingleToolbar#]
 		<br>
@@ -12,7 +12,7 @@
 					<td>[#category#]</td>
 				</tr>
 				<tr>
-					<td class="title-style" width="150px">|Теми|*</td>
+					<td class="title-style" style='width:150px'>|Теми|*</td>
 					<td> [#themesCnt#]</td>
 				</tr>
 				<tr>
@@ -20,7 +20,7 @@
 					<td>[#commentsCnt#]</td>
 				</tr>
 				<tr>
-					<td width="150px"><span class="title-style">|Тип|*:</span></td>
+					<td style='width:150px'><span class="title-style">|Тип|*:</span></td>
 					<td> [#boardType#]</td>
 				</tr>
 				<!--ET_BEGIN shared-->
@@ -36,7 +36,7 @@
 					<th colspan="2">|Последно|*</th>
 				</tr>
 				<tr>
-					<td width="150px"><span class="title-style">|Кога|*</span></td>
+					<td style='width:150px'><span class="title-style">|Кога|*</span></td>
 					<td> [#lastComment#]</td>
 				</tr>
 				<tr>

@@ -1,24 +1,23 @@
-<div id='forum-index'>
-<div id='navigation'>
-[#NAVIGATION#]
-</div>
-<div id='forum-board'>[#GREETING#]</div>
-[#SEARCH_FORM#]
-<!--ET_BEGIN category-->
-<ul class='category-ul'  width='100%'>
-<li class='thread-header'>
-	<table border='0' width='100%' cellpadding="0" cellspacing="0" class="header-table">
-			<tr>
-				<td>
-					[#cat#]
-				</td>
-			</tr>
-	</table>
-
-		[#BOARDS#]
-</ul>
-<!--ET_END category-->
-<div id='forum-toolbar' class='toolbar' style='margin:15px 0'>
-<div>[#TOOLBAR#]</div>
-</div>
+<div class='forum-index'>
+    <div class='navigation'>
+        [#NAVIGATION#]
+    </div>
+    <div class='forum-board'>[#GREETING#]</div>
+    [#SEARCH_FORM#]
+    <!--ET_BEGIN category-->
+    <ul class='category-ul'  style='width:100%'>
+        <li class='thread-header'>
+            <table class="header-table no-border" style='width:100%'>
+                <tr>
+                    <td>
+                        [#cat#]
+                    </td>
+                </tr>
+            </table>
+            [#BOARDS#]
+    </ul>
+    <!--ET_END category-->
+    <div class='forum-toolbar toolbar' style='margin:15px 0'>
+        <div>[#TOOLBAR#]</div>
+    </div>
 </div>

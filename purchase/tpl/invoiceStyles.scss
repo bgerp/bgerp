@@ -31,7 +31,7 @@
 	text-align:right;
 }
 
-#invoice-header{
+.invoice-header{
 	width:100%;
 	overflow:hidden;
 	padding-top:20px;
@@ -39,19 +39,19 @@
 	min-height:200px;
 }
 
-#titleHolder{
+.titleHolder{
 	float:left;
 	display:inline-block;
 	width:53%;
 }
 
-#contragent-data{
+.contragent-data{
 	float:right;
 	display:inline-block;
 	width:47%;
 }
 
-#invoiceTitle2{
+.invoiceTitle2{
 	font-size:22px;
 	font-weight:bold;
 }
@@ -70,11 +70,11 @@
 	font-weight:bold;
 }
 
-#invType{
+.invType{
 	text-transform:uppercase;
 }
 
-#contragent-label{
+.contragent-label{
 	font-weight:bold;
 }
 

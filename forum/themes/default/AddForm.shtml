@@ -1,35 +1,30 @@
 <!--ET_BEGIN FORM-->
-	<form style="width:70%" [#FORM_ATTR#]> 
-	<!--ET_BEGIN FORM_ERROR-->
-	<div class="formError">
-		[#FORM_ERROR#]
-	</div>
-	<!--ET_END FORM_ERROR-->
-	
-	<!--ET_BEGIN FORM_FIELDS-->
-	[#FORM_FIELDS#]
-	<!--ET_END FORM_FIELDS-->
-	
-	<!--ET_BEGIN FORM_TOOLBAR-->
-	<div style='margin-top:10px;'>
-	[#FORM_TOOLBAR#]
-	</div>
-	<!--ET_END FORM_TOOLBAR-->
-	
-	<!--ET_BEGIN FORM_HIDDEN-->
-	[#FORM_HIDDEN#]
-	<!--ET_END FORM_HIDDEN-->
-	</form>
+<form style="width:70%" [#FORM_ATTR#]> 
+<!--ET_BEGIN FORM_ERROR-->
+<div class="formError">
+    [#FORM_ERROR#]
+</div>
+<!--ET_END FORM_ERROR-->
+<!--ET_BEGIN FORM_FIELDS-->
+[#FORM_FIELDS#]
+<!--ET_END FORM_FIELDS-->
+<!--ET_BEGIN FORM_TOOLBAR-->
+<div style='margin-top:10px;'>
+    [#FORM_TOOLBAR#]
+</div>
+<!--ET_END FORM_TOOLBAR-->
+<!--ET_BEGIN FORM_HIDDEN-->
+[#FORM_HIDDEN#]
+<!--ET_END FORM_HIDDEN-->
+</form>
 <!--ET_END FORM-->
 <!--ET_BEGIN FORM_FIELDS-->
-	<div class='form-field'>[#title#]</div>
-	<div class='form-field'>[#body#]</div>
-	
-	<!--ET_BEGIN type-->
-	<div class='form-field'><span class='form-labels'>|Тип|*</span>&nbsp;&nbsp;[#type#]</div>
-	<!--ET_END type-->
-	
-	<!--ET_BEGIN status-->
-	<div class='form-field'><span class='form-labels'>|Състояние|*</span>&nbsp;&nbsp;[#status#]</div>
-	<!--ET_BEGIN status-->
+<div class='form-field'>[#title#]</div>
+<div class='form-field'>[#body#]</div>
+<!--ET_BEGIN type-->
+<div class='form-field'><span class='form-labels'>|Тип|*</span>&nbsp;&nbsp;[#type#]</div>
+<!--ET_END type-->
+<!--ET_BEGIN status-->
+<div class='form-field'><span class='form-labels'>|Състояние|*</span>&nbsp;&nbsp;[#status#]</div>
+<!--ET_BEGIN status-->
 <!--ET_END FORM_FIELDS-->

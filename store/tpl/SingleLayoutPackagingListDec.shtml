@@ -58,84 +58,56 @@
             		[#store_ShipmentOrderDetails#]
            	</div>
            	<div class="lines"></div>		
-            <table class="innerTable footer-notes" border="1" cellpadding="5" cellspacing="0" width="100%">
+            <table class="innerTable footer-notes paddingCells" style='width:100%'>
                 <tbody><tr>
-                    <td class="topCell first" valign="top" width=50%>
+                    <td class="topCell first vtop" style='width:50%'>
                     
-                    <table class='shipment-table' width=100% >
-                    <!--ET_BEGIN deliveryTime-->
-                        <tr>
-                            <td width='1%' class='nowrap quiet' align=right>Delivery time:</td>
-                            <td>[#deliveryTime#]</td>
-                        </tr>
-                    <!--ET_END deliveryTime-->
-                    <!--ET_BEGIN storeId-->
-                        <tr>
-                            <td class='nowrap quiet' align=right>From store:</td>
-                            <td>[#storeId#]</td>
-                        </tr>
-                    <!--ET_END storeId-->
-                    <!--ET_BEGIN locationId-->
-                        <tr>
-                            <td class='nowrap quiet' align=right>Delivery place:</td>
-                            <td>[#locationId#]</td>
-                        </tr>
-                    <!--ET_END locationId-->
-                    <!--ET_BEGIN lineId-->
-                        <tr>
-                            <td class='nowrap quiet' align=right>Transport: </td>
-                            <td>[#lineId#]</td>
-                        </tr>
-                    <!--ET_END lineId-->
-                    
+                    <table class='shipment-table' style='width: 100%'>
                     <!--ET_BEGIN DELIVERY_ADRESS-->
 		                    [#DELIVERY_ADRESS#]
-		                    <tr>
-		                    	<td colspan='2'>&nbsp;</td>
-		                    </tr>
 		                    <tr>
 		                    	<td colspan='2' style='border-bottom:1px solid #999;' class='quiet nowrap'>Delivery address</td>
 		                    </tr>
 		                    
 		                    <!--ET_BEGIN company-->
 		                    <tr>
-		                    	<td class='quiet' align=right>Company:</td>
+		                    	<td class='quiet aright'>Company:</td>
 		                    	<td>[#company#]</td>
 		                    </tr>
 		                    <!--ET_END company-->
 		                    <!--ET_BEGIN person-->
 		                    <tr>
-		                    	<td class='quiet' align=right>Person:</td>
+		                    	<td class='quiet aright'>Person:</td>
 		                    	<td>[#person#]</td>
 		                    </tr>
 		                    <!--ET_END person-->
 		                    <!--ET_BEGIN country-->
 		                    <tr>
-		                    	<td class='quiet' align=right>Country*:</td>
+		                    	<td class='quiet aright'>Country:</td>
 		                    	<td>[#country#]</td>
 		                    </tr>
 		                    <!--ET_END country-->
 		                    <!--ET_BEGIN tel-->
-		                    <tr class='quiet'>
-		                    	<td align='right'>Phones:</td>
+		                    <tr>
+		                    	<td class='quiet aright'>Phones:</td>
 		                    	<td>[#tel#]</td>
 		                    </tr>
 		                    <!--ET_END tel-->
 		                    <!--ET_BEGIN pCode-->
 		                    <tr>
-		                    	<td class='quiet' align=right>Post code:</td>
+		                    	<td class='quiet aright'>Post code:</td>
 		                    	<td>[#pCode#]</td>
 		                    </tr>
 		                    <!--ET_END pCode-->
 		                    <!--ET_BEGIN place-->
 		                    <tr>
-		                    	<td class='quiet' align=right>City:</td>
+		                    	<td class='quiet aright'>City:</td>
 		                    	<td>[#place#]</td>
 		                    </tr>
 		                    <!--ET_END place-->
 		                    <!--ET_BEGIN address-->
 		                    <tr>
-		                    	<td class='quiet' align=right>Address:</td>
+		                    	<td class='quiet aright'>Address:</td>
 		                    	<td>[#address#]</td>
 		                    </tr>
 		                    <!--ET_END address-->
@@ -152,6 +124,35 @@
                     </table>
                     </td>
                     <td>
+                      <table class='shipment-table' style='width: 100%'>
+                    <!--ET_BEGIN deliveryTime-->
+                        <tr>
+                            <td style='width:1%' class='nowrap quiet aright'>Delivery time:</td>
+                            <td>[#deliveryTime#]</td>
+                        </tr>
+                    <!--ET_END deliveryTime-->
+                    <!--ET_BEGIN storeId-->
+                        <tr>
+                            <td class='nowrap quiet aright'>From store:</td>
+                            <td>[#storeId#]</td>
+                        </tr>
+                    <!--ET_END storeId-->
+                    <!--ET_BEGIN locationId-->
+                        <tr>
+                            <td class='nowrap quiet aright'>Delivery place:</td>
+                            <td>[#locationId#]</td>
+                        </tr>
+                    <!--ET_END locationId-->
+                    <!--ET_BEGIN lineId-->
+                        <tr>
+                            <td class='nowrap quiet aright'>Transport: </td>
+                            <td>[#lineId#]</td>
+                        </tr>
+                    <!--ET_END lineId-->
+                       <tr>
+                            <td colspan="2"><hr></td>
+                       </tr>
+                        </table>
                         <div>Total weight:&nbsp;[#weight#] &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;[#volume#] &nbsp;&nbsp;&nbsp;&nbsp;Collets count:&nbsp;[#colletsCount#]</div>
 	                
 	                    <hr>
@@ -175,24 +176,44 @@
                        
                 </tbody>
             </table>
-            	<div style='margin-top:7px'>
-            <a href="javascript:toggleDisplay([#id#])"  style="font-weight:bold; background-image:url([#iconPlus#]);" 
-                   class="linkWithIcon">Delivery confirmation</a><div class='clearfix21 richtextHide' id='[#id#]'>
-			We, [#contragentName#]<br/>
-			address: [#contragentAddress#]<br/>
-			VAT ID: [#vatNo#]<br/>
-			<br/>
-			confirm that <br/>
-			the goods shown in invoice No.......<br/>
-			were received on the following address:<br/>
-			[#deliveryAddress#]
-			<br/>
-			Date:<br/>
-			<br/>
-			comapny stamp and signature:<br/>
-                   <br/>
-                   </div>
             </div>
+            </div>
+            <div style='margin-top:20px'>
+	            <a href="javascript:toggleDisplay([#id#])"  style="font-weight:bold; background-image:url([#iconPlus#]);" 
+	                   class="linkWithIcon">Delivery confirmation</a>
+	            <div class='clearfix21 richtextHide' id='[#id#]'>
+					<div>We, [#contragentName#]</div>
+					<div>address: <br>[#contragentAddress#]</div>
+					<div>VAT ID: [#vatNo#]</div>
+					<br>
+					<div>confirm that the goods shown in invoice № <b>.......</b> were received on the following address:</div>
+					<div>[#deliveryAddress#]</div>
+					<br>
+					
+					<table class="fleft signature-table" style='width: 30%'>
+		                    <tr>
+		                        <td width="1%">Date:  </td><td></td>
+		                    </tr>
+		                    <tr>
+		                        <td></td>
+		                        <td class="nowrap"><span class="sign_names"></span></td>
+		                    </tr>
+		                </table>
+		                <table class="fright signature-table" style='width: 45%'>
+		                    <tr>
+		                        <td>company stamp and signature:  </td><td></td>
+		                    </tr>
+		                    <tr>
+		                        <td></td>
+		                        <td class="nowrap"><span class="sign_names"></span></td>
+		                    </tr>
+		                </table>
+		            <div class='clearfix21'></div>
+			
+	             </div>
+            </div>
+            
+            
  				<!--ET_BEGIN DETAILS-->
 				<div class='details'>
 					[#DETAILS#]

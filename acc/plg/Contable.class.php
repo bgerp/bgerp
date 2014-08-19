@@ -364,13 +364,9 @@ class acc_plg_Contable extends core_Plugin
      * @param int|object $id първичен ключ или запис на $mvc
      */
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
-    { 
+    {
         $rec = $mvc->fetchRec($id);
-       
-        // Дали имаме права за контиране
-        if($mvc->haveRightFor('conto', $rec)){
-        	self::conto($mvc, $id);
-        }
+        self::conto($mvc, $id);
     }
     
     

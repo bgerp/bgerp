@@ -238,4 +238,27 @@ class acc_Features extends core_Manager
     	
     	return $options;
     }
+    
+    
+    /**
+     * Връща масив с перата и свойствата, които имат
+     * 
+     * @param array $itemsArr - списък с пера
+     * @return array $res - всички с-ва които имат перата
+     */
+    public static function getFeaturesByItems($itemsArr = array())
+    {
+    	$res = array();
+    	
+    	$query = self::getQuery();
+    	if(count($itemsArr)){
+    		$query->in('itemId', $itemsArr);
+    	}
+    	
+    	while($rec = $query->fetch()){
+    		$res[$rec->itemId][$rec->feature] = $rec->value;
+    	}
+    	
+    	return $res;
+    }
 }

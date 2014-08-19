@@ -1,35 +1,27 @@
-<li>
-	<table width='100%' border='0' cellpadding='3px'>
-	<tr>
-		<td  class='forum-table'>
-		   <div class='forum-icon case'>[#ICON#]</div>
-		   <div class='forum-row'>
-			    <b>[#title#]</b>
-				
-				<span class='forum-counts forum-count-info'>[#themesCnt#], [#commentsCnt#]</span>
-			</div>
-			<div class='last-info-block'>
-			<!--ET_BEGIN lastCommentedTheme-->     
-            <span class='last-theme'>в:&nbsp;[#lastCommentedTheme#]</span>
-	        <!--ET_END lastCommentedTheme-->
-	        
-	        <!--ET_BEGIN lastNick-->
-	            <span class='last-user'>от: <b>[#lastNick#]</b></span>
-	        <!--ET_END lastNick-->
-	        
-	        <!--ET_BEGIN lastComment-->
-	            <span class='last-comment'>[#lastComment#]</span>
-	        <!--ET_END lastComment-->
-	        
-	        <!--ET_BEGIN noComment-->
-	            <span class='no-comment'>[#noComment#]</span>
-	        <!--ET_END noComment-->
-            </div>
-		</td>
-	
-	</tr>
-	</table>
+li>
+    <table class='no-border' style='width:100%'>
+        <tr>
+            <td  class='forum-table'>
+                <div class='forum-icon case'>[#ICON#]</div>
+                <div class='forum-row'>
+                    <b>[#title#]</b>
+                    <span class='forum-counts forum-count-info'>[#themesCnt#], [#commentsCnt#]</span>
+                </div>
+                <div class='last-info-block'>
+                    <!--ET_BEGIN lastCommentedTheme-->     
+                    <span class='last-theme'>в:&nbsp;[#lastCommentedTheme#]</span>
+                    <!--ET_END lastCommentedTheme-->
+                    <!--ET_BEGIN lastNick-->
+                    <span class='last-user'>от: <b>[#lastNick#]</b></span>
+                    <!--ET_END lastNick-->
+                    <!--ET_BEGIN lastComment-->
+                    <span class='last-comment'>[#lastComment#]</span>
+                    <!--ET_END lastComment-->
+                    <!--ET_BEGIN noComment-->
+                    <span class='no-comment'>[#noComment#]</span>
+                    <!--ET_END noComment-->
+                </div>
+            </td>
+        </tr>
+    </table>
 </li>
-
-
-

@@ -1,87 +1,63 @@
 [#SingleToolbar#]
-                 
 <div class='document'>
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-
-		<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#]'>|Свидетелство за лабораторен анализ|* [#id#]/[#createdOn#] ([#state#])</div>
-		</div>
-
- 
-                      
-		<!-- BEGIN Блок ляво -->
-		<div class='block_left'>
-			 <table cellspacing='1' class='top-table'>
-		           <tr>
-                                <td align='right'>|Относно|*:</td>
-                                <td><b>[#title#]</b></td>
-                            </tr>
-
-                             <tr>
-                                <td align='right'>|Вид|*:</td>
-                                <td>[#type#]</td>
-                            </tr>
-                             <tr>
-                                <td align='right'>|Произход|*:</td>
-                                <td>[#origin#]</td>
-                            </tr>
-                             <tr>
-                                <td align='right'>|Възложител|*:</td>
-                                <td>[#assignor#]</td>
-                            </tr>
-                             <tr>
-                                <td align='right'>|Изпълнител|*:</td>
-                                <td>[#madeBy#]</td>
-                            </tr>
-                          </table>
-
-
-                      
-		</div>    
-		<!-- END Блок ляво -->   
-                           
-		<!-- BEGIN Блок дясно -->
-		<div class='block_right'>
-                         <!--ET_BEGIN note-->
-                         <div class='clear_both'><b>|Описание|*</b></div>
-                         <div class='clear_l note'>
-                             [#note#]
-                         </div>   
-                         <!--ET_END note-->                         
-                         
-		</div>
-		<!-- END Блок дясно -->
-                     
-		<!-- BEGIN Блок долу --> 
-		<div class='scrolling-holder'>
-			<div style='display:inline-block;margin-top:10px;'>
-			<div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'>Измервания</div>
-			
-			<!--ET_BEGIN DETAILS-->
-				<div class='details'>
-					[#DETAILS#]
-				</div>
-			<!--ET_END DETAILS-->
-			
-			</div>
-		</div>
-		<!-- END Блок долу -->
-                     
-		<div style='clear: both;'></div>
-                     
-		<!-- BEGIN footer -->        
-		<div class='clear_l f_left block_subtitle mt_50px'>
-                        <div class='f_left w_100'>
-			   <br/>
-                            <div class='w_100'>
-                               <div class='f_right'>|Изготвил|*:<span style='margin-left:5px;'>_____________</span></div>
-                            </div>
-                            <div class='clear_both f_right mt_10px'>
-                               <div><span style='margin-left:57pt;'>/<span style='margin-left:2px; margin-right:2px;'>[#createdBy#]</span>/</span></div>
-                            </div>
-                        </div>
-		</div>
-		<!-- END footer -->
-	</div>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#]'>|Свидетелство за лабораторен анализ|* [#id#]/[#createdOn#] ([#state#])</div>
+    </div>
+    <div class='block_left'>
+        <table class='top-table'>
+            <tr>
+                <td class='aright'>|Относно|*:</td>
+                <td><b>[#title#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright'>|Вид|*:</td>
+                <td>[#type#]</td>
+            </tr>
+            <tr>
+                <td class='aright'>|Произход|*:</td>
+                <td>[#origin#]</td>
+            </tr>
+            <tr>
+                <td class='aright'>|Възложител|*:</td>
+                <td>[#assignor#]</td>
+            </tr>
+            <tr>
+                <td class='aright'>|Изпълнител|*:</td>
+                <td>[#madeBy#]</td>
+            </tr>
+        </table>
+    </div>
+    <div class='block_right'>
+        <!--ET_BEGIN note-->
+        <div class='clear_both'><b>|Описание|*</b></div>
+        <div class='clear_l note'>
+            [#note#]
+        </div>
+        <!--ET_END note-->                         
+    </div>
+    <div class='scrolling-holder'>
+        <div style='display:inline-block;margin-top:10px;'>
+            <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'>Измервания</div>
+            <!--ET_BEGIN DETAILS-->
+            <div class='details'>
+                [#DETAILS#]
+            </div>
+            <!--ET_END DETAILS-->
+        </div>
+    </div>
+    <div style='clear: both;'></div>
+    <div class='clear_l f_left block_subtitle mt_50px'>
+        <div class='f_left w_100'>
+            <br>
+            <div class='w_100'>
+                <div class='f_right'>|Изготвил|*:<span style='margin-left:5px;'>_____________</span></div>
+            </div>
+            <div class='clear_both f_right mt_10px'>
+                <div><span style='margin-left:57pt;'>/<span style='margin-left:2px; margin-right:2px;'>[#createdBy#]</span>/</span></div>
+            </div>
+        </div>
+    </div>
+</div>

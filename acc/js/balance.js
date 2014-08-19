@@ -15,6 +15,7 @@ function chosenrefresh() {
 		lastChar = name.substr(name.length - 1);
 		lastChar = lastChar.toString(); 
 		var name = "grouping" + lastChar;
+		$("form input[name='"+name+"']").val('');
 		$("form select[name='"+name+"']").val('');
 		$('select[name="'+name+'"]').trigger('liszt:updated');
 	});

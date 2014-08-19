@@ -447,15 +447,6 @@ class sales_Quotations extends core_Master
     			
     			// Ако документа се създава, то не може да се активира
     			$res = 'no_one';
-    		} else {
-    			
-    			// Ако няма задължителни продукти/услуги не може да се активира
-    			$detailQuery = $mvc->sales_QuotationsDetails->getQuery();
-    			$detailQuery->where("#quotationId = {$rec->id}");
-    			$detailQuery->where("#optional = 'no'");
-    			if(!$detailQuery->count()){
-    				$res = 'no_one';
-    			}
     		}
     	}
     	

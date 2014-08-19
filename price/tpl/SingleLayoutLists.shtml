@@ -1,90 +1,81 @@
 <div class="singleView">
-[#SingleToolbar#]
-
-	<h2> <b style="color:green;">[#SingleTitle#]</b></h2>
-	<table class="styled-table" style='min-width:300px'>
-		<tr>
-			<td class="title-style">№</td>
-			<td>[#id#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">|Наименование|*</td>
-			<td>[#title#]</td>
-		</tr>
-		<!--ET_BEGIN parent-->
-		<tr>
-			<td class="title-style">|Наследява|*</td>
-			<td>[#parent#]</td>
-		</tr>
-		<!--ET_END parent-->
-		
-		<!--ET_BEGIN public-->
-		<tr>
-			<td class="title-style">|Публичен|*</td>
-			<td>[#public#]</td>
-		</tr>
-		<!--ET_END public-->
-		
-		<!--ET_BEGIN currency-->
-		<tr>
-			<td class="title-style">|Валута|*</td>
-			<td>[#currency#]</td>
-		</tr>
-		<!--ET_END currency-->
-		
-		<!--ET_BEGIN vat-->
-		<tr>
-			<td class="title-style">|ДДС|*</td>
-			<td>[#vat#]</td>
-		</tr>
-		<!--ET_END vat-->
-	 	<!--ET_BEGIN employersCnt-->
-	</table>
-	
-	<!--ET_BEGIN clientInfo-->
-		[#clientInfo#]
-		<table class="styled-table" style='min-width:300px'>
-			<tr>
-				<th colspan="2">|Прикрепяне|*</th>
-			</tr>
-			<tr>
-				<td class="title-style">|Клиент|*</td>
-				<td>[#customer#]</td>
-			</tr>
-			<tr>
-				<td class="title-style">|В сила от|*</td>
-				<td>[#validFrom#]</td>
-			</tr>
-			<!--ET_END employersCnt-->
-		</table>
-	<!--ET_END clientInfo-->
-	
-	<!--ET_BEGIN roundingPrecisionTable-->
-		[#roundingPrecisionTable#]
-		<table class="styled-table" style='min-width:300px'>
-			<tr>
-				<th colspan="2">|Закръгляне|*</th>
-			</tr>
-			<!--ET_BEGIN roundingPrecision-->
-			
-			<tr>
-				<td class="title-style">|Точност|*</td>
-				<td>[#roundingPrecision#]</td>
-			</tr>
-			<!--ET_END roundingPrecision-->
-			
-			<!--ET_BEGIN roundingOffset-->
-			<tr>
-				<td class="title-style">|Отместване|*</td>
-				<td>[#roundingOffset#]</td>
-			</tr>
-			<!--ET_END roundingOffset-->
-		</table>
-	<!--ET_END roundingPrecisionTable-->
-	
-	<div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
-	<br/>
-	<div class='scrolling-holder'>
-	[#DETAILS#]
-	</div>
+    [#SingleToolbar#]
+    <h2> <b style="color:green;">[#SingleTitle#]</b></h2>
+    <table class="styled-table" style='min-width:300px'>
+        <tr>
+            <td class="title-style">№</td>
+            <td>[#id#]</td>
+        </tr>
+        <tr>
+            <td class="title-style">|Наименование|*</td>
+            <td>[#title#]</td>
+        </tr>
+        <!--ET_BEGIN parent-->
+        <tr>
+            <td class="title-style">|Наследява|*</td>
+            <td>[#parent#]</td>
+        </tr>
+        <!--ET_END parent-->
+        <!--ET_BEGIN public-->
+        <tr>
+            <td class="title-style">|Публичен|*</td>
+            <td>[#public#]</td>
+        </tr>
+        <!--ET_END public-->
+        <!--ET_BEGIN currency-->
+        <tr>
+            <td class="title-style">|Валута|*</td>
+            <td>[#currency#]</td>
+        </tr>
+        <!--ET_END currency-->
+        <!--ET_BEGIN vat-->
+        <tr>
+            <td class="title-style">|ДДС|*</td>
+            <td>[#vat#]</td>
+        </tr>
+        <!--ET_END vat-->
+        <!--ET_BEGIN employersCnt-->
+    </table>
+    <!--ET_BEGIN clientInfo-->
+    [#clientInfo#]
+    <table class="styled-table" style='min-width:300px'>
+        <tr>
+            <th colspan="2">|Прикрепяне|*</th>
+        </tr>
+        <tr>
+            <td class="title-style">|Клиент|*</td>
+            <td>[#customer#]</td>
+        </tr>
+        <tr>
+            <td class="title-style">|В сила от|*</td>
+            <td>[#validFrom#]</td>
+        </tr>
+        <!--ET_END employersCnt-->
+    </table>
+    <!--ET_END clientInfo-->
+    <!--ET_BEGIN roundingPrecisionTable-->
+    [#roundingPrecisionTable#]
+    <table class="styled-table" style='min-width:300px'>
+        <tr>
+            <th colspan="2">|Закръгляне|*</th>
+        </tr>
+        <!--ET_BEGIN roundingPrecision-->
+        <tr>
+            <td class="title-style">|Точност|*</td>
+            <td>[#roundingPrecision#]</td>
+        </tr>
+        <!--ET_END roundingPrecision-->
+        <!--ET_BEGIN roundingOffset-->
+        <tr>
+            <td class="title-style">|Отместване|*</td>
+            <td>[#roundingOffset#]</td>
+        </tr>
+        <!--ET_END roundingOffset-->
+    </table>
+    <!--ET_END roundingPrecisionTable-->
+    <div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+    <br>
+    <div class='scrolling-holder'>
+        [#DETAILS#]
+    </div>
 </div>

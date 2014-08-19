@@ -640,10 +640,6 @@ class sales_Sales extends core_Master
 			
 			if(isset($actions['pay'])){
 				$row->isPaid .= tr('ПЛАТЕНО');
-				
-				if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && $mvc->haveRightFor('printFiscReceipt', $rec)){
-					$row->isPaid .= " " . ht::createBtn('КБ', array($mvc, 'printReceipt', $rec->id), NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка'));
-				}
 			}
 			
 			if($rec->makeInvoice == 'no' && isset($rec->amountToInvoice)){
@@ -796,6 +792,10 @@ class sales_Sales extends core_Master
 		    
     		if(bank_IncomeDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 		    	$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
+		    }
+		    
+		    if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && $mvc->haveRightFor('printFiscReceipt', $rec)){
+		    	$data->toolbar->addBtn('КБ', array($mvc, 'printReceipt', $rec->id), NULL, 'warning=Издаване на касова бележка ?', array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка'));
 		    }
     	}
     	

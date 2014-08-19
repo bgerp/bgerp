@@ -1,43 +1,40 @@
-<table width="100%" cellpadding='0' cellspacing='0' class='header-table-shadow'>
-	<tr>
-		<th style='line-height:22px' align=center>|Теми|*</th>
-	</tr>
+<table class='header-table-shadow no-border' style='width:100%'>
+    <tr>
+        <th class='centered' style='line-height:22px'>|Теми|*</th>
+    </tr>
 </table>
-<table width='100%' id='forum-themes' border='0' cellspacing='0'>
-<!--ET_BEGIN ROW-->	
-	<tr class='theme-row'>
-		<td class='theme-row-title' >
-			<div class='forum-icon'>[#ICON#]</div>
-			<div class='forum-row'>
-			<!--ET_BEGIN type-->	
-				[#type#]&nbsp;
-			<!--ET_END type-->
-				<span class='theme-title'>[#title#]</span>
-				[#THEME_PAGER#]
-				<!--ET_BEGIN LOCKED-->
-				<span class='locked'>[#locked#]</span>
-				<!--ET_END LOCKED-->
-				<span class='authored'>|започната от|*:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
-			</div>
-		<span class='forum-counts forum-count-info' style='margin:0'>[#postingsCnt#], [#views#]</span>
-		<div class='last-info-block'>	
-		
-			<!--ET_BEGIN nick-->
-			<span class='last-user'>от: [#nick#]</span>
-			<!--ET_END nick-->
-			
-			<!--ET_BEGIN last-->
-			<span class='last-comment'>[#last#]</span>
-			<!--ET_END last-->
-			
-			<!--ET_BEGIN noComment-->
-			<span class='no-comment'>[#noComment#]</span>
-			<!--ET_END noComment-->
-		</div>
-		</td>
-	</tr>
-<!--ET_END ROW-->
+<table class='no-border' style='width:100%' id='forum-themes'>
+    <!--ET_BEGIN ROW-->	
+    <tr class='theme-row'>
+        <td class='theme-row-title' >
+            <div class='forum-icon'>[#ICON#]</div>
+            <div class='forum-row'>
+                <!--ET_BEGIN type-->	
+                [#type#]&nbsp;
+                <!--ET_END type-->
+                <span class='theme-title'>[#title#]</span>
+                [#THEME_PAGER#]
+                <!--ET_BEGIN LOCKED-->
+                <span class='locked'>[#locked#]</span>
+                <!--ET_END LOCKED-->
+                <span class='authored'>|започната от|*:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
+            </div>
+            <span class='forum-counts forum-count-info' style='margin:0'>[#postingsCnt#], [#views#]</span>
+            <div class='last-info-block'>
+                <!--ET_BEGIN nick-->
+                <span class='last-user'>от: [#nick#]</span>
+                <!--ET_END nick-->
+                <!--ET_BEGIN last-->
+                <span class='last-comment'>[#last#]</span>
+                <!--ET_END last-->
+                <!--ET_BEGIN noComment-->
+                <span class='no-comment'>[#noComment#]</span>
+                <!--ET_END noComment-->
+            </div>
+        </td>
+    </tr>
+    <!--ET_END ROW-->
 </table>
 <!-- ET_BEGIN PAGER -->
-<div id='themes-pager'>[#PAGER#]</div>
+<div class='themes-pager'>[#PAGER#]</div>
 <!-- ET_END PAGER -->

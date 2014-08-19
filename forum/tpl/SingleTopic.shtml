@@ -1,23 +1,23 @@
-<div id='forum-topic'>
-	<div id='navigation'>
+<div class='forum-topic'>
+	<div class='navigation'>
 	[#NAVIGATION#]
 	</div>
-	<table border='1px' id='topic-layout' cellspacing='0px'>
+	<table border='1px' class='topic-layout' cellspacing='0px'>
 	<tr>
 		<th>|Създаване|*</th>
 		<th>|Тема|*</th>
 	</tr>
 	<tr>
-		<td id='created-td' width='10%'>
+		<td class='created-td' style='width:10%'>
 			<span style='display:block'>[#createdBy#]</span>
 			<span id='topic-createdOn'>[#createdOn#]</span>
 			<div style='text-align:center'>[#avatar#]</div>
 		</td>
-		<td id='topic'>
+		<td class='topic'>
 			<div class='clearfix21 toolbar'><div>[#TOOLS#]</div></div>
 			<div id='header-td'><div id='topic-header'>|Тема|* :&nbsp;&nbsp;<b>[#title#]</b></div></div>
 			<div class='antetka'>[#body#]</div>
-			<div id='td-misc'>
+			<div class='td-misc'>
 				<span class='topic-info'>|Дъска|*:&nbsp;&nbsp;<b>[#boardId#]</b></span><br>
 				<span class='topic-info'>|Коментари|*:&nbsp;&nbsp;<b>[#postingsCnt#]</b></span><br>
 				<span class='topic-info'>|Тип|*: &nbsp;&nbsp;<b>[#type#]</b></span><br>
