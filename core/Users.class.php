@@ -1805,8 +1805,8 @@ class core_Users extends core_Manager
             // Обхождаме всички полета от конфигурацията
             foreach ((array)$fieldsArr as $name) {
                 
-                // Ако няма промяна в стойностите
-                if ($form->rec->$name == $valArr[$name]) continue;
+                // Ако няма промяна в стойностите от конфигурацията
+                if (($form->rec->$name == $valArr[$name]) && !($userRec->configData[$name])) continue;
                 
                 // Ако типа е enum, трябва стойността да не е default
                 if ($form->fields[$name]->type instanceof type_Enum) {
@@ -1832,7 +1832,7 @@ class core_Users extends core_Manager
         foreach ((array)$fieldsArr as $name) {
             
             // Ако има записана стойност
-            if ($userRec->configData[$name]) {
+            if ($userRec->configData && $userRec->configData[$name]) {
                 
                 // Задаваме стойността
                 $form->setDefault($name, $userRec->configData[$name]);
