@@ -73,8 +73,9 @@ class core_Html
      */
     static function escapeAttr($attrContent)
     {
-        $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $attrContent);
-        
+        //$content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $attrContent);
+        $content = htmlspecialchars( $attrContent, ENT_COMPAT, NULL, FALSE);
+        $content = str_replace(array("\n"), array('&#10;'), $content);
         return $content;
     }
     
