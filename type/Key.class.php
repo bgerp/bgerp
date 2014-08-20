@@ -146,69 +146,68 @@ class type_Key extends type_Int {
     public function prepareOptions()
     {   
         // Ако опциите вече са генерирани - не ги подготвяме отново
-        if(is_array($this->options) && count($this->options)) {
+        if(!is_array($this->options) || !count($this->options)) {
+        
+            $mvc = cls::get($this->params['mvc']);
 
-            return;
-        }
-        $mvc = cls::get($this->params['mvc']);
-
-        if($this->getSelectFld() == '*') {
-            $field = NULL;
-        } else {
-            $field = $this->getSelectFld();
-        }
-        
-        if ($this->params['where']) {
-            $where = $this->params['where'];
-        }
-        
-        // Ако е зададено поле group='sysId'
-        if ($this->params['group']) {
-        	$where = $this->filterByGroup($mvc);
-        }
-        
-        Debug::startTimer('prepareOPT ' . $this->params['mvc']);
-        
-        $options = array();
-        
-        $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this));
-
-        if(!count($options)) {
-            
-            if (!is_array($this->options)) {
-                foreach($mvc->makeArray4select($field, $where) as $id => $v) {
-                    $options[$id] = $v;
-                }
-                $this->handler = md5($field . $where . $this->params['mvc']);
+            if($this->getSelectFld() == '*') {
+                $field = NULL;
             } else {
-                foreach($this->options as $id => $v) {
-                    $options[$id] = $v;
+                $field = $this->getSelectFld();
+            }
+            
+            if ($this->params['where']) {
+                $where = $this->params['where'];
+            }
+            
+            // Ако е зададено поле group='sysId'
+            if ($this->params['group']) {
+                $where = $this->filterByGroup($mvc);
+            }
+            
+            Debug::startTimer('prepareOPT ' . $this->params['mvc']);
+            
+            $options = array();
+            
+            $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this));
+
+            if(!count($options)) {
+                
+                if (!is_array($this->options)) {
+                    foreach($mvc->makeArray4select($field, $where) as $id => $v) {
+                        $options[$id] = $v;
+                    }
+                    $this->handler = md5($field . $where . $this->params['mvc']);
+                } else {
+                    foreach($this->options as $id => $v) {
+                        $options[$id] = $v;
+                    }
                 }
             }
-        }
 
-        
-        // Правим титлите на опциите да са уникални и изчисляваме най-дългото заглавие
-        $this->maxFieldSize = 0;
-        if(is_array($options)) {
-            foreach($options as $id => &$title) {
-                if(is_object($title)) continue;
-                if($titles[$title]) {
-                    $title .= " ({$id})";
+            
+            // Правим титлите на опциите да са уникални и изчисляваме най-дългото заглавие
+            $this->maxFieldSize = 0;
+            if(is_array($options)) {
+                foreach($options as $id => &$title) {
+                    if(is_object($title)) continue;
+                    if($titles[$title]) {
+                        $title .= " ({$id})";
+                    }
+                    $titles[$title] = TRUE;
+                    $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
                 }
-                $titles[$title] = TRUE;
-                $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
             }
-        }
-  
-        $this->options = &$options;
+      
+            $this->options = &$options;
 
-        $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
+            $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
+        }
         
-        setIfNot($this->handler, md5(json_encode($options[$id])));
+        setIfNot($this->handler, md5(json_encode($this->options)));
         Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
-        
-        return $options;
+       
+        return $this->options;
     }
     
     /**
@@ -301,10 +300,11 @@ class type_Key extends type_Int {
                    
                     $key = self::getOptionTitle($v);
                     
-                    $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
+                    
                     
                     $selOpt[trim($key)] = $v;
                 }
+
                 $title = self::getOptionTitle($options[$value]);
 
                 $selOpt[$title] =  $options[$value];
@@ -322,7 +322,7 @@ class type_Key extends type_Int {
                     $setVal = $this->toVerbal($value); 
                 }  
 
-                $tpl = ht::createCombo($name, $setVal, $attr, $selOpt); 
+                $tpl = ht::createCombo($name, $setVal, $attr, $selOpt);  
             } else {
                 
                 if(count($options) == 0 && $mvc->haveRightFor('list')) {
@@ -354,7 +354,8 @@ class type_Key extends type_Int {
      * Връща списък е елементи <option> при ajax заявка
      */
     function act_ajax_GetOptions()
-    {
+    {   
+
         $conf = core_Packs::getConfig('core');
         
         // Приключваме, ако няма заявка за търсене
@@ -364,8 +365,8 @@ class type_Key extends type_Int {
         
         $q = plg_Search::normalizeText($q);
         
-        $q = '/ ' . str_replace(' ', '.* ', $q) . '/';
-
+        $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
+ 
         core_Logs::add('type_Key', NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
         
         if (!$hnd) {
@@ -373,12 +374,12 @@ class type_Key extends type_Int {
                 'error' => 'Липсват допълнителни опции'
             );
         }
-        
+       
         setIfNot($maxSuggestions, Request::get('maxSugg', 'int'), $conf->TYPE_KEY_MAX_SUGGESTIONS);
         
         
         $options = (array) unserialize(core_Cache::get('SelectOpt', $hnd));
-        
+      
         $select = new ET('<option value="">&nbsp;</option>');
         
         $cnt = 0;
@@ -438,7 +439,7 @@ class type_Key extends type_Int {
         $res = array(
             'content' => $select->getContent()
         );
-        
+       
         echo json_encode($res);
         
         die;

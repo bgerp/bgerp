@@ -58,7 +58,7 @@ class core_Html
                 $element = "<{$name}{$attrStr}>";
             } else {
                 if(in_array(strtolower($name), array('textarea', 'option'))) {
-                     $body = str_replace(array('&', "<" . ">"), array('&amp;', "&gt;", "&lt;"), $body);
+                     $body = str_replace(array('&', "<" , ">"), array('&amp;', "&gt;", "&lt;"), $body);
                 }
                 $element = "<{$name}{$attrStr}>{$body}</{$name}>";
             }
@@ -203,10 +203,9 @@ class core_Html
                     $attr['style'] .= 'color:#777;';
                 }
 
-                $title = strip_tags($title);
+                $title = strip_tags($title); 
                 $option = ht::createElement($element, $attr, $title);
-
-               // if($ee++ == 1) bp($option);
+ 
 
                 $select->append("\n", 'OPTIONS');
                 $select->append($option, 'OPTIONS');

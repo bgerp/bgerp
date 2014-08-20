@@ -454,10 +454,10 @@ class core_Mvc extends core_FieldSet
 
                 if($fields) {
                     foreach($arrFields as $fld) {
-                        $res[$rec->{$index}] .= ($res[$rec->{$index}] ? " " : '') . $this->getVerbal($rec, $fld);
+                        $res[$rec->{$index}] .= ($res[$rec->{$index}] ? " " : '') . $rec->{$fld};
                     }
                 } else {
-                    $res[$rec->{$index}] = $this->getRecTitle($rec);
+                    $res[$rec->{$index}] = $this->getRecTitle($rec, FALSE);
                 }
             }
             
@@ -467,7 +467,7 @@ class core_Mvc extends core_FieldSet
             core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
         }
  
-
+ 
         return $res;
     }
 
