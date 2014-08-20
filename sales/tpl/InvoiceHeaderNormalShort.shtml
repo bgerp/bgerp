@@ -58,7 +58,7 @@
                                 </tr>
                                 <tr>
                                     <td class="cell">
-                                        <table cellpadding="0" cellspacing="2">
+                                        <table>
                                             <tbody>
                                                 <!--ET_BEGIN contragentVatNo-->
                                                 <tr>
@@ -74,7 +74,7 @@
                                         </table>
                                     </td>
                                     <td class="cell">
-                                        <table cellpadding="0" cellspacing="2">
+                                        <table>
                                             <tbody>
                                                 <!--ET_BEGIN MyCompanyVatNo-->
                                                 <tr>
