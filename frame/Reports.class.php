@@ -32,7 +32,7 @@ class frame_Reports extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    var $interfaces = 'doc_DocumentIntf';
    
     
     /**
