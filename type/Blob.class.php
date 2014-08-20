@@ -36,7 +36,9 @@ class type_Blob extends core_Type {
             setIfNot($attr['cols'], 60);
         }
         
-        return ht::createTextArea($name, $value, $attr);
+        $attr['cols'] = $name;
+
+        return ht::createElement('textarea', $attr, $value, TRUE);
     }
     
     

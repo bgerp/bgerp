@@ -118,7 +118,9 @@ class type_Richtext extends type_Blob
              $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
 
-        $tpl->append(ht::createTextArea($name, $value, $attr), 'TEXTAREA');
+        $attr['name'] = $name;
+
+        $tpl->append(ht::createElement('textarea', $attr, $value, TRUE), 'TEXTAREA');
         
         $toolbarArr = type_Richtext::getToolbar($attr);
         

@@ -54,8 +54,10 @@ class type_Text extends core_Type {
                  tr("Въведената стойност е дълга") . " ' + this.value.length + ' " . tr("символа, което е над допустимите") . " $size " . tr('символа') . "');";
              $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
+        
+        $attr['name'] = $name;
 
-        return ht::createTextArea($name, $value, $attr);
+        return ht::createElement('textarea', $attr, $value, TRUE);
     }
     
     

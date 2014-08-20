@@ -57,6 +57,9 @@ class core_Html
             if ( ($body === '' || $body === NULL || $body === FALSE)  && !$closeTag) {
                 $element = "<{$name}{$attrStr}>";
             } else {
+                if(in_array(strtolower($name), array('textarea', 'option'))) {
+                     $body = str_replace(array('&', "<" . ">"), array('&amp;', "&gt;", "&lt;"), $body);
+                }
                 $element = "<{$name}{$attrStr}>{$body}</{$name}>";
             }
         } else {
@@ -74,7 +77,7 @@ class core_Html
     static function escapeAttr($attrContent)
     {
         //$content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $attrContent);
-        $content = htmlspecialchars( $attrContent, ENT_COMPAT, NULL, FALSE);
+        $content = htmlspecialchars( $attrContent, ENT_QUOTES, NULL);
         $content = str_replace(array("\n"), array('&#10;'), $content);
         return $content;
     }
@@ -151,7 +154,7 @@ class core_Html
             }
 
             if (is_string($content)) {
-                $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
+                $content = self::escapeAttr($content);
             }
 
             $attrStr .= " " . $atr . "=\"" . $content . "\"";
@@ -160,7 +163,7 @@ class core_Html
         $select = new ET("<select{$attrStr}>[#OPTIONS#]</select>");
 
         $select->append('', 'OPTIONS');
-
+ 
         if (is_array($options)) {
             foreach ($options as $id => $title) {
                 $attr = array();
@@ -177,7 +180,6 @@ class core_Html
                         $attr['label'] = $title->title;
                         $option = ht::createElement($element, $attr);
                         $select->append($option, 'OPTIONS');
-                        // $select->append("</optgroup>", 'OPTIONS');
                         $openGroup = TRUE;
                         continue;
                     } else {
@@ -202,8 +204,10 @@ class core_Html
                 }
 
                 $title = strip_tags($title);
-
                 $option = ht::createElement($element, $attr, $title);
+
+               // if($ee++ == 1) bp($option);
+
                 $select->append("\n", 'OPTIONS');
                 $select->append($option, 'OPTIONS');
             }
@@ -420,28 +424,6 @@ class core_Html
         $input = ht::createElement("input", $attr);
 
         return $input;
-    }
-
-
-    /**
-     * Създава текстово поле
-     */
-    static function createTextArea($name, $value = "", $attr = array())
-    {
-        $attr = arr::make($attr);
-
-        if (!$attr['cols']) {
-            // $attr['cols'] = 40;
-        }
-
-        if (!$attr['rows']) {
-            // $attr['rows'] = 15;
-        }
-        $attr['name'] = $name;
-
-        $value = str_replace(array('&', "<" . ">"), array('&amp;', "&gt;", "&lt;"), $value);
-
-        return ht::createElement('textarea', $attr, $value, TRUE);
     }
 
    
@@ -796,16 +778,16 @@ class core_Html
         static $i = 0;
 
         $i++;
-        
+    
         $r = gettype($o);
 
         if ($i > self::$dumpMaxDepth) {
             $i--;
             
             if(is_array($o)) {
-                $res = '(object)';
-            } elseif(is_object($o)) {
                 $res = '(array)';
+            } elseif(is_object($o)) {
+                $res = '(object)';
             } elseif(is_scalar($o)) {
                 $res = htmlentities($o, ENT_COMPAT | ENT_IGNORE, 'UTF-8');
             } else {
@@ -829,7 +811,7 @@ class core_Html
                     if($name === 'dbPass') {
                         $r .= "$name : ******<br>";
                     } else {
-                        $r .= "$name : " . static::mixedToHtml($value) . "<br>";
+                        $r .= htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . " : " . static::mixedToHtml($value) . "<br>";
                     }
                 }
             }
