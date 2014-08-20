@@ -146,7 +146,7 @@ class acc_BalanceDetails extends core_Detail
     			$mvc->doGrouping($data, (array)$data->groupingForm->rec, $data->groupingForm->cmd);
     		}
     		
-    		usort($data->recs, array($mvc, "sortRecsByCode"));
+    		usort($data->recs, array($mvc, "sortRecs"));
     	}
     }
     
@@ -156,7 +156,7 @@ class acc_BalanceDetails extends core_Detail
      * Подрежда кодовете или свойствата във възходящ ред.
      * Ако първата аналитичност са еднакви, сравнява по кодовете на втората ако и те по тези на третата
      */
-    private function sortRecsByCode($a, $b)
+    private function sortRecs($a, $b)
     {
     	$cache = static::$cache;
     	
@@ -168,25 +168,18 @@ class acc_BalanceDetails extends core_Detail
     			${"cmpA{$i}"} = $cache[$a->{"ent{$i}Id"}];
     			${"cmpB{$i}"} = $cache[$b->{"ent{$i}Id"}];
     		}
+    		
+    		// Ако са равни продължаваме
+    		if(${"cmpA{$i}"} == ${"cmpB{$i}"}) continue;
+    		
+    		${"cmpA{$i}"} = mb_strtolower(${"cmpA{$i}"});
+    		${"cmpB{$i}"} = mb_strtolower(${"cmpB{$i}"});
+    		
+    		return (strnatcasecmp(${"cmpA{$i}"}, ${"cmpB{$i}"}) < 0) ? -1 : 1;
     	}
     	
-    	if($cmpA1 == $cmpB1){
-    		if(isset($cmpA2) && isset($cmpB2)){
-    			if($cmpA2 == $cmpB2){
-    				if(isset($cmpA3) && isset($cmpB3)){
-    					return (strnatcasecmp($cmpA3, $cmpB3) < 0) ? -1 : 1;
-    				} else {
-    					return 0;
-    				}
-    			} else {
-    				return (strnatcasecmp($cmpA2, $cmpB2) < 01) ? -1 : 1;
-    			}
-    		} else {
-    			return 0;
-    		}
-    	} else {
-    		return (strnatcasecmp($cmpA1, $cmpB1) < 0) ? -1 : 1;
-    	}
+    	// Ако всички са еднакви оставяме ги така
+    	return 0;
     }
     
     

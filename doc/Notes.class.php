@@ -191,4 +191,17 @@ class doc_Notes extends core_Master
     {
         return NULL;
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
+     */
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $row->handle = $mvc->getHandle($rec->id);
+    }
 }
