@@ -101,10 +101,11 @@ class store_Setup extends core_ProtoSetup
     {
         $html = parent::install();      
         
-        core_Classes::add('store_ArrangeStrategyTop');
-        core_Classes::add('store_ArrangeStrategyBottom');
-        core_Classes::add('store_ArrangeStrategyMain');
+        $html .=  core_Classes::add('store_ArrangeStrategyTop');
+        $html .= core_Classes::add('store_ArrangeStrategyBottom');
+        $html .= core_Classes::add('store_ArrangeStrategyMain');
         
+        // Забравена миграция
     	if($roleRec = core_Roles::fetch("#role = 'masterStore'")){
     		core_Roles::delete("#role = 'masterStore'");
     	}

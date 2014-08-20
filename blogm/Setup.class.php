@@ -136,7 +136,7 @@ class blogm_Setup extends core_ProtoSetup
         $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'user', 'every_one');
 
 		// Добавяме класа връщащ темата в core_Classes
-        core_Classes::add('blogm_DefaultTheme');
+        $html .= core_Classes::add('blogm_DefaultTheme');
         
 		return $html;
 	}

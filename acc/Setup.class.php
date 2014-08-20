@@ -130,7 +130,7 @@ class acc_Setup extends core_ProtoSetup
     function install()
     {
         // Добавяне на класа за репорти
-    	core_Classes::add('acc_ReportDetails');
+    	$html .= core_Classes::add('acc_ReportDetails');
     	
         //Данни за работата на cron
         $rec = new stdClass();
@@ -154,7 +154,7 @@ class acc_Setup extends core_ProtoSetup
         // Добавяне на роля за старши касиер
         $html .= core_Roles::addRole('accMaster', 'acc') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
         
-    	$html = parent::install();
+    	$html .= parent::install();
 
         return $html;
     }

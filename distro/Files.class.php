@@ -1329,7 +1329,7 @@ class distro_Files extends core_Detail
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li class=\"green\>Задаване на крон да синхронизира файловете.</li>";
+            $res .= "<li class=\"green\">Задаване на крон да синхронизира файловете.</li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да сваля синхронизира файловете.</li>";
         }

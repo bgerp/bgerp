@@ -111,7 +111,7 @@ class purchase_Setup extends core_ProtoSetup
     	$html = parent::install();
         
         // Добавяме политиката "По последна покупна цена"
-        core_Classes::add('purchase_PurchaseLastPricePolicy');
+        $html .= core_Classes::add('purchase_PurchaseLastPricePolicy');
         
         // Добавяне на роля за старши куповач
         $html .= core_Roles::addRole('purchaseMaster', 'purchase') ? "<li style='color:green'>Добавена е роля <b>purchaseMaster</b></li>" : '';

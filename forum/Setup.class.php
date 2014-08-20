@@ -106,7 +106,7 @@ class forum_Setup extends core_ProtoSetup
     	$html = parent::install();
     	
     	// Добавяме класа връщащ темата в core_Classes
-        core_Classes::add('forum_DefaultTheme');
+        $html .= core_Classes::add('forum_DefaultTheme');
         
         return $html;
     }
