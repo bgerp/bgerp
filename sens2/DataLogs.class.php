@@ -49,7 +49,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Кой може да избира драйвъра
      */
-    public canSelectSource = 'ceo, sens, admin';
+    public $canSelectSource = 'ceo, sens, admin';
     
     
     /**

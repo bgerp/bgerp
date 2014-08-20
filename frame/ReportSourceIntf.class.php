@@ -71,6 +71,6 @@ class frame_ReportSourceIntf
      */
     function canSelectSource($userId = NULL)
     {
-    	return $this->class->canSelectDriver($userId);
+    	return $this->class->canSelectSource($userId);
     }
 }
