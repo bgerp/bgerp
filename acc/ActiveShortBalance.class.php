@@ -21,6 +21,12 @@ class acc_ActiveShortBalance {
 	
 	
 	/**
+	 * Извлечените записи
+	 */
+	private $recs;
+	
+	
+	/**
 	 * Конструктор на обекта
 	 * 
 	 * Масив $params с атрибути
@@ -42,14 +48,16 @@ class acc_ActiveShortBalance {
 		acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], NULL, $params['itemsAll'], $params['item1'], $params['item2'], $params['item3']);
 		
 		// Изчисляваме мини баланса
-		$this->calcBalance($jQuery->fetchAll());
+		$this->recs = $jQuery->fetchAll();
+		
+		$this->calcBalance($this->recs, $this->balance);
 	}
 	
 	
 	/**
 	 * Изчислява мини баланса
 	 */
-	private function calcBalance($recs)
+	private function calcBalance($recs, &$balance)
 	{
 		if(count($recs)){
 			
@@ -66,7 +74,7 @@ class acc_ActiveShortBalance {
 					// За всяка уникална комбинация от сметка и пера, сумираме количествата и сумите
 					$sign = ($type == 'debit') ? 1 : -1;
 					$index = $accId . "|" . $item1 . "|" . $item2 . "|" . $item3;
-					$b = &$this->balance[$index];
+					$b = &$balance[$index];
 					
 					$b['accountId'] = $accId;
 					$b['accountSysId'] = acc_Accounts::fetchField($accId, 'systemId');
@@ -80,7 +88,7 @@ class acc_ActiveShortBalance {
 				}
 				
 				// Закръгляме крайните суми и количества
-				foreach ($this->balance as &$bl){
+				foreach ($balance as &$bl){
 					$bl['blQuantity'] = round($bl['blQuantity'], 6);
 					$bl['blAmount'] = round($bl['blAmount'], 6);
 				}
