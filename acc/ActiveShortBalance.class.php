@@ -31,6 +31,7 @@ class acc_ActiveShortBalance {
 	 * 
 	 * Масив $params с атрибути
 	 * 			['itemsAll'] - списък от ид-та на пера, които може да са на всяка позиция
+	 * 			['accs'] 	 - списък от систем ид-та на сметки
 	 * 			['item1']    - списък от ид-та на пера, поне едно от които може да е на първа позиция
 	 * 			['item2']    - списък от ид-та на пера, поне едно от които може да е на втора позиция
 	 * 			['item3']    - списък от ид-та на пера, поне едно от които може да е на трета позиция
@@ -45,7 +46,7 @@ class acc_ActiveShortBalance {
 		
 		// Подготвяме заявката към базата данни
 		$jQuery = acc_JournalDetails::getQuery();
-		acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], NULL, $params['itemsAll'], $params['item1'], $params['item2'], $params['item3']);
+		acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3']);
 		
 		// Изчисляваме мини баланса
 		$this->recs = $jQuery->fetchAll();
@@ -147,5 +148,11 @@ class acc_ActiveShortBalance {
 		}
 		
 		return $newArr;
+	}
+	
+	
+	public function getBalance()
+	{
+		//@TODO
 	}
 }
