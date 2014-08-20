@@ -7,7 +7,7 @@
  *
  *
  * @category  bgerp
- * @package   sens2
+ * @package   frame
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -50,12 +50,6 @@ class frame_Reports extends core_Master
      * Права за запис
      */
     var $canRead = 'ceo, report, admin';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'ceo, report, admin';
     
     
     /**
@@ -103,7 +97,7 @@ class frame_Reports extends core_Master
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, width=100%, notFilter');
 
         // Singleton клас - източник на данните
-        $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty)', 'caption=Източник,silent,mandatory,notFilter', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Източник,silent,mandatory,notFilter', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
 
         // Поле за настройките за филтриране на данните, които потребителят е посочил във формата
         $this->FLD('filter', 'blob(serialize, compress)', 'caption=Филтър,input=none,column=none');
@@ -123,12 +117,33 @@ class frame_Reports extends core_Master
      */
     static function on_AfterPrepareEditform($mvc, &$data)
     {
-        $form = $data->form;
-        $rec =  $form->rec;
+        $form = &$data->form;
+        $rec =  &$form->rec;
  
+        // Извличаме класовете с посочения интерфейс
+        $interfaces = core_Classes::getOptionsByInterface('frame_ReportSourceIntf', 'title');
+        if(count($interfaces)){
+        	foreach ($interfaces as $id => $int){
+        		$Driver = cls::get($id);
+        		
+        		// Ако потребителя не може да го избира, махаме го от масива
+        		if(!$Driver->canSelectSource()){
+        			unset($interfaces[$id]);
+        		}
+        	}
+        }
+        
+        // Ако няма достъпни драйвери полето е readOnly иначе оставяме за избор само достъпните такива
+        if(!count($interfaces)) {
+        	$form->setReadOnly('source');
+        } else {
+        	$form->setOptions('source', $interfaces);
+        }
+        
+        // Ако има запис, не може да се сменя източника и попълваме данните на формата с тези, които са записани
         if($rec->id) {
             $form->setReadOnly('source');
-            $filter = (array) self::fetch($rec->id)->data->filter;
+            $filter = (array) self::fetch($rec->id)->filter;
             if(is_array($filter)) {  
                 foreach($filter as $key => $value) {
                     $rec->{$key} = $value;
@@ -136,12 +151,14 @@ class frame_Reports extends core_Master
             }
         }
 
+        // Ако има източник инстанцираме го
         if($rec->source) {
             $source = cls::get($rec->source);
+            
+            // Източника модифицира формата при нужда
             $source->prepareReportForm($form);
         }
     }
-
  
 
     /**
@@ -150,8 +167,17 @@ class frame_Reports extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {
         if($form->isSubmitted() && $form->rec->source) {
+        	
+        	// Инстанцираме източника
             $source = cls::get($form->rec->source);
+            if(!$source->canSelectSource()){
+            	$form->setError('source', 'Нямате права за избрания източник');
+            }
+            
+            // Източника проверява подадената форма
             $source->checkReportForm($form);
+            
+            // Ако няма грешки
             if(!$form->gotErrors()) {
                 
                 $filterFields = array_keys($form->selectFields("(#input == 'input' || #input == '') && !#notFilter"));
@@ -160,6 +186,7 @@ class frame_Reports extends core_Master
                     $form->rec->filter = new stdClass();
                 }
 
+                // Записва данните от формата в полето 'filter'
                 if(is_array($filterFields)) {
                     foreach($filterFields as $field) {
                         $form->rec->filter->{$field} = $form->rec->{$field};
@@ -175,32 +202,30 @@ class frame_Reports extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-
-
-    	    if($fields['-single']) {
+		if($fields['-single']) {
 	    	
-                // Показваме заглавието само ако не сме в режим принтиране
-                if(!Mode::is('printing')){
-                    $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " (" . $mvc->getVerbal($rec, 'state') . ")" ;
-                }
-                
-                $source = cls::getInterface('frame_ReportSourceIntf', $rec->source);
-                
-                // Обновяваме данните, ако отчета е в състояние 'draft'
-                if($rec->state == 'draft') {
-                    $rec->data = $source->prepareReportData($rec->filter);
-                }
-
-                $mvc = cls::get('core_Mvc');
-                $source->prepareReportForm($mvc);
-                $filterRow = $mvc->recToverbal($rec->filter);
-                
-                $row->data = $source->renderReportData($filterRow , $rec->data);
+            // Показваме заглавието само ако не сме в режим принтиране
+            if(!Mode::is('printing')){
+                $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " (" . $mvc->getVerbal($rec, 'state') . ")" ;
             }
-    }
+                
+            $source = cls::getInterface('frame_ReportSourceIntf', $rec->source);
+                
+            // Обновяваме данните, ако отчета е в състояние 'draft'
+            if($rec->state == 'draft') {
+            	
+            	// Източника подготвя данните
+                $rec->data = $source->prepareReportData($rec->filter);
+            }
             
-
-
+            $mvc = cls::get('core_Mvc');
+            $source->prepareReportForm($mvc);
+            $filterRow = $mvc->recToverbal($rec->filter);
+                
+            // Източника рендира данните
+            $row->data = $source->renderReportData($filterRow , $rec->data);
+        }
+    }
 
 
     /**
@@ -255,9 +280,4 @@ class frame_Reports extends core_Master
 		
         return $row;
     }
-    
-    
- 
-
-
 }

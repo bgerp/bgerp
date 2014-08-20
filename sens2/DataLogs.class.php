@@ -22,8 +22,12 @@ class sens2_DataLogs extends core_Manager
     var $loadList = 'plg_RowTools, sens2_Wrapper, plg_Sorting, plg_RefreshRows, plg_AlignDecimals';
     
     
+    /**
+     * Интерфейси, които имплементира класа
+     */
     var $interfaces = 'frame_ReportSourceIntf';
 
+    
     /**
      * Заглавие
      */
@@ -40,6 +44,12 @@ class sens2_DataLogs extends core_Manager
      * Права за запис
      */
     var $canWrite = 'debug';
+    
+    
+    /**
+     * Кой може да избира драйвъра
+     */
+    public canSelectSource = 'ceo, sens, admin';
     
     
     /**
@@ -158,13 +168,8 @@ class sens2_DataLogs extends core_Manager
     }
 
 
-
-
-
     /**
-     * Интерфейс: frame_ReportSourceIntf
-     *
-     * Реализация на метода prepareReportForm
+     * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
     function prepareReportForm($form)
     {
@@ -175,15 +180,16 @@ class sens2_DataLogs extends core_Manager
 
 
     /**
-     * Интерфейс: frame_ReportSourceIntf
-     *
-     * Реализация на метода prepareReportForm
+     * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
     function checkReportForm($form)
     {
     }
 
 
+    /**
+     * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
+     */
     function prepareReportData($filter)
     {
         $data = new StdClass();
@@ -206,6 +212,9 @@ class sens2_DataLogs extends core_Manager
     }
 
 
+    /**
+     * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
+     */
     function renderReportData($filter, $data)
     {
         $layout = new ET(getFileContent('sens2/tpl/ReportLayout.shtml'));
@@ -229,4 +238,11 @@ class sens2_DataLogs extends core_Manager
     }
 
 
+    /**
+     * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
+     */
+    function canSelectSource($userId = NULL)
+    {
+    	return core_Users::haveRole($this->canSelectSource, $userId);
+    }
 }

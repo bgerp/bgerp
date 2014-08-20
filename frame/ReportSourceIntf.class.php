@@ -64,4 +64,13 @@ class frame_ReportSourceIntf
     {
         return $this->class->checkReportForm($form);
     }
+    
+    
+    /**
+     * Дали потребителя има права да избере източника
+     */
+    function canSelectSource($userId = NULL)
+    {
+    	return $this->class->canSelectDriver($userId);
+    }
 }
