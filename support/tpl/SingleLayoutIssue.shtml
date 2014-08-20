@@ -1,51 +1,41 @@
 [#SingleToolbar#]
-<!-- BEGIN container -->
 <div class='document'>
-	
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-
-	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>|Сигнал|* <b>[#ident#]</b> ([#state#]) </div>
-	</div>
-	
-	<div  class='clearfix21 antetka'>
-		<div class='clearfix21'>  
-		<div class="small">
-			<div><b>[#title#]</b></div>
-			<!--ET_BEGIN componentId-->
-				<div>|Компонент|*: [#componentId#]</div>
-			<!--ET_END componentId-->
-			<div>|Тип|*: [#typeId#]</div>
-			<div>|Приоритет|*: [#priority#]</div>
-			<!--ET_BEGIN assign-->
-				<div>|Възложено на|*: <i>[#assign#]</i> |от|* <i>[#assignedBy#]</i> |на|* [#assignedOn#]</div>
-			<!--ET_END assign-->
-		</div>
-		</div>
-	</div>
-
-	<!--ET_BEGIN body--> 
-	<div style='padding:10px;'>
-		<div>[#description#]</div>
-	</div>
-	<!--ET_END body--> 
- 	
-	<!--ET_BEGIN DETAILS-->
-		<div class='details'>
-			[#DETAILS#]
-		</div>
-	<!--ET_END DETAILS-->
-	
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>|Сигнал|* <b>[#ident#]</b> ([#state#]) </div>
+    </div>
+    <div  class='clearfix21 antetka'>
+        <div class='clearfix21'>
+            <div class="small">
+                <div><b>[#title#]</b></div>
+                <!--ET_BEGIN componentId-->
+                <div>|Компонент|*: [#componentId#]</div>
+                <!--ET_END componentId-->
+                <div>|Тип|*: [#typeId#]</div>
+                <div>|Приоритет|*: [#priority#]</div>
+                <!--ET_BEGIN assign-->
+                <div>|Възложено на|*: <i>[#assign#]</i> |от|* <i>[#assignedBy#]</i> |на|* [#assignedOn#]</div>
+                <!--ET_END assign-->
+            </div>
+        </div>
+    </div>
+    <!--ET_BEGIN body--> 
+    <div style='padding:10px;'>
+        <div>[#description#]</div>
+    </div>
+    <!--ET_END body--> 
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
     <!--ET_BEGIN shareLog-->
     <div class='sharing-history clearfix21'>
         <span class='sharing-history-title'>|Споделяне|*</span>
         [#shareLog#]
     </div>
     <!--ET_END shareLog-->
-
 </div>
-<!-- END container -->
-     
 <div style='clear: both;'></div>
