@@ -35,6 +35,9 @@ class change_Plugin extends core_Plugin
             // Добавяме
             $mvc->FLD('subVersion', 'int', 'caption=Подверсия,input=none');
         }
+        
+//        $mvc->loadList = arr::make($mvc->loadList, TRUE);
+//        $mvc->loadList['plg_Modified'] = 'plg_Modified';
     }
     
     
@@ -389,33 +392,59 @@ class change_Plugin extends core_Plugin
         }
         
         // Вербално представяне на избраните версии
-        $firstSelVerStr = change_Log::getVersionStrFromKey($mvc, $selVerArr['first']);
-        $lastSelVerStr = change_Log::getVersionStrFromKey($mvc, $selVerArr['last']);
-        $lastVerDocStr = change_Log::getVersionStrFromKey($mvc, $lastVersion);
+        $firstSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['first']);
+        $lastVerDocArr = change_Log::getVersionAndDateFromKey($mvc, $lastVersion);
         
         // Ако има избрана версия
         if ($selVerArr['first']) {
             
             // Добавяме в променлива
-            $data->row->LastSavedVersion = $lastVerDocStr;
+            $data->row->LastSavedVersion = $lastVerDocArr['versionStr'];
+            
+            // Ако е върната дата
+            if ($lastVerDocArr['createdOn']) {
+                $data->row->LastSavedVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], 'd-m-y');
+            }
         } else {
             
             // Добавяме в друга променлива
-            $data->row->LastVersion = $lastVerDocStr;
+            $data->row->LastVersion = $lastVerDocArr['versionStr'];
+            
+            // Ако е върната дата
+            if ($lastVerDocArr['createdOn']) {
+                $data->row->LastVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], 'd-m-y');
+            }
         }
         
         // Първата избрана версия
-        $data->row->FirstSelectedVersion = $firstSelVerStr;
+        $data->row->FirstSelectedVersion = $firstSelVerArr['versionStr'];
+        
+        // Ако е върната дата
+        if ($firstSelVerArr['createdOn']) {
+            $data->row->FirstSelectedVersionDate = dt::mysql2verbal($firstSelVerArr['createdOn'], 'd-m-y');
+        }
         
         // Ако последната версия е последния вариант
         if ($lastVersionStr && ($selVerArr['last'] == $lastVersion)) {
             
             // Последната избрана версия
-            $data->row->LastSelectedVersion = $lastVerDocStr;
+            $data->row->LastSelectedVersion = $lastVerDocArr['versionStr'];
+            
+            // Ако е върната дата
+            if ($lastVerDocArr['createdOn']) {
+                $data->row->LastSelectedVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], 'd-m-y');
+            }
         } else {
             
+            $lastSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['last']);
+            
             // Последната избрана версия
-            $data->row->LastSelectedVersion = $lastSelVerStr;
+            $data->row->LastSelectedVersion = $lastSelVerArr['versionStr'];
+            
+            // Ако е върната дата
+            if ($lastSelVerArr['createdOn']) {
+                $data->row->LastSelectedVersionDate = dt::mysql2verbal($lastSelVerArr['createdOn'], 'd-m-y');
+            }
         }
     }
     

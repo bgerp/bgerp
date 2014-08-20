@@ -699,13 +699,15 @@ class change_Log extends core_Manager
     
     
     /**
-     * Връща вербалната стойност на версията от ключа на версията
+     * Връща масив с вербалната стойност на версията от ключа на версията и кога и от койт потребител е създаден
      * 
      * @param core_Mvc $mvc
      * @param string $key
      * @param boolean $key
+     * 
+     * @return array
      */
-    static function getVersionStrFromKey($mvc, $key, $escape=TRUE)
+    static function getVersionAndDateFromKey($mvc, $key, $escape=TRUE)
     {
         // Масив с данните за версията от ключа
         $versionArr = static::getVersionFromString($key);
@@ -723,7 +725,9 @@ class change_Log extends core_Manager
                 if ($val = $rec->value[$versionArr[2]]) {
                     
                     // Извличаме версията и подверсията
-                    $versionStr = static::getVersionStr($val->version, $val->subVersion);
+                    $resArr['versionStr'] = static::getVersionStr($val->version, $val->subVersion);
+                    $resArr['createdOn'] = $val->createdOn;
+                    $resArr['createdBy'] = $val->createdBy;
                     
                     break;
                 }
@@ -737,7 +741,9 @@ class change_Log extends core_Manager
                 $rec = $mvc->fetch($versionArr[0]);
                 
                 // Определяме версията от записа в модела
-                $versionStr = static::getVersionStr($rec->version, $rec->subVersion);
+                $resArr['versionStr'] = static::getVersionStr($rec->version, $rec->subVersion);
+                $resArr['createdOn'] = $rec->modifiedOn;
+                $resArr['createdBy'] = $rec->modifiedBy;
             }
         }
         
@@ -745,10 +751,27 @@ class change_Log extends core_Manager
         if ($escape) {
             
             // Ескейпваме
-            $versionStr = static::escape($versionStr);
+            $resArr['versionStr'] = static::escape($resArr['versionStr']);
         }
         
-        return $versionStr;
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща вербалната стойност на версията от ключа на версията
+     * 
+     * @param core_Mvc $mvc
+     * @param string $key
+     * @param boolean $key
+     * 
+     * @return string
+     */
+    static function getVersionStrFromKey($mvc, $key, $escape=TRUE)
+    {
+        $versionStrArr = static::getVersionAndDateFromKey($mvc, $key, $escape=TRUE);
+        
+        return $versionStrArr['versionStr'];
     }
     
     
