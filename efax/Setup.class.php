@@ -44,14 +44,8 @@ class efax_Setup extends core_ProtoSetup
     {
     	$html = parent::install();
     	
-        $efax = core_Classes::add('efax_Sender');
-        
-        if ($efax) {
-            $html = "<li style='color:green'>Успешно добавихте <b>efax_Sender</b> класа.</li>"; 
-        } else {
-            $html = "<li style='color:red'>Грешка при добавяне на <b>efax_Sender</b> класа.</li>";    
-        }
-        
+        $html = core_Classes::add('efax_Sender');
+                
         return $html;
     }
     

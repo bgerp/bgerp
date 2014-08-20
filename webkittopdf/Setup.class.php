@@ -170,7 +170,7 @@ class webkittopdf_Setup extends core_ProtoSetup
             
             $conf = core_Packs::getConfig('webkittopdf');
             
-            return type_Varchar::escape($conf->WEBKIT_TO_PDF_BIN) . " не е инсталиран";
+            return "<li class=\"red\">" . type_Varchar::escape($conf->WEBKIT_TO_PDF_BIN) . " не е инсталиран</li>";
         }
         
         // Версиите на пакета
@@ -182,7 +182,7 @@ class webkittopdf_Setup extends core_ProtoSetup
             if (($versionArr['version'] == 0) && ($versionArr['subVersion'] == 11)) {
                     
                 // Добавяме съобщение
-                return "<li style='color: red;'>" . 'Версията на webkittopdf e 0.11. С тази версия има проблеми. Моля да я обновите' . "</li>";
+                return "<li class=\"red\">Версия 0.11 на webkittopdf не се поддържа. Моля да я обновите</li>";
             }
         }
     }
