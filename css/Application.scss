@@ -3677,6 +3677,20 @@ body.narrow {
     }
 }
 
+.narrow .external{
+	.scrolling-holder{
+		display: block;
+		width: 100% !important;
+		overflow-x: auto !important;
+		_overflow: auto !important;
+    }
+    .document{
+	    margin: 0;
+	    width: 95%
+	}
+}
+
+
 /*стилове за принтиране*/
 @media print{
 	.document{
