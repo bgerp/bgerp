@@ -190,6 +190,26 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
+     * Връща нотифицираните потребители към съответното URL
+     * 
+     * @param array $urlArr
+     * 
+     * @return array
+     */
+    static function getNotifiedUserArr($urlArr)
+    {
+        $url = toUrl($urlArr, 'local', FALSE);
+        
+        $query = self::getQuery();
+        $query->where("#url = '{$url}'");
+        while ($rec = $query->fetch()) {
+            $usersArr[$rec->userId] = $rec->hidden;
+        }
+        
+        return $usersArr;
+    }
+    
+    /**
      * Скрива посочените записи
      * Обикновено след Reject
      */

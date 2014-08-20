@@ -676,20 +676,47 @@ class doc_Threads extends core_Manager
                     'folderId' => $destFolderId
                 )
             )) {
-            
-            // Нотифицираме новата и старата папка за настъпилото преместване
-            
-            // $currentFolderId сега има една нишка по-малко
-            doc_Folders::updateFolderByContent($currentFolderId);
-            
-            // $destFolderId сега има една нишка повече
-            doc_Folders::updateFolderByContent($destFolderId);
-            
-            //
-            // Добавяме нови правила за рутиране на базата на току-що направеното преместване.
-            //
-            // expect($firstContainerId = static::fetchField($id, 'firstContainerId'));
-            // email_Router::updateRoutingRules($firstContainerId, $destFolderId);
+                
+                // Изчистваме нотификацията до потребители, които нямат достъп до нишката
+                $urlArr = array('doc_Containers', 'list', 'threadId' => $id);
+                $usersArr = bgerp_Notifications::getNotifiedUserArr($urlArr);
+                $nRec = doc_Threads::fetch($id, '*', FALSE);
+                
+                if ($usersArr) {
+                    foreach ((array)$usersArr as $userId => $hidden) {
+                        
+                        // Ако има права до сингъла
+                        if (doc_Threads::haveRightFor('single', $nRec, $userId)) {
+                            
+                            // Ако е скрит, го показваме
+                            if ($hidden == 'yes') {
+                                
+                                // Показваме
+                                bgerp_Notifications::setHidden($urlArr, 'no', $userId);
+                            }
+                        } else {
+                            
+                            // Ако нямаме права и се показва 
+                            if ($hidden == 'no') {
+                                bgerp_Notifications::setHidden($urlArr, 'yes', $userId);
+                            }
+                        }
+                    }
+                }
+                
+                // Нотифицираме новата и старата папка за настъпилото преместване
+                
+                // $currentFolderId сега има една нишка по-малко
+                doc_Folders::updateFolderByContent($currentFolderId);
+                
+                // $destFolderId сега има една нишка повече
+                doc_Folders::updateFolderByContent($destFolderId);
+                
+                //
+                // Добавяме нови правила за рутиране на базата на току-що направеното преместване.
+                //
+                // expect($firstContainerId = static::fetchField($id, 'firstContainerId'));
+                // email_Router::updateRoutingRules($firstContainerId, $destFolderId);
         }
     }
     
