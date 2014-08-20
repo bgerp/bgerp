@@ -3,18 +3,28 @@
     <!--ET_BEGIN blank-->
     [#blank#]
     <!--ET_END blank-->
-    <div class='header [#STATE_CLASS#]'>
+    <div class='header [#STATE_CLASS#] no-print'>
         <div class='docBgIcon' style='[#iconStyle#];'>
-            |Бележка|* <b>[#ident#]</b> ([#state#]) - |вер|*. <b>[#LastVersion#]</b>
-            <!--ET_BEGIN VERSION_REMOVE-->[#VERSION_REMOVE#]<!--ET_BEGIN LastSelectedVersion--><b style='color: red;'>[#LastSelectedVersion#]</b> / <!--ET_END LastSelectedVersion--><!--ET_BEGIN FirstSelectedVersion--><b style='color: red;'>[#FirstSelectedVersion#]</b><!--ET_BEGIN FirstSelectedVersion--><!--ET_END VERSION_REMOVE-->
+            |Бележка|* <b>[#ident#]</b> ([#state#]) 
         </div>
     </div>
-    <div  class='clearfix21 antetka'>
-        <div class='clearfix21'>  <small>  
-            <b>[#subject#]</b>
-            </small>
-        </div>
-    </div>
+	<div class="small antetka">
+		<table class="top-table">
+		    <tr>
+                <td class="aright vtop">Ref №: </td>
+                <td>[#handle#]</td>
+            </tr>
+		    <tr>
+		        <td class="aright vtop">|Дата|*:</td>
+		        <td>[#LastVersionDate#]<!--ET_BEGIN DATE_REMOVE-->[#DATE_REMOVE#]<!--ET_BEGIN LastSelectedVersionDate-->[#LastSelectedVersionDate#] / <!--ET_END LastSelectedVersionDate--><!--ET_BEGIN FirstSelectedVersionDate-->[#FirstSelectedVersionDate#]<!--ET_BEGIN FirstSelectedVersionDate--><!--ET_END DATE_REMOVE--></td>
+		    </tr>
+		    <tr>
+		        <td class="aright vtop">|Версия|*:</td>
+		          <td>[#LastVersion#] <!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN LastSelectedVersion-->[#LastSelectedVersion#] / <!--ET_END LastSelectedVersion--><!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_BEGIN FirstSelectedVersion--><!--ET_END VERSIONREMOVE--></td>
+		    </tr>
+		</table>
+	</div>
+    <h3 class='centered'>[#subject#]</h3>
     <!--ET_BEGIN body--> 
     <div style='padding:10px;'>
         <div>[#body#]</div>

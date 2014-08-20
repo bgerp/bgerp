@@ -3696,6 +3696,9 @@ body.narrow {
 	.document{
         width: 840px;
 	}
+	.no-print {
+	   display: none;
+	}
 	.blankImage img, .qrcode img{
         width: 100%;
         height: auto !important;
@@ -3857,6 +3860,9 @@ body.narrow {
 		max-width: 840px;
 		
 	}
+	.no-print {
+       display: none;
+    }
 	.printing-title {
 		margin-bottom: 10px;
 		display: block;
