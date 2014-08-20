@@ -268,12 +268,9 @@ class frame_Reports extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-       // Може да създаваме документ-а само в дефолт папката му
-       if (doc_Folders::fetchCoverClassName($folderId) == 'doc_UnsortedFolders') {
-        	return TRUE;
-       } 
-        
-       return FALSE;
+    	$folderCover = doc_Folders::getCover($folderId);
+       
+       return ($folderCover->haveInterface('frame_FolderCoverIntf')) ? TRUE : FALSE;
     }
     
     
@@ -287,12 +284,9 @@ class frame_Reports extends core_Master
 	public static function canAddToThread($threadId)
     {
         $threadRec = doc_Threads::fetch($threadId);
-    	if (doc_Folders::fetchCoverClassName($threadRec->folderId) == 'doc_UnsortedFolders') {
-        	
-    		return TRUE;
-       } 
+        $folderCover = doc_Folders::getCover($threadRec->folderId);
         
-       return FALSE;
+    	return ($folderCover->haveInterface('frame_FolderCoverIntf')) ? TRUE : FALSE;
     }
     
     
