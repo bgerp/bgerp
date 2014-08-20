@@ -82,8 +82,8 @@ class acc_ActiveShortBalance {
 					$b['ent1Id'] = $item1;
 					$b['ent2Id'] = $item2;
 					$b['ent3Id'] = $item3;
-					$b['debitQuantity'] += $rec->{"debitQuantity"};
-					$b['creditQuantity'] += $rec->{"creditQuantity"};
+					
+					$b["{$type}Quantity"] += $rec->{"{$type}Quantity"};
 					$b['blQuantity'] += $rec->{"{$type}Quantity"} * $sign;
 					$b['blAmount'] += $rec->amount * $sign;
 				}
@@ -151,8 +151,10 @@ class acc_ActiveShortBalance {
 	}
 	
 	
-	public function getBalance()
+	public function getBalance($accs)
 	{
+		$shortArr = $this->getShortBalance($accs);
+		bp($shortArr, acc_Items::fetch(441));
 		//@TODO
 	}
 }
