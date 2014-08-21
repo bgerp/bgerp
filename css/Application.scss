@@ -790,58 +790,58 @@ div.acc-detail {
 }
 
 .portal {
-  margin-top: 15px;
-  padding: 10px;
-  padding-top: 18px;
-  border: solid 1px #ccc;
-  @include border-radius(5px);
-  background-color: white;
-  .legend {
-    position: absolute;
-    margin-top: -35px;
-    margin-left: 10px;
-    z-index: 100;
-    line-height: 20px;
-    padding: 5px;
-    border: solid 1px #ccc;
-    @include border-radius(5px);
-    font-weight: bold;
-    .addTask {
-    	display: inline-block;
-    	width: 16px;
-    	height: 16px;
-    	padding-left: 5px !important;
-		position: relative;
-		top: 3px;
-		margin-bottom: 0;
+	margin-top: 15px;
+	padding: 10px;
+	padding-top: 18px;
+	border: solid 1px #ccc;
+	@include border-radius(5px);
+	background-color: white;
+	.legend {
+		position: absolute;
+		margin-top: -35px;
+		margin-left: 10px;
+		z-index: 100;
+		line-height: 20px;
+		padding: 5px;
+		border: solid 1px #ccc;
+		@include border-radius(5px);
+		font-weight: bold;
+		.addTask {
+			display: inline-block;
+			width: 16px;
+			height: 16px;
+			padding-left: 5px !important;
+			position: relative;
+			top: 3px;
+			margin-bottom: 0;
+	    }
     }
-  }
-  .richtext {
-  	line-height: normal;
-  }
-  table.listTable {
-    width: 100% !important;
-    border: none;
-    font-size: 0.9em;
-    line-height: 1.1em;
-    margin-bottom: 0;
-    td {
-		border: none !important;
-		border-top: dotted 1px #ccc !important;
-		vertical-align: top !important;
-    }
-    > tbody > tr:first-child > td {
-        border-top: none !important;
-    }
-    th {
-		display: none;
+	.richtext {
+		line-height: normal;
+	}
+	table.listTable {
+		width: 100% !important;
 		border: none;
-		vertical-align: top !important;
+		font-size: 0.9em;
+		line-height: 1.1em;
+		margin-bottom: 0;
+		td {
+			border: none !important;
+			border-top: dotted 1px #ccc !important;
+			vertical-align: top !important;
+		}
+		> tbody > tr:first-child > td {
+		    border-top: none !important;
+		}
+		th {
+			display: none;
+			border: none;
+			vertical-align: top !important;
+		}
+		.portal-date{
+		    width:1%;
+		}
     }
-    .portal-date{
-        width:1%;
-    }
-  }
 }
 
 .narrow .portal .listRows {
@@ -859,25 +859,6 @@ td.portal-date {
 
 .detail-info.portal table.listTable { 
 	font-size:1em;
-}
-
-#bgerp_Recently_PortalTable td > div{
-    position: relative;
-}
-
-.portalAddDoc{
-    visibility: hidden;
-    position: absolute;
-    top: 50%;
-    right: 0px;
-    width: 20px;
-    height: 20px;
-    margin-top: -12px;
-    padding: 1px 2px !important;
-}
-
-#bgerp_Recently_PortalTable td:hover .portalAddDoc{
-    visibility: visible;
 }
 /*край на портал*/
 
@@ -1034,9 +1015,6 @@ td.portal-date {
 	font-weight: bold;
 	line-height: 120%;
 	margin-top: 4px;
-	span{
-	   font-size: 12pt;
-	}
 }
 
 .document .listTable th{
@@ -1213,6 +1191,7 @@ pre.document {
 	   border: none !important;
 	}
 }
+
 .document .special-borders  td {
 	border: none; 
 	&.border-right{
@@ -1359,45 +1338,45 @@ div.attachments {
 
 /*стилове за календара в портала*/
 table.mc-calendar {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 2px;
-  font-size: 0.8em;
-  td.mc-day {
-  	width: 13%;
-    text-align: right;
-    border: none;
-    background-color: #e8efe8;
-    border: solid 2px #e8efe8;
-    padding: 1px;
-    font-weight: bold;
-    cursor: pointer;
-    white-space: nowrap;
-    &:hover {
-      background-color: #ffff66;
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 2px;
+	font-size: 0.8em;
+	td.mc-day {
+		width: 13%;
+		text-align: right;
+		border: none;
+		background-color: #e8efe8;
+		border: solid 2px #e8efe8;
+		padding: 1px;
+		font-weight: bold;
+		cursor: pointer;
+		white-space: nowrap;
+		&:hover {
+		    background-color: #ffff66;
+		}
     }
-  }
-  td.mc-week-nb {
-    border: none;
-    padding: 3px;
-    width:8%;
-  }
-  td.mc-wd-name {
-    text-align: right;
-    padding-right: 3px;
-  }
-  td.mc-sunday {
-    color: green;
-  }
-  td.mc-holiday {
-    color: red !important;
-  }
-  td.mc-saturday {
-    color: #006030;
-  }
-  td.mc-today {
-    border: solid 2px red;
-  }
+	td.mc-week-nb {
+		border: none;
+		padding: 3px;
+		width:8%;
+	}
+	td.mc-wd-name {
+		text-align: right;
+		padding-right: 3px;
+    }
+    td.mc-sunday {
+        color: green;
+    }
+	td.mc-holiday {
+	    color: red !important;
+	}
+	td.mc-saturday {
+	    color: #006030;
+	}
+	td.mc-today {
+	    border: solid 2px red;
+	}
 }
 
 table.mc-header a {
@@ -1696,19 +1675,6 @@ span.sharing-history-title {
 
 .narrow span.sharing-history-title {
 	font-size: 14px;
-}
-
-span.change-log-title {
-	padding: 2px 5px;
-	padding-left: 23px;
-	background: $gray1 url(../img/16/to_do_list.png) no-repeat 3px center;
-	position: absolute;
-	display: block;
-	top: 0;
-	right: 0;
-	border: 1px solid #ccc;
-	border-top: none;
-	color: #777;
 }
 
 fieldset.sharing-history {
@@ -2032,8 +1998,8 @@ fieldset.sharing-history {
 .narrow .newsbar{
     padding-bottom:8px; 
 }
-
 /*край на newsbar*/
+
 /*стилове за социални бутони*/
 .soc-sharing-holder {
 	margin: 20px 0 15px;
@@ -2388,6 +2354,16 @@ fieldset.sharing-history {
 	}
 }
 
+.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar, .narrow .details .groupList::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+}
+
+.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb, .overflow-scroll::-webkit-scrollbar-thumb, .narrow .details .groupList::-webkit-scrollbar-thumb {
+    @include border-radius(8px);
+    background-color: rgba(0, 0, 0, .2);
+}
 .narrow .details .groupList{
 	width: 100% !important;
     overflow-x: scroll !important;
@@ -2403,6 +2379,7 @@ fieldset.sharing-history {
         }
     }
 }
+/*край на стилове за скролиране */
 
 .special-table{
 	border-collapse: separate;
@@ -2418,19 +2395,6 @@ fieldset.sharing-history {
 	font-size: 24px;
 	font-family: courier new; 
 }
-
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar, .narrow .details .groupList::-webkit-scrollbar {
-	-webkit-appearance: none;
-	width: 10px;
-	height: 10px;
-}
-
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb, .overflow-scroll::-webkit-scrollbar-thumb, .narrow .details .groupList::-webkit-scrollbar-thumb {
-	@include border-radius(8px);
-	background-color: rgba(0, 0, 0, .2);
-}
-/*край на стилове за скролиране */
-
 
 /*стилове за автор в документ*/
 .wide-profile-info {
@@ -2547,6 +2511,7 @@ div.location {
 		vertical-align: baseline;
 	}
 }
+
 div.location.public {
 	border: none;
 	margin: 0;
@@ -2615,7 +2580,6 @@ div.location.public {
 
 .balance-custom-form tr td{
     padding-bottom: 10px;
-    
 }
 
 .narrow .balance-custom-form tr{
@@ -2657,10 +2621,6 @@ div.location.public {
 
 
 /*bugFix - ширина при коментари на документ*/
-#doc_Comments-EditForm {
-	display: inline-block;
-}
-
 .btn-group .button {
 	display: inline-block;
 	width: auto !important;
@@ -3019,11 +2979,10 @@ div.location.public {
     border-bottom: none !important;
 }
 
-.distro-tools a{
+.distro-tools a {
 	margin: 0px 5px 0;
 	position:relative;
 	top:1px;
-	display: inline-block;
 }
 
 .price_ListRules .state-closed {
@@ -3075,6 +3034,7 @@ div.location.public {
 .eshop-product-list:hover .eshop-product-labels {
 	color: #444;
 }
+
 .eshop-product-labels > span, .eshop-product-labels > a {
     margin-right:10px;
     @include border-radius(3px);
@@ -3303,10 +3263,7 @@ body.narrow {
             margin-left: 1%;
        }
     }
-    .narrow .single-thread .scrolling-holder, .narrow .docStatistic {
-        max-width: 760px;
-    }
-     #all .formTable{
+    #all .formTable{
         font-size: 0.95em;
     }
     #all h2{
@@ -3327,13 +3284,10 @@ body.narrow {
 		font-size: 0.89em;
     }
     .wide .eshop-group-button {
-      width: 96%;
-       margin-right: 2%;
-       margin-left: 2%;
-       font-size: 0.9em;
-    }
-    .narrow .single-thread .scrolling-holder, .narrow .docStatistic {
-        max-width: 720px;
+		width: 96%;
+		margin-right: 2%;
+		margin-left: 2%;
+		font-size: 0.9em;
     }
     #all .formTable{
         font-size: 0.95em;
@@ -3368,9 +3322,6 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .single-thread .scrolling-holder, .narrow .docStatistic {
-        max-width: 660px;
-    }
     #all .formTable{
         font-size: 0.95em;
     }
@@ -3386,9 +3337,6 @@ body.narrow {
 	.background-holder {
          padding: 0 !important;
     }
-	.narrow .single-thread .listTable .rich-text {
-		max-width: 570px;
-	}
 	.narrow #all {
 		border: none;
 	}
@@ -3409,9 +3357,6 @@ body.narrow {
        margin-right: 2%;
        margin-left: 2%;
        font-size: 0.9em;
-    }
-    .narrow .single-thread .scrolling-holder, .narrow .docStatistic {
-        max-width: 600px;
     }
     #all .formTable{
         font-size: 0.95em;
@@ -3436,12 +3381,6 @@ body.narrow {
     .narrow #cmsTop {
     	margin-top: -1px;
     }
-    .narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
-		max-width: 530px;
-	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .docStatistic {
-		max-width: 560px;
-	}
 	.narrow .eshop-group-button {
 	   width: 46%;
        margin-right: 2%;
@@ -3463,12 +3402,6 @@ body.narrow {
 	.background-holder {
          padding: 0 !important;
     }
-	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
-		max-width: 463px;
-	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .docStatistic {
-		max-width: 493px;
-	}
 	.narrow #all {
 		border: none;
 	}
@@ -3493,12 +3426,6 @@ body.narrow {
 	.background-holder{
           padding: 0 !important;
     }
-	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
-		max-width: 430px;
-	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .docStatistic{
-		max-width: 460px;
-	}
 	.narrow  .eshop-group-button {
        width: 46%;
        margin-right: 2%;
@@ -3520,12 +3447,6 @@ body.narrow {
 	.background-holder {
           padding: 0 !important;
     }
-	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
-		max-width: 410px;
-	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .docStatistic {
-		max-width: 440px;
-	}
 	.narrow #all {
 		border: none;
 	}
@@ -3550,12 +3471,6 @@ body.narrow {
 	.background-holder {
           padding: 0 !important;
     }
-	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
-		max-width: 290px;
-	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .docStatistic {
-		max-width: 310px;
-	}
 	.narrow #all {
 		border: none;
 	}
@@ -3585,12 +3500,6 @@ body.narrow {
 	.background-holder{
          padding:0 !important;
     }
-	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
-		max-width: 250px;
-	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .docStatistic {
-		max-width: 280px;
-	}
 	.narrow #all {
 		border: none;
 	}
@@ -3616,36 +3525,6 @@ body.narrow {
         padding-left:2px;
         padding-right:2px;
         margin-left:4px !important;
-    }
-}
-
-@media handheld, only screen and (max-width: 240px) { 
-	.background-holder {
-       padding: 0 !important;
-    }
-	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
-		max-width: 170px;
-	}
-	.narrow .single-thread .scrolling-holder, .narrow .docStatistic {
-		max-width: 200px;
-	} 
-	.narrow #all {
-		border: none;
-	}
-	.eshop-group-button {
-       width: 100%;
-       margin-right: 0%;
-       margin-left: 0%;
-       font-size: 0.9em;
-    }
-    #all .formTable{
-        font-size: 0.85em;
-    }
-    #all h2{
-        font-size: 1.15em;
-    }
-    #all h1{
-        font-size: 1.65em;
     }
 }
 
@@ -3700,28 +3579,25 @@ body.narrow {
 	.antetka{
         width: 98% !important;
 	}
+	.richtext-message {
+	   padding-left: 10px;
+	}
 	.richtext-question {
-    	padding-left: 10px;
     	color: darken(#132c5c,10%);
 	}
 	.richtext-error {
- 		padding-left: 10px;
  		color: darken(#D8000C,10%);
 	}
 	.richtext-tip {
-    	padding-left: 10px;
     	color: darken(#c9841a,10%);
 	}
 	.richtext-success {
- 		padding-left: 10px;
  		color: darken(#4F8A10,10%);
 	}
 	.richtext-warning {
-    	padding-left: 10px;
     	color: darken(#9F6000,10%);
 	}
 	.richtext-info {
-		padding-left: 10px;
     	color: darken(#00529B,10%);
 	}
 	.folder-cover {
