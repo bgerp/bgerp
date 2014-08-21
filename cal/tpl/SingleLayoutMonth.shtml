@@ -1,8 +1,6 @@
 [#SingleToolbar#]
-<div class='header'>
-    <p class="calTitle">[#title#]</p>
-    <span style='width:150px;'>[#ListFilter#]</span>
-</div>
+<div class="calTitle">[#title#]</div>
+<div>[#ListFilter#]</div>
 <div class="clearfix" style="min-height:10px;"></div>
 <!--ET_BEGIN event-->	
 <div class='scrolling-holder'>

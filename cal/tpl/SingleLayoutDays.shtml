@@ -1,8 +1,6 @@
 [#SingleToolbar#]
-<div class='header'>
-    <p class="calTitle [#colTitle#]">[#title#]</p>
-    <div>[#ListFilter#]</div>
-</div>
+<div class="calTitle [#colTitle#]">[#title#]</div>
+<div>[#ListFilter#]</div>
 <div class="clearfix" style="min-height:10px;"></div>
 <!--ET_BEGIN event-->
 <div class='block_left'>
