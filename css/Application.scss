@@ -872,23 +872,19 @@ td.portal-date {
 	vertical-align: top !important;
 }
 
-.doc_Containers table.listTable > tbody > tr {
+.doc_Containers > .single-thread > .listRows > table.listTable > tbody > tr {
 	background-color: #fff;
 	&.flash {
 	   background-color: #ff8;
 	}
 }
 
-.doc_Containers table.listTable > tbody > tr:hover {
-	background-color: #fff;
-}
-
 /*стилове при отворени тредове*/
-.doc_Containers .thread-opened table.listTable > tbody > tr{
+.doc_Containers > .thread-opened > .listRows > table.listTable > tbody > tr{
 	background-color: $open-thread ;
 }
 
-.doc_Containers .thread-opened table.listTable > tbody > tr:hover{
+.doc_Containers > .thread-opened > .listRows > table.listTable > tbody > tr:hover{
 	background-color: $open-thread ;
 }
 
@@ -1087,10 +1083,6 @@ pre.document {
 	padding: 2px 4px 5px 4px;
 	float: left;
 	margin: 0px;
-}
-
-.listTable > tbody > tr > td div.document .listTable tr {
-	background-color: transparent;
 }
 
 .antetka {
