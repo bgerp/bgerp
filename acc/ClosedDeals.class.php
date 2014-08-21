@@ -253,10 +253,6 @@ abstract class acc_ClosedDeals extends core_Master
     	} else {
     		$form->setReadOnly('closeWith');
     	}
-    	
-    	if(!haveRole('debug')){
-    		$form->setField('closeWith', 'input=none');
-    	}
     }
     
     
