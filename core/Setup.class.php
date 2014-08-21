@@ -339,7 +339,7 @@ class core_Setup extends core_ProtoSetup {
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'clearOldTempFiles';
-        $rec->description = 'Изтрива старите временни файлове';
+        $rec->description = 'Изтриване на старите временни файлове';
         $rec->controller = 'core_Os';
         $rec->action = 'clearOldFiles';
         $rec->period = 60;
