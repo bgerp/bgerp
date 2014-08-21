@@ -963,7 +963,7 @@ class cat_Products extends core_Master {
 	    	
 	    	while($rec = $query->fetch()){
 	    		if(!array_key_exists($rec->id, $tmp)){
-	    			$tmp[$rec->id] = static::getTitleById($rec->id);
+	    			$tmp[$rec->id] = static::getTitleById($rec->id, FALSE);
 	    		}
 	    		
 	    		$products[$rec->id] = $tmp[$rec->id];
