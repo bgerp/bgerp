@@ -228,7 +228,7 @@ class sales_Proformas extends core_Master
 	    	$rec->bankAccountId = $accRow->iban;
 	    }
     	
-	    $row->header = "{$this->singleTitle} #<b>{$this->abbr}{$rec->id}</b> ({$row->state})" ;
+	    $row->header = "{$this->singleTitle} <b>{$row->ident}</b> ({$row->state})" ;
 	    $userRec = core_Users::fetch($rec->createdBy);
 		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
 		
@@ -356,5 +356,28 @@ class sales_Proformas extends core_Master
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function getHandle($id)
+    {
+    	$self = cls::get(get_called_class());
+    	$id = str_pad($id, '10', '0', STR_PAD_LEFT);
+    
+    	return $self->abbr . $id;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function fetchByHandle($parsedHandle)
+    {
+    	$number = ltrim($parsedHandle['id'], '0');
+    	 
+    	return static::fetch("#id = '{$number}'");
     }
 }

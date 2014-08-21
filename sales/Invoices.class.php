@@ -937,7 +937,7 @@ class sales_Invoices extends core_Master
         $row->recTitle = $row->title;
         
         return $row;
-    }
+   }
     
     
    /**
