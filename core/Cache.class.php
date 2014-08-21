@@ -222,7 +222,7 @@ class core_Cache extends core_Manager
         
         $rec = new stdClass();
         $rec->systemId = 'ClearCache';
-        $rec->description = 'Почиства кеша';
+        $rec->description = 'Почистване на обектите с изтекъл срок';
         $rec->controller = "{$mvc->className}";
         $rec->action = 'DeleteExpiredData';
         $rec->period = 24 * 60;

@@ -1413,7 +1413,7 @@ class core_Users extends core_Manager
         
         $rec = new stdClass();
         $rec->systemId = 'DeleteDraftUsers';
-        $rec->description = 'Изтрива неактивните потребители';
+        $rec->description = 'Изтриване на неактивните потребители';
         $rec->controller = $mvc->className;
         $rec->action = 'DeleteDraftUsers';
         $rec->period = 24 * 60;

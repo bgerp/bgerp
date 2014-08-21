@@ -218,7 +218,7 @@ class core_Logs extends core_Manager
         
         $rec = new stdClass();
         $rec->systemId = 'DeleteExpiredLogs';
-        $rec->description = 'Изтрива старите логове в системата';
+        $rec->description = 'Изтриване на старите логове в системата';
         $rec->controller = "{$mvc->className}";
         $rec->action = 'DeleteOldRecords';
         $rec->period = 24 * 60;
