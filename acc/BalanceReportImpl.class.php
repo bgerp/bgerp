@@ -96,7 +96,7 @@ class acc_BalanceReportImpl
     		$data->listFields = array('id' => '№', 'entries' => ' ');
     	}
     	
-    	if ($bShowQuantities) {
+    	/*if ($bShowQuantities) {
     		$data->listFields += array(
     				'baseQuantity' => 'Начално салдо->ДК->К-во',
     				'baseAmount' => 'Начално салдо->ДК->Сума',
@@ -114,7 +114,13 @@ class acc_BalanceReportImpl
     				'creditAmount' => 'Обороти->Кредит',
     				'blAmount' => 'Салдо->Крайно',
     		);
-    	}
+    	}*/
+    	$data->listFields += array(
+    			'baseAmount' => 'Салдо->Начално',
+    			'debitAmount' => 'Обороти->Дебит',
+    			'creditAmount' => 'Обороти->Кредит',
+    			'blAmount' => 'Салдо->Крайно',
+    	);
     }
     
     
@@ -208,6 +214,11 @@ class acc_BalanceReportImpl
     		$row->$fld = $Double->toVerbal($rec->$fld);
     		$row->$fld = (($rec->$fld) < 0) ? "<span style='color:red'>{$row->$fld}</span>" : $row->$fld;
     	}
+    	
+    	$row->baseAmount = "К-во:{$row->baseQuantity}<br>Сума:{$row->baseAmount}";
+    	$row->debitAmount = "К-во:{$row->debitQuantity}<br>Сума:{$row->debitAmount}";
+    	$row->creditAmount = "К-во:{$row->creditQuantity}<br>Сума:{$row->creditAmount}";
+    	$row->blAmount = "К-во:{$row->blQuantity}<br>Сума:{$row->blAmount}";
     	
     	if($rec->baseAmount == 0) unset($row->baseAmount);
     	if($rec->baseQuantity == 0) unset($row->baseQuantity);
