@@ -1077,7 +1077,7 @@ class purchase_Purchases extends core_Master
     	// Крон метод за затваряне на остарели покупки
     	$rec = new stdClass();
         $rec->systemId = "Close purchases";
-        $rec->description = "Затваря приключените покупки";
+        $rec->description = "Затваряне на приключените покупки";
         $rec->controller = "purchase_Purchases";
         $rec->action = "CloseOldPurchases";
         $rec->period = 180;

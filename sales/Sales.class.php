@@ -1266,7 +1266,7 @@ class sales_Sales extends core_Master
     	// Крон метод за затваряне на остарели продажби
     	$rec = new stdClass();
         $rec->systemId = "Close sales";
-        $rec->description = "Затваря приключените продажби";
+        $rec->description = "Затваряне на приключените продажби";
         $rec->controller = "sales_Sales";
         $rec->action = "CloseOldSales";
         $rec->period = 180;
