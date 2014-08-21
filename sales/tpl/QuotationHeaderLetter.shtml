@@ -1,31 +1,82 @@
-<div id='quot-table'>
-    <div id='quot-title-td'>
-        <h4 class='quote_title'>|ОФЕРТА|*</h4>
-        <p class='title-info'>
-            №  &nbsp;<b>[#number#]</b> 
-        </p>
-        <p class='title-info'>
-            |Дата|*: &nbsp;<b>[#date#]</b>
-        </p>
-        <!--ET_BEGIN reff-->
-        <p class='title-info'>
-            |Реф|*. : &nbsp;<b><span id='reff'>[#reff#]</span></b>
-        </p>
-        <!--ET_END reff-->
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
     </div>
-    <div class='receiver-block'>
-        <p class='title-info receiver'>|Получател|*:</p>
-        <p class='title-info'>[#company#]</p>
-        <p class='title-info'>[#person#]</p>
-        <p class='title-info'>[#contragentAdress#]</p>
-        <!--ET_BEGIN email-->
-        <p class='title-info'>|Имейл|*: [#email#]</p>
-        <!--ET_END email-->
-        <!--ET_BEGIN tel-->
-        <p class='title-info'>|Тел|*: [#tel#]</p>
-        <!--ET_END tel-->
-        <!--ET_BEGIN fax-->
-        <p class='title-info'>|Факс|*: [#fax#]</p>
-        <!--ET_END fax-->
+    <!--ET_END header-->
+    <div id='quot-table'>
+	    <div id='quot-title-td'>
+	        <h4 class='quote_title'>|ОФЕРТА|*</h4>
+	        <p class='title-info'>
+	            №  &nbsp;<b>[#number#]</b> 
+	        </p>
+	        <p class='title-info'>
+	            |Дата|*: &nbsp;<b>[#date#]</b>
+	        </p>
+	        <!--ET_BEGIN reff-->
+	        <p class='title-info'>
+	            |Реф|*. : &nbsp;<b><span id='reff'>[#reff#]</span></b>
+	        </p>
+	        <!--ET_END reff-->
+	    </div>
+	    <div class='receiver-block'>
+	        <p class='title-info receiver'>|Получател|*:</p>
+	        <p class='title-info'>[#company#]</p>
+	        <p class='title-info'>[#person#]</p>
+	        <p class='title-info'>[#contragentAdress#]</p>
+	        <!--ET_BEGIN email-->
+	        <p class='title-info'>|Имейл|*: [#email#]</p>
+	        <!--ET_END email-->
+	        <!--ET_BEGIN tel-->
+	        <p class='title-info'>|Тел|*: [#tel#]</p>
+	        <!--ET_END tel-->
+	        <!--ET_BEGIN fax-->
+	        <p class='title-info'>|Факс|*: [#fax#]</p>
+	        <!--ET_END fax-->
+	    </div>
+	</div>
+    <div class="clearfix21"></div>
+    <!--ET_BEGIN MANDATORY-->
+    <div id='details-holder'>
+        [#MANDATORY#]
+    </div>
+    <!--ET_END MANDATORY-->
+    <!--ET_BEGIN OPTIONAL-->
+    <div id='optional-holder'>
+        [#OPTIONAL#]
+    </div>
+    <!--ET_END OPTIONAL-->
+    [#ListToolbar#]
+    <p id='condition-title'> |Условия на офертата|*</p>
+    <ol id='conditions'>
+        <!--ET_BEGIN currencyRate-->
+        <li>|Валутен курс|* [#currencyRate#]</li>
+        <!--ET_END currencyRate-->
+        <!--ET_BEGIN validFor-->
+        <li>
+            |Офертата е валидна до|* [#validFor#] |след датата на издаване|* 
+            <!--ET_BEGIN expired-->
+            <span class='expired-quote'>([#expired#])</span>
+            <!--ET_END expired-->
+        </li>
+        <!--ET_END validFor-->
+        <li>|Начин на плащане|*: [#paymentMethodId#]</li>
+        <li>|Условие на доставка|*: [#deliveryTermId#]</li>
+        <!--ET_BEGIN deliveryPlaceId-->
+        <li>|Място на доставка|*: [#deliveryPlaceId#]</li>
+        <!--ET_END deliveryPlaceId-->
+        <!--ET_BEGIN others-->
+        [#others#]
+        <!--ET_END others-->
+    </ol>
+    <p id='quote-username'><b>|ПОДПИС и ПЕЧАТ|*:</b> <span id='sign-place'></span><span  class='sign-user'>/ &nbsp;<b>[#username#]</b>&nbsp; /</span></p>
+    <div class='details'>
+        <!--ET_BEGIN DETAILS-->
+        [#DETAILS#]
+        <!--ET_END DETAILS-->
     </div>
 </div>

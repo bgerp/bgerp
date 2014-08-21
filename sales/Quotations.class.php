@@ -58,12 +58,6 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * В кой плейсхолдър ще се слага шаблона от doc_plg_TplManager
-     */
-    public $templateFld = 'QUOTE_HEADER';
-    
-    
-    /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/document_quote.png';
@@ -102,7 +96,7 @@ class sales_Quotations extends core_Master
     /**
      * Шаблон за еденичен изглед
      */
-    public $singleLayoutFile = 'sales/tpl/SingleLayoutQuote.shtml';
+    //public $singleLayoutFile = 'sales/tpl/SingleLayoutQuote.shtml';
    
    
     /**
