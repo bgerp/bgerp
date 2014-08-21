@@ -58,7 +58,7 @@ class core_Html
                 $element = "<{$name}{$attrStr}>";
             } else {
                 if(in_array(strtolower($name), array('textarea', 'option'))) {
-                     $body = str_replace(array('&', "<" , ">"), array('&amp;', "&gt;", "&lt;"), $body);
+                     $body = str_replace(array('&', "<" , ">"), array('&amp;', "&lt;", "&gt;"), $body);
                 }
                 $element = "<{$name}{$attrStr}>{$body}</{$name}>";
             }
@@ -142,7 +142,7 @@ class core_Html
      * Създава SELECT елемент
      */
     static function createSelect($name, $options, $selected = NULL, $selAttr = array())
-    {
+    { 
         $selAttr['name'] = $name;
 
         foreach ($selAttr as $atr => $content) {
@@ -202,10 +202,11 @@ class core_Html
                     $title = $selAttr['placeholder'];
                     $attr['style'] .= 'color:#777;';
                 }
-
-                $title = strip_tags($title); 
-                $option = ht::createElement($element, $attr, $title);
  
+                //$title = strip_tags($title); 
+                
+                $option = ht::createElement($element, $attr, $title);
+
 
                 $select->append("\n", 'OPTIONS');
                 $select->append($option, 'OPTIONS');
@@ -488,7 +489,7 @@ class core_Html
         }
 
         // Ако нямаме JavaScript правим хипервръзка
-        if (Mode::is('javascript', 'no')) {
+        if (!Mode::is('javascript', 'yes')) {
             
             $attr['href'] = $url;
 

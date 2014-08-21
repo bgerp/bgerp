@@ -452,13 +452,19 @@ class core_Mvc extends core_FieldSet
 
                 $id = $rec->id;
 
+                $res[$rec->{$index}] = '';
+
                 if($fields) {
                     foreach($arrFields as $fld) {
-                        $res[$rec->{$index}] .= ($res[$rec->{$index}] ? " " : '') . $rec->{$fld};
+                        $res[$rec->{$index}] .= ($res[$rec->{$index}] ? " " : '') . $this->getVerbal($rec, $fld);
                     }
                 } else {
-                    $res[$rec->{$index}] = $this->getRecTitle($rec, FALSE);
+                    $res[$rec->{$index}] = $this->getRecTitle($rec);
                 }
+
+                $res[$rec->{$index}] = strip_tags($res[$rec->{$index}]);
+
+                $res[$rec->{$index}] = str_replace(array('&lt;', '&amp;'), array("<", "&"), $res[$rec->{$index}]);
             }
             
        }
