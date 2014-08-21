@@ -70,7 +70,7 @@ class vislog_History extends core_Manager {
      */
     function description()
     {
-        $this->FLD('ip', 'varchar(15)', 'caption=Ip,tdClass=rightAlign');
+        $this->FLD('ip', 'varchar(15)', 'caption=Ip,tdClass=aright');
         
         $this->FLD('HistoryResourceId', 'key(mvc=vislog_HistoryResources,select=query,allowEmpty)', 'caption=Query');
                 
