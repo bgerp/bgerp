@@ -46,9 +46,26 @@ class acc_BalanceReportImpl
      */
     public function prepareReportForm($form)
     {
-    	$form->FLD('accountId', 'acc_type_Account', 'caption=Сметка,mandatory');
-    	$form->FLD('from', 'date', 'caption=От,mandatory');
-    	$form->FLD('to', 'date', 'caption=До,mandatory');
+    	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+    	$form->FLD('from', 'datetime', 'caption=От,mandatory');
+    	$form->FLD('to', 'datetime', 'caption=До,mandatory');
+    	
+    	if($form instanceof core_Form){
+    		$form->input();
+    	}
+    	
+    	// Ако е избрана сметка
+    	if($form->rec->accountId){
+    		unset($form->rec->filter->ent1Id, $form->rec->filter->ent2Id, $form->rec->filter->ent3Id);
+    		$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
+    		
+    		// За всяка от аналитичностите, добавяме избор на пера
+    		if(count($accInfo->groups)){
+    			foreach ($accInfo->groups as $i => $gr){
+    				$form->FLD("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty)", "caption=Филтър по пера->{$gr->rec->name}");
+    			}
+    		}
+    	}
     }
     
     
@@ -58,6 +75,7 @@ class acc_BalanceReportImpl
     public function checkReportForm($form)
     {
     	if($form->isSubmitted()){
+    		
     		if($form->rec->to < $form->rec->from){
     			$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
     		}
@@ -70,11 +88,11 @@ class acc_BalanceReportImpl
      */
     private function prepareListFields(&$data)
     {
-    	$accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
-    	$bShowQuantities = ($accInfo->isDimensional === TRUE) ? TRUE : FALSE;
+    	$data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
+    	$bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
     	
     	$data->listFields = array();
-    	if(count($accInfo->groups)){
+    	if(count($data->accInfo->groups)){
     		$data->listFields = array('id' => '№', 'entries' => ' ');
     	}
     	
@@ -108,11 +126,15 @@ class acc_BalanceReportImpl
     	$data = new stdClass();
     	$data->rec = $filter;
     	
+    	$this->prepareListFields($data);
+    	
     	$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
     	$Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to));
     	$data->recs = $Balance->getBalance($accSysId);
     	 
-    	$this->prepareListFields($data);
+    	if(!empty($filter->ent1Id) || !empty($filter->ent2Id) || !empty($filter->ent3Id)){
+    		$this->filterRecsByItems($data->recs, $filter);
+    	}
     	
     	// Подготвяме страницирането
     	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listItemsPerPage));
@@ -144,6 +166,28 @@ class acc_BalanceReportImpl
     	}
     	
     	return $data;
+    }
+    
+    
+    /**
+     * Оставяме в записите само тези, които трябва да показваме
+     */
+    private function filterRecsByItems(&$recs, $filter)
+    {
+    	if(!count($recs)) return;
+    	
+    	foreach ($recs as $id => $rec){
+    		$unset = FALSE;
+    		foreach (range(1, 3) as $i){
+    			if(isset($filter->{"ent{$i}Id"}) && $rec->{"ent{$i}Id"} != $filter->{"ent{$i}Id"}){
+    				$unset = TRUE;
+    			}
+    		}
+    		
+    		if($unset){
+    			unset($recs[$id]);
+    		}
+    	}
     }
     
     
@@ -189,6 +233,15 @@ class acc_BalanceReportImpl
     	
     	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
     	$filter->accountId = acc_Balances::getAccountLink($data->rec->accountId, NULL, TRUE, TRUE);
+    	
+    	// Показваме за кои пера има филтриране
+    	foreach (range(1, 3) as $i){
+    		if(isset($data->rec->{"ent{$i}Id"})){
+    			$filter->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
+    			$filter->{"ent{$i}Id"} .= acc_Items::fetchField($data->rec->{"ent{$i}Id"}, 'titleLink');
+    		}
+    	}
+    	
     	$tpl->placeObject($filter);
     	
     	$tableMvc = new core_Mvc;

@@ -1,5 +1,14 @@
 <b>[#accountId#]</b><br>
 |Период|*: [#from#] - [#to#]<br><br>
+<!--ET_BEGIN ent1Id-->
+[#ent1Id#]<br>
+<!--ET_END ent1Id-->
+<!--ET_BEGIN ent2Id-->
+[#ent2Id#]<br>
+<!--ET_END ent2Id-->
+<!--ET_BEGIN ent3Id-->
+[#ent3Id#]<br>
+<!--ET_END ent3Id-->
 [#PAGER_TOP#]
 [#DETAILS#]
 [#PAGER_BOTTOM#]
