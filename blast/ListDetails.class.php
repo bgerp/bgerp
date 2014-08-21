@@ -441,7 +441,7 @@ class blast_ListDetails extends core_Detail
         
         foreach($fieldsArr as $name => $caption) {
             $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
-            $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
+            $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure, NULL, FALSE)");
             $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,'{$caption}')");
             
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
@@ -619,7 +619,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Връща масив с опции - заглавията на колоните
      */
-    static function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL)
+    static function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL, $escape=TRUE)
     {
         if(is_array($csvData)) {
             $rowsOrig = $csvData;
@@ -647,7 +647,11 @@ class blast_ListDetails extends core_Detail
         
         //Ескейпваме стойностите
         foreach ($rowArr as $key => $value) {
-            $rowArr[$key] = core_Type::escape($value);
+            if ($escape) {
+                $rowArr[$key] = core_Type::escape($value);
+            } else {
+                $rowArr[$key] = $value;
+            }
         }
         
         if(!count($rowArr)) return array();
