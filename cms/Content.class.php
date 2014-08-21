@@ -411,7 +411,7 @@ class cms_Content extends core_Manager
 
             foreach($usedLangsArr as $lg) {
                 
-                $attr = array('title' => drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'));
+                $attr = array('title' => drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), 'id' => 'set-lang-' . $lg);
 
                 if($lg == $lang) continue;
                 
@@ -420,11 +420,11 @@ class cms_Content extends core_Manager
 
                 if($filePath){
                     $imageUrl = sbf("img/flags/" . $lg . ".png", "");
-                    $img = ht::createElement("img", array('src' => $imageUrl));
+                    $img = ht::createElement("img", array('src' => $imageUrl, 'alt' => $lg));
                 }
                 
                 $url = array($this, 'SelectLang', 'lang' => $lg);
-
+ 
 
                 $tpl->append(ht::createLink($img, $url, NULL, $attr));
             }
