@@ -3564,14 +3564,16 @@ body.narrow {
 	.no-print {
 	   display: none;
 	}
-	.blankImage img, .qrcode img{
+	.blankImage img, .qrcode img {
         height: auto;
     }
-    .blankImage img{
+    .blankImage img {
         max-width: 750px;
+        max-height: 87px;
     }
-    .qrcode img {
+    .qrcode img{
         max-width: 87px;
+        max-height: 87px;
     }
 	.antetka{
         width: 98% !important;
