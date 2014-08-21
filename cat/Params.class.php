@@ -216,9 +216,7 @@ class cat_Params extends core_Manager
             $optType = ($rec->type == 'enum') ? 'options' : 'suggestions';
             
             $options = explode(',', $rec->options);
-            foreach($options as $i => &$opt){
-                $opt = type_Varchar::escape($opt);
-            }
+            
             $options = array('' => '') + array_combine($options, $options);
             $os = array($optType => $options);
         }
