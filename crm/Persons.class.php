@@ -683,7 +683,7 @@ class crm_Persons extends core_Master
 	       $mvc->restrictAccess($query);
 	       
 	       while($rec = $query->fetch("#state != 'rejected'")) {
-	       	   $typeKey->options[$rec->id] = type_Varchar::escape($rec->name) . " ({$rec->id})";
+	       	   $typeKey->options[$rec->id] = $rec->name . " ({$rec->id})";
 	       }
        }
     }
