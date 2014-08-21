@@ -348,7 +348,7 @@ class status_Messages extends core_Manager
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'removeOldStatuses';
-        $rec->description = 'Премахва старите статус съобщения';
+        $rec->description = 'Премахване на старите статус съобщения';
         $rec->controller = $mvc->className;
         $rec->action = 'removeOldStatuses';
         $rec->period = 5;

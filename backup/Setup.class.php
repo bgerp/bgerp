@@ -181,7 +181,7 @@ class backup_Setup extends core_ProtoSetup
     	
     	$rec = new stdClass();
     	$rec->systemId = 'BackupStartBinLog';
-    	$rec->description = 'Архивиране binlog на MySQL';
+    	$rec->description = 'Архивиране на binlog-а на MySQL';
     	$rec->controller = 'backup_Start';
     	$rec->action = 'binlog';
     	$rec->period = BACKUP_BINLOG_PERIOD;

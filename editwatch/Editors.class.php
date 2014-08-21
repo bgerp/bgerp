@@ -90,7 +90,7 @@ class editwatch_Editors extends core_Manager {
         
         $rec = new stdClass();
         $rec->systemId = "delete_old_editwatch_records";
-        $rec->description = "Изтрива старите editwatch записи";
+        $rec->description = "Изтриване на старите editwatch записа";
         $rec->controller = "editwatch_Editors";
         $rec->action = "DeleteOldRecs";
         $rec->period = max(1, round($conf->EDITWATCH_REC_LIFETIME / 60));
