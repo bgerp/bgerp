@@ -103,7 +103,7 @@ $orange: #f90; /*оранжево като при ховър на менюто*/
 }
 
 tr.noHover td:hover { 
-	color: #999999; 
+	color: #999; 
 	background: white;
 }
 /*край на common elements*/
@@ -263,7 +263,7 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus {
 	background-color: $orange;
 }
 
- #mainMenu a.selected, .wide #mainMenu a.selected:visited, .wide #mainMenu a.selected:link { 
+#mainMenu a.selected, .wide #mainMenu a.selected:visited, .wide #mainMenu a.selected:link { 
 	color: white; 
 	background-color: $blue;
 }
@@ -984,12 +984,6 @@ td.portal-date {
 		padding: 3px;
 		font-size: 1em;
 		margin-bottom: 10px;
-		span {
-			background-position: 3px center;
-			padding-left: 24px;
-			background-repeat: no-repeat;
-			font-weight: bold;
-		}
 	}
 	.details {
 		.listTable {

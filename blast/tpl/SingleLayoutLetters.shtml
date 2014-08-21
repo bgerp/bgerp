@@ -1,7 +1,7 @@
 [#SingleToolbar#]
 <div class='document'>
     <div class='header [#STATE_CLASS#]'>
-        <span style='[#iconStyle#]'>|Циркулярно писмо|* - [#ident#]</span>
+        <div class='docBgIcon' style='[#iconStyle#]'>|Циркулярно писмо|* - <b>[#ident#]</b></div>
     </div>
     <div class='antetka' >
         <div class="small">
