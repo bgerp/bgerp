@@ -140,7 +140,7 @@ class price_GroupOfProducts extends core_Detail
         while($rec = $query->fetch()) {
             if(!$used[$rec->productId]) {
                 if($rec->groupId) {
-                    $res[$rec->productId] = cat_Products::getTitleById($rec->productId);
+                    $res[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
                 }
                 $used[$rec->productId] = TRUE;
             }
