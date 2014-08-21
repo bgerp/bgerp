@@ -92,6 +92,7 @@ class acc_Setup extends core_ProtoSetup
     		'acc_OpenDeals',
     		'acc_Features',
     		'migrate::removeYearInterfAndItem',
+    		'migrate::updateItemNums',
         );
     
 
@@ -131,6 +132,7 @@ class acc_Setup extends core_ProtoSetup
     {
         // Добавяне на класа за репорти
     	$html .= core_Classes::add('acc_ReportDetails');
+    	$html .= core_Classes::add('acc_BalanceReportImpl');
     	
         //Данни за работата на cron
         $rec = new stdClass();
@@ -169,6 +171,26 @@ class acc_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Обновява номерата на перата
+     */
+    function updateItemNums()
+    {
+    	$Items = cls::get('acc_Items');
+    	$itemsQuery = $Items->getQuery();
+    	while($iRec = $itemsQuery->fetch()){
+    		if(cls::load($iRec->classId, TRUE)){
+    			$Register = cls::get($iRec->classId);
+    			$regRec = $Register->getItemRec($iRec->objectId);
+    			if($regRec->num != $iRec->num){
+    				$iRec->num = $regRec->num;
+    				$Items->save_($iRec, 'num');
+    			}
+    		}
+    	}
     }
     
     

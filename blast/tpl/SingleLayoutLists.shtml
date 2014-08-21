@@ -1,10 +1,10 @@
 [#SingleToolbar#]
 <div class='document'>
     <div class='header [#STATE_CLASS#]'>
-        <span style='[#iconStyle#]'>|Списък за масово разпращане|* - [#ident#]</span>
+        <div class='docBgIcon' style='[#iconStyle#]'>|Списък за масово разпращане|* - <b>[#ident#]</b></div>
     </div>
     <div class='scrolling-holder'>
-        <div class='antetka'>
+        <div class='antetka small'>
                     <table class='top-table'>
                         <!--ET_BEGIN title-->          
                         <tr>

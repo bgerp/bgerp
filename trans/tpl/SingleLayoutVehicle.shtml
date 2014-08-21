@@ -1,39 +1,40 @@
 <div class="singleView">
-[#SingleToolbar#]
-	<div class="folder-cover [#STATE_CLASS#]">
-		<div class="inner-folder">
-			<div class="block_title state-active special-title">[#SingleIcon#] |Транспортно средство|* <b style="color:green;">[#name#]</b></div>
-			<fieldset class="detail-info">
-				<legend class="groupTitle">|Информация|*</legend>
-				<div class="groupList">
-					<table>
-						<tr>
-							<td class='dt'>|Рег. номер|*:</td>
-							<td> [#number#]</td>
-						</tr>
-						<!--ET_BEGIN load-->
-						<tr>
-							<td class='dt'>|Товароносимост|*:</td>
-							<td> <b>[#load#]</b></td>
-						</tr>
-						<!--ET_END load-->
-						<!--ET_BEGIN description-->
-						<tr>
-							<td class='dt'>|Описание|*:</td>
-							<td>[#description#]</td>
-						</tr>
-						<!--ET_END description-->
-						<!--ET_BEGIN creation-->
-						<tr>
-						[#creation#]
-							<td  class='dt'>|Създаден:|*</td>
-							<td> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
-							<span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span></td>
-						</tr>
-						<!--ET_END creation-->
-					</table>
-				</div>
-			</fieldset>
-		</div>
-	</div>
+    [#SingleToolbar#]
+    <div class="folder-cover [#STATE_CLASS#]">
+        <div class="inner-folder">
+            <div class="block_title state-active special-title">[#SingleIcon#] |Транспортно средство|* <b style="color:green;">[#name#]</b></div>
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Информация|*</legend>
+                <div class="groupList">
+                    <table>
+                        <tr>
+                            <td class='dt'>|Рег. номер|*:</td>
+                            <td> [#number#]</td>
+                        </tr>
+                        <!--ET_BEGIN load-->
+                        <tr>
+                            <td class='dt'>|Товароносимост|*:</td>
+                            <td> <b>[#load#]</b></td>
+                        </tr>
+                        <!--ET_END load-->
+                        <!--ET_BEGIN description-->
+                        <tr>
+                            <td class='dt'>|Описание|*:</td>
+                            <td>[#description#]</td>
+                        </tr>
+                        <!--ET_END description-->
+                        <!--ET_BEGIN creation-->
+                        <tr>
+                            [#creation#]
+                            <td  class='dt'>|Създаден:|*</td>
+                            <td> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
+                                <span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span>
+                            </td>
+                        </tr>
+                        <!--ET_END creation-->
+                    </table>
+                </div>
+            </fieldset>
+        </div>
+    </div>
 </div>

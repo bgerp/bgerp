@@ -58,7 +58,7 @@
                                     <!--ET_END emailCcLeft-->
                                 </table>
                             </td>
-                            <td class='aright vtop'>
+                            <td class='fright vtop'>
                                 <table class='top-table' >
                                     <!--ET_BEGIN email-->          
                                     <tr>

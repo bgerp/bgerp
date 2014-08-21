@@ -53,7 +53,7 @@
                                 [#store_ReceiptDetails#]
                             </div>
                             <div class="lines"></div>
-                            <table class="innerTable footer-notes no-border paddingCells" style='width:100%;'>
+                            <table class="innerTable footer-notes paddingCells" style='width:100%;'>
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>

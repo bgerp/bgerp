@@ -1,33 +1,33 @@
 [#SingleToolbar#]
 <div class='document'>
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-	<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#]'>|Заповед|* <b>[#ident#]</b> ([#state#])</div>
-	</div>
-	<!--ET_END header-->
-	<h3 class="centered">|З А П О В Е Д|* </h3>
-	 <p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>	 
-	 <p class="centered">|Относно|*: |разрешение за ползване на|* <b>[#isPaid#]</b> |годишен отпуск|*</p><br />
-	 <p class="indent">|С настоящата заповед разрешавам на|* <b>[#personId#]</b> |да ползва|* <b>[#leaveDays#] |дни|*</b> [#isPaid#] |годишен отпуск за|* [#useDaysFromYear#] |г|*., 
-	 	|считано от|* <b>[#leaveFrom#]</b> |г|*. |до|* <b>[#leaveTo#]</b> |г|*.</p><br />
-	
-    <table width=100%>
-	<tr>
-	<td>|Работодател|*: ......................</td>
-	<td> </td>
-	</tr>
-	<tr>
-	<td style='padding-left:85px'>/|подпис и печат|*/ </td>
-	<td></td>
-	</tr>
-	</table>
-	
-	<!--ET_BEGIN DETAILS-->
-		<div class='details'>
-			[#DETAILS#]
-		</div>
-	<!--ET_END DETAILS-->
-
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#]'>|Заповед|* <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <!--ET_END header-->
+    <h3 class="centered">|З А П О В Е Д|* </h3>
+    <p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
+    <p class="centered">|Относно|*: |разрешение за ползване на|* <b>[#isPaid#]</b> |годишен отпуск|*</p>
+    <br>
+    <p class="indent">|С настоящата заповед разрешавам на|* <b>[#personId#]</b> |да ползва|* <b>[#leaveDays#] |дни|*</b> [#isPaid#] |годишен отпуск за|* [#useDaysFromYear#] |г|*., 
+        |считано от|* <b>[#leaveFrom#]</b> |г|*. |до|* <b>[#leaveTo#]</b> |г|*.
+    </p>
+    <br>
+    <table style='width:100%'>
+        <tr>
+            <td>|Работодател|*: ......................</td>
+            <td> </td>
+        </tr>
+        <tr>
+            <td style='padding-left:85px'>/|подпис и печат|*/ </td>
+            <td></td>
+        </tr>
+    </table>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
 </div>

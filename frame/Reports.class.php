@@ -7,7 +7,7 @@
  *
  *
  * @category  bgerp
- * @package   sens2
+ * @package   frame
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -20,7 +20,7 @@ class frame_Reports extends core_Master
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_RowTools, plg_State2, frame_Wrapper, doc_DocumentPlg, plg_Search';
+    var $loadList = 'plg_RowTools, plg_State2, frame_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Search, plg_Printing';
                       
     
     /**
@@ -32,7 +32,7 @@ class frame_Reports extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    var $interfaces = 'doc_DocumentIntf';
    
     
     /**
@@ -50,12 +50,6 @@ class frame_Reports extends core_Master
      * Права за запис
      */
     var $canRead = 'ceo, report, admin';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'ceo, report, admin';
     
     
     /**
@@ -100,10 +94,10 @@ class frame_Reports extends core_Master
     function description()
     {
         // Име на отчета
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование, width=100%, notFilter');
+        $this->FLD('name', 'varchar(255)', 'caption=Наименование, width=100%, notFilter, mandatory');
 
         // Singleton клас - източник на данните
-        $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty)', 'caption=Източник,silent,mandatory,notFilter', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Източник,silent,mandatory,notFilter', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
 
         // Поле за настройките за филтриране на данните, които потребителят е посочил във формата
         $this->FLD('filter', 'blob(serialize, compress)', 'caption=Филтър,input=none,column=none');
@@ -123,12 +117,33 @@ class frame_Reports extends core_Master
      */
     static function on_AfterPrepareEditform($mvc, &$data)
     {
-        $form = $data->form;
-        $rec =  $form->rec;
+        $form = &$data->form;
+        $rec =  &$form->rec;
  
+        // Извличаме класовете с посочения интерфейс
+        $interfaces = core_Classes::getOptionsByInterface('frame_ReportSourceIntf', 'title');
+        if(count($interfaces)){
+        	foreach ($interfaces as $id => $int){
+        		$Driver = cls::get($id);
+        		
+        		// Ако потребителя не може да го избира, махаме го от масива
+        		if(!$Driver->canSelectSource()){
+        			unset($interfaces[$id]);
+        		}
+        	}
+        }
+        
+        // Ако няма достъпни драйвери полето е readOnly иначе оставяме за избор само достъпните такива
+        if(!count($interfaces)) {
+        	$form->setReadOnly('source');
+        } else {
+        	$form->setOptions('source', $interfaces);
+        }
+        
+        // Ако има запис, не може да се сменя източника и попълваме данните на формата с тези, които са записани
         if($rec->id) {
             $form->setReadOnly('source');
-            $filter = (array) self::fetch($rec->id)->data->filter;
+            $filter = (array) self::fetch($rec->id)->filter;
             if(is_array($filter)) {  
                 foreach($filter as $key => $value) {
                     $rec->{$key} = $value;
@@ -136,12 +151,14 @@ class frame_Reports extends core_Master
             }
         }
 
+        // Ако има източник инстанцираме го
         if($rec->source) {
-            $source = cls::get($rec->source);
-            $source->prepareReportForm($form);
+            $Source = cls::get($rec->source);
+            
+            // Източника модифицира формата при нужда
+            $Source->prepareReportForm($form);
         }
     }
-
  
 
     /**
@@ -150,8 +167,17 @@ class frame_Reports extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {
         if($form->isSubmitted() && $form->rec->source) {
-            $source = cls::get($form->rec->source);
-            $source->checkReportForm($form);
+        	
+        	// Инстанцираме източника
+            $Source = cls::get($form->rec->source);
+            if(!$Source->canSelectSource()){
+            	$form->setError('source', 'Нямате права за избрания източник');
+            }
+            
+            // Източника проверява подадената форма
+            $Source->checkReportForm($form);
+            
+            // Ако няма грешки
             if(!$form->gotErrors()) {
                 
                 $filterFields = array_keys($form->selectFields("(#input == 'input' || #input == '') && !#notFilter"));
@@ -160,6 +186,7 @@ class frame_Reports extends core_Master
                     $form->rec->filter = new stdClass();
                 }
 
+                // Записва данните от формата в полето 'filter'
                 if(is_array($filterFields)) {
                     foreach($filterFields as $field) {
                         $form->rec->filter->{$field} = $form->rec->{$field};
@@ -175,34 +202,64 @@ class frame_Reports extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-
-
-    	    if($fields['-single']) {
+		if($fields['-single']) {
 	    	
-                // Показваме заглавието само ако не сме в режим принтиране
-                if(!Mode::is('printing')){
-                    $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " (" . $mvc->getVerbal($rec, 'state') . ")" ;
-                }
-                
-                $source = cls::getInterface('frame_ReportSourceIntf', $rec->source);
-                
-                // Обновяваме данните, ако отчета е в състояние 'draft'
-                if($rec->state == 'draft') {
-                    $rec->data = $source->prepareReportData($rec->filter);
-                }
-
-                $mvc = cls::get('core_Mvc');
-                $source->prepareReportForm($mvc);
-                $filterRow = $mvc->recToverbal($rec->filter);
-                
-                $row->data = $source->renderReportData($filterRow , $rec->data);
+            // Показваме заглавието само ако не сме в режим принтиране
+            if(!Mode::is('printing')){
+                $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " (" . $mvc->getVerbal($rec, 'state') . ")" ;
             }
-    }
+                
+            $Source = cls::getInterface('frame_ReportSourceIntf', $rec->source);
             
+            // Обновяваме данните, ако отчета е в състояние 'draft'
+            if($rec->state == 'draft') {
+            	
+            	// Източника подготвя данните
+                $rec->data = $Source->prepareReportData($rec->filter);
+            }
+           
+            $mvc = cls::get('core_Mvc');
+            $Source->prepareReportForm($mvc);
+            $filterRow = $mvc->recToverbal($rec->filter);
+                
+            // Източника рендира данните
+            $row->data = $Source->renderReportData($filterRow , $rec->data);
+        }
+    }
 
 
-
-
+    /**
+     * Преди запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Manager $mvc, $res, $rec)
+    {
+    	// Ако оттегляме / активираме документа
+    	if($rec->state != 'draft'){
+    		
+    		// Ако няма $data я извличаме и записваме
+    		if(empty($rec->data)){
+    			$source = $mvc->fetchField($rec->id, 'source');
+    			$filter = $mvc->fetchField($rec->id, 'filter');
+    			$Source = cls::getInterface('frame_ReportSourceIntf', $source);
+    			$rec->data = $Source->prepareReportData($filter);
+    			
+    			$mvc->save($rec, 'data');
+    		}
+    	} else {
+    		
+    		// Ако документа е чернова и има $data, ънсетваме я (след възстановяване на оттеглена чернова)
+    		if(!empty($rec->data)){
+    			unset($rec->data);
+    			$mvc->save($rec, 'data');
+    		}
+    	}
+    }
+    
+    
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -211,13 +268,9 @@ class frame_Reports extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-       return TRUE;
-       // Може да създаваме документ-а само в дефолт папката му
-       if (doc_Folders::fetchCoverClassName($folderId) == 'doc_UnsortedFolders') {
-        	return TRUE;
-       } 
-        
-       return FALSE;
+    	$folderCover = doc_Folders::getCover($folderId);
+       
+       return ($folderCover->haveInterface('frame_FolderCoverIntf')) ? TRUE : FALSE;
     }
     
     
@@ -230,13 +283,10 @@ class frame_Reports extends core_Master
      */
 	public static function canAddToThread($threadId)
     {
-        return TRUE;
-    	$threadRec = doc_Threads::fetch($threadId);
-    	if (doc_Folders::fetchCoverClassName($threadRec->folderId) == 'doc_UnsortedFolders') {
-        	return TRUE;
-       } 
+        $threadRec = doc_Threads::fetch($threadId);
+        $folderCover = doc_Folders::getCover($threadRec->folderId);
         
-       return FALSE;
+    	return ($folderCover->haveInterface('frame_FolderCoverIntf')) ? TRUE : FALSE;
     }
     
     
@@ -255,9 +305,4 @@ class frame_Reports extends core_Master
 		
         return $row;
     }
-    
-    
- 
-
-
 }
