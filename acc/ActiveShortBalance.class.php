@@ -39,6 +39,12 @@ class acc_ActiveShortBalance {
 	
 	
 	/**
+	 * acc_Balances
+	 */
+	private $acc_Balances;
+	
+	
+	/**
 	 * Конструктор на обекта
 	 * 
 	 * Масив $params с атрибути
@@ -194,6 +200,8 @@ class acc_ActiveShortBalance {
 				$acc = acc_Accounts::fetchField("#systemId = {$acc}");
 			}
 		}
+		
+		$newFrom = NULL;
 		
 		// Ако има такъв баланс
 		if($balanceRec){

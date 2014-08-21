@@ -1,0 +1,5 @@
+<b>[#accountId#]</b><br>
+|Период|*: [#from#] - [#to#]<br><br>
+[#PAGER_TOP#]
+[#DETAILS#]
+[#PAGER_BOTTOM#]
