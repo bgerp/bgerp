@@ -95,7 +95,7 @@ class type_User extends type_Key
             
             foreach($teams as $t) {
                 $group = new stdClass();
-                $tRole = core_Roles::fetchField($t, 'role');
+                $tRole = core_Roles::getVerbal($t, 'role');
                 $group->title = tr('Екип') . " \"" . $tRole . "\"";
                 $group->attr = array('class' => 'team');
                 $group->group = TRUE;
