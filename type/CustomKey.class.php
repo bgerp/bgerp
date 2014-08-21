@@ -294,7 +294,7 @@ class type_CustomKey extends type_Key
 
                 if ($this->params['allowEmpty']) {
                     // Добавяме празен избор в началото на опциите
-                    $options = array_merge(array('' => '&nbsp;'), $options);
+                    $options = arr::combine(array(' ' => ' '), $options);
                 }
             }
             
@@ -304,7 +304,6 @@ class type_CustomKey extends type_Key
             
             
             setIfNot($handler, md5(json_encode($this->options)));
-            
             
             setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
 
@@ -344,7 +343,7 @@ class type_CustomKey extends type_Key
                         $cacheOpt[$vNorm] = $v;
                     }
                     
-                    core_Cache::set('SelectOpt', $handler, json_encode($cacheOpt), 20, array($mvc->className));
+                    core_Cache::set('SelectOpt', $handler, serialize($cacheOpt), 20, array($mvc->className));
                 } else {
                 	$cacheOpt = (array) json_decode($cacheOpt);
                 }
@@ -361,13 +360,11 @@ class type_CustomKey extends type_Key
                     
                     $key = is_object($v) ? $v->title : $v;
                     
-                    $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
-                    
                     $selOpt[trim($key)] = $v;
                 }
                 
                 $selOpt[$options[$value]] = $options[$value];
-                 
+                
                 $this->options = $selOpt;
 
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key\"" .

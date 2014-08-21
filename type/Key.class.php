@@ -97,7 +97,7 @@ class type_Key extends type_Int {
         if(($field = $this->getSelectFld()) && (!count($options))) {
             $options = $this->prepareOptions();
         }
-
+        
         if(!is_numeric($value) && count($options)) {
             foreach($options as $id => $v) {
                 if (!is_string($v)) {
@@ -120,7 +120,7 @@ class type_Key extends type_Int {
                      *  По тази причина декодираме специалните символи предварително.
                      *
                      */
-                    $v = html_entity_decode($v, ENT_NOQUOTES, 'UTF-8');
+                    //$v = html_entity_decode($v, ENT_NOQUOTES, 'UTF-8');
                     $optionsR[trim($v)] = $id;
                 }
             }
@@ -234,7 +234,7 @@ class type_Key extends type_Int {
             }
 
             if($this->params['allowEmpty']) {
-                $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : '&nbsp;', 'attr' => 
+                $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' => 
                     array('style' => 'color:#777;')));
                 $options = arr::combine($placeHolder, $options);
             } elseif($attr['placeholder']) {
@@ -377,10 +377,13 @@ class type_Key extends type_Int {
        
         setIfNot($maxSuggestions, Request::get('maxSugg', 'int'), $conf->TYPE_KEY_MAX_SUGGESTIONS);
         
-        
         $options = (array) unserialize(core_Cache::get('SelectOpt', $hnd));
-      
-        $select = new ET('<option value="">&nbsp;</option>');
+        
+        if ($options['']) {
+            $select = new ET('');
+        } else {
+            $select = new ET('<option value="">&nbsp;</option>');
+        }
         
         $cnt = 0;
  

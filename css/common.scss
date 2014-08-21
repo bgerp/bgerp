@@ -686,7 +686,6 @@ a.header:hover {
 	color: inherit;
 }
 
-
 .narrow .toolbar .button {
 	border-right: 1px solid #999;
 	margin-right: 2px !important;
@@ -1011,12 +1010,12 @@ table.listTable {
   	@include border-radius(5px);
  }
  
- .wide .formError {
+.wide .formError {
     text-align: left;
     min-width: 300px;
- }
+}
  
- .narrow .formError {
+.narrow .formError {
  	width: auto;
  	margin: 4px;
     padding: 5px; 
@@ -1063,7 +1062,6 @@ table.listTable {
 .narrow .formError ul {
     padding-left: 1em;
 }
-
 /* край на грешки и предупреждения*/
 
 /*общи стилове за елементите на формите*/
@@ -1088,13 +1086,12 @@ table.listTable {
 	margin-left: 0;
 }
 
-
 .vFormField {
 	border:none;
 	width:100%;
 }
 
-.formTable>tr>td {	
+.formTable > tr > td {	
 	padding: 3px;
 }
 
@@ -1230,12 +1227,7 @@ td.formElement {
        width: 50%;
     }
 }
-
-
-
-
-/*общи стилове за елементите на формите*/
-
+/* край на общи стилове за елементите на формите*/
 
 /*тулбар*/
 .wide .toolbar > div:first-child {
@@ -1328,8 +1320,6 @@ td.formElement {
 	margin-right: 0;
 	float: right;
 }
-
-
 /*край на тулбар*/
 
 
@@ -1408,10 +1398,6 @@ td.formElement {
 	margin:2px 0;
 }
 
-.narrow .vertical .formToolbar .toolbar{
-	margin:0 0 3px 0;
-}
-
 .narrow .vertical .formToolbar {
 	background-image: none;
 	border: solid 1px $gray4;
@@ -1422,7 +1408,7 @@ td.formElement {
 	    margin-right: 5px;
 	}
 	.toolbar {
-		margin-top: 0;
+		margin:0 0 3px 0;
 	}
 }
 .narrow .vertical .keylist td{
@@ -1502,21 +1488,20 @@ table.keylist {
 	
 }
 
-td.keylist-group {
-	padding: 0 !important;
-}
-
-td.keylist-group > div {
-    padding: 4px !important;
-    font-size: 0.95em;
-    margin-top: 1px;
-    cursor: pointer; 
-    img {
-    	display: none;
-    	margin-right: 5px;
-    	top: 2px;
-    	position: relative;
-    } 
+td.keylist-group{
+    padding: 0 !important;
+    > div {
+	    padding: 4px !important;
+	    font-size: 0.95em;
+	    margin-top: 1px;
+	    cursor: pointer; 
+	    img {
+	    	display: none;
+	    	margin-right: 5px;
+	    	top: 2px;
+	    	position: relative;
+	    } 
+    }
 }
 
 .opened td.keylist-group > div {
@@ -1845,26 +1830,14 @@ div.alphabet div.tab-page {
 }
 
 .badge {
-  @include border-radius(9px);
-  border-radius: 9px;
-  color: #fff;
-  background-color: #999;
-  font-size: 0.84em;
-  padding: 1px 7px 2px;
-  position: relative;
-  top: -2px; 
- }
-
-.index-category {
-	padding: 3px; 
-	background-color: $gray3;
-}
-
-.index-subcategory {
-	font-size: 0.9em; 
-	margin-bottom: 10px; 
-	display: inline-block !important; 
-	margin-right: 10px;
+	@include border-radius(9px);
+	border-radius: 9px;
+	color: #fff;
+	background-color: #999;
+	font-size: 0.84em;
+	padding: 1px 7px 2px;
+	position: relative;
+	top: -2px; 
 }
 
 /* Стилове за елемента 'RichEdit' */
@@ -1946,10 +1919,6 @@ a.rtbutton {
     border: 1px solid #bba;
  	padding:4px;
 	border-radius:0px !important;
-}
-
-.left a.rtbutton {
-	text-align:left;
 }
 
 .narrow a.rtbutton {
@@ -2111,7 +2080,7 @@ div.richtext pre code {
 	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
 	background: rgba(235,235,235,0.5);
 	border: 1px solid $gray3;
-	border-radius: 3px 3px 3px 3px;
+	border-radius: 3px;
 	margin: 0px 2px 1px;
 	padding: 0px 5px 0px;	
 	display: inline-block;
@@ -2135,10 +2104,6 @@ div.richtextHide {
 }
 
 /*richtext elements*/
-p.richtext {
-	border: solid 1px red;
-}
-
 .narrow .richtext {
 	font-size: 0.9em;
 }
@@ -2150,7 +2115,7 @@ p.richtext {
 }
 
 a.header{
-       padding: 0 !important;
+    padding: 0 !important;
 }
 
 .narrow .richtext h1 {
@@ -2229,21 +2194,12 @@ div.richtext ol ol ol {
 	margin-bottom: 0.1em;
 }
 
-.outLinkIcon {
-	width: 16px;
-	height: 16px;
-	vertical-align: middle;
-	margin: 0 2px 0 5px;
-	display: inline-block;
-}
-
 .inlineRichTable td {
     height: 20px;
     min-width: 10px;
 }
 
 /*richtext message-box*/
-
 .richtext-message {
 	font-family: Courier New,mono;
     border: 1px dotted;
@@ -2311,7 +2267,6 @@ div.richtext ol ol ol {
 	margin-right: 0;
 	font-size: 0.9em;
 }
-
 
 .richtext-message {
 	h1, h2, h3, h4, h5, h6{
@@ -2452,7 +2407,6 @@ div.statuses-message h2 {
 	font-size: 1.1em; 
 	@include border-radius(0px);
 }
-
 /*край на нотификации*/
 
 
@@ -2688,11 +2642,11 @@ div.statuses-message h2 {
 /* Стилове за diff между html текстове */
 span.del { 
 	background-color: #fcc;
-       text-decoration: line-through;
-       color: #777;
+    text-decoration: line-through;
+    color: #777;
 }
 span.ins { 
-       background-color: #cfc;
+    background-color: #cfc;
 }
 span.cng { 
 	background-color: #ffa;
@@ -2701,13 +2655,13 @@ span.cng {
 /* Край на стилове за diff */
 
 /* Стилове за core_Packs */
-	.const-default-value {
-		color: #669;
-	}
+.const-default-value {
+	color: #669;
+}
 
-	.const-default-value option {
-		color: black;
-	}
+.const-default-value option {
+	color: black;
+}
 /* Край на стилове за core_Packs */
 
 .checkBrowser {
@@ -2725,25 +2679,25 @@ span.cng {
 	   text-decoration: underline;
 	}
 }
+
 .toast-item-wrapper p{
 	max-height: 150px;
 	overflow-y: auto;
 	padding-right: 10px;
 }
 
-.rightAlign {
-	text-align: right;
-}
-
 .loginLog-first_login{
 	background-color: #ffd !important;
 }
+
 .loginLog-success{
 	background-color: #dbffe4 !important;
 }
+
 .loginLog-other{
 	 background-color: #fee1e4 !important;
 }
+
 .core_LoginLog .group-by-date-row{
      background-color: transparent !important;
 }
