@@ -929,7 +929,7 @@ class cams_Records extends core_Master
         
         $rec = new stdClass();
         $rec->systemId = "record_video";
-        $rec->description = "Записва от камерите";
+        $rec->description = "Правят се записи от камерите";
         $rec->controller = "cams_Records";
         $rec->action = "RecordVideo";
         $rec->period = (int) $conf->CAMS_CLIP_DURATION / 60;
@@ -939,7 +939,7 @@ class cams_Records extends core_Master
         
         $rec = new stdClass();
         $rec->systemId = "delete_old_video";
-        $rec->description = "Изтрива старите записи от камерите";
+        $rec->description = "Изтриване на старите записи от камерите";
         $rec->controller = "cams_Records";
         $rec->action = "DeleteOldRecords";
         $rec->period = (int) 2 * $conf->CAMS_CLIP_DURATION / 60;

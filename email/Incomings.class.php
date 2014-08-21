@@ -824,7 +824,7 @@ class email_Incomings extends core_Master
         
         $rec = new stdClass();
         $rec->systemId = 'DownloadEmails';
-        $rec->description = 'Сваля и-имейлите в модела';
+        $rec->description = 'Сваляне на и-имейли в модела';
         $rec->controller = $mvc->className;
         $rec->action = 'DownloadEmails';
         $rec->period = 2;

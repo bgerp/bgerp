@@ -944,7 +944,7 @@ class cal_Reminders extends core_Master
         
         $rec = new stdClass();
         $rec->systemId = "StartReminders";
-        $rec->description = "Напомняне";
+        $rec->description = "Известяване за стартирани напомняния";
         $rec->controller = "cal_Reminders";
         $rec->action = "SendNotifications";
         $rec->period = 1;

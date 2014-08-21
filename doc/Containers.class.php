@@ -1670,7 +1670,7 @@ class doc_Containers extends core_Manager
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'notifyForIncompleteDoc';
-        $rec->description = 'Нотифицира за незавършени действия с документи';
+        $rec->description = 'Нотифициране за незавършени действия с документите';
         $rec->controller = $mvc->className;
         $rec->action = 'notifyForIncompleteDoc';
         $rec->period = 60;

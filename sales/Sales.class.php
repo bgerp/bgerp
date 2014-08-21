@@ -1277,7 +1277,7 @@ class sales_Sales extends core_Master
         // Проверка по крон дали продажбата е просрочена
         $rec2 = new stdClass();
         $rec2->systemId = "IsSaleOverdue";
-        $rec2->description = "Проверява дали продажбата е просрочена";
+        $rec2->description = "Проверяване за просрочени продажби";
         $rec2->controller = "sales_Sales";
         $rec2->action = "CheckSalesPayments";
         $rec2->period = 60;
