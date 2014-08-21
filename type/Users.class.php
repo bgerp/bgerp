@@ -232,7 +232,7 @@ class type_Users extends type_Keylist
         
         if (!$exist) return NULL;
         
-        return $this->options[$key]->title;
+        return self::escape($this->options[$key]->title);
     }
     
     

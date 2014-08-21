@@ -185,7 +185,7 @@ class type_User extends type_Key
         
         if (!$exist) return NULL;
         
-        return $this->options[$key]->title;
+        return self::escape($this->options[$key]->title);
     }
     
     
