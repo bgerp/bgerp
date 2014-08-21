@@ -235,8 +235,16 @@ class sales_Invoices extends core_Master
 		if($type = $data->listFilter->rec->invType){
 			$data->query->where("#type = '{$type}'");
 		}
-		
-		$data->query->orderBy('#number', 'DESC');
+	}
+	
+	
+	/**
+	 * След като се поготви заявката за модела
+	 */
+	public static function on_AfterGetQuery(core_Mvc $mvc, &$query)
+	{
+		// Сортираме низходящо по номер
+		$query->orderBy('#number', 'DESC');
 	}
 	
 	
