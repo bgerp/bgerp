@@ -93,7 +93,7 @@ class acc_BalanceReportImpl
     	
     	$data->listFields = array();
     	if(count($data->accInfo->groups)){
-    		$data->listFields = array('id' => '№', 'entries' => ' ');
+    		$data->listFields = array('id' => '№', 'entries' => '|Пера|*');
     	}
     	
     	/*if ($bShowQuantities) {
@@ -226,7 +226,7 @@ class acc_BalanceReportImpl
     	
     	foreach (array(1 => 'ent1Id', 2 =>  'ent2Id', 3 => 'ent3Id') as $id => $fld){
     		if(isset($rec->$fld)){
-    			$row->entries .= "<div>{$id} . " . acc_Items::getVerbal($rec->$fld, 'titleLink') . "</div>";
+    			$row->entries .= "<div><span style='margin-left:5px; font-size: 12px; color: #747474;'> {$id} . </span>" . acc_Items::getVerbal($rec->$fld, 'titleLink') . "</div>";
     		}
     	}
     	
