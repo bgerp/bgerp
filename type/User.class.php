@@ -95,7 +95,8 @@ class type_User extends type_Key
             
             foreach($teams as $t) {
                 $group = new stdClass();
-                $group->title = tr('Екип') . " \"" . core_Roles::getVerbal($t, 'role') . "\"";
+                $tRole = core_Roles::fetchField($t, 'role');
+                $group->title = tr('Екип') . " \"" . $tRole . "\"";
                 $group->attr = array('class' => 'team');
                 $group->group = TRUE;
                 $group->keylist = $this->options[$t . ' team'] = $group;
@@ -113,7 +114,7 @@ class type_User extends type_Key
                     if(!$this->options[$key]) {
                         $this->options[$key] = new stdClass();
                     }
-                    $this->options[$key]->title = core_Users::getVerbal($uRec, $part);
+                    $this->options[$key]->title = $uRec->$part;
                     $this->options[$key]->value = $uRec->id;
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;

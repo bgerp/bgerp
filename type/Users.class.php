@@ -120,7 +120,8 @@ class type_Users extends type_Keylist
             
             foreach($teams as $t) {
                 $group = new stdClass();
-                $group->title = tr('Екип') . " \"" . core_Roles::getVerbal($t, 'role') . "\"";
+                $tRole = core_Roles::fetchField($t, 'role');
+                $group->title = tr('Екип') . " \"" . $tRole . "\"";
                 $group->attr = array('class' => 'team', 'style' => 'background-color:#000;color:#fc0');
                 
                 $this->options[$t . ' team'] = $group;
@@ -134,7 +135,7 @@ class type_Users extends type_Keylist
                 while($uRec = $uQueryCopy->fetch()) {
                     $key = $t . '_' . $uRec->id;
                     $this->options[$key] = new stdClass();
-                    $this->options[$key]->title = core_Users::getVerbal($uRec, 'names');
+                    $this->options[$key]->title = $uRec->names;
                     $this->options[$key]->keylist = '|' . $uRec->id . '|';
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;

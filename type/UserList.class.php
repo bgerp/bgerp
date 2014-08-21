@@ -94,7 +94,8 @@ class type_UserList extends type_Keylist
         foreach($teams as $t) {  
             if(count($ownRoles) && !$ownRoles[$t]) continue;
             $group = new stdClass();
-            $group->title = tr('Екип') . " \"" . core_Roles::getVerbal($t, 'role') . "\"";
+            $tRole = core_Roles::fetchField($t, 'role');
+            $group->title = tr('Екип') . " \"" . $tRole . "\"";
             $group->attr = array('class' => 'team');
             $group->group = TRUE;
 
@@ -124,7 +125,7 @@ class type_UserList extends type_Keylist
                 $key = $uRec->id;
                 if(!isset($this->suggestions[$key])) {
                     $teamMembers++;
-                    $this->suggestions[$key] = core_Users::getVerbal($uRec, 'nick');
+                    $this->suggestions[$key] = $uRec->nick;
                 }
             }
 
