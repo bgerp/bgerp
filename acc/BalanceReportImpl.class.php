@@ -219,10 +219,10 @@ class acc_BalanceReportImpl
     		$row->$fld = (($rec->$fld) < 0) ? "<span style='color:red'>{$row->$fld}</span>" : $row->$fld;
     	}
     	
-    	$row->baseAmount = "К-во:{$row->baseQuantity}<br>Сума:{$row->baseAmount}";
-    	$row->debitAmount = "К-во:{$row->debitQuantity}<br>Сума:{$row->debitAmount}";
-    	$row->creditAmount = "К-во:{$row->creditQuantity}<br>Сума:{$row->creditAmount}";
-    	$row->blAmount = "К-во:{$row->blQuantity}<br>Сума:{$row->blAmount}";
+    	$row->baseAmount = "К-во: {$row->baseQuantity}<br>Сума: {$row->baseAmount}";
+    	$row->debitAmount = "К-во: {$row->debitQuantity}<br>Сума: {$row->debitAmount}";
+    	$row->creditAmount = "К-во: {$row->creditQuantity}<br>Сума: {$row->creditAmount}";
+    	$row->blAmount = "К-во: {$row->blQuantity}<br>Сума: {$row->blAmount}";
     	
     	foreach (array(1 => 'ent1Id', 2 =>  'ent2Id', 3 => 'ent3Id') as $id => $fld){
     		if(isset($rec->$fld)){
