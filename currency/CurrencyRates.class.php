@@ -198,7 +198,7 @@ class currency_CurrencyRates extends core_Detail
         
         $rec = new stdClass();
         $rec->systemId = "update_currencies_afternoon";
-        $rec->description = "Зарежда валутни курсове";
+        $rec->description = "Зареждане на валутните курсове";
         $rec->controller = "currency_CurrencyRates";
         $rec->action = "RetrieveCurrencies";
         $rec->period = 24 * 60;

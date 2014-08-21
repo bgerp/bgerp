@@ -310,7 +310,7 @@ class trz_SalaryIndicators extends core_Manager
         
         $rec = new stdClass();
         $rec->systemId = "CollectIndicators";
-        $rec->description = "Индикатори на заплатите";
+        $rec->description = "Изпращане на данните към показателите за заплатите";
         $rec->controller = "trz_SalaryIndicators";
         $rec->action = "Indicators";
         $rec->period = 3*60;

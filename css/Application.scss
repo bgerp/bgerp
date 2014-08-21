@@ -3559,14 +3559,19 @@ body.narrow {
 /*стилове за принтиране*/
 @media print{
 	.document{
-        width: 840px;
+        width: 100%;
 	}
 	.no-print {
 	   display: none;
 	}
 	.blankImage img, .qrcode img{
-        width: 100%;
-        height: auto !important;
+        height: auto;
+    }
+    .blankImage img{
+        max-width: 750px;
+    }
+    .qrcode img {
+        max-width: 87px;
     }
 	.antetka{
         width: 98% !important;

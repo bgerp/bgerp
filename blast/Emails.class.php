@@ -369,7 +369,10 @@ class blast_Emails extends core_Master
                 $form->setOptions('listId', $file);    
             }
         }
-    
+        
+        $emailOption = email_Inboxes::getFromEmailOptions($form->rec->folderId);
+        $form->setOptions('from', $emailOption);
+        
         // Ако създаваме нов
         if (!$rec->id) {
             

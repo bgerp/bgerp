@@ -525,7 +525,7 @@ class acc_Periods extends core_Manager
         
         $rec = new stdClass();
         $rec->systemId = "Create Periods";
-        $rec->description = "Създава нови счетоводни периоди";
+        $rec->description = "Създаване на нови счетоводни периоди";
         $rec->controller = "acc_Periods";
         $rec->action = "createFuturePeriods";
         $rec->period = 1440;
