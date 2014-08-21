@@ -42,6 +42,12 @@ class acc_BalanceReportImpl
     
     
     /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+    
+    
+    /**
      * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
     public function prepareReportForm($form)
@@ -96,25 +102,6 @@ class acc_BalanceReportImpl
     		$data->listFields = array('id' => '№', 'entries' => '|Пера|*');
     	}
     	
-    	/*if ($bShowQuantities) {
-    		$data->listFields += array(
-    				'baseQuantity' => 'Начално салдо->ДК->К-во',
-    				'baseAmount' => 'Начално салдо->ДК->Сума',
-    				'debitQuantity' => 'Обороти->Дебит->К-во',
-    				'debitAmount' => 'Обороти->Дебит->Сума',
-    				'creditQuantity' => 'Обороти->Кредит->К-во',
-    				'creditAmount' => 'Обороти->Кредит->Сума',
-    				'blQuantity' => 'Крайно салдо->ДК->К-во',
-    				'blAmount' => 'Крайно салдо->ДК->Сума',
-    		);
-    	} else {
-    		$data->listFields += array(
-    				'baseAmount' => 'Салдо->Начално',
-    				'debitAmount' => 'Обороти->Дебит',
-    				'creditAmount' => 'Обороти->Кредит',
-    				'blAmount' => 'Салдо->Крайно',
-    		);
-    	}*/
     	$data->listFields += array(
     			'baseAmount' => 'Салдо->Начално',
     			'debitAmount' => 'Обороти->Дебит',
@@ -185,6 +172,7 @@ class acc_BalanceReportImpl
     	foreach ($recs as $id => $rec){
     		$unset = FALSE;
     		foreach (range(1, 3) as $i){
+    			static::$cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
     			if(isset($filter->{"ent{$i}Id"}) && $rec->{"ent{$i}Id"} != $filter->{"ent{$i}Id"}){
     				$unset = TRUE;
     			}
@@ -194,6 +182,43 @@ class acc_BalanceReportImpl
     			unset($recs[$id]);
     		}
     	}
+    	
+    	// Запомняме номерата на замесените пера
+    	$iQuery = acc_Items::getQuery();
+    	$iQuery->show("num");
+    	$iQuery->in('id', static::$cache);
+    	while($iRec = $iQuery->fetch()){
+    		static::$cache[$iRec->id] = $iRec->num;
+    	}
+    	
+    	usort($recs, array($this, "sortRecs"));
+    }
+    
+    
+    /**
+     * Филтриране на записите по код
+     * Подрежда кодовете или свойствата във възходящ ред.
+     * Ако първата аналитичност са еднакви, сравнява по кодовете на втората ако и те по тези на третата
+     */
+    private function sortRecs($a, $b)
+    {
+    	$cache = static::$cache;
+    	 
+    	foreach (range(1, 3) as $i){
+    		${"cmpA{$i}"} = $cache[$a->{"ent{$i}Id"}];
+    		${"cmpB{$i}"} = $cache[$b->{"ent{$i}Id"}];
+    
+    		// Ако са равни продължаваме
+    		if(${"cmpA{$i}"} == ${"cmpB{$i}"}) continue;
+    
+    		${"cmpA{$i}"} = mb_strtolower(${"cmpA{$i}"});
+    		${"cmpB{$i}"} = mb_strtolower(${"cmpB{$i}"});
+    
+    		return (strnatcasecmp(${"cmpA{$i}"}, ${"cmpB{$i}"}) < 0) ? -1 : 1;
+    	}
+    	 
+    	// Ако всички са еднакви оставяме ги така
+    	return 0;
     }
     
     
