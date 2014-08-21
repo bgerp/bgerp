@@ -211,6 +211,10 @@ class acc_BalanceReportImpl
     	$row->id = $Int->toVerbal($rec->id);
     	
     	foreach (array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity') as $fld){
+    		if(empty($rec->$fld)){
+    			$rec->$fld = 0;
+    		}
+    		
     		$row->$fld = $Double->toVerbal($rec->$fld);
     		$row->$fld = (($rec->$fld) < 0) ? "<span style='color:red'>{$row->$fld}</span>" : $row->$fld;
     	}
@@ -219,9 +223,6 @@ class acc_BalanceReportImpl
     	$row->debitAmount = "К-во:{$row->debitQuantity}<br>Сума:{$row->debitAmount}";
     	$row->creditAmount = "К-во:{$row->creditQuantity}<br>Сума:{$row->creditAmount}";
     	$row->blAmount = "К-во:{$row->blQuantity}<br>Сума:{$row->blAmount}";
-    	
-    	if($rec->baseAmount == 0) unset($row->baseAmount);
-    	if($rec->baseQuantity == 0) unset($row->baseQuantity);
     	
     	foreach (array(1 => 'ent1Id', 2 =>  'ent2Id', 3 => 'ent3Id') as $id => $fld){
     		if(isset($rec->$fld)){
