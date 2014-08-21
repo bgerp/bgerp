@@ -229,6 +229,17 @@ class frame_Reports extends core_Master
 
 
     /**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+    	if (!empty($data->form->toolbar->buttons['activate'])) {
+    		$data->form->toolbar->removeBtn('activate');
+    	}
+    }
+    
+    
+    /**
      * Преди запис в модела
      *
      * @param core_Mvc $mvc
