@@ -368,7 +368,7 @@ class acc_Items extends core_Manager
     {
         if(!$form->rec->id) {
             $listId = $mvc->getCurrentListId();
-            Mode::setPermanent('lastEnterItemNumIn' . $listId, $rec->num);
+            Mode::setPermanent('lastEnterItemNumIn' . $listId, $form->rec->num);
         }
     }
     
