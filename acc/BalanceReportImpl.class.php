@@ -95,6 +95,7 @@ class acc_BalanceReportImpl
     private function prepareListFields(&$data)
     {
     	$data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
+    	$bShowQuantities = FALSE;
     	$bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
     	
     	$data->listFields = array();
@@ -102,12 +103,24 @@ class acc_BalanceReportImpl
     		$data->listFields = array('id' => '№', 'entries' => '|Пера|*');
     	}
     	
-    	$data->listFields += array(
-    			'baseAmount' => 'Салдо->Начално',
-    			'debitAmount' => 'Обороти->Дебит',
-    			'creditAmount' => 'Обороти->Кредит',
-    			'blAmount' => 'Салдо->Крайно',
-    	);
+    	if ($bShowQuantities) {
+				$data->listFields += array(
+				'baseQuantity' => 'Начално салдо->ДК->К-во',
+				'baseAmount' => 'Начално салдо->ДК->Сума',
+				'debitQuantity' => 'Обороти->Дебит->К-во',
+				'debitAmount' => 'Обороти->Дебит->Сума',
+				'creditQuantity' => 'Обороти->Кредит->К-во',
+				'creditAmount' => 'Обороти->Кредит->Сума',
+				'blQuantity' => 'Крайно салдо->ДК->К-во',
+				'blAmount' => 'Крайно салдо->ДК->Сума',);
+		} else {
+			$data->listFields += array(
+			'baseAmount' => 'Салдо->Начално',
+			'debitAmount' => 'Обороти->Дебит',
+			'creditAmount' => 'Обороти->Кредит',
+			'blAmount' => 'Салдо->Крайно',
+			);
+    	}
     }
     
     
@@ -138,6 +151,7 @@ class acc_BalanceReportImpl
     	$start = $data->pager->rangeStart;
     	$end = $data->pager->rangeEnd - 1;
     	
+    	$data->hideQuantities = FALSE;
     	if(count($data->recs)){
     		$count = 0;
     		foreach ($data->recs as $id => $rec){
@@ -146,6 +160,9 @@ class acc_BalanceReportImpl
     			if($count >= $start && $count <= $end){
     				$rec->id = $count + 1;
     				$row = $this->recToVerbal($rec);
+    				if($row->blAmount != $row->blQuantity){
+    					$data->hideQuantities = TRUE;
+    				}
     				$data->rows[$id] = $row;
     			}
     			
@@ -232,18 +249,9 @@ class acc_BalanceReportImpl
     	$row->id = $Int->toVerbal($rec->id);
     	
     	foreach (array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity') as $fld){
-    		if(empty($rec->$fld)){
-    			$rec->$fld = 0;
-    		}
-    		
     		$row->$fld = $Double->toVerbal($rec->$fld);
     		$row->$fld = (($rec->$fld) < 0) ? "<span style='color:red'>{$row->$fld}</span>" : $row->$fld;
     	}
-    	
-    	$row->baseAmount = ($rec->baseAmount != $rec->baseQuantity) ? "К-во: {$row->baseQuantity}<br>Сума: {$row->baseAmount}" : $row->baseAmount;
-    	$row->debitAmount = ($rec->debitAmount != $rec->debitQuantity) ? "К-во: {$row->debitQuantity}<br>Сума: {$row->debitAmount}" : $row->debitAmount;
-    	$row->creditAmount = ($rec->creditAmount != $rec->creditQuantity) ? "К-во: {$row->creditQuantity}<br>Сума: {$row->creditAmount}" : $row->creditAmount;
-    	$row->blAmount = ($rec->blAmount != $rec->blQuantity) ? "К-во: {$row->blQuantity}<br>Сума: {$row->blAmount}" : $row->blAmount;
     	
     	foreach (array(1 => 'ent1Id', 2 =>  'ent2Id', 3 => 'ent3Id') as $id => $fld){
     		if(isset($rec->$fld)){
@@ -290,6 +298,7 @@ class acc_BalanceReportImpl
     	if(!$data->hideQuantities){
     		unset($data->listFields['baseQuantity'], $data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
     	}
+    	
     	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
     	
     	$tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
