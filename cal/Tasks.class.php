@@ -1008,7 +1008,7 @@ class cal_Tasks extends core_Master
         
         $rec = new stdClass();
         $rec->systemId = "StartTasks";
-        $rec->description = "Известява за стартирани задачи";
+        $rec->description = "Известяване за стартирани задачи";
         $rec->controller = "cal_Tasks";
         $rec->action = "SendNotifications";
         $rec->period = 1;

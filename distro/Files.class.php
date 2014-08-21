@@ -1318,7 +1318,7 @@ class distro_Files extends core_Detail
         
         $rec = new stdClass();
         $rec->systemId = 'SyncFiles';
-        $rec->description = 'Синхронизира файловете в хранилищете със записите в модела';
+        $rec->description = 'Синхронизиране на файловете в хранилищата със записите в модела';
         $rec->controller = $mvc->className;
         $rec->action = 'SyncFiles';
         $rec->period = 3;

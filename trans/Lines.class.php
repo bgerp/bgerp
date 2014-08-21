@@ -430,7 +430,7 @@ class trans_Lines extends core_Master
     	
         $rec = new stdClass();
         $rec->systemId    = "CreateNewLines";
-        $rec->description = "Затваря и създава нови транспортни линии";
+        $rec->description = "Затваряне и създаване на нови транспортни линии";
         $rec->controller  = "trans_Lines";
         $rec->action      = "CreateNewLines";
         $rec->period      = $period;

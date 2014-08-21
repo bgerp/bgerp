@@ -1520,7 +1520,7 @@ class callcenter_Talks extends core_Master
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'fixDialStatus';
-        $rec->description = 'Променя статуса на обажданията без статуси на без отговор';
+        $rec->description = 'Променят се статусите на обажданията от "без статуси" на "без отговор"';
         $rec->controller = $mvc->className;
         $rec->action = 'FixDialStatus';
         $rec->period = 5;
