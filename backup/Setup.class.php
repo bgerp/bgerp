@@ -163,7 +163,7 @@ class backup_Setup extends core_ProtoSetup
     	// Залагаме в cron
     	$rec = new stdClass();
     	$rec->systemId = 'BackupStartFull';
-    	$rec->description = 'Архивиране пълните данни на MySQL';
+    	$rec->description = 'Архивиране на пълните данни на MySQL';
     	$rec->controller = 'backup_Start';
     	$rec->action = 'full';
     	$rec->period = BACKUP_FULL_PERIOD;

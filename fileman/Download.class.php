@@ -417,7 +417,7 @@ class fileman_Download extends core_Manager {
         
         $rec = new stdClass();
         $rec->systemId = 'ClearOldLinks';
-        $rec->description = 'Изчиства старите линкове за сваляне';
+        $rec->description = 'Изчистване на старите линкове за сваляне';
         $rec->controller = $mvc->className;
         $rec->action = 'ClearOldLinks';
         $rec->period = 100;
