@@ -106,6 +106,9 @@ class plg_Clone extends core_Plugin
             // Ако няма проблем пи записа
             if ($mvc->save($nRec)) {
                 
+            	// Инвокваме фунцкцията, ако някой иска да променя нещо
+            	$mvc->invoke('AfterSaveCloneRec', array($rec, &$nRec));
+            	
                 // Ако е инстанция на core_Master
                 if ($mvc instanceof core_Master) {
                     
