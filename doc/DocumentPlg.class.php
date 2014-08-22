@@ -1240,6 +1240,27 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+        
+        // @see plg_Clone
+        // Ако ще се клонират данните
+        if ($rec && ($action == 'cloneuserdata')) {
+            
+            if ($rec->threadId && $rec->containerId) {
+                $tRec = doc_Threads::fetch($rec->threadId);
+                
+                // Ако е първи документ, да се клонира в нова нишка
+                if ($tRec->firstContainerId == $rec->containerId) {
+                    unset($rec->threadId);
+                }
+            }
+            
+            // Трябва да има права за добавяне
+            if (!$mvc->haveRightFor('add', $rec)) {
+                
+                // Трябва да има права за добавяне за да може да клонира
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
