@@ -1846,14 +1846,7 @@ class blast_Emails extends core_Master
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 250;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li><span class=\"green\">Задаване на крон да изпраща много имейли.</span></li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да изпраща имейли.</li>";
-        }
+        $res .= core_Cron::addOnce($rec);
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
         $Bucket = cls::get('fileman_Buckets');

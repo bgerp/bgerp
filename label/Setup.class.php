@@ -71,10 +71,10 @@ class label_Setup extends core_ProtoSetup
         }
         
         // Добавяме роля
-        $html .= core_Roles::addRole('label') ? "<li style='color:green'>Добавена е роля <b>label</b></li>" : '';
+        $html .= core_Roles::addOnce('label');
         
         // Добавяме роля за master
-        $html .= core_Roles::addRole('labelMaster', 'label') ? "<li style='color:green'>Добавена е роля <b>labelMaster</b></li>" : '';
+        $html .= core_Roles::addOnce('labelMaster', 'label');
         
         return $html;
     }

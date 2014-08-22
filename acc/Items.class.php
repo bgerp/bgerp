@@ -993,11 +993,6 @@ class acc_Items extends core_Manager
         $rec->delay = 0;
         $rec->timeLimit = 100;
     	
-    	$Cron = cls::get('core_Cron');
-    	if($Cron->addOnce($rec)) {
-    		$res .= "<li><span class=\"green\">Задаване на крон да изтрива затворени, неизползвани пера.</span></li>";
-    	} else {
-    		$res .= "<li>Отпреди Cron е бил нагласен да  изтрива затворени, неизползвани пера.</li>";
-    	}
+    	$res .= core_Cron::addOnce($rec);
     }
 }

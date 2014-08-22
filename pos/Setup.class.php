@@ -117,7 +117,7 @@ class pos_Setup extends core_ProtoSetup
         $html .= core_Classes::add('pos_DefaultTheme');
         
         // Добавяне на роля за старши пос
-        $html .= core_Roles::addRole('posMaster', 'pos') ? "<li style='color:green'>Добавена е роля <b>posMaster</b></li>" : '';
+        $html .= core_Roles::addOnce('posMaster', 'pos');
         
         return $html;
     }

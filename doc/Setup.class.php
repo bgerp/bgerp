@@ -95,8 +95,7 @@ class doc_Setup extends core_ProtoSetup
      */
     function install()
     {   
-        core_Roles::addRole('powerUser', NULL, 'system');
-        $html .= "<li style='color:green'>Добавена е роля <b>powerUser</b></li>";
+        $html = core_Roles::addOnce('powerUser', NULL, 'system');
 
         // Добавяне на ролите за Ранг
         $rangRoles = array(
@@ -123,16 +122,14 @@ class doc_Setup extends core_ProtoSetup
         foreach($rangRoles as $role) {
             $inherit = ($role != 'contractor') ? 'powerUser,' . $lastRole : '';
             $lastRole = $role;
-            $html .= (core_Roles::addRole($role, $inherit, 'rang')) ?
-            "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+            $html .= core_Roles::addOnce($role, $inherit, 'rang');
         }
         
         // Ако няма нито една роля за екип, добавяме екип за главна квартира
         $newTeam = FALSE;
         
         if(!core_Roles::fetch("#type = 'team'")) {
-            core_Roles::addRole(BGERP_ROLE_HEADQUARTER, NULL, 'team');
-            $html .= "<li style='color:green'>Добавена е роля <b>Headquarter</b></li>";
+            $html .= core_Roles::addOnce(BGERP_ROLE_HEADQUARTER, NULL, 'team');
             $newTeam = TRUE;
         }
         
@@ -149,7 +146,7 @@ class doc_Setup extends core_ProtoSetup
                     
                     if($newTeam) {
                         core_Users::addRole($userId, BGERP_ROLE_HEADQUARTER);
-                        $html .= "<li style='color:green'>Потребителя <b>{$uTitle}</b> e добавен в екипа <b>Headquarter</b></li>";
+                        $html .= "<li class=\"green\">Потребителя <b>{$uTitle}</b> e добавен в екипа <b>Headquarter</b></li>";
                     }
                 }
             }
@@ -200,8 +197,8 @@ class doc_Setup extends core_ProtoSetup
         // Плъгин за работа с файлове в документите
         $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');
         
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', "user");
+        // Добавяме елемент в менюто
+        $html .= bgerp_Menu::addOnce(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', "user");
         
         return $html;
     }

@@ -160,16 +160,16 @@ class sales_Setup extends core_ProtoSetup
         $html .= core_Classes::add('sales_SalesLastPricePolicy');
         
         // Добавяне на роля за старши продавач
-        $html .= core_Roles::addRole('salesMaster', 'sales') ? "<li style='color:green'>Добавена е роля <b>salesMaster</b></li>" : '';
+        $html .= core_Roles::addOnce('salesMaster', 'sales');
         
         // Добавяне на роля за старши касиер
-        $html .= core_Roles::addRole('invoicer') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
+        $html .= core_Roles::addOnce('invoicer');
         
         // acc наследява invoicer
-        $html .= core_Roles::addRole('acc', 'invoicer');
+        $html .= core_Roles::addOnce('acc', 'invoicer');
         
         // sales наследява invoicer
-        $html .= core_Roles::addRole('sales', 'invoicer');
+        $html .= core_Roles::addOnce('sales', 'invoicer');
         
         return $html;
     }

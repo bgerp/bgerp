@@ -439,8 +439,10 @@ class bgerp_Menu extends core_Manager
     /**
      * Добавя елемент в основното меню на системата. Използва се в началното установяване
      */
-    function addItem($row, $menu, $subMenu, $ctr, $act, $accessByRoles = 'user', $autoHide = 'no')
+    static function addOnce($row, $menu, $subMenu, $ctr, $act, $accessByRoles = 'user', $autoHide = 'no')
     {
+        $Manu = cls::get('bgerp_Menu');
+
         $rec = new stdClass();
         $rec->row = $row;
         $rec->menu = $menu;
@@ -452,31 +454,37 @@ class bgerp_Menu extends core_Manager
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->getRolesAsKeylist($accessByRoles);
         
-        $rec->id = $this->fetchField(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #ctr = '[#3#]' AND #act = '[#4#]' AND #createdBy = -1", 
-            $menu, $subMenu, $ctr, $act), 'id');
+        $exRec = self::fetch(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #ctr = '[#3#]' AND #act = '[#4#]'", $menu, $subMenu, $ctr, $act));
         
-        if($rec->id) {
+        if($exRec && ($rec->id = $exRec->id)) {
             $addCond = "AND #id != {$rec->id}";
         }
         
-        $this->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #createdBy = -1 {$addCond}", $ctr, $act));
-        $this->delete(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #createdBy = -1 {$addCond}", $menu, $subMenu));
-
-        // expect( (count(explode('|', $rec->accessByRoles)) - 2) == count(explode(',', $accessByRoles)));
-        
-        $oldId = $rec->id;
-
-        $id = $this->save($rec);
-        
-        if($oldId) {
-            return "<li style='color:#600;'> Обновен е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";
-        } else {
-            if($id) {
-                return "<li style='color:green;'> Добавен е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";
-            } else {
-                return "<li style='color:red;'> Eлементa на менюто \"{$rec->menu} » {$rec->subMenu}\" не бе добавен, поради дублиране</li>";
-            }
+        // Изтриване на направените точки от менюто, които влизат в противоречие с текущата
+        $del = self::delete(array("#ctr = '[#1#]' AND #act = '[#2#]' {$addCond}", $ctr, $act));
+        if($act == 'default') {
+            $del += self::delete(array("#ctr = '[#1#]' AND #act = '[#2#]' {$addCond}", $ctr, ''));
         }
+        $del += self::delete(array("#menu = '[#1#]' AND #subMenu = '[#2#]' {$addCond}", $menu, $subMenu));
+        if($del) {
+            $res .= "<li class='debug-new'>Изтвиване на {$del} елемент/а на менюто, поради дублиране</li>\n";
+        }
+
+        self::save($rec);
+        
+        if($exRec) {
+            if($exRec->row != $rec->row || $exRec->accessByRoles != $rec->accessByRoles ||$exRec->autoHide != $rec->autoHide) { 
+                $res .= "<li class=\"debug-notice\">Обновяване елемента на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>\n";
+            } else {
+                $res .= "<li class='debug-info'>Без промяна на елемента на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>\n";
+            }
+        } else {
+            if($rec->id) {
+                $res .= "<li class='debug-new'>Създаване елемент на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>";
+            } 
+        }
+
+        return $res;
     }
     
 

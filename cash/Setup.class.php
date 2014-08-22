@@ -92,7 +92,7 @@ class cash_Setup extends core_ProtoSetup
     	}
     	
         // Добавяне на роля за старши касиер
-        $html .= core_Roles::addRole('cashMaster', 'cash') ? "<li style='color:green'>Добавена е роля <b>cashMaster</b></li>" : '';
+        $html .= core_Roles::addOnce('cashMaster', 'cash');
     	
         return $html;
     }

@@ -220,9 +220,9 @@ class bgerp_Setup {
         // Да се изтрият необновените менюта
         $Menu->deleteNotInstalledMenu = TRUE;
         
-        $html .= $Menu->addItem(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin');
+        $html .= bgerp_Menu::addOnce(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin');
 
-        $html .= $Menu->addItem(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
+        $html .= bgerp_Menu::addOnce(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
         
         $html .= $Menu->repair();
         

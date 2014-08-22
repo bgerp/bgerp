@@ -144,17 +144,10 @@ class acc_Setup extends core_ProtoSetup
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 55;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $html .= "<li><span class=\"green\">Задаване по крон да преизчислява баланси</span></li>";
-        } else {
-            $html .= "<li>Отпреди Cron е бил нагласен да преизчислява баланси</li>";
-        }
-		
+        $html .= core_Cron::addOnce($rec);
+
         // Добавяне на роля за старши касиер
-        $html .= core_Roles::addRole('accMaster', 'acc') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
+        $html .= core_Roles::addOnce('accMaster', 'acc');
         
     	$html .= parent::install();
 
@@ -181,16 +174,24 @@ class acc_Setup extends core_ProtoSetup
     {
     	$Items = cls::get('acc_Items');
     	$itemsQuery = $Items->getQuery();
-    	while($iRec = $itemsQuery->fetch()){
+    	do{
+            try {
+                $iRec = $itemsQuery->fetch();
+                if($iRec === NULL) break;
+            } catch (core_exception_Expect $e) {
+                continue;
+            }
     		if(cls::load($iRec->classId, TRUE)){
     			$Register = cls::get($iRec->classId);
-    			$regRec = $Register->getItemRec($iRec->objectId);
-    			if($regRec->num != $iRec->num){
-    				$iRec->num = $regRec->num;
-    				$Items->save_($iRec, 'num');
-    			}
+                if($iRec->objectId) {
+                    $regRec = $Register->getItemRec($iRec->objectId);
+                    if($regRec->num != $iRec->num){
+                        $iRec->num = $regRec->num;
+                        $Items->save_($iRec, 'num');
+                    }
+                }
     		}
-    	}
+    	} while( TRUE);
     }
     
     

@@ -95,7 +95,7 @@ class deals_Setup extends core_ProtoSetup
     {
     	$html = parent::install();
     	
-    	core_Roles::addRole('dealsMaster', 'deals');
+    	$html .= core_Roles::addOnce('dealsMaster', 'deals');
     	
     	// @TODO миграция да се махне след като се разнесе
     	if($listRec = acc_Lists::fetchBySystemId('financialDeals')){

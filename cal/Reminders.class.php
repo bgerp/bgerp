@@ -949,11 +949,8 @@ class cal_Reminders extends core_Master
         $rec->action = "SendNotifications";
         $rec->period = 1;
         $rec->offset = 0;
-        
-        $Cron->addOnce($rec);
-        
-        $res .= "<li>Напомняне  по крон</li>";
-        
+        $res .= core_Cron::addOnce($rec);
+           
         //Създаваме, кофа, където ще държим всички прикачени файлове на напомнянията
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('calReminders', 'Прикачени файлове в напомнянията', NULL, '104857600', 'user', 'user');

@@ -531,9 +531,9 @@ class acc_Periods extends core_Manager
         $rec->period = 1440;
         $rec->offset = 60;
         
-        $Cron->addOnce($rec);
+        $res .= core_Cron::addOnce($rec);
 
-        return $this->actLog;
+        return $this->actLog . $res;
     }
 
     

@@ -1515,8 +1515,6 @@ class callcenter_Talks extends core_Master
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'fixDialStatus';
@@ -1528,16 +1526,9 @@ class callcenter_Talks extends core_Master
         $rec->delay = 0;
         $rec->timeLimit = 100;
         
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li><span class=\"green\">Задаване на крон да променя статуса на обажданията без статуси на без отговор.</span></li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да променя статуса на обажданията без статуси на без отговор.</li>";
-        }
-        
+        $res .= core_Cron::addOnce($rec);
+
         // Миграция, за стари бази, където може да имаме сгрешени времена за разговорите
-        
         $conf = core_Packs::getConfig('callcenter');
         
         // Ако има зададена стойност

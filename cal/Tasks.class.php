@@ -1004,8 +1004,6 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "StartTasks";
         $rec->description = "Известяване за стартирани задачи";
@@ -1013,10 +1011,7 @@ class cal_Tasks extends core_Master
         $rec->action = "SendNotifications";
         $rec->period = 1;
         $rec->offset = 0;
-        
-        $Cron->addOnce($rec);
-        
-        $res .= "<li>Известяване за стартирани задачи по крон</li>";
+        $res .= core_Cron::addOnce($rec);
         
         // Създаваме, кофа, където ще държим всички прикачени файлове в задачи
         $Bucket = cls::get('fileman_Buckets');

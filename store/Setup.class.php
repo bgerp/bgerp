@@ -115,8 +115,8 @@ class store_Setup extends core_ProtoSetup
     	$html .= $Plugins->installPlugin('Синхронизиране на складовите наличности', 'store_plg_BalanceSync', 'acc_Balances', 'private');
     	
         // Добавяне на роля за старши складажия
-        $html .= core_Roles::addRole('store', 'storeWorker') ? "<li style='color:green'>Добавена е роля <b>store</b> наследяваща <b>storeWorker</b></li>" : '';
-    	$html .= core_Roles::addRole('storeMaster', 'store') ? "<li style='color:green'>Добавена е роля <b>storeMaster</b> наследяваща <b>store</b></li>" : '';
+        $html .= core_Roles::addOnce('store', 'storeWorker');
+    	$html .= core_Roles::addOnce('storeMaster', 'store');
 		
     	
     	// Ако няма посочени от потребителя сметки а синхронизация

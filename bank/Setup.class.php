@@ -95,7 +95,8 @@ class bank_Setup extends core_ProtoSetup
     		core_Roles::delete("#role = 'masterBank'");
     	}
     	
-    	$html .= core_Roles::addRole('bankMaster', 'bank') ? "<li style='color:green'>Добавена е роля <b>bankMaster</b></li>" : '';
+    	$html .= core_Roles::addOnce('bankMaster', 'bank');
+
     	return $html;
     }
     
