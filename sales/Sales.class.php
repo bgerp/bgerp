@@ -1619,7 +1619,13 @@ class sales_Sales extends core_Master
      */
     function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
-    	unset($nRec->contoActions, $nRec->paymentState);
+    	unset($nRec->contoActions, 
+    		  $nRec->paymentState, 
+    		  $nRec->amountDelivered, 
+    		  $nRec->amountBl,  
+    		  $nRec->amountPaid, 
+    		  $nRec->amountInvoiced, 
+    		  $nRec->amountToInvoice);
     }
     
     

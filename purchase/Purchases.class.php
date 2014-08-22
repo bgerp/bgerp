@@ -218,6 +218,7 @@ class purchase_Purchases extends core_Master
         $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е фактурирана
         $this->FLD('amountVat', 'double(decimals=2)', 'input=none');
         $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
+        $this->FLD('amountToInvoice', 'double(decimals=2)', 'input=none'); // Сумата която е платена
         
         // Контрагент
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Доставчик');
@@ -1368,7 +1369,13 @@ class purchase_Purchases extends core_Master
      */
     function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
-    	unset($nRec->contoActions, $nRec->paymentState);
+    	unset($nRec->contoActions, 
+    		  $nRec->paymentState, 
+    		  $nRec->amountDelivered, 
+    		  $nRec->amountBl,  
+    		  $nRec->amountPaid, 
+    		  $nRec->amountInvoiced, 
+    		  $nRec->amountToInvoice);
     }
     
     
