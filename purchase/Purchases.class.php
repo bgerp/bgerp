@@ -37,7 +37,7 @@ class purchase_Purchases extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, doc_plg_MultiPrint, plg_Printing, doc_plg_TplManager, acc_plg_Deals, doc_DocumentPlg, acc_plg_Contable,
-				        plg_ExportCsv, cond_plg_DefaultValues, doc_plg_HidePrices, doc_SharablePlg,
+				        plg_ExportCsv, cond_plg_DefaultValues, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
 				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary, plg_Search';
     
     
@@ -218,6 +218,7 @@ class purchase_Purchases extends core_Master
         $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е фактурирана
         $this->FLD('amountVat', 'double(decimals=2)', 'input=none');
         $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
+        $this->FLD('amountToInvoice', 'double(decimals=2)', 'input=none'); // Сумата която е платена
         
         // Контрагент
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Доставчик');
@@ -1356,6 +1357,43 @@ class purchase_Purchases extends core_Master
     			$d1->requestId = $rec->id;
     			$mvc->purchase_PurchasesDetails->save($d1);
     		}
+    	}
+    }
+    
+    
+    /**
+     *
+     * @param unknown $mvc
+     * @param unknown $rec
+     * @param unknown $nRec
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	unset($nRec->contoActions, 
+    		  $nRec->paymentState, 
+    		  $nRec->amountDelivered, 
+    		  $nRec->amountBl,  
+    		  $nRec->amountPaid, 
+    		  $nRec->amountInvoiced, 
+    		  $nRec->amountToInvoice);
+    }
+    
+    
+    /**
+     *
+     * @param unknown $mvc
+     * @param unknown $rec
+     * @param unknown $nRec
+     */
+    function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	//@TODO да се премахне след като се добави тази функционалността в плъгина
+    	$query = purchase_PurchasesDetails::getQuery();
+    	$query->where("#requestId = {$rec->id}");
+    	while($dRec = $query->fetch()){
+    		$dRec->requestId = $nRec->id;
+    		unset($dRec->id);
+    		purchase_PurchasesDetails::save($dRec);
     	}
     }
 }

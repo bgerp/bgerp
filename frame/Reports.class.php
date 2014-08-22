@@ -115,7 +115,7 @@ class frame_Reports extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditform($mvc, &$data)
+    static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
         $rec =  &$form->rec;
@@ -158,6 +158,8 @@ class frame_Reports extends core_Master
             // Източника модифицира формата при нужда
             $Source->prepareReportForm($form);
         }
+        
+        $form->input();
     }
  
 
@@ -166,31 +168,29 @@ class frame_Reports extends core_Master
      */
     function on_AfterInputEditForm($mvc, $form)
     {
-        if($form->isSubmitted() && $form->rec->source) {
+    	// Инстанцираме източника
+    	if($form->rec->source) {
+    		$Source = cls::get($form->rec->source);
+    		if(!$Source->canSelectSource()){
+    			$form->setError('source', 'Нямате права за избрания източник');
+    		}
+    		
+    		// Източника проверява подадената форма
+    		$Source->checkReportForm($form);
+    	}
+    	
+    	if($form->isSubmitted() && $form->rec->source) {
         	
-        	// Инстанцираме източника
-            $Source = cls::get($form->rec->source);
-            if(!$Source->canSelectSource()){
-            	$form->setError('source', 'Нямате права за избрания източник');
+        	$filterFields = array_keys($form->selectFields("(#input == 'input' || #input == '') && !#notFilter"));
+                
+            if(!$form->rec->filter) {
+                $form->rec->filter = new stdClass();
             }
-            
-            // Източника проверява подадената форма
-            $Source->checkReportForm($form);
-            
-            // Ако няма грешки
-            if(!$form->gotErrors()) {
-                
-                $filterFields = array_keys($form->selectFields("(#input == 'input' || #input == '') && !#notFilter"));
-                
-                if(!$form->rec->filter) {
-                    $form->rec->filter = new stdClass();
-                }
 
-                // Записва данните от формата в полето 'filter'
-                if(is_array($filterFields)) {
-                    foreach($filterFields as $field) {
-                        $form->rec->filter->{$field} = $form->rec->{$field};
-                    }
+            // Записва данните от формата в полето 'filter'
+            if(is_array($filterFields)) {
+                foreach($filterFields as $field) {
+                   	$form->rec->filter->{$field} = $form->rec->{$field};
                 }
             }
          }

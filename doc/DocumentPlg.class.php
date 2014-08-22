@@ -1240,6 +1240,27 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+        
+        // @see plg_Clone
+        // Ако ще се клонират данните
+        if ($rec && ($action == 'cloneuserdata')) {
+            
+            if ($rec->threadId && $rec->containerId) {
+                $tRec = doc_Threads::fetch($rec->threadId);
+                
+                // Ако е първи документ, да се клонира в нова нишка
+                if ($tRec->firstContainerId == $rec->containerId) {
+                    unset($rec->threadId);
+                }
+            }
+            
+            // Трябва да има права за добавяне
+            if (!$mvc->haveRightFor('add', $rec)) {
+                
+                // Трябва да има права за добавяне за да може да клонира
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -2018,21 +2039,35 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Прихваща извикването на GetCloneFields от plg_Clone.
-     * Връща полетата, които трябва да се клонират.
-     * Във мениджъра могат да се добавят и другите полета - subject, body и т.н.
+     * Преди записване на клонирания запис
      * 
      * @param core_Mvc $mvc
-     * @param array $fieldsArr
+     * @param object $rec
+     * @param object $nRec
      * 
      * @see plg_Clone
      */
-    function on_GetCloneFields($mvc, &$fieldsArr)
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
-        // Добавяме полетата, които да се клонират
-        $fieldsArr['threadId'] = TRUE;
-        $fieldsArr['folderId'] = TRUE;
-        $fieldsArr['originId'] = TRUE;
+        // Премахваме ненужните полета
+        unset($nRec->searchKeywords);
+        unset($nRec->createdOn);
+        unset($nRec->createdBy);
+        unset($nRec->modifiedOn);
+        unset($nRec->modifiedBy);
+        unset($nRec->state);
+        unset($nRec->brState);
+        
+        if ($nRec->threadId && $nRec->containerId) {
+            $tRec = doc_Threads::fetch($nRec->threadId);
+            
+            // Ако е първи документ, да се клонира в нова нишка
+            if ($tRec->firstContainerId == $nRec->containerId) {
+                unset($nRec->threadId);
+            }
+        }
+        
+        unset($nRec->containerId);
     }
     
     

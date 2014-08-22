@@ -684,6 +684,10 @@ div.acc-detail {
    width: 130px;
 }
 
+.itemClass{
+	min-width: 210px;
+}
+
 .accToolsCell{
    width: 1%;
    a.linkWithIcon{
@@ -868,7 +872,7 @@ td.portal-date {
 	max-width: 56em;
 }
 
-.doc_Containers table.listTable td, .doc_Containers table.listTable th {
+.doc_Containers table.listTable td {
 	vertical-align: top !important;
 }
 
@@ -3710,6 +3714,9 @@ body.narrow {
     .external .document, .external .antetka{
 	    border: none;
 	}
+	.overflow-scroll{
+	   overflow-x: visible !important;
+	}
 }
 
 .printing {
@@ -3775,6 +3782,10 @@ body.narrow {
     .richtextHide {
         display: block !important;
     }
+    .overflow-scroll{
+       overflow-x: visible !important;
+    }
+    
 }
 
 .narrow .printing .document{
