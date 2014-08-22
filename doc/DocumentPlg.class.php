@@ -2039,21 +2039,22 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Прихваща извикването на GetCloneFields от plg_Clone.
-     * Връща полетата, които трябва да се клонират.
-     * Във мениджъра могат да се добавят и другите полета - subject, body и т.н.
+     * Преди записване на клонирания запис
      * 
      * @param core_Mvc $mvc
-     * @param array $fieldsArr
+     * @param object $rec
+     * @param object $nRec
      * 
      * @see plg_Clone
      */
-    function on_GetCloneFields($mvc, &$fieldsArr)
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
-        // Добавяме полетата, които да се клонират
-        $fieldsArr['threadId'] = TRUE;
-        $fieldsArr['folderId'] = TRUE;
-        $fieldsArr['originId'] = TRUE;
+        // Премахваме ненужните полета
+        unset($nRec->searchKeywords);
+        unset($nRec->createdOn);
+        unset($nRec->createdBy);
+        unset($nRec->modifiedOn);
+        unset($nRec->modifiedBy);
     }
     
     
