@@ -1612,36 +1612,14 @@ class sales_Sales extends core_Master
     
     
     /**
-     * Прихваща извикването на GetCloneFields от plg_Clone.
-     * Връща полетата, които трябва да се клонират.
-     * Във мениджъра могат да се добавят и другите полета - subject, body и т.н.
-     * 
-     * @param core_Mvc $mvc
-     * @param array $fieldsArr
-     * 
-     * @see plg_Clone
+     *
+     * @param unknown $mvc
+     * @param unknown $rec
+     * @param unknown $nRec
      */
-    function on_GetCloneFields($mvc, &$fieldsArr)
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
-		// Добавяме полетата, които да се клонират
-        $fieldsArr['valior'] = TRUE;
-        $fieldsArr['contragentClassId'] = TRUE;
-        $fieldsArr['contragentId'] = TRUE;
-        $fieldsArr['deliveryTermId'] = TRUE;
-        $fieldsArr['deliveryLocationId'] = TRUE;
-        $fieldsArr['deliveryTime'] = TRUE;
-        $fieldsArr['shipmentStoreId'] = TRUE;
-        $fieldsArr['paymentMethodId'] = TRUE;
-        $fieldsArr['currencyId'] = TRUE;
-        $fieldsArr['currencyRate'] = TRUE;
-        $fieldsArr['bankAccountId'] = TRUE;
-        $fieldsArr['caseId'] = TRUE;
-        $fieldsArr['initiatorId'] = TRUE;
-        $fieldsArr['dealerId'] = TRUE;
-        $fieldsArr['chargeVat'] = TRUE;
-        $fieldsArr['makeInvoice'] = TRUE;
-        $fieldsArr['pricesAtDate'] = TRUE;
-        $fieldsArr['note'] = TRUE;
+    	unset($nRec->contoActions, $nRec->paymentState);
     }
     
     
@@ -1653,6 +1631,8 @@ class sales_Sales extends core_Master
      */
     function on_AfterSaveCloneRec($mvc, $rec, $nRec)
     {
+    	
+    	
     	//@TODO да се премахне след като се добави тази функционалността в плъгина
     	$query = sales_SalesDetails::getQuery();
     	$query->where("#saleId = {$rec->id}");
