@@ -1,8 +1,18 @@
 <b>[#accountId#]</b><br>
-|Период|*: [#from#] - [#to#]<br><br>
-<!--ET_BEGIN groupBy-->
-|Групиране по|*: [#groupBy#]
-<!--ET_END groupBy-->
+<table class='top-table'  style='margin-bottom: 10px;'>
+    <tr>
+        <td class='aright quiet'>|Период|*:</td>
+        <td> [#from#] - [#to#] </td>
+    </tr>
+    <!--ET_BEGIN groupBy-->
+    <tr>
+        <td class='aright quiet'> |Групиране по|*:</td>
+        <td>[#groupBy#]</td>
+    </tr>
+    <!--ET_END groupBy-->
+</table>
 [#PAGER_TOP#]
-[#DETAILS#]
+<div class='overflow-scroll'>
+    [#DETAILS#]
+</div>
 [#PAGER_BOTTOM#]

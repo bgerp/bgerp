@@ -322,6 +322,9 @@ class acc_BalanceReportImpl
     	$tpl->placeObject($filter);
     	
     	$tableMvc = new core_Mvc;
+    	$tableMvc->FLD('ent1Id', 'varchar', 'tdClass=itemClass');
+    	$tableMvc->FLD('ent2Id', 'varchar', 'tdClass=itemClass');
+    	$tableMvc->FLD('ent3Id', 'varchar', 'tdClass=itemClass');
     	$tableMvc->FLD('baseQuantity', 'int', 'tdClass=accCell');
     	$tableMvc->FLD('baseAmount', 'int', 'tdClass=accCell');
     	$tableMvc->FLD('debitQuantity', 'int', 'tdClass=accCell');
