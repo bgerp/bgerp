@@ -2055,6 +2055,19 @@ class doc_DocumentPlg extends core_Plugin
         unset($nRec->createdBy);
         unset($nRec->modifiedOn);
         unset($nRec->modifiedBy);
+        unset($nRec->state);
+        unset($nRec->brState);
+        
+        if ($nRec->threadId && $nRec->containerId) {
+            $tRec = doc_Threads::fetch($nRec->threadId);
+            
+            // Ако е първи документ, да се клонира в нова нишка
+            if ($tRec->firstContainerId == $nRec->containerId) {
+                unset($nRec->threadId);
+            }
+        }
+        
+        unset($nRec->containerId);
     }
     
     
