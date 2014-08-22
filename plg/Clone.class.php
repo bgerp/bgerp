@@ -205,15 +205,15 @@ class plg_Clone extends core_Plugin
                     }
                 }
             }
-            
-            // Ако ще се клонират данни на потребителя
-            if ($action == 'cloneuserdata') {
-                
-                // Трябва да има права за добавяне за да може да клонира
-                if (!$mvc->haveRightFor('add', $rec)) {
-                    $requiredRoles = 'no_one';
-                }
-            }
+//            
+//            // Ако ще се клонират данни на потребителя
+//            if ($action == 'cloneuserdata') {
+//                
+//                // Трябва да има права за добавяне за да може да клонира
+//                if (!$mvc->haveRightFor('add', $rec)) {
+//                    $requiredRoles = 'no_one';
+//                }
+//            }
         }
     }
     
