@@ -214,6 +214,16 @@ class fileman_GalleryGroups extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
+        
+        // Ако ще се клонират данни на потребителя
+        // see plg_Clone
+        if ($rec && ($action == 'cloneuserdata')) {
+            
+            // Трябва да има права за добавяне за да може да клонира
+            if (!$mvc->haveRightFor('add', $rec)) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
