@@ -62,14 +62,21 @@ class acc_BalanceReportImpl
     	
     	// Ако е избрана сметка
     	if($form->rec->accountId){
-    		unset($form->rec->filter->ent1Id, $form->rec->filter->ent2Id, $form->rec->filter->ent3Id);
     		$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
-    		
-    		// За всяка от аналитичностите, добавяме избор на пера
+    		 
+    		// Показваме номенкалтурите на сметката като предложения за селектиране
+    		$options = array();
     		if(count($accInfo->groups)){
     			foreach ($accInfo->groups as $i => $gr){
-    				$form->FLD("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty)", "caption=Филтър по пера->{$gr->rec->name}");
+    				$options["ent{$i}Id"] .= $gr->rec->name;
     			}
+    		}
+    		 
+    		// Ако има номенклатури добавя ме ги към формата в type_Set поле и ги избираме всичките по дефолт
+    		if(count($options)){
+    			$setOptions = arr::fromArray($options);
+    			$form->FLD('groupBy', "set($setOptions)", 'columns=1,input,caption=Групиране по');
+    			$form->setDefault('groupBy', implode(',', array_flip($options)));
     		}
     	}
     }
@@ -81,7 +88,6 @@ class acc_BalanceReportImpl
     public function checkReportForm($form)
     {
     	if($form->isSubmitted()){
-    		
     		if($form->rec->to < $form->rec->from){
     			$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
     		}
@@ -97,10 +103,16 @@ class acc_BalanceReportImpl
     	$data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
     	$bShowQuantities = FALSE;
     	$bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
+    	$data->groupBy = arr::make($data->rec->groupBy, TRUE);
     	
     	$data->listFields = array();
     	if(count($data->accInfo->groups)){
-    		$data->listFields = array('id' => '№', 'entries' => '|Пера|*');
+    		$data->listFields = array('id' => '№');
+    		foreach ($data->accInfo->groups as $i => $gr){
+    			if(!count($data->groupBy) || isset($data->groupBy["ent{$i}Id"])){
+    				$data->listFields["ent{$i}Id"] = acc_Lists::getVerbal($gr->rec, 'name');
+    			}
+    		}
     	}
     	
     	if ($bShowQuantities) {
@@ -137,10 +149,8 @@ class acc_BalanceReportImpl
     	$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
     	$Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to));
     	$data->recs = $Balance->getBalance($accSysId);
-    	 
-    	if(!empty($filter->ent1Id) || !empty($filter->ent2Id) || !empty($filter->ent3Id)){
-    		$this->filterRecsByItems($data->recs, $filter);
-    	}
+    	
+    	$this->filterRecsByItems($data, $filter);
     	
     	// Подготвяме страницирането
     	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listItemsPerPage));
@@ -177,21 +187,39 @@ class acc_BalanceReportImpl
     /**
      * Оставяме в записите само тези, които трябва да показваме
      */
-    private function filterRecsByItems(&$recs, $filter)
+    private function filterRecsByItems(&$data, $filter)
     {
-    	if(!count($recs)) return;
+    	if(!count($data->recs)) return;
     	
-    	foreach ($recs as $id => $rec){
-    		$unset = FALSE;
-    		foreach (range(1, 3) as $i){
-    			static::$cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
-    			if(isset($filter->{"ent{$i}Id"}) && $rec->{"ent{$i}Id"} != $filter->{"ent{$i}Id"}){
-    				$unset = TRUE;
+    	if(count($data->groupBy)){
+    		$newRecs = array();
+    		
+    		foreach ($data->recs as $id => $rec){
+    			$newIndex = '';
+    			$newIndex .= ($data->groupBy['ent1Id']) ? $rec->ent1Id : '';
+    			$newIndex .= ($data->groupBy['ent2Id']) ? "|" . $rec->ent2Id : '';
+    			$newIndex .= ($data->groupBy['ent3Id']) ? "|" . $rec->ent3Id : '';
+    			
+    			if(!isset($newRecs[$newIndex])){
+    				$newRecs[$newIndex] = $rec;
+    			} else {
+    				$r = &$newRecs[$newIndex];
+    				foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    					if(!is_null($rec->$fld)){
+    						$r->$fld += $rec->$fld;
+    					}
+    				}
     			}
     		}
     		
-    		if($unset){
-    			unset($recs[$id]);
+    		$data->recs = $newRecs;
+    	}
+    	
+    	foreach ($data->recs as $id => $rec){
+    		foreach (range(1, 3)as $i){
+    			if(isset($rec->{"ent{$i}Id"})){
+    				static::$cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
+    			}
     		}
     	}
     	
@@ -204,7 +232,7 @@ class acc_BalanceReportImpl
     	}
     	
     	// Филтрираме ги по номерата
-    	usort($recs, array($this, "sortRecs"));
+    	usort($data->recs, array($this, "sortRecs"));
     }
     
     
@@ -255,7 +283,7 @@ class acc_BalanceReportImpl
     	
     	foreach (array(1 => 'ent1Id', 2 =>  'ent2Id', 3 => 'ent3Id') as $id => $fld){
     		if(isset($rec->$fld)){
-    			$row->entries .= "<div><span style='margin-left:5px; font-size: 12px; color: #747474;'> {$id} . </span>" . acc_Items::getVerbal($rec->$fld, 'titleLink') . "</div>";
+    			$row->$fld .= acc_Items::getVerbal($rec->$fld, 'titleLink');
     		}
     	}
     	
@@ -275,7 +303,15 @@ class acc_BalanceReportImpl
     	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
     	$filter->accountId = acc_Balances::getAccountLink($data->rec->accountId, NULL, TRUE, TRUE);
     	
+    	
     	// Показваме за кои пера има филтриране
+    	if(count($data->groupBy)){
+    		foreach ($data->groupBy as $fld){
+    			$filter->groupBy .= $data->listFields[$fld] . ", ";
+    		}
+    		$filter->groupBy = trim($filter->groupBy, ', ');
+    	}
+    	
     	foreach (range(1, 3) as $i){
     		if(isset($data->rec->{"ent{$i}Id"})){
     			$filter->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
