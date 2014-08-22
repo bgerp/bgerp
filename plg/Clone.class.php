@@ -47,58 +47,28 @@ class plg_Clone extends core_Plugin
         // Права за работа с екшън-а
         $mvc->requireRightFor('clonerec', $rec);
         
-        // Вземаме формата към този модел
-        $form = $mvc->getForm();
+        // Подготвяме формата
+        $data = new stdClass();
+        $data->action = 'clone';
+        $mvc->prepareEditForm($data);
+        $form = &$data->form;
         
-        // Вземаме всички полета, които ще се инпутват
-        $fields = $form->selectFields("#input == 'input' || #input ==''");
+        // Задаваме екшъна
+        $form->setAction($mvc, 'clonefields');
         
-        // Масив с всички полета, които ще се записват
-        $saveRecF = array();
+        // Инпутваме формата
+        $form->input();
         
-        // Вземаме всички полета, които ще се клонират
-        $mvc->invoke('getCloneFields', array(&$saveRecF));
-        
-        // Ако не са зададени
-        if (!$saveRecF) {
-            
-            // Използваме всички видими полета
-            $saveRecF = $fields;
-        }
-        
-        // Обхождаме масива с полетата, които ще се клонират
-        foreach((array)$saveRecF as $field => $dummy) {
-            
-            // Попълваме формата със стойностите от записа
-            $form->rec->{$field} = $rec->$field;
-//            $form->setDefault($field, $rec->$field);
-        }
-        
-        // Въвеждаме полетата
-        $form->input($fields);
-        
-        // Въвеждаме SILENT полетата
-        $form->input(FALSE, TRUE);
+        // Генерираме събитие в $this, след въвеждането на формата
+        $mvc->invoke('AfterInputEditForm', array($form));
         
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
             
             // Обекта, който ще се запишем
             $nRec = new stdClass();
-            
-            // Масив с всички данни, които ще записваме в
-            $allSaveRecF = array_merge($saveRecF, $fields);
-            
-            // Обхождаме масива с полетата, които ще се добавят
-            foreach ((array)$allSaveRecF as $field => $dummy) {
-                
-                // Ако е 'id', да не се добавя
-                // За всеки случай
-                if ($field == 'id') continue;
-                
-                // Добавяме към записа
-                $nRec->$field = $form->rec->$field;
-            }
+            $nRec = clone $form->rec;
+            unset($nRec->id);
             
             // Инвокваме фунцкцията, ако някой иска да променя нещо
             $mvc->invoke('BeforeSaveCloneRec', array($rec, &$nRec));
@@ -144,9 +114,6 @@ class plg_Clone extends core_Plugin
                 $retUrl = array($mvc, 'list');
             }
         }
-        
-        // Задаваме да се показват всички полета, които могат да се вкарат
-        $form->showFields = $fields;
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
