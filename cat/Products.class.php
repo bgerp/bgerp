@@ -419,14 +419,14 @@ class cat_Products extends core_Master {
                 'uomId' => $rec->measureId,
                 'features' => array()
             );
-        }
-        
-    	if($rec->groups){
-            $groups = strip_tags($self->getVerbal($rec, 'groups'));
-            $result->features = $result->features + arr::make($groups, TRUE);
-        }
             
-        $result->features = $self->Params->getFeatures($self, $objectId, $result->features);
+            if($rec->groups){
+            	$groups = strip_tags($self->getVerbal($rec, 'groups'));
+            	$result->features = $result->features + arr::make($groups, TRUE);
+            }
+            
+            $result->features = $self->Params->getFeatures($self, $objectId, $result->features);
+        }
         
         return $result;
     }
