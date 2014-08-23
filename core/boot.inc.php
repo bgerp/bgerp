@@ -311,6 +311,12 @@ ob_clean();
 // PHP5.4 bugFix
 ini_set('zlib.output_compression', 'Off');
 
+// Вътрешно кодиране
+mb_internal_encoding("UTF-8");
+
+// Локал за функции като basename
+setlocale(LC_ALL, 'en_US.UTF8');
+
 /**
  * Стартира Setup, ако се изисква
  */
@@ -318,16 +324,10 @@ if (isset($_GET['SetupKey'])) {
 	require_once(EF_EF_PATH . "/core/Setup.inc.php");
 }
 
-
 // Стартира записа в буфера, като по възможност компресира съдържанието
 ob_start();
 //ob_start('ob_gzhandler');
 
-// Вътрешно кодиране
-mb_internal_encoding("UTF-8");
-
-// Локал за функции като basename
-setlocale(LC_ALL, 'en_US.UTF8');
 
 if (!defined('EF_DONT_AUTORUN')) {
     core_App::run();
