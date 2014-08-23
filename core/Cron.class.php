@@ -31,13 +31,13 @@ class core_Cron extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id,title=Описание,parameters=Параметри,last=Последно";
+    var $listFields = "id,title=Описание,parameters=Параметри,last=Последно,state";
     
     
     /**
      * Списък с плъгини, които се прикачат при конструиране на мениджъра
      */
-    var $loadList = "plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_RefreshRows";
+    var $loadList = "plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_RefreshRows,plg_State2";
     
     
     /**
@@ -151,10 +151,7 @@ class core_Cron extends core_Manager
 
         $apacheProc = $Os->countApacheProc();
         
-        $this->log("{$this->className} is working: {$i} processes was run in $currentMinute, total {$apacheProc} Apaches on server", NULL, 7);
-        
-        echo("<li> {$now} {$this->className}: $i processes was run");
-        shutdown();
+        $this->logThenStop("{$this->className} is working: {$i} processes was run in $currentMinute, total {$apacheProc} Apaches on server");
     }
     
     
@@ -184,38 +181,25 @@ class core_Cron extends core_Manager
         
         if (!$id || !is_numeric($id)) {
             $cryptId = Request::get('id');
-            $msg = "Error: ProcessRun -> incorrect crypted id: {$cryptId}";
-            $this->log($msg, NULL, 7);
-            echo("$msg");
-            shutdown();
+            $this->logThenStop("Error: ProcessRun -> incorrect crypted id: {$cryptId}");
         }
         
         // Вземаме информация за процеса
         $rec = $this->fetch($id);
         
         if (!$rec) {
-            $msg = "Error: ProcessRun -> missing record for  id = {$id}";
-            $this->log($msg, NULL, 7);
-            echo(core_Debug::getLog());
-            shutdown();
+            $this->logThenStop("Error: ProcessRun -> missing record for  id = {$id}");
         }
         
         // Дали процесът не е заключен?
         if ($rec->state == 'locked' && !$forced) {
-            $msg = "Error: Process \"{$rec->systemId}\" is locked!";
-            $this->log($msg, NULL, 7);
-            echo(core_Debug::getLog());
-            shutdown();
+            $this->logThenStop("Error: Process \"{$rec->systemId}\" is locked!");
         }
         
         // Дали този процес не е стартиран след началото на текущата минута
         $nowMinute = date("Y-m-d H:i:00", time());
-        
         if ($nowMinute <= $rec->lastStart && !$forced) {
-            $msg = "Error: Process \"{$rec->systemId}\" have been started after $nowMinute!";
-            $this->log($msg, NULL, 7);
-            echo(core_Debug::getLog());
-            shutdown();
+            $this->logThenStop("Error: Process \"{$rec->systemId}\" have been started after $nowMinute!");
         }
         
         // Заключваме процеса и му записваме текущото време за време на последното стартиране
@@ -264,22 +248,31 @@ class core_Cron extends core_Manager
                 $msg = "ProcessRun successfuly execute {$rec->controller}->{$act} for {$workingTime}sec. {$content}";
                 $this->log($msg, $rec->id, $logLifeTime);
             } else {
-                $msg = "Error: ProcessRun -> missing method \"$act\" on class  {$rec->controller}";
-                $this->log($msg, $rec->id, 7);
                 $this->unlockProcess($rec);
+                $this->logThenStop("Error: ProcessRun -> missing method \"$act\" on class  {$rec->controller}", $rec->id);
                 echo(core_Debug::getLog());
                 shutdown();
             }
         } else {
-            $msg = "Error: ProcessRun -> missing class  {$rec->controller} in process ";
-            $this->log($msg, $rec->id, 7);
             $this->unlockProcess($rec);
+            $this->logThenStop("Error: ProcessRun -> missing class  {$rec->controller} in process ", $rec->id);
             echo(core_Debug::getLog());
             shutdown();
         }
         
         // Отключваме процеса и му записваме текущото време за време на последното приключване
         $this->unlockProcess($rec);
+        echo(core_Debug::getLog());
+        shutdown();
+    }
+
+
+    /**
+     * Записва в лога и спира
+     */
+    function logThenStop($msg, $id = NULL)
+    {
+        $this->log($msg, $id, 7);
         echo(core_Debug::getLog());
         shutdown();
     }
@@ -386,31 +379,75 @@ class core_Cron extends core_Manager
      * 
      * return boolean
      */
-    function addOnce($rec)
+    static function addOnce($rec)
     {
-
-        $recCurrent = $this->fetch(array("#systemId = '[#1#]'", $rec->systemId));
-
-        // Ако има запис 
-        if (!empty($recCurrent)) {
-            // и не е променян от потребител - записа се обновява
-            if ($recCurrent->modifiedBy == "-1") {
-                $rec->id = $recCurrent->id;
-            } else { 
-                // Ако е променян от потребител не пипаме нищо
-                return false;
-            } 
+        
+        if(is_array($rec)) {
+            $rec = (object) $rec;
         }
         
+        expect($rec->systemId);
+        expect($rec->description);
+        expect($rec->controller);
+        expect($rec->action);
+        
+        // Периода трябва да е по-голям от една минута
+        expect($rec->period >= 1);
+        
+        // Офсета трябва да е по-голям от нула и да е по-малък от периода
+        $rec->offset = max(0, $rec->offset);
+        expect($rec->period > $rec->offset);
+ 
+        // Търсим дали има съществуващ запис със същото id
+        $exRec = self::fetch(array("#systemId = '[#1#]'", $rec->systemId ));
+
+        
+        // Записваме, че записът е създаден от системния потребител
+        setIfNot($rec->createdBy, -1);
+
         // Ако няма зададено преди това състояние - то е празно
         setIfNot($rec->state, 'free');
 
         // По подразбиране 50 секунди времелимит за извършване на операцията
         setIfNot($rec->timeLimit, 50);
+
+        // Описанието с малки букви
+        $description = mb_strtolower(mb_substr($rec->description, 0, 1)) . mb_substr($rec->description, 1);
         
-        $this->save($rec);
-        
-        return $rec->id;
+        // Ако има стар запис 
+        if ($exRec) {
+            
+            $rec->id = $exRec->id;
+
+            if( $rec->systemId != $exRec->systemId ||
+                $rec->description != $exRec->description ||
+                $rec->controller != $exRec->controller ||
+                $rec->action != $exRec->action ||
+                $rec->period != $exRec->period ||
+                floor($rec->offset) != floor($exRec->offset) ||
+                floor($rec->delay) != floor($exRec->delay) ||
+                $rec->timeLimit != $exRec->timeLimit) {
+
+                $mustSave = TRUE;
+                $msg = "<li class=\"debug-update\">Обновено {$description} по разписание</li>";
+            } else {
+                $mustSave = FALSE;
+                $msg = "<li class=\"debug-info\">Съществуващо {$description} по разписание</li>";
+            }
+
+        } else {
+            $mustSave = TRUE;
+            $msg = "<li class=\"debug-new\">Добавено {$description} по разписание</li>";
+        }
+ 
+
+        if($mustSave) {
+            if(!self::save($rec)) {
+                $msg = "<li class=\"debug-error\">Грешка при нагласяне на {$description} по разписание</li>";
+            }
+        }
+
+        return $msg;
     }
     
     

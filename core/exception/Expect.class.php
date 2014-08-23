@@ -71,7 +71,7 @@ class core_exception_Expect extends Exception
     {
         $trace = static::prepareTrace($trace);
 
-        $result = '<pre><table border="1" style="border-collapse: collapse;" cellpadding="3">';
+        $result = '<div><table border="1" style="border-collapse: collapse;" cellpadding="3">';
 
         foreach ($trace as $row) {
             $result .= '<tr>';
@@ -81,7 +81,7 @@ class core_exception_Expect extends Exception
             $result .= '</tr>';
         }
 
-        $result .= '</table></pre>';
+        $result .= '</table></div>';
 
         return $result;
     }
@@ -95,7 +95,8 @@ class core_exception_Expect extends Exception
             $file = 'unknown';
             if (!empty($frame['file'])) {
                 $file = str_replace(EF_ROOT_PATH . '/', '', $frame['file']);
-                $file = sprintf('<a href="#%s:%s">%s:%s</a>', $frame['file'], $frame['line'], $file, $frame['line']);
+                $hash = md5($frame['file'] . ':' . $frame['line']);
+                $file = sprintf('<a href="#%s">%s:%s</a>', $hash, $file, $frame['line']);
                 if ($rUrl = static::getRepoSourceUrl($frame['file'], $frame['line'])) {
                     $file = sprintf('<a target="_blank" class="octocat" href="%s"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, sbf('img/16/github.png')) . $file;
                 }

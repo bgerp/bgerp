@@ -23,7 +23,7 @@ class core_Html
      * @see bp()
      * @see core_Html::mixedToHtml()
      */
-    public static $dumpMaxDepth = 4;
+    public static $dumpMaxDepth = 8;
 
 
     /**
@@ -785,9 +785,9 @@ class core_Html
             $i--;
             
             if(is_array($o)) {
-                $res = '(array)';
+                $res = '(array)...';
             } elseif(is_object($o)) {
-                $res = '(object)';
+                $res = '(object)...';
             } elseif(is_scalar($o)) {
                 $res = htmlentities($o, ENT_COMPAT | ENT_IGNORE, 'UTF-8');
             } else {
@@ -799,33 +799,73 @@ class core_Html
 
 
         if (is_object($o)) {
-            $r = get_class($o);
-            $o = get_object_vars($o);
+
+            $res = $usedNames = array();
+            
+            $class = $r = get_class($o);
+
+            if(strtolower($class) == 'stdclass') {
+                $res = get_object_vars($o);
+            } else {
+                do {
+                    $reflection = new ReflectionClass($class);
+                    foreach($reflection->getProperties(ReflectionProperty::IS_STATIC | ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED | ReflectionProperty::IS_PRIVATE) as $prop) {
+                        $prop->setAccessible(TRUE);
+                        $name = $prop->getName();
+                        if(!$usedNames[$name]) {
+                            $res[$name] = $prop->getValue($o);
+                            $usedNames[$name] = TRUE;
+                        }
+                    }
+                    
+                } while($class = get_parent_class($class));
+            }
+
+            $o = $res;
         }
 
         if (is_array($o)) {
-            $r = "($r)<div style='margin-left:10px; border-left:solid 1px #ccc; padding-left:3px;'>";
+            if($i >= 3) {
+                $html = "\n($r)\n<ul class='hidden' style='display:none;'>";
+            } else {
+                $html = "\n($r)\n<ul>";
+            }
+
+            if($i >= 2) {
+                $style = 'style="border-bottom:dotted 1px #bbb;"';
+            } else {
+                $style = '';
+            }
 
             if (count($o)) {
                 foreach ($o as $name => $value) {
                     if($name === 'dbPass') {
-                        $r .= "$name : ******<br>";
+                        $html .= "\n    <li class='trigger'>" . "$name : ******"  . "</li>";
                     } else {
-                        $r .= htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . " : " . static::mixedToHtml($value) . "<br>";
+                        if(is_scalar($value) || $value === NULL || (is_array($value) && count($value) ==0)) {
+                            $html .= "\n    <li class='trigger'>" . htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . " : " . static::mixedToHtml($value) . "</li>";
+                        } else {
+                            $html .= "\n    <li class='trigger'><span $style>" . htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . "</span> : " . static::mixedToHtml($value) . "</li>";
+                        }
                     }
                 }
             }
-            $r .= "</div>";
+            $html .= "\n</ul>";
         } elseif (is_string($o)) {
-            $r = "($r) " . htmlentities($o, ENT_COMPAT | ENT_IGNORE, 'UTF-8');
+            $html = "($r) " . htmlentities($o, ENT_COMPAT | ENT_IGNORE, 'UTF-8');
         } elseif (is_bool($o)) {
-            $r = "($r) " . ($o ? 'TRUE' : 'FALSE');
+            $html = "($r) " . ($o ? 'TRUE' : 'FALSE');
         } else {
-            $r = "($r) " . $o;
+            $html = "($r) " . $o;
         }
         $i--;
+        
 
-        return $r;
+        if($i == 0) {
+            $html = "<div class='dump'>{$html}</div>";
+        }
+
+        return $html;
     }
 
 
@@ -837,9 +877,9 @@ class core_Html
         $result = '';
 
         foreach ($arr as $item) {
-            $result .= "<hr><br><pre>";
+            $result .= "<hr><br><div>";
             $result .= static::mixedToHtml($item);
-            $result .= "</pre>";
+            $result .= "</div>";
         }
 
         return $result;

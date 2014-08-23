@@ -48,7 +48,7 @@ class core_App
         {
             if($e->class == 'core_Db' && core_Db::databaseEmpty()) {
                 // При празна база редиректваме безусловно към сетъп-а
-                 redirect(core_Url::addParams(getSelfURL(), array('SetupKey' => setupKey())));
+                 redirect(array('Index', 'SetupKey' => setupKey()));
             }
             
             // Ако възникне грешка в core_Message
@@ -945,9 +945,6 @@ class core_App
                 
                 // Датата на последна модификация
                 $time = filemtime($f);
-                if(strpos($rPath, 'core') === 0) {
-                   // bp(date("mdHis", $time));
-                }
             }
             
             // Новия файл
@@ -1167,15 +1164,47 @@ class core_App
     		mkdir(EF_TEMP_PATH, 0777, TRUE);    
 		}
 
-        //file_put_contents(EF_TEMP_PATH . '/err.log.html', $errHtml . date("Y-m-d H:i:s") . "\n\n", FILE_APPEND);
-        file_put_contents(EF_TEMP_PATH . '/err.log.html', $errHtml . date("Y-m-d H:i:s") . "\n\n");
         
         // Сигнал за външния свят, че нещо не е наред
         header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request', TRUE, 500);
 
         header('Content-Type: text/html; charset=UTF-8');
 
-        echo($errHtml);
+        $page = "<!DOCTYPE html>\n" .
+                "<html><head>\n" .
+                "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">\n" .
+                "<meta name=\"robots\" content=\"noindex,nofollow\">\n" .
+                "<title>BP on " . date("Y-m-d H:i:s") . "</title>\n" .
+                "<script src=\"//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js\"></script>\n" .
+                "<style>\n" .
+                "    .dump {font-family: Consolas,Courier New,monospace; monospace; font-size:12px;}\n" .
+                "    .dump ul {list-style-type: none; margin:0;margin-left:10px; border-left:solid 1px #bbb; padding:0; padding-left:3px;}\n" .
+                "    .dump li {margin-top:3px;display:table;}\n" .
+                "</style>\n" .
+                "</head>\n" .
+                "<body>\n" .
+                $errHtml . "\n" .
+                "<script>\n" .
+                "\$('document').ready(function() {\$('.trigger').click(function(event){\n" .
+                "var obj = \$(this).children('ul')[0];\n" .
+                "var sp  = \$(this).children('span')[0];\n" .
+                "if(\$(obj).hasClass('hidden')){\n" .
+                "    \$(sp).css('border-bottom', 'none');\n" .
+                "    \$(obj).removeClass('hidden').slideDown();\n" .
+                "} else {\n" .
+                "    \$(sp).css('border-bottom', 'dotted 1px #bbb');\n" .
+                "    \$(obj).addClass('hidden').slideUp();\n" .
+                "}\n" .
+                "event.stopPropagation();});\n" .
+                "});\n" .
+                "</script>\n" .
+                "</body>\n" .
+                "</html>\n";
+        
+        // Записваме за всеки случай и като файл
+        file_put_contents(EF_TEMP_PATH . '/err.log.html', $page . "\n\n");
+
+        echo $page;
         
         exit(-1);
     }
@@ -1188,9 +1217,7 @@ class core_App
 	{
 		$stack = static::prepareStack($stack, $breakFile, $breakLine);
 
-        $errHtml .= "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
-        "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
-        "<h1>Прекъсване на линия <span style=\"color:red\">$breakLine</span> в " .
+        $errHtml .= "<h1>Прекъсване на линия <span style=\"color:red\">$breakLine</span> в " .
         "<span style=\"color:red\">$breakFile</span></h1>";
 
         $errHtml .= $html;
@@ -1313,9 +1340,10 @@ class core_App
         $result = '';
 
         foreach ($stack as $f) {
-            $result .= "<hr><br><pre id=\"{$f['file']}:{$f['line']}\">";
+            $hash = md5($f['file']. ':' . $f['line']);
+            $result .= "<hr><br><div id=\"{$hash}\">";
             $result .= core_Html::mixedToHtml($f);
-            $result .= "</pre>";
+            $result .= "</div>";
         }
 
         return $result;
