@@ -925,8 +925,6 @@ class cams_Records extends core_Master
         }
         
         // Наглася Cron да стартира записването на камерите
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "record_video";
         $rec->description = "Правят се записи от камерите";
@@ -934,8 +932,8 @@ class cams_Records extends core_Master
         $rec->action = "RecordVideo";
         $rec->period = (int) $conf->CAMS_CLIP_DURATION / 60;
         $rec->offset = 0;
-        
-        $Cron->addOnce($rec);
+        $res .= core_Cron::addOnce($rec);
+
         
         $rec = new stdClass();
         $rec->systemId = "delete_old_video";
@@ -944,8 +942,7 @@ class cams_Records extends core_Master
         $rec->action = "DeleteOldRecords";
         $rec->period = (int) 2 * $conf->CAMS_CLIP_DURATION / 60;
         $rec->offset = 0;
-        
-        $Cron->addOnce($rec);
+        $res .= core_Cron::addOnce($rec);
     }
     
     

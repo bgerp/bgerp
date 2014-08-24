@@ -306,8 +306,6 @@ class trz_SalaryIndicators extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "CollectIndicators";
         $rec->description = "Изпращане на данните към показателите за заплатите";
@@ -315,9 +313,6 @@ class trz_SalaryIndicators extends core_Manager
         $rec->action = "Indicators";
         $rec->period = 3*60;
         $rec->offset = 0;
-        
-        $Cron->addOnce($rec);
-        
-        $res .= "<li>Напомняне  по крон</li>";
+        $res .= core_Cron::addOnce($rec);
     }
 }

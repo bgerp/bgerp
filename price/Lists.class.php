@@ -229,9 +229,9 @@ class price_Lists extends core_Master
      * Себестойност - тук се задават цените на придобиване на стоките, продуктите и услугите
      * Каталог - това са цените които се публикуват
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function loadSetupData()
     {
-		if(!$mvc->fetchField(price_ListRules::PRICE_LIST_COST, 'id')) {
+		if(!$this->fetchField(price_ListRules::PRICE_LIST_COST, 'id')) {
             $rec = new stdClass();
             $rec->id = price_ListRules::PRICE_LIST_COST;
             $rec->parent = NULL;
@@ -241,10 +241,10 @@ class price_Lists extends core_Master
             $rec->public = 'no';
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
-            $mvc->save($rec, NULL, 'REPLACE');
+            $this->save($rec, NULL, 'REPLACE');
         }
         
-        if(!$mvc->fetchField(price_ListRules::PRICE_LIST_CATALOG, 'id')) {
+        if(!$this->fetchField(price_ListRules::PRICE_LIST_CATALOG, 'id')) {
             $rec = new stdClass();
             $rec->id = price_ListRules::PRICE_LIST_CATALOG;
             $rec->parent = price_ListRules::PRICE_LIST_COST;
@@ -254,7 +254,7 @@ class price_Lists extends core_Master
             $rec->public = 'yes';
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
-            $mvc->save($rec, NULL, 'REPLACE');
+            $this->save($rec, NULL, 'REPLACE');
         }
     }
 }

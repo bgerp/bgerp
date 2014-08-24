@@ -400,7 +400,7 @@ class acc_Accounts extends core_Manager
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res) 
+    function loadSetupData() 
     {
     	// Подготвяме пътя до файла с данните 
     	$file = "acc/csv/Accounts.csv";
@@ -421,10 +421,12 @@ class acc_Accounts extends core_Manager
     	    	
     	// Импортираме данните от CSV файла. 
     	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL); 
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL); 
      	
     	// Записваме в лога вербалното представяне на резултата от импортирането 
     	$res .= $cntObj->html;
+
+        return $res;
     }
     
     
@@ -459,16 +461,15 @@ class acc_Accounts extends core_Manager
             return NULL;
         }
         
-        if (!preg_match('/\((\d+)\)\s*$/', $string, $matches)) {
-            bp('Некоректно форматирано име на номенклатура, очаква се `Име (код)`', $string);
-        }
+        expect( preg_match('/\((\d+)\)\s*$/', $string, $matches),
+                    'Некоректно форматирано име на номенклатура, очаква се `Име (код)`', 
+                    $string);
         
+        // Проблем: парсиран е код, но не е намерена номенклатура с този код
         $num = (int)$matches[1];
-        
-        if (! ($listId = acc_Lists::fetchField("#num={$num}", 'id'))) {
-            // Проблем: парсиран е код, но не е намерена номенклатура с този код
-            bp('В ' . self::getCsvFile() . ' има номер на номенклатура, която не е открита в acc_Lists', $num, $string);
-        }
+        expect(($listId = acc_Lists::fetchField("#num={$num}", 'id')),
+                'В ' . "acc/csv/Accounts.csv" . ' има номер на номенклатура, която не е открита в acc_Lists', 
+                $num, $string);
         
         return $listId;
     }

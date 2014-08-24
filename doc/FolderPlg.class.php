@@ -503,7 +503,7 @@ class doc_FolderPlg extends core_Plugin
     			
     			// Сменяме им отговорника на дефолт отговорника
     			$rec->inCharge = $inCharge;
-    			$mvc->save($rec, 'inCharge');
+    			$mvc->save_($rec, 'inCharge');
     			$transfered ++;
     		}
     	}

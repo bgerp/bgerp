@@ -97,14 +97,20 @@ class deals_Setup extends core_ProtoSetup
     	
     	$html .= core_Roles::addOnce('dealsMaster', 'deals');
     	
-    	// @TODO миграция да се махне след като се разнесе
+    	 
+    	return $html;
+    }
+
+
+    function loadSetupData() 
+    {
+        // @TODO миграция да се махне след като се разнесе
     	if($listRec = acc_Lists::fetchBySystemId('financialDeals')){
     		if(!$listRec->regInterfaceId){
     			$listRec->regInterfaceId = core_Interfaces::fetchField('#name = "deals_DealsAccRegIntf"');
     			acc_Lists::save($listRec);
     		}
     	}
-    	 
-    	return $html;
+
     }
 }

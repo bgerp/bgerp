@@ -124,8 +124,6 @@ class tracking_Setup extends core_ProtoSetup
         $conf = core_Packs::getConfig('tracking');
     
         // Наглася Cron да стартира приемача на данни
-        $Cron = cls::get('core_Cron');
-    
         $rec = new stdClass();
         $rec->systemId = "trackingWatchDog";
         $rec->description = "Грижа приемача на данни да е пуснат";
@@ -133,13 +131,8 @@ class tracking_Setup extends core_ProtoSetup
         $rec->action = "WatchDog";
         $rec->period = (int) $conf->RESTART_PERIOD / 60;
         $rec->offset = 0;
-    
-        if ($Cron->addOnce($rec)) {
-            $html .= "<li class='green'>Задаване по крон WatchDog tracking</li>";
-        } else {
-            $html .= "<li>Отпреди Cron е бил нагласен за WatchDog tracking</li>";
-        }
-        
+        $html .= core_Cron::addOnce($rec);
+
         if ($pid = self::Start()) {
             $html .= "<li class='green'>Стартиран слушач за тракерите - pid={$pid}</li>";
         } else {

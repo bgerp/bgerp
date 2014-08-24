@@ -1834,8 +1834,6 @@ class blast_Emails extends core_Master
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = static::$cronSytemId;

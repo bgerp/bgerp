@@ -1085,7 +1085,8 @@ class purchase_Purchases extends core_Master
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;
-        
+        $res .= core_Cron::addOnce($rec);
+
         // Проверка по крон дали покупката е просрочена
         $rec2 = new stdClass();
         $rec2->systemId = "IsPurchaseOverdue";
@@ -1096,19 +1097,7 @@ class purchase_Purchases extends core_Master
         $rec2->offset = 0;
         $rec2->delay = 0;
         $rec2->timeLimit = 100;
-        
-        $Cron = cls::get('core_Cron');
-    	if($Cron->addOnce($rec)) {
-            $res .= "<li class='green'>Задаване на крон да приключва стари покупки.</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да приключва стари покупки.</li>";
-        }
-        
-    	if($Cron->addOnce($rec2)) {
-            $res .= "<li class='green'>Задаване на крон да проверява дали покупката е просрочена.</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да проверява дали покупката е просрочена.</li>";
-        }
+        $res .= core_Cron::addOnce($rec2);
     }
     
     

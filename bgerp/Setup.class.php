@@ -25,7 +25,7 @@ defIfNot(BGERP_COMPANY_LOGO, '');
  * @since     v 0.1
  * @link
  */
-class bgerp_Setup {
+class bgerp_Setup extends core_ProtoSetup {
     
     
     /**
@@ -81,7 +81,7 @@ class bgerp_Setup {
     /**
      * Инсталиране на пакета
      */
-    function install($Plugins = NULL)
+    function install()
     {
         // Предотвратяваме логването в Debug режим
         Debug::$isLogging = FALSE;
@@ -165,7 +165,9 @@ class bgerp_Setup {
                         $force = TRUE; 
                         $Packs->alreadySetup[$p . $force] = FALSE;
                         //$haveError = TRUE;
+                        file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
                         $haveError[$p] .= "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage(). " " .date('H:i:s')."</h3>";
+
                     }
                  }
             }
@@ -188,6 +190,7 @@ class bgerp_Setup {
                             }
                          } catch(core_exception_Expect $exp) {
                             //$haveError = TRUE;
+                            file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
                             $haveError[$p] .= "<h3 style='color:red'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " .date('H:i:s')."</h3>";
                         }
                     }
@@ -241,6 +244,10 @@ class bgerp_Setup {
     function loadSetupData()
     {
     }
+
+ 
+       
+
     
     
 }

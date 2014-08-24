@@ -137,7 +137,8 @@ class acc_ActiveShortBalance {
 	public function getAmount($accs, $itemId = FALSE)
 	{
 		$arr = arr::make($accs);
-		expect(count($arr));
+		
+        expect(count($arr));
 		
 		$res = 0;
 		foreach ($arr as $accSysId){

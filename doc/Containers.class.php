@@ -1665,8 +1665,6 @@ class doc_Containers extends core_Manager
 	 */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'notifyForIncompleteDoc';
@@ -1677,13 +1675,6 @@ class doc_Containers extends core_Manager
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 200;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li class='green'>Задаване на крон да нотифицира за незавършени действия с документи.</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да нотифицира за незавършени действия с документи</li>";
-        }
+        $res .= core_Cron::addOnce($rec);
     }
 }

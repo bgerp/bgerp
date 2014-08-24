@@ -96,22 +96,16 @@ class acc_Limits extends core_Manager
             if (!empty($accRec->groupId1)) {
                 $data->form->setField('item1', 'input');
                 $data->form->setField('item1', 'caption=Сметка->' . $mvc->Lists->fetchField($accRec->groupId1, 'title'));
-//                $options = $mvc->Items->makeArray4Select('title', "#listGroupId = {$accRec->groupId1}");
-//                $data->form->setOptions('item1', $options);
             }
             
             if (!empty($accRec->groupId2)) {
                 $data->form->setField('item2', 'input');
                 $data->form->setField('item2', 'caption=Сметка->' . $mvc->Lists->fetchField($accRec->groupId2, 'title'));
-//                $options = $mvc->Items->makeArray4Select('title', "#listGroupId = {$accRec->groupId2}");
-//                $data->form->setOptions('item2', $options);
             }
             
             if (!empty($accRec->groupId3)) {
                 $data->form->setField('item3', 'input');
                 $data->form->setField('item3', 'caption=Сметка->' . $mvc->Lists->fetchField($accRec->groupId3, 'title'));
-//                $options = $mvc->Items->makeArray4Select('title', "#listGroupId = {$accRec->groupId3}");
-//                $data->form->setOptions('item3', $options);
             }
         }
     }
@@ -122,7 +116,6 @@ class acc_Limits extends core_Manager
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
-        //bp($form->fields, $form->rec);
     }
     
     

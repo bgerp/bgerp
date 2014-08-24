@@ -575,7 +575,7 @@ class price_ListRules extends core_Detail
    /**
     * Задаваме надценки/отстъпки за началните категории
     */
-    static function loadSetupData()
+    function loadSetupData()
     {
         $csvFile = __DIR__ . "/setup/csv/Groups.csv";
         $inserted = 0;

@@ -94,8 +94,6 @@ class sens2_Setup extends core_ProtoSetup
             $html .= core_Classes::add($drvClass);
         }
          
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "sens2_UpdateIndications";
         $rec->description = "Взима данни от активни сензори";
@@ -104,10 +102,8 @@ class sens2_Setup extends core_ProtoSetup
         $rec->period = 1;
         $rec->offset = 0;
         $rec->timeLimit = 30;
-        $Cron->addOnce($rec);
-        
-        $html .= "<li style='color:#660000'>На Cron e зададенo да следи индикаторите</li>";
-         
+        $html .= core_Cron::addOnce($rec);
+                 
         return $html;
     }
     

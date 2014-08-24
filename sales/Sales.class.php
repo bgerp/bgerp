@@ -1273,7 +1273,8 @@ class sales_Sales extends core_Master
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;
-        
+        $res .= core_Cron::addOnce($rec);
+
         // Проверка по крон дали продажбата е просрочена
         $rec2 = new stdClass();
         $rec2->systemId = "IsSaleOverdue";
@@ -1284,19 +1285,7 @@ class sales_Sales extends core_Master
         $rec2->offset = 0;
         $rec2->delay = 0;
         $rec2->timeLimit = 100;
-        
-        $Cron = cls::get('core_Cron');
-    	if($Cron->addOnce($rec)) {
-            $res .= "<li class='green'>Задаване на крон да приключва стари продажби.</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да приключва стари продажби.</li>";
-        }
-        
-    	if($Cron->addOnce($rec2)) {
-            $res .= "<li class='green'>Задаване на крон да проверява дали продажбата е просрочена.</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да проверява дали продажбата е просрочена.</li>";
-        }
+        $res .= core_Cron::addOnce($rec2);
     }
     
     

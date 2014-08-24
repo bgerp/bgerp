@@ -820,8 +820,6 @@ class email_Incomings extends core_Master
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
         $rec = new stdClass();
         $rec->systemId = 'DownloadEmails';
         $rec->description = 'Сваляне на и-имейли в модела';
@@ -831,16 +829,7 @@ class email_Incomings extends core_Master
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li class='green'>Задаване на крон да сваля имейлите в модела.</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да сваля имейлите.</li>";
-        }
-        
-        return $res;
+        $res .= core_Cron::addOnce($rec);
     }
     
     

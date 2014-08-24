@@ -940,8 +940,7 @@ class cal_Reminders extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $Cron = cls::get('core_Cron');
-        
+        // Нагласяне на Крон
         $rec = new stdClass();
         $rec->systemId = "StartReminders";
         $rec->description = "Известяване за стартирани напомняния";

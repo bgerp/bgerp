@@ -824,7 +824,7 @@ class cat_Products extends core_Master {
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$file = "cat/csv/Products.csv";
     	$fields = array( 
@@ -834,7 +834,7 @@ class cat_Products extends core_Master {
 	    	3 => "csv_groups",
 	    	4 => "access");
     	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	$res .= $cntObj->html;
     	
     	return $res;

@@ -139,15 +139,8 @@ class crm_Setup extends core_ProtoSetup
         $rec->period      = 24*60*60;
         $rec->offset      = 16;
         $rec->delay       = 0;
+        $html .= core_Cron::addOnce($rec);
         
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $html .= "<li style='color:green;'>Cron: Обновяване на събитията за хората в календара</li>";
-        } else {
-            $html .= "<li>Cron от преди е бил нагласен: Обновяване на събитията за хората в календара</li>";
-        }
-
         return $html;
     }
     

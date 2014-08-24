@@ -321,18 +321,19 @@ class email_Setup extends core_ProtoSetup
     function transferThreadHandles()
     {
         $docThreads = cls::get('doc_Threads');
+        
+        if($docThreads->db->isFieldExists($docThreads->dbTableName, 'handle')) {
+            // Манипулатор на нишката (thread handle)
+            $docThreads->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
 
-        // Манипулатор на нишката (thread handle)
-        $docThreads->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
+            $tQuery = $docThreads->getQuery();
 
-        $tQuery = $docThreads->getQuery();
-
-        while($rec = $tQuery->fetch("#handle IS NOT NULL")) {
-            $rec->handle = strtoupper($rec->handle);
-            if($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
-                email_ThreadHandles::save( (object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle));
+            while($rec = $tQuery->fetch("#handle IS NOT NULL")) {
+                $rec->handle = strtoupper($rec->handle);
+                if($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
+                    email_ThreadHandles::save( (object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle));
+                }
             }
-        }
-
+        } 
     }
 }

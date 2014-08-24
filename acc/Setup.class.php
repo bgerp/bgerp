@@ -56,6 +56,7 @@ class acc_Setup extends core_ProtoSetup
      */
     var $depends = 'currency=0.1';
     
+
     /**
      * Мениджър - входна точка в пакета
      */
@@ -108,7 +109,10 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'acc';
+    var $roles = array(
+                    'acc', 
+                    array('accMaster', 'acc')
+                 );
 
     
     /**
@@ -119,41 +123,39 @@ class acc_Setup extends core_ProtoSetup
             array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
         );
 	
-    /**
-     * Път до js файла
-     */
-//    var $commonJS = 'acc/js/balance.js';
-    
     
     /**
-     * Инсталиране на пакета
+     * Настройки за Cron
      */
-    function install()
-    {
-        // Добавяне на класа за репорти
-    	$html .= core_Classes::add('acc_ReportDetails');
-    	$html .= core_Classes::add('acc_BalanceReportImpl');
-    	
-        //Данни за работата на cron
-        $rec = new stdClass();
-        $rec->systemId = 'RecalcBalances';
-        $rec->description = 'Преизчисляване на баланси';
-        $rec->controller = 'acc_Balances';
-        $rec->action = 'Recalc';
-        $rec->period = 1;
-        $rec->offset = 0;
-        $rec->delay = 0;
-        $rec->timeLimit = 55;
-        $html .= core_Cron::addOnce($rec);
+    var $cronSettings = array(
+        array(
+            'systemId' => "Delete Items",
+            'description' => "Изтриване на неизползвани затворени пера",
+            'controller' => "acc_Items",
+            'action' => "DeleteUnusedItems",
+            'period' => 1440,
+            'timeLimit' => 100
+            ),
+        array(
+            'systemId' => "Create Periods",
+            'description' => "Създаване на нови счетоводни периоди",
+            'controller' => "acc_Periods",
+            'action' => "createFuturePeriods",
+            'period' => 1440,
+            'offset' => 60,
+            ),
+        array(
+            'systemId' => 'RecalcBalances',
+            'description' => 'Преизчисляване на баланси',
+            'controller' => 'acc_Balances',
+            'action' => 'Recalc',
+            'period' => 1,
+            'timeLimit' => 55,
+            ),
+        );
 
-        // Добавяне на роля за старши касиер
-        $html .= core_Roles::addOnce('accMaster', 'acc');
-        
-    	$html .= parent::install();
+    var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl";
 
-        return $html;
-    }
-    
     
     /**
      * Де-инсталиране на пакета

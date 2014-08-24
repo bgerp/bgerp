@@ -975,24 +975,5 @@ class acc_Items extends core_Manager
     		$this->log("Изтрити са {$numRows} неизползвани, затворени пера");
     	}
     }
-    
-    
-    /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	// Крон метод за затваряне на остарели продажби
-    	$rec = new stdClass();
-    	$rec->systemId = "Delete Items";
-    	$rec->description = "Изтриване на неизползвани затворени пера";
-    	$rec->controller = "acc_Items";
-    	$rec->action = "DeleteUnusedItems";
-    	$rec->period = 1440;
-        $rec->offset = 0;
-        $rec->delay = 0;
-        $rec->timeLimit = 100;
-    	
-    	$res .= core_Cron::addOnce($rec);
-    }
+
 }

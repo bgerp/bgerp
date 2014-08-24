@@ -119,6 +119,14 @@ class store_Setup extends core_ProtoSetup
     	$html .= core_Roles::addOnce('storeMaster', 'store');
 		
     	
+    	
+    	return $html;
+    }
+    
+
+    function loadSetupData()
+    {
+        $res = parent::loadSetupData();
     	// Ако няма посочени от потребителя сметки а синхронизация
     	$config = core_Packs::getConfig('store');
     	if(strlen($config->STORE_ACC_ACCOUNTS) === 0){
@@ -130,12 +138,12 @@ class store_Setup extends core_ProtoSetup
     		
     		// Записват се ид-та на дефолт сметките за синхронизация
     		core_Packs::setConfig('store', array('STORE_ACC_ACCOUNTS' => keylist::fromArray($accArray)));
-    		$html .= "<li style='color:green'>Дефолт счетодовни сметки за синхронизация на продуктите<b>" . implode(',', $accArray) . "</b></li>";
+    		$res .= "<li style='color:green'>Дефолт счетодовни сметки за синхронизация на продуктите<b>" . implode(',', $accArray) . "</b></li>";
     	}
-    	
-    	return $html;
+        
+        return $res;
     }
-    
+
     
     /**
      * Де-инсталиране на пакета

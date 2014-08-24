@@ -1849,13 +1849,11 @@ class email_Outgoings extends core_Master
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        //инсталиране на кофата
+        // Инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Postings', 'Прикачени файлове в постингите', NULL, '300 MB', 'user', 'user');
-        
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
-        //Данни за работата на cron
+                
+        // Данни за работата на Крон
         $rec = new stdClass();
         $rec->systemId = 'processWaitingEmails';
         $rec->description = 'Нотифициране за чакащи имейли';
@@ -1865,14 +1863,7 @@ class email_Outgoings extends core_Master
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 250;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li class='green'>Задаване на крон да нотифицира за чакащи имейли.</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да нотифицира за чакащи имейли.</li>";
-        }
+        $res .= core_Cron::addOnce($rec);
     }
     
     

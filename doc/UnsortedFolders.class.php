@@ -176,8 +176,6 @@ class doc_UnsortedFolders extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "self_closed_unsorted_folders";
         $rec->description = "Автоматично затваряне на папки";
@@ -185,9 +183,7 @@ class doc_UnsortedFolders extends core_Master
         $rec->action = "SelfClosed";
         $rec->period = 24 * 60;
         $rec->offset = 17 * 60;
-        $Cron->addOnce($rec);
-        
-        $res .= "<li style='color:#660000'>Автоматично затваряне на папки по крон</li>";
+        $res .= core_Cron::addOnce($rec);
     }
     
     

@@ -437,12 +437,6 @@ class trans_Lines extends core_Master
         $rec->offset 	  = 0;
         $rec->delay 	  = 0;
         $rec->timeLimit   = 100;
-        
-        $Cron = cls::get('core_Cron');
-        if($Cron->addOnce($rec)) {
-            $res .= "<li class='green'>Задаване на крон да приключва и да създава нови транспортни линии.</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да приключва и да създава нови транспортни линии.</li>";
-        }
+        $res .= core_Cron::addOnce($rec);
     }
 }

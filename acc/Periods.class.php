@@ -521,19 +521,7 @@ class acc_Periods extends core_Manager
 
         $this->updateExistingPeriodsState();
         
-        $Cron = cls::get('core_Cron');
-        
-        $rec = new stdClass();
-        $rec->systemId = "Create Periods";
-        $rec->description = "Създаване на нови счетоводни периоди";
-        $rec->controller = "acc_Periods";
-        $rec->action = "createFuturePeriods";
-        $rec->period = 1440;
-        $rec->offset = 60;
-        
-        $res .= core_Cron::addOnce($rec);
-
-        return $this->actLog . $res;
+        return $this->actLog;
     }
 
     

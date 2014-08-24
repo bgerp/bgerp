@@ -247,7 +247,7 @@ class currency_Currencies extends core_Master {
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$file = "currency/csv/Currencies.csv";
     	$fields = array( 
@@ -255,7 +255,7 @@ class currency_Currencies extends core_Master {
 	    	1 => "csv_code", 
 	    	2 => "state",);
     	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	$res .= $cntObj->html;
     	
     	return $res;
