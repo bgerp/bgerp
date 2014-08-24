@@ -162,7 +162,10 @@ class crm_Setup extends core_ProtoSetup
      * Премества персонализационните данни за потребителя от crm_Personalization в core_Users
      */
     static function movePersonalizationData()
-    {
+    { 
+        // Функцията изглежда недовършена, затова е байпасната
+        return;
+
         $query = crm_Personalization::getQuery();
         $query->where('1=1');
         while($rec = $query->fetch()) {
