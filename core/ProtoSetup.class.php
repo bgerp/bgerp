@@ -283,7 +283,7 @@ class core_ProtoSetup
         $packName = $this->getPackName();
         $conf = core_Packs::getConfig($packName);
         
-        return $getConfig;
+        return $conf;
     }
     
     
@@ -362,22 +362,23 @@ class core_ProtoSetup
      */
     protected function setMenuItems()
     {
+        $res = '';
+
         if(count($this->menuItems)) { 
             
             $conf = $this->getConfig();        
             
+            // Името на пакета
+            $packName = $this->getPackName();
+
             // 3-те имена на константите за менюто
             $constPosition = strtoupper($packName). "_MENU_POSITION";
             $constMenuName = strtoupper($packName). "_MENU";
             $constSubMenu = strtoupper($packName). "_SUB_MENU";
             $constView = strtoupper($packName). "_VIEW";
 
-            $res = '';
+            foreach($this->menuItems as $id => $item) {
 
-            foreach($this->menuItems as $id=>$item) {
-            	
-            	$Menu = cls::get('bgerp_Menu');  
-            	       	
             	// задаваме позицията в менюто
             	// с приоритет е от конфига
             	if ($conf->{$constPosition."_".$id}) {
@@ -386,7 +387,9 @@ class core_ProtoSetup
             		$row = $item['row'];
             	} elseif ($item[0]) {
             		$row = $item[0];
-            	}
+            	} else {
+                    expect($row);
+                }
             
             	// задаваме името на менюто
             	// с приоритет е от конфига
@@ -396,7 +399,9 @@ class core_ProtoSetup
             		$menu = $item['menu'];
             	} elseif ($item[1]) {
             		$menu = $item[1];
-            	}
+            	} else {
+                    expect($menu);
+                }
             	
             	// задаваме името на подменюто
             	// с приоритет е от конфига
@@ -417,7 +422,10 @@ class core_ProtoSetup
 	        	
 		        	$query = bgerp_Menu::getQuery();
 		        	
-			        $html .= $query->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #menu = '[#3#]' AND #subMenu = '[#4#]' AND #createdBy = -1", $ctr, $act, $menu, $subMenu));
+			        $del = $query->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #menu = '[#3#]' AND #subMenu = '[#4#]' AND #createdBy = -1", $ctr, $act, $menu, $subMenu));
+                    if($del) {
+                        $res .= "<li class='debug-update'>Премахнат е елемента на менюто <b>{$menu} » {$subMenu}</b></li>";
+                    }
 			       
 	        	} else {
 	        	    // Добавя елемента на менюто
@@ -483,7 +491,8 @@ class core_ProtoSetup
         			$description[$subMenu."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Подменю');
         			$description[$view."_".$id] = array ('enum(yes=Да, no=Не),row=2', 'caption=Меню '.$numbMenu.'->Показване,maxRadio=2');
         		}
-        	}
+        	} 
+            
         }
         
         // За всеки случай нулираме, за да не се обърка някой по-нататък
