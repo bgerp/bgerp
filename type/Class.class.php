@@ -45,6 +45,8 @@ class type_Class  extends type_Key {
         }
                 
         $this->options = $options;
+
+        parent::prepareOptions();
     }
     
     
@@ -73,15 +75,16 @@ class type_Class  extends type_Key {
     {
         if(empty($value)) return NULL;
         
-        if(!is_numeric($value)) {
-            $value = core_Classes::getId($value);
-        }
         
         $interface = $this->params['interface'];
         
         $mvc = cls::get($this->params['mvc']);
         
         $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
+        
+        if(!is_numeric($value)) {
+            $value = array_search($value, $options);
+        }
         
         if(!$options[$value]) {
             $this->error = 'Несъществуващ клас';

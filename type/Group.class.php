@@ -66,6 +66,8 @@ class type_Group extends type_Key
                 $this->options[$id] = $mvc->getTitleById($id, FALSE) . " ({$cnt})";
             }
         }
+
+        parent::prepareOptions();
     }
     
     
