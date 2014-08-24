@@ -49,20 +49,20 @@ class acc_plg_Contable extends core_Plugin
      * @param string $action
      */
     public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
-    {   
+    {
         if( strtolower($action) == strtolower('getTransaction')) {
             $id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
             $transaction       = $transactionSource->getTransaction($rec);
             
-            core_Html::$dumpMaxDepth = 5;
-
             if(!static::hasContableTransaction($mvc, $rec, $transactionRes)){
-            	bp($transactionRes, $transaction);
+            	$res = ht::wrapMixedToHtml(ht::mixedToHtml(array($transactionRes, $transaction), 4));
             } else {
-            	bp($transaction);
+            	$res = ht::wrapMixedToHtml(ht::mixedToHtml($transaction, 4));
             }
+
+            return FALSE;
         }
     }
     
