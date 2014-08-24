@@ -79,7 +79,7 @@ class wund_Setup extends core_ProtoSetup
      */
     function install()
     {
-       	$html = parent::install();
+       	$res = parent::install();
        	
         //Данни за работата на cron
         $rec = new stdClass();
@@ -91,23 +91,13 @@ class wund_Setup extends core_ProtoSetup
         $rec->offset = 55;
         $rec->delay = 0;
         $rec->timeLimit = 50;
+        $res .= core_Cron::addOnce($rec);
         
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $html .= "<li class='green'>Задаване по крон да извлича прогнози.</li>";
-        } else {
-            $html .= "<li>Отпреди Cron е бил нагласен да извлича прогнози.</li>";
-        }
-        
-        // Зареждаме мениджъра на плъгините
+        // Инсталираме wund_Plugin
         $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме recently към формите
-        $html .= $Plugins->installPlugin('Weather Forecast', 'wund_Plugin', 'cal_Calendar', 'private');
-
+        $res .= $Plugins->installPlugin('Weather Forecast', 'wund_Plugin', 'cal_Calendar', 'private');
          
-        return $html;
+        return $res;
     }
     
     

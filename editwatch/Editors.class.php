@@ -86,8 +86,6 @@ class editwatch_Editors extends core_Manager {
     {
     	$conf = core_Packs::getConfig('editwatch');
     	
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "delete_old_editwatch_records";
         $rec->description = "Изтриване на старите editwatch записа";
@@ -95,10 +93,7 @@ class editwatch_Editors extends core_Manager {
         $rec->action = "DeleteOldRecs";
         $rec->period = max(1, round($conf->EDITWATCH_REC_LIFETIME / 60));
         $rec->offset = 0;
-        
-        $Cron->addOnce($rec);
-        
-        $res .= "<li>На Cron е зададено да изтрива старите editwatch записи</li>";
+        $res .= core_Cron::addOnce($rec);
     }
     
     

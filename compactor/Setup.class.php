@@ -91,13 +91,11 @@ class compactor_Setup extends core_ProtoSetup
                 // Вземаме CSS файловете и заместваме плейсхолдерите от конфига
                 if (method_exists($inst, 'getCommonCss')) {
                     $commonCss = $inst->getCommonCss();
-                    $commonCss = $inst->preparePacksPath($rec->name, $commonCss);
                 }
                 
                 // Вземаме JS файловете и заместваме плейсхолдерите от конфига
                 if (method_exists($inst, 'getCommonJs')) {
                     $commonJs = $inst->getCommonJs();
-                    $commonJs = $inst->preparePacksPath($rec->name, $commonJs);
                 }
                 
                 // Ако няма файлове за добавяне

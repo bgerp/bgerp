@@ -413,8 +413,7 @@ class fileman_Download extends core_Manager {
             }
         }
         
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
+        // Нагласяне на Крон
         $rec = new stdClass();
         $rec->systemId = 'ClearOldLinks';
         $rec->description = 'Изчистване на старите линкове за сваляне';
@@ -423,18 +422,7 @@ class fileman_Download extends core_Manager {
         $rec->period = 100;
         $rec->offset = 0;
         $rec->delay = 0;
-        
-        // $rec->timeLimit = 200;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li class=\"green\">Задаване на крон да изчиства линкове и директории, с изтекъл срок.</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да изчиства линкове и директории, с изтекъл срок.</li>";
-        }
-
-        return $res;
+        $res .= core_Cron::addOnce($rec);
     }
 
 

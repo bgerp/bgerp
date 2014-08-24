@@ -19,7 +19,7 @@ defIfNot('CAD_MAX_CANVAS_SIZE', 10000);
  * @since     v 0.1
  * @link
  */
-class cad_Setup {
+class cad_Setup extends core_ProtoSetup {
     
     
     /**

@@ -170,14 +170,7 @@ class backup_Setup extends core_ProtoSetup
     	$rec->offset = BACKUP_FULL_OFFSET;
     	$rec->delay = 40;
     	$rec->timeLimit = 50;
-    	
-    	$Cron = cls::get('core_Cron');
-    	
-    	if ($Cron->addOnce($rec)) {
-    	    $html .= "<li class='green'>Задаване по крон да стартира пълния бекъп.</li>";
-    	} else {
-    	    $html .= "<li>Отпреди Cron е бил нагласен да стартира full бекъп.</li>";
-    	}
+    	$html .= core_Cron::addOnce($rec);
     	
     	$rec = new stdClass();
     	$rec->systemId = 'BackupStartBinLog';
@@ -188,13 +181,8 @@ class backup_Setup extends core_ProtoSetup
     	$rec->offset = BACKUP_BINLOG_OFFSET;
     	$rec->delay = 45;
     	$rec->timeLimit = 50;
-
-    	if ($Cron->addOnce($rec)) {
-    	    $html .= "<li class='green'>Задаване по крон да стартира binlog бекъп.</li>";
-    	} else {
-    	    $html .= "<li>Отпреди Cron е бил нагласен да стартира binlog бекъп.</li>";
-    	}
-
+    	$html .= core_Cron::addOnce($rec);
+ 
     	$rec = new stdClass();
        	$rec->systemId = 'BackupClean';
     	$rec->description = 'Изтриване на стари бекъпи';
@@ -204,14 +192,9 @@ class backup_Setup extends core_ProtoSetup
     	$rec->offset = BACKUP_CLEAN_OFFSET;
     	$rec->delay = 50;
     	$rec->timeLimit = 50;
-    	
-    	if ($Cron->addOnce($rec)) {
-    	    $html .= "<li><font color='green'>Задаване по крон да стартира бекъп почистване.</font></li>";
-    	} else {
-    	    $html .= "<li>Отпреди Cron е бил нагласен да стартира бекъп почистване.</li>";
-    	}
-    	
-    	$rec = new stdClass();
+        $html .= core_Cron::addOnce($rec);
+
+     	$rec = new stdClass();
     	$rec->systemId = 'BackupFileman';
     	$rec->description = 'Архивиране на файловете от fileman-a';
     	$rec->controller = 'backup_Start';
@@ -220,12 +203,7 @@ class backup_Setup extends core_ProtoSetup
     	$rec->offset = BACKUP_FILEMAN_OFFSET;
     	$rec->delay = 51;
     	$rec->timeLimit = 50;
-    	 
-    	if ($Cron->addOnce($rec)) {
-    	    $html .= "<li class='green'>Задаване по крон да стартира бекъп на fileman-a.</li>";
-    	} else {
-    	    $html .= "<li>Отпреди Cron е бил нагласен да стартира бекъп на fileman-a.</li>";
-    	}
+        $html .= core_Cron::addOnce($rec);
     	 
         return $html;
     }

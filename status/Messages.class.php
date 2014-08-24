@@ -343,9 +343,7 @@ class status_Messages extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
-        //Данни за работата на cron
+        // Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'removeOldStatuses';
         $rec->description = 'Премахване на старите статус съобщения';
@@ -355,13 +353,6 @@ class status_Messages extends core_Manager
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 40;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li class='green'>Задаване на крон да премахва старите статус съобщения.</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да премахва старите статус съобщения.</li>";
-        }
+        $res .= core_Cron::addOnce($rec);
     }
 }
