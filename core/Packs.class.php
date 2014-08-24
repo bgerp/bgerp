@@ -728,7 +728,7 @@ class core_Packs extends core_Manager
                 if (is_null($value) && ($currLg != 'en')) {
                     
                     // Ако няма данни за текущия език използваме на английски
-                    $value = EMAIL_OUTGOING_HEADER_TEXT_EN;
+                    $value = $key . '_EN';
                 }
             } catch (Exception $e) {
             }
