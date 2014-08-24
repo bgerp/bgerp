@@ -216,29 +216,8 @@ class core_Cache extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
+        // Почистване на всичкия изтекъл Кеш
         $res .= $mvc->cron_DeleteExpiredData(TRUE);
-        
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
-        $rec = new stdClass();
-        $rec->systemId = 'ClearCache';
-        $rec->description = 'Почистване на обектите с изтекъл срок';
-        $rec->controller = "{$mvc->className}";
-        $rec->action = 'DeleteExpiredData';
-        $rec->period = 24 * 60;
-        $rec->offset = 2 * 60;
-        $rec->delay = 0;
-        $rec->timeLimit = 200;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li class='green'>Задаване на Cron да почиства кеша</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да почиства кеша</li>";
-        }
-        
-        return $res;
     }
     
     

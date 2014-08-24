@@ -677,7 +677,7 @@ class core_Packs extends core_Manager
         //                                'suggestions' => $suggestions, 
         //        'CONSTANT_NAME2' => .....
                
-        $conf = cls::get('core_ObjectConfiguration', array($setup->configDescription, $rec->configData, $userId));
+        $conf = cls::get('core_ObjectConfiguration', array($setup->getConfigDescription(), $rec->configData, $userId));
     
         return $conf;
     }
@@ -792,9 +792,7 @@ class core_Packs extends core_Manager
             error("Липсваш клас $cls");
         }
         
-        if ($setup->configDescription) {
-            $description = $setup->configDescription;
-        } else {
+        if (!($description = $setup->getConfigDescription())) {
             error("Пакета $pack няма нищо за конфигуриране");
         }
         

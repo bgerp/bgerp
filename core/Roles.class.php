@@ -80,9 +80,14 @@ class core_Roles extends core_Manager
     /**
      * Добавя посочената роля, ако я няма
      */
-    static function addRole($role, $inherit = NULL, $type = 'job')
+    static function addOnce($role, $inherit = NULL, $type = 'job')
     {
         expect($role);
+        
+        if(is_array($role)) {
+            list($role, $inherit, $type) = $role;
+        }
+
         $rec = new stdClass();
         $rec->role = $role;
         $rec->type = $type;
@@ -94,13 +99,28 @@ class core_Roles extends core_Manager
             $rec->inheritInput = $Roles->getRolesAsKeylist($inherit);
         }
         
-        $rec->id = $Roles->fetchField(array("#role = '[#1#]'", $rec->role), 'id');
+        $exRec = $Roles->fetch(array("#role = '[#1#]'", $rec->role));
         
-        $id = $rec->id;
+        if($exRec) {
+            $rec->id = $exRec->id;
+            $rec->inheritInput = keylist::fromArray(arr::combine(keylist::toArray($rec->inheritInput), keylist::toArray($exRec->inheritInput)));
+        }
         
         $Roles->save($rec);
         
-        return !isset($id);
+        if(!$exRec) {
+            $res = "<li class=\"debug-new\">Създаване на роля <b>{$role}</b></li>";
+        } elseif($rec->id) {
+            if($rec->inheritInput  == $exRec->inheritInput) {
+                $res = "<li class=\"debug-info\">Без промяна на роля <b>{$role}</b></li>";
+            } else {
+                $res = "<li class=\"debug-update\">Модифициране на роля <b>{$role}</b>  $rec->inheritInput  == $exRec->inheritInput </li>";
+            }
+        } else {
+            $res = "<li class=\"debug-error\">Грешка при създаване на роля <b>{$role}</b></li>";
+        }
+
+        return $res;
     }
     
     

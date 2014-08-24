@@ -95,7 +95,7 @@ class core_Classes extends core_Manager
         // Ако класа няма интерфейси, обаче съществува в модела, 
         // затваряме го, т.е. няма да излиза като опция
         if(!$rec->interfaces) {
-            $rec = core_Classes::fetch(array("#name = '[#1#]'", cls::getClassName($class)));
+            $rec = core_Classes::fetch(array("#name = '[#1#]'", $name = cls::getClassName($class)));
             
             if($rec) {
                 $rec->interfaces = NULL;
@@ -103,7 +103,7 @@ class core_Classes extends core_Manager
                 core_Classes::save($rec);
             }
             
-            return '';
+            return "<li class='debug-info'>Класът {$name} не поддържа никакви интерфейси</li>";
         }
         
         // Вземаме инстанция на core_Classes
@@ -122,9 +122,9 @@ class core_Classes extends core_Manager
         $Classes->save($rec);
         
         if(!$id) {
-            $res = "<li style='color:green;'>Класът {$rec->name} е добавен към мениджъра на класове</li>";
+            $res = "<li class='debug-new'>Класът {$rec->name} е добавен към мениджъра на класове</li>";
         } else {
-            $res = "<li style='color:#660000;'>Информацията за класа {$rec->name} бе обновена в мениджъра на класове</li>";
+            $res = "<li class='debug-notice'>Информацията за класа {$rec->name} бе обновена в мениджъра на класове</li>";
         }
         
         return $res;

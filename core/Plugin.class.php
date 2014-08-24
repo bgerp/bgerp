@@ -17,8 +17,5 @@
 class core_Plugin extends core_BaseClass {
     
     
-    /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'admin';
+   
 }

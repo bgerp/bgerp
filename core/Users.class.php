@@ -1409,8 +1409,7 @@ class core_Users extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     { 
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
+        // Нагласяне на Крон
         $rec = new stdClass();
         $rec->systemId = 'DeleteDraftUsers';
         $rec->description = 'Изтриване на неактивните потребители';
@@ -1420,16 +1419,7 @@ class core_Users extends core_Manager
         $rec->offset = 5 * 60;
         $rec->delay = 0;
         $rec->timeLimit = 200;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li class=\"green\">Задаване на Cron да изтрива неактивните потребители</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да изтрива неактивните потребители</li>";
-        }
-        
-        return $res;
+        $res .= core_Cron::addOnce($rec);
     }
     
     
@@ -1757,10 +1747,10 @@ class core_Users extends core_Manager
             $clsInst = core_Cls::get($clsName);
             
             // Ако няма полета за конфигуриране
-            if (!$clsInst->configDescription) continue;
+            if (!$clsInst->getConfigDescription()) continue;
             
             // Обхождаме всички полета за конфигуриране
-            foreach ((array)$clsInst->configDescription as $field => $arguments) {
+            foreach ((array)$clsInst->getConfigDescription() as $field => $arguments) {
                 
                 // Типа на полета
                 $type = $arguments[0];

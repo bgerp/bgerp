@@ -196,6 +196,17 @@ class core_Setup extends core_ProtoSetup {
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+        'core_Classes',
+        'core_Interfaces',
+        'core_Cache',
+        'core_Plugins',
+        'core_Packs',
+        'core_Cron',
+        'core_Logs',
+        'core_Lg',
+        'core_Roles',
+        'core_Users',
+        'core_Locks',
         'core_LoginLog',
         'migrate::loginLogTruncate',
         'core_Browser',
@@ -216,79 +227,23 @@ class core_Setup extends core_ProtoSetup {
     
     
     /**
+     * Папки, които трябва да бъдат създадени
+     */
+    protected $folders = array(
+            EF_SBF_PATH => 'за уеб ресурси', // sbf root за приложението
+            EF_TEMP_PATH => 'за временни файлове', // временни файлове
+            EF_UPLOADS_PATH => 'за качени файлове',// файлове на потребители
+        );
+
+
+    /**
      * Инсталиране на пакета
      */
     function install()
     {
         $html .= parent::install();
         
-        // Установяване за първи път
-        
-        // Правим това, защото процедурата по начално установяване
-        // може да се задейства още от конструктора на core_Plugins
-        global $PluginsGlobal;
-        
-        if($PluginsGlobal) {
-            $Plugins = $PluginsGlobal;
-        } else {
-            $Plugins = cls::get('core_Plugins');
-        }
-        
-        $Classes = cls::get('core_Classes');
-        $html .= $Classes->setupMVC();
-        
-        $Interfaces = cls::get('core_Interfaces');
-        $html .= $Interfaces->setupMVC();
-        
-        $html .= $Plugins->setupMVC();
-        
-        $Packs = cls::get('core_Packs');
-        $html .= $Packs->setupMVC();
-        
-        $Cron = cls::get('core_Cron');
-        $html .= $Cron->setupMVC();
-        
-        $Logs = cls::get('core_Logs');
-        $html .= $Logs->setupMVC();
-        
-        $Cache = cls::get('core_Cache');
-        $html .= $Cache->setupMVC();
 
-        $Lg = cls::get('core_Lg');
-        $html .= $Lg->setupMVC();
-        
-        $Roles = cls::get('core_Roles');
-        $html .= $Roles->setupMVC();
-        
-        $Users = cls::get('core_Users');
-        $html .= $Users->setupMVC();
-        
-        $Locks = cls::get('core_Locks');
-        $html .= $Locks->setupMVC();
-        
-        // Проверяваме дали имаме достъп за четене/запис до следните папки
-        $folders = array(
-            EF_SBF_PATH, // sbf root за приложението
-            EF_TEMP_PATH, // временни файлове
-            EF_UPLOADS_PATH // файлове на потребители
-        );
-        
-        foreach($folders as $path) {
-            if(!is_dir($path)) {
-                if(!mkdir($path, 0777, TRUE)) {
-                    $html .= "<li style='color:red;'>Не може да се създаде директорията: <b>{$path}</b></li>";
-                } else {
-                    $html .= "<li style='color:green;'>Създадена е директорията: <b>{$path}</b></li>";
-                }
-            } else {
-                $html .= "<li>Съществуваща от преди директория: <b>{$path}</b></li>";
-            }
-            
-            if(!is_writable($path)) {
-                $html .= "<li style='color:red;'>Не може да се записва в директорията <b>{$path}</b></li>";
-            }
-        }
-        
         if( CORE_OVERWRITE_HTAACCESS ) {
             $filesToCopy = array(
                 EF_EF_PATH . '/_docs/tpl/htaccessSBF.txt' => EF_SBF_PATH . '/.htaccess',
@@ -304,20 +259,19 @@ class core_Setup extends core_ProtoSetup {
             }
         }
 
-        // Изтриваме всички поддиректории на sbf които не започват със символа '_'
-	    if ($handle = opendir(EF_SBF_PATH)) {
-		    while (FALSE !== ($entry = readdir($handle))) {
-		        if ($entry != "." && $entry != ".." && false === strpos($entry, '_') && is_dir(EF_SBF_PATH . "/{$entry}")) {
-		        	if (core_Os::deleteDir(EF_SBF_PATH . "/{$entry}")) {
-		        		$html .= "<li style='color:green;'>Директория: <b>" . EF_SBF_PATH . "/{$entry}</b> е изтрита</li>";
-		        	} else {
-		        		$html .= "<li style='color:red;'>Директория: <b>" . EF_SBF_PATH . "/{$entry}</b> не беше изтрита</li>";	
-		        	}
-		        }
-		    }
-	    
-		    closedir($handle);
-		}
+        
+        // Нагласяване на Крон
+        $rec = new stdClass();
+        $rec->systemId = 'ClearCache';
+        $rec->description = 'Почистване на обектите с изтекъл срок';
+        $rec->controller = 'core_Cache';
+        $rec->action = 'DeleteExpiredData';
+        $rec->period = 24 * 60;
+        $rec->offset = 2 * 60;
+        $rec->delay = 0;
+        $rec->timeLimit = 200;
+        $res .= core_Cron::addOnce($rec);
+
 
         $html .= core_Classes::rebuild();
 		
@@ -336,7 +290,7 @@ class core_Setup extends core_ProtoSetup {
      */
     static function addCronToDelOldTempFiles()
     {
-        //Данни за работата на cron
+        // Нагласяване на Крон
         $rec = new stdClass();
         $rec->systemId = 'clearOldTempFiles';
         $rec->description = 'Изтриване на старите временни файлове';
@@ -346,16 +300,9 @@ class core_Setup extends core_ProtoSetup {
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 120;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $html .= "<li class=\"green\">Задаване по крон да се изтриват старите файлове от " . EF_TEMP_PATH . "</style></li>";
-        } else {
-            $html .= "<li>Отпреди Cron е бил нагласен да изтрива старите файлове от " . EF_TEMP_PATH . "</li>";
-        }
-        
-        return $html;
+        $res .= core_Cron::addOnce($rec);
+
+        return $res;
     }
     
     

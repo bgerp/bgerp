@@ -674,15 +674,14 @@ class core_Mvc extends core_FieldSet
      */
     function setupMVC()
     {
-        $html .= "<h3>" . ('Начално установяване на модела') .
-        ": <i>" . $this->className . "</i></h3><ol style='margin-bottom:10px;'>";
+        $html .= "<li>Създаване на модела <b>" . $this->className . "</b></li><ul style='margin-bottom:10px;'>";
 
         // Запалваме събитието on_BeforeSetup
         if ($this->invoke('BeforeSetupMVC', array(&$html)) === FALSE) {
             
-            $html .= "Пропускаме началното установяване на модела <li> ";
+            $html .= "<li>Пропускаме началното установяване на модела</li>";
 
-            return "$html</ol>";
+            return "$html</ul>";
         }
 
         if($this->oldClassName) {
@@ -694,7 +693,7 @@ class core_Mvc extends core_FieldSet
             if(!$this->db->tableExists($newTableName)) {
                 if($this->db->tableExists($oldTableName)) {
                     $this->db->query("RENAME TABLE {$oldTableName} TO {$newTableName}");
-                    $html .= "<li style='color:green'>Преименувана е таблицата <b>{$oldTableName}</b> => <b>{$newTableName}</b></li>";
+                    $html .= "<li class='debug-new'>Преименувана е таблицата <b>{$oldTableName}</b> => <b>{$newTableName}</b></li>";
                 }
             }
         }
@@ -709,8 +708,8 @@ class core_Mvc extends core_FieldSet
             $db = $this->db;     // За краткост
             // Създаваме таблицата, ако не е създадена
             $action = $db->forceTable($tableName) ?
-            '<li style="color:green">Създаване на таблица:  ' :
-            '<li>Съществуваща от преди таблица:  ';
+            '<li class="debug-new">Създаване на таблица:  ' :
+            '<li class="debug-info">Съществуваща от преди таблица:  ';
 
             $html .= "{$action}<b>{$this->dbTableName}</b></li>";
 
@@ -766,7 +765,7 @@ class core_Mvc extends core_FieldSet
 
                 //bp($mfAttr, $dfAttr);
 
-                $green = " style='background-color:#ffff99;'";     // Стил за маркиране
+                $green = " style='color:#007733;'";     // Стил за маркиране
                 $info = '';     // Тук ще записваме текущия ред с информация какво правим
                 // Дали ще създаваме или променяме името на полето
                 if ($mfAttr->name != $mfAttr->field) {
@@ -854,7 +853,7 @@ class core_Mvc extends core_FieldSet
 
                 // Трябва ли да извършим обновяване/създаване на полето
                 if ($updateName || $updateType || $updateOptions || $updateSize ||
-                    $updateNotNull || $updateSigned || $updateDefault || $updateCollation) {
+                    $updateNotNull || $updateUnsigned || $updateDefault || $updateCollation) {
 
                     $this->db->forceField($tableName, $mfAttr);
 
@@ -873,7 +872,7 @@ class core_Mvc extends core_FieldSet
                 }
                 
                 if(strpos($info, $green)) {
-                    $liClass = ' class="green"';
+                    $liClass = ' class="debug-new"';
                 } else {
                     $liClass = '';
                 }
@@ -910,40 +909,33 @@ class core_Mvc extends core_FieldSet
                         }
 
                         $act = 'Обновен';
-                        $color = '#660000';
+                        $cssClass = '#660000';
                     } else {
                         $act = 'Добавен';
-                        $color = 'green';
+                        $cssClass = 'debug-new';
                     }
  
                     // bp($indexes, $this->dbIndexes, $exFieldsList, $indRec->fields);
 
                     $this->db->forceIndex($this->dbTableName, $indRec->fields, $indRec->type, $name);
-                    $html .= "<li style=\"color:{$color}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
+                    $html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
                 }
             }
 
             if(count($indexes)) {
                 foreach($indexes as $name => $dummy) {
                     $this->db->forceIndex($this->dbTableName, "", "DROP", $name);
-                    $html .= "<li class='green'>Премахнат е индекс '<b>{$name}</b>'</li>";
+                    $html .= "<li class='debug-new'>Премахнат е индекс '<b>{$name}</b>'</li>";
                 }
             }
         } else {
-            $html .= "<li>" . ('Без установяване на DB таблици, защото липсва модел') . "</li>";
+            $html .= "<li class='debug-info'>" . ('Без установяване на DB таблици, защото липсва модел') . "</li>";
         }
-
-        // Правим опит да добавим класа в списъка с класовете, имащи интерфейси
-        // Той ще се появи там, само ако в него има описани някакви интерфейси
-        try {
-	        $html .= core_Classes::add($this);
-	    } catch ( core_exception_Expect $e ) {};
-	         
 
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
 
-        return "$html</ol>";
+        return "$html</ul>";
     }
 
 

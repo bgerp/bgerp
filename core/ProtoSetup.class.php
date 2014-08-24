@@ -56,24 +56,19 @@ class core_ProtoSetup
     /**
      * Описание на конфигурационните константи за този модул
      */
-    var $configDescription = array(
-            
-         
-        );
+    var $configDescription = array();
     
 
     /**
      * Пътища до папки, които трябва да бъдат създадени
      */
-    var $folders;
+    protected $folders = array();
 
 
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
-        // Тук се изреждат мениджърите, които участват в модула
-        );
+    var $managers = array();
     
 
     /**
@@ -83,30 +78,40 @@ class core_ProtoSetup
     
 
     /**
-     * Връзки от менюто, сочещи към модула
+     * Дефинирани класове, които имат интерфейси
      */
-    var $menuItems = array(
-         //   array(ред в менюто, Меню, Под-меню, Мениджър, Екшън, Роли за достъп),
-        );
+    protected $defClasses;
+
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     * array(ред в менюто, Меню, Под-меню, Мениджър, Екшън, Роли за достъп)
+     */
+    var $menuItems = array();
+
+
+    /**
+     * Масив с настойки за Kron
+     *
+     * @var array
+     */
+    protected $cronSettings;
 
 
     /**
      * Инсталиране на пакета
      */
     public function install()
-    {   
-        global $PluginsGlobal;
-        
-        // Добавяме дефинираните роли
-        foreach(arr::make($this->roles) as $role) {
-            $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        }
-        
+    {  
         // Вземаме името на пакета
-        list ($packName, ) = explode("_", cls::getClassName($this), 2);
+        $packName = $this->getPackName();
         
         // Създаване моделите в базата данни
         $instances = array();
+
+        // Масив с класовете, които имат интерфейси
+        $this->defClasses = arr::make($this->defClasses, TRUE);
+
         foreach (arr::make($this->managers) as $manager) {
 
             // Ако менидръжит е миграция - изпълняваме я еднократно
@@ -133,31 +138,242 @@ class core_ProtoSetup
                 continue;
             }
 
-            if($manager == 'core_Plugins' && $PluginsGlobal) {
-                $instances[$manager] = $PluginsGlobal;
-            } else {
-                $instances[$manager] = &cls::get($manager);
-            }
-            
+            $instances[$manager] = &cls::get($manager);
+
+            // Допълваме списъка, защото проверяваме дали мениджърите имат интерфеси
+            $this->defClasses[$manager] = $manager;
+
             expect(method_exists($instances[$manager], 'setupMVC'), $instances, $manager);
 
             $html .= $instances[$manager]->setupMVC();
         }
         
+        // Създава посочените директории
+        $html .= core_Os::createDirectories($this->folders);
         
-        // конфигурацията на пакета
+        // Добавяне на класове, поддържащи интерфейси в регистъра core_Classes
+        $html .= $this->setClasses();
+
+
+        // Добавяме дефинираните роли в модула
+        foreach(arr::make($this->roles) as $role) {
+            $html .= core_Roles::addOnce($role);
+        }
+
+        return $html;
+    }
+
+    
+    /**
+     * Зареждане на първоначалните данни
+     * Извиква метода '->loadSetupData()' на мениджърите, които го имат
+     */
+    public function loadSetupData()
+    {
+        $htmlRes = '';
+        
+
+        // Създаване на кофи за файлове
+
+
+        // Зареждане на данните в моделите
+        $instances = array();
+        foreach (arr::make($this->managers) as $man) {
+            if (stripos($man, 'migrate::') === 0) {
+                continue;
+            }
+            $instances[$man] = &cls::get($man);
+            if(method_exists($instances[$man], 'loadSetupData')) {
+                $htmlRes .= $instances[$man]->loadSetupData();
+            }
+        }
+        
+        // Нагласяване на Крон
+        $htmlRes .= $this->setCron();
+
+        // Добавяне на елементи в Менюто
+        $htmlRes .= $this->setMenuItems();
+
+        return $htmlRes;
+    }
+    
+    
+    /**
+     * Връща CSS файлове за компактиране
+     * 
+     * @return string
+     */
+    public function getCommonCss()
+    {
+        
+        return $this->preparePacksPath($this->getPackName(), $this->commonCSS);
+    }
+    
+    
+    /**
+     * Връща JS файлове за компактиране
+     * 
+     * @return string
+     */
+    public function getCommonJs()
+    {
+        
+        return $this->preparePacksPath($this->getPackName(), $this->commonJS);
+    }
+    
+    
+    /**
+     * Замества зададените плейсхолдери в стринга с конфигурационната им стойност
+     * 
+     * @param $packName
+     * @param $pathStr
+     * 
+     * @return string
+     */
+    private function preparePacksPath($packName, $pathStr)
+    {
+        if (!trim($pathStr)) return $pathStr;
+        
+        // Хващаме всички плейсхолдери
+        preg_match_all('/\[\#(.+?)\#\]/', $pathStr, $matches);
+        
+        // Ако няма плейсхолдер
+        if (!$matches[0]) return $pathStr;
+        
+        foreach ((array)$matches[1] as $key => $constName) {
+            
+            // Ако е подаден и пакета
+            if (strpos($constName, '::')) {
+                
+                // Вземаме пакета за конфигурацията от константата
+                list($confPackName, $constName) = explode('::', $constName);
+                $conf = core_Packs::getConfig($confPackName);
+            } else {
+                $conf = core_Packs::getConfig($packName);
+            }
+            
+            // Заместваме плейсхолдерите
+            $pathStr = str_replace($matches[0][$key], $conf->$constName, $pathStr);
+        }
+        
+        return $pathStr;
+    }
+
+
+    /**
+     * Връща името на пакета, за когото е този сетъп
+     *
+     * @return $string
+     */
+    public function getPackName()
+    {
+        list($packName, ) = explode("_", cls::getClassName($this), 2);
+        
+        return $packName;
+    }
+
+
+    /**
+     * Връща конфигурацията на пакета в който се намира Setup-а
+     *
+     * @return array()
+     */
+    public function getConfig()
+    {
+        $packName = $this->getPackName();
         $conf = core_Packs::getConfig($packName);
         
-        // 3-те имена на константите за менюто
-        $constPosition = strtoupper($packName). "_MENU_POSITION";
-        $constMenuName = strtoupper($packName). "_MENU";
-        $constSubMenu = strtoupper($packName). "_SUB_MENU";
-        $constView = strtoupper($packName). "_VIEW";
+        return $getConfig;
+    }
+    
+    
+    /**
+     * Проверяваме дали всичко е сетнато, за да работи пакета
+     * Ако има грешки, връщаме текст
+     */
+    public function checkConfig()
+    {
+        return NULL;
+    }
+    
+    
+    /**
+     * Де-инсталиране на пакета
+     */
+    function deinstall()
+    {
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
         
-        // Добавяме връзките към модула в менюто
+        return $res;
+    }
+    
+
+    /**
+     * Добавя дефинираните класове в модела за класове, поддържащи интерфейси
+     *
+     * @return string
+     */
+    protected function setClasses()
+    {
+        $classes = arr::make($this->defClasses);
+
+        foreach (arr::make($this->managers) as $manager) {
+
+            // Ако менидръжит е миграция - изпълняваме я еднократно
+            if (stripos($manager, 'migrate::') === 0) continue;
+            $classes[$manager] = $manager;
+        }
+
+        $res = '';
+
+        foreach($classes as $cls) {
+            $res .= core_Classes::add($cls);
+        }
+
+         return $res;
+    }
+
+
+    /**
+     * Функция, която добавя настройките за Cron
+     */
+    protected function setCron()
+    {
+        if(is_array($this->cronSettings) && count($this->cronSettings)) {
+            
+            if(!is_array($this->cronSettings[0])) {
+                $this->cronSettings = array($this->cronSettings);
+            }
+            
+            $res = '';
+
+            foreach($this->cronSettings as $setting) {
+                $res .= core_Cron::addOnce($setting);
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Добавяне на елементите на менюто за този модул
+     */
+    protected function setMenuItems()
+    {
         if(count($this->menuItems)) { 
             
-        
+            $conf = $this->getConfig();        
+            
+            // 3-те имена на константите за менюто
+            $constPosition = strtoupper($packName). "_MENU_POSITION";
+            $constMenuName = strtoupper($packName). "_MENU";
+            $constSubMenu = strtoupper($packName). "_SUB_MENU";
+            $constView = strtoupper($packName). "_VIEW";
+
+            $res = '';
+
             foreach($this->menuItems as $id=>$item) {
             	
             	$Menu = cls::get('bgerp_Menu');  
@@ -204,8 +420,8 @@ class core_ProtoSetup
 			        $html .= $query->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #menu = '[#3#]' AND #subMenu = '[#4#]' AND #createdBy = -1", $ctr, $act, $menu, $subMenu));
 			       
 	        	} else {
-	        	
-                	$html .= $Menu->addItem($row, $menu, $subMenu, $ctr, $act, $roles);
+	        	    // Добавя елемента на менюто
+                	$res .= bgerp_Menu::addOnce($row, $menu, $subMenu, $ctr, $act, $roles);
 	        	}
 	        	
 	        	$cacheKey = 'menuObj_' . core_Lg::getCurrent();
@@ -218,151 +434,31 @@ class core_ProtoSetup
             }
         }
 
-        // Създава, ако е необходимо зададените папки
-        foreach(arr::make($this->folders) as $path) {
-            if(!is_dir($path)) {
-                if(!mkdir($path, 0777, TRUE)) {
-                    $html .= "<li style='color:red;'>Не може да се създаде директорията: <b>{$path}</b>";
-                } else {
-                    $html .= "<li style='color:green;'>Създадена е директорията: <b>{$path}</b>";
-                }
-            } else {
-                $html .= "<li>Съществуваща от преди директория: <b>{$path}</b>";
-            }
-            
-            if(!is_writable($path)) {
-                $html .= "<li style='color:red;'>Не може да се записва в директорията <b>{$path}</b>";
-            }
-        }
-
-        
-        return $html;
-    }
-
-    
-    /**
-     * Зареждане на първоначалните данни
-     * Извиква метода '->loadSetupData()' на мениджърите, които го имат
-     */
-    public function loadSetupData()
-    {
-        // Създаване моделите в базата данни
-        $instances = array();
-        $htmlRes = '';
-        foreach (arr::make($this->managers) as $man) {
-            if (stripos($man, 'migrate::') === 0) {
-                continue;
-            }
-            $instances[$man] = &cls::get($man);
-            if(method_exists($instances[$man], 'loadSetupData')) {
-                $htmlRes .= $instances[$man]->loadSetupData();
-            }
-        }
-
-        return $htmlRes;
-    }
-    
-    
-    /**
-     * Връща CSS файлове за компактиране
-     * 
-     * @return string
-     */
-    public function getCommonCss()
-    {
-        
-        return $this->commonCSS;
-    }
-    
-    
-    /**
-     * Връща JS файлове за компактиране
-     * 
-     * @return string
-     */
-    public function getCommonJs()
-    {
-        
-        return $this->commonJS;
-    }
-    
-    
-    /**
-     * Замества зададените плейсхолдери в стринга с конфигурационната им стойност
-     * 
-     * @param $packName
-     * @param $pathStr
-     * 
-     * @return string
-     */
-    public function preparePacksPath($packName, $pathStr)
-    {
-        if (!trim($pathStr)) return $pathStr;
-        
-        // Хващаме всички плейсхолдери
-        preg_match_all('/\[\#(.+?)\#\]/', $pathStr, $matches);
-        
-        // Ако няма плейсхолдер
-        if (!$matches[0]) return $pathStr;
-        
-        foreach ((array)$matches[1] as $key => $constName) {
-            
-            // Ако е подаден и пакета
-            if (strpos($constName, '::')) {
-                
-                // Вземаме пакета за конфигурацията от константата
-                list($confPackName, $constName) = explode('::', $constName);
-                $conf = core_Packs::getConfig($confPackName);
-            } else {
-                $conf = core_Packs::getConfig($packName);
-            }
-            
-            // Заместваме плейсхолдерите
-            $pathStr = str_replace($matches[0][$key], $conf->$constName, $pathStr);
-        }
-        
-        return $pathStr;
-    }
-    
-    
-    /**
-     * Проверяваме дали всичко е сетнато, за да работи пакета
-     * Ако има грешки, връщаме текст
-     */
-    public function checkConfig()
-    {
-        return NULL;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
         return $res;
     }
     
     
     /**
-     * Конструктор
+     * Връща описанието на web-константите
+     *
+     * @return array
      */
-    function core_ProtoSetup() 
+    public function getConfigDescription() 
     {
-        // името на пакета
-        list ($packName, ) = explode("_", cls::getClassName($this), 2);
-        
-        // три имена на променливи за менюто
-        $position = strtoupper($packName). "_MENU_POSITION";
-        $menuName = strtoupper($packName). "_MENU";
-        $subMenu = strtoupper($packName). "_SUB_MENU";
-        $view = strtoupper($packName). "_VIEW";       
-        
+        $description = $this->configDescription;
+
         // взимаме текущото зададено меню
-        if (count($this->menuItems)) { 
+        if ($this->menuItems && count($this->menuItems)) { 
+            
+            // Името на пакета
+            $packName = $this->getPackName();
+
+            // три имена на променливи за менюто
+            $position = strtoupper($packName). "_MENU_POSITION";
+            $menuName = strtoupper($packName). "_MENU";
+            $subMenu = strtoupper($packName). "_SUB_MENU";
+            $view = strtoupper($packName). "_VIEW";
+            
         	$menu = $this->menuItems;
         	
         	if (is_array($menu)) {
@@ -382,13 +478,19 @@ class core_ProtoSetup
                         $numbMenu = " ({$numbMenu})";
                     }
 
-        			$this->configDescription[$position."_".$id] = array ('double', 'caption=Меню '.$numbMenu.'->Позиция');
-        			$this->configDescription[$menuName."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Група');
-        			$this->configDescription[$subMenu."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Подменю');
-        			$this->configDescription[$view."_".$id] = array ('enum(yes=Да, no=Не),row=2', 'caption=Меню '.$numbMenu.'->Показване,maxRadio=2');
-        			        			
+        			$description[$position."_".$id] = array ('double', 'caption=Меню '.$numbMenu.'->Позиция');
+        			$description[$menuName."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Група');
+        			$description[$subMenu."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Подменю');
+        			$description[$view."_".$id] = array ('enum(yes=Да, no=Не),row=2', 'caption=Меню '.$numbMenu.'->Показване,maxRadio=2');
         		}
         	}
         }
+        
+        // За всеки случай нулираме, за да не се обърка някой по-нататък
+        if(is_array($description) && !count($description)) {
+            $description = NULL;
+        }
+
+        return $description;
     }
 }

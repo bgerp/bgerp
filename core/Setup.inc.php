@@ -612,10 +612,6 @@ if($step == 3) {
         }
     }
 
-//     if (!ini_get("browscap")) {
-//         $log[] = "wrn:Желателно инсталиране на : <a href='http://browscap.org/' target='_blank'><b>browscap</b></a>";
-//     }
-    
 
     // Необходими модули на Apache
     $log[] = 'h:Проверка за необходимите Apache модули:';

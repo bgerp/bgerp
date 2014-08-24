@@ -214,8 +214,7 @@ class core_Logs extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
+        // Нагласяване на Крон        
         $rec = new stdClass();
         $rec->systemId = 'DeleteExpiredLogs';
         $rec->description = 'Изтриване на старите логове в системата';
@@ -225,15 +224,6 @@ class core_Logs extends core_Manager
         $rec->offset = 12 * 60;
         $rec->delay = 0;
         $rec->timeLimit = 200;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li class='green'>Задаване на Cron да изтрива старите логове</li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да изтрива старите логове</li>";
-        }
-        
-        return $res;
+        $res .= core_Cron::addOnce($rec);
     }
 }

@@ -136,27 +136,33 @@ class core_Os
      */
     static function cron_clearOldFiles()
     {
-        // Ако не е дефиниран пътя
-        if ((!EF_TEMP_PATH) || (EF_TEMP_PATH == 'EF_TEMP_PATH')) return ;
-        
+        // Конфигурацията на пакета core
         $conf = core_Packs::getConfig('core');
-        
-        // Изтриваме всички, файлове, кото са по стари от дадено време
-        $delCnt = static::deleteOldFiels(EF_TEMP_PATH, $conf->CORE_TEMP_PATH_MAX_AGE);
-        
-        // Показваме броя на изтритите файлове
-        if ($delCnt) {
-            
-            if ($delCnt == 1) {
-                $resText = "Изтрит 1 файл";
-            } else {
-                $resText = "Изтрити {$delCnt} файла";
+
+        // Изтриваме всички, файлове, кото са по стари от дадено време в директорията за временни файлове
+        if (defined('EF_TEMP_PATH')) { 
+            $delCnt = self::deleteOldFiels(EF_TEMP_PATH,  $conf->CORE_TEMP_PATH_MAX_AGE);  
+            if($delCnt > 0) {
+                $resText .= ($resText ? "\n" : '') . ($delCnt>1 ? "Бяха изтрити" : "Беше изтрит") . " {$delCnt} " . ($delCnt>1 ? "файла" : "файл") . ' от ' . EF_TEMP_PATH;
             }
-            
-            $resText .= " от '" . EF_TEMP_PATH . "'";
-            
-            return $resText;
         }
+        
+        // Изтриваме всички стари файлове в поддиректории на sbf които не започват със символа '_'
+        if (defined('EF_SBF_PATH')) {
+            if ($handle = opendir(EF_SBF_PATH)) {
+                while (FALSE !== ($entry = readdir($handle))) {
+                    if ($entry != "." && $entry != ".." && false === strpos($entry, '_') && is_dir(EF_SBF_PATH . "/{$entry}")) {
+                        $delCnt = self::deleteOldFiels(EF_SBF_PATH . "/{$entry}", $conf->CORE_TEMP_PATH_MAX_AGE);
+                    }
+                }
+                closedir($handle);
+            }
+            if($delCnt > 0) {
+                $resText .= ($resText ? "\n" : '') . ($delCnt>1 ? "Бяха изтрити" : "Беше изтрит") . " {$delCnt} " . ($delCnt>1 ? "файла" : "файл") . ' от ' . EF_SBF_PATH;
+            }
+        }
+
+        return $resText;
     }
     
 
@@ -295,4 +301,39 @@ class core_Os
 
         return $processes;
     }
+
+
+    /**
+     * Съдава пътищата посочени във входния аргумент
+     *
+     * return string
+     */
+    public static function createDirectories($directories, $mode = 0777, $recursive = TRUE)
+    {
+        // Създава, ако е необходимо зададените папки
+        foreach(arr::make($directories) as $path => $caption) {
+            
+            if(is_numeric($path)) {
+                $path = $caption;
+                $caption = '';
+            }
+
+            if(!is_dir($path)) {
+                if(!mkdir($path, $mode, $recursive)) {
+                    $res .= "<li class='debug-error'>Не може да се създаде директорията <b>{$path}</b> {$caption}</li>";
+                } else {
+                    $res .= "<li class='debug-new'>Създадена е директорията <b>{$path}</b> {$caption}</li>";
+                }
+            } else {
+                $res .= "<li class='debug-info'>Съществуваща директория <b>{$path}</b> {$caption}</li>";
+            }
+            
+            if(!is_writable($path)) {
+                $res .= "<li class='debug-error'>Не може да се записва в директорията <b>{$path}</b> {$caption}</li>";
+            }
+        } 
+        
+        return $res;
+    }
+
 }
