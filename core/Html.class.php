@@ -16,15 +16,6 @@
  */
 class core_Html
 {
-    /**
-     * Максимална дълбочина при показване на вложени структури (обекти, масиви)
-     * 
-     * @var int
-     * @see bp()
-     * @see core_Html::mixedToHtml()
-     */
-    public static $dumpMaxDepth = 8;
-
 
     /**
      * Композира xHTML елемент
@@ -768,12 +759,63 @@ class core_Html
 
         return $layout;
     }
+    
+    /**
+     * Прави html представяне на структурата на обекта, масива или променливата
+     */
+    static function wrapMixedToHtml($html, $wholeDocument = FALSE)
+    {
+        $styles =   "    .dump {font-family: Consolas,Courier New,monospace; monospace; font-size:12px;}\n" .
+                    "    .dump ul {list-style-type: none; margin:0;margin-left:10px; border-left:solid 1px #bbb; padding:0; padding-left:3px;}\n" .
+                    "    .dump li {margin-top:3px;display:table;}\n" .
+                    "    .dump .trigger {cursor:pointer}\n" .
+                    "    .dump {max-width:100%; white-space:nowrap;overflow-x:auto;overflow-y:hidden;}\n";
+
+        $scripts =  "\$('document').ready(function() {\$('.trigger').click(function(event){\n" .
+                    "var obj = \$(this).parent().children('ul')[0];\n" .
+                    "var sp  = \$(this);\n" .
+                    "if(\$(obj).hasClass('hidden')){\n" .
+                    "    \$(sp).css('border-bottom', 'none');\n" .
+                    "    \$(obj).removeClass('hidden').slideDown();\n" .
+                    "} else {\n" .
+                    "    \$(sp).css('border-bottom', 'dotted 1px #bbb');\n" .
+                    "    \$(obj).addClass('hidden').slideUp();\n" .
+                    "}\n" .
+                    "event.stopPropagation();});\n" .
+                    "});\n";
+
+        if(!$wholeDocument) {
+            $tpl = new ET($html);
+            $tpl->appendOnce($styles, 'STYLES');
+            $tpl->appendOnce($scripts, 'SCRIPTS');
+        } else {
+            $tpl =  "<!DOCTYPE html>\n" .
+                    "<html><head>\n" .
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">\n" .
+                    "<meta name=\"robots\" content=\"noindex,nofollow\">\n" .
+                    "<title>BP on " . date("Y-m-d H:i:s") . "</title>\n" .
+                    "<script src=\"//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js\"></script>\n" .
+                    "<style>\n" .
+                    $styles .
+                    "</style>\n" .
+                    "</head>\n" .
+                    "<body>\n" .
+                    $html . "\n" .
+                    "<script>\n" .
+                    $scripts .
+                    "</script>\n" .
+                    "</body>\n" .
+                    "</html>\n";
+        }
+
+        return $tpl;
+    }
 
 
     /**
      * Прави html представяне на структурата на обекта, масива или променливата
      */
-    static function mixedToHtml($o)
+    static function mixedToHtml($o, $hideLevel = 2, $maxLevel = 8)
     {
         static $i = 0;
 
@@ -781,7 +823,7 @@ class core_Html
     
         $r = gettype($o);
 
-        if ($i > self::$dumpMaxDepth) {
+        if ($i > $maxLevel) {
             $i--;
             
             if(is_array($o)) {
@@ -809,7 +851,11 @@ class core_Html
             } else {
                 do {
                     $reflection = new ReflectionClass($class);
-                    foreach($reflection->getProperties(ReflectionProperty::IS_STATIC | ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED | ReflectionProperty::IS_PRIVATE) as $prop) {
+                    foreach($reflection->getProperties(
+                                            ReflectionProperty::IS_STATIC | 
+                                            ReflectionProperty::IS_PUBLIC | 
+                                            ReflectionProperty::IS_PROTECTED | 
+                                            ReflectionProperty::IS_PRIVATE) as $prop) {
                         $prop->setAccessible(TRUE);
                         $name = $prop->getName();
                         if(!$usedNames[$name]) {
@@ -825,13 +871,13 @@ class core_Html
         }
 
         if (is_array($o)) {
-            if($i >= 3) {
+            if($i >= $hideLevel + 1) {
                 $html = "\n($r)\n<ul class='hidden' style='display:none;'>";
             } else {
                 $html = "\n($r)\n<ul>";
             }
 
-            if($i >= 2) {
+            if($i >= $hideLevel) {
                 $style = 'style="border-bottom:dotted 1px #bbb;"';
             } else {
                 $style = '';
@@ -840,12 +886,16 @@ class core_Html
             if (count($o)) {
                 foreach ($o as $name => $value) {
                     if($name === 'dbPass') {
-                        $html .= "\n    <li class='trigger'>" . "$name : ******"  . "</li>";
+                        $html .= "\n    <li>" . "$name : ******"  . "</li>";
                     } else {
                         if(is_scalar($value) || $value === NULL || (is_array($value) && count($value) ==0)) {
-                            $html .= "\n    <li class='trigger'>" . htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . " : " . static::mixedToHtml($value) . "</li>";
+                            $html .= "\n    <li>" . 
+                                htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . " : " . 
+                                static::mixedToHtml($value, $hideLevel, $maxLevel) . "</li>";
                         } else {
-                            $html .= "\n    <li class='trigger'><span $style>" . htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . "</span> : " . static::mixedToHtml($value) . "</li>";
+                            $html .= "\n    <li><span class='trigger' $style>" . 
+                                htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . "</span> : " .
+                                static::mixedToHtml($value, $hideLevel, $maxLevel) . "</li>";
                         }
                     }
                 }

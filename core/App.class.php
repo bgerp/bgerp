@@ -1163,43 +1163,14 @@ class core_App
         if (!file_exists(EF_TEMP_PATH) && !is_dir(EF_TEMP_PATH)) {
     		mkdir(EF_TEMP_PATH, 0777, TRUE);    
 		}
-
         
         // Сигнал за външния свят, че нещо не е наред
         header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request', TRUE, 500);
 
         header('Content-Type: text/html; charset=UTF-8');
-
-        $page = "<!DOCTYPE html>\n" .
-                "<html><head>\n" .
-                "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">\n" .
-                "<meta name=\"robots\" content=\"noindex,nofollow\">\n" .
-                "<title>BP on " . date("Y-m-d H:i:s") . "</title>\n" .
-                "<script src=\"//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js\"></script>\n" .
-                "<style>\n" .
-                "    .dump {font-family: Consolas,Courier New,monospace; monospace; font-size:12px;}\n" .
-                "    .dump ul {list-style-type: none; margin:0;margin-left:10px; border-left:solid 1px #bbb; padding:0; padding-left:3px;}\n" .
-                "    .dump li {margin-top:3px;display:table;}\n" .
-                "</style>\n" .
-                "</head>\n" .
-                "<body>\n" .
-                $errHtml . "\n" .
-                "<script>\n" .
-                "\$('document').ready(function() {\$('.trigger').click(function(event){\n" .
-                "var obj = \$(this).children('ul')[0];\n" .
-                "var sp  = \$(this).children('span')[0];\n" .
-                "if(\$(obj).hasClass('hidden')){\n" .
-                "    \$(sp).css('border-bottom', 'none');\n" .
-                "    \$(obj).removeClass('hidden').slideDown();\n" .
-                "} else {\n" .
-                "    \$(sp).css('border-bottom', 'dotted 1px #bbb');\n" .
-                "    \$(obj).addClass('hidden').slideUp();\n" .
-                "}\n" .
-                "event.stopPropagation();});\n" .
-                "});\n" .
-                "</script>\n" .
-                "</body>\n" .
-                "</html>\n";
+        
+        // Поставяме обвивка - html документ
+        $page = ht::wrapMixedToHtml($errHtml, TRUE);
         
         // Записваме за всеки случай и като файл
         file_put_contents(EF_TEMP_PATH . '/err.log.html', $page . "\n\n");
@@ -1217,8 +1188,10 @@ class core_App
 	{
 		$stack = static::prepareStack($stack, $breakFile, $breakLine);
 
-        $errHtml .= "<h1>Прекъсване на линия <span style=\"color:red\">$breakLine</span> в " .
-        "<span style=\"color:red\">$breakFile</span></h1>";
+        $errHtml .= "<h2>Прекъсване на линия <span style=\"color:red\">$breakLine</span> в " .
+        "<span style=\"color:red\">$breakFile</span></h2>";
+
+        $errHtml .= self::getCodeAround($breakFile, $breakLine);
 
         $errHtml .= $html;
 
@@ -1230,6 +1203,38 @@ class core_App
         
         return $errHtml;
 	}
+
+
+    /**
+     * Връща кода от php файла, около посочената линия
+     * Прави базово форматиране
+     *
+     * @param string $file Името на файла, съдържащ PHP код
+     * @param int       $line Линията, около която търсим 
+     */
+    public static function getCodeAround($file, $line, $range = 4)
+    {
+        $source = file_get_contents($file);
+
+        $lines = explode("\n", $source);
+
+        $from = max($line - $range-1, 0);
+        $to   = min($line + $range, count($lines));
+        $code = "<pre>";
+        $padding = strlen($to);
+        for($i = $from; $i < $to; $i++) {
+            $l = str_pad($i+1, $padding, " ", STR_PAD_LEFT);
+            $style = '';
+            if($i+1 == $line) {
+                $style = " style='background-color:#ff9;'";
+            }
+            $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". str_replace('<', '&lt;', rtrim($lines[$i])) . "</span>\n";
+            $code .= $l;
+        }
+        $code .= "</pre>";
+        
+        return $code;
+    }
 
 	
     /**
