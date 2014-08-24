@@ -151,7 +151,8 @@ class plg_Chart extends core_Plugin
         $usedCols = array();
         
         // Добавяме данните
-        foreach($data->recs as $id => $rec) {
+
+        foreach(arr::make($data->recs) as $id => $rec) {
             foreach($data->chartColumns as $col => $colRec) {
                 
                 if($chartField) {
