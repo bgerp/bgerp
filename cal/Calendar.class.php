@@ -523,11 +523,11 @@ class cal_Calendar extends core_Master
         $prevtLink['cal_year'] = $py;
         $prevtLink = toUrl($prevtLink);
         
-        $header = "<table class='mc-header' width='100%' cellpadding='0'>
+        $header = "<table class='mc-header' style='width:100%'>
                 <tr>
-                    <td align='left'><a href='{$prevtLink}'>{$prevMonth}</a></td>
-                    <td align='center'><b>{$currentMonth}</b></td>
-                    <td align='right'><a href='{$nextLink}'>{$nextMonth}</a></td>
+                    <td class='aleft'><a href='{$prevtLink}'>{$prevMonth}</a></td>
+                    <td class='centered'><b>{$currentMonth}</b></td>
+                    <td class='aright'><a href='{$nextLink}'>{$nextMonth}</a></td>
                 </tr>
             </table>";
         
