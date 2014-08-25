@@ -191,9 +191,6 @@ class hr_Shifts extends core_Master
     	$recDetail = hr_ShiftDetails::fetch("#shiftId='{$id}'");
     	
     	$date = '2013-05-03 00:00:00';
-
-    	//bp(static::getShiftDay($rec, $date));
-    	bp(static::putNewShiftDetail($rec, $recDetail));
     }
     
     
@@ -238,9 +235,8 @@ class hr_Shifts extends core_Master
      */
     static public function putNewShiftDetail($recShift, $recDetail)
     {
-    	if($recDetail->startingOn > $recShift->startingOn)
-    	{
-    		bp($recDetail->startingOn > $recShift->startingOn, $recDetail->startingOn , $recShift->startingOn);
+    	if($recDetail->startingOn > $recShift->startingOn){
+    		
     	}
     	
     }

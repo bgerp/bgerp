@@ -293,7 +293,7 @@ class hr_WorkingCycles extends core_Master
     function renderGrafic($data)
     {
     	$prepareRecs = static::prepareGrafic($data);
-    	//bp($prepareRecs);
+    	
 		$tpl = new ET(getTplFromFile('hr/tpl/SingleLayoutShift.shtml'));
 		$tpl->push('hr/tpl/style.css', 'CSS');
     	
@@ -327,7 +327,7 @@ class hr_WorkingCycles extends core_Master
 	    }
         
     	if(Mode::is('printing')) {
-    		//bp($data);
+    		
     		$month =  mb_convert_case(dt::getMonth($prepareRecs->month, 'F',  'bg'), MB_CASE_LOWER, "UTF-8"); 
     		$title = "<b class='printing-title'>" . tr("Работен график на "). tr($prepareRecs->name). tr(" за месец ") . tr($month) . "<br /></b>";
     		$tpl->append($title, 'title');
@@ -364,9 +364,6 @@ class hr_WorkingCycles extends core_Master
     	$masterId = 5;
     	$date = '2013-05-28 00:00:00';
     	$date2 = '2013-06-05 00:00:00';
-
-    	bp(static::calcLeaveDaysBySchedule($id, $masterId, $date, $date2));
-    	//bp(static::putNewShiftDetail($rec, $recDetail));
     }
  
     

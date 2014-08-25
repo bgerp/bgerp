@@ -72,7 +72,7 @@ class hr_ShiftDetails extends core_Detail
         foreach($details as $d){
         	$days[$d->day] = $d->day;
         }
-        //bp($days);
+
 	    $data->form->setDefault('cycleId', $data->form->rec->shiftId);
 	    $data->form->setDefault('startingOn', dt::now());
 	   

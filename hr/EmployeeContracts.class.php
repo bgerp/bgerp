@@ -541,7 +541,6 @@ class hr_EmployeeContracts extends core_Master
     static function act_Test()
     {
     	$id = 2;
-    	//bp(Mode::is('Printing'));
     }
     
     
