@@ -669,7 +669,7 @@ class sales_Sales extends core_Master
     
                 // Търговец (чрез инициатор)
                 if (!empty($rec->initiatorId)) {
-                    $row->dealerId .= '<small><span class="quiet">чрез</span> ' . $row->initiatorId . "</small>";
+                    $row->dealerId .= ' <small><span class="quiet">чрез</span> ' . $row->initiatorId . "</small>";
                 }
             }
         }
