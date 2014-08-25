@@ -56,6 +56,7 @@ class acc_plg_Contable extends core_Plugin
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
             $transaction       = $transactionSource->getTransaction($rec);
             
+            Mode::set('wrapper', 'page_Empty');
             if(!static::hasContableTransaction($mvc, $rec, $transactionRes)){
             	$res = ht::wrapMixedToHtml(ht::mixedToHtml(array($transactionRes, $transaction), 4));
             } else {

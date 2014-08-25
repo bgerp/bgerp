@@ -361,10 +361,6 @@ class purchase_Purchases extends core_Master
 	    		$data->toolbar->addBtn("Вх. фактура", array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на входяща фактура,order=9.9993');
 		    }
 		}
-    	
-    	if(haveRole('debug')){
-    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
-    	}
     }
     
     
@@ -983,18 +979,6 @@ class purchase_Purchases extends core_Master
 	        	$mvc->updateMaster($id);
 	        }
         }
-    }
-    
-    
-	/**
-     * Дебъг екшън показващ агрегираните бизнес данни
-     */
-    function act_AggregateDealInfo()
-    {
-    	requireRole('debug');
-    	expect($id = Request::get('id', 'int'));
-    	$info = $this->getAggregateDealInfo($id);
-    	bp($info);
     }
     
     

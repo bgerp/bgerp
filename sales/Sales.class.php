@@ -798,10 +798,6 @@ class sales_Sales extends core_Master
 		    	$data->toolbar->addBtn('КБ', array($mvc, 'printReceipt', $rec->id), NULL, 'warning=Издаване на касова бележка ?', array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка'));
 		    }
     	}
-    	
-    	if(haveRole('debug')){
-            $data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
-    	}
     }
     
     
@@ -1312,18 +1308,6 @@ class sales_Sales extends core_Master
     {
     	$mvc->setCron($res);
     	$mvc->setTemplates($res);
-    }
-    
-    
-    /**
-     * Дебъг екшън показващ агрегираните бизнес данни
-     */
-    function act_AggregateDealInfo()
-    {
-    	requireRole('debug');
-    	expect($id = Request::get('id', 'int'));
-    	$info = $this->getAggregateDealInfo($id);
-    	bp($info);
     }
     
     
