@@ -495,8 +495,6 @@ class i18n_Charset extends core_MVC {
         }
  
        //  arsort($rates);
-       // bp($rates, $assumedCharsets, $resDebug);
- 
  
         $resArr = array_keys($rates,  max($rates));
          
@@ -933,7 +931,7 @@ class i18n_Charset extends core_MVC {
         if($toCharset == 'ISO-8859-1|CP1251') {
             $str = iconv('UTF-8', 'CP1251' . $mode, $str);
             $str = iconv('ISO-8859-1', 'UTF-8' . $mode, $str);
-        } if($toCharset == 'CP819|866') { bp();
+        } if($toCharset == 'CP819|866') {
             $str = iconv('UTF-8', '866' . $mode, $str);
             $str = iconv('CP819', 'UTF-8' . $mode, $str);
         } elseif($toCharset == 'MIK') {
