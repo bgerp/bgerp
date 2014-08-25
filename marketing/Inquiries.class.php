@@ -464,6 +464,7 @@ class marketing_Inquiries extends core_Master
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->title = $mvc->getTitle($rec);
     		
+    		$attr = array();
     		$attr['class'] = 'linkWithIcon';
     		$attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, $attr);
@@ -655,7 +656,9 @@ class marketing_Inquiries extends core_Master
     	
     	$name = $this->getFieldType('name')->toVerbal((($rec->company) ? $rec->company : $rec->name));
     	
-    	return $subject = "{$name} / {$Driver->getProductTitle((object)$rec->data)}";
+    	$subject = "{$name} / {$Driver->getProductTitle((object)$rec->data)}";
+    	
+    	return $subject;
     }
     
     
@@ -730,7 +733,6 @@ class marketing_Inquiries extends core_Master
         $time = dt::mysql2verbal($rec->createdOn, 'H:i');
 
         $tpl = new ET(tr("Благодарим за Вашето запитване, получено на [#1#] в [#2#] чрез нашия уеб сайт."), $date, $time);
-        $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
     }

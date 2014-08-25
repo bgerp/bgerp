@@ -146,6 +146,7 @@ class acc_Features extends core_Manager
     	
     	$self = cls::get(get_called_class());
     	$updated = array();
+    	$now = dt::now();
     	
     	// За всяко свойство
     	if(count($features)){

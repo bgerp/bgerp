@@ -395,9 +395,6 @@ class deals_Deals extends core_Master
     		
     		$recs = array();
     		
-    		// Извличаме всички записи, за да изчислим точно крайното салдо
-    		$count = 0;
-    		
     		// Групираме записите по документ
     		foreach($entries as $jRec){
     			$index = $jRec->docType . "|" . $jRec->docId;

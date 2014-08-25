@@ -445,7 +445,6 @@ class bank_SpendingDocuments extends core_Master
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$docState = $firstDoc->fetchField('state');
     	
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
     		

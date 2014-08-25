@@ -112,7 +112,6 @@ class acc_JournalDetails extends core_Detail
                         
                         if ($rec->{$ent}) {
                             $row->{$ent} = $mvc->recToVerbal($rec, $ent)->{$ent};
-                            $listGroupTitle = acc_Lists::fetchField($accRec->{"groupId{$i}"}, 'name');
                             $ents .= "<li><span style='margin-left:10px; font-size: 11px; color: #747474;'>{$i}.</span> " . $row->{$ent} . '</li>';
                         }
                     }

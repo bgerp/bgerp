@@ -416,7 +416,6 @@ abstract class acc_ClosedDeals extends core_Master
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	
-    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	$costAmount = $incomeAmount = 0;
     	if($rec->state == 'active'){
     		if(round($rec->amount, 2) > 0){
@@ -494,6 +493,8 @@ abstract class acc_ClosedDeals extends core_Master
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	$plugins = $mvc->getPlugins();
+    	$docClassId = NULL;
+    	
     	if(isset($plugins['sales_Wrapper'])){
     		$docClassId = sales_Sales::getClassId();
     	} elseif(isset($plugins['purchase_Wrapper'])){
@@ -568,6 +569,7 @@ abstract class acc_ClosedDeals extends core_Master
     public function getClosedItemsInTransaction_($id)
     {
     	$rec = $this->fetchRec($id);
+    	$closedItems = NULL;
     	
     	// Намираме приключените пера от транзакцията
     	$transaction = $this->getValidatedTransaction($id);

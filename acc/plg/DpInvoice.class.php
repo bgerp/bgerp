@@ -50,7 +50,6 @@ class acc_plg_DpInvoice extends core_Plugin
         
         // Намиране на пораждащия се документ
         $origin         = $mvc->getOrigin($rec);
-        $originRec      = $origin->fetch();
         $dealInfo       = $origin->getAggregateDealInfo();
         $form->dealInfo = $dealInfo;
         

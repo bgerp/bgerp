@@ -219,7 +219,7 @@ class bank_InternalMoneyTransfer extends core_Master
     	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
     	$form->title = 'Нов вътрешен банков трансфер';
         $form->toolbar->addSbBtn('Напред', '', array('class'=>'fright'), 'ef_icon = img/16/move.png');
-        $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')), 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', toUrl(array('bank_InternalMoneyTransfer', 'list')), 'ef_icon = img/16/close16.png');
         
         $folderId = bank_OwnAccounts::forceCoverAndFolder(bank_OwnAccounts::getCurrent());
        	$form->setDefault('folderId', $folderId);

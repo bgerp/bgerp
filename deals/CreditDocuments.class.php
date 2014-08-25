@@ -256,7 +256,7 @@ class deals_CreditDocuments extends core_Master
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
-    	$row->recTitle = $name;
+    	$row->recTitle = $row->title;
     
     	return $row;
     }
@@ -271,8 +271,6 @@ class deals_CreditDocuments extends core_Master
      */
     public static function canAddToThread($threadId)
     {
-    	$threadRec = doc_Threads::fetch($threadId);
-    	 
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	 

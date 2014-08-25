@@ -189,6 +189,7 @@ abstract class deals_Helper
 	public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = FALSE, $lang = 'bg')
 	{
 		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
+		$arr = array();
 		$values = (array)$values;
 		$arr['currencyId'] = $currencyId;                          // Валута на документа
 		

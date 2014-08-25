@@ -203,7 +203,6 @@ class cash_Rko extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-    	$folderId = $data->form->rec->folderId;
     	$form = &$data->form;
     	
     	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
@@ -237,7 +236,6 @@ class cash_Rko extends core_Master
     		 	}
     		 		
     		 	if($caseId = $dealInfo->get('caseId')){
-    		 		$cashRec = cash_Cases::fetch($caseId);
     		 			 
     		 		// Ако потребителя има права, логва се тихо
     		 		cash_Cases::selectSilent($caseId);
@@ -454,7 +452,6 @@ class cash_Rko extends core_Master
 	public static function canAddToThread($threadId)
     {
     	$threadRec = doc_Threads::fetch($threadId);
-    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');

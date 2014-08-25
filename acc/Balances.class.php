@@ -479,7 +479,7 @@ class acc_Balances extends core_Master
     			} else{
     				
     				// Ако няма номенклатури, линка е към хронологията на сметката
-    				if(acc_BalanceDetails::haveRightFor('history', $dRec)){
+    				if(acc_BalanceDetails::haveRightFor('history', (object)array())){
     					$balImg = ($showIcon) ? array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/clock_history.png') . ');') : NULL;
     					
     					$title = ht::createLink($title,

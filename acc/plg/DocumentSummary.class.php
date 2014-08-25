@@ -184,7 +184,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     	$baseCurrency = acc_Periods::getBaseCurrencyCode();
     	
     	while($rec = $data->listSummary->query->fetch()){
-    		static::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
+    		self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
     	}
     	
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 0)));
@@ -214,7 +214,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 	static function on_AfterRenderListSummary($mvc, &$tpl, $data)
     {
     	if($data->listSummary->summary){
-    		$tpl = static::renderSummary($data->listSummary->summary);
+    		$tpl = self::renderSummary($data->listSummary->summary);
     	}
     }
     

@@ -64,7 +64,7 @@ class pos_Stocks extends core_Manager {
     /**
      * Работен кеш
      */
-    static $cache = array();
+    protected $cache = array();
     
     
     /**
@@ -106,9 +106,6 @@ class pos_Stocks extends core_Manager {
     	// Ако няма скалдове не правим нищо
     	if(!$storesArr) return;
     	
-    	// Изпразваме таблицата
-    	$self = cls::get(get_called_class());
-    	
     	// За всеки запис извлечен от счетоводството
     	foreach ($all as $index => $amount){
     		
@@ -143,7 +140,7 @@ class pos_Stocks extends core_Manager {
     	}
     	
     	// Приспада количествата от не-отчетените бележки
-    	static::applyPosStocks();
+    	self::applyPosStocks();
     }
     
     
@@ -178,7 +175,7 @@ class pos_Stocks extends core_Manager {
     	
     	// За всеки запис, форсираме го
     	foreach ($activeReceipts as $receiptRec){
-    		static::forceRec($receiptRec);
+    		self::forceRec($receiptRec);
     	}
     }
     
@@ -215,7 +212,7 @@ class pos_Stocks extends core_Manager {
     	// Форсираме записи за всички продукти от тази бележка
     	foreach ($products as $prRec){
     		$prRec->storeId = $storeId;
-    		static::forceRec($prRec);
+    		self::forceRec($prRec);
     	}
     }
     

@@ -467,7 +467,7 @@ class cat_Products extends core_Master {
     	}
     	
     	// Премахват се тези продукти до които потребителя няма достъп
-    	static::unsetUnavailableProducts($products);
+    	self::unsetUnavailableProducts($products);
     	
     	// Ако е посочен лимит, връщаме първите $limit продукти
     	if(isset($limit)){
@@ -584,7 +584,7 @@ class cat_Products extends core_Master {
     	$res->productRec = $productRec;
     	
     	// Добавяне на мета данните за продукта
-    	if($meta = explode(',', static::getMetaData($productRec->groups))){
+    	if($meta = explode(',', self::getMetaData($productRec->groups))){
 	    	foreach($meta as $value){
 	    		$res->meta[$value] = TRUE;
 	    	}
@@ -1113,6 +1113,8 @@ class cat_Products extends core_Master {
     public function getBasePackInfo($id)
     {
     	$basePack = cat_products_Packagings::fetch("#productId = '{$id}' AND #isBase = 'yes'");
+    	$arr = array();
+    	
     	if($basePack){
     		$arr['name'] = cat_Packagings::getTitleById($basePack->packagingId);
     		$arr['quantity'] = $basePack->quantity;

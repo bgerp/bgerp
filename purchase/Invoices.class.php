@@ -1061,6 +1061,7 @@ class purchase_Invoices extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
+    	$tplArr = array();
     	$tplArr[] = array('name' => 'Входяща фактура нормален изглед', 'content' => 'purchase/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Входяща фактура изглед за писмо', 'content' => 'purchase/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
         
