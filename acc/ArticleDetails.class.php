@@ -218,7 +218,7 @@ class acc_ArticleDetails extends core_Detail
             $form = $data->accSelectToolbar->renderHtml();
             
             if($form) {
-                $tpl = $form->getContent();
+                $tpl = $form;
             }
         }
     }
