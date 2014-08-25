@@ -31,7 +31,7 @@ class acc_Wrapper extends plg_ProtoWrapper
        	$ctr = Request::get('Ctr');
        	
        	// Ако екшъна е хронологичната справка, активираме таба
-        if(strtolower($act) == 'history' && $ctr == 'acc_BalanceDetails'){
+        if(strtolower($act) == 'history' && $ctr == 'acc_HistoryReport'){
 	    	$histUrl = getCurrentUrl();
         }
         

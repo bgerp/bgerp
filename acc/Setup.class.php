@@ -154,7 +154,7 @@ class acc_Setup extends core_ProtoSetup
             ),
         );
 
-    var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl";
+    var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_HistoryReport";
 
     
     /**

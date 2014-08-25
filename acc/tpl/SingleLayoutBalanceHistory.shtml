@@ -1,5 +1,5 @@
 <div class="singleView">
-    [#SingleToolbar#]
+    [#HystoryToolbar#]
     <h3 style='margin-top:15px'>
         <b style='font-size: 1.2em'>[#accountId#]</b>
         <!--ET_BEGIN ent1Id--><b class='feather-icon'>[#ent1Id#]</b> <!--ET_END ent1Id-->

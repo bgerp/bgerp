@@ -26,7 +26,7 @@ class acc_BalanceReportImpl
 	/**
 	 * Заглавие
 	 */
-    public $title = 'Подробен баланс';
+    public $title = 'Репорт за оборотните ведомости';
     
     
     /**

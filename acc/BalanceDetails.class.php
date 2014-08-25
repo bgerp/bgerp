@@ -59,20 +59,6 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * Временен акумолатор за извлечената история за перата
-     * 
-     * @var array
-     */
-    private $history;
-    
-    
-    /**
-     * Брой записи от историята на страница
-     */
-    public $listHistoryItemsPerPage = 30;
-    
-    
-    /**
      *
      * Стратегии на сметките - използва се при изчисляване на баланс
      * (@see acc_BalanceDetails::calculateBalance())
@@ -146,7 +132,9 @@ class acc_BalanceDetails extends core_Detail
     			$mvc->doGrouping($data, (array)$data->groupingForm->rec, $data->groupingForm->cmd);
     		}
     		
-    		usort($data->recs, array($mvc, "sortRecs"));
+    		if(count($data->recs)){
+    			usort($data->recs, array($mvc, "sortRecs"));
+    		}
     	}
     }
     
@@ -684,7 +672,7 @@ class acc_BalanceDetails extends core_Detail
         if($mvc->isDetailed()){
         	
         	$histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
-        	$url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
+        	$url = array('acc_HistoryReport', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
         	$row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
         	$row->history = "<span style='margin:0 4px'>{$row->history}</span>";
         	
@@ -1103,6 +1091,14 @@ class acc_BalanceDetails extends core_Detail
     	}
     }
     
+    
+    /**
+     * Връща вътрешно изчисления баланс
+     */
+    public function getCalcedBalance()
+    {
+    	return $this->balance;
+    }
     
     /**
      * Екшън за показване историята на перата

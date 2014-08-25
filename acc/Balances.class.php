@@ -483,7 +483,7 @@ class acc_Balances extends core_Master
     					$balImg = ($showIcon) ? array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/clock_history.png') . ');') : NULL;
     					
     					$title = ht::createLink($title,
-    							array('acc_BalanceDetails', 'History', 'fromDate' => $rec->fromDate, 'toDate' => $rec->toDate, 'accNum' => $accountRec->num), NULL, $balImg);
+    							array('acc_HistoryReport', 'History', 'fromDate' => $rec->fromDate, 'toDate' => $rec->toDate, 'accNum' => $accountRec->num), NULL, $balImg);
     				}
     			}
     		}
