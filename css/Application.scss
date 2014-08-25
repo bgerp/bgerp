@@ -938,9 +938,6 @@ td.portal-date {
 	.block_left {
 		margin-top: 10px;
 	}
-	.centered {
-		text-align: center;
-	}
 	p {
 		margin-top: 0;
 		margin-bottom: 5px;
@@ -1012,6 +1009,10 @@ td.portal-date {
 		background-color: rgba(200, 200, 200, 0.4);
 		height: 20px;
 	}
+}
+
+.centered {
+    text-align: center;
 }
 
 .document-title{
