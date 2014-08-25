@@ -84,11 +84,10 @@ class crm_Formatter extends core_Manager
 	    // парсирваме всеки телефон
 	    $parsTel = $PhonesVerbal->toVerbal($numbers);
         	
-        if (Mode::is('screenMode', 'wide') && $prefix != NULL) {
+        if ($prefix != NULL) {
         	        	
         	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $prefix. " ". $parsTel . "</span>";
-        } elseif (Mode::is('screenMode', 'narrow') && $prefix != NULL) {
-        	$res = $prefix. "<span class='communication'>" . " ". $parsTel ."</span>";
+
         } else {
         	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>". $parsTel ."</span>";
         }
@@ -111,17 +110,28 @@ class crm_Formatter extends core_Manager
         
         // Иконата на класа
         $icon = sbf("img/16/fax2.png", '', $isAbsolute);
-        	
-    	if (Mode::is('screenMode', 'wide') && $prefix != NULL) {
-     	
-        	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $prefix. " ". $numbers ."</span>";
-        	
-        } elseif (Mode::is('screenMode', 'narrow') && $prefix != NULL) {
-        	$res = $prefix. "<span class='communication'>" . " ". $numbers ."</span>";
-        } else {
-        	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>". $numbers ."</span>";
-        }
-   
+      		
+	    $PhonesVerbal = cls::get('drdata_PhoneType');
+	        		
+	    // парсирваме всеки телефон
+	    $parsTels = $PhonesVerbal->toArray($numbers);
+        
+	    if (is_array($parsTels)) {
+		    foreach ($parsTels as $parsTel) {
+			    $fax = $PhonesVerbal->getLink($numbers, $parsTel->original, TRUE, NULL);
+		    }
+	    } else {
+	    	$fax = $numbers;
+	    }
+
+		if ($prefix != NULL) {
+		     	
+			$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $prefix. " ". $fax ."</span>";
+
+		} else {
+			$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>". $fax ."</span>";
+		}
+
         return $res;
     } 
 
@@ -146,11 +156,10 @@ class crm_Formatter extends core_Manager
 	    // парсирваме всеки телефон
 	    $parsTel = $PhonesVerbal->toVerbal($numbers);
         	
-        if (Mode::is('screenMode', 'wide') && $prefix != NULL) {
+        if ($prefix != NULL) {
         	        	
         	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $prefix. " ". $parsTel . "</span>";
-        } elseif (Mode::is('screenMode', 'narrow') && $prefix != NULL) {
-        	$res = $prefix. "<span class='communication'>" . " ". $parsTel ."</span>";
+
         } else {
         	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>". $parsTel ."</span>";
         }
