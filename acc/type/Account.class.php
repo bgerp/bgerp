@@ -57,6 +57,8 @@ class acc_type_Account extends type_Key
         }
     	
         $this->options = $options;
+        
+        $this->handler = md5($this->getSelectFld() . $this->params['mvc']);
     }
     
     
