@@ -258,7 +258,6 @@ class store_ShipmentOrders extends core_Master
         	// Ако документа е обратен не слагаме продукти по дефолт
         	if($rec->isReverse == 'yes') return;
             
-            /* @var $aggregatedDealInfo bgerp_iface_DealResponse */
             $aggregatedDealInfo = $origin->getAggregateDealInfo();
             $agreedProducts = $aggregatedDealInfo->get('products');
             

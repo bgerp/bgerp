@@ -19,7 +19,7 @@ class techno_ProductsIntf
 	/**
 	 * Класа имплементиращ интерфейса
 	 */
-	protected $class;
+	public $class;
 	
     
     /**

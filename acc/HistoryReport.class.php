@@ -326,7 +326,6 @@ class acc_HistoryReport extends core_Manager
     private function prepareHistory(&$data)
     {
     	$rec = &$data->rec;
-    	$balanceRec = $data->balanceRec;
     	 
     	// Подготвяне на данните на записа
     	$Date = cls::get('type_Date');

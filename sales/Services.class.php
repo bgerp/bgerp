@@ -181,8 +181,9 @@ class sales_Services extends core_Master
     	
     	$query = $this->sales_ServicesDetails->getQuery();
         $query->where("#shipmentId = '{$id}'");
+        $recs = $query->fetchAll();
         
-        deals_Helper::fillRecs($this, $query->fetchAll(), $rec);
+        deals_Helper::fillRecs($this, $recs, $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
@@ -219,7 +220,6 @@ class sales_Services extends core_Master
         // използваме го за автоматично попълване на детайлите на протокола
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
             
-        /* @var $aggregatedDealInfo bgerp_iface_DealResponse */
         $aggregatedDealInfo = $origin->getAggregateDealInfo();
         $agreedProducts = $aggregatedDealInfo->get('products');
             
@@ -509,6 +509,7 @@ class sales_Services extends core_Master
      */
     private function setTemplates(&$res)
     {
+    	$tplArr = array();
     	$tplArr[] = array('name' => 'Протокол за извършени услуги', 
     					  'content' => 'sales/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 
     					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));

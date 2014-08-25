@@ -107,7 +107,7 @@ class bgerp_plg_Import extends core_Plugin
         		}
         		
         		// Преобразуване на csv-то в масив, по зададените параметри
-        		$rows = static::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
+        		$rows = self::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
         		
         		if($mvc->haveRightFor('import')){
         			

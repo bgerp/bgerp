@@ -149,9 +149,8 @@ class deals_ClosedDeals extends acc_ClosedDeals
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->DOC_NAME = tr("ФИНАНСОВА СДЕЛКА");
-    	if($rec->amount == 0){
-    		$costAmount = $incomeAmount = 0;
-    	} elseif($rec->amount > 0){
+    	$costAmount = $incomeAmount = 0;
+    	if($rec->amount > 0){
     		$incomeAmount = $rec->amount;
     		$costAmount = 0;
     		$row->type = tr('Приход');

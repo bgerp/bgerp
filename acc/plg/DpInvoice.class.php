@@ -150,13 +150,6 @@ class acc_plg_DpInvoice extends core_Plugin
         	
         	if($rec->dpOperation == 'accrued'){
         		
-        		if($shipped->amount) {
-        			
-        			// Ако има експедирано, не се начислява аванс
-        			unset($rec->dpOperation, $rec->dpAmount);
-        			return;
-        		}
-        		
         		$downpayment = (empty($actualDp)) ? $aggreedDp  : $actualDp;
         		$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
         		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
@@ -247,9 +240,6 @@ class acc_plg_DpInvoice extends core_Plugin
     	
     	// Ако няма данни за показване на авансово плащане
     	if(empty($data->dpInfo)) return;
-    	
-    	// Добавяне на ред под детайла, показващ авансовото плащане
-    	$masterRec = $data->masterData->rec;
     	
     	// Ако няма записи, да не се показва реда "няма записи"
     	if(empty($data->rows)){

@@ -219,7 +219,7 @@ class cash_InternalMoneyTransfer extends core_Master
     	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
     	$form->title = 'Нов вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png');
-        $form->toolbar->addBtn('cash_InternalMoneyTransfer', toUrl(array($this, 'list')),  'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', toUrl(array('cash_InternalMoneyTransfer', 'list')),  'ef_icon = img/16/close16.png');
         
        	$folderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
        	$form->setDefault('folderId', $folderId);

@@ -203,8 +203,6 @@ class bank_DepositSlips extends core_Master
     {
     	if(isset($form->rec->beneficiaryName)) return;
     	$folderId = $form->rec->folderId;
-    	$contragentId = doc_Folders::fetchCoverId($folderId);
-    	$contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
     	
    		// Информацията за контрагента на папката
     	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");

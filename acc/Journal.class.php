@@ -278,7 +278,7 @@ class acc_Journal extends core_Master
         $mvc = cls::get($docClassId);
         
         // Дали имаме права за контиране
-        $mvc->requireRightFor('conto', $rec->id);
+        $mvc->requireRightFor('conto', $docId);
         
         // Контиране на документа
 		$mvc->conto($docId);

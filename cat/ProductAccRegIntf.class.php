@@ -48,7 +48,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      */
     function getProductInfo($productId, $packagingId = NULL)
     {
-        return $this->class->getProductInfo($productId, $packagingId = NULL);
+        return $this->class->getProductInfo($productId, $packagingId);
     }
     
     
@@ -70,7 +70,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      */
     function getProducts($customerClass, $customerId, $date = NULL)
     {
-        return $this->class->getProducts($customerClass, $customerId, $date = NULL);
+        return $this->class->getProducts($customerClass, $customerId, $date);
     }
     
     
@@ -109,7 +109,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      */
     function getByProperty($properties, $limit = NULL)
     {
-    	return $this->class->getByProperty($properties);
+    	return $this->class->getByProperty($properties, $limit);
     }
     
     

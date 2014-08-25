@@ -234,8 +234,7 @@ class cash_Pko extends core_Master
     		 	}
     		 	
 	    		if($caseId = $dealInfo->get('caseId')){
-	    		 	$cashRec = cash_Cases::fetch($caseId);
-		    		 	
+	    		 	
 	    		 	// Ако потребителя има права, логва се тихо
 	    		 	cash_Cases::selectSilent($caseId);
 	    		}
@@ -431,8 +430,6 @@ class cash_Pko extends core_Master
      */
 	public static function canAddToThread($threadId)
     {
-    	$threadRec = doc_Threads::fetch($threadId);
-    	
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	

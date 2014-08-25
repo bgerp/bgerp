@@ -237,7 +237,7 @@ class acc_plg_Contable extends core_Plugin
             if($userId == '-1'){
             	$requiredRoles = 'every_one';
             }
-            
+           
             // Кой може да реконтира документа( изпълнява се след възстановяване на оттеглен документ)
         } elseif($action == 'reconto' && isset($rec)){
         	
@@ -493,7 +493,7 @@ class acc_plg_Contable extends core_Plugin
     			$title = $Cover->getTitleById();
     			
     			if($Cover->instance->haveRightFor('single', $cover->that)){
-    				$title = ht::createLinkRef($title, array($Cover->className, 'single', $cover->that));
+    				$title = ht::createLinkRef($title, array($Cover->className, 'single', $Cover->that));
     			}
     			
     			$res = $title;

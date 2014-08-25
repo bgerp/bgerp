@@ -110,11 +110,9 @@ class acc_BalanceDetails extends core_Detail
      */
     static function on_AfterPrepareListFields($mvc, $data)
     {
-        
-    	if ($mvc->isDetailed()) {
+        if ($mvc->isDetailed()) {
             // Детайлизиран баланс на конкретна аналитична сметка
             $mvc->prepareDetailedBalance($data);
-            $info = acc_Accounts::getAccountInfo($mvc->Master->accountRec->id);
         } else {
             // Обобщен баланс на синтетичните сметки
             $mvc->prepareOverviewBalance($data);
@@ -146,7 +144,7 @@ class acc_BalanceDetails extends core_Detail
      */
     private function sortRecs($a, $b)
     {
-    	$cache = static::$cache;
+    	$cache = self::$cache;
     	
     	foreach (range(1, 3) as $i){
     		if(isset($a->{"grouping{$i}"})){
@@ -449,18 +447,17 @@ class acc_BalanceDetails extends core_Detail
         
         $data->groupingForm = $this->getGroupingForm($data->masterId, $data->query);
         
-        if(count(static::$cache)){
+        if(count(self::$cache)){
         	$iQuery = acc_Items::getQuery();
         	$iQuery->show("num");
-        	$iQuery->in('id', static::$cache);
+        	$iQuery->in('id', self::$cache);
         	while($iRec = $iQuery->fetch()){
-        		static::$cache[$iRec->id] = $iRec->num;
+        		self::$cache[$iRec->id] = $iRec->num;
         	}
         }
         
         // Извличаме записите за номенклатурите, по които е разбита сметката
         $listRecs = array();
-        $registers = array();
         
         foreach (range(1, 3) as $i) {
             if ($this->Master->accountRec->{"groupId{$i}"}) {
@@ -571,6 +568,7 @@ class acc_BalanceDetails extends core_Detail
             return $form;
         }
         
+        $listRecs = array();
     	foreach (range(1, 3) as $i) {
         	if ($groupId = $this->Master->accountRec->{"groupId{$i}"}) {
                 $listRecs[$i] = $this->Lists->fetch($groupId);
@@ -588,7 +586,7 @@ class acc_BalanceDetails extends core_Detail
     	while (FALSE || $rec = $cQuery->fetch()) {
     		foreach (range(1, 3) as $i){
     			if(!empty($rec->{"ent{$i}Id"})){
-    				static::$cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
+    				self::$cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
     				$items[$i][$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
     			}
     		}
@@ -599,7 +597,7 @@ class acc_BalanceDetails extends core_Detail
         $form->fieldsLayout = getTplFromFile("acc/tpl/BalanceFilterFormFields.shtml");
         $form->FNC("accId", 'int', 'silent,input=hidden');
         $form->input("accId", true);
-        $showFields = '';
+     
         foreach ($listRecs as $i => $listRec) {
         	$this->setGroupingForField($i, $listRec, $form, $items[$i]);
         }
@@ -1128,6 +1126,7 @@ class acc_BalanceDetails extends core_Detail
         $cloneQuery->orderBy('valior,id', 'DESC');
         
         // Добавяне на странициране
+        $displayedEntries = array();
         if($pager){
         	$pager->setLimit($cloneQuery);
         	

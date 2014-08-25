@@ -451,8 +451,6 @@ class cash_Rko extends core_Master
      */
 	public static function canAddToThread($threadId)
     {
-    	$threadRec = doc_Threads::fetch($threadId);
-    	
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	

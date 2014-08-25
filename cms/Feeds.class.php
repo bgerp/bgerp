@@ -119,8 +119,6 @@ class cms_Feeds extends core_Manager {
 				 break;
 
         	case 'rss2' : 
-        		 $pubDate = $this->getPubDate($items);
-        		 
         		 // Инстанцираме нова хранилка от тип RSS 2.0
         		 $feed = new RSS2FeedWriter();
   				 $feed->setChannelElement('language', $rec->lg);
@@ -265,7 +263,7 @@ class cms_Feeds extends core_Manager {
 	static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
 	{
 		// Подготвяме адреса на хранилката
-		$rssLink = array($this, 'get', $rec->id);
+		$rssLink = array($mvc, 'get', $rec->id);
         $typeUrl = cls::get('type_Url');
 		$row->url = $typeUrl->toVerbal(toUrl($rssLink, 'absolute'));
 		

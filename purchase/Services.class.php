@@ -182,8 +182,9 @@ class purchase_Services extends core_Master
     	
     	$query = $this->purchase_ServicesDetails->getQuery();
         $query->where("#shipmentId = '{$id}'");
+        $recs = $query->fetchAll();
         
-        deals_Helper::fillRecs($this, $query->fetchAll(), $rec);
+        deals_Helper::fillRecs($this, $recs, $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;

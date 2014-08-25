@@ -60,7 +60,10 @@ class acc_CronDealsHelper
     		}
     		
     		$mId = $dealInfo->get('paymentMethodId');
+    		$isOverdue = FALSE;
+    		
     		if($mId){
+    			$date = NULL;
     			
     			// Намира се датата в реда фактура/експедиция/сделка
     			foreach (array('invoicedValior', 'shippedValior', 'agreedValior') as $asp){
