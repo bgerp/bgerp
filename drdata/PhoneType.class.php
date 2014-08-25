@@ -102,6 +102,19 @@ class drdata_PhoneType extends type_Varchar
             return $telNumber;
         }
         
+        $conf = core_Packs::getConfig('drdata');
+    	
+    	$desktop = $conf->TEL_LINK_WIDE;
+    	$mobile = $conf->TEL_LINK_NARROW;
+    	
+    	if ($desktop == 'none' && Mode::is('screenMode', 'wide')) { 
+    		return $telNumber;
+    	} 
+    	
+    	if ($mobile == 'none' && Mode::is('screenMode', 'narrow')) {
+    		return $telNumber;
+    	}
+    	
         $parsedTel = static::toArray($telNumber, $this->params);
 
         $telNumber = parent::toVerbal_($telNumber);
@@ -166,14 +179,22 @@ class drdata_PhoneType extends type_Varchar
     public static function toArray($str, $params = array())
     {
         $Phones = cls::get('drdata_Phones');
-        
+        $conf = core_Packs::getConfig('drdata');
         // Ако не е подаден телефонния код на държавата, ще се използва от конфигурационната константа
         if (!($code = $params['countryPhoneCode'])) {
-            
-            $conf = core_Packs::getConfig('drdata');
         
             $code = $conf->COUNTRY_PHONE_CODE;
         }
+    	$desktop = $conf->TEL_LINK_WIDE;
+    	$mobile = $conf->TEL_LINK_NARROW;
+    	
+    	if ($desktop == 'none' && Mode::is('screenMode', 'wide')) { 
+    		return $str;
+    	} 
+    	
+    	if ($mobile == 'none' && Mode::is('screenMode', 'narrow')) {
+    		return $str;
+    	}
         
         $result = $Phones->parseTel($str, $code);
 
@@ -190,21 +211,13 @@ class drdata_PhoneType extends type_Varchar
      */
     static public function getLink_($verbal, $canonical, $isFax = FALSE, $attr = array())
     {
-    	$conf = core_Packs::getConfig('drdata');
     	
-    	$desktop = $conf->TEL_LINK_WIDE;
-    	$mobile = $conf->TEL_LINK_NARROW;
-        
-    	if ($desktop == 'yes' && Mode::is('screenMode', 'wide') || 
-    		$mobile == 'yes' && Mode::is('screenMode', 'narrow') ) {
-            
-			if($isFax) {
-		    	$res = ht::createLink($verbal, NULL, NULL, $attr); 
-		   	} else {
-		    	$res = ht::createLink($verbal, "tel:00" . $canonical, NULL, $attr);     			
-		   	}
-        }
-
-        return $res;
+       if($isFax) { 
+	  		$res = ht::createLink($verbal, NULL, NULL, $attr); 
+	   } else {
+		    $res = ht::createLink($verbal, "tel:00" . $canonical, NULL, $attr);     			
+	   }
+	   
+	   return $res;
     }
 }

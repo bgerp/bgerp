@@ -160,63 +160,33 @@ class commformat_Plugin extends core_Plugin
      * @param array $match
      */
     function catchCommunicationFaxFormat($match)
-    {     
+    {   
+    	// ако не може да мачнем телефон, просто не правим
+    	// никакви обработки
+        if(!trim($match[3])) {
+            return $match[0];
+        }
+         
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
-        				       	                
-		// ако сме в тесен режим и имаме възможност за изпращане на факсове
-		if (Mode::is('screenMode', 'narrow') && email_FaxSent::haveRightFor('send')) {
 			   	
-			$PhonesVerbal = cls::get('drdata_PhoneType');
-			$Email = cls::get('type_Email');
-			        		
-			// ако мачнатия елемент прилича на телефон
-			// го парсирваме
-			if($tArr = $PhonesVerbal->toArray($match[3])){
-				// за всеки един алемент
-				foreach($tArr as $t){ 
-					// номера започва с +
-					$value = '+';
-					// ако имаме намерен код на страната го добавяме
-					if($t->countryCode) {
-						$value .= '' . $t->countryCode;
-					}
-					// ако имаме намерен код на областта го добавяме
-					if($t->areaCode) {
-						$value .= '' . $t->areaCode;
-					}
-					// накрая слагаме и номера
-					if($t->number) {
-						$value .= '' . $t->number;
-					}
-					// ще показваме, оригинално въведения номер
-					$toVerbal = $t->original;
-				}
-			}
-			
-			// слагаме му домейн
-			$domain = '@fax.man';
-			// за да може да го изпратим като имейл
-			$email = $value.$domain;
-			
-			// правим линк за изпращане на имейл през системата
-			$href = crm_Formatter::renderFax($Email->addHyperlink($email, $PhonesVerbal->toVerbal($match[3])),$match[1], NULL);
-					        			
-			// и го връщаме
-			$this->mvc->_htmlBoard[$place] = str_replace($email, $toVerbal, $href);
+		$PhonesVerbal = cls::get('drdata_PhoneType');
+        
+		// парсирваме всеки телефон
+	    $parsTel = $PhonesVerbal->toArray($match[3]);
+
+	    if(!count($parsTel)) {
+            return  $match[0];
+        }
+
+        $link = crm_Formatter::renderFax($match[3],$match[1], NULL);
+		
+        // и го връщаме
+		$this->mvc->_htmlBoard[$place] =  $link;
 								    	
-			// линк е мачнатия елемент, не името на услугата
-		    // посочваме мястото където ще за заменят линковете
-	        $communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
-	        
-		// ако сме в широк екран	
-		} else {
-		    // няма да правим линк   	
-			$this->mvc->_htmlBoard[$place] = crm_Formatter::renderFax($match[3],$match[1], NULL);
-			// просто ще добавим иконка
-			$communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
-		}
-      
+		// посочваме мястото където ще за заменят линковете
+	    $communicationFormat = str_replace($match[0], "[#{$place}#]", $match[0]);
+
         return $communicationFormat;
     }
     
