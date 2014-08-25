@@ -141,7 +141,7 @@ class type_User extends type_Key
         
         if ($this->params['allowEmpty']) {
             
-            $this->options = array('' => '&nbsp;') + $this->options;
+            $this->options = array(' ' => ' ') + $this->options;
         } elseif (empty($value)) {
             $value = core_Users::getCurrent();
         }
