@@ -193,6 +193,9 @@ class plg_Clone extends core_Plugin
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        // Ако е наследник на master, да не се показва бутона за клониране в листовия изглед, а само в сингъла
+        if ($mvc instanceof core_Master) return ;
+        
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;
         
