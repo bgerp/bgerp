@@ -111,19 +111,16 @@ class doc_AssignPlg extends core_Plugin
             bgerp_Recently::setHidden('document', $rec->containerId, 'no', $newAssigned);
             
             // Определяме кой е модифицирал записа
-            $rec->assignedBy = Users::getCurrent();
+            $newRec->assignedBy = Users::getCurrent();
             
             // Записваме момента на създаването
-            $rec->assignedOn = dt::verbal2Mysql();
+            $newRec->assignedOn = dt::verbal2Mysql();
             
             // Променяме възложителя
-            $rec->assign = $newAssigned;
+            $newRec->assign = $newAssigned;
             
-            // Променяме двете полета
-            $mvc->save($rec, 'assignedBy, assignedOn, assign');
-        
             // Нотифицираме възложения потребител
-            $mvc->notificateAssigned($rec);
+            $mvc->notificateAssigned($newRec);
             
             // Името на документа
 //            $docSingleTitle = mb_strtolower($mvc->singleTitle); 
