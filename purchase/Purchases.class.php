@@ -1381,7 +1381,7 @@ class purchase_Purchases extends core_Master
     	$query->where("#requestId = {$rec->id}");
     	while($dRec = $query->fetch()){
     		$dRec->requestId = $nRec->id;
-    		unset($dRec->id);
+    		unset($dRec->id, $dRec->quantityDelivered);
     		purchase_PurchasesDetails::save($dRec);
     	}
     }

@@ -1626,14 +1626,12 @@ class sales_Sales extends core_Master
      */
     function on_AfterSaveCloneRec($mvc, $rec, $nRec)
     {
-    	
-    	
     	//@TODO да се премахне след като се добави тази функционалността в плъгина
     	$query = sales_SalesDetails::getQuery();
     	$query->where("#saleId = {$rec->id}");
     	while($dRec = $query->fetch()){
     		$dRec->saleId = $nRec->id;
-    		unset($dRec->id);
+    		unset($dRec->id, $dRec->quantityDelivered);
     		sales_SalesDetails::save($dRec);
     	}
     }
