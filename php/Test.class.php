@@ -104,8 +104,6 @@ class php_Test extends core_Manager
                 
                 foreach($files->files as $f) {
                     
-                    // bp($files->files);
-                    
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/");
                     $dir = substr($destination, 0, $dsPos);
@@ -235,7 +233,7 @@ class php_Test extends core_Manager
 
        $arr = $this->generateModules();
        $new = $this->modules();
-     	//bp($new);
+     	
      	// Сравняваме ключовете на двата масива, ако има съответствие взимаме името на функцията 
      	// и записваме като стойност модула й
      	foreach ($arr as $f=>$v){
@@ -252,12 +250,10 @@ class php_Test extends core_Manager
      			}
      		}
      	}
-     	 //bp($mods);
      	
      	 php_Test::save($rec, NULL, 'IGNORE');
      	 
      	 return new Redirect(array($this));
-     	//return $mods;
     }
 
     function generateModules(){
@@ -311,10 +307,6 @@ class php_Test extends core_Manager
 			        
 				if (is_array($e)) {
 				     foreach($e as $id => $i) {
-
-				     	/* if(($ta[$e[$id-1]]->type != T_FUNCTION) || ($ta[$e[$id-1]]->type != '->') &&($ta[$e[$id]]->str == 'generateModules')){
-				     	 	bp($ta[$e[$id-1]]->type,$ta[$e[$id-1]]->str, $ta[$e[$id]]->type, $ta[$e[$id+1]]->type == '(', $ta[$e[$id+1]]->str);
-				     	 }*/
 				     	
 				     	// Tърсим всички функции, които използваме
 				      	 if (($ta[$e[$id-1]]->type == T_FUNCTION) ||
@@ -339,13 +331,9 @@ class php_Test extends core_Manager
 				}
 
 				$a = array_diff($this->arrF, $this->arrFF);
-				
-				   // $r++;
-		     		//if($r > 500)  bp($this->arrF, $info);
      		}	
 
      	}
-     bp($a, $this->arrF);
     	return $this->arrF;
     }
     
@@ -354,7 +342,7 @@ class php_Test extends core_Manager
      // Намираме всички активни модули	
      $modules = get_loaded_extensions();
      $a =  extension_loaded ('curl');
-     bp($a, $modules);
+
      foreach ($modules as $mod){
      	
      	// За всеки модул търсим, кои функции спадат към него
@@ -362,7 +350,7 @@ class php_Test extends core_Manager
     
      	if (is_array($functions)) {
      		//expect(!strpos($file, "TCW12"), $functions);
-     		bp($functions);
+     
 	     	foreach ($functions as $fun){
 	     		
 	     		// Масив с ключ името на функцията и стойност модула му
@@ -384,7 +372,7 @@ class php_Test extends core_Manager
      			}
      		}
      	}
-   //bp($mods);
+
      	return $mods;
     }
     

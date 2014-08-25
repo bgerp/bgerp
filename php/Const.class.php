@@ -311,7 +311,6 @@ class php_Const extends core_Manager
                 
                 unset($constBgerp[$captions][$rec->newComment][$rec->name]);
                 
-                //bp($constBgerp, $rec->name);
             }
             
             //Премахваме заглавията на класовете, които са останали без константи   

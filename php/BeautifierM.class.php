@@ -87,8 +87,6 @@ class php_BeautifierM
     {
         $tokenArr = &$this->tokenArr;
         
-        //bp($tokenArr);
-        
         $operators = array ('+', '.', '=', '/', '^', '*', '%', '?', ':', T_SL, T_SL_EQUAL, T_SR, T_SR_EQUAL, T_START_HEREDOC,
             T_XOR_EQUAL, T_LOGICAL_AND, T_LOGICAL_OR, T_LOGICAL_XOR, T_MINUS_EQUAL, T_ML_COMMENT, T_MOD_EQUAL,
             T_MUL_EQUAL, T_IS_EQUAL, T_IS_GREATER_OR_EQUAL, T_IS_IDENTICAL, T_IS_NOT_EQUAL, T_IS_NOT_IDENTICAL,
@@ -392,7 +390,6 @@ class php_BeautifierM
                 if($commentId) {
                     $last = $ta[$e[$commentId]];
                     
-                    //                bp($last);
                     if($last->type == T_DOC_COMMENT) {
                         
                         $lines = explode("\n", $last->str);
@@ -532,7 +529,6 @@ class php_BeautifierM
         $rec->fileName = $this->sourceFile;
         $rec->name = $name;
         
-        // bp($value);
         if($type == 'defIfNot'){
             $rec->value = $value;
             
@@ -543,7 +539,6 @@ class php_BeautifierM
         
         php_Formater::save($rec);
         
-        // bp($rec->value);
         return $rec->newComment;
     }
     

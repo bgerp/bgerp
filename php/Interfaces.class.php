@@ -145,8 +145,7 @@ class php_Interfaces extends core_Manager
             php_Interfaces::save($rec, NULL, 'IGNORE');
         }
         
-        //bp(count($missingMethod),$missingMethod, $rec);
-        return new Redirect(array($this));
+         return new Redirect(array($this));
     }
     
     

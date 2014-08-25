@@ -158,7 +158,7 @@ class php_Formater extends core_Manager
                 $d = '[^а-яА-Яa-zA-Z0-9]';
                 
                 foreach($lines as $l){
-                    if (!mb_strlen(trim($l))) bp($l);
+                    
                     list($from1, $to1) = explode('->', $l, 2);
                     
                     $from = trim($from1);
@@ -280,8 +280,7 @@ class php_Formater extends core_Manager
                         }
                         
                         if (is_array($beautifier->arrF)) {
-                        	//bp($beautifier->arrF);
-                            foreach ($beautifier->arrF as $key => $value) {
+                        	foreach ($beautifier->arrF as $key => $value) {
                                 $arrF[$key] = $arrF[$key] + $value;
                             }
                         }
@@ -289,19 +288,7 @@ class php_Formater extends core_Manager
                         copy($src . $f, $destination);
                     }
                 }
-                
-                // fclose($handle);
-               // bp($arr);
-                /*foreach ($arr as $key => $value){
-                    
-                    if(($value && !$arrF[$key])){
-                        
-                        $onlyDef[$key] = $key;
-                    }
-                }*/
-                
-                //  bp($onlyDef,$arr,$arrF);
-                // die;
+               
                 return new Redirect(array($this), "Обработени $this->lines линии код<br>
                                                    Има $this->dComm линии коментар<br>
                                                    $this->docComm линии код без коментари<br>
@@ -498,8 +485,6 @@ class php_Formater extends core_Manager
     {
         $css = file_get_contents(sbf('css/common.css', '', TRUE));
 
-        //bp($css);
-
         $CP = cls::get('php_CssParser');
         $CP->ParseCSS($css);
 
@@ -510,8 +495,6 @@ class php_Formater extends core_Manager
                 }
             }
         }
-
-        bp($classes);
     }
 }
 
