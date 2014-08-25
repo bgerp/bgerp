@@ -357,20 +357,18 @@ class acc_plg_Deals extends core_Plugin
     	$amountDelivered = $aggregateDealInfo->get('deliveryAmount');
     	
     	// Ако имаме платено и доставено
-    	if($amountPaid && $amountDelivered){
-    		$diff = round($amountDelivered - $amountPaid, 4);
+    	$diff = round($amountDelivered - $amountPaid, 4);
     
-    		$conf = core_Packs::getConfig('acc');
+    	$conf = core_Packs::getConfig('acc');
     		
-    		// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
-    		if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
+    	// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
+    	if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
     			
-    			// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
-    			$res = ($state != 'overdue') ? 'paid' : 'repaid';
-    			return;
-    		}
+    		// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
+    		$res = ($state != 'overdue') ? 'paid' : 'repaid';
+    		return;
     	}
-    
+    	
     	$res = 'pending';
     }
 }
