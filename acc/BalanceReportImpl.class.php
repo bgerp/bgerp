@@ -162,6 +162,8 @@ class acc_BalanceReportImpl
     	$end = $data->pager->rangeEnd - 1;
     	
     	$data->hideQuantities = FALSE;
+    	$data->summary = new stdClass();
+    	
     	if(count($data->recs)){
     		$count = 0;
     		foreach ($data->recs as $id => $rec){
@@ -176,8 +178,21 @@ class acc_BalanceReportImpl
     				$data->rows[$id] = $row;
     			}
     			
+    			// Сумираме всички суми и к-ва
+    			foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
+    				if(!is_null($rec->$fld)){
+    					$data->summary->$fld += $rec->$fld;
+    				}
+    			}
+    			
     			$count++;
     		}
+    	}
+    	
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	foreach ((array)$data->summary as $name => $num){
+    		$data->summary->$name  = $Double->toVerbal($num);
     	}
     	
     	return $data;
@@ -287,7 +302,7 @@ class acc_BalanceReportImpl
     		}
     	}
     	
-    	$row->ROW_ATTR['class'] = ($rec->id % 2 == 0) ? 'zebra1' :'zebra0';
+    	$row->ROW_ATTR['class'] = ($rec->id % 2 == 0) ? 'zebra0' :'zebra1';
     	
     	return $row;
     }
@@ -341,7 +356,20 @@ class acc_BalanceReportImpl
     	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
     	
     	$tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
-    	 
+    	
+    	$data->summary->colspan = count($data->listFields);
+    	
+    	if(!$data->hideQuantities){
+    		$data->summary->colspan -= 4;
+    		$beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+    	} else{
+    		$data->summary->colspan -= 8;
+    		$beforeRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseQuantity#]</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitQuantity#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditQuantity#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blQuantity#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+    	}
+    	
+    	$beforeRow->placeObject($data->summary);
+    	$tpl->append($beforeRow, 'ROW_BEFORE');
+    	
     	if($data->pager){
     		$tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
     		$tpl->append($data->pager->getHtml(), 'PAGER_TOP');
