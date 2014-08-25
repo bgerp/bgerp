@@ -1354,7 +1354,7 @@ class distro_Files extends core_Detail
         // Манипулатора на файла
         $masterKey = Request::get($this->masterKey);
         
-        // Ескеbp(йпваме манипулатора
+        // Ескейпваме манипулатора
         $masterKey = $this->db->escape($masterKey);
         
         // Записа за съответния файл
