@@ -25,7 +25,7 @@ class backup_StorageIntf
      */
     function getFile($fileName)
     {
-        return $this->class->getFile();
+        return $this->class->getFile($fileName);
     }
     
     

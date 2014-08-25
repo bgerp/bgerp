@@ -152,6 +152,27 @@ class backup_Start extends core_Manager
     }
 
     /**
+     * Взимане на МЕТА данните
+     * 
+     * @return array
+     */
+    private static function getMETA()
+    {
+        // 1. сваля се метафайла
+        if (!self::$storage->getFile(self::$metaFileName)) {
+            // Ако го няма - пропускаме - не е минал пълен бекъп
+            core_Logs::add("Backup", "", "ГРЕШКА при сваляне на МЕТА-а!");
+            self::unLock();
+        
+            exit(1);
+        } else {
+            $metaArr = unserialize(file_get_contents(EF_TEMP_PATH . "/" . self::$metaFileName));
+        }
+        
+        return $metaArr;
+    }
+    
+    /**
      * Съхраняване на бинарния лог на MySQL-a
      * 
      * 
@@ -164,16 +185,7 @@ class backup_Start extends core_Manager
             exit(1);
         }
         
-        // 1. сваля се метафайла
-        if (!self::$storage->getFile(self::$metaFileName)) {
-            // Ако го няма - пропускаме - не е минал пълен бекъп
-            core_Logs::add("Backup", "", "ГРЕШКА при сваляне на МЕТА-а!");
-            self::unLock();
-            
-            exit(1);
-        } else {
-            $metaArr = unserialize(file_get_contents(EF_TEMP_PATH . "/" . self::$metaFileName));
-        }
+        $metaArr = self::getMETA();
         
         if (!is_array($metaArr)) {
             core_Logs::add("Backup", "", "Лоша МЕТА информация!");
@@ -247,16 +259,9 @@ class backup_Start extends core_Manager
             exit(1);
         }
         
-        // Взимаме мета файла
-        if (!self::$storage->getFile(self::$metaFileName)) {
-            core_Logs::add('Backup', '', "Warning: clean не може да вземе МЕТА файла.");
-            self::unLock();
-            
-            exit(1);
-        } else {
-            $metaArr = unserialize(file_get_contents(EF_TEMP_PATH . "/" . self::$metaFileName));
-        }
-        
+        // Взимаме мета данните
+        $metaArr = self::getMETA();
+                
         if (count($metaArr) > self::$conf->BACKUP_CLEAN_KEEP) {
             // Има нужда от почистване
             $garbage = array_slice($metaArr, 0, count($metaArr) - self::$conf->BACKUP_CLEAN_KEEP);
@@ -295,6 +300,7 @@ class backup_Start extends core_Manager
         $traceArr = debug_backtrace();
         $maxKey = max(array_keys($traceArr));
         // Директорията от където се изпълнява скрипта
+        $confFiles = array();
         $confFiles[] = " " . dirname($traceArr[$maxKey]['file']).'/index.cfg.php';
         $confFiles[] = " " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php';
         $confFiles[] = " " . EF_CONF_PATH . '/' . '_common.cfg.php';
@@ -337,6 +343,7 @@ class backup_Start extends core_Manager
         " -out " . EF_TEMP_PATH . "/" . $fileName . ".enc" . " -k "
         . self::$conf->BACKUP_PASS . " 2>&1";
         
+        $output = array();
         exec($command, $output, $returnVar);
         if ($returnVar !== 0 ) {
             $err = implode(",", $output);

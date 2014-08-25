@@ -155,8 +155,6 @@ class backup_Setup extends core_ProtoSetup
     {
     	$html = parent::install();
     	
-    	$conf = core_Packs::getConfig('backup');
-    	
     	// Отключваме процеса, ако не е бил легално отключен
     	backup_Start::unLock();
     	
@@ -215,7 +213,7 @@ class backup_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }
