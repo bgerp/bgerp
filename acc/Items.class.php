@@ -28,8 +28,14 @@ class acc_Items extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, editwatch_Plugin, 
+    var $loadList = 'plg_Created, plg_State2, plg_RowTools, editwatch_Plugin, plg_Search,
                      plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_Sorting';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'title, num';
     
     
     /**
@@ -401,7 +407,6 @@ class acc_Items extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('listId', 'key(mvc=acc_Lists,select=name)', 'input,caption=Номенклатура', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent');
         
         $data->listFilter->view = 'horizontal';
         
@@ -418,10 +423,6 @@ class acc_Items extends core_Manager
         expect($filter->listId);
         
         $data->query->where("#lists LIKE '%|{$filter->listId}|%'");
-        
-        if($filter->search) {
-            $data->query->where(array("#title LIKE '[#1#]'", "%{$filter->search}%"));
-        }
         
         $data->query->orderBy('#num');
     }
