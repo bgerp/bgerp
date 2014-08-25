@@ -254,7 +254,6 @@ class cat_products_Params extends cat_products_Detail
      */
     public function getFeatures($class, $objectId, $features)
     {
-    	$classId = cls::get($class)->getClassId();
     	$query = $this->getQuery();
     	
     	$query->where("#productId = '{$objectId}'");

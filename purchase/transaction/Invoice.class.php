@@ -48,10 +48,6 @@ class purchase_transaction_Invoice
     	expect($rec = $this->class->fetchRec($id));
     	$cloneRec = clone $rec;
     
-    	// Създаване / обновяване на перото за контрагента
-    	$contragentClass = doc_Folders::fetchCoverClassName($cloneRec->folderId);
-    	$contragentId    = doc_Folders::fetchCoverId($cloneRec->folderId);
-    
     	$result = (object)array(
     			'reason'  => "Входяща фактура №{$rec->number}", // основанието за ордера
     			'valior'  => $rec->date,   // датата на ордера

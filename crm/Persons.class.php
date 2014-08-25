@@ -1753,6 +1753,7 @@ class crm_Persons extends core_Master
         if (in_array($ext, $vCardExtArr) && (static::haveRightFor('add') && (fileman_Files::haveRightFor('single', $fRec)))) {
             
             // Създаваме масива за съзване на визитка
+        	$arr = array();
             $arr['vcard']['class'] = 'crm_Persons';
             $arr['vcard']['action'] = 'extractVcard';
             $arr['vcard']['title'] = 'Лице';

@@ -409,15 +409,15 @@ class sales_transaction_Sale
 	/**
 	 * Връща записите от журнала за това перо
 	 */
-	private static function getEntries($id)
+	protected static function getEntries($id)
 	{
 		// Кешираме записите за перото, ако не са извлечени
-		if(empty(static::$cache[$id])){
-			static::$cache[$id] = acc_Journal::getEntries(array('sales_Sales', $id));
+		if(empty(self::$cache[$id])){
+			self::$cache[$id] = acc_Journal::getEntries(array('sales_Sales', $id));
 		}
 		
 		// Връщане на кешираните записи
-		return static::$cache[$id];
+		return self::$cache[$id];
 	}
 	
 	
@@ -426,7 +426,7 @@ class sales_transaction_Sale
 	 */
 	public static function clearCache()
 	{
-		static::$cache = NULL;
+		self::$cache = NULL;
 	}
 	
 	

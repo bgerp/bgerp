@@ -101,7 +101,7 @@ class acc_BalanceReportImpl
     private function prepareListFields(&$data)
     {
     	$data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
-    	$bShowQuantities = FALSE;
+    	
     	$bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
     	$data->groupBy = arr::make($data->rec->groupBy, TRUE);
     	
@@ -150,7 +150,7 @@ class acc_BalanceReportImpl
     	$Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to));
     	$data->recs = $Balance->getBalance($accSysId);
     	
-    	$this->filterRecsByItems($data, $filter);
+    	$this->filterRecsByItems($data);
     	
     	// Подготвяме страницирането
     	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listItemsPerPage));
@@ -202,7 +202,7 @@ class acc_BalanceReportImpl
     /**
      * Оставяме в записите само тези, които трябва да показваме
      */
-    private function filterRecsByItems(&$data, $filter)
+    private function filterRecsByItems(&$data)
     {
     	if(!count($data->recs)) return;
     	
