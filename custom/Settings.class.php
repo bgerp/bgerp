@@ -92,7 +92,7 @@ class custom_Settings extends core_Manager
         Request::setProtected(array('classId', 'objectId'));
         
         // Добавяме бутона, който сочи към екшъна за персонализиране
-        $toolbar->addBtn($title, array('custom_Settings', 'modify', 'classId' => $classId, 'objectId' => $objectId, 'ret_url' => TRUE), 'ef_icon=img/16/customize.png,title=Дебъг,row=2');
+        $toolbar->addBtn($title, array('custom_Settings', 'modify', 'classId' => $classId, 'objectId' => $objectId, 'ret_url' => TRUE), 'ef_icon=img/16/customize.png,row=2');
     }
     
     
