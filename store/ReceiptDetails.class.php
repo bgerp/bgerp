@@ -203,8 +203,6 @@ class store_ReceiptDetails extends core_Detail
      */
     public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        $rows = $data->rows;
-    	
         // Скриваме полето "мярка"
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
@@ -252,11 +250,11 @@ class store_ReceiptDetails extends core_Detail
         $products = array_intersect_key($products, $products2);
          
         expect(count($products));
-        if (empty($rec->id)) {
+        if (empty($form->rec->id)) {
         	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
         	$data->form->setOptions('productId', array('' => ' ') + $products);
         } else {
-        	$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+        	$data->form->setOptions('productId', array($rec->productId => $products[$form->rec->productId]));
         }
     }
     

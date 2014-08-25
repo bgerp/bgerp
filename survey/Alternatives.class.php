@@ -319,7 +319,7 @@ class survey_Alternatives extends core_Detail {
      */
     static function hasUserVoted($alternativeId)
     {
-    	if($rec = survey_Votes::lastUserVote($alternativeId)) {
+    	if(survey_Votes::lastUserVote($alternativeId)) {
     		return TRUE;
     	}
     	

@@ -587,7 +587,7 @@ class store_Receipts extends core_Master
     	$fields = $this->selectFields();
     	$fields['-single'] = TRUE;
     	$oldRow = $this->recToVerbal($rec, $fields);
-    	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $dealInfo->currency);
+    	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
     	
     	$row->weight = $oldRow->weight;
     	$row->volume = $oldRow->volume;
@@ -700,7 +700,8 @@ class store_Receipts extends core_Master
      */
     private function setTemplates(&$res)
     {
-    	$tplArr1[] = array('name' => 'Складова разписка', 
+    	$tplArr = array();
+    	$tplArr[] = array('name' => 'Складова разписка', 
     					  'content' => 'store/tpl/SingleLayoutReceipt.shtml', 'lang' => 'bg', 
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Складова разписка с цени', 

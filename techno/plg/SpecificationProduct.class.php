@@ -84,7 +84,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	// Запис и редирект
     	$rec->title = $newTitle;
     	$mvc->save($rec);
-    	static::copyDetails($mvc, $parentId, $rec->id);
+    	self::copyDetails($mvc, $parentId, $rec->id);
     	
     	return Redirect(array($mvc, 'single', $rec->id), FALSE, 'Спецификацията е успешно копирана');
     }

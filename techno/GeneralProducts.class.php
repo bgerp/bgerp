@@ -365,13 +365,12 @@ class techno_GeneralProducts extends core_Master {
      */
     function getUsedDocs_($productId)
     {
-    	$description = $this->fetchField($productId, 'description');
+    	$res = array();
+    	
     	if($usedDocs = doc_RichTextPlg::getAttachedDocs($productId->description)) {
 	    	foreach ($usedDocs as $doc){
 	    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
 	    	}
-    	} else {
-    		$res = array();
     	}
     	
     	return $res;

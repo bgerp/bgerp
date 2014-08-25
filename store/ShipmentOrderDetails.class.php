@@ -278,7 +278,6 @@ class store_ShipmentOrderDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$rec = &$data->form->rec;
-    	$masterRec = $data->masterRec;
     	
     	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
     	

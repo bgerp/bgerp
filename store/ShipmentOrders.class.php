@@ -227,9 +227,6 @@ class store_ShipmentOrders extends core_Master
         $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
         $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
         
-        // Записване в кеш полето дали има още продукти за добавяне
-        $origin = $this->getOrigin($rec);
-        
         $this->save($rec);
     }
     
@@ -629,7 +626,8 @@ class store_ShipmentOrders extends core_Master
     	$fields = $this->selectFields();
     	$fields['-single'] = TRUE;
     	$oldRow = $this->recToVerbal($rec, $fields);
-    	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $dealInfo->currency);
+    	
+    	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
     	
     	$row->weight = $oldRow->weight;
     	$row->volume = $oldRow->volume;
@@ -707,6 +705,7 @@ class store_ShipmentOrders extends core_Master
      */
     private function setTemplates(&$res)
     {
+    	$tplArr = array();
     	$tplArr[] = array('name' => 'Експедиционно нареждане', 
     					  'content' => 'store/tpl/SingleLayoutShipmentOrder.shtml', 'lang' => 'bg', 
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
