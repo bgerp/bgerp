@@ -3,25 +3,28 @@
     <div class='folder-cover [#STATE_CLASS#]'>
         <div class='inner-folder'>
             <div class='block_title [#STATE_CLASS#] special-title'>[#SingleIcon#] |Проект|* « [#name#] »</div>
+             <!--ET_BEGIN detailBlock-->
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Детайли|*</legend>
+                [#detailBlock#]
                 <div class="groupList">
                     <table>
                         <!--ET_BEGIN description-->
                         <tr>
-                            <td class='dt'>|Описание:|*</td>
+                            <td class='dt'>|Описание|*:</td>
                             <td>[#description#]</td>
                         </tr>
                         <!--ET_END description-->
                         <!--ET_BEGIN closeTime-->
                         <tr>
-                            <td class='dt'>|Aвтоматично затваряне след:|*</td>
-                            <td>[#closeTime#]</td>
+                            <td class='dt'>|Затваряне|*:</td>
+                            <td>|Автоматично след|* [#closeTime#]</td>
                         </tr>
                         <!--ET_END closeTime-->
                     </table>
                 </div>
             </fieldset>
+            <!--ET_END detailBlock-->
             <!--ET_BEGIN DETAILS-->
             [#DETAILS#]
             <!--ET_END DETAILS-->
