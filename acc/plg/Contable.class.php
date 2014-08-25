@@ -490,7 +490,13 @@ class acc_plg_Contable extends core_Plugin
     		if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
     			$rec = $mvc->fetchRec($id);
     			$Cover = doc_Folders::getCover($rec->folderId);
-    			$res = $Cover->getHyperLink(TRUE);
+    			$title = $Cover->getTitleById();
+    			
+    			if($Cover->instance->haveRightFor('single', $cover->that)){
+    				$title = ht::createLinkRef($title, array($Cover->className, 'single', $cover->that));
+    			}
+    			
+    			$res = $title;
     		}
     	}
     }

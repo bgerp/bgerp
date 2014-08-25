@@ -453,7 +453,12 @@ class acc_HistoryReport extends core_Manager
     	try{
     		if(cls::load($rec['docType'], TRUE)){
     			$Class = cls::get($rec['docType']);
-    			$arr['docId'] = $Class->getLink($rec['docId']);
+    			$title = $Class->getTitleById($rec['docId']);
+    			if($Class->haveRightFor('single', $rec['docId'])){
+    				$title = ht::createLinkRef($title, array($Class, 'single', $rec['docId']));
+    			}
+    			
+    			$arr['docId'] = $title;
     			$arr['reason'] = $Class->getContoReason($rec['docId']);
     		}
     	} catch(Exception $e){
