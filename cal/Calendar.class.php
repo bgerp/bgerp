@@ -284,10 +284,11 @@ class cal_Calendar extends core_Master
       	
 		  $data->listFilter->rec->selectedUsers = 
 		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
-		  
-		  $data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
-	      $data->query->orWhere('#users IS NULL OR #users = ""');
-	  }
+      	}  
+		
+      	$data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
+	    $data->query->orWhere('#users IS NULL OR #users = ""');
+	 
     }
 
     
