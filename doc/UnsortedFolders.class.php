@@ -148,7 +148,7 @@ class doc_UnsortedFolders extends core_Master
     function description()
     {
         $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory');
-        $this->FLD('description' , 'richtext', 'caption=Описание');
+        $this->FLD('description' , 'richtext(rows=3)', 'caption=Описание');
         $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време');
         $this->setDbUnique('name');
     }
