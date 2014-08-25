@@ -215,7 +215,6 @@ class trz_Orders extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	//bp($data->form->fields[personId]);
     	$nowYear = dt::mysql2Verbal(dt::now(),'Y');
     	for($i = 0; $i < 5; $i++){
     		$years[] = $nowYear - $i;

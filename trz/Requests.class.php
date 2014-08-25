@@ -251,7 +251,6 @@ class trz_Requests extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	//bp($data->form->fields[personId]);
     	$nowYear = dt::mysql2Verbal(dt::now(),'Y');
     	for($i = 0; $i < 5; $i++){
     		$years[] = $nowYear - $i;
@@ -371,7 +370,6 @@ class trz_Requests extends core_Master
     	$p = 1;
     	$a = '2013-05-02';
     	$b = '2013-05-10';
-    	bp(cal_Calendar::calcLeaveDays($a,$b));
     }
     
     

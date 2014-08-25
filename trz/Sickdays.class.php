@@ -209,8 +209,7 @@ class trz_Sickdays extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	//bp($data->form->fields[personId]);
-        $data->form->setDefault('reason', 3);
+    	$data->form->setDefault('reason', 3);
         if(Request::get('accruals')){
         	$data->form->setField('paidByEmployer', 'input, mandatory');
         	$data->form->setField('paidByHI', 'input, mandatory');

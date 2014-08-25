@@ -204,7 +204,6 @@ class trz_SalaryIndicators extends core_Manager
     function act_Test()
     {
     	$date = '2013-07-16';
-    	bp(self::getIndicatorNames());
     }
     
     

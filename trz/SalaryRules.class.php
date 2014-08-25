@@ -100,7 +100,7 @@ class trz_SalaryRules extends core_Manager
     
     static public function act_Test()
     {
-    	bp(self::calculateConditionExpr());
+
     }
 
     /**
