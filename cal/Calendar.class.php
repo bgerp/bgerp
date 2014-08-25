@@ -311,10 +311,9 @@ class cal_Calendar extends core_Master
      */
  	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
-    	//bp(&$roles, $action, $rec, $userId);
     	if($action == 'day' || $action == 'week' || $action == 'month' || $action == 'year'){
 	    	 $requiredRoles = 'user';
-         }
+        }
     }
     
     
@@ -567,7 +566,7 @@ class cal_Calendar extends core_Master
 
         if (is_array($state->recs)) {
             foreach($state->recs as $id => $rec) {
-            	//bp($id, $rec);
+            
                 if($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
                     $time = dt::mysql2timestamp($rec->time);
                     $i = (int) date('j', $time);

@@ -765,9 +765,7 @@ class cal_Reminders extends core_Master
     	$rec->repetitionEach = 1;
     	$rec->repetitionType = 'months';
     	$rec->repetitionAbidance = 'weekDay';
-    	
-    	bp(self::calcNextStartTime($rec));
-    	
+   	
     }
     
     

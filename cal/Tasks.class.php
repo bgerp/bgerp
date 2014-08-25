@@ -1024,8 +1024,7 @@ class cal_Tasks extends core_Master
      */
     static function getGantt ($data)
     {
-//       / bp($data);
-	    // масив с цветове
+        // масив с цветове
     	$colors = array( "#610b7d", 
 				    	"#1b7d23",
 				    	"#4a4e7d",
@@ -1188,10 +1187,8 @@ class cal_Tasks extends core_Master
 
 	    // връщаме един обект от всички масиви
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
-//bp($resTask, $res, dt::timestamp2mysql(1388527200), dt::timestamp2mysql(1393970399));
 
 	    $chart = gantt_Adapter::render($res);
-	//bp($chart);
 	
 	    return $chart;
     	
@@ -1539,7 +1536,7 @@ class cal_Tasks extends core_Master
 	    		
 	    		$curDate = $startTasksTime[0]. " 00:00:00"; 
 	    		$toDate = dt::addDays(3, $endTasksTime[0]). " 23:59:59"; 
-	            // bp($curDate, $toDate, );
+	            
 	    		// генерираме номерата на седмиците между началото и края
 	    		while ($curDate < $toDate){
 	    		    $color = cal_Calendar::getColorOfDay($curDate);
