@@ -310,6 +310,7 @@ class techno_GeneralProducts extends core_Master {
     {
 	    $res = new stdClass();
 	    $res->productRec = $this->fetch($productId);
+	    $res->productRec->name = $res->productRec->title;
 	    
 	    if($res->productRec->meta){
 	    	$meta = explode(',', $res->productRec->meta);

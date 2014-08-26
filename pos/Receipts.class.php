@@ -1193,6 +1193,8 @@ class pos_Receipts extends core_Master {
     			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
     			$nRec->vat = $rec->param;
     			$nRec->price = $rec->price;
+    			$nRec->name = $pInfo->productRec->name;
+    			
     			$products[] = $nRec;
     		} elseif(strpos($rec->action, 'payment') !== FALSE) {
     			

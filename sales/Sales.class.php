@@ -836,6 +836,8 @@ class sales_Sales extends core_Master
     		$nRec->measure = ($dRec->packagingId) ? cat_Packagings::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
     		$nRec->vat = cls::get($dRec->classId)->getVat($dRec->productId, $rec->valior);
     		$nRec->price = $dRec->packPrice;
+    		$nRec->vatGroup = cls::get($dRec->classId)->getParam($dRec->productId, 'vatGroup');
+    		$nRec->name = $pInfo->productRec->name;
     		
     		$data->products[] = $nRec;
     	}
