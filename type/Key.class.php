@@ -145,6 +145,8 @@ class type_Key extends type_Int {
 
     public function prepareOptions()
     {   
+        Mode::push('text', 'plain');
+        
         // Ако опциите вече са генерирани - не ги подготвяме отново
         if(!is_array($this->options) || !count($this->options)) {
         
@@ -206,7 +208,9 @@ class type_Key extends type_Int {
         
         setIfNot($this->handler, md5(json_encode($this->options)));
         Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
-       
+        
+        Mode::pop('text');
+        
         return $this->options;
     }
     

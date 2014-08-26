@@ -138,10 +138,11 @@ class type_Email extends type_Varchar {
         
         if($this->params['link'] != 'no') {
             $verbal = $this->addHyperlink($email, $verbal);
+        } elseif (Mode::is('text', 'plain'))  {
+            $verbal = $email;
         } else {
             $verbal = str_replace('@', "&#64;", $email);
         }
-        
 
         return $verbal;
     }
