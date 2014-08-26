@@ -697,7 +697,36 @@ div.acc-detail {
        padding: 0 !important;
    }
 }
- 
+
+.additionalInfo-holder{
+	display: inline-block;
+	position: relative;
+    cursor: pointer;
+	.additionalInfo{
+	   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+       border: 1px solid #ccc;
+       padding: 10px;
+	   display: none;
+	   position: absolute;
+	   z-index: 20;
+	   bottom: 17px;
+	   left:20px;
+	   background: #ffe;
+       width: auto;
+	   border-radius: 5px;
+	   .aright{
+	       padding-right: 5px;
+	   }
+	   td{
+	       white-space: nowrap;
+	   }
+	}
+}
+
+.narrow .additionalInfo {
+	font-size: 0.9em;
+}
+
 /*детайли*/
 .detail-info {
 	margin: 10px 0 0 0;

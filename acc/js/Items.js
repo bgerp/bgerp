@@ -1,14 +1,21 @@
 function itemActions() {
-	$(document.body).on('click', ".tooltip-arrow-link", function(e){
-		var url = $(this).attr("data-url");
-		
-		if(!url){
-			return;
+	$('body').on('click', function(e){
+		if($(e.target).is(".tooltip-arrow-link")){
+			var url = $(e.target).attr("data-url");
+			
+			if(!url){
+				return;
+			}
+			
+			resObj = new Object();
+			resObj['url'] = url;
+			$('.additionalInfo').hide();
+			
+			getEfae().process(resObj);
+			$(e.target).parent().find('.additionalInfo').css('display', 'block');
 		}
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		getEfae().process(resObj);
+		else{
+			$('.additionalInfo').hide();
+		}
 	});
 };

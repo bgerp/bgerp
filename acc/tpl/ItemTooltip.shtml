@@ -1,6 +1,26 @@
-<div>
-<!--ET_BEGIN title-->|Име|*: [#title#]<br><!--ET_END title-->
-<!--ET_BEGIN num-->|Номер|*: [#num#]<br><!--ET_END num-->
-<!--ET_BEGIN classId-->|Мениджър|*: [#classId#]<br><!--ET_END classId-->
+<table>
+<!--ET_BEGIN num-->
+<tr>
+<td class='quiet aright'>|Номер|*:</td>
+<td>[#num#]</td>
+</tr>
+<!--ET_END num-->
+<!--ET_BEGIN title-->
+<tr>
+	<td class='quiet aright'>|Име|*: </td>
+	<td>[#title#]</td>
+</tr>
+<!--ET_END title-->
+
+<!--ET_BEGIN classId-->
+<tr>
+<td class='quiet aright'>|Мениджър|*:</td>
+<td> [#classId#]</td>
+</tr>
+<!--ET_END classId-->
+<tr>
+<td colspan='2'>
 [#link#]
-</div>
+</td>
+</tr>
+</table>
