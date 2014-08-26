@@ -140,6 +140,7 @@ class acc_ReportDetails extends core_Manager
 	    // Извикване на евент в мастъра за след извличане на записите от БД
 	    $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
 	    $balanceRec = acc_Balances::getLastBalance();
+	    $attr = array();
 	    $attr['class'] = 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
 	    $attr['title'] = tr("Хронологична справка");
@@ -225,8 +226,6 @@ class acc_ReportDetails extends core_Manager
 	    	$Double->params['decimals'] = 2;
     		
     		$table = cls::get('core_TableView', array('mvc' => $data->reportTableMvc));
-    		
-    		$lastBalance = acc_Balances::getLastBalance();
     		
     		// За всички записи групирани по сметки
     		foreach ($data->balanceRows as $accId => $arr){

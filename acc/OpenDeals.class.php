@@ -207,6 +207,7 @@ class acc_OpenDeals extends core_Manager {
 		    	}
 	    	}
 	    	
+	    	$attr = array();
 	    	$attr['class'] = 'linkWithIcon';
 	    	if($DocClass->haveRightFor('single', $rec->docId)){
 	    		

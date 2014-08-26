@@ -248,7 +248,7 @@ class bank_IncomeDocuments extends core_Master
     	$dealInfo = $origin->getAggregateDealInfo();
     		
     	$pOperations = $dealInfo->get('allowedPaymentOperations');
-    	$options = static::getOperations($pOperations);
+    	$options = self::getOperations($pOperations);
     	expect(count($options));
     		
     	if($dealInfo->get('dealType') != deals_Deals::AGGREGATOR_TYPE){
@@ -469,9 +469,6 @@ class bank_IncomeDocuments extends core_Master
      */
 	public static function canAddToThread($threadId)
     {
-    	$threadRec = doc_Threads::fetch($threadId);
-    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
-    	
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	

@@ -335,7 +335,8 @@ class bank_Accounts extends core_Master {
     static function getContragentIbans($contragentId, $contragentClass, $intKeys = FALSE)
     {
     	$Contragent = cls::get($contragentClass);
-    	$suggestions[''] = '';
+    	$suggestions = array('' => '');
+    	
     	$query = static::getQuery();
     	$query->where("#contragentId = {$contragentId}");
     	$query->where("#contragentCls = {$Contragent->getClassId()}");

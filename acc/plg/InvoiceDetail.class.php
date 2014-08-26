@@ -227,7 +227,7 @@ class acc_plg_InvoiceDetail extends core_Plugin
 					}
 					
 					// Ако няма последна покупна цена и не се обновява запис в текущата покупка
-					if (!isset($policyInfo->price) && empty($pRec)) {bp($policyInfo, $ProductMan);
+					if (!isset($policyInfo->price) && empty($pRec)) {
 						$form->setError('price', 'Продукта няма цена в избраната ценова политика');
 					} else {
 							

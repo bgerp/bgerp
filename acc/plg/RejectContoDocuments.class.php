@@ -126,6 +126,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
 	public static function on_BeforeRestore($mvc, &$res, $id)
 	{
 		$rec = $mvc->fetchRec($id);
+		$ignore = array();
 		
 		// Ако не може да се възстановява, връща FALSE за да се стопира възстановяването
 		if($rec->brState != 'draft'){
@@ -133,6 +134,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
 			// Ако документа не е сделка
 			if(!cls::haveInterface('deals_DealsAccRegIntf', $mvc)){
 				$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+				
 				
 				// и състоянието и е отворено, игнорираме перото и
 				if($firstDoc->fetchField('state') == 'active'){

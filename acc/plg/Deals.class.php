@@ -240,9 +240,6 @@ class acc_plg_Deals extends core_Plugin
     	$rec = $mvc->fetchRec($id);
     	$dealItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
     	
-    	// Масив с документи участващи в нишката
-    	$docs = array();
-    	
     	// Записите от журнала засягащи това перо
     	$entries = acc_Journal::getEntries(array($mvc, $rec->id));
     	

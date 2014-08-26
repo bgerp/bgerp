@@ -15,10 +15,18 @@
  */
 class blogm_ThemeIntf
 {
+    
+    
+    /**
+     * Класа имплементиращ интерфейса
+     */
+    public $class;
+    
+    
     /**
      * Връща шаблона за статия от блога
      */
-    public static function getArticleLayout()
+    public function getArticleLayout()
     {
     	return $this->class->getArticleLayout();
     }
@@ -27,7 +35,7 @@ class blogm_ThemeIntf
 	/**
      * Връща навигацията на блога
      */
-    public static function getNavigationLayout()
+    public function getNavigationLayout()
     {
     	return $this->class->getNavigationLayout();
     }

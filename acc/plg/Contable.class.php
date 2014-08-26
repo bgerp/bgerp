@@ -366,7 +366,6 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
-        $rec = $mvc->fetchRec($id);
         self::conto($mvc, $id);
     }
     

@@ -237,7 +237,6 @@ class acc_ArticleDetails extends core_Detail
             Redirect(array('acc_Articles', 'single', $rec->articleId), FALSE, "Не са избрани сметки за дебит и кредит.");
         }
         
-        $quantityOnly = $dimensional = FALSE;
         $form->setReadOnly('debitAccId');
         $form->setReadOnly('creditAccId');
         
