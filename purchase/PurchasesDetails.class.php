@@ -217,7 +217,6 @@ class purchase_PurchasesDetails extends core_Detail
      */
     static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $rows = $data->rows;
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
         // Флаг дали има отстъпка
@@ -331,7 +330,6 @@ class purchase_PurchasesDetails extends core_Detail
     		}
     		
             $masterRec  = purchase_Purchases::fetch($rec->{$mvc->masterKey});
-            $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
         	if(empty($rec->id)){
     			$where = "#requestId = {$rec->requestId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}";
@@ -426,7 +424,8 @@ class purchase_PurchasesDetails extends core_Detail
 				$error = "error=Няма купуваеми артикули";
 			}
 			
-			$data->toolbar->addBtn('Артикул', array($mvc, 'add', 'requestId'=> $masterRec->id, 'classId' => cat_Products::getClassId(), 'ret_url' => TRUE), "id=btnAdd-{$classId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+			$classId = cat_Products::getClassId();
+			$data->toolbar->addBtn('Артикул', array($mvc, 'add', 'requestId'=> $masterRec->id, 'classId' => $classId, 'ret_url' => TRUE), "id=btnAdd-{$classId},{$error},order=10", 'ef_icon = img/16/shopping.png');
 	        unset($data->toolbar->buttons['btnAdd']);
 	   }
     }

@@ -749,7 +749,7 @@ class sales_Sales extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
-    	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
+    	
     	if($rec->state == 'active'){
     		$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		
@@ -778,9 +778,6 @@ class sales_Sales extends core_Master
     		if(sales_Proformas::haveRightFor('add')){
 	    		$data->toolbar->addBtn("Проформа", array('sales_Proformas', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'row=2,ef_icon=img/16/invoice.png,title=Създаване на проформа,order=9.9992');
 		    }
-		    
-	        // Ако експедирането е на момента се добавя бутон за нова фактура
-	        $actions = type_Set::toArray($rec->contoActions);
 	    	
 	        if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
@@ -795,7 +792,7 @@ class sales_Sales extends core_Master
 		    }
 		    
 		    if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && $mvc->haveRightFor('printFiscReceipt', $rec)){
-		    	$data->toolbar->addBtn('КБ', array($mvc, 'printReceipt', $rec->id), NULL, 'warning=Издаване на касова бележка ?', array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка'));
+		    	$data->toolbar->addBtn('КБ', array($mvc, 'printReceipt', $rec->id), NULL, 'warning=Издаване на касова бележка ?', array('class' => "actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка'));
 		    }
     	}
     }
@@ -977,6 +974,7 @@ class sales_Sales extends core_Master
         $dQuery->where("#saleId = {$rec->id}");
         $detailRecs = $dQuery->fetchAll();
        
+        $downPayment = NULL;
         if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
         	// Колко е очакваното авансово плащане
         	$downPayment = cond_PaymentMethods::getDownpayment($rec->paymentMethodId, $rec->amountDeal);

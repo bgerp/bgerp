@@ -345,7 +345,6 @@ class sales_SalesDetails extends core_Detail
     		}
     		
             $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
-            $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
         	if(empty($rec->id)){
     			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}";

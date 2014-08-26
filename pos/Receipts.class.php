@@ -283,7 +283,6 @@ class pos_Receipts extends core_Master {
     	
     	$products = array();
     	$totalQuantity = 0;
-    	$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
     	
     	$query = pos_ReceiptDetails::getQuery();
     	$query->where("#receiptId = {$id}");
@@ -572,8 +571,6 @@ class pos_Receipts extends core_Master {
     		// Добавяне на таба с бързите бутони
     		$tpl->append($this->getSelectFavourites(), 'CHOOSE_DIV');
     		
-    		$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
-    		
     		// Добавяне на таба с избор
     		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
     		$tab .= "<li><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts'>Чернови</a></li>";
@@ -627,6 +624,7 @@ class pos_Receipts extends core_Master {
 	    	$absUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'absolute');
 	    	
     	} else {
+    		$discUrl = $addClient = $addUrl = $addUrl = $modQUrl = NULL;
     		$disClass = 'disabledBtn';
     		$disabled = 'disabled';
     	}
@@ -774,6 +772,7 @@ class pos_Receipts extends core_Master {
     			}
 	        }
 	    } else {
+	    	$contoUrl = $confInvUrl = NULL;
 	    	$hint = $hintInv = tr("Не може да приключите бележката, докато не е платена");
 	    }
 	    
@@ -848,7 +847,7 @@ class pos_Receipts extends core_Master {
             $p->classId     = $productManId;
             $p->productId   = $pr->productId;
             $p->packagingId = $pr->packagingId;
-            $p->discount    = $dRec->discountPercent;
+            $p->discount    = $pr->discountPercent;
             $p->quantity    = $pr->quantity;
             $p->price       = $pr->price;
             $p->uomId       = $pr->uomId;
@@ -1131,7 +1130,7 @@ class pos_Receipts extends core_Master {
     		$row->stock = "<span style='color:red'>$row->stock</span>";	
     	}
     	
-    	if($rec->stock){
+    	if($obj->stock){
     		$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
     	}
     	
