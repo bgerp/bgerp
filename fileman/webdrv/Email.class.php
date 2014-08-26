@@ -55,7 +55,6 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Подгорвяме сорса за показване
         $sourceShow = static::prepareSource($source);
 
-//        bp($mime);
         // Променяме Id' то на EML и HTML файла
 //        static::changeEmlAndHtmlFileId($emlRec);
         
