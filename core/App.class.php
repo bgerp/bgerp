@@ -240,8 +240,8 @@ class core_App
                     if (stripos($realIpAdd, $host) === 0) {
                         
                         // Пускаме дебъг режима
-                        ini_set("display_errors", TRUE);
-                        ini_set("display_startup_errors", TRUE);
+                        ini_set("display_errors", 1);
+                        ini_set("display_startup_errors", 1);
                         $efDebug = TRUE;
                         
                         break;
@@ -480,6 +480,8 @@ class core_App
      */
     public static function getCurrentUrl()
     {
+        $parentUrlArr = array();
+        
         // Ако заявката е по AJAX
         if (Request::get('ajax_mode')) {
             
@@ -884,6 +886,15 @@ class core_App
      */
     public static function sbf($rPath, $qt = '"', $absolute = FALSE)
     {
+        // Стойности по подразбиране
+        $f = '';
+        $filePath = '';
+        $ext = '';
+        $nPath = '';
+        $fileExist = FALSE;
+        $checkDir = FALSE;
+        $convertCss = FALSE;
+        
         // Взема пътя до файла, ако той не е в служебна под-директория на sbf
         if($rPath{0} != '_') {
             $f = static::getFullPath($rPath);
