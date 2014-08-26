@@ -240,7 +240,7 @@ class acc_BalanceDetails extends core_Detail
         	$ent = $rec->{"ent{$i}Id"};
         	if(empty($ent)) continue;
         	
-        	$itemRec = acc_Items::fetch($ent);
+        	$itemRec = acc_Items::fetchField($ent, 'classId,objectId');
         	
     		if($itemRec->classId){
     			$AccRegMan = cls::get($itemRec->classId);
@@ -586,7 +586,7 @@ class acc_BalanceDetails extends core_Detail
     	$items = array();
     	$cQuery = clone $query;
     	$cQuery->show('ent1Id,ent2Id,ent3Id');
-    	while (FALSE || $rec = $cQuery->fetch()) {
+    	while ($rec = $cQuery->fetch()) {
     		foreach (range(1, 3) as $i){
     			if(!empty($rec->{"ent{$i}Id"})){
     				self::$cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
