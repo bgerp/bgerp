@@ -90,12 +90,30 @@ class doc_Setup extends core_ProtoSetup
 //    var $commonCSS = 'doc/tpl/style.css, doc/css/dialogDoc.css';
     
     
+    // Инсталиране на мениджърите
+    var $managers = array(
+        'doc_UnsortedFolders',
+        'doc_Folders',
+        'doc_Threads',
+        'doc_Containers',
+        'doc_Search',
+        'doc_Folders',
+        'doc_Comments',
+        'doc_Notes',
+        'doc_PdfCreator',
+        'doc_ThreadUsers',
+        'doc_Files',
+    	'doc_TplManager'
+    );
+    
+        
     /**
      * Инсталиране на пакета
      */
     function install()
     {   
-        $html = core_Roles::addOnce('powerUser', NULL, 'system');
+        $html = parent::install();
+        $html .= core_Roles::addOnce('powerUser', NULL, 'system');
 
         // Добавяне на ролите за Ранг
         $rangRoles = array(
@@ -150,29 +168,6 @@ class doc_Setup extends core_ProtoSetup
                     }
                 }
             }
-        }
-        
-        // Инсталиране на мениджърите
-        $managers = array(
-            'doc_UnsortedFolders',
-            'doc_Folders',
-            'doc_Threads',
-            'doc_Containers',
-            'doc_Search',
-            'doc_Folders',
-            'doc_Comments',
-            'doc_Notes',
-            'doc_PdfCreator',
-            'doc_ThreadUsers',
-            'doc_Files',
-        	'doc_TplManager'
-        );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
         }
         
         // Зареждаме мениджъра на плъгините
