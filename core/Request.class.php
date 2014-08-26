@@ -291,7 +291,7 @@ class core_Request
      */
     static function resetIgnoreParams()
     {
-        static $ignoreArr = array();
+        self::$ignoreArr = array();
     }
     
     

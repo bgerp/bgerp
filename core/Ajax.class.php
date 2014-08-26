@@ -102,7 +102,7 @@ class core_Ajax extends core_Mvc
             } catch (Exception $e) {
                 
                 // Записваме в лога
-                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url} - {$e->getMessage()}", static::$logKeepDays);
+                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url} - {$e->getMessage()}", self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
@@ -119,7 +119,7 @@ class core_Ajax extends core_Mvc
                 
                 // Записваме в лога резултата
                 $resStr = core_Type::mixedToString($resArr);
-                core_Logs::add($this, NULL, "Некоректен резултат за {$url} - {$resStr}", static::$logKeepDays);
+                core_Logs::add($this, NULL, "Некоректен резултат за {$url} - {$resStr}", self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
@@ -175,7 +175,7 @@ class core_Ajax extends core_Mvc
             // Не би трябвало да се стига до тук
             
             // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, "Повтарящо се име - '{$name}'", static::$logKeepDays);
+            core_Logs::add('core_Ajax', NULL, "Повтарящо се име - '{$name}'", self::$logKeepDays);
             
 //            // Докато генерираме уникално име
 //            while ($nameArr[$name]) {
