@@ -533,6 +533,8 @@ class doc_Folders extends core_Master
         $rec = new stdClass();
         $rec->coverClass = core_Classes::fetchIdByName($coverMvc);
         
+        expect($rec->coverClass);
+        
         // Задаваме няколко параметъра по подразбиране за 
         $rec->status = '';
         $rec->allThreadsCnt = 0;
