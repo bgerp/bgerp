@@ -1093,50 +1093,6 @@ class sales_Sales extends core_Master
     }
     
     
-	/**
-	 * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
-     * Генерира агрегираната бизнес информация за тази продажба
-     * 
-     * Обикаля всички документи, имащи отношение към бизнес информацията и извлича от всеки един
-     * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до 
-     * момента.
-     * 
-     * Списъка с въпросните документи, имащи отношение към бизнес информацията за пробдажбата е
-     * сечението на следните множества:
-     * 
-     *  * Документите, върнати от @link doc_DocumentIntf::getDescendants()
-     *  * Документите, реализиращи интерфейса @link bgerp_DealIntf
-     *  * Документите, в състояние различно от `draft` и `rejected`
-     * 
-     * @return bgerp_iface_DealResponse
-     */
-    public function getAggregateDealInfo($id)
-    {
-        $saleRec = $this->fetchRec($id);
-    	
-    	$saleDocuments = $this->getDescendants($saleRec->id);
-        
-    	$aggregateInfo = new bgerp_iface_DealAggregator;
-    	
-        // Извличаме dealInfo от самата продажба
-        $this->pushDealInfo($saleRec->id, $aggregateInfo);
-        
-        foreach ($saleDocuments as $d) {
-            $dState = $d->rec('state');
-            if ($dState == 'draft' || $dState == 'rejected') {
-                // Игнорираме черновите и оттеглените документи
-                continue;
-            }
-        
-            if ($d->haveInterface('bgerp_DealIntf')) {
-                $d->instance->pushDealInfo($d->that, $aggregateInfo);
-            }
-        }
-        
-        return $aggregateInfo;
-    }
-    
-    
     /**
      * При нова продажба, се ънсетва threadId-то, ако има
      */

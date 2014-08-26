@@ -323,10 +323,6 @@ class deals_Deals extends core_Master
     {
     	$rec = $data->rec;
     	
-    	if(haveRole('debug')){
-    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
-    	}
-    	
     	if($rec->state == 'active'){
     		if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     			$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер');
@@ -616,50 +612,6 @@ class deals_Deals extends core_Master
     
     
     /**
-     * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
-     * Генерира агрегираната бизнес информация за тази сделка
-     *
-     * Обикаля всички документи, имащи отношение към бизнес информацията и извлича от всеки един
-     * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до
-     * момента.
-     *
-     * Списъка с въпросните документи, имащи отношение към бизнес информацията за сделката е
-     * сечението на следните множества:
-     *
-     *  * Документите, върнати от @link doc_DocumentIntf::getDescendants()
-     *  * Документите, реализиращи интерфейса @link bgerp_DealIntf
-     *  * Документите, в състояние различно от `draft` и `rejected`
-     *
-     * @return bgerp_iface_DealResponse
-     */
-    public function getAggregateDealInfo($id)
-    {
-    	$dealRec = self::fetchRec($id);
-    	 
-    	$aggregateInfo = new bgerp_iface_DealAggregator;
-    	
-    	$dealDocuments = $this->getDescendants($dealRec->id);
-    
-    	// Извличаме dealInfo от самата сделка
-    	$this->pushDealInfo($dealRec->id, $aggregateInfo);
-    	
-    	foreach ($dealDocuments as $d) {
-    		$dState = $d->rec('state');
-    		if ($dState == 'draft' || $dState == 'rejected') {
-    			// Игнорираме черновите и оттеглените документи
-    			continue;
-    		}
-    	
-    		if ($d->haveInterface('bgerp_DealIntf')) {
-    			$d->instance->pushDealInfo($d->that, $aggregateInfo);
-    		}
-    	}
-    	
-    	return $aggregateInfo;
-    }
-    
-    
-    /**
      * Перо в номенклатурите, съответстващо на този продукт
      *
      * Част от интерфейса: acc_RegisterIntf
@@ -723,18 +675,6 @@ class deals_Deals extends core_Master
      */
     static function itemInUse($objectId)
     {
-    }
-    
-    
-    /**
-     * Дебъг екшън показващ агрегираните бизнес данни
-     */
-    function act_AggregateDealInfo()
-    {
-    	requireRole('debug');
-    	expect($id = Request::get('id', 'int'));
-    	$info = $this->getAggregateDealInfo($id);
-    	bp($info);
     }
     
     

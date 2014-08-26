@@ -368,4 +368,48 @@ class acc_plg_Deals extends core_Plugin
     	
     	$res = 'pending';
     }
+    
+    
+    /**
+     * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
+     * Генерира агрегираната бизнес информация за тази продажба
+     *
+     * Обикаля всички документи, имащи отношение към бизнес информацията и извлича от всеки един
+     * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до
+     * момента.
+     *
+     * Списъка с въпросните документи, имащи отношение към бизнес информацията за пробдажбата е
+     * сечението на следните множества:
+     *
+     *  * Документите, върнати от @link doc_DocumentIntf::getDescendants()
+     *  * Документите, реализиращи интерфейса @link bgerp_DealIntf
+     *  * Документите, в състояние различно от `draft` и `rejected`
+     *
+     * @return bgerp_iface_DealResponse
+     */
+    public static function on_AfterGetAggregateDealInfo($mvc, &$res, $id)
+    {
+    	$dealRec = $mvc->fetchRec($id);
+    	 
+    	$dealDocuments = $mvc->getDescendants($dealRec->id);
+    
+    	$aggregateInfo = new bgerp_iface_DealAggregator;
+    	 
+    	// Извличаме dealInfo от самата продажба
+    	$mvc->pushDealInfo($dealRec->id, $aggregateInfo);
+    
+    	foreach ($dealDocuments as $d) {
+    		$dState = $d->rec('state');
+    		if ($dState == 'draft' || $dState == 'rejected') {
+    			// Игнорираме черновите и оттеглените документи
+    			continue;
+    		}
+    
+    		if ($d->haveInterface('bgerp_DealIntf')) {
+    			$d->instance->pushDealInfo($d->that, $aggregateInfo);
+    		}
+    	}
+    
+    	$res = $aggregateInfo;
+    }
 }
