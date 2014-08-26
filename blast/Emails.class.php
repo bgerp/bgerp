@@ -286,7 +286,7 @@ class blast_Emails extends core_Master
             $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'ef_icon = img/16/lightning.png');
         } elseif (($state == 'pending') || ($state == 'active')) {
             //Добавяме бутона Спри, ако състоянието е активно или изчакване
-            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'ef_icon = img/16/close16.png');
+            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'ef_icon = img/16/gray-close.png');
         }
     }
     
