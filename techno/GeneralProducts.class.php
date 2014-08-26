@@ -351,7 +351,16 @@ class techno_GeneralProducts extends core_Master {
     {
     	expect($paramId = cat_Params::fetchIdBySysId($sysId));
     	
-    	return $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
+    	$value = $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
+    	
+    	if($value) return $value;
+    	
+    	// Ако няма гледаме имали дефолт за параметъра
+    	$default = cat_Params::fetchField($paramId, 'default');
+    	
+    	if(isset($default) && $default != '') return $default;
+    	
+    	return NULL;
     }
     
     

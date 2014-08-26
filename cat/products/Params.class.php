@@ -184,7 +184,15 @@ class cat_products_Params extends cat_products_Detail
     public static function fetchParamValue($productId, $sysId)
     {
      	if($paramId = cat_Params::fetchIdBySysId($sysId)){
-     		return static::fetchField("#productId = {$productId} AND #paramId = {$paramId}", 'paramValue');
+     		$paramValue = static::fetchField("#productId = {$productId} AND #paramId = {$paramId}", 'paramValue');
+     		
+     		// Ако има записана конкретна стойност за този продукт връщаме я
+     		if($paramValue) return $paramValue;
+     		
+     		// Ако няма гледаме имали дефолт за параметъра
+     		$default = cat_Params::fetchField($paramId, 'default');
+     		
+     		if(isset($default) && $default != '') return $default;
      	}
      	
      	return NULL;
