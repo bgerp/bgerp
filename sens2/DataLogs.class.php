@@ -171,7 +171,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
-    function prepareReportForm($form)
+    function prepareReportForm(core_Form $form)
     {
         $form->FLD('from', 'datetime', 'caption=От,mandatory');
         $form->FLD('to', 'datetime', 'caption=До,mandatory');
@@ -182,7 +182,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
-    function checkReportForm($form)
+    function checkReportForm(core_Form $form)
     {
     }
 
@@ -193,11 +193,20 @@ class sens2_DataLogs extends core_Manager
     function prepareReportData($filter)
     {
         $data = new StdClass();
-
+        $data->rec = $filter;
+        
+        $DateTime = cls::get('type_Datetime');
+        $KeyList = cls::get('type_KeyList', array('params' => array('mvc' => 'sens2_Indicators', 'select' => 'title')));
+    
         if(!strpos($filter->to, ' ')) {
-            $filter->to .= ' 23:59:59';
+        	$filter->to .= ' 23:59:59';
         }
-
+        
+        $data->row = new stdClass();
+        $data->row->from = $DateTime->toVerbal($filter->from);
+        $data->row->to = $DateTime->toVerbal($filter->to);
+        $data->row->indicators = $KeyList->toVerbal($filter->indicators);
+        
         $query = self::getQuery();
 
         $query->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $filter->from, $filter->to));
@@ -215,11 +224,11 @@ class sens2_DataLogs extends core_Manager
     /**
      * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
-    function renderReportData($filter, $data)
+    function renderReportData($data)
     {
         $layout = new ET(getFileContent('sens2/tpl/ReportLayout.shtml'));
         
-        $layout->placeObject($filter);
+        $layout->placeObject($data->row);
 
         if(is_array($data->recs)) {
             foreach($data->recs as $id => $rec) {

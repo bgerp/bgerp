@@ -56,7 +56,7 @@ class acc_HistoryReport extends core_Manager
     /**
      * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
-    public function prepareReportForm(&$form)
+    public function prepareReportForm(core_Form &$form)
     {
     	$form->FLD('accountId','acc_type_Account(allowEmpty)', 'input,caption=Сметка,silent,mandatory', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
     	$form->FLD('fromDate', 'date(allowEmpty)', 'caption=От,input,width=15em,mandatory');
@@ -96,7 +96,7 @@ class acc_HistoryReport extends core_Manager
     /**
      * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
-    public function checkReportForm(&$form)
+    public function checkReportForm(core_Form &$form)
     {
     	if($form->isSubmitted()){
     		if($form->rec->toDate < $form->rec->fromDate){
@@ -138,7 +138,7 @@ class acc_HistoryReport extends core_Manager
     /**
      * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
-    public function renderReportData($filter, $data)
+    public function renderReportData($data)
     {
     	return $this->renderHistory($data);
     }
@@ -153,6 +153,9 @@ class acc_HistoryReport extends core_Manager
     }
     
     
+    /**
+     * Показване на историята на една аналитична сметка
+     */
     public function act_History()
     {
     	$this->requireRightFor('history');
@@ -215,6 +218,10 @@ class acc_HistoryReport extends core_Manager
     	return $tpl;
     }
     
+    
+    /**
+     * Подготвя еденичния тулбар
+     */
     private function prepareSingleToolbar($data)
     {
     	if(!Mode::is('printing')){
@@ -238,6 +245,10 @@ class acc_HistoryReport extends core_Manager
     	}
     }
     
+    
+    /**
+     * Намира балансите между определени дати
+     */
     private function getBalanceBetween($from, $to)
     {
     	$bQuery = acc_Balances::getQuery();
@@ -252,6 +263,9 @@ class acc_HistoryReport extends core_Manager
     }
     
     
+    /**
+     * Взима балансовите периоди
+     */
     private function getBalancePeriods()
     {
     	// За начална и крайна дата, слагаме по подразбиране, датите на периодите

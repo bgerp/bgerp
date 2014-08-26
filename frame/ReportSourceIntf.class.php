@@ -14,7 +14,14 @@
  */
 class frame_ReportSourceIntf
 {
-
+	
+	
+	/**
+	 * Инстанция на класа имплементиращ интерфейса
+	 */
+	public $class;
+	
+	
     /**
      *  Извлича и подготвя данните за даден отчет
      *
@@ -31,14 +38,13 @@ class frame_ReportSourceIntf
     /**
      * Рендира данните за даден отчет 
      *
-     * @param  stdClass $filter Филтъра за данни, въведен от потребителя
      * @param  stdClass $data   Данни извлечени с предходния метод
      *                   
      * @return et Попълнен шаблон с изгледа на отчета. При рендирането се отчитат параметрите в Mode
      */
-    function renderReportData($filter, $data)
+    function renderReportData($data)
     {
-        return $this->class->renderReportData($filter, $data);
+        return $this->class->renderReportData($data);
     }
 
 
@@ -47,7 +53,7 @@ class frame_ReportSourceIntf
      *
      * @param core_Form форма на която трябва да се поставят полетата с изходящите параметри
      */
-    function prepareReportForm($form)
+    function prepareReportForm(core_Form $form)
     {
         return $this->class->prepareReportForm($form);
     }
@@ -60,7 +66,7 @@ class frame_ReportSourceIntf
      *
      * @param   core_Form   форма с въведени данни от заявката (след $form->input)
      */
-    function checkReportForm($form)
+    function checkReportForm(core_Form $form)
     {
         return $this->class->checkReportForm($form);
     }

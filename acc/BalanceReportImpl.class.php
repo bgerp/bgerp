@@ -50,7 +50,7 @@ class acc_BalanceReportImpl
     /**
      * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
-    public function prepareReportForm($form)
+    public function prepareReportForm(core_Form $form)
     {
     	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
     	$form->FLD('from', 'datetime', 'caption=От,mandatory');
@@ -85,7 +85,7 @@ class acc_BalanceReportImpl
     /**
      * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
-    public function checkReportForm($form)
+    public function checkReportForm(core_Form $form)
     {
     	if($form->isSubmitted()){
     		if($form->rec->to < $form->rec->from){
@@ -171,7 +171,7 @@ class acc_BalanceReportImpl
     			// Показваме само тези редове, които са в диапазона на страницата
     			if($count >= $start && $count <= $end){
     				$rec->id = $count + 1;
-    				$row = $this->recToVerbal($rec);
+    				$row = $this->getVerbalDetail($rec);
     				if($row->blAmount != $row->blQuantity){
     					$data->hideQuantities = TRUE;
     				}
@@ -195,7 +195,38 @@ class acc_BalanceReportImpl
     		$data->summary->$name  = $Double->toVerbal($num);
     	}
     	
+    	$this->recToVerbal($data);
+    	
     	return $data;
+    }
+    
+    
+    /**
+     * Вербалното представяне на записа
+     */
+    private function recToVerbal($data)
+    {
+    	$data->row = new stdClass();
+    	$DateTime = cls::get('type_Datetime');
+    	
+    	$data->row->accountId = acc_Balances::getAccountLink($data->rec->accountId, NULL, TRUE, TRUE);
+    	$data->row->from = $DateTime->toVerbal($data->rec->from);
+    	$data->row->to = $DateTime->toVerbal($data->rec->to);
+    	
+    	foreach (range(1, 3) as $i){
+    		if(isset($data->rec->{"ent{$i}Id"})){
+    			$data->row->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
+    			$data->row->{"ent{$i}Id"} .= acc_Items::fetchField($data->rec->{"ent{$i}Id"}, 'titleLink');
+    		}
+    	}
+    	 
+    	// Показваме за кои пера има филтриране
+    	if(count($data->groupBy)){
+    		foreach ($data->groupBy as $fld){
+    			$data->row->groupBy .= $data->listFields[$fld] . ", ";
+    		}
+    		$data->row->groupBy = trim($data->row->groupBy, ', ');
+    	}
     }
     
     
@@ -281,7 +312,7 @@ class acc_BalanceReportImpl
     /**
      * Вербалното представяне на ред от таблицата
      */
-    private function recToverbal($rec)
+    private function getVerbalDetail($rec)
     {
     	$Varchar = cls::get('type_Varchar');
     	$Double = cls::get('type_Double');
@@ -311,30 +342,13 @@ class acc_BalanceReportImpl
     /**
      * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
      */
-    public function renderReportData($filter, $data)
+    public function renderReportData($data)
     {
     	if(empty($data)) return;
     	
     	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
-    	$filter->accountId = acc_Balances::getAccountLink($data->rec->accountId, NULL, TRUE, TRUE);
     	
-    	
-    	// Показваме за кои пера има филтриране
-    	if(count($data->groupBy)){
-    		foreach ($data->groupBy as $fld){
-    			$filter->groupBy .= $data->listFields[$fld] . ", ";
-    		}
-    		$filter->groupBy = trim($filter->groupBy, ', ');
-    	}
-    	
-    	foreach (range(1, 3) as $i){
-    		if(isset($data->rec->{"ent{$i}Id"})){
-    			$filter->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
-    			$filter->{"ent{$i}Id"} .= acc_Items::fetchField($data->rec->{"ent{$i}Id"}, 'titleLink');
-    		}
-    	}
-    	
-    	$tpl->placeObject($filter);
+    	$tpl->placeObject($data->row);
     	
     	$tableMvc = new core_Mvc;
     	$tableMvc->FLD('ent1Id', 'varchar', 'tdClass=itemClass');

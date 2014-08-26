@@ -182,7 +182,7 @@ class frame_Reports extends core_Master
     	if($form->isSubmitted() && $form->rec->source) {
         	
         	$filterFields = array_keys($form->selectFields("(#input == 'input' || #input == '') && !#notFilter"));
-                
+            
             if(!$form->rec->filter) {
                 $form->rec->filter = new stdClass();
             }
@@ -217,13 +217,9 @@ class frame_Reports extends core_Master
             	// Източника подготвя данните
                 $rec->data = $Source->prepareReportData($rec->filter);
             }
-           
-            $mvc = cls::get('core_Mvc');
-            $Source->prepareReportForm($mvc);
-            $filterRow = $mvc->recToverbal($rec->filter);
                 
             // Източника рендира данните
-            $row->data = $Source->renderReportData($filterRow , $rec->data);
+            $row->data = $Source->renderReportData($rec->data);
         }
     }
 
