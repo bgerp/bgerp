@@ -372,7 +372,7 @@ class acc_plg_Deals extends core_Plugin
     
     /**
      * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
-     * Генерира агрегираната бизнес информация за тази продажба
+     * Генерира агрегираната бизнес информация за тази сделка
      *
      * Обикаля всички документи, имащи отношение към бизнес информацията и извлича от всеки един
      * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до
@@ -395,7 +395,7 @@ class acc_plg_Deals extends core_Plugin
     
     	$aggregateInfo = new bgerp_iface_DealAggregator;
     	 
-    	// Извличаме dealInfo от самата продажба
+    	// Извличаме dealInfo от самата сделка
     	$mvc->pushDealInfo($dealRec->id, $aggregateInfo);
     
     	foreach ($dealDocuments as $d) {

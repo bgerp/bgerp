@@ -126,6 +126,12 @@ class acc_Items extends core_Manager
     
     
     /**
+     * Кеш на уникален индекс
+     */
+    protected $unique = 0;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -176,38 +182,11 @@ class acc_Items extends core_Manager
      */
     static function on_CalcTitleLink($mvc, $rec)
     {
+    	
+    	
         $title = $mvc->getVerbal($rec, 'title');
         $num = $mvc->getVerbal($rec, 'num');
         $rec->titleLink = $title . "&nbsp;($num)";
-        
-        $cantShow = FALSE;
-        
-        // Ако може да бъде зареден регистъра
-        if ($rec->classId && cls::load($rec->classId, TRUE)) {
-            $AccRegister = cls::get($rec->classId);
-            
-            // Ако го има итнерфейсния метод
-            if(method_exists($AccRegister, 'getLinkToObj')) {
-                $rec->titleLink = $AccRegister->getLinkToObj($rec->objectId);
-            } elseif(method_exists($AccRegister, 'act_Single')) {
-                
-            	// По дефолт е линк към сингъла, ако имаме права
-            	if($AccRegister->haveRightFor('single', $rec->objectId)) {
-                	if($AccRegister->fetchField($rec->objectId)){
-                		$rec->titleLink = ht::createLinkRef($rec->titleLink, array($AccRegister, 'Single', $rec->objectId));
-                	} else {
-                		$cantShow = TRUE;
-                	}
-                }
-            }
-        } else {
-        	$cantShow = TRUE;
-        }
-        
-        // Ако има проблем при извличането на записа показваме съобщение
-        if($cantShow){
-        	$rec->titleLink = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
-        }
     }
     
     
@@ -230,6 +209,18 @@ class acc_Items extends core_Manager
             $maxNumLen = strlen($listRec->itemMaxNum);
             $num = str_pad($num, $maxNumLen, '0', STR_PAD_LEFT);
             $num = str_replace('&nbsp;', '', $num);
+        }
+        
+        if($part == 'titleLink'){
+        	
+        	// Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
+        	$mvc->unique ++;
+        	$unique = $mvc->unique;
+        
+	        $tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $rec->id, 'unique' => $unique), 'local');
+	        $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-id' => $rec->id, 'data-url' => $tooltipUrl));
+	        $arrow = "<span class='additionalInfo-holder'><div class='additionalInfo' id='info{$unique}'></div>{$arrow}</span>";
+	        $num .= "&nbsp;{$arrow}";
         }
     }
     
@@ -825,6 +816,7 @@ class acc_Items extends core_Manager
     			$fieldNames .= "$name,";
     			if($items = keylist::toArray($form->rec->{$name})){
     				foreach($items as $id){
+    					
     					// Всеки избран запис, се добавя като перо към номенклатурата
     					acc_Lists::addItem($listId, $name, $id);
     					$areAdded = TRUE;
@@ -977,4 +969,59 @@ class acc_Items extends core_Manager
     	}
     }
 
+    
+    /**
+     * Показва информация за перото по Айакс
+     */
+    public function act_ShowItemInfo()
+    {
+    	$id = Request::get('id', 'int');
+    	$unique = Request::get('unique', 'int');
+    	
+    	$rec = $this->fetchRec($id);
+    	$row = $this->recToVerbal($rec);
+    	
+    	$cantShow = FALSE;
+    	if ($rec->classId && cls::load($rec->classId, TRUE)) {
+    		$AccRegister = cls::get($rec->classId);
+    	
+    		// Ако го има итнерфейсния метод
+    		if(method_exists($AccRegister, 'getLinkToObj')) {
+    			$row->link = $AccRegister->getLinkToObj($rec->objectId);
+    		} elseif(method_exists($AccRegister, 'act_Single')) {
+    			
+    			// По дефолт е линк към сингъла, ако имаме права
+    			if($AccRegister->haveRightFor('single', $rec->objectId)) {
+    				if($AccRegister->fetchField($rec->objectId)){
+    					$row->link = ht::createLink($rec->title, array($AccRegister, 'Single', $rec->objectId));
+    				} else {
+    					$cantShow = TRUE;
+    				}
+    			} else {
+    				$row->link = "<span style='color:red'>" . tr('Нямате права за изгледа') . "</span>";
+    			}
+    		}
+    	} else {
+    		$cantShow = TRUE;
+    	}
+    	
+    	// Ако има проблем при извличането на записа показваме съобщение
+    	if($cantShow){
+    		$row = new stdClass();
+    		$row->link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+    	}
+    	
+    	$tpl = getTplFromFile('acc/tpl/ItemTooltip.shtml');
+    	$tpl->placeObject($row);
+    	
+    	if (Request::get('ajax_mode')) {
+    		$resObj = new stdClass();
+	    	$resObj->func = "html";
+	    	$resObj->arg = array('id' => "info{$unique}", 'html' => $tpl->getContent(), 'replace' => TRUE);
+	    	
+	    	return array($resObj);
+    	} else {
+    		return $tpl;
+    	}
+    }
 }

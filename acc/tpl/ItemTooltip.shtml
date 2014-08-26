@@ -1,0 +1,6 @@
+<div>
+<!--ET_BEGIN title-->|Име|*: [#title#]<br><!--ET_END title-->
+<!--ET_BEGIN num-->|Номер|*: [#num#]<br><!--ET_END num-->
+<!--ET_BEGIN classId-->|Мениджър|*: [#classId#]<br><!--ET_END classId-->
+[#link#]
+</div>
