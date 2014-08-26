@@ -37,5 +37,6 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_Cache', 'Кеш', 'admin');
         $this->TAB('core_Browser', 'Браузър', 'admin, debug');
         $this->TAB('core_Locks', 'Заключвания', 'debug');
+        $this->TAB('core_Settings', 'Персонализация', 'debug');
     }
 }

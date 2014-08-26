@@ -211,6 +211,7 @@ class core_Setup extends core_ProtoSetup {
         'migrate::loginLogTruncate',
         'core_Browser',
         'migrate::clearBrowserInfo',
+        'core_Settings',
     );
     
     
