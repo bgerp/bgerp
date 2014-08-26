@@ -65,7 +65,7 @@ class deals_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'deals,dealsMaster';
+    var $roles = 'deals';
 
     
     /**
