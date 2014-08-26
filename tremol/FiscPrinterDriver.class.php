@@ -27,6 +27,12 @@ class tremol_FiscPrinterDriver extends core_Manager {
     var $title = "Драйвър за фискален принтер на Тремол";
     
     
+    /**
+     * На коя ддс група кое ид от касовия апарат съответства
+     */
+    private static $vatGroups = array('A' => 1, 'Б' => 2, 'В' => 3, 'Г' => 4);
+    
+    
    /*
     * Имплементация на pos_FiscalPrinterIntf
     */
@@ -48,12 +54,11 @@ class tremol_FiscPrinterDriver extends core_Manager {
         foreach ($data->products as $p){
             $block = clone $itemBlock;
             
-            $p->name = cls::get($p->managerId)->getVerbal($p->id, 'name');
             $p->name = str_replace('"', "'", $p->name);
             $p->price = round($p->price * (1 + $p->vat), 2);
             
-            // @TODO да не е 2
-            $p->vatGroup = 2;
+            // Кое число отговаря данъчната група
+            $p->vatGroup = self::$vatGroups[$p->vatGroup];
             
             $block->placeObject($p);
             $block->removeBlocks();
@@ -80,6 +85,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
      * 	[products] = array(
      * 		'id'        => ид на продукт
      * 		'managerId' => ид на мениджър на продукт
+     * 		'name'  	=> име
      * 		'quantity'  => к-во
      * 		'discount'  => отстъпка
      * 		'measure'   => име на мярка/опаковка
