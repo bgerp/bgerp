@@ -75,14 +75,18 @@ class acc_HistoryReport extends core_Manager
     		if($form->rec->id){
     			if(frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->filter->accountId){
     				unset($form->rec->ent1Id,$form->rec->ent2Id,$form->rec->ent3Id);
-    				unset($form->rec->filter->ent1Id,$form->rec->filter->ent2Id,$form->rec->filter->ent3Id);
+    				Request::push(array('ent1Id' => NULL, 'ent2Id' => NULL, 'ent3Id' => NULL));
     			}
     		}
     		
     		$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
-    		if(count($accInfo->groups)){
-    			foreach ($accInfo->groups as $i => $gr){
+    		foreach (range(1, 3) as $i){
+    			if(isset($accInfo->groups[$i])){
+    				$gr = $accInfo->groups[$i];
     				$form->FNC("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty)", "caption=Избор на пера->{$gr->rec->name},input,mandatory");
+    			} else {
+    				$form->FNC("ent{$i}Id", "int", "");
+    				$form->rec->{"ent{$i}Id"} = NULL;
     			}
     		}
     	}
@@ -326,7 +330,7 @@ class acc_HistoryReport extends core_Manager
     private function prepareHistory(&$data)
     {
     	$rec = &$data->rec;
-    	 
+    	
     	// Подготвяне на данните на записа
     	$Date = cls::get('type_Date');
     	$Double = cls::get('type_Double');
