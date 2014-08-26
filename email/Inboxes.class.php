@@ -542,18 +542,10 @@ class email_Inboxes extends core_Master
          
         if($corpAccRec && email_Accounts::canSendEmail($corpAccRec->id)) {
              
-            // 2a. Корпоративния на потребителя 
-            
-            $userEmail = email_Inboxes::getUserEmail($userId);
-
-            if($userEmail && ($rec = self::fetch("#email = '{$userEmail}' && #state = 'active'"))) {
-                $options[$rec->id] = $rec->email;
-            }
+            // 2a. Общия корпоративен
             
             // Ако не е зададено да се показват само персоналните
             if (!$personalOnly) {
-                
-                // 2a. Oбщия корпоративен
                 
                 $rec = self::fetch("#email = '{$corpAccRec->email}' && #state = 'active'");
                                 
@@ -562,8 +554,16 @@ class email_Inboxes extends core_Master
                 }
             }
             
-            //2a. Корпоративния на потребителя
-            //2b. Общия корпоративен
+            // 2b. Корпоративния на потребителя
+            
+            $userEmail = email_Inboxes::getUserEmail($userId);
+
+            if($userEmail && ($rec = self::fetch("#email = '{$userEmail}' && #state = 'active'"))) {
+                $options[$rec->id] = $rec->email;
+            }
+            
+            //2a. Общия корпоративен
+            //2b. Корпоративния на потребителя
         }
 
         // 3. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
