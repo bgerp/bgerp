@@ -83,7 +83,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,state,tools=Пулт';
+    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,state,tools=Пулт,createdBy';
     
     
     /**
@@ -981,12 +981,12 @@ class acc_Items extends core_Manager
     			// По дефолт е линк към сингъла, ако имаме права
     			if($AccRegister->haveRightFor('single', $rec->objectId)) {
     				if($AccRegister->fetchField($rec->objectId)){
-    					$row->link = ht::createLink($rec->title, array($AccRegister, 'Single', $rec->objectId));
+    					$row->link = ht::createLink(tr('Връзка'), array($AccRegister, 'Single', $rec->objectId));
     				} else {
     					$cantShow = TRUE;
     				}
     			} else {
-    				$row->link = "<span style='color:red'>" . tr('Нямате права за изгледа') . "</span>";
+    				$row->link = "<span style='color:red'>" . tr('Нямате права') . "</span>";
     			}
     		}
     	} else {

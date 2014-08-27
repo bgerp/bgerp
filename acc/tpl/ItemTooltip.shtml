@@ -7,17 +7,25 @@
 <!--ET_END num-->
 <!--ET_BEGIN title-->
 <tr>
-	<td class='quiet aright'>|Име|*: </td>
+	<td class='quiet aright'>|Перо|*: </td>
 	<td>[#title#]</td>
 </tr>
 <!--ET_END title-->
 
-<!--ET_BEGIN classId-->
+<!--ET_BEGIN createdOn-->
 <tr>
-<td class='quiet aright'>|Мениджър|*:</td>
-<td> [#classId#]</td>
+<td class='quiet aright'>|Създаване|*:</td>
+<td> [#createdOn#]</td>
 </tr>
-<!--ET_END classId-->
+<!--ET_END createdOn-->
+
+<!--ET_BEGIN createdBy-->
+<tr>
+<td class='quiet aright'>|От|*:</td>
+<td> [#createdBy#]</td>
+</tr>
+<!--ET_END createdBy-->
+
 <tr>
 <td colspan='2'>
 [#link#]
