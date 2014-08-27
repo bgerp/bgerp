@@ -71,7 +71,7 @@ class sales_Sales extends core_Master
     /**
      * Кой може да принтира фискална бележка
      */
-    public $canPrintfiscreceipt = 'debug';
+    public $canPrintfiscreceipt = 'ceo,sales';
     
     
     /**
@@ -794,7 +794,7 @@ class sales_Sales extends core_Master
 		    }
 		    
 		    if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && $mvc->haveRightFor('printFiscReceipt', $rec)){
-		    	$data->toolbar->addBtn('КБ', array($mvc, 'printReceipt', $rec->id), NULL, 'warning=Издаване на касова бележка ?', array('class' => "actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка'));
+		    	$data->toolbar->addBtn('КБ', array($mvc, 'printReceipt', $rec->id), NULL, 'ef_icon=img/16/cash-receipt.png,warning=Издаване на касова бележка ?', array('class' => "actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка'));
 		    }
     	}
     }
