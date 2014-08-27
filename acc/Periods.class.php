@@ -142,7 +142,7 @@ class acc_Periods extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if($mvc->haveRightFor('close', $rec)) {
-           $row->close = ht::createBtn('Приключване', array($this, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+           $row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
         }
         
         if($repId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
@@ -482,8 +482,6 @@ class acc_Periods extends core_Manager
         // Затваряме период
         $id = Request::get('id', 'int');
         
-        $rec = new stdClass();
-        
         $rec = $this->fetch("#id = '{$id}'");
         
         // Очакваме, че затваряме активен период
@@ -497,7 +495,7 @@ class acc_Periods extends core_Manager
         $res = "Затворен е период |*<span style=\"color:red;\">{$rec->title}</span>";
         
         // Отваря следващия период. Създава го, ако не съществува
-        $nextRec = $this->forcePeriod(dt::addDays(1, $rec->end));
+        $this->forcePeriod(dt::addDays(1, $rec->end));
         
         $activeRec = $this->forceActive();
         

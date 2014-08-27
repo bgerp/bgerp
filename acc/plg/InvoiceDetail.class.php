@@ -233,6 +233,7 @@ class acc_plg_InvoiceDetail extends core_Plugin
 							
 						// Ако се обновява вече съществуващ запис
 						if($pRec){
+							$vat = cls::get($pRec->classId)->getVat($pRec->productId);
 							$pRec->packPrice = deals_Helper::getPriceToCurrency($pRec->packPrice, $vat, $masterRec->rate, $masterRec->vatRate);
 						}
 							
