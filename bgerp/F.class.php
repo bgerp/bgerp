@@ -161,8 +161,14 @@ class bgerp_F extends core_Manager
         setIfNot($width, $groupRec->width, 900);
         setIfNot($height, $groupRec->height, 900);
         
+        if ($mid) {
+            $isAbsolute = FALSE;
+        } else {
+            $isAbsolute = TRUE;
+        }
+        
         // Генерираме thumbnail
-        $Img = new img_Thumb($imgRec->src, $width, $height, 'fileman', $name);
+        $Img = new img_Thumb(array($imgRec->src, $width, $height, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change', 'verbalName' => $name));
         
         // Ако има MID
         if ($mid) {
@@ -170,12 +176,9 @@ class bgerp_F extends core_Manager
             $Img->forceDownload();
         } else {
             if (fileman_GalleryImages::haveRightFor('single', $imgRec)) {
-                // Показва картинката
-                // Вдигаме флага
-                $Img->isAbsolute = TRUE;
                 
                 // Вземаме деферед URL
-                $url = $Img->getDeferredUrl();
+                $url = $Img->getUrl('deferred');
                 
                 return new Redirect($url);
             }
