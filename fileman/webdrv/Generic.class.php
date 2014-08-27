@@ -188,7 +188,7 @@ class fileman_webdrv_Generic extends core_Manager
                 $size = array($thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height']);
                 
                 //Създаваме тумбнаил с параметрите
-                $thumbnailImg = thumbnail_Thumbnail::getImg($jpgFh, $size, $attr);
+                $thumbnailImg = img_Thumb::getImg($jpgFh, $size, $attr);
                 
                 if ($thumbnailImg) {
                 
