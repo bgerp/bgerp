@@ -249,7 +249,7 @@ class plg_Clone extends core_Plugin
     /**
      * След подготвяне на сингъл тулбара
      * 
-     * @param core_Mvc $mvc
+     * @param core_Master $mvc
      * @param object $data
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
