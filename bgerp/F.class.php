@@ -158,8 +158,8 @@ class bgerp_F extends core_Manager
         expect($groupRec, 'Няма информация за файла');
         
         // Широчината и височината на картинката
-        setIfNot($width, $groupRec->width, 900);
-        setIfNot($height, $groupRec->height, 900);
+        $width = ($groupRec->width) ? $groupRec->width : 900;
+        $height = ($groupRec->height) ? $groupRec->height : 900;
         
         if ($mid) {
             $isAbsolute = FALSE;
