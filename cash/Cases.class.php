@@ -234,6 +234,7 @@ class cash_Cases extends core_Master {
     public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
     	if(!count($data->rows)) return;
+    	
     	foreach ($data->recs as $rec){
     		$total += $rec->blAmount;
     	}
@@ -245,7 +246,8 @@ class cash_Cases extends core_Master {
     		$total = "<span style='color:red'>{$total}</span>";
     	}
     	
-    	$lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='4'>[#caption#]: &nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
+    	$colspan = count($data->listFields) - 1;
+    	$lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
     	$lastRow->replace(tr("Общо"), 'caption');
     	$lastRow->replace($total, 'total');
     	
