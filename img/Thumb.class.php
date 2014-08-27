@@ -544,7 +544,7 @@ class img_Thumb
                     
                     $white = imagecolorallocatealpha($newGdRes, 255, 255, 255, 127);
                     
-                    $angle = $this->possibleRotation == 'left' ? : 90 : 270;
+                    $angle = $this->possibleRotation == 'left' ? 90 : 270;
                     
                     $newGdRes = imagerotate($newGdRes, $angle, $white);
                 } else {
