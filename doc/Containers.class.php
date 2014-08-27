@@ -309,7 +309,7 @@ class doc_Containers extends core_Manager
             
             // Добавяме бутон в тулбара
             $threadClassId = core_Classes::fetchIdByName('doc_Threads');
-            custom_Settings::addBtn($data->toolbar, $threadClassId, $data->threadId, 'Изглед');
+            custom_Settings::addBtn($data->toolbar, $threadClassId, $data->threadId, 'Настройки');
         }
     }
     
