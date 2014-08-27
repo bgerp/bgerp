@@ -427,9 +427,10 @@ class blogm_Articles extends core_Master {
         if($fileSrc) {
 	        $file = fileman_Files::fetchByFh($fileSrc);
 	        $type = fileman_Files::getExt($file->name);
-	        $attr = array('_isAbsolute' => TRUE, 'qt' => '');
-        	$size = array(200, 200, 'max' => TRUE);
-	        $imageURL = thumbnail_Thumbnail::getLink($file->fileHnd, $size, $attr);
+	        
+	        $img = new img_Thumb(array($file->fileHnd, 200, 200, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
+	        $imageURL = $img->getUrl('forced');
+	        
 	    	$data->ogp->imageInfo = array('url'=> $imageURL,
 	    						    	  'type'=> "image/{$type}",
 	    						 		);
