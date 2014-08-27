@@ -709,16 +709,18 @@ div.acc-detail {
 	   display: none;
 	   position: absolute;
 	   z-index: 20;
-	   bottom: 17px;
+	   bottom: 15px;
 	   left:20px;
 	   background: #ffe;
        width: auto;
 	   border-radius: 5px;
+	   font-size: 15px;
 	   .aright{
 	       padding-right: 5px;
 	   }
 	   td{
 	       white-space: nowrap;
+	       border: none !important;
 	   }
 	}
 }
