@@ -480,8 +480,10 @@ class fileman_Log extends core_Manager
         // Ако може да се генерира thumbnail
         if (img_Thumb::isAllowedForThumb($fh)) {
             
+            $imgInst = new img_Thumb($fh, $size, $size, 'fileman');
+            
             // Вземаме файла
-            $img = img_Thumb::getImg($fh, $size);
+            $img = $imgInst->createImg();
         } else {
             
             //Иконата на файла, в зависимост от разширението на файла
