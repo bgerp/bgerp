@@ -705,4 +705,17 @@ class img_Thumb
  
         return $newImg;
     }
+    
+    
+    /**
+     * Връща скалиран GD
+     */
+    public function getScaledGdRes()
+    {
+        $this->getSize();
+        $imageGd = $this->getGdRes();
+        $newImage = $this->scaleGdImg($imageGd, $this->scaledWidth, $this->scaledHeight);
+        
+        return $newImage;
+    }
 }
