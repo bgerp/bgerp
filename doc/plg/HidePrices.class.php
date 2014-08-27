@@ -104,12 +104,12 @@ class doc_plg_HidePrices extends core_Plugin
     	
     	if(count($data->rows)){
     		foreach ($data->rows as $row){
-	    		static::unsetPriceFields($row, $priceFields);
+	    		self::unsetPriceFields($row, $priceFields);
     		}
     	}
     	
     	if($data->row){
-    		static::unsetPriceFields($data->row, $priceFields);
+    		self::unsetPriceFields($data->row, $priceFields);
     	}
     	
         if(!$data) {

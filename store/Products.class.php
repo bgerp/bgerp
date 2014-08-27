@@ -86,7 +86,7 @@ class store_Products extends core_Manager
     /**
      * Работен кеш
      */
-    private static $cache = array();
+    protected static $cache = array();
     
     
     /**
@@ -251,7 +251,7 @@ class store_Products extends core_Manager
      * Синхронизиране на запис от счетоводството с модела, Вика се от крон-а
      * (@see acc_Balances::cron_Recalc)
      * 
-     * @param stdClass $all - масив идващ от баланса във вида:
+     * @param array $all - масив идващ от баланса във вида:
      * 				array('store_id|class_id|product_Id' => 'quantity')
      */
     public static function sync($all)
@@ -297,7 +297,7 @@ class store_Products extends core_Manager
     	}
     	
     	// Ъпдейт на к-та на продуктите, имащи запис но липсващи в счетоводството
-    	static::updateMissingProducts($date);
+    	self::updateMissingProducts($date);
     }
     
     

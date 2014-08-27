@@ -87,7 +87,6 @@ class store_plg_DocumentDetail extends core_Plugin
 			}
 	
 			$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
-			$contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
 	
 			if(empty($rec->id)){
 				$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId}";

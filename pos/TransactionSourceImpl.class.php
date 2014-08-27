@@ -82,12 +82,12 @@ class pos_TransactionSourceImpl
      * 
      * @param stdClass $rec    - записа
      * @param array $products  - продуктите
-     * @param doube $totalVat  - общото ддс
+     * @param double $totalVat  - общото ддс
      * @param stdClass $posRec - точката на продажба
      */
     protected function getTakingPart($rec, $products, &$totalVat, $posRec)
     {
-    	$entries = $tmpVat = array();
+    	$entries = array();
     	
     	foreach ($products as $product) {
     		
@@ -183,7 +183,7 @@ class pos_TransactionSourceImpl
      * 		Ct: 4532. Начислен ДДС за продажбите
      * 
      * @param stdClass $rec    - записа
-     * @param double $totalVat - начисленото ддс
+     * @param array $totalVat - начисленото ддс
      * @param stdClass $posRec - точката на продажба
      */
     protected function getVatPart($rec, $totalVat, $posRec)

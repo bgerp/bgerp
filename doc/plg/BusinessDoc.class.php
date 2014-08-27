@@ -71,7 +71,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         // Формата се инпутва
         $form->input();
         if ($form->isSubmitted()) {
-            if ($p = static::getReasonParams($form)) {
+            if ($p = self::getReasonParams($form)) {
                 $tpl = new Redirect(
                 
                 	// Редирект към създаването на документа в ясната папка
@@ -147,7 +147,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     	
     	// Подготовка на формата за избор на папка
     	$form = cls::get('core_Form');
-    	static::getFormFields($mvc, $form, $coversArr);
+    	self::getFormFields($mvc, $form, $coversArr);
     	
     	return $form;
     }
