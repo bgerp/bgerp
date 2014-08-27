@@ -293,7 +293,7 @@ class img_Thumb
                     $param = md5_file($this->source);
                     break;
                 case 'gdRes':
-                    $param = md5_file($this->getAsString($this->source));
+                    $param = md5($this->getAsString($this->source));
             }
 
             $this->hash = md5($param .  '|' . $this->sourceType  . '|' . $this->boxWidth . '|' .
