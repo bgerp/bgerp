@@ -27,9 +27,7 @@ class currency_Currencies extends core_Master {
      */
     var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper, acc_plg_Registry,
                      plg_Sorting, plg_State2';
-                     
-    //var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper,
-    //                 CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
+    
     
     /**
      * Шаблон за единичния изглед
@@ -136,7 +134,6 @@ class currency_Currencies extends core_Master {
         $this->FLD('code', 'varchar(3)', 'caption=Код,mandatory,width=60px');
         $this->FLD('lastUpdate', 'date', 'caption=Последно->обновяване, input=none');
         $this->FLD('lastRate', 'double', 'caption=Последно->курс, input=none');
-        //$this->FLD('groups', 'keylist(mvc=currency_CurrencyGroups, select=name)', 'caption=Групи');
         
         $this->setDbUnique('code');
     }
@@ -193,9 +190,12 @@ class currency_Currencies extends core_Master {
         }
     }
     
+    
+    /**
+     * Преди рендиране на детайлите
+     */
     function on_BeforeRenderDetails($mvc, $res, &$data)
     {
-    	
     	return FALSE;
     }
     
