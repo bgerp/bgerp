@@ -101,12 +101,10 @@ class bgerp_plg_Blank extends core_Plugin
             $companyLogo = core_App::getFullPath($companyLogo);
         }
         
-        // Създаваме thumbnail с определени размери
-        $thumb = new img_Thumb($companyLogo, 750, 87, $sourceType, 'companyLog');
+        $isAbsolute = (boolean)Mode::is('text', 'xhtml');
         
-        if (Mode::is('text', 'xhtml')) {
-            $thumb->isAbsolute = TRUE;
-        }
+        // Създаваме thumbnail с определени размери
+        $thumb = new img_Thumb(array($companyLogo, 750, 87, $sourceType, 'isAbsolute' => TRUE, 'mode' => 'large-no-change', 'verbalName' => 'companyLog'));
         
         $companyLogoPath = $thumb->getUrl();
         
