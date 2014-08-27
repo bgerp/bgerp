@@ -311,11 +311,8 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
             $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT;
         }
         
-        //Размера на thumbnail изображението
-        $size = array($thumbWidth, $thumbHeight);
-        
         // Атрибути на thumbnail изображението
-        $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '', 'style' => 'margin: 5px auto; display: block;');
+        $attr = array('style' => 'margin: 5px auto; display: block;');
         
         // Background' а на preview' то
         $bgImg = sbf('fileman/img/Preview_background.jpg');
@@ -323,8 +320,10 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         // Създаваме шаблон за preview на изображението
         $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
         
-        //Създаваме тумбнаил с параметрите
-        $thumbnailImg = img_Thumb::getImg($fRec->fileHnd, $size, $attr);
+        $imgInst = new img_Thumb(array($fRec->fileHnd, $thumbWidth, $thumbHeight, 'fileman', 'verbalName' => 'Preview'));
+        
+        // Вземаме файла
+        $thumbnailImg = $imgInst->createImg($attr);
         
         // Ако е обект и има съобщение за грешка
         if (!$thumbnailImg) {
