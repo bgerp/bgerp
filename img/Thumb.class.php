@@ -28,6 +28,14 @@ defIfNot('IMG_THUMB_PATH',  EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '
  */
 class img_Thumb
 {
+    
+    
+    /**
+     * Масив с позволените разширения за генериране на thumbnail
+     */
+    protected static $allowedExtArr = array('jpg' => 'jpg', 'jpeg' => 'jpeg', 'png' => 'png', 'gif' => 'gif', 'bmp' => 'bmp', 'ico' => 'ico');
+    
+    
     /**
      * Сол за генериране на ключ за криптиране
      */
@@ -717,5 +725,29 @@ class img_Thumb
         $newImage = $this->scaleGdImg($imageGd, $this->scaledWidth, $this->scaledHeight);
         
         return $newImage;
+    }
+    
+    
+    /**
+     * Проверява дали от файла може да се генерира thumbnail
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     */
+    public static function isAllowedForThumb($fh)
+    {
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        // Вземаме името на файла
+        $fileName = $fRec->name;
+        
+        // Вземаме разширението на файла
+        $ext = mb_strtolower(fileman_Files::getExt($fileName));
+        
+        // Вземаме масива с допустимите разширения за генериране на thumbnail
+        $imgArr = self::$allowedExtArr;
+        
+        // Ако е в масива
+        if ($imgArr[$ext]) return TRUE;
     }
 }
