@@ -124,8 +124,7 @@ class cms_Feeds extends core_Manager {
   				 $feed->setChannelElement('language', $rec->lg);
   				 $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
   				 if($rec->logo){
-  				 	$img = new img_Thumb($rec->logo, 120, 120, 'fileman');
-  				 	$img->isAbsolute = TRUE;
+  				 	$img = new img_Thumb(array($rec->logo, 120, 120, 'fileman', 'isAbsolute' => TRUE));
   				 	
   				 	$feed->setImage($rec->title, toUrl(array($this, 'get', $rec->id), 'absolute'), $img->getUrl());
   				 }
