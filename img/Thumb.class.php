@@ -35,116 +35,164 @@ class img_Thumb
 
 
     /**
-     * Максимална широчина на скалираното изображение
+     * @var int Широчина на контейнера за скалираното изображение
      */
-    var $maxWidth;
+    protected $boxWidth;
 
 
     /**
-     * Максимална височина на скалираното изображение
+     * @var int Височина на контейнера за скалираното скалираното изображение
      */
-    var $maxHeight;
+    protected $boxHeight;
  
 
     /**
-     * Изходното изображение
+     * @var string Изходното изображение
      */
-    var $source;
+    protected $source;
 
 
     /**
-     * Тип на данните за оригиналното изображение: url, path, fileman, string, gdRes
+     * @var string Тип на данните за оригиналното изображение: url, path, fileman, string, gdRes
      */
-    var $sourceType;
+    protected $sourceType;
 
 
     /**
-     * Графичен формат на умаленото изображение: png, jpg или gif
+     * @var resource Съдържание на картинката, като GD ресурс
      */
-    var $format;
-
-
-    /**
-     * Съдържание на картинката, като GD ресурс
-     */
-    var $gdRes;
+    protected $gdRes;
     
     
     /**
-     * Широчина на изходното изображение
+     * @var int Широчина на изходното изображение
      */
-    var $width;
+    protected $width;
 
 
     /**
-     * Височина на изходното изображение
+     * @var int Височина на изходното изображение
      */
-    var $height;
+    protected $height;
 
 
     /**
-     * Съдържание на картинката, като стринг
+     * @var string Съдържание на картинката, като стринг
      */
-    var $imgAsString;
+    protected $imgAsString;
 
 
     /**
-     * Вербално име на умалената картинка
+     * var @string Вербално име на умалената картинка
      */
-    var $verbalName;
+    protected $verbalName;
+    
+    
+    /**
+     * @var string Графичен формат на резултатното изображение: png, jpg или gif
+     */
+    protected $format; 
+    
+    
+    /**
+     * @var int макс. секунди изчакване при вземане от URL
+     */
+    protected $timeout; 
+    
+    
+    /**
+     * @var string 
+     * 
+     * small-no-change  изображениео трябва да се вмести в boxWidth x boxHeight. Ако е по-малко да не се увеличава
+     * small-fit        изображениео трябва да се вмести в boxWidth x boxHeight, като поне едната му страна трябва да прилепне
+     * large-no-change  изображениео трябва да покрие boxWidth x boxHeight. Ако и двете му страни са по-големи, да не се променя
+     * large-fit        изображениео трябва да покрие boxWidth x boxHeight. Поне една от страните му да прилепне на box
+     */
+    protected $mode; 
+    
+    
+    /**
+     * @var int колко секунди да е жив кешът за това изображение
+     */
+    protected $expirationTime; 
+
+    
+    /**
+     * @var boolean дали генерираното URL да е абсолютно
+     */
+    protected $isAbsolute;
+
+    
+    /**
+     * var int (0 - 100) колко процента да е качеството на jpeg изображенията
+     */
+    protected $quality;
+
+    
+    /**
+     * var string на коя страна е възможно да се завърти изображението ('left' или 'right')
+     */
+    protected $possibleRotation;
     
     
     /**
      * Широчина на скалираното изображение
      */
-    var $scaledWidth;
+    protected $scaledWidth;
 
 
     /**
      * Височина на скалираното изображение
      */
-    var $scaledHeight;
+    protected $scaledHeight;
+    
+    
+    /**
+     * @var string Пътят във файловата система, където да бъде записано изображението
+     */
+    protected $thumbPath;
     
 
     /**
      * Какви параметри има този клас
      */
-    static $argumentList = 'source, maxWidth, maxHeight, sourceType, verbalName, format, timeout, allowEnlarge, expirationTime, isAbsolute, quality, allowRotateToSide';
+    static $argumentList = 'source, boxWidth, boxHeight, sourceType, verbalName, format, timeout, mode, expirationTime, isAbsolute, quality, possibleRotation, thumbPath';
 
 
     /**
      * Конструктор, който създава обект от изображение
      */
     function __construct(   $source, 
-                            $maxWidth = NULL, 
-                            $maxHeight = NULL, 
+                            $boxWidth = NULL, 
+                            $boxHeight = NULL, 
                             $sourceType = 'fileman', 
                             $verbalName = NULL,  
                             $format = NULL, 
                             $timeout = 3, 
-                            $allowEnlarge = FALSE, 
+                            $mode = 'small-no-change', 
                             $expirationTime = NULL,
                             $isAbsolute = NULL,
-                            $quality = NULL,
-                            $allowRotateToSide = NULL)
+                            $quality = 95,
+                            $possibleRotation = NULL,
+                            $thumbPath = NULL)
     {
-        
-        if(is_array($source)) {
-            foreach($source as $name => $value) {
-                $this->{$name} = $value;
-            }
-        } else {
-            $args = func_get_args();
-            foreach(arr::make(self::$argumentList) as $i => $argName) {
-                $this->{$argName} = $args[$i];
-            }
-        }
-        
-        setIfNot($this->quality, 95);
-        setIfNot($this->timeout, 3);
-        setIfNot($this->sourceType, $sourceType);
+        // Дефинираните променливи
+        $def = get_defined_vars();  
 
-        expect($this->maxWidth > 0 && $this->maxHeight > 0, $this); 
+        // Първия елемент дали е масив? Ако да - очакваме там да са аргументите
+        $isArraySource = is_array($source);
+
+        foreach(arr::make(self::$argumentList) as $i => $argName) {
+            if($isArraySource && isset($source[$i])) {
+                $this->{$argName} = $source[$i];
+            } elseif($isArraySource && isset($source[$argName])) {
+                $this->{$argName} = $source[$argName];
+            } else {  
+                $this->{$argName} = $def[$argName];
+            }
+        } 
+        
+        expect($this->boxWidth > 0 && $this->boxHeight > 0, $this); 
 
         // Времена за кеширане на умалени изображения
         if(!$this->expirationTime) {
@@ -240,8 +288,8 @@ class img_Thumb
                     $param = md5_file($this->getAsString($this->source));
             }
 
-            $this->hash = md5($param .  '|' . $this->sourceType  . '|' . $this->maxWidth . '|' .
-                $this->maxHeight . '|' . $this->allowEnlarge . '|' . $this->quality . '|' . $this->allowRotateToSide . EF_SALT);
+            $this->hash = md5($param .  '|' . $this->sourceType  . '|' . $this->boxWidth . '|' .
+                $this->boxHeight . '|' . $this->mode . '|' . $this->quality . '|' . $this->possibleRotation . EF_SALT);
         }
 
         return $this->hash;
@@ -266,37 +314,7 @@ class img_Thumb
         return $this->gdRes;
     }
 
-    function isGoodToRotate($maxWidth, $maxHeigt)
-    {
-        $this->setWidthAndHeight();
-        
-        $original = $this->scaleSize($this->width, $this->height, $maxWidth, $maxHeigt);
-        $rotated = $this->scaleSize($this->width, $this->height, $maxHeigt, $maxWidth);
-        
-        $originalRatio = abs(1-$original[2]);
-        $rotatedRatio = abs(1-$rotated[2]);
-        
-        if ($originalRatio && $originalRatio > $rotatedRatio) {
-            
-            return TRUE;
-        }
-    }
-    
-    
-    /**
-     * Промена височината и широчината
-     */
-    function rotate()
-    {
-        // Временна променлива
-        $maxWidth = $this->maxWidth;
-        
-        // Променяме височината и широчината
-        $this->maxWidth = $this->maxHeight;
-        $this->maxHeight = $maxWidth;
-    }
-    
-    
+
     /**
      * Задаваме височината и широчината
      */
@@ -328,8 +346,8 @@ class img_Thumb
     {
         $this->setWidthAndHeight();
 
-        if(!$this->scaledWidth || $this->scaledHeight || $this->ratio) {
-            list($this->scaledWidth, $this->scaledHeight, $this->ratio, $this->rotation) = self::scaleSize($this->width, $this->height, $this->maxWidth, $this->maxHeight, $this->allowEnlarge, (boolean)$this->allowRotateToSide);
+        if(!$this->scaledWidth || !$this->scaledHeight || !$this->ratio) {
+            list($this->scaledWidth, $this->scaledHeight, $this->ratio, $this->rotation) = self::scaleSize($this->width, $this->height, $this->boxWidth, $this->boxHeight, $this->mode, (boolean)$this->possibleRotation);
         }
 
         return array($this->width, $this->height);
@@ -375,7 +393,7 @@ class img_Thumb
                 $this->thumbName = fileman_Files::normalizeFileName($this->verbalName) . '-'; 
             }
             $this->thumbName .= substr($this->getHash(), 0, 8);
-            $this->thumbName .= '-' . $this->maxWidth;
+            $this->thumbName .= '-' . $this->boxWidth;
             $this->thumbName .= '.' . $this->getThumbFormat();
         }
 
@@ -397,7 +415,7 @@ class img_Thumb
     
     
     /**
-     * Форсира свалянето на файла
+     * Форсира свалянето на скалираното изображение
      */
     function forceDownload()
     {
@@ -434,7 +452,7 @@ class img_Thumb
     /**
      * Връща URL до умалената картинка
      */
-    function getThumbUrl()
+    protected function getThumbUrl()
     {
         if(!$this->thumbUrl) {
             $this->thumbUrl = sbf(IMG_THUMB_DIR . "/" . $this->getThumbName(), '', $this->isAbsolute);
@@ -447,7 +465,7 @@ class img_Thumb
     /**
      * Връща ключа за криптиране на отложение връзки
      */
-    static function getCryptKey()
+    protected static function getCryptKey()
     {
         $key = sha1(EF_SALTH . self::KEY_SALTH);
     }
@@ -457,7 +475,7 @@ class img_Thumb
      * Връща УРЛ към  картинката, което е с отложено изпълнение
      * Картинката, ако липсва ще се генерира, когато URL-то се покаже
      */
-    function getDeferredUrl()
+    protected function getDeferredUrl()
     {
         foreach(arr::make(self::$argumentList) as $i => $argName) {
             $state[$argName] = $this->{$argName};
@@ -482,7 +500,7 @@ class img_Thumb
      *
      * $return string 
      */
-    function getUrl($mode = 'auto')
+    public function getUrl($mode = 'auto')
     {
         $path = $this->getThumbPath();
         
@@ -505,31 +523,12 @@ class img_Thumb
 
         return $url;
     }
-    
-    
-    /**
-     * В зависимото от страната за ротиране връща ъгъла
-     * 
-     * @return integer - Ъгъл на завъртане
-     */
-    function getAngle()
-    {
-        if ($this->allowRotateToSide == 'left') {
-            $angle = 90;
-        } elseif ($this->allowRotateToSide == 'right') {
-            $angle = 270;
-        } else {
-            $angle = 0;
-        }
-        
-        return $angle;
-    }
-    
-    
+
+
     /**
      * създава и записва thumb изображението
      */
-    function saveThumb()
+    protected function saveThumb()
     {
         if($gdRes = $this->getGdRes()) {
             
@@ -545,7 +544,7 @@ class img_Thumb
                     
                     $white = imagecolorallocatealpha($newGdRes, 255, 255, 255, 127);
                     
-                    $angle = $this->getAngle();
+                    $angle = $this->possibleRotation == 'left' ? : 90 : 270;
                     
                     $newGdRes = imagerotate($newGdRes, $angle, $white);
                 } else {
@@ -577,9 +576,13 @@ class img_Thumb
 
 
     /**
-     * Връща умаленото изображение, като стринг
+     * Връща умаленото изображение, като html <img> таг 
+     * 
+     * @param attr array Допълнителни атрибути за html тага
+     * 
+     * @return string
      */
-    function createImg($attr = array())
+    public function createImg($attr = array())
     {
         setIfNot($attr['src'], $this->getUrl());
         
@@ -603,33 +606,47 @@ class img_Thumb
      *
      * @param int   $width      Широчина на изходното изображение
      * @param int   $height     Височина на изходното изображение
-     * @param int   $maxWidth   Максимална широчина
-     * @param int   $maxHeight  Максимална широчина
-     * @param bool  $allowEnlarge Трябва ли да се увеличава входния правоъгълник?
+     * @param int   $boxWidth   Максимална широчина
+     * @param int   $boxHeight  Максимална широчина
+     * @param bool  $mode       Увеличаване или намаляване?
      * @param bool  $allowRotate Трябва ли да се ротира
      *
      * @return array            ($newWidth, $newHeight, $ratio)
      */
-    public static function scaleSize($width, $height, $maxWidth, $maxHeight, $allowEnlarge = FALSE, $allowRotate = FALSE)
+    public static function scaleSize($width, $height, $boxWidth, $boxHeight, $mode = 'small-no-change', $allowRotate = FALSE)
     {
         if($width == 0 || $height == 0) {
 
-            return array($maxWidth, $maxHeight, 1);
+            return array($boxWidth, $boxHeight, 1);
         }
 
-        $wRatio = $maxWidth / $width;
-        $hRatio = $maxHeight / $height;
-
-        if($allowEnlarge) {
-            $ratio  = min($wRatio, $hRatio);
-        } else {
-            $ratio  = min($wRatio, $hRatio, 1);
+        $wRatio = $boxWidth / $width;
+        $hRatio = $boxHeight / $height;
+        
+        switch($mode) {
+            case 'small-fit':
+                $ratio  = min($wRatio, $hRatio);
+                break;
+            case 'small-no-change':
+                $ratio  = min($wRatio, $hRatio, 1);
+                break;
+            case 'large-fit':
+                $ratio  = max($wRatio, $hRatio);
+                break;
+            case 'large-no-change':
+                $ratio  = max($wRatio, $hRatio, 1);
+                break;
+            default:
+                expect(FALSE);
         }
 
         if($allowRotate) {
-            list($rW, $rH, $rR) = self::scaleSize($height, $width, $maxWidth, $maxHeight, $allowEnlarge);
-            
-            if($rR > $ratio) {
+            list($rW, $rH, $rR) = self::scaleSize($height, $width, $boxWidth, $boxHeight, $mode);
+            expect($ratio);
+            $rK = ($rR <1) ? 1 / $rR : $rR;
+            $nK = ($ratio <1) ? 1 / $ratio : $ratio;
+
+            if($rK < $nK) {
                 $ratio = $rR;
                 $tempWidth = $width;
                 $width = $height;
@@ -640,7 +657,7 @@ class img_Thumb
         $newHeight = ceil($ratio * $height);
         $newWidth = ceil($ratio * $width);
 
-        return array($newWidth, $newHeight, $ratio, $rotate);
+        return array($newWidth, $newHeight, $ratio, $rotate, $rK, $nK);
     }
 
 
@@ -653,7 +670,7 @@ class img_Thumb
      *
      * @return  GD resource                 Резултатно изображение
      */
-    static function scaleGdImg($im, $dstWidth, $dstHeight, $format=NULL)
+    public static function scaleGdImg($im, $dstWidth, $dstHeight, $format=NULL)
     {
         $width  = imagesx($im);
         $height = imagesy($im);
