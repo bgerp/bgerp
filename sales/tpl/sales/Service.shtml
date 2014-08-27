@@ -212,7 +212,7 @@
                                     </tr>
                                     <tr>
                                         <td></td>
-                                        <td class='nowrap'><span class="sign_names">[#username#]</span></td>
+                                        <td class='nowrap'><span class="sign_names">/ [#username#] /</span></td>
                                     </tr>
                                 </table>
                             </td>

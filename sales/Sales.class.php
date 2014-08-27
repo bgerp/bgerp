@@ -600,6 +600,8 @@ class sales_Sales extends core_Master
     	}
 	    
 	    if($fields['-single']){
+	    	$row->username = core_Users::getVerbal($rec->createdBy, 'names');
+	    	
 	    	$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
 	    	
 		    $mvc->prepareHeaderInfo($row, $rec);

@@ -498,7 +498,8 @@ class purchase_Purchases extends core_Master
     	}
 	    
 	    if($fields['-single']){
-		    $row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
+	    	$row->username = core_Users::getVerbal($rec->createdBy, 'names');
+	    	$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
 		    
 	    	$mvc->prepareHeaderInfo($row, $rec);
 	    	
