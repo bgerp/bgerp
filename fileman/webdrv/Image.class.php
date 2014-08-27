@@ -324,7 +324,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
         
         //Създаваме тумбнаил с параметрите
-        $thumbnailImg = thumbnail_Thumbnail::getImg($fRec->fileHnd, $size, $attr);
+        $thumbnailImg = img_Thumb::getImg($fRec->fileHnd, $size, $attr);
         
         // Ако е обект и има съобщение за грешка
         if (!$thumbnailImg) {
