@@ -104,7 +104,7 @@ class bgerp_plg_Blank extends core_Plugin
         $isAbsolute = (boolean)Mode::is('text', 'xhtml');
         
         // Създаваме thumbnail с определени размери
-        $thumb = new img_Thumb(array($companyLogo, 750, 87, $sourceType, 'isAbsolute' => TRUE, 'mode' => 'small-no-change', 'verbalName' => 'companyLog'));
+        $thumb = new img_Thumb(array($companyLogo, 750, 87, $sourceType, 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => 'companyLog'));
         
         $companyLogoPath = $thumb->getUrl();
         
