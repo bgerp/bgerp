@@ -269,13 +269,14 @@ class pos_Favourites extends core_Manager {
 	{
     	$blockTpl = $tpl->getBlock('ITEM');
 		
-		$attr = array('isAbsolute' => FALSE, 'qt' => '');
-        $size = array(80, 'max' => TRUE);
     	foreach($products as $row) {
     		$row->url = toUrl(array('pos_Receipts', 'addProduct'), 'local');
     		if($row->image){
-    			$imageUrl = thumbnail_Thumbnail::getLink($row->image, $size, $attr);
-    			$row->image = ht::createElement('img', array('src' => $imageUrl, 'width'=>'90px', 'height'=>'90px'));
+    		    
+    	        $img = new img_Thumb(array($row->image, 80, 80, 'fileman', 'isAbsolute' => FALSE, 'mode' => 'large-no-change'));
+    	        $imageURL = $img->getUrl('forced');
+    		    
+    			$row->image = ht::createElement('img', array('src' => $imageURL, 'width'=>'90px', 'height'=>'90px'));
     		}
     			
     		$rowTpl = clone($blockTpl);
