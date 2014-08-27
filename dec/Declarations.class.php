@@ -510,7 +510,8 @@ class dec_Declarations extends core_Master
     	$originId = Request::get('originId');
     	if(empty($originId)) return FALSE;
     	
-    	if(sales_Invoices::fetch("#threadId = {$threadId} AND #state = 'active'")){
+    	// Може да се добави само възоснова на фактура от същия тред
+    	if(sales_Invoices::fetch("#containerId = {$originId} AND #threadId = {$threadId} AND #state = 'active' AND #type = 'invoice'")){
     		return TRUE;
     	}
     	
