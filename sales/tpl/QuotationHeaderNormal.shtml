@@ -80,7 +80,18 @@
         [#others#]
         <!--ET_END others-->
     </ol>
-    <p id='quote-username'><b>|ПОДПИС и ПЕЧАТ|*:</b> <span id='sign-place'></span><span  class='sign-user'>/ &nbsp;<b>[#username#]</b>&nbsp; /</span></p>
+    
+    <table class="signature-table" >
+        <tr>
+            <td>|Съставил|*: </td>
+            <td style='padding-left: 5px; font-family: Comic Sans, cursive; font-style: italic;'> [#username#]</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td class="centered">/ търговец /</td>
+        </tr>
+    </table>
+    
     <div class='details'>
         <!--ET_BEGIN DETAILS-->
         [#DETAILS#]
