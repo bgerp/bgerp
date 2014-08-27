@@ -159,7 +159,7 @@ class acc_HistoryReport extends core_Manager
      */
     public function act_History()
     {
-    	$this->requireRightFor('history');
+    	acc_BalanceDetails::requireRightFor('history');
     	$this->currentTab = 'Хронология';
     	 
     	expect($accNum = Request::get('accNum', 'int'));
