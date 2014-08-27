@@ -404,7 +404,7 @@ class img_Thumb
     /**
      * Връща пътя до умалената картинка
      */
-    function getThumbPath()
+    public function getThumbPath()
     {
         if(!$this->thumbPath) {
             $this->thumbPath = IMG_THUMB_PATH . '/' . $this->getThumbName();
@@ -417,7 +417,7 @@ class img_Thumb
     /**
      * Форсира свалянето на скалираното изображение
      */
-    function forceDownload()
+    public function forceDownload()
     {
         // Записваме картинакта
         $this->saveThumb();
@@ -465,7 +465,7 @@ class img_Thumb
     /**
      * Връща ключа за криптиране на отложение връзки
      */
-    protected static function getCryptKey()
+    public static function getCryptKey()
     {
         $key = sha1(EF_SALTH . self::KEY_SALTH);
     }
