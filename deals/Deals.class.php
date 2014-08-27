@@ -652,7 +652,7 @@ class deals_Deals extends core_Master
     	$self = cls::get(__CLASS__);
     	$self->recTitleTpl = NULL;
     	 
-    	if ($rec = self::fetch($objectId)) {
+    	if (self::fetch($objectId)) {
     		$detailedName = "<span style='color:red'>" . tr('Нямате права') . "</span>";
     		if ($self->haveRightFor('single', $objectId)) {
     			$detailedName = ht::createLink(tr('Връзка'), array($self, 'single', $objectId));

@@ -241,7 +241,7 @@ class cash_Cases extends core_Master {
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	$total = $Double->toVerbal($total);
-    	if($rec->blAmount < 0){
+    	if($total < 0){
     		$total = "<span style='color:red'>{$total}</span>";
     	}
     	

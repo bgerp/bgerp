@@ -495,10 +495,9 @@ class techno_Specifications extends core_Manager {
     	$Driver = static::getDriver($objectId);
     	
     	if(isset($Driver)){
+    		$link = "<span style='color:red'>" . tr('Нямате права') . "</span>";
     		if($Driver->instance->haveRightFor('single', $Driver->that)) {
     			$link = ht::createLink(tr('Връзка') , array($Driver->className, 'Single', $Driver->that));
-    		} else {
-    			$link = "<span style='color:red'>" . tr('Нямате права') . "</span>";
     		}
     	} else {
     		$link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
