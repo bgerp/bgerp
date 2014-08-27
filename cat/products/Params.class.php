@@ -189,10 +189,8 @@ class cat_products_Params extends cat_products_Detail
      		// Ако има записана конкретна стойност за този продукт връщаме я
      		if($paramValue) return $paramValue;
      		
-     		// Ако няма гледаме имали дефолт за параметъра
-     		$default = cat_Params::fetchField($paramId, 'default');
-     		
-     		if(isset($default) && $default != '') return $default;
+     		// Връщаме дефолт стойността за параметъра
+     		return cat_Params::getDefault($paramId);
      	}
      	
      	return NULL;

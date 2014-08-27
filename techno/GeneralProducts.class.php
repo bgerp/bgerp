@@ -356,12 +356,8 @@ class techno_GeneralProducts extends core_Master {
     	
     	if($value) return $value;
     	
-    	// Ако няма гледаме имали дефолт за параметъра
-    	$default = cat_Params::fetchField($paramId, 'default');
-    	
-    	if(isset($default) && $default != '') return $default;
-    	
-    	return NULL;
+    	// Връщаме дефолт стойността за параметъра
+     	return cat_Params::getDefault($paramId);
     }
     
     
