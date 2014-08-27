@@ -124,7 +124,8 @@ class acc_HistoryReport extends core_Manager
     	
     	acc_BalanceDetails::requireRightFor('history', $data->rec);
     	
-    	$balanceRec = $this->getBalanceBetween($from, $to);
+    	$balanceRec = $this->getBalanceBetween($filter->fromDate, $filter->toDate);
+    	
     	$data->balanceRec = $balanceRec;
     	$data->fromDate = $filter->fromDate;
     	$data->toDate = $filter->toDate;
