@@ -59,7 +59,6 @@ class deals_Setup extends core_ProtoSetup
     		'deals_ClosedDeals',
     		'deals_AdvanceReports',
     		'deals_AdvanceReportDetails',
-    		'migrate::removeOldInterface',
         );
 
         
@@ -99,19 +98,5 @@ class deals_Setup extends core_ProtoSetup
     	$html .= core_Roles::addOnce('dealsMaster', 'deals');
     	
     	return $html;
-    }
-
-    
-    /**
-     * Миграция за премахване на стария интерфейс
-     */
-    public function removeOldInterface()
-    {
-    	if($listRec = acc_Lists::fetchBySystemId('financialDeals')){
-    		if(!$listRec->regInterfaceId){
-    			$listRec->regInterfaceId = core_Interfaces::fetchField('#name = "deals_DealsAccRegIntf"');
-    			acc_Lists::save($listRec);
-    		}
-    	}
     }
 }
