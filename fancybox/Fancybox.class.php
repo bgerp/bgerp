@@ -44,14 +44,7 @@ class fancybox_Fancybox extends core_Manager {
             expect(FALSE, $thumbSize);
         }
 
-        $thumb = new img_Thumb($fh, $thumbWidth, $thumbHeight, 'fileman', $baseName);
-        
-        // Ако е абсолютен
-        if ($isAbsolute) {
-            
-            // Вдигаме флага
-            $thumb->isAbsolute = TRUE;
-        }
+        $thumb = new img_Thumb(array($fh, $thumbWidth, $thumbHeight, 'fileman', 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => $baseName));
         
         if($thumbSize[0] >= $maxSize[0] && $thumbSize[1] >= $maxSize[1]) {
   
@@ -74,16 +67,13 @@ class fancybox_Fancybox extends core_Manager {
             expect(FALSE, $maxSize);
         }
 
-        $bigImg = new img_Thumb($fh, $bigWidth, $bigHeight, 'fileman', $baseName);
+        $bigImg = new img_Thumb(array($fh, $bigWidth, $bigHeight, 'fileman', 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => $baseName));
         
         // Ако е абсолютен
         if ($isAbsolute) {
             
-            // Вдигаме флага
-            $bigImg->isAbsolute = TRUE;
-            
             // Вземаме деферед URL
-            $aAttr['href'] = $bigImg->getDeferredUrl();
+            $aAttr['href'] = $bigImg->getUrl('deferred');
         } else {
             
             // Вземаме URL към sbf директорията
