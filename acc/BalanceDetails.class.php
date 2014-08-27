@@ -543,9 +543,6 @@ class acc_BalanceDetails extends core_Detail
             	}
 		    	$tpl->push(('acc/js/balance.js'), 'JS');
 		    	jquery_Jquery::run($tpl, "chosenrefresh();");
-    	
-		    	$tpl->push(('acc/js/Items.js'), 'JS');
-		    	jquery_Jquery::run($tpl, "itemActions();");
 		    	
                 $tpl->append($data->groupingForm->renderHtml(), 'ListToolbar');
             }
