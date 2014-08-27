@@ -653,18 +653,16 @@ class deals_Deals extends core_Master
     	$self->recTitleTpl = NULL;
     	 
     	if ($rec = self::fetch($objectId)) {
-    		$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
-    		$detailedName = $rec->contragentName . " / {$createdOn} / " . $rec->dealName;
-    		$detailedName = $self->getFieldType('detailedName')->toVerbal($detailedName);
+    		$detailedName = "<span style='color:red'>" . tr('Нямате права') . "</span>";
     		if ($self->haveRightFor('single', $objectId)) {
-    			$detailedName = ht::createLinkRef($detailedName, array($self, 'single', $objectId));
+    			$detailedName = ht::createLink(tr('Връзка'), array($self, 'single', $objectId));
     		}
     		
     		$result = $detailedName;
     	} else {
     		$result = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
     	}
-    
+    	
     	return $result;
     }
     
