@@ -750,33 +750,4 @@ class img_Thumb
         // Ако е в масива
         if ($imgArr[$ext]) return TRUE;
     }
-    
-    
-    /**
-     * Връща елемент IMG с оказаната големина (max)
-     */
-    static function getImg($fh, $size, $attr = array())
-    {
-        if (is_array($size)) {
-            $width = $size[0] ? $size[0] : $size['width'];
-            $height = $size[1] ? $size[1] : $size['height'];
-        } else {
-            $width = $height = $size;
-        }
-        
-        $img = new img_Thumb(array($fh, $width, $height, 'fileman', 'isAbsolute' => $attr['isAbsolute'], 'mode' => 'small-no-change'));
-        $attr['src'] = $img->getUrl('forced');
-	            
-        if (!$attr['src']) return FALSE;
-        
-        if(!isset($attr['alt'])) {
-            $attr['alt'] = $attr['baseName'];
-        }
-        
-        unset($attr['baseName']);
-        unset($attr['isAbsolute']);
-        unset($attr['qt']);
-        
-        return ht::createElement('img', $attr);
-    }
 }
