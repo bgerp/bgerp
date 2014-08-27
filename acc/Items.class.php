@@ -203,8 +203,10 @@ class acc_Items extends core_Manager
         	$mvc->unique ++;
         	$unique = $mvc->unique;
         
-	        $tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $rec->id, 'unique' => $unique), 'local');
-	        $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-id' => $rec->id, 'data-url' => $tooltipUrl));
+        	$id = (is_object($rec)) ? $rec->id : $rec;
+	        $tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
+	        
+	        $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl));
 	        $arrow = "<span class='additionalInfo-holder'><div class='additionalInfo' id='info{$unique}'></div>{$arrow}</span>";
 	        $num .= "&nbsp;{$arrow}";
         }
