@@ -64,7 +64,7 @@ class core_FieldSet extends core_BaseClass
      * @param mixed $params
      * @param array $moreParams
      */
-    function FLD($name, $type, $params = '', $moreParams = array())
+    function FLD($name, $type, $params = array(), $moreParams = array())
     {
         $fieldType = core_Type::getByName($type);
         
@@ -87,7 +87,7 @@ class core_FieldSet extends core_BaseClass
      * @param mixed $params
      * @param array $moreParams
      */
-    function EXT($name, $externalClass, $params = '', $moreParams = array())
+    function EXT($name, $externalClass, $params = array(), $moreParams = array())
     {
         $mvc = cls::get($externalClass);
         $params = arr::combine($params, $moreParams);
@@ -128,7 +128,7 @@ class core_FieldSet extends core_BaseClass
      * @param mixed $params
      * @param array $moreParams
      */
-    function XPR($name, $type, $expr, $params = '', $moreParams = array())
+    function XPR($name, $type, $expr, $params = array(), $moreParams = array())
     {
         $fieldType = core_Type::getByName($type);
         $this->setField($name, arr::combine(array(
@@ -151,7 +151,7 @@ class core_FieldSet extends core_BaseClass
      * @param mixed $params
      * @param array $moreParams
      */
-    function FNC($name, $type, $params = '', $moreParams = array())
+    function FNC($name, $type, $params = array(), $moreParams = array())
     {
         $fieldType = core_Type::getByName($type);
         $this->setField($name, arr::combine(array(
