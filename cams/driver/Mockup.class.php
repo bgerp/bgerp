@@ -44,9 +44,6 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
         $img = file_get_contents(dirname(__FILE__) . '/' . $file);
         $img = imageCreatefromString($img);
         
-        // Преоразмеряваме изображението до предварително зададените размери
-        // $img = thumbnail_Thumbnail::resample($img, array($this->width, $this->height));
-        
         return $img;
     }
     
