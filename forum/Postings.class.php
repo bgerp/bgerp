@@ -593,7 +593,7 @@ class forum_Postings extends core_Detail {
 		// Ако можем да добавяме нов постинг в темата и тя е отключена
 		if($this->haveRightFor('add', $data->rec)) { 
 			$addUrl = array($this, 'Add', 'boardId' => $data->board->id , 'themeId' => $data->rec->id, 'ret_url' => TRUE );
-			$tpl->replace(ht::createBtn('Коментирай', $addUrl, NULL, NULL, 'id=btnAdd', 'ef_icon = img/16/star_2.png'), 'ADD_COMMENT');
+			$tpl->replace(ht::createBtn('Коментирай', $addUrl, NULL, NULL, 'class=btnComment', 'ef_icon = img/16/star_2.png'), 'ADD_COMMENT');
 		}
 		
 		$tpl = $this->renderTopicToolbar($data, $tpl);

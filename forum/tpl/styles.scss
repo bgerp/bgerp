@@ -62,13 +62,13 @@ table.topic-layout, table.topic-layout td, table.topic-layout th{
 	line-height: 24px;
 }
 
-#btnAdd{
+.btnComment{
 	float:left;
 	border-radius:3px !important;
 	border-left: 1px solid #999;
 }
 
-.narrow #btnAdd{
+.narrow .btnComment{
 	border-radius:5px !important;
 }
 
