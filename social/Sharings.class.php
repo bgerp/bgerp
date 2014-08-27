@@ -107,14 +107,9 @@ class social_Sharings extends core_Master
 			// Вземаме качената икона
 			if($socialNetwork->icon){
 				
-				$attr = array('baseName' => $socialNetwork->name, 'isAbsolute' => TRUE, 'qt' => '');
-            
-	            // Размера на thumbnail изображението
-	            $size = array('16', '16');
+	            $img = new img_Thumb(array($socialNetwork->icon, 16, 16, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change', 'verbalName' => $socialNetwork->title));
+	            $icon = $img->getUrl('forced');
 	            
-	            // Създаваме тумбнаил с параметрите
-	            $icon = thumbnail_Thumbnail::getLink($socialNetwork->icon, $size, $attr);
-					
 				// Ако тя липсва
 			} else {
 					
