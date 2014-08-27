@@ -487,7 +487,10 @@ class cams_Records extends core_Master
         // Преоразмеряваме големите картинки
         if(count($toThumb)) {
             foreach($toThumb as $src => $dest) {
-                $thumb = thumbnail_Thumbnail::makeThumbnail($src, array(280, 210));
+                
+                $img = new img_Thumb(array($src, 280, 210, 'path', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
+                $thumb = $img->getScaledGdRes();
+                
                 imagejpeg($thumb, $dest, 85);
             }
         }
