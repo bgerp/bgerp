@@ -168,9 +168,6 @@ class acc_Items extends core_Manager
         // Титла - хипервръзка
         $this->FNC('titleLink', 'html', 'column=none');
         
-        // Наименование 
-        $this->FNC('caption', 'html', 'column=none');
-        
         $this->setDbUnique('objectId,classId');
     }
     
@@ -182,20 +179,9 @@ class acc_Items extends core_Manager
      */
     static function on_CalcTitleLink($mvc, $rec)
     {
-    	
-    	
-        $title = $mvc->getVerbal($rec, 'title');
+    	$title = $mvc->getVerbal($rec, 'title');
         $num = $mvc->getVerbal($rec, 'num');
         $rec->titleLink = $title . "&nbsp;($num)";
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function on_CalcCaption($mvc, $rec)
-    {
-        $rec->caption = $mvc->getVerbal($rec, 'num') . '&nbsp;' . $mvc->getVerbal($rec, 'title');
     }
     
     
@@ -985,7 +971,7 @@ class acc_Items extends core_Manager
     	if ($rec->classId && cls::load($rec->classId, TRUE)) {
     		$AccRegister = cls::get($rec->classId);
     	
-    		// Ако го има итнерфейсния метод
+    		// Ако го има интерфейсния метод
     		if(method_exists($AccRegister, 'getLinkToObj')) {
     			$row->link = $AccRegister->getLinkToObj($rec->objectId);
     		} elseif(method_exists($AccRegister, 'act_Single')) {
