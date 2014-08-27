@@ -197,7 +197,7 @@ abstract class acc_ClosedDeals extends core_Master
      * в нишката ако го поддържа
      * @param mixed  $threadId - ид на нишката или core_ObjectReference
      * 							 към първия документ в нишката
-     * @return stdClass - бизнес информацията от документа
+     * @return bgerp_iface_DealAggregator - бизнес информацията от документа
      */
     public static function getDealInfo($threadId)
     {
@@ -468,8 +468,7 @@ abstract class acc_ClosedDeals extends core_Master
     {
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){
-    		
-	    	$origin = $mvc->getOrigin($rec);
+    		$origin = $mvc->getOrigin($rec);
     		if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
 	    		$originState = $origin->fetchField('state');
 	    		if($originState === 'closed'){

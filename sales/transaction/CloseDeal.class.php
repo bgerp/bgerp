@@ -28,6 +28,18 @@ class sales_transaction_CloseDeal
     
     
     /**
+     * Извлечен краткия баланс
+     */
+    private $shortBalance;
+    
+    
+    /**
+     * Дата
+     */
+    private $date;
+    
+    
+    /**
      * Финализиране на транзакцията, изпълнява се ако всичко е ок
      * 
      * @param int $id
@@ -75,7 +87,7 @@ class sales_transaction_CloseDeal
     		$result->entries = array_merge($result->entries, $closeEntries);
     	} else {
     		$dealInfo = $this->class->getDealInfo($rec->threadId);
-    		 
+    		
     		$this->blAmount = $this->shortBalance->getAmount('411');
     		
     		// Кеширане на перото на текущата година
@@ -286,8 +298,6 @@ class sales_transaction_CloseDeal
     {
     	$entries = array();
     	$balanceArr = $this->shortBalance->getShortBalance('701,706,703');
-    	
-    	$blAmountGoods = $this->shortBalance->getAmount('701,706,703');
     	
     	if(!count($balanceArr)) return $entries;
     	

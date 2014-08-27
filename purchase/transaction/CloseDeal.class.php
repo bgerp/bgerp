@@ -22,6 +22,18 @@ class purchase_transaction_CloseDeal
     
     
     /**
+     * Извлечен краткия баланс
+     */
+    private $shortBalance;
+    
+    
+    /**
+     * Дата
+     */
+    private $date;
+    
+    
+    /**
      * Финализиране на транзакцията, изпълнява се ако всичко е ок
      * 
      * @param int $id

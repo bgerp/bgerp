@@ -40,7 +40,7 @@ class acc_plg_Registry extends core_Plugin
         }
         
         // Могат да се избират номенклатури от формата само ако не е наследник на core_Master и има номенклатури за избор
-        if (!($mvc instanceof core_Master) && $suggestions = static::getSelectableLists($mvc)) {
+        if (!($mvc instanceof core_Master) && $suggestions = self::getSelectableLists($mvc)) {
             $data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name,maxColumns=1)', 'caption=Номенклатури->Избор,input,remember');
             $data->form->setSuggestions('lists', $suggestions);
     
