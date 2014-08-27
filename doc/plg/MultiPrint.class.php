@@ -89,7 +89,7 @@ class doc_plg_MultiPrint extends core_Plugin
 		    $mvc->invoke('AfterRenderPrintCopy', array($container, $i));
 
 		    // проверка дали можем да съберем 2 копия в една страница
-		    jquery_Jquery::run($tpl, 'checkForPrintBreak(500);');
+		    jquery_Jquery::run($tpl, 'checkForPrintBreak(580);');
 		    
 		    
 		    $tpl->append($container);
