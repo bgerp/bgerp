@@ -13,7 +13,7 @@
 	        <tbody>
 	            <tr>
 	                <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
-	                <td class="cellm cetered" rowspan="2" style='width:30%;'>
+	                <td class="cellm centered" rowspan="2" style='width:30%;'>
 	                    <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>|ОФЕРТА|* </b></div>
 	                    <div class='invInfo'>|Номер|*</div>
 	                    <div class="bigData">[#number#]</div>
