@@ -88,8 +88,8 @@ class avatar_Plugin extends core_Plugin
             if($userRec->avatar) {
                 $key = md5($userId . "@/@" . EF_SALT) . "_{$width}.png";
                 $attr['baseName'] = $key;
-	            $img = new img_Thumb(array($userRec->avatar, $width, round($width * 1.5), 'fileman', 'isAbsolute' => FALSE, 'mode' => 'small-no-change', 'verbalName' => $key));
-	            $imgUrl = $img->getUrl('forced');
+	            $imgInst = new img_Thumb(array($userRec->avatar, $width, round($width * 1.5), 'fileman', 'isAbsolute' => FALSE, 'mode' => 'small-no-change', 'verbalName' => $key));
+	            $imgUrl = $imgInst->getUrl('forced');
             } else {
                 $imgUrl = avatar_Gravatar::getUrl($userRec->email, $width);
             }
