@@ -846,14 +846,13 @@ class core_Html
             
             $class = $r = get_class($o);
 
-            if(strtolower($class) == 'stdclass') {
-                $res = get_object_vars($o);
-            } else {
+            $res = get_object_vars($o);
+
+            if(strtolower($class) != 'stdclass') {
                 do {
                     $reflection = new ReflectionClass($class);
                     foreach($reflection->getProperties(
                                             ReflectionProperty::IS_STATIC | 
-                                            ReflectionProperty::IS_PUBLIC | 
                                             ReflectionProperty::IS_PROTECTED | 
                                             ReflectionProperty::IS_PRIVATE) as $prop) {
                         $prop->setAccessible(TRUE);
