@@ -790,16 +790,20 @@ class acc_Items extends core_Manager
     	
     	$form = cls::get('core_Form');
     	$form->title = "Добавяне на пера към номенклатура|* '{$listTitle}'";
+    	
     	foreach ($options as $className){
     		$this->prepareInsertForm($form, $className, $listId);
     	}
     	$form->input();
     	
+    	$fields = $form->selectFields();
+    	
+    	// Ако няма налични пера редирект
+    	if(!count($fields)) return followRetUrl(NULL, tr('Няма налични пера за избор'));
+    	
     	if($form->isSubmitted()){
-    		
     		$areAdded = FALSE;
     		$fieldNames = '';
-    		$fields = $form->selectFields();
     		foreach ($fields as $name => $fld){
     			$fieldNames .= "$name,";
     			if($items = keylist::toArray($form->rec->{$name})){
