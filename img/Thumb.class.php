@@ -128,7 +128,7 @@ class img_Thumb
     /**
      * @var boolean дали генерираното URL да е абсолютно
      */
-    protected $isAbsolute;
+    public $isAbsolute;
 
     
     /**
@@ -483,7 +483,7 @@ class img_Thumb
      * Връща УРЛ към  картинката, което е с отложено изпълнение
      * Картинката, ако липсва ще се генерира, когато URL-то се покаже
      */
-    protected function getDeferredUrl()
+    public function getDeferredUrl()
     {
         foreach(arr::make(self::$argumentList) as $i => $argName) {
             $state[$argName] = $this->{$argName};
