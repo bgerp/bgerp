@@ -109,9 +109,6 @@ defIfNot('EMAIL_OUTGOING_FOOTER_TEXT', "Сърдечни поздрави,\r
 [#name#]\r
 [#company#]\r
 [#position#]\r
-[#country#]\r
-[#pCodeAndCity#]\r
-[#street#]\r
 Тел.: [#tel#]\r
 Факс: [#fax#]\r
 [#email#]\r
@@ -125,9 +122,6 @@ defIfNot('EMAIL_OUTGOING_FOOTER_TEXT_EN', "Best regards,\r
 [#name#]\r
 [#company#]\r
 [#position#]\r
-[#country#]\r
-[#pCodeAndCity#]\r
-[#street#]\r
 Tel.: [#tel#]\r
 Fax: [#fax#]\r
 [#email#]\r
