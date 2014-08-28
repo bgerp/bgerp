@@ -49,7 +49,8 @@ class store_transaction_Receipt
         	if($rec->isReverse == 'yes'){
         		
         		// Ако СР е обратна, тя прави контировка на ЕН но с отрицателни стойностти
-        		$entries = store_transaction_ShipmentOrder::getReverseEntries($rec, $origin);
+        		$reverseSource = cls::getInterface('acc_TransactionSourceIntf', 'store_ShipmentOrders');
+        		$entries = $reverseSource->getReverseEntries($rec, $origin);
         	} else {
         		
         		// Ако СР е права, тя си прави дефолт стойностите
@@ -210,10 +211,9 @@ class store_transaction_Receipt
     /**
      * Връща обратна контировка на стандартната
      */
-    public static function getReverseEntries($rec, $origin)
+    public function getReverseEntries($rec, $origin)
     {
-    	$self = cls::get(get_called_class());
-    	$entries = $self->getDeliveryPart($rec, $origin, TRUE);
+    	$entries = $this->getDeliveryPart($rec, $origin, TRUE);
     	 
     	return $entries;
     }
