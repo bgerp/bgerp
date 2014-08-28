@@ -215,6 +215,8 @@ class core_Html
             // $select->append("</optgroup>", 'OPTIONS');
         }
 
+        jquery_Jquery::run($select, "getSelects();", TRUE);
+        
         return $select;
     }
 
