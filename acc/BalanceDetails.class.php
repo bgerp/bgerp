@@ -240,7 +240,7 @@ class acc_BalanceDetails extends core_Detail
         	$ent = $rec->{"ent{$i}Id"};
         	if(empty($ent)) continue;
         	
-        	$itemRec = acc_Items::fetchField($ent, 'classId,objectId');
+        	$itemRec = acc_Items::fetch($ent, 'classId,objectId');
         	
     		if($itemRec->classId){
     			$AccRegMan = cls::get($itemRec->classId);
