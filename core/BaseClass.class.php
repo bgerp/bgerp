@@ -57,7 +57,7 @@ class core_BaseClass
     /**
      * 
      */
-    protected $params = array();
+    public $params = array();
     
     
     /**
