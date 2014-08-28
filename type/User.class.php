@@ -59,18 +59,18 @@ class type_User extends type_Key
             return;
         }
         
+        $this->options = array();
+        $part = $this->params['select'];
+        
         // Вариант 1: Потребителя няма права да вижда екипите
         // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
         if(!haveRole($this->params['rolesForTeams'])) {
             if(haveRole($this->params['roles'])) {
-                $user = core_Users::getCurrent();
-                $name = core_Users::getCurrent('names', TRUE);
-                $this->options = array($user => $name);
-            } else {
-                $this->options = array();
+                $userId = core_Users::getCurrent();
+                
+                $this->options[$userId]->title = core_Users::getCurrent($part, TRUE);
+                $this->options[$userId]->value = $userId;
             }
-            
-            return;
         } else {
             
             $uQuery = core_Users::getQuery();
@@ -106,8 +106,6 @@ class type_User extends type_Key
                 $uQueryCopy->likeKeylist('roles', "|{$t}|");
                 
                 $teamMembers = '';
-                
-                $part = $this->params['select'];
                 
                 while($uRec = $uQueryCopy->fetch()) {
                     $key = $t . '_' . $uRec->id;
@@ -174,6 +172,8 @@ class type_User extends type_Key
      */
     function toVerbal_($value)
     {
+        $exist = FALSE;
+        
         $this->prepareOptions();
         
         foreach($this->options as $key => $optObj) {
@@ -198,6 +198,8 @@ class type_User extends type_Key
      */
     function fitInDomain($key)
     {
+        $firstVal = NULL;
+        
         // Подготвяме опциите
         $this->prepareOptions();
         
