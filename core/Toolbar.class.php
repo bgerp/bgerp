@@ -29,7 +29,7 @@ class core_Toolbar extends core_BaseClass
      * 
      * @param string $title
      * @param mixed $url
-     * @param mixed $params
+     * @param string|array $params
      * @param array $moreParams
      */
     function addBtn($title, $url, $params = array(), $moreParams = array())
