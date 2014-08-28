@@ -283,8 +283,8 @@ class purchase_PurchasesDetails extends core_Detail
         $data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
         
-        $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
-        
+        // @TODO временно
+        $products = $ProductManager::getByProperty('canBuy');
         expect(count($products));
         
         if (empty($rec->id)) {
