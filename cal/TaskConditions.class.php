@@ -66,7 +66,7 @@ class cal_TaskConditions extends core_Detail
         $this->FLD('baseId', 'key(mvc=cal_Tasks,select=title)', 'caption=Базова задача,input=hidden,silent,column=none');
         
         // id на зависимата задачата
-        $this->FLD('dependId', 'key(mvc=cal_Tasks,select=title)', 'caption=Зависи от');
+        $this->FLD('dependId', 'key(mvc=cal_Tasks,select=title)', 'caption=Зависи от, mandatory');
        
         // Условие за активиране
         $this->FLD('activationCond', 'enum(onProgress=При прогрес, afterTime=След началото, beforeTime=Преди началото)', 'caption=Условия->Обстоятелство,silent, autoFilter');
@@ -137,7 +137,17 @@ class cal_TaskConditions extends core_Detail
 	        }
         	
         }
-        $data->form->setOptions('dependId', $taskArr);
+        
+        if (count($taskArr) >= 2) {
+        	$data->form->setOptions('dependId', $taskArr);
+        } else { 
+        	// ако няма зависими задачи, ще върнем на същото място
+        	$link = array('doc_Containers', 'list', 'threadId'=>$masterRec->threadId);
+        	// Добавяме съобщение в статуса
+            status_Messages::newStatus(tr("Липсват задачи, от които да зависи задачата"));
+        	
+        	return redirect($link);
+        }
     }
 
 
