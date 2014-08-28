@@ -1085,13 +1085,11 @@ class doc_Folders extends core_Master
         
         // Добавяме функционални полета
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени нишки->Известяване, input=input');
-        $form->FNC('shortLinks', 'enum(default=Автоматично, yes=Да, no=Не)', 'caption=Бързи връзки->Показване, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
         $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
         
         // Задаваме стойностите по подразбиране
 //        $form->setDefault('folOpenings', 'default');
-//        $form->setDefault('shortLinks', 'default');
 //        $form->setDefault('perPage', 'default');
 //        $form->setDefault('ordering', 'default');
         
@@ -1103,7 +1101,6 @@ class doc_Folders extends core_Master
         
         // Сетваме стойност по подразбиране
         $form->setParams('folOpenings', array($paramType => $defaultStr . '|Винаги'));
-        $form->setParams('shortLinks', array($paramType => $defaultStr . '|Не'));
         $form->setParams('perPage', array($paramType => $defaultStr . '20'));
         $form->setParams('ordering', array($paramType => $defaultStr . '|Първо отворените'));
     }
