@@ -270,9 +270,11 @@ class store_ReceiptDetails extends core_Detail
     
     		foreach ($productManagers as $manId => $manName) {
     			$productMan = cls::get($manId);
-    			$products = $productMan::getByProperty('canBuy');
+    			$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
+    			$products = $productMan::getByProperty($property);
     			$products2 = $productMan::getByProperty('canStore');
     			$products = array_intersect_key($products, $products2);
+    			
     			if(!count($products)){
     				$error = "error=Няма продаваеми {$productMan->title}";
     			}

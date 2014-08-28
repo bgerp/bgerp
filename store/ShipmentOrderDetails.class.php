@@ -372,7 +372,9 @@ class store_ShipmentOrderDetails extends core_Detail
     
     		foreach ($productManagers as $manId => $manName) {
     			$productMan = cls::get($manId);
-    			$products = $productMan::getByProperty('canSell');
+    			$property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
+    			
+    			$products = $productMan::getByProperty($property);
     			$products2 = $productMan::getByProperty('canStore');
     			$products = array_intersect_key($products, $products2);
     			if(!count($products)){

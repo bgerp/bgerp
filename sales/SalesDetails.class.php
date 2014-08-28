@@ -266,6 +266,7 @@ class sales_SalesDetails extends core_Detail
     {
     	if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){  
     		$data->ProductManager = cls::get($classId);
+    		
     		$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name', 'maxSuggestions' => 1000000000)));
     	}
     }
