@@ -1673,16 +1673,29 @@ class email_Outgoings extends core_Master
         // Зареждаме шаблона
         $tpl = new ET(core_Packs::getConfigValue($conf, 'EMAIL_OUTGOING_FOOTER_TEXT'));
         
+        // Променливи, нужни за определяне дали в реда е бил заместен плейсхолдер
+        $tplClone = clone $tpl;        
+        $tplWithPlaceholders = $tplClone->getContent(NULL, "CONTENT", FALSE, FALSE);
+        $tplWithPlaceholdersArr = explode("\n", $tplWithPlaceholders);
+        $tplWithoutPlaceholders = $tplClone->getContent(); 
+        $tplWithoutPlaceholdersArr = explode("\n", $tplWithoutPlaceholders);
+        
         // Заместваме плейсхолдерите
         $tpl->placeArray($footerData);
         
         $content = $tpl->getContent();
         
-        // Премахваме празните редове, в които няма никаква стойност
+        // Премахва празните редове, в които няма никаква стойност
+        // Премахва и редовете, в които е имало плейсхолдер, но не е бил заместен
         $contentArr = explode("\n", $content);
-        foreach ((array)$contentArr as $line) {
+        foreach ((array)$contentArr as $key => $line) {
+            
+            // Ако е празен ред
             if (!$line) continue;
             
+            // Ако е имало плейсхолдер, който е заместен и има друг стринг в реда, премхаваме целия ред
+            if (($tplWithPlaceholdersArr[$key] != $line) && ($tplWithoutPlaceholdersArr[$key] == $line)) continue;
+                
             $nContent .= ($nContent) ? "\n" . $line : $line;
         }
         
