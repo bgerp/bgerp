@@ -845,10 +845,11 @@ class core_Html
             return $res;
         }
 
+        $scopeArr = array();
 
         if (is_object($o)) {
 
-            $res = $scopeArr = array();
+            $res = array();
 
             $class = $r = get_class($o);
             
@@ -869,7 +870,7 @@ class core_Html
                         $prop->setAccessible(TRUE);
                         $name = $prop->getName();
 
-                        if(!$usedNames[$name]) {
+                        if(!$scopeArr[$name]) {
                             $res[$name] = $prop->getValue($o);
                             if($prop->isStatic()) {
                                 $scopeArr[$name] = 'static';
