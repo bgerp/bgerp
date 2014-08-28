@@ -68,7 +68,7 @@ class type_User extends type_Key
             if(haveRole($this->params['roles'])) {
                 $userId = core_Users::getCurrent();
                 
-                $this->options[$userId]->title = core_Users::getCurrent($part, TRUE);
+                $this->options[$userId]->title = core_Users::getCurrent($part);
                 $this->options[$userId]->value = $userId;
             }
         } else {

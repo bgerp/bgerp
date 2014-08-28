@@ -67,7 +67,7 @@ class type_Users extends type_Keylist
             if(haveRole($this->params['roles'])) {
                 $key = static::getUserWithFirstTeam(core_Users::getCurrent());
                 $this->options[$key] = new stdClass();
-                $this->options[$key]->title = core_Users::getCurrent('names', TRUE);
+                $this->options[$key]->title = core_Users::getCurrent('names');
                 $this->options[$key]->keylist = '|' . core_Users::getCurrent() . '|';
             } else {
                 $this->options = array();
