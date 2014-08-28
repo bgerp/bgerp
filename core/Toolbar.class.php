@@ -26,6 +26,11 @@ class core_Toolbar extends core_BaseClass
     
     /**
      * Добавя бутон, който прехвърля към хипервръзка
+     * 
+     * @param string $title
+     * @param mixed $url
+     * @param string|array $params
+     * @param array $moreParams
      */
     function addBtn($title, $url, $params = array(), $moreParams = array())
     {

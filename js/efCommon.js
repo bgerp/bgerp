@@ -19,6 +19,43 @@ function runOnLoad(functionName)
 	} 
 }
 
+runOnLoad(showTooltip);
+
+
+function showTooltip() 
+{
+	if(!($('.tooltip-arrow-link').length)) return;
+	
+	// ако има тултипи
+	var element;
+	$('body').on('click', function(e){
+		if($(e.target).is(".tooltip-arrow-link")){
+			var url = $(e.target).attr("data-url");
+			if(!url){
+				return;
+			}
+			resObj = new Object();
+			resObj['url'] = url;
+			getEfae().process(resObj);
+			
+			// затваряме предишния тултип, ако има такъв
+			if(typeof element != 'undefined'){
+				$(element).hide();
+			}
+			
+			// намираме този, който ще покажем сега
+			element = $(e.target).parent().find('.additionalInfo');
+			$(element).css('display', 'block');
+		}
+		else{
+			// при кликане в бодито затвавяме отворения тултип, ако има такъв
+			if(typeof element != 'undefined'){
+				$(element).hide();
+			}
+		}
+	});
+};
+
 
 // Функция за лесно селектиране на елементи
 function get$()

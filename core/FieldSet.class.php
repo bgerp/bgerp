@@ -58,6 +58,11 @@ class core_FieldSet extends core_BaseClass
     
     /**
      * Добавя поле в описанието на таблицата
+     * 
+     * @param string $name
+     * @param string $type
+     * @param string|array $params
+     * @param array $moreParams
      */
     function FLD($name, $type, $params = array(), $moreParams = array())
     {
@@ -76,6 +81,11 @@ class core_FieldSet extends core_BaseClass
     
     /**
      * Добавя външно поле от друг MVC, което може да участва в релационни заявки
+     * 
+     * @param string $name
+     * @param string $externalClass
+     * @param string|array $params
+     * @param array $moreParams
      */
     function EXT($name, $externalClass, $params = array(), $moreParams = array())
     {
@@ -111,6 +121,12 @@ class core_FieldSet extends core_BaseClass
     
     /**
      * Добавя външно поле- mySQL израз, което може да участва в релационни заявки
+     * 
+     * @param string $name
+     * @param string $type
+     * @param string $expr
+     * @param string|array $params
+     * @param array $moreParams
      */
     function XPR($name, $type, $expr, $params = array(), $moreParams = array())
     {
@@ -129,6 +145,11 @@ class core_FieldSet extends core_BaseClass
      * За всяко едно такова поле в MVC класа трябва да се дефинират две функции:
      * ->readName($rec);
      * ->writeName(&$rec, $value);
+     * 
+     * @param string $name
+     * @param string $type
+     * @param string|array $params
+     * @param array $moreParams
      */
     function FNC($name, $type, $params = array(), $moreParams = array())
     {

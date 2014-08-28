@@ -314,6 +314,8 @@ class core_Array
      */
     static function fromArray($arr)
     {
+        $resStr = '';
+        
         // Обхождаме масива
         foreach ((array)$arr as $name => $verbalName) {
             
