@@ -557,10 +557,13 @@ legend img {
 
 select {
 	margin-left: 0;
+	background-color: white;
+    color: #000;
 }
 
 select option {
-	background-color: inherit;
+	background-color: white;
+	color: #000;
 }
 
 input {
@@ -1589,7 +1592,7 @@ div.tab-control .tab-title {
 	font-weight: bold;
 }
 
-select.tab-control {
+select.tab-control, select.tab-control option{
     @include rounded(top, left, 3px);
     @include rounded(top, right, 3px);
     background-color: rgb(221, 221, 221);

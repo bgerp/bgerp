@@ -56,6 +56,41 @@ function showTooltip()
 	});
 };
 
+function getSelects()
+{
+	$('select').each(function( index ) {
+		setSelectColors(this);
+	});
+	
+	$(document).on('change', 'select', function() {
+		setSelectColors(this);
+	});
+}
+
+
+function setSelectColors(el)
+{
+	if(!$(el).find('option') || $(el).hasClass('combo') || $(el).hasClass('tab-control') || $(el).hasClass('readonly') ){
+		return;
+	} 
+	var selOption;
+	if($(el).find(':selected')){
+		selOption = $(el).find(':selected');
+	} else {
+		selOption = $(el).find('option').first();
+	}
+	$(el).append('<option value=test1357924680></option>');
+	$(el).val('test1357924680');
+	setTimeout(function(){
+		var bgColor = $(selOption).css("background-color");
+		var color = $(selOption).css("color");
+		$(el).val($(selOption).val());
+		$(el).find('option[value="test1357924680"]').remove();
+		$(el).css("background-color", bgColor);
+		$(el).css("color", color);
+	}, 0);	
+}
+
 
 // Функция за лесно селектиране на елементи
 function get$()

@@ -121,6 +121,7 @@ class page_Html extends core_ET {
         static::idleTimerJs($tpl);
         
         $tpl->append("runOnLoad(scrollLongListTable);", "JQRUN");
+        $tpl->append("runOnLoad(getSelects);", "JQRUN");
         
         return $tpl;
     }
