@@ -442,6 +442,7 @@ class bank_SpendingDocuments extends core_Master
 	public static function canAddToThread($threadId)
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	$docState = $firstDoc->fetchField('state');
     	
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
     		
