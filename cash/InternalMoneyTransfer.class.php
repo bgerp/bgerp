@@ -86,7 +86,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Vpt";
+    var $abbr = "Cvt";
     
     
     /**

@@ -23,7 +23,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     /**
      * Абревиатура
      */
-    public $abbr = 'Cds';
+    public $abbr = 'Scd';
     
     
     /**

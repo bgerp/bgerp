@@ -74,7 +74,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Vpt";
+    var $abbr = "Bvt";
     
     
     /**

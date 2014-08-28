@@ -81,7 +81,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Sv";
+    var $abbr = "Ced";
     
     
     /**
