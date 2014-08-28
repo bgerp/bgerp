@@ -453,6 +453,18 @@ class cal_Tasks extends core_Master
         
         if($data->rec->state == 'draft') {
         	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/task-option.png, row=2');
+        	
+        	// Проверка дали може да има бутон за зависимост между задачите
+	        $query = self::getQuery();
+        
+            $query->where("#folderId = '{$data->rec->folderId}'");
+            while($recTask = $query->fetch()) {
+            	 $taskArr[$recTask->id] = $recTask->id;
+            }
+            
+            if (count($taskArr) < 2) {
+            	$data->toolbar->removeBtn('Условие');
+            }
         }
         
         // ако имаме зададена продължителност
