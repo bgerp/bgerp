@@ -326,6 +326,7 @@ class core_Query extends core_FieldSet
     
     /**
      * Поставя условие поле да се съдържа в даден масив
+     * 
      * @param string $field - поле
      * @param mixed $values - масив или стринг от стойности
      * @param boolean $not - Дали да се съдържа или не в масива
@@ -344,7 +345,21 @@ class core_Query extends core_FieldSet
     
     
     /**
+     * Поставя условие полето да е между две стойностти
+     * 
+     * @param string $field - поле
+     * @param mixed $from - от
+     * @param mixed $to - до
+     */
+    public function between($field, $from, $to)
+    {
+    	$this->where(array("#{$field} BETWEEN '[#1#]' AND '[#2#]'", $from, $to));
+    }
+    
+    
+    /**
      * Поставя условие поле да не се съдържа в даден масив
+     * 
      * @param string $field - поле
      * @param mixed $values - масив или стринг от стойности
      */
