@@ -1548,10 +1548,8 @@ class doc_Threads extends core_Manager
         
         // Добавяме функционални полета
         $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Добавяне на документ->Известяване, input=input');
-        $form->FNC('shortLinks', 'enum(default=Автоматично, yes=Да, no=Не)', 'caption=Бързи връзки->Показване, input=input');
         
         // Задаваме стойностите по подразбиране
-//        $form->setDefault('shortLinks', 'default');
 //        $form->setDefault('notify', 'default');
         
         // Сетваме стринг за подразбиране
@@ -1562,7 +1560,6 @@ class doc_Threads extends core_Manager
         
         // Подсказки за позразбиране
         $form->setParams('notify', array($paramType => $defaultStr . '|Винаги'));
-        $form->setParams('shortLinks', array($paramType => $defaultStr . '|Не'));
     }
     
     
