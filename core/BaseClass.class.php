@@ -55,6 +55,12 @@ class core_BaseClass
     
     
     /**
+     * 
+     */
+    protected $params = array();
+    
+    
+    /**
      * Конструктор. Дава възможност за инициализация
      */
     function core_BaseClass($params = NULL)
