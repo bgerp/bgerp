@@ -265,7 +265,8 @@ class purchase_PurchasesDetails extends core_Detail
     {
     	if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){
     		$data->ProductManager = cls::get($classId);
-    		$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name', 'maxSuggestions' => 1000000000)));
+    		
+    		$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'maxSuggestions' => 1000000000)));
     	}
     }
     
@@ -277,21 +278,22 @@ class purchase_PurchasesDetails extends core_Detail
     {
         $rec       = &$data->form->rec;
         $masterRec = $data->masterRec;
+       	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
         
         $data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
         
-        $products = $mvc->Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+        $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+        
         expect(count($products));
         
         if (empty($rec->id)) {
         	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
-        	$products = array('' => ' ') + $products;
+        	$data->form->setOptions('productId', array('' => ' ') + $products);
         } else {
-        	$products = array($rec->productId => $products[$rec->productId]);
+        	$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
         }
         
-        $data->form->setOptions('productId', $products);
         $data->form->setSuggestions('discount', arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
               
         if (!empty($rec->packPrice)) {
@@ -417,16 +419,24 @@ class purchase_PurchasesDetails extends core_Detail
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-    	if (!empty ($data->toolbar->buttons ['btnAdd'])) {
-			$masterRec = $data->masterData->rec;
-			
-			if(!$mvc->Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, 1)){
-				$error = "error=Няма купуваеми артикули";
-			}
-			
-			$classId = cat_Products::getClassId();
-			$data->toolbar->addBtn('Артикул', array($mvc, 'add', 'requestId'=> $masterRec->id, 'classId' => $classId, 'ret_url' => TRUE), "id=btnAdd-{$classId},{$error},order=10", 'ef_icon = img/16/shopping.png');
-	        unset($data->toolbar->buttons['btnAdd']);
-	   }
+    	if (!empty($data->toolbar->buttons['btnAdd'])) {
+    		
+    		$productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
+    		$masterRec = $data->masterData->rec;
+    		foreach ($productManagers as $manId => $manName) {
+    			$productMan = cls::get($manId);
+    			$canBuy = $productMan::getByProperty('canBuy', 1);
+    			
+    			if(!count($canBuy)){
+    				$error = "error=Няма купуваеми {$productMan->title}";
+    			}
+    	
+    			$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', 'requestId'=> $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
+    					"id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+    			unset($error);
+    		}
+    	
+    		unset($data->toolbar->buttons['btnAdd']);
+    	}
     }
 }
