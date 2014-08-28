@@ -3,18 +3,18 @@
 
 
 /**
- * Клас 'img_M' - Контролер за умалени изображения
+ * Клас 'thumb_M' - Контролер за умалени изображения
  *
  *
  * @category  vendors
- * @package   img
+ * @package   thumb
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  */
-class img_M extends core_Mvc
+class thumb_M extends core_Mvc
 {
     function act_R()
     {
@@ -23,9 +23,9 @@ class img_M extends core_Mvc
         // Премахва фиктивното файлово разширение
         list($id, $ext) = explode('.', $id);
 
-        $arguments = core_Crypt::decodeVar($id, img_Thumb::getCryptKey());
+        $arguments = core_Crypt::decodeVar($id, thumb_Img::getCryptKey());
 
-        $thumb = new img_Thumb($arguments);
+        $thumb = new thumb_Img($arguments);
         
         if( file_exists($file = $thumb->getThumbPath()) ) {
             $ext = fileman_Files::getExt($file);

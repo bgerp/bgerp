@@ -4,18 +4,18 @@
 /**
  * Име на под-директория  в sbg/EF_APP_NAME, където се намират умалените изображения
  */
-defIfNot('IMG_THUMB_DIR', '_tb_');
+defIfNot('THUMB_IMG_DIR', '_tb_');
 
 
 /**
  * Пълен път до директорията, където се съхраняват умалените картинки
  */
-defIfNot('IMG_THUMB_PATH',  EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . IMG_THUMB_DIR);
+defIfNot('THUMB_IMG_PATH',  EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . THUMB_IMG_DIR);
 
 
 
 /**
- * Клас 'img_Thumb' - За работа с умалени изображения
+ * Клас 'thumb_Img' - За работа с умалени изображения
  *
  *
  * @category  vendors
@@ -26,7 +26,7 @@ defIfNot('IMG_THUMB_PATH',  EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '
  * @since     v 0.1
  * 
  */
-class img_Thumb
+class thumb_Img
 {
     
     
@@ -415,7 +415,7 @@ class img_Thumb
     public function getThumbPath()
     {
         if(!$this->thumbPath) {
-            $this->thumbPath = IMG_THUMB_PATH . '/' . $this->getThumbName();
+            $this->thumbPath = THUMB_IMG_PATH . '/' . $this->getThumbName();
         }
 
         return $this->thumbPath;
@@ -463,7 +463,7 @@ class img_Thumb
     protected function getThumbUrl()
     {
         if(!$this->thumbUrl) {
-            $this->thumbUrl = sbf(IMG_THUMB_DIR . "/" . $this->getThumbName(), '', $this->isAbsolute);
+            $this->thumbUrl = sbf(THUMB_IMG_DIR . "/" . $this->getThumbName(), '', $this->isAbsolute);
         }
 
         return $this->thumbUrl;
@@ -489,7 +489,7 @@ class img_Thumb
             $state[$argName] = $this->{$argName};
         }
         
-        $id = core_Crypt::encodeVar($state, img_Thumb::getCryptKey()) . '.' . $this->getThumbFormat();
+        $id = core_Crypt::encodeVar($state, thumb_Img::getCryptKey()) . '.' . $this->getThumbFormat();
         
         if ($this->isAbsolute) {
             $type = 'absolute';
@@ -497,7 +497,7 @@ class img_Thumb
             $type = 'relative';
         }
         
-        return toUrl(array('img_M', 'R', 't' => $id), $type);
+        return toUrl(array('thumb_M', 'R', 't' => $id), $type);
     }
 
 

@@ -184,7 +184,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             foreach ($jpgArr as $jpgFh) {
                 
-                $imgInst = new img_Thumb(array($jpgFh, $thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview'));
+                $imgInst = new thumb_Img(array($jpgFh, $thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview'));
                 
                 // Вземаме файла
                 $thumbnailImg = $imgInst->createImg($attr);

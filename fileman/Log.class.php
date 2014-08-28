@@ -478,9 +478,9 @@ class fileman_Log extends core_Manager
         $ext = mb_strtolower(fileman_Files::getExt($fileName));
         
         // Ако може да се генерира thumbnail
-        if (img_Thumb::isAllowedForThumb($fh)) {
+        if (thumb_Img::isAllowedForThumb($fh)) {
             
-            $imgInst = new img_Thumb($fh, $size, $size, 'fileman');
+            $imgInst = new thumb_Img($fh, $size, $size, 'fileman');
             
             // Вземаме файла
             $img = $imgInst->createImg();
