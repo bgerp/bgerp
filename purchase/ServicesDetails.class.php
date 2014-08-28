@@ -218,7 +218,7 @@ class purchase_ServicesDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$form = &$data->form;
-    	$ProductManager = cls::get('cat_Products');
+    	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
          
         // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
         $products = $ProductManager::getByProperty('canBuy');
@@ -241,19 +241,22 @@ class purchase_ServicesDetails extends core_Detail
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
+    		$productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
     		$masterRec = $data->masterData->rec;
-    		$ProductManager = cls::get('cat_Products');
-    		$products = $ProductManager::getByProperty('canBuy');
-    		$products2 = $ProductManager::getByProperty('canStore');
-    		$products = array_diff_key($products, $products2);
     
-    		if(!count($products)){
-    			$error = "error=Няма продаваеми {$ProductManager->title}";
+    		foreach ($productManagers as $manId => $manName) {
+    			$productMan = cls::get($manId);
+    			$products = $productMan::getByProperty('canBuy');
+    			$products2 = $productMan::getByProperty('canStore');
+    			$products = array_diff_key($products, $products2);
+    			if(!count($products)){
+    				$error = "error=Няма продаваеми {$productMan->title}";
+    			}
+    
+    			$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', $mvc->masterKey => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
+    					"id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+    			unset($error);
     		}
-    
-    		$data->toolbar->addBtn($ProductManager->singleTitle, array($mvc, 'add', $mvc->masterKey => $masterRec->id, 'classId' => $ProductManager->getClassId(), 'ret_url' => TRUE),
-    				"id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
-    		unset($error);
     
     		unset($data->toolbar->buttons['btnAdd']);
     	}
