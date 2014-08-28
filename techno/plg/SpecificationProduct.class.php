@@ -120,11 +120,9 @@ class techno_plg_SpecificationProduct extends core_Plugin
     {
     	if($rec->state != 'draft'){
     		$rec = $mvc->fetch(($rec->id) ? $rec->id : $rec);
-    		if(strpos($rec->meta, 'canSell') !== false){
     			
-    			// Промяна на спецификацията при възстановяване/оттегляне/активиране
-    			techno_Specifications::forceRec($mvc, $rec);
-    		}
+    		// Промяна на спецификацията при възстановяване/оттегляне/активиране
+    		techno_Specifications::forceRec($mvc, $rec);
     	}
     }
     
