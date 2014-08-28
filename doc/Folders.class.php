@@ -1065,6 +1065,22 @@ class doc_Folders extends core_Master
     
     
     /**
+     * Добавя типа на папката към полетата за търсене
+     * 
+     * @param doc_Folders $mvc
+     * @param string $searchKeywords
+     * @param object $rec
+     */
+    static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+        if (!$rec->coverClass) return ;
+        $class = cls::get($rec->coverClass);
+        $title = $class->getTitle();
+        $searchKeywords .= " " . plg_Search::normalizeText($title);
+    }
+    
+    
+    /**
      * Интерфейсен метод на custom_SettingsIntf
      * Подготвяме формата за персонализиране на настройките за нишката
      * 
