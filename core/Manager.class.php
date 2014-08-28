@@ -13,6 +13,10 @@
  * @license   GPL 3
  * @since     v 0.1
  * @link
+ * 
+ * @method on_AfterRenderWrapping(core_Manager $mvc, core_ET &$res, core_ET &$tpl=NULL, $data = NULL)
+ * @method on_BeforeRenderWrapping($mvc, &$res, &$tpl=NULL, $data = NULL)
+ * @method renderWrapping(core_ET &$tpl=NULL, $data = NULL)
  */
 class core_Manager extends core_Mvc
 {
