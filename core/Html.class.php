@@ -765,11 +765,17 @@ class core_Html
      */
     static function wrapMixedToHtml($html, $wholeDocument = FALSE)
     {
-        $styles =   "    .dump {font-family: Consolas,Courier New,monospace; monospace; font-size:12px;}\n" .
+        $styles =   "    .dump {font-family: Consolas,Courier New,monospace; monospace; font-size:13px;}\n" .
                     "    .dump ul {list-style-type: none; margin:0;margin-left:10px; border-left:solid 1px #bbb; padding:0; padding-left:3px;}\n" .
                     "    .dump li {margin-top:3px;display:table;}\n" .
                     "    .dump .trigger {cursor:pointer}\n" .
-                    "    .dump {max-width:100%; white-space:nowrap;overflow-x:auto;overflow-y:hidden;}\n";
+                    "    .dump {max-width:100%; white-space:nowrap;overflow-x:auto;overflow-y:hidden;}\n" .
+                    "    .dump .undefined {color:red}" .
+                    "    .dump .static {color:#009900}" .
+                    "    .dump .protected {color:#003366}" .
+                    "    .dump .private {color:#330066}" .
+                    "    .dump .undefined {color:#cc0000}" .
+                    "    .dump .unknown {color:#c96}" ;
 
         $scripts =  "\$('document').ready(function() {\$('.trigger').click(function(event){\n" .
                     "var obj = \$(this).parent().children('ul')[0];\n" .
@@ -815,7 +821,7 @@ class core_Html
     /**
      * Прави html представяне на структурата на обекта, масива или променливата
      */
-    static function mixedToHtml($o, $hideLevel = 2, $maxLevel = 8)
+    static function mixedToHtml($o, $hideLevel = 3, $maxLevel = 8)
     {
         static $i = 0;
 
@@ -842,28 +848,52 @@ class core_Html
 
         if (is_object($o)) {
 
-            $res = $usedNames = array();
-            
+            $res = $scopeArr = array();
+
             $class = $r = get_class($o);
+            
+            // По-подразбиране променливите имат публична видимост
+            $scope = '';
 
             $res = get_object_vars($o);
 
             if(strtolower($class) != 'stdclass') {
+                $scope = 'undefined';
                 do {
                     $reflection = new ReflectionClass($class);
                     foreach($reflection->getProperties(
+                                            ReflectionProperty::IS_PUBLIC |
                                             ReflectionProperty::IS_STATIC | 
                                             ReflectionProperty::IS_PROTECTED | 
                                             ReflectionProperty::IS_PRIVATE) as $prop) {
                         $prop->setAccessible(TRUE);
                         $name = $prop->getName();
+
                         if(!$usedNames[$name]) {
                             $res[$name] = $prop->getValue($o);
-                            $usedNames[$name] = TRUE;
+                            if($prop->isStatic()) {
+                                $scopeArr[$name] = 'static';
+                            } elseif($prop->isPublic()) { 
+                                $scopeArr[$name] = '';
+                            } elseif($prop->isPrivate()) {
+                                $scopeArr[$name] = 'private';
+                            } elseif($prop->isProtected()) {
+                                $scopeArr[$name] = 'protected';
+                            } else {
+                                $scopeArr[$name] = 'unknown';
+                            }
                         }
                     }
                     
                 } while($class = get_parent_class($class));
+            }
+
+            if(count($res)) {
+                foreach($res as $name => $vR) {
+                    if(!isset($scopeArr[$name])) {
+                        $scopeArr[$name] = $scope;
+                    }
+                }
             }
 
             $o = $res;
@@ -884,16 +914,24 @@ class core_Html
 
             if (count($o)) {
                 foreach ($o as $name => $value) {
+                    
+                    $attr = array();
+
+                    $attr['class'] = $scopeArr[$name];
+                    $attr['title'] = $scopeArr[$name];
+
                     if($name === 'dbPass') {
-                        $html .= "\n    <li>" . "$name : ******"  . "</li>";
+                        $html .= "\n    <li>" . ht::createElement('span', $attr, "$name : ******")  . "</li>";
                     } else {
                         if(is_scalar($value) || $value === NULL || (is_array($value) && count($value) ==0)) {
-                            $html .= "\n    <li>" . 
-                                htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . " : " . 
+                            $html .= "\n    <li>" . ht::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . " : " . 
                                 static::mixedToHtml($value, $hideLevel, $maxLevel) . "</li>";
                         } else {
-                            $html .= "\n    <li><span class='trigger' $style>" . 
-                                htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . "</span> : " .
+
+                            $attr['style'] = $style;
+                            $attr['class'] .= ' trigger';
+
+                            $html .= "\n    <li>" . ht::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . " : " .
                                 static::mixedToHtml($value, $hideLevel, $maxLevel) . "</li>";
                         }
                     }
