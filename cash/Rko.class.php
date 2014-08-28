@@ -264,7 +264,8 @@ class cash_Rko extends core_Master
     	if(isset($defaultOperation) && array_key_exists($defaultOperation, $options)){
     		$form->rec->operationSysId = $defaultOperation;	
         }
-        $form->setReadOnly('peroCase', cash_Cases::getCurrent());
+        
+        $form->setDefault('peroCase', cash_Cases::getCurrent());
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
        
