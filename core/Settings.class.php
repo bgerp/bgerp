@@ -92,7 +92,7 @@ class core_Settings extends core_Manager
         $url = self::getModifyUrl($key, $className, $userOrRole);
         
         // Добавяме бутона, който сочи към екшъна за персонализиране
-        $toolbar->addBtn($title, $url, 'ef_icon=img/16/customize.png,row=2');
+        $toolbar->addBtn($title, $url, array('ef_icon' => 'img/16/customize.png,row=2'));
     }
     
     
