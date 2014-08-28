@@ -240,7 +240,7 @@ class store_ReceiptDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-    	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
+    	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($form->rec->classId);
     	
         // Намираме всички скалдируеми продукти, ако документа е обратен взимаме продаваемите, иначе купуваемите
         $property = ($mvc->Master->fetchField($form->rec->receiptId, 'isReverse') == 'yes') ? 'canSell' : 'canBuy';

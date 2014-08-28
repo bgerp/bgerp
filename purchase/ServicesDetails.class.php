@@ -218,7 +218,7 @@ class purchase_ServicesDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$form = &$data->form;
-    	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
+    	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($form->rec->classId);
          
         // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
         $products = $ProductManager::getByProperty('canBuy');
