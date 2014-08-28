@@ -61,7 +61,7 @@ class core_FieldSet extends core_BaseClass
      * 
      * @param string $name
      * @param string $type
-     * @param mixed $params
+     * @param string|array $params
      * @param array $moreParams
      */
     function FLD($name, $type, $params = array(), $moreParams = array())
@@ -84,7 +84,7 @@ class core_FieldSet extends core_BaseClass
      * 
      * @param string $name
      * @param string $externalClass
-     * @param mixed $params
+     * @param string|array $params
      * @param array $moreParams
      */
     function EXT($name, $externalClass, $params = array(), $moreParams = array())
@@ -125,7 +125,7 @@ class core_FieldSet extends core_BaseClass
      * @param string $name
      * @param string $type
      * @param string $expr
-     * @param mixed $params
+     * @param string|array $params
      * @param array $moreParams
      */
     function XPR($name, $type, $expr, $params = array(), $moreParams = array())
@@ -148,7 +148,7 @@ class core_FieldSet extends core_BaseClass
      * 
      * @param string $name
      * @param string $type
-     * @param mixed $params
+     * @param string|array $params
      * @param array $moreParams
      */
     function FNC($name, $type, $params = array(), $moreParams = array())
