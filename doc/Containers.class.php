@@ -1041,10 +1041,10 @@ class doc_Containers extends core_Manager
     static function setAbrr()
     {
         //Проверяваме дали записа фигурира в кеша
-        $abbr = core_Cache::get('abbr', 'allClass', 1440, array('core_Classes', 'core_Interfaces'));
+        $abbrArr = core_Cache::get('abbr', 'allClass', 1440, array('core_Classes', 'core_Interfaces'));
         
         //Ако няма
-        if (!$abbr) {
+        if (!$abbrArr) {
             
             $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
 
@@ -1054,15 +1054,27 @@ class doc_Containers extends core_Manager
                 //Създаваме инстанция на класа в масив
                 $instanceArr[$id] = cls::get($className);
                 
+                $abbr = strtoupper($instanceArr[$id]->abbr);
+                
+                // Ако сме в дебъг режим
+                if (isDebug()) {
+                    
+//                    expect(trim($instanceArr[$id]->abbr), $instanceArr[$id]);
+                    expect(!$abbrArr[$abbr], $abbr, $abbrArr[$abbr], $className);
+                }
+                
+                // Ако няма абревиатура
+                if (!trim($abbr)) continue;
+                
                 //Създаваме масив с абревиатурата и името на класа                
-                $abbr[strtoupper($instanceArr[$id]->abbr)] = $className;
+                $abbrArr[$abbr] = $className;
             }
             
             //Записваме масива в кеша
-            core_Cache::set('abbr', 'allClass', $abbr, 1440, array('core_Classes', 'core_Interfaces'));
+            core_Cache::set('abbr', 'allClass', $abbrArr, 1440, array('core_Classes', 'core_Interfaces'));
         }
         
-        self::$abbrArr = $abbr;
+        self::$abbrArr = $abbrArr;
     }
     
     
