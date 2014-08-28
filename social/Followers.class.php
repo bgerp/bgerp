@@ -96,7 +96,7 @@ class social_Followers extends core_Master
 			// Вземаме качената икона
 			if($socialNetwork->icon){
 				
-	            $imgInst = new img_Thumb(array($socialNetwork->icon, 24, 24, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change', 'verbalName' => $socialNetwork->title));
+	            $imgInst = new thumb_Img(array($socialNetwork->icon, 24, 24, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change', 'verbalName' => $socialNetwork->title));
 	            $icon = $imgInst->getUrl('forced');
 	            
 				// Ако тя липсва

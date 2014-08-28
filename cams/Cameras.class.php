@@ -99,7 +99,7 @@ class cams_Cameras extends core_Master
         }
         
         if(Request::get('thumb')) {
-            $imgInst = new img_Thumb(array($img, 64, 64, 'gdRes', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
+            $imgInst = new thumb_Img(array($img, 64, 64, 'gdRes', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
             $img = $imgInst->getScaledGdRes();
         }
         

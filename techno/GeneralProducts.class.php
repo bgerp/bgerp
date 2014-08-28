@@ -197,7 +197,7 @@ class techno_GeneralProducts extends core_Master {
 	    	if($rec->image){
 	     		$file = fileman_Files::fetchByFh($rec->image);
 	     		
-	     		$img = new img_Thumb(array($file->fileHnd, 130, 130, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change'));
+	     		$img = new thumb_Img(array($file->fileHnd, 130, 130, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change'));
 	            $row->image = $img->getUrl('forced');
 	     	}
     	}

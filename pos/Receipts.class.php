@@ -1135,7 +1135,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	if($obj->photo && !Mode::is('screenMode', 'narrow')) {
-    		$thumb = new img_Thumb($obj->photo, 64, 64);
+    		$thumb = new thumb_Img($obj->photo, 64, 64);
     		$arr = array();
     		$row->photo = "<div class='pos-search-pic'>" . $thumb->createImg($arr) . "</div>";
     		$data->showImg = TRUE;

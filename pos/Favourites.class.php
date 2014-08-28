@@ -273,7 +273,7 @@ class pos_Favourites extends core_Manager {
     		$row->url = toUrl(array('pos_Receipts', 'addProduct'), 'local');
     		if($row->image){
     		    
-    	        $img = new img_Thumb(array($row->image, 80, 80, 'fileman', 'isAbsolute' => FALSE, 'mode' => 'large-no-change'));
+    	        $img = new thumb_Img(array($row->image, 80, 80, 'fileman', 'isAbsolute' => FALSE, 'mode' => 'large-no-change'));
     	        $imageURL = $img->getUrl('forced');
     		    
     			$row->image = ht::createElement('img', array('src' => $imageURL, 'width'=>'90px', 'height'=>'90px'));
