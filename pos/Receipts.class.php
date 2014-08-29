@@ -272,10 +272,11 @@ class pos_Receipts extends core_Master {
 	/**
      * Извлича информацията за всички продукти които са продадени чрез
      * тази бележки, във вид подходящ за контирането
+     * 
      * @param int id - ид на бележката
      * @param boolean $count - FALSE  връща масив от продуктите
      * 						   TRUE връща само броя на продуктите
-     * @return array $products - Масив от продукти
+     * @return mixed $products - Масив от продукти
      */
     public static function getProducts($id, $count = FALSE)
     {
@@ -629,11 +630,14 @@ class pos_Receipts extends core_Master {
     		$disabled = 'disabled';
     	}
     	
+    	$value = NULL;
+    	
     	// Ако има последно добавен продукт, записваме ид-то на записа в скрито поле
     	if($lastRow = Mode::get('lastAdded')){
     		$value = $lastRow;
     		Mode::setPermanent('lastAdded', NULL);
     	}
+    	
     	$browserInfo = Mode::get('getUserAgent');
     	if(strrpos($browserInfo, "Android") !== FALSE){
     		$htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
@@ -734,6 +738,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
 
+    	$payUrl = $recUrl = array();
     	if($this->haveRightFor('pay', $rec)){
     		$payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
     	}
@@ -1015,6 +1020,7 @@ class pos_Receipts extends core_Master {
 	    	$html = $this->getResultsTable($searchString, $rec);
 	    } else {
     		$html = ' ';
+    		$rec = NULL;
     	}
     	
     	if(Request::get('ajax_mode')){
@@ -1112,7 +1118,10 @@ class pos_Receipts extends core_Master {
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
     		$addUrl = toUrl(array('pos_Receipts', 'addProduct', $data->rec->id), 'local');
+    	} else {
+    		$addUrl = NULL;
     	}
+    	
     	$row->productId = "<span class='pos-add-res-btn' data-url='{$addUrl}' data-productId='{$obj->productId}'>" . cat_Products::getTitleById($obj->productId) . "</span>";
     	if($data->showParams){
     		$params = keylist::toArray($data->showParams);
