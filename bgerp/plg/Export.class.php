@@ -44,7 +44,7 @@ class bgerp_plg_Export extends core_Plugin
      * 
      * @return array $options - масив с възможни драйвъри
      */
-    public static function getImportDrivers(core_Mvc $mvc)
+    public static function getExportDrivers(core_Mvc $mvc)
     {
     	$options = array();
     	$drivers = core_Classes::getOptionsByInterface('bgerp_ExportIntf');
@@ -71,7 +71,7 @@ class bgerp_plg_Export extends core_Plugin
     		$mvc->requireRightFor('export');
     		 
     		// Трябва да има инсталиран поне един драйвър за експорт
-    		$options = self::getImportDrivers($mvc);
+    		$options = self::getExportDrivers($mvc);
     		
     		// Подготвяме формата
     		$form = cls::get('core_Form');
