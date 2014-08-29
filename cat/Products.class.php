@@ -479,17 +479,6 @@ class cat_Products extends core_Master {
     
     
     /**
-     * Дали има поне един продаваем продукт за клиента
-     */
-    public function hasSellableProduct($contragentClassId, $contragentId, $date)
-    {
-    	$sellable = static::getByProperty('canSell', 1);
-    	
-    	return count($sellable);
-    }
-    
-    
-    /**
      * Помощна ф-я премахваща от списъка с продукти отговарящи на
      * някакви мета данни тези до които потребителя няма достъп.
      * Връща се подможество състоящо се от тези продукти от подадените,
@@ -846,9 +835,9 @@ class cat_Products extends core_Master {
      *
      * @return array() - масив с опции, подходящ за setOptions на форма
      */
-    public function getProducts($customerClass, $customerId, $datetime = NULL)
+    public function getProducts($customerClass, $customerId, $datetime = NULL, $properties, $limit = NULL)
     {
-    	return static::getByProperty('canSell');
+    	return static::getByProperty($properties, $limit);
     }
     
     

@@ -138,15 +138,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Дали има поне един продаваем продукт за клиента
-     */
-    public function hasSellableProduct($contragentClassId, $contragentId, $date)
-    {
-    	return $this->class->hasSellableProduct($contragentClassId, $contragentId);
-    }
-    
-    
-    /**
      * Връща обема на еденица от продукта, ако е в опаковка връща нейния обем
      * 
      * @param int $productId - ид на продукт
