@@ -241,10 +241,11 @@ class store_ReceiptDetails extends core_Detail
     {
         $form = &$data->form;
     	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($form->rec->classId);
+    	$masterRec = $data->masterRec;
     	
         // Намираме всички скалдируеми продукти, ако документа е обратен взимаме продаваемите, иначе купуваемите
-        $property = ($mvc->Master->fetchField($form->rec->receiptId, 'isReverse') == 'yes') ? 'canSell' : 'canBuy';
-		$products = $ProductManager::getByProperty($property);
+        $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
+        $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
         
         $products2 = $ProductManager::getByProperty('canStore');
         $products = array_intersect_key($products, $products2);
@@ -271,7 +272,8 @@ class store_ReceiptDetails extends core_Detail
     		foreach ($productManagers as $manId => $manName) {
     			$productMan = cls::get($manId);
     			$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-    			$products = $productMan::getByProperty($property);
+    			
+    			$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
     			$products2 = $productMan::getByProperty('canStore');
     			$products = array_intersect_key($products, $products2);
     			

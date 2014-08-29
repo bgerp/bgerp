@@ -218,11 +218,14 @@ class purchase_ServicesDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$form = &$data->form;
+    	$property = ($data->masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
+    	 
+    	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
     	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($form->rec->classId);
-         
-        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-        $products = $ProductManager::getByProperty('canBuy');
-        $products2 = $ProductManager::getByProperty('canStore');
+    	
+    	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
+    	$products = $ProductManager->getProducts($data->masterRec->contragentClassId, $data->masterRec->contragentId, $data->masterRec->date, $property);
+    	$products2 = $ProductManager::getByProperty('canStore');
         $products = array_diff_key($products, $products2);
          
         expect(count($products));
@@ -246,7 +249,8 @@ class purchase_ServicesDetails extends core_Detail
     
     		foreach ($productManagers as $manId => $manName) {
     			$productMan = cls::get($manId);
-    			$products = $productMan::getByProperty('canBuy');
+    			$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canBuy');
+    			
     			$products2 = $productMan::getByProperty('canStore');
     			$products = array_diff_key($products, $products2);
     			if(!count($products)){

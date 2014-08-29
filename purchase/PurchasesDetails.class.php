@@ -283,8 +283,7 @@ class purchase_PurchasesDetails extends core_Detail
         $data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
         
-        // @TODO временно
-        $products = $ProductManager::getByProperty('canBuy');
+        $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, 'canBuy');
         expect(count($products));
         
         if (empty($rec->id)) {
@@ -425,8 +424,7 @@ class purchase_PurchasesDetails extends core_Detail
     		$masterRec = $data->masterData->rec;
     		foreach ($productManagers as $manId => $manName) {
     			$productMan = cls::get($manId);
-    			$canBuy = $productMan::getByProperty('canBuy', 1);
-    			
+    			$canBuy = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, 'canBuy', 1);
     			if(!count($canBuy)){
     				$error = "error=Няма купуваеми {$productMan->title}";
     			}

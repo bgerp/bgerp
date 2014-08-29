@@ -278,15 +278,17 @@ class store_ShipmentOrderDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$rec = &$data->form->rec;
+    	$masterRec = $data->masterRec;
+    	$property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
     	
     	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
     	
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager::getByProperty('canSell');
+    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
     	$products2 = $ProductManager::getByProperty('canStore');
     	$products = array_intersect_key($products, $products2);
-    	
     	expect(count($products));
+    	
     	if (empty($rec->id)) {
     		$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
     		$data->form->setOptions('productId', array('' => ' ') + $products);
@@ -374,9 +376,10 @@ class store_ShipmentOrderDetails extends core_Detail
     			$productMan = cls::get($manId);
     			$property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
     			
-    			$products = $productMan::getByProperty($property);
+    			$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
     			$products2 = $productMan::getByProperty('canStore');
     			$products = array_intersect_key($products, $products2);
+    			
     			if(!count($products)){
     				$error = "error=Няма продаваеми {$productMan->title}";
     			}

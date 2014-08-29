@@ -287,7 +287,7 @@ class sales_SalesDetails extends core_Detail
        	$data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
         
-        $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+        $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, 'canSell');
         expect(count($products));
         
         $data->form->setSuggestions('discount', arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
@@ -480,7 +480,7 @@ class sales_SalesDetails extends core_Detail
             
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
-            	if(!$productMan->hasSellableProduct($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior)){
+            	if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, 'canSell', 1))){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
                 
