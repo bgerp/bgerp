@@ -302,5 +302,15 @@ class acc_plg_DpInvoice extends core_Plugin
     	$total->vat    += $dpVat;
     	$total->amount += $dpAmount;
     	
+    	$conf = core_Packs::getConfig('acc');
+    	
+    	// Ако сумата и ддс-то е в границата на допустимото разминаваме, приравняваме ги на 0
+    	if($total->vat >= -1 * $conf->ACC_MONEY_TOLERANCE && $total->vat <= $conf->ACC_MONEY_TOLERANCE){
+    		$total->vat = 0;
+    	}
+    	
+    	if($total->amount >= -1 * $conf->ACC_MONEY_TOLERANCE && $total->amount <= $conf->ACC_MONEY_TOLERANCE){
+    		$total->amount = 0;
+    	}
     }
 }
