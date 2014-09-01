@@ -699,6 +699,7 @@ class sales_Sales extends core_Master
 			if($filter->type) {
 				switch($filter->type){
 					case "all":
+						$data->query->where("#state = 'active' || #state = 'closed'");
 						break;
 					case "draft":
 						$data->query->where("#state = 'draft'");
