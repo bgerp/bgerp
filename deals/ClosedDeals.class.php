@@ -122,7 +122,8 @@ class deals_ClosedDeals extends acc_ClosedDeals
     
     	$cost = acc_Balances::getBlAmounts($jRecs, '6913', 'debit')->amount;
     	$inc = acc_Balances::getBlAmounts($jRecs, '7913', 'credit')->amount;
-    
+    	
+    	bp($cost, $inc, $jRecs);
     	// Разликата между платеното и доставеното
     	return $inc - $cost;
     }

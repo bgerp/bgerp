@@ -83,10 +83,6 @@ class purchase_transaction_CloseDeal
     	} else {
     		$dealInfo = $this->class->getDealInfo($rec->threadId);
     		 
-    		// Кеширане на перото на текущата година
-    		$date = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
-    		$this->date = acc_Periods::forceYearAndMonthItems($date);
-    		 
     		// Създаване на запис за прехвърляне на всеки аванс
     		$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downpaymentAmounts, $firstDoc);
     		$result->totalAmount += $downpaymentAmounts;

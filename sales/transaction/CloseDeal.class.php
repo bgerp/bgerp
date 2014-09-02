@@ -90,10 +90,6 @@ class sales_transaction_CloseDeal
     		
     		$this->blAmount = $this->shortBalance->getAmount('411');
     		
-    		// Кеширане на перото на текущата година
-    		$date = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
-    		$this->date = acc_Periods::forceYearAndMonthItems($date);
-    		 
     		// Създаване на запис за прехвърляне на всеки аванс
     		$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downPaymentAmount, $firstDoc);
     		$result->totalAmount += $downPaymentAmount;

@@ -276,25 +276,6 @@ abstract class acc_ClosedDeals extends core_Master
 	}
     
     
-    /**
-     * Връща разликата с която ще се приключи сделката
-     * @param mixed  $threadId - ид на нишката или core_ObjectReference
-     * 							 към първия документ в нишката
-     * @return double $amount - разликата на платеното и експедираното
-     */
-    public static function getClosedDealAmount($threadId)
-    {
-    	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$jRecs = acc_Journal::getEntries(array($firstDoc->instance, $firstDoc->that));
-    	
-    	$cost = acc_Balances::getBlAmounts($jRecs, '6911,6912', 'debit')->amount;
-    	$inc = acc_Balances::getBlAmounts($jRecs, '7911,7912', 'credit')->amount;
-       
-        // Разликата между платеното и доставеното
-        return $inc - $cost;
-    }
-    
-    
 	/**
 	 * Изпълнява се след запис
 	 */
@@ -326,7 +307,7 @@ abstract class acc_ClosedDeals extends core_Master
 	    	}
 	    	
 	    	if(empty($saveFileds)){
-	    		$rec->amount = static::getClosedDealAmount($rec->threadId);
+	    		$rec->amount = $mvc::getClosedDealAmount($rec->threadId);
 	    		$mvc->save($rec, 'amount');
 	    	}
     	}

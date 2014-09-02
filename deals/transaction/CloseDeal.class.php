@@ -33,12 +33,6 @@ class deals_transaction_CloseDeal
      *  		Dt: 6913 - Отписани вземания по Финансови сделки
      *  		Ct: Разчетната сметка
      *  
-     *  	Отнасяме отписаните вземания (извънредния разход) по сделката като загуба по сметка 123,
-     *      със сумата на дебитното салдо на РС
-     *  
-     *  		Dt: 123 - Печалби и загуби от текущата година
-     *  		Ct: 6913 - Отписани вземания по Финансови сделки
-     *  
      *  Разчетната сметка РС има Кредитно (Ct) салдо
      *  
      *  	Намаляваме задължението си към Контрагента за сметка на извънреден приход със сумата на неплатеното задължение,
@@ -46,12 +40,6 @@ class deals_transaction_CloseDeal
      *  
      *  		Dt: Разчетната сметка
      *  		Ct: 7913 - Отписани задължения по Финансови сделки
-     *  		
-     *  	Отнасяме отписаните задължения (извънредния приход) по сделката като печалба по сметка 123,
-     *  	със сумата на кредитното салдо на РС
-     *  
-     *  		Dt: 7913 - Отписани задължения по Финансови сделки
-     *  		Ct: 123 - Печалби и загуби от текущата година
      *  
      *  	
      *  
@@ -64,13 +52,13 @@ class deals_transaction_CloseDeal
     	$docRec = $firstDoc->fetch();
     	$accRec = acc_Accounts::fetch($docRec->accountId);
     	 
-    	$amount = $info->get('amount');
+    	$amount = $info->get('blAmount');
     	
     	// Създаване на обекта за транзакция
     	$result = (object)array(
     			'reason'      => $rec->notes,
     			'valior'      => dt::now(),
-    			'totalAmount' => 2 * abs($amount),
+    			'totalAmount' => abs($amount),
     			'entries'     => array(),
     	);
     	
@@ -81,9 +69,7 @@ class deals_transaction_CloseDeal
     		$closeEntries = $this->class->getTransferEntries($firstDoc->instance->getClassId(), $result->totalAmount, $closeDealItem, $rec);
     		$result->entries = array_merge($result->entries, $closeEntries);
     	} else {
-    		$date = ($info->get('invoicedValior')) ? $info->get('invoicedValior') : $info->get('agreedValior');
-    		$this->date = acc_Periods::forceYearAndMonthItems($date);
-    		 
+    		
     		$dealArr = array(acc_Accounts::fetchField($docRec->accountId, 'systemId'),
     				array($docRec->contragentClassId, $docRec->contragentId),
     				array('deals_Deals', $docRec->id),
@@ -99,12 +85,6 @@ class deals_transaction_CloseDeal
     							array($firstDoc->className, $firstDoc->that)),
     					'credit' => $dealArr);
     		
-    			$result->entries[] = array('amount' => $amount,
-    					'debit' => array('123', $this->date->year, $this->date->month),
-    					'credit' => array('6913',
-    							array($docRec->contragentClassId, $docRec->contragentId),
-    							array($firstDoc->className, $firstDoc->that)),);
-    		
     		} else {
     		
     			// Ако РС има кредитно салдо
@@ -114,12 +94,6 @@ class deals_transaction_CloseDeal
     							array($docRec->contragentClassId, $docRec->contragentId),
     							array($firstDoc->className, $firstDoc->that))
     			);
-    		
-    			$result->entries[] = array('amount' => abs($amount),
-    					'debit' => array('7913',
-    							array($docRec->contragentClassId, $docRec->contragentId),
-    							array($firstDoc->className, $firstDoc->that)),
-    					'credit' => array('123', $this->date->year, $this->date->month),);
     		}
     	}
     	
