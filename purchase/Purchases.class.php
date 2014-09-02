@@ -69,12 +69,6 @@ class purchase_Purchases extends core_Master
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, purchase';
-
-
-	/**
-	 * Кое поле да се използва за филтър по потребители
-	 */
-	public $filterFieldUsers = 'dealerId';
 	
 	
 	/**
@@ -562,7 +556,7 @@ class purchase_Purchases extends core_Master
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
     	if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
+        	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Всички,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
@@ -576,8 +570,10 @@ class purchase_Purchases extends core_Master
 			
 			if($filter->type) {
 				switch($filter->type){
-					case "all":
+					case "clAndAct":
 						$data->query->where("#state = 'active' || #state = 'closed'");
+						break;
+					case "all":
 						break;
 					case "draft":
 						$data->query->where("#state = 'draft'");
@@ -609,6 +605,8 @@ class purchase_Purchases extends core_Master
 						break;
 				}
 			}
+			
+			
 		}
     }
     
