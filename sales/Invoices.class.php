@@ -44,9 +44,9 @@ class sales_Invoices extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg,
 					doc_EmailCreatePlg, doc_plg_MultiPrint, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,acc_plg_DpInvoice,
-                    doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
+                    doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search';
     
     
     /**
@@ -110,6 +110,12 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * Кой има право да добавя?
+     */
+    public $canExport = 'ceo,salesMaster';
+    
+    
+    /**
      * Кой може да го контира?
      */
     public $canConto = 'ceo,invoicer';
@@ -118,7 +124,7 @@ class sales_Invoices extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number,folderId';
+    public $searchFields = 'number, folderId, id';
     
     
     /**
@@ -209,7 +215,7 @@ class sales_Invoices extends core_Master
         
         $this->FLD('type', 
             'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
-            'caption=Вид, input=hidden,silent'
+            'caption=Вид, input=hidden'
         );
         
         $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
@@ -224,16 +230,15 @@ class sales_Invoices extends core_Master
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{
-		$data->listFilter->FNC('invType','enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
-            'caption=Вид, input,silent');
-		$data->listFilter->setDefault('invType','invoice');
-		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png'); 
-		
-		$data->listFilter->showFields .= ',search,invType';
-		$data->listFilter->input('search,invType', 'silent');
-		
+		$data->listFilter->FNC('invType','enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
+            'caption=Вид,input,silent');
+		$data->listFilter->showFields .= ',invType';
+		$data->listFilter->input();
+	
 		if($type = $data->listFilter->rec->invType){
-			$data->query->where("#type = '{$type}'");
+			if($type != 'all'){
+				$data->query->where("#type = '{$type}'");
+			}
 		}
 	}
 	
@@ -345,10 +350,11 @@ class sales_Invoices extends core_Master
         	$form->getField('uicNo')->type = cls::get($numType);
         }
         
-        $type = ($t = Request::get('type')) ? $t : $form->rec->type;
-        if(!$type){
-	        $form->setDefault('type', 'invoice');
-	    }
+        $type = Request::get('type');
+        if(empty($type)){
+        	$type = 'invoice';
+        }
+        $form->rec->type = $type;
 	        
         // При създаване на нова ф-ра зареждаме полетата на 
         // формата с разумни стойности по подразбиране.
@@ -622,6 +628,7 @@ class sales_Invoices extends core_Master
         if($rec->state == 'active'){
         	if(empty($rec->number)){
         		$rec->number = static::getNexNumber();
+        		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->number);
         	}
         	
 	        if(empty($rec->place) && $rec->state == 'active'){
@@ -791,7 +798,7 @@ class sales_Invoices extends core_Master
     			$this->_total->vat = $rec->vatAmount / $rec->rate;
     		}
     		
-    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
+    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE, 'bg', $rec->id);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
     	 	if($rec->paymentMethodId && $rec->type == 'invoice' && $rec->dpOperation != 'accrued') {
@@ -1008,6 +1015,7 @@ class sales_Invoices extends core_Master
     {
         $rec = $this->fetchRec($id);
         
+        //@TODO WTF 
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         
         $total = ($rec->type == 'credit_note') ? -1 * $total : $total;
@@ -1147,13 +1155,13 @@ class sales_Invoices extends core_Master
      	// точно на тази фактура детайлите търсим
      	$query->where("#invoiceId = '{$rec->id}'");
      	
-	        while ($recDetails = $query->fetch()){
-	        	// взимаме заглавията на продуктите
-	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
-	        	// и ги нормализираме
-	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-	        }
-	        
+	    while ($recDetails = $query->fetch()){
+	        // взимаме заглавията на продуктите
+	        $productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        // и ги нормализираме
+	        $detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+	    }
+	    
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
