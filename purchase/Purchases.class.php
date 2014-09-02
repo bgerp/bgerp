@@ -196,6 +196,12 @@ class purchase_Purchases extends core_Master
     
     
     /**
+     * Кое поле показва сумата на сделката
+     */
+    public $amountField = 'amountDeal';
+    
+    
+    /**
      * Позволени операции за посследващите складови документи/протоколи
      */
     public $allowedShipmentOperations = array('stowage'     => array('title' => 'Засклаждане на стока', 'debit' => 'store', 'credit' => '401'),

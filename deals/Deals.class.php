@@ -152,6 +152,12 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Кое поле показва сумата на сделката
+     */
+    public $amountField = 'amountDeal';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

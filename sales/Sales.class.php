@@ -171,6 +171,12 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Кое поле показва сумата на сделката
+     */
+    public $amountField = 'amountDeal';
+    
+    
+    /**
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(
