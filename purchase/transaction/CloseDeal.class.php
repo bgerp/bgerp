@@ -100,11 +100,7 @@ class purchase_transaction_CloseDeal
     		 
     		// Ако тотала не е нула добавяме ентритата
     		if(count($entry3)){
-    			if(count($entry3) == 2){
-    				$result->entries = array_merge($result->entries, $entry3);
-    			} else {
-    				$result->entries[] = $entry3;
-    			}
+    			$result->entries[] = $entry3;
     		}
     		
     		// Ако има сума различна от нула значи има приход/разход
@@ -113,7 +109,7 @@ class purchase_transaction_CloseDeal
     		$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $firstDoc);
     		
     		if(count($entry)){
-    			$result->entries = array_merge($result->entries, $entry);
+    			$result->entries[] = $entry;
     		}
     	}
     	 
@@ -189,11 +185,6 @@ class purchase_transaction_CloseDeal
      * 			Dt: 6912 - Извънредни разходи по Покупки
      * 			Ct: 4530 - ДДС за начисляване
      *
-     * 		и го приключваме като намаление на финансовия резултат за годината със същата сума
-     *
-     * 			Dt: 123 - Печалби и загуби от текущата година
-     * 			Ct: 6912 - Извънредни разходи по Покупки
-     *
      */
     private function transferVatNotCharged($dealInfo, $docRec, &$total, $firstDoc)
     {
@@ -219,23 +210,13 @@ class purchase_transaction_CloseDeal
     	} elseif($blAmount > 0){
     
     		// Сметка 4530 има Дебитно (Dt) салдо
-    		$entries1 = array('amount' => $blAmount,
+    		$entries = array('amount' => $blAmount,
     				'debit' => array('6912',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
     				'credit'  => array('4530',
     						array($firstDoc->className, $firstDoc->that),
     						'quantity' => $blAmount));
-    
-    		$entries2 = array('amount' => $blAmount,
-    				'debit' => array('123', $this->date->year, $this->date->month),
-    				'credit' => array('6912',
-    						array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that)),
-    		);
-    
-    		$total += $blAmount;
-    		$entries = array($entries1, $entries2);
     
     	}
     	 
@@ -285,7 +266,7 @@ class purchase_transaction_CloseDeal
     	 
     	// Сметка 401 има Дебитно (Dt) салдо
     	if($amount > 0){
-    		$entry1 = array(
+    		$entry = array(
     				'amount' => $amount,
     				'credit' => array('401',
     						array($docRec->contragentClassId, $docRec->contragentId),
@@ -297,19 +278,11 @@ class purchase_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that)),
     		);
     
-    		$entry2 = array(
-    				'amount' => $amount,
-    				'debit' => array('123', $this->date->year, $this->date->month),
-    				'credit'  => array('6912',
-    						array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that)),
-    		);
-    
-    		$totalAmount += 2 * $amount;
+    		$totalAmount += $amount;
     		
     		// Сметка 401 има Кредитно (Ct) салдо
     	} elseif($amount < 0){
-    		$entry1 = array(
+    		$entry = array(
     				'amount' => -1 * $amount,
     				'credit'  => array('7912',
     						array($docRec->contragentClassId, $docRec->contragentId),
@@ -319,18 +292,11 @@ class purchase_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
     						'quantity' => -1 * $amount / $docRec->currencyRate));
-    
-    		$entry2 = array(
-    				'amount' => abs($amount),
-    				'debit'  => array('7912',
-    						array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that)),
-    				'credit' => array('123', $this->date->year, $this->date->month));
     		
-    		$totalAmount += -2 * $amount;
+    		$totalAmount += -1 * $amount;
     	}
     	 
     	// Връщане на записа
-    	return array($entry1, $entry2);
+    	return $entry;
     }
 }

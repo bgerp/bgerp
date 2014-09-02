@@ -110,11 +110,6 @@ class sales_transaction_CloseDeal
     		if(count($entry3)){
     			$result->entries[] = $entry3;
     		}
-    		 
-    		$entry4 = $this->transferIncome($dealInfo, $docRec, $result->totalAmount, $firstDoc, $incomeFromProducts);
-    		if(count($entry4)){
-    			$result->entries = array_merge($result->entries, $entry4);
-    		}
     		
     		// Ако има сума различна от нула значи има приход/разход
     		$entry = $this->getCloseEntry($this->blAmount, $result->totalAmount, $docRec, $firstDoc, $incomeFromClosure);
@@ -125,10 +120,6 @@ class sales_transaction_CloseDeal
     		 
     		//bp($incomeFromClosure, $incomeFromProducts);
     		$totalIncome = $incomeFromClosure + $incomeFromProducts;
-    		$entry5 = $this->transferIncomeToYear($docRec, $result->totalAmount, $firstDoc, $totalIncome);
-    		if(count($entry5)){
-    			$result->entries[] = $entry5;
-    		}
     	}
     	
     	// Връщане на резултата
@@ -249,7 +240,7 @@ class sales_transaction_CloseDeal
      * 			Dt: 700 - Приходи от продажби (по сделки)  (вече на ниво "Сделка")
      * 			Ct: 123 - Печалби и загуби от текущата година
      */
-    protected function transferIncomeToYear($docRec, &$total, $firstDoc, $incomeFromClosure)
+    /*protected function transferIncomeToYear($docRec, &$total, $firstDoc, $incomeFromClosure)
     {
     	$arr1 = array('700', array($docRec->contragentClassId, $docRec->contragentId), array($firstDoc->className, $firstDoc->that));
     	$arr2 = array('123', $this->date->year, $this->date->month);
@@ -269,7 +260,7 @@ class sales_transaction_CloseDeal
     	$entry = array('amount' => abs($incomeFromClosure), 'debit' => $debitArr, 'credit' => $creditArr);
     	
     	return $entry;
-    }
+    }*/
     
     
     /**
@@ -294,7 +285,7 @@ class sales_transaction_CloseDeal
      * 				Dt: 703 - Приходи от продажби на Услуги
      * 			Ct: 700 - Приходи от продажби (по сделки)
      */
-    protected function transferIncome($dealInfo, $docRec, &$total, $firstDoc, &$incomeFromProducts)
+    /*protected function transferIncome($dealInfo, $docRec, &$total, $firstDoc, &$incomeFromProducts)
     {
     	$entries = array();
     	$balanceArr = $this->shortBalance->getShortBalance('701,706,703');
@@ -320,7 +311,7 @@ class sales_transaction_CloseDeal
     	}
     	
     	return $entries;
-    }
+    }*/
     
     
     /**
