@@ -198,7 +198,13 @@ class purchase_Purchases extends core_Master
     /**
      * Кое поле показва сумата на сделката
      */
-    public $amountField = 'amountDeal';
+    public $canClosewith = 'ceo,purchaseMaster';
+    
+    
+    /**
+     * Как се казва приключващия документ
+     */
+    public $closeDealDoc = 'purchase_ClosedDeals';
     
     
     /**
@@ -956,6 +962,12 @@ class purchase_Purchases extends core_Master
     				$res = 'no_one';
     			}
     		} else {
+    			$res = 'no_one';
+    		}
+    	}
+
+    	if($action == 'closewith' && isset($rec)){
+    		if(purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")){
     			$res = 'no_one';
     		}
     	}

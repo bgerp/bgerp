@@ -133,6 +133,12 @@ class deals_Deals extends core_Master
     
     
     /**
+     * Как се казва приключващия документ
+     */
+    public $closeDealDoc = 'deals_ClosedDeals';
+    
+    
+    /**
      * Позволени операции на последващите платежни документи
      */
     protected $allowedPaymentOperations = array(
@@ -154,7 +160,7 @@ class deals_Deals extends core_Master
     /**
      * Кое поле показва сумата на сделката
      */
-    public $amountField = 'amountDeal';
+    public $canClosewith = 'ceo,dealsMaster';
     
     
     /**

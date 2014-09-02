@@ -173,7 +173,7 @@ class sales_Sales extends core_Master
     /**
      * Кое поле показва сумата на сделката
      */
-    public $amountField = 'amountDeal';
+    public $canClosewith = 'ceo,salesMaster';
     
     
     /**
@@ -212,6 +212,12 @@ class sales_Sales extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'deliveryTermId, deliveryLocationId, shipmentStoreId, paymentMethodId, currencyId, bankAccountId, caseId, initiatorId, dealerId, folderId';
+    
+    
+    /**
+     * Как се казва приключващия документ
+     */
+    public $closeDealDoc = 'sales_ClosedDeals';
     
     
     /**
@@ -1543,6 +1549,12 @@ class sales_Sales extends core_Master
     				$res = 'no_one';
     			}
     		} else {
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'closewith' && isset($rec)){
+    		if(sales_SalesDetails::fetch("#saleId = {$rec->id}")){
     			$res = 'no_one';
     		}
     	}

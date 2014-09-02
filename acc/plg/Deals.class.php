@@ -73,10 +73,47 @@ class acc_plg_Deals extends core_Plugin
     			if(!acc_plg_Contable::checkPeriod($rec->valior, $error)){
     				$error = ",error={$error}";
     			}
-    	
+    			
     			$data->toolbar->addBtn('Активиране', array($mvc, 'chooseAction', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
     		}
     	}
+    	
+    	if($mvc->haveRightFor('closeWith', $rec)) {
+    		 
+    		// Ако тази сделка може да се приключи с друга сделка, и има налични сделки подменяме бутона да сочи
+    		// към екшън за избиране на кои сделки да се приключат с тази
+    		$data->toolbar->removeBtn('btnConto');
+    		$data->toolbar->removeBtn('btnActivate');
+    		$data->toolbar->addBtn('Активиране3', array($mvc, 'closeWith', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
+    	}
+    }
+    
+    
+    /**
+     * Какви операции ще се изпълнят с контирането на документа
+     * @param int $id - ид на документа
+     * @return array $options - опции
+     */
+    public static function on_AfterGetDealsToCloseWith($mvc, &$res, $rec)
+    {
+    	// Избираме всички други активни сделки от същия тип и валута, като началния документ в същата папка
+    	$docs = array();
+    	$dealQuery = $mvc->getQuery();
+    	$dealQuery->where("#id != {$rec->id}");
+    	$dealQuery->where("#folderId = {$rec->folderId}");
+    	$dealQuery->where("#currencyId = '{$rec->currencyId}'");
+    	$dealQuery->where("#state = 'active'");
+    	
+    	while($dealRec = $dealQuery->fetch()){
+    		$actions = type_Set::toArray($dealRec->contoActions);
+    		
+    		// Ако е бърза сделка, пропускаме я
+    		if(isset($actions['ship']) || isset($actions['pay'])) continue;
+    	
+    		$docs[$dealRec->id] = $mvc->getRecTitle($dealRec);
+    	}
+    	
+    	$res = $docs;
     }
     
     
@@ -170,6 +207,57 @@ class acc_plg_Deals extends core_Plugin
 	    	
 	    	// ВАЖНО: спираме изпълнението на евентуални други плъгини
         	return FALSE;
+    	}
+    	
+    	if(strtolower($action) == 'closewith'){
+    		$id = Request::get('id', 'int');
+    		expect($rec = $mvc->fetch($id));
+    		expect($rec->state == 'draft');
+    		
+    		// Трябва потребителя да може да контира
+    		$mvc->requireRightFor('conto', $rec);
+    		
+    		$options = $mvc->getDealsToCloseWith($rec);
+    		count($options);
+    		
+    		// Подготовка на формата за избор на опция
+    		$form = cls::get('core_Form');
+    		$form->title = "|Активиране на|* <b>" . $mvc->getTitleById($id). "</b>" . " ?";
+    		$form->info = 'Искатели с активирането на тази сделка да приключите други сделки с нея';
+    		$form->FLD('closeWith', "keylist(mvc={$mvc->className})", 'caption=Приключи и,column=1');
+    		$form->setSuggestions('closeWith', $options);
+    		$form->input();
+	    	
+	    	// След като формата се изпрати
+	    	if($form->isSubmitted()){
+	    		$rec->contoActions = 'activate';
+	    		$rec->state = 'active';
+	    		$mvc->save($rec);
+	    		$mvc->invoke('AfterActivation', array($rec));
+	    		
+	    		if(!empty($form->rec->closeWith)){
+	    			$CloseDoc = cls::get($mvc->closeDealDoc);
+	    			$deals = keylist::toArray($form->rec->closeWith);
+	    			foreach ($deals as $dealId){
+	    				
+	    				// Създаване на приключващ документ-чернова
+	    				$dRec = $mvc->fetch($dealId);
+	    				$clId = $CloseDoc->create($mvc->className, $dRec, $id);
+	    				$CloseDoc->conto($clId);
+	    			}
+	    		}
+	    		
+	    		return redirect(array($mvc, 'single', $id));
+	    	}
+    		
+    		$form->toolbar->addSbBtn('Активиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
+    		$form->toolbar->addBtn('Отказ', array($mvc, 'single', $id),  'ef_icon = img/16/close16.png');
+    		 
+    		// Рендиране на формата
+    		$tpl = $mvc->renderWrapping($form->renderHtml());
+    		
+    		// ВАЖНО: спираме изпълнението на евентуални други плъгини
+    		return FALSE;
     	}
     }
     
@@ -411,5 +499,19 @@ class acc_plg_Deals extends core_Plugin
     	}
     
     	$res = $aggregateInfo;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'closewith' && isset($rec)){
+    		$options = $mvc->getDealsToCloseWith($rec);
+    		if(!count($options)){
+    			$res = 'no_one';
+    		}
+    	}
     }
 }

@@ -120,17 +120,15 @@ abstract class acc_ClosedDeals extends core_Master
     	 
     	// Намираме записите в които участва перото
     	$entries = acc_Journal::getEntries($dealItem, $item);
-    	 
+    	
     	// Намираме документите, които имат транзакции към перото
     	if(count($entries)){
     		foreach ($entries as $ent){
-    			if($ent->docType != $rec->classId && $ent->docId != $rec->id){
-    				$docs[$ent->docType . "|" . $ent->docId] = (object)array('docType' => $ent->docType, 'docId' => $ent->docId);
-    			}
+    			$docs[$ent->docType . "|" . $ent->docId] = (object)array('docType' => $ent->docType, 'docId' => $ent->docId);
     		}
     	}
     	$dealItem->docClassName = cls::get($dealItem->classId)->className;
-    	 
+    	
     	if(count($docs)){
     
     		// За всеки транзакционен клас
@@ -217,42 +215,6 @@ abstract class acc_ClosedDeals extends core_Master
     	}
     	
     	return FALSE;
-    }
-    
-    
-    /**
-     * След подготовка на формата
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	$form = &$data->form;
-    	$firstDoc = doc_Threads::getFirstDocument($form->rec->threadId);
-    	
-    	// Избираме всички други активни сделки от същия тип и валута, като началния документ в същата папка
-    	$docs = array();
-    	$dealQuery = $firstDoc->getQuery();
-    	$dealQuery->where("#id != {$firstDoc->that}");
-    	$dealQuery->where("#folderId = {$form->rec->folderId}");
-    	$dealQuery->where("#currencyId = '{$firstDoc->fetchField('currencyId')}'");
-    	$dealQuery->where("#state = 'active'");
-    	
-    	while($dealRec = $dealQuery->fetch()){
-    		$doc = new core_ObjectReference($firstDoc->instance, $dealRec->id);
-    		$dealInfo = $doc->getAggregateDealInfo();
-    		$actions = $dealInfo->get('contoActions');
-    		
-    		// Ако е бърза сделка, пропускаме я
-    		if(isset($actions['ship']) || isset($actions['pay'])) continue;
-    		
-    		$docs[$dealRec->id] = $firstDoc->instance->getRecTitle($dealRec);
-    	}
-    	
-    	if(count($docs)){
-    		// Добавяме ги като опции за приключване
-    		$form->setOptions('closeWith', $docs);
-    	} else {
-    		$form->setReadOnly('closeWith');
-    	}
     }
     
     
@@ -517,10 +479,12 @@ abstract class acc_ClosedDeals extends core_Master
     /**
      * Нов приключващ документ в същия тред на даден документ, и
      * приключващ продажбата/покупката
+     * 
      * @param mixed $Class - покупка или продажба
      * @param stdClass $docRec - запис на покупка или продажба
+     * @param int $closeWith - с коя сделка ще се приключи продажбата
      */
-    public function create($Class, $docRec)
+    public function create($Class, $docRec, $closeWith = FALSE)
     {
     	$Class = cls::get($Class);
     	
@@ -534,7 +498,10 @@ abstract class acc_ClosedDeals extends core_Master
 	    $newRec->threadId   = $docRec->threadId;
 	    $newRec->state      = 'draft';
 	    $newRec->classId    = $this->getClassId();
-	    	
+	    if($closeWith){
+	    	$newRec->closeWith = $closeWith;
+	    }
+	    
 	    // Създаване на документа
 	    return static::save($newRec);
     }
