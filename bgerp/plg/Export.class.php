@@ -107,7 +107,9 @@ class bgerp_plg_Export extends core_Plugin
     		if($form->isSubmitted()){
     			$Driver = cls::get($form->rec->driver);
     			$Driver->export($form->rec);
-    			followRetUrl();
+    			
+    			// Редирект към лист изгледа
+    			redirect(array($mvc, 'list'));
     		}
     		 
     		// Добавяне на туулбара
