@@ -298,6 +298,9 @@ class purchase_Purchases extends core_Master
         	}
         }
         
+        // Текущия потребител е закупчик, щом се е стигнало до тук значи има права
+        $form->setDefault('dealerId', core_Users::getCurrent());
+        
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($form->rec->valior));
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     }
@@ -551,7 +554,7 @@ class purchase_Purchases extends core_Master
 
 
     /**
-     * Филтър на продажбите
+     * Филтър на покупките
      */
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
