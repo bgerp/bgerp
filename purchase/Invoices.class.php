@@ -279,9 +279,9 @@ class purchase_Invoices extends core_Master
     	
         $this->purchase_InvoiceDetails->calculateAmount($recs, $rec);
         
-        $rec->dealValue = round($this->_total->amount * $rec->rate, 8);
+        $rec->dealValue = $this->_total->amount * $rec->rate;
         $rec->vatAmount = $this->_total->vat * $rec->rate;
-        $rec->discountAmount = round($this->_total->discount * $rec->rate, 8);
+        $rec->discountAmount = $this->_total->discount * $rec->rate;
     	$this->save($rec);
     }
     
