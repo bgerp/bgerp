@@ -457,6 +457,7 @@ class acc_HistoryReport extends core_Manager
      */
     private function getVerbalHistoryRow($rec, $Double, $Date)
     {
+    	$arr = array();
     	$arr['valior'] = $Date->toVerbal($rec['valior']);
     	 
     	// Ако има отрицателна сума показва се в червено

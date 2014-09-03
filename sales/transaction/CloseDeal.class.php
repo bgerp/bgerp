@@ -91,7 +91,7 @@ class sales_transaction_CloseDeal
     		$this->blAmount = $this->shortBalance->getAmount('411');
     		
     		// Създаване на запис за прехвърляне на всеки аванс
-    		$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downPaymentAmount, $firstDoc);
+    		$entry2 = $this->transferDownpayments($dealInfo, $downPaymentAmount, $firstDoc);
     		$result->totalAmount += $downPaymentAmount;
     		
     		// Ако тотала не е нула добавяме ентритата
@@ -113,9 +113,6 @@ class sales_transaction_CloseDeal
     		if(count($entry)){
     			$result->entries = array_merge($result->entries, $entry);
     		}
-    		 
-    		//bp($incomeFromClosure, $incomeFromProducts);
-    		$totalIncome = $incomeFromClosure + $incomeFromProducts;
     	}
     	
     	// Връщане на резултата
@@ -362,7 +359,7 @@ class sales_transaction_CloseDeal
      * 			Dt: 412 - Задължения към клиенти (по аванси)
      * 			Ct: 411 - Вземания от клиенти
      */
-    private function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$downPaymentAmount, $firstDoc)
+    private function transferDownpayments(bgerp_iface_DealAggregator $dealInfo, &$downPaymentAmount, $firstDoc)
     {
     	$entryArr = array();
     	 

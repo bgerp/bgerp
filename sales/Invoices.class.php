@@ -230,11 +230,10 @@ class sales_Invoices extends core_Master
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{
-		$data->listFilter->FNC('invType','enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
-            'caption=Вид,input,silent');
+		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
 		$data->listFilter->showFields .= ',invType';
 		$data->listFilter->input();
-	
+		
 		if($type = $data->listFilter->rec->invType){
 			if($type != 'all'){
 				$data->query->where("#type = '{$type}'");
@@ -258,6 +257,7 @@ class sales_Invoices extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
+    	$tplArr = array();
     	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Фактура изглед за писмо', 'content' => 'sales/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Фактура кратък изглед', 'content' => 'sales/tpl/InvoiceHeaderNormalShort.shtml', 'lang' => 'bg');

@@ -308,11 +308,13 @@ class forum_Boards extends core_Master {
 	 */
 	function renderNavigation($data)
 	{
+		$navigation = '';
 		if($data->navigation) {
 			foreach($data->navigation as $nav) {
 				$navigation .= $nav . "&nbsp;»&nbsp;"; 
 			}
 		}
+		
 		// Премахваме излишните символи от края на линка
 		$navigation = trim($navigation, "&nbsp»&nbsp;");
 		$navigation = "<span id='navigation-inner-link'>" . $navigation . "</span>";
@@ -508,9 +510,9 @@ class forum_Boards extends core_Master {
 	static function on_AfterPrepareListToolbar($mvc, &$data)
     {
 		if($cat = Request::get('category')){
-			$url = array($this, 'forum', 'cat' => $cat);
+			$url = array($mvc, 'forum', 'cat' => $cat);
 		} else {
-			$url = array($this, 'forum');
+			$url = array($mvc, 'forum');
 		  }
 		
     	$data->toolbar->addBtn('Преглед', $url);
