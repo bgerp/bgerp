@@ -93,7 +93,7 @@ class acc_Setup extends core_ProtoSetup
     		'acc_OpenDeals',
     		'acc_Features',
     		'migrate::removeYearInterfAndItem',
-    		'migrate::updateItemNums',
+    		'migrate::updateItemNums2',
         );
     
 
@@ -172,7 +172,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Обновява номерата на перата
      */
-    function updateItemNums()
+    function updateItemNums2()
     {
     	$Items = cls::get('acc_Items');
     	$itemsQuery = $Items->getQuery();

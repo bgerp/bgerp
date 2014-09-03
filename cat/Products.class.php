@@ -414,7 +414,7 @@ class cat_Products extends core_Master {
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
-                'num' => "A" . $rec->id,
+                'num' => "A" . $rec->code,
                 'title' => $rec->name,
                 'uomId' => $rec->measureId,
                 'features' => array()
