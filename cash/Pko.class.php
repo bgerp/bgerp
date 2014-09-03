@@ -119,7 +119,7 @@ class cash_Pko extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'number, valior, contragentName, reason';
+    var $searchFields = 'number, valior, contragentName, reason, id';
     
     
     /**

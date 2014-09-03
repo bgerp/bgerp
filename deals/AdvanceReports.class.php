@@ -151,7 +151,7 @@ class deals_AdvanceReports extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior,number,folderId';
+    public $searchFields = 'valior,number,folderId, id';
     
     
     /**

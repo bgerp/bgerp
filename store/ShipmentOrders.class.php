@@ -142,7 +142,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId';
+    public $searchFields = 'locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId, id';
     
     
     /**

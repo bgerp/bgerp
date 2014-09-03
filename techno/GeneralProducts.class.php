@@ -109,7 +109,7 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, description, measureId, code';
+    var $searchFields = 'title, description, measureId, code, id';
     
     
     /**

@@ -128,7 +128,7 @@ class purchase_Services extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior, contragentClassId, contragentId, locationId, deliveryTime, folderId';
+    public $searchFields = 'valior, contragentClassId, contragentId, locationId, deliveryTime, folderId, id';
     
     
     /**

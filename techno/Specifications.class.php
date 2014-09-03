@@ -55,7 +55,7 @@ class techno_Specifications extends core_Manager {
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'title, folderId, docClassId';
+    public $searchFields = 'title, folderId, docClassId, id';
     
     
     /**

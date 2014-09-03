@@ -123,7 +123,7 @@ class bank_IncomeDocuments extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason, contragentName, amount';
+    var $searchFields = 'reason, contragentName, amount, id';
     
     
     /**

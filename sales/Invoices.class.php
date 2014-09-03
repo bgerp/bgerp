@@ -44,7 +44,7 @@ class sales_Invoices extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, bgerp_plg_Export,
 					doc_EmailCreatePlg, doc_plg_MultiPrint, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,acc_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search';
     
@@ -124,7 +124,7 @@ class sales_Invoices extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number, folderId, id';
+    public $searchFields = 'number, folderId, id, id';
     
     
     /**

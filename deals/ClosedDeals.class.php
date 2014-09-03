@@ -96,7 +96,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'notes,docId,classId';
+    public $searchFields = 'notes,docId,classId, id';
     
     
     /**

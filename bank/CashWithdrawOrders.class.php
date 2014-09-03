@@ -110,7 +110,7 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, reason, proxyName, proxyEgn, proxyIdCard';
+    var $searchFields = 'valior, reason, proxyName, proxyEgn, proxyIdCard, id';
     
     
     /**

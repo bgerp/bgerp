@@ -124,7 +124,7 @@ class deals_CreditDocuments extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, folderId, dealId';
+    public $searchFields = 'name, folderId, dealId, id';
 
     
     /**

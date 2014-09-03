@@ -128,7 +128,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, reason, creditBank, debitBank';
+    var $searchFields = 'valior, reason, creditBank, debitBank, id';
     
     
     /**

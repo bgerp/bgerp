@@ -129,7 +129,7 @@ class deals_Deals extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'dealName, accountId, description, folderId';
+    public $searchFields = 'dealName, accountId, description, folderId, id';
     
     
     /**
