@@ -87,7 +87,7 @@ class sales_transaction_CloseDeal
     		$result->entries = array_merge($result->entries, $closeEntries);
     	} else {
     		$dealInfo = $this->class->getDealInfo($rec->threadId);
-    		
+    	
     		$this->blAmount = $this->shortBalance->getAmount('411');
     		
     		// Създаване на запис за прехвърляне на всеки аванс
@@ -155,7 +155,7 @@ class sales_transaction_CloseDeal
     {
     	$entry = array();
     	 
-    	if($amount == 0) return $entry;
+    	if(round($amount, 2) == 0) return $entry;
     	
     	if($amount < 0){
     		

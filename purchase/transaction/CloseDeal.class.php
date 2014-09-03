@@ -258,7 +258,7 @@ class purchase_transaction_CloseDeal
     {
     	$entry = array();
     
-    	if($amount == 0) return $entry;
+    	if(round($amount, 2) == 0) return $entry;
     	 
     	// Сметка 401 има Дебитно (Dt) салдо
     	if($amount > 0){
