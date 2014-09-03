@@ -75,7 +75,7 @@ class acc_plg_DpInvoice extends core_Plugin
         $form->setField('dpOperation','input');
         
         // Показване на закръглената сума
-        $form->rec->dpAmount = currency_Currencies::round($form->rec->dpAmount / $form->rec->rate);
+        $form->rec->dpAmount = round($form->rec->dpAmount / $form->rec->rate, 6);
     }
     
     
