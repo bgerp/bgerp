@@ -267,10 +267,10 @@ class crm_Profiles extends core_Master
         
         // Ако има права за модифициране на настройките за персоналзиране
         // @see custom_SettingsIntf
-        if (core_Users::haveRightFor('personalize', $data->rec->id)) {
+        if (core_Users::haveRightFor('personalize', $data->rec->userId)) {
             
             // Добавяме бутона, който сочи към екшъна за персонализиране
-            $data->toolbar->addBtn('Персонализиране', array('core_Users', 'Personalize', $data->rec->userId, 'ret_url' => TRUE), 'ef_icon=img/16/customize.png,title=Дебъг,row=2');
+            $data->toolbar->addBtn('Персонализиране', array('core_Users', 'Personalize', $data->rec->userId, 'ret_url' => TRUE), 'ef_icon=img/16/customize.png,title=Персонализиране на настройките,row=2');
         }
     }
     
