@@ -60,6 +60,22 @@ defIfNot('BULMAR_INV_CREDIT_PAYMENT', 'K411');
 
 
 /**
+ * Дебитна сметка на плащането в Bulmar Office
+ */
+defIfNot('BULMAR_INV_AV_OPERATION', '88');
+
+
+/**
+ * Кредитна сметка на плащането в Bulmar Office
+*/
+defIfNot('BULMAR_INV_CREDIT_AV', 'K412');
+
+
+/*
+ * 'BULMAR_INV_AV_OPERATION'                => array("varchar(10)", "caption=Експорт на изходящи фактури->Сч. Операция на авансово плащане"),
+    		'BULMAR_INV_CREDIT_AV'                   => array("varchar(10)", "caption=Експорт на изходящи фактури->Кредитна сметка за авансово плащане"),
+ */
+/**
  * class bulmar_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -115,6 +131,8 @@ class bulmar_Setup extends core_ProtoSetup
     		'BULMAR_INV_SECOND_CREDIT_SALE'          => array("varchar(10)", "caption=Експорт на изходящи фактури->Кредитна сметка ДДС"),
     		'BULMAR_INV_DEBIT_PAYMENT'               => array("varchar(10)", "caption=Експорт на изходящи фактури->Дебитна сметка плащане"),
     		'BULMAR_INV_CREDIT_PAYMENT'              => array("varchar(10)", "caption=Експорт на изходящи фактури->Кредитна сметка плащане"),
+    		'BULMAR_INV_AV_OPERATION'                => array("varchar(10)", "caption=Експорт на изходящи фактури->Сч. Операция на авансово плащане"),
+    		'BULMAR_INV_CREDIT_AV'                   => array("varchar(10)", "caption=Експорт на изходящи фактури->Кредитна сметка за авансово плащане"),
     		);
     
     
