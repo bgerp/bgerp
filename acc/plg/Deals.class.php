@@ -84,7 +84,7 @@ class acc_plg_Deals extends core_Plugin
     		// към екшън за избиране на кои сделки да се приключат с тази
     		$data->toolbar->removeBtn('btnConto');
     		$data->toolbar->removeBtn('btnActivate');
-    		$data->toolbar->addBtn('Активиране3', array($mvc, 'closeWith', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
+    		$data->toolbar->addBtn('Активиране', array($mvc, 'closeWith', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
     	}
     }
     
