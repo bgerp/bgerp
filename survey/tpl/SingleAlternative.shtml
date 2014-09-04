@@ -3,7 +3,7 @@
     <tr>
         <td>
             <h2>
-                <span class=''>[#icon#] [#label#]</span>
+                [#icon#] [#label#]
                 <span class='tools'>[#tools#]</span>
                 [#addOption#]
             </h2>
