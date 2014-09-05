@@ -21,6 +21,42 @@ function runOnLoad(functionName)
 
 runOnLoad(showTooltip);
 
+function canvas(){
+	
+	$(document).on('click', '#reportBTN', function() {
+		html2canvas(document.body, {
+			   onrendered: function(canvas) {
+			     var img = canvas.toDataURL()
+			     window.open(img);
+			  }
+			});
+		
+	});
+	
+	/*
+                html2canvas(document.body, {
+                    "logging": true, //Enable log (use Web Console for get Errors and Warnings)
+                    "proxy":"localhost",
+                    "onrendered": function(canvas) {
+                        var img = new Image();
+                        img.onload = function() {
+                            img.onload = null;
+                            document.body.appendChild(img);
+                        };
+                        img.onerror = function() {
+                            img.onerror = null;
+                            if(window.console.log) {
+                                window.console.log("Not loaded image from canvas.toDataURL");
+                            } else {
+                                alert("Not loaded image from canvas.toDataURL");
+                            }
+                        };
+                        img.src = canvas.toDataURL("image/png");
+                    }
+                });
+                
+   */
+}
 
 function showTooltip() 
 {
