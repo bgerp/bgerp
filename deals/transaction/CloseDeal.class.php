@@ -58,7 +58,7 @@ class deals_transaction_CloseDeal
     	$result = (object)array(
     			'reason'      => $rec->notes,
     			'valior'      => dt::now(),
-    			'totalAmount' => abs($amount),
+    			'totalAmount' => 0,
     			'entries'     => array(),
     	);
     	
