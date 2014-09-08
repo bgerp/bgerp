@@ -130,7 +130,7 @@ class acc_Lists extends core_Manager {
         if (!$rec->num) {
             $rec->num = $mvc::fetchField($rec->id, 'num');
         }
-        $rec->caption = $mvc->getVerbal($rec, 'name') . "&nbsp;(" . $mvc->getVerbal($rec, 'num') . ")";
+        $rec->caption = $mvc->getVerbal($rec, 'name') . " (" . $mvc->getVerbal($rec, 'num') . ")";
     }
     
     
