@@ -691,8 +691,8 @@ a.header:hover {
 
 .narrow .toolbar .button {
 	border-right: 1px solid #999;
-	margin-right: 2px !important;
-	margin-bottom: 2px !important;
+	margin-right: 2px;
+	margin-bottom: 3px;
 	@include border-radius(3px);
 }
 
@@ -981,9 +981,6 @@ table.listTable {
 		max-width: 400px;
 		word-wrap: break-word;
 	}
-    .toolbar {
-		padding: 4px 5px 0px;
-	}
 	.document h2 {
 		margin-top: 3px;
     }
@@ -1255,7 +1252,7 @@ td.formElement {
     margin-right: 10px;
 }
 
-.wide .listToolbar {
+.listToolbar {
 	margin-top: 13px;
 }
 
@@ -1289,18 +1286,8 @@ td.formElement {
 	margin-top: 10px;
 }
 
-.wide .doc_Containers .toolbar {
-	margin-top: 3px;
-	margin-bottom: 3px;
-}
-
 .narrow .toolbar {
-	margin: 10px 0 10px 0px;
-}
-
-.narrow table.listTable .toolbar {
-	padding: 4px 4px 3px;
-	margin: 0 0 3px 0;
+	margin: 5px 0;
 }
 
 .wide .doc_Search {
