@@ -156,7 +156,7 @@ class acc_plg_DpInvoice extends core_Plugin
     				$vat = 0;
     			}
         		
-        		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 2);
+        		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 6);
         		
 	        	if($rec->dpAmount > $downpayment){
 	            	$form->setError('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
