@@ -509,7 +509,7 @@ class acc_plg_Deals extends core_Plugin
     {
     	if($action == 'closewith' && isset($rec)){
     		$options = $mvc->getDealsToCloseWith($rec);
-    		if(!count($options)){
+    		if(!count($options) || $rec->state != 'draft'){
     			$res = 'no_one';
     		}
     	}
