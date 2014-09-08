@@ -191,7 +191,7 @@ class acc_ReportDetails extends core_Manager
 	    	$conf = core_Packs::getConfig('acc');
 	    	$tolerance = $conf->ACC_MONEY_TOLERANCE;
 	    	
-	    	// Ако количеството и сумата са близки до нулата в орпеделена граница ги пропускаме
+	    	// Ако количеството и сумата са близки до нулата в определена граница ги пропускаме
 	    	if(($dRec->blQuantity > (-1 * $tolerance) &&  $dRec->blQuantity < $tolerance) &&
 	    	(($dRec->blAmount > (-1 * $tolerance) &&  $dRec->blAmount < $tolerance))) {
 	    		continue;

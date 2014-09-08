@@ -952,19 +952,16 @@ class doc_Threads extends core_Manager
         // Оттегляме всички контейнери в нишката
         $rejectedIds = doc_Containers::rejectByThread($rec->id);
         
-        if(count($rejectedIds)){
+        // Добавяме и контейнера на първия документ в треда
+        $rejectedIds[] = $rec->firstContainerId;
+        
+        // Обръщаме последователността на обратно
+        $rejectedIds = array_reverse($rejectedIds);
         	
-        	// Добавяме и контейнера на първия документ в треда
-        	$rejectedIds[] = $rec->firstContainerId;
+        // Ако има оттеглени контейнери с треда, запомняме ги, за да може при възстановяване да възстановим само тях
+        $rec->rejectedContainersInThread = $rejectedIds;
         	
-        	// Обръщаме последователността на обратно
-        	$rejectedIds = array_reverse($rejectedIds);
-        	
-        	// Ако има оттеглени контейнери с треда, запомняме ги, за да може при възстановяване да възстановим само тях
-        	$rec->rejectedContainersInThread = $rejectedIds;
-        	
-        	static::save($rec, 'rejectedContainersInThread');
-        }
+        static::save($rec, 'rejectedContainersInThread');
     }
     
     
