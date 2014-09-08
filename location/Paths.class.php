@@ -46,7 +46,7 @@ class location_Paths {
         $res->push('location/' . GMAP3_VERSION . '/gmap3.js', 'JS');
 		
         $value = json_encode($value);
-        jquery_Jquery::run($res, "generatePath({$value},{$id})");
+        jquery_Jquery::run($res, "generatePath({$value},{$id});");
         
         return $res;
     }
