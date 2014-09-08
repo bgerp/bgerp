@@ -307,7 +307,7 @@ div.folder-cover {
 	background-image: url('../img/cover-bg.png');
 	display: inline-block;
 	max-width: 750px;
-	margin-top: 16px;
+	margin-top: 10px;
 	line-height: 1.2em;
 	position: relative;
 	border: 1px solid #ccc;
@@ -905,7 +905,8 @@ td.portal-date {
 
 
 /*тредове*/
-.single-thread .listTable td {
+.single-thread > .listRows > .listTable > tbody > tr > td {
+	padding: 9px;
 	max-width: 56em;
 }
 
@@ -951,7 +952,7 @@ td.portal-date {
 
 /*стилове за документи*/
 .document {
-    width: 99%;
+	width: 100%;
     min-width: 50em;
     max-width: 56em;
 	border: solid 1px $gray4;
@@ -1005,7 +1006,7 @@ td.portal-date {
 			width: 100%;
 		}
 		.listToolbar {
-			padding: 5px 0px;
+			padding: 10px 0px 5px;
 			margin: 0;
 			border-bottom: 1px solid #999;
 			.toolbar {
@@ -1057,10 +1058,6 @@ td.portal-date {
 
 .document .listTable th{
 	white-space: nowrap;
-}
-
-.document  .listTable  tr > th:first-child{
-	width:1%;
 }
 
 .small-field{
@@ -1115,22 +1112,19 @@ pre.document {
 
 .narrow .listTable > tbody > tr > td div.document {
 	min-width: 200px;
-	width: 98%;
 }
 
 .listTable > tbody > tr > td div.document {
 	border: none;
 	background: transparent;
 	@include no-shadow();
-	padding: 2px 4px 5px 4px;
+	padding: 0;
 	float: left;
-	margin: 0px;
+	margin: 2px 0 0 0;
 }
 
 .antetka {
-	margin-top: 10px;
 	margin-bottom: 5px;
-	margin-left: 1px;
 	padding: 5px;
 	border: solid 1px $gray3;
 	background: transparent;
@@ -1153,11 +1147,6 @@ pre.document {
 .narrow .document .richtext {
 	min-width: 220px;
 	height: auto;
-}
-
-.narrow .document .details .listToolbar .toolbar {
-	margin-top: 8px;
-	margin-left: 0;
 }
 
 .smallData {
@@ -1559,8 +1548,6 @@ td.constrColumnLeft {
 
 /*стилове за история и автор*/
 .profile-summary {
-	margin-left: 2px;
-	margin-top: 3px;
 	margin-bottom: 0px;
 	text-decoration: none;
 	div {
@@ -1572,11 +1559,6 @@ td.constrColumnLeft {
 			margin-bottom: 2px;
 		}
 	}
-}
-
-.narrow .profile-summary {
-	margin-left: 5px;
-    margin-top: 5px;
 }
 
 ul.history {
@@ -2440,25 +2422,19 @@ fieldset.sharing-history {
 	margin:0 auto;
 	.name-box {
 		font-size: 0.8em;
-		margin-top: 7px;
-		margin-left: 5px;
-		margin-right: 5px;
 		max-width:100px;
 	}
 
 	.date-box {
 		font-size: 0.8em;
-		margin-left: 7px;
-		margin-right: 7px; 
+		margin-left: 2px;
+		margin-right: 2px; 
 		margin-bottom: 5px;
 		margin-top: 5px;
 	}
 
 	.gravatar-box{
 	    text-align: center;
-		img {
-		  margin: 0 6px !important;
-	    }	
 	}
 }
 /*стилове за автор в документ*/
