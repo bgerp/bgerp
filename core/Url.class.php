@@ -838,7 +838,7 @@ class core_Url
     /**
      * Подготвяме масив с валидни TLD от файл
      */
-    static public function pepareValideTldArray()
+    static public function prepareValideTldArray()
     {
     	$url = 'http://data.iana.org/TLD/tlds-alpha-by-domain.txt';
 	    $pageSource = file_get_contents($url);
