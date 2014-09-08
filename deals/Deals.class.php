@@ -801,4 +801,24 @@ class deals_Deals extends core_Master
     	// Ако не е контрагент или не е в група 'дебитори' или 'кредитори' не слагаме бутон
     	return FALSE;
     }
+    
+    
+    /**
+     * Кои сделки ще могатд а се приключат с документа
+     * 
+     * @param int $id - ид на документа
+     * @return array $options - опции
+     */
+    public static function on_AfterGetDealsToCloseWith($mvc, &$res, $rec)
+    {
+    	if(!count($res)) return;
+    	
+    	// Сделките трябва да са със същата избрана сметка
+    	foreach ($res as $id => $title){
+    		$accId = $mvc->fetchField($id, 'accountId');
+    		if($accId != $rec->accountId){
+    			unset($res[$id]);
+    		}
+    	}
+    }
 }

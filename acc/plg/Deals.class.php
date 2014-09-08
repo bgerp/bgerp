@@ -90,7 +90,8 @@ class acc_plg_Deals extends core_Plugin
     
     
     /**
-     * Какви операции ще се изпълнят с контирането на документа
+     * Кои сделки ще могатд а се приключат с документа
+     * 
      * @param int $id - ид на документа
      * @return array $options - опции
      */
