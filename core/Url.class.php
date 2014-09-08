@@ -18,7 +18,7 @@ class core_Url
 {
     
 	 // От http://data.iana.org/TLD/tlds-alpha-by-domain.txt
-     static $valideTld = array(
+     /*static $valideTld = array(
         	'ac', 'academy', 'accountants', 'active', 'actor', 'ad', 'ae', 'aero', 'af', 'ag', 'agency', 'ai', 'airforce', 
         	'al', 'am', 'an', 'ao', 'aq', 'ar', 'archi', 'army', 'arpa', 'as', 'asia', 'associates', 'at', 'attorney', 'au', 
         	'auction', 'audio', 'autos', 'aw', 'ax', 'axa', 'az', 'ba', 'bar', 'bargains', 'bayern', 'bb', 'bd', 'be', 'beer', 
@@ -69,7 +69,7 @@ class core_Url
         	'xn--mgbc0a9azcg', 'xn--mgberp4a5d4ar', 'xn--mgbx4cd0ab', 'xn--ngbc5azd', 'xn--nqv7f', 'xn--nqv7fs00ema', 'xn--o3cw4h', 
         	'xn--ogbpf8fl', 'xn--p1ai', 'xn--pgbs0dh', 'xn--q9jyb4c', 'xn--rhqv96g', 'xn--s9brj9c', 'xn--ses554g', 'xn--unup4y', 'xn--vhquv', 
         	'xn--wgbh1c', 'xn--wgbl6a', 'xn--xhq521b', 'xn--xkc2al3hye2a', 'xn--xkc2dl3a5ee0h', 'xn--yfro4i67o', 'xn--ygbi2ammx', 'xn--zfr164b', 
-        	'xxx', 'xyz', 'yachts', 'yandex', 'ye', 'yokohama', 'youtube', 'yt', 'za', 'zm', 'zone', 'zw');
+        	'xxx', 'xyz', 'yachts', 'yandex', 'ye', 'yokohama', 'youtube', 'yt', 'za', 'zm', 'zone', 'zw');*/
     
     /**
      * @todo Чака за документация...
@@ -170,7 +170,7 @@ class core_Url
         
         if (!core_URL::isValidUrl($url)) {
             $parts['error'] = "Невалидно URL";
-        } elseif ($parts['tld'] && !in_array($parts['tld'], static::$valideTld)) {
+        } elseif ($parts['tld'] && !in_array($parts['tld'], self::prepareValideTldArray())) {
             $parts['error'] = "Невалидно разширение на домейн|*: <b>" . $parts['tld'] . "</b>";
         }
         
@@ -190,7 +190,7 @@ class core_Url
 
         $tld = strtolower($tld);
 
-        if (in_array($tld, static::$valideTld)) {
+        if (in_array($tld, self::prepareValideTldArray())) {
         	   
         	return TRUE;
         }
@@ -832,5 +832,30 @@ class core_Url
         }
 
         return $matches[0];
+    }
+
+    
+    /**
+     * Подготвяме масив с валидни TLD от файл
+     */
+    static public function pepareValideTldArray()
+    {
+    	$url = 'http://data.iana.org/TLD/tlds-alpha-by-domain.txt';
+	    $pageSource = file_get_contents($url);
+	    
+		if (!$pageSource) {
+		    echo "ERROR: Не може да се вземе съдържанието<br />\n";
+		} else {
+			$source = stristr($pageSource, "AC");
+			$source = mb_strtolower($source);
+			
+			$source = str_replace("\n", "', ", trim($source));
+			$source = str_replace("', ", "', '",trim($source));
+			$source = "'" . $source  . "'";
+			
+			$valideTld = explode(",", $source);
+			
+			return $valideTld;
+		}
     }
 }
