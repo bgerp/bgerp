@@ -82,7 +82,10 @@ class bulmar_InvoiceExport extends core_Manager {
     	$query = $this->Invoices->getQuery_();
     	$query->where("#state = 'active'");
     	$query->between('date', $filter->from, $filter->to);
-    	$query->orderBy("#number", 'ASC');
+    	
+    	$query->orderBy("#number", 'DESC');
+    	$query->limit(2);
+    	//$query->orderBy("#number", 'ASC');
     	
     	$recs = $query->fetchAll();
     	
@@ -195,6 +198,9 @@ class bulmar_InvoiceExport extends core_Manager {
     	if($rec->dpOperation){
     		$nRec->dpOperation = $rec->dpOperation;
     		$nRec->dpAmount = round($rec->dpAmount, 2);
+    		if($rec->dpOperation == 'accrued'){
+    			$nRec->reason = 'Фактура за аванс';
+    		}
     	}
     	
     	if(empty($rec->accountId)){
@@ -225,6 +231,7 @@ class bulmar_InvoiceExport extends core_Manager {
     		} elseif($rec->dpOperation == 'deducted'){
     			$rec->amount += $rec->dpAmount;
     			$operationId = $static->advancePayment;
+    			$rec->baseAmount += $rec->dpAmount;
     		}
     		
     		$line = "{$rec->num}|{$rec->type}|{$rec->invNumber}|{$rec->date}|{$rec->contragentEik}|{$rec->date}|{$static->folder}|{$rec->contragent}|". "\r\n";
