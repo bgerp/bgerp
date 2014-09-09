@@ -173,6 +173,9 @@ class acc_plg_DocumentSummary extends core_Plugin
 		// Ако няма заявка, да не се изпълнява
 		if (!$data->listSummary->query) return ;
 		
+		// Да не се показва при принтиране
+		if (Mode::is('printing')) return ;
+		
 		// Ще се преброяват всички неоттеглени документи
  		$data->listSummary->query->where("#state != 'rejected' || #state IS NULL");
 		$data->listSummary->summary = array();
