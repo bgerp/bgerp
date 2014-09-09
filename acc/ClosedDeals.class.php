@@ -474,8 +474,9 @@ abstract class acc_ClosedDeals extends core_Master
     	
     	// Създаване на приключващ документ, само ако има остатък/излишък
     	$newRec = new stdClass();
+    	$notes = ($closeWith) ? "Приключено със сделка" : "Автоматично приключване";
     	
-	    $newRec->notes      = "Автоматично приключване";
+	    $newRec->notes      = $notes;
 	    $newRec->docClassId = $Class->getClassId();
 	    $newRec->docId      = $docRec->id;
 	    $newRec->folderId   = $docRec->folderId;
