@@ -206,7 +206,7 @@ class sales_Invoices extends core_Master
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
-        $this->FLD('vatAmount', 'double(decimals=2)', 'caption=Стойност ДДС, input=none,summary=amount');
+        $this->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
         $this->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -684,11 +684,12 @@ class sales_Invoices extends core_Master
     			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
     		}
     		
-    		@$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($rec->dealValue / $rec->rate);
-    		$row->dealValue = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>" . $row->dealValue;
+    		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
+    		@$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($total / $rec->rate);
+    		$row->dealValue = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->dealValue;
     		
     		$baseCode = acc_Periods::getBaseCurrencyCode($rec->date);
-    		$row->vatAmount = "<span class='cCode' style='float:left'>{$baseCode}</span>" . $row->vatAmount;
+    		$row->vatAmount = "<span class='cCode' style='float:left'>{$baseCode}</span>&nbsp;" . $row->vatAmount;
     	}
     	
     	if($fields['-single']){
@@ -1014,11 +1015,9 @@ class sales_Invoices extends core_Master
     public function pushDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
-        
-        //@TODO WTF 
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
-        
         $total = ($rec->type == 'credit_note') ? -1 * $total : $total;
+        
         $aggregator->sum('invoicedAmount', $total);
         $aggregator->setIfNot('invoicedValior', $rec->date);
         $aggregator->setIfNot('paymentMethodId', $rec->paymentMethodId);
