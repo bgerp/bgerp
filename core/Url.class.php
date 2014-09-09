@@ -170,7 +170,7 @@ class core_Url
         
         if (!core_URL::isValidUrl($url)) {
             $parts['error'] = "Невалидно URL";
-        } elseif ($parts['tld'] && !in_array($parts['tld'], self::$valideTld())) {
+        } elseif ($parts['tld'] && !in_array($parts['tld'], self::$valideTld)) {
             $parts['error'] = "Невалидно разширение на домейн|*: <b>" . $parts['tld'] . "</b>";
         }
         
@@ -190,7 +190,7 @@ class core_Url
 
         $tld = strtolower($tld);
 
-        if (in_array($tld, self::$valideTld())) {
+        if (in_array($tld, self::$valideTld)) {
         	   
         	return TRUE;
         }
