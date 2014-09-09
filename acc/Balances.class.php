@@ -170,7 +170,7 @@ class acc_Balances extends core_Master
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if (!empty($mvc->accountRec)) {
-            $data->toolbar->addBtn('Обобщена', array($mvc, 'single', $data->rec->id));
+            $data->toolbar->addBtn('Назад', array($mvc, 'single', $data->rec->id), 'ef_icon=img/16/back16.png');
         }
     }
     
