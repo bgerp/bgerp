@@ -124,7 +124,7 @@ abstract class acc_ClosedDeals extends core_Master
     	// Намираме документите, които имат транзакции към перото
     	if(count($entries)){
     		foreach ($entries as $ent){
-	    		if($ent->docType != $rec->classId && $ent->docId != $rec->id){
+    			if($ent->docType != $rec->classId || ($ent->docType == $rec->classId && $ent->docId != $rec->id)){
 	 				$docs[$ent->docType . "|" . $ent->docId] = (object)array('docType' => $ent->docType, 'docId' => $ent->docId);
 				}
     		}
