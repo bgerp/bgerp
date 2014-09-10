@@ -107,6 +107,8 @@ class sales_transaction_CloseDeal
     			$result->entries[] = $entry3;
     		}
     		
+    		$conf = core_Packs::getConfig('acc');
+    		
     		// Ако има сума различна от нула значи има приход/разход
     		$entry = $this->getCloseEntry($this->blAmount, $result->totalAmount, $docRec, $firstDoc, $incomeFromClosure);
     		
@@ -154,7 +156,13 @@ class sales_transaction_CloseDeal
     private function getCloseEntry($amount, &$totalAmount, $docRec, $firstDoc, &$incomeFromClosure)
     {
     	$entry = array();
-    	 
+    	
+    	// Ако е в границата на допустимото отклонение, не правим статия
+		$conf = core_Packs::getConfig('acc');
+		if($amount >= -1 * $conf->ACC_MONEY_TOLERANCE && $amount <= $conf->ACC_MONEY_TOLERANCE){
+			$amount = 0;
+		}
+    	
     	if(round($amount, 2) == 0) return $entry;
     	
     	if($amount < 0){

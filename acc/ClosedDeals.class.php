@@ -273,7 +273,7 @@ abstract class acc_ClosedDeals extends core_Master
 	 */
 	public static function on_AfterPrepareListToolbar($mvc, $data) 
 	{
-		if (!empty ($data->toolbar->buttons ['btnAdd'])) {
+		if (!empty ($data->toolbar->buttons['btnAdd'])) {
 			unset($data->toolbar->buttons['btnAdd']);
 		}
 	}

@@ -71,10 +71,6 @@ defIfNot('BULMAR_INV_AV_OPERATION', '88');
 defIfNot('BULMAR_INV_CREDIT_AV', 'K412');
 
 
-/*
- * 'BULMAR_INV_AV_OPERATION'                => array("varchar(10)", "caption=Експорт на изходящи фактури->Сч. Операция на авансово плащане"),
-    		'BULMAR_INV_CREDIT_AV'                   => array("varchar(10)", "caption=Експорт на изходящи фактури->Кредитна сметка за авансово плащане"),
- */
 /**
  * class bulmar_Setup
  *
@@ -143,7 +139,7 @@ class bulmar_Setup extends core_ProtoSetup
     { 
         $html = parent::install();
         
-        // Добавяме Импортиращия драйвър в core_Classes
+        // Добавяме импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bulmar_InvoiceExport');
         
         return $html;
