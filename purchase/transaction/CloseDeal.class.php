@@ -260,7 +260,7 @@ class purchase_transaction_CloseDeal
     
     	// Ако е в границата на допустимото отклонение, не правим статия
     	$conf = core_Packs::getConfig('acc');
-    	if($amount >= -1 * $conf->ACC_MONEY_TOLERANCE && $amount <= $conf->ACC_MONEY_TOLERANCE){
+    	if($amount >= -1 * $conf->ACC_MONEY_CLOSE_TOLERANCE && $amount <= $conf->ACC_MONEY_CLOSE_TOLERANCE){
     		$amount = 0;
     	}
     	
