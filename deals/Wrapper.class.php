@@ -26,8 +26,8 @@ class deals_Wrapper extends plg_ProtoWrapper
         $this->TAB('deals_ClosedDeals', 'Финансови->Приключвания', 'dealsMaster, ceo');
         $this->TAB('deals_AdvanceDeals', 'ПОЛ->Аванси', 'dealsMaster, ceo');
         $this->TAB('deals_AdvanceReports', 'ПОЛ->Отчети', 'dealsMaster, ceo');
-        $this->TAB('deals_DebitDocuments', 'Прехвърляния->Вземания', 'dealsMaster, ceo');
-        $this->TAB('deals_CreditDocuments', 'Прехвърляния->Задължения', 'dealsMaster, ceo');
+        $this->TAB('deals_DebitDocuments', 'Прехвърляния->Задължения', 'dealsMaster, ceo');
+        $this->TAB('deals_CreditDocuments', 'Прехвърляния->Вземания', 'dealsMaster, ceo');
         
         $this->title = 'Сделки';
     }
