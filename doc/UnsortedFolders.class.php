@@ -241,7 +241,7 @@ class doc_UnsortedFolders extends core_Master
 		                    $data->rec->id,
 		                    'View'=>$ganttType
 		                ),
-		                'ef_icon = img/16/chart-bar-icon-16.png');
+		                'ef_icon = img/16/barchart-multicolor-16.png');
         }
     }
 
@@ -354,7 +354,7 @@ class doc_UnsortedFolders extends core_Master
 	                'ef_icon = img/16/project-archive.png');
         
 	    // иконата за пред името на проекта
-	    $icon = sbf("img/24/chart-bar-icon-24.png", '', '');
+	    $icon = sbf("img/24/barchart-multicolor-24.png", '', '');
         
 	    // подготвените данни за Гант
  		$res = self::prepareGantt($data);
