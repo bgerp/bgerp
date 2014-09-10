@@ -106,11 +106,6 @@ class acc_plg_Deals extends core_Plugin
     	$dealQuery->where("#state = 'active'");
     	
     	while($dealRec = $dealQuery->fetch()){
-    		$actions = type_Set::toArray($dealRec->contoActions);
-    		
-    		// Ако е бърза сделка, пропускаме я
-    		if(isset($actions['ship']) || isset($actions['pay'])) continue;
-    	
     		$docs[$dealRec->id] = $mvc->getRecTitle($dealRec);
     	}
     	
