@@ -44,7 +44,7 @@ class sales_Invoices extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, bgerp_plg_Export,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_ExportCsv, doc_DocumentPlg, bgerp_plg_Export,
 					doc_EmailCreatePlg, doc_plg_MultiPrint, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,acc_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search';
     
@@ -180,23 +180,23 @@ class sales_Invoices extends core_Master
      */
     function description()
     {
-        $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
+        $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory, export=Csv');
         $this->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
         $this->FLD('number', 'int', 'caption=Номер, export=Csv');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory, class=contactData');
+        $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory, class=contactData, export=Csv');
         $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
-        $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo');
+        $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo, export=Csv');
         $this->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №,contragentDataField=uicId');
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode,contragentDataField=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData,contragentDataField=place');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
         $this->FLD('changeAmount', 'double(decimals=2)', 'input=none');
         $this->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description)', 'caption=Плащане->Начин');
-        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description)', 'caption=Плащане->Начин, export=Csv');
+        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка');
 		$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden'); 
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
@@ -205,12 +205,12 @@ class sales_Invoices extends core_Master
         $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС,input=hidden');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
-        $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
+        $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount, export=Csv');
         $this->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
         $this->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
-            'caption=Статус, input=none'
+            'caption=Статус, input=none,export=Csv'
         );
         
         $this->FLD('type', 
@@ -1210,4 +1210,25 @@ class sales_Invoices extends core_Master
     	$inv_status = ($copyNum == '1') ? tr('ОРИГИНАЛ') . "/<i>ORIGINAL</i>" : tr('КОПИЕ') . "/<i>COPY</i>";
     	$copyTpl->replace($inv_status, 'INV_STATUS');
     }
+    
+    
+    /**
+     * Преди експортиране като CSV
+     */
+   	public static function on_BeforeExportCsv($mvc, &$rec)
+   	{
+   		$rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+   		$rec->dealValue = round($rec->dealValue + $rec->vatAmount - $rec->discountAmount, 2);
+   		$rec->state = $mvc->getVerbal($rec, 'state');
+   	}
+   	
+   	
+   	/**
+   	 * След подготвяне на заявката за експорт
+   	 */
+   	public static function on_AfterPrepareExportQuery($mvc, &$query)
+   	{
+   		$query->orWhere("#state = 'rejected' AND #brState = 'active'");
+   		$query->where("#state != 'draft'");
+   	}
 }
