@@ -25,11 +25,17 @@
 	background-color:#f1f1f1;
 	color:#333;
 }
+
 .gantt-tasks .gantt-header{
 	text-align:right;
 }
+
 .other-bg{
 	background-color: #ffffe5;
+}
+
+.gantt-table th {
+	white-space: nowrap;
 }
 
 .gantt-table th, .gantt-table td{
@@ -48,6 +54,7 @@
 .gantt-table tr:first-child th{
 	font-size:0.9em;
 }
+
 .gantt-table tr>td:first-child, .gantt-table tr>th:first-child{
 	border-left:none !important;
 }
