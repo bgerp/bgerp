@@ -29,7 +29,15 @@ class core_Plugins extends core_Manager
      */
     var $loadList = 'plg_SystemWrapper,plg_RowTools,plg_State';
     
+
+    /**
+     * Масив с плъгините, които се прикачат динамично
+     * 
+     * @var array
+     */
+    private $attachedPlugins;
     
+
     /**
      * Описание на модела
      */
@@ -130,6 +138,9 @@ class core_Plugins extends core_Manager
         $rec->state = $state;
         $rec->cover = $cover;
         
+        $self = cls::get('core_Plugins');
+        $self->setPlugin($rec->class, $rec->plugin, $rec->cover, $rec->name);;
+
         return static::save($rec);
     }
     
@@ -139,6 +150,16 @@ class core_Plugins extends core_Manager
      */
     function deinstallPlugin($plugin)
     {
+        foreach($this->attachedPlugins as $class => $r1) {
+            foreach($r1 as $cover => $r2) {
+                foreach($r2 as $name => $cPlg) {
+                    if($cPlg == $plugin) {
+                        unset($this->attachedPlugins[$class][$cover][$name]);
+                    }
+                }
+            }
+        }
+
         return $this->delete("#plugin = '{$plugin}'");
     }
     
