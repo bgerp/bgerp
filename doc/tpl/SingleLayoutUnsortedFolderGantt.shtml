@@ -1,0 +1,8 @@
+<div style="display:inline-block">
+    <div class='clearfix21 toolbar'><div>[#SingleToolbarGantt#]</div></div>
+    
+            <div class='listTitle'>[#SingleIconGantt#] |Проект|* « [#nameGantt#] »</div>
+
+    
+    <div>[#Gantt#]</div>
+</div>
