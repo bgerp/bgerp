@@ -78,11 +78,38 @@ abstract class deals_DealDetail extends core_Detail
     
     
     /**
-     * 
-     * @param core_Mvc $mvc
+     * След описанието на полетата
      */
     public static function on_AfterDescription(&$mvc)
     {
+    	$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
+    	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol');
+    	$mvc->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
+    	$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка', 'tdClass=small-field');
+    	
+    	// Количество в основна мярка
+    	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
+    	
+    	$mvc->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Експедирано количество (в основна мярка)
+    	$mvc->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=Дост.,input=none'); // Експедирано количество (в брой опаковки)
+    	
+    	$mvc->FLD('quantityInvoiced', 'double', 'caption=К-во->Фактурирано,input=none'); // Фактурирано количество (в основна мярка)
+    	
+    	// Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
+    	// няма стойност, приема се за единица.
+    	$mvc->FLD('quantityInPack', 'double', 'input=none');
+    	
+    	// Цена за единица продукт в основна мярка
+    	$mvc->FLD('price', 'double', 'caption=Цена,input=none');
+    	
+    	// Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
+    	$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
+    	$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
+    	
+    	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
+    	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
+    	$mvc->FLD('discount', 'percent(min=-1,max=1)', 'caption=Отстъпка');
+        
         // Скриване на полетата за създаване
         $mvc->setField('createdOn', 'column=none');
         $mvc->setField('createdBy', 'column=none');
