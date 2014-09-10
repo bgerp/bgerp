@@ -92,6 +92,12 @@ class purchase_PurchasesDetails extends deals_DealDetail
     
     
     /**
+     * Какви мета данни да изискват продуктите, които да се показват
+     */
+    public $metaProducts = 'canBuy';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

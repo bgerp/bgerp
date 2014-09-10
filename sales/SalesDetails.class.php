@@ -119,6 +119,12 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
+     * Какви мета данни да изискват продуктите, които да се показват
+     */
+    public $metaProducts = 'canSell';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
