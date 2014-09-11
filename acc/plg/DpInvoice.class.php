@@ -109,7 +109,7 @@ class acc_plg_DpInvoice extends core_Plugin
     	}
     	
     	// Ако всичко е начислено, приспадаме аванса
-    	if(round($dpAmount) == 0){
+    	if(round($dpAmount, 2) == 0){
     		$dpAmount = -1 * ($invoicedDp - $deductedDp);
     		$dpOperation = 'deducted';
     	}
