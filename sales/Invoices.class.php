@@ -179,6 +179,7 @@ class sales_Invoices extends acc_InvoiceMaster
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	parent::prepareInvoiceForm($mvc, $data);
+    	$form = &$data->form;
     	
     	if(!haveRole('ceo,acc')){
     		$form->setField('number', 'input=none');

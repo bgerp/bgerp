@@ -478,6 +478,7 @@ abstract class acc_InvoiceMaster extends core_Master
 
    /**
     * Генерира фактура от пораждащ документ: може да се породи от:
+    * 
     * 1. Продажба / Покупка
     * 2. Фактура тоест се прави ДИ или КИ
     */
@@ -487,54 +488,73 @@ abstract class acc_InvoiceMaster extends core_Master
 	   	 
 	   	if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
 	   		$info = $origin->getAggregateDealInfo();
+	   		$agreed = $info->get('products');
 	   		$products = $info->get('shippedProducts');
 	   		$invoiced = $info->get('invoicedProducts');
 	   		$packs = $info->get('shippedPacks');
-	   
-	   		if(count($products) != 0){
-	   			 
-	   			// Записваме информацията за продуктите в детайла
-	   			foreach ($products as $product){
-	   				$continue = FALSE;
-	   				$diff = $product->quantity;
-	   				if(count($invoiced)){
-	   					foreach ($invoiced as $inv){
-	   						if($inv->classId == $product->classId && $inv->productId == $product->productId){
-	   							$diff = $product->quantity - $inv->quantity;
-	   							if($diff <= 0){
-	   								$continue = TRUE;
-	   							}
-	   							break;
-	   						}
-	   					}
-	   				}
-	   
-	   				if($continue) continue;
-	   
-	   				$dRec = clone $product;
-	   				$index = $product->classId . "|" . $product->productId;
-	   				if($packs[$index]){
-	   					$packQuantity = $packs[$index]->inPack;
-	   					$dRec->packagingId = $packs[$index]->packagingId;
-	   				} else {
-	   					$packQuantity = 1;
-	   					$dRec->packagingId = NULL;
-	   				}
-	   
-	   				$dRec->invoiceId      = $rec->id;
-	   				$dRec->classId        = $product->classId;
-	   				$dRec->price 		  = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
-	   				$dRec->quantityInPack = $packQuantity;
-	   				$dRec->quantity       = $diff / $packQuantity;
-	   
-	   				$Detail = $mvc->mainDetail;
-	   				$mvc->$Detail->save($dRec);
-	   			}
-	   		}
+	   		
+	   		static::prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs);
 	   	}
    }
    
 
+   /**
+    * Подготвя продуктите от ориджина за запис в детайла на модела
+    */
+   protected static function prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs)
+   {
+	   	if(count($products) != 0){
+	   	
+	   		// Записваме информацията за продуктите в детайла
+	   		foreach ($products as $product){
+	   			$continue = FALSE;
+	   			$diff = $product->quantity;
+	   			if(count($invoiced)){
+	   				foreach ($invoiced as $inv){
+	   					if($inv->classId == $product->classId && $inv->productId == $product->productId){
+	   						$diff = $product->quantity - $inv->quantity;
+	   						if($diff <= 0){
+	   							$continue = TRUE;
+	   						}
+	   						break;
+	   					}
+	   				}
+	   			}
+	   	
+	   			if($continue) continue;
+	   	
+	   			$mvc::saveProductFromOrigin($mvc, $rec, $product, $packs, $diff);
+	   		}
+	   	}
+   }
+   
+   
+   /**
+    * Записва продукт от ориджина
+    */
+   protected static function saveProductFromOrigin($mvc, $rec, $product, $packs, $diff)
+   {
+	   	$dRec = clone $product;
+	   	$index = $product->classId . "|" . $product->productId;
+	   	if($packs[$index]){
+	   		$packQuantity = $packs[$index]->inPack;
+	   		$dRec->packagingId = $packs[$index]->packagingId;
+	   	} else {
+	   		$packQuantity = 1;
+	   		$dRec->packagingId = NULL;
+	   	}
+	   	
+	   	$dRec->invoiceId      = $rec->id;
+	   	$dRec->classId        = $product->classId;
+	   	$dRec->price 		  = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
+	   	$dRec->quantityInPack = $packQuantity;
+	   	$dRec->quantity       = $diff / $packQuantity;
+	   	
+	   	$Detail = $mvc->mainDetail;
+	   	$mvc->$Detail->save($dRec);
+   }
+   
+   
    /**
     * Подготвя данните (в обекта $data) необходими за единичния изглед
     */
