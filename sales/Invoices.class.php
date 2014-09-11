@@ -312,7 +312,8 @@ class sales_Invoices extends acc_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
-    		 
+			$row->type .= " / <i>" . str_replace('_', " ", $rec->type) . "</i>";
+    		
     		if($rec->docType && $rec->docId){
     			$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
     		}

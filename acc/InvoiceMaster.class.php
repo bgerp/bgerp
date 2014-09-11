@@ -794,8 +794,6 @@ abstract class acc_InvoiceMaster extends core_Master
     		$userRec = core_Users::fetch($rec->createdBy);
     		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     	
-    		$row->type .= " / <i>" . str_replace('_', " ", $rec->type) . "</i>";
-    			
     		if($rec->type != 'invoice'){
     			$originRec = $mvc->getOrigin($rec)->fetch();
     			$originRow = $mvc->recToVerbal($originRec, 'number,date');
