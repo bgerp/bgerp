@@ -493,7 +493,7 @@ abstract class acc_InvoiceMaster extends core_Master
 	   		$invoiced = $info->get('invoicedProducts');
 	   		$packs = $info->get('shippedPacks');
 	   		
-	   		static::prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs);
+	   		$mvc::prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs);
 	   	}
    }
    
