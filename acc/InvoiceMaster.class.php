@@ -97,15 +97,29 @@ abstract class acc_InvoiceMaster extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
-    	$data->listFilter->showFields .= ',invType';
+    	$data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Вид,input,silent');
+    	$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Състояние,input,silent');
+    	$data->listFilter->showFields .= ',invType,invState';
     	$data->listFilter->input();
-    
-    	if($type = $data->listFilter->rec->invType){
-    		if($type != 'all'){
-    			$data->query->where("#type = '{$type}'");
+    	$data->listFilter->setDefault('invState', 'all');
+    	
+    	if($rec = $data->listFilter->rec){
+    		
+    		// Филтър по тип на фактурата
+    		if($rec->invType){
+    			if($rec->invType != 'all'){
+    				$data->query->where("#type = '{$rec->invType}'");
+    			}
+    		}
+    		
+    		// Филтър по състояние
+    		if($rec->invState){
+    			if($rec->invState != 'all'){
+    				$data->query->where("#state = '{$rec->invState}'");
+    			}
     		}
     	}
+    	
     }
     
     
