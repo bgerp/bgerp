@@ -404,19 +404,6 @@ class sales_Invoices extends acc_InvoiceMaster
     	
     	return $nextNum;
     }
-     
-     
-	/**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        $row = static::recToVerbal($rec, 'type,number,-list');
-        $row->number = strip_tags($row->number);
-        $num = ($row->number) ? $row->number : $rec->id;
-        
-    	return tr("|{$row->type}|* №{$num}");
-    }
     
     
 	/**

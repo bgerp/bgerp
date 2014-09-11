@@ -550,7 +550,7 @@ abstract class acc_InvoiceMaster extends core_Master
 	   			$this->_total->vat = $rec->vatAmount / $rec->rate;
 	   		}
 	   
-	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE, 'bg', $rec->id);
+	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE, 'bg');
 	   		$data->row = (object)((array)$data->row + (array)$data->summary);
 	   
 	   		if($rec->paymentMethodId && $rec->type == 'invoice' && $rec->dpOperation != 'accrued') {
