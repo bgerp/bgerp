@@ -532,7 +532,7 @@ abstract class acc_InvoiceMaster extends core_Master
    /**
     * Записва продукт от ориджина
     */
-   protected static function saveProductFromOrigin($mvc, $rec, $product, $packs, $diff)
+   protected static function saveProductFromOrigin($mvc, $rec, $product, $packs, $restAmount)
    {
 	   	$dRec = clone $product;
 	   	$index = $product->classId . "|" . $product->productId;
@@ -548,7 +548,7 @@ abstract class acc_InvoiceMaster extends core_Master
 	   	$dRec->classId        = $product->classId;
 	   	$dRec->price 		  = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
 	   	$dRec->quantityInPack = $packQuantity;
-	   	$dRec->quantity       = $diff / $packQuantity;
+	   	$dRec->quantity       = $restAmount / $packQuantity;
 	   	
 	   	$Detail = $mvc->mainDetail;
 	   	$mvc->$Detail->save($dRec);
