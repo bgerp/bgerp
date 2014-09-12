@@ -133,13 +133,13 @@ class core_Sbf extends core_Mvc
      */
     public static function serveStaticFile($name)
     {
-        $file = static::getFullPath($name);
+        $file = getFullPath($name);
 
         // Грешка. Файла липсва
         if (!$file) {
             error_log("EF Error: Mising file: {$name}");
 
-            if (static::isDebug()) {
+            if (isDebug()) {
                 error_log("EF Error: Mising file: {$name}");
                 header('Content-Type: text/html; charset=UTF-8');
                 header("Content-Encoding: none");
@@ -179,7 +179,7 @@ class core_Sbf extends core_Mvc
             $ctype = $mimeTypes[$fileExt];
 
             if (!$ctype) {
-                if (static::isDebug()) {
+                if (isDebug()) {
                     header('Content-Type: text/html; charset=UTF-8');
                     header("Content-Encoding: none");
                     echo "<script type=\"text/javascript\">\n";
