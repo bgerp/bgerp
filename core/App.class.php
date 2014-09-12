@@ -648,8 +648,8 @@ class core_App
         
         if (!$retUrl) {
             $retUrl = array(
-                EF_DEFAULT_CTR_NAME,
-                EF_DEFAULT_ACT_NAME
+                'Index',
+                'default'
             );
         }
         
