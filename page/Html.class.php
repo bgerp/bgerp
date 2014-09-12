@@ -25,7 +25,7 @@ class page_Html extends core_ET {
             "<!doctype html>" .
             
             (Mode::is('screenMode', 'narrow') ?
-                "\n<html [#OG_PREFIX#] xmlns=\"http://www.w3.org/1999/xhtml\">" :
+                "\n<html xmlns=\"http://www.w3.org/1999/xhtml\" [#OG_PREFIX#]>" :
                 "\n<html [#OG_PREFIX#]>") . 
                 
             "\n<head>" .
@@ -56,11 +56,8 @@ class page_Html extends core_ET {
      */
     static function on_Output(&$invoker)
     {
-        // Дали линковете да са абсолютни
-        $absolute = (boolean)(Mode::is('text', 'xhtml'));
-
+        // Добавяне на хедърите
         $headers = $invoker->getArray('HTTP_HEADER');
-
         if(is_array($headers)) {
             foreach($headers as $hdr) {
                 if($hdr{0} == '-') {
@@ -71,34 +68,19 @@ class page_Html extends core_ET {
             }
         }
         
-        $css = $invoker->getArray('CSS');
-        
+        // Добавяне на файловете
+        $files = (object) array(
+                            'css' => $invoker->getArray('CSS'),
+                            'js' => $invoker->getArray('JS'),
+                            'invoker' => $invoker
+                          );
+            
         $inst = cls::get(get_called_class());
+
+  
+        $inst->appendFiles($files);
+
         
-        $css = $inst->prepareCssFiles($css);
-        
-        if(is_array($css)) {
-            foreach($css as $file) {
-                if(!preg_match('#^[^/]*//#', $file)) {
-                    $file = sbf($file, '', $absolute);
-                }
-                
-                $invoker->appendOnce("\n@import url(\"{$file}\");", "STYLE_IMPORT", TRUE);
-            }
-        }
-        
-        $js = $invoker->getArray('JS');
-        
-        $js = $inst->prepareJsFiles($js);
-        
-        if(is_array($js)) {
-            foreach($js as $file) {
-                if(!preg_match('#^[^/]*//#', $file)) {
-                    $file = sbf($file, '', $absolute);
-                }
-                $invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
-            }
-        }
     }
     
     
@@ -177,10 +159,29 @@ class page_Html extends core_ET {
      * 
      * @param array $css
      */
-    function prepareCssFiles_($css)
-    {
+    function appendFiles_($files)
+    { 
+        // Дали връзките да са абсолютни
+        $absolute = (boolean)(Mode::is('text', 'xhtml'));
+      
+        if(is_array($files->css)) {
+            foreach($files->css as $file) {
+                if(!preg_match('#^[^/]*//#', $file)) {
+                    $file = sbf($file, '', $absolute);
+                }
+                $files->invoker->appendOnce("\n@import url(\"{$file}\");", "STYLE_IMPORT", TRUE); 
+            }
+        }
         
-        return $css;
+        if(is_array($files->js)) {
+            foreach($files->js as $file) {
+                if(!preg_match('#^[^/]*//#', $file)) {
+                    $file = sbf($file, '', $absolute);
+                }
+                $files->invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
+            }
+        } 
+        
     }
     
     
@@ -189,9 +190,8 @@ class page_Html extends core_ET {
      * 
      * @param array $css
      */
-    function prepareJsFiles_($css)
+    function prepareJsFiles_($js)
     {
-        
-        return $css;
+        return $js;
     }
 }
