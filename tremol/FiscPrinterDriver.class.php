@@ -110,8 +110,8 @@ class tremol_FiscPrinterDriver extends core_Manager {
         
         // Задаваме нужните хедъри за форсиране на изтегляне от браузъра
         header('Content-Description: File Transfer');
-        header('Content-Type: application/xhtml+xml');
-        header("Content-Disposition: inline; filename=receipt{$now}.xml");
+        header('Content-Type: application/tremolFP');
+        header("Content-Disposition: inline; filename=receipt{$now}.tremolFP");
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
         header('Pragma: public');
