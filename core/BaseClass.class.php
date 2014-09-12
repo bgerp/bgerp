@@ -102,15 +102,18 @@ class core_BaseClass
     /**
      * Зарежда само един клас, плъгин или MVC в полета-свойства на обекта
      *
-     * @param string $name име под което класът трябва да бъде зареден,
-     * ако е плъгин или mvc
+     * @param string $name име под което класът трябва да бъде зареден, ако е плъгин или mvc
      * @param string $class името на класа
      */
-    function loadSingle($name, $class)
+    function loadSingle($name, $class = '')
     {
-        $class = cls::getClassName($class);
-        
         expect($name);
+        
+        if(!$class) {
+            $class = $name;
+        }
+
+        $class = cls::getClassName($class);
         
         // Ако е подклас на core_Mvc, записваме го като член на този клас 
         if (!($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
@@ -120,6 +123,19 @@ class core_BaseClass
         // Ако има интерфейс на плъгин, записваме го в масива на плъгините
         if (!($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
             $this->_plugins[$name] = &cls::get($class);
+        }
+    }
+
+
+    /**
+     * Премахва посочения плъгин плъгин
+     *
+     * @param string $name Име на клас, съдържащ плъгина или името под което е регистриран
+     */
+    function unloadPlugin($name)
+    {
+        if(isset($this->_plugins[$name])) {
+            unset($this->_plugins[$name]);
         }
     }
     
