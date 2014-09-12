@@ -823,7 +823,7 @@ class core_Html
     /**
      * Прави html представяне на структурата на обекта, масива или променливата
      */
-    static function mixedToHtml($o, $hideLevel = 3, $maxLevel = 8)
+    static function mixedToHtml($o, $hideLevel = 3, $maxLevel = 6)
     {
         static $i = 0;
 
