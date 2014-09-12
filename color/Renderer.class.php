@@ -34,10 +34,11 @@ class color_Renderer extends core_Manager
         
         $im = @imagecreate($w, $h);
 		$backgroundColor = imagecolorallocate($im, $r, $g, $b);
+		imagefill($im, 0, 0, $backgroundColor);
+        header('Content-Type: image/png');
 		imagepng($im);
-		imagedestroy($im);
-		header('Content-Type: image/png');
-		shutdown();
+		
+        shutdown();
     }
     
     
