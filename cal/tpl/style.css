@@ -1,0 +1,274 @@
+.floating-div {
+  padding: 0 10px 10px 0;
+  display: inline-block;
+  margin: 0.5em 2em 0.5em 0;
+  width: 300px; }
+
+table.mc-calendar {
+  width: 100%;
+  font-size: 0.8em;
+  table-layout: fixed;
+  font-family: Arial, sans-serif; }
+
+.mc-calendar-year {
+  font-size: 0.8em;
+  width: 300px;
+  border-collapse: separate;
+  border-spacing: 2px; }
+
+.mc-calendar-year th,
+.mc-calendar-month th,
+.mc-calendar-week th,
+.mc-calendar-day th {
+  font-weight: normal; }
+
+.mc-calendar-day th {
+  width: 3%; }
+
+.mc-calendar-week th {
+  width: 5%; }
+
+.mc-calendar-month th {
+  width: 2%;
+  text-align: left; }
+
+.mc-calendar-year th {
+  vertical-align: middle; }
+
+.mc-calendar-year td,
+.mc-calendar-year th {
+  width: 11%; }
+
+.mc-calendar td {
+  width: 13%;
+  height: auto; }
+
+.mc-calendar th {
+  vertical-align: middle !important; }
+
+.mc-calendar-day {
+  min-width: 200px !important;
+  max-width: 600px; }
+
+.mc-calendar-month,
+.mc-calendar-week {
+  width: 1000px !important; }
+
+.calTitle {
+  margin-bottom: 10px;
+  margin-top: 2px;
+  font-size: 1.2em; }
+
+.month-name {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 5px; }
+
+table.mc-calendar.mc-calendar-week td.calWeekN {
+  border: 2px solid #d1d7d1;
+  background-color: #d1d7d1;
+  vertical-align: top !important;
+  padding: 1px; }
+
+table.mc-calendar.mc-calendar-week td.calWeek {
+  border: 2px solid #e8efe8;
+  background-color: #e8efe8;
+  padding: 1px;
+  cursor: pointer; }
+
+table.mc-calendar td.calWeekTime {
+  text-align: center;
+  cursor: pointer; }
+
+table.mc-calendar td.calDayH,
+table.mc-calendar td.calWeekH,
+table.mc-calendar .calDayTime {
+  font-weight: bold !important;
+  text-align: center; }
+
+table.mc-calendar tr.calDayC {
+  background-color: #d1d7d1; }
+
+table.mc-calendar tr.calDayC .calWeekH,
+table.mc-calendar tr.calDayC .calDayH {
+  background: #e6e9e6; }
+
+table.mc-calendar tr.calDayD .calWeekH,
+table.mc-calendar tr.calDayD .calDayH {
+  background: #f8faf8; }
+
+table.mc-calendar td.calDay,
+table.mc-calendar td.calDayN {
+  padding: 1px;
+  cursor: pointer;
+  vertical-align: top; }
+
+table.mc-calendar td.calDay {
+  background-color: #e8efe8;
+  border: 2px solid #e8efe8; }
+
+table.mc-calendar td.calDayN {
+  background-color: #d1d7d1;
+  border: 2px solid #d1d7d1; }
+
+table.mc-calendar td.mc-todayD {
+  border: solid 2px red;
+  vertical-align: top;
+  background-color: #e8efe8; }
+
+table.mc-calendar td.mc-todayN {
+  border: solid 2px red;
+  vertical-align: top;
+  background-color: #d1d7d1; }
+
+table.mc-calendar.mc-calendar-month td.mc-day,
+table.mc-calendar td.mc-today {
+  vertical-align: top;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 1px;
+  background-color: #e8efe8; }
+
+table.mc-calendar.mc-calendar-month td.mc-day {
+  height: 8em; }
+
+table.mc-calendar.mc-calendar-month td.mc-day {
+  border: solid 2px #e8efe8; }
+
+table.mc-calendar td.mc-today {
+  border: solid 2px red; }
+
+table.mc-calendar td.calWeek {
+  vertical-align: top !important; }
+
+table.mc-header a {
+  color: #999999; }
+
+table.mc-calendar-year td.mc-day,
+table.mc-calendar-year td.mc-today {
+  text-align: right;
+  background-color: #e8efe8;
+  padding: 1px;
+  font-weight: bold;
+  cursor: pointer;
+  vertical-align: top; }
+
+table.mc-calendar-year td.mc-day {
+  border: solid 2px #e8efe8; }
+
+table.mc-calendar-year td.mc-today {
+  border: solid 2px red; }
+
+table.mc-calendar td.mc-day:hover,
+table.mc-calendar td.calDay:hover,
+table.mc-calendar td.mc-saturday:hover,
+table.mc-calendar td.mc-sunday:hover,
+table.mc-calendar td.mc-today:hover,
+table.mc-calendar td.mc-todayD:hover,
+table.mc-calendar td.calWeek:hover,
+table.mc-calendar td.calWeekN:hover,
+table.mc-calendar td.mc-todayN:hover,
+table.mc-calendar td.calDayN:hover,
+table.mc-calendar-year td.mc-day:hover {
+  background-color: #ffff66 !important; }
+
+.mc-wd-name,
+table.mc-calendar .mc-wd-name:hover {
+  text-align: center !important;
+  font-weight: bold; }
+
+.relative-holder {
+  position: relative;
+  padding-top: 3px;
+  height: 100%;
+  min-height: 22px; }
+
+img.calWeekAdd {
+  display: none; }
+
+.mc-calendar td:hover img.calWeekAdd {
+  display: block; }
+
+.add-task-btn {
+  display: block;
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  cursor: pointer !important; }
+
+table .relative-holder div {
+  white-space: nowrap;
+  text-overflow: clip;
+  -o-text-overflow: clip;
+  -ms-text-overflow: clip;
+  overflow: hidden; }
+
+.holiday-title {
+  clear: both;
+  text-align: left;
+  margin-bottom: 4px; }
+
+.holiday-title img {
+  display: inline-block;
+  float: left;
+  vertical-align: middle;
+  position: relative;
+  top: 2px; }
+
+p.calWeek {
+  text-align: left;
+  font-weight: normal;
+  margin: 0 2px 0 2px;
+  overflow: hidden;
+  white-space: nowrap;
+  background: url("nqkvo_pole4c.png");
+  border-radius: 2px;
+  box-shadow: 0 0 2px #86b8e3;
+  padding: 2px;
+  background-position: center;
+  color: #1d1d1d;
+  display: inline-block; }
+
+.task {
+  clear: both;
+  text-align: left;
+  font-weight: normal;
+  margin: 1px 2px 4px;
+  overflow: hidden;
+  white-space: nowrap; }
+
+.task img {
+  float: left;
+  vertical-align: middle; }
+
+.task a {
+  display: inline-block;
+  line-height: 1.2em; }
+
+.task a p {
+  margin: 0;
+  padding: 0 2px; }
+
+img.starImg {
+  width: 9px;
+  height: 9px;
+  margin-right: 3px; }
+
+.holiday,
+.mc-holiday {
+  color: red; }
+
+.saturday,
+.mc-saturday {
+  color: #006030; }
+
+.sunday,
+.mc-sunday {
+  color: green; }
+
+.activeHour {
+  font-weight: bold !important;
+  text-decoration: underline; }
+
