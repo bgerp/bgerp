@@ -334,7 +334,7 @@ class cms_Feeds extends core_Manager {
 		
         $src = sbf("cms/img/rss_icon_glass_gray24.PNG", "");
 
-        $img = ht::createElement('img', array('src' => $src));
+        $img = ht::createElement('img', array('src' => $src, 'alt' => 'RSS Feeds'));
 
 		$link = ht::createLink($img, $url, NULL, array('class' => 'soc-following noSelect'));
 		
