@@ -403,11 +403,9 @@ class crm_Locations extends core_Master {
     	expect($rec = static::fetch($id));
     	$row = static::recToVerbal($rec);
     	
-    	$string = '';
+    	$string = "{$row->countryId}, {$row->pCode} {$row->place}, {$row->address}";
+    	$string = trim($string, ",  ");
     	
-    	$tpl = new ET("[#countryId#]<br>[#pCode#] [#place#]<br>[#address#]");
-    	$tpl->placeObject($row);
-    	
-    	return $tpl;
+    	return $string;
     }
 }
