@@ -878,7 +878,12 @@ abstract class acc_InvoiceMaster extends core_Master
     		if($rec->dpOperation == 'accrued'){
     			$aggregator->sum('downpaymentInvoiced', $total);
     		} elseif($rec->dpOperation == 'deducted') {
-    			$aggregator->sum('downpaymentDeducted', $total);
+    			$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+    			
+    			// Колко е приспаднатото плащане с ддс
+    			$deducted = abs($rec->dpAmount);
+    			$vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($deducted) * $vat : 0;
+    			$aggregator->sum('downpaymentDeducted', $deducted + $vatAmount);
     		}
     	}
     
