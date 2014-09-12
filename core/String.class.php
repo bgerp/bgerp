@@ -750,7 +750,7 @@ class core_String
     /**
      * Връща разширението на файла, от името му
      */
-    static function getFileExt($name)
+    static public function getFileExt($name)
     {
         if(($dotPos = mb_strrpos($name, '.')) !== FALSE) {
             $ext =  mb_strtolower(mb_substr($name, $dotPos + 1));
@@ -763,6 +763,26 @@ class core_String
         }
         
         return $ext;
+    }
+    
+
+    /**
+     * Определя дали даден стринг отговаря едновременно на две условия:
+     *  - Да не отговаря на определен "негативен" регулярен шаблон
+     *  - Да отговаря на определен "позитивен" регулярен шаблон
+     *
+     * @param string $str               Стринга, който ще бъде изследван
+     * @param string $negativePattern   Шаблон на който стринга не трябва да отговаря
+     * @param string $positivePattern   Шаблон на който стринга трябва да отговаря
+     *
+     * @return boolean
+     */
+    static public function matchPatterns($str, $negativePattern = NULL, $positivePattern = NULL)
+    {
+        if($negativePattern && preg_match($negativePattern, $str)) return FALSE;
+        if($positivePattern && !preg_match($positivePattern, $str)) return FALSE;
+
+        return TRUE;
     }
 
 
