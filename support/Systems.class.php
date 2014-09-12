@@ -364,5 +364,14 @@ class support_Systems extends core_Master
             // Да има само 1 колони
             $data->form->setField('allowedTypes', array('maxColumns' => 1));    
         }
+
+        $query = support_IssueTypes::getQuery();
+
+        while($rec = $query->fetch("#state = 'active'")) {
+            $options[$rec->id] = $rec->type;
+        }
+
+        $data->form->setSuggestions('allowedTypes', $options);
+
     }
 }
