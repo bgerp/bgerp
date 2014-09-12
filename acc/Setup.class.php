@@ -22,6 +22,12 @@ defIfNot('ACC_MONEY_TOLERANCE', '0.01');
 
 
 /**
+ * Толеранс за допустимо разминаване за при приключването на сделка 
+ */
+defIfNot('ACC_MONEY_CLOSE_TOLERANCE', '0.005');
+
+
+/**
  * Колко реда да се показват в детайлния баланс
  */
 defIfNot('ACC_DETAILED_BALANCE_ROWS', 500);
@@ -93,7 +99,7 @@ class acc_Setup extends core_ProtoSetup
     		'acc_OpenDeals',
     		'acc_Features',
     		'migrate::removeYearInterfAndItem',
-    		'migrate::updateItemNums',
+    		'migrate::updateItemNums2',
         );
     
 
@@ -102,6 +108,7 @@ class acc_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
 		'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
+		'ACC_MONEY_CLOSE_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване при приключване->Сума'),
 		'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Баланс->Редове в детайлния баланс,unit=бр.'),
 	);
     
@@ -172,7 +179,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Обновява номерата на перата
      */
-    function updateItemNums()
+    function updateItemNums2()
     {
     	$Items = cls::get('acc_Items');
     	$itemsQuery = $Items->getQuery();

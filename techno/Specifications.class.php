@@ -55,7 +55,7 @@ class techno_Specifications extends core_Manager {
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'title, folderId, docClassId';
+    public $searchFields = 'title, folderId, docClassId, id';
     
     
     /**
@@ -166,10 +166,11 @@ class techno_Specifications extends core_Manager {
      * Това са всички спецификации от неговата папка, както и
      * всички общи спецификации (създадени в папка "Проект")
      */
-    function getProducts($customerClass, $customerId, $date = NULL, $limit = NULL)
+    function getProducts($customerClass, $customerId, $date = NULL, $properties, $limit = NULL)
     {
     	$Class = cls::get($customerClass);
     	$folderId = $Class->forceCoverAndFolder($customerId, FALSE);
+    	$properties = arr::make($properties);
     	
     	$count = 0;
     	$products = array();
@@ -177,28 +178,28 @@ class techno_Specifications extends core_Manager {
     	$query->where("#folderId = {$folderId}");
     	$query->orWhere("#common = 'yes'");
     	$query->where("#state = 'active'");
+    	
     	while($rec = $query->fetch()){
     		if(cls::load($rec->docClassId, TRUE)){
     			$DocClass = cls::get($rec->docClassId);
     			if($DocClass->fetchField($rec->docId, 'state') != 'active') continue;
-    			$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
-    			$count++;
-    			if(isset($limit) && $count >= $limit) break;
+    			$flag = FALSE;
+    			
+    			$info = $DocClass->getProductInfo($rec->docId);
+    			
+	    		foreach ($properties as $prop){
+	    			if(empty($info->meta[$prop])) $flag = TRUE;
+	    		}
+    			
+	    		if(!$flag){
+	    			$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
+	    			$count++;
+	    			if(isset($limit) && $count >= $limit) break;
+	    		}
     		}
     	}
     	
     	return $products;
-    }
-    
-    
-    /**
-     * Дали има поне един продаваем продукт за клиента
-     */
-    public function hasSellableProduct($contragentClassId, $contragentId, $date)
-    {
-    	$sellable = $this->getProducts($contragentClassId, $contragentId, $date);
-    	
-    	return count($sellable);
     }
     
     

@@ -129,7 +129,13 @@ class deals_Deals extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'dealName, accountId, description, folderId';
+    public $searchFields = 'dealName, accountId, description, folderId, id';
+    
+    
+    /**
+     * Как се казва приключващия документ
+     */
+    public $closeDealDoc = 'deals_ClosedDeals';
     
     
     /**
@@ -149,6 +155,12 @@ class deals_Deals extends core_Master
     public $allowedShipmentOperations = array('delivery' => array('title' => 'Експедиране на стока', 'debit' => '*', 'credit' => 'store'),
     										  'stowage'  => array('title' => 'Засклаждане на стока', 'debit' => 'store', 'credit' => '*'),
     );
+    
+    
+    /**
+     * Кое поле показва сумата на сделката
+     */
+    public $canClosewith = 'ceo,dealsMaster';
     
     
     /**
@@ -788,5 +800,25 @@ class deals_Deals extends core_Master
     
     	// Ако не е контрагент или не е в група 'дебитори' или 'кредитори' не слагаме бутон
     	return FALSE;
+    }
+    
+    
+    /**
+     * Кои сделки ще могатд а се приключат с документа
+     * 
+     * @param int $id - ид на документа
+     * @return array $options - опции
+     */
+    public static function on_AfterGetDealsToCloseWith($mvc, &$res, $rec)
+    {
+    	if(!count($res)) return;
+    	
+    	// Сделките трябва да са със същата избрана сметка
+    	foreach ($res as $id => $title){
+    		$accId = $mvc->fetchField($id, 'accountId');
+    		if($accId != $rec->accountId){
+    			unset($res[$id]);
+    		}
+    	}
     }
 }

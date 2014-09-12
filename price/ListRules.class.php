@@ -266,11 +266,11 @@ class price_ListRules extends core_Detail
         $type = $rec->type;
     	
         $masterRec = price_Lists::fetch($rec->listId);
-		$masterTitle = price_Lists::getVerbal($masterRec, 'title');
+		$masterTitle = $masterRec->title;
 
         if($masterRec->parent) {
             $parentRec = price_Lists::fetch($masterRec->parent);
-		    $parentTitle = price_Lists::getVerbal($parentRec, 'title');
+		    $parentTitle = $parentRec->title;
         }
 		
         $availableProducts = price_GroupOfProducts::getAllProducts();
@@ -291,6 +291,8 @@ class price_ListRules extends core_Detail
             $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
             $form->setOptions('calculation', $calcOpt);
         }
+ 	
+ 	$masterTitle = type_Users::escape($masterTitle);
  		
         switch($type) {
             case 'groupDiscount' :

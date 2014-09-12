@@ -151,7 +151,7 @@ class price_Lists extends core_Master
             $form->setField('public', 'input=hidden');
             $form->setField('customer', 'input');
             $form->setField('validFrom', 'input');
-            $title = $cMvc->gettitleById($rec->cId);
+            $title = $cMvc->gettitleById($rec->cId, FALSE);
             $rec->customer =  $title;
             $rec->public = 'no';
             $form->setReadonly('customer');

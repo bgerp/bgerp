@@ -110,7 +110,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, reason, beneficiaryName, ordererIban, beneficiaryIban';
+    var $searchFields = 'valior, reason, beneficiaryName, ordererIban, beneficiaryIban, id';
     
 
     /**

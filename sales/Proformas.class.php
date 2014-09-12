@@ -100,7 +100,7 @@ class sales_Proformas extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId,saleId';
+    public $searchFields = 'folderId,saleId, id';
     
     
     /**

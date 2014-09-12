@@ -3,18 +3,153 @@
 
 
 /**
- * Плъгин за детайл на фактура
+ * Базов клас за наследяване на детайл на ф-ри
  *
  *
  * @category  bgerp
  * @package   acc
- * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_plg_InvoiceDetail extends core_Plugin
+abstract class acc_InvoiceDetail extends core_Detail
 {
+	
+	/**
+	 * Помощен масив за мапиране на полета изпозлвани в deals_Helper
+	 */
+	public static $map = array( 'rateFld'     => 'rate',
+								'chargeVat'   => 'vatRate',
+								'quantityFld' => 'quantity',
+								'valior'      => 'date',
+								'alwaysHideVat' => TRUE);
+	
+
+	/**
+	 * Полета свързани с цени
+	 */
+	public $priceFields = 'price,amount,discount';
+	
+
+	/**
+	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+	 */
+	public $rowToolsField = 'RowNumb';
+	
+	
+	/**
+	 * Полета, които ще се показват в листов изглед
+	 */
+	public $listFields = 'productId, packagingId, quantity, packPrice, discount, amount';
+
+
+	/**
+	 * Извиква се след описанието на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function setInvoiceDetailFields(&$mvc)
+	{
+		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol');
+		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
+		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field');
+		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory','tdClass=small-field');
+		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
+		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
+		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
+		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
+		$mvc->FLD('discount', 'percent', 'caption=Отстъпка');
+		$mvc->FLD('note', 'varchar(64)', 'caption=@Пояснение');
+	}
+	
+	
+	/**
+	 * Извиква се след подготовката на формата
+	 */
+	public static function on_AfterPrepareEditForm($mvc, $data)
+	{
+		$rec = &$data->form->rec;
+		$masterRec = $data->masterRec;
+		$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
+	
+		$data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
+		$data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
+	
+		$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
+		expect(count($products));
+	
+		$data->form->setSuggestions('discount', arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
+	
+		if (empty($rec->id)) {
+			$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
+			$data->form->setOptions('productId', array('' => ' ') + $products);
+			 
+		} else {
+			// Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
+			// напълно определен продукт (клас и ид), който да не може да се променя във формата
+			// и полето цена да стане задължително
+			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+		}
+	
+		if (!empty($rec->packPrice)) {
+			$rec->packPrice = deals_Helper::getPriceToCurrency($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
+		}
+	}
+
+
+	/**
+	 * След подготовка на лист тулбара
+	 */
+	public static function on_AfterPrepareListToolbar($mvc, &$data)
+	{
+		if (!empty($data->toolbar->buttons['btnAdd'])) {
+			$productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
+			$masterRec = $data->masterData->rec;
+	
+			foreach ($productManagers as $manId => $manName) {
+				$productMan = cls::get($manId);
+				$error = '';
+				if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, 1))){
+					$text = ($mvc->metaProducts == 'canSell') ? "продаваеми" : "купуваеми";
+					$error = "error=Няма {$text} {$productMan->title}";
+				}
+	
+				$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
+						"id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+				unset($error);
+			}
+	
+			unset($data->toolbar->buttons['btnAdd']);
+		}
+	}
+
+	
+	/**
+	 * Изчисляване на цена за опаковка на реда
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $rec
+	 */
+	public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
+	{
+		if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+			return;
+		}
+	
+		$rec->packPrice = $rec->price * $rec->quantityInPack;
+	}
+	
+	
+	/**
+	 * След калкулиране на общата сума
+	 */
+	public function calculateAmount_(&$recs, &$rec)
+	{
+		deals_Helper::fillRecs($this->Master, $recs, $rec, static::$map);
+	}
+	
+	
 	/**
 	 * След преобразуване на записа в четим за хора вид.
 	 *
@@ -22,7 +157,7 @@ class acc_plg_InvoiceDetail extends core_Plugin
 	 * @param stdClass $row Това ще се покаже
 	 * @param stdClass $rec Това е записа в машинно представяне
 	 */
-	static function on_AfterPrepareListRows($mvc, &$data)
+	public static function on_AfterPrepareListRows($mvc, &$data)
 	{
 		$masterRec = $data->masterData->rec;
 		if($masterRec->type != 'invoice'){
@@ -52,7 +187,7 @@ class acc_plg_InvoiceDetail extends core_Plugin
 		$recs = &$data->recs;
 		$invRec = &$data->masterData->rec;
 		$haveDiscount = FALSE;
-		
+	
 		$mvc->calculateAmount($recs, $invRec);
 	
 		if (empty($recs)) return;
@@ -80,10 +215,10 @@ class acc_plg_InvoiceDetail extends core_Plugin
 			$row->note = $varchar->toVerbal($rec->note);
 			$row->productId .= "<br/><small style='color:#555;'>{$row->note}</small>";
 		}
-		 
+			
 		$pInfo = $ProductMan->getProductInfo($rec->productId);
 		$measureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
-		
+	
 		if($rec->packagingId){
 			$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
 			$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
@@ -99,11 +234,11 @@ class acc_plg_InvoiceDetail extends core_Plugin
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'add' && isset($rec->invoiceId)){
-			$invType = $mvc->Master->fetchField($rec->invoiceId, 'type');
+		if($action == 'add' && isset($rec->{$mvc->masterKey})){
+			$invType = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type');
 	
 			if($invType == 'invoice'){
-				$masterRec = $mvc->Master->fetch($rec->invoiceId);
+				$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
 				if($masterRec->state != 'draft'){
 					$res = 'no_one';
 				} else {
@@ -123,7 +258,7 @@ class acc_plg_InvoiceDetail extends core_Plugin
 	/**
 	 * Преди подготвяне на едит формата
 	 */
-	static function on_BeforePrepareEditForm($mvc, &$res, $data)
+	public static function on_BeforePrepareEditForm($mvc, &$res, $data)
 	{
 		if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){
 			$data->ProductManager = cls::get($classId);
@@ -135,7 +270,7 @@ class acc_plg_InvoiceDetail extends core_Plugin
 	/**
 	 * Преди извличане на записите филтър по number
 	 */
-	static function on_AfterPrepareListFilter($mvc, &$data)
+	public static function on_AfterPrepareListFilter($mvc, &$data)
 	{
 		$data->query->orderBy('#id', 'ASC');
 	}
@@ -205,12 +340,12 @@ class acc_plg_InvoiceDetail extends core_Plugin
 	
 				// Ако няма въведена цена
 				if (!isset($rec->packPrice)) {
-					
+						
 					// Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
 					$origin = $mvc->Master->getOrigin($masterRec);
 					$dealInfo = $origin->getAggregateDealInfo();
 					$products = $dealInfo->get('products');
-					
+						
 					if(count($products)){
 						foreach ($products as $p){
 							if($rec->classId == $p->classId && $rec->productId == $p->productId && $rec->packagingId == $p->packagingId){
@@ -220,12 +355,12 @@ class acc_plg_InvoiceDetail extends core_Plugin
 							}
 						}
 					}
-					
+						
 					if(!$policyInfo){
 						$ProductMan = ($mvc->Policy) ? $mvc->Policy : $ProductMan;
 						$policyInfo = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity, dt::now());
 					}
-					
+						
 					// Ако няма последна покупна цена и не се обновява запис в текущата покупка
 					if (!isset($policyInfo->price) && empty($pRec)) {
 						$form->setError('price', 'Продукта няма цена в избраната ценова политика');
@@ -243,12 +378,12 @@ class acc_plg_InvoiceDetail extends core_Plugin
 					}
 	
 				} else {
-					
+						
 					// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
 					if(!$update || ($update && Request::get('Ignore'))){
 						$rec->packPrice =  deals_Helper::getPriceFromCurrency($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
 					}
-					
+						
 					// Изчисляване цената за единица продукт в осн. мярка
 					$rec->price  = $rec->packPrice  / $rec->quantityInPack;
 	
@@ -260,11 +395,10 @@ class acc_plg_InvoiceDetail extends core_Plugin
 				// При редакция, ако е променена опаковката слагаме преудпреждение
 				if($rec->id){
 					$oldRec = $mvc->fetch($rec->id);
-            		if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
+					if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
 						$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
 					}
 				}
 			}
-			
 		}
 }

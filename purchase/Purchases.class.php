@@ -69,12 +69,6 @@ class purchase_Purchases extends core_Master
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, purchase';
-
-
-	/**
-	 * Кое поле да се използва за филтър по потребители
-	 */
-	public $filterFieldUsers = 'dealerId';
 	
 	
 	/**
@@ -141,7 +135,7 @@ class purchase_Purchases extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
-    					 currencyId, bankAccountId, caseId, dealerId, folderId';
+    					 currencyId, bankAccountId, caseId, dealerId, folderId, id';
     
     
     /**
@@ -193,6 +187,18 @@ class purchase_Purchases extends core_Master
     		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '401', 'reverse' => TRUE),
     		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '401', 'credit' => '*'),
     );
+    
+    
+    /**
+     * Кое поле показва сумата на сделката
+     */
+    public $canClosewith = 'ceo,purchaseMaster';
+    
+    
+    /**
+     * Как се казва приключващия документ
+     */
+    public $closeDealDoc = 'purchase_ClosedDeals';
     
     
     /**
@@ -291,6 +297,9 @@ class purchase_Purchases extends core_Master
         		}
         	}
         }
+        
+        // Текущия потребител е закупчик, щом се е стигнало до тук значи има права
+        $form->setDefault('dealerId', core_Users::getCurrent());
         
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($form->rec->valior));
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
@@ -545,12 +554,12 @@ class purchase_Purchases extends core_Master
 
 
     /**
-     * Филтър на продажбите
+     * Филтър на покупките
      */
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
     	if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
+        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
@@ -564,6 +573,9 @@ class purchase_Purchases extends core_Master
 			
 			if($filter->type) {
 				switch($filter->type){
+					case "clAndAct":
+						$data->query->where("#state = 'active' || #state = 'closed'");
+						break;
 					case "all":
 						break;
 					case "draft":
@@ -596,6 +608,8 @@ class purchase_Purchases extends core_Master
 						break;
 				}
 			}
+			
+			
 		}
     }
     
@@ -949,6 +963,12 @@ class purchase_Purchases extends core_Master
     				$res = 'no_one';
     			}
     		} else {
+    			$res = 'no_one';
+    		}
+    	}
+
+    	if($action == 'closewith' && isset($rec)){
+    		if(purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")){
     			$res = 'no_one';
     		}
     	}

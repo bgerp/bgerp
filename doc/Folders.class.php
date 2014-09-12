@@ -740,8 +740,11 @@ class doc_Folders extends core_Master
         $rec = new stdClass();
         $rec->inCharge = $userId;
         $rec->access = 'private';
-
-        if ($inboxId = email_Outgoings::getDefaultInboxId(NULL, $userId)) {
+        
+        $conf = core_Packs::getConfig('email');
+        $defaultSentBox = $conf->EMAIL_DEFAULT_SENT_INBOX;
+        
+        if ($defaultSentBox && ($inboxId = email_Outgoings::getDefaultInboxId(NULL, $userId))) {
             $inboxRec = email_Inboxes::fetch($inboxId);
             
             $rec->email = $inboxRec->email;

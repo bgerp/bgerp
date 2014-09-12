@@ -238,9 +238,13 @@ class acc_HistoryReport extends core_Manager
     		
     		if(acc_Balances::haveRightFor('read')){
     			if(empty($data->balanceRec->id)){
-    				$data->toolbar->addBtn('Обобщена', $url, 'id=btnOverview,error=Невалиден период');
+    				$data->toolbar->addBtn('Назад', NULL, 'id=btnOverview,error=Невалиден период', 'ef_icon=img/16/back16.png');
     			} else {
-    				$data->toolbar->addBtn('Обобщена', array($this->Balance->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "title=Обобщена оборотна ведомост");
+    				if(empty($data->rec->ent1Id) && empty($data->rec->ent2Id) && empty($data->rec->ent3Id)){
+    					$data->toolbar->addBtn('Назад', array($this->Balance->Master, 'single', $data->balanceRec->id), FALSE, 'ef_icon=img/16/back16.png', "title=Обобщена оборотна ведомост,ef_icon=img/16/back16.png");
+    				} else {
+    					$data->toolbar->addBtn('Назад', array($this->Balance->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, 'ef_icon=img/16/back16.png', "title=Обобщена оборотна ведомост");
+    				}
     			}
     		}
     	}
@@ -457,6 +461,7 @@ class acc_HistoryReport extends core_Manager
      */
     private function getVerbalHistoryRow($rec, $Double, $Date)
     {
+    	$arr = array();
     	$arr['valior'] = $Date->toVerbal($rec['valior']);
     	 
     	// Ако има отрицателна сума показва се в червено

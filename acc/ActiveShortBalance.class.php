@@ -131,7 +131,7 @@ class acc_ActiveShortBalance {
 	/**
 	 * Връща крайното салдо на няколко сметки
 	 * 
-	 * @param mixxed $accs - масив от систем ид-та на сметка
+	 * @param mixed $accs - масив от систем ид-та на сметка
 	 * @return stdClass $res - масив с 'amount' - крайното салдо
 	 */
 	public function getAmount($accs, $itemId = FALSE)

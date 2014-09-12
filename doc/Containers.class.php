@@ -1368,7 +1368,7 @@ class doc_Containers extends core_Manager
             // Запомняме ид-та на контейнерите, които сме оттеглили
             $rejectedIds[] = $rec->id;
         }
-        
+       
         return $rejectedIds;
     }
     

@@ -64,7 +64,7 @@ class pos_Stocks extends core_Manager {
     /**
      * Работен кеш
      */
-    protected $cache = array();
+    protected static $cache = array();
     
     
     /**

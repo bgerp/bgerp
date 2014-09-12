@@ -111,7 +111,7 @@ class bank_DepositSlips extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, reason, beneficiaryName, beneficiaryIban, execBank';
+    var $searchFields = 'valior, reason, beneficiaryName, beneficiaryIban, execBank, id';
 
     
     /**

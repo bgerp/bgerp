@@ -75,7 +75,7 @@ class acc_plg_DpInvoice extends core_Plugin
         $form->setField('dpOperation','input');
         
         // Показване на закръглената сума
-        $form->rec->dpAmount = currency_Currencies::round($form->rec->dpAmount / $form->rec->rate);
+        $form->rec->dpAmount = round($form->rec->dpAmount / $form->rec->rate, 6);
     }
     
     
@@ -107,9 +107,9 @@ class acc_plg_DpInvoice extends core_Plugin
     		$dpAmount = ($downpayment - $invoicedDp);
     		$dpOperation = 'accrued';
     	}
-    	
-    	// Ако всичко е начислено, приспадаме аванса
-    	if(round($dpAmount) == 0){
+    
+    	// Ако всичко е начислено и има още аванс за приспадане, приспадаме го
+    	if(round($dpAmount, 2) == 0 && round($invoicedDp - $deductedDp, 2) != 0){
     		$dpAmount = -1 * ($invoicedDp - $deductedDp);
     		$dpOperation = 'deducted';
     	}
@@ -156,7 +156,7 @@ class acc_plg_DpInvoice extends core_Plugin
     				$vat = 0;
     			}
         		
-        		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 2);
+        		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 6);
         		
 	        	if($rec->dpAmount > $downpayment){
 	            	$form->setError('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
@@ -302,5 +302,15 @@ class acc_plg_DpInvoice extends core_Plugin
     	$total->vat    += $dpVat;
     	$total->amount += $dpAmount;
     	
+    	$conf = core_Packs::getConfig('acc');
+    	
+    	// Ако сумата и ддс-то е в границата на допустимото разминаваме, приравняваме ги на 0
+    	if($total->vat >= -1 * $conf->ACC_MONEY_TOLERANCE && $total->vat <= $conf->ACC_MONEY_TOLERANCE){
+    		$total->vat = 0;
+    	}
+    	
+    	if($total->amount >= -1 * $conf->ACC_MONEY_TOLERANCE && $total->amount <= $conf->ACC_MONEY_TOLERANCE){
+    		$total->amount = 0;
+    	}
     }
 }

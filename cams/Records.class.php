@@ -488,7 +488,7 @@ class cams_Records extends core_Master
         if(count($toThumb)) {
             foreach($toThumb as $src => $dest) {
                 
-                $img = new img_Thumb(array($src, 280, 210, 'path', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
+                $img = new thumb_Img(array($src, 280, 210, 'path', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
                 $thumb = $img->getScaledGdRes();
                 
                 imagejpeg($thumb, $dest, 85);

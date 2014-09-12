@@ -61,9 +61,7 @@
         [#routes#]
         <!--ET_END ROUTES-->
         <!--ET_BEGIN gpsCoords-->
-        <div class="loc-map">
             [#gpsCoords#]
-        </div>
         <!--ET_END gpsCoords-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Създаден|*</legend>

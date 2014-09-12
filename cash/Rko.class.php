@@ -124,7 +124,7 @@ class cash_Rko extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'number, valior, contragentName';
+    var $searchFields = 'number, valior, contragentName, id';
     
     
     /**

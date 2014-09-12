@@ -125,7 +125,7 @@ class deals_AdvanceDeals extends deals_Deals
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'dealName, accountId, description, folderId';
+    public $searchFields = 'dealName, accountId, description, folderId, id';
     
     
     /**

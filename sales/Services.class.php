@@ -127,7 +127,7 @@ class sales_Services extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'locationId, note';
+    var $searchFields = 'locationId, note, id';
     
     
     /**

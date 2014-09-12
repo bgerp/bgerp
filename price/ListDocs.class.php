@@ -133,7 +133,7 @@ class price_ListDocs extends core_Master
     function description()
     {
     	$this->FLD('date', 'date(smartTime)', 'caption=Дата,mandatory');
-    	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory');
+    	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandatory');
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,input');
     	$this->FLD('vat', 'enum(yes=с ДДС,no=без ДДС)','caption=ДДС');
     	$this->FLD('title', 'varchar(155)', 'caption=Заглавие');
@@ -210,7 +210,7 @@ class price_ListDocs extends core_Master
     	$polQuery = price_Lists::getQuery();
     	while($polRec = $polQuery->fetch()){
     		if(price_Lists::haveRightFor('read')){
-    			$options[$polRec->id] = price_Lists::getTitleById($polRec->id);
+    			$options[$polRec->id] = price_Lists::getTitleById($polRec->id, FALSE);
     		}
     	}
     	

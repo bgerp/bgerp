@@ -102,7 +102,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'paymentMethodId, reff, company, person, email, folderId';
+    public $searchFields = 'paymentMethodId, reff, company, person, email, folderId, id';
     
    
     /**

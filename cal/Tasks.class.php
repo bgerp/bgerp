@@ -1261,15 +1261,13 @@ class cal_Tasks extends core_Master
         $ganttType = Request::get('View');
         
         // намираме го в масива
-    	$curIndex = static::$view[$ganttType];
+    	$curIndex = self::$view[$ganttType];
         
     	// следващия ще е с индекс текущия +1
     	$next = $curIndex + 1;
         
-        if ($next <= count (static::$view)) {
-       		$nextType = array_search($next, static::$view);
-       		$currUrl['Act'] = 'list';
-	        $currUrl['Chart'] = 'Gantt';
+        if ($next <= count (self::$view)) {
+       		$nextType = array_search($next, self::$view);
 	        $currUrl['View'] = $nextType;
 	       
        		$nextUrl = $currUrl;
@@ -1279,9 +1277,7 @@ class cal_Tasks extends core_Master
         $prev = $curIndex - 1;
     	
         if ($prev >= 1) {
-       		$prevType = array_search($prev, static::$view);
-       		$currUrl['Act'] = 'list';
-	        $currUrl['Chart'] = 'Gantt';
+       		$prevType = array_search($prev, self::$view);
 	        $currUrl['View'] = $prevType;
        		$prevUrl = $currUrl;
         }
@@ -1313,7 +1309,7 @@ class cal_Tasks extends core_Master
     	//       [2] - ден
     	$startExplode =  explode("-", $startTasksTime[0]);
     	$endExplode = explode("-", $endTasksTime[0]);
-    	
+
     	// иконите на стрелките
     	$iconPlus = sbf("img/16/gantt-arr-down.png",'');
     	$iconMinus = sbf("img/16/gantt-arr-up.png",'');
@@ -1635,9 +1631,11 @@ class cal_Tasks extends core_Master
     public static function calcTasksMinStartMaxEndTime ($data)
     {  
         if($data->recs){ 
-        	
+        	$data = $data->recs;
+        } 
+        if(is_array($data)){
     	// за всеки едиин запис от базата данни
-    	foreach($data->recs as $rec){ 
+    	foreach($data as $rec){ 
     		
     		if($rec->timeStart){
 	    		// ако няма продължителност на задачата
@@ -1663,6 +1661,7 @@ class cal_Tasks extends core_Master
 	    		}
     		}
     	}
+        }
     	
     	if (count($start) >= 2 && count($end) >=2) {
 	    	$startTime = min($start);
@@ -1673,7 +1672,7 @@ class cal_Tasks extends core_Master
     	}
       
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
-      }
+    
     }
 
     /**

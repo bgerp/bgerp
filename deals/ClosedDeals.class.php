@@ -96,7 +96,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'notes,docId,classId';
+    public $searchFields = 'notes,docId,classId, id';
     
     
     /**
@@ -105,7 +105,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     public static function on_AfterDescription(core_Master &$mvc)
     {
     	// Добавяме към модела, поле за избор на с коя сделка да се приключи
-    	$mvc->FLD('closeWith', 'key(mvc=deals_Deals,allowEmpty)', 'caption=Приключи с');
+    	$mvc->FLD('closeWith', 'key(mvc=deals_Deals,allowEmpty)', 'caption=Приключи с,input=none');
     }
     
     
@@ -122,7 +122,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     
     	$cost = acc_Balances::getBlAmounts($jRecs, '6913', 'debit')->amount;
     	$inc = acc_Balances::getBlAmounts($jRecs, '7913', 'credit')->amount;
-    
+    	
     	// Разликата между платеното и доставеното
     	return $inc - $cost;
     }

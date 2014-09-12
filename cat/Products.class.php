@@ -414,7 +414,7 @@ class cat_Products extends core_Master {
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
-                'num' => "A" . $rec->id,
+                'num' => "A" . $rec->code,
                 'title' => $rec->name,
                 'uomId' => $rec->measureId,
                 'features' => array()
@@ -475,17 +475,6 @@ class cat_Products extends core_Master {
     	}
     	
     	return $products;
-    }
-    
-    
-    /**
-     * Дали има поне един продаваем продукт за клиента
-     */
-    public function hasSellableProduct($contragentClassId, $contragentId, $date)
-    {
-    	$sellable = static::getByProperty('canSell', 1);
-    	
-    	return count($sellable);
     }
     
     
@@ -846,9 +835,9 @@ class cat_Products extends core_Master {
      *
      * @return array() - масив с опции, подходящ за setOptions на форма
      */
-    public function getProducts($customerClass, $customerId, $datetime = NULL)
+    public function getProducts($customerClass, $customerId, $datetime = NULL, $properties, $limit = NULL)
     {
-    	return static::getByProperty('canSell');
+    	return static::getByProperty($properties, $limit);
     }
     
     

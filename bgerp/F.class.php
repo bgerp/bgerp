@@ -168,7 +168,7 @@ class bgerp_F extends core_Manager
         }
         
         // Генерираме thumbnail
-        $Img = new img_Thumb(array($imgRec->src, $width, $height, 'fileman', 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => $name));
+        $Img = new thumb_Img(array($imgRec->src, $width, $height, 'fileman', 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => $name));
         
         // Ако има MID
         if ($mid) {

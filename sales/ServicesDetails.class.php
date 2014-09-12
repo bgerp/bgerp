@@ -223,7 +223,7 @@ class sales_ServicesDetails extends core_Detail
     	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
     	
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager::getByProperty('canSell');
+    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
     	$products2 = $ProductManager::getByProperty('canStore');
     	
     	$products = array_diff_key($products, $products2);
@@ -249,7 +249,8 @@ class sales_ServicesDetails extends core_Detail
     
     		foreach ($productManagers as $manId => $manName) {
     			$productMan = cls::get($manId);
-    			$products = $productMan::getByProperty('canSell');
+    			
+    			$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
     			$products2 = $productMan::getByProperty('canStore');
     			$products = array_diff_key($products, $products2);
     			

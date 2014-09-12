@@ -99,7 +99,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     public static function on_AfterDescription(core_Master &$mvc)
     {
     	// Добавяме към модела, поле за избор на с коя сделка да се приключи
-    	$mvc->FLD('closeWith', 'key(mvc=purchase_Purchases,allowEmpty)', 'caption=Приключи с');
+    	$mvc->FLD('closeWith', 'key(mvc=purchase_Purchases,allowEmpty)', 'caption=Приключи с,input=none');
     }
     
     

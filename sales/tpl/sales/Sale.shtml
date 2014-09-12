@@ -107,7 +107,7 @@
                                     <li>
                                         |Доставка|*: <b>[#deliveryTermId#]</b>
                                         <!--ET_BEGIN deliveryLocationId-->
-                                        , [#deliveryLocationId#]
+                                        [#deliveryLocationId#]
                                         <!--ET_END deliveryLocationId-->
                                     </li>
                                     <!--ET_END deliveryTermId-->

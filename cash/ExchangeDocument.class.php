@@ -123,7 +123,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason, peroFrom, peroTo';
+    var $searchFields = 'reason, peroFrom, peroTo, id';
     
     
 	/**

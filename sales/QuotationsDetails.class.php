@@ -193,7 +193,7 @@ class sales_QuotationsDetails extends core_Detail {
 	   		$products = array();
 	   		$products[$rec->productId] = $productName;
 	    } else {
-	    	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $masterRec->originId);
+	    	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
 	    }
 	   
         $form->setDefault('optional', 'no');
@@ -296,7 +296,7 @@ class sales_QuotationsDetails extends core_Detail {
             
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
-            	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $masterRec->containerId);
+            	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
                 
             	// Ако е спецификация и офертата е генерирана от нейния драйвер
             	// тази спецификация може винаги да се добавя в офертата

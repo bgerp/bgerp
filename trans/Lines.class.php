@@ -48,7 +48,7 @@ class trans_Lines extends core_Master
     /**
      * По кои полета ще се търси
      */
-    public $searchFields = 'title, destination, vehicleId, forwarderId, forwarderPersonId';
+    public $searchFields = 'title, destination, vehicleId, forwarderId, forwarderPersonId, id';
     
     
     /**
