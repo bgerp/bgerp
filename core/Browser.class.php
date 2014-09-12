@@ -248,7 +248,21 @@ class core_Browser extends core_Manager
         
         return $bridSalt;
     }
+
     
+    /**
+     * Допълнителна сол за brid
+     * 
+     * @return string
+     */
+    static function getBrowserType($userAgent = NULL)
+    {
+        $os = self::getUserAgentOsName($userAgent);
+        $browser = self::getUserAgentBrowserName($userAgent);
+        $browserType = $browser . '/' . $os;
+        
+        return $browserType;
+    }
     
     /**
      * Генерира brid
