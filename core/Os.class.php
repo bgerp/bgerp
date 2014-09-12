@@ -91,7 +91,7 @@ class core_Os
      */
     static function deleteDir($dir)
     {
-		foreach(glob($dir . '/*') as $file) {
+		foreach(glob(rtrim($dir, '/') . '/*') as $file) {
 		        if(is_dir($file))
 		            self::deleteDir($file);
 		        else
@@ -111,15 +111,15 @@ class core_Os
      * 
      * @return integer - Броя на изтритите файлове
      */
-    static function deleteOldFiels($dir, $maxAge = 86400)
+    static function deleteOldFiles($dir, $maxAge = 86400, $negativePattern = NULL, $positivePattern = NULL)
     {
         $allFiles = self::listFiles($dir);
         
         $delCnt = 0;
         if(is_array($allFiles['files'])) {
             foreach($allFiles['files'] as $fPath) {
-                if(time() - fileatime($fPath) > $maxAge) {
-                    
+                $rPath = ltrim(str_replace($dir, '', $fPath), '/\\');
+                if((time() - fileatime($fPath) > $maxAge) && str::matchPatterns($fPath, $negativePattern, $positivePattern)) {
                     if (@unlink($fPath)) {
                         $delCnt++;
                     }
@@ -147,7 +147,7 @@ class core_Os
 
         // Изтриваме всички, файлове, кото са по стари от дадено време в директорията за временни файлове
         if (defined('EF_TEMP_PATH')) { 
-            $delCnt = self::deleteOldFiels(EF_TEMP_PATH,  $conf->CORE_TEMP_PATH_MAX_AGE);  
+            $delCnt = self::deleteOldFiles(EF_TEMP_PATH,  $conf->CORE_TEMP_PATH_MAX_AGE);  
             if($delCnt > 0) {
                 $resText .= ($resText ? "\n" : '') . ($delCnt>1 ? "Бяха изтрити" : "Беше изтрит") . " {$delCnt} " . ($delCnt>1 ? "файла" : "файл") . ' от ' . EF_TEMP_PATH;
             }
@@ -158,7 +158,7 @@ class core_Os
             if ($handle = opendir(EF_SBF_PATH)) {
                 while (FALSE !== ($entry = readdir($handle))) {
                     if ($entry != "." && $entry != ".." && false === strpos($entry, '_') && is_dir(EF_SBF_PATH . "/{$entry}")) {
-                        $delCnt = self::deleteOldFiels(EF_SBF_PATH . "/{$entry}", $conf->CORE_TEMP_PATH_MAX_AGE);
+                        $delCnt = self::deleteOldFiles(EF_SBF_PATH . "/{$entry}", $conf->CORE_TEMP_PATH_MAX_AGE);
                     }
                 }
                 closedir($handle);
@@ -224,7 +224,7 @@ class core_Os
      * 
      * @return integer - Времето на последната промяна
      */
-    static function getLastModified($dir)
+    static function getTimeOfLastModifiedFile($dir, $negativePattern = NULL, $positivePattern = NULL)
     {
         // Всички файлове
         $files = scandir($dir);
@@ -239,7 +239,7 @@ class core_Os
             foreach ($files as $file) {
                 
                 // Прескачаме ги
-                if ($file == '.' || $file == '..') continue;
+                if ($file == '.' || $file == '..' || !str::matchPatterns($file, $negativePattern, $positivePattern)) continue;
                 
                 // Вземаме времето на промяна на последния файл
                 $time = filemtime($dir . DIRECTORY_SEPARATOR . $file);
