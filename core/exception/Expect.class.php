@@ -26,8 +26,12 @@ class core_exception_Expect extends Exception
         return NULL;
     }
 
+
+    /**
+     * Връща html страница, отговаряща за събитието
+     */
     public function getAsHtml()
-    {
+    {  
     	$msg = $this->getMessage();
     	 
     	if (isDebug() && isset($this->debug)) { 
@@ -38,13 +42,14 @@ class core_exception_Expect extends Exception
 	    		$setupUrl = core_Url::addParams(getSelfURL(), array('SetupKey'=>$setupKey));
 	    		$p1 = "<a href='" . $setupUrl . "'>Стартиране сетъп ...</a><br>"; 
 	    	}
+
     		$p1 .= core_Html::arrayToHtml(array($this->errorTitle, $msg, $this->debug));
         
             core_App::_bp($p1, $this->getTrace());
         } else {
         	$this->logError();
         }
- 
+  core_App::_bp($p1, $this->getTrace());
         $text = core_App::isDebug() ? $msg : $this->errorTitle;
         
         core_Message::redirect($text, 'page_Error');
@@ -213,22 +218,14 @@ class core_exception_Expect extends Exception
 
 /**
  * Генерира грешка, ако аргумента не е TRUE
- * Може да има още аргументи, чийто стойности се показват
- * в случай на прекъсване. Вариант на asert()
+ * 
+ * @var mixed $inspect Обект, масив или скалар, който се подава за инспекция
+ * @var boolean $condition
  */
-function expect($expr)
+function expect($cond, $inspect = NULL, $error = '500 Internal Server Error')
 {
-    //    ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
-    if (!$expr) {
-    	if (!file_exists(EF_TEMP_PATH) && !is_dir(EF_TEMP_PATH)) {
-    		mkdir(EF_TEMP_PATH, 0777, TRUE);    
-		} 
-    	file_put_contents(EF_TEMP_PATH . '/err.log', 'Неочакван аргумент: ' . print_r(func_get_args(), TRUE) . date("Y-m-d H:i:s") . "\n\n", FILE_APPEND);
-    	
-//    	$inst = new core_exception_Expect();
-//    	file_put_contents(EF_TEMP_PATH . '/err.log',  "\n\n" . 'Стек: ' . print_r($inst, TRUE) . "\n\n", FILE_APPEND);
-        
-    	throw new core_exception_Expect('Неочакван аргумент', func_get_args());
+    if (!(boolean)$cond) {
+                        
+    	throw new core_exception_Expect('Неочакван аргумент', $inspect, $error);
     }
-
 }
