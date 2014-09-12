@@ -50,7 +50,7 @@ class sass_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме
-        $html .= $Plugins->forcePlugin('SASS файлове към CSS', 'sass_Plugin', 'core_Converter', 'private');
+        $html .= $Plugins->forcePlugin('SASS файлове към CSS', 'sass_Plugin', 'core_Sbf', 'private');
         
         return $html;
     }

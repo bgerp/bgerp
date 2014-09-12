@@ -51,7 +51,7 @@ class compactor_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина за показване на статусите като toast съобщения
         $html .= $Plugins->installPlugin('Компактиране на файлове', 'compactor_Plugin', 'page_Html', 'private');
-        
+
         return $html;
     }
     
