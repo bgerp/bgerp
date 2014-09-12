@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_Proformas extends core_Master
+class sales_Proformas extends acc_InvoiceMaster
 {
     
     
@@ -44,21 +44,21 @@ class sales_Proformas extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+    public $loadList = 'plg_RowTools, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, Sale=sales_Sales,
                     doc_plg_HidePrices, doc_ActivatePlg';
     
     
     /**
-     * Полета, които ще се показват в листов изглед
+     * Детайла, на модела
      */
-    public $listFields = 'tools=Пулт, number=Номер, date, saleId, folderId, createdOn, createdBy';
+    public $details = 'sales_ProformaDetails' ;
     
     
     /**
-     * Колоната, в която да се появят инструментите на plg_RowTools
+     * Кой е основния детайл
      */
-    public $rowToolsField = 'tools';
+    protected $mainDetail = 'sales_ProformaDetails';
     
     
     /**
@@ -100,7 +100,7 @@ class sales_Proformas extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId,saleId, id';
+    public $searchFields = 'folderId, id';
     
     
     /**
@@ -128,15 +128,9 @@ class sales_Proformas extends core_Master
     
     
     /**
-     * Поле за филтриране по дата
+     * Полета, които ще се показват в листов изглед
      */
-    public $filterDateField = 'date';
-    
-    
-    /**
-     * Опашка от записи за записване в on_Shutdown
-     */
-    protected $updated = array();
+    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount';
     
     
     /**
@@ -144,9 +138,14 @@ class sales_Proformas extends core_Master
      */
     function description()
     {
-    	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=hidden,mandatory');
-    	$this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
-        $this->FLD('note', 'text(rows=3)', 'caption=Допълнително->Условия');
+    	parent::setInvoiceFields($this);
+    	 
+    	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
+    	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
+    
+    	$this->setDbUnique('number');
     }
     
     
@@ -155,131 +154,116 @@ class sales_Proformas extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	// Попълване на дефолт данни
-    	$form = &$data->form;
+    	parent::prepareInvoiceForm($mvc, $data);
     	
-    	$origin = $mvc->getOrigin($form->rec);
-    	$form->rec->saleId = $origin->that;
-    	$form->rec->date = dt::today();
+    	foreach (array('place', 'responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'paymentMethodId', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
+    		$data->form->setField($fld, 'input=hidden');
+    	}
     	
-    	// Да не може да се активира при редакция
-    	$form->toolbar->removeBtn('activate');
-    }
-    
-    
-	/**
-     * След подготовка на еденичния изглед
-     */
-    static function on_AfterPrepareSingle($mvc, &$data)
-    {
-    	$rec = &$data->rec;
-    	$row = &$data->row;
-    	
-    	// Подготвяне на данни за подготовка на продажбата
-    	$sData = new stdClass();
-    	$sData->rec = $mvc->Sale->fetch($rec->saleId);
-    	
-    	// Флаг че се създава извиква от проформа
-    	$sData->fromProforma = TRUE;
-    	$sData->noTotal = $data->noTotal;
-    	
-    	// Подготвяне на сингъл данните на продажбата за използване в проформата
-        $mvc->Sale->prepareSingle($sData);
-        $data->saleData = $sData;
-        
-        // Премахване на някои специфични неща от продажбата, които нетрябва да се показват в проформа
-    	$dRows = &$sData->sales_SalesDetails->rows;
-    	if(count($dRows)){
-    		foreach ($dRows as $id  => &$dRow){
-    			$dRow->quantity = $dRow->packQuantity;
-    			$dRow->productId = strip_tags($dRow->productId);
+    	if(!haveRole('ceo,acc')){
+    		$data->form->setField('number', 'input=none');
+    	}
+    	 
+    	if($data->aggregateInfo){
+    		if($accId = $data->aggregateInfo->get('bankAccountId')){
+    			$data->form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
     		}
     	}
     	
-    	// Добавяне към проформата готовите данни от продажбата
-    	$rec = (object)((array)$data->rec + (array)$sData->rec);
-    	$row = (object)((array)$data->row + (array)$sData->row);
-    	
-    	// Допълнителни обработки по представянето
-    	$mvc->prepareSale($row, $rec);
+    	if(empty($data->flag)){
+    		if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
+    			$data->form->setDefault('accountId', $ownAcc);
+    		}
+    	}
     }
     
     
     /**
-     * Филтър на проформите
+     * След изпращане на формата
      */
-    static function on_AfterPrepareListFilter(core_Mvc $mvc, &$data)
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-		$data->listFilter->showFields .= ', search';
+    	parent::inputInvoiceForm($mvc, $form);
     }
     
     
     /**
-     * След като се подготвят данните на продажбата
+     * Преди запис в модела
      */
-    private function prepareSale(&$row, $rec)
+    public static function on_BeforeSave($mvc, $id, $rec)
     {
-    	// Показване на името и бика на банката, ако има б. сметка
-    	if($rec->bankAccountId){
-	    	$ownAcc = bank_Accounts::fetch($rec->bankAccountId);
-	    	$accRow = bank_Accounts::recToVerbal($ownAcc);
-	    	$row->bank = $accRow->bank;
-	    	$row->bic = $accRow->bic;
-	    	$rec->bankAccountId = $accRow->iban;
-	    }
+    	if(isset($rec->id) && empty($rec->folderId)){
+    		$rec->folderId = $mvc->fetchField($rec->id, 'folderId');
+    	}
     	
-	    $row->header = "{$this->singleTitle} <b>{$row->ident}</b> ({$row->state})" ;
-	    $userRec = core_Users::fetch($rec->createdBy);
-		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
-		
-		// Ако курса е 1-ца, не се показва
-		if($rec->currencyRate == 1){
-			unset($row->currencyRate);
-		}
+    	parent::beforeInvoiceSave($rec);
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if(empty($rec->number)){
+    		$rec->number = $rec->id;
+    		$mvc->save($rec, 'number');
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+    	if (!empty($data->form->toolbar->buttons['activate'])) {
+    		$data->form->toolbar->removeBtn('activate');
+    	}
+    	
+    	if (!empty($data->form->toolbar->buttons['btnNewThread'])) {
+    		$data->form->toolbar->removeBtn('btnNewThread');
+    	}
     }
     
     
     /**
      * След преобразуване на записа в четим за хора вид.
-     */	
+     */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->number = str_pad($rec->id, '10', '0', STR_PAD_LEFT);
-    	
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
-    		$row->saleId = $mvc->Sale->getLink($rec->saleId);
+    	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
+    	 
+    	if($fields['-single']){
+    
+    		if($rec->accountId){
+    			$Varchar = cls::get('type_Varchar');
+    			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+    			$row->bank = $Varchar->toVerbal($ownAcc->bank);
+    			$row->bic = $Varchar->toVerbal($ownAcc->bic);
+    		}
     	}
     }
     
     
     /**
-     * След подготовка на еденичния изглед
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * Подготвя продуктите от ориджина за запис в детайла на модела
      */
-    static function on_AfterRenderSingle($mvc, &$tpl, &$data)
+    protected static function prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs)
     {
-    	// Премахване на блока 'header'
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
-    		$tpl->removeBlock('header');
+    	if(count($agreed)){
+    		
+    		// Записваме информацията за продуктите в детайла
+    		foreach ($agreed as $product){
+    			
+    			$diff = $product->quantity;
+    			$mvc::saveProductFromOrigin($mvc, $rec, $product, $packs, $diff);
+    		}
     	}
-    	
-    	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
-    	
-    	// Рендиране на детайлите на продажбата, за показване в проформата
-    	$saleDetails = $data->saleData->sales_SalesDetails;
-    	$dTpl = $mvc->Sale->sales_SalesDetails->renderDetailLayout($saleDetails);
-        $dTpl->append($mvc->Sale->sales_SalesDetails->renderListTable($saleDetails), 'ListTable');
-    	
-        // Добавяне на детайлите на продажбата в шаблона на проформата
-        $tpl->append($dTpl, 'PRODUCTS');
     }
     
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -287,97 +271,6 @@ class sales_Proformas extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        return FALSE;
-    }
-    
-    
-	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	// От лист изгледа не може да се добавя проформа
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
-    }
-    
-    
-    /**
-     * Дали документа може да се добави към нишката
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Кой е първия документ в нишката
-    	$firstDoc = doc_Threads::getFirstDocument($threadId);
-        
-    	// Ако е продажба
-        if($firstDoc->instance instanceof sales_Sales){
-        	
-        	// Ако е активирана продажба
-        	$state = $firstDoc->fetchField('state');
-        	
-        	// Може да се добавя само към активирана продажба
-        	return ($state != 'active') ? FALSE : TRUE;
-        }
-        
-        // Ако първия документ не е продажба, връщаме FALSE
-        return FALSE;
-    }
-    
-    
-	/**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    function getDocumentRow($id)
-    {
-        $rec = $this->fetch($id);
-		$row = new stdClass();
-        $row->title = "Проформа фактура №{$id}";
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->authorId = $rec->createdBy;
-        $row->state = $rec->state;
-        $row->recTitle = $row->title;
-        
-        return $row;
-    }
-    
-    
-	/**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
-     */
-    static function getDefaultEmailBody($id)
-    {
-        $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашата проформа фактура") . ': #[#handle#]');
-        $tpl->append($handle, 'handle');
-        
-        return $tpl->getContent();
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public static function getHandle($id)
-    {
-    	$self = cls::get(get_called_class());
-    	$id = str_pad($id, '10', '0', STR_PAD_LEFT);
-    
-    	return $self->abbr . $id;
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public static function fetchByHandle($parsedHandle)
-    {
-    	$number = ltrim($parsedHandle['id'], '0');
-    	 
-    	return static::fetch("#id = '{$number}'");
+    	return FALSE;
     }
 }

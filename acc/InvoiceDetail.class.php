@@ -145,7 +145,7 @@ abstract class acc_InvoiceDetail extends core_Detail
 	 * След калкулиране на общата сума
 	 */
 	public function calculateAmount_(&$recs, &$rec)
-	{
+	{	
 		deals_Helper::fillRecs($this->Master, $recs, $rec, static::$map);
 	}
 	
@@ -160,7 +160,8 @@ abstract class acc_InvoiceDetail extends core_Detail
 	public static function on_AfterPrepareListRows($mvc, &$data)
 	{
 		$masterRec = $data->masterData->rec;
-		if($masterRec->type != 'invoice'){
+		
+		if(isset($masterRec->type) && $masterRec->type != 'invoice'){
 	
 			// При дебитни и кредитни известия показваме основанието
 			$data->listFields = array();
@@ -187,7 +188,7 @@ abstract class acc_InvoiceDetail extends core_Detail
 		$recs = &$data->recs;
 		$invRec = &$data->masterData->rec;
 		$haveDiscount = FALSE;
-	
+		
 		$mvc->calculateAmount($recs, $invRec);
 	
 		if (empty($recs)) return;
@@ -234,10 +235,10 @@ abstract class acc_InvoiceDetail extends core_Detail
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'add' && isset($rec->{$mvc->masterKey})){
-			$invType = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type');
+		if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->{$mvc->masterKey})){
+			$hasType = $mvc->Master->getField('type', FALSE);
 	
-			if($invType == 'invoice'){
+			if(empty($hasType) || (isset($hasType)  && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'invoice')){
 				$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
 				if($masterRec->state != 'draft'){
 					$res = 'no_one';
