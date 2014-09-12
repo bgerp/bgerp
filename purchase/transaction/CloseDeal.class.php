@@ -257,12 +257,6 @@ class purchase_transaction_CloseDeal
     private function getCloseEntry($amount, &$totalAmount, $docRec, $firstDoc)
     {
     	$entry = array();
-    
-    	// Ако е в границата на допустимото отклонение, не правим статия
-    	$conf = core_Packs::getConfig('acc');
-    	if($amount >= -1 * $conf->ACC_MONEY_CLOSE_TOLERANCE && $amount <= $conf->ACC_MONEY_CLOSE_TOLERANCE){
-    		$amount = 0;
-    	}
     	
     	if(round($amount, 2) == 0) return $entry;
     	 
