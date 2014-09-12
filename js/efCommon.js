@@ -1320,9 +1320,8 @@ function scaleViewport(){
 		var pageWidth = $(window).width();
 		var customWidth = 1024;
 		if(pageWidth > customWidth ){
-			var scaleFactor = pageWidth/customWidth;
             $('meta[name=viewport]').remove();
-            $('head').append('<meta name="viewport" content="width='+ customWidth + ', initial-scale=' +scaleFactor+ '">');
+            $('head').append('<meta name="viewport" content="width='+ customWidth + '">');
             $('body').css('maxWidth',customWidth);
     	} 
     }

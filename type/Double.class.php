@@ -128,7 +128,8 @@ class type_Double extends core_Type {
         }
 
         // Закръгляме числото преди да го обърнем в нормален вид
-        $value = round($value, $decimals + 1);
+        $value = round($value, $decimals);
+        
         $value = number_format($value, $decimals, $decPoint, $thousandsSep);
         
         if(!Mode::is('text', 'plain')) {

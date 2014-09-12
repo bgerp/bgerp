@@ -919,7 +919,7 @@ class type_Richtext extends type_Blob
         if($title{0} != ' ') {
             
             $bgPlace = $this->getPlace();
-            $thumb = new img_Thumb("https://plus.google.com/_/favicon?domain={$domain}", 16, 16, 'url');
+            $thumb = new thumb_Img("https://plus.google.com/_/favicon?domain={$domain}", 16, 16, 'url');
             $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
 

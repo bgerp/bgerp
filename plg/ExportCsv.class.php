@@ -101,6 +101,8 @@ class plg_ExportCsv extends core_Plugin
             
             /* за всеки ред */
             foreach($data->recs as $rec) {
+            	$mvc->invoke('BeforeExportCsv', array($rec));
+            	
                 // Всеки нов ред ва началото е празен
                 $rCsv = '';
                 
@@ -145,5 +147,17 @@ class plg_ExportCsv extends core_Plugin
         }
         
         /* END Ако в url-то на заявката има Export=Csv */
+    }
+    
+    
+    /**
+     * След подготовка на филтъра
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	// Ако експортираме CSV викаме събитие, с което мениджъра може да допълни филтер-заявката
+    	if (Request::get('Export') == 'csv') {
+    		$mvc->invoke('AfterPrepareExportQuery', array($data->query));
+    	}
     }
 }
