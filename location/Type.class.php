@@ -80,7 +80,7 @@ class location_Type extends type_Varchar {
         setIfNot($width, $this->params['width'], 400);
         setIfNot($height, $this->params['height'], 300);
 
-        $res = new ET("<div style='width:{$width}px;height:{$height}px;' id=\"{$id}\"></div>");
+        $res = new ET("<div class='location-map'><div style='width:{$width}px;height:{$height}px;' id=\"{$id}\"></div></div>");
         
         $res->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
         

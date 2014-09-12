@@ -39,7 +39,7 @@ class avatar_Gravatar extends core_Manager {
         
         $imgUrl = "http://www.gravatar.com/avatar/{$md5}?d=wavatar&s={$width}";
         
-        $thmb = new img_Thumb($imgUrl, $width, $width, 'url');
+        $thmb = new thumb_Img($imgUrl, $width, $width, 'url');
 
         return $thmb->getUrl();
     }

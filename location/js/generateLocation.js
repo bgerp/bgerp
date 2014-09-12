@@ -13,7 +13,6 @@ function generatePath(data,el){
 	$.each(data, function(index, nCoord){
 		var val = {};
 	    // брой координати
-		//console.log(nCoord.coords);
 		var coords = nCoord.coords;
 	    var points = nCoord.coords.length;
 	    // координати от предната точка, за да можем да съставим път
@@ -32,7 +31,7 @@ function generatePath(data,el){
 	    	// генерираме необходимата ни структура
 	    	path = {}, options = {};
 	    	options.strokeColor ="rgb(0,0," + blue + ")";
-	    	options.path = [[oldCoord[1],oldCoord[0]],  [value[1],value[0]]];
+	    	options.path = [[oldCoord[0],oldCoord[1]],  [value[0],value[1]]];
 	    	path.options = options;
 	    	allPaths.push(path);
 	    }
@@ -50,7 +49,7 @@ function generatePath(data,el){
 	    	// генерираме необходимата ни структура
 	    	path = {}, options = {};
 	    	options.strokeColor ="rgb(" + red + ",0," + blue + ")";
-	    	options.path = [[oldCoord[1],oldCoord[0]],  [value[1],value[0]]];
+	    	options.path = [[oldCoord[0],oldCoord[1]],  [value[0],value[1]]];
 	    	path.options = options;
 	    	allPaths.push(path);
 	    }
@@ -58,7 +57,7 @@ function generatePath(data,el){
 	    
 	    // записваме координатите на последната точка от всеки път и поставяме маркер с информацията за нея
 	    if(nCoord.info){
-	    	val.latLng = [value[1],value[0]];
+	    	val.latLng = [value[0],value[1]];
 	 	    val.data = nCoord.info;
 	 		markers.push(val);
 	    }

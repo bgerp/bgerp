@@ -39,14 +39,14 @@ class location_Paths {
         setIfNot($width, $attr['width'], 400);
         setIfNot($height, $attr['height'], 300);
 
-        $res = new ET("<div style='width:{$width}px;height:{$height}px;' id=\"{$id}\"></div>");
+        $res = new ET("<div class='location-map'><div style='width:{$width}px;height:{$height}px;' id=\"{$id}\"></div></div>");
         
         $res->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
         $res->push("location/js/generateLocation.js", 'JS');
         $res->push('location/' . GMAP3_VERSION . '/gmap3.js', 'JS');
 		
         $value = json_encode($value);
-        jquery_Jquery::run($res, "generatePath({$value},{$id})");
+        jquery_Jquery::run($res, "generatePath({$value},{$id});");
         
         return $res;
     }
