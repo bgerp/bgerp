@@ -244,7 +244,6 @@ class core_Setup extends core_ProtoSetup {
     {
         $html .= parent::install();
         
-
         if( CORE_OVERWRITE_HTAACCESS ) {
             $filesToCopy = array(
                 EF_EF_PATH . '/_docs/tpl/htaccessSBF.txt' => EF_SBF_PATH . '/.htaccess',
@@ -253,13 +252,18 @@ class core_Setup extends core_ProtoSetup {
             
             foreach($filesToCopy as $src => $dest) {
                 if(copy($src, $dest)) {
-                        $html .= "<li style='color:green;'>Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                    $html .= "<li  class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 } else {
-                        $html .= "<li style='color:red;'>Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                    $html .= "<li  class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 }
             }
         }
-
+        
+        // Изтриване на старите файлове от sbf директорията
+        $delCnt = core_Os::deleteOldFiles(EF_SBF_PATH, 2*30*24*60*60, "#^_[a-z0-9\-\/_]+#i");
+        if($delCnt) {
+            $html .= "<li class=\"green\">Изтрити са $delCnt файла в " . EF_SBF_PATH . "/</li>";
+        }
         
         // Нагласяване на Крон
         $rec = new stdClass();
