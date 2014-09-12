@@ -1,0 +1,37 @@
+.upload-doc-created {
+  width: 130px; }
+
+.dialogDocTable {
+  max-height: 434px;
+  overflow-y: auto; }
+
+.dialogDocTable table {
+  width: 100%;
+  background-color: white; }
+
+.dialogDocTable table tr td:last-child {
+  width: 1%; }
+
+.dialogDocTable table tr td:first-child {
+  width: 70px; }
+
+.addDoc .listTable {
+  margin-bottom: 0; }
+
+.dialogDocTitle {
+  display: block;
+  margin-bottom: 12px;
+  margin-top: -5px;
+  font-weight: bold; }
+
+.dialogPager {
+  clear: both;
+  margin-top: -5px;
+  margin-bottom: 12px; }
+
+.addDocSubTitle {
+  font-size: 0.75em;
+  padding: 2px;
+  padding-bottom: 0px;
+  color: #335533; }
+
