@@ -3,60 +3,121 @@
 class core_App
 {
     
-    public static $debugHandler = array(__CLASS__, 'bp');
 
     public static function run()
     {
-        try
-        {
-            // Инициализираме функцията, която се изпълнява при core_App::debug()/wp()
-            //self::setDebugHandler();
-            
+        try {
+
             // Ако имаме заявка за статичен ресурс, веднага го сервираме и
             // приключване. Ако не - продъжаваме със зареждането на фреймуърка
             if ($_GET[EF_SBF]) {
-                static::_serveStaticBrowserResource($_GET[EF_SBF]);
-            }
 
-            // Зареждаме класа регистратор на плъгините
-            core_Cls::get('core_Plugins');
+                core_Sbf::serveStaticFile($_GET[EF_SBF]);
 
-            // Задаваме стойности по подразбиране на обкръжението
-            if (!core_Mode::is('screenMode')) {
-                core_Mode::set('screenMode', core_Browser::detectMobile() ? 'narrow' : 'wide');
-            }
-            
-            // Генерираме съдържанието
-            $content = core_Request::forward();
-            
-            // Ако не сме в DEBUG режим и заявката е по AJAX
-            if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
-                core_Logs::log("Стартиране на core_App::run() през AJAX");
+            } else {
+
+                // Зареждаме класа регистратор на плъгините
+                core_Cls::get('core_Plugins');
+
+                // Задаваме стойности по подразбиране на обкръжението
+                if (!core_Mode::is('screenMode')) {
+                    core_Mode::set('screenMode', core_Browser::detectMobile() ? 'narrow' : 'wide');
+                }
                 
-                return ;
+                // Генерираме съдържанието
+                $content = core_Request::forward();
+                
+                // Ако не сме в DEBUG режим и заявката е по AJAX
+                if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
+                    core_Logs::log("Стартиране на core_App::run() през AJAX");
+                    
+                    return ;
+                }
+                
+                // Опакова съдържанието
+                $Wrapper = core_Cls::get('page_Wrapper');
+                $Wrapper->render($content);
             }
-            
-            // Зарежда опаковката
-            $Wrapper = core_Cls::get('page_Wrapper');
-
-            $Wrapper->render($content);
-     
-            // Край на работата на скрипта
-            static::shutdown();
-        }
-        catch (core_exception_Expect $e)
-        {
+        } catch (core_exception_Expect $e) {
             if($e->class == 'core_Db' && core_Db::databaseEmpty()) {
                 // При празна база редиректваме безусловно към сетъп-а
-                 redirect(array('Index', 'SetupKey' => setupKey()));
+                redirect(array('Index', 'SetupKey' => setupKey()));
             }
-            
+
+            echo ($e->getAsHtml());
+
             // Ако възникне грешка в core_Message
             // За да не влезе в безкраен редирект
             if ($e->class == 'core_Message') die(tr($e->getMessage()));
-            
+                
             $e->getAsHtml();
         }
+
+         // Край на работата на скрипта
+        static::shutdown();
+    }
+
+
+    /**
+     * Начално инициализиране на приложението и системата
+     */
+    public function initSystem()
+    {
+        // Регистрираме функция за автоматично зареждане на класовете
+        spl_autoload_register(array('core_App', 'classAutoload'), TRUE, TRUE);
+
+
+        /**
+         * Директорията с конфигурационните файлове
+         */
+        defIfNot('EF_CONF_PATH', EF_ROOT_PATH . '/conf');
+
+
+        /**
+         * По подразбиране от локалния хост се работи в режим DEBUG
+         */
+        defIfNot('EF_DEBUG_HOSTS', 'localhost,127.0.0.1,::1');
+
+
+        // Ако index.php стои в директория с име, за което съществува конфигурационен 
+        // файл, приема се, че това име е името на приложението
+        if (!defined('EF_APP_NAME') &&
+            file_exists(EF_CONF_PATH . '/' . basename(EF_INDEX_PATH) . '.cfg.php')) {
+            
+            
+            /**
+             * Името на приложението. Използва се за определяне на други константи
+             */
+            DEFINE('EF_APP_NAME', basename(EF_INDEX_PATH));
+        }
+
+
+        /**
+         * Базовото име на директорията за статичните браузърни файлове
+         */
+        defIfNot('EF_SBF', 'sbf');
+
+
+        // Разрешаваме грешките, ако инсталацията е Debug
+        ini_set("display_errors", isDebug());
+        ini_set("display_startup_errors", isDebug());
+
+
+        /**
+         * Времева зона
+         */
+        defIfNot('EF_TIMEZONE', 'Europe/Sofia');
+
+
+        // Сетваме времевата зона
+        date_default_timezone_set(EF_TIMEZONE);
+
+        // Вътрешно кодиране
+        mb_internal_encoding("UTF-8");
+
+
+        // Локал за функции като basename
+        setlocale(LC_ALL, 'en_US.UTF8');
     }
 
 
@@ -203,6 +264,110 @@ class core_App
 
 
     /**
+     * Зареждане на глобалните конфигурационни константи
+     */
+    public function loadConfig()
+    {
+        // Вземаме името на приложението от параметрите на URL, ако не е дефинирано
+        if (!defined('EF_APP_NAME')) {
+            if(!$_GET['App']) {
+                halt('Error: Unable to determinate application name (EF_APP_NAME)</b>');
+            }
+            
+            /**
+             * Името на приложението. Използва се за определяне на други константи.
+             */
+            defIfNot('EF_APP_NAME', $_GET['App']);
+            
+            /**
+             * Дали името на приложението е зададено фиксирано
+             */
+            DEFINE('EF_APP_NAME_FIXED', FALSE);
+        } else {
+            
+            /**
+             * Дали името на приложението е зададено фиксирано
+             */
+            DEFINE('EF_APP_NAME_FIXED', TRUE);
+        }
+
+
+        /**
+         * Пътя до директорията за статичните браузърни файлове към приложението
+         */
+        defIfNot('EF_SBF_PATH', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME);
+
+
+        /**
+         * Дефинира, ако не е зададено името на кода на приложението
+         */
+        defIfNot('EF_APP_CODE_NAME', EF_APP_NAME);
+
+
+        /**
+         * Времето в секунди за изчакване при рефреш на портала
+         */
+        defIfNot('BGERP_DOCUMENT_SLEEP_TIME', 0);
+
+
+        /**
+         * Директорията с външни пакети
+         */
+        defIfNot('EF_VENDORS_PATH', EF_ROOT_PATH . '/vendors');
+
+
+        /**
+         * Базова директория, където се намират приложенията
+         */
+        defIfNot('EF_APP_BASE_PATH', EF_ROOT_PATH);
+
+
+        /**
+         * Директорията с приложението
+         */
+        defIfNot('EF_APP_PATH', EF_APP_BASE_PATH . '/' . EF_APP_CODE_NAME);
+
+
+        /**
+         * Базова директория, където се намират под-директориите с временни файлове.
+         * По подразбиране използваме системната директория за временни файлове.
+         * 
+         * @see http://php.net/manual/en/function.sys-get-temp-dir.php
+         */
+        defIfNot('EF_TEMP_BASE_PATH', sys_get_temp_dir());
+
+
+        /**
+         * Директорията с временни файлове
+         */
+        defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
+
+
+        /**
+         * Базова директория, където се намират под-директориите с качените файлове
+         */
+        defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
+
+
+        /**
+         * Директорията с качените и генерираните файлове
+         */
+        defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
+
+
+
+        // Зареждаме конфигурационния файл на приложението. 
+        // Ако липсва - показваме грешка.
+        // Шаблон за този файл има в директорията [_docs]
+        if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
+            halt('Error in boot.php: Missing configuration file: ' .
+                EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
+        }
+    }
+
+
+
+    /**
      * Дали се намираме в DEBUG режим
      */
     public static function isDebug()
@@ -257,115 +422,6 @@ class core_App
     }
 
 
-    /**
-     * Функция, която проверява и ако се изисква, сервира
-     * браузърно съдържание html, css, img ...
-     */
-    protected static function _serveStaticBrowserResource($name)
-    {
-        $file = static::getFullPath($name);
-
-        // Грешка. Файла липсва
-        if (!$file) {
-            error_log("EF Error: Mising file: {$name}");
-
-            if (static::isDebug()) {
-                error_log("EF Error: Mising file: {$name}");
-                header('Content-Type: text/html; charset=UTF-8');
-                header("Content-Encoding: none");
-                echo "<script type=\"text/javascript\">\n";
-                echo "alert('Error: " . str_replace("\n", "\\n", addslashes("Липсващ файл: *{$name}")) . "');\n";
-                echo "</script>\n";
-                exit();
-            } else {
-                header('HTTP/1.1 404 Not Found');
-                exit();
-            }
-        }
-
-        // Файла съществува и трябва да бъде сервиран
-        // Определяне на Content-Type на файла
-        $fileExt = strtolower(substr(strrchr($file, "."), 1));
-        $mimeTypes = array(
-            'css' => 'text/css',
-            'htm' => 'text/html',
-            'svg' => 'image/svg+xml',
-            'html' => 'text/html',
-            'xml' => 'text/xml',
-            'js' => 'application/javascript',
-            'swf' => 'application/x-shockwave-flash',
-            'jar' => 'application/x-java-applet',
-            'java' => 'application/x-java-applet',
-
-            // images
-            'png' => 'image/png',
-            'jpe' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'jpg' => 'image/jpeg',
-            'gif' => 'image/gif',
-            'ico' => 'image/vnd.microsoft.icon'
-        );
-
-        $ctype = $mimeTypes[$fileExt];
-
-        if (!$ctype) {
-            if (static::isDebug()) {
-                header('Content-Type: text/html; charset=UTF-8');
-                header("Content-Encoding: none");
-                echo "<script type=\"text/javascript\">\n";
-                echo "alert('Error: " . str_replace("\n", "\\n", addslashes("Unsuported file extention: $file ")) . "');\n";
-                echo "</script>\n";
-                exit();
-            } else {
-                header('HTTP/1.1 404 Not Found');
-                exit();
-            }
-        }
-
-        header("Content-Type: $ctype");
-
-        // Хедъри за управлението на кеша в браузъра
-        header("Expires: " . gmdate("D, d M Y H:i:s", time() + 3153600) . " GMT");
-        header("Cache-Control: public, max-age=3153600");
-
-        if (substr($ctype, 0, 5) == 'text/' || $ctype == 'application/javascript') {
-            $gzip = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
-
-            if ($gzip) {
-                header("Content-Encoding: gzip");
-
-                // Търсим предварително компресиран файл
-                if (file_exists($file . '.gz')) {
-                    $file .= '.gz';
-                    header("Content-Length: " . filesize($file));
-                } else {
-                    // Компресираме в движение
-                    // ob_start("ob_gzhandler");
-                }
-            }
-        } else {
-            header("Content-Length: " . filesize($file));
-        }
- 
-        // Изпращаме съдържанието към браузъра
-        readfile($file);
-        
-        flush();
-
-        // Копираме файла за директно сервиране от Apache
-        // @todo: Да се минимализират .js и .css
-        if(!isDebug()) {
-            $sbfPath = EF_SBF_PATH . '/' . $name;
-
-            $sbfDir = dirname($sbfPath);
-
-            mkdir($sbfDir, 0777, TRUE);
-
-            @copy($file, $sbfPath);
-        }
-
-        exit();
-    }
 
 
     /**
@@ -717,7 +773,7 @@ class core_App
 
         // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
         // И той е TRUE - това е сигнал да вземем текущото URL
-        if(TRUE === $params['ret_url']) {
+        if($params['ret_url'] === TRUE) {
             $params['ret_url'] = static::getCurrentUrl();
         }
 
@@ -881,165 +937,6 @@ class core_App
     }
 
 
-    /**
-     * Връща URL на Browser Resource File, по подразбиране, оградено с кавички
-     */
-    public static function sbf($rPath, $qt = '"', $absolute = FALSE)
-    {
-        // Стойности по подразбиране
-        $f = '';
-        $filePath = '';
-        $ext = '';
-        $nPath = '';
-        $fileExist = FALSE;
-        $checkDir = FALSE;
-        $convertCss = FALSE;
-        
-        // Взема пътя до файла, ако той не е в служебна под-директория на sbf
-        if($rPath{0} != '_') {
-            $f = static::getFullPath($rPath);
-        }
-        
-        // Ако няма файл или не е директория
-        if (!$f || !is_dir($f)) {
-            
-            // Ако има разширение файла
-            if (($dotPos = strrpos($rPath, '.')) !== FALSE) {
-                
-                // Разширението на файла
-                $ext = mb_substr($rPath, $dotPos);
-                
-                // Пътя до файла, без разширенито
-                $filePath = mb_substr($rPath, 0, $dotPos);
-                
-                // Ако няма файл
-                if (!$f) {
-                    
-                    // Ако разшиернието е .csss
-                    if (strtolower($ext) == '.css') {
-                        
-                        // Новото разширение
-                        $nExt = '.scss';
-                        
-                        // Новия файл
-                        $nPath = $filePath . $nExt;
-                        
-                        // Пътя до файла
-                        $f = static::getFullPath($nPath);
-                        
-                        // Ако файла съществува
-                        if ($f) {
-                            
-                            // Сетваме флаговете
-                            $fileExist =  TRUE;
-                            $convertCss = TRUE;
-                            $checkDir = TRUE;
-                        }
-                    }
-                } else {
-                    
-                    // Ако съществува
-                    $fileExist = TRUE;
-                }
-            }
-        }
-        
-        // Ако файла съществува
-        if ($fileExist) {
-            
-            // Ако е зададено да се провери директорията за промени и да се вземе времето на последната промяна на файла
-            if ($checkDir) {
-                
-                // Времето на последната промяна в директорията
-                $time = core_Os::getLastModified(dirname($f));    
-            } else {
-                
-                // Датата на последна модификация
-                $time = filemtime($f);
-            }
-            
-            // Новия файл
-            $newFile = $filePath . "_" . date("mdHis", $time) . $ext;
-            
-            // Новия път до SBF на файла
-            $newPath = EF_SBF_PATH . "/" . $newFile;
-                    
-
-            // Ако файла не съществува в SBF
-            if(!file_exists($newPath)) {
-                
-                // Ако директорията не съществува
-                if(!is_dir($dir = dirname($newPath))) {
-                    
-                    // Създаваме директория
-                    if(!@mkdir($dir, 0777, TRUE)) {
-                        
-                        // Ако възникне грешка при създаването, записваме в лога
-                        core_Logs::add(get_called_class(), NULL, "Не може да се създаде: {$dir}");
-                    }
-                }
-                
-                // Ако трябва да се конвертира css файла
-                if ($convertCss) {
-                    
-                    // TODO след промяна на import' натите файлове, без оригиналния, все още ще работи със стария код
-                    // Конвертираме файла и вземаме CSS' а
-                    $css = core_Converter::convertSass($f, 'scss');  
-                    
-                    // Записваме в лога, след конвертиране
-                    core_Logs::add(get_called_class(), NULL, "Конвертиране на 'scss' към 'css' - {$nPath}");
-                    
-                    // Ако няма програма за конвертиране
-                    if ($css !== FALSE) {
-                        
-                        // Ако няма резултат записваме в лога
-                        if (!trim($css)) {
-                            
-                            // Записваме в лога
-                            core_Logs::add(get_called_class(), NULL, "Генерирания CSS от '{$nPath}' е празен стринг.");
-                        } 
-    
-                        // Записваме файла
-                        if (core_Sbf::saveFile($css, $newFile) !== FALSE) {
-                            
-                            // Задаваме пътя
-                            $rPath = $newFile;  
-                        } else {
-                            
-                             // Записваме в лога
-                            core_Logs::add(get_called_class(), NULL, "Генерирания CSS не може да се запише в '$newPath'.");
-                        }    
-                    }
-                } else {
-                    
-                    // Ако не трябва да се конвертира, записваме новия файл
-                    $content = file_get_contents($f);
-
-                    if(core_Sbf::saveFile($content, $newFile)) {
-                        
-                        // Записваме в лога, всеки път след като създадам файл в sbf
-                        core_Logs::add(get_called_class(), NULL, "Генериране на файл в 'sbf' за '{$rPath}'", 5);
-                        
-                        // Пътя до новия файл
-                        $rPath = $newFile;
-                    } else {
-                        
-                         // Записваме в лога
-                        core_Logs::add(get_called_class(), NULL, "Файла не може да се запише в '$newPath'.");
-                    }   
-                }
-            } else {
-                
-                // Пътя до файла
-                $rPath = $newFile;
-            }
-        }
-        
-        $rPath = ltrim($rPath, '/');
-        
-        return $qt . static::getBoot($absolute) . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . $rPath . $qt;
-    }
-
 
     /**
      * Тази функция определя пълния път до файла.
@@ -1082,75 +979,6 @@ class core_App
         expect($fullPath = static::getFullPath($shortPath));
 
         return file_get_contents($fullPath);
-    }
-    
-    
-    /**
-     * Watch point
-     * 
-     * Записва съдържанието на аргументите си в HTTP хедъри, които (хедъри) се визуализират в
-     * конзолата на браузъра, с помощта на браузърни разширения.
-     *  
-     * Може да се използва с Firefox с инсталиран FirePHP или в Google Chrome с инсталиран
-     * ChromeLog или FirePHP4Chrome
-     * 
-     * За да работи коректно, е необходимо да се добави следния ред във файла 
-     * {{EF_CONF_PATH}}/{{EF_APP_NAME}}.boot.php:
-     * 
-     * chromephp_ChromePHP::setup(); // в случая GoogleChrome + ChromeLog
-     * 
-     *     или
-     * 
-     * firephp_FirePHP::setup(); // В случаите Firefox + FirePHP или Chrome + FirePHP4Chrome
-     * 
-     * Отделно от това, в браузъра трябва да се инсталира съответното бразърно разширение. 
-     * Възможностите за това са:
-     * 
-     * 1. Браузър Google Chrome - две възможности:
-     * 
-     *    1.1. ChromeLog (@link https://chrome.google.com/webstore/detail/php-console/nfhmhhlpfleoednkpnnnkolmclajemef)
-     *    
-     *         В този случай в conf/{app}.boot.php трябва да се постави реда `chromephp_ChromePHP::setup();`
-     *         
-     *    1.2. FirePHP4Chrome (@link https://chrome.google.com/webstore/detail/firephp4chrome/gpgbmonepdpnacijbbdijfbecmgoojma)
-     *    
-     *         В този случай в conf/{app}.boot.php трябва да се постави реда `firephp_FirePHP::setup();`
-     *         
-     * 2. Браузър Mozilla Firefox - в този случай възможността е само една - инсталиране на
-     *    разширенията FireBug (v1.9+) (@link https://addons.mozilla.org/en-US/firefox/addon/firebug/) и
-     *    след това инсталиране на FirePHP (@link https://addons.mozilla.org/en-US/firefox/addon/firephp/)
-     *    
-     */
-    public static function debug()
-    {
-        $args = func_get_args();
-        $bt   = debug_backtrace();
-        
-        while ($where = array_shift($bt)) {
-            if (empty($where['line'])) {
-                continue;
-            }
-            if ($where['function'] == __FUNCTION__ && $where['class'] == __CLASS__) {
-                break;
-            }
-            if ($where['function'] == 'wp' && empty($where['class'])) {
-                break;
-            }
-        }
-        
-        $file = $where['file'];
-        $line = $where['line'];
-        
-        if (!empty($file)) {
-            $file = str_replace(EF_ROOT_PATH, '', $file);
-            $file = ltrim($file, '/');
-        }
-        
-        $where = "{$file}:{$line}";
-
-        $args = array($args, $where);
-        
-        return call_user_func_array(self::$debugHandler, $args);
     }
 
 
@@ -1224,7 +1052,7 @@ class core_App
      * Прави базово форматиране
      *
      * @param string $file Името на файла, съдържащ PHP код
-     * @param int       $line Линията, около която търсим 
+     * @param int    $line Линията, около която търсим 
      */
     public static function getCodeAround($file, $line, $range = 4)
     {
@@ -1317,15 +1145,6 @@ class core_App
     }
 
 
-    /**
-     * @deprecated
-     */
-    public static function defineIfNot($name, $value)
-    {
-        return static::defIfNot($name, $value);
-    }
-
-
     private static function prepareStack($stack, &$breakFile, &$breakLine)
     {
         // Вътрешни функции, чрез които може да се генерира прекъсване
@@ -1368,266 +1187,39 @@ class core_App
         return $result;
     }
 
+
     /**
-     * Зарежда от конфигурацията (ако има) хендлър на core_App::debug()/wp()
+     * Осигурява автоматичното зареждане на класовете
      */
-    private static function setDebugHandler()
+    private static function classAutoload($className)
     {
-        $coreConfig = core_Packs::getConfig('core');
+        $aliases = array(
+            'arr' => 'core_Array',
+            'dt' => 'core_DateTime',
+            'keylist' => 'type_Keylist',
+            'ht' => 'core_Html',
+            'et' => 'core_ET',
+            'str' => 'core_String',
+            'debug' => 'core_Debug',
+            'mode' => 'core_Mode',
+            'redirect' => 'core_Redirect',
+            'request' => 'core_Request',
+            'url' => 'core_Url',
+            'users' => 'core_Users',
+            'ut' => 'unit_Tests',
+            'fileman' => 'fileman_Files2',
+        );
         
-        if ($coreConfig->debugHandler) {
-            self::$debugHandler = $coreConfig->debugHandler;
+        if($fullName = $aliases[strtolower($className)]) {
+            if(core_Cls::load($fullName)) {
+                class_alias($fullName, $className);
+                
+                return TRUE;
+            }
+        } else {
+
+            return core_Cls::load($className, TRUE);;
         }
     }
 
-}
-
-/****************************************************************************************
-*                                                                                       *
-*      Глобални функции-псевдоними на често използвани статични методи на core_App      *
-*                                                                                       *
-****************************************************************************************/
-
-/**
- * Тази функция определя пълния път до файла.
- * Като аргумент получава последната част от името на файла
- * Файла се търси в EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH
- * Ако не бъде открит, се връща FALSE
- */
-function getFullPath($shortPath)
-{
-    return core_App::getFullPath($shortPath);
-}
-
-
-/**
- * Връща съдържанието на файла, като стринг
- * Пътя до файла може да е указан само от пакета нататък
- */
-function getFileContent($shortPath)
-{
-    return core_App::getFileContent($shortPath);
-}
-
-
-/**
- * Връща URL на Browser Resource File, по подразбиране, оградено с кавички
- */
-function sbf($rPath, $qt = '"', $absolute = FALSE)
-{
-    return core_App::sbf($rPath, $qt, $absolute);
-}
-
-
-/**
- * Създава URL от параметрите
- *
- * @param array $params
- * @param string $type Може да бъде relative|absolute|internal
- * @param boolean $protect
- * @param array $preParamsArr - Масив с имената на параметрите, които да се добавят в pre вместо, като GET
- * 
- * @return string
- */
-function toUrl($params = array(), $type = 'relative', $protect = TRUE, $preParamsArr = array())
-{
-    return core_App::toUrl($params, $type, $protect, $preParamsArr);
-}
-
-
-/**
- * Също като toUrl, но връща ескейпнат за html атрибут стринг
- */
-function toUrlEsc($params = array(), $type = NULL, $protect = TRUE, $preParamsArr = array())
-{
-    return ht::escapeAttr(toUrl($params, $type, $protect, $preParamsArr));
-}
-
-
-/**
- * @todo Чака за документация...
- */
-function toLocalUrl($arr)
-{
-    return core_App::toLocalUrl($arr);
-}
-
-
-/**
- * Връща относително или пълно URL до папката на index.php
- *
- * Псевдоним на @link core_App::getBoot()
- */
-function getBoot($absolute = FALSE)
-{
-    return core_App::getBoot($absolute);
-}
-
-
-/**
- * @todo Чака за документация...
- */
-function getCurrentUrl()
-{
-    return core_App::getCurrentUrl();
-}
-
-
-/**
- *  Връща масив, който представлява вътрешното представяне на 
- * локалното URL подадено като аргумент
- */
-function parseLocalUrl($str, $unprotect = TRUE)
-{
-    return core_App::parseLocalUrl($str, $unprotect);
-}
-
-
-/**
- * Връща масив, който представлява URL-то където трябва да
- * се използва за връщане след изпълнението на текущата задача
- */
-function getRetUrl($retUrl = NULL)
-{
-    return core_App::getRetUrl($retUrl);
-}
-
-
-/**
- * @todo Чака за документация...
- */
-function followRetUrl($url = NULL, $msg = NULL, $type = 'notice')
-{
-    core_App::followRetUrl($url, $msg, $type);
-}
-
-
-/**
- * Редиректва браузъра към посоченото URL
- * Добавя сесийния идентификатор, ако е необходимо
- *
- *
- */
-function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'notice')
-{
-    return core_App::redirect($url, $absolute, $msg, $type);
-}
-
-
-/**
- * Връща целия текущ URL адрес
- */
-function getSelfURL()
-{
-    return core_App::getSelfURL();
-}
-
-
-
-/**
- * Функция за завършване на изпълнението на програмата
- *
- * @param bool $sendOutput
- */
-function shutdown($sendOutput = TRUE)
-{
-    core_App::shutdown();
-}
-
-
-/**
- * Дали се намираме в DEBUG режим
- */
-function isDebug()
-{  
-    return core_App::isDebug();
-}
-
-
-/**
- * Спира обработката и извежда съобщение за грешка или го записв в errorLog
- */
-function halt($err)
-{
-    return core_App::halt($err);
-}
-
-
-/**
- * Точка на прекъсване. Има неограничен брой аргументи.
- * Показва съдържанието на аргументите си и текущия стек
- * Сработва само в режим на DEBUG
- */
-function bp()
-{
-    call_user_func_array(array('core_App', 'bp'), func_get_args());
-}
-
-
-/**
- * Watch Point - съкратено извикване на core_App::debug()
- * 
- * @see core_App::debug
- */
-function wp()
-{
-    call_user_func_array(array('core_App', 'debug'), func_get_args());
-}
-
-
-/**
- * Показва грешка и спира изпълнението. Използва core_Message
- */
-function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В ПРИЛОЖЕНИЕТО')
-{
-    return core_App::error($errorInfo, $debug, $errorTitle);
-}
-
-
-/**
- * Задава стойността(ите) от втория параметър на първия,
- * ако те не са установени
- * @todo: използва ли се тази функция за масиви?
- */
-function setIfNot(&$p1, $p2)
-{
-    $args = func_get_args();
-    $args[0] = &$p1;
-
-    return call_user_func_array(array('core_App', 'setIfNot'), $args);
-}
-
-
-/**
- * Дефинира константа, ако преди това не е била дефинирана
- * Ако вторият и аргумент започва с '[#', то изпълнението се спира
- * с изискване за дефиниция на константата
- */
-function defIfNot($name, $value = NULL)
-{
-    return core_App::defIfNot($name, $value);
-}
-
-
-/**
- * Аналогична фунция на urldecode()
- * Прави опити за конвертиране в UTF-8. Ако не успее връща оригиналното URL.
- * 
- * @param URL $url
- * 
- * @return URL
- */ 
-function decodeUrl($url)
-{
-    return core_Url::decodeUrl($url);
-}
-
-
-/**
- * @todo Чака за документация...
- * @deprecated
- */
-function defineIfNot($name, $value)
-{
-    return core_App::defineIfNot($name, $value);
 }
