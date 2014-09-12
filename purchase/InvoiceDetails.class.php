@@ -84,5 +84,9 @@ class purchase_InvoiceDetails extends acc_InvoiceDetail
     function description()
     {
         $this->FLD('invoiceId', 'key(mvc=purchase_Invoices)', 'caption=Фактура, input=hidden, silent');
+        
+        parent::setInvoiceDetailFields($this);
+        
+        $this->setDbUnique('invoiceId, productId, packagingId');
 	}
 }

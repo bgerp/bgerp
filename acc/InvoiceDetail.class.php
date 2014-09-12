@@ -49,7 +49,7 @@ abstract class acc_InvoiceDetail extends core_Detail
 	 *
 	 * @param core_Mvc $mvc
 	 */
-	public static function on_AfterDescription(&$mvc)
+	public static function setInvoiceDetailFields(&$mvc)
 	{
 		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol');
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
@@ -61,8 +61,6 @@ abstract class acc_InvoiceDetail extends core_Detail
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
 		$mvc->FLD('discount', 'percent', 'caption=Отстъпка');
 		$mvc->FLD('note', 'varchar(64)', 'caption=@Пояснение');
-		
-		$mvc->setDbUnique('invoiceId, productId, packagingId');
 	}
 	
 	
