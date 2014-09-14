@@ -215,8 +215,6 @@ class core_Html
             // $select->append("</optgroup>", 'OPTIONS');
         }
 
-        //jquery_Jquery::run($select, "getSelects();", TRUE);
-        
         return $select;
     }
 
@@ -767,7 +765,7 @@ class core_Html
      */
     static function wrapMixedToHtml($html, $wholeDocument = FALSE)
     {
-        $styles =   "    .dump {font-family: Consolas,Courier New,monospace; monospace; font-size:13px;}\n" .
+        $styles =   "    .dump {font-family: Consolas,Courier New,monospace; monospace; font-size:13px; padding-bottom:5px;}\n" .
                     "    .dump ul {list-style-type: none; margin:0;margin-left:10px; border-left:solid 1px #bbb; padding:0; padding-left:3px;}\n" .
                     "    .dump li {margin-top:3px;display:table;}\n" .
                     "    .dump .trigger {cursor:pointer}\n" .
@@ -823,7 +821,7 @@ class core_Html
     /**
      * Прави html представяне на структурата на обекта, масива или променливата
      */
-    static function mixedToHtml($o, $hideLevel = 3, $maxLevel = 6)
+    static function mixedToHtml($o, $hideLevel = 3, $maxLevel = 5)
     {
         static $i = 0;
 
@@ -909,8 +907,8 @@ class core_Html
                 $html = "\n($r)\n<ul>";
             }
 
-            if($i >= $hideLevel) {
-                $style = 'style="border-bottom:dotted 1px #bbb;"';
+            if($i >= $hideLevel && $i < $maxLevel) {
+                $style = 'border-bottom:dotted 1px #bbb;';
             } else {
                 $style = '';
             }
@@ -932,7 +930,9 @@ class core_Html
                         } else {
 
                             $attr['style'] = $style;
-                            $attr['class'] .= ' trigger';
+                            if($i < $maxLevel) {
+                                $attr['class'] .= ' trigger';
+                            }
 
                             $html .= "\n    <li>" . ht::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . " : " .
                                 static::mixedToHtml($value, $hideLevel, $maxLevel) . "</li>";
