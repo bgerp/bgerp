@@ -172,7 +172,7 @@ class support_Issues extends core_Master
     function description()
     {
         $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%');
-        $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%");
+        $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%,silent");
         $this->FLD('description', 'richtext(rows=10,bucket=Support,shareUsersRoles=support,userRolesForShare=support)', "caption=Описание, mandatory");
         $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент, changable');
         
@@ -198,8 +198,6 @@ class support_Issues extends core_Master
     }
 
 
-
-
     /**
      * Екшън за добавяне на запитване от нерегистрирани потребители
      */
@@ -222,9 +220,11 @@ class support_Issues extends core_Master
 
         // А други полета правим да се показват
         if(!haveRole('powerUser')) {
-            $form->setField('email', 'input');
-            $form->setField('name', 'input');
+            $form->setField('email', 'input,silent');
+            $form->setField('name', 'input,silent');
         }
+        
+        $form->setField('title', 'input=hidden');
 
     	// Инпут на формата
     	$form->input(NULL, 'silent');
@@ -286,11 +286,6 @@ class support_Issues extends core_Master
     			}
     			
     			status_Messages::newStatus(tr('Благодарим ви за сигнала'), 'success');
-    			
-    			// Ако има грешка при изпращане, тя се показва само на powerUser-и
-    			if (!$this->isSended && $cu && haveRole('powerUser')) {
-    			    status_Messages::newStatus(tr('Грешка при изпращане'), 'error');
-    			}
     			
     			return followRetUrl();
     		}
@@ -703,13 +698,13 @@ class support_Issues extends core_Master
         $row = new stdClass();
         
         // Типа
-        $type = static::getVerbal($rec, 'typeId');
+        $type = str::mbUcfirst(self::getVerbal($rec, 'typeId'));
 
         // Компонента
-        $component = static::getVerbal($rec, 'componentId');
+        $component = self::getVerbal($rec, 'componentId');
         
         // Добавяме типа към заглавието
-        $row->title    =  $this->getVerbal($rec, 'title');
+        $row->title =  "{$type}: " . $this->getVerbal($rec, 'title');
         
         // Ако е възложено на някой
         if ($rec->assign) {
@@ -718,7 +713,7 @@ class support_Issues extends core_Master
             $row->subTitle = $this->getVerbal($rec, 'assign') . ", ";   
         }
         
-        $row->subTitle .= "{$type}, {$component}";
+        $row->subTitle .= "{$component}";
 
         if($row->authorId = $rec->createdBy) {
             $row->author = $this->getVerbal($rec, 'createdBy');
