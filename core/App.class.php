@@ -61,7 +61,7 @@ class core_App
     /**
      * Начално инициализиране на приложението и системата
      */
-    public function initSystem()
+    public static function initSystem()
     {
         // Регистрираме функция за автоматично зареждане на класовете
         spl_autoload_register(array('core_App', 'classAutoload'), TRUE, TRUE);
