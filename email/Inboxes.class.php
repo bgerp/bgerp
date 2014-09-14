@@ -723,7 +723,7 @@ class email_Inboxes extends core_Master
      * 
      * @return array
      */
-    function getAllowedFromEmailOptions($type)
+    static function getAllowedFromEmailOptions($type)
     {
         try {
             

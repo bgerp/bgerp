@@ -244,10 +244,12 @@ class email_Accounts extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
-
-        if (email_Router::isPublicDomain(type_Email::domain($rec->email))) {
-            if($rec->type != 'single') {
-                $form->setError('type', "Сметка в публична имейл услуга може да бъде само Самостоятелна");
+        
+        if($form->isSubmitted()) {
+            if (email_Router::isPublicDomain(type_Email::domain($rec->email))) {
+                if($rec->type != 'single') {  
+                    $form->setError('type', "Сметка в публична имейл услуга може да бъде само Самостоятелна");
+                }
             }
         }
     }
