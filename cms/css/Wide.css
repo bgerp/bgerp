@@ -1,0 +1,54 @@
+body {
+  background-color: #cccccc; }
+
+#cmsMenu {
+  background-color: #333333; }
+
+#cmsMenu a {
+  color: #dddddd;
+  border: solid 1px #333333;
+  text-shadow: 2px 2px 2px black; }
+
+
+#cmsMenu a:hover {
+  color: white; }
+
+#cmsMenu a.selected {
+  color: white;
+  background-color: #9999ff; }
+
+#cmsTop,
+#cmsBottom,
+#cmsTop.a,
+#cmsBottom.a {
+  color: white; }
+
+#all #cmsTop,
+#cmsTop img {
+  background-color: white !important; }
+
+#cmsBottom {
+  background-color: #333333; }
+
+#all {
+  border: solid 1px #777777;
+  border-bottom: none; }
+
+#maincontent {
+  background-color: white; }
+
+#cmsNavigation .nav_item a {
+  color: #333366; }
+
+#cmsNavigation .sel_page a {
+  color: #333344;
+  background: #ddddff;
+  border: solid 1px #ccccff; }
+
+#cmsNavigation .level1 {
+  color: #333333; }
+
+.richtext h2 {
+  background-color: #ddddff;
+  padding: 5px; }
+

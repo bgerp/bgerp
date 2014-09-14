@@ -120,6 +120,8 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Invoices',
             'sales_InvoiceDetails',
     		'sales_Proformas',
+    		'sales_ProformaDetails',
+    		'migrate::transformProformas',
         );
 
         
@@ -184,5 +186,69 @@ class sales_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция на старите проформи към новите
+     */
+    function transformProformas()
+    {
+    	$mvc = cls::get('sales_Proformas');
+    	$query = $mvc->getQuery();
+    	$query->where("#state = 'active'");
+    	$query->where("#saleId IS NOT NULL");
+    	 
+    	while($rec = $query->fetch()){
+    		$saleRec = sales_Sales::fetch($rec->saleId);
+    	
+    		$rec->contragentClassId = $saleRec->contragentClassId;
+    		$rec->contragentId = $saleRec->contragentId;
+    	
+    		$ContragentClass = cls::get($rec->contragentClassId);
+    		$cData = $ContragentClass->getContragentData($rec->contragentId);
+    	
+    		$rec->contragentName = ($cData->person) ? $cData->person : $cData->company;
+    		$rec->contragentAddress = $cData->address;
+    	
+    		$conf = core_Packs::getConfig('crm');
+    		if(!$cData->countryId){
+    			$cData->countryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'", 'id');
+    		}
+    	
+    		$rec->contragentCountryId = $cData->countryId;
+    		$rec->contragentVatNo = $cData->vatNo;
+    	
+    		if(strlen($rec->contragentVatNo) && !strlen($rec->uicNo)){
+    			$rec->uicNo = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
+    		} else {
+    			$rec->uicNo = $cData->uicId;
+    		}
+    	
+    		$rec->contragentPCode = $cData->pCode;
+    		$rec->contragentPlace = $cData->place;
+    	
+    		$rec->vatRate = $saleRec->chargeVat;
+    		$rec->paymentMethodId = $saleRec->paymentMethodId;
+    		$rec->currencyId = $saleRec->currencyId;
+    		$rec->rate = $saleRec->currencyRate;
+    		$rec->deliveryId = $saleRec->deliveryTermId;
+    		$rec->deliveryPlaceId = $saleRec->deliveryLocationId;
+    		$rec->bankAccountId = $saleRec->accountId;
+    	
+    		$rec->saleId = NULL;
+    		$mvc->save($rec);
+    	
+    		sales_ProformaDetails::delete("#proformaId = {$rec->id}");
+    		$dQuery = sales_SalesDetails::getQuery();
+    		$dQuery->where("#saleId = {$saleRec->id}");
+    		while($dRec = $dQuery->fetch()){
+    			unset($dRec->id, $dRec->saleId);
+    			$dRec->proformaId = $rec->id;
+    			$dRec->quantity /= $dRec->quantityInPack;
+    			
+    			sales_ProformaDetails::save($dRec);
+    		}
+    	}
     }
 }

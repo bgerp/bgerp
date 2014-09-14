@@ -48,7 +48,7 @@ abstract class acc_InvoiceMaster extends core_Master
     	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
         'accountId'           => 'lastDocUser|lastDoc',
-    	'template' 			  => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	//'template' 			  => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
@@ -97,9 +97,14 @@ abstract class acc_InvoiceMaster extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Вид,input,silent');
-    	$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Състояние,input,silent');
-    	$data->listFilter->showFields .= ',invType,invState';
+    	$data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
+    	
+    	if($mvc->getField('type', FALSE)){
+    		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
+    		$data->listFilter->showFields .= ',invType';
+    	}
+    	
+    	$data->listFilter->showFields .= ',invState';
     	$data->listFilter->input();
     	$data->listFilter->setDefault('invState', 'all');
     	
@@ -166,7 +171,7 @@ abstract class acc_InvoiceMaster extends core_Master
     	$Detail = $this->mainDetail;
     	
     	$query = $this->$Detail->getQuery();
-    	$query->where("#invoiceId = '{$id}'");
+    	$query->where("#{$this->$Detail->masterKey} = '{$id}'");
     	$recs = $query->fetchAll();
     	
     	if(count($recs)){
@@ -432,8 +437,8 @@ abstract class acc_InvoiceMaster extends core_Master
 	   	$res = array();
 	   	$Detail = $this->mainDetail;
 	   	$dQuery = $this->$Detail->getQuery();
-	   	$dQuery->EXT('state', $this->className, 'externalKey=invoiceId');
-	   	$dQuery->where("#invoiceId = '{$id}'");
+	   	$dQuery->EXT('state', $this->className, "externalKey={$this->$Detail->masterKey}");
+	   	$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
 	   	$dQuery->groupBy('productId,classId');
 	   	while($dRec = $dQuery->fetch()){
 	   		$productMan = cls::get($dRec->classId);
@@ -480,7 +485,7 @@ abstract class acc_InvoiceMaster extends core_Master
 	   	 
 	   	$Detail = $mvc->mainDetail;
 	   	$dQuery = $mvc->$Detail->getQuery();
-	   	$dQuery->where("#invoiceId = {$rec->id}");
+	   	$dQuery->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
 	   	$dQuery->where("#quantity = 0");
 	   	 
 	   	// Ако има поне едно 0-во к-во документа, не може да се активира
@@ -518,7 +523,7 @@ abstract class acc_InvoiceMaster extends core_Master
    protected static function prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs)
    {
 	   	if(count($products) != 0){
-	   	
+	   		
 	   		// Записваме информацията за продуктите в детайла
 	   		foreach ($products as $product){
 	   			$continue = FALSE;
@@ -558,13 +563,14 @@ abstract class acc_InvoiceMaster extends core_Master
 	   		$dRec->packagingId = NULL;
 	   	}
 	   	
-	   	$dRec->invoiceId      = $rec->id;
-	   	$dRec->classId        = $product->classId;
-	   	$dRec->price 		  = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
-	   	$dRec->quantityInPack = $packQuantity;
-	   	$dRec->quantity       = $restAmount / $packQuantity;
-	   	
 	   	$Detail = $mvc->mainDetail;
+	   	
+	   	$dRec->{$mvc->$Detail->masterKey} = $rec->id;
+	   	$dRec->classId        			  = $product->classId;
+	   	$dRec->price 		  			  = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
+	   	$dRec->quantityInPack 			  = $packQuantity;
+	   	$dRec->quantity       			  = $restAmount / $packQuantity;
+	   	
 	   	$mvc->$Detail->save($dRec);
    }
    
@@ -578,12 +584,12 @@ abstract class acc_InvoiceMaster extends core_Master
 	   	$rec = &$data->rec;
 	   	 
 	   	if(empty($data->noTotal)){
-	   		if($rec->type != 'invoice'){
+	   		if(isset($rec->type) && $rec->type != 'invoice'){
 	   			$this->_total = new stdClass();
 	   			$this->_total->amount = $rec->dealValue / $rec->rate;
 	   			$this->_total->vat = $rec->vatAmount / $rec->rate;
 	   		}
-	   
+	   		
 	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE, 'bg');
 	   		$data->row = (object)((array)$data->row + (array)$data->summary);
 	   
@@ -619,11 +625,11 @@ abstract class acc_InvoiceMaster extends core_Master
     	$detailsKeywords = '';
     
     	// заявка към детайлите
-    	$Detail = $mvc->mainDetail;
-    	$query = $Detail::getQuery();
+    	$Detail = cls::get($mvc->mainDetail);
+    	$query = $Detail->getQuery();
     	
     	// точно на тази фактура детайлите търсим
-    	$query->where("#invoiceId = '{$rec->id}'");
+    	$query->where("#{$Detail->masterKey} = '{$rec->id}'");
     
     	while ($recDetails = $query->fetch()){
     		// взимаме заглавията на продуктите
@@ -888,6 +894,7 @@ abstract class acc_InvoiceMaster extends core_Master
     	}
     
     	$Detail = $this->mainDetail;
+    	
     	$dQuery = $Detail::getQuery();
     	$dQuery->where("#invoiceId = {$rec->id}");
     
@@ -918,5 +925,23 @@ abstract class acc_InvoiceMaster extends core_Master
     	}
     	
     	$aggregator->set('invoicedProducts', $invoiced);
+    }
+    
+    
+    /**
+     * След подготовка на авансова ф-ра
+     */
+    public static function on_AfterPrepareDpInvoicePlg($mvc, &$res, &$data)
+    {
+    	
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    public static function on_AfterInputDpInvoice($mvc, &$res, &$form)
+    {
+    	
     }
 }

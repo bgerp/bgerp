@@ -1,0 +1,78 @@
+.cash-order table {
+  border-collapse: collapse;
+  border-bottom-style: none; }
+
+.order-table td {
+  padding: 10px; }
+
+.order-table td {
+  padding-left: 15px;
+  border-bottom-style: none;
+  border: 1px solid #999999;
+  padding: 4px; }
+
+.top-head {
+  width: 34%;
+  height: 16px;
+  vertical-align: top;
+  background-color: rgba(200, 200, 200, 0.4); }
+
+.title-order {
+  width: 33%;
+  text-align: center;
+  vertical-align: top; }
+
+.cash-order h2 {
+  text-transform: uppercase;
+  line-height: 120%; }
+
+.cash-order th {
+  background-color: rgba(200, 200, 200, 0.4); }
+
+.align-top-td {
+  vertical-align: top; }
+
+.currency-amount {
+  padding-right: 5px;
+  text-align: right; }
+
+.amount {
+  float: right;
+  margin-right: 15px;
+  font-size: 20px; }
+
+.with-words {
+  background-color: rgba(200, 200, 200, 0.4);
+  text-align: right;
+  padding-top: 3px;
+  padding-bottom: 3px; }
+
+.notes-block {
+  text-align: left;
+  vertical-align: top;
+  height: 53px;
+  padding-left: 10px;
+  padding-top: 5px; }
+
+.misc {
+  padding: 4px;
+  text-align: right;
+  padding-right: 15px;
+  border: 1px solid red;
+  border: solid 1px #cccccc;
+  background-color: rgba(200, 200, 200, 0.4); }
+
+.labels {
+  font-size: 14px; }
+
+.pko-notes {
+  border: none;
+  border-collapse: collapse; }
+
+.pko-notes td {
+  border: 1px solid #999999;
+  border-top: none; }
+
+.pko-notes table td {
+  border: none; }
+
