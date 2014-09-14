@@ -160,13 +160,13 @@ class core_Setup extends core_ProtoSetup {
      */
     var $configDescription = array(
                
-           'EF_DATE_FORMAT'   => array ('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->При широки екрани, customizeBy=powerUser'),
+           'EF_DATE_FORMAT'   => array ('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->Десктоп, customizeBy=powerUser'),
             
-           'EF_DATE_NARROW_FORMAT'   => array ('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->При мобилни екрани, customizeBy=powerUser'),
+           'EF_DATE_NARROW_FORMAT'   => array ('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->Мобилен, customizeBy=powerUser'),
            
-           'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=|*&#x20;,\'=|*\',`=|*`)', 'caption=Форматиране на числа->Разделител за хилядите, customizeBy=powerUser'),
+           'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=Интервал,\'=Апостроф,`=Обратен апостроф)', 'caption=Форматиране на числа->Разделител, customizeBy=powerUser'),
             
-           'EF_NUMBER_DEC_POINT' => array( 'enum(.=|*.,&#44;=|*&#44;)', 'caption=Форматиране на числа->Дробен разделител, customizeBy=powerUser'),
+           'EF_NUMBER_DEC_POINT' => array( 'enum(.=|Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=powerUser'),
             
            'EF_USER_LANG' => array( "enum()", 'caption=Език на интерфейса след логване->Език, customizeBy=powerUser, optionsFunc=core_Lg::getLangOptions'),
             
