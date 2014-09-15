@@ -191,18 +191,7 @@ class core_TableView extends core_BaseClass
             $this->tableClass = 'listTable';
         }
         
-        $tpl = new ET("\n<table [#TABLE_DATA_ATTR#] class=\"{$this->tableClass}\"><thead>{$tableHeader}</thead>[#ROW_BEFORE#]{$row}[#ROW_AFTER#]</table>\n");
-        
-        // Ако има дата атрибути за задаване добавяме ги
-        if(isset($this->dataAttr)){
-        	$dataAttr = arr::make($this->dataAttr);
-        	if(count($dataAttr)){
-        		foreach ($dataAttr as $attr => $value){
-        			$string = "data-{$attr} = \"{$value}\" ";
-        			$tpl->append($string, 'TABLE_DATA_ATTR');
-        		}
-        	}
-        }
+        $tpl = new ET("\n<table [#TABLE_ATTR#] class=\"{$this->tableClass}\"><thead>{$tableHeader}</thead>[#ROW_BEFORE#]{$row}[#ROW_AFTER#]</table>\n");
         
         if (count($rows)) {
             foreach ($rows as $r) {
