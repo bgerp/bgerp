@@ -133,54 +133,46 @@ class core_Sbf extends core_Mvc
         // Грешка. Файла липсва
         if (!$file || !($toSave = $content = @file_get_contents($file))) {
             
-            error_log("EF Error: Mising file: {$name}");
-
             if (isDebug()) {
                 error_log("EF Error: Mising file: {$name}");
-                header('Content-Type: text/html; charset=UTF-8');
-                header("Content-Encoding: none");
-                echo "<script type=\"text/javascript\">\n";
-                echo "alert('Error: " . str_replace("\n", "\\n", addslashes("Липсващ файл: *{$name}")) . "');\n";
-                echo "</script>\n";
-                 
-            } else {
-                header('HTTP/1.1 404 Not Found');
-                 
             }
+            
+            header('HTTP/1.1 404 Not Found');
+
         } else {
  
             // Файла съществува и трябва да бъде сервиран
             // Определяне на Content-Type на файла
             $fileExt = str::getFileExt($file);
             $mimeTypes = array(
-                'css' => 'text/css',
-                'htm' => 'text/html',
-                'svg' => 'image/svg+xml',
+                
+                // Текстови
+                'css'  => 'text/css',
+                'htm'  => 'text/html',
+                'svg'  => 'image/svg+xml',
                 'html' => 'text/html',
-                'xml' => 'text/xml',
-                'js' => 'application/javascript',
-                'swf' => 'application/x-shockwave-flash',
-                'jar' => 'application/x-java-applet',
+                'xml'  => 'text/xml',
+                'js'   => 'application/javascript',
+
+                // Бинарни
+                'swf'  => 'application/x-shockwave-flash',
+                'jar'  => 'application/x-java-applet',
                 'java' => 'application/x-java-applet',
 
-                // images
-                'png' => 'image/png',
-                'jpe' => 'image/jpeg',
+                // Графични
+                'png'  => 'image/png',
+                'jpe'  => 'image/jpeg',
                 'jpeg' => 'image/jpeg',
-                'jpg' => 'image/jpeg',
-                'gif' => 'image/gif',
-                'ico' => 'image/vnd.microsoft.icon'
+                'jpg'  => 'image/jpeg',
+                'gif'  => 'image/gif',
+                'ico'  => 'image/vnd.microsoft.icon'
             );
 
             $ctype = $mimeTypes[$fileExt];
 
             if (!$ctype) {
                 if (isDebug()) {
-                    header('Content-Type: text/html; charset=UTF-8');
-                    header("Content-Encoding: none");
-                    echo "<script type=\"text/javascript\">\n";
-                    echo "alert('Error: " . str_replace("\n", "\\n", addslashes("Unsuported file extention: $file ")) . "');\n";
-                    echo "</script>\n";
+                    error_log("Warning: Unsuported file extention: {$file}");
                 }
                 header('HTTP/1.1 404 Not Found');
             } else {        
