@@ -92,7 +92,7 @@ class sales_ServicesDetails extends acc_DeliveryDocumentDetail
     public function description()
     {
         $this->FLD('shipmentId', 'key(mvc=sales_Services)', 'column=none,notNull,silent,hidden,mandatory');
-       
+        parent::setDocumentFields($this);
     }
         
     
