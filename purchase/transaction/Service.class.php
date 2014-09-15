@@ -30,70 +30,26 @@ class purchase_transaction_Service
     	$entries = array();
     	$rec = $this->class->fetchRec($id);
     	$origin = $this->class->getOrigin($rec);
-    
-    	$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-    
+    	
     	if (!empty($rec->id)) {
     		$dQuery = purchase_ServicesDetails::getQuery();
     		$dQuery->where("#shipmentId = {$rec->id}");
-    		$detailsRecs = $dQuery->fetchAll();
+    		$rec->details = $dQuery->fetchAll();
     	}
     	
-    	if(count($detailsRecs)){
-    		deals_Helper::fillRecs($this->class, $detailsRecs, $rec);
+    	$entries = array();
+    	 
+    	// Всяко ЕН трябва да има поне един детайл
+    	if (count($rec->details) > 0) {
     		 
-    		foreach ($detailsRecs as $dRec) {
-				$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
-    			if($rec->chargeVat == 'yes'){
-    				$ProductManager = cls::get($dRec->classId);
-    				$vat = $ProductManager->getVat($dRec->productId, $rec->valior);
-    				$amount = $dRec->amount - ($dRec->amount * $vat / (1 + $vat));
-    			} else {
-    				$amount = $dRec->amount;
-    			}
-
-				// Ако е "Материали" дебит 601, иначе 602
-	        	$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
-    
-    			$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;
-    
-    			$entries[] = array(
-    					'amount' => $amount * $rec->currencyRate, // В основна валута
-    					 
-    					'debit' => array(
-    							$costsAccNumber, // Сметка "602. Разходи за външни услуги" или "601. Разходи за материали"
-    							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
-    							'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
-    					),
-    					 
-    					'credit' => array(
-    							'401', // Сметка "401. Задължения към доставчици (Доставчик, Валути)"
-    							array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
-    							array($origin->className, $origin->that),			// Перо 2 - Сделка
-    							array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-    							'quantity' => $amount, // "брой пари" във валутата на покупката
-    					),
-    			);
-    		}
-    		 
-    		if($this->class->_total->vat){
-    			$vatAmount = $this->class->_total->vat * $rec->currencyRate;
-    			$entries[] = array(
-    					'amount' => $vatAmount, // В основна валута
-    
-    					'credit' => array(
-    							'401',
-    							array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-    							array($origin->className, $origin->that),			// Перо 2 - Сделка
-    							array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
-    							'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
-    					),
-    
-    					'debit' => array(
-    							'4530',
-    							array($origin->className, $origin->that),
-    					),
-    			);
+    		if($rec->isReverse == 'yes'){
+    			 
+    			// Ако ЕН е обратна, тя прави контировка на СР но с отрицателни стойностти
+    			$reverseSource = cls::getInterface('acc_TransactionSourceIntf', 'sales_Services');
+    			$entries = $reverseSource->getReverseEntries($rec, $origin);
+    		} else {
+    			// Записите от тип 1 (вземане от клиент)
+    			$entries = $this->getEntries($rec, $origin);
     		}
     	}
     
@@ -104,6 +60,77 @@ class purchase_transaction_Service
     	);
     
     	return $transaction;
+    }
+    
+    
+    /**
+     * Записите на транзакцията
+     */
+    public function getEntries($rec, $origin, $reverse = FALSE)
+    {
+    	$entries = array();
+    	$sign = ($reverse) ? -1 : 1;
+    	
+    	if(count($rec->details)){
+    		deals_Helper::fillRecs($this->class, $detailsRecs, $rec);
+			$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+    		
+    		foreach ($rec->details as $dRec) {
+    			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    			if($rec->chargeVat == 'yes'){
+    				$ProductManager = cls::get($dRec->classId);
+    				$vat = $ProductManager->getVat($dRec->productId, $rec->valior);
+    				$amount = $dRec->amount - ($dRec->amount * $vat / (1 + $vat));
+    			} else {
+    				$amount = $dRec->amount;
+    			}
+    	
+    			// Ако е "Материали" дебит 601, иначе 602
+    			$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
+    	
+    			$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;
+    	
+    			$entries[] = array(
+    					'amount' => $sign * $amount * $rec->currencyRate, // В основна валута
+    	
+    					'debit' => array(
+    							$costsAccNumber, // Сметка "602. Разходи за външни услуги" или "601. Разходи за материали"
+    							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
+    							'quantity' => $sign * $dRec->quantity, // Количество продукт в основната му мярка
+    					),
+    	
+    					'credit' => array(
+    							$rec->accountId, 
+    							array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
+    							array($origin->className, $origin->that),			// Перо 2 - Сделка
+    							array('currency_Currencies', $currencyId),          // Перо 3 - Валута
+    							'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
+    					),
+    			);
+    		}
+    		 
+    		if($this->class->_total->vat){
+    			$vatAmount = $this->class->_total->vat * $rec->currencyRate;
+    			$entries[] = array(
+    					'amount' => $sign * $vatAmount, // В основна валута
+    	
+    					'credit' => array(
+    							$rec->accountId,
+    							array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+    							array($origin->className, $origin->that),			// Перо 2 - Сделка
+    							array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
+    							'quantity' => $sign * $vatAmount, // "брой пари" във валутата на продажбата
+    					),
+    	
+    					'debit' => array(
+    							'4530',
+    							array($origin->className, $origin->that),
+    					),
+    			);
+    		}
+    	}
+    	
+    	return $entries;
     }
     
     
@@ -119,5 +146,14 @@ class purchase_transaction_Service
     	if ($this->class->save($rec)) {
     		$this->class->invoke('AfterActivation', array($rec));
     	}
+    }
+    
+    
+    /**
+     * Връща обратна контировка на стандартната
+     */
+    public function getReverseEntries($rec, $origin)
+    {
+    	return $this->getEntries($rec, $origin, TRUE);
     }
 }

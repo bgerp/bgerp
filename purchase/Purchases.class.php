@@ -204,9 +204,10 @@ class purchase_Purchases extends core_Master
     /**
      * Позволени операции за посследващите складови документи/протоколи
      */
-    public $allowedShipmentOperations = array('stowage'     => array('title' => 'Засклаждане на стока', 'debit' => 'store', 'credit' => '401'),
-    										  'buyServices' => array('title' => 'Покупка на услуги', 'debit' => 'service', 'credit' => '401'),
-    										  'delivery'    => array('title' => 'Връщане на доставена стока', 'debit' => '401', 'credit' => 'store', 'reverse' => TRUE),
+    public $allowedShipmentOperations = array('stowage'         => array('title' => 'Засклаждане на стока', 'debit' => 'store', 'credit' => '401'),
+    										  'buyServices'     => array('title' => 'Покупка на услуги', 'debit' => 'service', 'credit' => '401'),
+									    	  'deliveryService' => array('title' => 'Връщане на направени услуги', 'debit' => '401', 'credit' => 'service', 'reverse' => TRUE),
+									    	  'delivery'    	=> array('title' => 'Връщане на доставена стока', 'debit' => '401', 'credit' => 'store', 'reverse' => TRUE),
     );
     
     

@@ -53,9 +53,10 @@ abstract class acc_DeliveryDocumentDetail extends core_Detail
 	 * @param core_Manager $mvc
 	 * @param stdClass $data
 	 */
-	public static function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
+	public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
 	{
 		$rec = &$data->form->rec;
+		
 		$masterRec = $data->masterRec;
 		
 		$data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
@@ -214,15 +215,11 @@ abstract class acc_DeliveryDocumentDetail extends core_Detail
 		}
 		
 
-
-
 	/**
 	 * След обработка на записите от базата данни
 	 */
 	public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
 	{
-		$rows = $data->rows;
-			 
 		// Скриваме полето "мярка"
 		$data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
 		

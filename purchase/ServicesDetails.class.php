@@ -110,4 +110,16 @@ class purchase_ServicesDetails extends acc_DeliveryDocumentDetail
     	 
     	return $products;
     }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
+    {
+    	parent::inputDocForm($mvc, $form);
+    }
 }
