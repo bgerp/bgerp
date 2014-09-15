@@ -60,18 +60,39 @@ class core_Sbf extends core_Mvc
      */
     static function getSbfFilePath_($path)
     {  
-        $pathArr = pathinfo($path);
 
-        $timeSuffix = '';
+        $time = 0;
 
         if($file = getFullPath($path)) {
             $time =  filemtime($file);
-            $timeSuffix = "_" . date("mdHis", $time);
         } 
+        
+        $sbfPath = self::getSbfPathByTime($path, $time);
+
+        return $sbfPath;
+    }
+
+
+    /**
+     * Връща съотвестващия път на файла в sbf според времето на последна модификация (като параметър)
+     *
+     * @param string path
+     * @param int    time
+     * 
+     * @return string
+     */
+    static function getSbfPathByTime($path, $time)
+    {
+        $pathArr = pathinfo($path);
+
+        $timeSuffix = '';
+        if($time) {
+            $timeSuffix = "_" . date("mdHis", $time);
+        }
         
         // Новото име на файла, зависещо от времето на последната му модификация
         $sbfPath = EF_SBF_PATH . "/" . $pathArr['dirname'] . '/' . $pathArr['filename'] . $timeSuffix . '.' . $pathArr['extension'];
-
+        
         return $sbfPath;
     }
 
@@ -92,7 +113,7 @@ class core_Sbf extends core_Mvc
             
             // Ако файла не съществува в SBF
             if(!file_exists($sbfPath)) {
-                
+ 
                 $content = getFileContent($rPath);
 
                 if(core_Sbf::saveFile($content, $sbfPath, TRUE)) {
@@ -110,7 +131,11 @@ class core_Sbf extends core_Mvc
                     core_Logs::add(get_called_class(), NULL, "Файла не може да се запише в '{$sbfPath}'.");
                 }   
 
-            } 
+            } else {
+                $sbfArr = pathinfo($sbfPath);
+                $rArr = pathinfo($rPath);
+                $rPath = $rArr['dirname'] . '/'. $sbfArr['basename'];
+            }
                 
         }
         
@@ -208,3 +233,10 @@ class core_Sbf extends core_Mvc
 
     
 }
+
+
+/*
+ Имаме заявка за sbf($филе)
+
+ 1. Определяме новото име на филе, в зависимост от датата на последното модифициране
+*/
