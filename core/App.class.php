@@ -82,8 +82,7 @@ class core_App
         // Ако index.php стои в директория с име, за което съществува конфигурационен 
         // файл, приема се, че това име е името на приложението
         if (!defined('EF_APP_NAME') &&
-            file_exists(EF_CONF_PATH . '/' . basename(EF_INDEX_PATH) . '.cfg.php')) {
-            
+            file_exists(EF_CONF_PATH . '/' . basename(EF_INDEX_PATH) . '.cfg.php')) {          
             
             /**
              * Името на приложението. Използва се за определяне на други константи
@@ -107,7 +106,6 @@ class core_App
          * Времева зона
          */
         defIfNot('EF_TIMEZONE', 'Europe/Sofia');
-
 
         // Сетваме времевата зона
         date_default_timezone_set(EF_TIMEZONE);
@@ -291,69 +289,16 @@ class core_App
             DEFINE('EF_APP_NAME_FIXED', TRUE);
         }
 
-
-        /**
-         * Пътя до директорията за статичните браузърни файлове към приложението
-         */
-        defIfNot('EF_SBF_PATH', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME);
-
-
+        
         /**
          * Дефинира, ако не е зададено името на кода на приложението
          */
         defIfNot('EF_APP_CODE_NAME', EF_APP_NAME);
 
-
-        /**
-         * Времето в секунди за изчакване при рефреш на портала
-         */
-        defIfNot('BGERP_DOCUMENT_SLEEP_TIME', 0);
-
-
-        /**
-         * Директорията с външни пакети
-         */
-        defIfNot('EF_VENDORS_PATH', EF_ROOT_PATH . '/vendors');
-
-
-        /**
-         * Базова директория, където се намират приложенията
-         */
-        defIfNot('EF_APP_BASE_PATH', EF_ROOT_PATH);
-
-
         /**
          * Директорията с приложението
          */
-        defIfNot('EF_APP_PATH', EF_APP_BASE_PATH . '/' . EF_APP_CODE_NAME);
-
-
-        /**
-         * Базова директория, където се намират под-директориите с временни файлове.
-         * По подразбиране използваме системната директория за временни файлове.
-         * 
-         * @see http://php.net/manual/en/function.sys-get-temp-dir.php
-         */
-        defIfNot('EF_TEMP_BASE_PATH', sys_get_temp_dir());
-
-
-        /**
-         * Директорията с временни файлове
-         */
-        defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
-
-
-        /**
-         * Базова директория, където се намират под-директориите с качените файлове
-         */
-        defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
-
-
-        /**
-         * Директорията с качените и генерираните файлове
-         */
-        defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
-
+        defIfNot('EF_APP_PATH', EF_ROOT_PATH . '/' . EF_APP_CODE_NAME);
 
 
         // Зареждаме конфигурационния файл на приложението. 
@@ -363,6 +308,47 @@ class core_App
             halt('Error in boot.php: Missing configuration file: ' .
                 EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
         }
+        
+        
+        /**
+         * Пътя до директорията за статичните браузърни файлове към приложението
+         */
+        defIfNot('EF_SBF_PATH', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME);
+        
+        
+        /**
+         * Директорията с външни пакети
+         */
+        defIfNot('EF_VENDORS_PATH', EF_ROOT_PATH . '/vendors');
+        
+        
+        /**
+         * Базова директория, където се намират под-директориите с временни файлове.
+         * По подразбиране използваме системната директория за временни файлове.
+         *
+         * @see http://php.net/manual/en/function.sys-get-temp-dir.php
+         */
+        defIfNot('EF_TEMP_BASE_PATH', sys_get_temp_dir());
+        
+        
+        /**
+         * Директорията с временни файлове
+        */
+        defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
+        
+        
+        
+        /**
+         * Базова директория, където се намират под-директориите с качените файлове
+         */
+        defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
+
+
+        /**
+         * Директорията с качените и генерираните файлове
+         */
+        defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);        
+        
     }
 
 
