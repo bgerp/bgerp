@@ -214,7 +214,7 @@ class support_Issues extends core_Master
         $form = $this->getForm();
 
         // Правим едни полета да не се показват
-        $form->setField('sharedUsers', 'input=none');
+        
         $form->setField('priority', 'input=none');
         $form->setField('componentId', 'input=none');
 
@@ -222,6 +222,7 @@ class support_Issues extends core_Master
         if(!haveRole('powerUser')) {
             $form->setField('email', 'input,silent');
             $form->setField('name', 'input,silent');
+            $form->setField('sharedUsers', 'input=none');
         }
         
         $form->setField('title', 'input=hidden');
@@ -237,7 +238,15 @@ class support_Issues extends core_Master
 
         $form->title = "Сигнал към екипа за поддръжка на {$systemName}";
         
+        $allowedTypes = keylist::toArray($sysRec->allowedTypes);
+        
+        $atOpt = array();
+        foreach($allowedTypes as $tId) {
+            $tRec = support_IssueTypes::fetchField($tId);
+            $atOpt[$tId] =  support_IssueTypes::getVerbal($tRec, 'type');
+        }
 
+        $form->setOptions('typeId', $atOpt);
 
         $form->input();
         
