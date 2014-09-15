@@ -396,7 +396,7 @@ class core_App
                 $hostsArr = core_Array::make($debugArr[1]);
                 
                 // IP на потребителя
-                $realIpAdd = core_Users::getRealIpAddr();
+                $realIpAdd = $_SERVER['REMOTE_ADDR'];
                 
                 // Обхождаме масива с хостовете
                 foreach ((array)$hostsArr as $host) {
