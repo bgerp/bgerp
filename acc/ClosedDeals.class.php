@@ -585,4 +585,31 @@ abstract class acc_ClosedDeals extends core_Master
     		$Doc->invoke('AfterClosureWithDeal', array($rec->closeWith));
     	}
     }
+    
+    
+    /**
+     * Какъв да е вальора на контировката
+     */
+    public function getValiorDate($rec)
+    {
+    	$dates = array();
+    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    	$dates[] = $firstDoc->fetchField('createdOn');
+    	$desc = $firstDoc->getDescendants();
+    	if(count($desc)){
+    		foreach ($desc as $doc){
+    			if($doc->haveInterface('acc_TransactionSourceIntf')){
+    				if($doc->that != $id && $doc->getClassId() != $rec->classId){
+    					$dates[] = $doc->fetchField('createdOn');
+    				}
+    			}
+    		}
+    	}
+    	
+    	usort($dates, function($a, $b) {
+  			return ($a < $b) ? 1 : -1;
+		});
+    	
+    	return $dates[0];
+    }
 }

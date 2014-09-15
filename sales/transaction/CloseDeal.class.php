@@ -76,7 +76,7 @@ class sales_transaction_CloseDeal
     	// Създаване на обекта за транзакция
     	$result = (object)array(
     			'reason'      => $rec->notes,
-    			'valior'      => dt::now(),
+    			'valior'      => $this->class->getValiorDate($rec),
     			'totalAmount' => 0,
     			'entries'     => array()
     	);
