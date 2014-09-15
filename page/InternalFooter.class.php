@@ -92,7 +92,8 @@ class page_InternalFooter extends core_ET {
             }
             list($user, $domain) = explode('@', $email);
             $name = core_Users::getCurrent('names');
-            $btn = "<input title='Сигнал за бъг, въпрос или предложение' style='border:none; background-color:transparent; vertical-align: middle' type=image src='/root/sbf/bgerp/img/16/bug.png' name='Cmd[refresh]' value=1>";
+            $img = sbf('img/16/bug.png', '');
+            $btn = "<input title='Сигнал за бъг, въпрос или предложение' style='border:none; background-color:transparent; vertical-align: middle' type=image src='{$img}' name='Cmd[refresh]' value=1>";
             $form = new et("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
             $this->append('&nbsp;|&nbsp;');
             $this->append($form);
