@@ -500,7 +500,7 @@ class acc_Accounts extends core_Manager
         $leafCount = array();
         
         while ($rec = $query->fetch($where)) {
-            $title = $this->getRecTitle($rec);
+            $title = $this->getRecTitle($rec, FALSE);
             
             if ($rec->isSynthetic) {
                 $res[$rec->{$index}] = (object)array(
