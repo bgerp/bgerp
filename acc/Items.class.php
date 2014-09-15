@@ -190,13 +190,6 @@ class acc_Items extends core_Manager
      */
     static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
-        if($part == 'num') {
-            $listRec = $mvc->Lists->fetch($mvc->getCurrentListId());
-            $maxNumLen = strlen($listRec->itemMaxNum);
-            $num = str_pad($num, $maxNumLen, '0', STR_PAD_LEFT);
-            $num = str_replace('&nbsp;', '', $num);
-        }
-        
         if($part == 'titleLink'){
         	
         	// Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
