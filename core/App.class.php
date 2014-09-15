@@ -61,7 +61,7 @@ class core_App
     /**
      * Начално инициализиране на приложението и системата
      */
-    public function initSystem()
+    public static function initSystem()
     {
         // Регистрираме функция за автоматично зареждане на класовете
         spl_autoload_register(array('core_App', 'classAutoload'), TRUE, TRUE);
@@ -264,7 +264,7 @@ class core_App
     /**
      * Зареждане на глобалните конфигурационни константи
      */
-    public function loadConfig()
+    public static function loadConfig()
     {
         // Вземаме името на приложението от параметрите на URL, ако не е дефинирано
         if (!defined('EF_APP_NAME')) {
@@ -382,7 +382,7 @@ class core_App
                 $hostsArr = core_Array::make($debugArr[1]);
                 
                 // IP на потребителя
-                $realIpAdd = core_Users::getRealIpAddr();
+                $realIpAdd = $_SERVER['REMOTE_ADDR'];
                 
                 // Обхождаме масива с хостовете
                 foreach ((array)$hostsArr as $host) {
@@ -634,8 +634,8 @@ class core_App
         
         if (!$retUrl) {
             $retUrl = array(
-                EF_DEFAULT_CTR_NAME,
-                EF_DEFAULT_ACT_NAME
+                'Index',
+                'default'
             );
         }
         

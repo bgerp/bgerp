@@ -2,7 +2,11 @@
 # This file must be copied in same directory
 # where is index.php (webroot of Apache server)
 
+# Disable directory listing   
 Options -Indexes
+
+# Disable server signature
+ServerSignature Off
 
 # Very important for URL rewriting
 <IfModule mod_rewrite.c> 
