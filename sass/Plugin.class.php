@@ -28,11 +28,30 @@ class sass_Plugin extends core_Plugin
             $scssFile = getFullPath($scssRelPath);
             if(file_exists($scssFile)) {
                 $scssFileArr = pathinfo($scssFile);
-                $time = core_Os::getTimeOfLastModifiedFile(dirname($scssFile), '', "#[a-z0-9\-\/_]+(.scss)$#i"); 
-                $cssPath = $scssFileArr['dirname'] . '/' . $pathArr['basename']; 
+                $time = core_Os::getTimeOfLastModifiedFile(dirname($scssFile), '', "#[a-z0-9\-\/_]+(.scss)$#i");
+                
+                // Проверка дали файла вече не съществува в sbf
+                $sbfPath = core_Sbf::getSbfPathByTime($path, $time);
+                if(file_exists($sbfPath)) {
+                    $res = $sbfPath;
+ 
+                    return FALSE;
+                }
+                
+                // Път до конвертирания файл
+                $cssPath = $scssFileArr['dirname'] . '/' . $pathArr['basename'];
                 if(!file_exists($cssPath) || $time > filemtime($cssPath)) {
                     $cssCode = sass_Converter::convert($scssFile, TRUE);
-                    file_put_contents($cssPath, $cssCode);  
+                    if(!@file_put_contents($cssPath, $cssCode)) {
+                        // Ако не успеем да запишем в проекта файла, записваме го директно в sbf
+                        if(core_Sbf::saveFile($cssCode, $sbfPath, TRUE)) {
+                            $res = $sbfPath;
+                             
+                            return FALSE;
+                        }
+
+                        error('500');
+                    }
                 }
             }
         }
