@@ -1,17 +1,6 @@
 <?php
 
 
-/**
- * Име на под-директория  в sbg/EF_APP_NAME, където се намират умалените изображения
- */
-defIfNot('THUMB_IMG_DIR', '_tb_');
-
-
-/**
- * Пълен път до директорията, където се съхраняват умалените картинки
- */
-defIfNot('THUMB_IMG_PATH',  EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . THUMB_IMG_DIR);
-
 
 
 /**
@@ -415,7 +404,8 @@ class thumb_Img
     public function getThumbPath()
     {
         if(!$this->thumbPath) {
-            $this->thumbPath = THUMB_IMG_PATH . '/' . $this->getThumbName();
+            $conf = core_Packs::getConfig('thumb');
+            $this->thumbPath = $conf->THUMB_IMG_PATH . '/' . $this->getThumbName();
         }
 
         return $this->thumbPath;
@@ -463,7 +453,8 @@ class thumb_Img
     protected function getThumbUrl()
     {
         if(!$this->thumbUrl) {
-            $this->thumbUrl = sbf(THUMB_IMG_DIR . "/" . $this->getThumbName(), '', $this->isAbsolute);
+            $conf = core_Packs::getConfig('thumb');
+            $this->thumbUrl = sbf($conf->THUMB_IMG_DIR . "/" . $this->getThumbName(), '', $this->isAbsolute);
         }
 
         return $this->thumbUrl;
@@ -678,35 +669,17 @@ class thumb_Img
      *
      * @return  GD resource                 Резултатно изображение
      */
-    public static function scaleGdImg($im, $dstWidth, $dstHeight, $format=NULL)
+    public static function scaleGdImg($im, $dstWidth, $dstHeight, $format = NULL)
     {
         $width  = imagesx($im);
         $height = imagesy($im);
         
         $newImg = imagecreatetruecolor($dstWidth, $dstHeight);
         
-        if (!$format || $format == 'gif') {
-            $transparentIndex = imagecolortransparent($im);
-            if (!$format && $transparentIndex > 0) {
-                $isGif = TRUE;
-            } elseif ($format) {
-                $isGif = TRUE;
-            }
-        }
-        
-        if ($isGif == TRUE) {
-            // is GIF
-            imagepalettecopy($im, $newImg);
-            imagefill($newImg, 0, 0, $transparentIndex);
-            imagecolortransparent($newImg, $transparentIndex);
-            imagetruecolortopalette($newImg, true, 256);
-        } else {
-            // is PNG
+        if ($format == 'gif' || $format == 'png') {
+            imagecolortransparent($newImg, imagecolorallocatealpha($newImg, 0, 0, 0, 127));
             imagealphablending($newImg, FALSE);
             imagesavealpha($newImg, TRUE);
-    
-            $transparent = imagecolorallocatealpha($newImg, 255, 255, 255, 127);
-            imagefilledrectangle($newImg, 0, 0, $dstWidth, $dstWidth, $transparent);
         }
         
         imagecopyresampled($newImg, $im, 0, 0, 0, 0, $dstWidth, $dstHeight, $width, $height);
