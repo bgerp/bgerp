@@ -68,7 +68,7 @@ class acc_Lists extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,nameLink=Наименование,regInterfaceId,itemsCnt,itemMaxNum,systemId,lastUseOn,isDimensional,tools=Пулт';
+    var $listFields = 'num,nameLink=Наименование,regInterfaceId,itemsCnt,systemId,lastUseOn,isDimensional,tools=Пулт';
     
     
     /**
@@ -87,9 +87,6 @@ class acc_Lists extends core_Manager {
         
         // Колко пера има в тази номенклатура?
         $this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none');
-        
-        // Максимален номер използван за перата
-        $this->FLD('itemMaxNum', 'int', 'caption=Пера->Макс. ном.,input=none');
         
         // Последно използване
         $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=none');
@@ -244,10 +241,6 @@ class acc_Lists extends core_Manager {
         $itemsQuery->where("#lists LIKE '%|{$id}|%'");
 
         $rec->itemsCnt = $itemsQuery->count();
-        
-        $itemsQuery->XPR('maxNum', 'int', 'max(#num)');
-        
-        $rec->itemMaxNum = $itemsQuery->fetch()->maxNum;
         
         self::save($rec);
     }
