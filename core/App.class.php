@@ -266,7 +266,7 @@ class core_App
     /**
      * Зареждане на глобалните конфигурационни константи
      */
-    public function loadConfig()
+    public static function loadConfig()
     {
         // Вземаме името на приложението от параметрите на URL, ако не е дефинирано
         if (!defined('EF_APP_NAME')) {

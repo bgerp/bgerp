@@ -35,8 +35,18 @@ class core_Sbf extends core_Mvc
         if(!$isFullPath) {
             $path = EF_SBF_PATH . '/' . $path;
         }
+        
+        // Ако директорията не съществува
+        if(!is_dir($dir = dirname($path))) {
+                    
+            // Създаваме директория
+            if(!@mkdir($dir, 0777, TRUE)) {
 
-        if(file_put_contents($path, $content) !== FALSE) {
+                return FALSE;
+            }
+        }
+
+        if(@file_put_contents($path, $content) !== FALSE) {
 
             return $path;
         }
@@ -50,13 +60,11 @@ class core_Sbf extends core_Mvc
      */
     static function getSbfFilePath_($path)
     {  
-        $file = getFullPath($path);
-        
         $pathArr = pathinfo($path);
 
         $timeSuffix = '';
 
-        if($file) {
+        if($file = getFullPath($path)) {
             $time =  filemtime($file);
             $timeSuffix = "_" . date("mdHis", $time);
         } 
@@ -66,7 +74,6 @@ class core_Sbf extends core_Mvc
 
         return $sbfPath;
     }
-
 
 
     /**
@@ -81,21 +88,10 @@ class core_Sbf extends core_Mvc
     public static function getUrl($rPath, $qt = '"', $absolute = FALSE)
     {
         // Ако файла съществува
-        if (($sbfPath = core_Sbf::getSbfFilePath($rPath)) && $rPath{0} != '_') {
+        if (($sbfPath = self::getSbfFilePath($rPath)) && $rPath{0} != '_') {
             
             // Ако файла не съществува в SBF
             if(!file_exists($sbfPath)) {
-                
-                // Ако директорията не съществува
-                if(!is_dir($dir = dirname($sbfPath))) {
-                    
-                    // Създаваме директория
-                    if(!@mkdir($dir, 0777, TRUE)) {
-                        
-                        // Ако възникне грешка при създаването, записваме в лога
-                        core_Logs::add(get_called_class(), NULL, "Не може да се създаде: {$dir}");
-                    }
-                }
                 
                 $content = getFileContent($rPath);
 
@@ -103,6 +99,11 @@ class core_Sbf extends core_Mvc
                     
                     // Записваме в лога, всеки път след като създадам файл в sbf
                     core_Logs::add(get_called_class(), NULL, "Генериране на файл в 'sbf' за '{$rPath}'", 5);
+                    
+                    // Пътя до файла
+                    $sbfArr = pathinfo($sbfPath);
+                    $rArr = pathinfo($rPath);
+                    $rPath = $rArr['dirname'] . '/'. $sbfArr['basename'];
                  } else {
                     
                      // Записваме в лога
@@ -111,16 +112,10 @@ class core_Sbf extends core_Mvc
 
             } 
                 
-            $sbfArr = pathinfo($sbfPath);
-            $rArr = pathinfo($rPath);
-
-            // Пътя до файла
-            $rPath = $rArr['dirname'] . '/'. $sbfArr['basename'];
         }
         
         $res = $qt . core_App::getBoot($absolute) . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . $rPath . $qt;
-        
-
+         
         return $res;
     }
 
@@ -134,9 +129,10 @@ class core_Sbf extends core_Mvc
     public static function serveStaticFile($name)
     {
         $file = getFullPath($name);
-
+ 
         // Грешка. Файла липсва
-        if (!$file) {
+        if (!$file || !($toSave = $content = @file_get_contents($file))) {
+            
             error_log("EF Error: Mising file: {$name}");
 
             if (isDebug()) {
@@ -152,10 +148,10 @@ class core_Sbf extends core_Mvc
                  
             }
         } else {
-
+ 
             // Файла съществува и трябва да бъде сервиран
             // Определяне на Content-Type на файла
-            $fileExt = strtolower(substr(strrchr($file, "."), 1));
+            $fileExt = str::getFileExt($file);
             $mimeTypes = array(
                 'css' => 'text/css',
                 'htm' => 'text/html',
@@ -185,50 +181,33 @@ class core_Sbf extends core_Mvc
                     echo "<script type=\"text/javascript\">\n";
                     echo "alert('Error: " . str_replace("\n", "\\n", addslashes("Unsuported file extention: $file ")) . "');\n";
                     echo "</script>\n";
-                } else {
-                    header('HTTP/1.1 404 Not Found');
                 }
-            } else {
-                header("Content-Type: $ctype");
+                header('HTTP/1.1 404 Not Found');
+            } else {        
+                header("Content-Type: $ctype; charset: utf-8");
 
                 // Хедъри за управлението на кеша в браузъра
                 header("Expires: " . gmdate("D, d M Y H:i:s", time() + 3153600) . " GMT");
                 header("Cache-Control: public, max-age=3153600");
-
-                if (substr($ctype, 0, 5) == 'text/' || $ctype == 'application/javascript') {
-                    $gzip = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
-
-                    if ($gzip) {
-                        header("Content-Encoding: gzip");
-
-                        // Търсим предварително компресиран файл
-                        if (file_exists($file . '.gz')) {
-                            $file .= '.gz';
-                            header("Content-Length: " . filesize($file));
-                        } else {
-                            // Компресираме в движение
-                            // ob_start("ob_gzhandler");
-                        }
-                    }
-                } else {
-                    header("Content-Length: " . filesize($file));
-                }
-         
-                // Изпращаме съдържанието към браузъра
-                readfile($file);
                 
-                flush();
+                // Поддържа ли се gzip компресиране на съдържанието?
+                $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
 
-                // Копираме файла за директно сервиране от Apache
+                if ($isGzipSupported && (substr($ctype, 0, 5) == 'text/' || $ctype == 'application/javascript')) {
+                    // Компресираме в движение и подаваме правилния хедър
+                    $content = gzencode($content);
+                    header("Content-Encoding: gzip");
+                } 
+                
+                // Отпечатваме съдържанието и го изпращаме към браузъра
+                header("Content-Length: " . strlen($content));
+                echo $content;
+                flush();
+ 
+                // Копираме файла за директно сервиране от Apache следващия път
                 // @todo: Да се минимализират .js и .css
                 if(!isDebug()) {
-                    $sbfPath = EF_SBF_PATH . '/' . $name;
-
-                    $sbfDir = dirname($sbfPath);
-
-                    mkdir($sbfDir, 0777, TRUE);
-
-                    @copy($file, $sbfPath);
+                    self::saveFile_($toSave, $name);
                 }
             }
         }
