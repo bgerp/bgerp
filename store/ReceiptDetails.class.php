@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_ReceiptDetails extends core_Detail
+class store_ReceiptDetails extends acc_DeliveryDocumentDetail
 {
     /**
      * Заглавие
@@ -35,7 +35,7 @@ class store_ReceiptDetails extends core_Detail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering,Policy=purchase_PurchaseLastPricePolicy, 
-                        plg_AlignDecimals2, doc_plg_HidePrices, store_plg_DocumentDetail';
+                        plg_AlignDecimals2, doc_plg_HidePrices';
     
     
     /**
@@ -104,189 +104,38 @@ class store_ReceiptDetails extends core_Detail
     public function description()
     {
         $this->FLD('receiptId', 'key(mvc=store_Receipts)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
-        $this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory,tdClass=leftCol');
-        $this->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка');
-        $this->FLD('quantity', 'double', 'caption=К-во,input=none');
-        $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,column=none');
-        $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
+        parent::setDocumentFields($this);
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка,after=productId');
+        
         $this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
-        $this->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
-        $this->FNC('packQuantity', 'double(Min=0,decimals=2)', 'caption=К-во,input=input,mandatory');
-        $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
-        $this->FLD('discount', 'percent', 'caption=Отстъпка');
     }
 
-
-    /**
-     * Изчисляване на цена за опаковка на реда
-     */
-    public function on_CalcPackPrice(core_Mvc $mvc, $rec)
-    {
-        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
-            return;
-        }
-    
-        $rec->packPrice = $rec->price * $rec->quantityInPack;
-    }
-    
     
     /**
-     * Изчисляване на количеството на реда в брой опаковки
+     * Достъпните продукти
      */
-    public function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+    protected function getProducts($ProductManager, $masterRec)
     {
-        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
-            return;
-        }
-    
-        $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
-    }
-    
-    
-    /**
-     * Изчисляване на сумата на реда
-     */
-    public function on_CalcAmount(core_Mvc $mvc, $rec)
-    {
-        if (empty($rec->price) || empty($rec->quantity)) {
-            return;
-        }
-    
-        $rec->amount = $rec->price * $rec->quantity;
-    }
-
-
-    /**
-     * Извиква се след успешен запис в модела
-     */
-    public static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
-    {
-        // Подсигуряваме наличието на ключ към мастър записа
-        if (empty($rec->{$mvc->masterKey})) {
-            $rec->{$mvc->masterKey} = $mvc->fetchField($rec->id, $mvc->masterKey);
-        }
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
-        	if($mvc->Master->fetchField($rec->receiptId, 'state') != 'draft'){
-        		$requiredRoles = 'no_one';
-        	}
-        }
-    }
-
-
-	/**
-     * След извличане на записите от базата данни
-     */
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
-    {
-        $recs = &$data->recs;
-        $receiptRec = $data->masterData->rec;
-        
-        if (empty($recs)) return;
-        
-        deals_Helper::fillRecs($mvc->Master, $recs, $receiptRec);
-    }
-    
-    
-    /**
-     * След обработка на записите от базата данни
-     */
-    public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
-    {
-        // Скриваме полето "мярка"
-        $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
-        
-        // Флаг дали има отстъпка
-        $haveDiscount = FALSE;
-    
-        if(count($data->rows)) {
-            foreach ($data->rows as $i => &$row) {
-                $rec = &$data->recs[$i];
-                $ProductManager = cls::get($rec->classId);
-                
-    			$row->productId = $ProductManager->getTitleById($rec->productId);
-                $haveDiscount = $haveDiscount || !empty($rec->discount);
-    			
-                if (empty($rec->packagingId)) {
-                    $row->packagingId = ($rec->uomId) ? $row->uomId : '???';
-                } else {
-                    $shortUomName = cat_UoM::getShortName($rec->uomId);
-                    $row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
-                    $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
-                	$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
-                }
-            }
-        }
-    
-        if(!$haveDiscount) {
-            unset($data->listFields['discount']);
-        }
-    }
-        
-    
-    /**
-     * Преди показване на форма за добавяне/промяна
-     */
-    public static function on_AfterPrepareEditForm($mvc, $data)
-    {
-        $form = &$data->form;
-    	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($form->rec->classId);
-    	$masterRec = $data->masterRec;
+    	$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
     	
-        // Намираме всички скалдируеми продукти, ако документа е обратен взимаме продаваемите, иначе купуваемите
-        $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-        $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
-        
-        $products2 = $ProductManager::getByProperty('canStore');
-        $products = array_intersect_key($products, $products2);
-         
-        expect(count($products));
-        if (empty($form->rec->id)) {
-        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
-        	$data->form->setOptions('productId', array('' => ' ') + $products);
-        } else {
-        	$data->form->setOptions('productId', array($rec->productId => $products[$form->rec->productId]));
-        }
+    	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
+    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
+    	$products2 = $ProductManager::getByProperty('canStore');
+    	$products = array_intersect_key($products, $products2);
+    	 
+    	return $products;
     }
-    
-    
+
+
     /**
-     * След подготовка на лист тулбара
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
-    	if (!empty($data->toolbar->buttons['btnAdd'])) {
-    		$productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
-    		$masterRec = $data->masterData->rec;
-    
-    		foreach ($productManagers as $manId => $manName) {
-    			$productMan = cls::get($manId);
-    			$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-    			
-    			$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
-    			$products2 = $productMan::getByProperty('canStore');
-    			$products = array_intersect_key($products, $products2);
-    			
-    			if(!count($products)){
-    				$error = "error=Няма продаваеми {$productMan->title}";
-    			}
-    
-    			$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', $mvc->masterKey => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
-    					"id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
-    			unset($error);
-    		}
-    
-    		unset($data->toolbar->buttons['btnAdd']);
-    	}
+    	parent::inputDocForm($mvc, $form);
     }
 }
