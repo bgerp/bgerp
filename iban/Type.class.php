@@ -2,7 +2,7 @@
 
 cls::load('type_Varchar');
 
-require_once 'php-iban-1.1.2/php-iban.php';
+require_once 'php-iban-1.4.7/php-iban.php';
 
 
 /**
