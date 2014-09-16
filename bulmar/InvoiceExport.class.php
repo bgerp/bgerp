@@ -206,6 +206,8 @@ class bulmar_InvoiceExport extends core_Manager {
     	}
     	
     	$nRec->contragentEik = ($rec->contragentVatNo) ? $rec->contragentVatNo : $rec->uicNo;
+    	$Vats = cls::get('drdata_Vats');
+    	$nRec->contragentEik = $Vats->canonize($nRec->contragentEik);
     	
     	return $nRec;
     }
