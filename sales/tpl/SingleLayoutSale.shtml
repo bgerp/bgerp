@@ -38,7 +38,7 @@
                         <td class = 'nowrap'>[#amountInvoiced#]</td>
                         <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;' rowspan='4'>
                             <!--ET_BEGIN initiatorId-->
-                            <span style='font-weight:normal'>|инициатор|*</span>: [#initiatorId#]<br>
+                            <span style='font-weight:normal'>|Инициатор|*</span>: [#initiatorId#]<br>
                             <!--ET_END initiatorId-->
                             <!--ET_BEGIN dealerId-->
                             <span style='font-weight:normal'>|дилър|*</span>: [#dealerId#]
