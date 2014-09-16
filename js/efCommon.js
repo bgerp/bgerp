@@ -18,16 +18,16 @@ function runOnLoad(functionName) {
     }
 }
 
-function showTooltip() {
-    
-    if (!($('.tooltip-arrow-link').length)) {
 
+/**
+ *  Показва тултип с данни идващи от ajax
+ */
+function showTooltip(){
+    if (!($('.tooltip-arrow-link').length)) {
         return;
     }
-
     // Aко има тултипи
     var element;
-
     $('body').on('click', function(e) {
         if ($(e.target).is(".tooltip-arrow-link")) {
             var url = $(e.target).attr("data-url");
@@ -55,8 +55,6 @@ function showTooltip() {
     });
 };
 
-
-runOnLoad(showTooltip);
 
 // Функция за лесно селектиране на елементи
 function get$() {
@@ -213,21 +211,29 @@ efAjaxServer.prototype.get = function(params) {
     return false;
 }
 
-
-// Връща информация за браузъра
+/**
+ * Връща информация за браузъра
+ */
 function getUserAgent()
 {
 	return navigator.userAgent;
 }
 
 
-// Проверява дали браузърът е IE
-function isIE() {
+
+/**
+ * Проверява дали браузърът е IE
+ */
+function isIE() 
+{
     return /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent);
 }
 
-
-function getIEVersion() {
+/**
+ * Връща коя версия на IE е браузъра
+ */
+function getIEVersion() 
+{
     var myNav = navigator.userAgent.toLowerCase();
     return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
 }
@@ -615,7 +621,7 @@ function crateRicheditTable(textarea, newLine, tableCol, tableRow) {
     }
 }
 
-/*
+/**
  * предпазване от субмит на формата, при натискане на enter във форма на richedit
  */
 function bindEnterOnRicheditTableForm(textarea) {
@@ -859,49 +865,26 @@ function prepareContextMenu() {
     });
 }
 
+
 // Скрива или показва съдържанието на div (или друг) елемент
 function toggleDisplay(id) {
-    if (typeof jQuery != 'undefined') {
-        var elem = $("#" + id).parent().find('.more-btn');
-        $("#" + id).fadeToggle("slow");
-        elem.toggleClass('show-btn');
-
-    } else {
-
-        var el = document.getElementById(id);
-
-        if (el.style.display == 'none' || el.style.display == '') el.style.display = 'block';
-        else el.style.display = 'none';
-
-        var child = el.parentNode.children[0].children[0];
-
-        if (hasClass(child, 'show-btn')) {
-            child.className = child.className.replace(/\bshow-btn\b/, '');
-        } else {
-            child.className += ' show-btn';
-        }
-    }
+    var elem = $("#" + id).parent().find('.more-btn');
+    $("#" + id).fadeToggle("slow");
+    elem.toggleClass('show-btn');
 }
 
-function hasClass(element, className) {
-    return element.className && new RegExp("(^|\\s)" + className + "(\\s|$)").test(element.className);
-}
 
+// Скрива групите бутони от ричедита при клик някъде
 function hideRichtextEditGroups() {
-    if (typeof jQuery != 'undefined') {
-        $('body').live('click', function(e) {
-            if (!($(e.target).is('input[type=text]'))) {
-                hideRichtextEditGroupsBlock();
-            }
-        });
-    } else {
-        window.onclick = function() {
-            hideRichtextEditGroupsBlock();
-        };
-    }
-
+    $('body').live('click', function(e) {
+        if (!($(e.target).is('input[type=text]'))) {
+        	$('.richtext-holder-group-after').css("display", "none");
+        }
+    });
+    
     return false;
 }
+
 
 function toggleRichtextGroups(id, event) {
     if (typeof event == 'undefined') {
@@ -917,45 +900,14 @@ function toggleRichtextGroups(id, event) {
         event.cancelBubble = true;
     }
 
-    if (typeof jQuery != 'undefined') {
-        var hidden = $("#" + id).css("display");
-
-        hideRichtextEditGroupsBlock();
-        if (hidden == 'none') {
-            $("#" + id).show("fast");
-        }
-    } else {
-
-        var el = document.getElementById(id);
-        var hidden = el.style.display;
-
-        hideRichtextEditGroupsBlock();
-
-        if (hidden != 'block' && (el.style.display == 'none' || el.style.display == '')) {
-            el.style.display = 'block';
-        } else {
-            el.style.display = 'none';
-        }
+    var hidden = $("#" + id).css("display");
+    
+    $('.richtext-holder-group-after').css("display", "none");
+    if (hidden == 'none') {
+        $("#" + id).show("fast");
     }
 
     return false;
-}
-
-function hideRichtextEditGroupsBlock() {
-    if (typeof jQuery != 'undefined') {
-        $('.richtext-holder-group-after').css("display", "none");
-    } else {
-
-        var richtextGroupHide = document.getElementsByClassName('richtext-holder-group-after');
-
-        if (richtextGroupHide) {
-            for (var i = richtextGroupHide.length - 1; i >= 0; i--) {
-                if (richtextGroupHide[i]) {
-                    richtextGroupHide[i].style.display = 'none';
-                }
-            }
-        }
-    }
 }
 
 
@@ -1103,26 +1055,12 @@ function flashDoc(docId, i) {
 
 }
 
-function flashDocCss3(docId) {
-    var tr = get$(docId),
-        oldClassName = tr.className;
-
-    tr.className = (tr.className || '') + ' flash';
-
-    setTimeout(function() {
-        tr.className += ' transition';
-        setTimeout(function() {
-            tr.className = oldClassName + ' transition';
-        }, 1);
-    }, 1);
-}
 
 function flashDocInterpolation(docId) {
     var el = get$(docId); // your element
 
     // Ако е null или undefined
     if (!el || el == 'undefined') {
-
         return;
     }
 
@@ -1177,14 +1115,10 @@ function flashDocInterpolation(docId) {
     fade(el, 'background-color', flashColor, endColor, 2000);
 }
 
+
 function getBackgroundColor(el) {
-    if (typeof jQuery != 'undefined') {
-        var bgColor = $(el).css('background-color');
-    } else {
-
-        bgColor = el.style.backgroundColor;
-    }
-
+    var bgColor = $(el).css('background-color');
+ 
     if (bgColor == 'transparent') {
         bgColor = 'rgba(0, 0, 0, 0)';
     }
@@ -1210,6 +1144,7 @@ function rgb2hex(rgb) {
         return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
     }
 }
+
 
 /**
  * Задава максиналната височина на опаковката и основното съдържание
@@ -1238,6 +1173,7 @@ function setMinHeight() {
     }
 }
 
+
 /**
  * мащабиране на страницата при touch устройства с по-голяма ширина 
  */
@@ -1253,7 +1189,9 @@ function scaleViewport() {
     }
 }
 
-
+/**
+ * Проверка дали използваме touch устройство
+ */
 function isTouchDevice() {
     return (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
 }
@@ -1286,7 +1224,7 @@ function setMinHeightExt() {
 
 
 /**
- * Задава ширина на елементите от форма в зависимост от ширината
+ * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
  */
 function setFormElementsWidth() {
     var winWidth = parseInt($(window).width());
@@ -1336,7 +1274,7 @@ function setFormElementsWidth() {
 
 
 /**
- * Задава ширина на елементите от нишката в зависимост от ширината
+ * Задава ширина на елементите от нишката в зависимост от ширината на прозореца/устройството
  */
 function setThreadElemWidth() {
     var winWidth = parseInt($(window).width()) - 45;
@@ -1528,9 +1466,7 @@ function refreshForm(form) {
  * Променя visibility атрибута на елементите
  */
 function changeVisibility(id, type) {
-    element = document.getElementById(id);
-
-    element.style.visibility = type;
+	$('#' + id).css('visibility', type);
 }
 
 /**
@@ -1572,7 +1508,11 @@ function getShortURL(shortUrl) {
 }
 
 
-// добавяне на линк към текущата страница при копиране на текст
+/**
+ * добавяне на линк към текущата страница при копиране на текст
+ * 
+ * @param string text: допълнителен текст, който се появява при копирането 
+ */
 function addLinkOnCopy(text) {
     var body_element = document.getElementsByTagName('body')[0];
     var selection = window.getSelection();
@@ -1649,7 +1589,11 @@ function createObject(name) {
 
 
 
-// Предпазване от двойно събмитване
+/**
+ * Предпазване от двойно събмитване
+ * 
+ * @param id: id на формата
+ */
 function preventDoubleSubmission(id) {
     var form = '#' + id;
     var lastSubmitStr, submitStr, lastSubmitTime, timeSinceSubmit;
@@ -2842,3 +2786,5 @@ function prepareBugReport(form, user, domain, name)
     }).appendTo(form);
 
 }
+
+runOnLoad(showTooltip);
