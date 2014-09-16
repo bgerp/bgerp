@@ -617,16 +617,6 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    public static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$mvc->setCron($res);
-    	$mvc->setTemplates($res);
-    }
-    
-    
-    /**
      * Нагласяне на крон да приключва продажби и да проверява дали са просрочени
      */
     protected function setCron(&$res)

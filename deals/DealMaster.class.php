@@ -22,6 +22,38 @@ abstract class deals_DealMaster extends core_Master
 	 */
 	protected $updated = array();
 	
+
+	/**
+	 * Масив с вербалните имена при избора на контиращи операции за покупки/продажби
+	 */
+	private static $contoMap = array(
+			'sales'    => array('pay'     => 'Прието плащане в брой в каса ',
+							    'ship'    => 'Експедиране на продукти от склад ',
+							    'service' => 'Изпълнение на услуги'),
+	
+			'purchase' => array('pay'     => 'Направено плащане в брой от каса ',
+								'ship'    => 'Вкарване на продукти в склад ',
+							    'service' => 'Приемане на услуги')
+	);
+	
+	
+	/**
+	 * Извиква се след описанието на модела
+	 *
+	 * @param core_Mvc $mvc
+	*/
+	public static function on_AfterDescription(core_Master &$mvc)
+	{
+		// Може да се добавя само към покупка или продажба
+		expect(cls::haveInterface('deals_DealsAccRegIntf', $mvc));
+		 
+		if(empty($mvc->fields['contoActions']) && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
+			$mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
+		}
+		 
+		$mvc->declareInterface('doc_AddToFolderIntf');
+	}
+	
 	
 	/**
 	 * Задължителни полета на модела
@@ -899,5 +931,187 @@ abstract class deals_DealMaster extends core_Master
     			$mvc->$Detail->save($d1);
     		}
     	}
+    }
+    
+
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    public static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$mvc->setCron($res);
+    	$mvc->setTemplates($res);
+    }
+    
+    
+    /**
+     * Преди рендиране на тулбара
+     */
+    public static function on_BeforeRenderSingleToolbar($mvc, &$res, &$data)
+    {
+    	$rec = &$data->rec;
+    	 
+    	// Ако има бутон за принтиране, подменяме го с такъв стоящ на първия ред
+    	if(isset($data->toolbar->buttons['btnPrint'])){
+    		$data->toolbar->removeBtn('btnPrint');
+    		$url = array($mvc, 'single', $rec->id, 'Printing' => 'yes');
+    		$data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank', 'ef_icon = img/16/printer.png,title=Печат на страницата');
+    	}
+    	 
+    	// Ако има опции за избор на контирането, подмяна на бутона за контиране
+    	if(isset($data->toolbar->buttons['btnConto'])){
+    		$options = $mvc->getContoOptions($rec->id);
+    		if(count($options)){
+    			$data->toolbar->removeBtn('btnConto');
+    
+    			// Проверка на счетоводния период, ако има грешка я показваме
+    			if(!acc_plg_Contable::checkPeriod($rec->valior, $error)){
+    				$error = ",error={$error}";
+    			}
+    			 
+    			$data->toolbar->addBtn('Активиране', array($mvc, 'chooseAction', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
+    		}
+    	}
+    }
+
+
+    /**
+     * Какви операции ще се изпълнят с контирането на документа
+     * @param int $id - ид на документа
+     * @return array $options - опции
+     */
+    public static function on_AfterGetContoOptions($mvc, &$res, $id)
+    {
+    	$options = array();
+    	$rec = $mvc->fetchRec($id);
+    	 
+    	// Заглавие за опциите, взависимост дали е покупка или продажба
+    	$opt = ($mvc instanceof sales_Sales) ? self::$contoMap['sales'] : self::$contoMap['purchase'];
+    	 
+    	// Имали складируеми продукти
+    	$hasStorable = $mvc->hasStorableProducts($rec->id);
+    	 
+    	// Ако има продукти за експедиране
+    	if($hasStorable){
+    
+    		// ... и има избран склад, и потребителя може да се логне в него
+    		if(isset($rec->shipmentStoreId) && store_Stores::haveRightFor('select', $rec->shipmentStoreId)){
+    	   
+    			// Ако има очаквано авансово плащане, не може да се експедира на момента
+    			if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
+    				$hasDp = TRUE;
+    			}
+    	   
+    			if(empty($hasDp)){
+    
+    				// .. продуктите може да бъдат експедирани
+    				$storeName = store_Stores::getTitleById($rec->shipmentStoreId);
+    				$options['ship'] = "{$opt['ship']}\"{$storeName}\"";
+    			}
+    		}
+    	} else {
+    
+    		// ако има услуги те могат да бъдат изпълнени
+    		if($mvc->hasStorableProducts($rec->id, FALSE)){
+    			$options['ship'] = $opt['service'];
+    		}
+    	}
+    	 
+    	// ако има каса, метода за плащане е COD и текущия потрбител може да се логне в касата
+    	if($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::haveRightFor('select', $rec->caseId)){
+    
+    		// може да се плати с продуктите
+    		$caseName = cash_Cases::getTitleById($rec->caseId);
+    		$options['pay'] = "{$opt['pay']} \"$caseName\"";
+    	}
+    	 
+    	$res = $options;
+    }
+    
+    
+    /**
+     * Екшън за избор на контиращо действие
+     */
+    public function act_Chooseaction()
+    {
+    	$id = Request::get('id', 'int');
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'draft');
+    	expect(cls::haveInterface('acc_TransactionSourceIntf', $this));
+    	expect(acc_plg_Contable::checkPeriod($rec->valior, $error), $error);
+    	$curStoreId = store_Stores::getCurrent('id', FALSE);
+    	$curCaseId  = cash_Cases::getCurrent('id', FALSE);
+    	
+    	// Трябва потребителя да може да контира
+    	$this->requireRightFor('conto', $rec);
+    	
+    	// Подготовка на формата за избор на опция
+    	$form = cls::get('core_Form');
+    	$form->title = "|Активиране на|* <b>" . $this->getTitleById($id). "</b>" . " ?";
+    	$form->info = '<b>Контиране на извършени на момента действия</b> (опционално):';
+    	
+    	// Извличане на позволените операции
+    	$options = $this->getContoOptions($rec);
+    	
+    	// Трябва да има избор на действие
+    	expect(count($options));
+    	
+    	// Подготовка на полето за избор на операция и инпут на формата
+    	$form->FNC('action', cls::get('type_Set', array('suggestions' => $options)), 'columns=1,input,caption=Изберете');
+    	
+    	$selected = array();
+    	
+    	// Ако има склад и експедиране и потребителя е логнат в склада, слагаме отметка
+    	if($options['ship'] && $rec->shipmentStoreId){
+    		if($rec->shipmentStoreId === $curStoreId){
+    			$selected[] = 'ship';
+    		}
+    	} elseif($options['ship']){
+    		$selected[] = 'ship';
+    	}
+    	
+    	// Ако има каса и потребителя е логнат в нея, Слагаме отметка
+    	if($options['pay'] && $rec->caseId){
+    		if($rec->caseId === $curCaseId){
+    			$selected[] = 'pay';
+    		}
+    	}
+    	
+    	$form->setDefault('action', implode(',', $selected));
+    	$form->input();
+    	
+    	// След като формата се изпрати
+    	if($form->isSubmitted()){
+    		 
+    		// обновяване на записа с избраните операции
+    		$form->rec->action = 'activate' . (($form->rec->action) ? "," : "") . $form->rec->action;
+    		$rec->contoActions = $form->rec->action;
+    		$rec->isContable = ($form->rec->action == 'activate') ? 'activate' : 'yes';
+    		$this->save($rec);
+    		 
+    		// Ако се експедира и има склад, форсира се логване
+    		if($options['ship'] && isset($rec->shipmentStoreId) && $rec->shipmentStoreId != $curStoreId){
+    			store_Stores::selectSilent($rec->shipmentStoreId);
+    		}
+    		 
+    		// Ако има сметка и се експедира, форсира се логване
+    		if($options['pay'] && isset($rec->caseId) && $rec->caseId != $curCaseId){
+    			cash_Cases::selectSilent($rec->caseId);
+    		}
+    		 
+    		// Контиране на документа
+    		$this->conto($id);
+    		 
+    		// Редирект
+    		return redirect(array($this, 'single', $id));
+    	}
+    	
+    	$form->toolbar->addSbBtn('Активиране/Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
+    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
+    	 
+    	// Рендиране на формата
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	
+    	return $tpl;
     }
 }
