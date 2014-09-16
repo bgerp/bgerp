@@ -220,7 +220,7 @@ class cash_Pko extends core_Master
         // Използваме помощната функция за намиране името на контрагента
     	if(empty($form->rec->id)) {
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
-    		 	if($dealInfo->get('dealType') != deals_Deals::AGGREGATOR_TYPE){
+    		 	if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
     		 		
     		 		$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
     		 		if($amount <= 0) {

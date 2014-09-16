@@ -1,18 +1,18 @@
 <?php
 /**
- * Клас 'deals_ClosedDeals'
+ * Клас 'findeals_ClosedDeals'
  * Клас с който се приключва една финансова сделка
  * 
  *
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_ClosedDeals extends acc_ClosedDeals
+class findeals_ClosedDeals extends acc_ClosedDeals
 {
     /**
      * Заглавие
@@ -20,6 +20,12 @@ class deals_ClosedDeals extends acc_ClosedDeals
     public $title = 'Приключване на сделки';
 
 
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'deals_ClosedDeals';
+    
+    
     /**
      * Абревиатура
      */
@@ -29,26 +35,26 @@ class deals_ClosedDeals extends acc_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=deals_transaction_CloseDeal';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_CloseDeal';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'deals_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,
+    public $loadList = 'findeals_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,
                     doc_DocumentPlg, doc_plg_HidePrices, acc_plg_Registry, plg_Search';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,deals';
+    public $canRead = 'ceo,findeals';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,deals';
+    public $canEdit = 'ceo,findeals';
     
     
     /**
@@ -60,19 +66,19 @@ class deals_ClosedDeals extends acc_ClosedDeals
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,dealsMaster';
+	public $canList = 'ceo,findealsMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,deals';
+	public $canSingle = 'ceo,findeals';
     
 	
 	/**
 	 * Кой може да контира документите?
 	 */
-	public $canConto = 'ceo,deals';
+	public $canConto = 'ceo,findeals';
 	
 	
     /**
@@ -105,7 +111,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     public static function on_AfterDescription(core_Master &$mvc)
     {
     	// Добавяме към модела, поле за избор на с коя сделка да се приключи
-    	$mvc->FLD('closeWith', 'key(mvc=deals_Deals,allowEmpty)', 'caption=Приключи с,input=none');
+    	$mvc->FLD('closeWith', 'key(mvc=findeals_Deals,allowEmpty)', 'caption=Приключи с,input=none');
     }
     
     
@@ -165,7 +171,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     	
     	//@TODO а ако е авансов отчет ??
     	if($rec->closeWith){
-    		$row->closeWith = ht::createLink($row->closeWith, array('deals_Deals', 'single', $rec->closeWith));
+    		$row->closeWith = ht::createLink($row->closeWith, array('findeals_Deals', 'single', $rec->closeWith));
     	}
     }
     
@@ -209,7 +215,7 @@ class deals_ClosedDeals extends acc_ClosedDeals
     
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
-    	if(!($firstDoc->instance instanceof deals_Deals)) return FALSE;
+    	if(!($firstDoc->instance instanceof findeals_Deals)) return FALSE;
     	
     	return TRUE;
     }

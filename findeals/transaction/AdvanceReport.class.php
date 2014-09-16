@@ -1,9 +1,9 @@
 <?php
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа deals_AdvanceReports
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа findeals_AdvanceReports
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -12,11 +12,11 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class deals_transaction_AdvanceReport
+class findeals_transaction_AdvanceReport
 {
     /**
      * 
-     * @var deals_AdvanceReports
+     * @var findeals_AdvanceReports
      */
     public $class;
     
@@ -55,7 +55,7 @@ class deals_transaction_AdvanceReport
     	 * Дебитираме разходната сметка, кредитираме сметката от фин. сделката
     	*/
     	$vatAmount = 0;
-    	$dQuery = deals_AdvanceReportDetails::getQuery();
+    	$dQuery = findeals_AdvanceReportDetails::getQuery();
     	$dQuery->where("#reportId = '{$rec->id}'");
     	while($dRec = $dQuery->fetch()){
     		$arr = array();

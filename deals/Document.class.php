@@ -48,7 +48,7 @@ abstract class deals_Document extends core_Master
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
-    	$mvc->FLD('dealId', 'key(mvc=deals_Deals,select=detailedName,allowEmpty)', 'mandatory,caption=Сделка');
+    	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=detailedName,allowEmpty)', 'mandatory,caption=Сделка');
     	$mvc->FLD('amount', 'double(smartRound)', 'caption=Сума,mandatory,summary=amount');
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
     	$mvc->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс');
@@ -85,7 +85,7 @@ abstract class deals_Document extends core_Master
 		expect(count($dealInfo->get('allowedPaymentOperations')));
 		 
 		// Показваме само тези финансови операции в които е засегнат контрагента
-		$options = deals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
+		$options = findeals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
 		expect(count($options));
 		$form->setOptions('dealId', $options);
 		 
@@ -148,7 +148,7 @@ abstract class deals_Document extends core_Master
     		$dealInfo = $firstDoc->getAggregateDealInfo();
     		
     		// Ако няма финансови сделки в които  замесен контрагента, не може да се създава
-    		$options = deals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
+    		$options = findeals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
     		
     		if(!count($options)) return FALSE;
     		
@@ -173,8 +173,8 @@ abstract class deals_Document extends core_Master
 		}
 		 
 		if($fields['-single']){
-			if(deals_Deals::haveRightFor('single', $rec->dealId)){
-				$row->dealId = ht::createLink($row->dealId, array('deals_Deals', 'single', $rec->dealId));
+			if(findeals_Deals::haveRightFor('single', $rec->dealId)){
+				$row->dealId = ht::createLink($row->dealId, array('findeals_Deals', 'single', $rec->dealId));
 			}
 	
 			// Показваме заглавието само ако не сме в режим принтиране

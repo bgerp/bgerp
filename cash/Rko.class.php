@@ -223,7 +223,7 @@ class cash_Rko extends core_Master
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 	$dealInfo = $origin->getAggregateDealInfo();
     		 	
-    		 	if($dealInfo->get('dealType') != deals_Deals::AGGREGATOR_TYPE){
+    		 	if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
     		 		$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
     		 		if($amount <= 0) {
     		 			$amount = 0;

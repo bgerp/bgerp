@@ -1,19 +1,27 @@
 <?php
 /**
- * Клас 'deals_AdvanceReports'
+ * Клас 'findeals_AdvanceReports'
  *
  * Мениджър за Авансови отчети
  *
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_AdvanceReports extends core_Master
+class findeals_AdvanceReports extends core_Master
 {
+    
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'deals_AdvanceReports';
+	
+    
     /**
      * Заглавие
      */
@@ -29,13 +37,13 @@ class deals_AdvanceReports extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=deals_transaction_AdvanceReport, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_AdvanceReport, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, 
+    public $loadList = 'plg_RowTools, findeals_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, 
                     doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
 
@@ -103,7 +111,7 @@ class deals_AdvanceReports extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'deals_AdvanceReportDetails' ;
+    public $details = 'findeals_AdvanceReportDetails' ;
     
 
     /**
@@ -115,7 +123,7 @@ class deals_AdvanceReports extends core_Master
     /**
      * Файл за единичния изглед
      */
-    public $singleLayoutFile = 'deals/tpl/SingleAdvanceReportLayout.shtml';
+    public $singleLayoutFile = 'findeals/tpl/SingleAdvanceReportLayout.shtml';
 
    
     /**
@@ -277,7 +285,7 @@ class deals_AdvanceReports extends core_Master
     	$rec = $this->fetchRec($id);
     	$rec->total = 0;
     	
-    	$query = $this->deals_AdvanceReportDetails->getQuery();
+    	$query = $this->findeals_AdvanceReportDetails->getQuery();
     	$query->where("#reportId = '{$id}'");
     	while($dRec = $query->fetch()){
     		$rec->total += $dRec->amount * (1 + $dRec->vat);
@@ -337,7 +345,7 @@ class deals_AdvanceReports extends core_Master
     
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
     		
-    		if($firstDoc->className != 'deals_AdvanceDeals') return FALSE;
+    		if($firstDoc->className != 'findeals_AdvanceDeals') return FALSE;
     		
     		$options = self::getOperations($firstDoc->getPaymentOperations());
     			

@@ -1,9 +1,9 @@
 <?php
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа deals_ClosedDeals
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа findeals_ClosedDeals
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -12,11 +12,11 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class deals_transaction_CloseDeal
+class findeals_transaction_CloseDeal
 {
     /**
      * 
-     * @var deals_ClosedDeals
+     * @var findeals_ClosedDeals
      */
     public $class;
     
@@ -66,14 +66,14 @@ class deals_transaction_CloseDeal
     	
     	if($rec->closeWith){
     		$dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
-    		$closeDealItem = acc_Items::fetchItem('deals_Deals', $rec->closeWith);
+    		$closeDealItem = acc_Items::fetchItem('findeals_Deals', $rec->closeWith);
     		$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
     		$result->entries = array_merge($result->entries, $closeEntries);
     	} else {
     		
     		$dealArr = array(acc_Accounts::fetchField($docRec->accountId, 'systemId'),
     				array($docRec->contragentClassId, $docRec->contragentId),
-    				array('deals_Deals', $docRec->id),
+    				array('findeals_Deals', $docRec->id),
     				array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
     				'quantity' =>  abs($amount));
     		 

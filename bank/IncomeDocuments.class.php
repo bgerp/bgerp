@@ -251,7 +251,7 @@ class bank_IncomeDocuments extends core_Master
     	$options = self::getOperations($pOperations);
     	expect(count($options));
     		
-    	if($dealInfo->get('dealType') != deals_Deals::AGGREGATOR_TYPE){
+    	if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
     		$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
     		$amount = ($amount <= 0) ? 0 : $amount;
     			

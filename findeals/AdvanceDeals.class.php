@@ -1,19 +1,27 @@
 <?php
 /**
- * Клас 'deals_AdvanceDeals'
+ * Клас 'findeals_AdvanceDeals'
  *
  * Мениджър за финансови сделки
  *
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_AdvanceDeals extends deals_Deals
+class findeals_AdvanceDeals extends findeals_Deals
 {
+    
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'deals_AdvanceDeals';
+	
+    
     /**
      * Заглавие
      */
@@ -35,37 +43,37 @@ class deals_AdvanceDeals extends deals_Deals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, findeals_Wrapper, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, acc_plg_Deals, doc_ActivatePlg, plg_Sorting';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,deals';
+    public $canRead = 'ceo,findeals';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,deals';
+    public $canEdit = 'ceo,findeals';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,deals';
+    public $canAdd = 'ceo,findeals';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,dealsMaster';
+	public $canList = 'ceo,findealsMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,deals';
+	public $canSingle = 'ceo,findeals';
     
     
     /**
@@ -107,7 +115,7 @@ class deals_AdvanceDeals extends deals_Deals
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    public $singleLayoutFile = 'deals/tpl/SingleLayoutDeals.shtml';
+    public $singleLayoutFile = 'findeals/tpl/SingleLayoutDeals.shtml';
     
     
     /**

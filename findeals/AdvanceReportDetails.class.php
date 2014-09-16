@@ -1,18 +1,26 @@
 <?php
 /**
- * Клас 'deals_AdvanceReportDetail'
+ * Клас 'findeals_AdvanceReportDetail'
  *
- * Детайли на мениджър на авансови отчети (@see deals_AdvanceReports)
+ * Детайли на мениджър на авансови отчети (@see findeals_AdvanceReports)
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_AdvanceReportDetails extends core_Detail
+class findeals_AdvanceReportDetails extends core_Detail
 {
+    
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'deals_AdvanceReportDetails';
+	
+    
     /**
      * Заглавие
      */
@@ -34,7 +42,7 @@ class deals_AdvanceReportDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, deals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, plg_Created, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices';
     
     
     /**
@@ -96,7 +104,7 @@ class deals_AdvanceReportDetails extends core_Detail
      */
     public function description()
     {
-    	$this->FLD('reportId', 'key(mvc=deals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
+    	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory');
     	$this->FLD('amount', 'double(minDecimals=2)', 'caption=Крайна сума,mandatory');
     	$this->FLD('quantity', 'double(minDecimals=0)', 'caption=К-во');

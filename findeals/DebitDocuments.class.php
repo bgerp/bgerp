@@ -8,20 +8,20 @@
  *
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_DebitDocuments extends deals_Document
+class findeals_DebitDocuments extends deals_Document
 {
-    
-    
+	
+	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $oldClassName = 'deals_DebitDocument';
+	public $oldClassName = 'deals_DebitDocuments';
 	
 	
     /**
@@ -39,7 +39,7 @@ class deals_DebitDocuments extends deals_Document
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Sorting, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, findeals_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
                      plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
     
@@ -47,13 +47,13 @@ class deals_DebitDocuments extends deals_Document
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, dealsMaster';
+	public $canList = 'ceo, findealsMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, deals';
+	public $canSingle = 'ceo, findeals';
     
     
     /**
@@ -71,31 +71,31 @@ class deals_DebitDocuments extends deals_Document
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'deals, ceo';
+    public $canRead = 'findeals, ceo';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'deals, ceo';
+    public $canWrite = 'findeals, ceo';
     
     
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'deals, ceo';
+    public $canConto = 'findeals, ceo';
     
     
     /**
      * Кой може да го оттегля
      */
-    public $canRevert = 'deals, ceo';
+    public $canRevert = 'findeals, ceo';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    public $singleLayoutFile = 'deals/tpl/SingleLayoutDebitDocument.shtml';
+    public $singleLayoutFile = 'findeals/tpl/SingleLayoutDebitDocument.shtml';
 
     
     /**
@@ -129,7 +129,7 @@ class deals_DebitDocuments extends deals_Document
     	if ($form->isSubmitted()){
     		$oprtations = $form->dealInfo->get('allowedPaymentOperations');
     		$operation = $oprtations[$rec->operationSysId];
-    		$debitAcc = deals_Deals::fetchField($rec->dealId, 'accountId');
+    		$debitAcc = findeals_Deals::fetchField($rec->dealId, 'accountId');
     		
     		$debitAccount = empty($operation['reverse']) ? acc_Accounts::fetchRec($debitAcc)->systemId : $operation['credit'];
     		$creditAccount = empty($operation['reverse']) ? $operation['credit'] : acc_Accounts::fetchRec($debitAcc)->systemId;

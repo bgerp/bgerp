@@ -1,21 +1,27 @@
 <?php
 /**
- * Клас 'deals_Deals'
+ * Клас 'findeals_Deals'
  *
  * Мениджър за финансови сделки
  *
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_Deals extends core_Master
+class findeals_Deals extends core_Master
 {
 	
 	const AGGREGATOR_TYPE = 'deal';
+	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'deals_Deals';
 	
 	
     /**
@@ -39,37 +45,37 @@ class deals_Deals extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Deals , plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, findeals_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Deals , plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,deals';
+    public $canRead = 'ceo,findeals';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,deals';
+    public $canEdit = 'ceo,findeals';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,deals';
+    public $canAdd = 'ceo,findeals';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,dealsMaster';
+	public $canList = 'ceo,findealsMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,deals';
+	public $canSingle = 'ceo,findeals';
     
     
     /**
@@ -111,7 +117,7 @@ class deals_Deals extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    public $singleLayoutFile = 'deals/tpl/SingleLayoutDeals.shtml';
+    public $singleLayoutFile = 'findeals/tpl/SingleLayoutDeals.shtml';
     
     
     /**
@@ -135,7 +141,7 @@ class deals_Deals extends core_Master
     /**
      * Как се казва приключващия документ
      */
-    public $closeDealDoc = 'deals_ClosedDeals';
+    public $closeDealDoc = 'findeals_ClosedDeals';
     
     
     /**
@@ -160,7 +166,7 @@ class deals_Deals extends core_Master
     /**
      * Кое поле показва сумата на сделката
      */
-    public $canClosewith = 'ceo,dealsMaster';
+    public $canClosewith = 'ceo,findealsMaster';
     
     
     /**
@@ -352,12 +358,12 @@ class deals_Deals extends core_Master
     			$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
     		}
     		
-    		if(deals_AdvanceReports::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-    			$data->toolbar->addBtn("Ав. отчет", array('deals_AdvanceReports', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/legend.png,title=Създаване на нов авансов отчет');
+    		if(findeals_AdvanceReports::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    			$data->toolbar->addBtn("Ав. отчет", array('findeals_AdvanceReports', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/legend.png,title=Създаване на нов авансов отчет');
     		}
     		
-    		if(deals_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-    			$data->toolbar->addBtn('Приключване', array('deals_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), "ef_icon=img/16/closeDeal.png,title=Приключване на финансова сделка");
+    		if(findeals_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    			$data->toolbar->addBtn('Приключване', array('findeals_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), "ef_icon=img/16/closeDeal.png,title=Приключване на финансова сделка");
     		}
     	}
     }
@@ -495,7 +501,7 @@ class deals_Deals extends core_Master
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->showFields = 'search';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-    
+    	
     	$data->query->where("#dealManId = {$mvc->getClassId()}");
     }
     
@@ -512,7 +518,7 @@ class deals_Deals extends core_Master
     
     
     /**
-     * @param int $id key(mvc=deals_Deals)
+     * @param int $id key(mvc=findeals_Deals)
      * @see doc_DocumentIntf::getDocumentRow()
      */
     public function getDocumentRow($id)
@@ -734,16 +740,16 @@ class deals_Deals extends core_Master
     {
     	// Попълва информация за мениджъра от който е направен записа
     	if($mvc->count()){
-    		$sysId = deals_AdvanceReports::$baseAccountSysId;
+    		$sysId = findeals_AdvanceReports::$baseAccountSysId;
     		$exceptId = acc_Accounts::getRecBySystemId($sysId)->id;
     		
     		$query = $mvc->getQuery();
     		while($rec = $query->fetch()){
     			if(empty($rec->dealManId)){
     				if($rec->accountId == $exceptId){
-    					$rec->dealManId = deals_AdvanceDeals::getClassId();
+    					$rec->dealManId = findeals_AdvanceDeals::getClassId();
     				} else {
-    					$rec->dealManId = deals_Deals::getClassId();
+    					$rec->dealManId = findeals_Deals::getClassId();
     				}
     				
     				$mvc->save($rec);

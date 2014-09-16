@@ -1,9 +1,9 @@
 <?php
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа deals_CreditDocuments
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа findeals_CreditDocuments
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -12,11 +12,11 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class deals_transaction_CreditDocument
+class findeals_transaction_CreditDocument
 {
     /**
      * 
-     * @var deals_CreditDocuments
+     * @var findeals_CreditDocuments
      */
     public $class;
     
@@ -33,7 +33,7 @@ class deals_transaction_CreditDocument
     	
     	if($rec->isReverse == 'yes'){
     		// Ако документа е обратен, правим контировката на прехвърлянето на взимане но с отрицателен знак
-    		$entry = deals_transaction_DebitDocument::getReverseEntries($rec, $origin);
+    		$entry = findeals_transaction_DebitDocument::getReverseEntries($rec, $origin);
     	} else {
     		
     		// Ако документа не е обратен, правим нормална контировка на прехвърляне на задължение
@@ -74,7 +74,7 @@ class deals_transaction_CreditDocument
     {
     	$amount = $rec->rate * $rec->amount;
     	$dealInfo = $origin->getAggregateDealInfo();
-    	$dealRec = deals_Deals::fetch($rec->dealId);
+    	$dealRec = findeals_Deals::fetch($rec->dealId);
     	
     	// Ако е обратна транзакцията, сумите и к-та са с минус
     	$sign = ($reverse) ? -1 : 1;

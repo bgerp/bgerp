@@ -8,25 +8,26 @@
  *
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class deals_CreditDocuments extends deals_Document
+class findeals_CreditDocuments extends deals_Document
 {
+	
 	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $oldClassName = 'deals_CreditDocument';
+	public $oldClassName = 'deals_CreditDocuments';
 	
 	
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public  $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=deals_transaction_CreditDocument, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public  $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_CreditDocument, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
    
     
     /**
@@ -38,7 +39,7 @@ class deals_CreditDocuments extends deals_Document
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, deals_Wrapper, plg_Sorting, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, findeals_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
                      plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
     
@@ -46,13 +47,13 @@ class deals_CreditDocuments extends deals_Document
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, dealsMaster';
+	public $canList = 'ceo, findealsMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, deals';
+	public $canSingle = 'ceo, findeals';
     
     
     /**
@@ -70,31 +71,31 @@ class deals_CreditDocuments extends deals_Document
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'deals, ceo';
+    public $canRead = 'findeals, ceo';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'deals, ceo';
+    public $canWrite = 'findeals, ceo';
     
     
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'deals, ceo';
+    public $canConto = 'findeals, ceo';
     
     
     /**
      * Кой може да го оттегля
      */
-    public $canRevert = 'deals, ceo';
+    public $canRevert = 'findeals, ceo';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    public $singleLayoutFile = 'deals/tpl/SingleLayoutCreditDocument.shtml';
+    public $singleLayoutFile = 'findeals/tpl/SingleLayoutCreditDocument.shtml';
 
     
     /**
@@ -129,7 +130,7 @@ class deals_CreditDocuments extends deals_Document
     		$operations = $form->dealInfo->get('allowedPaymentOperations');
     		$operation = $operations[$rec->operationSysId];
     		
-    		$creditAcc = deals_Deals::fetchField($rec->dealId, 'accountId');
+    		$creditAcc = findeals_Deals::fetchField($rec->dealId, 'accountId');
     		
     		$debitAccount = empty($operation['reverse']) ? $operation['debit'] : acc_Accounts::fetchRec($creditAcc)->systemId;
     		$creditAccount = empty($operation['reverse']) ? acc_Accounts::fetchRec($creditAcc)->systemId : $operation['debit'];

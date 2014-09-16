@@ -1,9 +1,9 @@
 <?php
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа deals_DebitDocuments
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа findeals_DebitDocuments
  *
  * @category  bgerp
- * @package   deals
+ * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -12,11 +12,11 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class deals_transaction_DebitDocument
+class findeals_transaction_DebitDocument
 {
     /**
      * 
-     * @var deals_DebitDocuments
+     * @var findeals_DebitDocuments
      */
     public $class;
     
@@ -78,7 +78,7 @@ class deals_transaction_DebitDocument
     	// Ако е обратна транзакцията, сумите и к-та са с минус
     	$sign = ($reverse) ? -1 : 1;
     	
-    	$dealRec = deals_Deals::fetch($rec->dealId);
+    	$dealRec = findeals_Deals::fetch($rec->dealId);
     	
     	// Дебитираме разчетната сметка на избраната финансова сделка
     	$debitArr = array($rec->debitAccount,

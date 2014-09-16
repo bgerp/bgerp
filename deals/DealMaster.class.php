@@ -940,7 +940,15 @@ abstract class deals_DealMaster extends core_Master
     public static function on_AfterSetupMvc($mvc, &$res)
     {
     	$mvc->setCron($res);
-    	$mvc->setTemplates($res);
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    function loadSetupData()
+    {
+    	$this->setTemplates($res);
     }
     
     
