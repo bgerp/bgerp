@@ -59,6 +59,7 @@ class findeals_Setup extends core_ProtoSetup
     		'findeals_ClosedDeals',
     		'findeals_AdvanceReports',
     		'findeals_AdvanceReportDetails',
+    		'migrate::removeOldRoles',
         );
 
         
@@ -98,5 +99,26 @@ class findeals_Setup extends core_ProtoSetup
     	$html .= core_Roles::addOnce('findealsMaster', 'findeals');
     	
     	return $html;
+    }
+    
+    
+    /**
+     * Миграция преименуване на старите роли
+     */
+    public function removeOldRoles()
+    {
+    	if($rec = core_Roles::fetch("#role = 'deals'")){
+    		$rec->role = 'findeals';
+    	
+    		core_Roles::delete("role = 'findeals'");
+    		core_Roles::save($rec);
+    	}
+    	 
+    	if($rec = core_Roles::fetch("#role = 'dealsMaster'")){
+    		$rec->role = 'findealsMaster';
+    		 
+    		core_Roles::delete("role = 'findealsMaster'");
+    		core_Roles::save($rec);
+    	}
     }
 }
