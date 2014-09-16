@@ -34,6 +34,12 @@ class store_Setup extends core_ProtoSetup
     
     
     /**
+     * Необходими пакети
+     */
+    var $depends = 'acc=0.1';
+    
+    
+    /**
      * Стартов контролер за връзката в системното меню
      */
     var $startCtr = 'store_Movements';
