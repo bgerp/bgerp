@@ -126,7 +126,7 @@ class sales_SaleRequestDetails extends core_Detail {
     /**
      * Скриване на колоната за отстъпка ако няма отстъпки
      */
-    public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
         $haveDiscount = FALSE;

@@ -138,7 +138,7 @@ class store_TransfersDetails extends core_Detail
     /**
      * След обработка на записите от базата данни
      */
-    public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
     

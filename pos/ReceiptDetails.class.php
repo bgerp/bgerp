@@ -163,7 +163,7 @@ class pos_ReceiptDetails extends core_Detail {
 	/**
      * След подготовка на записите от базата данни
      */
-    public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;

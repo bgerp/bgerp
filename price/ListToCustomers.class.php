@@ -314,7 +314,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * След обработка на ролите
      */
-    public function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
     {
         if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
             if($rec->validFrom <= dt::verbal2mysql()) {

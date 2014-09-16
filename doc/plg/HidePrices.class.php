@@ -71,7 +71,7 @@ class doc_plg_HidePrices extends core_Plugin
     /**
      * Преди подготовка на сингъла
      */
-    public function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
     	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return;
     	

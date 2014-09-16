@@ -39,7 +39,7 @@ class doc_plg_TplManager extends core_Plugin
     /**
      * Изпълнява се след закачане на детайлите
      */
-    public function on_AfterAttachDetails(core_Mvc $mvc, &$res, $details)
+    public static function on_AfterAttachDetails(core_Mvc $mvc, &$res, $details)
     {
     	if($mvc->details){
         	$details = arr::make($mvc->details);

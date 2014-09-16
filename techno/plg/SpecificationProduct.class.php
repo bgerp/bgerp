@@ -23,7 +23,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public static function on_AfterDescription(&$mvc)
     {
         expect(cls::haveInterface('doc_DocumentIntf', $mvc), 'Спецификациите трябва да са документи', get_class($mvc));
         expect(cls::haveInterface('techno_ProductsIntf', $mvc), 'Спецификациите трябва имат интерфейс за технолози', get_class($mvc));
@@ -130,7 +130,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
 	/**
      * След подготовка на туулбара за единичен изглед
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
     	$hasPrice = $mvc->getPriceInfo($rec->id)->price;
@@ -171,7 +171,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    function on_AfterGetAllowedFolders($mvc, &$res)
+    public static function on_AfterGetAllowedFolders($mvc, &$res)
     {
     	$res = array('doc_ContragentDataIntf', 'techno_SpecificationFolderCoverIntf');
     }
@@ -191,7 +191,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
 	/**
      * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
      */
-    function on_AfterCanAddToFolder($mvc, &$res, $folderId)
+    public static function on_AfterCanAddToFolder($mvc, &$res, $folderId)
     {
         $allowedIntfs = $mvc->getAllowedFolders();
     	if(count($allowedIntfs)){
@@ -212,7 +212,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      * @param int $id - ид на продукт
      * @param string $sysId - sysId на параметър
      */
-    public function on_AfterRenderJobView($mvc, &$res, $id)
+    public static function on_AfterRenderJobView($mvc, &$res, $id)
     {
     	if(!$res){
     		$res = tr("Драйвера няма изглед за задание");
@@ -227,7 +227,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      * 		rec->name - име на параметъра
      * 		rec->type - тип в системата
      */
-    public function on_AfterGetAdditionalParams($mvc, &$res)
+    public static function on_AfterGetAdditionalParams($mvc, &$res)
     {
     	if(!$res){
     		$res =  NULL;
@@ -238,7 +238,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
 	/**
      * Добавя към формата на запитването, допълнителни полета
      */
-    public function on_AfterFillInquiryForm($mvc, &$res)
+    public static function on_AfterFillInquiryForm($mvc, &$res)
     {
     	if(!$res){
     		$res = NULL;
@@ -249,7 +249,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     /**
       * Връща параметрите които ще се подават на запитването
       */
-    public function on_AfterGetInquiryParams()
+    public static function on_AfterGetInquiryParams()
     {
     	
     }
@@ -258,7 +258,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
 	/**
      * Връща основната мярка, специфична за технолога
      */
-    public function on_AfterGetDriverUom($mvc, &$res, $params)
+    public static function on_AfterGetDriverUom($mvc, &$res, $params)
     {
     	if(!$res){
     		return NULL;
@@ -274,7 +274,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      * 		rec->value - стойност
      * @return core_ET $tpl - шаблона
      */
-    public function on_AfterRenderAdditionalParams($mvc, &$res, $id, $data)
+    public static function on_AfterRenderAdditionalParams($mvc, &$res, $id, $data)
     {
     	if(!$res){
     		$res = new ET("");
@@ -285,7 +285,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     /**
      * Връща в кои опаковки може да се добавя един продукт
      */
-    function on_AfterGetPacks($mvc, &$res, $productId)
+    public static function on_AfterGetPacks($mvc, &$res, $productId)
     {
     	if(empty($res)){
     		$pInfo = $mvc->getProductInfo($productId);
@@ -300,7 +300,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      * @param int $id - ид на продукт
      * @param string $sysId - sysId на параметър
      */
-    public function on_AfterGetParam($mvc, &$res, $id, $sysId)
+    public static function on_AfterGetParam($mvc, &$res, $id, $sysId)
     {
     	if(!$res){
     		$res = NULL;
@@ -313,7 +313,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      * тя е Продукти, ограничаваме само до тези, които
      * могат да се произвеждат (canManifacture)
      */
-    function on_BeforeGetCoverOptions($mvc, &$res, $coverClass)
+    public static function on_BeforeGetCoverOptions($mvc, &$res, $coverClass)
     {
     	if($coverClass instanceof cat_Products){
     		$res = cat_Products::getByProperty('canManifacture');
@@ -325,7 +325,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
 	* Интерфейсен метод на doc_ContragentDataIntf
 	* Връща тялото на имейл по подразбиране
 	*/
-    static function on_AfterGetDefaultEmailBody($mvc, $res, $id)
+    public static function on_AfterGetDefaultEmailBody($mvc, $res, $id)
     {
         $handle = static::getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашата спецификация") . ': #[#handle#]');
@@ -338,7 +338,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     /**
      * Дефолт метод за връщане на тегло
      */
-    static function on_AfterGetWeight($mvc, $res, $id, $packagingId)
+    public static function on_AfterGetWeight($mvc, $res, $id, $packagingId)
     {
     	if(!$res){
     		$res = $mvc->getParam($id, 'transportWeight');
@@ -349,7 +349,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
 	/**
      * Дефолт метод за връщане на обем
      */
-    static function on_AfterGetVolume($mvc, $res, $id, $packagingId)
+    public static function on_AfterGetVolume($mvc, $res, $id, $packagingId)
     {
     	if(!$res){
     		$res = $mvc->getParam($id, 'transportVolume');

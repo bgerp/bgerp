@@ -41,7 +41,7 @@ class store_plg_Document extends core_Plugin
 	 * @param stdClass $res
 	 * @param array $products - продуктите в документа
 	 */
-	public function on_AfterGetMeasures($mvc, &$res, $products)
+	public static function on_AfterGetMeasures($mvc, &$res, $products)
 	{
 		$obj = new stdClass();
 		$obj->volume = 0;

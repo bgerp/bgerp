@@ -81,7 +81,7 @@ class doc_SharablePlg extends core_Plugin
      * @param core_ET $tpl
      * @param unknown_type $data
      */
-    public function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
+    public static function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
     {
         if (Request::get('Printing')) {
             // В режим на печат, маркираме документа като видян.
