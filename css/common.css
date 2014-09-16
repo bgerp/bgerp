@@ -930,7 +930,7 @@ a.profile {
  * Стилове за елемента 'list Table'
  */
 table.listTable {
-  margin: 0px 0 15px 0;
+  margin: 0 0 15px 0;
   border: 1px solid #bbbbbb; }
   table.listTable > tbody > tr:hover {
     background-color: #ffffcc; }
@@ -1039,7 +1039,7 @@ table.listTable {
   width: 100%; }
 
 .wide .formFields > table {
-  margin: 5px 0 0px; }
+  margin: 5px 0 0; }
 
 .form-filter-btn {
   margin-top: 5px;
@@ -1116,15 +1116,15 @@ td.formElement {
 .formFields input,
 textarea,
 select {
-  margin-top: 0px;
+  margin-top: 0;
   -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset; }
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset; }
 
 .formFields input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset, 0px 0px 7px rgba(153, 153, 255, 0.7); }
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba(153, 153, 255, 0.7); }
 
   .simpleForm .vertical .formSection,
   .simpleForm .vertical .formTable,
@@ -1269,7 +1269,7 @@ select:focus {
   background-image: url('../img/yellow.png');
   background-color: #ffffee;
   padding: 15px;
-  padding-bottom: 0px;
+  padding-bottom: 0;
   color: black;
   vertical-align: top; }
 
@@ -1295,9 +1295,9 @@ select:focus {
 
 .vertical .formToolbar {
   padding: 8px;
-  -moz-border-radius: 0px 0px 5px 5px;
-  -webkit-border-radius: 0px 0px 5px 5px;
-  border-radius: 0px 0px 5px 5px;
+  -moz-border-radius: 0 0 5px 5px;
+  -webkit-border-radius: 0 0 5px 5px;
+  border-radius: 0 0 5px 5px;
   border: solid 1px #bbbbbb;
   border-top: none;
   background-image: url('../img/formToolbarBg.jpg'); }
@@ -1500,15 +1500,15 @@ div.tab-control div.tab-row .tab {
   white-space: nowrap;
   position: relative;
   line-height: normal;
-  -moz-border-radius: 5px 5px 0px 0px;
-  -webkit-border-radius: 5px 5px 0px 0px;
-  border-radius: 5px 5px 0px 0px;
+  -moz-border-radius: 5px 5px 0 0;
+  -webkit-border-radius: 5px 5px 0 0;
+  border-radius: 5px 5px 0 0;
   border-top: 2px solid #004488; }
   div.tab-control div.tab-row .tab.selected {
     z-index: 3;
     padding: 4px 5px 6px 5px;
     margin: 1px -16px -3px 18px;
-    top: 0px; }
+    top: 0; }
 
 .narrow div.tab-control div.tab-row .tab.selected {
   padding: 4px 5px 6px 5px; }
@@ -1569,7 +1569,7 @@ div.alphabet div.tab-row .tab {
   div.alphabet div.tab-row .tab.selected {
     background: #ffffcc;
     border: 1px solid #aaaaaa;
-    top: 0px;
+    top: 0;
     margin: -1px 4px 8px 0;
     padding: 5px !important;
     -moz-box-shadow: 0px 0px 3px 1px #cccccc;
@@ -1577,7 +1577,7 @@ div.alphabet div.tab-row .tab {
     box-shadow: 0px 0px 3px 1px #cccccc; }
 
 div.alphabet div.tab-page {
-  margin: 0px;
+  margin: 0;
   padding: 7px 0 0 0; }
 
 .narrow div.alphabet  div.tab-row {
@@ -1591,7 +1591,7 @@ div.alphabet div.tab-page {
 .single-thread .document div.alphabet {
   padding-bottom: 0; }
   .single-thread .document div.alphabet .tab-page {
-    padding: 0px 0px 0px !important;
+    padding: 0 !important;
     clear: both;
     border-top: 1px solid #cccccc;
     box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.1);
@@ -1603,8 +1603,8 @@ div.alphabet div.tab-page {
     overflow: hidden;
     z-index: 2; }
     .single-thread .document div.alphabet .tab-page .detail-info {
-      padding: 0px;
-      margin-top: 0px;
+      padding: 0;
+      margin-top: 0;
       font-size: 0.85em; }
       .single-thread .document div.alphabet .tab-page .detail-info .listTable td {
         background-color: #fefec2 !important; }
@@ -1660,16 +1660,16 @@ div.alphabet div.tab-page {
     white-space: nowrap;
     position: relative;
     padding: 0;
-    -moz-border-radius: 5px 5px 0px 0px;
-    -webkit-border-radius: 5px 5px 0px 0px;
-    border-radius: 5px 5px 0px 0px; }
+    -moz-border-radius: 5px 5px 0 0;
+    -webkit-border-radius: 5px 5px 0 0;
+    border-radius: 5px 5px 0 0; }
     .single-thread .document div.alphabet div.tab-row .tab a {
       display: inline-block;
       color: #004488;
       padding: 4px 5px 4px 5px;
-      -moz-border-radius: 5px 5px 0px 0px;
-      -webkit-border-radius: 5px 5px 0px 0px;
-      border-radius: 5px 5px 0px 0px; }
+      -moz-border-radius: 5px 5px 0 0;
+      -webkit-border-radius: 5px 5px 0 0;
+      border-radius: 5px 5px 0 0; }
     .single-thread .document div.alphabet div.tab-row .tab span {
       display: inline-block;
       padding: 4px 5px 4px 5px; }
@@ -1685,8 +1685,8 @@ div.alphabet div.tab-page {
       box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.2);
       border-bottom: none;
       z-index: 3;
-      padding: 0px 0 1px !important;
-      top: 0px;
+      padding: 0 0 1px !important;
+      top: 0;
       font-weight: bold; }
 
 .thread-opened div.alphabet .tab.selected {
@@ -1733,7 +1733,7 @@ span.richEdit div.richedit-toolbar {
   font-size: 0.8em;
   padding-bottom: 4px;
   font-family: Verdana, Geneva, sans-serif;
-  margin-top: 0px;
+  margin-top: 0;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -1743,7 +1743,7 @@ span.richEdit div.richedit-toolbar {
   margin-top: -4px; }
 
 .richEdit textarea {
-  margin-bottom: 0px;
+  margin-bottom: 0;
   overflow: auto;
   border-bottom: 1px solid transparent;
   width: 32em;
@@ -1807,7 +1807,7 @@ a.rtbutton:focus {
 .richtext-emoticons5,
 .richtext-emoticons7 {
   position: absolute;
-  left: 0px;
+  left: 0;
   bottom: 2.1em;
   display: none;
   white-space: nowrap;
@@ -1816,7 +1816,7 @@ a.rtbutton:focus {
 
 .richtext-emoticons6 {
   position: absolute;
-  right: 0px;
+  right: 0;
   bottom: 2.1em;
   display: none; }
 
@@ -1914,7 +1914,7 @@ div.richtext pre .code {
   background: transparent;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF, endColorstr=#50F1F1FF);
   background: rgba(245, 245, 255, 0.5);
-  margin: 10px 0px;
+  margin: 10px 0;
   padding: 10px;
   white-space: pre;
   word-wrap: normal; }
@@ -1938,14 +1938,14 @@ div.richtext pre code {
   background: rgba(235, 235, 235, 0.5);
   border: 1px solid #dddddd;
   border-radius: 3px;
-  margin: 0px 2px 1px;
-  padding: 0px 5px 0px;
+  margin: 0 2px 1px;
+  padding: 0 5px 0;
   display: inline-block;
   color: black; }
 
 .narrow .richtext .oneLineCode {
-  padding: 0px 5px;
-  margin: 0px 0 1px; }
+  padding: 0 5px;
+  margin: 0 0 1px; }
 
 div.code {
   background: rgba(255, 255, 230, 0.5); }
@@ -1968,7 +1968,7 @@ div.richtextHide {
 .richtext h4,
 .richtext h5,
 .richtext h6 {
-  margin-top: 0px;
+  margin-top: 0;
   margin-bottom: 5px;
   line-height: normal; }
 
@@ -1985,8 +1985,8 @@ a.header {
   font-size: 1.1em; }
 
 div.richtext li {
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
   margin-left: 1.5em;
   padding-top: 0.2em; }
 
@@ -2045,7 +2045,7 @@ div.richtext ol ol ol {
 .richtext-message {
   font-family: Courier New, mono;
   border: 1px dotted;
-  margin: 0px 30px;
+  margin: 0 30px;
   padding: 7px 10px 5px 55px;
   min-height: 37px;
   background-repeat: no-repeat;
@@ -2059,7 +2059,7 @@ div.richtext ol ol ol {
 .richtext-text {
   background-color: rgba(255, 255, 128, 0.3);
   padding: 10px;
-  margin: 10px 0px;
+  margin: 10px 0;
   border: solid 1px #cccccc;
   font-family: Courier New, mono; }
 
@@ -2100,7 +2100,7 @@ div.richtext ol ol ol {
   background-image: url('../img/Help-icon.png'); }
 
 .narrow .richtext-message {
-  margin-left: 0px;
+  margin-left: 0;
   margin-right: 0;
   font-size: 0.9em; }
 
@@ -2162,7 +2162,7 @@ div.notification-info {
   text-align: center;
   font-weight: bold;
   margin: 10px;
-  margin-top: 0px;
+  margin-top: 0;
   padding: 10px;
   font-size: 1.3em;
   -moz-border-radius: 15px;
