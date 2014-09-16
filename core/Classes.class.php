@@ -71,12 +71,14 @@ class core_Classes extends core_Manager
      */
     static function add($class, $title = FALSE)
     {
+        $class = cls::get($class);
         
         /**
          * Ако класът е нова версия на някой предишен, съществуващ,
          * отразяваме този факт в таблицата с класовете
          */
-        if(is_object($class) && isset($class->oldClassName)) {
+        if(isset($class->oldClassName)) {
+        	
             $newClassName = cls::getClassName($class);
             $oldClassName = $class->oldClassName;
             
@@ -295,6 +297,10 @@ class core_Classes extends core_Manager
     private function getVerbalInterfaces($rec)
     {
     	$verbalInterfaces = '';
+    	if(!cls::load($rec->name, TRUE)){
+    		return "<span class='red'>Липсва кода на класа</span>";
+    	}
+    	
     	$ClassMethods = cls::getAccessibleMethods($rec->name);
     	$intArray = keylist::toArray($rec->interfaces);
     	
