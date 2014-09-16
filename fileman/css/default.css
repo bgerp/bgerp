@@ -75,10 +75,6 @@
   max-height: 340px;
   overflow: auto; }
 
-#add-success-info {
-  1max-height: 104px;
-  1overflow: auto; }
-
 .uploaded-file > a {
   height: 16px;
   position: relative;
