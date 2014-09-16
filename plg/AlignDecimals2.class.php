@@ -72,6 +72,12 @@ class plg_AlignDecimals2 extends core_Plugin
     }
     
     
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+    	$tpl->appendOnce("\n runOnLoad(function(){tableElemsFractionsWidth();});", 'SCRIPTS');
+    }
+    
+    
     static function _m($matches)
     {
     	if (!$matches[0]) return $matches[0];

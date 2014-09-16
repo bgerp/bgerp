@@ -678,9 +678,7 @@ class core_Manager extends core_Mvc
         $data->listFields = arr::make($data->listFields, TRUE);
         
         $tpl = $table->get($data->rows, $data->listFields);
-        if($data->listTableClass == 'alignDecimals'){
-        	$tpl->appendOnce("\n runOnLoad(function(){tableElemsFractionsWidth();});", 'SCRIPTS');
-        }
+        
         return new ET("<div class='listRows {$data->listTableClass}'>[#1#]</div>", $tpl);
     }
     
