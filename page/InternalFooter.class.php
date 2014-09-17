@@ -37,7 +37,6 @@ class page_InternalFooter extends core_ET {
         if(Mode::is('screenMode', 'narrow')) {
             if($nick) {
                 $this->append(ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Изход на " . $nick)));
-                $this->append("&nbsp;|&nbsp;");
             }
                         
             if($isGet) {
