@@ -3016,6 +3016,9 @@ only screen and (max-width: 950px) {
     margin-right: 8px;
     font-size: 1.04em; }
 
+  #all .formTitle {
+    font-size: 1.1em; }
+
   #all h2 {
     font-size: 1.4em; }
 
@@ -3033,9 +3036,6 @@ only screen and (max-width: 900px) {
       height: auto;
       margin-right: 1%;
       margin-left: 1%; }
-
-  #all .formTable {
-    font-size: 0.95em; }
 
   #all h2 {
     font-size: 1.38em; }
@@ -3064,8 +3064,8 @@ only screen and (max-width: 800px) {
       margin-right: 1%;
       margin-left: 1%; }
 
-  #all .formTable {
-    font-size: 0.95em; }
+  #all .formTitle {
+    font-size: 1em; }
 
   #all h2 {
     font-size: 1.38em; }
@@ -3088,9 +3088,6 @@ only screen and (max-width: 760px) {
     margin-right: 2%;
     margin-left: 2%;
     font-size: 0.9em; }
-
-  #all .formTable {
-    font-size: 0.95em; }
 
   #all h2 {
     font-size: 1.36em; }
@@ -3120,9 +3117,6 @@ only screen and (max-width: 700px) {
     margin-right: 2%;
     margin-left: 2%;
     font-size: 0.9em; }
-
-  #all .formTable {
-    font-size: 0.95em; }
 
   #all h2 {
     font-size: 1.34em; }
@@ -3155,9 +3149,6 @@ only screen and (max-width: 640px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  #all .formTable {
-    font-size: 0.95em; }
-
   #all h2 {
     font-size: 1.32em; }
 
@@ -3183,8 +3174,11 @@ only screen and (max-width: 600px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  #all .formTable {
-    font-size: 0.9em; }
+  #all .formTitle {
+    font-size: 0.95em; }
+
+  #all .formGroup {
+    font-size: 0.85em; }
 
   #all h2 {
     font-size: 1.3em; }
@@ -3206,9 +3200,6 @@ only screen and (max-width: 533px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  #all .formTable {
-    font-size: 0.9em; }
-
   #all h2 {
     font-size: 1.28em; }
 
@@ -3224,9 +3215,6 @@ only screen and (max-width: 500px) {
     width: 46%;
     margin-right: 2%;
     margin-left: 2%;
-    font-size: 0.9em; }
-
-  #all .formTable {
     font-size: 0.9em; }
 
   #all h2 {
@@ -3249,9 +3237,6 @@ only screen and (max-width: 480px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  #all .formTable {
-    font-size: 0.9em; }
-
   #all h2 {
     font-size: 1.24em; }
 
@@ -3272,8 +3257,11 @@ only screen and (max-width: 360px) {
     margin-left: 0%;
     font-size: 0.9em; }
 
-  #all .formTable {
+  #all .formTitle {
     font-size: 0.9em; }
+
+  #all .formGroup {
+    font-size: 0.75em; }
 
   #all h2 {
     font-size: 1.22em; }
@@ -3297,9 +3285,6 @@ only screen and (max-width: 320px) {
     width: 100%;
     margin-right: 0%;
     margin-left: 0%;
-    font-size: 0.9em; }
-
-  #all .formTable {
     font-size: 0.9em; }
 
   #all h2 {

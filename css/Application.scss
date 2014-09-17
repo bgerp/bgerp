@@ -3229,6 +3229,9 @@ body.narrow {
 		margin-right: 8px;
 		font-size: 1.04em;
     }
+    #all .formTitle {
+        font-size: 1.1em;
+    }
     #all h2{
         font-size: 1.4em;
     }
@@ -3248,9 +3251,6 @@ body.narrow {
             margin-right: 1%;
             margin-left: 1%;
        }
-    }
-    #all .formTable{
-        font-size: 0.95em;
     }
     #all h2{
         font-size: 1.38em;
@@ -3280,8 +3280,8 @@ body.narrow {
             margin-left: 1%;
        }
     }
-    #all .formTable{
-        font-size: 0.95em;
+    #all .formTitle {
+        font-size: 1em;
     }
     #all h2{
         font-size: 1.38em;
@@ -3305,9 +3305,6 @@ body.narrow {
 		margin-right: 2%;
 		margin-left: 2%;
 		font-size: 0.9em;
-    }
-    #all .formTable{
-        font-size: 0.95em;
     }
     #all h2{
         font-size: 1.36em;
@@ -3338,9 +3335,6 @@ body.narrow {
        margin-right: 2%;
        margin-left: 2%;
        font-size: 0.9em;
-    }
-    #all .formTable{
-        font-size: 0.95em;
     }
     #all h2{
         font-size: 1.34em;
@@ -3375,9 +3369,6 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    #all .formTable{
-        font-size: 0.95em;
-    }
     #all h2{
         font-size: 1.32em;
     }
@@ -3404,8 +3395,11 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
 	}
-	#all .formTable{
-        font-size: 0.9em;
+	#all .formTitle {
+        font-size: 0.95em;
+    }
+    #all .formGroup {
+        font-size: 0.85em;
     }
     #all h2{
         font-size: 1.3em;
@@ -3428,9 +3422,6 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    #all .formTable{
-        font-size: 0.9em;
-    }
     #all h2{
         font-size: 1.28em;
     }
@@ -3448,9 +3439,6 @@ body.narrow {
        margin-right: 2%;
        margin-left: 2%;
        font-size: 0.9em;
-    }
-    #all .formTable{
-        font-size: 0.9em;
     }
     #all h2{
         font-size: 1.26em;
@@ -3473,9 +3461,6 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-     #all .formTable{
-        font-size: 0.9em;
-    }
     #all h2{
         font-size: 1.24em;
     }
@@ -3497,8 +3482,11 @@ body.narrow {
        margin-left: 0%;
        font-size: 0.9em;
     }
-    #all .formTable{
+    #all .formTitle{
         font-size: 0.9em;
+    }
+    #all .formGroup {
+        font-size: 0.75em;
     }
     #all h2{
         font-size: 1.22em;
@@ -3525,9 +3513,6 @@ body.narrow {
        margin-right: 0%;
        margin-left: 0%;
        font-size: 0.9em;
-    }
-    #all .formTable{
-        font-size: 0.9em;
     }
     #all h2{
         font-size: 1.2em;
