@@ -779,7 +779,7 @@ class findeals_Deals extends core_Master
     		$rec = $mvc->fetchRec($id);
     
     		// Записване на продажбата като отворена сделка
-    		acc_OpenDeals::saveRec($rec, $mvc);
+    		deals_OpenDeals::saveRec($rec, $mvc);
     	}
     }
     

@@ -514,7 +514,7 @@ abstract class deals_DealMaster extends core_Master
     		$rec->state = $state;
     		
     		// Записване на продажбата като отворена сделка
-    		acc_OpenDeals::saveRec($rec, $mvc);
+    		deals_OpenDeals::saveRec($rec, $mvc);
     	}
     }
     
