@@ -969,6 +969,9 @@ td.portal-date {
 .large-field {
   width: 50%; }
 
+.wrap {
+  white-space: normal !important; }
+
 .aright {
   text-align: right; }
 
