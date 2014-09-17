@@ -1235,7 +1235,10 @@ function setFormElementsWidth() {
     }
     // разстояние около формата
     var outsideWidth = 44;
-
+    if($('#all').length) {
+    	outsideWidth = 30;
+    }
+    
     // предпочитана ширина в em
     var preferredSizeInEm = 42;
 
@@ -1267,6 +1270,7 @@ function setFormElementsWidth() {
         $(this).css('maxWidth', parseInt((formElWidth - 25) / colsInRow));
     });
 
+    $('.formTable').css('width', formElWidth);
     $('.formSection').css('width', formElWidth);
     $('.formTable textarea').css('width', formElWidth);
     $('.formTable .chzn-container').css('maxWidth', formElWidth);
