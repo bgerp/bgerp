@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class purchase_ClosedDeals extends deals_ClosedDeals
+class purchase_ClosedDeals extends acc_ClosedDeals
 {
     /**
      * Заглавие
@@ -105,7 +105,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     
     /**
      * Имплементиране на интерфейсен метод
-     * @see deals_ClosedDeals::getDocumentRow()
+     * @see acc_ClosedDeals::getDocumentRow()
      */
     public function getDocumentRow($id)
     {

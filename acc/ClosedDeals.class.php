@@ -1,6 +1,6 @@
 <?php
 /**
- * Клас 'deals_ClosedDeals'
+ * Клас 'acc_ClosedDeals'
  * Абстрактен клас за създаване на приключващи документи. Неговите наследници
  * могат да се създават само в тред, началото на който е документ с интерфейс
  *'bgerp_DealAggregatorIntf'. След контирането на този документ, не може в треда
@@ -15,16 +15,10 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class deals_ClosedDeals extends core_Master
+abstract class acc_ClosedDeals extends core_Master
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'acc_ClosedDeals';
-	
-	
     /**
      * Кой има право да чете?
      */
@@ -107,7 +101,7 @@ abstract class deals_ClosedDeals extends core_Master
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,input=none');
         $this->FLD('rate', 'double', 'caption=Плащане->Курс,input=none');
         
-    	// От кой клас наследник на deals_ClosedDeals идва записа
+    	// От кой клас наследник на acc_ClosedDeals идва записа
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
     }
 
