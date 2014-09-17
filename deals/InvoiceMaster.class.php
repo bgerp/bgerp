@@ -36,6 +36,12 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $valiorFld = 'date';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
