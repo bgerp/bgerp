@@ -2762,6 +2762,7 @@ div.location.public {
 
 .preview-holder .document {
   width: 840px !important;
+  min-width: 0;
   border: solid 1px #bbbbbb !important;
   background: white;
   -moz-border-radius: 5px !important;

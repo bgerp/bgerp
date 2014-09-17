@@ -2974,6 +2974,7 @@ div.location.public {
 
 .preview-holder .document {
 	width:840px !important;
+	min-width: 0;
 	border: solid 1px $gray4 !important;
 	background: #ffffff;
 	@include border-radius(5px !important);
