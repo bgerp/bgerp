@@ -7,13 +7,13 @@
  *
  *
  * @category  bgerp
- * @package   acc
+ * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class acc_ServiceMaster extends core_Master
+abstract class deals_ServiceMaster extends core_Master
 {
 	
 	/**

@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class purchase_InvoiceDetails extends acc_InvoiceDetail
+class purchase_InvoiceDetails extends deals_InvoiceDetail
 {
     
     
@@ -39,7 +39,7 @@ class purchase_InvoiceDetails extends acc_InvoiceDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_AlignDecimals2, doc_plg_HidePrices, acc_plg_DpInvoice,Policy=purchase_PurchaseLastPricePolicy';
+    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_AlignDecimals2, doc_plg_HidePrices, deals_plg_DpInvoice,Policy=purchase_PurchaseLastPricePolicy';
     
     
     /**

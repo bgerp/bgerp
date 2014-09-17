@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class purchase_Services extends acc_ServiceMaster
+class purchase_Services extends deals_ServiceMaster
 {
     /**
      * Заглавие
