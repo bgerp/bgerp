@@ -1123,4 +1123,141 @@ abstract class deals_DealMaster extends core_Master
     	
     	return $tpl;
     }
+    
+    
+    /**
+     * Приключва остарялите сделки
+     */
+    public function closeOldDeals($olderThan, $closeDocName, $limit)
+    {
+    	$className = get_called_class();
+    	
+    	expect(cls::haveInterface('bgerp_DealAggregatorIntf', $className));
+    	$query = $className::getQuery();
+    	$ClosedDeals = cls::get($closeDocName);
+    	$conf = core_Packs::getConfig('acc');
+    	$tolerance = $conf->ACC_MONEY_TOLERANCE;
+    	 
+    	// Текущата дата
+    	$now = dt::mysql2timestamp(dt::now());
+    	$oldBefore = dt::timestamp2mysql($now - $olderThan);
+    	 
+    	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
+    	 
+    	// Закръглената оставаща сума за плащане
+    	$query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - #amountInvoiced, 2)');
+    	 
+    	// Само активни продажби
+    	$query->where("#state = 'active'");
+    	$query->where("#amountDelivered IS NOT NULL AND #amountPaid IS NOT NULL");
+    	 
+    	// На които треда им не е променян от определено време
+    	$query->where("#threadModifiedOn <= '{$oldBefore}'");
+    	 
+    	// Крайното салдо по сметката на сделката трябва да е в допустимия толеранс
+    	$query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
+    	 
+    	// Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници
+    	$query->where("#makeInvoice = 'yes' AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
+    	 
+    	// Или не трябва да се фактурират
+    	$query->orWhere("#makeInvoice = 'no'");
+    	 
+    	// Подреждаме ги в низходящ ред
+    	$query->orderBy('id', 'DESC');
+    
+    	// Лимитираме заявката
+    	$query->limit($limit);
+    	 
+    	// Всяка намерената сделка, се приключва като платена
+    	while($rec = $query->fetch()){
+    		try{
+    			 
+    			// Създаване на приключващ документ-чернова
+    			$clId = $ClosedDeals->create($className, $rec);
+    			$ClosedDeals->conto($clId);
+    			 
+    		} catch(Exception $e){
+    			 
+    			// Ако има проблем при обновяването
+    			core_Logs::add($this->className, $rec->id, "Проблем при автоматичното приключване на сделка: '{$e->getMessage()}'");
+    		}
+    	}
+    }
+    
+
+    /**
+     * Проверява дали сделките са с просрочено плащане
+     */
+    public function checkPayments($overdueDelay)
+    {
+    	$Class = cls::get(get_called_class());
+    	 
+    	$now = dt::now();
+    	expect(cls::haveInterface('bgerp_DealAggregatorIntf', $Class));
+    	 
+    	// Проверяват се всички активирани и продажби с чакащо плащане или просрочените
+    	$query = $Class->getQuery();
+    	$query->where("#paymentState = 'pending' || #paymentState = 'overdue'");
+    	$query->where("#state = 'active'");
+    	$query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
+    	$query->show('id,amountDeal,amountPaid,amountDelivered,paymentState');
+    	 
+    	while($rec = $query->fetch()){
+    		try{
+    			// Намира се метода на плащане от интерфейса
+    			$dealInfo = $Class->getAggregateDealInfo($rec->id);
+    		} catch(Exception $e){
+    
+    			// Ако има проблем при извличането се продължава
+    			core_Logs::add($Class, $rec->id, "Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'");
+    			continue;
+    		}
+    
+    		$mId = $dealInfo->get('paymentMethodId');
+    		$isOverdue = FALSE;
+    
+    		if($mId){
+    			$date = NULL;
+    			 
+    			// Намира се датата в реда фактура/експедиция/сделка
+    			foreach (array('invoicedValior', 'shippedValior', 'agreedValior') as $asp){
+    				if($date = $dealInfo->get($asp)){
+    					break;
+    				}
+    			}
+    			 
+    			// Извлича се платежния план
+    			$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
+    
+    			try{
+    				$isOverdue = cond_PaymentMethods::isOverdue($plan, round($rec->amountDelivered, 2) - round($rec->amountPaid, 2));
+    			} catch(Exception $e){
+    					
+    				// Ако има проблем при извличането се продължава
+    				core_Logs::add($Class, $rec->id, "Несъществуващ платежен план': '{$e->getMessage()}'");
+    				continue;
+    			}
+    		}
+    
+    		// Проверка дали продажбата е просрочена
+    		if($isOverdue){
+    
+    			// Ако да, то продажбата се отбелязва като просрочена
+    			$rec->paymentState = 'overdue';
+    		} else {
+    			 
+    			// Ако не е просрочена проверяваме дали е платена
+    			$rec->paymentState = $Class->getPaymentState($dealInfo, $rec->paymentState);
+    		}
+    
+    		try{
+    			$Class->save_($rec);
+    		} catch(Exception $e){
+    
+    			// Ако има проблем при обновяването
+    			core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");
+    		}
+    	}
+    }
 }

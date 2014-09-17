@@ -611,8 +611,7 @@ class sales_Sales extends deals_DealMaster
     	$limit = $conf->SALE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('sales_ClosedDeals');
     	
-    	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->closeOldDeals($olderThan, $ClosedDeals, $limit);
+    	$this->closeOldDeals($olderThan, $ClosedDeals, $limit);
     }
     
     
@@ -672,8 +671,7 @@ class sales_Sales extends deals_DealMaster
     	$conf = core_Packs::getConfig('sales');
     	$overdueDelay = $conf->SALE_OVERDUE_CHECK_DELAY;
     	
-    	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->checkPayments($overdueDelay);
+    	$this->checkPayments($overdueDelay);
     }
     
     
