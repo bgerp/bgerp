@@ -84,16 +84,12 @@ class calendarpicker_Import {
             $lang = "{$lg}";
         }
         
-        $this->calendarLibPath = sbf("calendarpicker/", '');
-        
         $this->includeCode = new ET();
         $this->includeCode->push("calendarpicker/" . $theme . ".css", 'CSS');
         $this->includeCode->push("calendarpicker/" . $this->calendarFile, 'JS');
         $this->includeCode->push("calendarpicker/lang/calendar-" . $lang . ".js", 'JS');
         $this->includeCode->push("calendarpicker/" . $this->calendarSetupFile, 'JS');
-        
-        $this->calendarOptions = array('ifFormat' => '%Y/%m/%d',
-            'daFormat' => '%Y/%m/%d');
+        $this->calendarOptions = array('ifFormat' => '%Y/%m/%d', 'daFormat' => '%Y/%m/%d');
     }
     
     
@@ -143,7 +139,7 @@ class calendarpicker_Import {
         
         $btnAttr = array();
         $btnAttr['id'] = $attr['id'] . '_btn';
-        $btnImg = "<img style='vertical-align:top;' src=\"{$this->calendarLibPath}img.gif\" alt=\"\" id=\"" . $attr['id'] . "_img\" >";
+        $btnImg = "<img style='vertical-align:top;' src=". sbf("calendarpicker/img.gif"). " alt=\"\" id=\"" . $attr['id'] . "_img\" >";
         $btnAttr['href'] = '#';
         $btnAttr['style'] = " visibility:hidden; padding:0px; margin:0px;";
         $tpl->append(ht::createElement('a', $btnAttr, $btnImg, TRUE));
