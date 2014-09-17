@@ -479,7 +479,7 @@ class findeals_Deals extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$fieldSet = new core_FieldSet();
-    	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field');
+    	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field wrap');
     	$fieldSet->FLD('debitA', 'double');
     	$fieldSet->FLD('creditA', 'double');
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
