@@ -467,6 +467,7 @@ class sales_Sales extends deals_DealMaster
     	$nRec->type = 0;
     	$nRec->amount = round($rec->amountPaid, 2);
     	$data->payments[] = $nRec;
+    	$data->totalPaid = $nRec->amount;
     	
     	return $data;
     }
