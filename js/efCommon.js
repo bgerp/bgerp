@@ -1234,7 +1234,7 @@ function setFormElementsWidth() {
         winWidth = 320;
     }
     // разстояние около формата
-    var outsideWidth = 44;
+    var outsideWidth = 40;
     if($('#all').length) {
     	outsideWidth = 30;
     }
@@ -1267,10 +1267,9 @@ function setFormElementsWidth() {
             colsInRow = 1;
         }
 
-        $(this).css('maxWidth', parseInt((formElWidth - 25) / colsInRow));
+        $(this).css('maxWidth', parseInt((formElWidth - 50) / colsInRow));
     });
 
-    $('.formTable').css('width', formElWidth);
     $('.formSection').css('width', formElWidth);
     $('.formTable textarea').css('width', formElWidth);
     $('.formTable .chzn-container').css('maxWidth', formElWidth);
