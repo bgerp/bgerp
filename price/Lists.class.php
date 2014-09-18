@@ -122,8 +122,8 @@ class price_Lists extends core_Master
         $this->FNC('validFrom', 'datetime', 'caption=Прикрепяне->В сила от,input=hidden');
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
-        $this->FLD('roundingPrecision', 'double', 'caption=Закръгляне->Точност');
-        $this->FLD('roundingOffset', 'double', 'caption=Закръгляне->Отместване');
+        $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Точност');
+        $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
 
         $this->setDbUnique('title');
     }
@@ -202,6 +202,8 @@ class price_Lists extends core_Master
         if($rec->parent) {
             $row->parent = ht::createLink($row->parent, array('price_Lists', 'Single', $rec->parent));
         }
+        
+        $row->currency = "<span class='cCode'>{$row->currency}</span>";
     }
 
 
