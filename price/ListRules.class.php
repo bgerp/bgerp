@@ -159,7 +159,7 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт
      */
-    static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
+    static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL, $roundForDocument = FALSE)
     {  
         // Проверка, дали цената я няма в кеша
     	$price = price_History::getPrice($listId, $datetime, $productId);
@@ -195,7 +195,6 @@ class price_ListRules extends core_Detail
 
                 $listRec = price_Lists::fetch($listId);
                 list($date, $time) = explode(' ', $datetime);
-                // echo "<li> Row $price";
 
                 // В каква цена е този ценоразпис?
                 $currency = $rec->currency;
@@ -211,14 +210,12 @@ class price_ListRules extends core_Detail
                 // Конвертираме в базова валута
                 $price = currency_CurrencyRates::convertAmount($price, $date, $currency);
 
-                // echo "<li> CC $price";
                 // Ако правилото е с включен ват или не е зададен, но ценовата оферта е с VAT, той трябва да се извади
                 if($rec->vat == 'yes' || (!$rec->vat && $listRec->vat == 'yes')) {
                     // TODO: Тук трябва да се извади VAT, защото се смята, че тези цени са без VAT
                     $vat = cat_Products::getVat($productId, $date);
                     $price = $price / (1 + $vat);
                 }
-                // echo "<li> VAT $price";
 
 			} else {
                 expect($parent = price_Lists::fetchField($listId, 'parent'));
@@ -246,7 +243,19 @@ class price_ListRules extends core_Detail
             }
         }
         
-        $price = round($price, 10);
+        $listRec = price_Lists::fetch($listId);
+        
+        // Ако ще има закръгляне за документ, и на ценоразписа му е посочено до колко знака ще се закръгля
+        if($roundForDocument === TRUE && !empty($listRec->roundingPrecision)){
+        	
+        	// Закръгляме до посочения знак
+        	$price = round($price, $listRec->roundingPrecision);
+        } else {
+        	
+        	// По дефолт правим някакво машинно закръгляне
+        	$price = round($price, 8);
+        }
+        
 
         // Записваме току-що изчислената цена в историята;
         price_History::setPrice($price, $listId, $datetime, $productId);

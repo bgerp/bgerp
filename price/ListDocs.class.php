@@ -385,7 +385,7 @@ class price_ListDocs extends core_Master
     	foreach($rec->details->products as &$product){
     		
     		// Изчисляваме цената за продукта в основна мярка
-    		$product->priceM = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
+    		$product->priceM = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date, TRUE);
     		$productInfo = cat_Products::getProductInfo($product->productId);
     		
     		// Ако е пълен ценоразпис и има засичане на опаковките или е непълен и има опаковки
@@ -443,7 +443,7 @@ class price_ListDocs extends core_Master
     private function calculateProductWithPack($rec, $product, $packagingRec)
     {
     	$clone = clone $product;
-    	$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packagingRec->packagingId, $rec->date);
+    	$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packagingRec->packagingId, $rec->date, TRUE);
     	if(!$price) return;
     	
     	$clone->priceP  = $packagingRec->quantity * $price;
