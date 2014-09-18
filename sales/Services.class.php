@@ -148,7 +148,7 @@ class sales_Services extends deals_ServiceMaster
 	/**
      * Зарежда шаблоните на продажбата в doc_TplManager
      */
-    private function setTemplates(&$res)
+    protected function setTemplates(&$res)
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Протокол за извършени услуги', 
@@ -157,7 +157,7 @@ class sales_Services extends deals_ServiceMaster
     	$tplArr[] = array('name' => 'Протокол за извършени услуги с цени', 
     					  'content' => 'sales/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
-        
+       
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
      

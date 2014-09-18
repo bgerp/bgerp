@@ -170,7 +170,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	$tplArr[] = array('name' => 'Фактура кратък изглед', 'content' => 'sales/tpl/InvoiceHeaderNormalShort.shtml', 'lang' => 'bg');
         
     	$res = '';
-        $res .= doc_TplManager::addOnce($mvc, $tplArr);
+        $res .= doc_TplManager::addOnce($this, $tplArr);
         
         return $res;
     }

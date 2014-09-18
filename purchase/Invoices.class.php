@@ -282,7 +282,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     	$tplArr[] = array('name' => 'Входяща фактура изглед за писмо', 'content' => 'purchase/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
         
     	$res = '';
-        $res .= doc_TplManager::addOnce($mvc, $tplArr);
+        $res .= doc_TplManager::addOnce($this, $tplArr);
         
         return $res;
     }

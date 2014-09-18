@@ -158,7 +158,7 @@ class purchase_Services extends deals_ServiceMaster
 	/**
      * Зарежда шаблоните на продажбата в doc_TplManager
      */
-    private function setTemplates(&$res)
+    protected function setTemplates(&$res)
     {
     	$tplArr[] = array('name' => 'Приемателен протокол за услуги', 
     					  'content' => 'purchase/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 
