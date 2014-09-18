@@ -1385,16 +1385,26 @@ class type_Richtext extends type_Blob
         $restArr = explode('/', $rest);
 
         $params = array();
+        $anchor = '';
         
         $lastPart = $restArr[count($restArr)-1];
-
+        
+        if ($lastPart && (strpos($lastPart, '#') !== FALSE)) {
+            $explodeArr = explode('#', $lastPart);
+            $anchor = array_pop($explodeArr);
+            $lastPart = implode('#', $explodeArr);
+        }
+        
         if($lastPart{0} == '?') {
-           $lastPart = ltrim($lastPart, '?'); 
+           $lastPart = ltrim($lastPart, '?');
            $lastPart = str_replace('&amp;', '&', $lastPart);
            parse_str($lastPart, $params);
+           if ($anchor) {
+               $params['#'] = $anchor;
+           }
            unset($restArr[count($restArr)-1]);
         }
-
+        
         setIfNot($params['Ctr'], $restArr[0]);
         
         // Ако екшъна е SBF
