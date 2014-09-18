@@ -636,6 +636,10 @@ class core_Form extends core_FieldSet
                     $type->options = $field->options;
                 }
                 
+                if ($field->maxCaptionLen) {
+                	$type->maxCaptionLen = $field->maxCaptionLen;
+                }
+                
                 // Стойността на полето
                 $value = $vars[$name];
                 
