@@ -36,6 +36,12 @@
             <td>[#description#]</td>
         </tr>
         <!--ET_END description-->
+        <!--ET_BEGIN closedDocuments-->
+        <tr>
+            <td>|Обединява|*</td>
+            <td>[#closedDocuments#]</td>
+        </tr>
+        <!--ET_END closedDocuments-->
     </table>
     <!--ET_BEGIN DETAILS-->
     [#DETAILS#]

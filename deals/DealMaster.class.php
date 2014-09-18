@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class deals_DealMaster extends core_Master
+abstract class deals_DealMaster extends deals_DealBase
 {
 	
 	
@@ -47,10 +47,10 @@ abstract class deals_DealMaster extends core_Master
 		// Може да се добавя само към покупка или продажба
 		expect(cls::haveInterface('deals_DealsAccRegIntf', $mvc));
 		 
-		if(empty($mvc->fields['contoActions']) && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
+		if(empty($mvc->fields['contoActions'])){
 			$mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
 		}
-		 
+		
 		$mvc->declareInterface('doc_AddToFolderIntf');
 	}
 	

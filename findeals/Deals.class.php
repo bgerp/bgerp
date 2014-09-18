@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class findeals_Deals extends core_Master
+class findeals_Deals extends deals_DealBase
 {
 	
 	const AGGREGATOR_TYPE = 'deal';
@@ -45,7 +45,7 @@ class findeals_Deals extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, findeals_Wrapper, acc_plg_RejectContoDocuments, deals_plg_Deals , plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, findeals_Wrapper, acc_plg_RejectContoDocuments, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
