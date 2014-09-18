@@ -384,7 +384,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * След подготовка на сингъла
      */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	$mvc->getHistory($data);
     }
@@ -476,7 +476,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
     	$fieldSet = new core_FieldSet();
     	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field wrap');
