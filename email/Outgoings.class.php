@@ -652,7 +652,7 @@ class email_Outgoings extends core_Master
         if(count($filesArr) > 0) {
             
             // Задаваме на формата да се покажат полетата
-            $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,columns=4,formOrder=7');
+            $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,formOrder=7,maxCaptionLen=25');
             $data->form->setSuggestions('attachmentsSet', $filesArr);   
         }
         
