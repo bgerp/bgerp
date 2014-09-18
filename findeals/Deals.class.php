@@ -480,8 +480,8 @@ class findeals_Deals extends deals_DealBase
     {
     	$fieldSet = new core_FieldSet();
     	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field wrap');
-    	$fieldSet->FLD('debitA', 'double');
-    	$fieldSet->FLD('creditA', 'double');
+    	$fieldSet->FLD('debitA', 'double', 'tdClass=amount-field');
+    	$fieldSet->FLD('creditA', 'double', 'tdClass=amount-field');
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
     	$fields = "valior=Вальор,docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
