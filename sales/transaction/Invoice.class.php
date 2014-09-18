@@ -77,7 +77,7 @@ class sales_transaction_Invoice
     
     				'debit' => array('4530', array($origin->className, $origin->that)),
     
-    				'credit' => array('4532', array($origin->className, $origin->that)),
+    				'credit' => array('4532'),
     		);
     	}
     
