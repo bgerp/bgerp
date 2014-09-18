@@ -156,15 +156,6 @@ class purchase_Services extends deals_ServiceMaster
     
     
 	/**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$mvc->setTemplates($res);
-    }
-    
-    
-	/**
      * Зарежда шаблоните на продажбата в doc_TplManager
      */
     private function setTemplates(&$res)

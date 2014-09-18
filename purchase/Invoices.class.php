@@ -272,15 +272,18 @@ class purchase_Invoices extends deals_InvoiceMaster
     }
     
     
-	/**
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Входяща фактура нормален изглед', 'content' => 'purchase/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Входяща фактура изглед за писмо', 'content' => 'purchase/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
         
+    	$res = '';
         $res .= doc_TplManager::addOnce($mvc, $tplArr);
+        
+        return $res;
     }
 }

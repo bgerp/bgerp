@@ -139,9 +139,9 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
-    	$mvc->setTemplates($res);
+    	$this->setTemplates($res);
     }
     
     

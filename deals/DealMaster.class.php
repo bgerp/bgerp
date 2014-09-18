@@ -940,7 +940,6 @@ abstract class deals_DealMaster extends core_Master
     public static function on_AfterSetupMvc($mvc, &$res)
     {
     	$mvc->setCron($res);
-    	$mvc->setTemplates($res);
     }
     
     
@@ -949,7 +948,10 @@ abstract class deals_DealMaster extends core_Master
      */
     function loadSetupData()
     {
-    	//$this->setTemplates($res);
+    	$res = '';
+    	$this->setTemplates($res);
+    	
+    	return $res;
     }
     
     

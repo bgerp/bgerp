@@ -426,4 +426,16 @@ abstract class deals_ServiceMaster extends core_Master
      
      	return $tpl->getContent();
      }
+
+
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    function loadSetupData()
+    {
+    	$res = '';
+    	$this->setTemplates($res);
+    	
+    	return $res;
+    }
 }

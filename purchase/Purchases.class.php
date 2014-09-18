@@ -507,16 +507,6 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    public static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$mvc->setCron($res);
-    	$mvc->setTemplates($res);
-    }
-    
-    
-    /**
      * Приключва всички приключени покупки
      */
     public function cron_CloseOldPurchases()
