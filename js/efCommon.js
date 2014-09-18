@@ -2769,25 +2769,28 @@ function getEfae() {
 function prepareBugReport(form, user, domain, name)
 {
 	var title = window.location.host + window.location.pathname;
+	var width = $(window).width();
+	var height = $(window).height();
+	var browser = getUserAgent();
 
-    $('<input>').attr({
-        type: 'hidden',
-        name: 'title',
-        value: title
-    }).appendTo(form);
+	addBugReportInput(form, 'title', title);
+	addBugReportInput(form, 'email', user + '@' + domain);
+	addBugReportInput(form, 'name', name);
+	addBugReportInput(form, 'width', width);
+	addBugReportInput(form, 'height', height);
+	addBugReportInput(form, 'browser', browser);
+}
 
-    $('<input>').attr({
-        type: 'hidden',
-        name: 'email',
-        value: user + '@' + domain
-    }).appendTo(form);
-    
-	$('<input>').attr({
-        type: 'hidden',
-        name: 'name',
-        value: name
-    }).appendTo(form);
 
+function addBugReportInput(form, nameInput, value)
+{
+	if($(form).find('input[name="' + nameInput + '"]').length == 0){
+		$('<input>').attr({
+	        type: 'hidden',
+	        name: nameInput,
+	        value: value
+	    }).appendTo(form);
+	}
 }
 
 runOnLoad(showTooltip);
