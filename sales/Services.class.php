@@ -159,8 +159,6 @@ class sales_Services extends deals_ServiceMaster
     					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
-        
-        return $res;
     }
      
      
