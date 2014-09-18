@@ -465,18 +465,19 @@ class core_String
     /**
      * На по-големите от дадена дължина стрингове, оставя началото и края, а по средата ...
      */
-    static function limitLen($str, $maxLen)
+    static function limitLen($str, $maxLen, $showEndFrom = 20, $dots = " ... ")
     {
         if(Mode::is('screenMode', 'narrow')) {
             $maxLen = round($maxLen/1.25);
+            $showEndFrom = round($showEndFrom/1.25);
         }
         if(mb_strlen($str) > $maxLen) {
-            if($maxLen > 20) {
+            if($maxLen >= $showEndFrom) {
                 $remain = (int) ($maxLen - 5) / 2;
-                $str = mb_substr($str, 0, $remain) . ' ... ' . mb_substr($str, -$remain);
+                $str = mb_substr($str, 0, $remain) . $dots . mb_substr($str, -$remain);
             } else {
                 $remain = (int) ($maxLen - 3);
-                $str = mb_substr($str, 0, $remain) . ' ... ';
+                $str = mb_substr($str, 0, $remain) . $dots;
             }
         }
         
