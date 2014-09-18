@@ -594,7 +594,10 @@ abstract class acc_ClosedDeals extends core_Master
     {
     	$dates = array();
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    	$dates[] = $firstDoc->fetchField($firstDoc->instance->valiorFld);
+    	if($firstDoc->haveInterface('acc_TransactionSourceIntf')){
+    		$dates[] = $firstDoc->fetchField($firstDoc->instance->valiorFld);
+    	}
+    	
     	$desc = $firstDoc->getDescendants();
     	if(count($desc)){
     		foreach ($desc as $doc){
