@@ -115,6 +115,7 @@ class price_Lists extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика');
         $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,noChange');
+        $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Отстъпка към');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без начисляване)', 'caption=ДДС'); 
@@ -124,7 +125,7 @@ class price_Lists extends core_Master
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Точност');
         $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
-
+        
         $this->setDbUnique('title');
     }
 
@@ -177,6 +178,22 @@ class price_Lists extends core_Master
     }
 
 
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		if(($form->rec->id) && isset($form->rec->discountCompared) && $form->rec->discountCompared == $form->rec->id){
+    			$form->setError('discountCompared', 'Неможе да изберете същата политика');
+    		}
+    	}
+    }
+    
+    
     /**
      * Изпълнява се след създаване на нов набор от ценови правила
      */
