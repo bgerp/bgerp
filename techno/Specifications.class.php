@@ -261,47 +261,6 @@ class techno_Specifications extends core_Manager {
     }
     
     
-    /**
-     * Връща цената за посочения продукт към посочения
-     * клиент на посочената дата
-     * Цената се изчислява по формулата формулата:
-     * ([начални такси] * (1 + [максимална надценка]) + [количество] * 
-     *  [единична себестойност] *(1 + [минимална надценка])) / [количество]
-     * 
-     * @return object
-     * $rec->price  - цена
-     * $rec->discount - отстъпка
-     */
-    public function getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId = NULL, $quantity = 1, $datetime = NULL)
-    {
-    	$TechnoClass = static::getDriver($id);
-    	
-    	if(empty($TechnoClass)) return NULL;
-    	
-    	$priceInfo = $TechnoClass->getPriceInfo($packagingId, $quantity, $datetime);
-    	
-    	if($priceInfo->price){
-    		$price = new stdClass();
-    		if($priceInfo->discount){
-    			$price->discount = $priceInfo->discount;
-    		}
-    		
-    		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
-    		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
-    		$price->price = ($priceInfo->tax * (1 + $maxCharge) 
-    					+ $quantity * $priceInfo->price * (1 + $minCharge)) / $quantity;
-    		
-    		return $price;
-    	}
-    	
-    	// Ако продукта няма цена, връщаме цената от последно
-    	// продадената спецификация на този клиент (ако има)
-    	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
-    	
-    	return $LastPricePolicy->getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId, $quantity, $datetime);
-	}
-    
-    
 	/**
      * Връща цената по себестойност на продукта
      * @TODO себестойността да идва от заданието

@@ -75,20 +75,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
 	/**
-     * Връща цената за посочения продукт към посочения клиент на посочената дата
-     * Спрямо ценовите политики които използва
-     * 
-     * @return object
-     * $rec->price  - цена
-     * $rec->discount - отстъпка
-     */
-    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL)
-    {
-        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $date);
-    }
-    
-    
-	/**
      * Връща цената по себестойност на продукта
      * @return double
      */

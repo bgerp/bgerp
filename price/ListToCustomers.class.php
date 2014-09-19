@@ -388,7 +388,7 @@ class price_ListToCustomers extends core_Detail
         $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
 		$rec = new stdClass();
 
-        $rec->price = price_ListRules::getPrice(12, $productId, $packagingId, $datetime, TRUE);
+        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, TRUE);
 		
         $listRec = price_Lists::fetch($listId);
         $rec->priority = ($listRec->public == 'yes') ? 0 : 2;
@@ -398,8 +398,10 @@ class price_ListToCustomers extends core_Detail
         	
         	// Намираме цената по тази политика и намираме колко % е отстъпката/надценката
         	$comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime, TRUE);
-        	$disc = ($rec->price - $comparePrice) / $comparePrice;
-        	$rec->discount = round(-1 * $disc, 2);
+        	if($comparePrice){
+        		$disc = ($rec->price - $comparePrice) / $comparePrice;
+        		$rec->discount = round(-1 * $disc, 2);
+        	}
         }
         
         return $rec;
