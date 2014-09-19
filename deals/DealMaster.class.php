@@ -698,7 +698,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query = $mvc->$Detail->getQuery();
     	$query->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
     	while($dRec = $query->fetch()){
-    		$dRec->$mvc->$Detail->masterKey = $nRec->id;
+    		$dRec->{$mvc->$Detail->masterKey} = $nRec->id;
     		unset($dRec->id, $dRec->quantityDelivered);
     		$mvc->$Detail->save($dRec);
     	}
