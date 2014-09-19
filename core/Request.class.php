@@ -361,7 +361,7 @@ class core_Request
             $mvc = & cls::get($ctr);
             $content = $mvc->action(strtolower($act));
         } else {
-            error("Controller not found: {$ctr}", array(
+            error("404 Controller not found: {$ctr}", array(
                     'controller' => $ctr,
                     '$_GET' => $_GET,
                     '$_POST' => $_POST
