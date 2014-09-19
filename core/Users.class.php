@@ -153,12 +153,12 @@ class core_Users extends core_Manager
             $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory,width=100%');
         }
         
+        $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=100%');
         $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory,width=100%');
         
         // Поле за съхраняване на хеша на паролата
         $this->FLD('ps5Enc', 'varchar(128)', 'caption=Парола хеш,column=none,input=none,crypt');
         
-        $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=100%');
         
         $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang)', 'caption=Роли');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Експандирани роли,input=none');
@@ -309,7 +309,11 @@ class core_Users extends core_Manager
 
         // Нова парола и нейния производен ключ
         $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
-        $data->form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=nick");
+        if(EF_USSERS_EMAIL_AS_NICK) {
+            $data->form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=email");
+        } else {
+            $data->form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=nick");
+        }
         $data->form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола,input=hidden');
         
         // Повторение на новата парола
@@ -885,13 +889,13 @@ class core_Users extends core_Manager
         // Ако потребителя е блокиран - излизаме от сесията и показваме грешка        
         if ($userRec->state == 'blocked') {
             $Users->logout();
-            error('Този акаунт е блокиран.|*<BR>|Причината най-вероятно е едновременно използване от две места.' .
-                '|*<BR>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация.');
+            redirect(array('Index'), TRUE, tr('Този акаунт е блокиран.|*<BR>|Причината най-вероятно е едновременно използване от две места.' .
+                '|*<BR>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация.'));
         }
         
         if ($userRec->state == 'draft') {
-            error('Този акаунт все още не е активиран.|*<BR>' .
-                '|На имейлът от регистрацията е изпратена информация и инструкция за активация.');
+            redirect(array('Index'), TRUE, tr('Този акаунт все още не е активиран.|*<BR>' .
+                '|На имейлът от регистрацията е изпратена информация и инструкция за активация.'));
         }
         
         if ($userRec->state != 'active' || $userRec->maxIdleTime > EF_USERS_SESS_TIMEOUT) {
@@ -1335,12 +1339,20 @@ class core_Users extends core_Manager
         }
         
         if (!Users::haveRole($requiredRoles)) {
+            
             Users::forceLogin($retUrl);
-            error('Недостатъчни права за този ресурс', array(
-                    'requiredRoles' => $requiredRoles,
-                    'action' => $action,
-                    'userRoles' => Users::getCurrent('roles')
-                ));
+            
+            if($requiredRoles == 'no_one') {
+                $errMsg = '403 Недостъпен ресурс';
+            } else {
+                $errMsg = '401 Недостатъчни права за този ресурс';
+            }
+
+            error($errMsg, array(
+                        'requiredRoles' => $requiredRoles,
+                        'action' => $action,
+                        'userRoles' => Users::getCurrent('roles')
+                    ));
         }
         
         return TRUE;

@@ -168,7 +168,7 @@ class plg_UserReg extends core_Plugin
                     $msg = new ET(USERREG_THANK_FOR_REG_MSG);
                     $msg->placeObject($rec);
                     
-                    core_Message::redirect($msg->getContent(), 'page_Info', NULL, array('Index'));
+                    redirect(array('Index'), TRUE, $msg->getContent());
                 }
             }
             
@@ -351,10 +351,8 @@ class plg_UserReg extends core_Plugin
                     $msg = new ET(USERREG_THANK_FOR_RESET_PASS_MSG);
                     $msg->placeObject($rec);
                     
-                    core_Message::redirect($msg->getContent(), 'page_Info', NULL, array('Index'));
-                    
                     // Редиректване с показване на съобщение
-                    return redirect(array('Index'));
+                    redirect(array('Index'), TRUE, $msg->getContent());
                 }
             }
             
