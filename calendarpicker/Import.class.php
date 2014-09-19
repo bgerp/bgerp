@@ -83,7 +83,9 @@ class calendarpicker_Import {
             }
             $lang = "{$lg}";
         }
-        
+
+        $this->calendarLibPath = "calendarpicker/";
+
         $this->includeCode = new ET();
         $this->includeCode->push($this->calendarLibPath . $theme . ".css", 'CSS');
         $this->includeCode->push($this->calendarLibPath . $this->calendarFile, 'JS');
