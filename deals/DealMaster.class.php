@@ -673,7 +673,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param unknown $rec
      * @param unknown $nRec
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    public static function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
     	unset($nRec->contoActions, 
     		  $nRec->paymentState, 

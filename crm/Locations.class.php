@@ -245,7 +245,7 @@ class crm_Locations extends core_Master {
     /**
      * Премахване на бутона за добавяне на нова локация от лист изгледа
      */
-    function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
+    public static function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
     {
         $data->toolbar->removeBtn('btnAdd');
     }

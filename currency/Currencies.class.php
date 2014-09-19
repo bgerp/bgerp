@@ -194,7 +194,7 @@ class currency_Currencies extends core_Master {
     /**
      * Преди рендиране на детайлите
      */
-    function on_BeforeRenderDetails($mvc, $res, &$data)
+    public static function on_BeforeRenderDetails($mvc, $res, &$data)
     {
     	return FALSE;
     }
@@ -206,7 +206,7 @@ class currency_Currencies extends core_Master {
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->removeBtn('btnAdd');
         

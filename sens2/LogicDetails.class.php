@@ -145,7 +145,7 @@ class  sens2_LogicDetails extends core_Detail
     /**
      *
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy("#order", 'ASC');
     }

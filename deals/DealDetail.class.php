@@ -385,7 +385,7 @@ abstract class deals_DealDetail extends core_Detail
     /**
      * Преди рендиране на таблицата
      */
-    static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
