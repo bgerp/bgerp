@@ -538,6 +538,8 @@ abstract class deals_DealMaster extends deals_DealBase
     		$tpl->removeBlock('header');
     		$tpl->removeBlock('STATISTIC_BAR');
     		$tpl->removeBlock('shareLog');
+    	} elseif(Request::get('dealHistory', 'int')) {
+    		$tpl->removeBlock('STATISTIC_BAR');
     	}
     	
     	if($data->paymentPlan){

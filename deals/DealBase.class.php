@@ -18,6 +18,18 @@ abstract class deals_DealBase extends core_Master
 
 	
 	/**
+	 * Работен кеш
+	 */
+	protected $historyCache = array();
+	
+	
+	/**
+	 * Колко записи от журнала да се показват от историята
+	 */
+	protected $historyItemsPerPage = 10;
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -341,5 +353,129 @@ abstract class deals_DealBase extends core_Master
     		}
     		$row->closedDocuments = trim($row->closedDocuments, ", ");
     	}
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+    	if(isset($data->tabs)){
+    		$tab = (isset($data->dealHistory)) ? 'dealHistory' : 'statistic';
+    		$tabHtml = $data->tabs->renderHtml("", $tab);
+    		$tpl->replace($tabHtml, 'TABS');
+    		
+    		// Ако има история на сделката показваме я
+    		if(isset($data->dealHistory)){
+    			$tableMvc = new core_Mvc;
+    			$tableMvc->FLD('debitAcc', 'varchar', 'tdClass=articleCell');
+    			$tableMvc->FLD('creditAcc', 'varchar', 'tdClass=articleCell');
+    		
+    			$table = cls::get('core_TableView', array('mvc' => $tableMvc));
+    			$fields = "valior=Вальор,debitAcc=Дебит->Сметка,debitQuantity=Дебит->К-во,debitPrice=Дебит->Цена,creditAcc=Кредит->Сметка,creditQuantity=Кредит->К-во,creditPrice=Кредит->Цена,amount=Сума";
+    		
+    			$tpl->append($table->get($data->dealHistory, $fields), 'DEAL_HISTORY');
+    			$tpl->append($data->historyPager->getHtml(), 'DEAL_HISTORY');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {
+    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+    	$url = getCurrentUrl();
+    	unset($url['dealHistory']);
+    	$histUrl = array();
+    	$histUrl = $url;
+    	$histUrl['dealHistory'] = TRUE;
+    	
+    	// Ако сме в нормален режим
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    		$tabs->TAB('statistic', 'Статистика' , $url);
+    		$tabs->TAB('dealHistory', 'История' , $histUrl);
+    		
+    		// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
+    		if(Request::get('dealHistory', 'int') && haveRole('acc, ceo')){
+    			$mvc->prepareDealHistory($data);
+    		}
+    		
+    		// Ако имаме сч. права показваме табовете
+    		if(haveRole('acc, ceo')){
+    			$data->tabs = $tabs;
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Подготвя обединено представяне на всички записи от журнала където участва сделката
+     */
+    protected function prepareDealHistory(&$data)
+    {
+    	$rec = $data->rec;
+    	
+    	// Извличаме всички записи от журнала където сделката е в дебита или в кредита
+    	$entries = acc_Journal::getEntries(array($this->className, $rec->id));
+    	
+    	$history = array();
+    	$Date = cls::get('type_Date');
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
+    	
+    	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->historyItemsPerPage));
+    	$Pager->itemsCount = count($entries);
+    	$Pager->calc();
+    	$data->historyPager = $Pager;
+    	
+    	$start = $data->historyPager->rangeStart;
+    	$end = $data->historyPager->rangeEnd - 1;
+    	
+    	// Ако има записи където участва перото подготвяме ги за показване
+    	if(count($entries)){
+    		$count = 0;
+    		$l = cls::get('acc_JournalDetails');
+    		foreach ($entries as $ent){
+    			
+    			if($count >= $start && $count <= $end){
+    				$obj = new stdClass();
+    				$obj->valior = $Date->toVerbal($ent->valior);
+    				$obj->valior .= "<br>". cls::get($ent->docType)->getHandle($ent->docId);
+    				$obj->valior = "<span style='font-size:0.8em;'>{$obj->valior}</span>";
+    				if(empty($this->historyCache[$ent->debitAccId])){
+    					$this->historyCache[$ent->debitAccId] = acc_Balances::getAccountLink($ent->debitAccId);
+    				}
+    				 
+    				if(empty($this->historyCache[$ent->creditAccId])){
+    					$this->historyCache[$ent->creditAccId] = acc_Balances::getAccountLink($ent->creditAccId);
+    				}
+    				$obj->debitAcc = $this->historyCache[$ent->debitAccId];
+    				$obj->creditAcc = $this->historyCache[$ent->creditAccId];
+    				 
+    				foreach (range(1, 3) as $i){
+    					if(!empty($ent->{"debitItem{$i}"})){
+    						$obj->debitAcc .= "<div style='font-size:0.8em'>{$i}. " . acc_Items::getVerbal($ent->{"debitItem{$i}"}, 'titleLink') . "</div>";
+    					}
+    				
+    					if(!empty($ent->{"creditItem{$i}"})){
+    						$obj->creditAcc .= "<div style='font-size:0.8em'>{$i}. " . acc_Items::getVerbal($ent->{"creditItem{$i}"}, 'titleLink') . "</div>";
+    					}
+    				}
+    				 
+    				foreach (array('debitQuantity', 'debitPrice', 'creditQuantity', 'creditPrice', 'amount') as $fld){
+    					$obj->$fld = "<span style='float:right'>" . $Double->toVerbal($ent->$fld) . "</span>";
+    				}
+    				 
+    				$history[] = $obj;
+    			}
+    			
+    			$count++;
+    		}
+    	}
+    	
+    	$data->dealHistory = $history;
     }
 }

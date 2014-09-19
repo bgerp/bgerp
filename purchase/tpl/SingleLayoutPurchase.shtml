@@ -9,6 +9,13 @@
     </div>
     <!--ET_END header-->
     <div class='scrolling-holder'>
+    	[#TABS#]
+        <!--ET_BEGIN DEAL_HISTORY-->
+        <div style='padding-top:10px;padding-bottom:10px'>
+        [#DEAL_HISTORY#]
+        </div>
+        <!--ET_END DEAL_HISTORY-->
+        	
         <!--ET_BEGIN STATISTIC_BAR-->
         [#STATISTIC_BAR#]
         <div class="sale-summary">
