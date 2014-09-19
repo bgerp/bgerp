@@ -286,11 +286,13 @@ abstract class deals_InvoiceDetail extends core_Detail
 	public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
 	{
 		$rec = &$form->rec;
+		$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
 		$update = FALSE;
 	
 		/* @var $ProductMan core_Manager */
 		expect($ProductMan = cls::get($rec->classId));
 		if($form->rec->productId){
+			$vat = cls::get($rec->classId)->getVat($rec->productId);
 			$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
 	
 			// Само при рефреш слагаме основната опаковка за дефолт
@@ -298,6 +300,15 @@ abstract class deals_InvoiceDetail extends core_Detail
 				$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
 				if($baseInfo->classId == cat_Packagings::getClassId()){
 					$form->rec->packagingId = $baseInfo->id;
+				}
+				
+				if(isset($mvc->LastPricePolicy)){
+					$policyInfo = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId);
+					
+					if($policyInfo->price != 0){
+						$lastPrice = deals_Helper::getPriceToCurrency($policyInfo->price, $vat, $masterRec->rate, $masterRec->vatRate);
+						$form->setSuggestions('packPrice', array('' => '', "{$lastPrice}" => $lastPrice));
+					}
 				}
 			}
 		}
@@ -310,8 +321,6 @@ abstract class deals_InvoiceDetail extends core_Detail
 			if($rec->quantity == 0){
 				$form->setError('quantity', 'Количеството не може да е|* "0"');
 			}
-	
-			$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
 	
 			if(empty($rec->id)){
 				$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
@@ -358,8 +367,7 @@ abstract class deals_InvoiceDetail extends core_Detail
 					}
 						
 					if(!$policyInfo){
-						$ProductMan = ($mvc->Policy) ? $mvc->Policy : $ProductMan;
-						$policyInfo = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity, dt::now());
+						$policyInfo = $mvc->Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity, dt::now());
 					}
 						
 					// Ако няма последна покупна цена и не се обновява запис в текущата покупка
@@ -369,7 +377,6 @@ abstract class deals_InvoiceDetail extends core_Detail
 							
 						// Ако се обновява вече съществуващ запис
 						if($pRec){
-							$vat = cls::get($pRec->classId)->getVat($pRec->productId);
 							$pRec->packPrice = deals_Helper::getPriceToCurrency($pRec->packPrice, $vat, $masterRec->rate, $masterRec->vatRate);
 						}
 							
@@ -393,6 +400,7 @@ abstract class deals_InvoiceDetail extends core_Detail
 				// Записваме основната мярка на продукта
 				$rec->uomId = $productInfo->productRec->measureId;
 				$rec->amount = $rec->packPrice * $rec->quantity;
+				
 				// При редакция, ако е променена опаковката слагаме преудпреждение
 				if($rec->id){
 					$oldRec = $mvc->fetch($rec->id);

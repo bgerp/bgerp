@@ -180,7 +180,7 @@ abstract class deals_DealDetail extends core_Detail
         
         if (empty($rec->id)) {
         	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
-			$data->form->setOptions('productId', array('' => ' ') + $products);
+        	$data->form->setOptions('productId', array('' => ' ') + $products);
         	
         } else {
             // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
@@ -190,7 +190,7 @@ abstract class deals_DealDetail extends core_Detail
         }
         
         if (!empty($rec->packPrice)) {
-            $vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
+        	$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
         	$rec->packPrice = deals_Helper::getPriceToCurrency($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
     }
@@ -205,11 +205,14 @@ abstract class deals_DealDetail extends core_Detail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
         $rec = &$form->rec;
+        $masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
+        $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : dt::now();
         $update = FALSE;
         
         /* @var $ProductMan core_Manager */
         expect($ProductMan = cls::get($rec->classId));
-    	if($form->rec->productId){
+    	if($rec->productId){
+    		$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
     		$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
     		unset($form->getFieldType('packagingId')->params['allowEmpty']);
     		
@@ -219,10 +222,18 @@ abstract class deals_DealDetail extends core_Detail
 	    		if($baseInfo->classId == cat_Packagings::getClassId()){
 	    			$form->rec->packagingId = $baseInfo->id;
 	    		}
-    		}
+	    		
+	    		if(isset($mvc->LastPricePolicy)){
+	    			$policyInfo = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate);
+	    			$lastPrice = deals_Helper::getPriceToCurrency($policyInfo->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+	    			if($lastPrice != 0){
+	    				$form->setSuggestions('packPrice', array('' => '', "{$lastPrice}" => $lastPrice));
+	    			}
+	    		}
+	    	}
         }
-    	
-    if ($form->isSubmitted() && !$form->gotErrors()) {
+        
+    	if ($form->isSubmitted() && !$form->gotErrors()) {
             
         	// Извличане на информация за продукта - количество в опаковка, единична цена
             $rec = &$form->rec;
@@ -230,8 +241,6 @@ abstract class deals_DealDetail extends core_Detail
     		if($rec->packQuantity == 0){
     			$form->setError('packQuantity', 'Количеството не може да е|* "0"');
     		}
-    		
-            $masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
             
         	if(empty($rec->id)){
     			$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId}";
@@ -244,9 +253,6 @@ abstract class deals_DealDetail extends core_Detail
             
             $productRef = new core_ObjectReference($ProductMan, $rec->productId);
             expect($productInfo = $productRef->getProductInfo());
-            
-            // Определяне на цена, количество и отстъпка за опаковка
-            $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : dt::now();
             
             if (empty($rec->packagingId)) {
                 // Покупка в основна мярка
@@ -262,13 +268,10 @@ abstract class deals_DealDetail extends core_Detail
             }
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-            $vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
-            
-            $ProductMan = ($mvc->Policy) ? $mvc->Policy : $ProductMan;
             
             // Ако няма въведена цена
             if (!isset($rec->packPrice)) {
-            	$policyInfo = $ProductMan->getPriceInfo(
+            	$policyInfo = $mvc->Policy->getPriceInfo(
             			$masterRec->contragentClassId,
             			$masterRec->contragentId,
             			$rec->productId,

@@ -35,7 +35,7 @@ class store_ReceiptDetails extends acc_DeliveryDocumentDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering,Policy=purchase_PurchaseLastPricePolicy, 
-                        plg_AlignDecimals2, doc_plg_HidePrices';
+                        plg_AlignDecimals2, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, Policy=purchase_PurchaseLastPricePolicy, ReversePolicy=price_ListToCustomers';
     
     
     /**

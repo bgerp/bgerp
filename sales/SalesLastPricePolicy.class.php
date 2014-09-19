@@ -65,7 +65,7 @@ class sales_SalesLastPricePolicy extends core_Manager
         	return NULL;
         }
         
-        return (object)array('price' => $lastRec->price, 'discount' => $lastRec->discount, 'priority' => '1');
+        return (object)array('price' => deals_Helper::roundPrice($lastRec->packPrice), 'discount' => $lastRec->discount, 'priority' => '1');
     }
     
     

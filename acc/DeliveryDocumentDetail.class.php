@@ -92,6 +92,7 @@ abstract class acc_DeliveryDocumentDetail extends core_Detail
 	protected static function inputDocForm(core_Mvc $mvc, core_Form $form)
 	{
 		$rec = &$form->rec;
+		$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
 		$update = FALSE;
 	
 		/* @var $ProductMan core_Manager */
@@ -105,6 +106,16 @@ abstract class acc_DeliveryDocumentDetail extends core_Detail
 				if($baseInfo->classId == cat_Packagings::getClassId()){
 					$form->rec->packagingId = $baseInfo->id;
 				}
+				
+				$LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
+				if(isset($mvc->$LastPolicy)){
+					$policyInfo = $mvc->$LastPolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, NULL, $priceAtDate);
+						
+					if($policyInfo->price != 0){
+						$lastPrice = deals_Helper::getPriceToCurrency($policyInfo->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+						$form->setSuggestions('packPrice', array('' => '', "{$lastPrice}" => $lastPrice));
+					}
+				}
 			}
 		}
 		
@@ -116,8 +127,6 @@ abstract class acc_DeliveryDocumentDetail extends core_Detail
 			if($rec->packQuantity == 0){
 				$form->setError('packQuantity', 'Количеството не може да е|* "0"');
 			}
-	
-			$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
 	
 			if(empty($rec->id)){
 				$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId}";
@@ -170,8 +179,8 @@ abstract class acc_DeliveryDocumentDetail extends core_Detail
 						
 					if(!$policyInfo){
 						// Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
-						$ProductMan = ($mvc->Policy && $masterRec->isReverse === 'no') ? $mvc->Policy : $ProductMan;
-						$policyInfo = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate);
+						$Policy = ($masterRec->isReverse == 'yes') ? $mvc->ReversePolicy : $mvc->Policy;
+						$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate);
 					}
 						
 					// Ако няма последна покупна цена и не се обновява запис в текущата покупка
