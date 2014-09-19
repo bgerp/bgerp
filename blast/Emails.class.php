@@ -920,7 +920,7 @@ class blast_Emails extends core_Master
                 $sendRec = blast_ListSend::fetch("#listDetailId = '{$listRec->id}' AND #emailId = '{$emailRec->id}'");
     
                 // Ако имаме права тогава спираме обхождането
-                if (blast_ListDetails::haveRightFor('single', $listRec) AND ($sendRec->state != 'stopped')) break;
+                if (blast_ListDetails::haveRightFor('single', $listRec) && ($sendRec->state != 'stopped')) break;
             }
             
             // Имейла на първия потребител, до когото имаме достъп
