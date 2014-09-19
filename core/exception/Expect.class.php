@@ -3,14 +3,14 @@ class core_exception_Expect extends Exception
 {
     protected $debug;
 
-    protected $errorTitle;
+    protected $type;
 
-    public function __construct($message = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В ПРИЛОЖЕНИЕТО')
+    public function __construct($message = NULL, $debug = NULL, $type = 'Изключение')
     {
         parent::__construct($message);
 
-        $this->debug      = $debug;
-        $this->errorTitle = $errorTitle;
+        $this->debug  = $debug;
+        $this->type   = $type;
     }
 
     public function args($i = NULL)
@@ -31,28 +31,51 @@ class core_exception_Expect extends Exception
      * Връща html страница, отговаряща за събитието
      */
     public function getAsHtml()
-    {  
+    { 
     	$msg = $this->getMessage();
     	 
-    	if (isDebug() && isset($this->debug)) { 
+    	if (isDebug()) { 
 
-    		// Ако имаме права на администратор пускаме и линк към сетъп-а
-	    	if (haveRole('admin')) {
-	    		$setupKey = setupKey();
-	    		$setupUrl = core_Url::addParams(getSelfURL(), array('SetupKey'=>$setupKey));
-	    		$p1 = "<a href='" . $setupUrl . "'>Стартиране сетъп ...</a><br>"; 
-	    	}
-
-    		$p1 .= core_Html::arrayToHtml(array($this->errorTitle, $msg, $this->debug));
-        
-            core_App::_bp($p1, $this->getTrace());
+       		$p1 = core_Html::arrayToHtml(array($this->type, $msg, $this->debug));
         } else {
-        	$this->logError();
+        	$this->logError(); 
         }
-  core_App::_bp($p1, $this->getTrace());
-        $text = core_App::isDebug() ? $msg : $this->errorTitle;
-        
-        core_Message::redirect($text, 'page_Error');
+
+        $res = core_App::_bp($p1, $this->getTrace(), $this->type);
+ 
+        return $res;
+    }
+
+
+    public function showMessage()
+    {
+        if(!($httpStatusCode = (int) $this->getMessage())) {
+            $httpStatusCode = 500;
+        }
+
+        switch($httpStatusCode) {
+            case 400: 
+                $httpStatusMsg = 'Bad Request';
+                break;
+            case 401: 
+                $httpStatusMsg = 'Unauthorized';
+                break;
+            case 403: 
+                $httpStatusMsg = 'Forbidden';
+                break;
+            case 404: 
+                $httpStatusMsg = 'Not Found';
+                break;
+            default:
+                $httpStatusMsg = 'Internal Server Error';
+                break;
+         }
+
+         header($_SERVER["SERVER_PROTOCOL"]." {$httpStatusCode} {$httpStatusMsg}");
+         
+         header('Content-Type: text/html; charset=UTF-8');
+
+         echo $this->getAsHtml();
     }
 
 
@@ -61,14 +84,16 @@ class core_exception_Expect extends Exception
      */
     public function logError()
     {
-    	$p1 = core_Html::arrayToHtml(array($this->errorTitle, $this->getMessage(), $this->debug));
+    	$p1 = core_Html::arrayToHtml(array($this->type, $this->getMessage(), $this->debug));
         $html = core_App::getErrorHtml($p1, $this->getTrace());
-        
-        try{
-        	core_Logs::log($html);
-        } catch(core_exception_Expect $e){
-        	file_put_contents(EF_TEMP_PATH . '/err.log',  "\n\n" . 'Стек: ' . $html . "\n\n", FILE_APPEND);
-        }
+
+        @file_put_contents(EF_TEMP_PATH . '/err.log',  "\n\n" . 'Стек: ' . $html . "\n\n", FILE_APPEND);
+    }
+
+
+    public function matchPtr($ptr)
+    {
+        return preg_match($ptr, $this->message);
     }
     
     
@@ -211,21 +236,5 @@ class core_exception_Expect extends Exception
     public function getDebug()
     {
         return $this->debug;
-    }
-}
-
-
-
-/**
- * Генерира грешка, ако аргумента не е TRUE
- * 
- * @var mixed $inspect Обект, масив или скалар, който се подава за инспекция
- * @var boolean $condition
- */
-function expect($cond, $inspect = NULL, $error = '500 Internal Server Error')
-{
-    if (!(boolean)$cond) {
-                        
-    	throw new core_exception_Expect('Неочакван аргумент', $inspect, $error);
     }
 }

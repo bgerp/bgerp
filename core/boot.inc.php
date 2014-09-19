@@ -21,8 +21,13 @@ if (version_compare(phpversion(), '5.3.0') < 0) {
     die;    
 }
 
-
 require_once(EF_EF_PATH . '/core/exception/Expect.class.php');
+
+
+require_once(EF_EF_PATH . '/core/Debug.class.php');
+
+
+// core_Debug::setErrorWaching();
 
 
 // Зареждаме 'CLS' класа за работа с класове
@@ -33,46 +38,58 @@ require_once(EF_EF_PATH . "/core/Cls.class.php");
 require_once(EF_EF_PATH . "/core/App.class.php");
 
 
-// Инициализиране на системата
-core_App::initSystem();
-
-
-// Параметрите от виртуалното URL за зареждат в $_GET
 try {
+    // Инициализиране на системата
+    core_App::initSystem();
+
+
+    // Параметрите от виртуалното URL за зареждат в $_GET
     core_App::processUrl();
-} catch (core_Exception_Expect $e) {
-    echo $e->getAsHtml();
-    die;
-}
-
-// Зарежда конфигурационните константи
-core_App::loadConfig();
-
-// Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
-ob_clean();
 
 
-// PHP5.4 bugFix
-ini_set('zlib.output_compression', 'Off');
+    // Зарежда конфигурационните константи
+    core_App::loadConfig();
 
 
-/**
- * Стартира Setup, ако в заявката присъства верен SetupKey
- */
-if (isset($_GET['SetupKey'])) {
-	require_once(EF_EF_PATH . "/core/Setup.inc.php");
-}
+    // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
+    ob_clean();
 
 
-// Стартира записа в буфера, като по възможност компресира съдържанието
-ob_start();
+    // PHP5.4 bugFix
+    ini_set('zlib.output_compression', 'Off');
 
 
-// Стартира приложението
-if (!defined('EF_DONT_AUTORUN')) {
+    /**
+     * Стартира Setup, ако в заявката присъства верен SetupKey
+     */
+    if (isset($_GET['SetupKey'])) {
+        require_once(EF_EF_PATH . "/core/Setup.inc.php");
+    }
+
+
+    // Стартира записа в буфера, като по възможност компресира съдържанието
+    ob_start();
+
+
+    // Стартира приложението
     core_App::run();
-}
 
+
+    // Край на работата на скрипта
+    core_App::shutdown();
+
+} catch (core_exception_Expect $e) {
+    
+    if($e->matchPtr('/500.+1146.+Table.+doesn/i') && core_Db::databaseEmpty()) {
+
+        // При празна база редиректваме безусловно към сетъп-а
+        redirect(array('Index', 'SetupKey' => setupKey()));
+
+    } else { 
+        $e->showMessage(); 
+    }
+
+}
 
 
 
@@ -264,11 +281,37 @@ function bp()
 
 
 /**
- * Показва грешка и спира изпълнението. Използва core_Message
+  * Показва грешка и спира изпълнението.
+  */
+function error($error = NULL, $dump = NULL)
+{   
+    throw new core_exception_Expect($error, $dump, 'Грешка');
+}
+
+
+
+/**
+ * Генерира грешка, ако аргумента не е TRUE
+ * 
+ * @var mixed $inspect Обект, масив или скалар, който се подава за инспекция
+ * @var boolean $condition
  */
-function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В ПРИЛОЖЕНИЕТО')
-{
-    return core_App::error($errorInfo, $debug, $errorTitle);
+function expect($cond, $error = NULL, $dump = NULL)
+{   
+    if (!(boolean)$cond) {
+
+        $args = func_get_args();
+        unset($args[0]);
+
+        if(!is_string($error)) {
+            $msg = "Exception";
+        } else {
+            $msg = $error;
+            unset($args[1]);
+        }
+
+    	throw new core_exception_Expect($msg, $args, 'Несъответствие');
+    }
 }
 
 
@@ -386,3 +429,5 @@ function setupKey()
 	// Валидност средно 50 сек.
 	return md5(BGERP_SETUP_KEY . round(time()/100));
 }
+
+

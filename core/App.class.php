@@ -6,55 +6,36 @@ class core_App
 
     public static function run()
     {
-        try {
+        // Ако имаме заявка за статичен ресурс, веднага го сервираме и
+        // приключване. Ако не - продъжаваме със зареждането на фреймуърка
+        if ($_GET[EF_SBF]) {
 
-            // Ако имаме заявка за статичен ресурс, веднага го сервираме и
-            // приключване. Ако не - продъжаваме със зареждането на фреймуърка
-            if ($_GET[EF_SBF]) {
+            core_Sbf::serveStaticFile($_GET[EF_SBF]);
 
-                core_Sbf::serveStaticFile($_GET[EF_SBF]);
+        } else {
 
-            } else {
+            // Зареждаме класа регистратор на плъгините
+            core_Cls::get('core_Plugins');
 
-                // Зареждаме класа регистратор на плъгините
-                core_Cls::get('core_Plugins');
-
-                // Задаваме стойности по подразбиране на обкръжението
-                if (!core_Mode::is('screenMode')) {
-                    core_Mode::set('screenMode', core_Browser::detectMobile() ? 'narrow' : 'wide');
-                }
-                
-                // Генерираме съдържанието
-                $content = core_Request::forward();
-                
-                // Ако не сме в DEBUG режим и заявката е по AJAX
-                if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
-                    core_Logs::log("Стартиране на core_App::run() през AJAX");
-                    
-                    return ;
-                }
-                
-                // Опакова съдържанието
-                $Wrapper = core_Cls::get('page_Wrapper');
-                $Wrapper->render($content);
-            }
-        } catch (core_exception_Expect $e) {
-            if($e->class == 'core_Db' && core_Db::databaseEmpty()) {
-                // При празна база редиректваме безусловно към сетъп-а
-                redirect(array('Index', 'SetupKey' => setupKey()));
+            // Задаваме стойности по подразбиране на обкръжението
+            if (!core_Mode::is('screenMode')) {
+                core_Mode::set('screenMode', core_Browser::detectMobile() ? 'narrow' : 'wide');
             }
 
-            echo ($e->getAsHtml());
-
-            // Ако възникне грешка в core_Message
-            // За да не влезе в безкраен редирект
-            if ($e->class == 'core_Message') die(tr($e->getMessage()));
+            // Генерираме съдържанието
+            $content = core_Request::forward();
+            
+            // Ако не сме в DEBUG режим и заявката е по AJAX
+            if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
+                core_Logs::log("Стартиране на core_App::run() през AJAX");
                 
-            $e->getAsHtml();
+                return ;
+            }
+            
+            // Опакова съдържанието
+            $Wrapper = core_Cls::get('page_Wrapper');
+            $Wrapper->render($content);
         }
-
-         // Край на работата на скрипта
-        static::shutdown();
     }
 
 
@@ -98,8 +79,8 @@ class core_App
 
 
         // Разрешаваме грешките, ако инсталацията е Debug
-        ini_set("display_errors", isDebug());
-        ini_set("display_startup_errors", isDebug());
+        ini_set("display_errors", EF_DEBUG);
+        ini_set("display_startup_errors", EF_DEBUG);
 
 
         /**
@@ -109,6 +90,7 @@ class core_App
 
         // Сетваме времевата зона
         date_default_timezone_set(EF_TIMEZONE);
+
 
         // Вътрешно кодиране
         mb_internal_encoding("UTF-8");
@@ -141,12 +123,10 @@ class core_App
             $script = '/' . basename($_SERVER['SCRIPT_NAME']);
 
             if(($pos = strpos($_GET['virtual_url'], $script)) === FALSE) {
-
                 $pos = strpos($_GET['virtual_url'], '/?');
             }
 
             if($pos) {
-
                 $_GET['virtual_url'] = substr($_GET['virtual_url'], 0, $pos + 1);
             }
         }
@@ -290,15 +270,6 @@ class core_App
         }
 
         
-        /**
-         * Дефинира, ако не е зададено името на кода на приложението
-         */
-        defIfNot('EF_APP_CODE_NAME', EF_APP_NAME);
-
-        /**
-         * Директорията с приложението
-         */
-        defIfNot('EF_APP_PATH', EF_ROOT_PATH . '/' . EF_APP_CODE_NAME);
 
 
         // Зареждаме конфигурационния файл на приложението. 
@@ -309,6 +280,18 @@ class core_App
                 EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
         }
         
+
+        /**
+         * Дефинира, ако не е зададено името на кода на приложението
+         */
+        defIfNot('EF_APP_CODE_NAME', EF_APP_NAME);
+
+
+        /**
+         * Директорията с приложението
+         */
+        defIfNot('EF_APP_PATH', EF_ROOT_PATH . '/' . EF_APP_CODE_NAME);
+
         
         /**
          * Пътя до директорията за статичните браузърни файлове към приложението
@@ -485,9 +468,14 @@ class core_App
      */
     public static function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'notice')
     { 
-    	expect(ob_get_length() <= 3, ob_get_length(), ob_get_contents());
+        // Очакваме най-много три символа (BOM) в буфера
+    	expect(ob_get_length() <= 3, array(ob_get_length(), ob_get_contents()));
 
-    	$url = static::toUrl($url, $absolute ? 'absolute' : 'relative');
+    	$url = toUrl($url, $absolute ? 'absolute' : 'relative');
+    	
+        if (isset($msg)) {
+    	    core_Statuses::newStatus($msg, $type);
+    	}
     	
     	if(Request::get('ajax_mode')){
     		
@@ -498,19 +486,13 @@ class core_App
     			
     		echo json_encode(array($resObj));
     	} else {
-    		
-    		if (isset($msg)) {
-    			core_Statuses::newStatus($msg, $type);
-    		}
-    		
-    		header("Status: 302");
-    		
-    		// Забранява кеширането. Дали е необходимо тук?
+
+            // Забранява кеширането. Дали е необходимо тук?
     		header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
     		header('Pragma: no-cache'); // HTTP 1.0.
     		header('Expires: 0'); // Proxies.
     		
-    		header("Location: $url");
+    		header("Location: $url", TRUE, 302);
     	}
 
         static::shutdown(FALSE);
@@ -970,21 +952,25 @@ class core_App
 
     public static function bp()
     {
-        core_App::_bp(core_Html::arrayToHtml(func_get_args()), debug_backtrace());
+        echo core_App::_bp(core_Html::arrayToHtml(func_get_args()), debug_backtrace());
+        
+        header($_SERVER["SERVER_PROTOCOL"]." 500 Internal Server Error");
+         
+        header('Content-Type: text/html; charset=UTF-8');
+
+        die;
     }
 
 
-    public static function _bp($html, $stack)
+    public static function _bp($html, $stack, $type = 'Прекъсване')
     {
-        $breakFile = $breakLine = NULL;
-	
         // Ако сме в работен, а не тестов режим, не показваме прекъсването
         if (!static::isDebug()) {
             error_log("Breakpoint on line $breakLine in $breakFile");
             return;
         }
 
-        $errHtml = static::getErrorHtml($html, $stack, $breakFile, $breakLine);
+        $errHtml = static::getErrorHtml($html, $stack, $type);
         
         $errHtml .= core_Debug::getLog();
         
@@ -992,31 +978,24 @@ class core_App
     		mkdir(EF_TEMP_PATH, 0777, TRUE);    
 		}
         
-        // Сигнал за външния свят, че нещо не е наред
-        header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request', TRUE, 500);
-
-        header('Content-Type: text/html; charset=UTF-8');
-        
         // Поставяме обвивка - html документ
         $page = ht::wrapMixedToHtml($errHtml, TRUE);
         
         // Записваме за всеки случай и като файл
         file_put_contents(EF_TEMP_PATH . '/err.log.html', $page . "\n\n");
 
-        echo $page;
-        
-        exit(-1);
+        return  $page;
     }
 
     
     /**
      * Връща html-a на грешката
      */
-	public static function getErrorHtml($html, $stack, $breakFile = NULL, $breakLine = NULL)
+	public static function getErrorHtml($html, $stack, $type = 'Прекъсване')
 	{
-		$stack = static::prepareStack($stack, $breakFile, $breakLine);
+		list($stack, $breakFile, $breakLine) = static::prepareStack($stack);
 
-        $errHtml .= "<h2>Прекъсване на линия <span style=\"color:red\">$breakLine</span> в " .
+        $errHtml .= "<h2>{$type} на линия <span style=\"color:red\">$breakLine</span> в " .
         "<span style=\"color:red\">$breakFile</span></h2>";
 
         $errHtml .= self::getCodeAround($breakFile, $breakLine);
@@ -1031,6 +1010,8 @@ class core_App
         
         return $errHtml;
 	}
+
+
 
 
     /**
@@ -1065,20 +1046,6 @@ class core_App
     }
 
 	
-    /**
-     * Показва грешка и спира изпълнението.
-     */
-    public static function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В ПРИЛОЖЕНИЕТО')
-    {
-        $text = static::isDebug() ? $errorInfo : $errorTitle;
-        
-        if(Request::get('ajax_mode')) {
-        	core_Statuses::newStatus($text, 'error');
-        }
-		
-        throw new core_exception_Expect($text, $debug, $errorTitle);
-    }
-
 
     /**
      * Задава стойността(ите) от втория параметър на първия,
@@ -1131,7 +1098,7 @@ class core_App
     }
 
 
-    private static function prepareStack($stack, &$breakFile, &$breakLine)
+    private static function prepareStack($stack)
     {
         // Вътрешни функции, чрез които може да се генерира прекъсване
         $intFunc = array(
@@ -1142,7 +1109,7 @@ class core_App
             'expect:'
         );
 
-        $breakpointPos = NULL;
+        $breakpointPos = $breakFile = $breakLine = NULL;
 
         foreach ($stack as $i => $f) {
             if (in_array(strtolower($f['function'] . ':' . $f['class']), $intFunc)) {
@@ -1156,7 +1123,7 @@ class core_App
             $stack = array_slice($stack, $breakpointPos+1);
         }
 
-        return $stack;
+        return array($stack, $breakFile, $breakLine);
     }
 
     private static function renderStack($stack)

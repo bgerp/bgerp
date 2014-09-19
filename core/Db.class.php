@@ -651,8 +651,7 @@ class core_Db extends core_BaseClass
                 $errno = mysql_errno($this->link);
                 $error = mysql_error($this->link);
                 
-                expect(FALSE, array("query"=>$this->query, "error"=>$error), "500. Грешка {$errno} в БД при " . $action . ": {$error}");
-
+                error("500. Грешка {$errno} в БД при " . $action . ": {$error}", array("query"=>$this->query, "error"=>$error));
         }
 
         return mysql_errno();
