@@ -51,18 +51,39 @@ class tremol_FiscPrinterDriver extends core_Manager {
         
         // Добавяме към шаблона всеки един продаден продукт
         $itemBlock = $contentTpl->getBlock('ITEM');
+        
         foreach ($data->products as $p){
-            $block = clone $itemBlock;
-            
-            $p->name = str_replace('"', "'", $p->name);
-            $p->price = round($p->price * (1 + $p->vat), 2);
-            
-            // Кое число отговаря данъчната група
-            $p->vatGroup = self::$vatGroups[$p->vatGroup];
-            
-            $block->placeObject($p);
-            $block->removeBlocks();
-            $contentTpl->append($block, 'ITEMS');
+        	$p->name = str_replace('"', "'", $p->name);
+        	$p->price = $p->price * (1 + $p->vat);
+        	$p->vatGroup = self::$vatGroups[$p->vatGroup];
+        }
+        
+        // Проверяваме дали точната сума на продуктите е равна на платената
+        // Умножаваме по 10 докато се изравнят грешките от закръглянията
+        $mp = 0.1;
+        do {
+        	$mp *= 10;
+        	$total = 0;
+        	foreach ($data->products as $p){
+        		$total += round($p->price * $mp, 2) * $p->quantity / $mp;
+        	}
+        	$total = round($total, 2);
+        	
+        } while($total != $data->totalPaid && $mp <= 10000);
+        
+        foreach ($data->products as $p){
+        	$block = clone $itemBlock;
+        	
+        	if($mp != 1){
+        		$p->name .= " * {$mp}";
+        		$p->price *= $mp;
+        		$p->quantity /= $mp;
+        	}
+        	$p->price = round($p->price, 4);
+        	
+        	$block->placeObject($p);
+        	$block->removeBlocks();
+        	$contentTpl->append($block, 'ITEMS');
         }
         
         // Добавяме към шаблона направените плащания

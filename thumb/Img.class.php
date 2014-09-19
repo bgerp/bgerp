@@ -562,7 +562,11 @@ class thumb_Img
                         imagegif($newGdRes, $path);
                         break;
                     default:
-                        imagepng($newGdRes, $path);
+                        
+                        $pngQuality = ($this->quality - 100) / 11.111111;
+                        $pngQuality = round(abs($pngQuality));
+                        
+                        imagepng($newGdRes, $path, $pngQuality);
                 }
                 imagedestroy($newGdRes);
             } else {
