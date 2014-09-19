@@ -148,7 +148,7 @@ abstract class deals_DealDetail extends core_Detail
     /**
      * Преди подготвяне на едит формата
      */
-    static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
     	if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){  
     		$data->ProductManager = cls::get($classId);

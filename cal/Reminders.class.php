@@ -338,7 +338,7 @@ class cal_Reminders extends core_Master
     /**
      * Подрежда по state, за да могат затворените да са отзад
      */
-    function on_BeforePrepareListFilter($mvc, &$res, $data)
+    public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
     	$data->query->orderBy("#state=ASC, #nextStartTime=DESC");
     }
@@ -468,7 +468,7 @@ class cal_Reminders extends core_Master
     }
   
     
-    function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	if ($data->recs) {
         	foreach((array)$data->recs as $id => $rec){
