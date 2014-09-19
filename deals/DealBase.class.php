@@ -26,7 +26,7 @@ abstract class deals_DealBase extends core_Master
 	/**
 	 * Колко записи от журнала да се показват от историята
 	 */
-	protected $historyItemsPerPage = 10;
+	protected $historyItemsPerPage = 6;
 	
 	
 	/**
