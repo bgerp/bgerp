@@ -387,9 +387,9 @@ class type_Richtext extends type_Blob
     { 
         $lines = explode("\n", $text);
         $lines[] = '';
-
+        
         $state = array();
-
+        
         for($i = 0; $i < count($lines); $i++) {
 
             $l = $lines[$i];
@@ -1016,10 +1016,11 @@ class type_Richtext extends type_Blob
     { 
         $text  = $matches[2];
         $level = $matches[1];
+        $end = $matches[3];
         
         if(!Mode::is('text', 'plain')) {
             $name = str::canonize($text);
-            $res = "<a id=\"{$name}\" class='header'><h{$level}>{$text}</h{$level}></a>";
+            $res = "<a id=\"{$name}\" class='header'><h{$level}>{$text}</h{$level}></a>{$end}";
         } else {
             $res =   mb_strtoupper($text) . "\n" . str_repeat('=', mb_strlen($text)) . "\n";
         }
