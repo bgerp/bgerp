@@ -657,13 +657,16 @@ class sales_Quotations extends core_Master
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Оферта нормален изглед', 'content' => 'sales/tpl/QuotationHeaderNormal.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Оферта изглед за писмо', 'content' => 'sales/tpl/QuotationHeaderLetter.shtml', 'lang' => 'bg');
     	
-        $res .= doc_TplManager::addOnce($mvc, $tplArr);
+    	$res = '';
+        $res .= doc_TplManager::addOnce($this, $tplArr);
+        
+        return $res;
     }
     
     

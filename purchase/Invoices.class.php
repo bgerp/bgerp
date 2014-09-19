@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class purchase_Invoices extends acc_InvoiceMaster
+class purchase_Invoices extends deals_InvoiceMaster
 {
     
     
@@ -45,7 +45,7 @@ class purchase_Invoices extends acc_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,acc_plg_DpInvoice,
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
     
     
@@ -272,15 +272,18 @@ class purchase_Invoices extends acc_InvoiceMaster
     }
     
     
-	/**
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Входяща фактура нормален изглед', 'content' => 'purchase/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Входяща фактура изглед за писмо', 'content' => 'purchase/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
         
-        $res .= doc_TplManager::addOnce($mvc, $tplArr);
+    	$res = '';
+        $res .= doc_TplManager::addOnce($this, $tplArr);
+        
+        return $res;
     }
 }

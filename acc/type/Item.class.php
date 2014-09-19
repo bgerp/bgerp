@@ -82,7 +82,7 @@ class acc_type_Item extends type_Key
             }
             
             while ($itemRec = $query->fetch()) {
-            	$title = acc_Items::getVerbal($itemRec, $select);
+            	$title = $itemRec->{$select};
             	
             	// Ако перото е затворено, указваме го в името му
             	if($itemRec->state == 'closed'){
@@ -90,7 +90,7 @@ class acc_type_Item extends type_Key
             	}
             	
             	// Слагаме вербалното име на перата, и за всеки случай премахваме html таговете ако има
-                $this->options["{$itemRec->id}.{$listRec->id}"] = strip_tags($title);
+                $this->options["{$itemRec->id}.{$listRec->id}"] = $title;
             }
             
             $where .= ($query->where) ? $query->getWhereAndHaving()->w : ' ';

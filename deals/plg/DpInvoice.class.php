@@ -8,13 +8,13 @@
  *
  *
  * @category  bgerp
- * @package   sales
+ * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_plg_DpInvoice extends core_Plugin
+class deals_plg_DpInvoice extends core_Plugin
 {
     
     

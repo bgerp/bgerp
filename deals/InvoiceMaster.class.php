@@ -7,13 +7,13 @@
  *
  *
  * @category  bgerp
- * @package   acc
+ * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class acc_InvoiceMaster extends core_Master
+abstract class deals_InvoiceMaster extends core_Master
 {
     
     
@@ -33,6 +33,12 @@ abstract class acc_InvoiceMaster extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'date';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $valiorFld = 'date';
     
     
     /**
@@ -707,7 +713,7 @@ abstract class acc_InvoiceMaster extends core_Master
     	 
     	$form->setReadOnly('vatRate');
     	 
-    	// Метод който да бъде прихванат от acc_plg_DpInvoice
+    	// Метод който да бъде прихванат от deals_plg_DpInvoice
     	$mvc->prepareDpInvoicePlg($data);
     }
     
@@ -757,7 +763,7 @@ abstract class acc_InvoiceMaster extends core_Master
     
     	acc_Periods::checkDocumentDate($form);
     
-    	// Метод който да бъде прихванат от acc_plg_DpInvoice
+    	// Метод който да бъде прихванат от deals_plg_DpInvoice
     	$mvc->inputDpInvoice($form);
     }
     

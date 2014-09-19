@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class findeals_Deals extends core_Master
+class findeals_Deals extends deals_DealBase
 {
 	
 	const AGGREGATOR_TYPE = 'deal';
@@ -45,7 +45,7 @@ class findeals_Deals extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, findeals_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Deals , plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, findeals_Wrapper, acc_plg_RejectContoDocuments, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
@@ -384,7 +384,7 @@ class findeals_Deals extends core_Master
     /**
      * След подготовка на сингъла
      */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	$mvc->getHistory($data);
     }
@@ -476,12 +476,12 @@ class findeals_Deals extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
     	$fieldSet = new core_FieldSet();
-    	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field');
-    	$fieldSet->FLD('debitA', 'double');
-    	$fieldSet->FLD('creditA', 'double');
+    	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field wrap');
+    	$fieldSet->FLD('debitA', 'double', 'tdClass=amount-field');
+    	$fieldSet->FLD('creditA', 'double', 'tdClass=amount-field');
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
     	$fields = "valior=Вальор,docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
@@ -779,7 +779,7 @@ class findeals_Deals extends core_Master
     		$rec = $mvc->fetchRec($id);
     
     		// Записване на продажбата като отворена сделка
-    		acc_OpenDeals::saveRec($rec, $mvc);
+    		deals_OpenDeals::saveRec($rec, $mvc);
     	}
     }
     

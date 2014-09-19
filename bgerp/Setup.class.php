@@ -113,7 +113,7 @@ class bgerp_Setup extends core_ProtoSetup {
         // Списък на основните модули на bgERP
         $packs = "core,fileman,drdata,bglocal,editwatch,recently,thumbnail,custom,doc,acc,currency,cms,
                   email,crm, cat, trans, price, blast,rfid,hr,trz,lab,sales,mp,marketing,store,cond,cash,bank,
-                  budget,purchase,accda,sens,cams,frame,cal,fconv,log,fconv,cms,blogm,forum,findeals,
+                  budget,purchase,accda,sens,cams,frame,cal,fconv,log,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,techno,
                   callcenter,social,hyphen,distro,dec,status,phpmailer";
         

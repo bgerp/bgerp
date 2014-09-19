@@ -198,6 +198,15 @@ abstract class deals_Document extends core_Master
     
     
 	/**
+	 * Извиква се след подготовката на toolbar-а за табличния изглед
+	 */
+	static function on_AfterPrepareListToolbar($mvc, &$data)
+	{
+		$data->toolbar->removeBtn('btnAdd');
+	}
+	
+	
+	/**
 	 * Имплементация на @link bgerp_DealIntf::getDealInfo()
 	 *
 	 * @param int|object $id

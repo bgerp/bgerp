@@ -13,13 +13,13 @@
  * Посочените документи се записват в треда на съответната продажба/покупка
  *
  * @category  bgerp
- * @package   acc
+ * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_OpenDeals extends core_Manager {
+class deals_OpenDeals extends core_Manager {
     
     
     /**
@@ -31,7 +31,7 @@ class acc_OpenDeals extends core_Manager {
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    public $oldClassName = 'cash_OpenDeals';
+    public $oldClassName = 'acc_OpenDeals';
     
     
     /**

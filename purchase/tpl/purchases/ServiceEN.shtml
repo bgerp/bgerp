@@ -121,6 +121,9 @@
                                 <!--ET_BEGIN noVat-->
                                 <li>Prices are without VAT[#noVat#]</li>
                                 <!--ET_END noVat-->
+                                <!--ET_BEGIN closedDocuments-->
+                                <li>Combines: [#closedDocuments#]</li>
+                                <!--ET_END closedDocuments-->
                                 <!--ET_BEGIN notes-->
                                 [#notes#]
                                 <!--ET_END notes-->

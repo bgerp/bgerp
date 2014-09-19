@@ -39,7 +39,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_plg_MultiPrint, plg_Printing, doc_plg_TplManager, acc_plg_Deals, doc_DocumentPlg, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_plg_MultiPrint, plg_Printing, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable,
                     acc_plg_DocumentSummary, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, plg_Clone, doc_SharablePlg';
     
@@ -467,6 +467,7 @@ class sales_Sales extends deals_DealMaster
     	$nRec->type = 0;
     	$nRec->amount = round($rec->amountPaid, 2);
     	$data->payments[] = $nRec;
+    	$data->totalPaid = $nRec->amount;
     	
     	return $data;
     }
@@ -611,8 +612,7 @@ class sales_Sales extends deals_DealMaster
     	$limit = $conf->SALE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('sales_ClosedDeals');
     	
-    	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->closeOldDeals($olderThan, $ClosedDeals, $limit);
+    	$this->closeOldDeals($olderThan, $ClosedDeals, $limit);
     }
     
     
@@ -672,8 +672,7 @@ class sales_Sales extends deals_DealMaster
     	$conf = core_Packs::getConfig('sales');
     	$overdueDelay = $conf->SALE_OVERDUE_CHECK_DELAY;
     	
-    	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
-    	$CronHelper->checkPayments($overdueDelay);
+    	$this->checkPayments($overdueDelay);
     }
     
     

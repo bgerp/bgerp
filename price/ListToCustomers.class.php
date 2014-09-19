@@ -389,10 +389,10 @@ class price_ListToCustomers extends core_Detail
         $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
 		$rec = new stdClass();
 
-        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
+        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, TRUE);
 		$listAccess = price_Lists::fetchField($listId, 'public');
         $rec->priority = ($listAccess == 'yes') ? 0 : 2;
-        
+       
         return $rec;
     }
     

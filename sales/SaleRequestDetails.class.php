@@ -76,7 +76,7 @@ class sales_SaleRequestDetails extends core_Detail {
     function description()
     {
     	$this->FLD('requestId', 'key(mvc=sales_SaleRequests)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol');
+    	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden,oldFieldName=productManId');
     	$this->FLD('quantity', 'double', 'caption=К-во', 'tdClass=small-field');
     	$this->FLD('price', 'double', 'caption=Ед. цена');

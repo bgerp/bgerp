@@ -203,7 +203,7 @@ class pos_TransactionSourceImpl
 	              'quantity' => currency_Currencies::round($value), 
 	            ),
 	            
-	        'credit' => array('4532', array('pos_Reports', $rec->id))
+	        'credit' => array('4532')
 	    	);
     	}
 	    	

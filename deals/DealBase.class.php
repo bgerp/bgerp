@@ -1,0 +1,481 @@
+<?php
+
+
+
+/**
+ * Абстрактен клас за наследяване от класове сделки
+ *
+ *
+ * @category  bgerp
+ * @package   deals
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2014 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+abstract class deals_DealBase extends core_Master
+{
+
+	
+	/**
+	 * Работен кеш
+	 */
+	protected $historyCache = array();
+	
+	
+	/**
+	 * Колко записи от журнала да се показват от историята
+	 */
+	protected $historyItemsPerPage = 10;
+	
+	
+	/**
+	 * Извиква се след описанието на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Master &$mvc)
+	{
+		if(empty($mvc->fields['closedDocuments'])){
+			$mvc->FLD('closedDocuments', "keylist(mvc={$mvc->className})", 'input=none,notNull');
+		}
+	}
+	
+	
+	/**
+	 * Функция, която се извиква след активирането на документа
+	 */
+	public static function on_AfterActivation($mvc, &$rec)
+	{
+		$rec = $mvc->fetchRec($rec);
+		 
+		if($rec->state == 'active'){
+	
+			// Ако валутата е активна, добавя се като перо
+			$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
+			acc_Lists::updateItem($mvc, $rec->id, $lists);
+	
+			if(haveRole('ceo,acc,debug')){
+				$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
+				core_Statuses::newStatus($msg);
+			}
+		}
+	}
+	
+	
+	/**
+	 * След оттегляме запомняме записа, чието перо трябва да се затври на shutdown
+	 */
+	public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+	{
+		// Ако документа се е оттеглил успешно, записваме му ид-то в модела
+		$rec = $mvc->fetchRec($id);
+		$mvc->rejectedQueue[$rec->id] = $rec->id;
+	}
+
+
+	/**
+	 * Изчиства записите, заопашени за запис
+	 */
+	public static function on_Shutdown($mvc)
+	{
+		// Ако има оттеглени записи, затваряме им перата
+		if(count($mvc->rejectedQueue)){
+			foreach ($mvc->rejectedQueue as $id) {
+				$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
+				acc_Lists::removeItem($mvc, $id, $lists);
+				 
+				if(haveRole('ceo,acc,debug')){
+					$title = $mvc->getTitleById($id);
+					core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
+				}
+			}
+		}
+	}
+
+
+	/**
+	 * Какво е платежното състояние на сделката
+	 */
+	public function getPaymentState($aggregateDealInfo, $state)
+	{
+		$amountPaid      = $aggregateDealInfo->get('amountPaid');
+		$amountDelivered = $aggregateDealInfo->get('deliveryAmount');
+		 
+		// Ако имаме платено и доставено
+		$diff = round($amountDelivered - $amountPaid, 4);
+	
+		$conf = core_Packs::getConfig('acc');
+	
+		// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
+		if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
+			 
+			// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
+			return ($state != 'overdue') ? 'paid' : 'repaid';
+		}
+		 
+		return 'pending';
+	}
+
+
+	/**
+	 * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
+	 * Генерира агрегираната бизнес информация за тази сделка
+	 *
+	 * Обикаля всички документи, имащи отношение към бизнес информацията и извлича от всеки един
+	 * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до
+	 * момента.
+	 *
+	 * Списъка с въпросните документи, имащи отношение към бизнес информацията за пробдажбата е
+	 * сечението на следните множества:
+	 *
+	 *  * Документите, върнати от @link doc_DocumentIntf::getDescendants()
+	 *  * Документите, реализиращи интерфейса @link bgerp_DealIntf
+	 *  * Документите, в състояние различно от `draft` и `rejected`
+	 *
+	 * @return bgerp_iface_DealResponse
+	 */
+	public function getAggregateDealInfo($id)
+	{
+		$dealRec = $this->fetchRec($id);
+	
+		$dealDocuments = $this->getDescendants($dealRec->id);
+	
+		$aggregateInfo = new bgerp_iface_DealAggregator;
+	
+		// Извличаме dealInfo от самата сделка
+		$this->pushDealInfo($dealRec->id, $aggregateInfo);
+	
+		foreach ($dealDocuments as $d) {
+			$dState = $d->rec('state');
+			if ($dState == 'draft' || $dState == 'rejected') {
+				// Игнорираме черновите и оттеглените документи
+				continue;
+			}
+	
+			if ($d->haveInterface('bgerp_DealIntf')) {
+				$d->instance->pushDealInfo($d->that, $aggregateInfo);
+			}
+		}
+	
+		return $aggregateInfo;
+	}
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'closewith' && isset($rec)){
+    		$options = $mvc->getDealsToCloseWith($rec);
+    		if(!count($options) || $rec->state != 'draft'){
+    			$res = 'no_one';
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Преди рендиране на тулбара
+     */
+    public static function on_BeforeRenderSingleToolbar($mvc, &$res, &$data)
+    {
+    	$rec = &$data->rec;
+    	
+    	if($mvc->haveRightFor('closeWith', $rec)) {
+    		 
+    		// Ако тази сделка може да се приключи с друга сделка, и има налични сделки подменяме бутона да сочи
+    		// към екшън за избиране на кои сделки да се приключат с тази
+    		$data->toolbar->removeBtn('btnConto');
+    		$data->toolbar->removeBtn('btnActivate');
+    		$data->toolbar->addBtn('Активиране', array($mvc, 'closeWith', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
+    	}
+    }
+    
+    
+    /**
+     * Кои сделки ще могатд а се приключат с документа
+     *
+     * @param int $id - ид на документа
+     * @return array $options - опции
+     */
+    public static function on_AfterGetDealsToCloseWith($mvc, &$res, $rec)
+    {
+    	// Избираме всички други активни сделки от същия тип и валута, като началния документ в същата папка
+    	$docs = array();
+    	$dealQuery = $mvc->getQuery();
+    	$dealQuery->where("#id != {$rec->id}");
+    	$dealQuery->where("#folderId = {$rec->folderId}");
+    	$dealQuery->where("#currencyId = '{$rec->currencyId}'");
+    	$dealQuery->where("#state = 'active'");
+    	 
+    	while($dealRec = $dealQuery->fetch()){
+    		$docs[$dealRec->id] = $mvc->getRecTitle($dealRec);
+    	}
+    	 
+    	$res = $docs;
+    }
+
+
+    /**
+     * Преди да се проверят имали приключени пера в транзакцията
+     *
+     * Обхождат се всички документи в треда и ако един има приключено перо, документа начало на нишка
+     * не може да се оттегля/възстановява/контира
+     */
+    public static function on_BeforeGetClosedItemsInTransaction($mvc, &$res, $id)
+    {
+    	$closedItems = array();
+    	$rec = $mvc->fetchRec($id);
+    	$dealItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+    	 
+    	// Записите от журнала засягащи това перо
+    	$entries = acc_Journal::getEntries(array($mvc, $rec->id));
+    	 
+    	// Намираме оттеглените документи в треда, те нямат транзакция и няма да фигурират в $entries, за това
+    	// ги добавяме ръчно, за да участват и те в проверката
+    	$descendants = $mvc->getDescendants($rec->id);
+    	 
+    	// Към тях добавяме и самия документ
+    	$entries[] = (object)array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
+    	 
+    	if($descendants){
+    		foreach ($descendants as $doc){
+    			 
+    			// ако е оттеглен го добавяме в масива за проверка
+    			if($doc->fetchField('state') == 'rejected'){
+    				$entries[] = (object)array('docType' => $doc->getClassId(), 'docId' => $doc->that);
+    			}
+    		}
+    	}
+    	 
+    	// За всеки запис
+    	foreach ($entries as $ent){
+    
+    		// Ако има метод 'getValidatedTransaction'
+    		$Doc = cls::get($ent->docType);
+    
+    		// Ако транзакцията е направена от друг тред запомняме от кой документ е направена
+    		$threadId = $Doc->fetchField($ent->docId, 'threadId');
+    		if($threadId != $rec->threadId){
+    			$mvc->usedIn[$dealItem->id][] = $Doc->getHandle($ent->docId);
+    		}
+    
+    		if(cls::existsMethod($Doc, 'getValidatedTransaction')){
+    			 
+    			// Ако има валидна транзакция, проверяваме дали има затворени пера
+    			$transaction = $Doc->getValidatedTransaction($ent->docId);
+    			 
+    			if($transaction){
+    				// Добавяме всички приключени пера
+    				$closedItems += $transaction->getClosedItems();
+    			}
+    		}
+    	}
+    	 
+    	if($rec->state != 'closed'){
+    		unset($closedItems[$dealItem->id]);
+    	}
+    	 
+    	// Връщаме намерените пера
+    	$res = $closedItems;
+    }
+    
+    
+    /**
+     * Екшън за приключване на сделка с друга сделка
+     */
+    public function act_Closewith()
+    {
+    	$id = Request::get('id', 'int');
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'draft');
+    
+    	// Трябва потребителя да може да контира
+    	$this->requireRightFor('conto', $rec);
+    
+    	$options = $this->getDealsToCloseWith($rec);
+    	count($options);
+    
+    	// Подготовка на формата за избор на опция
+    	$form = cls::get('core_Form');
+    	$form->title = "|Активиране на|* <b>" . $this->getTitleById($id). "</b>" . " ?";
+    	$form->info = 'Искатели с активирането на тази сделка да приключите други сделки с нея';
+    	$form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1');
+    	$form->setSuggestions('closeWith', $options);
+    	$form->input();
+    
+    	// След като формата се изпрати
+    	if($form->isSubmitted()){
+    		$rec->contoActions = 'activate';
+    		$rec->state = 'active';
+    		if(!empty($form->rec->closeWith)){
+    			$rec->closedDocuments = $form->rec->closeWith;
+    		}
+    		$this->save($rec);
+    		$this->invoke('AfterActivation', array($rec));
+    	   
+    		if(!empty($form->rec->closeWith)){
+    			$CloseDoc = cls::get($this->closeDealDoc);
+    			$deals = keylist::toArray($form->rec->closeWith);
+    			foreach ($deals as $dealId){
+    					 
+    				// Създаване на приключващ документ-чернова
+    				$dRec = $this->fetch($dealId);
+    				$clId = $CloseDoc->create($this->className, $dRec, $id);
+    				$CloseDoc->conto($clId);
+    			}
+    		}
+    	   
+    		return redirect(array($this, 'single', $id));
+    	}
+    
+    	$form->toolbar->addSbBtn('Активиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
+    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
+    		 
+    	// Рендиране на формата
+    	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	if($rec->closedDocuments){
+    		$docs = keylist::toArray($rec->closedDocuments);
+    		$row->closedDocuments = '';
+    		
+    		foreach ($docs as $docId){
+    			$row->closedDocuments .= ht::createLink($mvc->getHandle($docId), array($mvc, 'single', $docId)) . ", ";
+    		}
+    		$row->closedDocuments = trim($row->closedDocuments, ", ");
+    	}
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+    	if(isset($data->tabs)){
+    		$tab = (isset($data->dealHistory)) ? 'dealHistory' : 'statistic';
+    		$tabHtml = $data->tabs->renderHtml("", $tab);
+    		$tpl->replace($tabHtml, 'TABS');
+    		
+    		// Ако има история на сделката показваме я
+    		if(isset($data->dealHistory)){
+    			$tableMvc = new core_Mvc;
+    			$tableMvc->FLD('debitAcc', 'varchar', 'tdClass=articleCell');
+    			$tableMvc->FLD('creditAcc', 'varchar', 'tdClass=articleCell');
+    		
+    			$table = cls::get('core_TableView', array('mvc' => $tableMvc));
+    			$fields = "valior=Вальор,debitAcc=Дебит->Сметка,debitQuantity=Дебит->К-во,debitPrice=Дебит->Цена,creditAcc=Кредит->Сметка,creditQuantity=Кредит->К-во,creditPrice=Кредит->Цена,amount=Сума";
+    		
+    			$tpl->append($table->get($data->dealHistory, $fields), 'DEAL_HISTORY');
+    			$tpl->append($data->historyPager->getHtml(), 'DEAL_HISTORY');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {
+    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+    	$url = getCurrentUrl();
+    	unset($url['dealHistory']);
+    	$histUrl = array();
+    	$histUrl = $url;
+    	$histUrl['dealHistory'] = TRUE;
+    	
+    	// Ако сме в нормален режим
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    		$tabs->TAB('statistic', 'Статистика' , $url);
+    		$tabs->TAB('dealHistory', 'История' , $histUrl);
+    		
+    		// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
+    		if(Request::get('dealHistory', 'int') && haveRole('acc, ceo')){
+    			$mvc->prepareDealHistory($data);
+    		}
+    		
+    		// Ако имаме сч. права показваме табовете
+    		if(haveRole('acc, ceo')){
+    			$data->tabs = $tabs;
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Подготвя обединено представяне на всички записи от журнала където участва сделката
+     */
+    protected function prepareDealHistory(&$data)
+    {
+    	$rec = $data->rec;
+    	
+    	// Извличаме всички записи от журнала където сделката е в дебита или в кредита
+    	$entries = acc_Journal::getEntries(array($this->className, $rec->id));
+    	
+    	$history = array();
+    	$Date = cls::get('type_Date');
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
+    	
+    	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->historyItemsPerPage));
+    	$Pager->itemsCount = count($entries);
+    	$Pager->calc();
+    	$data->historyPager = $Pager;
+    	
+    	$start = $data->historyPager->rangeStart;
+    	$end = $data->historyPager->rangeEnd - 1;
+    	
+    	// Ако има записи където участва перото подготвяме ги за показване
+    	if(count($entries)){
+    		$count = 0;
+    		$l = cls::get('acc_JournalDetails');
+    		foreach ($entries as $ent){
+    			
+    			if($count >= $start && $count <= $end){
+    				$obj = new stdClass();
+    				$obj->valior = $Date->toVerbal($ent->valior);
+    				$obj->valior .= "<br>". cls::get($ent->docType)->getHandle($ent->docId);
+    				$obj->valior = "<span style='font-size:0.8em;'>{$obj->valior}</span>";
+    				if(empty($this->historyCache[$ent->debitAccId])){
+    					$this->historyCache[$ent->debitAccId] = acc_Balances::getAccountLink($ent->debitAccId);
+    				}
+    				 
+    				if(empty($this->historyCache[$ent->creditAccId])){
+    					$this->historyCache[$ent->creditAccId] = acc_Balances::getAccountLink($ent->creditAccId);
+    				}
+    				$obj->debitAcc = $this->historyCache[$ent->debitAccId];
+    				$obj->creditAcc = $this->historyCache[$ent->creditAccId];
+    				 
+    				foreach (range(1, 3) as $i){
+    					if(!empty($ent->{"debitItem{$i}"})){
+    						$obj->debitAcc .= "<div style='font-size:0.8em'>{$i}. " . acc_Items::getVerbal($ent->{"debitItem{$i}"}, 'titleLink') . "</div>";
+    					}
+    				
+    					if(!empty($ent->{"creditItem{$i}"})){
+    						$obj->creditAcc .= "<div style='font-size:0.8em'>{$i}. " . acc_Items::getVerbal($ent->{"creditItem{$i}"}, 'titleLink') . "</div>";
+    					}
+    				}
+    				 
+    				foreach (array('debitQuantity', 'debitPrice', 'creditQuantity', 'creditPrice', 'amount') as $fld){
+    					$obj->$fld = "<span style='float:right'>" . $Double->toVerbal($ent->$fld) . "</span>";
+    				}
+    				 
+    				$history[] = $obj;
+    			}
+    			
+    			$count++;
+    		}
+    	}
+    	
+    	$data->dealHistory = $history;
+    }
+}

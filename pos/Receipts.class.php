@@ -1181,6 +1181,8 @@ class pos_Receipts extends core_Master {
     private function getFiscPrinterData($id)
     {
     	$receiptRec = $this->fetchRec($id);
+    	$data = new stdClass();
+    	$data->totalPaid = 0;
     	
     	$payments = $products = array();
     	$query = pos_ReceiptDetails::getQuery();
@@ -1211,11 +1213,15 @@ class pos_Receipts extends core_Master {
     			list(, $type) = explode('|', $rec->action);
     			$nRec->type = cond_Payments::fetchField($type, 'code');
     			$nRec->amount = round($rec->amount, 2);
+    			$data->totalPaid += $nRec->amount;
     			
     			$payments[] = $nRec;
     		}
     	}
     	
-    	return (object)array('products' => $products, 'payments' => $payments);
+    	$data->products = $products;
+    	$data->payments = $payments;
+    	
+    	return $data;
     }
 }

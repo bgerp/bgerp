@@ -35,6 +35,7 @@ class acc_plg_Contable extends core_Plugin
         }
         
         setIfNot($mvc->canCorrection, 'ceo, accMaster');
+        setIfNot($mvc->valiorFld, 'valior');
         
         // Зареждаме плъгина, който проверява можели да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');

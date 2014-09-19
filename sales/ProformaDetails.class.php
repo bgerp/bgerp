@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_ProformaDetails extends acc_InvoiceDetail
+class sales_ProformaDetails extends deals_InvoiceDetail
 {
     /**
      * Заглавие

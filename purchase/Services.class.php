@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class purchase_Services extends acc_ServiceMaster
+class purchase_Services extends deals_ServiceMaster
 {
     /**
      * Заглавие
@@ -156,18 +156,9 @@ class purchase_Services extends acc_ServiceMaster
     
     
 	/**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$mvc->setTemplates($res);
-    }
-    
-    
-	/**
      * Зарежда шаблоните на продажбата в doc_TplManager
      */
-    private function setTemplates(&$res)
+    protected function setTemplates(&$res)
     {
     	$tplArr[] = array('name' => 'Приемателен протокол за услуги', 
     					  'content' => 'purchase/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 

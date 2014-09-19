@@ -7,13 +7,13 @@
  *
  *
  * @category  bgerp
- * @package   acc
+ * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class acc_InvoiceDetail extends core_Detail
+abstract class deals_InvoiceDetail extends core_Detail
 {
 	
 	/**
@@ -51,7 +51,7 @@ abstract class acc_InvoiceDetail extends core_Detail
 	 */
 	public static function setInvoiceDetailFields(&$mvc)
 	{
-		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol');
+		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol wrap');
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
 		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field');
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory','tdClass=small-field');

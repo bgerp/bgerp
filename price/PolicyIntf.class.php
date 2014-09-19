@@ -26,9 +26,9 @@ class price_PolicyIntf
      * $rec->discount - отстъпка
      * $rec->priority - приоритет на цената (0, 1 или 2)
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $roundForDocument = FALSE)
     {
-        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $date);
+        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $date, $roundForDocument);
     }
     
     

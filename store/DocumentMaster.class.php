@@ -472,9 +472,12 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    public static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
-    	$mvc->setTemplates($res);
+    	$res = '';
+    	$this->setTemplates($res);
+    	
+    	return $res;
     }
 
 
