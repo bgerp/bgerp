@@ -204,7 +204,14 @@ class type_Keylist extends core_Type {
                     $v = type_Key::getOptionTitle($v);
                     
                     $cb = ht::createElement('input', $attrCB);
-                    $cb->append("<label data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
+                    
+                    if($this->params['maxCaptionLen'] &&  $this->params['maxCaptionLen'] < mb_strlen($v)) {
+                    	$title = " title=" . ht::escapeAttr($v);
+                    	$v = str::limitLen($v, $this->params['maxCaptionLen']);
+                    } else {
+                    	$title = "";
+                    }
+                    $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0 && $j>0) {
                         $html .= "\n<tr class='row-" .$j . "'>";

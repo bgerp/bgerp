@@ -63,7 +63,7 @@ class type_Set extends core_Type {
 
         // Определяме броя на колоните, ако не са зададени.
         $col = $this->params['columns'] ? $this->params['columns'] :
-        min(($this->params['maxColumns'] ? $this->params['maxColumns'] : 4),
+       min(($this->params['maxColumns'] ? $this->params['maxColumns'] : ((Mode::is('screenMode', 'wide')) ? 4 : 2)),
             round(sqrt(max(0, count($this->suggestions) + 1))));
         
         $tpl = new ET("\n<table class='keylist'>[#OPT#]\n</table>");
@@ -96,8 +96,15 @@ class type_Set extends core_Type {
                         unset($attr['checked']);
                     }
                     
+                    if($this->maxCaptionLen &&  $this->maxCaptionLen < mb_strlen($v)) {
+                    	$title = "title=" . ht::escapeAttr($v);
+                    	$v = str::limitLen($v, $this->maxCaptionLen,  $this->maxCaptionLen, "..");
+                    } else {
+                    	$title = "";
+                    }
+                   
                     $cb = ht::createElement('input', $attr);
-                    $cb->append("<label  for=\"" . $attr['id'] . "\">{$v}</label>");
+                    $cb->append("<label {$title} data-colsInRow='" .$col . "' for=\"" . $attr['id'] . "\">{$v}</label>");
                     
                     if($i == 0) {
                         $html .= "\n<tr>";
