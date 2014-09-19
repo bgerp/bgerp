@@ -279,7 +279,7 @@ class core_BaseClass
         $method = 'act_' . $act;
         
         if (!method_exists($this, $method)) {
-            error("Липсващ метод:|* $method |на|* " . cls::getClassName($this));
+            error("404 Липсващ метод: {$method} на " . cls::getClassName($this));
         }
         
         return $this->{$method}();
