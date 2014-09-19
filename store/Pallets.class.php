@@ -471,12 +471,12 @@ class store_Pallets extends core_Manager
             
             // Проверка за количеството
             if (store_Pallets::checkProductQuantity($rec) === FALSE) {
-                core_Message::redirect("Междувременно е палетирано от този продукт
-                                        и наличното непалетирано количество в склада не е достатъчно 
-                                        за извършването на тази операция",
-                    'page_Error',
-                    NULL,
-                    array("store_Products"));
+                redirect(   array("store_Products"),
+                            TRUE,
+                            "Междувременно е палетирано от този продукт " .
+                            "и наличното непалетирано количество в склада не е достатъчно " .
+                            "за извършването на тази операция"
+                    );
             } else {
                 // При достатъчно количество за пакетиране
                 switch ($rec->palletPlaceHowto) {

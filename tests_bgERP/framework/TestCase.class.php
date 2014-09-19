@@ -63,7 +63,7 @@ class framework_TestCase extends PHPUnit_Framework_TestCase
                 try {
                     $result[$mvcName][] = $mvc->save((object)$r);
                 } catch (core_exception_Expect $ex) {
-                    var_dump($ex->args());
+                    print_r($ex->args());
                 }
             }
         }

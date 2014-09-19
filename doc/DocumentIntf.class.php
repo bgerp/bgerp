@@ -104,7 +104,7 @@ class doc_DocumentIntf
      *
      * @param $folderId int ид на папката
      */
-    static function canAddToFolder($folderId)
+    function canAddToFolder($folderId)
     {
         return $this->class->canAddToFolder($folderId);
     }

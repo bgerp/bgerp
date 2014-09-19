@@ -166,15 +166,14 @@ class cal_Tasks extends core_Master
      */
     var $newBtnGroup = "1.3|Общи"; 
     
-    static $view = array (
+    static $view = array(
 						    'WeekHour' => 1,
 						    'WeekHour4' => 2,
     						'WeekHour6' => 3,
     						'WeekDay' => 4,
     						'Months' => 5,
     						'YearWeek' => 6,
-    						'Years'=> 7,
-    				
+    			            'Years'=> 7,
     				);
     				
      var $filterFieldDateFrom = 'timeStart';
@@ -1749,11 +1748,11 @@ class cal_Tasks extends core_Master
     	
     	// ако имаме повече от едно условие за задачата, трябва всички да са изпълнени
     	if (count($arrCond) > 1) {
-    		if (($conditionProgress and $conditionCalcTime) == TRUE) {
+    		if (($conditionProgress && $conditionCalcTime) == TRUE) {
     			$conditionTwo = TRUE;
     		}
     	} else {
-    		if (($conditionProgress or $conditionCalcTime) == TRUE) {
+    		if (($conditionProgress || $conditionCalcTime) == TRUE) {
     			$conditionTwo = TRUE;
     		}
     	}

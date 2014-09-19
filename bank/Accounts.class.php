@@ -91,7 +91,7 @@ class bank_Accounts extends core_Master {
 	 * Файл за единичен изглед
 	 */
 	var $singleLayoutFile = 'bank/tpl/SingleAccountLayout.shtml';
-	
+
 	
     /**
      * Описание на модела (таблицата)
