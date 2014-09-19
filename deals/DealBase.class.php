@@ -200,21 +200,22 @@ abstract class deals_DealBase extends core_Master
      * @param int $id - ид на документа
      * @return array $options - опции
      */
-    public static function on_AfterGetDealsToCloseWith($mvc, &$res, $rec)
+    public function getDealsToCloseWith($rec)
     {
     	// Избираме всички други активни сделки от същия тип и валута, като началния документ в същата папка
     	$docs = array();
-    	$dealQuery = $mvc->getQuery();
+    	$dealQuery = $this->getQuery();
     	$dealQuery->where("#id != {$rec->id}");
     	$dealQuery->where("#folderId = {$rec->folderId}");
     	$dealQuery->where("#currencyId = '{$rec->currencyId}'");
     	$dealQuery->where("#state = 'active'");
-    	 
+    	$dealQuery->where("#closedDocuments = ''");
+    	
     	while($dealRec = $dealQuery->fetch()){
-    		$docs[$dealRec->id] = $mvc->getRecTitle($dealRec);
+    		$docs[$dealRec->id] = $this->getRecTitle($dealRec);
     	}
     	 
-    	$res = $docs;
+    	return $docs;
     }
 
 
@@ -296,7 +297,7 @@ abstract class deals_DealBase extends core_Master
     	$this->requireRightFor('conto', $rec);
     
     	$options = $this->getDealsToCloseWith($rec);
-    	count($options);
+    	expect(count($options));
     
     	// Подготовка на формата за избор на опция
     	$form = cls::get('core_Form');
