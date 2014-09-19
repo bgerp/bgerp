@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class purchase_ServicesDetails extends acc_DeliveryDocumentDetail
+class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
 {
     /**
      * Заглавие

@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_ReceiptDetails extends acc_DeliveryDocumentDetail
+class store_ReceiptDetails extends deals_DeliveryDocumentDetail
 {
     /**
      * Заглавие

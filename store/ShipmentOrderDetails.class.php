@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_ShipmentOrderDetails extends acc_DeliveryDocumentDetail
+class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 {
     /**
      * Заглавие
