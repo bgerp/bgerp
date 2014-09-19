@@ -132,6 +132,18 @@ abstract class deals_Document extends core_Master
     
     
     /**
+     * Може ли документа може да се добави в посочената папка?
+     *
+     * @param $folderId int ид на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	return FALSE;
+    }
+    
+    
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *

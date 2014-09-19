@@ -235,7 +235,7 @@ abstract class acc_ClosedDeals extends core_Master
     
     
 	/**
-     * Може ли документ-продажба да се добави в посочената папка?
+     * Може ли документа да се добави в посочената папка?
      */
     public static function canAddToFolder($folderId)
     {

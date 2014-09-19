@@ -53,6 +53,37 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		$mvc->declareInterface('doc_AddToFolderIntf');
 	}
+
+
+	/**
+	 * Какво е платежното състояние на сделката
+	 */
+	public function getPaymentState($aggregateDealInfo, $state)
+	{
+		$amountPaid      = $aggregateDealInfo->get('amountPaid');
+		$amountBl        = $aggregateDealInfo->get('blAmount');
+		$amountDelivered = $aggregateDealInfo->get('deliveryAmount');
+	
+		// Ако имаме платено и доставено
+		$diff = round($amountDelivered - $amountPaid, 4);
+	
+		$conf = core_Packs::getConfig('acc');
+	
+		// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
+		if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
+	
+			// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
+			return ($state != 'overdue') ? 'paid' : 'repaid';
+		}
+			
+		// Ако крайното салдо е 0 я водим за издължена
+		if(round($amountBl, 2) == 0){
+			
+			return 'repaid';
+		}
+		
+		return 'pending';
+	}
 	
 	
 	/**
@@ -269,7 +300,7 @@ abstract class deals_DealMaster extends deals_DealBase
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
+        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,repaid=Издължени)', 'caption=Тип');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
@@ -303,6 +334,9 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case 'overdue':
 						$data->query->where("#paymentState = 'overdue'");
+						break;
+					case 'repaid':
+						$data->query->where("#paymentState = 'repaid'");
 						break;
 					case 'delivered':
 						$data->query->where("#deliveredRound = #dealRound");
@@ -344,9 +378,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Може ли документ-продажба да се добави в посочената папка?
-     * 
-     * Документи-продажба могат да се добавят само в папки с корица контрагент.
+     * Може ли документа да се добави в посочената папка?
      *
      * @param $folderId int ид на папката
      * @return boolean

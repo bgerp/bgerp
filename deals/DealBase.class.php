@@ -95,30 +95,6 @@ abstract class deals_DealBase extends core_Master
 
 
 	/**
-	 * Какво е платежното състояние на сделката
-	 */
-	public function getPaymentState($aggregateDealInfo, $state)
-	{
-		$amountPaid      = $aggregateDealInfo->get('amountPaid');
-		$amountDelivered = $aggregateDealInfo->get('deliveryAmount');
-		 
-		// Ако имаме платено и доставено
-		$diff = round($amountDelivered - $amountPaid, 4);
-	
-		$conf = core_Packs::getConfig('acc');
-	
-		// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
-		if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
-			 
-			// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
-			return ($state != 'overdue') ? 'paid' : 'repaid';
-		}
-		 
-		return 'pending';
-	}
-
-
-	/**
 	 * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
 	 * Генерира агрегираната бизнес информация за тази сделка
 	 *
