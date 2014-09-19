@@ -97,6 +97,8 @@ class price_Setup extends core_ProtoSetup
     function priceHistoryTruncate()
     {
         $history = cls::get('price_History');
-        $history->truncate();
+        if($history->db->tableExists($history->dbTableName)) {
+            $history->truncate();
+        }
     }
 }
