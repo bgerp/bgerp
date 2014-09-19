@@ -378,10 +378,6 @@ class price_ListToCustomers extends core_Detail
      * 
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
-     * 				  $rec->priority - приоритет на цената
-     * 				  	0 - ако ценоразписа му е публичен
-     * 				  	1 - ако политиката е по последна цена
-     * 					2 - aко има частна ценова политика
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
@@ -391,7 +387,6 @@ class price_ListToCustomers extends core_Detail
         $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, TRUE);
 		
         $listRec = price_Lists::fetch($listId);
-        $rec->priority = ($listRec->public == 'yes') ? 0 : 2;
        
         // Ако е избрано да се връща отстъпката спрямо друга политика
         if(!empty($listRec->discountCompared)){
