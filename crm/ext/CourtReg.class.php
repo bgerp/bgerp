@@ -10,7 +10,7 @@ class crm_ext_CourtReg extends core_Detail
     /**
      * Заглавие
      */
-    var $title = 'Лични карти';
+    var $title = 'Съдебни регистрации';
 
     
     /**

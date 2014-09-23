@@ -18,7 +18,7 @@ class callcenter_Talks extends core_Master
     /**
      * Заглавие на модела
      */
-    var $title = 'Разговори';
+    var $title = 'Телефонни разговори';
     
     
     /**
