@@ -294,7 +294,7 @@ class type_Richtext extends type_Blob
 
         // Обработваме елемента [li]
         $html = self::replaceList($html);
-
+        
         // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код \[bQuote
         $html = preg_replace_callback(self::QUOTE_PATTERN, array($this, '_catchBQuote'), $html);
         
@@ -608,6 +608,7 @@ class type_Richtext extends type_Blob
     {
         $place = $this->getPlace();
         $code = $match[3];
+        $end = $match[4];
         
         $code = str_replace("\r\n", "\n", $code);
 
@@ -627,10 +628,10 @@ class type_Richtext extends type_Blob
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
-            $res = "<pre class='rich-text code{$classLg}'><code>[#{$place}#]</code></pre>"; 
+            $res = "<pre class='rich-text code{$classLg}'><code>[#{$place}#]</code></pre>" . $end; 
         } else {
            // $code = str_replace("\n", "<br>", $code);
-            $res = "<pre class='rich-text'>[#{$place}#]</pre>";
+            $res = "<pre class='rich-text'>[#{$place}#]</pre>" . $end;
         }
         
         $this->_htmlBoard[$place] = rtrim($code);
