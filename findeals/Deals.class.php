@@ -55,6 +55,12 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Кои сметки не могат да се избират
+     */
+    public static $exceptAccSysIds = '401,411,402,412';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,findeals';
@@ -252,7 +258,16 @@ class findeals_Deals extends deals_DealBase
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     	 
     	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+    	
     	acc_type_Account::filterSuggestions('crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf', $options);
+    	
+    	// Премахваме от избора упоменатите сметки, които трябва да се изключат
+    	$except = arr::make(static::$exceptAccSysIds);
+    	foreach ($except as $sysId){
+    		$accId = acc_Accounts::getRecBySystemId($sysId)->id;
+    		unset($options[$accId]);
+    	}
+    	
     	$form->setOptions('accountId', array('' => '') + $options);
     	
     	return $data;
