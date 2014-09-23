@@ -47,7 +47,7 @@ class core_Sbf extends core_Mvc
         }
 
         if(@file_put_contents($path, $content) !== FALSE) {
-
+            usleep(1000);
             return $path;
         }
 
