@@ -3,7 +3,7 @@ function posActions() {
 	var pageWidth = parseInt($(window).width());
 	
 	// Забраняване на скалирането, за да избегнем забавяне
-	if(is_touch_device()){
+	if(isTouchDevice()){
 		 $('meta[name=viewport]').remove();
 		 $('meta').attr('name', 'viewport').attr('content', 'width=device-width, user-scalable=no').appendTo('head');
 	}
