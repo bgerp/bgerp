@@ -117,15 +117,21 @@ class cat_type_Uom extends type_Varchar {
     function renderInput_($name, $value = '', &$attr = array())
 	{
 		// Ако има запис, конвертира се в удобен вид
-		if(isset($value)){
-			if(empty($this->error)){
+        
+            $convObject = new stdClass();
+            
+            expect($unitRec = cat_UoM::fetchBySinonim($this->params['unit']));
+
+		    if($value === NULL || $value === ''){
+				$convObject->value = '';
+                $convObject->measure = $unitRec->id;
+			} elseif (empty($this->error)){
 				$convObject = cat_UoM::smartConvert($value, $this->params['unit'], FALSE, TRUE);
 			} else {
-				$convObject = new stdClass();
 				$convObject->value = $value['lP'];
 				$convObject->measure = $value['rP'];
 			}
-		}
+		
 		
 		// Рендиране на частта за въвеждане на числото
 		setIfNot($attr['size'], '7em');
@@ -135,7 +141,7 @@ class cat_type_Uom extends type_Varchar {
 		// Извличане на всички производни мярки
 		$options = cat_UoM::getSameTypeMeasures($this->baseMeasureId, TRUE);
         unset($options['']);
-        
+
 		$inputRight = " &nbsp;" . ht::createSmartSelect($options, $name . '[rP]', $convObject->measure);
 		
 		// Добавяне на дясната част към лявата на полето
