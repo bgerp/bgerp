@@ -139,17 +139,11 @@ class fileman_GalleryRichTextPlg extends core_Plugin
         	$res = new ET($tpl, $res);
         }
         
-        if ($res instanceof core_ET) {
-            $res->append($match['end']);
-        } else {
-            $res = $res . $match['end'];
-        }
-        
         $place = $this->mvc->getPlace();
 
         $this->mvc->_htmlBoard[$place] = $res;
 
-        return "[#{$place}#]";
+        return "[#{$place}#]" . $match['end'];
     }
     
     
