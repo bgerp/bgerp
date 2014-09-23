@@ -8,6 +8,12 @@ defIfNot('EXCHANGE_DEVIATION', '0.05');
 
 
 /**
+ * Основна валута, ако до сега не е била дефинирана
+ */
+defIfNot('CURRENCY_BASE_CODE', 'BGN');
+
+
+/**
  * class currency_Setup
  *
  * Инсталиране/Деинсталиране на
