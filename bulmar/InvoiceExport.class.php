@@ -47,6 +47,12 @@ class bulmar_InvoiceExport extends core_Manager {
     
     
     /**
+     * Работен кеш
+     */
+    private $sales = array();
+    
+    
+    /**
      * Подготвя формата за експорт
      * 
      * @param core_Form $form
@@ -124,12 +130,42 @@ class bulmar_InvoiceExport extends core_Manager {
     	$data = new stdClass();
     	
     	$data->static = $this->getStaticData();
-    	$data->recs = array();
+    	$grouped = $data->recs = array();
+    	
+    	// Изчисляваме колко е платено в брой на всяка продажба участваща в ф-та
+    	foreach ($recs as $rec){
+    		$origin = doc_Threads::getFirstDocument($rec->threadId);
+    		$rec->saleOriginId = $origin->that;
+    		if(empty($this->sales[$origin->that])){
+    			$originRec = $origin->fetch();
+    			$this->sales[$origin->that] = round($originRec->amountPaid, 2);
+    		}
+    		$grouped[$origin->that][$rec->id] = $rec->id;
+    	}
     	
     	$count = 0;
     	foreach ($recs as $rec){
     		$count++;
-    		$data->recs[] = $this->prepareRec($rec, $count);
+    		$data->recs[$rec->id] = $this->prepareRec($rec, $count);
+    	}
+    	
+    	// Групираните ф-ри по продажби, разпределяме им платеното по продажбата
+    	foreach ($grouped as $saleId => $invArr){
+    		$total = $this->sales[$saleId];
+    		$invCount = count($invArr);
+    		foreach ($invArr as $id => $inv){
+    			$rec = &$data->recs[$id];
+    			if(empty($rec->accountId) && $total > 0){
+    				$amount = ($total < $rec->amount) ? $total : $rec->amount;
+    				$rec->amountPaid = $amount;
+    				$total-= $amount;
+    			}
+    		}
+    		
+    		if($total > 0){
+    			$data->recs[$id]->amountPaid += $total;
+    			$total = 0;
+    		}
     	}
     	
     	return $data;
@@ -149,7 +185,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	$nRec->type = self::$invTypes[$rec->type];
     	$sign = ($rec->type == 'credit_note') ? -1 : 1;
     	
-    	$baseAmount = round($rec->dealValue - $rec->discountAmount, 2);
+    	$baseAmount = round($rec->dealValue - $rec->discountAmount, 6);
     	if($rec->dpOperation == 'deducted'){
     		$baseAmount += abs($rec->dpAmount);
     	}
@@ -190,7 +226,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	$nRec->vat = $sign * $vat;
     	$nRec->productsAmount = $sign * round($byProducts, 2);
     	$nRec->servicesAmount = $sign * round($byServices, 2);
-    	$nRec->amount = $sign * round($baseAmount + $vat, 2);
+    	$nRec->amount = $sign * round($baseAmount + $rec->vatAmount, 2);
     	$nRec->baseAmount = $sign * round($baseAmount, 2);
     	
     	if($rec->dpOperation){
@@ -199,10 +235,6 @@ class bulmar_InvoiceExport extends core_Manager {
     		if($rec->dpOperation == 'accrued'){
     			$nRec->reason = 'Фактура за аванс';
     		}
-    	}
-    	
-    	if(empty($rec->accountId)){
-    		$nRec->amountPaid = $nRec->amount;
     	}
     	
     	$nRec->contragentEik = ($rec->contragentVatNo) ? $rec->contragentVatNo : $rec->uicNo;
