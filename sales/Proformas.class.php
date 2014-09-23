@@ -273,4 +273,13 @@ class sales_Proformas extends deals_InvoiceMaster
     {
     	return FALSE;
     }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    }
 }

@@ -3538,7 +3538,31 @@ body.narrow {
         margin-left:4px !important;
     }
 }
+.footerDocInfo{
+    padding-top: 10px;
+    text-align: right;
+    font-size: 13px;
+    color: #666;
+    display: none;
+    a {
+        color:#333 !important;
+    }
+    td{
+       border: none !important;
+    }
+}
 
+.footerDocBlock{
+	margin-top: 20px;
+	text-align: right;
+    font-size: 13px;
+    color: #666;
+    border-top: 1px solid #666 !important;
+    display: none;
+    a {
+        color:#333 !important;
+    }
+}
 /*край на queries*/
 
 .external {
@@ -3558,6 +3582,12 @@ body.narrow {
     .blankImage img, .qrcode img{
         width: 100%;
         height: auto !important;
+    }
+    .footerDocInfo{
+        display: table-row;;
+    }
+    .footerDocBlock{
+        display: block;
     }
 }
 
@@ -3731,6 +3761,13 @@ body.narrow {
 	.overflow-scroll{
 	   overflow-x: visible !important;
 	}
+    .footerDocBlock{
+        display: block;
+        border-top: 1px solid #666 !important;
+    }
+	.footerDocInfo {
+        display: table-row;
+    }
 }
 
 .printing {
@@ -3799,7 +3836,12 @@ body.narrow {
     .overflow-scroll{
        overflow-x: visible !important;
     }
-    
+    .footerDocInfo{
+        display: table-row;
+    } 
+    .footerDocBlock{
+        display: block;
+    }
 }
 
 .narrow .printing .document{
@@ -3969,3 +4011,6 @@ body.narrow {
 	top:3px;
 	margin-right:10px;
 }
+
+
+

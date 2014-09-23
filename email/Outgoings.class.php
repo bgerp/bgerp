@@ -460,11 +460,15 @@ class email_Outgoings extends core_Master
             $nRec = new stdClass();
             $nRec->id = $rec->id;
             
+            $saveArray = array();
+            $saveArray['id'] = 'id';
+            
             // Ако имейла е активен или чернова и не е въведено време за изчакване
             if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft')) {
                 
                 // Сменяме състоянието на затворено
                 $nRec->state = 'closed';
+                $saveArray['state'] = 'state';
             }
             
             // Ако ще се изчаква
@@ -473,14 +477,17 @@ class email_Outgoings extends core_Master
                 // Добавяме времето на изчкаваме и състоянието
                 $nRec->waiting = $options->waiting;
                 $nRec->state = 'pending';
+                $saveArray['state'] = 'state';
             }
             
             // От кого и кога е изпратено последно
             $nRec->lastSendedOn = dt::now();
             $nRec->lastSendedBy = core_Users::getCurrent();
+            $saveArray['lastSendedOn'] = 'lastSendedOn';
+            $saveArray['lastSendedBy'] = 'lastSendedBy';
             
             // Записваме
-            $inst->save($nRec);
+            $inst->save($nRec, $saveArray);
         } 
         
         // Ако има провалено изпращане
@@ -1892,8 +1899,8 @@ class email_Outgoings extends core_Master
     
     /**
      * Намира изпратени и чакащи имейли, на които им е минал срока.
-     * Ако има входящ имейл слет последното изпращане на имейла, се затваря
-     * Ако няма входящ имейл и срок е минал, изпраща се нотификация до последно изпратилия
+     * Ако има входящ имейл след последното изпращане на имейла, се затваря
+     * Ако няма входящ имейл и срок е минал, изпраща се нотификация до последния изпращач
      */
     static function processWaitingEmails()
     {
@@ -1914,6 +1921,8 @@ class email_Outgoings extends core_Master
             
             $nRec = new stdClass();
             $nRec->id = $rec->id;
+            $saveFiedsArr = array();
+            $saveFiedsArr['id'] = 'id';
             
             // Ако има входящ имейл след последното изпращане в нишката
             if (doc_Containers::haveDocsAfter($rec->threadId, $rec->lastSendedOn, $incomingClassId)) {
@@ -1928,6 +1937,7 @@ class email_Outgoings extends core_Master
                 
                 // Затваряме
                 $nRec->state = 'closed';
+                $saveFiedsArr['state'] = 'state';
                 $flagSave = TRUE;
             } else {
                 
@@ -1941,6 +1951,7 @@ class email_Outgoings extends core_Master
                     
                     // "Събуждаме" имейла и добавяме нотификация
                     $nRec->state = 'wakeup';
+                    $saveFiedsArr['state'] = 'state';
                     static::addWaitingEmailNotification($rec->lastSendedBy);
                     $flagSave = TRUE;
                 }
@@ -1948,7 +1959,7 @@ class email_Outgoings extends core_Master
             
             // Ако е вдигнат флага, записваме
             if ($flagSave) {
-                if (static::save($nRec)) {
+                if (static::save($nRec, $saveFiedsArr)) {
                     $cnt++;
                 }
             }

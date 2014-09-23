@@ -20,23 +20,6 @@ class techno_ProductsIntf
 	 * Класа имплементиращ интерфейса
 	 */
 	public $class;
-	
-    
-    /**
-     * Връща информация за ед цена на продукта, отстъпката и таксите
-     * @param int $id - ид на продукт
-     * @param int $packagingId - ид на опаковка
-     * @param double quantity - количество
-     * @param datetime $datetime - дата
-     * @return stdClass $priceInfo - информация за цената на продукта
-     * 				[price]- начална цена
-     * 				[discount]  - отстъпка
-     * 				[tax]     - нач. такса
-     */
-    public function getPriceInfo($id, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
-    {
-    	return $this->class->getPrice($id, $packagingId, $quantity, $datetime);
-    }
     
     
     /**

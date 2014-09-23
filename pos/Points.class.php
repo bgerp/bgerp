@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -123,7 +123,7 @@ class pos_Points extends core_Master {
     /**
      * Създава дефолт контрагент за обекта, ако той вече няма създаден
      */
-    static function on_AfterSave($mvc, &$id, $rec)
+    public static function on_AfterSave($mvc, &$id, $rec)
     {
     	if(!static::defaultContragent($id)) {
 	    	$defaultContragent = new stdClass();
@@ -136,7 +136,7 @@ class pos_Points extends core_Master {
     /**
      * Подготовка на формата за добавяне
      */
-    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
     	$data->form->setDefault('policyId', price_ListRules::PRICE_LIST_CATALOG);
     }
@@ -164,10 +164,10 @@ class pos_Points extends core_Master {
 	/**
      * След подготовка на тулбара на единичен изглед.
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
-    		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'single'), NULL, 'title=Отваряне на точката,ef_icon=img/16/forward16.png,target=_blank');
+    		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'Terminal'), NULL, 'title=Отваряне на точката,ef_icon=img/16/forward16.png,target=_blank');
     	}
     }
     
@@ -213,7 +213,7 @@ class pos_Points extends core_Master {
 	/**
 	 * Преди подготовка на резултатите
 	 */
-	function on_AfterPrepareListFilter($mvc, &$data)
+	public static function on_AfterPrepareListFilter($mvc, &$data)
 	{
 		if(!haveRole($mvc->canSelectAll)){
 			
@@ -228,7 +228,7 @@ class pos_Points extends core_Master {
 	/**
      * След преобразуване на записа в четим за хора вид.
      */
-    static function on_AfterPrepareListRows($mvc, &$data)
+    public static function on_AfterPrepareListRows($mvc, &$data)
     {
         $rows = &$data->rows;
         if(!count($rows)) return;

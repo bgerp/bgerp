@@ -363,7 +363,14 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако е намерен контейнера - обновява го
         if($containerId) {
-            doc_Containers::update($containerId);
+            
+            $updateAll = TRUE;
+            
+            if ($fields && !isset($fields['modifiedOn'])) {
+                $updateAll = FALSE;
+            }
+            
+            doc_Containers::update($containerId, $updateAll);
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа

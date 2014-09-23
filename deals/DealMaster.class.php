@@ -44,14 +44,42 @@ abstract class deals_DealMaster extends deals_DealBase
 	*/
 	public static function on_AfterDescription(core_Master &$mvc)
 	{
-		// Може да се добавя само към покупка или продажба
-		expect(cls::haveInterface('deals_DealsAccRegIntf', $mvc));
-		 
 		if(empty($mvc->fields['contoActions'])){
 			$mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
 		}
 		
 		$mvc->declareInterface('doc_AddToFolderIntf');
+	}
+
+
+	/**
+	 * Какво е платежното състояние на сделката
+	 */
+	public function getPaymentState($aggregateDealInfo, $state)
+	{
+		$amountPaid      = $aggregateDealInfo->get('amountPaid');
+		$amountBl        = $aggregateDealInfo->get('blAmount');
+		$amountDelivered = $aggregateDealInfo->get('deliveryAmount');
+	
+		// Ако имаме платено и доставено
+		$diff = round($amountDelivered - $amountPaid, 4);
+	
+		$conf = core_Packs::getConfig('acc');
+	
+		// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
+		if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
+	
+			// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
+			return ($state != 'overdue') ? 'paid' : 'repaid';
+		}
+			
+		// Ако крайното салдо е 0 я водим за издължена
+		if(round($amountBl, 2) == 0){
+			
+			return 'repaid';
+		}
+		
+		return 'pending';
 	}
 	
 	
@@ -269,7 +297,7 @@ abstract class deals_DealMaster extends deals_DealBase
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип');
+        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,repaid=Издължени,invoiced=Фактурирани,notInvoiced=Нефактурирани)', 'caption=Тип');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
@@ -279,6 +307,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 			$data->query->XPR('paidRound', 'double', 'ROUND(#amountPaid, 2)');
 			$data->query->XPR('dealRound', 'double', 'ROUND(#amountDeal, 2)');
+			$data->query->XPR('invRound', 'double', 'ROUND(#amountInvoiced, 2)');
 			$data->query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered , 2)');
 			
 			if($filter->type) {
@@ -301,8 +330,19 @@ abstract class deals_DealMaster extends deals_DealBase
 						$data->query->where("#paidRound = #dealRound");
 						$data->query->where("#state = 'active' || #state = 'closed'");
 						break;
+					case 'invoiced':
+						$data->query->where("#invRound >= #deliveredRound");
+						$data->query->where("#state = 'active' || #state = 'closed'");
+						break;
+					case 'notInvoiced':
+						$data->query->where("#invRound < #deliveredRound OR #invRound IS NULL");
+						$data->query->where("#state = 'active' || #state = 'closed'");
+						break;
 					case 'overdue':
 						$data->query->where("#paymentState = 'overdue'");
+						break;
+					case 'repaid':
+						$data->query->where("#paymentState = 'repaid'");
 						break;
 					case 'delivered':
 						$data->query->where("#deliveredRound = #dealRound");
@@ -344,9 +384,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Може ли документ-продажба да се добави в посочената папка?
-     * 
-     * Документи-продажба могат да се добавят само в папки с корица контрагент.
+     * Може ли документа да се добави в посочената папка?
      *
      * @param $folderId int ид на папката
      * @return boolean
@@ -403,9 +441,9 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
 	/**
-     * Връща масив от използваните нестандартни артикули в продажбата
+     * Връща масив от използваните нестандартни артикули в сделката
      * 
-     * @param int $id - ид на продажба
+     * @param int $id - ид на сделката
      * @return param $res - масив с използваните документи
      * 					['class'] - Инстанция на документа
      * 					['id'] - Ид на документа
@@ -467,7 +505,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * При нова продажба, се ънсетва threadId-то, ако има
+     * При нова сделка, се ънсетва threadId-то, ако има
      */
     static function on_AfterPrepareDocumentLocation($mvc, $form)
     {   
@@ -513,7 +551,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		$rec = $mvc->fetch($id);
     		$rec->state = $state;
     		
-    		// Записване на продажбата като отворена сделка
+    		// Записване на сделката в чакащи
     		deals_OpenDeals::saveRec($rec, $mvc);
     	}
     }
@@ -526,25 +564,6 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
-    }
-    
-    
-    /**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
-    {
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
-    		$tpl->removeBlock('header');
-    		$tpl->removeBlock('STATISTIC_BAR');
-    		$tpl->removeBlock('shareLog');
-    	} elseif(Request::get('dealHistory', 'int')) {
-    		$tpl->removeBlock('STATISTIC_BAR');
-    	}
-    	
-    	if($data->paymentPlan){
-    		$tpl->placeObject($data->paymentPlan);
-    	}
     }
     
     
@@ -566,9 +585,9 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Помощна ф-я показваща дали в продажбата има поне един складируем/нескладируем артикул
+     * Помощна ф-я показваща дали в сделката има поне един складируем/нескладируем артикул
      * 
-     * @param int $id - ид на продажба
+     * @param int $id - ид на сделка
      * @param boolean $storable - дали се търсят складируеми или нескладируеми артикули
      * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
      */
@@ -673,7 +692,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param unknown $rec
      * @param unknown $nRec
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    public static function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
     	unset($nRec->contoActions, 
     		  $nRec->paymentState, 
@@ -698,7 +717,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query = $mvc->$Detail->getQuery();
     	$query->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
     	while($dRec = $query->fetch()){
-    		$dRec->$mvc->$Detail->masterKey = $nRec->id;
+    		$dRec->{$mvc->$Detail->masterKey} = $nRec->id;
     		unset($dRec->id, $dRec->quantityDelivered);
     		$mvc->$Detail->save($dRec);
     	}
@@ -868,7 +887,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Ако с тази продажба е приключена друга продажба
+     * Ако с тази сделка е приключена друга сделка
      */
     public static function on_AfterClosureWithDeal($mvc, $id)
     {
@@ -884,7 +903,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		// За всяка от тях, включително и този документ
     		foreach ($closedDeals as $doc){
     
-    			// Взимаме договорените продукти от продажбата начало на нейната нишка
+    			// Взимаме договорените продукти от сделката начало на нейната нишка
     			$firstDoc = doc_Threads::getFirstDocument($doc->threadId);
     			$dealInfo = $firstDoc->getAggregateDealInfo();
     			$products = (array)$dealInfo->get('products');
@@ -923,7 +942,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	$Detail = $mvc->mainDetail;
     	
-    	// Изтриваме досегашните детайли на продажбата
+    	// Изтриваме досегашните детайли на сделката
     	$mvc->$Detail->delete("#{$mvc->$Detail->masterKey} = {$rec->id}");
     	 
     	// Записваме новите
@@ -998,7 +1017,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$options = array();
     	$rec = $mvc->fetchRec($id);
     	 
-    	// Заглавие за опциите, взависимост дали е покупка или продажба
+    	// Заглавие за опциите, взависимост дали е покупка или сделка
     	$opt = ($mvc instanceof sales_Sales) ? self::$contoMap['sales'] : self::$contoMap['purchase'];
     	 
     	// Имали складируеми продукти
@@ -1244,10 +1263,10 @@ abstract class deals_DealMaster extends deals_DealBase
     			}
     		}
     
-    		// Проверка дали продажбата е просрочена
+    		// Проверка дали сделката е просрочена
     		if($isOverdue){
     
-    			// Ако да, то продажбата се отбелязва като просрочена
+    			// Ако да, то сделката се отбелязва като просрочена
     			$rec->paymentState = 'overdue';
     		} else {
     			 
@@ -1262,6 +1281,17 @@ abstract class deals_DealMaster extends deals_DealBase
     			// Ако има проблем при обновяването
     			core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");
     		}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('shareLog');
     	}
     }
 }

@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_ShipmentOrderDetails extends acc_DeliveryDocumentDetail
+class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 {
     /**
      * Заглавие
@@ -41,7 +41,7 @@ class store_ShipmentOrderDetails extends acc_DeliveryDocumentDetail
      * var string|array
      */
     public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2 , doc_plg_TplManagerDetail';
+                        plg_AlignDecimals2 , doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy, Policy=price_ListToCustomers, ReversePolicy=purchase_PurchaseLastPricePolicy';
     
     
     /**

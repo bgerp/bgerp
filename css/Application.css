@@ -3308,6 +3308,27 @@ only screen and (max-width: 320px) {
     padding-right: 2px;
     margin-left: 4px !important; } }
 
+.footerDocInfo {
+  padding-top: 10px;
+  text-align: right;
+  font-size: 13px;
+  color: #666666;
+  display: none; }
+  .footerDocInfo a {
+    color: #333333 !important; }
+  .footerDocInfo td {
+    border: none !important; }
+
+.footerDocBlock {
+  margin-top: 20px;
+  text-align: right;
+  font-size: 13px;
+  color: #666666;
+  border-top: 1px solid #666666 !important;
+  display: none; }
+  .footerDocBlock a {
+    color: #333333 !important; }
+
 /*
  * край на queries
  */
@@ -3328,6 +3349,10 @@ only screen and (max-width: 320px) {
   .external .qrcode img {
     width: 100%;
     height: auto !important; }
+  .external .footerDocInfo {
+    display: table-row; }
+  .external .footerDocBlock {
+    display: block; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -3496,7 +3521,14 @@ only screen and (max-width: 320px) {
     border: none; }
 
   .overflow-scroll {
-    overflow-x: visible !important; } }
+    overflow-x: visible !important; }
+
+  .footerDocBlock {
+    display: block;
+    border-top: 1px solid #666666 !important; }
+
+  .footerDocInfo {
+    display: table-row; } }
 
   .printing .docBgIcon {
     padding: 0 !important;
@@ -3548,6 +3580,10 @@ only screen and (max-width: 320px) {
     display: block !important; }
   .printing .overflow-scroll {
     overflow-x: visible !important; }
+  .printing .footerDocInfo {
+    display: table-row; }
+  .printing .footerDocBlock {
+    display: block; }
 
 .narrow .printing .document {
   width: 850px; }

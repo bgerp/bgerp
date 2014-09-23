@@ -705,4 +705,17 @@ class sales_Quotations extends core_Master
     	
     	return tr("|Оферта|* №{$rec->id}");
     }
+    
+    
+    /**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     *
+     * @param int|object $id
+     * @return bgerp_iface_DealAggregator
+     * @see bgerp_DealIntf::getDealInfo()
+     */
+    public function pushDealInfo($id, &$aggregator)
+    {
+    	
+    }
 }

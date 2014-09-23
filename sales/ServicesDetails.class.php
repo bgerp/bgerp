@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_ServicesDetails extends acc_DeliveryDocumentDetail
+class sales_ServicesDetails extends deals_DeliveryDocumentDetail
 {
     /**
      * Заглавие
@@ -35,7 +35,7 @@ class sales_ServicesDetails extends acc_DeliveryDocumentDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, doc_plg_HidePrices';
+                        plg_AlignDecimals2, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy, Policy=price_ListToCustomers, ReversePolicy=purchase_PurchaseLastPricePolicy';
     
     
     /**

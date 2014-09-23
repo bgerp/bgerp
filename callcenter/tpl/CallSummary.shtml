@@ -14,6 +14,12 @@
             <td class='aright'>[#ANSWERED#] |бр.|*</td>
         </tr>
         <!--ET_END ANSWERED-->
+        <!--ET_BEGIN REDIRECTED-->
+        <tr>
+            <td class='quiet'>|Пренасочено|*:</td>
+            <td class='aright'>[#REDIRECTED#] |бр.|*</td>
+        </tr>
+        <!--ET_END REDIRECTED-->
         <!--ET_BEGIN NO_ANSWER-->
         <tr>
             <td class='quiet'>|Без отговор|*:</td>

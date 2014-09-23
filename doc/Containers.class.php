@@ -340,7 +340,7 @@ class doc_Containers extends core_Manager
      *
      * @param int $id key(mvc=doc_Containers)
      */
-    static function update_($id)
+    static function update_($id, $updateAll=TRUE)
     {
         expect($rec = doc_Containers::fetch($id), $id);
         
@@ -365,8 +365,14 @@ class doc_Containers extends core_Manager
         if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec->id)) {
             $fields .= ',searchKeywords';
         }
-        $fieldsArr = arr::make($fields);        
+        $updateField = NULL;
+        $fieldsArr = arr::make($fields);
         foreach($fieldsArr as $field) {
+            
+            if (!$updateAll && ($field != 'containerId')) {
+                $updateField[$field] = $field;
+            }
+            
             if($rec->{$field} != $docRec->{$field}) {
                 $rec->{$field} = $docRec->{$field};
                 $mustSave = TRUE;
@@ -383,8 +389,7 @@ class doc_Containers extends core_Manager
         }
 
         if($mustSave) {
-            
-            $bSaved = doc_Containers::save($rec);
+            $bSaved = doc_Containers::save($rec, $updateField);
 
             // Ако този документ носи споделяния на нишката, добавяме ги в списъка с отношения
             if($rec->state != 'draft' && $rec->state != 'rejected') {

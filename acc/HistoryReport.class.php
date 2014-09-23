@@ -425,9 +425,9 @@ class acc_HistoryReport extends core_Manager
     	 
     	$data->recs = $this->Balance->recs;
     	unset($this->Balance->recs);
-    	 
+    
     	// Добавяне на началното и крайното салдо към цялата история
-    	(count($this->history)) ? array_unshift($this->Balance->history, $zeroRec) : $this->Balance->history[] = $zeroRec;
+    	(count($this->Balance->history)) ? array_unshift($this->Balance->history, $zeroRec) : $this->Balance->history[] = $zeroRec;
     	$this->Balance->history[] = $lastRec;
     	
     	if($data->pager->page == 1){
@@ -446,7 +446,7 @@ class acc_HistoryReport extends core_Manager
     	 
     	// Подготвя средното салдо
     	$this->prepareMiddleBalance($data);
-    	 
+    	
     	// За всеки запис, обръщаме го във вербален вид
     	if(count($data->recs)){
     		foreach ($data->recs as $jRec){
@@ -472,18 +472,16 @@ class acc_HistoryReport extends core_Manager
     			$arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
     		}
     	}
-    
+    	
     	try{
-    		if(cls::load($rec['docType'], TRUE)){
-    			$Class = cls::get($rec['docType']);
-    			$title = $Class->getTitleById($rec['docId']);
-    			if($Class->haveRightFor('single', $rec['docId'])){
-    				$title = ht::createLinkRef($title, array($Class, 'single', $rec['docId']));
-    			}
-    			
-    			$arr['docId'] = $title;
-    			$arr['reason'] = $Class->getContoReason($rec['docId']);
+    		$Class = cls::get($rec['docType']);
+    		$title = $Class->getTitleById($rec['docId']);
+    		if($Class->haveRightFor('single', $rec['docId'])){
+    			$title = ht::createLinkRef($title, array($Class, 'single', $rec['docId']));
     		}
+    			
+    		$arr['docId'] = $title;
+    		$arr['reason'] = $Class->getContoReason($rec['docId']);
     	} catch(Exception $e){
     		if(is_numeric($rec['docId'])){
     			$arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";

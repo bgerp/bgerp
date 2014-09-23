@@ -842,48 +842,6 @@ class cat_Products extends core_Master {
     
     
     /**
-     * По кои политики се намира цената на продукта
-     */
-    public function getPolicies()
-    {
-    	return array('price_ListToCustomers', 'sales_SalesLastPricePolicy');
-    }
-    
-    
-    /**
-     * Връща цената за посочения продукт към посочения клиент на посочената дата
-     * спрямо посочените ценови политики, Връща цената с най-голям
-     * приоритет от намерените
-     * @return object
-     * $rec->price  - цена
-     * $rec->discount - отстъпка
-     */
-    public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
-    {
-    	$prices = array();
-    	$policies = $this->getPolicies();
-    	foreach($policies as $name){
-    		$Policy = cls::get($name);
-    		$price = $Policy->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime);
-    		if($price->price){
-    			$prices[] = $price;
-    		}
-    	}
-    	
-    	if(!count($prices)){
-    		return NULL;
-    	} else {
-    		
-    		// Сортиране на намерените цени по техния приоритет
-    		arr::order($prices, $field = 'priority', 'DESC');
-    		
-    		// Връща се цената с най-голям приоритет
-    		return $prices[0];
-    	}
-    }
-    
-    
-    /**
      * Връща цената по себестойност на продукта
      * @return double
      */

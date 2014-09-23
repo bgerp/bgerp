@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Правила за ценоразписи
@@ -20,73 +20,73 @@ class price_ListToCustomers extends core_Detail
     /**
      * Заглавие
      */
-    var $title = 'Ценови политики';
+    public $title = 'Ценови политики';
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Ценова политика';
+    public $singleTitle = 'Ценова политика';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
                     
     
     /**
      * Интерфейс за ценова политика
      */
-    var $interfaces = 'price_PolicyIntf';
+    public $interfaces = 'price_PolicyIntf';
 
 
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'listId, cClass, cId, validFrom, createdBy, createdOn';
+    public $listFields = 'listId, cClass, cId, validFrom, createdBy, createdOn';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
     
         
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'powerUser';
+    public $canDelete = 'powerUser';
     
 
     /**
      * Поле - ключ към мастера
      */
-    var $masterKey = 'cId';
+    public $masterKey = 'cId';
     
 
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Политика');
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
@@ -203,7 +203,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * След подготовка на лентата с инструменти за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $data)
+    public static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             $data->toolbar->removeBtn('*');
@@ -238,7 +238,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Връща актуалния към посочената дата набор от ценови правила за посочения клиент
      */
-    static function getValidRec($customerClassId, $customerId, $datetime = NULL)
+    public static function getValidRec($customerClassId, $customerId, $datetime = NULL)
     { 
         $now = dt::verbal2mysql();
 
@@ -260,7 +260,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Задава ценова политика за определен клиент
      */
-    static function setPolicyTocustomer($policyId, $cClass, $cId, $datetime = NULL)
+    public static function setPolicyTocustomer($policyId, $cClass, $cId, $datetime = NULL)
     {
         if(!$datetime) {
             $datetime = dt::verbal2mysql();
@@ -357,7 +357,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Връща валидните ценови правила за посочения клиент
      */
-    static function getListForCustomer($customerClass, $customerId, $datetime = NULL)
+    public static function getListForCustomer($customerClass, $customerId, $datetime = NULL)
     {
         static::canonizeTime($datetime);
     	
@@ -376,13 +376,8 @@ class price_ListToCustomers extends core_Detail
     /**
      * Връща цената за посочения продукт към посочения клиент на посочената дата
      * 
-     * @return object
-     * $rec->price  - цена
-     * $rec->discount - отстъпка
-     * $rec->priority - приоритет на цената
-     * 				  	0 - ако ценоразписа му е публичен
-     * 				  	1 - ако политиката е по последна цена
-     * 					2 - aко има частна ценова политика
+     * @return object $rec->price  - цена
+     * 				  $rec->discount - отстъпка
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
@@ -390,9 +385,20 @@ class price_ListToCustomers extends core_Detail
 		$rec = new stdClass();
 
         $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, TRUE);
-		$listAccess = price_Lists::fetchField($listId, 'public');
-        $rec->priority = ($listAccess == 'yes') ? 0 : 2;
+		
+        $listRec = price_Lists::fetch($listId);
        
+        // Ако е избрано да се връща отстъпката спрямо друга политика
+        if(!empty($listRec->discountCompared)){
+        	
+        	// Намираме цената по тази политика и намираме колко % е отстъпката/надценката
+        	$comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime, TRUE);
+        	if($comparePrice){
+        		$disc = ($rec->price - $comparePrice) / $comparePrice;
+        		$rec->discount = round(-1 * $disc, 2);
+        	}
+        }
+        
         return $rec;
     }
     

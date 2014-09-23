@@ -26,7 +26,7 @@ abstract class deals_DealBase extends core_Master
 	/**
 	 * Колко записи от журнала да се показват от историята
 	 */
-	protected $historyItemsPerPage = 10;
+	protected $historyItemsPerPage = 6;
 	
 	
 	/**
@@ -91,30 +91,6 @@ abstract class deals_DealBase extends core_Master
 				}
 			}
 		}
-	}
-
-
-	/**
-	 * Какво е платежното състояние на сделката
-	 */
-	public function getPaymentState($aggregateDealInfo, $state)
-	{
-		$amountPaid      = $aggregateDealInfo->get('amountPaid');
-		$amountDelivered = $aggregateDealInfo->get('deliveryAmount');
-		 
-		// Ако имаме платено и доставено
-		$diff = round($amountDelivered - $amountPaid, 4);
-	
-		$conf = core_Packs::getConfig('acc');
-	
-		// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
-		if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
-			 
-			// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
-			return ($state != 'overdue') ? 'paid' : 'repaid';
-		}
-		 
-		return 'pending';
 	}
 
 
@@ -200,21 +176,22 @@ abstract class deals_DealBase extends core_Master
      * @param int $id - ид на документа
      * @return array $options - опции
      */
-    public static function on_AfterGetDealsToCloseWith($mvc, &$res, $rec)
+    public function getDealsToCloseWith($rec)
     {
     	// Избираме всички други активни сделки от същия тип и валута, като началния документ в същата папка
     	$docs = array();
-    	$dealQuery = $mvc->getQuery();
+    	$dealQuery = $this->getQuery();
     	$dealQuery->where("#id != {$rec->id}");
     	$dealQuery->where("#folderId = {$rec->folderId}");
     	$dealQuery->where("#currencyId = '{$rec->currencyId}'");
     	$dealQuery->where("#state = 'active'");
-    	 
+    	$dealQuery->where("#closedDocuments = ''");
+    	
     	while($dealRec = $dealQuery->fetch()){
-    		$docs[$dealRec->id] = $mvc->getRecTitle($dealRec);
+    		$docs[$dealRec->id] = $this->getRecTitle($dealRec);
     	}
     	 
-    	$res = $docs;
+    	return $docs;
     }
 
 
@@ -296,7 +273,7 @@ abstract class deals_DealBase extends core_Master
     	$this->requireRightFor('conto', $rec);
     
     	$options = $this->getDealsToCloseWith($rec);
-    	count($options);
+    	expect(count($options));
     
     	// Подготовка на формата за избор на опция
     	$form = cls::get('core_Form');
@@ -379,6 +356,13 @@ abstract class deals_DealBase extends core_Master
     			$tpl->append($data->historyPager->getHtml(), 'DEAL_HISTORY');
     		}
     	}
+    	
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    		$tpl->removeBlock('STATISTIC_BAR');
+    	} elseif(Request::get('dealHistory', 'int')) {
+    		$tpl->removeBlock('STATISTIC_BAR');
+    	}
     }
     
     
@@ -457,11 +441,11 @@ abstract class deals_DealBase extends core_Master
     				 
     				foreach (range(1, 3) as $i){
     					if(!empty($ent->{"debitItem{$i}"})){
-    						$obj->debitAcc .= "<div style='font-size:0.8em'>{$i}. " . acc_Items::getVerbal($ent->{"debitItem{$i}"}, 'titleLink') . "</div>";
+    						$obj->debitAcc .= "<div style='font-size:0.8em;margin-top:1px'>{$i}. " . acc_Items::getVerbal($ent->{"debitItem{$i}"}, 'titleLink') . "</div>";
     					}
     				
     					if(!empty($ent->{"creditItem{$i}"})){
-    						$obj->creditAcc .= "<div style='font-size:0.8em'>{$i}. " . acc_Items::getVerbal($ent->{"creditItem{$i}"}, 'titleLink') . "</div>";
+    						$obj->creditAcc .= "<div style='font-size:0.8em;margin-top:1px'>{$i}. " . acc_Items::getVerbal($ent->{"creditItem{$i}"}, 'titleLink') . "</div>";
     					}
     				}
     				 

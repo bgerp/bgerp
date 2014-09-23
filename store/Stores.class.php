@@ -352,7 +352,7 @@ class store_Stores extends core_Master
     /**
      * Поставя изискване да се селектират само активните записи
      */
-    function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
     {
     	$where .= ($where ? " AND " : "") . " #state != 'rejected'";
     }

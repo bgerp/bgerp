@@ -55,6 +55,12 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Кои сметки не могат да се избират
+     */
+    public static $exceptAccSysIds = '401,411,402,412';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,findeals';
@@ -200,7 +206,7 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Може ли документ-продажба да се добави в посочената папка?
+     * Може ли документа да се добави в посочената папка?
      *
      * Документи-финансови сделки могат да се добавят само в папки с корица контрагент.
      *
@@ -252,7 +258,16 @@ class findeals_Deals extends deals_DealBase
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     	 
     	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+    	
     	acc_type_Account::filterSuggestions('crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf', $options);
+    	
+    	// Премахваме от избора упоменатите сметки, които трябва да се изключат
+    	$except = arr::make(static::$exceptAccSysIds);
+    	foreach ($except as $sysId){
+    		$accId = acc_Accounts::getRecBySystemId($sysId)->id;
+    		unset($options[$accId]);
+    	}
+    	
     	$form->setOptions('accountId', array('' => '') + $options);
     	
     	return $data;
@@ -327,9 +342,6 @@ class findeals_Deals extends deals_DealBase
     		$row->accountId = ht::createLink($row->accountId, $accUrl);
     	}
     	
-    	@$rec->amountDeal /= $rec->currencyRate;
-    	$row->amountDeal = $mvc->getFieldType('amountDeal')->toVerbal($rec->amountDeal);
-    	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     }
     
@@ -337,7 +349,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * След подготовка на тулбара на единичен изглед
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = $data->rec;
     	
@@ -398,6 +410,7 @@ class findeals_Deals extends deals_DealBase
     	$rec = $this->fetchRec($data->rec->id);
     	
     	$entries = acc_Journal::getEntries(array(get_called_class(), $rec->id), $item);
+    	$data->rec->debitAmount = $data->rec->creditAmount = 0;
     	
     	if(count($entries)){
     		$data->history = array();
@@ -434,11 +447,23 @@ class findeals_Deals extends deals_DealBase
     				$start = $data->pager->rangeStart;
     				$end = $data->pager->rangeEnd - 1;
     				if(empty($data->pager) || ($count >= $start && $count <= $end)){
+    					$data->rec->debitAmount += $rec->debitA;
+    					$data->rec->creditAmount += $rec->creditA;
     					$data->history[] = $this->getHistoryRow($rec);
     				}
     				$count++;
     			}
     		}
+    	}
+    	
+    	foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld){
+    		if($fld == 'amountDeal'){
+    			$data->rec->$fld /= $data->rec->currencyRate;
+    		}
+    		$data->row->$fld = $this->getFieldType('amountDeal')->toVerbal($data->rec->$fld);
+    		if($data->rec->$fld == 0){
+    			$data->row->$fld = "<span class='quiet'>{$data->row->$fld}</span>";
+    		} 
     	}
     }
     
@@ -689,7 +714,7 @@ class findeals_Deals extends deals_DealBase
      * @see acc_RegisterIntf::itemInUse()
      * @param int $objectId
      */
-    static function itemInUse($objectId)
+    public static function itemInUse($objectId)
     {
     }
     

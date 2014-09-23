@@ -201,7 +201,7 @@ class blogm_Comments extends core_Detail {
      * Всички нови коментари, направени през формата в единичния 
      * изглед на статията се създават в състояние "чакъщ"
      */
-    function on_BeforeSave($mvc, &$id, &$rec, $fields =  NULL)
+    public static function on_BeforeSave($mvc, &$id, &$rec, $fields =  NULL)
     {
         if(!$rec->id) {  
             

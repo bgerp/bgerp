@@ -565,7 +565,7 @@ class acc_Lists extends core_Manager {
     /**
      * Обработка, преди импортиране на запис при начално зареждане
      */
-    function on_BeforeImportRec($mvc, $rec)
+    public static function on_BeforeImportRec($mvc, $rec)
     {
         $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $rec->regInterfaceId), 'id');
         $rec->state = 'active';

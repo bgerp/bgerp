@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Ценоразписи от каталога
@@ -115,6 +115,7 @@ class price_Lists extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика');
         $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,noChange');
+        $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Отстъпка към');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без начисляване)', 'caption=ДДС'); 
@@ -124,7 +125,7 @@ class price_Lists extends core_Master
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Точност');
         $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
-
+        
         $this->setDbUnique('title');
     }
 
@@ -177,6 +178,22 @@ class price_Lists extends core_Master
     }
 
 
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		if(($form->rec->id) && isset($form->rec->discountCompared) && $form->rec->discountCompared == $form->rec->id){
+    			$form->setError('discountCompared', 'Неможе да изберете същата политика');
+    		}
+    	}
+    }
+    
+    
     /**
      * Изпълнява се след създаване на нов набор от ценови правила
      */
@@ -258,5 +275,36 @@ class price_Lists extends core_Master
             $rec->createdBy = -1;
             $this->save($rec, NULL, 'REPLACE');
         }
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(isset($rec->id)){
+    		$rec->oldRoundingPrecision = $mvc->fetchField($rec->id, 'roundingPrecision');
+    	}
+    }
+
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	// Ако има променено закръгляне инвалидираме кеша
+    	if(!empty($rec->oldRoundingPrecision) && $rec->oldRoundingPrecision != $rec->roundingPrecision){
+    		$History = cls::get('price_History');
+    		$History->truncate();
+    	}
     }
 }

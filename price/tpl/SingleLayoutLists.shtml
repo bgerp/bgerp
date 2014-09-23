@@ -34,6 +34,12 @@
             <td>[#vat#]</td>
         </tr>
         <!--ET_END vat-->
+        <!--ET_BEGIN discountCompared-->
+        <tr>
+            <td class="title-style">|Отстъпка към|*</td>
+            <td>[#discountCompared#]</td>
+        </tr>
+        <!--ET_END discountCompared-->
         <!--ET_BEGIN employersCnt-->
     </table>
     <!--ET_BEGIN clientInfo-->
