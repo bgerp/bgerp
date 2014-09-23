@@ -740,4 +740,13 @@ class core_DateTime
     	$newDateStamp = strtotime("+{$num} months", dt::mysql2timestamp($date));
     	return dt::timestamp2Mysql($newDateStamp);
     }
+
+
+    /**
+     * Превръща секунди във форматирано време за часове 72:45:56
+     */
+    public static function sec2hours($sec, $dev = ':')
+    {
+        return sprintf("%02d%s%02d%s%02d", floor($sec / 3600), $dev, ($sec / 60) % 60, $dev, $sec % 60);
+    }
 }
