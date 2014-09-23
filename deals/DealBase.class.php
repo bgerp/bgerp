@@ -434,11 +434,11 @@ abstract class deals_DealBase extends core_Master
     				 
     				foreach (range(1, 3) as $i){
     					if(!empty($ent->{"debitItem{$i}"})){
-    						$obj->debitAcc .= "<div style='font-size:0.8em'>{$i}. " . acc_Items::getVerbal($ent->{"debitItem{$i}"}, 'titleLink') . "</div>";
+    						$obj->debitAcc .= "<div style='font-size:0.8em;margin-top:1px'>{$i}. " . acc_Items::getVerbal($ent->{"debitItem{$i}"}, 'titleLink') . "</div>";
     					}
     				
     					if(!empty($ent->{"creditItem{$i}"})){
-    						$obj->creditAcc .= "<div style='font-size:0.8em'>{$i}. " . acc_Items::getVerbal($ent->{"creditItem{$i}"}, 'titleLink') . "</div>";
+    						$obj->creditAcc .= "<div style='font-size:0.8em;margin-top:1px'>{$i}. " . acc_Items::getVerbal($ent->{"creditItem{$i}"}, 'titleLink') . "</div>";
     					}
     				}
     				 

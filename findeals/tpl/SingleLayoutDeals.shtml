@@ -5,7 +5,53 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
     </div>
     <!--ET_END header-->
-    <table class='styled-table'>
+    
+    <div class='scrolling-holder'>
+        <div class='display-table'>
+        	[#TABS#]
+        	<!--ET_BEGIN DEAL_HISTORY-->
+        	<div style='padding-top:10px;padding-bottom:10px'>
+        	[#DEAL_HISTORY#]
+       	 	</div>
+        	<!--ET_END DEAL_HISTORY-->
+        	
+            <!--ET_BEGIN STATISTIC_BAR-->
+            [#STATISTIC_BAR#]
+            <div class="sale-summary">
+                <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
+                    <tr>
+                        <td class = 'sum-th'>
+                            |Салдо|*, [#currencyId#]
+                        </td>
+                        <td class = 'sum-th'>
+                            |Дебит|*, [#currencyId#]
+                        </td>
+                        <td class = 'sum-th'>
+                            |Кредит|*, [#currencyId#]
+                        </td>
+                        <td class = 'sum-th'>
+                            |Информация|*
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class = 'nowrap'>[#amountDeal#]</td>
+                        <td class = 'nowrap'>[#debitAmount#] </td>
+                        <td class = 'nowrap'>[#creditAmount#]</td>
+                        <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;'>
+                        	<span style='font-weight:normal'>|Контрагент|* : [#contragentName#]</span>
+                        	<!--ET_BEGIN secondContragentId-->
+                        	<br><span style='font-weight:normal'>|Втори контрагент|* : [#secondContragentId#]</span>
+                        	<!--ET_END secondContragentId-->
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!--ET_END STATISTIC_BAR-->
+            [#SINGLE_CONTENT#]
+        </div>
+        <div style = 'margin-top:10px'></div>
+    </div>
+    <table class='styled-table' width='100%'>
         <!--ET_BEGIN dealName-->
         <tr>
             <td>|Наименование|*</td>
@@ -15,20 +61,6 @@
         <tr>
             <td>|Сметка|*</td>
             <td>[#accountId#]</td>
-        </tr>
-        <tr>
-            <td>|Контрагент|*</td>
-            <td>[#contragentName#]</td>
-        </tr>
-        <!--ET_BEGIN secondContragentId-->
-        <tr>
-            <td>|Втори контрагент|*</td>
-            <td>[#secondContragentId#]</td>
-        </tr>
-        <!--ET_END secondContragentId-->
-        <tr>
-            <td>|Крайно салдо|*</td>
-            <td>[#amountDeal#] <span class='cCode'>[#currencyId#]</span></td>
         </tr>
         <!--ET_BEGIN description-->
         <tr>

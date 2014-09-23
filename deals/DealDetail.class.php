@@ -2,7 +2,7 @@
 /**
  * Клас 'deals_DealDetail'
  *
- * Клас за наследяване от детайли на сделките (@see deals_DealDetail)
+ * Клас за наследяване от детайли на бизнес документи(@see deals_DealDetail)
  *
  * @category  bgerp
  * @package   deals
@@ -209,7 +209,6 @@ abstract class deals_DealDetail extends core_Detail
         $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : dt::now();
         $update = FALSE;
         
-        /* @var $ProductMan core_Manager */
         expect($ProductMan = cls::get($rec->classId));
     	if($rec->productId){
     		$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
@@ -243,7 +242,8 @@ abstract class deals_DealDetail extends core_Detail
     		}
             
         	if(empty($rec->id)){
-    			$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId}";
+    			$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
+    			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
     			if($pRec = $mvc->fetch($where)){
     				$form->setWarning("productId", "Има вече такъв продукт. Искате ли да го обновите?");
     				$rec->id = $pRec->id;
@@ -254,19 +254,7 @@ abstract class deals_DealDetail extends core_Detail
             $productRef = new core_ObjectReference($ProductMan, $rec->productId);
             expect($productInfo = $productRef->getProductInfo());
             
-            if (empty($rec->packagingId)) {
-                // Покупка в основна мярка
-                $rec->quantityInPack = 1;
-            } else {
-                // Покупка на опаковки
-                if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
-                    $form->setError('packagingId', "Артикула няма цена към дата|* '{$masterRec->date}'");
-                    return;
-                }
-                
-                $rec->quantityInPack = $packInfo->quantity;
-            }
-            
+            $rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             
             // Ако няма въведена цена
@@ -283,7 +271,7 @@ abstract class deals_DealDetail extends core_Detail
             	
             	// Ако няма последна покупна цена и не се обновява запис в текущата покупка
                 if (!isset($policyInfo->price) && empty($pRec)) {
-                    $form->setError('price', 'Продукта няма цена в избраната ценова политика');
+                    $form->setError('price', "Артикула няма цена към дата|* '{$masterRec->date}'");
                 } else {
                 	
                 	// Ако се обновява вече съществуващ запис

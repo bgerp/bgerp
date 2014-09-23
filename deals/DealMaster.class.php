@@ -44,9 +44,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	*/
 	public static function on_AfterDescription(core_Master &$mvc)
 	{
-		// Може да се добавя само към покупка или продажба
-		expect(cls::haveInterface('deals_DealsAccRegIntf', $mvc));
-		 
 		if(empty($mvc->fields['contoActions'])){
 			$mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
 		}
@@ -444,9 +441,9 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
 	/**
-     * Връща масив от използваните нестандартни артикули в продажбата
+     * Връща масив от използваните нестандартни артикули в сделката
      * 
-     * @param int $id - ид на продажба
+     * @param int $id - ид на сделката
      * @return param $res - масив с използваните документи
      * 					['class'] - Инстанция на документа
      * 					['id'] - Ид на документа
@@ -508,7 +505,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * При нова продажба, се ънсетва threadId-то, ако има
+     * При нова сделка, се ънсетва threadId-то, ако има
      */
     static function on_AfterPrepareDocumentLocation($mvc, $form)
     {   
@@ -554,7 +551,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		$rec = $mvc->fetch($id);
     		$rec->state = $state;
     		
-    		// Записване на продажбата като отворена сделка
+    		// Записване на сделката в чакащи
     		deals_OpenDeals::saveRec($rec, $mvc);
     	}
     }
@@ -607,9 +604,9 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Помощна ф-я показваща дали в продажбата има поне един складируем/нескладируем артикул
+     * Помощна ф-я показваща дали в сделката има поне един складируем/нескладируем артикул
      * 
-     * @param int $id - ид на продажба
+     * @param int $id - ид на сделка
      * @param boolean $storable - дали се търсят складируеми или нескладируеми артикули
      * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
      */
@@ -909,7 +906,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Ако с тази продажба е приключена друга продажба
+     * Ако с тази сделка е приключена друга сделка
      */
     public static function on_AfterClosureWithDeal($mvc, $id)
     {
@@ -925,7 +922,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		// За всяка от тях, включително и този документ
     		foreach ($closedDeals as $doc){
     
-    			// Взимаме договорените продукти от продажбата начало на нейната нишка
+    			// Взимаме договорените продукти от сделката начало на нейната нишка
     			$firstDoc = doc_Threads::getFirstDocument($doc->threadId);
     			$dealInfo = $firstDoc->getAggregateDealInfo();
     			$products = (array)$dealInfo->get('products');
@@ -964,7 +961,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	$Detail = $mvc->mainDetail;
     	
-    	// Изтриваме досегашните детайли на продажбата
+    	// Изтриваме досегашните детайли на сделката
     	$mvc->$Detail->delete("#{$mvc->$Detail->masterKey} = {$rec->id}");
     	 
     	// Записваме новите
@@ -1039,7 +1036,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$options = array();
     	$rec = $mvc->fetchRec($id);
     	 
-    	// Заглавие за опциите, взависимост дали е покупка или продажба
+    	// Заглавие за опциите, взависимост дали е покупка или сделка
     	$opt = ($mvc instanceof sales_Sales) ? self::$contoMap['sales'] : self::$contoMap['purchase'];
     	 
     	// Имали складируеми продукти
@@ -1285,10 +1282,10 @@ abstract class deals_DealMaster extends deals_DealBase
     			}
     		}
     
-    		// Проверка дали продажбата е просрочена
+    		// Проверка дали сделката е просрочена
     		if($isOverdue){
     
-    			// Ако да, то продажбата се отбелязва като просрочена
+    			// Ако да, то сделката се отбелязва като просрочена
     			$rec->paymentState = 'overdue';
     		} else {
     			 

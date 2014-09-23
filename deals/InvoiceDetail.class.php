@@ -330,84 +330,72 @@ abstract class deals_InvoiceDetail extends core_Detail
 					$rec->id = $pRec->id;
 					$update = TRUE;
 				}
-				}
+			}
 	
-				$productRef = new core_ObjectReference($ProductMan, $rec->productId);
-				expect($productInfo = $productRef->getProductInfo());
+			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
+			expect($productInfo = $productRef->getProductInfo());
 	
-				if (empty($rec->packagingId)) {
-					// Покупка в основна мярка
-					$rec->quantityInPack = 1;
-				} else {
-					// Покупка на опаковки
-					if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
-						$form->setError('packagingId', "Артикула няма цена към дата|* '{$masterRec->date}'");
-						return;
-					}
-	
-					$rec->quantityInPack = $packInfo->quantity;
-				}
-	
-				// Ако няма въведена цена
-				if (!isset($rec->packPrice)) {
-						
-					// Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
-					$origin = $mvc->Master->getOrigin($masterRec);
-					$dealInfo = $origin->getAggregateDealInfo();
-					$products = $dealInfo->get('products');
-						
-					if(count($products)){
-						foreach ($products as $p){
-							if($rec->classId == $p->classId && $rec->productId == $p->productId && $rec->packagingId == $p->packagingId){
-								$policyInfo = new stdClass();
-								$policyInfo->price = $p->price;
-								break;
-							}
-						}
-					}
-						
-					if(!$policyInfo){
-						$policyInfo = $mvc->Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity, dt::now());
-					}
-						
-					// Ако няма последна покупна цена и не се обновява запис в текущата покупка
-					if (!isset($policyInfo->price) && empty($pRec)) {
-						$form->setError('price', 'Продукта няма цена в избраната ценова политика');
-					} else {
-							
-						// Ако се обновява вече съществуващ запис
-						if($pRec){
-							$pRec->packPrice = deals_Helper::getPriceToCurrency($pRec->packPrice, $vat, $masterRec->rate, $masterRec->vatRate);
-						}
-							
-						// Ако се обновява запис се взима цената от него, ако не от политиката
-						$rec->price = ($pRec->price) ? $pRec->price : $policyInfo->price;
-						$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
-					}
-	
-				} else {
-						
-					// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
-					if(!$update || ($update && Request::get('Ignore'))){
-						$rec->packPrice =  deals_Helper::getPriceFromCurrency($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
-					}
-						
-					// Изчисляване цената за единица продукт в осн. мярка
-					$rec->price  = $rec->packPrice  / $rec->quantityInPack;
-	
-				}
-	
-				// Записваме основната мярка на продукта
-				$rec->uomId = $productInfo->productRec->measureId;
-				$rec->amount = $rec->packPrice * $rec->quantity;
+			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
 				
-				// При редакция, ако е променена опаковката слагаме преудпреждение
-				if($rec->id){
-					$oldRec = $mvc->fetch($rec->id);
-					if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
-						$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
+			// Ако няма въведена цена
+			if (!isset($rec->packPrice)) {
+						
+				// Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
+				$origin = $mvc->Master->getOrigin($masterRec);
+				$dealInfo = $origin->getAggregateDealInfo();
+				$products = $dealInfo->get('products');
+						
+				if(count($products)){
+					foreach ($products as $p){
+						if($rec->classId == $p->classId && $rec->productId == $p->productId && $rec->packagingId == $p->packagingId){
+							$policyInfo = new stdClass();
+							$policyInfo->price = $p->price;
+							break;
+						}
 					}
+				}
+						
+				if(!$policyInfo){
+					$policyInfo = $mvc->Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity, dt::now());
+				}
+						
+				// Ако няма последна покупна цена и не се обновява запис в текущата покупка
+				if (!isset($policyInfo->price) && empty($pRec)) {
+					$form->setError('price', 'Продукта няма цена в избраната ценова политика');
+				} else {
+							
+					// Ако се обновява вече съществуващ запис
+					if($pRec){
+						$pRec->packPrice = deals_Helper::getPriceToCurrency($pRec->packPrice, $vat, $masterRec->rate, $masterRec->vatRate);
+					}
+							
+					// Ако се обновява запис се взима цената от него, ако не от политиката
+					$rec->price = ($pRec->price) ? $pRec->price : $policyInfo->price;
+					$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
+				}
+	
+			} else {
+						
+				// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
+				if(!$update || ($update && Request::get('Ignore'))){
+					$rec->packPrice =  deals_Helper::getPriceFromCurrency($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
+				}
+						
+				// Изчисляване цената за единица продукт в осн. мярка
+				$rec->price  = $rec->packPrice  / $rec->quantityInPack;
+			}
+	
+			// Записваме основната мярка на продукта
+			$rec->uomId = $productInfo->productRec->measureId;
+			$rec->amount = $rec->packPrice * $rec->quantity;
+				
+			// При редакция, ако е променена опаковката слагаме преудпреждение
+			if($rec->id){
+				$oldRec = $mvc->fetch($rec->id);
+				if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
+					$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
 				}
 			}
 		}
+	}
 }

@@ -327,9 +327,6 @@ class findeals_Deals extends deals_DealBase
     		$row->accountId = ht::createLink($row->accountId, $accUrl);
     	}
     	
-    	@$rec->amountDeal /= $rec->currencyRate;
-    	$row->amountDeal = $mvc->getFieldType('amountDeal')->toVerbal($rec->amountDeal);
-    	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     }
     
@@ -337,7 +334,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * След подготовка на тулбара на единичен изглед
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = $data->rec;
     	
@@ -398,6 +395,7 @@ class findeals_Deals extends deals_DealBase
     	$rec = $this->fetchRec($data->rec->id);
     	
     	$entries = acc_Journal::getEntries(array(get_called_class(), $rec->id), $item);
+    	$data->rec->debitAmount = $data->rec->creditAmount = 0;
     	
     	if(count($entries)){
     		$data->history = array();
@@ -434,11 +432,23 @@ class findeals_Deals extends deals_DealBase
     				$start = $data->pager->rangeStart;
     				$end = $data->pager->rangeEnd - 1;
     				if(empty($data->pager) || ($count >= $start && $count <= $end)){
+    					$data->rec->debitAmount += $rec->debitA;
+    					$data->rec->creditAmount += $rec->creditA;
     					$data->history[] = $this->getHistoryRow($rec);
     				}
     				$count++;
     			}
     		}
+    	}
+    	
+    	foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld){
+    		if($fld == 'amountDeal'){
+    			$data->rec->$fld /= $data->rec->currencyRate;
+    		}
+    		$data->row->$fld = $this->getFieldType('amountDeal')->toVerbal($data->rec->$fld);
+    		if($data->rec->$fld == 0){
+    			$data->row->$fld = "<span class='quiet'>{$data->row->$fld}</span>";
+    		} 
     	}
     }
     
@@ -689,7 +699,7 @@ class findeals_Deals extends deals_DealBase
      * @see acc_RegisterIntf::itemInUse()
      * @param int $objectId
      */
-    static function itemInUse($objectId)
+    public static function itemInUse($objectId)
     {
     }
     
