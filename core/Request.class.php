@@ -104,16 +104,14 @@ class core_Request
     static function unprotectId($id, $mvc)
     {
         // Има вероятност да се подаден несъществуващ клас
-        try {
-            if(is_string($mvc)) {
-                $mvc = cls::get($mvc);
-            }
-    
+       
+        if(is_string($mvc) && cls::load($mvc, TRUE)) {
+            $mvc = cls::get($mvc);
+
             return $mvc->unprotectId($id);
-        } catch (Exception $e) {
-            
-            return FALSE;
         }
+        
+        return FALSE;
     }
     
     
