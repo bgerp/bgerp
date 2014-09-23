@@ -294,7 +294,7 @@ class type_Richtext extends type_Blob
 
         // Обработваме елемента [li]
         $html = self::replaceList($html);
-
+        
         // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код \[bQuote
         $html = preg_replace_callback(self::QUOTE_PATTERN, array($this, '_catchBQuote'), $html);
         
@@ -360,10 +360,14 @@ class type_Richtext extends type_Blob
             
             // Вземаме съдържанието
             $cHtml = $html->getContent();
+        } else {
+            $cHtml = $html;
         }
         
         // Хифенира текста
         $this->invoke('AfterToHtml', array(&$cHtml));
+        
+        $cHtml = $this->removeEmptyLineAfterBlock($cHtml);
         
         // Ако е инстанция на core_ET
         if ($html instanceof core_ET) {
@@ -378,8 +382,62 @@ class type_Richtext extends type_Blob
         
         return $html;
     }
-
-
+    
+    
+    /**
+     * Премахва 1 празен ред след блоковите елементи
+     * 
+     * @param string $text
+     * 
+     * @return string
+     */
+    function removeEmptyLineAfterBlock($text)
+    {
+        // Ако сме в текстов режим, да не се променя
+        if (Mode::is('text', 'plain')) return $text;
+        
+        // Новият стринг, който ще се връща
+        $newStr = '';
+        
+        // Масив с блоковите елементи, след които няма да има празен интервал
+        $blockElementsArr = array('</div>', '</pre>', '</h1>', '</h2>', '</h3>', '</h4>', '</h5>', '</h6>', '</p>', '</table>', '</pre>', '</fieldset>', '</form>', '<hr>', '</dl>', '</dd>', '</ul>', '</ol>', '</pre>');
+        
+        // Разделяме текста
+        $textArr = explode("<br>", $text);
+        
+        // Броя на редовете
+        $cnt = count((array)$textArr);
+        
+        // Обхождаме всеки ред
+        foreach ((array)$textArr as $n => $line) {
+            
+            // Флаг, дали има блоков елемент в реда
+            $haveBlock = FALSE;
+            
+            // За всеки блоков елемент проверяваме дали се съдържа в реда
+            foreach ((array)$blockElementsArr as $blockElement) {
+                
+                // Ако се съдържа, прекъсваме цикъла и вдигаме флага
+                if (stripos($line, $blockElement) !== FALSE) {
+                    
+                    $haveBlock = TRUE;
+                    
+                    break;
+                }
+            }
+            
+            // Ако е блоков елемент или е последния ред, добавяме стринга без нов редс
+            if ($haveBlock || ($cnt == ($n-1))) {
+                $newStr .= $line;
+            } else {
+                $newStr .= $line . "<br>";
+            }
+        }
+        
+        return $newStr;
+    }
+    
+    
     /**
      * Функция за заместване на [li] елементите
      */
@@ -608,6 +666,7 @@ class type_Richtext extends type_Blob
     {
         $place = $this->getPlace();
         $code = $match[3];
+        $end = $match[4];
         
         $code = str_replace("\r\n", "\n", $code);
 
@@ -627,10 +686,10 @@ class type_Richtext extends type_Blob
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
-            $res = "<pre class='rich-text code{$classLg}'><code>[#{$place}#]</code></pre>"; 
+            $res = "<pre class='rich-text code{$classLg}'><code>[#{$place}#]</code></pre>" . $end; 
         } else {
            // $code = str_replace("\n", "<br>", $code);
-            $res = "<pre class='rich-text'>[#{$place}#]</pre>";
+            $res = "<pre class='rich-text'>[#{$place}#]</pre>" . $end;
         }
         
         $this->_htmlBoard[$place] = rtrim($code);
