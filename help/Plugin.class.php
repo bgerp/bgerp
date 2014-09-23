@@ -20,7 +20,7 @@ class help_Plugin extends core_Plugin
 {
     function on_afterSetCurrentTab($wrapper, $name, $url, &$hint, &$hintBtn, &$tabsTpl)
     {
-        setIfNot($ctr, $url['Ctr'], $url[0]);
+        $ctr = Request::get('Ctr');
         
         $act = Request::get('Act');
         
