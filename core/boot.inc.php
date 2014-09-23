@@ -79,10 +79,16 @@ try {
     core_App::shutdown();
 
 } catch (core_exception_Expect $e) {
-    
-    if($e->matchPtr('/500.+1146.+Table.+doesn/i') && core_Db::databaseEmpty()) {
+ 
+    if(is_array($e->debug) && isset($e->debug['mysqlErrCode']) && $e->debug['mysqlErrCode'] == 1146 && core_Db::databaseEmpty()) {
 
         // При празна база редиректваме безусловно към сетъп-а
+        redirect(array('Index', 'SetupKey' => setupKey()));
+
+    } elseif(is_array($e->debug) && isset($e->debug['mysqlErrCode']) && $e->debug['mysqlErrCode'] == 1049) {
+
+        // Създаваме и редиректваме
+        mysql_query("CREATE DATABASE " . EF_DB_NAME);
         redirect(array('Index', 'SetupKey' => setupKey()));
 
     } else { 

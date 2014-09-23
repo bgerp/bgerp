@@ -1,7 +1,7 @@
 <?php
 class core_exception_Expect extends Exception
 {
-    protected $debug;
+    public $debug;
 
     protected $type;
 
