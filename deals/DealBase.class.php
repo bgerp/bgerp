@@ -356,6 +356,13 @@ abstract class deals_DealBase extends core_Master
     			$tpl->append($data->historyPager->getHtml(), 'DEAL_HISTORY');
     		}
     	}
+    	
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    		$tpl->removeBlock('STATISTIC_BAR');
+    	} elseif(Request::get('dealHistory', 'int')) {
+    		$tpl->removeBlock('STATISTIC_BAR');
+    	}
     }
     
     

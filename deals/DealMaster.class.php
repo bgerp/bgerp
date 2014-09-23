@@ -567,25 +567,6 @@ abstract class deals_DealMaster extends deals_DealBase
     }
     
     
-    /**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
-    {
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
-    		$tpl->removeBlock('header');
-    		$tpl->removeBlock('STATISTIC_BAR');
-    		$tpl->removeBlock('shareLog');
-    	} elseif(Request::get('dealHistory', 'int')) {
-    		$tpl->removeBlock('STATISTIC_BAR');
-    	}
-    	
-    	if($data->paymentPlan){
-    		$tpl->placeObject($data->paymentPlan);
-    	}
-    }
-    
-    
 	/**
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща тялото на имейл по подразбиране
@@ -1300,6 +1281,17 @@ abstract class deals_DealMaster extends deals_DealBase
     			// Ако има проблем при обновяването
     			core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");
     		}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('shareLog');
     	}
     }
 }
