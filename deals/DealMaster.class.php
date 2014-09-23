@@ -300,7 +300,7 @@ abstract class deals_DealMaster extends deals_DealBase
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,repaid=Издължени)', 'caption=Тип');
+        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,repaid=Издължени,invoiced=Фактурирани,notInvoiced=Нефактурирани)', 'caption=Тип');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
@@ -310,6 +310,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 			$data->query->XPR('paidRound', 'double', 'ROUND(#amountPaid, 2)');
 			$data->query->XPR('dealRound', 'double', 'ROUND(#amountDeal, 2)');
+			$data->query->XPR('invRound', 'double', 'ROUND(#amountInvoiced, 2)');
 			$data->query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered , 2)');
 			
 			if($filter->type) {
@@ -330,6 +331,14 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case 'paid':
 						$data->query->where("#paidRound = #dealRound");
+						$data->query->where("#state = 'active' || #state = 'closed'");
+						break;
+					case 'invoiced':
+						$data->query->where("#invRound >= #deliveredRound");
+						$data->query->where("#state = 'active' || #state = 'closed'");
+						break;
+					case 'notInvoiced':
+						$data->query->where("#invRound < #deliveredRound OR #invRound IS NULL");
 						$data->query->where("#state = 'active' || #state = 'closed'");
 						break;
 					case 'overdue':
