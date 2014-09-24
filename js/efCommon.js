@@ -1719,6 +1719,30 @@ function checkForPrintBreak(maxHeightPerDoc) {
 }
 
 
+function scalePrintingDocument(pageHeight){
+	if($('.document').height() > pageHeight ){
+		$('.footerDocInfo, .footerDocBlock').attr('style', 'display: none !important');
+		if($('.document').height() > pageHeight){
+			$('.document').css('line-height', '105%');
+			$('.document').css('font-size', '0.95em');
+			if($('.document').height() > pageHeight){
+				$('.document').css('line-height', '100%');
+				$('.document').css('font-size', '0.9em');
+				if($('.document').height() > pageHeight){
+					$('.document').css('font-size', '0.85em');
+					if($('.document').height() > pageHeight) {
+						$('.document').css('line-height', '110%');
+						$('.document').css('font-size', '1em');
+						$('.footerDocInfo').css('display', 'table-cell');
+						$('.footerDocBlock').css('display', 'block');
+					}
+				}
+			}
+		}
+	}
+}
+
+
 /**
  *  Плъгин за highlight на текст
  */

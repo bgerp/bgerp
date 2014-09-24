@@ -116,6 +116,8 @@ class plg_Printing extends core_Plugin
             
             $res = $tpl;
             
+            $tpl->appendOnce("\n runOnLoad(function(){scalePrintingDocument(1180);});", 'SCRIPTS');
+            
             return FALSE;
         }
     }
