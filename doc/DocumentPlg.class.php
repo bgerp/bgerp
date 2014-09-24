@@ -1875,7 +1875,7 @@ class doc_DocumentPlg extends core_Plugin
      * @param integer $id
      * @param integer $userId
      */
-    public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL)
+    public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
     {
         // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
         if (!$userId) {
