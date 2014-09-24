@@ -384,6 +384,10 @@ class doc_Containers extends core_Manager
             
             $rec->activatedBy = core_Users::getCurrent();
             
+            if (!$updateAll) {
+                $updateField['activatedBy'] = 'activatedBy';
+            }
+            
             $flagJustActived = TRUE;
             $mustSave = TRUE;
         }
