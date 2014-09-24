@@ -1305,4 +1305,71 @@ class blast_Letters extends core_Master
         
         return $lg;
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param blast_Letters $mvc
+     * @param array $res
+     * @param integer $id
+     * @param integer $userId
+     * @param object $data
+     */
+    public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
+    {
+        $toListId = $data->toListId;
+        
+        if (!$toListId) return ;
+        
+        // Вземаме данните от базата
+        $letterRec = $mvc->fetch($id);
+        
+        expect($letterRec);
+        
+        $data = array();
+        
+        // Ако е лист
+        if ($letterRec->listId) {
+            
+            // Фетчваме детайла за съответния лист
+            $detailRec = blast_ListDetails::fetch($toListId);    
+            
+            // Десериализираме данните
+            $data = unserialize($detailRec->data);
+            
+        } elseif ($letterRec->group) {
+            
+            // Ако е група
+            
+            $group = $letterRec->group;
+            
+            // Вземаме масива с плейсхолдерите, които ще се заместват
+            $data = static::getDataFor($group, $toListId);
+        }
+        
+        // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+            if ($userId <= 0) {
+                $userId = $mvc->getContainer($id)->activatedBy;
+            }
+        }
+        
+        core_Users::sudo($userId);
+        
+        // За всички полета опитваме да извлечем прикаченте файлове
+        foreach ((array)$data as $name => $value) {
+            $attachedDocs = (array)doc_RichTextPlg::getAttachedDocs($value);
+            
+            if (count($attachedDocs)) {
+                $attachedDocs = array_keys($attachedDocs);
+                $attachedDocs = array_combine($attachedDocs, $attachedDocs);
+                
+                $res = array_merge($attachedDocs, (array)$res);
+            }
+        }
+        
+        core_Users::exitSudo();
+    }
 }
