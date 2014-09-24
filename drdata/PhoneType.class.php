@@ -67,6 +67,14 @@ class drdata_PhoneType extends type_Varchar
             $this->maxFieldSize = 14;
         }
 
+        if(isset($this->params[0])) {
+            $this->maxFieldSize = $this->params[0];
+        }
+
+        if(isset($this->params['size'])) {
+            $this->maxFieldSize = $this->params['size'];
+        }
+
         return parent::renderInput_($name, $value, $attr);
     }
     
