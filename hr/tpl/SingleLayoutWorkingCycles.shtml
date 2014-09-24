@@ -3,7 +3,7 @@
     <h2>
         <div style="padding:5px;" class=" [#STATE_CLASS#]">|Работен цикъл|* <b style="color:green;">[#name#]</b></div>
     </h2>
-    <table class="styled-table" width="100%">
+    <table class="styled-table">
         <tr>
             <td class="title-style"> №</td>
             <td>[#id#]</td>
