@@ -143,9 +143,9 @@ class doc_RichTextPlg extends core_Plugin
                 
                 $docs[$name] = compact('name', 'mvc', 'rec');
             }
-            
-            return $docs;
         }
+        
+        return $docs;
     }
     
     
