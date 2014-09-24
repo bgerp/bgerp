@@ -1742,7 +1742,6 @@ function scalePrintingDocument(pageHeight){
 	}
 }
 
-
 /**
  *  Плъгин за highlight на текст
  */
@@ -1900,7 +1899,7 @@ efae.prototype.subscribe = function(name, url, interval) {
 
     // Текущото време
     this.lastTimeArr[name] = new Date();
-}
+};
 
 
 /**
@@ -1930,7 +1929,7 @@ efae.prototype.run = function() {
             thisEfaeInst.run()
         }, this.timeout);
     }
-}
+};
 
 
 /**
@@ -1955,7 +1954,7 @@ efae.prototype.getObjectKeysCnt = function(subscribedObj) {
     }
 
     return keys.length;
-}
+};
 
 
 /**
@@ -2086,7 +2085,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         // Изкарваме грешката в лога
         getEO().log('JQuery не е дефиниран');
     }
-}
+};
 
 
 /**
@@ -2156,7 +2155,7 @@ efae.prototype.getSubscribed = function() {
     }
 
     return resObj;
-}
+};
 
 
 /**
@@ -2166,7 +2165,7 @@ efae.prototype.getSubscribed = function() {
  */
 efae.prototype.setUrl = function(url) {
     this.url = url;
-}
+};
 
 
 /**
@@ -2177,7 +2176,7 @@ efae.prototype.setUrl = function(url) {
 efae.prototype.getUrl = function() {
 
     return this.url;
-}
+};
 
 
 /**
@@ -2187,7 +2186,7 @@ efae.prototype.getUrl = function() {
  */
 efae.prototype.setParentUrl = function(parentUrl) {
     this.parentUrl = parentUrl;
-}
+};
 
 
 /**
@@ -2198,7 +2197,7 @@ efae.prototype.setParentUrl = function(parentUrl) {
 efae.prototype.getParentUrl = function() {
 
     return this.parentUrl;
-}
+};
 
 /**
  * Увеличава времето за стартиране 
@@ -2210,7 +2209,7 @@ efae.prototype.increaseTimeout = function() {
         // Увеличаваме брояча
         this.ajaxInterval += this.increaseInterval;
     }
-}
+};
 
 
 /**
@@ -2219,7 +2218,7 @@ efae.prototype.increaseTimeout = function() {
 efae.prototype.resetTimeout = function() {
     // Връщаме старата стойност
     this.ajaxInterval = this.ajaxDefInterval;
-}
+};
 
 
 /**
@@ -2484,15 +2483,15 @@ Experta.prototype.runIdleTimer = function() {
 
     // Добавяме ивенти за ресетване при действие
     getEO().addEvent(document, 'mousemove', function() {
-        EOinst.resetIdleTimer()
+        EOinst.resetIdleTimer();
     });
     getEO().addEvent(document, 'keypress', function() {
-        EOinst.resetIdleTimer()
+        EOinst.resetIdleTimer();
     });
-
+    
     // Стартираме процеса
     this.processIdleTimer();
-}
+};
 
 
 /**
@@ -2504,12 +2503,12 @@ Experta.prototype.processIdleTimer = function() {
 
     // Задаваме функцията да се вика всяка секунда
     setTimeout(function() {
-        thisEOInst.processIdleTimer()
+        thisEOInst.processIdleTimer();
     }, 1000);
 
     // Увеличаваме брояча
     this.increaseIdleTime();
-}
+};
 
 
 /**
@@ -2526,7 +2525,7 @@ Experta.prototype.increaseIdleTime = function() {
         // При всяко извикване увеличава с единица
         this.idleTime++;
     }
-}
+};
 
 
 /**
@@ -2535,7 +2534,7 @@ Experta.prototype.increaseIdleTime = function() {
 Experta.prototype.resetIdleTimer = function() {
     // При всяко извикване нулира времето на бездействие
     this.idleTime = 0;
-}
+};
 
 
 /**
@@ -2544,7 +2543,7 @@ Experta.prototype.resetIdleTimer = function() {
 Experta.prototype.getIdleTime = function() {
 
     return this.idleTime;
-}
+};
 
 
 /**
@@ -2580,9 +2579,9 @@ Experta.prototype.saveSelText = function() {
 
     // Задаваме функцията да се самостартира през определен интервал
     setTimeout(function() {
-        thisEOInst.saveSelText()
+        thisEOInst.saveSelText();
     }, this.saveSelTextTimeout);
-}
+};
 
 
 /**
@@ -2591,7 +2590,7 @@ Experta.prototype.saveSelText = function() {
 Experta.prototype.getSavedSelText = function() {
 
     return this.sSelText;
-}
+};
 
 
 /**
@@ -2675,7 +2674,7 @@ Experta.prototype.saveSelTextInTextarea = function(id) {
     setTimeout(function() {
         thisEOInst.saveSelTextInTextarea(id)
     }, this.saveSelTextareaTimeout);
-}
+};
 
 
 /**
@@ -2689,7 +2688,7 @@ Experta.prototype.textareaFocus = function(id) {
 
     // Задваме в атрибута
     textarea.setAttribute('data-focus', 'focused');
-}
+};
 
 
 /**
@@ -2703,7 +2702,7 @@ Experta.prototype.textareaBlur = function(id) {
 
     // Задваме в атрибута
     textarea.setAttribute('data-focus', 'none');
-}
+};
 
 
 /**
@@ -2726,7 +2725,7 @@ Experta.prototype.addEvent = function(elem, event, func) {
     } else {
         elem["on" + event] = func;
     }
-}
+};
 
 
 /**
@@ -2750,7 +2749,7 @@ Experta.prototype.scrollTo = function(id) {
         // Скролваме в края на екрана
         window.scroll(0, 1000000);
     }
-}
+};
 
 
 /**
@@ -2765,7 +2764,53 @@ Experta.prototype.log = function(txt) {
         // Показваме съобщението
         console.log(txt);
     }
-}
+};
+
+/**
+ * Намаляващ брояч на време
+ */
+Experta.prototype.doCountdown = function() {
+	$('span.countdown').each(function() {
+		var text = $(this).text();
+		var res = text.split(":");
+		var hour = res[0];
+		var min = parseInt(res[1]);
+		var sec =  parseInt(res[2]);
+		
+		if(!(hour == 0 && min == 0 && sec==0 )) {
+			sec--;
+			if(sec < 0){
+				// ако са се изчерпали секундите
+				sec = 59;
+				min--;
+				if(min < 0){
+					// ако са се изчерпали минутите
+					min = 59;
+					hour--;
+				}
+			}
+			//добавяме водещи нули ако е необходимо
+			if(sec < 10){
+				sec = "0" +  sec;
+			}
+			if(min < 10){
+				min = "0" + min;
+			}
+			
+			$(this).text(hour + ":" + min + ":" +sec);
+		}
+	});
+};
+
+/**
+ * Извиква функцията doCountdown през 1 сек
+ */
+Experta.prototype.setCountdown = function() {
+	setInterval(function(){
+		getEO().doCountdown();
+	}
+	, 1000);
+};
 
 
 /**
