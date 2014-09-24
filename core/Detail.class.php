@@ -174,7 +174,7 @@ class core_Detail extends core_Manager
             $rec->{$masterKey} = $data->masterId;
         }
 
-        if ($this->haveRightFor('add', $rec)) {
+        if ($this->haveRightFor('add', $rec) && $data->masterId) {
             $data->toolbar->addBtn('Нов запис', array(
                     $this,
                     'add',
