@@ -265,13 +265,16 @@ class cat_UoM extends core_Manager
      * @param string $string - дума по която се търси
      * @return stdClass $rec - записа отговарящ на сис Ид-то
      */
-    public static function fetchBySinonim($string)
+    public static function fetchBySinonim($unit)
     {
-    	$string = strtolower(str::utf2ascii($string));
+    	$unitLat = strtolower(str::utf2ascii($unit));
     	
     	$query = static::getQuery();
-    	$query->likeKeylist('sinonims', "|{$string}|");
-    	
+    	$query->likeKeylist('sinonims', "|{$unitLat}|");
+    	$query->orWhere(array("LOWER(#sysId) = LOWER('[#1#]')", $unitLat));
+        $query->orWhere(array("LOWER(#name) = LOWER('[#1#]')", $unit));
+        $query->orWhere(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
+
     	return $query->fetch();
     }
     
