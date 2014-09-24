@@ -1372,7 +1372,7 @@ class log_Documents extends core_Manager
                 }
             }
             
-            $linkedDocs = $midDoc->getLinkedDocuments($sendedBy);
+            $linkedDocs = $midDoc->getLinkedDocuments($sendedBy, $fParent->data);
             
             // свързан ли е?
             expect(isset($linkedDocs[$requestedDoc->getHandle()]));
