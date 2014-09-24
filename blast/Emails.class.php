@@ -2120,4 +2120,65 @@ class blast_Emails extends core_Master
 
         return $nData;
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param blast_Emails $mvc
+     * @param array $res
+     * @param integer $id
+     * @param integer $userId
+     * @param object $data
+     */
+    public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
+    {
+        // id на детайла
+        $detId = $data->detId;
+        
+        if (!$detId) return ;
+        
+        // Записите за имейла
+        $emailRec = $mvc->fetch($id);
+        
+        // Очакваме да има такъв запис
+        expect($emailRec);
+        
+        // Ако е лист
+        if ($emailRec->listId) {
+            
+            // Вземаме записа за изпращане за съответния запис
+            $listSendRec = blast_ListSend::fetch("#listDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
+        } elseif ($emailRec->group) {
+            
+            // Вземаме записа за изпращане за съответната група
+            $listSendRec = blast_ListSend::fetch("#groupDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
+        }
+        
+        // Подготвяме данните за съответния имейл
+        $mvc->prepareRec($emailRec, $detId);
+        
+        // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+            if ($userId <= 0) {
+                $userId = $mvc->getContainer($id)->activatedBy;
+            }
+        }
+        
+        core_Users::sudo($userId);
+        
+        // Вземаме прикачените документи за този детайл с правата на активиралия потребител
+        $attachedDocs = (array)doc_RichTextPlg::getAttachedDocs($emailRec->body);
+        
+        core_Users::exitSudo();
+        
+        // Ако има прикачени документи
+        if (count($attachedDocs)) {
+            $attachedDocs = array_keys($attachedDocs);
+            $attachedDocs = array_combine($attachedDocs, $attachedDocs);  
+
+            $res = array_merge($attachedDocs, (array)$res);
+        }
+    }
 }
