@@ -3543,7 +3543,7 @@ body.narrow {
     text-align: right;
     font-size: 13px;
     color: #666;
-    display: none;
+    display: none !important;
     a {
         color:#333 !important;
     }
@@ -3558,7 +3558,7 @@ body.narrow {
     font-size: 13px;
     color: #666;
     border-top: 1px solid #666 !important;
-    display: none;
+    display: none !important;
     a {
         color:#333 !important;
     }
@@ -3584,7 +3584,7 @@ body.narrow {
         height: auto !important;
     }
     .footerDocInfo{
-        display: table-row;;
+        display: table-row;
     }
     .footerDocBlock{
         display: block;
@@ -3762,11 +3762,11 @@ body.narrow {
 	   overflow-x: visible !important;
 	}
     .footerDocBlock{
-        display: block;
+        display: block !important;
         border-top: 1px solid #666 !important;
     }
 	.footerDocInfo {
-        display: table-row;
+        display: table-row !important;
     }
 }
 
@@ -3837,10 +3837,10 @@ body.narrow {
        overflow-x: visible !important;
     }
     .footerDocInfo{
-        display: table-row;
+        display: table-row !important;
     } 
     .footerDocBlock{
-        display: block;
+        display: block !important;
     }
 }
 

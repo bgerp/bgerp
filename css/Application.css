@@ -3313,7 +3313,7 @@ only screen and (max-width: 320px) {
   text-align: right;
   font-size: 13px;
   color: #666666;
-  display: none; }
+  display: none !important; }
   .footerDocInfo a {
     color: #333333 !important; }
   .footerDocInfo td {
@@ -3325,7 +3325,7 @@ only screen and (max-width: 320px) {
   font-size: 13px;
   color: #666666;
   border-top: 1px solid #666666 !important;
-  display: none; }
+  display: none !important; }
   .footerDocBlock a {
     color: #333333 !important; }
 
@@ -3524,11 +3524,11 @@ only screen and (max-width: 320px) {
     overflow-x: visible !important; }
 
   .footerDocBlock {
-    display: block;
+    display: block !important;
     border-top: 1px solid #666666 !important; }
 
   .footerDocInfo {
-    display: table-row; } }
+    display: table-row !important; } }
 
   .printing .docBgIcon {
     padding: 0 !important;
@@ -3581,9 +3581,9 @@ only screen and (max-width: 320px) {
   .printing .overflow-scroll {
     overflow-x: visible !important; }
   .printing .footerDocInfo {
-    display: table-row; }
+    display: table-row !important; }
   .printing .footerDocBlock {
-    display: block; }
+    display: block !important; }
 
 .narrow .printing .document {
   width: 850px; }
