@@ -39,7 +39,7 @@ class price_ListDocs extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc';
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc, Products=cat_Products';
     	
     
     
@@ -374,6 +374,9 @@ class price_ListDocs extends core_Master
     private function calculateProductsPrice(&$data)
     {
     	$rec = &$data->rec;
+    	$rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, acc_Periods::getBaseCurrencyCode($rec->date));
+    	$rec->listRec = price_Lists::fetch($rec->policyId);
+    	
     	if(!count($rec->details->products)) return;
     	$packArr = keylist::toArray($rec->packagings);
     	
@@ -385,7 +388,14 @@ class price_ListDocs extends core_Master
     	foreach($rec->details->products as &$product){
     		
     		// Изчисляваме цената за продукта в основна мярка
-    		$product->priceM = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date, TRUE);
+    		$displayedPrice = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date, TRUE);
+    		$vat = $this->Products->getVat($product->productId);
+    		$displayedPrice = deals_Helper::getDisplayPrice($displayedPrice, $vat, $rec->currencyRate, $rec->vat);
+    		if(!empty($rec->listRec->roundingPrecision)){
+    			$displayedPrice = round($displayedPrice, $rec->listRec->roundingPrecision);
+    		}
+    		
+    		$product->priceM = $displayedPrice;
     		$productInfo = cat_Products::getProductInfo($product->productId);
     		
     		// Ако е пълен ценоразпис и има засичане на опаковките или е непълен и има опаковки
@@ -447,6 +457,12 @@ class price_ListDocs extends core_Master
     	if(!$price) return;
     	
     	$clone->priceP  = $packagingRec->quantity * $price;
+    	$vat = $this->Products->getVat($product->productId);
+    	$clone->priceP = deals_Helper::getDisplayPrice($clone->priceP, $vat, $rec->currencyRate, $rec->vat);
+    	if(!empty($rec->listRec->roundingPrecision)){
+    		$clone->priceP = round($clone->priceP, $rec->listRec->roundingPrecision);
+    	}
+    	
     	$clone->perPack = $packagingRec->quantity;
     	$clone->eanCode = ($packagingRec->eanCode) ? $packagingRec->eanCode : NULL;
     	$clone->pack    = $packagingRec->packagingId;
@@ -481,10 +497,6 @@ class price_ListDocs extends core_Master
     	}
     	
     	foreach (array('priceP', 'priceM') as $priceFld) {
-    		$vat = ($masterRec->vat == 'yes') ? $rec->vat : 0;
-    		$price = $rec->$priceFld * (1 + $vat);
-    		$rec->$priceFld = currency_CurrencyRates::convertAmount($price, $masterRec->date, NULL, $masterRec->currencyId);
-        	
     		if($rec->$priceFld){
         		$row->$priceFld = $double->toVerbal($rec->$priceFld);
         	}
@@ -631,6 +643,7 @@ class price_ListDocs extends core_Master
      *  	- Ако са посочени определени групи, то продукта
      *  	  го показваме в първата обходена група, която е
      *  	  посочена в масива с определените групи
+     *  
      * @param array $array - Масив с информацията за продуктите
      * @param array $groupsArr - Кои групи ще се показват,
      * 							 NULL ако са всичките
