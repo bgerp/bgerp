@@ -535,4 +535,23 @@ class techno_GeneralProducts extends core_Master {
      	
      	return $id->title;
      }
+     
+     
+	/**
+	* Връща информация за ед цена на продукта, отстъпката и таксите
+	* 
+	* @param stdClass $data - дата от модела
+	* @param int $packagingId - ид на опаковка
+	* @param double quantity - количество
+	* @param datetime $datetime - дата
+	* 
+	* @return stdClass $priceInfo - информация за цената на продукта
+	* [price]- начална цена
+	* [discount] - отстъпка
+	* [tax] - нач. такса
+	*/
+	public function getPriceInfo($productId, $packagingId = NULL, $quantity = 1, $datetime = NULL)
+	{
+		return $this->techno_GeneralProductsDetails->getTotalPrice($productId);
+	}
 }

@@ -357,7 +357,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Връща валидните ценови правила за посочения клиент
      */
-    public static function getListForCustomer($customerClass, $customerId, $datetime = NULL)
+    public static function getListForCustomer($customerClass, $customerId, &$datetime = NULL)
     {
         static::canonizeTime($datetime);
     	
@@ -379,12 +379,11 @@ class price_ListToCustomers extends core_Detail
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
         $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
 		$rec = new stdClass();
-
-        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, TRUE);
+		$rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
 		
         $listRec = price_Lists::fetch($listId);
        
@@ -392,13 +391,21 @@ class price_ListToCustomers extends core_Detail
         if(!empty($listRec->discountCompared)){
         	
         	// Намираме цената по тази политика и намираме колко % е отстъпката/надценката
-        	$comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime, TRUE);
+        	$comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
         	if($comparePrice){
         		$disc = ($rec->price - $comparePrice) / $comparePrice;
         		$rec->discount = round(-1 * $disc, 2);
+        		
+        		// Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
+        		$rec->price  = $comparePrice;
         	}
         }
         
+        // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
+        $vat = cls::get($productManId)->getVat($productId);
+        $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat, $listRec->roundingPrecision);
+        
+        // Връщаме цената
         return $rec;
     }
     
@@ -415,6 +422,7 @@ class price_ListToCustomers extends core_Detail
 	                list($d, $t) = explode(' ', dt::verbal2mysql());
 	                if($datetime == $d) {
 	                    $datetime = dt::verbal2mysql();
+	                    
 	                } else {
 	                    $datetime .= ' 23:59:59';
 	                }

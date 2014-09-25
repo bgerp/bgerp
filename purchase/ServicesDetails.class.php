@@ -35,7 +35,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_SaveAndNew,
-                        plg_AlignDecimals2, doc_plg_HidePrices,Policy=purchase_PurchaseLastPricePolicy,ReverseLastPricePolicy=sales_SalesLastPricePolicy, Policy=purchase_PurchaseLastPricePolicy, ReversePolicy=price_ListToCustomers';
+                        plg_AlignDecimals2, doc_plg_HidePrices,ReverseLastPricePolicy=sales_SalesLastPricePolicy, Policy=purchase_PurchaseLastPricePolicy';
     
     
     /**

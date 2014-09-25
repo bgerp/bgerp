@@ -161,7 +161,8 @@ class techno_GeneralProductsDetails extends core_Detail {
         		$Policy = cls::get('price_ListToCustomers');
 		        $contClass = doc_Folders::fetchCoverClassId($folderId);
 			    $contId = doc_Folders::fetchCoverId($folderId);
-			    $rec->price = $Policy->getPriceInfo($contClass, $contId, $rec->componentId, cat_Products::getClassId(), NULL, $rec->cQuantity, dt::now())->price;
+			    
+			    $rec->price = $Policy->getPriceInfo($contClass, $contId, $rec->componentId, cat_Products::getClassId(), NULL, $rec->cQuantity, dt::now(), 1, 'no')->price;
 			    if(!$rec->price){
 			        $form->setError('price', 'Проблем при извличането на цената! Моля задайте ръчно');
 			    }

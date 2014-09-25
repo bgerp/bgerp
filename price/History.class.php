@@ -217,7 +217,6 @@ class price_History extends core_Manager
     static function getPrice($listId, $datetime, $productId, $packagingId = NULL)
     {
         $validFrom = self::canonizeTime($datetime);
-        
         if(!$validFrom) return;
         
         $cond = "#listId = {$listId} AND #validFrom = '{$validFrom}' AND #productId = {$productId}";

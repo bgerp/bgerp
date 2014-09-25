@@ -1077,4 +1077,13 @@ class cat_Products extends core_Master {
     		
     	return (object)$arr;
     }
+    
+    
+    /**
+     * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
+     */
+    public function getPolicy()
+    {
+    	return cls::get('price_ListToCustomers');
+    }
 }

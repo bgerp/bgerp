@@ -259,43 +259,63 @@ abstract class deals_Helper
 	 * @param double $price - цена във валута
 	 * @param double $vat - ддс 
 	 * @param double $rate - валутен курс
-	 * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ддс-то
+	 * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ДДС-то
+	 * @param int $round - до колко знака да се закръгли
+	 * 
 	 * @return double $price - цената във валутата
 	 */
-	static function getPriceToCurrency($price, $vat, $rate, $chargeVat)
-	{
+	public static function getDisplayPrice($price, $vat, $rate, $chargeVat, $round = NULL)
+	{	
 		// Ако няма цена, но има такъв запис се взима цената от него
 	    if ($chargeVat == 'yes') {
+	    	
 	          // Начисляване на ДДС в/у цената
 	         $price *= 1 + $vat;
 	    }
 	   
-	    $price /= $rate;
-	    $price = static::roundPrice($price);
+	    // Обреъщаме в валутата чийто курс е подаден
+	    if($rate != 1){
+	    	$price /= $rate;
+	    }
+	   
+	    // Закръгляме при нужда
+	    if($round){
+	    	$price = round($price, $round);
+	    } else {
+	    	
+	    	// Ако не е посочено закръгляне, правим машинно закръгляне
+	    	$price = deals_Helper::roundPrice($price);
+	    }
 	    
+	    // Връщаме обработената цена
 	    return $price;
 	}
 	
-
+	
 	/**
 	 * Помощна ф-я обръщаща цена от от сума във валута в основната валута
+	 * това е обратната ф-я на `deals_Helper::getDisplayPrice`
 	 * 
 	 * @param double $price - цена във валута
 	 * @param double $vat - ддс 
 	 * @param double $rate - валутен курс
 	 * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ддс-то
+	 * 
 	 * @return double $price - цената в основна валута без ддс
 	 */
-	static function getPriceFromCurrency($price, $vat, $rate, $chargeVat)
+	public static function getPurePrice($price, $vat, $rate, $chargeVat)
 	{
 		// Ако няма цена, но има такъв запис се взима цената от него
 	    if ($chargeVat == 'yes') {
-	          // Начисляване на ДДС в/у цената
+	         
+	    	 // Премахваме ДДС-то при нужда
 	         $price /= 1 + $vat;
 	    }
 	  
+	    // Обръщаме в основната валута
 	    $price *= $rate;
 	    
+	    // Връщаме обработената цена
 	    return $price;
 	}
 }

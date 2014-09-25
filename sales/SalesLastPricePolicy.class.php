@@ -33,11 +33,12 @@ class sales_SalesLastPricePolicy extends core_Manager
     /**
      * Връща последната цена за посочения продукт направена в
      * продажба към контрагента
+     * 
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
      * 				  $rec->priority - приоритет на цената
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
        if(!$date){
        	   $date = dt::now();
@@ -65,7 +66,10 @@ class sales_SalesLastPricePolicy extends core_Manager
         	return NULL;
         }
         
-        return (object)array('price' => deals_Helper::roundPrice($lastRec->packPrice), 'discount' => $lastRec->discount, 'priority' => '1');
+        $vat = cls::get($lastRec->classId)->getVat($lastRec->productId);
+        $lastRec->packPrice = deals_Helper::getDisplayPrice($lastRec->packPrice, $vat, $rate, $chargeVat);
+        
+        return (object)array('price' => deals_Helper::roundPrice($lastRec->packPrice), 'discount' => $lastRec->discount);
     }
     
     

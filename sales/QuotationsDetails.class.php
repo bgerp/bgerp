@@ -256,31 +256,19 @@ class sales_QuotationsDetails extends core_Detail {
 	    	}
 	    	
 	    	if(!$rec->price){
-	    		$price = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, NULL, $rec->quantity, $masterRec->date);
+	    		$Policy = $ProductMan->getPolicy();
+	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, NULL, $rec->quantity, $masterRec->date, $masterRec->currencyRate, $masterRec->chargeVat);
 	    		
 	    		if(!$price->price){
 	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
 	    		}
 	    		$rec->price = $price->price;
-	    	} else {
-	    		
-	    		// Ако има цена, тя се конвертира до основна валута без ддс
-	    		$rec->price = $mvc->getBasePrice($rec->price, $masterRec->currencyRate, $rec->vatPercent, $masterRec->chargeVat);
 	    	}
-    	}
-    }
-    
-    
-    /**
-     * Помощна ф-я обръщаща въведената цена в основна валута без ддс
-     */
-    private function getBasePrice($price, $currencyRate, $vatPercent, $chargeVat)
-    {
-    	if($chargeVat == 'yes'){
-	    	$price = $price / (1 + $vatPercent);
+	    	
+	    	// Обръщаме в основна валута без ддс
+	    	$vat = cls::get($rec->classId)->getVat($rec->productId);
+	    	$rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 	    }
-	    		
-	    return $price * $currencyRate;
     }
     
     

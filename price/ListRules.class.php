@@ -159,10 +159,11 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт
      */
-    static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL, $roundForDocument = FALSE)
+    static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
     {  
         // Проверка, дали цената я няма в кеша
     	$price = price_History::getPrice($listId, $datetime, $productId);
+    	
         if(isset($price)) return $price;
 
         price_ListToCustomers::canonizeTime($datetime);
@@ -244,19 +245,10 @@ class price_ListRules extends core_Detail
         }
         
         $listRec = price_Lists::fetch($listId);
-        
-        // Ако ще има закръгляне за документ, и на ценоразписа му е посочено до колко знака ще се закръгля
-        if($roundForDocument === TRUE && !empty($listRec->roundingPrecision)){
         	
-        	// Закръгляме до посочения знак
-        	$price = round($price, $listRec->roundingPrecision);
-        } else {
-        	
-        	// По дефолт правим някакво машинно закръгляне
-        	$price = round($price, 8);
-        }
+        // По дефолт правим някакво машинно закръгляне
+        $price = round($price, 8);
         
-
         // Записваме току-що изчислената цена в историята;
         price_History::setPrice($price, $listId, $datetime, $productId);
 

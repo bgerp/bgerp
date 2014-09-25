@@ -150,4 +150,13 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->class->getBasePackInfo($productId);
     }
+    
+    
+    /**
+     * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
+     */
+    public function getPolicy()
+    {
+    	return $this->class->getPolicy();
+    }
 }
