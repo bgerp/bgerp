@@ -391,9 +391,7 @@ class price_ListDocs extends core_Master
     		$displayedPrice = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date, TRUE);
     		$vat = $this->Products->getVat($product->productId);
     		$displayedPrice = deals_Helper::getDisplayPrice($displayedPrice, $vat, $rec->currencyRate, $rec->vat);
-    		if(!empty($rec->listRec->roundingPrecision)){
-    			$displayedPrice = round($displayedPrice, $rec->listRec->roundingPrecision);
-    		}
+    		$displayedPrice = round($displayedPrice, (!empty($rec->listRec->roundingPrecision) ? $rec->listRec->roundingPrecision : 4));
     		
     		$product->priceM = $displayedPrice;
     		$productInfo = cat_Products::getProductInfo($product->productId);
@@ -459,9 +457,7 @@ class price_ListDocs extends core_Master
     	$clone->priceP  = $packagingRec->quantity * $price;
     	$vat = $this->Products->getVat($product->productId);
     	$clone->priceP = deals_Helper::getDisplayPrice($clone->priceP, $vat, $rec->currencyRate, $rec->vat);
-    	if(!empty($rec->listRec->roundingPrecision)){
-    		$clone->priceP = round($clone->priceP, $rec->listRec->roundingPrecision);
-    	}
+    	$clone->priceP = round($clone->priceP, (!empty($rec->listRec->roundingPrecision) ? $rec->listRec->roundingPrecision : 4));
     	
     	$clone->perPack = $packagingRec->quantity;
     	$clone->eanCode = ($packagingRec->eanCode) ? $packagingRec->eanCode : NULL;
