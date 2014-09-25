@@ -259,16 +259,21 @@ abstract class deals_DealDetail extends core_Detail
             	$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
             	$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
             	
-            	// Ако се обновява вече съществуващ запис
-            	if($pRec){
-            		$pRec->packPrice = deals_Helper::getDisplayPrice($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-            	}
-            	 
-            	// Ако се обновява запис се взима цената от него, ако не от политиката
-            	$price = ($pRec->price) ? $pRec->price : $policyInfo->price;
-            	$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
-            	if($policyInfo->discount && empty($rec->discount)){
-            		$rec->discount = $policyInfo->discount;
+            	
+            	if (!isset($policyInfo->price) && empty($pRec)) {
+            		$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
+            	} else {
+            		// Ако се обновява вече съществуващ запис
+            		if($pRec){
+            			$pRec->packPrice = deals_Helper::getDisplayPrice($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+            		}
+            		
+            		// Ако се обновява запис се взима цената от него, ако не от политиката
+            		$price = ($pRec->price) ? $pRec->price : $policyInfo->price;
+            		$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
+            		if($policyInfo->discount && empty($rec->discount)){
+            			$rec->discount = $policyInfo->discount;
+            		}
             	}
             	
             	$price = $policyInfo->price;

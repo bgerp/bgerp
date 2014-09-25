@@ -75,7 +75,7 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
         $vat = cls::get($lastRec->classId)->getVat($lastRec->productId);
         $lastRec->packPrice = deals_Helper::getDisplayPrice($lastRec->packPrice, $vat, $rate, $chargeVat);
         
-        return (object)array('price' => $lastRec->price, 'discount' => $lastRec->discount);
+        return (object)array('price' => $lastRec->packPrice, 'discount' => $lastRec->discount);
     }
     
     
