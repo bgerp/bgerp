@@ -129,8 +129,39 @@ class callcenter_SMS extends core_Master
         $this->setDbUnique('uid');
     }
 	
-	
-	/**
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Данните от конфигурацията
+        $conf = core_Packs::getConfig('callcenter');
+        $service = $conf->CALLCENTER_SMS_SERVICE;
+        $sender = $conf->CALLCENTER_SMS_SENDER;
+        
+        // Ако е зададена услуга
+        if ($service) {
+            
+            // Задаваме стойността
+            $data->form->setDefault('service', $service);
+            $data->form->setReadOnly('service');
+        }
+        
+        // Ако е зададен изпращач
+        if ($sender) {
+            
+            // Задаваме изпращача
+            $data->form->setDefault('sender', $sender);
+            $data->form->setReadOnly('sender');
+        }
+    }
+    
+    
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 
      * @param core_Mvc $mvc
@@ -174,7 +205,7 @@ class callcenter_SMS extends core_Master
                 // Ако не може да се изпраща SMS 
                 if ($params['utf8'] != 'yes') {
                     
-                    // Преобразиваме в ASCII
+                    // Преобразуваме в ASCII
                     $rec->text = str::utf2ascii($rec->text);
                 }
                 
@@ -199,7 +230,7 @@ class callcenter_SMS extends core_Master
                 if ($params['allowedUserNames'] && $sender) {
                     
                     // Ако не е в масива
-                    if (!$params[allowedUserNames][$sender]) {
+                    if (!$params['allowedUserNames'][$sender]) {
                         
                         // Стринг с позволените
                         $allowedUsers = implode(', ', $params['allowedUserNames']);
