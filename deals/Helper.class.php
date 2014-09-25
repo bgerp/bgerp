@@ -233,7 +233,7 @@ abstract class deals_Helper
 		$arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0,00</span>";
 		$arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0,00</span>";
 		
-		if(!$arr['vatAmount']){
+		if(!$arr['vatAmount'] && ($invoice || $chargeVat == 'separate')){
 			$arr['vatAmount'] = "<span class='quiet'>0,00</span>";
 		}
 		
