@@ -214,32 +214,50 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
     {
-    	if (!empty($rec->id)) {
-    		// Промяна на съществуваща ф-ра - не правим нищо
-    		return;
-    	}
-    
-    	$query = $mvc->getQuery();
-    	$query->where("#state != 'rejected'");
-    	$query->orderBy('date', 'DESC');
-    	$query->limit(1);
-    
-    	if (!$newestInvoiceRec = $query->fetch()) {
-    		// Няма ф-ри в състояние различно от rejected
-    		return;
-    	}
-    
-    	if ($newestInvoiceRec->date > $rec->date) {
+    	$newDate = $mvc->getNewestInvoiceDate();
+    	if($newDate > $rec->date) {
+    		
     		// Най-новата валидна ф-ра в БД е по-нова от настоящата.
-    		$form->setWarning('date',
-    				'Има фактура с по-нова дата (от|* ' .
+    		$form->setError('date',
+    				'Не може да се запише фактура с дата по-малка от последната активна фактура (' .
     				dt::mysql2verbal($newestInvoiceRec->date, 'd.m.y') .
     				')'
     		);
     	}
     }
 
-
+	
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'conto' && isset($rec)){
+    		
+    		// Не може да се контира, ако има ф-ра с по нова дата
+    		$lastDate = $mvc->getNewestInvoiceDate();
+    		if($lastDate > $rec->date) {
+    			$res = 'no_one';
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Връща датата на последната ф-ра
+     */
+    protected function getNewestInvoiceDate()
+    {
+    	$query = $this->getQuery();
+    	$query->where("#state = 'active'");
+    	$query->orderBy('date', 'DESC');
+    	$query->limit(1);
+    	$lastRec = $query->fetch();
+    	
+    	return $lastRec->date;
+    }
+    
+    
     /**
      * Валидиране на полето 'vatDate' - дата на данъчно събитие (ДС)
      *

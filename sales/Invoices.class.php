@@ -283,7 +283,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	if(!Mode::is('printing')){
     		$tpl->replace(tr('ОРИГИНАЛ') . "/<i>ORIGINAL</i>", 'INV_STATUS');
@@ -296,7 +296,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * След подготовка на тулбара на единичен изглед.
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = $data->rec;
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dpOperation != 'accrued'){
@@ -414,7 +414,7 @@ class sales_Invoices extends deals_InvoiceMaster
 	/**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;

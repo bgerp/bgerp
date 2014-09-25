@@ -256,7 +256,7 @@ class purchase_Invoices extends deals_InvoiceMaster
 	/**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
