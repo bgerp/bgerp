@@ -210,6 +210,7 @@ abstract class deals_Helper
 			$arr['vatAmount'] = $values['vat'] * $currencyRate; // С-та на ддс-то в основна валута
 			$arr['vatCurrencyId'] = $baseCurrency; 				// Валутата на ддс-то е основната за периода
 			$arr['baseAmount'] = $arr['total'] * $currencyRate; // Данъчната основа
+			$arr['baseAmount'] = ($arr['baseAmount']) ? $arr['baseAmount'] : "<span class='quiet'>0,00</span>";;
 			$arr['baseCurrencyId'] = $baseCurrency; 			// Валутата на данъчната основа е тази на периода
 		} else { // ако не е фактура
 			$arr['vatAmount'] = $values['vat']; 		// ДДС-то
@@ -232,7 +233,7 @@ abstract class deals_Helper
 		$arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0,00</span>";
 		$arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0,00</span>";
 		
-		if($arr['vatAmount'] === NULL && $chargeVat == 'separate'){
+		if(!$arr['vatAmount']){
 			$arr['vatAmount'] = "<span class='quiet'>0,00</span>";
 		}
 		

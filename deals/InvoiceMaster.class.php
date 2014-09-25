@@ -598,7 +598,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	   		
 	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE, 'bg');
 	   		$data->row = (object)((array)$data->row + (array)$data->summary);
-	   
+	   		
 	   		if($rec->paymentMethodId && $rec->type == 'invoice' && $rec->dpOperation != 'accrued') {
 	   			$total = $this->_total->amount + $this->_total->vat - $this->_total->discount;
 	   			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
@@ -851,6 +851,9 @@ abstract class deals_InvoiceMaster extends core_Master
     			unset($row->rate);
     		}
     			
+    		if(!$row->vatAmount){
+    			$row->vatAmount = "<span class='quiet'>0,00</span>";
+    		}
     		$mvc->prepareMyCompanyInfo($row);
     	}
     }
