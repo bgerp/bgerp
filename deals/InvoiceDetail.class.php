@@ -294,7 +294,8 @@ abstract class deals_InvoiceDetail extends core_Detail
 		if($form->rec->productId){
 			$vat = cls::get($rec->classId)->getVat($rec->productId);
 			$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
-	
+			unset($form->getFieldType('packagingId')->params['allowEmpty']);
+			
 			// Само при рефреш слагаме основната опаковка за дефолт
 			if($form->cmd == 'refresh'){
 				$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
