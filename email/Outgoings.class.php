@@ -2064,7 +2064,7 @@ class email_Outgoings extends core_Master
             $emailCount = count($faxAndEmailsArr['email']);
             
             // Ако има факс номер и имаме права за изпращане на факс
-            if ((email_FaxSent::haveRightFor('send') && (($faxCount)) || ($data->rec->fax && !$emailCount))) {
+            if ((email_FaxSent::haveRightFor('send') && (($faxCount) || ($data->rec->fax && !$emailCount)))) {
                 
                 // Бутона за изпращане да сочи към екшъна за изпращане на факсове
                 $data->toolbar->addBtn('Изпращане', array('email_FaxSent', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'ef_icon = img/16/email_go.png');    
