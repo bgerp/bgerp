@@ -235,7 +235,6 @@ class sales_QuotationsDetails extends core_Detail {
 	    			
 	    			return;
 	    		}
-	    		
 	    	}
 	    	
     		if($rec->optional == 'no' && !$rec->quantity){
@@ -262,7 +261,12 @@ class sales_QuotationsDetails extends core_Detail {
 	    		if(!$price->price){
 	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
 	    		}
+	    		
 	    		$rec->price = $price->price;
+	    		
+	    		if($price->discount){
+	    			$rec->discount = $price->discount;
+	    		}
 	    	}
 	    	
 	    	// Обръщаме в основна валута без ддс
