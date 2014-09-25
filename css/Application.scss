@@ -1775,7 +1775,7 @@ fieldset.sharing-history {
 }
 /*край на външни стилове за ширина*/
 .background-holder {
-	padding:10px 0;
+	padding: 0;
 }
 
 .narrow .background-holder {
@@ -1789,7 +1789,6 @@ fieldset.sharing-history {
 
 #cmsTop, #headerImg {
 	display: block;
-	@include border-radius4(10px, 10px, 0, 0);
 }
 
 #cmsMenu {
@@ -1852,12 +1851,10 @@ fieldset.sharing-history {
 #all {
 	border: solid 1px #777;
 	border-bottom: solid 1px #000;
-	max-width: 1000px;
+	max-width: 1400px;
 	display: block;
 	margin: 0 auto;
 	text-align: left;
-	@include rounded(top, left, 10px);
-	@include rounded(top, right, 10px);
 }
 
 .wide #all {
@@ -3143,8 +3140,11 @@ body.narrow {
 }
 
 @media handheld , only screen and (min-width: 1440px) {
-	#all {
-		max-width:70% !important;
+	.background-holder {
+	    padding: 10px 0;
+	}
+	#all, #cmsTop, #headerImg {
+	   @include border-radius4(10px, 10px, 0, 0);
 	}
 }
 
@@ -3184,37 +3184,11 @@ body.narrow {
     }	
 }
 
-@media handheld , only screen and (max-width: 1000px) {
-	#cmsTop, #headerImg {
-		@include rounded(top, left, 0);
-		@include rounded(top, right, 0);
-	}
-
-	.background-holder{
-         padding: 0 !important;
-    }
-
-	#all {
-		margin-top: 0;
-		margin-bottom: 0;
-		@include rounded(top, left, 0);
-		@include rounded(top, right, 0);
-	}
-}
-
-
 /* Mobile */
 @media handheld, only screen and (max-width: 950px) { 
 	body {
 		-webkit-text-size-adjust: none;
 	}
-	.background-holder{
-         padding: 0 !important;
-    }
-	#cmsTop, #all, #cmsBottom { 
-		width: 100% !important;
-	} 
-
 	.cms-row, body, .cms-container {
 		width: 100%;
 		min-width: 0;
@@ -3268,10 +3242,7 @@ body.narrow {
         font-size: 1.88em;
     }
 }
-@media handheld, only screen and (max-width: 800px) { 
-	.background-holder {
-	     padding: 0 !important;
-	}
+@media handheld, only screen and (max-width: 800px) {
 	#cmsMenu a {
 		margin-left: 6px !important;
 		margin-right: 6px !important;
@@ -3301,9 +3272,6 @@ body.narrow {
 }
 
 @media handheld, only screen and (max-width: 760px) { 
-	.background-holder {
-          padding: 0 !important;
-    }
 	#cmsMenu a {
 		margin-left: 4px !important;
 		margin-right: 4px !important;
@@ -3323,10 +3291,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 700px) { 
-	.background-holder {
-          padding: 0 !important;
-    }
+@media handheld, only screen and (max-width: 700px) {
 	#cmsMenu a { 
 		margin-left: 3px !important;
 		margin-right: 3px !important;
@@ -3353,10 +3318,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 640px) { 
-	.background-holder {
-         padding: 0 !important;
-    }
+@media handheld, only screen and (max-width: 640px) {
 	.narrow #all {
 		border: none;
 	}

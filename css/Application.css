@@ -1577,7 +1577,7 @@ span.sharing-history-title {
  * край на външни стилове за ширина
  */
 .background-holder {
-  padding: 10px 0; }
+  padding: 0; }
 
 .narrow .background-holder {
   padding: 10px 0 0;
@@ -1588,10 +1588,7 @@ span.sharing-history-title {
 
 #cmsTop,
 #headerImg {
-  display: block;
-  -moz-border-radius: 10px 10px 0 0;
-  -webkit-border-radius: 10px 10px 0 0;
-  border-radius: 10px 10px 0 0; }
+  display: block; }
 
 #cmsMenu {
   float: left;
@@ -1654,16 +1651,10 @@ span.sharing-history-title {
 #all {
   border: solid 1px #777777;
   border-bottom: solid 1px black;
-  max-width: 1000px;
+  max-width: 1400px;
   display: block;
   margin: 0 auto;
-  text-align: left;
-  border-top-left-radius: 10px;
-  -moz-border-radius-topleft: 10px;
-  -webkit-border-top-left: 10px;
-  border-top-right-radius: 10px;
-  -moz-border-radius-topright: 10px;
-  -webkit-border-top-right: 10px; }
+  text-align: left; }
 
 .wide #all {
   min-width: 500px; }
@@ -2916,8 +2907,15 @@ body.narrow {
 
 @media handheld,
 only screen and (min-width: 1440px) {
-  #all {
-    max-width: 70% !important; } }
+  .background-holder {
+    padding: 10px 0; }
+
+  #all,
+  #cmsTop,
+  #headerImg {
+    -moz-border-radius: 10px 10px 0 0;
+    -webkit-border-radius: 10px 10px 0 0;
+    border-radius: 10px 10px 0 0; } }
 
 @media handheld,
 only screen and (min-width: 1550px) {
@@ -2949,30 +2947,6 @@ only screen and (max-width: 1024px) {
   .document {
     max-width: 52.5em; } }
 
-@media handheld,
-only screen and (max-width: 1000px) {
-  #cmsTop,
-  #headerImg {
-    border-top-left-radius: 0;
-    -moz-border-radius-topleft: 0;
-    -webkit-border-top-left: 0;
-    border-top-right-radius: 0;
-    -moz-border-radius-topright: 0;
-    -webkit-border-top-right: 0; }
-
-  .background-holder {
-    padding: 0 !important; }
-
-  #all {
-    margin-top: 0;
-    margin-bottom: 0;
-    border-top-left-radius: 0;
-    -moz-border-radius-topleft: 0;
-    -webkit-border-top-left: 0;
-    border-top-right-radius: 0;
-    -moz-border-radius-topright: 0;
-    -webkit-border-top-right: 0; } }
-
 /*
  * Mobile
  */
@@ -2980,14 +2954,6 @@ only screen and (max-width: 1000px) {
 only screen and (max-width: 950px) {
   body {
     -webkit-text-size-adjust: none; }
-
-  .background-holder {
-    padding: 0 !important; }
-
-  #cmsTop,
-  #all,
-  #cmsBottom {
-    width: 100% !important; }
 
   .cms-row,
   body,
@@ -3052,9 +3018,6 @@ only screen and (max-width: 900px) {
 
 @media handheld,
 only screen and (max-width: 800px) {
-  .background-holder {
-    padding: 0 !important; }
-
   #cmsMenu a {
     margin-left: 6px !important;
     margin-right: 6px !important;
@@ -3082,9 +3045,6 @@ only screen and (max-width: 800px) {
 
 @media handheld,
 only screen and (max-width: 760px) {
-  .background-holder {
-    padding: 0 !important; }
-
   #cmsMenu a {
     margin-left: 4px !important;
     margin-right: 4px !important;
@@ -3104,9 +3064,6 @@ only screen and (max-width: 760px) {
 
 @media handheld,
 only screen and (max-width: 700px) {
-  .background-holder {
-    padding: 0 !important; }
-
   #cmsMenu a {
     margin-left: 3px !important;
     margin-right: 3px !important;
@@ -3133,9 +3090,6 @@ only screen and (max-width: 700px) {
 
 @media handheld,
 only screen and (max-width: 640px) {
-  .background-holder {
-    padding: 0 !important; }
-
   .narrow #all {
     border: none; }
 
