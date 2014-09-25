@@ -190,6 +190,9 @@ abstract class deals_Helper
 	{
 		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
 		$arr = array();
+		$values->amount = round($values->amount, 2);
+		$values->vat = round($values->vat, 2);
+		
 		$values = (array)$values;
 		$arr['currencyId'] = $currencyId;                          // Валута на документа
 		
@@ -236,7 +239,7 @@ abstract class deals_Helper
 		if(!$arr['vatAmount'] && ($invoice || $chargeVat == 'separate')){
 			$arr['vatAmount'] = "<span class='quiet'>0,00</span>";
 		}
-		
+		//if($invoice) bp($values, $arr);
 		$Double = cls::get('type_Double');
 		$Double->params['decimals'] = 2;
 		

@@ -258,7 +258,7 @@ abstract class deals_DealDetail extends core_Detail
             if (!isset($rec->packPrice)) {
             	$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
             	$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
-            	//bp($policyInfo);
+            	
             	// Ако се обновява вече съществуващ запис
             	if($pRec){
             		$pRec->packPrice = deals_Helper::getDisplayPrice($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);

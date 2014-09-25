@@ -83,7 +83,7 @@ class bulmar_InvoiceExport extends core_Manager {
      * @param mixed $data - данни
      * @return mixed - експортираните данни
 	 */
-    function export($filter)
+    public function export($filter)
     {
     	$query = $this->Invoices->getQuery_();
     	$query->where("#state = 'active'");
@@ -226,7 +226,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	$nRec->vat = $sign * $vat;
     	$nRec->productsAmount = $sign * round($byProducts, 2);
     	$nRec->servicesAmount = $sign * round($byServices, 2);
-    	$nRec->amount = $sign * round($baseAmount + $rec->vatAmount, 2);
+    	$nRec->amount = $sign * round($baseAmount, 2) + round($rec->vatAmount, 2);
     	$nRec->baseAmount = $sign * round($baseAmount, 2);
     	
     	if($rec->dpOperation){

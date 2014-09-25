@@ -901,7 +901,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public function pushDealInfo($id, &$aggregator)
     {
     	$rec = $this->fetchRec($id);
-    	$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
+    	$total = round($rec->dealValue, 2) + round($rec->vatAmount,2) - $rec->discountAmount;
     	$total = ($rec->type == 'credit_note') ? -1 * $total : $total;
     
     	$aggregator->sum('invoicedAmount', $total);
