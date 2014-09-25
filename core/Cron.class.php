@@ -29,6 +29,12 @@ class core_Cron extends core_Manager
     
     
     /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = 'Периодичeн процес';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id,title=Описание,parameters=Параметри,last=Последно,state";
