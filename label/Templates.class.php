@@ -164,7 +164,7 @@ class label_Templates extends core_Master
      * 
      * @return core_Et - Шаблона на записа
      */
-    static function getTemplate($id)
+    public static function getTemplate($id)
     {
         // Масив с шаблоните
         static $tplArr = array();
@@ -173,12 +173,49 @@ class label_Templates extends core_Master
         if ($tplArr[$id]) return $tplArr[$id];
         
         // Вземаме записа
-        $rec = static::fetch($id);
+        $rec = self::fetch($id);
         
         // Вкарваме CSS-а, като инлай в шаблона
-        $tplArr[$id] = new ET(static::templateWithInlineCSS($rec->template, $rec->css));
+        $tplArr[$id] = new ET($rec->template);
         
         return $tplArr[$id];
+    }
+    
+    
+    /**
+     * Вкарва CSS-a към шаблона, като инлайн
+     * 
+     * @param integer $id
+     * @param core_Et $template
+     */
+    public static function addCssToTemplate($id, $template=NULL)
+    {
+        // Масив с шаблоните
+        static $tplArrCss = array();
+        
+        if (!$template) {
+            $template = self::getTemplate($id);
+        }
+        
+        // Ако преди е бил извлечен
+        if ($tplArrCss[$id]) return $tplArrCss[$id];
+        
+        // Вземаме записа
+        $rec = self::fetch($id);
+        
+        // Вземаме съдържанието
+        $content = $template->getContent();
+        
+        // Вкарваме CSS-а, като инлайн
+        $contentWithCss = self::templateWithInlineCSS($content, $rec->css);
+        
+        // Задаваме новото съдържание
+        $template->setContent($contentWithCss);
+        
+        // Вкарваме CSS-а, като инлай в шаблона
+        $tplArrCss[$id] = $template;
+        
+        return $tplArrCss[$id];
     }
     
     
