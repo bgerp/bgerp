@@ -1851,7 +1851,7 @@ fieldset.sharing-history {
 #all {
 	border: solid 1px #777;
 	border-bottom: solid 1px #000;
-	max-width: 1400px;
+	max-width: 1200px;
 	display: block;
 	margin: 0 auto;
 	text-align: left;
@@ -3139,7 +3139,7 @@ body.narrow {
 	font-size:18px;
 }
 
-@media handheld , only screen and (min-width: 1440px) {
+@media handheld , only screen and (min-width: 1240px) {
 	.background-holder {
 	    padding: 10px 0;
 	}
