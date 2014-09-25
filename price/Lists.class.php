@@ -276,35 +276,4 @@ class price_Lists extends core_Master
             $this->save($rec, NULL, 'REPLACE');
         }
     }
-    
-    
-    /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $rec
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-    	if(isset($rec->id)){
-    		$rec->oldRoundingPrecision = $mvc->fetchField($rec->id, 'roundingPrecision');
-    	}
-    }
-
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	// Ако има променено закръгляне инвалидираме кеша
-    	if(!empty($rec->oldRoundingPrecision) && $rec->oldRoundingPrecision != $rec->roundingPrecision){
-    		$History = cls::get('price_History');
-    		$History->truncate();
-    	}
-    }
 }
