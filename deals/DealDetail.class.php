@@ -140,8 +140,7 @@ abstract class deals_DealDetail extends core_Detail
     	$recs = &$data->recs;
         $salesRec = $data->masterData->rec;
         
-        $map = ($data->masterData->fromProforma) ? array('alwaysHideVat' => TRUE) : array();
-        deals_Helper::fillRecs($mvc->Master, $recs, $salesRec, $map);
+        deals_Helper::fillRecs($mvc->Master, $recs, $salesRec);
     }
     
     
