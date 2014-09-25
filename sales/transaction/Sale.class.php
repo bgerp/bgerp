@@ -364,9 +364,6 @@ class sales_transaction_Sale
     public static function getShippedProducts($id)
     {
     	$res = array();
-    	$query = sales_SalesDetails::getQuery();
-        $query->where("#saleId = '{$id}'");
-        $query->show('id, productId, classId, quantityDelivered');
         
         // Намираме всички транзакции с перо сделката
         $jRecs = self::getEntries($id);

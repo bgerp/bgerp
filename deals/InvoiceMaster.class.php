@@ -531,6 +531,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	 
 	   	if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
 	   		$info = $origin->getAggregateDealInfo();
+	   		bp($info);
 	   		$agreed = $info->get('products');
 	   		$products = $info->get('shippedProducts');
 	   		$invoiced = $info->get('invoicedProducts');
@@ -588,9 +589,9 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	}
 	   	
 	   	$Detail = $mvc->mainDetail;
-	   	
 	   	$dRec->{$mvc->$Detail->masterKey} = $rec->id;
 	   	$dRec->classId        			  = $product->classId;
+	   	$dRec->discount        			  = $product->discount;
 	   	$dRec->price 		  			  = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
 	   	$dRec->quantityInPack 			  = $packQuantity;
 	   	$dRec->quantity       			  = $restAmount / $packQuantity;
