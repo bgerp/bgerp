@@ -2650,6 +2650,9 @@ div.location.public {
 .dialStatus-unknown {
   background-color: #eec8e9; }
 
+.dialStatus-redirected {
+  background-color: #e0e0e0; }
+
 /*
  * край на стилове за състояния на SMS' ите в колцентъра
  */

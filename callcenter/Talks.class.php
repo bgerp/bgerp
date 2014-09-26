@@ -1414,7 +1414,7 @@ class callcenter_Talks extends core_Master
             if ($rec->callType != 'outgoing') {
                 
                 // Ако в входящо и е пренасочено
-//                $this->singleIcon = 'img/16/incoming-redirected.png';
+                $this->singleIcon = 'img/16/incoming-redirected.png';
             }
         }
     }
