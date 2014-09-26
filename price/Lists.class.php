@@ -123,7 +123,7 @@ class price_Lists extends core_Master
         $this->FNC('validFrom', 'datetime', 'caption=Прикрепяне->В сила от,input=hidden');
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
-        $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Брой десетични знаци');
+        $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Десетични знаци');
         $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
         
         $this->setDbUnique('title');
