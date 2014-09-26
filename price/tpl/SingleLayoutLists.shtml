@@ -41,12 +41,10 @@
         </tr>
         <!--ET_END discountCompared-->
         <!--ET_BEGIN employersCnt-->
-    </table>
     <!--ET_BEGIN clientInfo-->
     [#clientInfo#]
-    <table class="styled-table" style='min-width:300px'>
         <tr>
-            <th colspan="2">|Прикрепяне|*</th>
+            <th colspan="2" style='padding-top: 15px;'>|Прикрепяне|*</th>
         </tr>
         <tr>
             <td class="title-style">|Клиент|*</td>
@@ -57,13 +55,12 @@
             <td>[#validFrom#]</td>
         </tr>
         <!--ET_END employersCnt-->
-    </table>
+    
     <!--ET_END clientInfo-->
     <!--ET_BEGIN roundingPrecisionTable-->
     [#roundingPrecisionTable#]
-    <table class="styled-table" style='min-width:300px'>
         <tr>
-            <th colspan="2">|Закръгляне|*</th>
+            <th colspan="2" style='padding-top: 15px;'>|Закръгляне|*</th>
         </tr>
         <!--ET_BEGIN roundingPrecision-->
         <tr>
