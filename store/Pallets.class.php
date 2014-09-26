@@ -522,8 +522,6 @@ class store_Pallets extends core_Manager
                 }
             }
         }
-        
-        // bp($rec);
     }
     
     

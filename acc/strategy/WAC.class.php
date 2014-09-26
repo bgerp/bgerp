@@ -44,7 +44,11 @@ class acc_strategy_WAC extends acc_strategy_Strategy
         }
         
         if ($this->quantity == 0) {
-            return false;
+            return FALSE;
+        }
+        
+        if($this->amount < 0){
+        	bp($this);
         }
         
         return $quantity * ($this->amount / $this->quantity);

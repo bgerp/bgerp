@@ -349,10 +349,8 @@ class dec_Declarations extends core_Master
     			$text = "изделията са произведени от";
     			$text2 .= " ". $m->text . ",";
     		}
-    			$cTpl->replace($text2, 'material'); //bp($text); 
+    			$cTpl->replace($text2, 'material');
     			$cTpl->append2master();
-    		
-//    		/$row->material = "</ol>";
     	}
     	
     	// вземаме твърденията
@@ -365,7 +363,7 @@ class dec_Declarations extends core_Master
     			
     			$s = dec_Statements::fetch($statement);
     			$text = "<ul><li>изделията отговарят на изискванията"." ". $s->text ."</li></ul>";
-    			$cTpl->replace($text, 'statements'); //bp($text); 
+    			$cTpl->replace($text, 'statements');
     			$cTpl->append2master();
     		}
     		$row->statements = "</ol>";

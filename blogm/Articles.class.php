@@ -406,7 +406,6 @@ class blogm_Articles extends core_Master {
         $data->ogp = new stdClass();
     	
     	// Добавяме изображението за ографа ако то е дефинирано от потребителя
-       // bp(fileman_RichTextPlg::getFiles($data->rec->body));
         
         
         if($data->rec->body) {

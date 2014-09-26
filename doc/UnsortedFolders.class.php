@@ -321,13 +321,8 @@ class doc_UnsortedFolders extends core_Master
     	$data = self::fetch($currUrl['id']);
 
     	//Очакваме да има такъв запис
-        //expect($id = Request::get('id', 'int'));
-        
-        //expect($rec = $this->fetch($id));
         
         //Очакваме потребителя да има права за спиране
-        //$this->haveRightFor('gant', $rec);
-    	//bp(self::prepareGantt($data));
     	$tpl = getTplFromFile('doc/tpl/SingleLayoutUnsortedFolderGantt.shtml');
         //Права за работа с екшън-а
         requireRole('powerUser');
