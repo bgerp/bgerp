@@ -588,7 +588,8 @@ abstract class acc_ClosedDeals extends core_Master
     
     
     /**
-     * Какъв да е вальора на контировката
+     * Какъв да е вальора на контировката. Взима за дата на вальора, датата на вальора на последния
+     * контиран документ в нишката (без текущия)
      */
     public function getValiorDate($rec)
     {
@@ -598,21 +599,24 @@ abstract class acc_ClosedDeals extends core_Master
     		$dates[] = $firstDoc->fetchField($firstDoc->instance->valiorFld);
     	}
     	
+    	// Обхождаме всички документи в нишката и им извличаме вальорите
     	$desc = $firstDoc->getDescendants();
     	if(count($desc)){
     		foreach ($desc as $doc){
-    			if($doc->haveInterface('acc_TransactionSourceIntf')){
-    				if($doc->that != $id && $doc->getClassId() != $rec->classId){
+    			if($doc->haveInterface('acc_TransactionSourceIntf') && $doc->fetchField('state') == 'active'){
+    				if($doc->that != $rec->id && $doc->getClassId() != $rec->classId){
     					$dates[] = $doc->fetchField($doc->instance->valiorFld);
     				}
     			}
     		}
     	}
     	
+    	// Сортираме вальорите по възходящ ред
     	usort($dates, function($a, $b) {
   			return ($a < $b) ? 1 : -1;
 		});
     	
+    	// и връщаме най-голямата дата от тях
     	return $dates[0];
     }
 }
