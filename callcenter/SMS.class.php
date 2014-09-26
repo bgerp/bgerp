@@ -185,40 +185,6 @@ class callcenter_SMS extends core_Master
     
     
     /**
-     * Подготвя текстовата част
-     * 
-     * @param string|array $message
-     * 
-     * @return string
-     */
-    public static function prepareMessage($message)
-    {
-        $messageStr = '';
-        
-        // Ако е масив
-        if (is_array($message)) {
-            
-            // Текстова част
-            $messageStr = $message[0];
-            
-            unset($message[0]);
-            
-            // Заместваме плейсхолдерите на останалата част
-            foreach ((array)$message as $n => $text) {
-                $place = "[#{$n}#]";
-                $messageStr = str_replace($place, $text, $messageStr);
-            }
-        } else {
-            
-            // Ако е текст, не се правят обработки
-            $messageStr = $message;
-        }
-        
-        return $messageStr;
-    }
-    
-    
-    /**
      * Проверява дали може да се изпрати съответния имейл
      * 
      * @param integer|string $service
@@ -259,6 +225,74 @@ class callcenter_SMS extends core_Master
         }
         
         return TRUE;
+    }
+    
+    
+    /**
+     * Подготвя текстовата част
+     * 
+     * @param string|array $message
+     * 
+     * @return string
+     */
+    public static function prepareMessage($message)
+    {
+        $messageStr = '';
+        
+        // Ако е масив
+        if (is_array($message)) {
+            
+            // Текстова част
+            $messageStr = $message[0];
+            
+            unset($message[0]);
+            
+            // Заместваме плейсхолдерите на останалата част
+            foreach ((array)$message as $n => $text) {
+                $place = "[#{$n}#]";
+                $messageStr = str_replace($place, $text, $messageStr);
+            }
+        } else {
+            
+            // Ако е текст, не се правят обработки
+            $messageStr = $message;
+        }
+        
+        return $messageStr;
+    }
+    
+    
+    /**
+     * Обновява състоянието на SMS-ите в логовете
+     * callBack фунцкия - Викасе от act_Delivery в класовете, които имплементират callcenter_SentSMSIntf
+     * Използва се от изпращачите за обновяване на състоянието
+     * 
+     * @param integer $service
+     * @param string $uid
+     * @param string $status
+     * @param integer $receivedTimestamp
+     */
+    public static function update($service, $uid, $status, $receivedTimestamp=NULL)
+    {
+        // Вземаме записа
+        $rec = self::fetch(array("#uid = '[#1#]' AND #service = '[#2#]'", $uid, $service));
+        
+        // Сменяме статуса и времето на получаване
+        $rec->status = $status;
+        
+        // Ако няма време на получаване или е подадено време преди създаването му
+        if (!$receivedTimestamp || $rec->createdOn < $receivedTimestamp) {
+            
+            // Вземаме текущото време
+            $rec->receivedTime = dt::verbal2mysql();
+        } else {
+            
+            // Преобразуваме времето
+            $rec->receivedTime = dt::timestamp2Mysql($receivedTimestamp);
+        }
+        
+        // Ъпдейтваме записите
+        self::save($rec, NULL, 'UPDATE');
     }
     
     
@@ -448,40 +482,6 @@ class callcenter_SMS extends core_Master
         
         // Рендираме изгледа
         return $this->renderWrapping($form->renderHtml());
-    }
-    
-    
-    /**
-     * Обновява състоянието на SMS-ите в логовете
-     * callBack фунцкия - Викасе от act_Delivery в класовете, които имплементират callcenter_SentSMSIntf
-     * Използва се от изпращачите за обновяване на състоянието
-     * 
-     * @param integer $service
-     * @param string $uid
-     * @param string $status
-     * @param integer $receivedTimestamp
-     */
-    public static function update($service, $uid, $status, $receivedTimestamp=NULL)
-    {
-        // Вземаме записа
-        $rec = self::fetch(array("#uid = '[#1#]' AND #service = '[#2#]'", $uid, $service));
-        
-        // Сменяме статуса и времето на получаване
-        $rec->status = $status;
-        
-        // Ако няма време на получаване или е подадено време преди създаването му
-        if (!$receivedTimestamp || $rec->createdOn < $receivedTimestamp) {
-            
-            // Вземаме текущото време
-            $rec->receivedTime = dt::verbal2mysql();
-        } else {
-            
-            // Преобразуваме времето
-            $rec->receivedTime = dt::timestamp2Mysql($receivedTimestamp);
-        }
-        
-        // Ъпдейтваме записите
-        self::save($rec, NULL, 'UPDATE');
     }
     
     
