@@ -682,6 +682,12 @@ button {
   margin-top: 0;
   margin-bottom: 0; }
 
+a.button.fright,
+input[type="button"].fright,
+input[type="submit"].fright,
+button.fright {
+  margin: 1px 0 0 0.5em; }
+
 a.header:target {
   color: blue; }
 
