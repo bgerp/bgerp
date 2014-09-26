@@ -921,7 +921,7 @@ abstract class deals_DealMaster extends deals_DealBase
     					$d->quantity += $p->quantity;
     					$d->price = ($d->price) ? ($d->price + $p->price) / 2 : $p->price;
     					if(!empty($d->discount) || !empty($p->discount)){
-    						$d->discount = ($d->discount + $p->discount) / 2;
+    						$d->discount = ($d->discount) ? ($d->discount + $p->discount) / 2 : $p->discount;
     					}
     
     					$info = cls::get($p->classId)->getProductInfo($p->productId, $p->packagingId);
