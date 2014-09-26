@@ -19,110 +19,110 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
    
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Банкови обмени на валути";
+    public $title = "Банкови обмени на валути";
     
     
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Printing, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, bank_Wrapper, plg_Printing, acc_plg_Contable,
      	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, doc_SharablePlg';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, valior, reason, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
+    public $listFields = "tools=Пулт, number=Номер, valior, reason, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'reason';
+    public $rowToolsSingleField = 'reason';
     
     
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Банкова обмяна на валута';
+    public $singleTitle = 'Банкова обмяна на валута';
     
     
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/money_exchange.png';
+    public $singleIcon = 'img/16/money_exchange.png';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Sv";
+    public $abbr = "Sv";
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'bank, ceo';
+    public $canRead = 'bank, ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'bank,ceo';
+	public $canList = 'bank,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'bank,ceo';
+	public $canSingle = 'bank,ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'bank, ceo';
+    public $canWrite = 'bank, ceo';
     
     
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc, bank, ceo';
+    public $canConto = 'acc, bank, ceo';
     
     
     /**
      * Кой може да сторнира
      */
-    var $canRevert = 'bank, ceo';
+    public $canRevert = 'bank, ceo';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'bank/tpl/SingleExchangeDocument.shtml';
+    public $singleLayoutFile = 'bank/tpl/SingleExchangeDocument.shtml';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.7|Финанси";
+    public $newBtnGroup = "4.7|Финанси";
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason, peroFrom, peroTo, id';
+    public $searchFields = 'reason, peroFrom, peroTo, id';
     
     
 	/**
@@ -151,7 +151,7 @@ class bank_ExchangeDocument extends core_Master
 	/**
 	 *  Подготовка на филтър формата
 	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	public static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		// Добавяме към формата за търсене търсене по Каса
 		bank_OwnAccounts::prepareBankFilter($data, array('peroFrom', 'peroTo'));
@@ -178,7 +178,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Подготовка на формата за добавяне
      */
-    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
     	$form = &$data->form;
     	$today = dt::verbal2mysql();
@@ -194,7 +194,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Проверка след изпращането на формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     { 
     	if ($form->isSubmitted()){
     		
@@ -239,7 +239,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      *  Обработки по вербалното представяне на данните
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->number = static::getHandle($rec->id);
     	if($fields['-list']){
@@ -276,27 +276,34 @@ class bank_ExchangeDocument extends core_Master
         $cOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom, 'currencyId');
         $dOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
         
-        $entry = array(
-            'amount' => $rec->debitQuantity * $rec->debitPrice,
-            'debit' => array(
-                '503',
-                array('bank_OwnAccounts', $rec->peroTo),
-        		array('currency_Currencies', $dOwnAcc->currencyId),
-                'quantity' => $rec->debitQuantity
-            ),
-            'credit' => array(
-                '503',
-                array('bank_OwnAccounts', $rec->peroFrom),
-        		array('currency_Currencies', $cOwnAcc->currencyId),
-                'quantity' => $rec->creditQuantity
-            ),
-        );
-      	
+        $toBank = array('503',
+                		array('bank_OwnAccounts', $rec->peroTo),
+        				array('currency_Currencies', $dOwnAcc->currencyId),
+                		'quantity' => $rec->debitQuantity);
+        
+        $fromBank = array('503',
+                		array('bank_OwnAccounts', $rec->peroFrom),
+        				array('currency_Currencies', $cOwnAcc->currencyId),
+                		'quantity' => $rec->creditQuantity);
+        
+        if($cOwnAcc->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
+        	$entry = array('amount' => $rec->debitQuantity * $rec->debitPrice, 'debit' => $toBank, 'credit' => $fromBank);
+        	$entry = array($entry);
+        } else {
+        	$entry = array();
+        	$entry[] = array('amount' => $rec->debitQuantity, 
+        					 'debit' => $toBank, 
+        					 'credit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity));
+        	$entry[] = array('amount' => $rec->debitQuantity,
+        					'debit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity),
+        					'credit' => $fromBank);
+        }
+        
       	// Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason' => $rec->reason,   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
-            'entries' => array($entry)
+            'entries' => $entry
         );
         
         return $result;
@@ -358,7 +365,7 @@ class bank_ExchangeDocument extends core_Master
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
@@ -380,5 +387,16 @@ class bank_ExchangeDocument extends core_Master
     	$rec = $this->fetchRec($id);
     	
     	return $this->getVerbal($rec, 'reason');
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(__CLASS__);
+    	 
+    	return $self->singleTitle . " №$rec->id";
     }
 }
