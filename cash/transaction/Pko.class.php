@@ -61,7 +61,7 @@ class cash_transaction_Pko
     	$result = (object)array(
     			'reason' => $rec->reason, // основанието за ордера
     			'valior' => $rec->valior,   // датата на ордера
-    			'entries' => array($entry)
+    			'entries' => $entry
     	);
     	
     	return $result;
@@ -98,7 +98,7 @@ class cash_transaction_Pko
     	
     	$entry = array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,);
     	
-    	return $entry;
+    	return array($entry);
     }
     
     

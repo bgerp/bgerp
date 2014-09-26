@@ -61,7 +61,7 @@ class bank_transaction_SpendingDocument
     	$result = (object)array(
     			'reason' => $rec->reason,   // основанието за ордера
     			'valior' => $rec->valior,   // датата на ордера
-    			'entries' => array($entry)
+    			'entries' => $entry,
     	);
     
     	return $result;
@@ -84,19 +84,33 @@ class bank_transaction_SpendingDocument
     	$debitQuantity = round($amount / $dealInfo->get('rate'), 2);
     	
     	// Дебитираме Разчетна сметка
-    	$debitArr = array($rec->debitAccId,
+    	$dealArr = array($rec->debitAccId,
     						array($rec->contragentClassId, $rec->contragentId),
     						array($origin->className, $origin->that),
     						array('currency_Currencies', $debitCurrency),
     						'quantity' => $sign * $debitQuantity);
     	
     	// Кредитираме банкова сметка
-    	$creditArr = array($rec->creditAccId,
+    	$bankArr = array($rec->creditAccId,
     						array('bank_OwnAccounts', $rec->ownAccount),
     						array('currency_Currencies', $rec->currencyId),
     						'quantity' => $sign * $rec->amount);
     	
-    	$entry = array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,);
+    	// Ако документа е в основна валита, кредитираме директно касата
+    	if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
+    		$entry = array('amount' => $sign * $amount, 'debit' => $dealArr, 'credit' => $bankArr,);
+    		$entry = array($entry);
+    	} else {
+    	
+    		// Ако не е минаваме през транзитна сметка '481'
+    		$entry = array();
+    		$entry[] = array('amount' => $sign * $amount,
+    				'debit' => $dealArr,
+    				'credit' => array('481', array('currency_Currencies', $rec->currencyId),
+    						'quantity' => $sign * $rec->amount));
+    	
+    		$entry[] = array('amount' => $sign * $amount, 'debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $sign * $rec->amount), 'credit' => $bankArr);
+    	}
     	
     	return $entry;
     }

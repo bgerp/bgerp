@@ -110,7 +110,7 @@ class purchase_transaction_Purchase
             'valior'  => $rec->valior,
             'entries' => $entries, 
         );
-        
+       
         return $transaction;
     }
     
@@ -242,9 +242,18 @@ class purchase_transaction_Purchase
     /**
      * Помощен метод - генерира платежната част от транзакцията за покупка (ако има)
      * 
-     *    Dt: 501. Каси                  (Каса, Валута)
-     *        
-     *    Ct: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
+     * Ако валутата е основната за сч. период
+     * 
+     *    Dt: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
+     *    Ct: 501. Каси                  	   (Каса, Валута)
+     *    
+     * Ако валутата е различна от основната за сч. период
+     * 
+     *    Dt: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
+     *    Ct: 481. Разчети по курсови разлики  (Валута)
+     *    
+     *    Dt: 481. Разчети по курсови разлики  (Валута)
+     *    Ct: 501. Каси   					   (Каса, Валута)
      *    
      * @param stdClass $rec
      * @return array
@@ -269,24 +278,27 @@ class purchase_transaction_Purchase
         
         $quantityAmount += $amountBase / $rec->currencyRate;
         
-        $entries[] = array(
-                'amount' => $amountBase, // В основна валута
-                
-                'credit' => array(
-                    '501', // Сметка "501. Каси"
-                        array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
-                        array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                    'quantity' => $quantityAmount, // "брой пари" във валутата на покупката
-                ),
-                
-                'debit' => array(
-                    '401', // Сметка "401. Задължения към доставчици"
-                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                		array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
-                        array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-                    'quantity' => $quantityAmount, // "брой пари" във валутата на покупката
-                ),
-            );
+        $caseArr = array('501',
+                        array('cash_Cases', $rec->caseId),        
+                        array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,);
+        
+        $dealArr = array('401',
+        				array($rec->contragentClassId, $rec->contragentId),
+                		array('purchase_Purchases', $rec->id),
+                        array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,);
+        
+        if($rec->currencyId == acc_Periods::getBaseCurrencyCode($rec->valior)){
+        	$entries[] = array('amount' => $amountBase, 'debit' => $dealArr, 'credit' => $caseArr);
+        } else {
+        	$entries = array();
+        	$entries[] = array('amount' => $amountBase,
+        			'debit' => $dealArr,
+        			'credit' => array('481', array('currency_Currencies', $currencyId),
+        					'quantity' => $quantityAmount));
+        	$entries[] = array('amount' => $amountBase, 'debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $quantityAmount), 'credit' => $caseArr);
+        }
         
         return $entries;
     }
@@ -399,7 +411,7 @@ class purchase_transaction_Purchase
     {
     	$jRecs = static::getEntries($jRecs);
     	
-    	$paid = acc_Balances::getBlAmounts($jRecs, '501,503', 'credit')->amount;
+    	$paid = acc_Balances::getBlAmounts($jRecs, '501,503,481', 'credit')->amount;
     	
     	return $paid;
     }
