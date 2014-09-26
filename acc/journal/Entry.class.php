@@ -111,10 +111,6 @@ class acc_journal_Entry
                 $this->credit->account->isDimensional(), 
                 'Сметките със стратегия трябва да са с размерна аналитичност'
             );
-            acc_journal_Exception::expect(
-                !isset($this->credit->price), 
-                'Зададена цена при кредитиране на сметка със стратегия'
-            );
         }
         
         // Има ли кредит сметката размерна аналитичност?
@@ -139,10 +135,6 @@ class acc_journal_Entry
             // 2. Забранено, ако  кореспондиращата кредит сметка ИМА стратегия
             
             if ($this->credit->account->hasStrategy()) {
-                acc_journal_Exception::expect(
-                    !isset($this->debit->price), 
-                    'Зададена цена при дебитиране на сметка с размерна аналитичност, която кореспондира с кредит сметка със стратегия'
-                );
             } else {
                 acc_journal_Exception::expect(
                     isset($this->debit->price), 
