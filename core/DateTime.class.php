@@ -235,7 +235,7 @@ class core_DateTime
     /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
-    static function mysql2verbal($mysqlDate, $mask = "d-m-y H:i", $lg = NULL)
+    static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL)
     {
         if($mysqlDate === NULL) {
             $mysqlDate = self::verbal2mysql();
@@ -265,15 +265,16 @@ class core_DateTime
             
             if($year != $yearNow) {
                 if(Mode::is('screenMode', 'narrow')) {
-                    $mask = 'd-m-y H:i';
+                    $mask = 'd.m.y H:i';
                 } else {
-                    $mask = 'd-m-Y H:i';
+                    $mask = 'd.m.Y H:i';
                 }
             } else {
                 $smartMode = TRUE;
-                $mask = 'd-M H:i';
-                $today = dt::mysql2verbal(dt::verbal2mysql(), "d-M", 'en');
-                $yesterday = dt::mysql2verbal(dt::addDays(-1), "d-M", 'en');
+                $mask = 'd M H:i';
+                $today = dt::mysql2verbal(dt::verbal2mysql(), "d M", 'en');
+                $yesterday = dt::mysql2verbal(dt::addDays(-1), "d M", 'en');
+                $tomorrow = dt::mysql2verbal(dt::addDays(1), "d M", 'en');
             }
         }
         
@@ -289,12 +290,12 @@ class core_DateTime
         
         if($smartMode) {
             
-            $fromArr = array($today, $yesterday);
+            $fromArr = array($today, $yesterday, $tomorrow);
             
             if($lg == 'bg') {
-                $toArr = array('Днес', 'Вчера');
+                $toArr = array('Днес', 'Вчера', 'Утре');
             } else {
-                $toArr = array('Today', 'Yesterday');
+                $toArr = array('Today', 'Yesterday', 'Tomorrow');
             }
             
             $verbDate = str_replace($fromArr, $toArr, $verbDate);
@@ -325,7 +326,7 @@ class core_DateTime
             
             $color = static::getColorByTime($mysqlDate);
           
-            $title = dt::mysql2verbal($mysqlDate, "d-M-Y H:i (l)");
+            $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i (l)");
             $title = "  title='{$title}'";
             
             $verbDate = "<span style=\"color:#{$color}\" $title>{$verbDate}</span>";
@@ -400,7 +401,7 @@ class core_DateTime
 
         if($dist < 0) {
             $dist = round(pow(log(-$dist, 1.85) - log(20, 1.85), 1.85));
-            $g = round(max(4, 8 - $dist/50));
+            $g = round(max(3, 9 - $dist/50));
             $color = "0{$g}0";
         } else {
             
