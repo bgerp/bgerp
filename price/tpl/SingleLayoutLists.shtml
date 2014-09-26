@@ -74,8 +74,8 @@
             <td>[#roundingOffset#]</td>
         </tr>
         <!--ET_END roundingOffset-->
-    </table>
     <!--ET_END roundingPrecisionTable-->
+    </table>
     <div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
     <br>
     <div class='scrolling-holder'>
