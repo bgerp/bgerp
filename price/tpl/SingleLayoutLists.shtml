@@ -67,7 +67,7 @@
         </tr>
         <!--ET_BEGIN roundingPrecision-->
         <tr>
-            <td class="title-style">|Точност|*</td>
+            <td class="title-style">|Десетични знаци|*</td>
             <td>[#roundingPrecision#]</td>
         </tr>
         <!--ET_END roundingPrecision-->
