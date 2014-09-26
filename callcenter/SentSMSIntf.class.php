@@ -20,16 +20,13 @@ class callcenter_SentSMSIntf
      * @param string $number - Номера на получателя
      * @param string $message - Текста на съобщението
      * @param string $sender - От кого се изпраща съобщението
-     * @param array $params - Масив с класа и функцията, която ще се извика в act_Delivery
-     * @params['class'] - Класа
-     * @params['function'] - Функцията, която да се стартира от съответния клас
      * 
      * @return array $res - Mасив с информация, дали е получено
-     * $res['sended'] boolean - Дали е изпратен или не
+     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, waiting
      * $res['uid'] string - Уникалното id на съобщението
      * $res['msg'] - Статуса
      */
-    function sendSMS($number, $message, $sender, $params)
+    function sendSMS($number, $message, $sender)
     {
         return $this->class->sendFax($number, $message, $sender);
     }
