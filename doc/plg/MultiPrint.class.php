@@ -87,10 +87,6 @@ class doc_plg_MultiPrint extends core_Plugin
 		    		
 		    // За всяко копие предизвикваме ивент в документа, ако той иска да добави нещо към шаблона на копието
 		    $mvc->invoke('AfterRenderPrintCopy', array($container, $i));
-
-		    // проверка дали можем да съберем 2 копия в една страница
-		    jquery_Jquery::run($tpl, 'checkForPrintBreak(550);');
-		    
 		    
 		    $tpl->append($container);
 	    				
