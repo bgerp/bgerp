@@ -1014,18 +1014,6 @@ class acc_BalanceDetails extends core_Detail
         	}
         }
     }
-
-
-    /**
-     * Компресира диапазона на id-tata
-     */
-    function cron_CompressIds()
-    {
-     //   set @id:=0;
-     //   update mytable
-     //   set id = (@id := @id + 1)
-     //   order by id;
-    }
     
     
     /**
