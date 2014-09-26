@@ -197,8 +197,11 @@ class label_Templates extends core_Master
             $template = self::getTemplate($id);
         }
         
+        // Хеша на шаблона - предпазва от повторно генерира за един и същи шаблон
+        $hash = md5($template);
+        
         // Ако преди е бил извлечен
-        if ($tplArrCss[$id]) return $tplArrCss[$id];
+        if ($tplArrCss[$hash]) return $tplArrCss[$hash];
         
         // Вземаме записа
         $rec = self::fetch($id);
@@ -213,9 +216,9 @@ class label_Templates extends core_Master
         $template->setContent($contentWithCss);
         
         // Вкарваме CSS-а, като инлай в шаблона
-        $tplArrCss[$id] = $template;
+        $tplArrCss[$hash] = $template;
         
-        return $tplArrCss[$id];
+        return $tplArrCss[$hash];
     }
     
     
