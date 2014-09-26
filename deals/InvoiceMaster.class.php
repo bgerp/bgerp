@@ -351,7 +351,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
     	$invArr['reason'] = tr("|{$caption} към фактура|* №{$number} |издадена на|* {$invDate}");
     
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy') as $key){
     		unset($invArr[$key]);
     	}
     
