@@ -215,7 +215,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
-    static function on_AfterPrepareEditToolbar($mvc, $data)
+    public static function on_AfterPrepareEditToolbar($mvc, $data)
     {
     	if (!empty($data->form->toolbar->buttons['activate'])) {
     		$data->form->toolbar->removeBtn('activate');
@@ -278,8 +278,17 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	return tr("|Проформа фактура|* №") . $rec->id;
     }
 }

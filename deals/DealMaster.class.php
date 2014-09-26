@@ -259,7 +259,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Името на шаблона е и име на документа
     	$templateId = static::getTemplate($rec);
     	$templateName = doc_TplManager::getTitleById($templateId);
-    
+    	
     	return "{$templateName} №{$rec->id}";
     }
     
