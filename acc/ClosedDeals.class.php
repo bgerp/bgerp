@@ -423,9 +423,10 @@ abstract class acc_ClosedDeals extends core_Master
 	    	}
         }
         
-        // не може да се възстанови оттеглен документ, ако има друг неоттеглен в треда
+        // не може да се възстанови оттеглен документ, ако има друг неоттеглен в треда, или ако самия тред е оттеглен
         if($action == 'restore' && isset($rec)){
-        	if($mvc->fetch("#threadId = {$rec->threadId} AND #state != 'rejected' AND #id != '{$rec->id}'")){
+        	
+        	if($mvc->fetch("#threadId = {$rec->threadId} AND #state != 'rejected' AND #id != '{$rec->id}'") || doc_Threads::fetchField($rec->threadId, 'state') == 'rejected'){
         		$res = 'no_one';
         	}
         }
