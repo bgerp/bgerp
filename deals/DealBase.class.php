@@ -210,22 +210,8 @@ abstract class deals_DealBase extends core_Master
     	// Записите от журнала засягащи това перо
     	$entries = acc_Journal::getEntries(array($mvc, $rec->id));
     	 
-    	// Намираме оттеглените документи в треда, те нямат транзакция и няма да фигурират в $entries, за това
-    	// ги добавяме ръчно, за да участват и те в проверката
-    	$descendants = $mvc->getDescendants($rec->id);
-    	 
     	// Към тях добавяме и самия документ
     	$entries[] = (object)array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
-    	 
-    	if($descendants){
-    		foreach ($descendants as $doc){
-    			 
-    			// ако е оттеглен го добавяме в масива за проверка
-    			if($doc->fetchField('state') == 'rejected'){
-    				$entries[] = (object)array('docType' => $doc->getClassId(), 'docId' => $doc->that);
-    			}
-    		}
-    	}
     	
     	// За всеки запис
     	foreach ($entries as $ent){
