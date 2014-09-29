@@ -174,8 +174,8 @@ class thumb_Img
                             $thumbPath = NULL)
     {
         // Дефинираните променливи
-        $def = get_defined_vars();  
-
+        $def = get_defined_vars();
+        
         // Първия елемент дали е масив? Ако да - очакваме там да са аргументите
         $isArraySource = is_array($source);
 
@@ -680,10 +680,25 @@ class thumb_Img
         
         $newImg = imagecreatetruecolor($dstWidth, $dstHeight);
         
+        
+        // Само на gif и png изображенията запазваме прозрачността
         if ($format == 'gif' || $format == 'png') {
-            imagecolortransparent($newImg, imagecolorallocatealpha($newImg, 0, 0, 0, 127));
-            imagealphablending($newImg, FALSE);
-            imagesavealpha($newImg, TRUE);
+            
+            $transparentIndex = imagecolortransparent($im);
+            
+            if ($transparentIndex != -1) {
+                imagepalettecopy($im, $newImg);
+                imagefill($newImg, 0, 0, $transparentIndex);
+                imagecolortransparent($newImg, $transparentIndex);
+                imagetruecolortopalette($newImg, true, 256);
+            } else {
+                
+                // За случаите, когато не може да се определи $transparentIndex при някои png файлове
+                
+                imagecolortransparent($newImg, imagecolorallocatealpha($newImg, 0, 0, 0, 127));
+                imagealphablending($newImg, FALSE);
+                imagesavealpha($newImg, TRUE);
+            }
         }
         
         imagecopyresampled($newImg, $im, 0, 0, 0, 0, $dstWidth, $dstHeight, $width, $height);
