@@ -226,7 +226,7 @@ abstract class deals_DealBase extends core_Master
     			}
     		}
     	}
-    	 
+    	
     	// За всеки запис
     	foreach ($entries as $ent){
     

@@ -857,10 +857,24 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Преизчисляваме общо платената и общо експедираната сума
     	$rec->amountPaid      = $aggregateDealInfo->get('amountPaid');
     	$rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
-    	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
     	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
-    
-    	$rec->paymentState  = $mvc->getPaymentState($aggregateDealInfo, $rec->paymentState);
+    	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
+    	
+    	if(!empty($rec->closedDocuments)){
+    		
+    		// Ако документа приключва други сделки, събираме им фактурираното и го добавяме към текущата
+    		$closed = keylist::toArray($rec->closedDocuments);
+    		$invAmount = 0;
+    		foreach ($closed as $docId){
+    			$dInfo = $mvc->getAggregateDealInfo($docId);
+    			$invAmount  += $dInfo->get('invoicedAmount');
+    		}
+    		$rec->amountInvoiced += $invAmount;
+    	} else {
+    		$rec->amountInvoiced = $aggregateDealInfo->get('invoicedAmount');
+    	}
+    	
+    	$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo, $rec->paymentState);
     	
     	$mvc->save($rec);
     	
@@ -898,6 +912,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$ClosedDeal = $mvc->closeDealDoc;
     	$closedDeals = $ClosedDeal::getClosedWithDeal($rec->id);
     	
+    	$closedIds = array();
     	if(count($closedDeals)){
     
     		// За всяка от тях, включително и този документ
@@ -906,6 +921,9 @@ abstract class deals_DealMaster extends deals_DealBase
     			// Взимаме договорените продукти от сделката начало на нейната нишка
     			$firstDoc = doc_Threads::getFirstDocument($doc->threadId);
     			$dealInfo = $firstDoc->getAggregateDealInfo();
+    			$id = $firstDoc->fetchField('id');
+    			$closedIds[$id] = $id;
+    			
     			$products = (array)$dealInfo->get('products');
     			if(count($products)){
     				foreach ($products as $p){
@@ -952,6 +970,14 @@ abstract class deals_DealMaster extends deals_DealBase
     			$mvc->$Detail->save($d1);
     		}
     	}
+    	
+    	if(count($closedIds)){
+    		$closedIds = keylist::fromArray($closedIds);
+    		$rec->closedDocuments = $closedIds;
+    	} else {
+    		unset($rec->closedDocuments);
+    	}
+    	$mvc->save($rec, 'closedDocuments');
     }
     
 
