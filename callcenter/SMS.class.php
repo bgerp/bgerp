@@ -497,6 +497,8 @@ class callcenter_SMS extends core_Master
         // Добавяме стил за телефони        
         $row->mobileNum = "<div class='mobile crm-icon'>" . $row->mobileNum . "</div>";
         
+        $haveExternalData = FALSE;
+        
         // Ако има данни за търсещия
         if ($rec->mobileNumData) {
          
@@ -598,6 +600,10 @@ class callcenter_SMS extends core_Master
      */
     static function getTemplateForAddNum($num, $uniqId)
     {
+        $companiesAttr = array();
+        
+        $personsAttr = array();
+        
         // Аттрибути за стилове 
         $companiesAttr['title'] = tr('Нова фирма');
         
@@ -615,9 +621,6 @@ class callcenter_SMS extends core_Master
         
         // Добавяме линк към създаване на лица
         $text .= " | ". ht::createLink($personsImg, array('crm_Persons', 'add', 'mobile' => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
-        
-        // Дали да се показва или не
-        $visibility = (mode::is('screenMode', 'narrow')) ? 'visible' : 'hidden';
         
         // Ако сме в мобилен режим
         if (mode::is('screenMode', 'narrow')) {
