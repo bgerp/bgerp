@@ -690,7 +690,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	if(empty($type)){
     		$type = 'invoice';
     	}
-    	$form->rec->type = $type;
+    	$form->setDefault('type', $type);
     	 
     	// При създаване на нова ф-ра зареждаме полетата на
     	// формата с разумни стойности по подразбиране.
