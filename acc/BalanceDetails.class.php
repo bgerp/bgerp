@@ -738,8 +738,10 @@ class acc_BalanceDetails extends core_Detail
             
             if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
                
-            	// "Захранваме" обекта стратегия с количество и сума
-                $strategy->feed($rec->blQuantity, $rec->blAmount);
+            	// "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
+            	if($rec->blQuantity >= 0){
+            		$strategy->feed($rec->blQuantity, $rec->blAmount);
+            	}
             }
             
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
@@ -769,36 +771,72 @@ class acc_BalanceDetails extends core_Detail
         $query = $JournalDetails->getQuery();
         acc_JournalDetails::filterQuery($query, $from, $to);
         $query->orderBy('valior,id', 'ASC');
-        
-        while ($rec = $query->fetch()) {
+        $recs = $query->fetchAll();
+        if(count($recs)){
         	
-            $this->calcAmount($rec);
-        	$this->addEntry($rec, 'debit');
-            $this->addEntry($rec, 'credit');
-            $update = FALSE;
-            
-            // След като се изчисли сумата, презаписваме цените в журнала, само ако сметките са размерни
-            if($rec->debitQuantity){
-            	$debitPrice = round($rec->amount / $rec->debitQuantity, 4);
-            	if(trim($rec->debitPrice) != trim($debitPrice)){
-            		$rec->debitPrice = $debitPrice;
-            		$update = TRUE;
-            	}
-            }
-            
-            if($rec->creditQuantity){
-            	$creditPrice = round($rec->amount / $rec->creditQuantity, 4);
-            	if(trim($rec->creditPrice) != trim($creditPrice)){
-            		$rec->creditPrice = $creditPrice;
-            		$update = TRUE;
-            	}
-            }
-            
-            // Обновява се записа само ако има промяна с цената
-            if($update){
-            	$JournalDetails->save($rec);
-            }
+        	// Захранваме стратегиите при нужда
+        	foreach ($recs as $rec){
+        		$this->feedStrategy($rec);
+        	}
+        	
+        	foreach ($recs as $rec){
+        		$this->calcAmount($rec);
+        		$this->addEntry($rec, 'debit');
+        		$this->addEntry($rec, 'credit');
+        		$update = FALSE;
+        		
+        		// След като се изчисли сумата, презаписваме цените в журнала, само ако сметките са размерни
+        		if($rec->debitQuantity){
+        			$debitPrice = round($rec->amount / $rec->debitQuantity, 4);
+        			if(trim($rec->debitPrice) != trim($debitPrice)){
+        				$rec->debitPrice = $debitPrice;
+        				$update = TRUE;
+        			}
+        		}
+        		
+        		if($rec->creditQuantity){
+        			$creditPrice = round($rec->amount / $rec->creditQuantity, 4);
+        			if(trim($rec->creditPrice) != trim($creditPrice)){
+        				$rec->creditPrice = $creditPrice;
+        				$update = TRUE;
+        			}
+        		}
+        		
+        		// Обновява се записа само ако има промяна с цената
+        		if($update){
+        			$JournalDetails->save($rec);
+        		}
+        	}
         }
+    }
+    
+    
+    /**
+     * Захранване на стратегията
+     */
+    private function feedStrategy($rec)
+    {
+    	$debitStrategy = $creditStrategy = NULL;
+    	
+    	// Намираме стратегиите на дебит и кредит с/ките (ако има)
+    	$debitStrategy = $this->getStrategyFor($rec->debitAccId, $rec->debitItem1, $rec->debitItem2, $rec->debitItem3);
+    	$creditStrategy = $this->getStrategyFor($rec->creditAccId, $rec->creditItem1, $rec->creditItem2, $rec->creditItem3);
+    	
+    	// Ако кредитната сметка е със стратегия и е пасивна, захранваме я с данните от кредита
+    	if ($creditStrategy) {
+    		$creditType = $this->Accounts->getType($rec->creditAccId);
+    		if($creditType == 'passive'){
+    			$creditStrategy->feed($rec->creditQuantity, $rec->amount);
+    		}
+    	}
+    	
+    	// Ако дебитната сметка е със стратегия и е активна, захранваме я с данните от дебита
+    	if ($debitStrategy) {
+    		$debitType = $this->Accounts->getType($rec->debitAccId);
+    		if($debitType == 'active'){
+    			$debitStrategy->feed($rec->debitQuantity, $rec->amount);
+    		}
+    	}
     }
     
     
@@ -812,65 +850,33 @@ class acc_BalanceDetails extends core_Detail
         $debitStrategy = $creditStrategy = NULL;
         
         // Намираме стратегиите на дебит и кредит с/ките (ако има)
-        $debitStrategy = $this->getStrategyFor(
-            $rec->debitAccId,
-            $rec->debitItem1,
-            $rec->debitItem2,
-            $rec->debitItem3
-        );
-    	
-        $creditStrategy = $this->getStrategyFor(
-            $rec->creditAccId,
-            $rec->creditItem1,
-            $rec->creditItem2,
-            $rec->creditItem3
-        );
+        $debitStrategy = $this->getStrategyFor($rec->debitAccId, $rec->debitItem1, $rec->debitItem2, $rec->debitItem3);
+    	$creditStrategy = $this->getStrategyFor($rec->creditAccId, $rec->creditItem1, $rec->creditItem2, $rec->creditItem3);
         
+    	// Ако има кредитна стратегия и тя е активна, опитваме се да извлечем цената според стратегията
         if ($creditStrategy) {
-            // Кредитната сметка има стратегия.
-            // Ако е активна, извличаме цена от стратегията
-            // Ако е пасивна - "захранваме" стратегията с данни;
-            // (точно обратното на дебитната сметка)
-            switch ($this->Accounts->getType($rec->creditAccId)) {
-                case 'active' :
-                	
-                	if ($amount = $creditStrategy->consume($rec->creditQuantity)) {
-                        $rec->amount = $amount;
-                    }
-                	
-                	$creditStrategy->feed(-1 * $rec->creditQuantity, -1 * $rec->amount);
-                    break;
-                case 'passive' :
-                	
-                    $creditStrategy->feed($rec->creditQuantity, $rec->amount);
-                    break;
-            }
+        	$creditType = $this->Accounts->getType($rec->creditAccId);
+        	if($creditType == 'active'){
+        		if ($amount = $creditStrategy->consume($rec->creditQuantity)) {
+        			$rec->amount = $amount;
+        		}
+        	}
         }
         
-        if ($debitStrategy) {
-            // Дебитната сметка има стратегия.
-            // Ако е активна, "захранваме" стратегията с данни;
-            // Ако е пасивна - извличаме цена от стратегията
-            
-            switch ($this->Accounts->getType($rec->debitAccId)) {
-                case 'active' :
-                	
-                    $debitStrategy->feed($rec->debitQuantity, $rec->amount);
-                    break;
-                case 'passive' :
-                    if ($amount = $debitStrategy->consume($rec->debitQuantity)) {
-                        $rec->amount = $amount;
-                    }
-                	
-                    $debitStrategy->feed(-1 * $rec->debitQuantity, -1 * $rec->amount);
-                    break;
-            }
+        // Ако има дебитна стратегия и тя е пасивна, опитваме се да извлечем цената според стратегията
+        if($debitStrategy) {
+        	$debitType = $this->Accounts->getType($rec->debitAccId);
+        	if($creditType == 'passive'){
+        		if ($amount = $debitStrategy->consume($rec->debitQuantity)) {
+        			$rec->amount = $amount;
+        		}
+        	}
         }
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Взима стратегията за посочения обект
      */
     private function &getStrategyFor($accountId, $ent1Id, $ent2Id, $ent3Id)
     {
@@ -1122,12 +1128,20 @@ class acc_BalanceDetails extends core_Detail
         	$displayedEntries = $cloneQuery->fetchAll();
         }
         
-        // Изчисляване на сумите според стратегиите ако има, 
-        // за да е всичко точно са ни нужни нефилтрираните записи
-        while ($rec = $query->fetch()) {
-            @$this->calcAmount($rec);
-            $this->addEntry($rec, 'debit');
-            $this->addEntry($rec, 'credit');
+        $recs = $query->fetchAll();
+        if(count($recs)){
+        	
+        	// Изчисляване на сумите според стратегиите ако има,
+        	// за да е всичко точно са ни нужни нефилтрираните записи
+        	foreach ($recs as $rec){
+        		$this->feedStrategy($rec);
+        	}
+        	
+        	foreach ($recs as $rec){
+        		@$this->calcAmount($rec);
+        		$this->addEntry($rec, 'debit');
+        		$this->addEntry($rec, 'credit');
+        	}
         }
         
         // В $history са всички излечени записи, в $recs ще са само тези които ще се показват
@@ -1144,7 +1158,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         if(count($this->recs)){
-        	 // Обръщаме историята в низходящ ред по дата, след изчисленията
+        	// Обръщаме историята в низходящ ред по дата, след изчисленията
         	$this->recs = array_reverse($this->recs);
         }
     }
