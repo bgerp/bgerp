@@ -226,7 +226,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	$nRec->vat = $sign * $vat;
     	$nRec->productsAmount = $sign * round($byProducts, 2);
     	$nRec->servicesAmount = $sign * round($byServices, 2);
-    	$nRec->amount = $sign * round($baseAmount, 2) + round($rec->vatAmount, 2);
+    	$nRec->amount = $sign * (round($baseAmount, 2) + round($rec->vatAmount, 2));
     	$nRec->baseAmount = $sign * round($baseAmount, 2);
     	
     	if($rec->dpOperation){
@@ -240,6 +240,10 @@ class bulmar_InvoiceExport extends core_Manager {
     	$nRec->contragentEik = ($rec->contragentVatNo) ? $rec->contragentVatNo : $rec->uicNo;
     	$Vats = cls::get('drdata_Vats');
     	$nRec->contragentEik = $Vats->canonize($nRec->contragentEik);
+    	
+    	if($rec->number == 804){
+    		bp($nRec);
+    	}
     	
     	return $nRec;
     }
