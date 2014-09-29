@@ -679,7 +679,6 @@ class thumb_Img
         $height = imagesy($im);
         
         $newImg = imagecreatetruecolor($dstWidth, $dstHeight);
-        bp($this);
         
         // Само на gif и png изображенията запазваме прозрачността
         if ($format == 'gif' || $format == 'png') {
