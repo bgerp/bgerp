@@ -849,6 +849,7 @@ class cat_Products extends core_Master {
     {
     	// Ценоразпис себестойност
     	$listId = price_ListRules::PRICE_LIST_COST;
+    	price_ListToCustomers::canonizeTime($date);
     	
     	return price_ListRules::getPrice($listId, $productId, $packagingId, $date);
     }
