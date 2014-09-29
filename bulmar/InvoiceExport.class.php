@@ -241,10 +241,6 @@ class bulmar_InvoiceExport extends core_Manager {
     	$Vats = cls::get('drdata_Vats');
     	$nRec->contragentEik = $Vats->canonize($nRec->contragentEik);
     	
-    	if($rec->number == 804){
-    		bp($nRec);
-    	}
-    	
     	return $nRec;
     }
     
