@@ -342,7 +342,7 @@ class bank_Accounts extends core_Master {
     	$query->where("#contragentCls = {$Contragent->getClassId()}");
     	
     	while($rec = $query->fetch()) {
-    		$iban = static::getVerbal($rec, 'iban');
+    		$iban = $rec->iban;
     		$key = ($intKeys) ? $rec->id : $rec->iban;
 	    	$suggestions[$key] = $iban;
 	    }
