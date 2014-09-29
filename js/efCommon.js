@@ -1720,12 +1720,7 @@ function checkForPrintBreak(maxHeightPerDoc) {
 
 
 function scalePrintingDocument(pageHeight){
-	if($(".print-break").length){
-		pageHeight -= 60;
-	}
-	
 	if($('.printing').height() > pageHeight) {
-		$('.footerDocInfo, .footerDocBlock').attr('style', 'display: none !important');
 		if($('.printing').height() > pageHeight) {
 			$('.document').css('line-height', '105%');
 			$('.document').css('font-size', '0.95em');
@@ -1734,7 +1729,6 @@ function scalePrintingDocument(pageHeight){
 				$('.document').css('font-size', '0.9em');
 				if($('.printing').height() > pageHeight) {
 					$('.document').css('font-size', '0.87em');
-					$(".print-break").addClass("print-nobreak");
 					if($('.printing').height() > pageHeight) {
 						$('.document').css('line-height', '110%');
 						$('.document').css('font-size', '0.97em');
@@ -1746,7 +1740,7 @@ function scalePrintingDocument(pageHeight){
 		}
 	}
 	if($(".print-break").length){
-		checkForPrintBreak(550);
+		checkForPrintBreak(580);
 	}
 }
 
