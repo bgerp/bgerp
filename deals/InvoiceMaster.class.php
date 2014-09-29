@@ -77,7 +77,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
     	$mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
     	$mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo, export=Csv');
-    	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №,contragentDataField=uicId');
+    	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №,contragentDataField=uicId, export=Csv');
     	$mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode,contragentDataField=pCode');
     	$mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData,contragentDataField=place');
     	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
