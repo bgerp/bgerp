@@ -679,7 +679,7 @@ class thumb_Img
         $height = imagesy($im);
         
         $newImg = imagecreatetruecolor($dstWidth, $dstHeight);
-        
+        bp($this);
         
         // Само на gif и png изображенията запазваме прозрачността
         if ($format == 'gif' || $format == 'png') {
@@ -714,7 +714,7 @@ class thumb_Img
     {
         $this->getSize();
         $imageGd = $this->getGdRes();
-        $newImage = $this->scaleGdImg($imageGd, $this->scaledWidth, $this->scaledHeight);
+        $newImage = $this->scaleGdImg($imageGd, $this->scaledWidth, $this->scaledHeight, $this->format);
         
         return $newImage;
     }
