@@ -1909,20 +1909,6 @@ class doc_DocumentPlg extends core_Plugin
         
         core_Users::exitSudo();
     }
-
-
-    /**
-     * Връща URL към единичния изглед на мастера
-     */
-    function on_AfterGetRetUrl($mvc, &$res, $rec)
-    {
-        $master = $mvc->getMasterMvc($rec);
-        $masterKey = $mvc->getMasterKey($rec);
-
-        $url = array($master, 'single', $rec->{$masterKey});
-
-        $res = $url;
-    }
     
     
     /**
