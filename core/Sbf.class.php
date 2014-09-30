@@ -137,7 +137,7 @@ class core_Sbf extends core_Mvc
                     if(in_array($ext, array('jpg', 'jpeg', 'png', 'bmp'))) {
                         $rPath = 'img/1x1.gif';
                     } else {
-                        $rPath = 'MissingFile';
+                        $rPath = 'Missing_File/' . $rPath;
                     }
                     
                 }
