@@ -511,7 +511,7 @@ class acc_BalanceDetails extends core_Detail
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterRenderDetailLayout($mvc, &$res, $data)
+    public static function on_AfterRenderDetailLayout($mvc, &$res, $data)
     {
         $res = new ET("
         	[#ListToolbar#]</div>
@@ -525,7 +525,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	$data->toolbar->removeBtn('btnPrint');
     }
@@ -534,7 +534,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Извиква се след рендиране на Toolbar-а
      */
-    static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
+    public static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if ($mvc->isDetailed()) {
             if ($data->groupingForm) {
@@ -663,7 +663,7 @@ class acc_BalanceDetails extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $masterRec = $mvc->Master->fetch($rec->balanceId);
         
@@ -701,7 +701,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Записва баланса в таблицата
      */
-    function saveBalance($balanceId)
+    public function saveBalance($balanceId)
     {
 		if(count($this->balance)) {
 			foreach ($this->balance as $accId => $l0) {
@@ -723,7 +723,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Зарежда в сингълтона баланса с посоченото id
      */
-    function loadBalance($balanceId, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
+    public function loadBalance($balanceId, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
     {
         $query = $this->getQuery();
         
@@ -764,7 +764,7 @@ class acc_BalanceDetails extends core_Detail
      * @param string $from дата в MySQL формат
      * @param string $to дата в MySQL формат
      */
-    function calcBalanceForPeriod($from, $to)
+    public function calcBalanceForPeriod($from, $to)
     {
         $JournalDetails = &cls::get('acc_JournalDetails');
         
@@ -841,7 +841,7 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * Попълва с адекватна стойност с полето $rec->amount, в случай, че то е празно.
+     * Попълва с адекватна стойност с полето $rec->amount
      *
      * @param stdClass $rec запис от модела @link acc_JournalDetails
      */
@@ -849,7 +849,7 @@ class acc_BalanceDetails extends core_Detail
     {
         $debitStrategy = $creditStrategy = NULL;
         
-        // Намираме стратегиите на дебит и кредит с/ките (ако има)
+        // Намираме стратегиите на дебит и кредит сметките (ако има)
         $debitStrategy = $this->getStrategyFor($rec->debitAccId, $rec->debitItem1, $rec->debitItem2, $rec->debitItem3);
     	$creditStrategy = $this->getStrategyFor($rec->creditAccId, $rec->creditItem1, $rec->creditItem2, $rec->creditItem3);
         
@@ -861,12 +861,26 @@ class acc_BalanceDetails extends core_Detail
         			$rec->amount = $amount;
         		}
         	}
+        	
+        	// Ако е коригираща операция, също извличаме сумата по стратегия
+        	if($creditType == 'passive' && $rec->creditQuantity < 0 && $rec->amount < 0){
+        		if ($amount = $creditStrategy->consume($rec->creditQuantity)) {
+        			$rec->amount = $amount;
+        		}
+        	}
         }
         
         // Ако има дебитна стратегия и тя е пасивна, опитваме се да извлечем цената според стратегията
         if($debitStrategy) {
         	$debitType = $this->Accounts->getType($rec->debitAccId);
-        	if($creditType == 'passive'){
+        	if($debitType == 'passive'){
+        		if ($amount = $debitStrategy->consume($rec->debitQuantity)) {
+        			$rec->amount = $amount;
+        		}
+        	}
+        	
+        	// Ако е коригираща операция, също извличаме сумата по стратегия
+        	if($debitType == 'active' && $rec->debitQuantity < 0 && $rec->amount < 0){
         		if ($amount = $debitStrategy->consume($rec->debitQuantity)) {
         			$rec->amount = $amount;
         		}
