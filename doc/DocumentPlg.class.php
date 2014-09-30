@@ -92,6 +92,9 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['Changed'] = 'log_Documents';
             $mvc->details['Used'] = 'log_Documents';
         }
+        
+        // Дали могат да се принтират оттеглените документи
+        setIfNot($mvc->printRejected, FALSE);
     }
     
     
@@ -145,7 +148,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {
-            $data->toolbar->removeBtn("*");
+            $data->toolbar->removeBtn("*", (($mvc->printRejected) ? 'btnPrint' : NULL));
             $data->toolbar->addBtn('Възстановяване', array(
                     $mvc,
                     'restore',
@@ -173,7 +176,9 @@ class doc_DocumentPlg extends core_Plugin
         } else {
             //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
             //TODO да се "премахне" и оптимизира
-            $data->toolbar->removeBtn('btnPrint');
+            if($data->rec->state == 'draft' || ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') || ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === FALSE)){
+            	$data->toolbar->removeBtn('btnPrint');
+            }
         }
 
         //Добавяме бутон за клониране ако сме посочили, кои полета ще се клонират
