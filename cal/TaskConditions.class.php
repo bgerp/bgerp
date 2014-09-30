@@ -69,7 +69,8 @@ class cal_TaskConditions extends core_Detail
         $this->FLD('dependId', 'key(mvc=cal_Tasks,select=title)', 'caption=Зависи от, mandatory');
        
         // Условие за активиране
-        $this->FLD('activationCond', 'enum(onProgress=При прогрес, afterTime=След началото, beforeTime=Преди началото)', 'caption=Условия->Обстоятелство,silent, autoFilter');
+        $this->FLD('activationCond', 'enum(onProgress=При прогрес, afterTime=След началото, beforeTime=Преди началото,
+        														   afterTimeEnd=След края, beforeTimeEnd=Преди края)', 'caption=Условия->Обстоятелство,silent, autoFilter');
        
         // Каква част от задачата е изпълнена?
         $this->FLD('progress', 'percent(min=0,max=1,decimals=0)',     'caption=Условия->Прогрес,input=none,notNull');
@@ -106,7 +107,9 @@ class cal_TaskConditions extends core_Detail
         	$data->form->setField('progress', 'input');
         }
         
-        if ($data->form->rec->activationCond == 'afterTime' || $data->form->rec->activationCond == 'beforeTime') {
+        if ($data->form->rec->activationCond == 'afterTime' || $data->form->rec->activationCond == 'beforeTime' ||
+        	$data->form->rec->activationCond == 'afterTimeEnd' || $data->form->rec->activationCond == 'beforeTimeEnd') {
+        	
         	$data->form->setField('distTime', 'input');
         }
 
@@ -196,6 +199,14 @@ class cal_TaskConditions extends core_Detail
     	
     	if ($rec->activationCond == 'beforeTime') {
     		$row->condition = $row->distTime . tr(" преди началото на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
+    	}
+    	
+   		if ($rec->activationCond == 'afterTimeEnd') {
+    		$row->condition = $row->distTime . tr(" след края на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
+    	}
+    	
+    	if ($rec->activationCond == 'beforeTimeEnd') {
+    		$row->condition = $row->distTime . tr(" преди края на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
     }
 

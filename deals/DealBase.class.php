@@ -210,23 +210,9 @@ abstract class deals_DealBase extends core_Master
     	// Записите от журнала засягащи това перо
     	$entries = acc_Journal::getEntries(array($mvc, $rec->id));
     	 
-    	// Намираме оттеглените документи в треда, те нямат транзакция и няма да фигурират в $entries, за това
-    	// ги добавяме ръчно, за да участват и те в проверката
-    	$descendants = $mvc->getDescendants($rec->id);
-    	 
     	// Към тях добавяме и самия документ
     	$entries[] = (object)array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
-    	 
-    	if($descendants){
-    		foreach ($descendants as $doc){
-    			 
-    			// ако е оттеглен го добавяме в масива за проверка
-    			if($doc->fetchField('state') == 'rejected'){
-    				$entries[] = (object)array('docType' => $doc->getClassId(), 'docId' => $doc->that);
-    			}
-    		}
-    	}
-    	 
+    	
     	// За всеки запис
     	foreach ($entries as $ent){
     
@@ -278,7 +264,7 @@ abstract class deals_DealBase extends core_Master
     	// Подготовка на формата за избор на опция
     	$form = cls::get('core_Form');
     	$form->title = "|Активиране на|* <b>" . $this->getTitleById($id). "</b>" . " ?";
-    	$form->info = 'Искатели с активирането на тази сделка да приключите други сделки с нея';
+    	$form->info = 'Активирането на тази сделка може да приключи други сделки';
     	$form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1');
     	$form->setSuggestions('closeWith', $options);
     	$form->input();

@@ -27,20 +27,24 @@
                         <!--ET_BEGIN timeEnd-->
                         |Краен срок|*: [#timeEnd#] [#remainingTime#]<br>                   
                         <!--ET_END timeEnd-->
-                        |Прогрес|*: [#progressBar#] [#progress#] <br>
-                        <!--ET_BEGIN workingTime-->
-                        |Отработено време|*: [#workingTime#] <br>                   
-                        <!--ET_END workingTime-->
+                       
                     </td>
                     <!--ET_BEGIN dependsInfo-->
                     [#dependsInfo#]
                     <td style='padding-left:30px;width:45%;'>
+                        |Прогрес|*: [#progressBar#] [#progress#] <br>
+                        <!--ET_BEGIN workingTime-->
+                        |Отработено време|*: [#workingTime#] <br>                   
+                        <!--ET_END workingTime-->
                         <!--ET_BEGIN afterTask-->
                         |Започване след задача|*: [#afterTask#]<br>
                         <!--ET_END afterTask-->
                         <!--ET_BEGIN afterTaskProgress-->
                         |Прогрес на задачата|*: [#afterTaskProgress#]<br>
                         <!--ET_END afterTaskProgress-->
+                         <!--ET_BEGIN expectationTimeEnd-->
+                        |Очакван край|*: [#expectationTimeEnd#] <br>                   
+                        <!--ET_END expectationTimeEnd-->
                         <!--ET_END dependsInfo-->
                     </td>
                 </tr>

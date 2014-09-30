@@ -256,7 +256,9 @@ class store_transaction_ShipmentOrder
         	$debitAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
         	$creditAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
         	
+        	$selfValue = cls::get($detailRec->classId)->getSelfValue($detailRec->productId, $detailRec->packagingId, NULL, $rec->valior);
         	$entries[] = array(
+        		 'amount' => $sign * $selfValue * $detailRec->quantity,
 	             'debit' => array(
 	                    $debitAccId, 
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент

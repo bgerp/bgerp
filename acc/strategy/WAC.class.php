@@ -4,16 +4,15 @@ cls::load('acc_strategy_Strategy');
 
 
 /**
- * Клас 'acc_strategy_WAC' -
+ * Клас 'acc_strategy_WAC' - за средно притеглена цена
  *
  *
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class acc_strategy_WAC extends acc_strategy_Strategy
 {
@@ -29,13 +28,16 @@ class acc_strategy_WAC extends acc_strategy_Strategy
      */
     function feed($quantity, $amount)
     {
+        // Ако сумата или к-то са отрицателни не захранваме стратегията
+    	if($quantity < 0 || $amount < 0) return;
+    	
         $this->quantity += $quantity;
         $this->amount += $amount;
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Връща сумата спрямо количеството
      */
     function consume($quantity)
     {
@@ -45,10 +47,6 @@ class acc_strategy_WAC extends acc_strategy_Strategy
         
         if ($this->quantity == 0) {
             return FALSE;
-        }
-        
-        if($this->amount < 0){
-        	bp($this);
         }
         
         return $quantity * ($this->amount / $this->quantity);

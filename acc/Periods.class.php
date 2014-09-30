@@ -552,8 +552,9 @@ class acc_Periods extends core_Manager
  	
     /**
      * Връща първичния ключ (id) на базовата валута към определена дата
-     * Ако не е зададе
+     * 
      * @param string $date Ако е NULL - текущата дата
+     * 
      * @return int key(mvc=currency_Currencies)
      */
     public static function getBaseCurrencyId($date = NULL)

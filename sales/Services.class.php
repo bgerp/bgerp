@@ -167,7 +167,7 @@ class sales_Services extends deals_ServiceMaster
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        return tr("|Протокол за извършени услуги|* №") . $rec->id;
+        return tr("|Предавателен протокол|* №") . $rec->id;
     }
     
     

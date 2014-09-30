@@ -151,7 +151,7 @@ class purchase_Services extends deals_ServiceMaster
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        return tr("|Приемателен протокол за услуги|* №") . $rec->id;
+        return tr("|Приемателен протокол|* №") . $rec->id;
     }
     
     

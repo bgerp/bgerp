@@ -218,6 +218,12 @@ class cal_Tasks extends core_Master
         // Колко време е отнело изпълнението?
         $this->FLD('workingTime', 'time',     'caption=Отработено време,input=none');
         
+         // Очакван край на задачата
+        $this->FLD('expectationTimeEnd', 'datetime', 'caption=Времена->Очакван край,input=none');
+        
+        // Очаквано начало на задачата
+        $this->FLD('expectationTimeStart', 'datetime', 'caption=Времена->Очаквано начало,input=none');
+        
         // Изчислен старт  на задачата
         $this->FLD('timeCalc', 'datetime', 'caption=Времена->Изчислен старт,input=none');
         
@@ -445,9 +451,10 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if($data->rec->state == 'active') {
+        if($data->rec->state == 'active' || $data->rec->state == 'pending') {
             $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png');
             $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2');
+        	$data->toolbar->removeBtn('btnActivate');
         }
         
         if($data->rec->state == 'draft') {
@@ -483,7 +490,6 @@ class cal_Tasks extends core_Master
         		$data->toolbar->buttons['Активиране']->error = "Има колизия във времената на задачата";
         	}
         }
-      
     }
 
 
@@ -544,11 +550,12 @@ class cal_Tasks extends core_Master
 	 */
     public static function on_BeforeActivation($mvc, $rec)
     {
+    	
     	// проверяваме дали може да стане задачата в активно състояние
     	$canActivate = self::canActivateTask($rec);
 
-    	if ($canActivate->cond == TRUE) {
-    		$rec->state = 'active';
+    	if ($canActivate->cond == TRUE) { 
+    		//$rec->state = 'active';
     		
     		if ($canActivate->calcTime) {
     			$rec->timeCalc = $canActivate->calcTime;
@@ -1674,6 +1681,7 @@ class cal_Tasks extends core_Master
     
     }
 
+    
     /**
      * Може ли една задача да стане в състояние 'active'?
      * 
@@ -1701,19 +1709,7 @@ class cal_Tasks extends core_Master
     	$nowTimeStamp = dt::mysql2timestamp($now);
         $yesterday = $nowTimeStamp - (24 * 60 * 60); 
     	$yesterdayDate =  dt::timestamp2Mysql($yesterday);
-    	
-    	// Ако задачата е без начало/ безкрайна тя може да се активира,
-    	// само ако няма условия за "Условия"
-	    if (!$rec->timeStart) { 
-	    	$conditionOne = TRUE;
-	    }
-	    
-	    // Ако задачата има начало, тя може да се активира само ако няма условия за "Условия"
-	    // и времето и за начало е в периода "вчера" : "днес"
-	    if ($yesterdayDate < $rec->timeStart && $rec->timeStart < $now) { 
-	    	$conditionOne = TRUE;
-	    }
-
+    
 	    // Ако вече сме записали задача, то на нея могат да и се добавят условия
 	    if ($rec->id) { 
 	    	$query = cal_TaskConditions::getQuery();
@@ -1725,25 +1721,54 @@ class cal_Tasks extends core_Master
 	    	}
     	}
     	
+    	// Ако задачата е без начало/ безкрайна тя може да се активира,
+    	// само ако няма условия за "Условия"
+    	if (!$rec->timeStart && !is_array($arrCond)) {
+	    	if ($rec->id) {
+		    	if ($calcTime = self::fetchField($rec->id, "timeStart") !== NULL) {
+		    		if ($yesterdayDate < $calcTime && $calcTime < $now) {
+		    			$conditionOne = TRUE;
+		    		}
+		    	} else {
+		    		$conditionOne = TRUE;
+		    	}
+	    	} else {
+	    		$conditionOne = TRUE;
+	    	}
+	    } else {
+	    	$calcTime = $rec->timeStart;
+	    	//$conditionOne = TRUE;
+	    }
+	    
+    	// Ако задачата има начало, тя може да се активира само ако няма условия за "Условия"
+	    // и времето и за начало е в периода "вчера" : "днес"
+	    if ($yesterdayDate < $rec->timeStart && $rec->timeStart < $now) { 
+	    	$conditionOne = TRUE;
+	    }
+    	
     	// ако е записана задачата, но няма условия
     	if (!is_array($arrCond)) { 
     		$conditionTwo = TRUE;
     		
-    	} else { 
-    	
-	    	foreach ($arrCond as $cond) { 
-	    		if ($cond->activationCond == "onProgress") {
-	    			// proverka za systoqnieto ?!? 
-	    			$progress = self::fetchField($cond->dependId, "progress");
-	    			
-	    			if ($progress >= $cond->progress) {
-		    			$conditionProgress = TRUE; 
+    	} else {
+    		if (!$rec->timeStart) {
+    			$conditionOne = TRUE;
+    		} else {
+    		
+		    	foreach ($arrCond as $cond) { 
+		    		if ($cond->activationCond == "onProgress") {
+		    			// proverka za systoqnieto ?!? 
+		    			$progress = self::fetchField($cond->dependId, "progress");
+		    			
+		    			if ($progress >= $cond->progress) {
+			    			$conditionProgress = TRUE; 
+			    		}
+		    		} else {
+		    			$calcTime = self::calculateTimeToStart($rec, $cond);
+		    			$conditionCalcTime = TRUE;
 		    		}
-	    		} else {
-	    			$calcTime = self::calculateTimeToStart($rec, $cond);
-	    			$conditionCalcTime = TRUE;
-	    		}
-	     	}
+		     	}
+    		}
     	}
     	
     	// ако имаме повече от едно условие за задачата, трябва всички да са изпълнени
@@ -1758,7 +1783,8 @@ class cal_Tasks extends core_Master
     	}
     	
     	$cond = ($conditionOne and $conditionTwo);
-
+//bp($conditionProgress, $conditionCalcTime, $conditionTwo, $conditionOne, $conditionProgress && $conditionCalcTime, $conditionProgress || $conditionCalcTime, $conditionOne && $conditionTwo);
+    	$condition = ($conditionOne && $conditionTwo);
     	// Трябва и двете условия да са изпълнени
     	return (object) array('cond' => $cond, 'calcTime' => $calcTime);
     }
@@ -1807,20 +1833,35 @@ class cal_Tasks extends core_Master
     static public function calculateTimeToStart ($rec, $recCond)
     {
     	// времето от което зависи новата задача е началото на зависимата задача
+    	// "timeCalc"
     	$dependTimeStart = self::fetchField($recCond->dependId, "timeStart");
+    	$dependTimeEnd = self::fetchField($recCond->dependId, "timeEnd");
     	
     	if (!$dependTimeStart) {
+    		//timeStart
     		$dependTimeStart = $recCond->timeActivated;
+    	}
+    	
+    	if (!$dependTimeEnd) {
+    		$dependTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($dependTimeStart) + $recCond->timeDuration);
     	}
 
     	// ако имаме условие след началото на задачата
     	if ($recCond->activationCond == 'afterTime') {
-    		// прибавяме отместването
+    		// прибавяме отместването след началото
     		$calcTime = dt::mysql2timestamp($dependTimeStart) + $recCond->distTime;
+    		$calcTimeStart = dt::timestamp2Mysql($calcTime);
+    	} elseif ($recCond->activationCond == 'beforeTime') {
+    		// в противен случай го вадим
+    		$calcTime = dt::mysql2timestamp($dependTimeStart) - $recCond->distTime;
+    		$calcTimeStart = dt::timestamp2Mysql($calcTime);
+    	} elseif ($recCond->activationCond == 'afterTimeEnd'){
+    		// прибавяме отместването в кря
+    		$calcTime = dt::mysql2timestamp($dependTimeEnd) + $recCond->distTime;
     		$calcTimeStart = dt::timestamp2Mysql($calcTime);
     	} else {
     		// в противен случай го вадим
-    		$calcTime = dt::mysql2timestamp($dependTimeStart) - $recCond->distTime;
+    		$calcTime = dt::mysql2timestamp($dependTimeEnd) - $recCond->distTime;
     		$calcTimeStart = dt::timestamp2Mysql($calcTime);
     	}
     	

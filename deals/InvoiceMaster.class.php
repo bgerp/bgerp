@@ -77,7 +77,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
     	$mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
     	$mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo, export=Csv');
-    	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №,contragentDataField=uicId');
+    	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №,contragentDataField=uicId, export=Csv');
     	$mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode,contragentDataField=pCode');
     	$mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData,contragentDataField=place');
     	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
@@ -351,7 +351,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
     	$invArr['reason'] = tr("|{$caption} към фактура|* №{$number} |издадена на|* {$invDate}");
     
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy') as $key){
     		unset($invArr[$key]);
     	}
     
@@ -690,7 +690,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	if(empty($type)){
     		$type = 'invoice';
     	}
-    	$form->rec->type = $type;
+    	$form->setDefault('type', $type);
     	 
     	// При създаване на нова ф-ра зареждаме полетата на
     	// формата с разумни стойности по подразбиране.

@@ -41,12 +41,10 @@
         </tr>
         <!--ET_END discountCompared-->
         <!--ET_BEGIN employersCnt-->
-    </table>
     <!--ET_BEGIN clientInfo-->
     [#clientInfo#]
-    <table class="styled-table" style='min-width:300px'>
         <tr>
-            <th colspan="2">|Прикрепяне|*</th>
+            <th colspan="2" style='padding-top: 15px;'>|Прикрепяне|*</th>
         </tr>
         <tr>
             <td class="title-style">|Клиент|*</td>
@@ -57,17 +55,16 @@
             <td>[#validFrom#]</td>
         </tr>
         <!--ET_END employersCnt-->
-    </table>
+    
     <!--ET_END clientInfo-->
     <!--ET_BEGIN roundingPrecisionTable-->
     [#roundingPrecisionTable#]
-    <table class="styled-table" style='min-width:300px'>
         <tr>
-            <th colspan="2">|Закръгляне|*</th>
+            <th colspan="2" style='padding-top: 15px;'>|Закръгляне|*</th>
         </tr>
         <!--ET_BEGIN roundingPrecision-->
         <tr>
-            <td class="title-style">|Точност|*</td>
+            <td class="title-style">|Десетични знаци|*</td>
             <td>[#roundingPrecision#]</td>
         </tr>
         <!--ET_END roundingPrecision-->
@@ -77,8 +74,8 @@
             <td>[#roundingOffset#]</td>
         </tr>
         <!--ET_END roundingOffset-->
-    </table>
     <!--ET_END roundingPrecisionTable-->
+    </table>
     <div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
     <br>
     <div class='scrolling-holder'>
