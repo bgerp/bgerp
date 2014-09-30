@@ -23,7 +23,7 @@ abstract class deals_InvoiceDetail extends core_Detail
 								'chargeVat'   => 'vatRate',
 								'quantityFld' => 'quantity',
 								'valior'      => 'date',
-								'alwaysHideVat' => TRUE);
+								'isInvoice' => TRUE);
 	
 
 	/**

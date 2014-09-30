@@ -30,7 +30,7 @@ abstract class deals_Helper
 			'currencyId'    => 'currencyId',
 			'discAmountFld'	=> 'discAmount',
 			'discount'	    => 'discount',
-			'alwaysHideVat' => FALSE, // TRUE всичко трябва да е без ДДС
+			'isInvoice' 	=> FALSE, // TRUE всичко трябва да е без ДДС
 		);
 	
 	
@@ -126,13 +126,13 @@ abstract class deals_Helper
 		$map = array_merge(self::$map, $map);
 		
 		// Дали трябва винаги да не се показва ддс-то към цената
-		if($map['alwaysHideVat']) {
+		if($map['isInvoice']) {
 			$hasVat = FALSE;
 		} else {
 			$hasVat = ($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE;
 		}
 		
-		$discount = $amount = $amountVat = 0;
+		$discount = $amount = $amountVat = $amountTotal = 0;
 		
 		foreach($recs as &$rec){
 			$vat = 0;
@@ -155,14 +155,33 @@ abstract class deals_Helper
         	}
         	
         	$rec->$map['amountFld']  = $amountObj->amount;
-        	$amount          		+= $amountObj->amount;
-        	$amountVat       		+= $amountObj->vatAmount;
+        	
+        	if($map['isInvoice']){
+        		// Ако е ф-ра изчисляваме и сумата с ддс
+        		$amountObj1 = self::calcAmount($price->withVat, $rec->$map['quantityFld'], $vat, TRUE, $masterRec->$map['currencyId'], $rec->$map['discount']);
+        		$amount          		+= $amountObj->amount;
+        		$amountTotal       		+= $amountObj1->amount;
+        	} else {
+        		$amount          		+= $amountObj->amount;
+        		$amountVat       		+= $amountObj->vatAmount;
+        	}
 		}
 		
-		$mvc->_total           = new stdClass();
-        $mvc->_total->amount   = $amount;
-        $mvc->_total->vat      = $amountVat;
-        $mvc->_total->discount = $discount;
+		$mvc->_total = new stdClass();
+		
+		if($map['isInvoice']){
+			
+			// Ако е ф-ра изчисляваме общото без ддс и общото с ддс, а ддс-то е разликата им
+			$mvc->_total->amount  = round($amount, 2);
+			$mvc->_total->vat     = round($amountTotal, 2) - round($amount, 2);
+		} else {
+			
+			// При документите различни от ф-ра изчисляваме точно общото без ддс и ддс-то
+			$mvc->_total->amount  = $amount;
+			$mvc->_total->vat     = $amountVat;
+		}
+
+		$mvc->_total->discount = $discount;
 	}
 	
 	
@@ -190,10 +209,6 @@ abstract class deals_Helper
 	{
 		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
 		$arr = array();
-		if(is_object($values)){
-			$values->amount = round($values->amount, 2);
-			$values->vat = round($values->vat, 2);
-		}
 		
 		$values = (array)$values;
 		$arr['currencyId'] = $currencyId;                          // Валута на документа
