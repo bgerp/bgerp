@@ -174,7 +174,6 @@ class doc_DocumentPlg extends core_Plugin
                     'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
             }
         } else {
-            //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
             //TODO да се "премахне" и оптимизира
             if($data->rec->state == 'draft' || ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') || ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === FALSE)){
             	$data->toolbar->removeBtn('btnPrint');

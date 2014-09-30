@@ -36,7 +36,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, doc_plg_MultiPrint, plg_Printing, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, plg_Printing, acc_plg_Contable,
 				        plg_ExportCsv, cond_plg_DefaultValues, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
 				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary, plg_Search';
     
