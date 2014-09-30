@@ -74,7 +74,7 @@ abstract class deals_DeliveryDocumentDetail extends core_Detail
 			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
 		}
 		
-		$data->form->setSuggestions('discount', arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
+		$data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
 		
 		if (!empty($rec->packPrice)) {
 			$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
