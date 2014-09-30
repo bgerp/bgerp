@@ -231,10 +231,10 @@ class core_Form extends core_FieldSet
                 
                 $this->setErrorFromResult($result, $field, $name);
             }
-            
+             
             $this->rec->{$name} = $value;
         }
-        
+   
         return $this->rec;
     }
     
@@ -662,6 +662,7 @@ class core_Form extends core_FieldSet
                 
                 // Рендиране на select или input полето
                 if (count($options) > 0 && !is_a($type, 'type_Key')) {
+                    
                     unset($attr['value']);
                     
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
@@ -1098,8 +1099,10 @@ class core_Form extends core_FieldSet
         
         unset($field->type->params['allowEmpty']);
 
+        Mode::push('text', 'plain');
         $verbal = $field->type->toVerbal($value);
-        
+        Mode::pop();
+
         $this->setOptions($name, array(
                 $value => $verbal
             ));
