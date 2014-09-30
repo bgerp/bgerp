@@ -42,6 +42,12 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Можели да се принтират оттеглените документи?
+     */
+    public $printRejected = TRUE;
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
