@@ -2403,32 +2403,32 @@ div.statuses-message h2 {
 
 /*състояния*/
 .state-draft {
-    background-color: #bef7fd;
+    background-color: #bff;
 }
 
 .state-active {
-    background-color: #ffeedd;
+    background-color: #fed;
 	background: rgba(250, 221, 187, 0.5);
 }
 
 .state-opened {
-    background-color: #bbffcc;
+    background-color: #bfc;
 }
 
 .state-pending{
-    background-color: #fbabfb;
+    background-color: #ecf;
 }
 
 .state-closed {
-    background-color: #e0e0e0;
+    background-color: #ddd;
 }
 
 .state-stopped, .state-blocked {
-    background-color: #ffaa00;
+    background-color: #fa0;
 }
 
 .state-rejected { 
-    background-color: #cc6666;
+    background-color: #c66;
 }
 
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,

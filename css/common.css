@@ -2242,7 +2242,7 @@ div.statuses-message h2 {
  * състояния
  */
 .state-draft {
-  background-color: #bef7fd; }
+  background-color: #bbffff; }
 
 .state-active {
   background-color: #ffeedd;
@@ -2252,10 +2252,10 @@ div.statuses-message h2 {
   background-color: #bbffcc; }
 
 .state-pending {
-  background-color: #fbabfb; }
+  background-color: #eeccff; }
 
 .state-closed {
-  background-color: #e0e0e0; }
+  background-color: #dddddd; }
 
 .state-stopped,
 .state-blocked {
