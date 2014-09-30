@@ -685,7 +685,7 @@ class thumb_Img
             
             $transparentIndex = imagecolortransparent($im);
             
-            if ($transparentIndex != -1) {
+            if ($transparentIndex >= 0) {
                 imagepalettecopy($im, $newImg);
                 imagefill($newImg, 0, 0, $transparentIndex);
                 imagecolortransparent($newImg, $transparentIndex);
