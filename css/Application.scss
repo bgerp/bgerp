@@ -3978,5 +3978,24 @@ body.narrow {
 	margin-right:10px;
 }
 
+.cd-l1{
+    color: green;
+}
 
+.cd-l2{
+    color: red;
+}
+.cd-l3 {
+  animation: blink 1s linear infinite;
+  -webkit-animation: blink 1s linear infinite;
+}
+
+@keyframes blink {  
+  from { opacity: 1.0; }
+  to { opacity: 0.0; }
+}
+@-webkit-keyframes blink {
+  from { opacity: 1.0; }
+  to { opacity: 0.0; }
+}
 
