@@ -503,12 +503,12 @@ class core_Manager extends core_Mvc
         $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
         
         $data->form->input(NULL, 'silent');
-        
+   
         $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
         "|*" . ($this->title ? ' |в|* ' . '"' . tr($this->title) . '"' : '');
-        
+
         // Ако имаме 
-        if($data->form->rec->id && $data->form->cmd != 'refresh') {
+        if($data->form->rec->id && !$data->form->cmd) {
             
             // Очакваме, че има такъв запис
             expect($rec = $this->fetch($data->form->rec->id));
