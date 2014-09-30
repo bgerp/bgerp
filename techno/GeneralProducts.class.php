@@ -188,7 +188,7 @@ class techno_GeneralProducts extends core_Master {
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}
-    	
+    	//bp($fields);
     	if($fields['-short']){
 	    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
 	    		$row->title = ht::createLinkRef($row->title, array($mvc, 'single', $rec->id), NULL, 'title=Към спецификацията');
@@ -239,6 +239,7 @@ class techno_GeneralProducts extends core_Master {
     	$data = new stdClass();
     	$data->rec = $this->fetch($id);
     	$fields['-single'] = TRUE;
+    	$fields['-short'] = TRUE;
     	$data->row = $this->recToVerbal($data->rec, $fields);
     	
     	// Извличане на детайлите (компонентите)

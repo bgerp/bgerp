@@ -294,7 +294,7 @@ class techno_Specifications extends core_Manager {
      * 		        TRUE - връща целия шаблон на спецификацията
      * @return core_ET - шаблон с представянето на спецификацията
      */
-     public static function getTitleById($id, $escaped = TRUE, $full = FALSE)
+     public static function getTitleById($id, $escaped = TRUE, $full = FALSE, $lang = 'bg')
      {
 	    $TechnoClass = static::getDriver($id);
      	
