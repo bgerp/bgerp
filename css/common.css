@@ -938,8 +938,6 @@ a.profile {
 table.listTable {
   margin: 0 0 15px 0;
   border: 1px solid #bbbbbb; }
-  table.listTable > tbody > tr:hover {
-    background-color: #ffffcc; }
   table.listTable > thead > tr > th {
     border: 1px solid #bbbbbb;
     padding: 4px 3px 2px;
@@ -962,6 +960,9 @@ table.listTable {
 
 .narrow table.listTable {
   margin-bottom: 12px; }
+
+table.listTable:not(.noHoverTable) > tbody > tr:hover {
+  background-color: #ffffcc; }
 
 .listTitle {
   margin-bottom: 12px;
