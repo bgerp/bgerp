@@ -398,11 +398,11 @@ class core_DateTime
         }
 
         $dist = strtotime($baseDatetime) - strtotime($datetime);
-
+ 
         if($dist < 0) {
-            $dist = round(pow(log(-$dist, 1.85) - log(20, 1.85), 1.85));
-            $g = round(max(3, 9 - $dist/50));
-            $color = "0{$g}0";
+            $dist =  1 - $dist / (24 * 60 * 60);
+            $g = round(max(4, 11 - $dist * $dist));
+            $color = "0" . dechex($g) . "0";
         } else {
             
             if($dist < 20) $dist = 20;
