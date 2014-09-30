@@ -133,7 +133,12 @@ class core_Sbf extends core_Mvc
                     }  
                 } else {
                     debug::log("Липсващ файл: $rPath");
-                    $rPath = 'img/1x1.gif';
+                    $ext = str::getFileExt($rPath);
+                    if(in_array($ext, array('jpg', 'jpeg', 'png', 'bmp'))) {
+                        $rPath = 'img/1x1.gif';
+                    } else {
+                        $rPath = 'MissingFile';
+                    }
                     
                 }
 
