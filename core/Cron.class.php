@@ -420,27 +420,36 @@ class core_Cron extends core_Manager
         // Описанието с малки букви
         $description = mb_strtolower(mb_substr($rec->description, 0, 1)) . mb_substr($rec->description, 1);
         
-        // Ако има стар запис 
+        // Ако има стар запис и е редактиран от потребител 
+        // - обновяваме записа с изключение на състоянието, отместването, периода и времелимит-а
         if ($exRec) {
-            
+            // Имаме стар запис
             $rec->id = $exRec->id;
-
-            if( $rec->systemId != $exRec->systemId ||
-                $rec->description != $exRec->description ||
-                $rec->controller != $exRec->controller ||
-                $rec->action != $exRec->action ||
-                $rec->period != $exRec->period ||
-                floor($rec->offset) != floor($exRec->offset) ||
-                floor($rec->delay) != floor($exRec->delay) ||
-                $rec->timeLimit != $exRec->timeLimit) {
-
+            $systemDataChanged = ($rec->systemId != $exRec->systemId ||
+                                  $rec->description != $exRec->description ||
+                                  $rec->controller != $exRec->controller ||
+                                  $rec->action != $exRec->action);
+            if ($exRec->modifiedBy == -1 || !$exRec->modifiedBy) {
+                // Ако не е редактиран и има промени го обновяваме
+                if ( $systemDataChanged || $rec->period != $exRec->period ||
+                      floor($rec->offset) != floor($exRec->offset) ||
+                      floor($rec->delay) != floor($exRec->delay) ||
+                      $rec->timeLimit != $exRec->timeLimit
+                    ) {
+                    $mustSave = TRUE;
+                    $msg = "<li class=\"debug-update\">Обновено {$description} по разписание</li>";
+                } else { // ако няма промени го пропускаме
+                    $mustSave = FALSE;
+                    $msg = "<li class=\"debug-info\">Съществуващо {$description} по разписание</li>";
+                }
+            } elseif ($systemDataChanged) {
                 $mustSave = TRUE;
-                $msg = "<li class=\"debug-update\">Обновено {$description} по разписание</li>";
-            } else {
-                $mustSave = FALSE;
-                $msg = "<li class=\"debug-info\">Съществуващо {$description} по разписание</li>";
+                unset($rec->period);
+                unset($rec->offset);
+                unset($rec->delay);
+                unset($rec->timeLimit);
+                $msg = "<li class=\"debug-update\">Обновено {$description} системни настройки</li>";
             }
-
         } else {
             $mustSave = TRUE;
             $msg = "<li class=\"debug-new\">Добавено {$description} по разписание</li>";
