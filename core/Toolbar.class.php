@@ -271,7 +271,8 @@ class core_Toolbar extends core_BaseClass
      */
     function appendSecondRow_($toolbar, $rowId)
     {
-    	$toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, 'class=more-btn'), "ROW0");
+    	
+        $toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, 'class=more-btn'), "ROW0");
     }
     
     
@@ -280,14 +281,15 @@ class core_Toolbar extends core_BaseClass
      */
     function getToolbarLayout_($rowId)
     {
-    	if(count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
-    	count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')){
-    		$layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]</div>" .
-    		   "<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
-    	}
-    	else{
-    		$layout = new ET("<div class='clearfix21 toolbar'><div>[#ROW1#][#ROW2#]</div></div>");
-    	}
+    	if(count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') || count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')) {
+            $layout = new ET("\n<div class='toolbar'><div class='toolbar-first clearfix21'>[#ROW0#][#ROW1#]</div>" .
+
+                              "<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide clearfix21' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
+    	
+        } else {
+            $layout = new ET("\n<div class='toolbar'><div class='clearfix21'>[#ROW1#][#ROW2#]</div></div>");
+    	
+        }
     	
     	return $layout;
     }
