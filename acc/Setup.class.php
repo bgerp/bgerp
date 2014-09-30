@@ -44,7 +44,6 @@ defIfNot('ACC_DETAILED_BALANCE_ROWS', 500);
 class acc_Setup extends core_ProtoSetup
 {
     
-    
     /**
      * Версия на пакета
      */

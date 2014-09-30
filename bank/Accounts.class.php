@@ -135,8 +135,8 @@ class bank_Accounts extends core_Master {
                 $data->form->setDefault('currencyId', currency_Currencies::fetchField("#code = '{$cCode}'", 'id')); 
             } else {
             	// По дефолт е основната валута в системата
-            	$conf = core_Packs::getConfig('currency');
-            	$defaultCurrencyId = currency_Currencies::getIdByCode($conf->CURRENCY_BASE_CODE);
+            	$conf = core_Packs::getConfig('acc');
+            	$defaultCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
             	$data->form->setDefault('currencyId', $defaultCurrencyId);
             }
  
