@@ -1,4 +1,5 @@
-function tooltipCustom(closeUrl){
+function tooltipCustom(closeUrl)
+{
 	if($('.tooltip-button').length){
 		$('.tooltip-button').css("display","inline");
 		var checkVisibility = $('.tooltip-text');
@@ -26,16 +27,17 @@ function tooltipCustom(closeUrl){
 		 });
 		
 		//при клик на `x` да се скрива тултипа
-		 $('.close-tooltip').click(function() {
-			 			 
+		 $('.close-tooltip').click(function() {		 
 			 $('.tooltip-text').fadeOut("slow");
-			 $.get(closeUrl);
+			 if(closeUrl){ 
+				 $.get(closeUrl); 
+			 }	
 		 });
-		 
 	}
 }
 
-function setTooltipMaxWidth(){
+function setTooltipMaxWidth()
+{
 	var tooltip = $('.tooltip-button');
 	var mwidth = tooltip.offset().left;
 	if(mwidth > 700){
@@ -43,14 +45,13 @@ function setTooltipMaxWidth(){
 	}
 }
 
-function setArrowPosition(){
-	
+function setArrowPosition()
+{
 	var leftOffset = $('.tooltip-button').offset().left;
 	var leftOffsetBlock = $('.tooltip-text').offset().left;
 	
-	//заради разликата в големината на картинката в двата изгледа
-	var offset = $('.tooltip-button img').width()/2 - 10;
-	console.log(offset);
+	//за да се изчисли спрямо големината на бутона help
+	var offset = $('.tooltip-button img').width() / 2 - 10;
 	leftOffset = parseInt(leftOffset) - parseInt(leftOffsetBlock) + offset;
 	$('.tooltip-arrow').css("left", leftOffset ) ;
 	
