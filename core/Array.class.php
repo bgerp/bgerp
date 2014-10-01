@@ -326,4 +326,38 @@ class core_Array
         
         return $resStr;
     }
+
+
+    /**
+     * Копиране на свойства от един обект/масив на друг
+     * 
+     * @param array|object $arr1
+     * @param array|object $arr1
+     * @param string $fields
+     *
+     * @return array|object
+     */
+    public static function copy($arr1, $arr2, $fields = NULL)
+    {
+        if(is_object($arr2)) {
+            $vars = get_object_vars($arr2);
+        } else {
+            $vars = $arr2;
+        }
+        if($fields === NULL) {
+            $fields = array_keys($vars);
+        } else {
+            $fields = arr::make($fields);
+        }
+
+        foreach($fields as $fld) {
+            if(is_object($arr1)) {
+                $arr1->{$fld} = $vars[$fld];
+            } elseif(is_array($arr1)) {
+                $arr1[$fld] = $vars[$fld];
+            } else {
+                error("500. Некоректен параметър $arr1");
+            }
+        }
+    }
 }
