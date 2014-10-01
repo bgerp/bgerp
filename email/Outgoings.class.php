@@ -1266,7 +1266,7 @@ class email_Outgoings extends core_Master
                 //Данните на получателя от треда
                 $contragentData = doc_Threads::getContragentData($threadId);
             }
-    
+            
             //Ако създаваме нов тред, определяме данните на контрагента от ковъра на папката
             if ((!$threadId || $forward) && $folderId) {
                 
@@ -1375,8 +1375,8 @@ class email_Outgoings extends core_Master
                 unset($rec->threadId);
             } 
                
-            // Ако има originId
-            if ($originId) {
+            // Ако има originId и има данни за контрагента от origina
+            if ($originId && $oContragentData) {
                 
                 // Използваме контрагент данните от origin' а
                 $contrData = $oContragentData;
