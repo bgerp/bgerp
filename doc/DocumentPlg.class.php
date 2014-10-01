@@ -962,7 +962,7 @@ class doc_DocumentPlg extends core_Plugin
         if (empty($data->form->rec->id) && $data->form->rec->threadId && $data->form->rec->originId) {
             $folderId = ($data->form->rec->folderId) ? $data->form->rec->folderId : doc_Threads::fetchField('folderId');
         	
-            if($mvc->canAddToFolder($folderId) && $mvc->onlyFirstInThread !== FALSE){
+            if(($mvc->canAddToFolder($folderId) !== FALSE) && $mvc->onlyFirstInThread !== FALSE){
             	$data->form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985','ef_icon = img/16/save_and_new.png');
             }
         }
@@ -1219,7 +1219,7 @@ class doc_DocumentPlg extends core_Plugin
                         $docMvc = doc_Containers::getDocument($oRec->containerId);
                         
                         // Ако може да е начало на нишка
-                        $haveRightForClone = $docMvc->instance->canAddToFolder($oRec->folderId);
+                        $haveRightForClone = ($docMvc->instance->canAddToFolder($oRec->folderId) === FALSE) ? FALSE : TRUE;
                     }
                 } else {
                     
@@ -1233,7 +1233,7 @@ class doc_DocumentPlg extends core_Plugin
                         $docMvc = doc_Containers::getDocument($oRec->containerId);
                         
                         // Ако може да се добавя в нишката
-                        $haveRightForClone = $docMvc->instance->canAddToThread($oRec->threadId);
+                        $haveRightForClone = ($docMvc->instance->canAddToThread($oRec->threadId) === FALSE) ? FALSE : TRUE;
                     }
                 }
                 

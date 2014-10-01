@@ -1243,7 +1243,11 @@ class email_Outgoings extends core_Master
                     $rec->subject = 'Fw: ' . $title;    
                 } else {
                     
-                    $rec->subject = 'Re: ' . $title;
+                    if ($oDoc->instance instanceof email_Incomings) {
+                        $rec->subject = 'Re: ' . $title;
+                    } else {
+                        $rec->subject = $title;
+                    }
                 }
             }
             
@@ -1266,7 +1270,7 @@ class email_Outgoings extends core_Master
                 //Данните на получателя от треда
                 $contragentData = doc_Threads::getContragentData($threadId);
             }
-    
+            
             //Ако създаваме нов тред, определяме данните на контрагента от ковъра на папката
             if ((!$threadId || $forward) && $folderId) {
                 
@@ -1375,8 +1379,8 @@ class email_Outgoings extends core_Master
                 unset($rec->threadId);
             } 
                
-            // Ако има originId
-            if ($originId) {
+            // Ако има originId и има данни за контрагента от origina
+            if ($originId && $oContragentData) {
                 
                 // Използваме контрагент данните от origin' а
                 $contrData = $oContragentData;
@@ -1408,7 +1412,7 @@ class email_Outgoings extends core_Master
         if ($contrData->groupEmails) {
             
             // Разделяме стринга в масив
-            $allEmailsArr = explode(', ', $contrData->groupEmails);    
+            $allEmailsArr = type_Emails::toArray($contrData->groupEmails);    
         }
         
         // Ако отговаряме на конкретен имейл
