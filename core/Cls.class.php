@@ -478,6 +478,15 @@ class core_Cls
     	
     	return  $accessibleMethods;
     }
+    
+    
+    /**
+     * Връща заредените класове-сингълтони
+     */
+    public static function getSingletons()
+    {
+    	return count(self::$singletons) ? self::$singletons : NULL;
+    }
 }
 
 // Съкратено име, за по-лесно писане
