@@ -52,7 +52,7 @@ abstract class acc_ClosedDeals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id, docId=Документ, createdBy, createdOn';
+    protected $listFields = 'id, docId=Документ, modifiedOn, modifiedBy, createdOn, createdBy';
 	
 	
 	/**
