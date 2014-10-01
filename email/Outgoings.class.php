@@ -1243,7 +1243,11 @@ class email_Outgoings extends core_Master
                     $rec->subject = 'Fw: ' . $title;    
                 } else {
                     
-                    $rec->subject = 'Re: ' . $title;
+                    if ($oDoc->instance instanceof email_Incomings) {
+                        $rec->subject = 'Re: ' . $title;
+                    } else {
+                        $rec->subject = $title;
+                    }
                 }
             }
             
