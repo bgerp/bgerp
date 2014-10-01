@@ -383,30 +383,7 @@ abstract class deals_InvoiceMaster extends core_Master
     
     	$form->setField('changeAmount', "caption=Плащане->{$caption},mandatory");
     }
-
-
-    /**
-     * Данните на контрагент, записани в съществуваща фактура
-     * Интерфейсен метод на @see doc_ContragentDataIntf.
-     *
-     * @param int $id към фактурата
-     * @return stdClass @see doc_ContragentDataIntf::getContragentData()
-     *
-     */
-    public static function getContragentData($id)
-    {
-    	$rec = static::fetch($id);
     
-    	$contrData = new stdClass();
-    	$contrData->company   = $rec->contragentName;
-    	$contrData->countryId = $rec->contragentCountryId;
-    	$contrData->country   = static::getVerbal($rec, 'contragentCountryId');
-    	$contrData->vatNo     = $rec->contragentVatNo;
-    	$contrData->address   = $rec->contragentAddress;
-    
-    	return $contrData;
-    }
-
 
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
