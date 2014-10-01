@@ -219,9 +219,20 @@ class core_Plugins extends core_Manager
      */
     function setPlugin($class, $plugin, $cover = 'private', $name = NULL)
     {
-        $class = strtolower($class);
-        $name = $name ? $name : $plugin;
-        $this->attachedPlugins[$class][$cover][$name] = $plugin;
+        $singletons = cls::getSingletons();
+        
+        if(isset($singletons[$class])){
+        	
+        	// Ако класа вече е зареден в паметта, закачаме плъгина с `load`
+        	$Cls = cls::get($class);
+        	$Cls->load($plugin);
+        } else {
+        	
+        	// Ако не е закачен запомняме че този плъгин трябва да се закачи при инстанцирането на класа
+        	$class = strtolower($class);
+        	$name = $name ? $name : $plugin;
+        	$this->attachedPlugins[$class][$cover][$name] = $plugin;
+        }
     }
     
     
