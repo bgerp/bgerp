@@ -86,7 +86,7 @@ class plg_Rejected extends core_Plugin
             $rejCnt = $data->rejQuery->count();
 
             if($rejCnt) {
-                $data->toolbar->addBtn("Кош|* ({$rejCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title));
+                $data->toolbar->addBtn("Кош|* ({$rejCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=fright,order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  'ef_icon = img/16/bin_closed.png');
             }
         }
         if(Request::get('Rejected')) {
