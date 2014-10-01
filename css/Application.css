@@ -3700,6 +3700,7 @@ only screen and (max-width: 320px) {
   color: red; }
 
 .cd-l3 {
+  color: red;
   animation: blink 1s linear infinite;
   -webkit-animation: blink 1s linear infinite; }
 

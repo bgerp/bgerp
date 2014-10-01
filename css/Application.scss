@@ -3986,8 +3986,9 @@ body.narrow {
     color: red;
 }
 .cd-l3 {
-  animation: blink 1s linear infinite;
-  -webkit-animation: blink 1s linear infinite;
+	color: red;
+	animation: blink 1s linear infinite;
+	-webkit-animation: blink 1s linear infinite;
 }
 
 @keyframes blink {  
