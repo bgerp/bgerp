@@ -680,7 +680,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$form = &$data->form;
     	$form->setDefault('date', dt::today());
-    
+    	
     	$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
@@ -729,13 +729,10 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	 
     	if(empty($data->flag)){
-    		$form->setDefault('currencyId', drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode'));
-    		
+    		$form->setDefault('currencyId', drdata_Countries::fetchField(($form->rec->contragentCountryId) ? $form->rec->contragentCountryId : $mvc->fetchField($form->rec->id, 'contragentCountryId'), 'currencyCode'));
     		$locations = crm_Locations::getContragentOptions($coverClass, $coverId);
     		$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
     	}
-    	 
-    	$form->setReadOnly('vatRate');
     	 
     	// Метод който да бъде прихванат от deals_plg_DpInvoice
     	$mvc->prepareDpInvoicePlg($data);
