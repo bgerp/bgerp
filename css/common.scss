@@ -749,12 +749,6 @@ a.header:hover {
 	background-color: $gray3 !important;
 }
 
-.wide .btn-bin {
-    float: right;
-    background-image: url('../img/16/bin_closed.png');
-    @include btn-style();
-}
-
 .wide .btn-reject { 
     background-image: url('../img/16/reject.png');
     @include btn-style();
