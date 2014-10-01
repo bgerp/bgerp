@@ -752,13 +752,6 @@ a.header:hover {
 .btn-with-selected-disabled:hover {
   background-color: #dddddd !important; }
 
-.wide .btn-bin {
-  float: right;
-  background-image: url('../img/16/bin_closed.png');
-  padding-left: 22px !important;
-  background-repeat: no-repeat !important;
-  background-position: 3px center; }
-
 .wide .btn-reject {
   background-image: url('../img/16/reject.png');
   padding-left: 22px !important;
@@ -938,8 +931,6 @@ a.profile {
 table.listTable {
   margin: 0 0 15px 0;
   border: 1px solid #bbbbbb; }
-  table.listTable > tbody > tr:hover {
-    background-color: #ffffcc; }
   table.listTable > thead > tr > th {
     border: 1px solid #bbbbbb;
     padding: 4px 3px 2px;
@@ -962,6 +953,9 @@ table.listTable {
 
 .narrow table.listTable {
   margin-bottom: 12px; }
+
+table.listTable:not(.noHoverTable) > tbody > tr:hover {
+  background-color: #ffffcc; }
 
 .listTitle {
   margin-bottom: 12px;

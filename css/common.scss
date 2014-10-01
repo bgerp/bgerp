@@ -749,12 +749,6 @@ a.header:hover {
 	background-color: $gray3 !important;
 }
 
-.wide .btn-bin {
-    float: right;
-    background-image: url('../img/16/bin_closed.png');
-    @include btn-style();
-}
-
 .wide .btn-reject { 
     background-image: url('../img/16/reject.png');
     @include btn-style();
@@ -965,9 +959,6 @@ a.profile {
 table.listTable { 
     margin: 0 0 15px 0;
     border: 1px solid $gray4;
-    > tbody > tr:hover {
-	    background-color: $beige;
-	}
 	> thead > tr > th {
 	    border: 1px solid $gray4;
 	    padding: 4px 3px 2px;
@@ -994,6 +985,10 @@ table.listTable {
 }
 .narrow table.listTable {
 	margin-bottom: 12px;
+}
+
+table.listTable:not(.noHoverTable) > tbody > tr:hover {
+        background-color: $beige;
 }
 
 .listTitle {

@@ -2771,7 +2771,7 @@ Experta.prototype.log = function(txt) {
 /**
  * Намаляващ брояч на време
  */
-Experta.prototype.doCountdown = function() {
+Experta.prototype.doCountdown = function(l1, l2, l3) {
 	$('span.countdown').each(function() {
 		var text = $(this).text();
 		var res = text.split(":");
@@ -2791,6 +2791,13 @@ Experta.prototype.doCountdown = function() {
 					hour--;
 				}
 			}
+			
+			var timeInSec = hour * 3600 + min * 60 + sec;
+		
+			if (l1 && timeInSec < l1) $(this).addClass('cd-l1'); 
+			if (l2 && timeInSec < l2) $(this).addClass('cd-l2'); 
+			if (l3 && timeInSec < l3) $(this).addClass('cd-l3'); 
+			
 			//добавяме водещи нули ако е необходимо
 			if(sec < 10){
 				sec = "0" +  sec;
@@ -2807,9 +2814,9 @@ Experta.prototype.doCountdown = function() {
 /**
  * Извиква функцията doCountdown през 1 сек
  */
-Experta.prototype.setCountdown = function() {
+Experta.prototype.setCountdown = function(l1, l2, l3) {
 	setInterval(function(){
-		getEO().doCountdown();
+		getEO().doCountdown(l1, l2, l3);
 	}
 	, 1000);
 };
