@@ -114,7 +114,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		// Плащане
 		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Начин,salecondSysId=paymentMethodSale');
 		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута');
-		$mvc->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс');
+		$mvc->FLD('currencyRate', 'double(smartRound)', 'caption=Плащане->Курс');
 		$mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
 		
 		// Наш персонал
@@ -163,7 +163,7 @@ abstract class deals_DealMaster extends deals_DealBase
         	$Detail = $mvc->mainDetail;
         	if($mvc->$Detail->fetch("#{$mvc->$Detail->masterKey} = {$form->rec->id}")){
         		foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
-        			$form->setReadOnly($fld);
+        			$form->setReadOnly($fld, isset($form->rec->{$fld}) ? $form->rec->{$fld} : $mvc->fetchField($form->rec->id, $fld));
         		}
         	}
         }
@@ -272,7 +272,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        if (!$form->isSubmitted()) {
+    	if (!$form->isSubmitted()) {
             return;
         }
         
