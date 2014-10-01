@@ -478,6 +478,7 @@ class email_Outgoings extends core_Master
                 $nRec->waiting = $options->waiting;
                 $nRec->state = 'pending';
                 $saveArray['state'] = 'state';
+                $saveArray['waiting'] = 'waiting';
             }
             
             // От кого и кога е изпратено последно
