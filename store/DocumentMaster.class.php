@@ -24,12 +24,6 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'date';
-    
-    
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId, id';
