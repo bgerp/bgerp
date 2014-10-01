@@ -1408,7 +1408,7 @@ class email_Outgoings extends core_Master
         if ($contrData->groupEmails) {
             
             // Разделяме стринга в масив
-            $allEmailsArr = explode(', ', $contrData->groupEmails);    
+            $allEmailsArr = type_Emails::toArray($contrData->groupEmails);    
         }
         
         // Ако отговаряме на конкретен имейл
