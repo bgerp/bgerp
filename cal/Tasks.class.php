@@ -964,29 +964,32 @@ class cal_Tasks extends core_Master
        
 	   $activatedTasks = array ();
 	   $now = dt::verbal2mysql();
-        
-       do {
-	       if ($rec = $query->fetch()) {
-		       // и проверяваме дали може да я активираме
-		       $canActivate = self::canActivateTask($rec);
-		        	
-		       if ($canActivate->cond == TRUE) { 
-			       $rec->state = 'active';
-			       $rec->timeActivated = $now;
-			       self::save($rec, 'state, timeActivated');
-			    		
-			       $activated = TRUE;
-			       $activatedTasks[] = $rec;
-		       } else {
-		       	   $activated = FALSE;
-		       }
-	       } else {
-		       $activated = FALSE;
-		   }
-       } while ($activated);
 
-       // и да изпратим нотификация на потребителите
-       self::doNotificationForActiveTasks($activatedTasks);
+	   while ($rec = $query->fetch()) { 
+
+		   // и проверяваме дали може да я активираме
+		   $canActivate = self::canActivateTask($rec);
+		   if ($canActivate != FALSE) {
+			   if ($now >= $canActivate) {  
+				   $rec->state = 'active';
+				   $rec->timeActivated = $now;
+							       
+				   if ($rec->timeEnd !== NULL){
+					   	   $rec->expectationTimeEnd = $rec->timeEnd;
+					   }elseif ($rec->timeStart !== NULL) {
+					       $rec->expectationTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $rec->timeDuration);
+					   } elseif ($canActivate) {
+					       $rec->expectationTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($canActivate) + $rec->timeDuration);
+					   }
+				   self::save($rec, 'state, timeActivated, expectationTimeEnd');
+							       
+				   $activatedTasks[] = $rec;
+							       
+				   // и да изпратим нотификация на потребителите
+			       self::doNotificationForActiveTasks($activatedTasks);
+		   	   } 
+		   } 
+	   } 
     }
 
 
