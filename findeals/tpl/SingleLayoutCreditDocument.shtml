@@ -9,6 +9,10 @@
     </div>
     <!--ET_END header-->
     <table class='styled-table'>
+    	<tr>
+            <td>|Вальор|*</td>
+            <td>[#valior#]</td>
+        </tr>
         <tr>
             <td>|Име|*</td>
             <td>[#name#]</td>
