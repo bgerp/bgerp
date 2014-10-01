@@ -1012,7 +1012,7 @@ class doc_Threads extends core_Manager
             
             if($data->rejectedCnt) {
                 $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", 
-                    array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+                    array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
             }
             
             // Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
