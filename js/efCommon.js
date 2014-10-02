@@ -2794,9 +2794,13 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 			
 			var timeInSec = hour * 3600 + min * 60 + sec;
 		
-			if (l1 && timeInSec < l1) $(this).addClass('cd-l1'); 
-			if (l2 && timeInSec < l2) $(this).addClass('cd-l2'); 
-			if (l3 && timeInSec < l3) $(this).addClass('cd-l3'); 
+			if (l1 && timeInSec < l1) $(this).removeClass('cd-l2 cd-l3').addClass('cd-l1'); 
+			if (l2 && timeInSec < l2) $(this).removeClass('cd-l1 cd-l3').addClass('cd-l2'); 
+			if (l3 && timeInSec < l3) $(this).removeClass('cd-l1 cd-l2').addClass('cd-l3'); 
+			
+			if(timeInSec == 0) {
+				$(this).removeClass('cd-l3');
+			}
 			
 			//добавяме водещи нули ако е необходимо
 			if(sec < 10){
@@ -2815,6 +2819,15 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
  * Извиква функцията doCountdown през 1 сек
  */
 Experta.prototype.setCountdown = function(l1, l2, l3) {
+	if(!l1){
+		l1 = 3600;
+	}
+	if(!l2){
+		l2 = 180;
+	}
+	if(!l3){
+		l3 = 10;
+	}
 	setInterval(function(){
 		getEO().doCountdown(l1, l2, l3);
 	}
