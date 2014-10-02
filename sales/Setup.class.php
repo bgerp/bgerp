@@ -121,7 +121,7 @@ class sales_Setup extends core_ProtoSetup
             'sales_InvoiceDetails',
     		'sales_Proformas',
     		'sales_ProformaDetails',
-    		'migrate::transformProformas',
+    		'migrate::transformProformas1',
         );
 
         
@@ -192,7 +192,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Миграция на старите проформи към новите
      */
-    function transformProformas()
+    function transformProformas1()
     {
     	$mvc = cls::get('sales_Proformas');
     	$query = $mvc->getQuery();
