@@ -66,15 +66,18 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 		$conf = core_Packs::getConfig('acc');
 	
-		// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
-		if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
-	
-			// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
-			return ($state != 'overdue') ? 'paid' : 'repaid';
+		if(!empty($amountPaid) || !empty($amountDelivered)){
+			
+			// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
+			if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
+					
+				// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
+				return ($state != 'overdue') ? 'paid' : 'repaid';
+			}
 		}
 			
 		// Ако крайното салдо е 0 я водим за издължена
-		if(round($amountBl, 2) == 0){
+		if(round($amountBl, 2) == 0 && $state == 'overdue'){
 			
 			return 'repaid';
 		}
@@ -1241,7 +1244,6 @@ abstract class deals_DealMaster extends deals_DealBase
     public function checkPayments($overdueDelay)
     {
     	$Class = cls::get(get_called_class());
-    	 
     	$now = dt::now();
     	expect(cls::haveInterface('bgerp_DealAggregatorIntf', $Class));
     	 
@@ -1251,7 +1253,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query->where("#state = 'active'");
     	$query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
     	$query->show('id,amountDeal,amountPaid,amountDelivered,paymentState');
-    	 
+    	
     	while($rec = $query->fetch()){
     		try{
     			// Намира се метода на плащане от интерфейса
