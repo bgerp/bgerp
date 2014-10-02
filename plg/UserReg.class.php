@@ -174,8 +174,8 @@ class plg_UserReg extends core_Plugin
             
             // Показваме формата. Първо леко променяме стила. TODO в CSS
             $form->styles = array(
-                '.formInfo' => 'width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
-                '.formError' => 'width:440px;padding:8px;border:solid 1px #f99;background-color:#FF9;font-family:Times New Roman;font-size:0.9em;'
+                '.formInfo' => 'max-width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
+                '.formError' => 'max-width:440px;padding:8px;border:solid 1px #f99;background-color:#FF9;font-family:Times New Roman;font-size:0.9em;'
             );
             
             $form->toolbar->addSbBtn('Регистрирай');
@@ -311,7 +311,7 @@ class plg_UserReg extends core_Plugin
             $pRec->id = $id;
             
             $form->styles = array(
-                '.formInfo' => 'width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
+                '.formInfo' => 'max-width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
                 '' => 'margin-top:20px;margin-left:20px;'
             );
              
@@ -326,8 +326,8 @@ class plg_UserReg extends core_Plugin
             $form->FNC('captcha', 'captcha_Type', 'caption=Разпознаване,input,mandatory');
             
             $form->styles = array(
-                '.formInfo' => 'width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
-                '.formError' => 'width:440px;padding:8px;border:solid 1px #f99;background-color:#FF9;font-family:Times New Roman;font-size:0.9em;'
+                '.formInfo' => 'max-max-width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
+                '.formError' => 'max-width:440px;padding:8px;border:solid 1px #f99;background-color:#FF9;font-family:Times New Roman;font-size:0.9em;'
             );
             
             $rec = $form->input('email,captcha');
