@@ -615,7 +615,7 @@ abstract class acc_ClosedDeals extends core_Master
     	$desc = $firstDoc->getDescendants();
     	if(count($desc)){
     		foreach ($desc as $doc){
-    			if($doc->haveInterface('acc_TransactionSourceIntf') && $doc->fetchField('state') == 'active'){
+    			if($doc->haveInterface('acc_TransactionSourceIntf') && ($doc->fetchField('state') == 'active' || $doc->fetchField('state') == 'closed')){
     				if($doc->that != $rec->id && $doc->getClassId() != $rec->classId){
     					$dates[] = $doc->fetchField($doc->instance->valiorFld);
     				}
