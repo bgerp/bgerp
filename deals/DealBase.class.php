@@ -30,6 +30,12 @@ abstract class deals_DealBase extends core_Master
 	
 	
 	/**
+	 * Документа продажба може да бъде само начало на нишка
+	 */
+	public $onlyFirstInThread = TRUE;
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc

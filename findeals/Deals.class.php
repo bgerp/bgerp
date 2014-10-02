@@ -85,12 +85,6 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Документа продажба може да бъде само начало на нишка
-     */
-    public $onlyFirstInThread = TRUE;
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'tools=Пулт,detailedName,folderId,state,createdOn,createdBy';
