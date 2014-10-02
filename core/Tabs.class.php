@@ -117,8 +117,8 @@ class core_Tabs extends core_BaseClass
             } else {
                 if ($url) {
                     $url = ht::escapeAttr($url);
-                    $head .= "<div onclick='document.location=\"{$url}\"' style='cursor:pointer;' class='tab {$selected}'>";
-                    $head .= "<a href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
+                    $head .= "<div onclick=\"document.location='{$url}'\" style='cursor:pointer;' class='tab {$selected}'>";
+                    $head .= "<a onclick=\"if(event.stopPropagation){event.stopPropagation();}event.cancelBubble=true;document.location='{$url}'; return false;\" href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
                     if($selected) {
                         $head .= $hintBtn;
                     }
