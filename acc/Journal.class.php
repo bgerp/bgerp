@@ -573,7 +573,13 @@ class acc_Journal extends core_Master
      	// Ъпдейтваме информацията за журнала, ако е отбелязан че са му променени детайлите
      	if(count($mvc->updated)){
      		foreach ($mvc->updated as $journalId){
-     			$mvc->updateMaster($journalId);
+     			$rec = $mvc->fetchRec($journalId);
+     			$mvc->updateMaster($rec);
+     			
+     			// Нотифицираме документа породил записа в журнала че журнала му е променен
+     			if(cls::load($rec->docType, TRUE)){
+     				cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId));
+     			}
      		}
      	}
      }
