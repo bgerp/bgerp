@@ -26,6 +26,7 @@
                                         <!--ET_BEGIN stateText-->
                                         <br>
                                         <div class="[#STATE_CLASS#]">[#state#]</div>
+                                        <br>
                                         <!--ET_END stateText-->
                                         <!--ET_BEGIN originLink-->
                                         <div style='padding:7px 0px'>|към|* [#originLink#]</div>

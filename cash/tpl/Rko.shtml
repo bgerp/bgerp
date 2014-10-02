@@ -18,6 +18,7 @@
                         №:&nbsp;&nbsp;<b>[#number#]</b><br>
                         |Дата|*:&nbsp;&nbsp;<b>[#valior#]</b><br />
                         <div class="[#STATE_CLASS#]" style='margin-top:5px'>[#state#]</div>
+                        <br>
                     </td>
                     <td class='top-head'><b>|Получател|*</b></td>
                 </tr>
