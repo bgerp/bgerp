@@ -392,18 +392,23 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function getDefaultEmailBody($id)
     {
     	$handle = static::getHandle($id);
-    	 
-    	$type = static::fetchField($id, 'type');
-    	switch($type){
-    		case 'invoice':
-    			$type = "приложената фактура";
-    			break;
-    		case 'debit_note':
-    			$type = "приложеното дебитно известие";
-    			break;
-    		case 'credit_note':
-    			$type = "приложеното кредитно известие";
-    			break;
+    	$me = cls::get(get_called_class());
+    	
+    	if($me->getField('type', FALSE)){
+    		$type = static::fetchField($id, 'type');
+    		switch($type){
+    			case 'invoice':
+    				$type = "приложената фактура";
+    				break;
+    			case 'debit_note':
+    				$type = "приложеното дебитно известие";
+    				break;
+    			case 'credit_note':
+    				$type = "приложеното кредитно известие";
+    				break;
+    		}
+    	} else {
+    		$type = 'приложената проформа фактура';
     	}
     
     	// Създаване на шаблона
