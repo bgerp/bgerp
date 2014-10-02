@@ -2053,11 +2053,14 @@ class doc_DocumentPlg extends core_Plugin
         unset($nRec->state);
         unset($nRec->brState);
         
-        if ($nRec->threadId && $nRec->containerId) {
-            $tRec = doc_Threads::fetch($nRec->threadId);
+        setIfNot($thredId, $nRec->threadId, $rec->threadId);
+        setIfNot($containerId, $nRec->containerId, $rec->containerId);
+        
+        if ($thredId && $containerId) {
+            $tRec = doc_Threads::fetch($thredId);
             
             // Ако е първи документ, да се клонира в нова нишка
-            if ($tRec->firstContainerId == $nRec->containerId) {
+            if ($tRec->firstContainerId == $containerId) {
                 unset($nRec->threadId);
             }
         }
