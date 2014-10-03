@@ -217,4 +217,33 @@ class boilerplate_Manager extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     }
+
+
+    /**
+     * След изтриване на записи
+     *
+     * @param core_Mvc $mvc
+     * @param int $numRows  
+     * @param core_Query $query
+     * @param string|array
+     *
+     * @return bool Дали да продължи обработката на опашката от събития
+     */
+    public static function on_AfterDelete($mvc, $numRows, $query, $cond)
+    {
+    }
+    
+    
+    /**
+     * Изпълнява се след извличане на запис чрез ->fetch()
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return bool Дали да продължи обработката на опашката от събития
+     */
+    static function on_AfterRead($mvc, $rec)
+    {
+    }
+
 }
