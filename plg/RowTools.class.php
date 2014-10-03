@@ -61,7 +61,7 @@ class plg_RowTools extends core_Plugin
         }
         
         // URL за връщане след редакция/изтриване
-        if(method_exists($mvc, 'getRetUrl')) {
+        if(cls::existsMethod($mvc, 'getRetUrl')) {
             $retUrl = $mvc->getRetUrl($rec);
         } else {
             $retUrl = TRUE;
@@ -149,7 +149,7 @@ class plg_RowTools extends core_Plugin
     public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
     {
         // URL за връщане след редакция
-        if(method_exists($mvc, 'getRetUrl')) {
+        if(cls::existsMethod($mvc, 'getRetUrl')) {
             $retUrl = $mvc->getRetUrl($rec);
         } else {
             $retUrl = TRUE;
@@ -174,7 +174,7 @@ class plg_RowTools extends core_Plugin
     public static function on_BeforeGetDeleteUrl($mvc, &$deleteUrl, $rec)
     {
         // URL за връщане след редакция
-        if(method_exists($mvc, 'getDeleteUrl')) {
+        if(cls::existsMethod($mvc, 'getDeleteUrl')) {
             $retUrl = $mvc->getDeleteUrl($rec);
         } else {
             $retUrl = TRUE;
