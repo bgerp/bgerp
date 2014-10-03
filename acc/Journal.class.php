@@ -578,7 +578,7 @@ class acc_Journal extends core_Master
      			
      			// Нотифицираме документа породил записа в журнала че журнала му е променен
      			if(cls::load($rec->docType, TRUE)){
-     				cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId));
+     				cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId, $rec->id));
      			}
      		}
      	}
