@@ -179,7 +179,7 @@ class core_Plugins extends core_Manager
      */
     function attach(&$obj)
     {
-        // Ако не са заредени прикачените плъгини, правим им начално зареждане
+    	// Ако не са заредени прикачените плъгини, правим им начално зареждане
         if(!is_array($this->attachedPlugins)) {
             $this->attachedPlugins = array();
             $query = $this->getQuery();
@@ -214,14 +214,13 @@ class core_Plugins extends core_Manager
     /**
      * Инсталира плъгин. Ако параметърът е стринг, то той е името на
      * класа на плъгина. Ако параметърът е масив, то елементите му са
-     * параметри на метода createEventCatcher, който създава класа на
-     * плъгина
+     * параметри на метода createEventCatcher, който създава класа на плъгина
      */
     function setPlugin($class, $plugin, $cover = 'private', $name = NULL)
     {
         $singletons = cls::getSingletons();
         
-        if(isset($singletons[$class])){
+        if(isset($singletons[$class]) && !($singletons[$class] instanceof stdClass)){
         	
         	// Ако класа вече е зареден в паметта, закачаме плъгина с `load`
         	$Cls = cls::get($class);
