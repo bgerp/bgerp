@@ -146,6 +146,12 @@ class acc_Articles extends core_Master
       
     
     /**
+     * Документи заопашени за обновяване
+     */
+    protected $updated = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -180,7 +186,7 @@ class acc_Articles extends core_Master
     /**
      * Прави заглавие на МО от данните в записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
         $valior = self::getVerbal($rec, 'valior');
         
@@ -191,7 +197,7 @@ class acc_Articles extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
       	if(empty($rec->totalAmount)){
       		$row->totalAmount = $mvc->getFieldType('totalAmount')->toVerbal(0);
@@ -204,7 +210,7 @@ class acc_Articles extends core_Master
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
-    static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
+    public static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
     {
         $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }
@@ -213,7 +219,7 @@ class acc_Articles extends core_Master
     /**
      * След подготовка на сингъла
      */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $row = &$data->row;
         $rec = &$data->rec;
@@ -226,16 +232,27 @@ class acc_Articles extends core_Master
     
     
     /**
-     * Извиква се при промяна на някой от записите в детайл-модел
-     *
-     * @param core_Master $mvc
-     * @param int $masterId първичен ключ на мастър записа, чиито детайли са се променили
-     * @param core_Detail $detailsMvc
-     * @param stdClass $detailsRec данните на детайл записа, който е причинил промяната (ако има)
+     * След промяна в детайлите на обект от този клас
      */
-    static function on_AfterDetailsChanged($mvc, &$res, $masterId, $detailsMvc, $detailsRec = NULL)
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-        $mvc::updateAmount($masterId);
+    	// Запомняне кои документи трябва да се обновят
+    	if(!empty($id)){
+    		$mvc->updated[$id] = $id;
+    	}
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+    	if(count($mvc->updated)){
+    		foreach ($mvc->updated as $id) {
+    			$mvc->updateAmount($id);
+    		}
+    	}
     }
     
     
@@ -244,7 +261,7 @@ class acc_Articles extends core_Master
      *
      * @param int $id първичен ключ на статия
      */
-    private static function updateAmount($id)
+    private function updateAmount($id)
     {
         $dQuery = acc_ArticleDetails::getQuery();
         $dQuery->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields' => 'amount'));
@@ -253,14 +270,14 @@ class acc_Articles extends core_Master
         
         $result = NULL;
         
-        $rec = self::fetch($id);
+        $rec = $this->fetch($id);
         if ($r = $dQuery->fetch("#articleId = {$id}")) {
             $rec->totalAmount = $r->sumAmount;
         } else {
         	$rec->totalAmount = 0;
         }
-        
-        $result = self::save($rec);
+       
+        $result = $this->save($rec, 'totalAmount');
         
         return $result;
     }
@@ -286,10 +303,11 @@ class acc_Articles extends core_Master
         $result = (object)array(
             'reason' => $rec->reason,
             'valior' => $rec->valior,
-            'totalAmount' => round($rec->totalAmount, 2),
+            'totalAmount' => 0,
             'entries' => array()
         );
         
+        $totalAmount = 0;
         if (!empty($rec->id)) {
             // Извличаме детайл-записите на документа. В случая просто копираме полетата, тъй-като
             // детайл-записите на мемориалните ордери имат същата структура, каквато е и на 
@@ -328,8 +346,15 @@ class acc_Articles extends core_Master
                 if($quantityOnly){
                 	unset($result->entries[count($result->entries) - 1]['amount']);
                 }
+                
+                //Добавяме сумата (ако я има) към общото
+                if(isset($result->entries[count($result->entries) - 1]['amount'])){
+                	$totalAmount += $result->entries[count($result->entries) - 1]['amount'];
+                }
             }
         }
+        
+        $result->totalAmount = $totalAmount;
         
         return $result;
     }
@@ -359,7 +384,7 @@ class acc_Articles extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
@@ -402,7 +427,7 @@ class acc_Articles extends core_Master
     /**
      * Екшън създаващ обратен мемориален ордер на контиран документ
      */
-    function act_RevertArticle()
+    public function act_RevertArticle()
     {
     	$this->requireRightFor('write');
     	expect($docClassId = Request::get('docType', 'int'));
@@ -496,5 +521,43 @@ class acc_Articles extends core_Master
     	$rec = $this->fetchRec($id);
     	
     	return $this->getVerbal($rec, 'reason');
+    }
+    
+    
+    /**
+     * Изпълнява се след обновяване на журнала
+     */
+    public static function on_AfterJournalUpdated($mvc, $id, $journalId)
+    {
+    	// Ако отнякъде е променена статията на документа, обновяваме го с новата информация
+    	
+    	// Всички детайли на МО
+    	$rec = $mvc->fetchRec($id);
+    	$dQuery = acc_ArticleDetails::getQuery();
+    	$dQuery->where("#articleId = {$id}");
+    	
+    	// Всички детайли на променения журнал
+    	$jQuery = acc_JournalDetails::getQuery();
+    	$jQuery->where("#journalId = {$journalId}");
+    	$jRecs = $jQuery->fetchAll();
+    	
+    	while($dRec = $dQuery->fetch()){
+    		foreach ($jRecs as $jRec){
+    			if($dRec->debitAccId == $jRec->debitAccId && $dRec->debitEnt1 == $jRec->debitItem1 && $dRec->debitEnt2 == $jRec->debitItem2 && $dRec->debitEnt3 == $jRec->debitItem3 &&
+        		$dRec->creditAccId == $jRec->creditAccId && $dRec->creditEnt1 == $jRec->creditItem1 && $dRec->creditEnt2 == $jRec->creditItem2 && $dRec->creditEnt3 == $jRec->creditItem3){
+    				$dRec->debitPrice = $jRec->debitPrice;
+    				$dRec->creditPrice = $jRec->creditPrice;
+    				$dRec->amount = $jRec->amount;
+    				
+    				break;
+    			}
+    		}
+    		
+    		acc_ArticleDetails::save($dRec);
+    	}
+    	
+    	//@TODO ДА го махна
+    	$mvc->updateAmount($id);
+    	//$mvc->updated[$rec->id] = $rec->id;
     }
 }
