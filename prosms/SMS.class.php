@@ -63,33 +63,18 @@ class prosms_SMS extends core_Manager
 	
 	
 	/**
-	 * Описание на модела
-	 */
-	function description()
-	{
-	    $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
-	    $this->FLD('data', 'blob(compress, serialize)');
-	    
-	    $this->setDbUnique('uid');
-	}
-	
-	
-	/**
      * Интерфейсен метод за изпращане на SMS' и
      * 
      * @param string $number - Номера на получателя
      * @param string $message - Текста на съобщението
      * @param string $sender - От кого се изпраща съобщението
-     * @param array $params - Масив с класа и функцията, която ще се извика в act_Delivery
-     * @params['class'] - Класа
-     * @params['function'] - Функцията, която да се стартира от съответния клас
      * 
      * @return array $nRes - Mасив с информация, дали е получено
-     * $nRes['sended'] boolean - Дали е изпратен или не
+     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, waiting
      * $nRes['uid'] string - Уникалното id на съобщението
      * $nRes['msg'] - Статуса
      */
-    function sendSMS($number, $message, $sender, $params=array())
+    function sendSMS($number, $message, $sender)
     {
         // Конфигурацията на модула
     	$conf = core_Packs::getConfig('prosms');
@@ -119,34 +104,26 @@ class prosms_SMS extends core_Manager
             if ((int)$res != 0) {
                 
                 // Сетваме променливите
-                $nRes['sended'] = FALSE;
+                $nRes['sendStatus'] = 'sendError';
                 $nRes['msg'] = tr("Не може да се изпрати");
             } else {
                 
                 // Ако няма грешки
                 
                 // Опитваме се да генерираме уникален номер
-                do {
-                    $uid = static::getUid();
-                } while (static::fetch("#uid = '{$uid}'", 'id'));
+                $uid = static::getUid();
                 
                 // Сетваме променливите
-                $nRes['sended'] = TRUE;
+                $nRes['sendStatus'] = 'sended';
                 $nRes['msg'] = tr("Успешно изпратен SMS");
                 $nRes['uid'] = $uid;
-                
-                // Създаваме запис в модела
-                $nRec = new stdClass();
-                $nRec->uid = $uid;
-                $nRec->data = $params;
-                static::save($nRec);
             }
         } else {
             
             // Ако не е дефиниран шаблона
             
             // Сетваме грешките
-            $nRes['sended'] = FALSE;
+            $nRes['sendStatus'] = 'sendError';
             $nRes['msg'] = tr("Липсва константа за URL' то");
             
             // Записваме в лога
@@ -198,9 +175,6 @@ class prosms_SMS extends core_Manager
         $status = request::get('status', 'varchar');
         $code = request::get('code', 'varchar');
         
-        // Очакваме да има такъв запис
-        expect($rec = static::fetch(array("#uid = '[#1#]'", $uid)), "Невалидна заявка.");
-        
         // Ако не е получен успешно
         if ((int)$code !== 0) {
             $status = 'receiveError';
@@ -208,14 +182,11 @@ class prosms_SMS extends core_Manager
             $status = 'received';
         }
         
-        // Ако има зададен клас и фунцкия
-        if ($rec->data['class'] && $rec->data['function']) {
-            try {
-                
-                // Извикваме я
-                call_user_func(array($rec->data['class'], $rec->data['function']), $rec->uid, $status);
-                
-            } catch (Exception $e) { }
-        }
+        try {
+            $classId = $this->getClassId();
+            
+            // Обновяваме статуса на съобщението
+            callcenter_SMS::update($classId, $uid, $status);
+        } catch (Exception $e) { }
     }
 }

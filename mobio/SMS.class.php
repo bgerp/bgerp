@@ -60,19 +60,7 @@ class mobio_SMS extends core_Manager
 	 * 
 	 */
 	var $title = 'Мобио';
-	
-	
-	/**
-	 * Описание на модела
-	 */
-	function description()
-	{
-	    $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
-	    $this->FLD('data', 'blob(compress, serialize)');
-	    
-	    $this->setDbUnique('uid');
-	}
-	
+		
 	
 	/**
      * Интерфейсен метод за изпращане на SMS' и
@@ -80,16 +68,13 @@ class mobio_SMS extends core_Manager
      * @param string $number - Номера на получателя
      * @param string $message - Текста на съобщението
      * @param string $sender - От кого се изпраща съобщението
-     * @param array $params - Масив с класа и функцията, която ще се извика в act_Delivery
-     * @params['class'] - Класа
-     * @params['function'] - Функцията, която да се стартира от съответния клас
      * 
      * @return array $nRes - Mасив с информация, дали е получено
-     * $nRes['sended'] boolean - Дали е изпратен или не
+     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, waiting
      * $nRes['uid'] string - Уникалното id на съобщението
      * $nRes['msg'] - Статуса
      */
-    function sendSMS($number, $message, $sender, $params=array())
+    function sendSMS($number, $message, $sender)
     {
         // Конфигурацията на модула
     	$conf = core_Packs::getConfig('mobio');
@@ -122,28 +107,22 @@ class mobio_SMS extends core_Manager
             if ($res[0] == 'OK') {
                 
                 // Сетваме променливите
-                $nRes['sended'] = TRUE;
+                $nRes['sendStatus'] = 'sended';
                 $nRes['uid'] = $res[1];
-                $nRes['msg'] = tr("Успешно изпратен SMS");
-                
-                // Създаваме запис в модела
-                $nRec = new stdClass();
-                $nRec->uid = $nRes['uid'];
-                $nRec->data = $params;
-                static::save($nRec);
+                $nRes['msg'] = "Успешно изпратен SMS";
             } else {
                 
                 // Сетваме променливите
-                $nRes['sended'] = FALSE;
-                $nRes['msg'] = tr("Не може да се изпрати");
+                $nRes['sendStatus'] = 'sendError';
+                $nRes['msg'] = "Не може да се изпрати";
             }
         } else {
             
             // Ако не е дефиниран шаблона
             
             // Сетваме грешките
-            $nRes['sended'] = FALSE;
-            $nRes['msg'] = tr("Липсва константа за URL' то");
+            $nRes['sendStatus'] = 'sendError';
+            $nRes['msg'] = "Липсва константа за URL' то";
             
             // Записваме в лога
             static::log("Липсва константа за URL' то");
@@ -186,9 +165,6 @@ class mobio_SMS extends core_Manager
         $number = request::get('tonum', 'varchar');
         $code = request::get('newstatus', 'varchar');
         
-        // Очакваме да има такъв запис
-        expect($rec = static::fetch(array("#uid = '[#1#]'", $uid)), "Невалидна заявка.");
-        
         // Ако не е получен успешно
         if ((int)$code !== 1) {
             $status = 'receiveError';
@@ -196,14 +172,11 @@ class mobio_SMS extends core_Manager
             $status = 'received';
         }
         
-        // Ако има зададен клас и фунцкия
-        if ($rec->data['class'] && $rec->data['function']) {
-            try {
-                
-                // Извикваме я
-                call_user_func(array($rec->data['class'], $rec->data['function']), $rec->uid, $status);
-                
-            } catch (Exception $e) { }
-        }
+        try {
+            $classId = $this->getClassId();
+            
+            // Обновяваме статуса на съобщението
+            callcenter_SMS::update($classId, $uid, $status);
+        } catch (Exception $e) { }
     }
 }
