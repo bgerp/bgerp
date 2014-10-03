@@ -173,6 +173,11 @@ class core_Cls
             if (!isset(core_Cls::$singletons[$class])) {
                 core_Cls::$singletons[$class] = new stdClass();
                 core_Cls::$singletons[$class] = cls::createObject($class, $initArr);
+                
+                // Ако класа е наследник на core_BaseClass предизвикваме събитие че е бил инстанциран
+                if(core_Cls::$singletons[$class] instanceof core_BaseClass){
+                	core_Cls::$singletons[$class]->invoke('AfterInstance');
+                }
             }
             
             $obj = &core_Cls::$singletons[$class];
@@ -214,7 +219,7 @@ class core_Cls
             // Ако в резултат на инициализацията е върнат 
             // обект, то той се връща като резултат
             if (is_object($res)) {
-                
+            	
                 return $res;
             }
         }
@@ -425,7 +430,8 @@ class core_Cls
         	return TRUE;
         }
         
-        $plugins = arr::make($classObj->loadList);
+        $plugins = $classObj->getPlugins();
+        
         if(count($plugins)){
         	foreach ($plugins as $name){
         		if(method_exists($name, "on_After{$methodName}")){
