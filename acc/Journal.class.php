@@ -109,6 +109,12 @@ class acc_Journal extends core_Master
     
     
     /**
+     * Кеш на афектираните пера
+     */
+    protected $updated = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -551,6 +557,7 @@ class acc_Journal extends core_Master
      	return $jIds;
      }
      
+     
      /**
       * Афектираните пера, нотифицират мениджърите си
       */
@@ -561,6 +568,50 @@ class acc_Journal extends core_Master
      		foreach ($mvc->affectedItems as $rec) {
      			acc_Items::notifyObject($rec);
      		}
+     	}
+     	
+     	// Ъпдейтваме информацията за журнала, ако е отбелязан че са му променени детайлите
+     	if(count($mvc->updated)){
+     		foreach ($mvc->updated as $journalId){
+     			$rec = $mvc->fetchRec($journalId);
+     			$mvc->updateMaster($rec);
+     			
+     			// Нотифицираме документа породил записа в журнала че журнала му е променен
+     			if(cls::load($rec->docType, TRUE)){
+     				cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId));
+     			}
+     		}
+     	}
+     }
+     
+     
+     /**
+      * Обновява данните на журнала след промяна в детайлите
+      */
+     private function updateMaster($id)
+     {
+     	$rec = $this->fetchRec($id);
+     	$rec->totalAmount = 0;
+     	
+     	$dQuery = acc_JournalDetails::getQuery();
+     	$dQuery->where("#journalId = {$rec->id}");
+     	$dQuery->show('amount');
+     	while($dRec = $dQuery->fetch()){
+     		$rec->totalAmount += $dRec->amount;
+     	}
+     	
+     	$this->save($rec, 'totalAmount');
+     }
+     
+     
+     /**
+      * Поддържа точна информацията за записите в детайла
+      */
+     public static function on_AfterUpdateDetail($mvc, $id, $Detail)
+     {
+     	// Ако има промяна в детайлите, маркираме журнала че е променен
+     	if(!empty($id)){
+     		$mvc->updated[$id] = $id;
      	}
      }
 }

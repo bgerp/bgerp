@@ -994,7 +994,7 @@ class cat_Products extends core_Master {
      * @return string $title - заглавието на продукта, ако има параметър за име на
      * зададения език, връща него.
      */
-    public static function getTitleById($id, $escaped = TRUE, $lang = 'bg')
+    public static function getTitleById($id, $escaped = TRUE, $full = FALSE, $lang = 'bg')
     {
      	// Ако езика е различен от българския
     	if($lang != 'bg'){

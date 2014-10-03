@@ -27,6 +27,7 @@
                                             <!--ET_BEGIN state-->
                                             <br>
                                             <div class="[#STATE_CLASS#]">[#state#]</div>
+                                            <br>
                                             <!--ET_END state-->
                                         </td>
                                         <td class="cell custom-header-bg" style='width:35%;'><b>|Доставчик|*</b></td>

@@ -1,0 +1,119 @@
+.tooltip-button{
+	margin-left:5px;
+	position:relative;
+	top:2px;
+	height:15px;
+	width:15px;
+	display:none;
+	cursor:pointer;
+}
+
+.tab .tooltip-button img{
+	width:15px;
+	height:15px;
+}
+
+div.alphabet div.tab-row .tab.selected{
+	display: inline-block;
+	position: relative;
+	top: -2px;
+	padding: 4px 5px 5px !important;
+}
+	
+.narrow .alphabet .tooltip-button{
+	margin-left:5px;
+	top:1px !important;
+}
+
+.narrow div.alphabet div.tab-row .tab.selected{
+	padding: 5px !important;
+}
+
+.tab-row > .tooltip-button{
+	margin-left: 20px;
+	top: 11px;
+}
+
+.tab-row > .tooltip-button img{
+	height:20px;
+	width:20px;
+}
+
+.narrow .tooltip-button img{
+	height:18px;
+	width:18px;
+}
+
+.alphabet .tooltip-button,.alphabet .tooltip-button img{
+    width:13px;
+    height:13px;
+}
+
+.edit-tooltip{
+	margin-left: 5px;
+	position: relative;
+	top: 2px;
+}
+
+.tooltip-text{
+    color: #fff;
+    position: relative;
+    top: 5px;
+    border-radius: 5px; 
+	border: 1px solid #777;
+	background: #FFFFCD;
+	color: #333;
+	display:none;
+	max-width:700px;
+	margin-bottom:8px;
+	font-family: Arial, sans-serif;
+	font-size: 16px;
+	font-weight: normal;
+	line-height: 18px !important;
+	padding: 9px 11px;
+}
+.tooltip-text .richtext{
+	line-height: 19px !important;
+	display: inline;
+}
+
+.tooltip-text a{
+	color:#0000aa !important;
+}
+
+.tooltip-text a:hover{
+	text-decoration:underline;
+}
+
+.narrow .tooltip-text {
+	font-size: 14px;
+	line-height: 16px;
+	padding: 8px 10px;
+	top:0;
+}
+
+.tooltip-arrow {
+	display: block;
+	width: 16px;
+	height: 9px;
+	position: absolute;
+	background-image:url('../../img/arrow-hint-top.png');
+	top: -9px;
+	left: 10px;
+}
+
+.close-tooltip{
+	display:block;
+	position: absolute;
+	right: -4px;
+	top: -3px;
+	width: 16px;
+	height: 16px;
+	opacity: 0.9;
+	background-image:url('../../img/16/cancel.png');
+	background-repeat:no-repeat;
+	cursor:pointer;
+}
+.close-tooltip:hover{
+	opacity: 1;
+}

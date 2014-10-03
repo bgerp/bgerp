@@ -26,6 +26,12 @@ defIfNot('CALLCENTER_MAX_CALL_DURATION', '3600');
 
 
 /**
+ * Допустимото отклонение в секуди при регистриране на обажданията
+ */
+defIfNot('CALLCENTER_DEVIATION_BETWEEN_TIMES', '3600');
+
+
+/**
  * Услуга за изпращане на SMS
  */
 defIfNot('CALLCENTER_SMS_SERVICE', '');

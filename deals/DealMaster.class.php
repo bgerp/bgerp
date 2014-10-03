@@ -66,15 +66,18 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 		$conf = core_Packs::getConfig('acc');
 	
-		// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
-		if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
-	
-			// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
-			return ($state != 'overdue') ? 'paid' : 'repaid';
+		if(!empty($amountPaid) || !empty($amountDelivered)){
+			
+			// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
+			if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
+					
+				// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
+				return ($state != 'overdue') ? 'paid' : 'repaid';
+			}
 		}
 			
 		// Ако крайното салдо е 0 я водим за издължена
-		if(round($amountBl, 2) == 0){
+		if(round($amountBl, 2) == 0 && $state == 'overdue'){
 			
 			return 'repaid';
 		}
@@ -114,7 +117,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		// Плащане
 		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Начин,salecondSysId=paymentMethodSale');
 		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута');
-		$mvc->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс');
+		$mvc->FLD('currencyRate', 'double(smartRound)', 'caption=Плащане->Курс');
 		$mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
 		
 		// Наш персонал
@@ -123,7 +126,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		// Допълнително
 		$mvc->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
-		$mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
+		$mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2');
 		$mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия', array('attr' => array('rows' => 3)));
 		
 		$mvc->FLD('state',
@@ -163,7 +166,7 @@ abstract class deals_DealMaster extends deals_DealBase
         	$Detail = $mvc->mainDetail;
         	if($mvc->$Detail->fetch("#{$mvc->$Detail->masterKey} = {$form->rec->id}")){
         		foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
-        			$form->setReadOnly($fld);
+        			$form->setReadOnly($fld, isset($form->rec->{$fld}) ? $form->rec->{$fld} : $mvc->fetchField($form->rec->id, $fld));
         		}
         	}
         }
@@ -272,7 +275,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        if (!$form->isSubmitted()) {
+    	if (!$form->isSubmitted()) {
             return;
         }
         
@@ -1241,7 +1244,6 @@ abstract class deals_DealMaster extends deals_DealBase
     public function checkPayments($overdueDelay)
     {
     	$Class = cls::get(get_called_class());
-    	 
     	$now = dt::now();
     	expect(cls::haveInterface('bgerp_DealAggregatorIntf', $Class));
     	 
@@ -1251,7 +1253,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query->where("#state = 'active'");
     	$query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
     	$query->show('id,amountDeal,amountPaid,amountDelivered,paymentState');
-    	 
+    	
     	while($rec = $query->fetch()){
     		try{
     			// Намира се метода на плащане от интерфейса

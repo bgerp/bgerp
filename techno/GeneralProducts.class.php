@@ -239,6 +239,7 @@ class techno_GeneralProducts extends core_Master {
     	$data = new stdClass();
     	$data->rec = $this->fetch($id);
     	$fields['-single'] = TRUE;
+    	$fields['-short'] = TRUE;
     	$data->row = $this->recToVerbal($data->rec, $fields);
     	
     	// Извличане на детайлите (компонентите)

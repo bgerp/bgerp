@@ -49,7 +49,7 @@ class findeals_transaction_DebitDocument
     	
     	if($rec->isReverse == 'yes'){
     		// Ако документа е обратен, правим контировката на прехвърлянето на задължения но с отрицателен знак
-    		$entry = deals_transaction_CreditDocument::getReverseEntries($rec, $origin);
+    		$entry = findeals_transaction_CreditDocument::getReverseEntries($rec, $origin);
     	} else {
     	
     		// Ако документа не е обратен, правим нормална контировка на прехвърлянето на взимане

@@ -42,6 +42,12 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Можели да се принтират оттеглените документи?
+     */
+    public $printRejected = TRUE;
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -83,7 +89,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
     	$mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
     	$mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
-    	$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description)', 'caption=Плащане->Начин, export=Csv');
+    	$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Начин, export=Csv');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden');
     	$mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
@@ -377,30 +383,7 @@ abstract class deals_InvoiceMaster extends core_Master
     
     	$form->setField('changeAmount', "caption=Плащане->{$caption},mandatory");
     }
-
-
-    /**
-     * Данните на контрагент, записани в съществуваща фактура
-     * Интерфейсен метод на @see doc_ContragentDataIntf.
-     *
-     * @param int $id към фактурата
-     * @return stdClass @see doc_ContragentDataIntf::getContragentData()
-     *
-     */
-    public static function getContragentData($id)
-    {
-    	$rec = static::fetch($id);
     
-    	$contrData = new stdClass();
-    	$contrData->company   = $rec->contragentName;
-    	$contrData->countryId = $rec->contragentCountryId;
-    	$contrData->country   = static::getVerbal($rec, 'contragentCountryId');
-    	$contrData->vatNo     = $rec->contragentVatNo;
-    	$contrData->address   = $rec->contragentAddress;
-    
-    	return $contrData;
-    }
-
 
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
@@ -409,18 +392,23 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function getDefaultEmailBody($id)
     {
     	$handle = static::getHandle($id);
-    	 
-    	$type = static::fetchField($id, 'type');
-    	switch($type){
-    		case 'invoice':
-    			$type = "приложената фактура";
-    			break;
-    		case 'debit_note':
-    			$type = "приложеното дебитно известие";
-    			break;
-    		case 'credit_note':
-    			$type = "приложеното кредитно известие";
-    			break;
+    	$me = cls::get(get_called_class());
+    	
+    	if($me->getField('type', FALSE)){
+    		$type = static::fetchField($id, 'type');
+    		switch($type){
+    			case 'invoice':
+    				$type = "приложената фактура";
+    				break;
+    			case 'debit_note':
+    				$type = "приложеното дебитно известие";
+    				break;
+    			case 'credit_note':
+    				$type = "приложеното кредитно известие";
+    				break;
+    		}
+    	} else {
+    		$type = 'приложената проформа фактура';
     	}
     
     	// Създаване на шаблона
@@ -674,7 +662,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$form = &$data->form;
     	$form->setDefault('date', dt::today());
-    
+    	
     	$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
@@ -723,13 +711,10 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	 
     	if(empty($data->flag)){
-    		$form->setDefault('currencyId', drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode'));
-    		
+    		$form->setDefault('currencyId', drdata_Countries::fetchField(($form->rec->contragentCountryId) ? $form->rec->contragentCountryId : $mvc->fetchField($form->rec->id, 'contragentCountryId'), 'currencyCode'));
     		$locations = crm_Locations::getContragentOptions($coverClass, $coverId);
     		$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
     	}
-    	 
-    	$form->setReadOnly('vatRate');
     	 
     	// Метод който да бъде прихванат от deals_plg_DpInvoice
     	$mvc->prepareDpInvoicePlg($data);
@@ -900,7 +885,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public function pushDealInfo($id, &$aggregator)
     {
     	$rec = $this->fetchRec($id);
-    	$total = round($rec->dealValue, 2) + round($rec->vatAmount,2) - $rec->discountAmount;
+    	$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     	$total = ($rec->type == 'credit_note') ? -1 * $total : $total;
     
     	$aggregator->sum('invoicedAmount', $total);

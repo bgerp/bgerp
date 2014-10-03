@@ -52,7 +52,7 @@ abstract class acc_ClosedDeals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id, docId=Документ, createdBy, createdOn';
+    protected $listFields = 'id, docId=Документ, modifiedOn, modifiedBy, createdOn, createdBy';
 	
 	
 	/**
@@ -355,7 +355,7 @@ abstract class acc_ClosedDeals extends core_Master
      * Входният параметър $rec е оригиналният запис от модела
      * резултата е вербалният еквивалент, получен до тук
      */
-    static function recToVerbal_($rec, &$fields = '*')
+    public static function recToVerbal_($rec, &$fields = '*')
     {
     	$row = parent::recToVerbal_($rec, $fields);
     	
@@ -378,15 +378,26 @@ abstract class acc_ClosedDeals extends core_Master
     	
     	$row->costAmount = $Double->toVerbal(abs($costAmount));
     	$row->incomeAmount = $Double->toVerbal(abs($incomeAmount));
-    	
     	$row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-	    
-	    $abbr = cls::get(get_called_class())->abbr;
-	    $row->header = cls::get(get_called_class())->singleTitle . " #<b>{$abbr}{$row->id}</b> ({$row->state})";
 	    
 	    $row->docId = cls::get($rec->docClassId)->getHyperLink($rec->docId, TRUE);
 	    
 	    return $row;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+	    if($fields['-single']){
+	    	$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
+	    }
     }
     
     
@@ -507,7 +518,7 @@ abstract class acc_ClosedDeals extends core_Master
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
     	
@@ -604,7 +615,7 @@ abstract class acc_ClosedDeals extends core_Master
     	$desc = $firstDoc->getDescendants();
     	if(count($desc)){
     		foreach ($desc as $doc){
-    			if($doc->haveInterface('acc_TransactionSourceIntf') && $doc->fetchField('state') == 'active'){
+    			if($doc->haveInterface('acc_TransactionSourceIntf') && ($doc->fetchField('state') == 'active' || $doc->fetchField('state') == 'closed')){
     				if($doc->that != $rec->id && $doc->getClassId() != $rec->classId){
     					$dates[] = $doc->fetchField($doc->instance->valiorFld);
     				}

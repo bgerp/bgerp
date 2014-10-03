@@ -44,7 +44,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, valior, reason, folderId, currencyId, amount, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, valior, reason, folderId, currencyId, amount, state, createdOn, createdBy, modifiedOn, modifiedBy";
     
     
     /**

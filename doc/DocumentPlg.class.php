@@ -92,6 +92,9 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['Changed'] = 'log_Documents';
             $mvc->details['Used'] = 'log_Documents';
         }
+        
+        // Дали могат да се принтират оттеглените документи
+        setIfNot($mvc->printRejected, FALSE);
     }
     
     
@@ -145,7 +148,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {
-            $data->toolbar->removeBtn("*");
+            $data->toolbar->removeBtn("*", (($mvc->printRejected) ? 'btnPrint' : NULL));
             $data->toolbar->addBtn('Възстановяване', array(
                     $mvc,
                     'restore',
@@ -171,9 +174,10 @@ class doc_DocumentPlg extends core_Plugin
                     'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
             }
         } else {
-            //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
             //TODO да се "премахне" и оптимизира
-            $data->toolbar->removeBtn('btnPrint');
+            if($data->rec->state == 'draft' || ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') || ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === FALSE)){
+            	$data->toolbar->removeBtn('btnPrint');
+            }
         }
 
         //Добавяме бутон за клониране ако сме посочили, кои полета ще се клонират
@@ -226,7 +230,7 @@ class doc_DocumentPlg extends core_Plugin
             $data->rejectedCnt = $data->rejQuery->count();
             
             if($data->rejectedCnt) {
-                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50,row=2');
+                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin fright,order=50,row=2', 'ef_icon = img/16/bin_closed.png' );
             }
         }
     }
@@ -958,7 +962,7 @@ class doc_DocumentPlg extends core_Plugin
         if (empty($data->form->rec->id) && $data->form->rec->threadId && $data->form->rec->originId) {
             $folderId = ($data->form->rec->folderId) ? $data->form->rec->folderId : doc_Threads::fetchField('folderId');
         	
-            if($mvc->canAddToFolder($folderId) && $mvc->onlyFirstInThread !== FALSE){
+            if(($mvc->canAddToFolder($folderId) !== FALSE) && $mvc->onlyFirstInThread !== FALSE){
             	$data->form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985','ef_icon = img/16/save_and_new.png');
             }
         }
@@ -1215,7 +1219,7 @@ class doc_DocumentPlg extends core_Plugin
                         $docMvc = doc_Containers::getDocument($oRec->containerId);
                         
                         // Ако може да е начало на нишка
-                        $haveRightForClone = $docMvc->instance->canAddToFolder($oRec->folderId);
+                        $haveRightForClone = ($docMvc->instance->canAddToFolder($oRec->folderId) === FALSE) ? FALSE : TRUE;
                     }
                 } else {
                     
@@ -1229,7 +1233,7 @@ class doc_DocumentPlg extends core_Plugin
                         $docMvc = doc_Containers::getDocument($oRec->containerId);
                         
                         // Ако може да се добавя в нишката
-                        $haveRightForClone = $docMvc->instance->canAddToThread($oRec->threadId);
+                        $haveRightForClone = ($docMvc->instance->canAddToThread($oRec->threadId) === FALSE) ? FALSE : TRUE;
                     }
                 }
                 
@@ -1905,20 +1909,6 @@ class doc_DocumentPlg extends core_Plugin
         
         core_Users::exitSudo();
     }
-
-
-    /**
-     * Връща URL към единичния изглед на мастера
-     */
-    function on_AfterGetRetUrl($mvc, &$res, $rec)
-    {
-        $master = $mvc->getMasterMvc($rec);
-        $masterKey = $mvc->getMasterKey($rec);
-
-        $url = array($master, 'single', $rec->{$masterKey});
-
-        $res = $url;
-    }
     
     
     /**
@@ -2063,11 +2053,14 @@ class doc_DocumentPlg extends core_Plugin
         unset($nRec->state);
         unset($nRec->brState);
         
-        if ($nRec->threadId && $nRec->containerId) {
-            $tRec = doc_Threads::fetch($nRec->threadId);
+        setIfNot($thredId, $nRec->threadId, $rec->threadId);
+        setIfNot($containerId, $nRec->containerId, $rec->containerId);
+        
+        if ($thredId && $containerId) {
+            $tRec = doc_Threads::fetch($thredId);
             
             // Ако е първи документ, да се клонира в нова нишка
-            if ($tRec->firstContainerId == $nRec->containerId) {
+            if ($tRec->firstContainerId == $containerId) {
                 unset($nRec->threadId);
             }
         }

@@ -175,7 +175,7 @@ abstract class deals_DealDetail extends core_Detail
         $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
         expect(count($products));
         
-        $data->form->setSuggestions('discount', arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
+        $data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
         
         if (empty($rec->id)) {
         	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
@@ -325,18 +325,18 @@ abstract class deals_DealDetail extends core_Detail
     {
         $ProductManager = cls::get($rec->classId);
         
-        $row->productId = $ProductManager->getTitleById($rec->productId, TRUE, $rec->tplLang);
+        $row->productId = $ProductManager->getTitleById($rec->productId, TRUE, TRUE, $rec->tplLang);
        
-        if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+        if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !is_object($row->productId)){
         	$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));
         }
         
         if($ProductManager instanceof techno_Specifications){
-        	
         	//@TODO да махна изискването да има дебъг
         	if(haveRole('debug') && mp_Jobs::haveRightFor('add') && !Mode::is('printing') && !Mode::is('text', 'xhtml')){
         		$img = ht::createElement('img', array('src' => sbf('img/16/clipboard_text.png', '')));
-        		$row->productId .= "<span style='margin-left:5px'>" . ht::createLink($img, array('mp_Jobs', 'add', 'originClass' => $mvc->getClassId(), 'originDocId' => $rec->id), NULL, 'title=Ново задание') . "</span>";
+        		$jobLink = "<span style='margin-left:5px'>" . ht::createLink($img, array('mp_Jobs', 'add', 'originClass' => $mvc->getClassId(), 'originDocId' => $rec->id), NULL, 'title=Ново задание') . "</span>";
+        		$row->productId->append($jobLink);
         	}
     	}
     }
