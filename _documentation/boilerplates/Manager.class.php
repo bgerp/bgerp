@@ -246,4 +246,50 @@ class boilerplate_Manager extends core_Manager
     {
     }
 
+
+    /**
+     * Изпълнява се след подготовката на листовия изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
+    {   
+    }
+
+    
+    /**
+     * Изпълнява се преди опаковане на съдаржанието от мениджъра
+     *
+     * @param core_Mvc $mvc
+     * @param null|string|core_ET $res
+     * @param string|core_ET $tpl
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_BeforeRenderWrapping(core_Manager $mvc, &$res, &$tpl = NULL, $data = NULL)
+    {
+    }
+
+
+    /**
+     * Изпълнява се след опаковане на съдаржанието от мениджъра
+     *
+     * @param core_Mvc $mvc
+     * @param string|core_ET $res
+     * @param string|core_ET $tpl
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = NULL, $data = NULL)
+    {
+    }
+    
+
+
 }
