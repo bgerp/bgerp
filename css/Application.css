@@ -919,22 +919,22 @@ td.portal-date {
     .document .details .listToolbar {
       padding: 10px 0 5px;
       margin: 0;
-      border-bottom: 1px solid #999999; }
+      border-bottom: 1px solid #bbbbbb; }
       .document .details .listToolbar .toolbar {
         padding-left: 0; }
   .document .listTable th,
   .document .listTable td {
-    border: 1px solid #999999; }
+    border: 1px solid #bbbbbb; }
   .document .border-table,
   .document .pko-notes,
   .document .no-border-top {
     width: 100%; }
   .document .border-table td,
   .document .border-table th {
-    border: 1px solid #999999;
+    border: 1px solid #bbbbbb;
     padding: 3px; }
   .document .border-table th {
-    background-color: rgba(200, 200, 200, 0.4); }
+    background-color: #e0e0e0; }
   .document .no-border-bottom {
     border-bottom: none !important; }
   .document.print-letter {
@@ -945,7 +945,7 @@ td.portal-date {
     .document.print-letter:last-child {
       page-break-after: auto; }
   .document .custom-header-bg {
-    background-color: rgba(200, 200, 200, 0.4);
+    background-color: #e0e0e0;
     height: 20px; }
 
 .centered {
@@ -1054,7 +1054,6 @@ pre.document {
   border: 1px solid #999999; }
 
 .topCell {
-  border: 1px solid black;
   max-width: 400px !important; }
   .topCell div {
     padding-bottom: 2px; }
@@ -1064,7 +1063,7 @@ pre.document {
 .innerTable {
   border-collapse: collapse; }
   .innerTable > tbody > tr > td {
-    border: 1px solid #999999; }
+    border: 1px solid #bbbbbb; }
 
 .rowData {
   font-size: 0.9em; }
@@ -1073,17 +1072,17 @@ pre.document {
   padding: 1px !important; }
 
 .footer-notes > tbody > tr > td {
-  border: 1px solid #999999; }
+  border: 1px solid #bbbbbb; }
 
 .document .paddingCells > tbody > tr > td {
   padding: 5px; }
 
 #invoice-info {
-  border-left: 1px solid #999999; }
+  border-left: 1px solid #bbbbbb; }
 
 .document .lines {
-  border-left: 1px solid #999999;
-  border-right: 1px solid #999999;
+  border-left: 1px solid #bbbbbb;
+  border-right: 1px solid #bbbbbb;
   border-bottom: 3px solid #dddddd; }
 
 .signature-table {
@@ -2751,6 +2750,12 @@ div.location.public {
   width: 100%;
   text-align: left; }
 
+.custom-bg-block {
+  background-color: #e0e0e0;
+  padding: 0.2em;
+  margin-bottom: 0.2em;
+  margin-top: 0.5em; }
+
 .free-text {
   max-width: 600px;
   text-align: justify;
@@ -3603,17 +3608,15 @@ only screen and (max-width: 320px) {
 /*
  * статистика на продажби
  */
-.sale-summary {
-  margin-top: 10px; }
   .sale-summary table {
     width: 100%; }
     .sale-summary table td,
     .sale-summary table th {
       text-align: center;
-      border: 1px solid #cccccc;
+      border: 1px solid #bbbbbb;
       border-collapse: collapse; }
     .sale-summary table .sum-th {
-      background-color: #efefef;
+      background-color: #e0e0e0;
       font-weight: normal;
       color: #555555;
       border-bottom: none;

@@ -7,8 +7,9 @@
  * За да работи трябва да се добави като детайл на съответния мениджър
  * В мениджъра е нужно да има следните класови променливи:
  * 
- * 		$balanceRefAccounts - систем ид-та на сч. сметки, от които ще се правят справки
- * 		$balanceRefGroupBy - инт на сч. перо по което ще се групират(този на мениджъра)
+ * 		$balanceRefAccounts     - систем ид-та на сч. сметки, от които ще се правят справки
+ * 		$balanceRefGroupBy      - интерфейс на сч. перо по което ще се групират(този на мениджъра)
+ * 		$balanceRefShowZeroRows - да се показват ли записите близки до нулата
  *
  * @category  bgerp
  * @package   acc
@@ -46,6 +47,7 @@ class acc_ReportDetails extends core_Manager
     {
     	// Роли по подразбиране
     	setIfNot($data->masterMvc->canReports, 'ceo,reports');
+    	setIfNot($data->masterMvc->balanceRefShowZeroRows, FALSE);
     	
     	// Ако потребителя има достъп до репортите
     	if(haveRole($data->masterMvc->canReports)){
@@ -191,9 +193,9 @@ class acc_ReportDetails extends core_Manager
 	    	$conf = core_Packs::getConfig('acc');
 	    	$tolerance = $conf->ACC_MONEY_TOLERANCE;
 	    	
-	    	// Ако количеството и сумата са близки до нулата в определена граница ги пропускаме
+	    	// Ако количеството и сумата са близки до нулата в определена граница ги пропускаме, освен ако не е указано да се показват
 	    	if(($dRec->blQuantity > (-1 * $tolerance) &&  $dRec->blQuantity < $tolerance) &&
-	    	(($dRec->blAmount > (-1 * $tolerance) &&  $dRec->blAmount < $tolerance))) {
+	    	($dRec->blAmount > (-1 * $tolerance) &&  $dRec->blAmount < $tolerance) && $data->masterMvc->balanceRefShowZeroRows === FALSE) {
 	    		continue;
 	    	}
 	    	

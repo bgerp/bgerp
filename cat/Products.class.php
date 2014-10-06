@@ -63,6 +63,12 @@ class cat_Products extends core_Master {
     
     
     /**
+     * Да се показват ли в репортите нулевите редове
+     */
+    public $balanceRefShowZeroRows = TRUE;
+    
+    
+    /**
      * По кой итнерфейс ще се групират сметките 
      */
     public $balanceRefGroupBy = 'cat_ProductAccRegIntf';
