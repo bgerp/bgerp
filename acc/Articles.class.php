@@ -277,9 +277,7 @@ class acc_Articles extends core_Master
         	$rec->totalAmount = 0;
         }
        
-        $result = $this->save($rec, 'totalAmount');
-        
-        return $result;
+        acc_Articles::save($rec);
     }
     
     
@@ -556,8 +554,6 @@ class acc_Articles extends core_Master
     		acc_ArticleDetails::save($dRec);
     	}
     	
-    	//@TODO ДА го махна
     	$mvc->updateAmount($id);
-    	//$mvc->updated[$rec->id] = $rec->id;
     }
 }
