@@ -78,7 +78,10 @@ class plg_Rejected extends core_Plugin
      * Добавя бутон за показване на оттеглените записи
      */
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
-    {
+    {   
+        if(!$mvc->haveRightFor('restore') && !$mvc->haveRightFor('reject')) {
+            return;
+        }
         if(Request::get('Rejected')) {
             $data->toolbar->removeBtn('*', 'with_selected');
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', "ef_icon = img/16/application_view_list.png,title=Всички " . mb_strtolower($mvc->title));
