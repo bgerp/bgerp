@@ -197,8 +197,6 @@ class acc_ReportDetails extends core_Manager
 	    	if(($dRec->blQuantity > (-1 * $tolerance) &&  $dRec->blQuantity < $tolerance) &&
 	    	($dRec->blAmount > (-1 * $tolerance) &&  $dRec->blAmount < $tolerance) && $data->masterMvc->balanceRefShowZeroRows === FALSE) {
 	    		continue;
-	    	} else {
-	    		bp($data->masterMvc->balanceRefShowZeroRows, $data->masterMvc);
 	    	}
 	    	
 	    	$rows[$dRec->accountId]['rows'][] = $row;
