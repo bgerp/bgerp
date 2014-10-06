@@ -1725,13 +1725,13 @@ div.alphabet div.tab-page {
       -ms-border-radius: 7px;
       border-radius: 7px;
       background-color: #cccccc;
-      border: 1px solid #bbbbbb; }
+      border: 1px solid #aaaaaa; }
       div.tab-control.deal-history-tab .tab-row .tab a {
         color: #333333; }
       div.tab-control.deal-history-tab .tab-row .tab:hover,
       div.tab-control.deal-history-tab .tab-row .tab.selected {
         padding: 4px;
-        border: 1px solid #aaaaaa;
+        border: 1px solid #bbbbbb;
         margin: 0 3px 0 0;
         background-color: #f1f1f1; }
         div.tab-control.deal-history-tab .tab-row .tab:hover a,

@@ -1841,13 +1841,13 @@ div.tab-control.deal-history-tab{
             margin: 0 3px 0 0;
             @include border-radius(7px);
             background-color: #ccc;
-            border: 1px solid #bbb;
+            border: 1px solid #aaa;
             a {
                 color: #333;
             }
             &:hover , &.selected {
                 padding: 4px;
-                border: 1px solid #aaa;
+                border: 1px solid #bbb;
                 margin: 0 3px 0 0;
                 background-color: #f1f1f1;
                 a {
