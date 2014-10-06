@@ -615,6 +615,7 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 
 .selectMenuItem input[type=radio] + label {
 	vertical-align: middle;
+    white-space:nowrap;
 }
 
 .top-table {

@@ -716,7 +716,7 @@ class core_Html
                  $i++;
                  $id = $attr['id'] . $i;
                  $selectMenu->append("\n<div class=\"selectMenuItem\">" .
-                    "<input type=\"radio\" onclick=\"openUrl('{$url}', event);\" name=\"SM{$attr['id']}\"  id=\"{$id}\"{$checked}>" .
+                    "<input type=\"radio\" onclick=\"this.checked=true; openUrl('{$url}', event);\" name=\"SM{$attr['id']}\"  id=\"{$id}\"{$checked}>" .
                     "<label for=\"{$id}\"{$style}>{$title}</label></div>", 'selectMenu');
             }
         } else {
