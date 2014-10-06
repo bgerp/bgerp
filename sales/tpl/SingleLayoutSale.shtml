@@ -12,7 +12,7 @@
         <div class='display-table'>
         	[#TABS#]
         	<!--ET_BEGIN DEAL_HISTORY-->
-        	<div style='padding-top:10px;padding-bottom:10px'>
+        	<div style='padding-bottom:10px'>
         	[#DEAL_HISTORY#]
        	 	</div>
         	<!--ET_END DEAL_HISTORY-->
