@@ -366,9 +366,13 @@ abstract class deals_DealBase extends core_Master
     	$tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab'));
     	$url = getCurrentUrl();
     	unset($url['dealHistory']);
+    	
     	$histUrl = array();
-    	$histUrl = $url;
-    	$histUrl['dealHistory'] = TRUE;
+    	if($data->rec->state != 'draft' && $data->rec->state != 'rejected'){
+    		
+    		$histUrl = $url;
+    		$histUrl['dealHistory'] = TRUE;
+    	}
     	
     	// Ако сме в нормален режим
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
