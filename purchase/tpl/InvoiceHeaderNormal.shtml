@@ -111,7 +111,7 @@
                                         <!--ET_BEGIN rate--> 
                                         <span class='quiet'>|Курс|*:</span>  [#rate#]
                                         <!--ET_END rate-->  
-                                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Плащане|*</b></div>
+                                        <div class='custom-bg-block'><b>|Плащане|*</b></div>
                                         <!--ET_BEGIN paymentMethodId-->
                                         <div><span class='quiet'>|Начин|* :</span>  [#paymentMethodId#]</div>
                                         <!--ET_END paymentMethodId-->
@@ -146,7 +146,7 @@
                                         <!--ET_END accountId-->
                                         <!--ET_BEGIN deliveryInfo-->
                                         [#deliveryInfo#]
-                                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Доставка|*</b></div>
+                                        <div class='custom-bg-block'><b>|Доставка|*</b></div>
                                         <!--ET_BEGIN deliveryId-->
                                         [#deliveryId#]
                                         <!--ET_END deliveryId-->
@@ -217,7 +217,7 @@
                                         </table>
                                         <!--ET_BEGIN fileHnd-->
                                         <hr>
-                                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em;text-align:right'><b>|Оригинален документ|*</b></div>
+                                        <div class='custom-bg-block'><b>|Оригинален документ|*</b></div>
                                         <span style='float:right'>[#fileHnd#]</span>
                                         <!--ET_END fileHnd-->
                                     </td>
