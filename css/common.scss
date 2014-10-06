@@ -1825,6 +1825,57 @@ div.alphabet div.tab-page {
 	font-size: 0.9em;
 }
 
+/*табове за поддетайли на документ*/
+div.tab-control.deal-history-tab{
+    .tab-page {
+       border: none;
+       padding: 0;
+    }
+    .tab-row {
+        float: right;
+        margin-top: -35px;
+        .tab {
+            line-height: 1.1em;
+            padding: 4px;
+            font-size: 0.7em;
+            text-align: center;
+            margin: 0 3px 0 0;
+            @include border-radius(7px);
+            background-color: #ccc;
+            border: 1px solid #aaa;
+            a {
+                color: #333;
+            }
+            &:hover , &.selected {
+                padding: 4px;
+                border: 1px solid #bbb;
+                margin: 0 3px 0 0;
+                background-color: #f1f1f1;
+                a {
+                    color: #333;
+                }
+            }
+        }
+    }
+}
+
+.narrow div.tab-control.deal-history-tab{
+	.tab-row {
+        float: none;
+        margin: 0;
+        clear: both;
+    }
+    div.tab-row {
+        .tab, .tab.selected {
+	         padding: 4px;
+	    }
+    }
+    div.tab-page {
+        background: none;
+        padding: 5px;
+    }
+}
+
 .badge {
 	@include border-radius(9px);
 	border-radius: 9px;
