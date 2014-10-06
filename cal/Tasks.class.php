@@ -431,15 +431,6 @@ class cal_Tasks extends core_Master
         	}
         }
     }
-    
-    
-    /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
-    {
-    	$mvc->updateTaskToCalendar($rec->id);
-    }
 
 
     /**
@@ -550,22 +541,24 @@ class cal_Tasks extends core_Master
 	 */
     public static function on_BeforeActivation($mvc, $rec)
     {
-    	
+    	// изчисляваме очакваните времена
+    	self::calculateExpectationTime($rec);
+
     	// проверяваме дали може да стане задачата в активно състояние
     	$canActivate = self::canActivateTask($rec);
 
     	if ($canActivate->cond == TRUE) { 
-    		//$rec->state = 'active';
-    		
+
     		if ($canActivate->calcTime) {
     			$rec->timeCalc = $canActivate->calcTime;
     			$rec->state = 'pending';
+    			
+    			self::save($rec, 'timeCalc');
     		}
         // ако не може, задачата ставачакаща
     	} else {
     		$rec->state = 'pending';
     	}
-    	
     }
     
     
@@ -967,29 +960,25 @@ class cal_Tasks extends core_Master
 
 	   while ($rec = $query->fetch()) { 
 
+	   	   // изчисляваме очакваните времена
+		   self::calculateExpectationTime($rec);
 		   // и проверяваме дали може да я активираме
 		   $canActivate = self::canActivateTask($rec);
-		   if ($canActivate != FALSE) {
-			   if ($now >= $canActivate) {  
+
+		   if ($canActivate != FALSE) { 
+		   	   if ($now >= $canActivate) {  
 				   $rec->state = 'active';
 				   $rec->timeActivated = $now;
-							       
-				   if ($rec->timeEnd !== NULL){
-					   	   $rec->expectationTimeEnd = $rec->timeEnd;
-					   }elseif ($rec->timeStart !== NULL) {
-					       $rec->expectationTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $rec->timeDuration);
-					   } elseif ($canActivate) {
-					       $rec->expectationTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($canActivate) + $rec->timeDuration);
-					   }
-				   self::save($rec, 'state, timeActivated, expectationTimeEnd');
-							       
+
 				   $activatedTasks[] = $rec;
-							       
+				       
 				   // и да изпратим нотификация на потребителите
-			       self::doNotificationForActiveTasks($activatedTasks);
-		   	   } 
-		   } 
-	   } 
+       			   self::doNotificationForActiveTasks($activatedTasks);
+		       }       
+		   }
+		   
+		   self::save($rec, 'state, timeActivated, expectationTimeEnd, expectationTimeStart');
+	   }    
     }
 
 
@@ -1689,109 +1678,105 @@ class cal_Tasks extends core_Master
      * Може ли една задача да стане в състояние 'active'?
      * 
      * @param stdClass $rec
-     * @return boolean
+     * @return date
      */
     static public function canActivateTask($rec)
     {
-    	// Имаме две условия, за да може една задача да стане в състояние 'active'
-    	
-    	// Задачата да няма време за начало или времето за начало да е по малко от сега
-    	// да не е зависима от друга задача
-    	$conditionOne = FALSE;
-    	
-    	// Задачата от която зависи да е активна и да има прогрес по-голям
-    	// или равен на посочения в подчинената задача
-    	$conditionTwo = FALSE;
-    	
-    	// допълнителни условия за новите "Условия"
-    	$conditionProgress = FALSE;
-    	$conditionCalcTime = FALSE;
-    	
-    	$now = dt::verbal2mysql();
-        
+    	// сега
+    	$now = dt::verbal2mysql(); 
     	$nowTimeStamp = dt::mysql2timestamp($now);
+    	// вчера
         $yesterday = $nowTimeStamp - (24 * 60 * 60); 
     	$yesterdayDate =  dt::timestamp2Mysql($yesterday);
-    
-	    // Ако вече сме записали задача, то на нея могат да и се добавят условия
-	    if ($rec->id) { 
+    	
+    	$calcTime = FALSE;
+    	
+        // Ако сме активирали през singleToolbar-а
+	    if ($rec->id) {
 	    	$query = cal_TaskConditions::getQuery();
-	    		
 	    	$query->where("#baseId = '{$rec->id}'");
-	    		
-	    	while ($recCond = $query->fetch()) {
-	    		$arrCond[] = $recCond;
+
+	    	while($recCond = $query->fetch()) {
+				$arrCond[] = $recCond;
 	    	}
-    	}
-    	
-    	// Ако задачата е без начало/ безкрайна тя може да се активира,
-    	// само ако няма условия за "Условия"
-    	if (!$rec->timeStart && !is_array($arrCond)) {
-	    	if ($rec->id) {
-		    	if ($calcTime = self::fetchField($rec->id, "timeStart") !== NULL) {
-		    		if ($yesterdayDate < $calcTime && $calcTime < $now) {
-		    			$conditionOne = TRUE;
-		    		}
-		    	} else {
-		    		$conditionOne = TRUE;
-		    	}
-	    	} else {
-	    		$conditionOne = TRUE;
-	    	}
-	    } else {
-	    	$calcTime = $rec->timeStart;
-	    	//$conditionOne = TRUE;
-	    }
-	    
-    	// Ако задачата има начало, тя може да се активира само ако няма условия за "Условия"
-	    // и времето и за начало е в периода "вчера" : "днес"
-	    if ($yesterdayDate < $rec->timeStart && $rec->timeStart < $now) { 
-	    	$conditionOne = TRUE;
-	    }
-    	
-    	// ако е записана задачата, но няма условия
-    	if (!is_array($arrCond)) { 
-    		$conditionTwo = TRUE;
-    		
-    	} else {
-    		if (!$rec->timeStart) {
-    			$conditionOne = TRUE;
-    		} else {
-    		
-		    	foreach ($arrCond as $cond) { 
-		    		if ($cond->activationCond == "onProgress") {
+	    	// ако задачата е зависима
+	    	if (is_array($arrCond)) {
+    			foreach ($arrCond as $cond) { 
+    				// зависиама по прогрес
+		    		if ($cond->activationCond == "onProgress") { 
+		    			// процентите на завършване на бащината задача
+		    			$progress = self::fetchField($cond->dependId, "progress");
+		    			
+		    			// ако е равен или по голям на искания от потребутеля процент
+		    			if ($progress >= $cond->progress) {
+		    				// времето за стартирване на текущата задача е сега
+			    			$calcTime = $now; 
+			    		}
+			    	// ако ще правим изчисления по времена
+		    		} else { 
+                        // правим масив с всички изчислени времена
+		    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
+		    		} 		 
+		     	}
+		     	// взимаме и началното време на текущата задача,
+		     	// ако има такова
+		     	$timeStart = self::fetchField($rec->id, "timeStart");
+		     	
+		     	if (!$timeStart) {
+		     		// в противен случай го слагаме 0
+		     		$timeStart = 0;
+		     	}
+		     	// прибавяме го към масива
+		     	array_push($calcTimeS, $timeStart);
+		     	
+		     	// най-малкото време е времето за стартирване на текущата задача
+		     	$calcTime = min($calcTimeS);
+
+		    // задачата не е зависима от други задачи
+    		} else { 
+    			if ($rec->timeStart) {
+    				// времето за стартиране е времето оказано от потребителя
+    				$calcTime = $rec->timeStart;
+    			} else {
+    				// ако не е оказано време от потребителя - е сега
+    				$calcTime = $now;
+    			}
+    		}
+	    } elseif (!$rec->id && $rec->timeStart) { 
+    		if (is_array($arrCond)) { 
+    			foreach ($arrCond as $cond) { 
+		    		if ($cond->activationCond == "onProgress") { 
 		    			// proverka za systoqnieto ?!? 
 		    			$progress = self::fetchField($cond->dependId, "progress");
 		    			
 		    			if ($progress >= $cond->progress) {
-			    			$conditionProgress = TRUE; 
+			    			$calcTime = $now; 
 			    		}
-		    		} else {
-		    			$calcTime = self::calculateTimeToStart($rec, $cond);
-		    			$conditionCalcTime = TRUE;
+		    		} else { 
+		    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
 		    		}
 		     	}
+		     	$timeStart = self::fetchField($rec->id, "timeStart");
+		     	
+		     	if (!$timeStart) {
+		     		$timeStart = 0;
+		     	}
+		     	
+		     	array_push($calcTimeS, $timeStart);
+		     	
+		     	$calcTime = min($calcTimeS);
+    			
+    		} else {
+    			$calcTime = $rec->timeStart;
     		}
+    	} elseif (!$rec->timeStart && !$rec->id) { 
+    		$calcTime = $now;
     	}
     	
-    	// ако имаме повече от едно условие за задачата, трябва всички да са изпълнени
-    	if (count($arrCond) > 1) {
-    		if (($conditionProgress && $conditionCalcTime) == TRUE) {
-    			$conditionTwo = TRUE;
-    		}
-    	} else {
-    		if (($conditionProgress || $conditionCalcTime) == TRUE) {
-    			$conditionTwo = TRUE;
-    		}
-    	}
-    	
-    	$cond = ($conditionOne and $conditionTwo);
-//bp($conditionProgress, $conditionCalcTime, $conditionTwo, $conditionOne, $conditionProgress && $conditionCalcTime, $conditionProgress || $conditionCalcTime, $conditionOne && $conditionTwo);
-    	$condition = ($conditionOne && $conditionTwo);
-    	// Трябва и двете условия да са изпълнени
-    	return (object) array('cond' => $cond, 'calcTime' => $calcTime);
+    	// връщаме времето за активиране
+    	return $calcTime;
     }
-    
+   
     
     /**
      * Правим нотификация на всички шернати потребители
@@ -1800,9 +1785,7 @@ class cal_Tasks extends core_Master
     static public function doNotificationForActiveTasks($activatedTasks)
     {
     	foreach($activatedTasks as $rec) {
-  			//list($date, $time) = explode(' ', $rec->timeStart);  
-            	
-  			//if($time != '00:00:00') {
+
 	    	$subscribedArr = keylist::toArray($rec->sharedUsers); 
 			
 	    	if(is_array($subscribedArr)) {  
@@ -1818,13 +1801,99 @@ class cal_Tasks extends core_Master
 					}
 				}
 			}
-  			//}
   			
   			$rec->notifySent = 'yes';
 
         	self::save($rec, 'notifySent');
         }
     }
+    
+    
+    /**
+     * Изчисляваме новото начало за стратиране на задачата
+     * ако тя е зависима по време от някоя друга
+     * 
+     * @param stdClass $rec
+     * @param stdClass $recCond
+     */
+    static public function calculateExpectationTime (&$rec)
+    {
+    	// сега
+    	$now = dt::verbal2mysql(); 
+    	
+        // ако задачата има id следователно може да е зависима от други
+    	if($rec->id) {
+    	    $query = cal_TaskConditions::getQuery();
+	    		
+	    	$query->where("#baseId = '{$rec->id}'");
+	    		
+	    	while ($recCond = $query->fetch()) {
+	    		$arrCond[] = $recCond;
+	    	}
+	    	
+	    	if (is_array($arrCond)) { 
+	    	    foreach($arrCond as $cond) {
+	    	    	 // правим масив с всички изчислени времена
+	    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
+    	    		//$timeEnd = self::fetchField($cond->dependId, "expectationTimeEnd");
+	    	    }
+	    	  
+		     	// взимаме и началното време на текущата задача,
+		     	// ако има такова
+		     	$timeStartRec = self::fetchField($rec->id, "timeStart");
+		     	
+		     	if (!$timeStartRec) {
+		     		// в противен случай го слагаме 0
+		     		$timeStartRec = 0;
+		     	}
+		     	// прибавяме го към масива
+		     	array_push($calcTimeS, $timeStartRec);
+		     	
+		     	// най-малкото време е времето за стартирване на текущата задача
+		     	$timeStart = min($calcTimeS);
+		     	
+		     // ако не е зависима от други взимаме нейните начало и край
+	    	} else {
+	    		$timeStart = self::fetchField($rec->id, "timeStart");
+    	    	$timeEnd = self::fetchField($rec->id, "timeEnd");
+	    	}
+	    // ако няма id, то имаме директно началото и края й	
+    	} else {
+    		$timeStart = $rec->timeStart;
+    		$timeEnd = $rec->timeEnd;
+    	}
+	    
+    	// ако задачата няма начало и край
+	    if ($timeStart == NULL && $timeEnd == NULL) { 
+		    	
+			$expStart = $now;
+			$expEnd = $now;
+		    	
+		// ако задачата има начало
+		// може да определим и края й
+	    } elseif ($timeStart && !$timeEnd) {
+	    	$expStart = $timeStart;
+	   		$expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $rec->timeDuration);
+	    		
+	    // ако задачата има край
+	    // можем да кажем кога е началото й
+	    } elseif ($timeEnd && !$timeStart) {
+	    	$expEnd = $timeEnd;
+	    	$expStart = dt::timestamp2Mysql(dt::mysql2timestamp($expEnd) - $rec->timeDuration);
+	    		
+	    // ако има и начало и край
+	    // то очакваните начало и край са тези
+	    } elseif ($timeStart && $timeEnd) {
+	   		$expStart = $timeStart;
+			$expEnd = $timeEnd;
+	    }
+
+    	$rec->expectationTimeStart = $expStart;
+    	$rec->expectationTimeEnd = $expEnd;
+    	
+    	//self::save($rec, 'expectationTimeStart, expectationTimeEnd');
+    }
+        
     
     /**
      * Изчисляваме новото наало за стратиране на задачата
@@ -1837,12 +1906,12 @@ class cal_Tasks extends core_Master
     {
     	// времето от което зависи новата задача е началото на зависимата задача
     	// "timeCalc"
-    	$dependTimeStart = self::fetchField($recCond->dependId, "timeStart");
-    	$dependTimeEnd = self::fetchField($recCond->dependId, "timeEnd");
-    	
-    	if (!$dependTimeStart) {
-    		//timeStart
-    		$dependTimeStart = $recCond->timeActivated;
+    	$dependTimeStart = self::fetchField($recCond->dependId, "expectationTimeStart");
+    	$dependTimeEnd = self::fetchField($recCond->dependId, "expectationTimeEnd");
+    	$now = dt::verbal2mysql(); 
+
+    	if (!$dependTimeStart) { 
+    		$dependTimeStart = self::fetchField($recCond->dependId, "timeActivated");
     	}
     	
     	if (!$dependTimeEnd) {
@@ -1867,18 +1936,25 @@ class cal_Tasks extends core_Master
     		$calcTime = dt::mysql2timestamp($dependTimeEnd) - $recCond->distTime;
     		$calcTimeStart = dt::timestamp2Mysql($calcTime);
     	}
-    	
+
     	// ако задачата е безкрайна
-    	if (!$res->timestart) {
+    	if (!$rec->timeStart) { 
+    		$rec->timeCalc = $calcTimeStart;
+    		self::save($rec, 'timeCalc');
+    			    	
     		// връщаме изчисленото време
     		return $calcTimeStart;
     		// в противен случай гледаме коя е най-голямата дата и нея взимаме
     	} else {
     		
-    		if ($res->timestart > $calcTimeStart) {
+    		if ($rec->timeStart > $calcTimeStart) {
+    			$rec->timeCalc = $rec->timeStart;
+    			self::save($rec, 'timeCalc');
     			
-    			return $res->timestart;
+    			return $rec->timeStart;
     		} else {
+    			$rec->timeCalc = $calcTimeStart;
+    			self::save($rec, 'timeCalc');
     			
     			return $calcTimeStart;
     		}
