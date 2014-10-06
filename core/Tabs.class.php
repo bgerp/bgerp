@@ -117,8 +117,8 @@ class core_Tabs extends core_BaseClass
             } else {
                 if ($url) {
                     $url = ht::escapeAttr($url);
-                    $head .= "<div onclick=\"document.location='{$url}'\" style='cursor:pointer;' class='tab {$selected}'>";
-                    $head .= "<a onclick=\"if(event.stopPropagation){event.stopPropagation();}event.cancelBubble=true;document.location='{$url}'; return false;\" href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
+                    $head .= "<div onclick=\"openUrl('{$url}', event)\" style='cursor:pointer;' class='tab {$selected}'>";
+                    $head .= "<a onclick=\"return openUrl('{$url}', event);\" href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
                     if($selected) {
                         $head .= $hintBtn;
                     }
@@ -132,7 +132,7 @@ class core_Tabs extends core_BaseClass
         }
         
         if ($isOptionList) {
-            $head = new ET("<div class='tab selected'>[#1#]</div>{$hintBtn}\n", ht::createSelectMenu($options, $selectedUrl, FALSE, array('class' => "tab-control")));
+            $head = new ET("<div class='tab selected'>[#1#]</div>{$hintBtn}\n", ht::createSelectMenu($options, $selectedUrl, 0, array('class' => "tab-control")));
         }
  
         $html = "<div class='tab-control {$this->htmlClass}'>\n";

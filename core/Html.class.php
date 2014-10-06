@@ -704,26 +704,25 @@ class core_Html
     /**
      * Създава меню, чрез SELECT елемент
      */
-    static function createSelectMenu($options, $selected, $button = FALSE, $attr = array())
+    static function createSelectMenu($options, $selected, $maxRadio = 0, $attr = array())
     {
-        if (!Mode::is('screenMode', 'narrow') && count($options) < 10) {
-            $selectMenu = new ET('');
-            $attr['type'] = 'button';
-            $attr['class'] = 'button';
-
-            foreach ($options as $url => $title) {
-                $attr['onclick'] = '';
-                $attr['value'] = '';
-                $attr['onclick'] = $url;
-                $attr['value'] = $title;
-                $selectMenu->append(ht::createElement('input', $attr));
-                $selectMenu->append('&nbsp;\n');
+        if (count($options) < $maxRadio) {
+            ht::setUniqId($attr);
+            $i = 0;
+            $selectMenu = new ET('<div class="selectMenu">[#selectMenu#]</div>');
+            foreach($options as $url => $title) {
+                 $checked = $url == $selected ? ' checked="checked"' : '';
+                 $style   = $url == $selected ? ' style="color:black;"' : '';
+                 $i++;
+                 $id = $attr['id'] . $i;
+                 $selectMenu->append("\n<div class=\"selectMenuItem\">" .
+                    "<input type=\"radio\" onclick=\"openUrl('{$url}', event);\" name=\"SM{$attr['id']}\"  id=\"{$id}\"{$checked}>" .
+                    "<label for=\"{$id}\"{$style}>{$title}</label></div>", 'selectMenu');
             }
         } else {
             $name = "sm" . $i;
-            $attr['onChange'] = "window.location =  this.options[this.selectedIndex].value; ";
-           $attr['onfocus']  = "this.selectedIndex = -1;";
-           // $attr['onblur']   = "if(this.selectedIndex == -1) {this.selectedIndex = '{$selected}'}";
+            $attr['onChange'] = "openUrl(this.options[this.selectedIndex].value, event)";
+            $attr['onfocus']  = "this.selectedIndex = -1;";
             $attr['class'] = ($attr['class'] ? $attr['class'] . ' ' : '') . "button";
             $attr['id'] = $name;
             $selectMenu = ht::createSelect($name, $options, $selected, $attr);

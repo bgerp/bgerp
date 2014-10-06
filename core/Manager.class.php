@@ -509,7 +509,7 @@ class core_Manager extends core_Mvc
 
         // Ако имаме 
         if($data->form->rec->id && $data->form->cmd != 'refresh') {
-            
+
             // Очакваме, че има такъв запис
             expect($rec = $this->fetch($data->form->rec->id));
             

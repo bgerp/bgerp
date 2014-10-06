@@ -2358,6 +2358,23 @@ function render_redirect(data) {
 
 
 /**
+ * Функция, която отваря посоченото URL, като спира разпространението на събитието
+ */
+function openUrl(url, event) {
+	if(typeof event !== "undefined") {
+		if(event.stopPropagation){
+			event.stopPropagation();
+		}
+		event.cancelBubble = true;
+	} 
+	
+	window.location = url;
+
+	return false;
+}
+
+
+/**
  * Променя броя на нотификациите в титлата на таба
  * 
  * @param cnt - броя на нотификациите

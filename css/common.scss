@@ -611,6 +611,14 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
    text-shadow: 1px 1px 1px #aaa;
 }
 
+.selectMenuItem {
+    padding-top:3px;
+}
+
+.selectMenuItem input[type=radio] + label {
+	vertical-align: middle;
+}
+
 .top-table {
 	border-collapse: separate;
 	border-spacing: 2px;
