@@ -16,6 +16,7 @@
                                 <!--ET_BEGIN state-->
                                 <br>
                                 <div class="[#STATE_CLASS#]">[#state#]</div>
+                                <br>
                                 <!--ET_END state-->
                             </td>
                             <td class='custom-header-bg' width='33%'><b>Supplier</b></td>
