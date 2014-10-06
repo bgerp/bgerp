@@ -261,7 +261,7 @@ class acc_Articles extends core_Master
      *
      * @param int $id първичен ключ на статия
      */
-    private function updateAmount($id)
+    private function updateAmount($id, $modified = TRUE)
     {
         $dQuery = acc_ArticleDetails::getQuery();
         $dQuery->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields' => 'amount'));
@@ -277,7 +277,11 @@ class acc_Articles extends core_Master
         	$rec->totalAmount = 0;
         }
        
-        acc_Articles::save($rec);
+        if($modified){
+        	acc_Articles::save($rec);
+        } else {
+        	acc_Articles::save_($rec);
+        }
     }
     
     
@@ -554,6 +558,6 @@ class acc_Articles extends core_Master
     		acc_ArticleDetails::save($dRec);
     	}
     	
-    	$mvc->updateAmount($id);
+    	$mvc->updateAmount($id, TRUE);
     }
 }
