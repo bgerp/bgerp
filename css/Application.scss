@@ -1008,24 +1008,24 @@ td.portal-date {
 		.listToolbar {
 			padding: 10px 0 5px;
 			margin: 0;
-			border-bottom: 1px solid #999;
+			border-bottom: 1px solid $gray4;
 			.toolbar {
 				padding-left: 0;
 			}
 		}
 	}
 	.listTable th, .listTable td{
-		border: 1px solid #999;
+		border: 1px solid $gray4;
 	}
 	.border-table, .pko-notes, .no-border-top{
 	   width: 100%;
 	}
 	.border-table td, .border-table th{
-	    border:1px solid #999;
+	    border:1px solid $gray4;
 	    padding:3px;
 	}
 	.border-table th{
-	   background-color: rgba(200, 200, 200, 0.4);
+	   background-color: $gray2;
 	}
 	.no-border-bottom{
 		border-bottom: none !important;
@@ -1040,7 +1040,7 @@ td.portal-date {
 		}
 	}
 	.custom-header-bg {
-		background-color: rgba(200, 200, 200, 0.4);
+		background-color: $gray2;
 		height: 20px;
 	}
 }
@@ -1177,7 +1177,6 @@ pre.document {
 }
 
 .topCell {
-	border: 1px solid #000;
 	max-width: 400px !important;
 	div {
 	   padding-bottom: 2px;
@@ -1190,7 +1189,7 @@ pre.document {
 .innerTable {
 	border-collapse: collapse;
 	> tbody > tr > td{
-	   border: 1px solid #999;
+	   border: 1px solid $gray4;
 	}
 }
 
@@ -1203,7 +1202,7 @@ pre.document {
 }
 
 .footer-notes > tbody > tr > td{
-	border: 1px solid #999;
+	border: 1px solid $gray4;
 }
 
 .document .paddingCells > tbody > tr > td{
@@ -1211,12 +1210,12 @@ pre.document {
 }
 
 #invoice-info {
-	border-left: 1px solid #999;
+	border-left: 1px solid $gray4;
 }
 
 .document .lines {
-	border-left: 1px solid #999;
-	border-right: 1px solid #999;
+	border-left: 1px solid $gray4;
+	border-right: 1px solid $gray4;
 	border-bottom: 3px solid #ddd;
 }
 
@@ -2970,6 +2969,13 @@ div.location.public {
 	text-align: left;
 }
 
+.custom-bg-block{
+	background-color: $gray2;
+	padding:0.2em;
+	margin-bottom:0.2em;
+	margin-top:0.5em;
+}
+
 .free-text {
 	max-width: 600px;
 	text-align: justify;
@@ -3878,16 +3884,15 @@ body.narrow {
 
 /*статистика на продажби*/
 .sale-summary {
-    margin-top: 10px;
     table {
        width: 100%;
        td, th {
            text-align: center;
-           border: 1px solid #ccc;
+           border: 1px solid $gray4;
            border-collapse: collapse;
        }
        .sum-th {
-           background-color: #efefef;
+           background-color: $gray2;
            font-weight: normal;
            color: #555;
            border-bottom: none;
