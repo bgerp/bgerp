@@ -557,13 +557,11 @@ legend img {
 
 select {
 	margin-left: 0;
-	background-color: white;
-    color: #000;
 }
 
 select option {
-	background-color: white;
-	color: #000;
+	background-color: inherit;
+	color: inherit;
 }
 
 input {
@@ -2739,9 +2737,3 @@ td.leftCol {
 	white-space:nowrap;
 	text-align:left;
 }
-
-.datepick select option {
-	background-color: inherit;
-	color: inherit;
-}
-
