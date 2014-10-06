@@ -547,8 +547,14 @@ class acc_Articles extends core_Master
     		foreach ($jRecs as $jRec){
     			if($dRec->debitAccId == $jRec->debitAccId && $dRec->debitEnt1 == $jRec->debitItem1 && $dRec->debitEnt2 == $jRec->debitItem2 && $dRec->debitEnt3 == $jRec->debitItem3 &&
         		$dRec->creditAccId == $jRec->creditAccId && $dRec->creditEnt1 == $jRec->creditItem1 && $dRec->creditEnt2 == $jRec->creditItem2 && $dRec->creditEnt3 == $jRec->creditItem3){
-    				$dRec->debitPrice = $jRec->debitPrice;
-    				$dRec->creditPrice = $jRec->creditPrice;
+    				if(!is_null($jRec->debitPrice)){
+    					$dRec->debitPrice = $jRec->debitPrice;
+    				}
+    				
+    				if(!is_null($jRec->creditPrice)){
+    					$dRec->creditPrice = $jRec->creditPrice;
+    				}
+    				
     				$dRec->amount = $jRec->amount;
     				
     				break;
