@@ -146,7 +146,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId,export=Csv');
     	
     	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
