@@ -330,7 +330,7 @@ abstract class deals_DealMaster extends deals_DealBase
 						$data->query->where("#state = 'closed'");
 						break;
 					case 'paid':
-						$data->query->where("#paidRound = #dealRound");
+						$data->query->where("#paymentState = 'paid'");
 						$data->query->where("#state = 'active' || #state = 'closed'");
 						break;
 					case 'invoiced':
