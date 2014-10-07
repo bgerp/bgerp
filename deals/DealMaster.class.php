@@ -1215,10 +1215,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Или не трябва да се фактурират
     	$query->orWhere("#makeInvoice = 'no'");
-    	 
-    	// Подреждаме ги в низходящ ред
-    	$query->orderBy('id', 'DESC');
-    
+    	
     	// Лимитираме заявката
     	$query->limit($limit);
     	 
