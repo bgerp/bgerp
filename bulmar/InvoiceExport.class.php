@@ -88,7 +88,6 @@ class bulmar_InvoiceExport extends core_Manager {
     	$query = $this->Invoices->getQuery_();
     	$query->where("#state = 'active'");
     	$query->between('date', $filter->from, $filter->to);
-    	$query->where("#number = 575");
     	$query->orderBy("#number", 'ASC');
     	
     	$recs = $query->fetchAll();
