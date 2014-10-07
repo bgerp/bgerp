@@ -777,6 +777,19 @@ class core_Users extends core_Manager
     
     
     /**
+     * Проверява дали текущуя потребител и системен
+     * 
+     * @return boolean
+     */
+    static function isSystemUser()
+    {
+        $Users = cls::get('core_Users');
+        
+        return (boolean)$Users->isSystemUser;
+    }
+    
+    
+    /**
      * Временна подмяна на текущия потребител
      * 
      * След изпълнението на този метод системата работи точно както ако зададения потребител
