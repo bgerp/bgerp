@@ -292,10 +292,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
-    	 
-    	if($data->paymentPlan){
-    		$tpl->placeObject($data->paymentPlan);
-    	}
     	
     	return $tpl;
     }
@@ -604,11 +600,6 @@ abstract class deals_InvoiceMaster extends core_Master
 	   		
 	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE, 'bg');
 	   		$data->row = (object)((array)$data->row + (array)$data->summary);
-	   		
-	   		if($rec->paymentMethodId && $rec->type == 'invoice' && $rec->dpOperation != 'accrued') {
-	   			$total = $this->_total->amount + $this->_total->vat - $this->_total->discount;
-	   			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
-	   		}
 	   	}
    }
     

@@ -376,10 +376,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	if(empty($data->noTotal)){
     		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
-    	
+    		
     		if($rec->paymentMethodId) {
     			$total = $this->_total->amount- $this->_total->discount;
     			$total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
+    			
     			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
     		}
     	}
@@ -1320,6 +1321,10 @@ abstract class deals_DealMaster extends deals_DealBase
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('shareLog');
+    	}
+    	
+    	if($data->paymentPlan){
+    		$tpl->placeObject($data->paymentPlan);
     	}
     }
 }
