@@ -134,7 +134,7 @@ class cat_type_Uom extends type_Varchar {
 		
 		
 		// Рендиране на частта за въвеждане на числото
-		setIfNot($attr['size'], '7em');
+
 		$inputLeft = $this->double->renderInput($name . '[lP]', $convObject->value, $attr);
 		unset($attr['size']);
 		
