@@ -138,7 +138,9 @@ class bulmar_InvoiceExport extends core_Manager {
     		$rec->saleOriginId = $origin->that;
     		if(empty($this->sales[$origin->that])){
     			$originRec = $origin->fetch();
-    			$this->sales[$origin->that] = round($originRec->amountPaid, 2);
+    			$jRecs = acc_Journal::getEntries(array('sales_Sales', $originRec->id));
+    			$balance = acc_Balances::getBlAmounts($jRecs, '501');
+    			$this->sales[$origin->that] = round($balance->amount, 2);
     		}
     		$grouped[$origin->that][$rec->id] = $rec->id;
     	}
