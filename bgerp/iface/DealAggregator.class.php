@@ -91,4 +91,22 @@ class bgerp_iface_DealAggregator
 			array_push($this->$name, $array);
 		}
 	}
+	
+	
+	/**
+	 * Добавя стойност към масив от масиви
+	 *
+	 * @param string $name - име на пропърти
+	 * @param mixed $array - масив, обект или скалар който да се добавя към масива
+	 */
+	public function pushToArray($name, $array, $index)
+	{
+		// Ако няма такова пропърти, създаваме го
+		if(!isset($this->$name)){
+			$this->$name = array();
+		}
+		
+		$a = &$this->$name;
+		$a[$index][] = $array;
+	}
 }
