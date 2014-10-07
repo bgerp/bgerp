@@ -109,13 +109,13 @@ abstract class deals_DeliveryDocumentDetail extends core_Detail
 				if($baseInfo->classId == cat_Packagings::getClassId()){
 					$form->rec->packagingId = $baseInfo->id;
 				}
-				
-				$LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
-				if(isset($mvc->$LastPolicy)){
-					$policyInfo = $mvc->$LastPolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
-					if($policyInfo->price != 0){
-						$form->setSuggestions('packPrice', array('' => '', "{$policyInfo->price}" => $policyInfo->price));
-					}
+			}
+			
+			$LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
+			if(isset($mvc->$LastPolicy)){
+				$policyInfo = $mvc->$LastPolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+				if($policyInfo->price != 0){
+					$form->setSuggestions('packPrice', array('' => '', "{$policyInfo->price}" => $policyInfo->price));
 				}
 			}
 		}

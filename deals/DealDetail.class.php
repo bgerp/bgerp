@@ -220,12 +220,12 @@ abstract class deals_DealDetail extends core_Detail
 	    		if($baseInfo->classId == cat_Packagings::getClassId()){
 	    			$form->rec->packagingId = $baseInfo->id;
 	    		}
-	    		
-	    		if(isset($mvc->LastPricePolicy)){
-	    			$policyInfo = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
-	    			if($policyInfo->price != 0){
-	    				$form->setSuggestions('packPrice', array('' => '', "{$policyInfo->price}" => $policyInfo->price));
-	    			}
+	    	}
+	    	
+	    	if(isset($mvc->LastPricePolicy)){
+	    		$policyInfo = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+	    		if($policyInfo->price != 0){
+	    			$form->setSuggestions('packPrice', array('' => '', "{$policyInfo->price}" => $policyInfo->price));
 	    		}
 	    	}
         }
