@@ -1243,12 +1243,12 @@ function setFormElementsWidth() {
     var preferredSizeInEm = 42;
 
     // изчислена максимална ширина формата
-    formElWidth = winWidth - outsideWidth;
+    var formElWidth = winWidth - outsideWidth;
 
     // колко ЕМ е широка страницата
-    var currentEm = parseFloat($(".formTable input[type=text]").css("font-size"));
+    var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));
     if (!currentEm) {
-        currentEm = parseFloat($(".formTable select").css("font-size"));
+        currentEm = parseFloat($(".formTable select").first().css("font-size"));
     }
 
     var sizeInEm = winWidth / currentEm;
@@ -1273,6 +1273,7 @@ function setFormElementsWidth() {
     $('.formSection').css('width', formElWidth);
     $('.formTable textarea').css('width', formElWidth);
     $('.formTable .chzn-container').css('maxWidth', formElWidth);
+    $('.formTable select').css('maxWidth', formElWidth);
 }
 
 
