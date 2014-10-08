@@ -92,7 +92,7 @@ class type_Richtext extends type_Blob
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $tpl = new ET("<span class='richEdit' style='display:table;'>[#TEXTAREA#]<div class='richedit-toolbar {$attr['errorClass']}'>[#TBL_GROUP1#][#TBL_GROUP2#][#TBL_GROUP3#]</div></span>");
+        $tpl = new ET("<span class='richEdit'>[#TEXTAREA#]<div class='richedit-toolbar {$attr['errorClass']}'>[#TBL_GROUP1#][#TBL_GROUP2#][#TBL_GROUP3#]</div></span>");
         
         if(Mode::is('screenMode', 'narrow')) {
             setIfNot($attr['rows'], $this->params['rows'], 7);

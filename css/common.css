@@ -1791,15 +1791,22 @@ span.richEdit div.richedit-toolbar {
   user-select: none;
   margin-top: -4px; }
 
+span.richEdit {
+  display: table; }
+
+.narrow span.richEdit {
+  display: block; }
+
+.narrow .richEdit textarea {
+  width: 100% !important;
+  border-bottom: 1px solid white; }
+
 .richEdit textarea {
   margin-bottom: 0;
   overflow: auto;
   border-bottom: 1px solid transparent;
-  width: 32em;
-  min-width: 310px; }
-
-.narrow .richEdit textarea {
-  border-bottom: 1px solid white; }
+  min-width: 310px;
+  width: 32em; }
 
 .richedit-toolbar {
   position: relative;
