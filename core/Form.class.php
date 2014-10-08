@@ -424,8 +424,8 @@ class core_Form extends core_FieldSet
                     "\n</form>\n");
 				
                 if (Mode::is('screenMode', 'narrow')) {
-	                $this->layout->append("runOnLoad(setFormElementsWidth);", "JQRUN");
-	                $this->layout->append('$(window).resize(function(){setFormElementsWidth();});', "JQRUN");
+                	jquery_Jquery::run($this->layout, "setFormElementsWidth();");
+                	jquery_Jquery::run($this->layout, "$(window).resize(function(){setFormElementsWidth();});");
                 }
             }
             

@@ -13,8 +13,6 @@
  * @license   GPL 3
  * @since     v 0.1
  * 
- * @method on_AfterRenderWrapping(core_Manager $mvc, core_ET &$res, core_ET &$tpl=NULL, $data = NULL)
- * @method on_BeforeRenderWrapping(core_Manager $mvc, &$res, core_ET|string|null &$tpl=NULL, $data = NULL)
  * @method renderWrapping(core_ET|string|null &$tpl=NULL, $data = NULL)
  */
 class core_Manager extends core_Mvc
@@ -408,7 +406,10 @@ class core_Manager extends core_Mvc
         Request::get('PerPage', 'int') : $this->listItemsPerPage;
         
         if($perPage) {
-            $data->pager = & cls::get('core_Pager', array('pageVar' => 'P_' . $this->className));
+            if(!isset($data->pageVar)) {
+                $data->pageVar = 'P_' . $this->className;
+            }
+            $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar));
             $data->pager->itemsPerPage = $perPage;
         }
         
@@ -509,7 +510,7 @@ class core_Manager extends core_Mvc
 
         // Ако имаме 
         if($data->form->rec->id && $data->form->cmd != 'refresh') {
-
+            
             // Очакваме, че има такъв запис
             expect($rec = $this->fetch($data->form->rec->id));
             
