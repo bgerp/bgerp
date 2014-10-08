@@ -384,14 +384,17 @@ class acc_HistoryReport extends core_Manager
     	// Извличане на всички записи към избрания период за посочените пера
     	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
     	
+    	// Изчисляваме крайното салдо за аналитичната сметка в периода преди избраните дати
     	$Balance = new acc_ActiveShortBalance(array('from' => $data->fromDate, 'to' => $data->toDate, 'accs' => $accSysId, 'item1' => $rec->ent1Id, 'item2' => $rec->ent2Id, 'item3' => $rec->ent3Id));
     	$calcedBalance = $Balance->getBalanceBefore(acc_Accounts::fetchField($rec->accountId, 'systemId'));
     	$indexArr = $rec->accountId . "|" . $rec->ent1Id . "|" . $rec->ent2Id . "|" . $rec->ent3Id;
+    	
+    	// Ако няма данни досега, започваме с нулеви крайни салда
     	if(!isset($calcedBalance[$indexArr])){
     		$calcedBalance[$indexArr] = array('blAmount' => 0, 'blQuantity' => 0);
     	}
     	
-    	// Извличаме записите, направени в избрания период на търсене
+    	// Извличаме записите точно в периода на филтъра
     	$jQuery = acc_JournalDetails::getQuery();
     	acc_JournalDetails::filterQuery($jQuery, $data->fromDate, $data->toDate, $accSysId, NULL, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, TRUE);
     	$jQuery->orderBy('valior', 'ASC');
@@ -418,6 +421,7 @@ class acc_HistoryReport extends core_Manager
     			'blQuantity' => $rec->baseQuantity,
     			'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
     	 
+    	// Обхождаме всички записи и натрупваме сумите им към крайното салдо
     	if(count($entriesInPeriod)){
     		foreach ($entriesInPeriod as $jRec){
 				$entry = array('id'       => $jRec->id,
@@ -460,12 +464,13 @@ class acc_HistoryReport extends core_Manager
     		}
     	}
     	
+    	// Крайното салдо е изчисленото крайно салдо на сметката
     	$rec->blAmount = $calcedBalance[$indexArr]['blAmount'];
     	$rec->blQuantity = $calcedBalance[$indexArr]['blQuantity'];
     	$row->blAmount = $Double->toVerbal($rec->blAmount);
     	$row->blQuantity = $Double->toVerbal($rec->blQuantity);
     	
-    	// Нулевия ред е винаги началното салдо
+    	// Последния ред е крайното салдо
     	$lastRec = array('docId'      => "Краен баланс",
 		    			 'valior'	  => $data->toDate,
 		    			 'blAmount'   => $rec->blAmount,
@@ -498,7 +503,7 @@ class acc_HistoryReport extends core_Manager
     	}
     	
     	if($data->pager->page == 1){
-    		// Добавяне на нулевия ред към историята
+    		// Добавяне на последния ред
     		if(count($data->recs)){
     			array_unshift($data->recs, $lastRec);
     		} else {
