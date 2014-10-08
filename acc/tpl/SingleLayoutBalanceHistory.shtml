@@ -6,12 +6,22 @@
         <!--ET_BEGIN ent2Id--><b class='feather-icon'>[#ent2Id#]</b> <!--ET_END ent2Id-->
         <!--ET_BEGIN ent3Id--><b class='feather-icon'>[#ent3Id#]</b><!--ET_END ent3Id-->
     </h3>
-    <div class='fleft'>[#listFilter#]</div>
     
+    <!--ET_BEGIN listFilter-->
+    <div class='fleft'>[#listFilter#]</div>
+    <!--ET_END listFilter-->
     <!--ET_BEGIN toDate-->
     <div class='fleft'>
-	    |От|*: [#fromDate#]<br>
-	    |До|*  [#toDate#]
+	    <table class='styled-table' style='margin-top: 5px;'>
+	        <tr>
+	            <td class='quiet'>|От|*</td>
+	            <td><b>[#fromDate#]</b></td>
+	        </tr>
+	         <tr>
+	            <td class='quiet'>|До|*</td>
+	            <td><b>[#toDate#]</b></td>
+	        </tr>
+	    </table> 
     </div>
     <!--ET_END toDate-->
     <div class='fright summary-block' >
