@@ -489,7 +489,7 @@ class acc_HistoryReport extends core_Manager
     	// Махаме тези записи които не са в диапазона на страницирането
     	$count = 0;
     	if(count($data->recs)){
-    		foreach ($data->recs as $id => $rec){
+    		foreach ($data->recs as $id => $dRec){
     			if(!($count >= $start && $count <= $end)){
     				unset($data->recs[$id]);
     			}
@@ -505,7 +505,7 @@ class acc_HistoryReport extends core_Manager
     			$data->recs = array($lastRec);
     		}
     	}
-    	 
+    	
     	// Ако сме на единствената страница или последната, показваме началното салдо
     	if($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0){
     		$data->recs[] = $zeroRec;
@@ -614,14 +614,14 @@ class acc_HistoryReport extends core_Manager
     	$daysInPeriod = dt::daysBetween($data->toDate, $data->fromDate) + 1;
     	
     	// Средното салдо е събраната сума върху дните в периода
-    	$data->rec['midQuantity'] = $quantity / $daysInPeriod;
-    	$data->rec['midAmount'] = $amount / $daysInPeriod;
+    	$data->rec->midQuantity = $quantity / $daysInPeriod;
+    	$data->rec->midAmount = $amount / $daysInPeriod;
     	
     	// Вербално представяне на средното салдо
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
-    	$data->row->midQuantity = $Double->toVerbal($data->rec['midQuantity']);
-    	$data->row->midAmount = $Double->toVerbal($data->rec['midAmount']);
+    	$data->row->midQuantity = $Double->toVerbal($data->rec->midQuantity);
+    	$data->row->midAmount = $Double->toVerbal($data->rec->midAmount);
     }
     
     
