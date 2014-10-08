@@ -213,6 +213,7 @@ class acc_HistoryReport extends core_Manager
     	
     	// Рендиране на историята
     	$tpl = $this->renderHistory($data);
+    	$tpl->removeBlock('toDate');
     	$tpl = $this->renderWrapping($tpl);
     	 
     	// Връщаме шаблона
@@ -367,6 +368,8 @@ class acc_HistoryReport extends core_Manager
     	// Подготовка на вербалното представяне
     	$row = new stdClass();
     	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
+    	$row->fromDate = $Date->toVerbal($data->fromDate);
+    	$row->toDate = $Date->toVerbal($data->toDate );
     	$accountRec = acc_Accounts::fetch($rec->accountId);
     	 
     	foreach(range(1, 3) as $i){
@@ -406,7 +409,7 @@ class acc_HistoryReport extends core_Manager
     	 
     	$row->baseAmount = $Double->toVerbal($rec->baseAmount);
     	$row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
-    	 
+    	
     	if(round($rec->baseAmount, 4) < 0){
     		$row->baseAmount = "<span style='color:red'>{$row->baseAmount}</span>";
     	}
@@ -644,8 +647,8 @@ class acc_HistoryReport extends core_Manager
     	if($data->toolbar){
     		$tpl->append($data->toolbar->renderHtml(), 'HystoryToolbar');
     	} else {
-    		$tpl->append($data->fromDate, 'fromDate');
-    		$tpl->append($data->toDate, 'toDate');
+    		$tpl->replace($data->row->fromDate, 'fromDate');
+    		$tpl->replace($data->row->toDate, 'toDate');
     	}
     	 
     	// Проверка дали всички к-ва равнят на сумите
