@@ -67,7 +67,7 @@ class acc_ActiveShortBalance {
 		
 		// Подготвяме заявката към базата данни
 		$jQuery = acc_JournalDetails::getQuery();
-		acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3']);
+		acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3'], TRUE);
 		
 		// Изчисляваме мини баланса
 		$this->recs = $jQuery->fetchAll();
@@ -183,11 +183,9 @@ class acc_ActiveShortBalance {
 	
 	
 	/**
-	 * Връща изчислен баланс за няколко сметки
-	 * взима началните салда от последния изчислен баланс и към тях натрупва записите от журнала
-	 * които не са влезли в баланса
+	 * Изчислява баланса преди зададените дати в '$this->from' и '$this->to'
 	 */
-	public function getBalance($accs)
+	public function getBalanceBefore($accs, &$accArr = NULL)
 	{
 		$newBalance = array();
 		
@@ -242,12 +240,25 @@ class acc_ActiveShortBalance {
 		
 		// Изчислените крайни салда стават начални салда на показвания баланс
 		if(count($newBalance)){
-			foreach ($newBalance as &$r){
+			foreach ($newBalance as $index => &$r){
 				$r['baseAmount'] = $r['blAmount'];
 				$r['baseQuantity'] = $r['blQuantity'];
 				unset($r['debitAmount'], $r['creditAmount'], $r['debitQuantity'], $r['creditQuantity']);
 			}
 		}
+		//bp($newBalance);
+		return $newBalance;
+	}
+	
+	
+	/**
+	 * Връща изчислен баланс за няколко сметки
+	 * взима началните салда от последния изчислен баланс и към тях натрупва записите от журнала
+	 * които не са влезли в баланса
+	 */
+	public function getBalance($accs)
+	{
+		$newBalance = $this->getBalanceBefore($accs, $accArr);
 		
 		// Извличаме записите, направени в избрания период на търсене
 		$jQuery = acc_JournalDetails::getQuery();

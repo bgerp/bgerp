@@ -276,9 +276,16 @@ class acc_HistoryReport extends core_Manager
     	// За начална и крайна дата, слагаме по подразбиране, датите на периодите
     	// за които има изчислени оборотни ведомости
     	$balanceQuery = acc_Balances::getQuery();
-    	$balanceQuery->orderBy("#fromDate", "ASC");
+    	$balanceQuery->orderBy("#fromDate", "DESC");
     	
     	$optionsFrom = $optionsTo = array();
+    	$optionsFrom[dt::today()] = 'Днес';
+    	$optionsFrom[dt::addDays(-1, dt::today())] = 'Вчера';
+    	$optionsFrom[dt::addDays(-2, dt::today())] = 'Завчера';
+    	$optionsTo[dt::today()] = 'Днес';
+    	$optionsTo[dt::addDays(-1, dt::today())] = 'Вчера';
+    	$optionsTo[dt::addDays(-2, dt::today())] = 'Завчера';
+    	
     	while($bRec = $balanceQuery->fetch()){
     		$bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
     		$optionsFrom[$bRec->fromDate] = $bRow->periodId . " ({$bRow->fromDate})";
@@ -371,33 +378,26 @@ class acc_HistoryReport extends core_Manager
     	// Подготовка на пейджъра
     	$this->listItemsPerPage = $this->listHistoryItemsPerPage;
     	$this->prepareListPager($data);
-    	 
-    	// Намиране на най-стария баланс можеш да послужи за основа на този
-    	$balanceBefore = $this->Balance->Master->getBalanceBefore($data->fromDate);
-    	
-    	if($balanceBefore){
-    		// Зареждаме баланса за посочения период с посочените сметки
-    		$this->Balance->loadBalance($balanceBefore->id, $rec->accountNum, NULL, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id);
-    	}
-    	 
-    	
-    	// Запомняне за кои пера ще показваме историята
-    	$this->Balance->historyFor = array('accId' => $rec->accountId, 'item1' => $rec->ent1Id, 'item2' => $rec->ent2Id, 'item3' => $rec->ent3Id);
     	
     	// Извличане на всички записи към избрания период за посочените пера
     	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
-    	$this->Balance->prepareDetailedBalanceForPeriod($data->fromDate, $data->toDate, $accSysId, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, TRUE, $data->pager);
     	
-    	$balance = $this->Balance->getCalcedBalance();
-    	$b = $balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id];
+    	$Balance = new acc_ActiveShortBalance(array('from' => $data->fromDate, 'to' => $data->toDate, 'accs' => $accSysId, 'item1' => $rec->ent1Id, 'item2' => $rec->ent2Id, 'item3' => $rec->ent3Id));
+    	$calcedBalance = $Balance->getBalanceBefore(acc_Accounts::fetchField($rec->accountId, 'systemId'));
+    	$indexArr = $rec->accountId . "|" . $rec->ent1Id . "|" . $rec->ent2Id . "|" . $rec->ent3Id;
+    	if(!isset($calcedBalance[$indexArr])){
+    		$calcedBalance[$indexArr] = array('blAmount' => 0, 'blQuantity' => 0);
+    	}
     	
-    	$rec->baseAmount = $b['baseAmount'];
-    	$rec->baseQuantity = $b['baseQuantity'];
-    	 
-    	$rec->blAmount = $b['blAmount'];
-    	$rec->blQuantity = $b['blQuantity'];
-    	$row->blAmount = $Double->toVerbal($rec->blAmount);
-    	$row->blQuantity = $Double->toVerbal($rec->blQuantity);
+    	// Извличаме записите, направени в избрания период на търсене
+    	$jQuery = acc_JournalDetails::getQuery();
+    	acc_JournalDetails::filterQuery($jQuery, $data->fromDate, $data->toDate, $accSysId, NULL, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, TRUE);
+    	$jQuery->orderBy('valior', 'ASC');
+    	$jQuery->orderBy('id', 'ASC');
+    	
+    	$entriesInPeriod = $jQuery->fetchAll();
+    	$rec->baseAmount = $calcedBalance[$indexArr]['blAmount'];
+    	$rec->baseQuantity = $calcedBalance[$indexArr]['blQuantity'];
     	 
     	$row->baseAmount = $Double->toVerbal($rec->baseAmount);
     	$row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
@@ -410,25 +410,90 @@ class acc_HistoryReport extends core_Manager
     	}
     	 
     	// Нулевия ред е винаги началното салдо
-    	$zeroRec = array('docId'      => "Начален баланс",
+    	$zeroRec = array('docId' => "Начален баланс",
     			'valior'	  => $data->fromDate,
     			'blAmount'   => $rec->baseAmount,
     			'blQuantity' => $rec->baseQuantity,
     			'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
     	 
+    	if(count($entriesInPeriod)){
+    		foreach ($entriesInPeriod as $jRec){
+				$entry = array('id'       => $jRec->id,
+		    				   'docType'  => $jRec->docType,
+		    				   'docId'    => $jRec->docId,
+		    				   'reason'   => $jRec->reason,
+		    				   'valior'   => $jRec->valior);
+    			
+				$add = FALSE;
+    			foreach (array('debit', 'credit') as $type){
+    				$sign = ($type == 'debit') ? 1 : -1;
+    				$quantityField = "{$type}Quantity";
+        			$accId = $jRec->{"{$type}AccId"};
+			        
+			        $ent1Id = !empty($jRec->{"{$type}Item1"}) ? $jRec->{"{$type}Item1"} : NULL;
+			        $ent2Id = !empty($jRec->{"{$type}Item2"}) ? $jRec->{"{$type}Item2"} : NULL;
+			        $ent3Id = !empty($jRec->{"{$type}Item3"}) ? $jRec->{"{$type}Item3"} : NULL;
+			        $index = $accId . "|" . $ent1Id . "|" . $ent2Id . "|" . $ent3Id;
+			        
+			        if(isset($calcedBalance[$index])){
+			        	if (!empty($jRec->{$quantityField})) {
+			        		$add = TRUE;
+			        		$calcedBalance[$index]['blQuantity'] += $jRec->{$quantityField} * $sign;
+			        		$entry[$quantityField] = $jRec->{$quantityField};
+			        		$entry['blQuantity'] = $calcedBalance[$index]['blQuantity'];
+			        	}
+			        	 
+			        	if (!empty($jRec->amount)) {
+			        		$add = TRUE;
+			        		$calcedBalance[$index]['blAmount'] += $jRec->amount * $sign;
+			        		$entry["{$type}Amount"] = $jRec->amount;
+			        		$entry['blAmount'] = $calcedBalance[$index]['blAmount'];
+			        	}
+			        }
+    			}
+    			
+    			if($add){
+    				$data->recs[$jRec->id] = $entry;
+    			}
+    		}
+    	}
+    	
+    	$rec->blAmount = $calcedBalance[$indexArr]['blAmount'];
+    	$rec->blQuantity = $calcedBalance[$indexArr]['blQuantity'];
+    	$row->blAmount = $Double->toVerbal($rec->blAmount);
+    	$row->blQuantity = $Double->toVerbal($rec->blQuantity);
+    	
     	// Нулевия ред е винаги началното салдо
     	$lastRec = array('docId'      => "Краен баланс",
-    			'valior'	  => $data->toDate,
-    			'blAmount'   => $rec->blAmount,
-    			'blQuantity' => $rec->blQuantity,
-    			'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
-    	 
-    	$data->recs = $this->Balance->recs;
-    	unset($this->Balance->recs);
-    
-    	// Добавяне на началното и крайното салдо към цялата история
-    	(count($this->Balance->history)) ? array_unshift($this->Balance->history, $zeroRec) : $this->Balance->history[] = $zeroRec;
-    	$this->Balance->history[] = $lastRec;
+		    			 'valior'	  => $data->toDate,
+		    			 'blAmount'   => $rec->blAmount,
+		    			 'blQuantity' => $rec->blQuantity,
+		    			 'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
+    	
+    	// Преизчисляваме пейджъра с новия брой на записите
+    	$conf = core_Packs::getConfig('acc');
+    	$Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS)); 
+    	$Pager->itemsCount = count($data->recs);
+    	$Pager->calc();
+    	$data->pager = $Pager;
+    	
+    	$start = $data->pager->rangeStart;
+    	$end = $data->pager->rangeEnd - 1;
+    	
+    	if(count($data->recs)){
+    		$data->recs = array_reverse($data->recs, TRUE);
+    	}
+    	
+    	// Махаме тези записи които не са в диапазона на страницирането
+    	$count = 0;
+    	if(count($data->recs)){
+    		foreach ($data->recs as $id => $rec){
+    			if(!($count >= $start && $count <= $end)){
+    				unset($data->recs[$id]);
+    			}
+    			$count++;
+    		}
+    	}
     	
     	if($data->pager->page == 1){
     		// Добавяне на нулевия ред към историята
@@ -443,7 +508,7 @@ class acc_HistoryReport extends core_Manager
     	if($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0){
     		$data->recs[] = $zeroRec;
     	}
-    	 
+    	
     	// Подготвя средното салдо
     	$this->prepareMiddleBalance($data);
     	
