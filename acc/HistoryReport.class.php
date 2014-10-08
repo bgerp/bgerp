@@ -278,13 +278,15 @@ class acc_HistoryReport extends core_Manager
     	$balanceQuery = acc_Balances::getQuery();
     	$balanceQuery->orderBy("#fromDate", "DESC");
     	
+    	$yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
+    	$daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
     	$optionsFrom = $optionsTo = array();
     	$optionsFrom[dt::today()] = 'Днес';
-    	$optionsFrom[dt::addDays(-1, dt::today())] = 'Вчера';
-    	$optionsFrom[dt::addDays(-2, dt::today())] = 'Завчера';
+    	$optionsFrom[$yesterday] = 'Вчера';
+    	$optionsFrom[$daybefore] = 'Завчера';
     	$optionsTo[dt::today()] = 'Днес';
-    	$optionsTo[dt::addDays(-1, dt::today())] = 'Вчера';
-    	$optionsTo[dt::addDays(-2, dt::today())] = 'Завчера';
+    	$optionsTo[$yesterday] = 'Вчера';
+    	$optionsTo[$daybefore] = 'Завчера';
     	
     	while($bRec = $balanceQuery->fetch()){
     		$bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
@@ -509,6 +511,8 @@ class acc_HistoryReport extends core_Manager
     		$data->recs[] = $zeroRec;
     	}
     	
+    	$data->allRecs = $data->recs;
+    	
     	// Подготвя средното салдо
     	$this->prepareMiddleBalance($data);
     	
@@ -568,7 +572,7 @@ class acc_HistoryReport extends core_Manager
      */
     private function prepareMiddleBalance(&$data)
     {
-    	$recs = $this->Balance->history;
+    	$recs = $data->allRecs;
     	
     	$tmpArray = array();
     	$quantity = $amount = 0;
@@ -583,6 +587,7 @@ class acc_HistoryReport extends core_Manager
     	 
     	// Нулираме му ключовете за по-лесно обхождане
     	$tmpArray = array_values($tmpArray);
+    	
     	if(count($tmpArray)){
     
     		// За всеки запис
@@ -607,16 +612,16 @@ class acc_HistoryReport extends core_Manager
     	 
     	// Колко са дните в избрания период
     	$daysInPeriod = dt::daysBetween($data->toDate, $data->fromDate) + 1;
-    	 
+    	
     	// Средното салдо е събраната сума върху дните в периода
-    	@$data->rec->midQuantity = $quantity / $daysInPeriod;
-    	@$data->rec->midAmount = $amount / $daysInPeriod;
-    	 
+    	$data->rec['midQuantity'] = $quantity / $daysInPeriod;
+    	$data->rec['midAmount'] = $amount / $daysInPeriod;
+    	
     	// Вербално представяне на средното салдо
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
-    	$data->row->midQuantity = $Double->toVerbal($data->rec->midQuantity);
-    	$data->row->midAmount = $Double->toVerbal($data->rec->midAmount);
+    	$data->row->midQuantity = $Double->toVerbal($data->rec['midQuantity']);
+    	$data->row->midAmount = $Double->toVerbal($data->rec['midAmount']);
     }
     
     
@@ -633,6 +638,9 @@ class acc_HistoryReport extends core_Manager
     	 
     	if($data->toolbar){
     		$tpl->append($data->toolbar->renderHtml(), 'HystoryToolbar');
+    	} else {
+    		$tpl->append($data->fromDate, 'fromDate');
+    		$tpl->append($data->toDate, 'toDate');
     	}
     	 
     	// Проверка дали всички к-ва равнят на сумите

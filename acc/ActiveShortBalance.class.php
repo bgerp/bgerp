@@ -246,7 +246,7 @@ class acc_ActiveShortBalance {
 				unset($r['debitAmount'], $r['creditAmount'], $r['debitQuantity'], $r['creditQuantity']);
 			}
 		}
-		//bp($newBalance);
+		
 		return $newBalance;
 	}
 	
