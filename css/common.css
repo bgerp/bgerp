@@ -590,7 +590,7 @@ input[type=checkbox],
 input[type=radio] {
   border: none !important;
   box-shadow: none;
-  margin: 3px 3px 3px 4px;
+  margin: 4px 3px 2px 4px;
   background-color: transparent;
   outline: none;
   vertical-align: middle; }
