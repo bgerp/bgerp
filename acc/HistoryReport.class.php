@@ -64,8 +64,8 @@ class acc_HistoryReport extends core_Manager
     	
     	$op = $this->getBalancePeriods();
     	
-    	$form->setOptions('fromDate', array('' => '') + $op->fromOptions);
-    	$form->setOptions('toDate', array('' => '') + $op->toOptions);
+    	$form->setSuggestions('fromDate', array('' => '') + $op->fromOptions);
+    	$form->setSuggestions('toDate', array('' => '') + $op->toOptions);
     	
     	if($form instanceof core_Form){
     		$form->input();
@@ -325,8 +325,8 @@ class acc_HistoryReport extends core_Manager
     	 
     	$op = $this->getBalancePeriods();
     	
-    	$filter->setOptions('fromDate', $op->fromOptions);
-    	$filter->setOptions('toDate', $op->toOptions);
+    	$filter->setSuggestions('fromDate', $op->fromOptions);
+    	$filter->setSuggestions('toDate', $op->toOptions);
     	$filter->setDefault('fromDate', $data->fromDate);
     	$filter->setDefault('toDate', $data->toDate);
     	 
