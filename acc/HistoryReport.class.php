@@ -165,9 +165,9 @@ class acc_HistoryReport extends core_Manager
     	expect($accNum = Request::get('accNum', 'int'));
     	expect($accId = acc_Accounts::fetchField("#num = '{$accNum}'", 'id'));
     	 
-    	$from = Request::get('fromDate');
-    	$to = Request::get('toDate');
-    	 
+    	$from = Request::get('fromDate', 'Date');
+    	$to = Request::get('toDate', 'Date');
+    	
     	$ent1 = Request::get('ent1Id', 'int');
     	if($ent1){
     		expect(acc_Items::fetch($ent1));
