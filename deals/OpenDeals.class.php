@@ -189,7 +189,7 @@ class deals_OpenDeals extends core_Manager {
     		
     		// Извличане на записа на документа и папката
     		$DocClass = cls::get($rec->docClass);
-	    	$docRec = $DocClass->fetch($rec->docId, 'folderId,currencyId,containerId,currencyRate');
+	    	$docRec = $DocClass->fetch($rec->docId, 'folderId,currencyId,containerId,currencyRate,threadId');
 	    	$folderRec = doc_Folders::fetch($docRec->folderId);
 	    	
 	    	$row->currencyId = $docRec->currencyId;
@@ -218,7 +218,7 @@ class deals_OpenDeals extends core_Manager {
 	    	
 	    		// Ако документа е активен и потребителя има достъп до него, може да генерира документи
 		    	if($rec->state == 'active'){
-		    		$row->newDoc = $mvc->getNewDocBtns($docRec->id, $docRec->containerId, $DocClass);
+		    		$row->newDoc = $mvc->getNewDocBtns($docRec->threadId, $docRec->containerId, $DocClass);
 		    	}
 	    	} else {
 	    		
@@ -238,29 +238,60 @@ class deals_OpenDeals extends core_Manager {
      * @param core_Master $docClass - инстанция на класа
      * @return html $btns
      */
-    private function getNewDocBtns($id, $originId, core_Master $docClass)
+    private function getNewDocBtns($threadId, $originId, core_Master $docClass)
     {
+    	$buttons = array();
+    	$className = cls::getClassName($docClass);
     	$btns = "";
+    	
     	switch(Request::get('show')){
 	    	case 'cash':
 	    		
-	    		// Приходен и Разходен касов ордер
-	    		$btns = ht::createBtn('ПКО', array('cash_Pko', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/money_add.png,title=Нов приходен касов ордер');
-	    		$btns .= ht::createBtn('РКО', array('cash_Rko', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/money_delete.png,title=Нов разходен касов ордер');
+	    		if($className != 'purchase_Purchases'){
+	    			$buttons['ПКО'] = 'cash_Pko';
+	    		}
+	    		
+	    		if($className != 'sales_Sales'){
+	    			$buttons['РКО'] = 'cash_Rko';
+	    		}
+	    		
 	    		break;
 	    	case 'bank':
 	    		
-	    		// Приходен и Разходен банков документ
-	    		$btns = ht::createBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/bank_add.png,title=Нов приходен банков документ');
-	    		$btns .= ht::createBtn('РБД', array('bank_SpendingDocuments', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/bank_rem.png,title=Нов разходен банков документ');
+	    		if($className != 'purchase_Purchases'){
+	    			$buttons['ПБД'] = 'bank_IncomeDocuments';
+	    		}
+	    		 
+	    		if($className != 'sales_Sales'){
+	    			$buttons['РБД'] = 'bank_SpendingDocuments';
+	    		}
+	    		
 				break;
 	    	case 'store':
 	    		
-	    		// Бутони за Складова разписка и Експедиционно нареждане
-	    		$btns = ht::createBtn('СР', array('store_Receipts', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/shipment.png,title=Нова складова разписка');
-	    		$btns .= ht::createBtn('ЕН', array('store_ShipmentOrders', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/shipment.png,title=Ново експедиционно нареждане');
+	    		if($className != 'purchase_Purchases'){
+	    			$buttons['ЕН'] = 'store_ShipmentOrders';
+	    		}
+	    		
+	    		if($className != 'sales_Sales'){
+	    			$buttons['СР'] = 'store_Receipts';
+	    		}
 	    		
 	    		break;
+	    }
+	    
+	    foreach ($buttons as $title => $className){
+	    	$Cls = cls::get($className);
+	    	$str = mb_strtolower($Cls->singleTitle);
+	    	if($draftRec = $Cls->fetch("#threadId = '{$threadId}' AND #state = 'draft'")){
+	    		if($Cls->haveRightFor('edit', $draftRec)){
+	    			$btns .= ht::createBtn($title, array($className, 'edit', $draftRec->id), NULL, NULL, "ef_icon={$Cls->singleIcon},title=Редактиране на {$str}");
+	    		}
+	    	} else {
+	    		if($Cls->haveRightFor('add', (object)array('threadId' => $threadId))){
+	    			$btns .= ht::createBtn($title, array($className, 'add', 'originId' => $originId), NULL, NULL, "ef_icon={$Cls->singleIcon},title=Създаване на {$str}");
+	    		}
+	    	}
 	    }
 	    
 	    return "<span style='margin-left:0.4em; display: block;'>{$btns}</span>";
