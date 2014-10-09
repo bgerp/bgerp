@@ -1,12 +1,4 @@
 syntax: regexp
-^\.settings$
-syntax: regexp
-^\.buildpath$
-syntax: regexp
-^\.project$
-syntax: regexp
-lab/Hora.class.php
-syntax: regexp
 .gitignore
 syntax: regexp
 ^tests$

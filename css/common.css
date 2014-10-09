@@ -1,0 +1,2599 @@
+/*
+ * ***************************************************************
+ * *                                                              *
+ * *   Общи стилове на Experta Framework при рендиране върху      *
+ * *   клиенти с обичайно големи дисплеи и малки дисплеи          *
+ * *                                                              *
+ * ***************************************************************
+ */
+/*
+ * общи функции и параметри
+ */
+/*
+ * светло-сиво за фон
+ */
+/*
+ * като фона на th на таблиците
+ */
+/*
+ * като mainmenu и бутони
+ */
+/*
+ * като фона на известията в мобилен и стандартен бордър
+ */
+/*
+ * лилаво от формите
+ */
+/*
+ * бледо жълто от формите
+ */
+/*
+ * оранжево като при ховър на менюто
+ */
+/*
+ * край на общи функции и параметри
+ */
+/*
+ * ! normalize.css v2.1.2 | MIT License | git.io/normalize
+ */
+/*
+ * ==========================================================================
+ * HTML5 display definitions
+ * ==========================================================================
+ */
+/*
+ * *
+ * * Correct `block` display not defined in IE 8/9.
+ */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+nav,
+section,
+summary {
+  display: block; }
+
+/*
+ * *
+ * * Correct `inline-block` display not defined in IE 8/9.
+ */
+audio,
+canvas,
+video {
+  display: inline-block; }
+
+/*
+ * *
+ * * Prevent modern browsers from displaying `audio` without controls.
+ * * Remove excess height in iOS 5 devices.
+ */
+audio:not([controls]) {
+  display: none;
+  height: 0; }
+
+/*
+ * *
+ * * Address styling not present in IE 8/9.
+ */
+[hidden] {
+  display: none; }
+
+/*
+ * ==========================================================================
+ * Base
+ * ==========================================================================
+ */
+/*
+ * *
+ * * 1. Set default font family to sans-serif.
+ * * 2. Prevent iOS text size adjust after orientation change, without disabling
+ * *    user zoom.
+ */
+html {
+  font-family: sans-serif;
+    /*
+   * 1
+   */
+  -ms-text-size-adjust: 100%;
+    /*
+   * 2
+   */
+  -webkit-text-size-adjust: 100%;
+    /*
+   * 2
+   */ }
+
+/*
+ * *
+ * * Remove default margin.
+ */
+body {
+  margin: 0; }
+
+/*
+ * ==========================================================================
+ * Links
+ * ==========================================================================
+ */
+/*
+ * *
+ * * Address `outline` inconsistency between Chrome and other browsers.
+ */
+a:focus {
+  outline: thin dotted; }
+
+/*
+ * *
+ * * Improve readability when focused and also mouse hovered in all browsers.
+ */
+a:active,
+a:hover {
+  outline: 0; }
+
+/*
+ * ==========================================================================
+ * Typography
+ * ==========================================================================
+ */
+/*
+ * *
+ * * Address variable `h1` font-size and margin within `section` and `article`
+ * * contexts in Firefox 4+, Safari 5, and Chrome.
+ */
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0; }
+
+/*
+ * *
+ * * Address styling not present in IE 8/9, Safari 5, and Chrome.
+ */
+abbr[title] {
+  border-bottom: 1px dotted; }
+
+/*
+ * *
+ * * Address style set to `bolder` in Firefox 4+, Safari 5, and Chrome.
+ */
+b,
+strong {
+  font-weight: bold; }
+
+/*
+ * *
+ * * Address styling not present in Safari 5 and Chrome.
+ */
+dfn {
+  font-style: italic; }
+
+/*
+ * *
+ * * Address differences between Firefox and other browsers.
+ */
+hr {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 0; }
+
+/*
+ * *
+ * * Address styling not present in IE 8/9.
+ */
+mark {
+  background: yellow;
+  color: black; }
+
+/*
+ * *
+ * * Correct font family set oddly in Safari 5 and Chrome.
+ */
+code,
+kbd,
+pre,
+samp {
+  font-family: Courier New, monospace, serif;
+  font-size: 1em; }
+
+/*
+ * *
+ * * Tab-size default
+ */
+textarea,
+code,
+pre,
+samp,
+kbd {
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4; }
+
+/*
+ * *
+ * * Improve readability of pre-formatted text in all browsers.
+ */
+pre {
+  white-space: pre-wrap; }
+
+/*
+ * *
+ * * Set consistent quote types.
+ */
+q {
+  quotes: "\201C" "\201D" "\2018" "\2019"; }
+
+/*
+ * *
+ * * Address inconsistent and variable font size in all browsers.
+ */
+small,
+.small {
+  font-size: 80%; }
+
+/*
+ * *
+ * * Prevent `sub` and `sup` affecting `line-height` in all browsers.
+ */
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline; }
+
+sup {
+  top: -0.5em; }
+
+sub {
+  bottom: -0.25em; }
+
+/*
+ * ==========================================================================
+ * Embedded content
+ * ==========================================================================
+ */
+/*
+ * *
+ * * Remove border when inside `a` element in IE 8/9.
+ */
+img {
+  border: 0; }
+
+/*
+ * *
+ * * Correct overflow displayed oddly in IE 9.
+ */
+svg:not(:root) {
+  overflow: hidden; }
+
+/*
+ * ==========================================================================
+ * Figures
+ * ==========================================================================
+ */
+/*
+ * *
+ * * Address margin not present in IE 8/9 and Safari 5.
+ */
+figure {
+  margin: 0; }
+
+/*
+ * ==========================================================================
+ * Forms
+ * ==========================================================================
+ */
+/*
+ * *
+ * * Define consistent border, margin, and padding.
+ */
+fieldset {
+  border: 1px solid silver;
+  margin: 0 2px;
+  padding: 0.35em 0.625em 0.75em; }
+
+/*
+ * *
+ * * 1. Correct `color` not being inherited in IE 8/9.
+ * * 2. Remove padding so people aren't caught out if they zero out fieldsets.
+ */
+legend {
+  border: 0;
+    /*
+   * 1
+   */
+  padding: 0;
+    /*
+   * 2
+   */ }
+
+/*
+ * *
+ * * 1. Correct font family not being inherited in all browsers.
+ * * 2. Correct font size not being inherited in all browsers.
+ * * 3. Address margins set differently in Firefox 4+, Safari 5, and Chrome.
+ */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+    /*
+   * 1
+   */
+  font-size: 100%;
+    /*
+   * 2
+   */
+  margin: 0;
+    /*
+   * 3
+   */ }
+
+/*
+ * *
+ * * Address Firefox 4+ setting `line-height` on `input` using `!important` in
+ * * the UA stylesheet.
+ */
+button,
+input {
+  line-height: normal; }
+
+/*
+ * *
+ * * Address inconsistent `text-transform` inheritance for `button` and `select`.
+ * * All other form control elements do not inherit `text-transform` values.
+ * * Correct `button` style inheritance in Chrome, Safari 5+, and IE 8+.
+ * * Correct `select` style inheritance in Firefox 4+ and Opera.
+ */
+button,
+select {
+  text-transform: none; }
+
+/*
+ * *
+ * * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
+ * *    and `video` controls.
+ * * 2. Correct inability to style clickable `input` types in iOS.
+ * * 3. Improve usability and consistency of cursor style between image-type
+ * *    `input` and others.
+ */
+
+input[type="reset"],
+input[type="submit"] {
+  cursor: pointer;
+    /*
+   * 3
+   */ }
+
+/*
+ * *
+ * * Re-set default cursor for disabled elements.
+ */
+button[disabled],
+html input[disabled] {
+  cursor: default; }
+
+/*
+ * *
+ * * 1. Address box sizing set to `content-box` in IE 8/9.
+ * * 2. Remove excess padding in IE 8/9.
+ */
+input[type="checkbox"],
+input[type="radio"] {
+  box-sizing: border-box;
+    /*
+   * 1
+   */
+  padding: 0;
+    /*
+   * 2
+   */ }
+
+/*
+ * *
+ * * 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome.
+ * * 2. Address `box-sizing` set to `border-box` in Safari 5 and Chrome
+ * *    (include `-moz` to future-proof).
+ */
+input[type="search"] {
+  -webkit-appearance: textfield;
+    /*
+   * 1
+   */
+  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+    /*
+   * 2
+   */
+  box-sizing: content-box; }
+
+/*
+ * *
+ * * Remove inner padding and search cancel button in Safari 5 and Chrome
+ * * on OS X.
+ */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none; }
+
+/*
+ * *
+ * * Remove inner padding and border in Firefox 4+.
+ */
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0; }
+
+/*
+ * *
+ * * 1. Remove default vertical scrollbar in IE 8/9.
+ * * 2. Improve readability and alignment in all browsers.
+ */
+textarea {
+  overflow: auto;
+    /*
+   * 1
+   */
+  vertical-align: top;
+    /*
+   * 2
+   */ }
+
+/*
+ * ==========================================================================
+ * Tables
+ * ==========================================================================
+ */
+/*
+ * *
+ * * Remove most spacing between table cells.
+ */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  border: none; }
+
+/*
+ * височини на някои от елементите, за да няма разминавания при някои устройства
+ */
+input[type="text"],
+input[type="color"],
+input[type="number"],
+input[type="tel"],
+input[type="email"],
+input[type="search"],
+input[type="url"],
+input[type="password"] {
+  height: 1.5em; }
+
+select {
+  height: 1.5em; }
+
+.wide .chzn-container .chzn-single {
+  height: 1.3em !important;
+  padding-top: 2px !important; }
+
+.narrow .chzn-container .chzn-single {
+  height: 1.33em !important; }
+
+/*
+ * височини на някои от елементите, за да няма разминавания при някои устройства
+ */
+/*
+ * reseting webkit differences
+ */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  select {
+    -webkit-appearance: none;
+    background-image: url('../img/16/darrow.png') !important;
+    background-repeat: no-repeat !important;
+    background-position: center right !important;
+    padding-right: 1em;
+    -webkit-border-radius: 0; }
+
+  .wide select {
+    padding-top: 1px; }
+
+  input[type="text"],
+  input[type="color"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="email"],
+  input[type="search"],
+  input[type="url"],
+  input[type="password"] {
+    -webkit-appearance: none;
+    border-radius: 0;
+    margin: 0; }
+
+  .wide input[type="text"],
+  .wide input[type="color"],
+  .wide  input[type="number"],
+  .wide input[type="tel"],
+  .wide input[type="email"],
+  .wide input[type="search"],
+  .wide input[type="url"],
+  .wide input[type="password"] {
+    padding-top: 2px; }
+
+  textarea {
+    -webkit-border-radius: 0;
+    -webkit-appearance: none; }
+
+  .wide .chzn-container .chzn-single {
+    height: 1.3em !important; }
+
+  .narrow .chzn-container .chzn-single {
+    height: 1.3em !important; } }
+
+/*
+ * our reset and common classes
+ */
+body {
+  background-color: #dddddd;
+  font-family: Helvetica, Arial, Verdana, Sans-serif;
+  font-size: 16px; }
+
+body.narrow {
+  min-width: 320px; }
+
+hr {
+  border-color: #eeeeee;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+  opacity: 0.8; }
+
+a img {
+  border: none; }
+
+legend img {
+  vertical-align: middle; }
+
+select {
+  margin-left: 0; }
+
+select option {
+  background-color: inherit;
+  color: inherit; }
+
+input {
+  padding-left: 0.2em;
+  padding-right: 0.2em; }
+
+textarea {
+  padding: 0.1em;
+  font-family: monospace; }
+
+select,
+input,
+textarea {
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  font-size: 1.07em; }
+
+select.combo {
+  position: absolute;
+  visibility: hidden;
+  overflow: hidden; }
+
+.checkbox,
+.radiobutton,
+input[type=checkbox],
+input[type=radio] {
+  border: none !important;
+  box-shadow: none;
+  margin: 3px 3px 3px 4px;
+  background-color: transparent;
+  outline: none;
+  vertical-align: middle; }
+
+input[type=radio] + label,
+input[type=checkbox] + label {
+  color: #888888;
+  background-color: transparent !important;
+  display: inline-block;
+  vertical-align: baseline; }
+
+input[type=radio]:checked + label,
+input[type=checkbox]:checked + label {
+  color: black;
+  text-shadow: 1px 1px 1px #aaaaaa; }
+
+.selectMenuItem {
+  padding-top: 3px; }
+
+.selectMenuItem input[type=radio] + label {
+  vertical-align: middle;
+  white-space: nowrap; }
+
+.top-table {
+  border-collapse: separate;
+  border-spacing: 2px; }
+
+.readonly {
+  background: #dddddd;
+  border: solid 1px #aaaaaa;
+  min-width: 100px; }
+
+.calendar,
+.calendar table {
+  border-collapse: separate !important;
+  table-layout: fixed; }
+
+tr.zebra0 {
+  background-color: rgba(238, 238, 238, 0.5); }
+
+tr.zebra1 {
+  background-color: transparent; }
+
+.wide input[type=submit],
+.wide input[type=button] {
+  cursor: pointer; }
+
+.narrow input[type=submit] {
+  background-image: none; }
+
+.clearfix21:after {
+  content: " ";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden; }
+
+.fright {
+  float: right; }
+
+.fleft {
+  float: left; }
+
+/*
+ * end of our common styles
+ */
+/*
+ * BUTTONS
+ */
+a.button,
+input[type="button"],
+input[type="submit"],
+button {
+  margin: 1px 0.5em 0 0;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 0.8em;
+  padding: 0.34em 0.5em;
+  font-family: Arial, sans-serif;
+  display: inline-block;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -ms-border-radius: 3px;
+  border-radius: 3px;
+  -webkit-appearance: none; }
+
+.narrow a.button,
+.narrow input[type=button],
+.narrow input[type=submit],
+.narrow button {
+  padding: 0.3em 0.4em;
+  font-family: Tahoma, Arial, sans-serif;
+  margin-top: 0;
+  margin-bottom: 0; }
+
+a.button.fright,
+input[type="button"].fright,
+input[type="submit"].fright,
+button.fright {
+  margin: 1px 0 0 0.5em; }
+
+a.header:target {
+  color: blue; }
+
+a.header:hover {
+  color: inherit; }
+
+.narrow .toolbar .button {
+  border-right: 1px solid #999999;
+  margin-right: 2px;
+  margin-bottom: 3px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -ms-border-radius: 3px;
+  border-radius: 3px; }
+
+.btn-disabled {
+  color: #bbbbbb !important;
+  cursor: default !important; }
+
+.out-btn {
+  color: #008800 !important; }
+
+.wide .noicon {
+  padding-right: 3px !important;
+    /*
+   * IE6
+   */
+  padding-left: 3px !important;
+    /*
+   * IE6
+   */ }
+
+.location-input {
+  position: relative;
+  display: inline-block; }
+
+.picker-search-button {
+  height: 2em !important;
+  position: absolute;
+  right: 0;
+  margin: 0 !important; }
+
+.wide .btn-with-selected {
+  background-image: url('../img/16/checked.png');
+  padding-left: 22px !important;
+  background-repeat: no-repeat !important;
+  background-position: 3px center; }
+
+.wide .btn-with-selected-disabled {
+  background-image: url('../img/16/unchecked.png');
+  padding-left: 22px !important;
+  background-repeat: no-repeat !important;
+  background-position: 3px center; }
+
+.btn-with-selected-disabled:hover {
+  background-color: #dddddd !important; }
+
+.btn-with-selected-disabled {
+  color: #999999 !important;
+  cursor: default !important; }
+
+.btn-with-selected-disabled:hover {
+  background-color: #dddddd !important; }
+
+.wide .btn-reject {
+  background-image: url('../img/16/reject.png');
+  padding-left: 22px !important;
+  background-repeat: no-repeat !important;
+  background-position: 3px center;
+  float: right; }
+
+.wide .btn-settings {
+  background-image: url('../img/16/settings.png');
+  padding-left: 22px !important;
+  background-repeat: no-repeat !important;
+  background-position: 3px center; }
+
+.wide h2 .btn-settings {
+  font-size: 0.55em;
+  top: -0.2em;
+  position: relative; }
+
+table .linkWithIcon {
+  margin-bottom: 2px; }
+
+.toolbar .linkWithIcon {
+  margin-bottom: 0; }
+
+.linkWithIcon {
+  padding-left: 22px !important;
+  background-repeat: no-repeat !important;
+  background-position: 3px center; }
+  .linkWithIcon.sick {
+    background-image: url('../img/16/sick.png'); }
+  .linkWithIcon.trip {
+    background-image: url('../img/16/working-travel.png'); }
+  .linkWithIcon.leave {
+    background-image: url('../img/16/leaves.png'); }
+  .linkWithIcon.home {
+    background-image: url('../img/16/house_blue.png'); }
+  .linkWithIcon.office {
+    background-image: url('../img/16/company-building-icon.png'); }
+  .linkWithIcon.work {
+    background-image: url('../img/16/clock_green.png'); }
+  .linkWithIcon.after-work {
+    background-image: url('../img/16/clock_red.png'); }
+  .linkWithIcon.birthday {
+    background-image: url('../img/16/birthday.png'); }
+  .linkWithIcon.nameday {
+    background-image: url('../img/16/orthodox.png'); }
+
+.more-btn {
+  float: left;
+  margin-top: 0;
+  margin-bottom: 0;
+  background-position: center center;
+  background-image: url(../img/16/toggle-expand.png) !important;
+  background-repeat: no-repeat !important;
+  padding-left: 0.3em !important;
+  padding-right: 0.3em !important;
+  width: 1.9em;
+  height: 2em \9; }
+
+.narrow .more-btn {
+  float: none; }
+
+.more-btn.show-btn {
+  background-image: url(../img/16/toggle2.png) !important; }
+
+.docBgIcon {
+  padding-left: 22px !important;
+  background-repeat: no-repeat !important;
+  background-position: 3px center;
+  padding: 0.1em; }
+
+.wide .icon {
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  background-repeat: no-repeat;
+  background-position: left center; }
+
+.addRoute {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  padding-left: 5px !important;
+  position: relative;
+  top: 2px; }
+
+/*
+ * бутони с инструменти
+ */
+div.rowtools {
+  display: inline;
+  width: 100%; }
+
+.rowtools .r {
+  vertical-align: middle;
+  display: table-cell;
+  text-align: right; }
+
+.rowtools .l {
+  vertical-align: middle;
+  display: table-cell;
+  text-align: left; }
+  .rowtools .l img {
+    vertical-align: middle;
+    margin-right: 5px;
+    border: none; }
+
+th .rowtools .r,
+th .rowtools .l {
+  vertical-align: baseline; }
+
+.rowtools .nw {
+  white-space: nowrap; }
+
+/*
+ * край на бутони
+ */
+/*
+ * Общи стилове за линковете
+ */
+  a:link,
+  a:visited {
+    text-decoration: none; }
+  a.out:hover {
+    text-decoration: underline; }
+
+.login-links {
+  font-weight: bold;
+  border-bottom: solid 1px #cccccc;
+  padding: 2px; }
+
+/*
+ * край на общи стилове за линковете
+ */
+/*
+ * Хипервръзки към профилите на потребители
+ */
+a.profile {
+  padding: 2px; }
+  a.profile.ceo {
+    color: #0000cc; }
+    a.profile.ceo.inactive {
+      color: #333399; }
+    a.profile.ceo.active {
+      color: blue; }
+  a.profile.manager {
+    color: #a000b0; }
+    a.profile.manager.inactive {
+      color: #773387; }
+    a.profile.manager.active {
+      color: #bb00cb; }
+  a.profile.officer {
+    color: #00aa00; }
+    a.profile.officer.inactive {
+      color: #447744; }
+    a.profile.officer.active {
+      color: #00cc00; }
+  a.profile.executive {
+    color: #aa6600; }
+    a.profile.executive.inactive {
+      color: #886622; }
+    a.profile.executive.active {
+      color: #dd8800; }
+  a.profile.contractor {
+    color: #cc0000; }
+    a.profile.contractor.inactive {
+      color: #993333; }
+    a.profile.contractor.active {
+      color: red; }
+
+/*
+ * край на хипервръзки към профилите на потребители
+ */
+/*
+ * Стилове за елемента 'list Table'
+ */
+table.listTable {
+  margin: 0 0 15px 0;
+  border: 1px solid #bbbbbb; }
+  table.listTable > thead > tr > th {
+    border: 1px solid #bbbbbb;
+    padding: 4px 3px 2px;
+    background-color: #e0e0e0;
+    font-weight: bold;
+    vertical-align: middle;
+    line-height: normal; }
+  table.listTable > tbody > tr > td {
+    border: 1px solid #bbbbbb;
+    padding: 4px 3px 2px;
+    line-height: normal;
+    font-family: Arial, Verdana;
+    vertical-align: middle;
+    max-width: 400px;
+    word-wrap: break-word; }
+  table.listTable .document h2 {
+    margin-top: 3px; }
+  table.listTable > tbody > tr.row-error > td {
+    color: #990000; }
+
+.narrow table.listTable {
+  margin-bottom: 12px; }
+
+table.listTable:not(.noHoverTable) > tbody > tr:hover {
+  background-color: #ffffcc; }
+
+.listTitle {
+  margin-bottom: 12px;
+  font-size: 1.2em; }
+
+/*
+ * край на стилове за елемента 'list Table'
+ */
+/*
+ * Стилове за показване на формите
+ */
+/*
+ * грешки и предупреждения
+ */
+.formError {
+  border: solid 1px red;
+  background-color: #ffff66;
+  font-size: 0.9em;
+  padding: 10px;
+  margin-bottom: 10px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -ms-border-radius: 5px;
+  border-radius: 5px; }
+
+.wide .formError {
+  text-align: left;
+  min-width: 300px; }
+
+.narrow .formError {
+  width: auto;
+  margin: 4px;
+  padding: 5px;
+  font-family: Arial, Verdana; }
+  .narrow .formError ul {
+    margin-left: 10px; }
+
+.formError li.ignored {
+  color: #aaaaaa; }
+
+.inputError {
+  border: solid 1px red; }
+
+.inputWarning {
+  border: solid 1px #ff9900; }
+
+.formInfo,
+.formWarning {
+  margin-bottom: 10px; }
+
+.warningMsg {
+  background: yellow;
+  padding: 5px;
+  border: dotted 1px green;
+  color: green; }
+
+.errorMsg {
+  background: yellow;
+  padding: 5px;
+  border: dotted 1px red;
+  color: red; }
+
+.narrow .formInfo,
+.narrow .formFields,
+.narrow .formWarning {
+  margin-bottom: 3px; }
+
+.narrow .formError ul {
+  padding-left: 1em; }
+
+/*
+ * край на грешки и предупреждения
+ */
+/*
+ * общи стилове за елементите на формите
+ */
+.formFields {
+  margin-bottom: 10px; }
+
+.formFields > table {
+  width: 100%; }
+
+.wide .formFields > table {
+  margin: 5px 0 0; }
+
+.form-filter-btn {
+  margin-top: 5px;
+  margin-bottom: 15px; }
+
+.narrow .form-filter-btn {
+  margin-left: 0; }
+
+.vFormField {
+  border: none;
+  width: 100%; }
+
+.formTable > tr > td {
+  padding: 3px; }
+
+.wide .listTopContainer .formTable {
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  border-collapse: separate; }
+
+.narrow .listTopContainer .formTable {
+  border-collapse: separate; }
+
+.wide .groupList {
+  line-height: 1.4em; }
+
+.groupList .listTable {
+  margin-bottom: 0; }
+
+.right-align {
+  min-width: 120px;
+  text-align: right;
+  line-height: 18px;
+  padding-right: 15px;
+  color: #888888; }
+
+div.hFormField {
+  float: left;
+  margin-right: 0.3em;
+  margin-bottom: 0.3em; }
+
+table.vFormField {
+  width: 100%; }
+
+td.formElement {
+  padding: 3px; }
+
+.narrow div.hFormField {
+  float: none;
+  margin: 0; }
+
+.formFields > table > tbody > tr > td {
+  padding-bottom: 7px !important; }
+
+.narrow .formFields table > tbody > tr > td {
+  padding-bottom: 3px !important; }
+
+.formFields > table .richedit-toolbar {
+  margin-bottom: 5px; }
+
+.narrow .formAll {
+  display: table; }
+
+.formFieldCaption {
+  padding: 0.4em 0.4em 0.3em;
+  white-space: nowrap;
+  width: 1px;
+  vertical-align: top;
+  text-align: right;
+  _width: auto;
+  *width: auto; }
+
+.formFields input,
+textarea,
+select {
+  margin-top: 0;
+  -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset; }
+
+.formFields input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba(153, 153, 255, 0.7); }
+
+  .simpleForm .vertical .formSection,
+  .simpleForm .vertical .formTable,
+  .simpleForm .vertical .formToolbar {
+    box-shadow: none !important;
+    border: none !important;
+    background: none !important;
+    padding: 0; }
+  .simpleForm .formFields {
+    margin: 0; }
+
+.wide #main-container .formTable .formElement {
+  min-width: 32em; }
+
+.formFields .fileLink {
+  margin-top: 2px;
+  padding-top: 2px;
+  display: inline-block; }
+
+  .wide .vertical .formFields .w100 {
+    width: 100%; }
+  .wide .vertical .formFields .w75 {
+    width: 24em; }
+  .wide .vertical .formFields .w50 {
+    width: 16em; }
+  .wide .vertical .formFields .w25 {
+    width: 8em; }
+
+  .narrow .vertical .formFields .w100 {
+    width: 100%; }
+  .narrow .vertical .formFields .w75 {
+    width: 100%; }
+  .narrow .vertical .formFields .w50 {
+    width: 100%; }
+  .narrow .vertical .formFields .w25 {
+    width: 50%; }
+
+/*
+ * край на общи стилове за елементите на формите
+ */
+/*
+ * тулбар
+ */
+.wide .toolbar > div:first-child {
+  display: block;
+  margin-bottom: 8px; }
+
+.narrow .toolbar-first {
+  display: inline; }
+
+.wide .toolbarHide {
+  margin-top: -2px;
+  margin-bottom: 8px; }
+
+.narrow .toolbarHide {
+  display: inline; }
+
+.formToolbar input {
+  margin-right: 10px; }
+
+.listToolbar {
+  margin-top: 13px; }
+
+.narrow .listFilter {
+  margin-left: -3px; }
+
+.narrow .tab-page .listFilter {
+  margin-left: 0; }
+
+.listSummary {
+  padding-bottom: 5px;
+  float: right; }
+
+.listPager {
+  padding-bottom: 5px;
+  clear: both; }
+
+.listTopContainer {
+  width: 100%; }
+
+.wide .listTopContainer {
+  min-width: 760px; }
+
+.narrow .ListToolbar,
+.narrow .SingleToolbar {
+  margin-top: 10px; }
+
+.narrow .toolbar {
+  margin: 5px 0; }
+
+  .wide .doc_Search .listFilter {
+    padding-bottom: 0; }
+
+  .narrow .doc_Search .pages {
+    padding-top: 3px;
+    margin-bottom: 13px; }
+  .narrow .doc_Search .listTable {
+    margin-top: 10px; }
+
+.toolbar #btnDelete {
+  margin-right: 0;
+  float: right; }
+
+/*
+ * край на тулбар
+ */
+/*
+ * вертикални форми
+ */
+.vertical .formTitle {
+  padding: 10px;
+  font-size: 1.2em;
+  border-bottom: none;
+  padding: 8px;
+  vertical-align: middle !important;
+  -moz-border-radius: 5px 5px 0 0;
+  -webkit-border-radius: 5px 5px 0 0;
+  border-radius: 5px 5px 0 0; }
+  .vertical .formTitle img {
+    vertical-align: middle !important; }
+
+#all .vertical .formTitle img {
+  vertical-align: top !important; }
+
+.narrow .vertical .formTitle {
+  font-size: 1.2em;
+  font-family: Verdana;
+  background-image: none; }
+
+.vertical .formGroup {
+  padding: 5px;
+  margin: 10px 0 5px;
+  border-radius: 3px; }
+
+.vertical .formAll {
+  background-color: blue;
+  color: white; }
+
+.vertical .formSection {
+  border-left: solid 1px #bbbbbb;
+  border-right: solid 1px #bbbbbb;
+  background-image: url('../img/yellow.png');
+  background-color: #ffffee;
+  padding: 15px;
+  padding-bottom: 0;
+  color: black;
+  vertical-align: top; }
+
+.narrow .vertical .formSection {
+  padding: 3px;
+  background-image: none; }
+
+.wide .vertical .formTable {
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -ms-border-radius: 5px;
+  border-radius: 5px;
+  -moz-box-shadow: 2px 2px 8px 3px #aaaabb;
+  -webkit-box-shadow: 2px 2px 8px 3px #aaaabb;
+  box-shadow: 2px 2px 8px 3px #aaaabb;
+  margin-bottom: 20px;
+  border-collapse: separate;
+  max-width: 48em; }
+
+.narrow .vertical .formTable {
+  border-collapse: separate;
+  max-width: 42em; }
+
+.vertical .formToolbar {
+  padding: 8px;
+  -moz-border-radius: 0 0 5px 5px;
+  -webkit-border-radius: 0 0 5px 5px;
+  border-radius: 0 0 5px 5px;
+  border: solid 1px #bbbbbb;
+  border-top: none;
+  background-image: url('../img/formToolbarBg.jpg'); }
+
+.wide .vertical .formToolbar .toolbar div {
+  margin: 2px 0; }
+
+.narrow .vertical .formToolbar {
+  background-image: none;
+  border: solid 1px #bbbbbb;
+  border-top: none;
+  padding: 9px 6px 3px 6px !important;
+  background-color: #ffffee; }
+  .narrow .vertical .formToolbar input {
+    margin-right: 5px; }
+  .narrow .vertical .formToolbar .toolbar {
+    margin: 0 0 3px 0; }
+
+.narrow .vertical .keylist td {
+  overflow: hidden; }
+
+.narrow .vertical .keylist input[type=checkbox],
+.narrow .vertical .keylist input[type=radio] {
+  vertical-align: middle; }
+
+.vertical .formTable select {
+  margin-right: 3px; }
+
+/*
+ * край на вертикални форми
+ */
+/*
+ * хоризонтални форми
+ */
+.wide .horizontal .formToolbar {
+  float: left;
+  margin-bottom: 13px;
+  margin-top: -1px; }
+
+.wide .horizontal .formFields {
+  float: left; }
+  .wide .horizontal .formFields .combobox,
+  .wide .horizontal .formFields select,
+  .wide .horizontal .formFields input {
+    max-width: 350px; }
+
+.narrow .horizontal {
+  margin-bottom: 10px; }
+
+.narrow .horizontal .formFields > div {
+  margin-bottom: 10px; }
+
+/*
+ * край на хоризонтални форми
+ */
+/*
+ * Загвавие, състоящо се от пътека
+ */
+.path-title {
+  font-size: 0.9em;
+  display: inline; }
+
+.wide .path-title {
+  margin-top: 2px; }
+
+/*
+ * Загвавие, състоящо се от пътека
+ */
+table.keylist {
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+  outline: none; }
+  table.keylist td {
+    padding: 0.3em 0.1em 0 0.1em; }
+  table.keylist .inner-keylist {
+    width: 100%; }
+    table.keylist .inner-keylist tr {
+      height: 1.6em !important; }
+    table.keylist .inner-keylist td {
+      padding: 0.2em 0.1em 0.1em 0.1em; }
+
+.narrow table.keylist td {
+  font-size: 0.9em;
+  padding-top: 0.1em;
+  padding-bottom: 0 !important; }
+
+td.keylist-group {
+  padding: 0 !important; }
+  td.keylist-group > div {
+    padding: 4px !important;
+    font-size: 0.95em;
+    margin-top: 1px;
+    cursor: pointer; }
+    td.keylist-group > div img {
+      display: none;
+      margin-right: 5px;
+      top: 2px;
+      position: relative; }
+
+  .opened td.keylist-group > div .plus {
+    display: none; }
+  .opened td.keylist-group > div .minus {
+    display: inline-block; }
+
+  .closed td.keylist-group > div .minus {
+    display: none; }
+  .closed td.keylist-group > div .plus {
+    display: inline-block; }
+
+.inner-keylist .hiddenElement {
+  display: none; }
+
+/*
+ * край на стилове за показване на формите
+ */
+/*
+ * Стилове за странициране 'hlp_Pager'
+ */
+.pages {
+  clear: both;
+  margin: 16px 2px 8px 2px; }
+
+.narrow .portal .pages {
+  clear: both;
+  margin: 13px 0 5px; }
+
+.top-pager .pages {
+  margin: 2px 2px 16px 2px; }
+
+.narrow .pages {
+  margin: 16px 2px 16px 2px; }
+
+.core_Packs .pages {
+  margin: 2px 2px 16px 2px; }
+
+a.pager {
+  font-weight: bold;
+  font-size: 1.05em;
+  padding: 2px;
+  margin-left: -2px;
+  margin-right: 4px;
+  border: solid 1px transparent;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -ms-border-radius: 4px;
+  border-radius: 4px;
+  cursor: pointer; }
+  a.pager:hover,
+  a.pager.pagerSelected {
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -ms-border-radius: 4px;
+    border-radius: 4px;
+    padding: 2px;
+    font-weight: bold; }
+
+.narrow a.pager {
+  font-size: 0.95em;
+  margin: 0.2em;
+  margin-left: 0; }
+
+/*
+ * край на стилове за странициране 'hlp_Pager'
+ */
+/*
+ * Стилове за елемента 'tab'
+ */
+.noSelect,
+div.richedit-toolbar,
+#mainMenu,
+#subMenu,
+div.tab-row {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none; }
+
+div.tab-control .tab-title {
+  font-weight: bold; }
+
+select.tab-control,
+select.tab-control option {
+  border-top-left-radius: 3px;
+  -moz-border-radius-topleft: 3px;
+  -webkit-border-top-left: 3px;
+  border-top-right-radius: 3px;
+  -moz-border-radius-topright: 3px;
+  -webkit-border-top-right: 3px;
+  background-color: #dddddd; }
+
+div.tab-control div.tab-row .tab {
+  font-family: arial;
+  display: inline;
+  margin: 1px -16px -1px 18px;
+  padding: 4px 5px 5px 5px;
+  float: left;
+  z-index: 1;
+  white-space: nowrap;
+  position: relative;
+  line-height: normal;
+  -moz-border-radius: 5px 5px 0 0;
+  -webkit-border-radius: 5px 5px 0 0;
+  border-radius: 5px 5px 0 0;
+  border-top: 2px solid #004488; }
+  div.tab-control div.tab-row .tab.selected {
+    z-index: 3;
+    padding: 4px 5px 6px 5px;
+    margin: 1px -16px -3px 18px;
+    top: 0; }
+
+.narrow div.tab-control div.tab-row .tab.selected {
+  padding: 4px 5px 6px 5px; }
+
+.narrow div.alphabet div.tab-row .tab {
+  font-size: 0.6em; }
+
+.narrow div.tab-control div.tab-row .tab:first-child {
+  margin-left: 10px; }
+
+.narrow div.tab-control.alphabet div.tab-row .tab:first-child {
+  margin-left: 2px; }
+
+div.tab-control div.tab-page {
+  clear: both;
+  position: relative;
+  top: 1px;
+  padding: 1em;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -ms-border-radius: 5px;
+  border-radius: 5px; }
+
+.narrow div.tab-control div.tab-page {
+  padding: 0.5em; }
+
+.narrow div.alphabet {
+  margin-left: -2px;
+  padding-bottom: 0; }
+
+.narrow div.tab-control.alphabet div.tab-page {
+  padding: 0.1em; }
+
+/*
+ * край на стилове за елемента 'tab'
+ */
+/*
+ * таб alphabet
+ */
+div.alphabet div.tab-row .tab {
+  line-height: 1.1em;
+  padding: 5px;
+  font-size: 0.7em;
+  text-align: center;
+  margin: 2px 4px 5px 0;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -ms-border-radius: 5px;
+  border-radius: 5px;
+  display: table;
+  float: left; }
+  div.alphabet div.tab-row .tab:hover {
+    margin-top: -1px;
+    margin-bottom: 8px;
+    background-color: #ffffcc !important; }
+  div.alphabet div.tab-row .tab:hover a {
+    color: red !important; }
+  div.alphabet div.tab-row .tab.selected {
+    background: #ffffcc;
+    border: 1px solid #aaaaaa;
+    top: 0;
+    margin: -1px 4px 8px 0;
+    padding: 5px !important;
+    -moz-box-shadow: 0px 0px 3px 1px #cccccc;
+    -webkit-box-shadow: 0px 0px 3px 1px #cccccc;
+    box-shadow: 0px 0px 3px 1px #cccccc; }
+
+div.alphabet div.tab-page {
+  margin: 0;
+  padding: 7px 0 0 0; }
+
+.narrow div.alphabet  div.tab-row {
+  width: 340px;
+  float: left;
+  padding-bottom: 5px; }
+
+/*
+ * вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки
+ */
+.single-thread .document div.alphabet {
+  padding-bottom: 0; }
+  .single-thread .document div.alphabet .tab-page {
+    padding: 0 !important;
+    clear: both;
+    border-top: 1px solid #cccccc;
+    box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.1);
+    position: relative;
+    top: 1px;
+    -moz-border-radius: 5px 5px 0px 0px;
+    -webkit-border-radius: 5px 5px 0px 0px;
+    border-radius: 5px 5px 0px 0px;
+    overflow: hidden;
+    z-index: 2; }
+    .single-thread .document div.alphabet .tab-page .detail-info {
+      padding: 0;
+      margin-top: 0;
+      font-size: 0.85em; }
+      .single-thread .document div.alphabet .tab-page .detail-info .listTable td {
+        background-color: #fefec2 !important; }
+    .single-thread .document div.alphabet .tab-page .listTable {
+      width: 100%; }
+    .single-thread .document div.alphabet .tab-page .listTable td {
+      border: 1px dotted #bbbbbb !important;
+      text-align: center;
+      padding: 2px; }
+      .single-thread .document div.alphabet .tab-page .listTable td:first-child {
+        white-space: nowrap; }
+      .single-thread .document div.alphabet .tab-page .listTable tr:last-child td:first-child {
+        border-radius: 0 0 0 5px; }
+      .single-thread .document div.alphabet .tab-page .listTable tr:last-child td:last-child {
+        border-radius: 0 0 5px 0; }
+    .single-thread .document div.alphabet .tab-page .stateIndicator,
+    .single-thread .document div.alphabet .tab-page .inline-date {
+      display: inline-block; }
+      .single-thread .document div.alphabet .tab-page .stateIndicator.state-active {
+        background-color: #ffeedd; }
+      .single-thread .document div.alphabet .tab-page .stateIndicator.state-stopped {
+        background-color: #feadad; }
+      .single-thread .document div.alphabet .tab-page .stateIndicator.state-closed {
+        background-color: #dddddd; }
+    .single-thread .document div.alphabet .tab-page .listTable th {
+      background-color: #fefec2 !important;
+      border-left: 1px solid transparent !important;
+      border-right: 1px solid transparent !important;
+      border-top: 1px solid transparent !important;
+      border-bottom: 1px dotted #bbbbbb !important;
+      color: #333333;
+      padding: 5px 0; }
+      .single-thread .document div.alphabet .tab-page .listTable th:first-child {
+        border-left: 1px solid #bbbbbb !important; }
+      .single-thread .document div.alphabet .tab-page .listTable th:last-child {
+        border-right: 1px solid #bbbbbb !important; }
+  .single-thread .document div.alphabet .detail-info {
+    border: none !important; }
+  .single-thread .document div.alphabet div.tab-row .tab {
+    font-size: 0.8em;
+    font-family: arial;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    display: inline;
+    margin: 1px -8px -1px 10px;
+    float: left;
+    background: #dddddd;
+    border: 1px solid #bbbbbb;
+    border-bottom: none;
+    color: #999999;
+    z-index: 1;
+    white-space: nowrap;
+    position: relative;
+    padding: 0;
+    -moz-border-radius: 5px 5px 0 0;
+    -webkit-border-radius: 5px 5px 0 0;
+    border-radius: 5px 5px 0 0; }
+    .single-thread .document div.alphabet div.tab-row .tab a {
+      display: inline-block;
+      color: #004488;
+      padding: 4px 5px 4px 5px;
+      -moz-border-radius: 5px 5px 0 0;
+      -webkit-border-radius: 5px 5px 0 0;
+      border-radius: 5px 5px 0 0; }
+    .single-thread .document div.alphabet div.tab-row .tab span {
+      display: inline-block;
+      padding: 4px 5px 4px 5px; }
+    .single-thread .document div.alphabet div.tab-row .tab:hover a {
+      background-color: #ffffcc !important;
+      color: #004488 !important; }
+    .single-thread .document div.alphabet div.tab-row .tab:hover span {
+      background-color: #dddddd !important; }
+    .single-thread .document div.alphabet div.tab-row .tab.selected {
+      margin: 1px -8px -3px 10px;
+      background: #fefec2 !important;
+      border: 1px solid #cccccc;
+      box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.2);
+      border-bottom: none;
+      z-index: 3;
+      padding: 0 0 1px !important;
+      top: 0;
+      font-weight: bold; }
+
+.thread-opened div.alphabet .tab.selected {
+  background-color: #e0ffe0 !important; }
+
+.narrow .single-thread .document div.alphabet div.tab-row {
+  padding-bottom: 1px; }
+
+.narrow .single-thread .document div.alphabet div.tab-row .tab select {
+  margin: 4px; }
+
+.narrow .single-thread .document div.alphabet .listTable {
+  font-size: 0.9em; }
+
+/*
+ * табове за поддетайли на документ
+ */
+  div.tab-control.deal-history-tab .tab-page {
+    border: none;
+    padding: 0; }
+  div.tab-control.deal-history-tab .tab-row {
+    float: right;
+    margin-top: -35px; }
+    div.tab-control.deal-history-tab .tab-row .tab {
+      line-height: 1.1em;
+      padding: 4px;
+      font-size: 0.7em;
+      text-align: center;
+      margin: 0 3px 0 0;
+      -moz-border-radius: 7px;
+      -webkit-border-radius: 7px;
+      -ms-border-radius: 7px;
+      border-radius: 7px;
+      background-color: #cccccc;
+      border: 1px solid #aaaaaa; }
+      div.tab-control.deal-history-tab .tab-row .tab a {
+        color: #333333; }
+      div.tab-control.deal-history-tab .tab-row .tab:hover,
+      div.tab-control.deal-history-tab .tab-row .tab.selected {
+        padding: 4px;
+        border: 1px solid #bbbbbb;
+        margin: 0 3px 0 0;
+        background-color: #f1f1f1; }
+        div.tab-control.deal-history-tab .tab-row .tab:hover a,
+        div.tab-control.deal-history-tab .tab-row .tab.selected a {
+          color: #333333; }
+
+  .narrow div.tab-control.deal-history-tab .tab-row {
+    float: none;
+    margin: 0;
+    clear: both; }
+    .narrow div.tab-control.deal-history-tab div.tab-row .tab,
+    .narrow div.tab-control.deal-history-tab div.tab-row .tab.selected {
+      padding: 4px; }
+  .narrow div.tab-control.deal-history-tab div.tab-page {
+    background: none;
+    padding: 5px; }
+
+.badge {
+  -moz-border-radius: 9px;
+  -webkit-border-radius: 9px;
+  -ms-border-radius: 9px;
+  border-radius: 9px;
+  border-radius: 9px;
+  color: white;
+  background-color: #999999;
+  font-size: 0.84em;
+  padding: 1px 7px 2px;
+  position: relative;
+  top: -2px; }
+
+/*
+ * Стилове за елемента 'RichEdit'
+ */
+span.richEdit div.richedit-toolbar {
+  padding: 4px;
+  font-size: 0.85em;
+  text-align: left;
+  color: #333333;
+  font-size: 0.9em;
+  margin-top: -4px; }
+
+.wide span.richEdit div.richedit-toolbar {
+  min-width: 300px; }
+
+.narrow span.richEdit div.richedit-toolbar {
+  padding-top: 4px;
+  font-size: 0.8em;
+  padding-bottom: 4px;
+  font-family: Verdana, Geneva, sans-serif;
+  margin-top: 0;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  margin-top: -4px; }
+
+span.richEdit {
+  display: table; }
+
+.narrow span.richEdit {
+  display: block; }
+
+.narrow .richEdit textarea {
+  width: 100% !important;
+  border-bottom: 1px solid white; }
+
+.richEdit textarea {
+  margin-bottom: 0;
+  overflow: auto;
+  border-bottom: 1px solid transparent;
+  min-width: 310px;
+  width: 32em; }
+
+.richedit-toolbar {
+  position: relative;
+  _height: 1%; }
+
+.richedit-toolbar.inputError {
+  border: solid 1px red !important;
+  border-top: none !important; }
+
+.richtext-relative-group {
+  position: relative;
+  display: block;
+  float: left; }
+
+.richtext-relative-group a:hover {
+  cursor: pointer; }
+
+a.rtbutton {
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0.2em 0.3em 0.3em;
+  cursor: pointer;
+  display: block;
+  float: left;
+  min-width: 0.6em;
+  height: 1.2em;
+  min-width: 15px;
+  text-align: center; }
+
+.richtext-holder-group a.rtbutton {
+  background: #dddddd;
+  border: 1px solid #bbbbaa;
+  padding: 4px;
+  border-radius: 0px !important;
+  text-align: left; }
+
+.narrow a.rtbutton {
+  padding: 0.2em 0.3em 0.3em;
+  height: 1.1em; }
+
+a.rtbutton:hover,
+a.rtbutton:active,
+a.rtbutton:focus {
+  background: #d0d0ff;
+  border-style: outset;
+  border: 1px solid #bbbbdd;
+  border-radius: 3px;
+  color: black !important; }
+
+.richtext-emoticons,
+.richtext-emoticons2,
+.richtext-emoticons3,
+.richtext-emoticons4,
+.richtext-emoticons5,
+.richtext-emoticons7 {
+  position: absolute;
+  left: 0;
+  bottom: 2.1em;
+  display: none;
+  white-space: nowrap;
+  *width: 600px;
+  _width: 600px; }
+
+.richtext-emoticons6 {
+  position: absolute;
+  right: 0;
+  bottom: 2.1em;
+  display: none; }
+
+.richtext-emoticons5 {
+  left: -260%; }
+
+.richtext-emoticons a.rtbutton,
+.richtext-emoticons2 a.rtbutton,
+.richtext-emoticons3 a.rtbutton,
+.richtext-emoticons4 a.rtbutton,
+.richtext-emoticons5 a.rtbutton {
+  display: table-cell;
+  float: none;
+  padding: 0.2em 0.3em 0.1em;
+  *display: block !important;
+  *float: left !important;
+  _display: block !important;
+  _float: left !important; }
+
+.richtext-emoticons6 .rtbutton {
+  float: none; }
+
+.rtbutton img {
+  vertical-align: middle;
+  display: inline;
+  position: relative;
+  top: -1px; }
+
+.narrow .rtbutton img {
+  vertical-align: top;
+  top: 1px; }
+
+.simple-toolbar .rtbutton {
+  background-image: url('../img/16/paper_clip.png') !important;
+  padding-left: 22px !important;
+  background-repeat: no-repeat !important;
+  background-position: 3px center !important; }
+
+.narrow .richtext-holder-group a.rtbutton {
+  padding: 0.3em 0.4em 0.3em;
+  line-height: 1; }
+
+.popup-table-info {
+  width: 80px;
+  padding: 5px;
+  background: #dddddd;
+  border: 1px solid #bbbbaa; }
+  .popup-table-info input {
+    max-width: 80px !important; }
+  .popup-table-info .popupBlock {
+    margin-bottom: 5px; }
+
+/*
+ * край на стилове за елемента 'RichEdit'
+ */
+/*
+ * richtext
+ */
+.richtext {
+  color: #333333;
+  font-family: sans-serif;
+  line-height: 1.4em; }
+
+pre.rich-text {
+  font-family: Courier New, monospace;
+  padding: 10px;
+  zoom: 1;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF, endColorstr=#50F1F1FF);
+  background: rgba(245, 245, 255, 0.5);
+  color: black;
+  line-height: 120%;
+  border: solid 1px #dddddd;
+  white-space: pre-wrap;
+  overflow: auto;
+  font-size: 0.97em; }
+
+.narrow pre.rich-text {
+  font-size: 0.9em;
+  white-space: pre-wrap;
+  margin-left: -10px;
+  margin-right: -10px;
+  padding-bottom: 5px; }
+
+.narrow pre.rich-text code::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px; }
+
+.narrow pre.rich-text code::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.2); }
+
+div.richtext pre .code {
+  border: 1px solid #dddddd;
+  background: transparent;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF, endColorstr=#50F1F1FF);
+  background: rgba(245, 245, 255, 0.5);
+  margin: 10px 0;
+  padding: 10px;
+  white-space: pre;
+  word-wrap: normal; }
+
+div.richtext pre code {
+  white-space: pre;
+  word-wrap: normal;
+  padding: 0;
+  font-size: 0.97em;
+  overflow: auto;
+  background: transparent !important; }
+
+.printing .richtext .code {
+  white-space: pre-wrap !important; }
+
+.richtext .oneLineCode {
+  font-family: "Courier New", monospace;
+  font-size: 0.96em;
+  line-height: normal;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF, endColorstr=#50F1F1FF);
+  background: rgba(235, 235, 235, 0.5);
+  border: 1px solid #dddddd;
+  border-radius: 3px;
+  margin: 0 2px 1px;
+  padding: 0 5px 0;
+  display: inline-block;
+  color: black; }
+
+.narrow .richtext .oneLineCode {
+  padding: 0 5px;
+  margin: 0 0 1px; }
+
+div.code {
+  background: rgba(255, 255, 230, 0.5); }
+
+div.richtextHide {
+  display: none;
+  margin-left: 4px;
+  border-left: dotted 1px #cccccc;
+  padding: 10px; }
+
+/*
+ * richtext elements
+ */
+.narrow .richtext {
+  font-size: 0.9em; }
+
+.richtext h1,
+.richtext h2,
+.richtext h3,
+.richtext h4,
+.richtext h5,
+.richtext h6 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  line-height: normal; }
+
+a.header {
+  padding: 0 !important; }
+
+.narrow .richtext h1 {
+  font-size: 1.4em; }
+
+.narrow .richtext h2 {
+  font-size: 1.25em; }
+
+.narrow .richtext h3 {
+  font-size: 1.1em; }
+
+div.richtext li {
+  margin: 0;
+  padding: 0;
+  margin-left: 1.5em;
+  padding-top: 0.2em; }
+
+div.richtext ul,
+div.richtext ol {
+  padding-left: 1.5em;
+  margin: 0; }
+
+div.richtext > ul {
+  padding-left: 0.5em; }
+
+div.richtext ul {
+  list-style-type: disc; }
+
+div.richtext ul ul {
+  list-style-type: circle; }
+
+div.richtext ul ul ul {
+  list-style-type: square; }
+
+div.richtext > ol {
+  padding-left: 0.7em; }
+
+div.richtext ol {
+  list-style-type: decimal; }
+
+div.richtext ol ol {
+  list-style-type: lower-alpha; }
+
+div.richtext ol ol ol {
+  list-style-type: disc; }
+
+.richtext-quote {
+  color: #444444;
+  padding: 2px 0 0 15px;
+  border-left: 5px solid #e0e0e0;
+  font-family: Courier New, monospace, serif; }
+
+.richtext > .richtext-quote {
+  font-size: 0.9em; }
+
+.narrow .richtext-quote {
+  padding-left: 5px; }
+
+.quote-title {
+  margin-top: 1em;
+  margin-bottom: 0.1em; }
+
+.inlineRichTable td {
+  height: 20px;
+  min-width: 10px; }
+
+/*
+ * richtext message-box
+ */
+.richtext-message {
+  font-family: Courier New, mono;
+  border: 1px dotted;
+  margin: 0 30px;
+  padding: 7px 10px 5px 55px;
+  min-height: 37px;
+  background-repeat: no-repeat;
+  background-position: 9px 7px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -ms-border-radius: 5px;
+  border-radius: 5px;
+  position: relative; }
+
+.richtext-text {
+  background-color: rgba(255, 255, 128, 0.3);
+  padding: 10px;
+  margin: 10px 0;
+  border: solid 1px #cccccc;
+  font-family: Courier New, mono; }
+
+.richtext-info {
+  color: #00529b;
+  border-color: #35a0ff;
+  background-color: #bde5f8;
+  background-image: url('../img/info_blue.png'); }
+
+.richtext-tip {
+  color: #c9841a;
+  border-color: #f0c98c;
+  background-color: #fefed8;
+  background-image: url('../img/App-tip-icon2.png'); }
+
+.richtext-warning {
+  color: #9f6000;
+  border-color: #ffb139;
+  background-color: #ffdc7a;
+  background-image: url('../img/dialog_warning.png'); }
+
+.richtext-success {
+  color: #4f8a10;
+  border-color: #9cea49;
+  background-color: #dff2bf;
+  background-image: url('../img/ok.png'); }
+
+.richtext-error {
+  color: #d8000c;
+  border-color: #ff727a;
+  background-color: #ffbaba;
+  background-image: url('../img/dialog_error.png'); }
+
+.richtext-question {
+  color: #132c5c;
+  border-color: #336bd5;
+  background-color: #92aee6;
+  background-image: url('../img/Help-icon.png'); }
+
+.narrow .richtext-message {
+  margin-left: 0;
+  margin-right: 0;
+  font-size: 0.9em; }
+
+  .richtext-message h1,
+  .richtext-message h2,
+  .richtext-message h3,
+  .richtext-message h4,
+  .richtext-message h5,
+  .richtext-message h6 {
+    line-height: 1;
+    margin: 0 !important; }
+  .richtext-message .header {
+    padding: 0 !important;
+    display: block;
+    clear: both;
+    margin: 1em 0 1em 0 !important; }
+  .richtext-message .header:first-child {
+    padding: 0 !important;
+    display: block;
+    margin: 0.2em 0 0.5em 0 !important; }
+  .richtext-message h1 {
+    font-size: 1.8em;
+    margin-top: 0.17em !important; }
+  .richtext-message h2 {
+    margin-top: -0.15em !important; }
+  .richtext-message h3 {
+    margin-top: 0.6em !important; }
+  .richtext-message h4 {
+    margin-top: 0.7em !important; }
+  .richtext-message h5 {
+    margin-top: 0.9em !important; }
+  .richtext-message h6 {
+    margin-top: 1.2em !important; }
+
+    .document .richtext-message .header:first-child h2 {
+      margin-top: 0.35em !important;
+      margin-bottom: 0.3em !important; }
+
+.richtext-message a[href] {
+  color: inherit;
+  border-bottom: 1px dashed; }
+  .richtext-message a[href]:hover {
+    border-bottom: 1px solid;
+    text-decoration: none; }
+
+.richtext > .richtext-message:last-of-type {
+  margin-bottom: 0; }
+
+/*
+ * край на richtext message-box
+ */
+/*
+ * нотификации
+ */
+div.notification-info {
+  display: table;
+  border: solid 1px #ff9900;
+  background-color: #ffffcc;
+  text-align: center;
+  font-weight: bold;
+  margin: 10px;
+  margin-top: 0;
+  padding: 10px;
+  font-size: 1.3em;
+  -moz-border-radius: 15px;
+  -webkit-border-radius: 15px;
+  -ms-border-radius: 15px;
+  border-radius: 15px; }
+
+.narrow div.notification-info {
+  display: table;
+  margin: 5px 0;
+  border: solid 1px #ff9900;
+  background-color: #ffffcc;
+  padding: 5px;
+  font-size: 1.5em;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -ms-border-radius: 0px;
+  border-radius: 0px; }
+
+div.statuses-message {
+  display: table;
+  text-align: center;
+  font-size: 1.3em;
+  min-height: 32px !important;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -ms-border-radius: 5px;
+  border-radius: 5px;
+  font-family: Courier New, mono;
+  border: 1px dotted;
+  margin: 10px auto;
+  padding: 10px 10px 10px 55px;
+  background-repeat: no-repeat !important;
+  background-position: 9px 7px;
+  position: relative; }
+
+div.statuses-warning {
+  color: #9f6000;
+  border-color: #ffb139;
+  background-color: #ffdc7a;
+  background-image: url('../img/dialog_warning.png'); }
+
+div.statuses-success {
+  color: #4f8a10;
+  border-color: #9cea49;
+  background-color: #dff2bf;
+  background-image: url('../img/ok.png'); }
+
+div.statuses-notice {
+  color: #00529b;
+  border-color: #35a0ff;
+  background-color: #bde5f8;
+  background-image: url('../img/info_blue.png'); }
+
+div.statuses-error {
+  color: #d8000c;
+  border-color: #ff727a;
+  background-color: #ffbaba;
+  background-image: url('../img/dialog_error.png'); }
+
+div.statuses-message h2 {
+  margin: 0; }
+
+.narrow div.statuses-message {
+  margin: 5px 0;
+  padding: 5px 5px 5px 55px;
+  font-size: 1.1em;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -ms-border-radius: 0px;
+  border-radius: 0px; }
+
+/*
+ * край на нотификации
+ */
+/*
+ * състояния
+ */
+.state-draft {
+  background-color: #bbffff; }
+
+.state-active {
+  background-color: #ffeedd;
+  background: rgba(250, 221, 187, 0.5); }
+
+.state-opened {
+  background-color: #bbffcc; }
+
+.state-pending {
+  background-color: #eeccff; }
+
+.state-closed {
+  background-color: #dddddd; }
+
+.state-stopped,
+.state-blocked {
+  background-color: #ffaa00; }
+
+.state-rejected {
+  background-color: #cc6666; }
+
+.state-rejected td,
+.state-rejected .document th,
+.state-rejected .document td a,
+.state-rejected .document p,
+.state-rejected .document h3,
+.state-rejected .document h4,
+.state-rejected .richtext,
+.state-rejected .document a,
+.state-rejected .document span,
+.state-rejected .richtext div,
+.state-rejected .cCode,
+.state-rejected .antetka,
+.state-rejected .document ul,
+.state-rejected .document ol,
+.state-rejected .document li,
+.state-rejected .document b,
+.state-rejected .document font {
+  color: #999999 !important;
+  text-decoration: line-through !important; }
+
+.state-rejected .docBgIcon,
+.state-rejected .document .docBgIcon b {
+  color: #444444 !important; }
+
+.state-rejected .document img,
+.state-rejected .anchor-arrow {
+  opacity: 0.5;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; }
+
+.state-rejected .linkWithIcon.state-rejected {
+  background-color: transparent; }
+
+.state-free {
+  background-color: #33ccf5; }
+
+.state-hidden {
+  background-color: #ffee77; }
+
+.state-revert {
+  background-color: #cc9933; }
+
+.state-wakeup {
+  background-color: #259641; }
+
+.stateIndicator {
+  height: 0.6em;
+  width: 0.6em;
+  border: solid 1px #999999;
+  -moz-border-radius: 0.3em;
+  -webkit-border-radius: 0.3em;
+  -ms-border-radius: 0.3em;
+  border-radius: 0.3em; }
+
+/*
+ * край на състояния
+ */
+.core_Cron .listTable td p {
+  margin: 5px;
+  font-family: monospace;
+  font-size: 0.85em; }
+
+.anchor-arrow {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  background-image: url('../img/16/anchor-image.png');
+  margin: 0 5px; }
+
+/*
+ * цветове
+ */
+.quiet {
+  color: #888888; }
+
+.quiet td {
+  border-top-width: 0;
+  border-bottom: none; }
+
+.red {
+  color: #cc0000; }
+
+.green {
+  color: #008800; }
+
+.future {
+  background-color: #99eecc; }
+
+.current {
+  font-weight: bold; }
+  .current td {
+    border-bottom: none; }
+
+.debug-info {
+  color: black; }
+
+.debug-notice {
+  color: #880000; }
+
+.debug-new {
+  color: #00aa00; }
+
+.debug-update {
+  color: #00aa00; }
+
+.debug-error {
+  color: #dd0000; }
+
+/*
+ * край на цветове
+ */
+/*
+ * стилове за пакети
+ */
+.elem-holder {
+  position: relative;
+  display: block;
+  width: 360px;
+  padding: 9px;
+  margin-right: 20px;
+  margin-bottom: 20px;
+  float: left;
+  background: #fcfae8;
+  box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.4); }
+  .elem-holder .pack-title {
+    display: inline-block; }
+    .elem-holder .pack-title:hover,
+    .elem-holder .pack-title:hover b {
+      text-decoration: underline; }
+  .elem-holder .deinstall-pack {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 20px;
+    height: 16px;
+    padding: 0 !important;
+    opacity: 0.9; }
+    .elem-holder .deinstall-pack:hover {
+      opacity: 1; }
+  .elem-holder .pack-info {
+    display: block;
+    margin: 0.5em 0;
+    font-size: 0.9em;
+    line-height: 1.2em;
+    height: 2.4em; }
+  .elem-holder b {
+    margin-top: 3px;
+    font-size: 1.2em;
+    display: inline-block; }
+  .elem-holder .elem-img {
+    width: 84px;
+    height: 85px;
+    float: left;
+    margin-right: 7px; }
+    .elem-holder .elem-img img {
+      width: 84px;
+      height: 85px; }
+  .elem-holder .btns {
+    display: block;
+    float: right;
+    color: #999999;
+    margin-right: -0.5em;
+    font-size: 0.8em; }
+    .elem-holder .btns a {
+      display: inline-block;
+      margin: 0 0.5em; }
+      .elem-holder .btns a:hover {
+        text-decoration: underline; }
+
+.narrow .elem-holder {
+  width: 265px; }
+  .narrow .elem-holder .pack-info {
+    font-size: 0.8em;
+    line-height: 1.15em;
+    margin: 0em 0.1em 0.3em 0;
+    height: 3em; }
+  .narrow .elem-holder b {
+    font-size: 1.1em; }
+    .narrow .elem-holder .btns a {
+      font-size: 0.9em;
+      display: inline-block;
+      padding: 0 0.5em 0.2em;
+      margin: 0; }
+  .narrow .elem-holder .pack-title {
+    margin-top: 0; }
+  .narrow .elem-holder .elem-img {
+    width: 64px;
+    height: 65px;
+    float: left;
+    margin-right: 7px; }
+    .narrow .elem-holder .elem-img img {
+      width: 64px;
+      height: 65px; }
+
+.narrow select[name='pack'] {
+  min-width: 290px; }
+
+/*
+ * край на стилове за пакети
+ */
+/*
+ * Стилове за diff между html текстове
+ */
+span.del {
+  background-color: #ffcccc;
+  text-decoration: line-through;
+  color: #777777; }
+
+span.ins {
+  background-color: #ccffcc; }
+
+span.cng {
+  background-color: #ffffaa;
+  border-bottom: dotted 1px #cccc99; }
+
+/*
+ * Край на стилове за diff
+ */
+/*
+ * Стилове за core_Packs
+ */
+.const-default-value {
+  color: #666699; }
+
+.const-default-value option {
+  color: black; }
+
+/*
+ * Край на стилове за core_Packs
+ */
+.checkBrowser {
+  width: 1px;
+  height: 1px;
+  display: block;
+  overflow: hidden; }
+
+/*
+ * bugFix - линкове в toast
+ */
+.toast-container a {
+  color: #eeeeee !important;
+  font-weight: bold; }
+  .toast-container a:hover {
+    text-decoration: underline; }
+
+.toast-item-wrapper p {
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 10px; }
+
+.loginLog-first_login {
+  background-color: #ffffdd !important; }
+
+.loginLog-success {
+  background-color: #dbffe4 !important; }
+
+.loginLog-other {
+  background-color: #fee1e4 !important; }
+
+.core_LoginLog .group-by-date-row {
+  background-color: transparent !important; }
+
+.fracPart {
+  display: inline-block;
+  text-align: left; }
+
+td.centerCol {
+  white-space: nowrap;
+  text-align: center; }
+
+td.rightCol {
+  white-space: nowrap;
+  text-align: right; }
+
+td.leftCol {
+  white-space: nowrap;
+  text-align: left; }
+
