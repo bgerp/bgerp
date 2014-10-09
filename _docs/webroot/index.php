@@ -35,7 +35,7 @@ if(!defined('EF_ROOT_PATH')) {
 
 // Зареждаме началната процедура и глобалните функции
 if(!defined('EF_EF_PATH')) {
-	DEFINE( 'EF_EF_PATH', EF_ROOT_PATH . '/ef');
+	DEFINE( 'EF_EF_PATH', EF_ROOT_PATH . '/bgerp');
 }
 
 // Ако сме определили правилно папката с кода на фреймуърка,
