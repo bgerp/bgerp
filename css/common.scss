@@ -591,10 +591,16 @@ select.combo {
 .checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
 	border: none !important;
 	box-shadow: none;
-	margin: 4px 3px 2px 4px;
+	margin: 3px 3px 3px 4px;
 	background-color: transparent;
 	outline: none;
 	vertical-align: middle;
+}
+
+@-moz-document url-prefix() {
+	.checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
+	   margin: 4px 3px 2px 4px;
+    }
 }
 
 input[type=radio] + label, input[type=checkbox] + label {
