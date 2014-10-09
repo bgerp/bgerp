@@ -1,0 +1,347 @@
+<div class='scrolling-holder'>
+	<table class='gantt-holder'>
+		<tr> 
+			<td>
+				<table class='gantt-tasks'> 
+					<tr>
+						<td>година</td>
+					</tr>
+					<tr>
+						<td>меcец</td>
+					</tr>
+					<tr>
+						<td>fds fdsf f fds fdsf f</td>
+					</tr><tr>
+						<td>fds fdsfd awdr w f</td>
+					</tr><tr>
+						<td>fds fdsfdw a f</td>
+					</tr><tr>
+						<td>fds fdsf f</td>
+					</tr><tr>
+						<td>fds fdsf f</td>
+					</tr>
+				</table>
+			
+			
+			</td>
+			<td>
+				<div class='scroll-table' id='scroll-table1'>
+		
+					<table class='gantt-table' id='ganttTable1' cellpadding=0 cellspacing=0>
+								<tr>
+									<th colspan=24>07.11. четвъртък</th>
+									<th colspan=24>08.11. петък</th>
+								</tr>
+								<tr>
+									<th>00:00</th>
+									<th>01:00</th>
+									<th>02:00</th>
+									<th>03:00</th>
+									<th>04:00</th>
+									<th>05:00</th>
+									<th>06:00</th>
+									<th>07:00</th>
+									<th>08:00</th>
+									<th>09:00</th>
+									<th>10:00</th>
+									<th>11:00</th>
+									<th>12:00</th>
+									<th>13:00</th>
+									<th>14:00</th>
+									<th>15:00</th>
+									<th>16:00</th>
+									<th>17:00</th>
+									<th>18:00</th>
+									<th>19:00</th>
+									<th>20:00</th>
+									<th>21:00</th>
+									<th>22:00</th>
+									<th>23:00</th>
+									<th>00:00</th>
+									<th>01:00</th>
+									<th>02:00</th>
+									<th>03:00</th>
+									<th>04:00</th>
+									<th>05:00</th>
+									<th>06:00</th>
+									<th>07:00</th>
+									<th>08:00</th>
+									<th>09:00</th>
+									<th>10:00</th>
+									<th>11:00</th>
+									<th>12:00</th>
+									<th>13:00</th>
+									<th>14:00</th>
+									<th>15:00</th>
+									<th>16:00</th>
+									<th>17:00</th>
+									<th>18:00</th>
+									<th>19:00</th>
+									<th>20:00</th>
+									<th>21:00</th>
+									<th>22:00</th>
+									<th>23:00</th>
+								</tr>
+								<tr>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									
+								</tr>
+								<tr>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+								</tr>
+								<tr>
+												<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+								</tr>
+								<tr>
+												<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+								</tr>
+								<tr>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+									<td> </td>
+								</tr>
+						</table>
+				</div>
+	
+	
+			
+			</td>
+		</tr>
+	
+	
+	</table>
+
+</div>

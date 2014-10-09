@@ -1,6 +1,4 @@
 syntax: regexp
-.gitignore
-syntax: regexp
 ^tests$
 /.settings
 /.project

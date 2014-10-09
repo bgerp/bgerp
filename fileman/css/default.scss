@@ -1,0 +1,206 @@
+#uploadform {
+	width:100%;
+}
+                
+#uploadprogressbar {
+	display:none;
+	width:100%;
+	height:12px;
+}
+
+#filename {
+ 	display:none;
+}
+ 
+.fileName{
+	font-size:0.9em;
+	margin: 10px 0;
+}
+
+#inputDiv {
+	position: relative;
+	height:30px;
+}
+
+#uploadBtn {
+	margin-top:10px;
+	background-image:url('../img/upload.gif');
+	background-position:5px center; 
+	z-index: 50;
+	position:absolute;
+	left:70px;
+}
+
+#uploadBtn.btn-disabled{
+	opacity: 0.5;
+	-moz-opacity: 0.5;
+	filter: alpha(opacity=50);
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
+}
+
+#uploadBtn.only-one-file{
+	left:0px;
+}
+
+/*бутона за IE*/
+.ulfile {
+	position: absolute;
+	width: 67px !important;
+	height:28px !important;
+	overflow:hidden;
+	z-index: 1000;
+	top:9px;
+	left:-1px;
+	opacity: 0;
+	-moz-opacity: 0;
+	filter: alpha(opacity=0);
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
+    cursor:pointer;
+}
+
+/*бутона файл*/
+.btn-ulfile{
+	padding-left:20px !important;
+	background-repeat:no-repeat;
+	background-position: 3px center;
+	position: absolute;
+	width: 66px;
+	z-index: 2;
+	top:9px;
+	background-color:#ddd !important; 
+}
+#add-file-info{
+	max-height:334px;
+    overflow:auto;
+}
+.uploaded-filenames{
+	display:block;
+	max-height:340px;
+	overflow:auto;
+}
+
+.uploaded-file > a {
+	height:16px;
+	position:relative;
+	top:-2px;
+}
+
+.dialogTitle {
+	font-weight:bold;
+	margin-top: -2px;
+	margin-bottom: 5px;
+}
+.upload-close{
+	position:absolute;
+	top:5px;
+	right:0px;
+	font-size:12px;
+}
+
+.upload-еrror {
+	margin-top:5px;
+	border:solid 1px red;
+	background-color:#ffc;
+}
+.upload-еrror ul{
+	margin:0;
+	padding:5px;
+	list-style:none;
+	color:#F00;
+	font-size:0.9em;
+}
+
+.uploaded-title{
+	margin-top:5px;
+	padding:5px;
+	border:solid 1px #ccc;
+	background-color:#ffe;
+	margin-bottom:5px;
+	font-size:0.9em;
+	padding-left:23px !important;
+	background-repeat:no-repeat;
+	background-position: 3px center;
+	
+}
+
+ .filemanUpload .tab-title {
+     padding-left:20px;  
+     background-repeat:no-repeat;
+     background-position: 0px center;
+     font-size:1.1em;
+}
+
+.uploaded-file {
+	background-color:#eee;
+	border:solid 1px #ccc;
+	font-size:0.8em;
+	padding:2px;
+	margin-top:5px;
+	display:table;
+	border-radius:3px;
+	white-space:nowrap;
+}
+
+.uploaded-file img {
+	width:14px;
+	height:14px;
+}
+
+.hidden-input {
+	z-index: -50 !important;
+	width: 0 !important; 
+	height: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+}
+
+.error-filesize {
+	color: red;
+}
+
+.fileman-log-action-date{
+	font-size:0.8em;
+}
+
+.dialog-window .fileman_Log{
+	margin-top: 15px;
+	.horizontal .formToolbar{
+	   margin-bottom: 10px !important;
+	}
+	.listTable{
+		width:100%;
+		th {
+			display: none;
+			border: none;
+			vertical-align: top !important;
+	    }
+		tr > td:first-child{
+			width:48px;
+			height:48px;
+			padding: 3px ;
+			.file-log-link{
+				width:48px;
+				height:48px;
+				position:relative;
+				display:block;
+				img{
+					position:absolute;
+					max-width:48px;
+					max-height:48px;
+					top:0;
+					bottom:0;
+					left:0;
+					right:0;
+					margin:auto;
+				}
+			}
+		}
+	}
+}
+
+.narrow .fileman_Log.switching-display{
+	margin-top:5px;
+}
