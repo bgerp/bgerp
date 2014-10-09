@@ -141,34 +141,19 @@ class bgerp_L extends core_Manager
             expect($mid = Request::get('m'));
             expect(log_Documents::opened($cid, $mid));
             
-            $options = array();
-
             // Трасираме стека с действията докато намерим SEND екшън
             $i = 0;
             while ($action = log_Documents::getAction($i--)) {
                 
-                // Ако е изпратен
-                if ($action->action == log_Documents::ACTION_SEND) {
-                    
-                    // Активатора и последния модифицирал на изпратения документ
-                    if (!$activatedBy) {
-                        
-                        $sendContainerRec = doc_Containers::fetch($action->containerId);
-                        $activatedBy = $sendContainerRec->activatedBy;
-                    }
-                    
-                    if ($action->data->detId) {
-                        $options['__toDetId'] = $action->data->detId;
-                    }
-                    $options['__toEmail'] = $action->data->to;
-                }
+                $options = (array)$action->data;
                 
                 // Ако има изпратено от
-                if ($action->data->sendedBy > 0 && !$options['__userId']) {
+                if (($action->data->sendedBy > 0) && (!$options['__userId'] || $options['__userId'] <= 0)) {
                     $options['__userId'] = $action->data->sendedBy;
                 }
                 
                 // Ако е принтиран
+                // TODO ще се оправи
                 if ($action->action == log_Documents::ACTION_PRINT) {
                     $options['__toListId'] = $action->data->toListId;
                     
@@ -176,12 +161,30 @@ class bgerp_L extends core_Manager
                         $options['__userId'] = $action->createdBy;
                     }
                 }
-            }
-            
-            // Ако няма потребител или е системата - за бласт
-            if (!$options['__userId'] || $options['__userId'] <= 0) {
-                if ($activatedBy > 0) {
-                    $options['__userId'] = $activatedBy;
+                
+                // Ако е изпратен
+                if ($action->action == log_Documents::ACTION_SEND) {
+                    
+                    $activatedBy = $action->createdBy;
+                    
+                    // Активатора и последния модифицирал на изпратения документ
+                    if (!$activatedBy || $activatedBy <= 0) {
+                        $activatedBy = $rec->activatedBy;
+                    }
+                    
+                    // Активатора и последния модифицирал на изпратения документ
+                    if (!$activatedBy || $activatedBy <= 0) {
+                        
+                        $sendContainerRec = doc_Containers::fetch($action->containerId);
+                        $activatedBy = $sendContainerRec->activatedBy;
+                    }
+                    
+                    // Ако няма потребител или е системата - за бласт
+                    if (!$options['__userId'] || $options['__userId'] <= 0) {
+                        if ($activatedBy > 0) {
+                            $options['__userId'] = $activatedBy;
+                        }
+                    }
                 }
             }
             
