@@ -27,6 +27,8 @@ defIfNot('EF_ID_CHECKSUM_LEN', 3);
  * @license   GPL 3
  * @since     v 0.1
  * @link
+ * 
+ * @method integer save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
  */
 class core_Mvc extends core_FieldSet
 {
