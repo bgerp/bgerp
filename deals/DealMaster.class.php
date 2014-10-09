@@ -665,6 +665,10 @@ abstract class deals_DealMaster extends deals_DealBase
      				'title' => $self::getRecTitle($objectId),
      				'features' => array('Контрагент' => $contragentName)
      		);
+     		
+     		if($rec->deliveryLocationId){
+     			$result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId);
+     		}
      	}
      
      	return $result;
