@@ -20,7 +20,7 @@ class rtac_AutocompleteIntf
      * 
      * @param core_Et $tpl
      */
-    static function loadPacks(&$tpl)
+    function loadPacks(&$tpl)
     {
         
         return $this->class->loadPacks($tpl);
@@ -33,7 +33,7 @@ class rtac_AutocompleteIntf
      * @param core_Et $tpl
      * @param string $id
      */
-    static function runAutocompleteUsers(&$tpl, $rtId)
+    function runAutocompleteUsers(&$tpl, $rtId)
     {
         
         return $this->class->runAutocompleteUsers($tpl, $rtId);
@@ -46,7 +46,7 @@ class rtac_AutocompleteIntf
      * @param core_Et $tpl
      * @param string $id
      */
-    static function runAutocompleteText(&$tpl, $rtId)
+    function runAutocompleteText(&$tpl, $rtId)
     {
         
         return $this->class->runAutocompleteText($tpl, $rtId);
