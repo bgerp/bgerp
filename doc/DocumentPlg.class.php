@@ -1202,6 +1202,8 @@ class doc_DocumentPlg extends core_Plugin
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме
+                    
+                $haveRightForClone = FALSE;
                 
                 // id на първия документ
                 $firstContainerId = doc_Threads::fetch($oRec->threadId)->firstContainerId;
@@ -1238,12 +1240,8 @@ class doc_DocumentPlg extends core_Plugin
                 }
                 
                 // Ако един от двата начина върне, че имаме права
-                if ($haveRightForClone) {
+                if (!$haveRightForClone) {
                 
-                    // Задаваме права
-                    $requiredRoles = 'powerUser';
-                } else {
-                    
                     // Никой не може да клонира
                     $requiredRoles = 'no_one';
                 }
@@ -1578,7 +1576,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetFilesSizes($mvc, &$resArr, $filesArr)
     {
-        foreach ((array)$filesArr as $fileHnd) {
+        foreach ((array)$filesArr as $fileHnd => $dummy) {
             
             // Вземаме метаданните за файла
             $meta = fileman::getMeta($fileHnd);

@@ -342,24 +342,6 @@ class blast_ListDetails extends core_Detail
         
         return $fieldsArr;
     }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, необходимо за това действие
-     */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
-    {        
-        // Ако листа не е използван никъде тогава може да се изтрива
-        if ($action == 'delete') {
-            
-            // Ако сме използвали листа в имейл, който сме активирали
-            if (blast_Emails::fetch("#listId = '{$rec->listId}' AND #state != 'draft'")) {
-                
-                // Никой да не може да изтрива потребител. Само да може да се редактира
-                $roles = 'no_one';     
-            }
-        }
-    }
 
     
     /**

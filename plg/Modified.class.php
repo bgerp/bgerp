@@ -1,0 +1,83 @@
+<?php
+
+
+
+/**
+ * Клас 'plg_Modified' - Поддръжка на modifiedOn и modifiedBy
+ *
+ *
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @link
+ */
+class plg_Modified extends core_Plugin
+{
+    
+    
+    /**
+     * Извиква се след описанието на модела
+     */
+    function on_AfterDescription(&$invoker)
+    {
+        // Добавяне на необходимите полета
+        $invoker->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none');
+        $invoker->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране->От,input=none');
+    }
+    
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
+    {
+        // Определяме кой е модифицирал записа
+        $rec->modifiedBy = Users::getCurrent();
+        
+        // Записваме момента на създаването
+        $rec->modifiedOn = dt::verbal2Mysql();
+    }
+    
+    
+    /**
+     * Добавя ново поле, което съдържа датата, в чист вид
+     */
+    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {   
+        if($rec->modifiedBy == -1) {
+            $row->modifiedBy = '@sys';
+        } elseif($rec->modifiedBy == 0) {
+            $row->modifiedBy = '@anonym';
+        } else {
+            $row->modifiedBy = core_Users::getVerbal($rec->modifiedBy, 'nick');
+        }
+        $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
+    }
+
+
+    /**
+     * Изпълнява се след инициализиране на модела
+     */
+    function on_AfterSetupMVC($mvc, &$res)
+    {
+        if($mvc->fetch('1=1') && !$mvc->fetch("#modifiedOn > '1971-01-01 00:00:00'")) {  
+            $query = $mvc->getQuery();
+            while($rec = $query->fetch()) {
+                if(!$rec->modifiedOn) {
+                    $rec->modifiedOn = $rec->createdOn;
+                    $rec->modifiedBy = $rec->createdBy;
+                    $mvc->save_($rec, 'modifiedOn,modifiedBy');
+                    $modRecs++;
+                }
+            }
+        }
+
+        if($modRecs) {
+            $res .= "<li style='color:green'>Обновено времето за модифициране на $modRecs запис(а)</li>";
+        }
+    }
+
+}

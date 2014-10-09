@@ -59,7 +59,6 @@ abstract class deals_InvoiceMaster extends core_Master
 		'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
     	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
-        'accountId'           => 'lastDocUser|lastDoc',
     	//'template' 			  => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
@@ -292,10 +291,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
-    	 
-    	if($data->paymentPlan){
-    		$tpl->placeObject($data->paymentPlan);
-    	}
     	
     	return $tpl;
     }
@@ -350,8 +345,12 @@ abstract class deals_InvoiceMaster extends core_Master
     protected function populateNoteFromInvoice(core_Form &$form, core_ObjectReference $origin)
     {
     	$caption = ($form->rec->type == 'debit_note') ? 'Увеличение' : 'Намаление';
-    
+    	
     	$invArr = (array)$origin->fetch();
+    	
+    	// Трябва фактурата основание да не е ДИ или КИ
+    	expect($invArr['type'] == 'invoice');
+    	
     	$number = $origin->instance->recToVerbal((object)$invArr)->number;
     	 
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
@@ -604,11 +603,6 @@ abstract class deals_InvoiceMaster extends core_Master
 	   		
 	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE, 'bg');
 	   		$data->row = (object)((array)$data->row + (array)$data->summary);
-	   		
-	   		if($rec->paymentMethodId && $rec->type == 'invoice' && $rec->dpOperation != 'accrued') {
-	   			$total = $this->_total->amount + $this->_total->vat - $this->_total->discount;
-	   			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
-	   		}
 	   	}
    }
     
@@ -705,6 +699,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$data->aggregateInfo = $aggregateInfo;
     	}
     	 
+    	// Ако ориджина също е фактура
     	if($origin->className  == $mvc->className){
     		$mvc->populateNoteFromInvoice($form, $origin);
     		$data->flag = TRUE;
@@ -755,6 +750,12 @@ abstract class deals_InvoiceMaster extends core_Master
     	   
     			// Изчисляване на стойността на ддс-то
     			$vat = acc_Periods::fetchByDate()->vatRate;
+    			
+    			// Ако не трябва да се начислява ддс, не начисляваме
+    			if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
+    				$vat = 0;
+    			}
+    			
     			$rec->vatAmount = $rec->changeAmount * $vat;
     			$rec->vatAmount *= $rec->rate;
     

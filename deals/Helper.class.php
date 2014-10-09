@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -30,7 +30,7 @@ abstract class deals_Helper
 			'currencyId'    => 'currencyId',
 			'discAmountFld'	=> 'discAmount',
 			'discount'	    => 'discount',
-			'isInvoice' 	=> FALSE, // TRUE всичко трябва да е без ДДС
+			'alwaysHideVat' => FALSE, // TRUE всичко трябва да е без ДДС
 		);
 	
 	
@@ -77,37 +77,9 @@ abstract class deals_Helper
 	
 	
 	/**
-	 * Калкулиране на сумата на реда
-	 * @param double $price           - цената
-	 * @param int $packQuantity       - количеството
-	 * @param double $vat             - процента ддс
-	 * @param boolean $isPriceWithVat - дали цената е с включено ддс
-	 * @param currencyCode 			  - валута
-	 * @param discount				  - отстъпка
-	 */
-	private static function calcAmount($price, $packQuantity, $vat, $isPriceWithVat = TRUE, $currencyCode, $discount)
-	{
-		$arr = array();
-		$arr['amount'] = $price * $packQuantity;
-		
-		$arr['discount'] = ($discount) ? $arr['amount'] * $discount : 0;
-		
-		if($isPriceWithVat){
-			$arr['vatAmount'] = ($arr['amount'] - $arr['discount']) * $vat / (1 + $vat);
-		} else {
-			$arr['vatAmount'] = ($arr['amount'] - $arr['discount']) * $vat;
-		}
-		
-		$arr['amount'] = $arr['amount'];
-	
-		return (object)$arr;
-	}
-	
-	
-	/**
 	 * Помощен метод използван в бизнес документите за показване на закръглени цени на редовете
 	 * и за изчисляване на общата цена
-	 * 
+	 *
 	 * @param array $recs - записи от детайли на модел
 	 * @param stdClass $masterRec - мастър записа
 	 * @param array $map - масив с мапващи стойностите на полета от фунцкията
@@ -119,68 +91,52 @@ abstract class deals_Helper
 			unset($mvc->_total);
 			return;
 		}
-		
+	
 		expect(is_object($masterRec));
-		
+	
 		// Комбиниране на дефолт стойнсотите с тези подадени от потребителя
 		$map = array_merge(self::$map, $map);
-		
+	
 		// Дали трябва винаги да не се показва ддс-то към цената
-		if($map['isInvoice']) {
-			$hasVat = FALSE;
-		} else {
-			$hasVat = ($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE;
-		}
-		
-		$discount = $amount = $amountVat = $amountTotal = 0;
-		
+		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE);
+		$discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
+	
+		// Обработваме всеки запис
 		foreach($recs as &$rec){
 			$vat = 0;
-        	if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
-                $ProductManager = cls::get($rec->$map['classId']);
-                $vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
-            }
-           
-            // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
-        	$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
-        	$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
+			if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
+				$ProductManager = cls::get($rec->$map['classId']);
+				$vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
+			}
+			
+			// Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
+			$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
+			$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
         	
-        	// Калкулира се сумата на реда
-        	$amountObj = self::calcAmount($rec->$map['priceFld'], $rec->$map['quantityFld'], $vat, $hasVat, $masterRec->$map['currencyId'], $rec->$map['discount']);
+			$noVatAmount = round($price->noVat * $rec->$map['quantityFld'], 2) ;
         	
-        	// Изчисляване на цената без търговската отстъпка
-        	if($amountObj->discount){
-        		 $rec->$map['discAmountFld'] = $amountObj->discount;
-                 $discount += $rec->$map['discAmountFld'];
+			$vatRow = round($noVatAmount * $vat, 2);
+        	
+        	$rec->$map['amountFld'] = $noVatAmount;
+        	if($masterRec->$map['chargeVat'] == 'yes' && !$map['alwaysHideVat']){
+        		$rec->$map['amountFld'] = round($rec->$map['amountFld'] + $vatRow, 2);
+        	}
+
+        	if($rec->$map['discount']){
+        		$discount += $rec->$map['amountFld'] * $rec->$map['discount'];
+        		$vatRow -= $vatRow * $rec->$map['discount'];
         	}
         	
-        	$rec->$map['amountFld']  = $amountObj->amount;
         	
-        	if($map['isInvoice']){
-        		// Ако е ф-ра изчисляваме и сумата с ддс
-        		$amountObj1 = self::calcAmount($price->withVat, $rec->$map['quantityFld'], $vat, TRUE, $masterRec->$map['currencyId'], $rec->$map['discount']);
-        		$amount          		+= $amountObj->amount;
-        		$amountTotal       		+= $amountObj1->amount;
-        	} else {
-        		$amount          		+= $amountObj->amount;
-        		$amountVat       		+= $amountObj->vatAmount;
-        	}
+        	$amountRow += $rec->$map['amountFld'];
+        	$amount += $noVatAmount;
+        	$amountVat += $vatRow;
 		}
+		
 		
 		$mvc->_total = new stdClass();
-		
-		if($map['isInvoice']){
-			
-			// Ако е ф-ра изчисляваме общото без ддс и общото с ддс, а ддс-то е разликата им
-			$mvc->_total->amount  = round($amount, 2);
-			$mvc->_total->vat     = round($amountTotal, 2) - round($amount, 2);
-		} else {
-			
-			// При документите различни от ф-ра изчисляваме точно общото без ддс и ддс-то
-			$mvc->_total->amount  = $amount;
-			$mvc->_total->vat     = $amountVat;
-		}
-
+		$mvc->_total->amount = $amountRow;
+		$mvc->_total->vat = $amountVat;
 		$mvc->_total->discount = $discount;
 	}
 	

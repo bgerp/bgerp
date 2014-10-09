@@ -93,10 +93,12 @@ class blast_Setup extends core_ProtoSetup
             'blast_Lists',
             'blast_ListDetails',
             'blast_Emails',
-            'blast_Blocked',
-            'blast_ListSend',
+            'blast_BlockedEmails',
             'blast_Letters',
-            'blast_LetterDetails'
+            'blast_LetterDetails',
+            'blast_EmailSend',
+            'migrate::fixListId',
+            'migrate::fixEmails'
         );
 
         
@@ -119,15 +121,16 @@ class blast_Setup extends core_ProtoSetup
         
 		return $html;
 	}
-        
+	
+	
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
             array(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', "ceo, blast"),
         );   
-
-        
+    
+    
     /**
      * Де-инсталиране на пакета
      */
@@ -137,5 +140,110 @@ class blast_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за blast_EmailSend таблицата
+     */
+    static function fixListId()
+    {
+        $cls = cls::get('blast_EmailSend');
+        
+        $cls->db->connect();
+        
+        $listDetailId = str::phpToMysqlName('listDetailId');
+        
+        if (!$cls->db->isFieldExists($cls->dbTableName, $listDetailId)) return ;
+        
+        $cls->FLD('listDetailId', 'key(mvc=blast_ListDetails, select=key)', 'caption=Имейл');
+        
+        // Всички записи, които имат listDetailId
+        $query = $cls->getQuery();
+        $query->where("#listDetailId IS NOT NULL");
+        
+        while ($rec = $query->fetch()) {
+            
+            // Ако няма listDetailId
+            if (!($rec->listDetailId > 0)) continue;
+            
+            // Ако е обработен записа
+            if (blast_EmailSend::fetch(array("#emailId = '[#1#]' AND #dataId = '[#2#]'", $rec->emailId, $rec->listDetailId))) continue;
+            
+            // Данните за детайла
+            $detRec = blast_ListDetails::fetch($rec->listDetailId);
+            
+            // Добавяме данните, за новия запис
+            $nRec = new stdClass();
+            
+            if ($detRec->data) {
+                $nRec->data = unserialize($detRec->data);
+            } else {
+                $nRec->data = array();
+            }
+            $nRec->id = $rec->id;
+            $nRec->dataId = $detRec->id;
+            $nRec->emailId = $rec->emailId;
+            $nRec->sentOn = $rec->sentOn;
+            
+            if ($rec->sentOn) {
+                $nRec->state = 'sended';
+            } else {
+                $nRec->state = 'pending';
+            }
+            
+            $emailStr = '';
+            foreach ((array)$nRec->data as $name => $val) {
+                if ($name != 'email') continue;
+                $emailsArr = type_Emails::toArray($val);
+                $emailStr = $emailsArr[0];
+            }
+            $nRec->email = $emailStr;
+            
+            // След успешен запис
+            if (blast_EmailSend::save($nRec, NULL, 'UPDATE')) {
+                
+                // Обновяваме стойността за детайла в лога
+                $masterRec = blast_Emails::fetch($nRec->emailId);
+                $lQuery = log_Documents::getQuery();
+                $lQuery->where("#containerId = '{$masterRec->containerId}'");
+                while ($lRec = $lQuery->fetch()) {
+                    if ($lRec->data->detId != $rec->listDetailId) continue;
+                    $lRec->data->detId = $nRec->id;
+                    log_Documents::save($lRec, 'dataBlob', 'UPDATE');
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Миграция за blast_Emails таблицата
+     */
+    static function fixEmails()
+    {
+        $blsInst = cls::get('blast_Emails');
+        
+        $blsInst->db->connect();
+        
+        $listId = str::phpToMysqlName('listId');
+        if (!$blsInst->db->isFieldExists($blsInst->dbTableName, $listId)) return ;
+        
+        $blsInst->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист, mandatory');
+        
+        // Всички записи, които нямат клас и обект
+        $query = $blsInst->getQuery();
+        $query->where("#perSrcClassId IS NULL");
+        $query->where("#perSrcObjectId IS NULL");
+        
+        $listClassId = blast_Lists::getClassId();
+        while ($rec = $query->fetch()) {
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->perSrcClassId = $listClassId;
+            $nRec->perSrcObjectId = $rec->listId;
+            
+            $blsInst->save($nRec, 'perSrcClassId, perSrcObjectId', 'UPDATE');
+        }
     }
 }

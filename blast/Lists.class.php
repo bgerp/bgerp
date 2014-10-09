@@ -55,6 +55,12 @@ class blast_Lists extends core_Master
     
     
     /**
+     * Какви интерфейси поддържа този мениджър
+     */
+    var $interfaces = 'bgerp_PersonalizationSourceIntf';
+    
+    
+    /**
      * Кой може да чете?
      */
     var $canRead = 'blast,ceo,admin';
@@ -358,5 +364,212 @@ class blast_Lists extends core_Master
         $csv .= "\n";
 
         return $csv;
+    }
+    
+    
+    /**
+     * Преобразува стринга с полета в масив с инстанции на класовете
+     * 
+     * @param string $fields
+     * 
+     * @return array
+     */
+    protected static function getFieldsArr($fields)
+    {
+        $fields = trim($fields);
+        
+        $fields = str_replace(array("\n", "\r\n", "\n\r"), array(',', ',', ','), $fields);
+        
+        // Преобразуваме в масив
+        $fieldsArr = arr::make($fields, TRUE);
+        
+        // Обхождаме масива и за всеки плейсхолдер, добавяме съответния му тип
+        foreach ($fieldsArr as $name => $caption) {
+            $name = strtolower($name);
+            $paramArr = array('caption' => $caption);
+            switch ($name) {
+                
+                case 'email' :
+                    $type = 'type_Email';
+                break;
+                
+                case 'emails' :
+                    $type = 'type_Emails';
+                break;
+                
+                case 'vat' :
+                    $type = 'drdata_VatType';
+                break;
+                
+                case 'fax' :
+                case 'mobile' :
+                case 'tel' :
+                case 'phone' :
+                    $type = 'drdata_PhoneType';
+                break;
+                
+                case 'country' :
+                    $type = 'type_Varchar';
+                    $paramArr['remember'] = 'remember';
+                break;
+                
+                default :
+                    $type = 'type_Varchar';
+                break;
+            }
+            $fieldsArr[$name] = cls::get($type, $paramArr);
+        }
+        
+        return $fieldsArr;
+    }
+    
+    
+    /**
+     * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
+     * @see bgerp_PersonalizationSourceIntf
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public function getPersonalizationDescr($id)
+    {
+        $fieldsArr = array();
+        $rec = $this->fetch($id);
+        
+        if (!$rec) return $fieldsArr;
+        
+        // Масив с ключове плейсхолдерите и стойности класовете им
+        $fieldsArr = $this->getFieldsArr($rec->allFields);
+        
+        return $fieldsArr;
+    }
+    
+    
+    /**
+     * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value 
+     * @see bgerp_PersonalizationSourceIntf
+     * 
+     * @param integer $id
+     * @param integer $limit
+     * 
+     * @return array
+     */
+    public function getPresonalizationArr($id, $limit=0)
+    {
+        $resArr = array();
+        
+        // Всички списъци, които не са спредни или оттеглени
+        $detailQuery = blast_ListDetails::getQuery();
+        $detailQuery->where("#listId = '{$id}'");
+        $detailQuery->where("#state != 'stopped'");
+        $detailQuery->where("#state != 'rejected'");
+        if ($limit) {
+            $detailQuery->limit($limit);
+        }
+        
+        $cnt = 0;
+        while ($rec = $detailQuery->fetch()) {
+            $resArr[$rec->id] = unserialize($rec->data);
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
+     * @see bgerp_PersonalizationSourceIntf
+     * 
+     * @param integer|object $id
+     * @param boolean $verbal
+     * 
+     * @return string
+     */
+    public function getPersonalizationTitle($id, $verbal=TRUE)
+    {
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            $rec = $this->fetch($id);
+        }
+        
+        // Ако трябва да е вебална стойност
+        if ($verbal) {
+            $title = $this->getVerbal($rec, 'title');
+        } else {
+            $title = $rec->title;
+        }
+        
+        return $title;
+    }
+    
+    
+    /**
+     * Дали потребителя може да използва дадения източник на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     * 
+     * @param integer $id
+     * @param integer $userId
+     * 
+     * @return boolean
+     */
+    public function canUsePersonalization($id, $userId = NULL)
+    {
+        // Всеки който има права до сингъла на записа, може да го използва
+        if (($id > 0) && ($this->haveRightFor('single', $id, $userId))) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас, които са достъпни за посочения потребител
+     * @see bgerp_PersonalizationSourceIntf
+     * 
+     * @param integer $userId
+     * 
+     * @return array
+     */
+    public function getPersonalizationOptions($userId = NULL)
+    {
+        $resArr = array();
+        
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        //Добавя в лист само списъци с имейли
+        $query = $this->getQuery();
+        $query->orderBy("createdOn", 'DESC');
+        
+        // Обхождаме откритите резултати
+        while ($rec = $query->fetch()) {
+            
+            // Ако няма права за персонализиране, да не се връща
+            if (!$this->canUsePersonalization($rec->id, $userId)) continue;
+            
+            // Добавяме в масива
+            $resArr[$rec->id] = $this->getPersonalizationTitle($rec, FALSE);
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща линк, който сочи към източника за персонализация
+     * 
+     * @param integer $id
+     * 
+     * @return core_ET
+     */
+    public function getPersonalizationSrcLink($id)
+    {
+        // Създаваме линк към сингъла листа
+        $title = $this->getPersonalizationTitle($id, TRUE);
+        $link = ht::createLink($title, array($this, 'single', $id));
+        
+        return $link;
     }
 }

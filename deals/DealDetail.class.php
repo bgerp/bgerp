@@ -220,12 +220,12 @@ abstract class deals_DealDetail extends core_Detail
 	    		if($baseInfo->classId == cat_Packagings::getClassId()){
 	    			$form->rec->packagingId = $baseInfo->id;
 	    		}
-	    		
-	    		if(isset($mvc->LastPricePolicy)){
-	    			$policyInfo = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
-	    			if($policyInfo->price != 0){
-	    				$form->setSuggestions('packPrice', array('' => '', "{$policyInfo->price}" => $policyInfo->price));
-	    			}
+	    	}
+	    	
+	    	if(isset($mvc->LastPricePolicy)){
+	    		$policyInfo = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+	    		if($policyInfo->price != 0){
+	    			$form->setSuggestions('packPrice', array('' => '', "{$policyInfo->price}" => $policyInfo->price));
 	    		}
 	    	}
         }
@@ -260,7 +260,7 @@ abstract class deals_DealDetail extends core_Detail
             	$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
             	
             	
-            	if (!isset($policyInfo->price) && empty($pRec)) {
+            	if (empty($policyInfo->price) && empty($pRec)) {
             		$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
             	} else {
             		// Ако се обновява вече съществуващ запис
@@ -335,7 +335,7 @@ abstract class deals_DealDetail extends core_Detail
         	//@TODO да махна изискването да има дебъг
         	if(haveRole('debug') && mp_Jobs::haveRightFor('add') && !Mode::is('printing') && !Mode::is('text', 'xhtml')){
         		$img = ht::createElement('img', array('src' => sbf('img/16/clipboard_text.png', '')));
-        		$jobLink = "<span style='margin-left:5px'>" . ht::createLink($img, array('mp_Jobs', 'add', 'originClass' => $mvc->getClassId(), 'originDocId' => $rec->id), NULL, 'title=Ново задание') . "</span>";
+        		$jobLink = "<span style='margin-left:5px'>" . ht::createLink($img, array('mp_Jobs', 'add', 'originClass' => $mvc->Master->getClassId(), 'originDocId' => $rec->id), NULL, 'title=Ново задание') . "</span>";
         		$row->productId->append($jobLink);
         	}
     	}

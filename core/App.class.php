@@ -1,0 +1,1178 @@
+<?php
+
+class core_App
+{
+    
+
+    public static function run()
+    {
+        // Ако имаме заявка за статичен ресурс, веднага го сервираме и
+        // приключване. Ако не - продъжаваме със зареждането на фреймуърка
+        if ($_GET[EF_SBF]) {
+
+            core_Sbf::serveStaticFile($_GET[EF_SBF]);
+
+        } else {
+
+            // Зареждаме класа регистратор на плъгините
+            core_Cls::get('core_Plugins');
+
+            // Задаваме стойности по подразбиране на обкръжението
+            if (!core_Mode::is('screenMode')) {
+                core_Mode::set('screenMode', core_Browser::detectMobile() ? 'narrow' : 'wide');
+            }
+
+            // Генерираме съдържанието
+            $content = core_Request::forward();
+            
+            // Ако не сме в DEBUG режим и заявката е по AJAX
+            if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
+                core_Logs::log("Стартиране на core_App::run() през AJAX");
+                
+                return ;
+            }
+            
+            // Опакова съдържанието
+            $Wrapper = core_Cls::get('page_Wrapper');
+            $Wrapper->render($content);
+        }
+    }
+
+
+    /**
+     * Начално инициализиране на приложението и системата
+     */
+    public static function initSystem()
+    {
+        // Регистрираме функция за автоматично зареждане на класовете
+        spl_autoload_register(array('core_App', 'classAutoload'), TRUE, TRUE);
+
+
+        /**
+         * Директорията с конфигурационните файлове
+         */
+        defIfNot('EF_CONF_PATH', EF_ROOT_PATH . '/conf');
+
+
+        /**
+         * По подразбиране от локалния хост се работи в режим DEBUG
+         */
+        defIfNot('EF_DEBUG_HOSTS', 'localhost,127.0.0.1,::1');
+
+
+        // Ако index.php стои в директория с име, за което съществува конфигурационен 
+        // файл, приема се, че това име е името на приложението
+        if (!defined('EF_APP_NAME') &&
+            file_exists(EF_CONF_PATH . '/' . basename(EF_INDEX_PATH) . '.cfg.php')) {          
+            
+            /**
+             * Името на приложението. Използва се за определяне на други константи
+             */
+            DEFINE('EF_APP_NAME', basename(EF_INDEX_PATH));
+        }
+
+
+        /**
+         * Базовото име на директорията за статичните браузърни файлове
+         */
+        defIfNot('EF_SBF', 'sbf');
+
+
+        // Разрешаваме грешките, ако инсталацията е Debug
+        ini_set("display_errors", EF_DEBUG);
+        ini_set("display_startup_errors", EF_DEBUG);
+
+
+        /**
+         * Времева зона
+         */
+        defIfNot('EF_TIMEZONE', 'Europe/Sofia');
+
+        // Сетваме времевата зона
+        date_default_timezone_set(EF_TIMEZONE);
+
+
+        // Вътрешно кодиране
+        mb_internal_encoding("UTF-8");
+
+
+        // Локал за функции като basename
+        setlocale(LC_ALL, 'en_US.UTF8');
+    }
+
+
+    /**
+     * Вкарва контролерните параметри от $_POST заявката
+     * и виртуалното URL в $_GET заявката
+     *
+     * @return array
+     */
+    public static function processUrl()
+    {
+        $q = array();
+
+        // Подготвяме виртуалното URL
+        if (!empty($_GET['virtual_url'])) {
+
+            $dir = dirname($_SERVER['SCRIPT_NAME']);
+
+            $len = ($dir == DIRECTORY_SEPARATOR) ? 1 : strlen($dir) + 1;
+
+            $_GET['virtual_url'] = substr($_SERVER['REQUEST_URI'], $len);
+
+            $script = '/' . basename($_SERVER['SCRIPT_NAME']);
+
+            if(($pos = strpos($_GET['virtual_url'], $script)) === FALSE) {
+                $pos = strpos($_GET['virtual_url'], '/?');
+            }
+
+            if($pos) {
+                $_GET['virtual_url'] = substr($_GET['virtual_url'], 0, $pos + 1);
+            }
+        }
+
+        // Опитваме се да извлечем името на модула
+        // Ако имаме виртуално URL - изпращаме заявката към него
+        if (!empty($_GET['virtual_url'])) {
+
+            // Ако виртуалното URL не завършва на'/', редиректваме към адрес, който завършва
+            $vUrl = explode('/', $_GET['virtual_url']);
+
+            // Премахваме последният елемент
+            $cnt = count($vUrl);
+
+            if (empty($vUrl[$cnt - 1])) {
+                unset($vUrl[$cnt - 1]);
+            } else {
+                if ($vUrl[0] != EF_SBF && (strpos($vUrl[$cnt - 1], '?') === FALSE)) {
+                    // Ако не завършва на '/' и не става дума за статичен ресурс
+                    // редиректваме към каноничен адрес
+                    static::redirect(static::getSelfURL() . '/');
+                }
+            }
+
+            if (defined('EF_APP_NAME')) {
+                $q['App'] = EF_APP_NAME;
+            }
+
+            if (defined('EF_CTR_NAME')) {
+                $q['Ctr'] = EF_CTR_NAME;
+            }
+
+            if (defined('EF_ACT_NAME')) {
+                $q['Act'] = EF_ACT_NAME;
+            }
+
+            foreach ($vUrl as $id => $prm) {
+                // Определяме случая, когато заявката е за браузърен ресурс
+                if ($id == 0 && $prm == EF_SBF) {
+                    if (!$q['App']) {
+                        $q['App'] = $vUrl[1];
+                    }
+                    unset($vUrl[0], $vUrl[1]);
+                    $q[EF_SBF] = implode('/', $vUrl);
+                    break;
+                }
+
+                // Дали това не е името на приложението?
+                if (!$q['App'] && $id == 0) {
+                    $q['App'] = strtolower($prm);
+                    continue;
+                }
+
+                // Дали това не е име на контролер?
+                if (!$q['Ctr'] && $id < 2) {
+                    if (!preg_Match("/([A-Z])/", $prm)) {
+                        $last = strrpos($prm, '_');
+
+                        if ($last !== FALSE && $last < strlen($prm)) {
+                            $className{$last + 1} = strtoupper($prm{$last + 1});
+                        } else {
+                            $className{0} = strtoupper($prm{0});
+                        }
+                    }
+                    $q['Ctr'] = $prm;
+                    continue;
+                }
+
+                // Дали това не е име на екшън?
+                if (!$q['Act'] && $id < 3) {
+                    $q['Act'] = $prm;
+                    continue;
+                }
+
+                if ((count($vUrl) - $id) % 2) {
+                    if (!$q['id'] && !$name) {
+                        $q['id'] = decodeUrl($prm);
+                    } else {
+                        if ($name) {
+                            $q[$name] = $prm;
+                        }
+                    }
+                } else {
+                    $name = $prm;
+                }
+            }
+
+            // Вкарваме получените параметри от $_POST заявката
+            // или от виртуалното URL в $_GET заявката
+            foreach ($q as $var => $value) {
+                if (!$_GET[$var]) {
+                    if ($_POST[$var]) {
+                        $_GET[$var] = $_POST[$var];
+                    } elseif ($q[$var]) {
+                        $_GET[$var] = $q[$var];
+                    }
+                }
+            }
+        }
+
+        // Възможно е App да бъде получено само от POST заявка
+        if (empty($_GET['App']) && !empty($_POST['App'])) {
+            $_GET['App'] = $_POST['App'];
+        }
+
+        // Абсолютен дефолт за името на приложението
+        if (empty($_GET['App']) && defined('EF_DEFAULT_APP_NAME')) {
+            $_GET['App'] = EF_DEFAULT_APP_NAME;
+        }
+
+        return $q;
+    }
+
+
+    /**
+     * Зареждане на глобалните конфигурационни константи
+     */
+    public static function loadConfig()
+    {
+        // Вземаме името на приложението от параметрите на URL, ако не е дефинирано
+        if (!defined('EF_APP_NAME')) {
+            if(!$_GET['App']) {
+                halt('Error: Unable to determinate application name (EF_APP_NAME)</b>');
+            }
+            
+            /**
+             * Името на приложението. Използва се за определяне на други константи.
+             */
+            defIfNot('EF_APP_NAME', $_GET['App']);
+            
+            /**
+             * Дали името на приложението е зададено фиксирано
+             */
+            DEFINE('EF_APP_NAME_FIXED', FALSE);
+        } else {
+            
+            /**
+             * Дали името на приложението е зададено фиксирано
+             */
+            DEFINE('EF_APP_NAME_FIXED', TRUE);
+        }
+
+        
+
+
+        // Зареждаме конфигурационния файл на приложението. 
+        // Ако липсва - показваме грешка.
+        // Шаблон за този файл има в директорията [_docs]
+        if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
+            halt('Error in boot.php: Missing configuration file: ' .
+                EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
+        }
+        
+
+        /**
+         * Дефинира, ако не е зададено името на кода на приложението
+         */
+        defIfNot('EF_APP_CODE_NAME', EF_APP_NAME);
+
+
+        /**
+         * Директорията с приложението
+         */
+        defIfNot('EF_APP_PATH', EF_ROOT_PATH . '/' . EF_APP_CODE_NAME);
+
+        
+        /**
+         * Пътя до директорията за статичните браузърни файлове към приложението
+         */
+        defIfNot('EF_SBF_PATH', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME);
+        
+        
+        /**
+         * Директорията с външни пакети
+         */
+        defIfNot('EF_VENDORS_PATH', EF_ROOT_PATH . '/vendors');
+        
+        
+        /**
+         * Базова директория, където се намират под-директориите с временни файлове.
+         * По подразбиране използваме системната директория за временни файлове.
+         *
+         * @see http://php.net/manual/en/function.sys-get-temp-dir.php
+         */
+        defIfNot('EF_TEMP_BASE_PATH', sys_get_temp_dir());
+        
+        
+        /**
+         * Директорията с временни файлове
+        */
+        defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
+        
+        
+        
+        /**
+         * Базова директория, където се намират под-директориите с качените файлове
+         */
+        defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
+
+
+        /**
+         * Директорията с качените и генерираните файлове
+         */
+        defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);        
+        
+    }
+
+
+
+    /**
+     * Дали се намираме в DEBUG режим
+     */
+    public static function isDebug()
+    {
+        // Ако не е дефинирана константата
+        if (!defined('EF_DEBUG')) return FALSE;
+        
+        // Ако e TRUE
+        if (EF_DEBUG === TRUE) return TRUE;
+        
+        // Дали трябва да се пусне дебъг
+        static $efDebug = FALSE;
+        
+        // Флаг, указващ дали сме търсили за хостове
+        static $hostsFlag = FALSE;
+        
+        // Ако за първи път флизаме във функцията
+        if (!$hostsFlag) {
+            
+            $debugArr = explode(':', EF_DEBUG);
+            
+            // Ако е зададен хоста
+            if (strtolower($debugArr[0]) == 'hosts') {
+                
+                // Масив с хостовете
+                $hostsArr = core_Array::make($debugArr[1]);
+                
+                // IP на потребителя
+                $realIpAdd = $_SERVER['REMOTE_ADDR'];
+                
+                // Обхождаме масива с хостовете
+                foreach ((array)$hostsArr as $host) {
+                    
+                    // Ако се съдържа в нашия списък
+                    if (stripos($realIpAdd, $host) === 0) {
+                        
+                        // Пускаме дебъг режима
+                        ini_set("display_errors", 1);
+                        ini_set("display_startup_errors", 1);
+                        $efDebug = TRUE;
+                        
+                        break;
+                    }
+                }
+            }
+            
+            // Вдигаме флага
+            $hostsFlag = TRUE;
+        }
+        
+        return $efDebug;
+    }
+
+
+
+
+    /**
+     * Завършване на изпълнението на програмата
+     *
+     * @param bool $sendOutput
+     */
+    public static function shutdown($sendOutput = TRUE)
+    {
+        
+        if (!static::isDebug() && $sendOutput) {
+            self::flushAndClose();
+        }
+
+
+        // Освобождава манипулатора на сесията. Ако трябва да се правят
+        // записи в сесията, то те трябва да се направят преди shutdown()
+        if (session_id()) session_write_close();
+
+ 
+        // Генерираме събитието 'suthdown' във всички сингълтон обекти
+        core_Cls::shutdown();
+
+        // Излизаме със зададения статус
+        exit($status);
+    }
+
+    
+    /**
+     * Изпраща всичко буферирано към браузъра и затваря връзката
+     */
+    static function flushAndClose()
+    {
+        $content = ob_get_contents();         // Get the content of the output buffer
+         
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        $len = strlen($content);             // Get the length
+        header("Content-Length: $len");     // Close connection after $size characters
+        header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
+        header('Pragma: no-cache'); // HTTP 1.0.
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Proxies.
+        header('Connection: close');
+        
+        echo $content;                       // Output content
+            
+        // Изпращаме съдържанието на изходния буфер
+        ob_end_flush();
+        flush();
+    }
+
+
+    /**
+     * Спира обработката и извежда съобщение за грешка или го записв в errorLog
+     */
+    public static function halt($err)
+    {
+        if (static::isDebug()) {
+            echo "<li>" . $err . " | Halt on " . date('d.m.Y H:i:s');
+        } else {
+            echo "On " . date('d.m.Y H:i:s') . ' a System Error has occurred';
+        }
+
+        error_log("HALT: " . $err);
+
+        exit(-1);
+    }
+
+
+    /**
+     * Редиректва браузъра към посоченото URL
+     * Добавя сесийния идентификатор, ако е необходимо
+     */
+    public static function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'notice')
+    { 
+        // Очакваме най-много три символа (BOM) в буфера
+    	expect(ob_get_length() <= 3, array(ob_get_length(), ob_get_contents()));
+
+    	$url = toUrl($url, $absolute ? 'absolute' : 'relative');
+    	
+        if (isset($msg)) {
+    	    core_Statuses::newStatus($msg, $type);
+    	}
+    	
+    	if(Request::get('ajax_mode')){
+    		
+    		// Ако сме в Ajax_mode редиректа става чрез Javascript-а
+    		$resObj = new stdClass();
+    		$resObj->func = "redirect";
+    		$resObj->arg = array('url' => $url);
+    			
+    		echo json_encode(array($resObj));
+    	} else {
+
+            // Забранява кеширането. Дали е необходимо тук?
+    		header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
+    		header('Pragma: no-cache'); // HTTP 1.0.
+    		header('Expires: 0'); // Proxies.
+    		
+    		header("Location: $url", TRUE, 302);
+    	}
+
+        static::shutdown(FALSE);
+    }
+
+
+    /**
+     * Връща текущото GET URL
+     */
+    public static function getCurrentUrl()
+    {
+        $parentUrlArr = array();
+        
+        // Ако заявката е по AJAX
+        if (Request::get('ajax_mode')) {
+            
+            // Ако е зададено URL на страницата, от която се вика AJAX заявката
+            $parentUrlStr = Request::get('parentUrl');
+            if ($parentUrlStr) {
+                
+                // Парсираме URL-то
+                $parentUrlArr = static::parseLocalUrl($parentUrlStr);
+            }
+        }
+        
+        if ($parentUrlArr) {
+            $params = $parentUrlArr;
+        } else {
+            // Всички параметри в рекуеста
+            $params = Request::getParams();
+        }
+        
+        // Ако има параметри
+        if ($params) {
+            
+            // Премахваме ненужните
+            unset($params['virtual_url'], $params['ajax_mode']);
+        } else {
+            $params = array();
+        }
+        
+        return $params;
+    }
+
+
+    /**
+     *  Връща масив, който представлява вътрешното представяне на 
+     * локалното URL подадено като аргумент
+     */
+    public static function parseLocalUrl($str, $unprotect = TRUE)
+    {   
+        $get = array();
+        if ($str) {
+            $arr = explode('/', $str);
+
+            $get['App'] = $arr[0];
+            $get['Ctr'] = $arr[1];
+            $get['Act'] = $arr[2];
+            $begin = 3;
+
+            $cnt = count($arr);
+
+            if (count($arr) % 2 == (($begin-1) % 2)) {
+                $get['id'] = $arr[$begin];
+                $begin++;
+            }
+
+            for ($i = $begin; $i < $cnt; $i += 2) {
+                $key = $arr[$i];
+                $value = $arr[$i + 1];
+                $value = decodeUrl($value);
+                $key = explode(',', $key);
+
+                if (count($key) == 1) {
+                    $get[$key[0]] = $value;
+                } elseif (count($key) == 2) {
+                    $get[$key[0]][$key[1]] = $value;
+                } else {
+                    error('Повече от едномерен масив в URL-то не се поддържа', $key);
+                }
+            }
+            
+            // Премахваме защитата на id-то, ако има такава
+            if($get['id'] && $unprotect) {
+                expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'));
+            }
+        }
+        
+        return $get;
+    }
+
+
+    /**
+     * Връща масив, който представлява URL-то където трябва да
+     * се използва за връщане след изпълнението на текущата задача
+     */
+    public static function getRetUrl()
+    {
+        $retUrl = core_Request::get('ret_url');
+        
+        $res = self::parseLocalUrl($retUrl);
+
+        return $res;
+    }
+
+
+    /**
+     * Пренасочва към RetUrl
+     * 
+     * @see redirect()
+     * 
+     * @param mixed $defaultUrl използва този URL ако не може да установи RetUrl
+     * @param string $msg съобщение - нотификация
+     * @param string $type тип на нотификацията
+     */
+    public static function followRetUrl($defaultUrl = NULL, $msg = NULL, $type = 'notice')
+    {
+        if (!$retUrl = static::getRetUrl()) {
+            $retUrl = $defaultUrl;
+        }
+        
+        if (!$retUrl) {
+            $retUrl = array(
+                'Index',
+                'default'
+            );
+        }
+        
+        static::redirect($retUrl, FALSE, $msg, $type);
+    }
+
+
+    /**
+     * @todo Чака за документация ...
+     */
+    public static function toLocalUrl($arr)
+    {
+        if (is_array($arr)) {
+            if (!$arr['Act']) $arr['Act'] = 'default';
+
+            $url .= $arr['App'];
+            $url .= "/" . $arr['Ctr'];
+            $url .= "/" . $arr['Act'];
+
+            if (isset($arr['id'])) {
+                $url .= "/" . $arr['id'];
+            }
+            unset($arr['App'], $arr['Ctr'], $arr['Act'], $arr['id']);
+
+            foreach ($arr as $key => $value) {
+                if (is_array($value)) {
+                    foreach ($value as $k => $v) {
+                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . urlencode($v);
+                    }
+                } else {
+                    $url .= ($url ? '/' : '') . "{$key}/" . urlencode($value);
+                }
+            }
+        } else {
+            return $arr;
+        }
+
+        return $url;
+    }
+
+
+    /**
+     * Създава URL от параметрите
+     *
+     * @param array $params
+     * @param string $type Може да бъде relative|absolute|internal
+     * @param boolean $protect
+     * @param array $preParamsArr - Масив с имената на параметрите, които да се добавят в pre, вместо като GET
+     * 
+     * @return string
+     */
+    public static function toUrl($params = array(), $type = NULL, $protect = TRUE, $preParamsArr = array())
+    {
+        if(!$params) $params = array();
+        
+        if($type === NULL) {
+            if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) {
+                $type = 'absolute';
+            } else {
+                $type = 'relative';
+            }
+        }
+
+        // TRUE == 'absolute', FALSE == 'relative'
+        if($type === TRUE) {
+            $type = 'absolute';
+        } elseif($type === FALSE) {
+            $type = 'relative';
+        }
+
+        // Ако параметъра е стринг - нищо не правим
+        if (is_string($params)) return $params;
+
+        // Очакваме, че параметъра е масив
+        expect(is_array($params), $params, 'toUrl($params) Очаква  масив');
+        
+        $Request = core_Cls::get('core_Request');
+
+        if ($params[0]) {
+            $params['Ctr'] = $params[0];
+            unset($params[0]);
+        }
+
+        if (is_object($params['Ctr'])) {
+            $params['Ctr'] = core_Cls::getClassName($params['Ctr']);
+        }
+
+        if ($params[1]) {
+            $params['Act'] = $params[1];
+            unset($params[1]);
+        }
+
+        if ($params[2]) {
+            $params['id'] = $params[2];
+            unset($params[2]);
+        }
+
+        if (!$params['App']) {
+            $params['App'] = $Request->get('App');
+        }
+
+        if(is_string($params['Ctr']) && !$params['Ctr']) {
+            $params['Ctr'] = EF_DEFAULT_CTR_NAME;
+        }
+
+        if(is_string($params['Act']) && !$params['Act']) {
+            $params['Act'] = EF_DEFAULT_ACT_NAME;
+        }
+
+        if (!$params['Ctr']) {
+            $params['Ctr'] = $Request->get('Ctr');
+
+            if (!$params['Ctr']) {
+                $params['Ctr'] = 'Index';
+            }
+
+            if (!$params['Act']) {
+                $params['Act'] = $Request->get('Act');
+            }
+        }
+
+        // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
+        // И той е TRUE - това е сигнал да вземем текущото URL
+        if($params['ret_url'] === TRUE) {
+            $params['ret_url'] = static::getCurrentUrl();
+        }
+
+        // Ако ret_url е масив - кодирамего към локално URL
+        if(is_array($params['ret_url'])) {
+            $params['ret_url'] = static::toUrl($params['ret_url'], 'local');
+        }
+        
+        if($protect) {
+            $Request->doProtect($params);
+        }
+
+        // Ако е необходимо локално URL, то то се генерира с помощна функция
+        if($type == 'local') {
+
+            return static::toLocalUrl($params);
+        }  
+
+        // Зпочваме подготовката на URL-то
+
+        if (EF_APP_NAME_FIXED !== TRUE) {
+            $pre = '/' . ($params['App'] ? $params['App'] : EF_APP_NAME);
+        }
+
+        // Махаме префикса на пакета по подразбиране
+        $appPref = EF_APP_CODE_NAME . '_';
+
+        // Очакваме името на контролера да е стринг
+        expect(is_string($params['Ctr']), $appPref, $Request, $params);
+        
+        // Маха префикса, ако той съвпада с името на кода 
+        if (strpos($params['Ctr'], $appPref) === 0) {
+            $params['Ctr'] = substr($params['Ctr'], strlen($appPref));
+        }
+
+        // Задължително слагаме контролера
+        $pre .= '/' . $params['Ctr'] . '/';
+
+        if ($params['Act'] && (strtolower($params['Act']) !== 'default' || $params['id'])) {
+            $pre .= $params['Act'] . '/';
+        }
+
+        if ($params['id']) {
+            $pre .= urlencode($params['id']) . '/';
+        }
+
+        unset($params['Ctr'], $params['App'], $params['Act'], $params['id']);
+        
+        // Ако е сетнат масива
+        if ($preParamsArr) {
+            
+            // [^A-Za-z0-9_\-\.]
+            $regExp = '/[^\w\-\.]/';
+            
+            // Обхождаме всички параметри
+            foreach ($preParamsArr as $param) {
+                
+                // Ако има стойност
+                if (isset($params[$param])) {
+                    
+                    // Ако не отоговаря на регулярния израз, да се остави за GET
+                    if (preg_match($regExp, $param) || preg_match($regExp, $params[$param])) {
+                        
+                        continue;   
+                    }
+                    
+                    // Добавяме към стринга
+                    $pre .= urlencode($param) . '/' . urlencode($params[$param]) . '/';
+                    
+                    // Премахваме от масива
+                    unset($params[$param]);
+                }
+            }
+        }
+        
+        if($urlHash = $params['#']) {
+            unset($params['#']);
+        }
+        
+        if(count($params)) {
+            $urlQuery =  http_build_query($params);
+        }
+
+        if($urlQuery) {
+            $urlQuery = '?' . $urlQuery;
+        }
+
+        if ($urlHash) {
+            $urlQuery .= '#' . $urlHash;
+        }
+
+        switch($type) {
+            case 'local' :
+                $url = ltrim($pre . $urlQuery, '/');
+                break;
+
+            case 'relative' :
+                $url = rtrim(static::getBoot(FALSE), '/') . $pre . $urlQuery;
+                break;
+
+            case 'absolute' :
+                $url = rtrim(static::getBoot(TRUE), '/') . $pre . $urlQuery;
+                break;
+        }
+
+        
+        return $url;
+    }
+
+
+    /**
+     * Връща целия текущ URL адрес
+     */
+    public static function getSelfURL()
+    {
+        $s = empty($_SERVER["HTTPS"]) ? '' : ($_SERVER["HTTPS"] == "on") ? "s" : "";
+        $slashPos = strpos($_SERVER["SERVER_PROTOCOL"], '/');
+        $protocol = substr(strtolower($_SERVER["SERVER_PROTOCOL"]), 0, $slashPos) . $s;
+
+        return $protocol . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    }
+
+
+    /**
+     * Връща относително или пълно URL до папката на index.php
+     *
+     * @param boolean $absolute;
+     * @return string
+     */
+    public static function getBoot($absolute = FALSE)
+    {
+        static $relativeWebRoot = NULL;
+
+        if ($absolute) {
+            $s = empty($_SERVER["HTTPS"]) ? '' : ($_SERVER["HTTPS"] == "on") ? "s" : "";
+            $slashPos = strpos($_SERVER["SERVER_PROTOCOL"], '/');
+            $protocol = substr(strtolower($_SERVER["SERVER_PROTOCOL"]), 0, $slashPos) . $s;
+            
+            $dirName = dirname($_SERVER['SCRIPT_NAME']);
+            
+            $dirName = str_replace(DIRECTORY_SEPARATOR, '/', $dirName);
+            
+            defIfNot('BGERP_ABSOLUTE_HTTP_HOST', $_SERVER['HTTP_HOST']);
+            
+            $boot = $protocol . "://" . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
+        } else {
+
+            $scriptName = $_SERVER['SCRIPT_NAME'];
+
+            if (!isset($relativeWebRoot)) {
+                $relativeWebRoot = str_replace('/index.php', '', $scriptName);
+                if ($relativeWebRoot == '/') $relativeWebRoot = '';
+            }
+
+            $boot = $relativeWebRoot;
+        }
+        
+        $boot = rtrim($boot, '/');
+
+        return $boot;
+    }
+
+
+
+    /**
+     * Тази функция определя пълния път до файла.
+     * Като аргумент получава последната част от името на файла
+     * Файла се търси в EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH
+     * Ако не бъде открит, се връща FALSE
+     */
+    static public function getFullPath($shortPath)
+    {
+        // Не може да има връщане назад, в името на файла
+        expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
+
+	   if (is_readable($shortPath)) {
+           
+           return $shortPath;
+       }
+
+        if(defined('EF_PRIVATE_PATH')) {
+            $pathsArr = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+        } else {
+            $pathsArr = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+        }
+
+        foreach($pathsArr as $base) {
+            $fullPath = $base . '/' . $shortPath;
+
+            if(is_readable($fullPath)) return $fullPath;
+        }
+
+        return FALSE;
+    }
+
+
+    /**
+     * Връща съдържанието на файла, като стринг
+     * Пътя до файла може да е указан само от пакета нататък
+     */
+    static public function getFileContent($shortPath)
+    {
+        expect($fullPath = static::getFullPath($shortPath));
+
+        return file_get_contents($fullPath);
+    }
+
+
+    public static function bp()
+    {
+        echo core_App::_bp(core_Html::arrayToHtml(func_get_args()), debug_backtrace());
+        
+        header($_SERVER["SERVER_PROTOCOL"]." 500 Internal Server Error");
+         
+        header('Content-Type: text/html; charset=UTF-8');
+
+        die;
+    }
+
+
+    public static function _bp($html, $stack, $type = 'Прекъсване')
+    {
+        // Ако сме в работен, а не тестов режим, не показваме прекъсването
+        if (!static::isDebug()) {
+            error_log("Breakpoint on line $breakLine in $breakFile");
+            return;
+        }
+
+        $errHtml = static::getErrorHtml($html, $stack, $type);
+        
+        $errHtml .= core_Debug::getLog();
+        
+        if (!file_exists(EF_TEMP_PATH) && !is_dir(EF_TEMP_PATH)) {
+    		mkdir(EF_TEMP_PATH, 0777, TRUE);    
+		}
+        
+        // Поставяме обвивка - html документ
+        $page = ht::wrapMixedToHtml($errHtml, TRUE);
+        
+        // Записваме за всеки случай и като файл
+        file_put_contents(EF_TEMP_PATH . '/err.log.html', $page . "\n\n");
+
+        return  $page;
+    }
+
+    
+    /**
+     * Връща html-a на грешката
+     */
+	public static function getErrorHtml($html, $stack, $type = 'Прекъсване')
+	{
+		list($stack, $breakFile, $breakLine) = static::prepareStack($stack);
+
+        $errHtml .= "<h2>{$type} на линия <span style=\"color:red\">$breakLine</span> в " .
+        "<span style=\"color:red\">$breakFile</span></h2>";
+
+        $errHtml .= self::getCodeAround($breakFile, $breakLine);
+
+        $errHtml .= $html;
+
+        $errHtml .= "<h2>Стек</h2>";
+
+        $errHtml .= core_Exception_Expect::getTraceAsHtml($stack);
+		
+        $errHtml .= static::renderStack($stack);
+        
+        return $errHtml;
+	}
+
+
+
+
+    /**
+     * Връща кода от php файла, около посочената линия
+     * Прави базово форматиране
+     *
+     * @param string $file Името на файла, съдържащ PHP код
+     * @param int    $line Линията, около която търсим 
+     */
+    public static function getCodeAround($file, $line, $range = 4)
+    {
+        $source = file_get_contents($file);
+
+        $lines = explode("\n", $source);
+
+        $from = max($line - $range-1, 0);
+        $to   = min($line + $range, count($lines));
+        $code = "<pre>";
+        $padding = strlen($to);
+        for($i = $from; $i < $to; $i++) {
+            $l = str_pad($i+1, $padding, " ", STR_PAD_LEFT);
+            $style = '';
+            if($i+1 == $line) {
+                $style = " style='background-color:#ff9;'";
+            }
+            $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". str_replace('<', '&lt;', rtrim($lines[$i])) . "</span>\n";
+            $code .= $l;
+        }
+        $code .= "</pre>";
+        
+        return $code;
+    }
+
+	
+
+    /**
+     * Задава стойността(ите) от втория параметър на първия,
+     * ако те не са установени
+     * @todo: използва ли се тази функция за масиви?
+     */
+    public static function setIfNot(&$p1, $p2)
+    {
+        $args = func_get_args();
+
+        for ($i = 1; $i < func_num_args(); $i++) {
+            $new = $args[$i];
+
+            if (is_array($p1)) {
+                if (!count($new))
+                continue;
+
+                foreach ($new as $key => $value) {
+                    if (!isset($p1[$key])) {
+                        $p1[$key] = $value;
+                    }
+                }
+            } else {
+                if (!isset($p1)) {
+                    $p1 = $new;
+                } else {
+                    return $p1;
+                }
+            }
+        }
+
+        return $p1;
+    }
+
+
+    /**
+     * Дефинира константа, ако преди това не е била дефинирана
+     * Ако вторият и аргумент започва с '[#', то изпълнението се спира
+     * с изискване за дефиниция на константата
+     */
+    public static function defIfNot($name, $value = NULL)
+    {
+        if(!defined($name)) {
+            if(substr($name, 0, 2) == '[#') {
+                static::halt("Constant '{$name}' is not defined. Please edit: " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
+            } else {
+                define($name, $value);
+            }
+        }
+    }
+
+
+    private static function prepareStack($stack)
+    {
+        // Вътрешни функции, чрез които може да се генерира прекъсване
+        $intFunc = array(
+            'bp:debug',
+            'bp:',
+            'trigger:core_error',
+            'error:',
+            'expect:'
+        );
+
+        $breakpointPos = $breakFile = $breakLine = NULL;
+
+        foreach ($stack as $i => $f) {
+            if (in_array(strtolower($f['function'] . ':' . $f['class']), $intFunc)) {
+                $breakpointPos = $i;
+            }
+        }
+
+        if (isset($breakpointPos)) {
+            $breakLine = $stack[$breakpointPos]['line'];
+            $breakFile = $stack[$breakpointPos]['file'];
+            $stack = array_slice($stack, $breakpointPos+1);
+        }
+
+        return array($stack, $breakFile, $breakLine);
+    }
+
+    private static function renderStack($stack)
+    {
+        $result = '';
+
+        foreach ($stack as $f) {
+            $hash = md5($f['file']. ':' . $f['line']);
+            $result .= "<hr><br><div id=\"{$hash}\">";
+            $result .= core_Html::mixedToHtml($f);
+            $result .= "</div>";
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Осигурява автоматичното зареждане на класовете
+     */
+    private static function classAutoload($className)
+    {
+        $aliases = array(
+            'arr' => 'core_Array',
+            'dt' => 'core_DateTime',
+            'keylist' => 'type_Keylist',
+            'ht' => 'core_Html',
+            'et' => 'core_ET',
+            'str' => 'core_String',
+            'debug' => 'core_Debug',
+            'mode' => 'core_Mode',
+            'redirect' => 'core_Redirect',
+            'request' => 'core_Request',
+            'url' => 'core_Url',
+            'users' => 'core_Users',
+            'ut' => 'unit_Tests',
+            'fileman' => 'fileman_Files2',
+        );
+        
+        if($fullName = $aliases[strtolower($className)]) {
+            if(core_Cls::load($fullName)) {
+                class_alias($fullName, $className);
+                
+                return TRUE;
+            }
+        } else {
+
+            return core_Cls::load($className, TRUE);;
+        }
+    }
+
+}

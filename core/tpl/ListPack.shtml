@@ -1,0 +1,22 @@
+<div class="clearfix21"></div><div style="width:100%">
+<!--ET_BEGIN ROW-->	
+	<div class="elem-holder">
+		<div class="">
+			<div class="elem-img">
+				[#img#]
+			</div>
+				[#name#]
+				[#open#] 
+			<div class="btns">
+				
+				[#install#]
+			
+				<!--ET_BEGIN config-->						
+			  	| [#config#] 
+				<!--ET_END config-->
+			</div>
+		</div>
+		<div class="clearfix21"></div>
+	</div>
+<!--ET_END ROW-->	
+</div><div class="clearfix21"></div>

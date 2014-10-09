@@ -80,7 +80,7 @@ class purchase_transaction_Purchase
         if ($actions['ship'] || $actions['pay']) {
             
             $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
-			deals_Helper::fillRecs($this->class, $rec->details, $rec); 
+			deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE)); 
             
             if ($actions['ship']) {
                 // Покупката играе роля и на складова разписка.
@@ -179,17 +179,11 @@ class purchase_transaction_Purchase
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-         	if($rec->chargeVat == 'yes'){
-	        	$ProductManager = cls::get($detailRec->classId);
-	            $vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
-	            $amount = $detailRec->amount - ($detailRec->amount * $vat / (1 + $vat));
-	        } else {
-	        	$amount = $detailRec->amount;
-	        }
-	        
+         	
+        	$amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
-        	
-    		// Ако не е "Складируем" - значи е разход
+
+        	// Ако не е "Складируем" - значи е разход
 			if(empty($pInfo->meta['canStore'])){
 
 				// Ако е "Материали" дебит 601, иначе 602
@@ -268,15 +262,16 @@ class purchase_transaction_Purchase
         $amountBase = $quantityAmount = 0;
         
         foreach ($rec->details as $detailRec) {
+        	$detailRec->amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
-        	$amountBase += $amount * $rec->currencyRate;
+        	$amountBase += $amount;
         }
         
-        if($rec->chargeVat == 'separate'){
-        	$amountBase += $this->class->_total->vat * $rec->currencyRate;
+        if($rec->chargeVat == 'separate' || $rec->chargeVat == 'yes'){
+        	$amountBase += $this->class->_total->vat;
         }
         
-        $quantityAmount += $amountBase / $rec->currencyRate;
+        $quantityAmount += $amountBase;// / $rec->currencyRate;
         
         $caseArr = array('501',
                         array('cash_Cases', $rec->caseId),        
@@ -293,11 +288,11 @@ class purchase_transaction_Purchase
         	$entries[] = array('amount' => $amountBase, 'debit' => $dealArr, 'credit' => $caseArr);
         } else {
         	$entries = array();
-        	$entries[] = array('amount' => $amountBase,
+        	$entries[] = array('amount' => $amountBase * $rec->currencyRate,
         			'debit' => $dealArr,
         			'credit' => array('481', array('currency_Currencies', $currencyId),
         					'quantity' => $quantityAmount));
-        	$entries[] = array('amount' => $amountBase, 'debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $quantityAmount), 'credit' => $caseArr);
+        	$entries[] = array('amount' => $amountBase * $rec->currencyRate, 'debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $quantityAmount), 'credit' => $caseArr);
         }
         
         return $entries;
@@ -329,13 +324,7 @@ class purchase_transaction_Purchase
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-       		if($rec->chargeVat == 'yes'){
-	        	$ProductManager = cls::get($detailRec->classId);
-	            $vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
-	            $amount = $detailRec->amount - ($detailRec->amount * $vat / (1 + $vat));
-	        } else {
-	        	$amount = $detailRec->amount;
-	        }
+        	$amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	
         	// Само складируемите продукти се изписват от склада

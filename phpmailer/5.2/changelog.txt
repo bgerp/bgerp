@@ -1,0 +1,4 @@
+В `class.phpmailer.php` извикванията на `echo` са обградени с if ($this->SMTPDebug) {}.
+В новите версии това е реализирано.
+
+Вместо `Message-ID` да се използва `Message-Id`.

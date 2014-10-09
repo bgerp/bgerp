@@ -19,7 +19,7 @@
         <!--ET_BEGIN STATISTIC_BAR-->
         [#STATISTIC_BAR#]
         <div class="sale-summary">
-            <table cellspacing="5" style='margin-bottom:10px'>
+            <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
                 <colgroup span="5"/>
                 <tr>
                     <td class = 'sum-th'>
@@ -43,7 +43,7 @@
                     <td class = 'nowrap'>[#amountDelivered#]</td>
                     <td class = 'nowrap'>[#amountPaid#]</td>
                     <td class = 'nowrap'>[#amountInvoiced#]</td>
-                    <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;' rowspan='4'>
+                    <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;' rowspan='3'>
                     	<!--ET_BEGIN initiatorId-->
                         <span style='font-weight:normal'>|Инициатор|*</span>: [#initiatorId#]<br>
                         <!--ET_END initiatorId-->
@@ -59,9 +59,6 @@
                         <div style='color:red'>[#isDelivered#]</div>
                         <!--ET_END isDelivered-->
                     </td>
-                </tr>
-                <tr style='height:5px'>
-                    <td colspan="4" style='height:5px; padding:0;'></td>
                 </tr>
                 <tr>
                     <td class = 'sum-th'>

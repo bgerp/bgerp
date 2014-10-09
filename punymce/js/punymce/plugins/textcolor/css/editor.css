@@ -1,0 +1,7 @@
+.punymce a.textcolor { background: url('../img/icons.gif') 0 0; }
+
+/* Color picker */
+div.punymce_color { position: absolute; display: none; background: #FFF; }
+div.punymce_color table { background: #FFF; }
+div.punymce_color td { width: 8px; height: 8px; }
+div.punymce_color a { display: block; width: 8px; height: 8px; border: 1px solid #808080; overflow: hidden; }

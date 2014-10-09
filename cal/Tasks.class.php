@@ -318,12 +318,12 @@ class cal_Tasks extends core_Master
         $now = dt::verbal2mysql();
         
         if(Mode::is('listTasks', 'by')) {
-            $data->query->where("#createdBy = $userId AND (#timeStart < '{$now}' || #timeStart IS NULL)");
+            $data->query->where("#createdBy = $userId");
         } else { 
-            $data->query->where("#sharedUsers LIKE '%|{$userId}|%' AND (#timeStart < '{$now}' || #timeStart IS NULL)");
+            $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
         }
 
-        $data->query->where("#state = 'active'");
+        $data->query->where("#state = 'active' OR #state = 'pending'");
         $data->query->orderBy("timeStart=DESC");
         
         // Подготвяме навигацията по страници
@@ -336,8 +336,11 @@ class cal_Tasks extends core_Master
         self::prepareListRecs($data);
  
         if (is_array($data->recs)) {
+        
             foreach($data->recs  as   &$rec) {
+            	$rec->savedState = $rec->state;
                 $rec->state = '';
+
             }    
         }
 
@@ -347,6 +350,15 @@ class cal_Tasks extends core_Master
         
         // Подготвяме редовете на таблицата
         self::prepareListRows($data);
+        
+        if  (is_array($data->recs)) {
+	        foreach ($data->recs as $id => $rec) {
+	        	$row = $data->rows[$id];
+	        	if ($rec->savedState == 'pending') {
+	        		$row->title .= '<div style="margin-left: 10px;display:inline-block;" class="stateIndicator state-pending"></div>';
+	        	}
+	        }
+        }
         
         $tpl = new ET("
             [#PortalPagerTop#]

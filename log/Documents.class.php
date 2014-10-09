@@ -2226,6 +2226,11 @@ class log_Documents extends core_Manager
         $count = 0;
         
         while ($action = static::popAction()) {
+            
+            if (!$action->threadId && $action->containerId) {
+                $action->threadId = doc_Containers::fetchField($action->containerId, 'threadId');
+            }
+            
             static::save($action);
             $count++;
         }

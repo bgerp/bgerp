@@ -330,7 +330,7 @@ abstract class deals_DealMaster extends deals_DealBase
 						$data->query->where("#state = 'closed'");
 						break;
 					case 'paid':
-						$data->query->where("#paidRound = #dealRound");
+						$data->query->where("#paymentState = 'paid'");
 						$data->query->where("#state = 'active' || #state = 'closed'");
 						break;
 					case 'invoiced':
@@ -376,10 +376,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	if(empty($data->noTotal)){
     		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
-    	
+    		
     		if($rec->paymentMethodId) {
     			$total = $this->_total->amount- $this->_total->discount;
     			$total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
+    			
     			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
     		}
     	}
@@ -664,6 +665,10 @@ abstract class deals_DealMaster extends deals_DealBase
      				'title' => $self::getRecTitle($objectId),
      				'features' => array('Контрагент' => $contragentName)
      		);
+     		
+     		if($rec->deliveryLocationId){
+     			$result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId);
+     		}
      	}
      
      	return $result;
@@ -1214,10 +1219,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Или не трябва да се фактурират
     	$query->orWhere("#makeInvoice = 'no'");
-    	 
-    	// Подреждаме ги в низходящ ред
-    	$query->orderBy('id', 'DESC');
-    
+    	
     	// Лимитираме заявката
     	$query->limit($limit);
     	 
@@ -1320,6 +1322,10 @@ abstract class deals_DealMaster extends deals_DealBase
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('shareLog');
+    	}
+    	
+    	if($data->paymentPlan){
+    		$tpl->placeObject($data->paymentPlan);
     	}
     }
 }

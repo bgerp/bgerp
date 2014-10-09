@@ -55,7 +55,7 @@ class acc_BalanceDetails extends core_Detail
      *
      * @var array
      */
-    private $balance;
+    public $balance;
     
     
     /**
@@ -943,7 +943,7 @@ class acc_BalanceDetails extends core_Detail
         $ent2Id = !empty($rec->{"{$type}Item2"}) ? $rec->{"{$type}Item2"} : NULL;
         $ent3Id = !empty($rec->{"{$type}Item3"}) ? $rec->{"{$type}Item3"} : NULL;
         
-        if ($ent1Id != NULL || $ent2Id != NULL || $ent3Id != NULL || $this->historyFor) {
+        if ($ent1Id != NULL || $ent2Id != NULL || $ent3Id != NULL) {
             
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
             
@@ -957,20 +957,6 @@ class acc_BalanceDetails extends core_Detail
  
             $this->inc($b['blQuantity'], $rec->{$quantityField} * $sign);
             $this->inc($b['blAmount'], $rec->amount * $sign);
-            
-            // Ако е посочено за кои пера да се помнят записите
-            if($this->historyFor && $accId == $this->historyFor['accId'] && $ent1Id == $this->historyFor['item1'] && $ent2Id == $this->historyFor['item2'] && $ent3Id == $this->historyFor['item3']){
-            	
-            	$this->history[$rec->id] = array('id'            => $rec->id, 
-            							         'docType'       => $rec->docType, 
-            					                 'docId'         => $rec->docId,
-            					                 "{$type}Amount" => $rec->amount,
-            					                 $quantityField  => $rec->{$quantityField},
-            					                 'blQuantity'    => $b['blQuantity'],
-            					                 'blAmount'      => $b['blAmount'],
-            					                 'reason'        => $rec->reason,
-            					                 'valior'		 => $rec->valior);
-            }
         }
        
         for ($accNum = $this->Accounts->getNumById($accId); !empty($accNum); $accNum = substr($accNum, 0, -1)) {
@@ -1095,86 +1081,6 @@ class acc_BalanceDetails extends core_Detail
     			$j++;
     		}
     	}
-    }
-    
-    
-    /**
-     * Връща вътрешно изчисления баланс
-     */
-    public function getCalcedBalance()
-    {
-    	return $this->balance;
-    }
-    
-    
-	/**
-     * Изчислява стойността на счетоводен баланс за зададен период от време
-     * за зададените сметки
-     *
-     * @param mixed $accs   - списък от систем ид-та на сметките
-     * @param mixed $items1 - списък с пера, от които поне един може да е на първа позиция
-     * @param mixed $items2 - списък с пера, от които поне един може да е на втора позиция
-     * @param mixed $items3 - списък с пера, от които поне един може да е на трета позиция
-     */
-    function prepareDetailedBalanceForPeriod($from, $to, $accs = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL, $history = FALSE, $pager)
-    {
-        $JournalDetails = &cls::get('acc_JournalDetails');
-        
-        $query = $JournalDetails->getQuery();
-        $cloneQuery = clone $query;
-        $cloneQuery->show('id,valior');
-        
-        // Филтриране на заявката да показва само записите от журнал за тази сметка
-        acc_JournalDetails::filterQuery($query, $from, $to, $accs);
-        
-        $query->orderBy('valior,id', 'ASC');
-        
-        // Филтриране на копието, за показване на записите за тези пера
-        acc_JournalDetails::filterQuery($cloneQuery, $from, $to, $accs, NULL, $items1, $items2, $items3, TRUE); 
-        $cloneQuery->orderBy('valior,id', 'DESC');
-        
-        // Добавяне на странициране
-        $displayedEntries = array();
-        if($pager){
-        	$pager->setLimit($cloneQuery);
-        	
-        	// Кои записи трябва да се показват
-        	$displayedEntries = $cloneQuery->fetchAll();
-        }
-        
-        $recs = $query->fetchAll();
-        if(count($recs)){
-        	
-        	// Изчисляване на сумите според стратегиите ако има,
-        	// за да е всичко точно са ни нужни нефилтрираните записи
-        	foreach ($recs as $rec){
-        		$this->feedStrategy($rec);
-        	}
-        	
-        	foreach ($recs as $rec){
-        		@$this->calcAmount($rec);
-        		$this->addEntry($rec, 'debit');
-        		$this->addEntry($rec, 'credit');
-        	}
-        }
-        
-        // В $history са всички излечени записи, в $recs ще са само тези които ще се показват
-    	$this->recs = $this->history;
-       
-    	// Ако има записи, които трябва да се помнят, се проверява за всеки от тях
-        // Дали присъства на страницата, ако не го махаме
-        if(count($this->recs) && count($displayedEntries)){
-        	foreach ($this->recs as $id => $rec){
-        		if(!array_key_exists($id, $displayedEntries)){
-        			unset($this->recs[$id]);
-        		}
-        	}
-        }
-        
-        if(count($this->recs)){
-        	// Обръщаме историята в низходящ ред по дата, след изчисленията
-        	$this->recs = array_reverse($this->recs);
-        }
     }
     
     
