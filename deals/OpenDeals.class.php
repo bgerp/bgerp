@@ -285,7 +285,7 @@ class deals_OpenDeals extends core_Manager {
 	    	$str = mb_strtolower($Cls->singleTitle);
 	    	if($draftRec = $Cls->fetch("#threadId = '{$threadId}' AND #state = 'draft'")){
 	    		if($Cls->haveRightFor('edit', $draftRec)){
-	    			$btns .= ht::createBtn($title, array($className, 'edit', $draftRec->id), NULL, NULL, "ef_icon={$Cls->singleIcon},title=Редактиране на {$str}");
+	    			$btns .= ht::createBtn($title, array($className, 'single', $draftRec->id), NULL, NULL, "ef_icon={$Cls->singleIcon},title=Преглед на {$str} #{$Cls->getHandle($draftRec->id)}");
 	    		}
 	    	} else {
 	    		if($Cls->haveRightFor('add', (object)array('threadId' => $threadId))){
