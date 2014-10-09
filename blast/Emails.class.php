@@ -3,14 +3,16 @@
 
 /**
  * Шаблон за писма за масово разпращане
- *
- *
+ * 
+ * 
  * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
+ * 
+ * @method getEmailOtherPlaces(object $rec)
  */
 class blast_Emails extends core_Master
 {
@@ -20,173 +22,199 @@ class blast_Emails extends core_Master
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
-    var $defaultFolder = 'Циркулярни имейли';
+    public $defaultFolder = 'Циркулярни имейли';
 	
     
     /**
      * Полета, които ще се клонират
      */
-    var $cloneFields = 'listId, group, from, subject, body, recipient, attn, email, tel, fax, country, pcode, place, address, attachments, encoding';
+    public $cloneFields = 'perSrcClassId, perSrcObjectId, from, subject, body, recipient, attn, email, tel, fax, country, pcode, place, address, attachments, encoding';
     
     
     /**
      * Заглавие на таблицата
      */
-    var $title = "Циркулярни имейли";
+    public $title = "Циркулярни имейли";
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Циркулярен имейл";
+    public $singleTitle = "Циркулярен имейл";
     
     
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/emails.png';
+    public $singleIcon = 'img/16/emails.png';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = 'Inf';
+    public $abbr = 'Inf';
     
     
     /**
      * Полето "Относно" да е хипервръзка към единичния изглед
      */
-    var $rowToolsSingleField = 'subject';
-    
-   
-    /**
-     * Данните на потребилтеля, които ще се заместват
-     */
-    var $emailData = NULL;
+    public $rowToolsSingleField = 'subject';
     
     
     /**
      * Дали може да бъде само в началото на нишка
      */
-    var $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = TRUE;
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, blast';
+    protected $canRead = 'ceo, blast';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, blast';
+    protected $canEdit = 'ceo, blast';
+    
+    
+    /**
+     * Кой има право да клонира?
+     */
+    protected $canClone = 'ceo, blast';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, blast';
+    protected $canAdd = 'ceo, blast';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo, blast';
+    protected $canView = 'ceo, blast';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, blast';
+    protected $canList = 'ceo, blast';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'blast,ceo';
+	protected $canSingle = 'ceo, blast';
+
+
+	/**
+	 * Кой може да оттелгя имейла
+	 */
+	protected $canReject = 'ceo, blast';
+    
+	
+	/**
+	 * Кой може да активира имейла
+	 */
+	protected $canActivate = 'ceo, blast';
+    
+	
+	/**
+	 * Кой може да обновява списъка с детайлите
+	 */
+	protected $canUpdate = 'ceo, blast';
+	
+
+	/**
+	 * Кой може да спира имейла
+	 */
+	protected $canStop = 'ceo, blast';
 	
 	
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'no_one';
+    protected $canDelete = 'no_one';
     
     
     /**
      * Кой може да праша информационните съобщения?
      */
-    var $canBlast = 'ceo, blast';
+    protected $canBlast = 'ceo, blast';
     
     
     /**
      * Кой може да променя активирани записи
+     * @see change_Plugin
      */
-    var $canChangerec = 'blast, ceo, admin';
+    protected $canChangerec = 'blast, ceo';
     
     
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'email_DocumentIntf';
+    public $interfaces = 'email_DocumentIntf';
     
     
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, bgerp_plg_blank, change_Plugin';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, bgerp_plg_blank, change_Plugin, plg_Search';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене 
+     * @see plg_Search
+     */
+    public $searchFields = 'subject, body';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, subject, listId, from, sendPerMinute, startOn';
+    protected $listFields = 'id, subject, srcLink, from, sendPerMinute, startOn';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'blast_ListSend';
+    public $details = 'blast_EmailSend';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.shtml';
-    
-    
-    /**
-     * Масив с подготвените данни (За да не се подготвят данните
-	 * за HTML и текстовата част) 2 пъти
-     */
-    var $prepared = array();
+    protected $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.shtml';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "2.2|Циркулярни";
+    public $newBtnGroup = "2.2|Циркулярни";
     
     
     /**
      * id на системата в крона
      */
-    static $cronSytemId = 'SendEmails';
+    protected static $cronSytemId = 'SendEmails';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    protected function description()
     {
-        $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист, mandatory');
+        $this->FLD('perSrcClassId', 'class(interface=bgerp_PersonalizationSourceIntf)', 'caption=Източник на данни->Клас, silent, input=hidden');
+        $this->FLD('perSrcObjectId', 'int', 'caption=Списък, mandatory, silent');
+        
         $this->FLD('group', 'enum(company=Фирми, personBiz=Лица (Бизнес данни), person=Лица (Частни данни))', 'caption=Група, mandatory, input=none');
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast)', 'caption=Съобщение,mandatory, changable');
         $this->FLD('sendPerMinute', 'int(min=1, max=100)', 'caption=Изпращания в минута, input=none, mandatory');
         $this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
-        
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
         //Данни на адресата - антетка
@@ -201,575 +229,523 @@ class blast_Emails extends core_Master
         $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData, changable');
         
         $this->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
-                                    cp1251=Windows Cyrillic|* (CP1251),
+									cp1251=Windows Cyrillic|* (CP1251),
                                     koi8-r=Rus Cyrillic|* (KOI8-R),
                                     cp2152=Western|* (CP1252),
                                     ascii=Латиница|* (ASCII))', 'caption=Знаци, changable');
         
         $this->FLD('attachments', 'set(files=Файловете,documents=Документите)', 'caption=Прикачи, changable');
+        $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable');
+        $this->FNC('srcLink', 'varchar', 'caption=Списък');
     }
+    
 
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param int $folderId - id на папката
-     * @return boolean
-     */
-    public static function canAddToFolder($folderId)
-    {
-        // Името на класа
-        $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
-
-        // Ако не е папка проект или контрагент, не може да се добави
-        if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) return FALSE;
-    }
-    
-    
- 	/**
-     * Добавяне на филтър
-     * Сортиране на записите
-     */
-    static function on_AfterPrepareListFilter($mvc, &$data)
-    {
-        //Добавя филтър за търсене по "Тема" и "Време на започване"
-        $data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%;margin-left:2px, 
-                hint=Търсене по "Тема" и "Време на започване"');
-        
-        $data->listFilter->showFields = 'filter';
-        
-        $data->listFilter->view = 'horizontal';
-        
-        //Добавяме бутон "Филтрирай"
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        $filterInput = trim($data->listFilter->input()->filter);
-        
-        if($filterInput) {
-            $data->query->where(array("#startOn LIKE '%[#1#]%' OR #subject LIKE '%[#1#]%'", $filterInput));
-        }
-        
-        // Сортиране на записите по състояние и по времето им на започване
-        $data->query->orderBy('state', 'ASC');
-        $data->query->orderBy('startOn', 'DESC');
-    }
-    
-    
 	/**
-     * Добавяме референтния номер на имейл-а
+     * Проверява дали има съобщения за изпращане и ги изпраща
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public function sendEmails()
     {
-        $row->handle = $mvc->getHandle($rec->id);
-    }
-    
-    
-    /**
-     * Добавя съответните бутони в лентата с инструменти, в зависимост от състоянието
-     */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-        //Превеждаме енкодинга
-        $data->row->encoding = tr($data->row->encoding);
+        // Всички активни или чакащи имейли, на които им е дошло времето за стартиране
+        $query = blast_Emails::getQuery();
+        $now = dt::verbal2mysql();
+        $query->where("#startOn <= '{$now}'");
+        $query->where("#state = 'active'");
+        $query->orWhere("#state = 'pending'");
         
-        //При рендиране на листовия изглед показваме дали ще се прикачат файловете и/или документите
-        $attachArr = type_Set::toArray($data->rec->attachments);
-        if ($attachArr['files']) $data->row->Files = tr('Файловете');
-        if ($attachArr['documents']) $data->row->Documents = tr('Документите');
-   
-        $id = $data->rec->id;
-        $state = $data->rec->state;
-        
-        if (($state == 'draft') || ($state == 'stopped')) {
-            //Добавяме бутона Активирай, ако състоянието е чернова или спряно
-            $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'ef_icon = img/16/lightning.png');
-        } elseif (($state == 'pending') || ($state == 'active')) {
-            //Добавяме бутона Спри, ако състоянието е активно или изчакване
-            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'ef_icon = img/16/gray-close.png');
-        }
-    }
-    
-    
-	/**
-     * Изпълнява се след подготвяне на формата за редактиране
-     */
-    static function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
-    {
-        $form = $data->form;
-        
-        // Ако има папка
-        if ($form->rec->folderId) {
+        //Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
+        while ($rec = $query->fetch()) {
             
-            // Корицата на папката
-            $coverClassName = doc_Folders::fetchCoverClassName($form->rec->folderId);
-            
-            // Ако корицата е група
-            if (strtolower($coverClassName) == 'crm_groups') {
-                
-                // Сетваме стойността
-                $isGroup = TRUE;
-                
-                // Задаваме да се показва групата
-                $form->setField('group', 'input=input');
-                
-                // Задаваме да не се показва листа
-                $form->setField('listId', 'input=none');
-                
-                // Вземаме id на корицата
-                $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
-                
-                // Инстация на класа
-                $coverClassInst = cls::get($coverClassName);
-                
-                // Вземаме записа
-                $coverRec = $coverClassInst->fetch($coverId);
-                
-                // Ако няма лица и фирми
-                if (!$coverRec->companiesCnt && !$coverRec->personsCnt) {
-                    
-                    // Редиректваме към групата
-                    return redirect(array('crm_Groups', 'single', $coverId), FALSE, tr("Нямате добавени лица или фирми в групата."));
-                }
-            }
-        }
-        
-        // Ако не е група
-        if (!$isGroup) {
-            
-            //Добавя в лист само списъци с имейли
-            $query = blast_Lists::getQuery();
-            $query->where("#keyField = 'email'");
-            $query->orderBy("createdOn", 'DESC');
-            
-            // Обхождаме откритите резултати
-            while ($rec = $query->fetch()) {
-                
-                // Добавяме в масива
-                $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
+            // Променяме състоянието от чакащо в активно
+            if ($rec->state == 'pending') {
+                $rec->state = 'active';
+                $this->save($rec);
             }
             
-            //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.
-            if (!$files) {
-                
-                // Редиректваме
-                return redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за имейли. Моля добавете."));
+            // Вземаме данните за имейлите, до които ще пращаме
+            $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerMinute);
+            
+            // Ако няма данни, затваряме 
+            if (!$dataArr) {
+                $rec->state = 'closed';
+                $this->save($rec);
+                continue;
             }
             
-            // Ако добавяме нов
-            if (!$form->rec->id) {
-                
-                // Показваме всички списъци
-                $form->setOptions('listId', $files, $form->rec->id);
-                
-            } else {
-                
-                // Ако редактираме, показваме списъка, който го редактираме
-                $file[$form->rec->listId] = $files[$form->rec->listId];
-                $form->setOptions('listId', $file);    
-            }
-        }
-        
-        $emailOption = email_Inboxes::getFromEmailOptions($form->rec->folderId);
-        $form->setOptions('from', $emailOption);
-        
-        // Ако създаваме нов
-        if (!$rec->id) {
+            // Инстанция на обекта
+            $srcClassInst = cls::get($rec->perSrcClassId);
             
-            //Слага state = draft по подразбиране при нов запис
-            $form->setDefault('state', 'draft');
+            // Масив с полетата и описаниите за съответния обект
+            $descArr = $srcClassInst->getPersonalizationDescr($rec->perSrcObjectId);
             
-            // Ако не създаваме копие
-            if (!Request::get('clone')) {
-                
-                // По подразбиране да е избран текущия имейл на потребителя
-                $form->setDefault('from', email_Inboxes::getUserInboxId());  
-            }
-        }
-        
-        //Ако създаваме нов, тогава попълва данните за адресата по - подразбиране
-        $rec = $data->form->rec;
-        if ((!$rec->id) && (!Request::get('clone'))) {
-            $rec->recipient = '[#company#]';
-            $rec->attn = '[#person#]';
-            $rec->email = '[#email#]';
-            $rec->tel = '[#tel#]';
-            $rec->fax = '[#fax#]';
-            $rec->country = '[#country#]';
-            $rec->pcode = '[#pCode#]';
-            $rec->place = '[#place#]';
-            $rec->address = '[#address#]';
-        }
-    }
-    
-    
-	/**
-	* Изпълнява се след въвеждането на даните от формата
-	* Проверява дали сме въвели несъществуващ шаблон
-	*/
-    function on_AfterInputEditForm($mvc, &$form)
-    {
-        // Ако формата е изпраена успешно
-        if ($form->isSubmitted()) {
-            $rec = $form->rec;
+            // Маркираме имейлите, като изпратени
+            blast_EmailSend::markAsSent($dataArr);
             
-            // Ако е група
-            if (isset($rec->group)) {
-                
-                // Ако има папка
-                if ($rec->folderId) {
-                    
-                    // Сетваме, че е група
-                    $isGroup = TRUE;
-                    
-                    // Вземаме id на корицата
-                    $coverId = doc_Folders::fetchCoverId($rec->folderId);
-                    
-                    // Името на корицата
-                    $coverClassName = doc_Folders::fetchCoverClassName($form->rec->folderId);
-                    
-                    // Инстанция на корицата
-                    $coverClassInst = cls::get($coverClassName);
-                    
-                    // Записа на корицата
-                    $coverRec = $coverClassInst->fetch($coverId);
-                    
-                    // Ако е групата е фирма
-                    if ($rec->group == 'company') {
-                        
-                        // Ако няма фирми в групата
-                        if (!$coverRec->companiesCnt) {
-                            
-                            // Сетваме грешка
-                            $form->setError('group', 'Няма въведени фирми в групата');
-                        }
-                    } else {
-                        
-                        // Ако е лице
-                        
-                        // Ако няма лица в групата
-                        if (!$coverRec->personsCnt) {
-                            
-                            // Сетваме грешка
-                            $form->setError('group', 'Няма въведени лица в групата');
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Ако сме субмитнали формата
-        if ($form->isSubmitted()) {
+            // Вземаме всички полета, които могат да бъдат имейли
+            $emailPlaceArr = self::getEmailFields($descArr);
             
-            // Ако ще се прикачат документи или файлове
-            if ($rec->attachments) {
-                
-                $attachArr = type_Set::toArray($rec->attachments);
-                
-                if ($attachArr['documents']) {
-                    // Прикачените документи
-                    $docsArr = $mvc->getDocuments($rec, $rec->body);
-                    $docsSizesArr = $mvc->getDocumentsSizes($docsArr);
-                }
-                if ($attachArr['files']) {
-                    // Прикачените файлове
-                    $attachmentsArr = $mvc->getAttachments($rec->body);
-                    $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
-                }
-                   
-                // Проверяваме дали размерът им е над допсутимият
-                $allAttachmentsArr = array_merge((array)$docsSizesArr, (array)$filesSizesArr);
-                if (!$mvc->checkMaxAttachedSize($allAttachmentsArr)) {
-                    
-                    // Вербалният размер на файловете и документите
-                    $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
-                    
-                    if ($attachArr['documents'] && $attachArr['files']) {
-                        $str = "файлове и документи";
-                    } else if ($attachArr['documents']) {
-                        $str = "документи";
-                    } else {
-                        $str = "файлове";
-                    }
-                    
-                    $form->setWarning('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
-                }
-            }
-        }
-        
-        // Ако сме субмитнали формата
-        if ($form->isSubmitted()) {
+            // Ако няма полета за имейли, няма смисъл да се праща
+            if (!$emailPlaceArr) continue;
             
-            // Масив с всички записи
-            $recArr = (array)$form->rec;
-            
-            if (!$isGroup) {
+            // Обхождаме всички получени данни
+            foreach ((array)$dataArr as $detId => $detArr) {
                 
-                // id' то на листа, от който се вземат данните на потребителя
-                if (!$listId = $form->rec->listId) {
-                    
-                    // Вземаме от записа
-                    $listId = $mvc->fetchField($form->rec->id, 'listId');
+                $toEmail = '';
+                
+                // Обединяваме всички възможни имейли
+                foreach ($emailPlaceArr as $place => $type) {
+                    $emailsStr = $emailsStr ? ', ' . $detArr[$place] : $detArr[$place];
                 }
                 
-                // Вземаме всички полета, които ще се заместват
-                $listsRecAllFields = blast_Lists::fetchField($listId, 'allFields');
+                // Вземаме имейлите
+                $emailsArr = type_Emails::toArray($emailsStr);
                 
-                //Вземаме всички имена на полетата на данните, които ще се заместват
-                preg_match_all('/(^)([^=]+)/m', $listsRecAllFields, $allFieldsArr);
-                
-                // Вземаме плейсхолдерите
-                $onlyAllFieldsArr = $allFieldsArr[2];
-                
-            } else {
-                $onlyAllFieldsArr = static::getGroupPlaceholders($rec->group);
-            }
-
-            // Вземаме Относно и Съобщение
-            $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
-            
-            // Масив с данни от плейсхолдера
-            $nRecArr['recipient'] = $recArr['recipient'];
-            $nRecArr['attn'] = $recArr['attn'];
-            $nRecArr['email'] = $recArr['email'];
-            $nRecArr['tel'] = $recArr['tel'];
-            $nRecArr['fax'] = $recArr['fax'];
-            $nRecArr['country'] = $recArr['country'];
-            $nRecArr['pcode'] = $recArr['pcode'];
-            $nRecArr['place'] = $recArr['place'];
-            $nRecArr['address'] = $recArr['address'];
-            
-            // Обикаляме всички останали стойности в масива
-            foreach ($nRecArr as $field) {
-                
-                // Всички данни ги записваме в една променлива
-                $allRecsWithPlaceHolders .= ' ' . $field;    
-            }
-
-            // Създаваме шаблон
-            $tpl = new ET($allRecsWithPlaceHolders);
-            
-            // Вземаме всички шаблони, които се използват
-            $allPlaceHolder = $tpl->getPlaceHolders();
-            
-            // Шаблон на Относно и Съобщение
-            $bodyAndSubTpl = new ET($bodyAndSubject);
-            
-            // Вземаме всички шаблони, които се използват
-            $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
-
-            //Добавяме полетата, които се добавят от системата
-            $onlyAllFieldsArr[] = 'unsubscribe';
-            $onlyAllFieldsArr[] = 'mid';
-            $onlyAllFieldsArr[] = 'otpisvane';
-            
-            //Създаваме масив с ключ и стойност имената на полетата, които ще се заместват
-            foreach ((array)$onlyAllFieldsArr as $field) {
-                // Тримваме полето
-                $field = trim($field);
-                
-                // Името в долен регистър
-                $field = strtolower($field);
-                
-                // Добавяме в масива
-                $fieldsArr[$field] = $field;
-            }
-            
-            // Премахваме дублиращите се плейсхолдери
-            $allPlaceHolder = array_unique($allPlaceHolder);
-            
-            //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
-            foreach ($allPlaceHolder as $placeHolder) {
-                
-                $placeHolderL = strtolower($placeHolder);
-                
-                // Ако плейсхолдера го няма във листа
-                if (!$fieldsArr[$placeHolderL]) {
-                    
-                    // Добавяме към съобщението за предупреждение
-                    $warning .= ($warning) ? ", {$placeHolder}" : $placeHolder;
-                    
-                    // Стринг на плейсхолдера
-                    $placeHolderStr = "[#" . $placeHolder . "#]";
-                    
-                    // Добавяме го в масива
-                    $warningPlaceHolderArr[$placeHolderStr] = $placeHolderStr;
+                // Първия валиден имейл, който не е в блокорани, да е получателя
+                foreach ((array)$emailsArr as $email) {
+                    if (blast_BlockedEmails::isBlocked($email)) continue;
+                    $toEmail = $email;
+                    break;
                 }
-            }
-            
-            // Премахваме дублиращите се плейсхолдери
-            $bodyAndSubPlaceHolder = array_unique($bodyAndSubPlaceHolder);
-            
-            //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
-            foreach ($bodyAndSubPlaceHolder as $placeHolder) {
                 
-                $placeHolderL = strtolower($placeHolder);
+                // Ако няма имейл, нямя до кого да се праща
+                if (!$toEmail) continue;
                 
-                // Ако плейсхолдера го няма във листа
-                if (!$fieldsArr[$placeHolderL]) {
-                    
-                    // Добавяме към съобщението за грешка
-                    $error .= ($error) ? ", {$placeHolder}" : $placeHolder;
+                // Клонираме записа
+                $cRec = clone $rec;
+                
+                // Ако е системяния потребител, го спираме
+                $isSystemUser = core_Users::isSystemUser();
+                if ($isSystemUser) {
+                    core_Users::cancelSystemUser();
                 }
-            }
-
-            // Показваме грешка, ако има шаблони, които сме въвели в повече в Относно и Съощение
-            if ($error) {
-                $form->setError('*', "|Шаблоните, които сте въвели ги няма в БД|*: {$error}");    
-            }
-            
-            // Показваме предупреждение за останалите шаблони
-            if ($warning) {
                 
-                // Сетваме грешката
-                $form->setWarning('*', "|Шаблоните, които сте въвели ги няма в БД|*: {$warning}"); 
+                // Имейла да се рендира и да се праща с правата на активатора
+                core_Users::sudo($cRec->activatedBy);
                 
-                // При игнориране на грешката
-                if (!$form->gotErrors()) {
-                    
-                    // Обхождаме масива с стойност
-                    foreach ($nRecArr as $field => $val) {
-                        
-                        // Премахваме всички плейсхолдери, които не се използват
-                        $val = str_ireplace((array)$warningPlaceHolderArr, '', $val);    
-                        
-                        // Добавяме към записа
-                        $form->rec->{$field} = $val;
-                    }
+                // Задаваме екшъна за изпращането
+                log_Documents::pushAction(
+                    array(
+                        'containerId' => $cRec->containerId,
+                        'threadId' => $cRec->threadId,
+                        'action' => log_Documents::ACTION_SEND,
+                        'data' => (object)array(
+                    		'sendedBy' => core_Users::getCurrent(),
+                            'from' => $cRec->from,
+                            'to' => $toEmail,
+                            'detId' => $detId,
+                        )
+                    )
+                );
+                
+                // Вземаме персонализирания имейл за съответните данни
+                $body = $this->getEmailBody($cRec, $detArr, TRUE);
+                
+                // Деескейпваме шаблоните в текстовата част
+                $body->text = core_ET::unEscape($body->text);
+                
+                // Опитваме се да изпратим имейла
+                try {
+                    //Извикваме функцията за изпращане на имейли
+                    $status = email_Sent::sendOne(
+                        $cRec->from,
+                        $toEmail,
+                        $body->subject,
+                        $body,
+                        array(
+                           'encoding' => $cRec->encoding,
+                           'no_thread_hnd' => TRUE
+                        )
+                    );
+                } catch (Exception $e) {
+                    $status = FALSE;
                 }
-            }
-        }
-    }
-    
-    
-	/**
-     * След рендиране на singleLayout заместваме плейсхолдера
-     * с шаблонa за тялото на съобщение в документната система
-     */
-    function renderSingleLayout_(&$data)
-    {
-        //Полета До и Към
-        $attn = $data->row->recipient . $data->row->attn;
-        $attn = trim($attn);
-        
-        //Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
-        if (!$attn) {
-            $data->row->recipientEmail = $data->row->email;
-            unset($data->row->email);
-        }
-        
-        //Полета Град и Адрес
-        $addr = $data->row->place . $data->row->address;
-        $addr = trim($addr);
-        
-        //Ако липсва адреса и града
-        if (!$addr) {
-            
-            //Не се показва и пощенския код
-            unset($data->row->pcode);
-            
-            //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме държавата след фирмата
-            if ($data->row->recipient) {
-                $data->row->firmCountry = $data->row->country;
-            }
-            
-            //Не се показва и държавата
-            unset($data->row->country);
-            
-            $telFax = $data->row->tel . $data->row->fax;
-            $telFax = trim($telFax);
-            
-            //Имейла е само в дясната част, преместваме в ляво
-            if (!$telFax) {
-                $data->row->emailLeft = $data->row->email;
-                unset($data->row->email);
-            }
-        }        
-        
-        //Рендираме шаблона
-        if (Mode::is('text', 'xhtml')) {
-            //Ако сме в xhtml (изпращане) режим, рендираме шаблона за изпращане
-            $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutBlast.shtml')));
-        } elseif (Mode::is('text', 'plain')) {
-            //Ако сме в текстов режим, рендираме txt
-            $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutBlast.txt')));
-        } else {
-            //Ако не сме в нито един от посочените рендираме html
-            $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutEmails.shtml'))); 
-        
-            // Ако има лист
-            if ($data->rec->listId) {
-    
-                // Линк към листа
-                $data->row->listLink = ht::createLink($data->row->listId, array('blast_Lists', 'single', $data->rec->listId)); 
-            } elseif ($data->rec->group) {
-            
-                // Ако е група
                 
-                // Вземаме корицата
-                $coverObj = doc_Folders::getCover($data->rec->folderId);
+                // Флушваме екшъна
+                log_Documents::flushActions();
                 
-                // Инстанцията на документа
-                $docInst = $coverObj->instance;
+                // Връщаме стария потребител
+                core_Users::exitSudo();
                 
-                // id' на документа
-                $docId = $coverObj->that;
-                
-                // Запис на документа
-                $docRec = $docInst->fetch($docId);
-                
-                // Името на групата
-                $name = $docInst->getVerbal($docRec, 'name');
-                
-                // Ако имаме права за сингъл на групата
-                if ($docInst->haveRightFor('single', $docRec)) {
+                // Ако е бил стартиран системия потребител, пак го стартираме
+                if ($isSystemUser) {
                     
-                    // Създаваме бутон към сигъла на групата
-                    $data->row->GroupLink = ht::createLink($name, array($docInst, 'single', $docId));
+                    //Стартираме системния потребител
+                    core_Users::forceSystemUser();
                 }
-            }
-            
-            // Записите
-            $rec = $data->rec;
-            
-            // Ако състоянието е активирано или чернов
-            if ($rec->state == 'active' || $rec->state == 'waitnig') {
                 
-                // Вземаме времето на следващото изпращане
-                // Ако има такова време
-                if ($nextStartTime = core_Cron::getNextStartTime(static::$cronSytemId)) {
+                // Ако имейлът е изпратен успешно, добавяме времето на изпращане
+                if ($status) {
                     
-                    // Ако времето е преди въведената дата от потребителя
-                    if ($nextStartTime < $rec->startOn) {
-                        
-                        // Използваме дата на потребителя
-                        $nextStartTime = $rec->startOn;
-                    }
+                    // Задаваме времето на изпращане и имейла изпращане
+                    blast_EmailSend::setTimeAndEmail(array($detId => $toEmail));
                     
                 } else {
-                    
-                    // Ако все пак може да се изпрати
-                    if ($nextStartTime !== FALSE) {
-                        
-                        // Ако няма следващо време на изпращане
-                        if (dt::now() < $rec->startOn) {
-                            
-                            // Вземаме времето въведено от потребителя
-                            $nextStartTime = $rec->startOn;
-                        }
-                    }
-                }
-                
-                // Ако сме успели да определим времето
-                if ($nextStartTime) {
-                    
-                    // Показваме вербалното време
-                    $data->row->NextStartTime = dt::mysql2verbal($nextStartTime, 'smartTime');
+                    // Ако възникне грешка при изпращане, записваме имейла, като върнат
+                    log_Documents::returned($body->__mid);
                 }
             }
         }
+    }
+    
+    
+	/**
+     * Подготвяме данните в rec'а
+     * 
+     * @param object $rec - Обект с данните
+     * @param array $detArr
+     */
+    protected function prepareRec(&$rec, $detArr)
+    {
+        // Заместваме данните
+        $this->replaceAllData($rec, $detArr);
+    }
+    
+    
+    /**
+     * Замества плейсхолдърите с тяхната стойност
+     * 
+     * @param object $rec
+     * @param array $detArr
+     */
+    protected function replaceAllData(&$rec, $detArr)
+    {
+        //Масив с всички полета, които ще се заместят
+        $fieldsArr = array();
+        $fieldsArr['subject'] = 'subject';
+        $fieldsArr['recipient'] = 'recipient';
+        $fieldsArr['attn'] = 'attn';
+        $fieldsArr['email'] = 'email';
+        $fieldsArr['tel'] = 'tel';
+        $fieldsArr['fax'] = 'fax';
+        $fieldsArr['country'] = 'country';
+        $fieldsArr['pcode'] = 'pcode';
+        $fieldsArr['place'] = 'place';
+        $fieldsArr['address'] = 'address';
+        $fieldsArr['body'] = 'body';
         
-        return $tpl;
+        //Обхождаме всички данни от антетката
+        foreach ($fieldsArr as $header) {
+            
+            //Ако нямаме въведена стойност, прескачаме
+            if (!$rec->$header) continue;
+            
+            //Заместваме данните в антетката
+            $rec->$header = $this->replacePlaces($rec->$header, $detArr);
+        }
+    }
+    
+    
+    /**
+     * Заместваме всички шаблони, с техните стойности
+     * 
+     * @param string $resStr - стринга, който ще се замества
+     * @param array $detArr - масив със стойностите за плейсхолдерите
+     * 
+     * @return string
+     */
+    protected function replacePlaces($resStr, $detArr)
+    {   
+        foreach ((array)$detArr as $key => $value) {
+            
+            // Какво ще заместваме
+            $search = "[#{$key}#]";
+            
+            //Заместваме данните
+            $resStr = str_ireplace($search, $value, $resStr);
+        }     
+        
+        return $resStr;
+    }
+    
+    
+    /**
+     * Връща допълнителните плейсхолдерите, за този тип документ
+     * 
+     * @param object $rec
+     * 
+     * @return array
+     */
+    protected static function getEmailOtherPlaces_($rec)
+    {
+        $me = get_called_class();
+        
+        $resArr = array();
+        
+        $mid = doc_DocumentPlg::getMidPlace();
+        $urlBg = htmlentities(toUrl(array($me, 'Unsubscribe', $rec->id, 'm' => $mid, 'l' => 'bg'), 'absolute'), ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        $urlEn = htmlentities(toUrl(array($me, 'Unsubscribe', $rec->id, 'm' => $mid, 'l' => 'en'), 'absolute'), ENT_COMPAT | ENT_HTML401, 'UTF-8');
+
+        // Създаваме линковете
+        $resArr['otpisvane'] = "[link={$urlBg}]тук[/link]";
+        $resArr['unsubscribe'] = "[link={$urlEn}]here[/link]";
+        $resArr['mid'] = $mid;
+        
+        return $resArr;
+    }
+    
+    
+	/**
+     * Връща тялото на съобщението
+     * 
+     * @param object $rec - Данни за имейла
+     * @param int    $detId - id на детайла на данните
+     * @param bool   $sending - Дали ще изпращаме имейла
+     * 
+     * @return object $body - Обект с тялото на съобщението
+     * 		   string $body->html - HTMl частта
+     * 		   string $body->text - Текстовата част
+     *         array  $body->attachments - Прикачените файлове
+     */
+    protected function getEmailBody($rec, $detArr, $sending=NULL)
+    {
+        $body = new stdClass();
+        
+        //Вземаме HTML частта
+        $body->html = $this->getEmailHtml($rec, $detArr, $sending);
+        
+        //Вземаме текстовата част
+        $body->text = $this->getEmailText($rec, $detArr);
+        
+        // Конвертираме към въведения енкодинг
+        if ($rec->encoding == 'ascii') {
+            $body->html = str::utf2ascii($body->html);
+            $body->text = str::utf2ascii($body->text);
+        } elseif (!empty($rec->encoding) && $rec->encoding != 'utf-8') {
+            $body->html = iconv('UTF-8', $rec->encoding . '//IGNORE', $body->html);
+            $body->text = iconv('UTF-8', $rec->encoding . '//IGNORE', $body->text);
+        }
+        
+        $docsArr = array();
+        $attFhArr = array();
+        
+        if ($sending) {
+            
+            //Дали да прикачим файловете
+            if ($rec->attachments) {
+                $attachArr = type_Set::toArray($rec->attachments);
+            }
+            
+            //Ако сме избрали да се добавят документите, като прикачени
+            if ($attachArr['documents']) {
+                
+                $nRec = clone $rec;
+                
+                $this->prepareRec($nRec, $detArr);
+                
+                //Вземаме манупулаторите на документите
+                $docsArr = $this->getDocuments($nRec);
+                
+                $docsFhArr = array();
+                
+                foreach ((array)$docsArr as $attachDoc) {
+                    // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                    // файл със съдържанието на документа в желания формат
+                    $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                
+                    $docsFhArr += $fhArr;
+                }
+                
+            }
+            
+            //Ако сме избрали да се добавят файловете, като прикачени
+            if ($attachArr['files']) {
+                
+                //Вземаме манупулаторите на файловете
+                $attFhArr = $this->getAttachments($rec);
+                
+                // Манипулаторите да са и в стойноситите им
+                $attFhArr = array_keys($attFhArr);
+                $attFhArr = array_combine($attFhArr, $attFhArr);
+            }
+            
+            //Манипулаторите на файловете в масив
+            $body->attachmentsFh = (array)$attFhArr;
+            $body->documentsFh = (array)$docsFhArr;
+            
+            //id' тата на прикачените файлове с техните
+            $body->attachments = keylist::fromArray(fileman_Files::getIdFromFh($attFhArr));
+            $body->documents = keylist::fromArray(fileman_Files::getIdFromFh($docsFhArr));
+        }
+        
+        // Други необходими данни за изпращането на имейла
+        $body->containerId = $rec->containerId;
+        $body->__mid = $rec->__mid;
+        $body->subject = $rec->subject;
+        
+        return $body;
+    }
+    
+    
+	/**
+     * Взема HTML частта на имейл-а
+     * 
+     * @param object $rec     - Данни за имейла
+     * @param array $detArr - Масив с данните
+     * @param boolean $sending - Дали се изпраща в момента
+     * 
+     * @return core_ET $res
+     */
+    protected function getEmailHtml($rec, $detArr, $sending)
+    {
+        // Опциите за генериране на тялото на имейла
+        $options = new stdClass();
+        
+        // Добавяме обработения rec към опциите
+        $options->rec = $rec;
+        $options->__detArr = $detArr;
+        
+        // Вземаме тялото на имейла
+        $res = self::getDocumentBody($rec->id, 'xhtml', $options);
+        
+        // За да вземем mid'а който се предава на $options
+        $rec->__mid = $options->rec->__mid;
+        
+        // За да вземем subject'а със заменените данни
+        $rec->subject = $options->rec->subject;
+
+        //Ако изпращаме имейла
+        if ($sending) {
+            //Добавяме CSS, като inline стилове            
+            $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
+                "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . "\n" . file_get_contents(sbf('css/email.css', "", TRUE));
+             
+            $res = '<div id="begin">' . $res->getContent() . '<div id="end">'; 
+             
+            // Вземаме пакета
+            $conf = core_Packs::getConfig('csstoinline');
+            
+            // Класа
+            $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
+            
+            // Инстанция на класа
+            $inst = cls::get($CssToInline);
+            
+            // Стартираме процеса
+            $res =  $inst->convert($res, $css);  
+            
+            $res = str::cut($res, '<div id="begin">', '<div id="end">');    
+        }
+        
+        //Изчистваме HTMl коментарите
+        $res = email_Outgoings::clearHtmlComments($res);
+        
+        return $res;
+    }
+    
+    
+	/**
+     * Взема текстовата част на имейл-а
+     * 
+     * @param object $rec - Данни за имейла
+     * @param array $detArr - Масив с данните
+     * 
+     * @return core_ET $res 
+     */
+    protected function getEmailText($rec, $detArr)
+    {
+        // Опциите за генериране на тялото на имейла
+        $options = new stdClass();
+        
+        // Добавяме обработения rec към опциите
+        $options->rec = $rec;
+        $options->__detArr = $detArr;
+        
+        // Вземаме тялото на имейла
+        $res = self::getDocumentBody($rec->id, 'plain', $options);
+        
+        // За да вземем mid'а който се предава на $options
+        $rec->__mid = $options->rec->__mid;
+        
+        // За да вземем subject'а със заменените данни
+        $rec->subject = $options->rec->subject;
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Намира предполагаемия език на текста
+     * 
+     * @param text $body - Текста, в който ще се търси
+     * @param NULL|string $lang - Език
+     * 
+     * @return string $lg - Двубуквеното означение на предполагаемия език
+     */
+    protected static function getLanguage($body, $lang=NULL)
+    {
+        // Масив с всички допустими езици за системата
+        $langArr = arr::make(EF_LANGUAGES, TRUE);
+        
+        // Ако подадения език е в допустимите, да се използва
+        if ($lang && $langArr[$lang]) {
+            $lg = $lang;
+        } else {
+            // Масив с всички предполагаеми езици
+            $lg = i18n_Language::detect($body);
+            
+            // Ако езика не е допустимите за системата, да е английски
+            if (!$langArr[$lg]) {
+                $lg = 'en';
+            }
+        }
+        
+        return $lg;
+    }
+    
+    
+    /**
+     * Вземаме всички прикачени документи
+     * 
+     * @param object $rec
+     * 
+     * @return array $documents - Масив с прикачените документи
+     */
+    function getDocuments($rec)
+    {
+        $docsArr = $this->getPossibleTypeConvertings($rec);
+        $docs = array();
+        
+        // Обхождаме всички документи
+        foreach ($docsArr as $fileName => $checked) {
+            
+            // Намираме името и разширението на файла
+            if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
+                $ext = mb_substr($fileName, $dotPos + 1);
+            
+                $docHandle = mb_substr($fileName, 0, $dotPos);
+            } else {
+                $docHandle = $fileName;
+            }
+            
+            $doc = doc_Containers::getDocumentByHandle($docHandle);
+            expect($doc);
+            
+            // Масив с манипулаторите на конвертиранети файлове
+            $docs[] = compact('doc', 'ext', 'fileName');
+        }
+        
+        return $docs;
+    }
+    
+    
+    /**
+     * Връща масив с полетата, които са инстанции на type_Email или type_Emails
+     * 
+     * @param array $descArr
+     * 
+     * @return array
+     */
+    protected static function getEmailFields($descArr)
+    {
+        $fieldsArr = array();
+        
+        // Обхождаме всички подадени полета и проверяваме дали не са инстанции на type_Email или type_Emails
+        foreach ((array)$descArr as $name => $type) {
+            if (($type instanceof type_Email) || ($type instanceof type_Emails)) {
+                $fieldsArr[$name] = $type;
+            }
+        }
+        
+        return $fieldsArr;
     }
     
 
@@ -779,7 +755,7 @@ class blast_Emails extends core_Master
     function act_Activation()
     {
         // Права за работа с екшън-а
-        requireRole('blast, ceo');
+        $this->requireRightFor('activate');
         
         $id = Request::get('id', 'int');
         
@@ -798,10 +774,13 @@ class blast_Emails extends core_Master
         expect($rec = $this->fetch($form->rec->id));
         
         // Очакваме потребителя да има права за активиране
-        $this->haveRightFor('activation', $rec);
+        $this->requireRightFor('activate', $rec);
         
         // Въвеждаме съдържанието на полетата
         $form->input('sendPerMinute, startOn');
+        
+        // Инстанция на избрания клас
+        $srcClsInst = cls::get($rec->perSrcClassId);
         
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
@@ -835,7 +814,6 @@ class blast_Emails extends core_Master
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
         if($form->isSubmitted()) {
             
-            // Кой активира имейла
             $form->rec->activatedBy = core_Users::getCurrent();
             
             // Ако е въведена коректна дата, тогава използва нея
@@ -846,7 +824,7 @@ class blast_Emails extends core_Master
             }
             
             // Вземаме секундите между сегашното време и времето на стартиране
-            $sec = dt::secsBetween(dt::now(), $form->rec->startOn);
+            $sec = dt::secsBetween($form->rec->startOn, dt::now());
             
             // Ако са по - малко от 60 секунди
             if ($sec < 60) {
@@ -859,31 +837,45 @@ class blast_Emails extends core_Master
                 $form->rec->state = 'pending';
             }
             
-            // Копира всички имеили, на които ще се изпраща имейл-а
-            $this->copyEmailsForSending($rec);
-            
             // Упдейтва състоянието и данните за имейл-а
-            blast_Emails::save($form->rec, 'state,startOn,sendPerMinute,activatedBy');
+            blast_Emails::save($form->rec, 'state,startOn,sendPerMinute,activatedBy,modifiedBy,modifiedOn');
+            
+            // Масив с всчики данни за персонализация
+            $personalizationArr = $srcClsInst->getPresonalizationArr($rec->perSrcObjectId);
+            
+            // Масив с типовете на полетата
+            $descArr = $srcClsInst->getPersonalizationDescr($rec->perSrcObjectId);
+            
+            // Масив с всички имейл полета
+            $emailFieldsArr = self::getEmailFields($descArr);
+            
+            // Обновяваме запсите
+            $updateCnt = blast_EmailSend::updateList($form->rec->id, $personalizationArr, $emailFieldsArr);
+            
+            // В зависимост от броя на обновления променяме състоянието
+            if ($updateCnt) {
+                if ($updateCnt == 1) {
+                    $msg = 'Добавен е|* ' . $updateCnt . ' |запис';
+                } else {
+                    $msg = 'Добавени са|* ' . $updateCnt . ' |записа';
+                }
+            } else {
+                $msg = 'Не са добавени нови записи';
+            }
+            
+            // Добавяме ново съобщени
+            status_Messages::newStatus($msg);
             
             // След успешен запис редиректваме
             $link = array('blast_Emails', 'single', $rec->id);
             
-            // Добавяме съобщение в статуса
-            status_Messages::newStatus(tr("Успешно активирахте бласт имейл-а"));
-            
             // Редиректваме
-            return redirect($link);
+            return new Redirect($link, "Успешно активирахте бласт имейл-а");
         } else {
             
-            // Ако няма брой изпращания
-            if (!$defVal = $rec->sendPerMinute) {
-                
-                // Ако няма задаваме да е 5
-                $defVal = 5;
-            }
-            
             // Стойности по подразбиране
-            $form->setDefault('sendPerMinute', $defVal);
+            $perMin = $rec->sendPerMinute ? $rec->sendPerMinute : 5;
+            $form->setDefault('sendPerMinute', 5);
             $form->setDefault('startOn', $rec->startOn);
         }
         
@@ -902,75 +894,16 @@ class blast_Emails extends core_Master
         // Добавяме във формата информация, за да знаем за кое писмо става дума
         $form->info = new ET ('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
         
-        // Данните на имейла
-        $emailRec = $rec;
+        // Вземаме един запис за персонализиране
+        $personalizationArr = $srcClsInst->getPresonalizationArr($rec->perSrcObjectId, 1);
         
-        // Ако е лист
-        if ($rec->listId) {
-            
-            // Вземаме записите за съответния лист
-            $query = blast_ListDetails::getQuery();
-            $query->where("#listId={$emailRec->listId}");
-            $query->where("#state != 'stopped'");
-    
-            // Обхождаме всички данни докато намерим запис, до който имаме достъп 
-            while ($listRec = $query->fetch()) {
-                
-                // Имейла за изпращане
-                $sendRec = blast_ListSend::fetch("#listDetailId = '{$listRec->id}' AND #emailId = '{$emailRec->id}'");
-    
-                // Ако имаме права тогава спираме обхождането
-                if (blast_ListDetails::haveRightFor('single', $listRec) && ($sendRec->state != 'stopped')) break;
-            }
-            
-            // Имейла на първия потребител, до когото имаме достъп
-            $detId = $listRec->id;
-        } elseif ($rec->group) {
-            
-            // Вземаме id на корицата
-            $coverId = doc_Folders::fetchCoverId($rec->folderId);
-            
-            // Добавяме в масива
-            $coverArr[$coverId] = $coverId;
-            
-            // Ако групата е фирма
-            if ($rec->group == 'company') {
-                
-                // Вземаме записите за фирмата
-                $gQuery = crm_Companies::getQuery();
-            } else {
-                
-                // Ако е лице
-                
-                // Вземаме записите за лицето
-                $gQuery = crm_Persons::getQuery();
-            }
-            
-            // Вземаме всички заиси от групата, които не са оттеглени
-            $gQuery->likeKeylist('groupList', $coverArr);
-            $gQuery->where("#state != 'rejected'");
-            
-            // Обхождаме получените резултати
-            while ($gRec = $gQuery->fetch()) {
-                
-                // Ако имаме права за сингула на документа
-                if ($gQuery->mvc->haveRightFor('single', $gRec)) {
-                    $detId = $gRec->id;
-                    
-                    break;
-                }
-            }
-        }
-        
-        // Ако няма имейл, тогава не рендираме примерния имейл
-        if (!$detId) {
-            
-            return $this->renderWrapping($form->renderHtml());
-        }
+        // Вземаме елемента
+        $detArr = array_pop($personalizationArr);
         
         // Тялото на съобщението
-        $body = $this->getEmailBody($emailRec, $detId);
+        $body = $this->getEmailBody($rec, $detArr);
         
+        // Деескейпваме плейсхолдерите в текстовата част
         $body->text = core_ET::unEscape($body->text);
         
         // Получаваме изгледа на формата
@@ -978,15 +911,6 @@ class blast_Emails extends core_Master
 
         // Добавяме превю на първия бласт имейл, който ще изпратим
         $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерен имейл") . "</b></div><div class='scrolling-holder'>[#BLAST_HTML#]<div class='clearfix21'></div><pre class=\"document\">[#BLAST_TEXT#]</pre></div></div>");
-
-        // Конвертираме към въведения енкодинг
-        if ($emailRec->encoding == 'ascii') {
-            $body->html = str::utf2ascii($body->html);
-            $body->text = str::utf2ascii($body->text);
-        } elseif (!empty($emailRec->encoding) && $emailRec->encoding != 'utf-8') {
-            $body->html = iconv('UTF-8', $emailRec->encoding . '//IGNORE', $body->html);
-            $body->text = iconv('UTF-8', $emailRec->encoding . '//IGNORE', $body->text);
-        }
         
         // Добавяме към шаблона
         $preview->append($body->html, 'BLAST_HTML');
@@ -995,7 +919,65 @@ class blast_Emails extends core_Master
         // Добавяме изгледа към главния шаблон
         $tpl->append($preview);
 
-        return static::renderWrapping($tpl);
+        return self::renderWrapping($tpl);
+    }
+    
+    
+    /**
+     * Обновява списъка с имейлите
+     */
+    function act_Update()
+    {
+        // Права за работа с екшън-а
+        $this->requireRightFor('update');
+        
+        $id = Request::get('id', 'int');
+        
+        // Очакваме да има такъв запис
+        expect($rec = $this->fetch($id));
+        
+        // URL' то където ще се редиректва при отказ
+        $retUrl = getRetUrl();
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
+
+        // Очакваме потребителя да има права за обновяване на съответния запис
+        $this->requireRightFor('update', $rec);
+        
+        $srcClsInst = cls::get($rec->perSrcClassId);
+        
+        // Масив с всчики данни за персонализация
+        $personalizationArr = $srcClsInst->getPresonalizationArr($rec->perSrcObjectId);
+        
+        // Масив с описанията на полетата
+        $descArr = $srcClsInst->getPersonalizationDescr($rec->perSrcObjectId);
+        
+        // Масив с всички имейл полета
+        $emailFieldsArr = self::getEmailFields($descArr);
+        
+        // Обновяваме запсите
+        $updateCnt = blast_EmailSend::updateList($rec->id, $personalizationArr, $emailFieldsArr);
+        
+        // В зависимост от броя на обновления променяме състоянието
+        if ($updateCnt) {
+            if ($updateCnt == 1) {
+                $updateMsg = 'Добавен е|* ' . $updateCnt . ' |запис';
+            } else {
+                $updateMsg = 'Добавени са|* ' . $updateCnt . ' |записа';
+            }
+            
+            $nRec = new stdClass();
+            
+            // Ако състоянието е затворено, активираме имейла
+            if ($rec->state == 'closed') {
+                $nRec->id = $rec->id;
+                $nRec->state = 'active';
+                $this->save($nRec);
+            }
+        } else {
+            $updateMsg = 'Няма нови записи за добавяне';
+        }
+        
+        return new Redirect($retUrl, $updateMsg);
     }
     
     
@@ -1004,13 +986,15 @@ class blast_Emails extends core_Master
      */
     function act_Stop()
     {
-        //Права за работа с екшън-а
-        requireRole('blast, ceo');
+        $this->requireRightFor('stop');
         
         //Очакваме да има такъв запис
         expect($id = Request::get('id', 'int'));
         
         expect($rec = $this->fetch($id));
+        
+        // Очакваме да има права за записа
+        $this->requireRightFor('stop', $rec);
         
         //Очакваме потребителя да има права за спиране
         $this->haveRightFor('stop', $rec);
@@ -1041,22 +1025,27 @@ class blast_Emails extends core_Master
     {
     	$conf = core_Packs::getConfig('blast');
     	
-        //GET променливите от линка
+        // GET променливите от линка
         $mid = Request::get("m");
         $lang = Request::get("l");
-        $cid = Request::get('id', 'int');
+        $id = Request::get('id', 'int');
         $uns = Request::get("uns");
+        
+        $rec = $this->fetch($id);
+        expect($rec);
+        
+        $cid = $rec->containerId; 
         
         expect($cid && $mid);
         
-        //Сменяме езика за да може да  се преведат съобщенията
+        // Сменяме езика за да може да  се преведат съобщенията
         core_Lg::push($lang);
 
-        //Шаблон
+        // Шаблон
         $tpl = new ET("<div class='unsubscribe'> [#text#] </div>");
         
         //Проверяваме дали има такъв имейл
-        if (!($rec = log_Documents::fetchHistoryFor($cid, $mid))) {
+        if (!($hRec = log_Documents::fetchHistoryFor($cid, $mid))) {
             
             //Съобщение за грешка, ако няма такъв имейл
             $tpl->append("<p>" . tr($conf->BGERP_BLAST_NO_MAIL) . "</p>", 'text');
@@ -1068,25 +1057,21 @@ class blast_Emails extends core_Master
         }
         
         // Имейла на потребителя
-        $email = $rec->data->to;
+        $email = $hRec->data->to;
         
         // Ако имейл-а е в листата на блокираните имейли или сме натиснали бутона за премахване от листата
-        if (($uns == 'del') || ((!$uns) && (blast_Blocked::fetch(array("#email='[#1#]'", $email))))) {
+        if (($uns == 'del') || ((!$uns) && (blast_BlockedEmails::isBlocked($email)))) {
             
-            //Какво действие ще правим след натискане на бутона
+            // Какво действие ще правим след натискане на бутона
             $act = 'add';
             
-            //Какъв да е текста на бутона
+            // Какъв да е текста на бутона
             $click = 'Добави';
             
             // Добавяме имейл-а в листата на блокираните
             if ($uns) {
                 
-                $rec = new stdClass();
-                
-                $rec->email = $email;
-                
-                blast_Blocked::save($rec, NULL, 'IGNORE');
+                blast_BlockedEmails::add($email);
             }
             
             $tpl->append("<p>" . tr($conf->BGERP_BLAST_SUCCESS_REMOVED) . "</p>", 'text');
@@ -1094,19 +1079,22 @@ class blast_Emails extends core_Master
             $act = 'del';
             $click = 'Премахване';
             
-            //Премахваме имейл-а от листата на блокираните имейли
-            blast_Blocked::delete("#email='{$email}'");
+            // Премахваме имейл-а от листата на блокираните имейли
+            blast_BlockedEmails::remove($email);
             $tpl->append("<p>" . tr($conf->BGERP_BLAST_SUCCESS_ADD) . "</p>", 'text');
         } else {
             $act = 'del';
             $click = 'Премахване';
             
-            //Текста, който ще се показва при първото ни натискане на линка
+            // Текста, който ще се показва при първото ни натискане на линка
             $tpl->append("<p>" . tr($conf->BGERP_BLAST_UNSUBSCRIBE) . "</p>", 'text');
         }
         
-        //Генерираме бутон за отписване или вписване
-        $link = ht::createBtn(tr($click), array($this, 'Unsubscribe', $cid, 'm' => $mid, 'l' => $lang, 'uns' => $act));
+        $currUrl = getCurrentUrl();
+        $currUrl['uns'] = $act;
+        
+        // Генерираме бутон за отписване или вписване
+        $link = ht::createBtn($click, $currUrl);
         
         $tpl->append($link, 'text');
         
@@ -1116,744 +1104,631 @@ class blast_Emails extends core_Master
         return $tpl;
     }
     
-
+    
 	/**
-     * Получава управлението от cron' а и проверява дали има съобщения за изпращане
-     */
-    function checkForSending()
+     * Изпълнява се след подготвяне на формата за редактиране
+	 * 
+	 * @param blast_Emails $mvc
+	 * @param object $res
+	 * @param object $data
+	 */
+    static function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
     {
-        $query = blast_Emails::getQuery();
-        $now = (dt::verbal2mysql());
-        $query->where("#startOn <= '$now'");
-        $query->where("#state != 'closed' AND #state != 'stopped' AND #state != 'draft'");
+        $form = $data->form;
         
-        //Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
-        while ($rec = $query->fetch()) {
-            switch ($rec->state) {
+        // Ако не е подаден клас да е blast_List
+        $listClassId = blast_Lists::getClassId();
+        $data->form->setDefault('perSrcClassId', $listClassId);
+        
+        // Инстанция на източника за персонализация
+        $perClsInst = cls::get($data->form->rec->perSrcClassId);
+        
+        // id на обекта на персонализация
+        $perSrcObjId = $data->form->rec->perSrcObjectId;
+        
+        // Ако е подаден такъв обект за персонализация
+        if ($perSrcObjId) {
+            
+            // Очакваме да може да персонализира
+            expect($perClsInst->canUsePersonalization($perSrcObjId));
+            
+            // Заглавието за персонализация
+            $perTitle = $perClsInst->getPersonalizationTitle($perSrcObjId, FALSE);
+            
+            // Да може да се избере само подадения обект
+            $perOptArr[$perSrcObjId] = $perTitle;
+            $form->setOptions('perSrcObjectId', $perOptArr);
+        }
+        
+        // Ако създаваме от blast_List и не е подаден обект
+        // За съвместимост със старите системи
+        if ($listClassId == $data->form->rec->perSrcClassId) {
+            if (!$data->form->rec->perSrcObjectId) {
                 
-                //Ако е на изчакване, тогава стартираме процеса
-                case 'pending' :
-                    //променяме статуса на имейл-а на активен
-                    $recNew = new stdClass();
-                    $recNew->id = $rec->id;
-                    $recNew->state = 'active';
-                    blast_Emails::save($recNew);
+                // Взеамем всички възбможни опции за персонализация
+                $perOptArr = $perClsInst->getPersonalizationOptions();
+                
+                // Обхождаме всички опции
+                foreach ((array)$perOptArr as $id => $name) {
                     
-                    //Стартираме процеса на изпращане
-                    $this->sending($rec);
+                    // Проверяваме дали може да се персонализира
+                    // Тряба да се проверява в getPersonalizationOptions()
+//                    if (!$perClsInst->canUsePersonalization($id)) continue;
                     
-                    break;
+                    // Описание на полетата
+                    $descArr = $perClsInst->getPersonalizationDescr($id);
                     
-                    //Ако процеса е активен, тогава продължава с изпращането на имейли до следващите получатели
-                case 'active' :
-                    $this->sending($rec);
-                    break;
-                    
-                    //За всички останали
-                default :
-                //Да не прави нищо
-                break;
+                    // Ако няма полета за имейл
+                    if (!self::getEmailFields($descArr)) {
+                        
+                        // Премахваме от опциите
+                        unset($perOptArr[$id]);
+                    }
+                }
+                
+                // Очакваме да има поне една останала опция
+                expect($perOptArr, 'Няма източник за персонализация');
+                
+                // Задаваме опциите
+                $form->setOptions('perSrcObjectId', $perOptArr);
             }
+        }
+        
+        // Само имейлите достъпни до потребителя да се показват
+        $emailOption = email_Inboxes::getFromEmailOptions($form->rec->folderId);
+        $form->setOptions('from', $emailOption);
+        
+        // Ако създаваме нов
+        if (!$rec->id) {
+            
+            // Ако не създаваме копие
+            if (!Request::get('clone')) {
+                
+                // По подразбиране да е избран текущия имейл на потребителя
+                $form->setDefault('from', email_Inboxes::getUserInboxId());  
+            }
+        }
+        
+        // Ако създаваме нов, тогава попълва данните за адресата по - подразбиране
+        $rec = $data->form->rec;
+        if ((!$rec->id) && (!Request::get('clone'))) {
+            $rec->recipient = '[#company#]';
+            $rec->attn = '[#person#]';
+            $rec->email = '[#email#]';
+            $rec->tel = '[#tel#]';
+            $rec->fax = '[#fax#]';
+            $rec->country = '[#country#]';
+            $rec->pcode = '[#pCode#]';
+            $rec->place = '[#place#]';
+            $rec->address = '[#address#]';
         }
     }
     
     
-	/**
-     * Записваме всички имейли в модела за изпращане, откъдето по - късно ще ги изпраща
+    /**
+	 * Изпълнява се след въвеждането на даните от формата
+     * 
+     * @param blast_Emails $mvc
+     * @param core_Form $form
      */
-    function copyEmailsForSending($rec)
-    {   
-        // Вземаме всички пощенски кутии, които са блокирани
-        $queryBlocked = blast_Blocked::getQuery();
+    function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
         
-        while ($recBlocked = $queryBlocked->fetch()) {
-            $listBlocked[$recBlocked->email] = TRUE;
-        }
-        
-        // Ако е лист
-        if ($rec->listId) {
+        // Ако сме субмитнали формата
+        if ($form->isSubmitted()) {
             
-            // Вземаме записите, за листа, които не са спряни
-            $query = blast_ListDetails::getQuery();
-            $query->where("#listId = '$rec->listId' AND #state != 'stopped'");
-        } elseif ($rec->group) {
-            
-            // Ако е група
+            // Ако ще се прикачат документи или файлове
+            // Проверяваме разширенията им
+            if ($rec->attachments) {
                 
-            // id на корицата
-            $coverId = doc_Folders::fetchCoverId($rec->folderId);
-            
-            // Добавяме в масив
-            $coverArr[$coverId] = $coverId;
-            
-            // Ако е фирма
-            if ($rec->group == 'company') {
+                $attachArr = type_Set::toArray($rec->attachments);
                 
-                // Извличаме записите за фирмата
-                $query = crm_Companies::getQuery();
-            } else {
-                
-                // Ако е лице
-                
-                // Извличаме записите за лицето
-                $query = crm_Persons::getQuery();
-            }
-            
-            // Всички, които са от тази група и не са оттеглени
-            $query->likeKeylist('groupList', $coverArr);
-            $query->where("#state != 'rejected'");
-        }
-        
-        // Задаваме достатъчно време, за да се обработи списъка
-        set_time_limit($query->count()/10);
-        
-        // Вземаме имейлите за изпращане
-        $listSendQuery = blast_ListSend::getQuery();
-        $listSendQuery->where("#emailId = '{$rec->id}'");
-        
-        // Обхождаме резултатите
-        while ($listSendRec = $listSendQuery->fetch()) {
-
-            // Ако е лист
-            if ($rec->listId) {
-                // Добавяме листа
-                $listSendArr[$listSendRec->listDetailId] = $listSendRec->listDetailId;
-            } else {
-                
-                // Ако е груп, добавяме групата
-                $listSendArr[$listSendRec->groupDetailId] = $listSendRec->groupDetailId;
-            }
-        }
-        
-        // Записваме всички имейли в модела за изпращане, откъдето по - късно ще ги вземем за изпращане
-        while ($recQ = $query->fetch()) {
-            
-            // Флаг, дали да се записва
-            $save = FALSE;
-            
-            // Ако е лист
-            if ($rec->listId) {
-                
-                // Ако имейл-а е в блокирани, тогава не се добавя в системата
-                if ($listBlocked[$recQ->key]) continue;
-                
-            } elseif ($rec->group) {
-            
-                // Ако е група
-                
-                // Вземаме данните за съответната група
-                $groupData = static::getDataFor($rec->group, $recQ->id);
-                
-                // Масив с имейлите
-                $emailsArr = type_Emails::toArray($groupData->rec['email']);
-
-                // Ако първия имейл е в блокирани, тогава не се добавя в системата
-                if ($listBlocked[$emailsArr[0]]) continue;
-            }
-            
-            // Ако, групата не е добавена
-            if (!$listSendArr[$recQ->id]) {
-                
-                // Флаг, да се записва
-                $save = TRUE;
-            }
-            
-            // Ако е сетнат флага да се записва
-            if ($save) {
-                
-                // Данните, които ще записваме
-                $recListSend = new stdClass();
-                $recListSend->emailId = $rec->id;
-                
-                // Ако е лист
-                if ($rec->listId) {
-                    
-                    // Записваме id' то на листа
-                    $recListSend->listDetailId = $recQ->id;
-                } else {
-                    
-                    // Ако е група, записваме id' то на група
-                    $recListSend->groupDetailId = $recQ->id;
+                if ($attachArr['documents']) {
+                    // Прикачените документи
+                    $docsArr = $mvc->getDocuments($rec);
+                    $docsSizesArr = $mvc->getDocumentsSizes($docsArr);
                 }
+                if ($attachArr['files']) {
+                    // Прикачените файлове
+                    $attachmentsArr = $mvc->getAttachments($rec);
+                    $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
+                }
+                   
+                // Проверяваме дали размерът им е над допсутимият
+                $allAttachmentsArr = array_merge((array)$docsSizesArr, (array)$filesSizesArr);
+                if (!$mvc->checkMaxAttachedSize($allAttachmentsArr)) {
+                    
+                    // Вербалният размер на файловете и документите
+                    $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
+                    
+                    if ($attachArr['documents'] && $attachArr['files']) {
+                        $str = "файлове и документи";
+                    } else if ($attachArr['documents']) {
+                        $str = "документи";
+                    } else {
+                        $str = "файлове";
+                    }
+                    
+                    $form->setWarning('attachments', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
+                }
+            }
+        }
+        
+        // Ако сме субмитнали формата
+        // Проверява за плейсхолдери, които липсват в източника
+        if ($form->isSubmitted()) {
+            
+            $classInst = cls::get($rec->perSrcClassId);
+            
+            // Масив с всички записи
+            $recArr = (array)$form->rec;
+            
+            // Вземаме Относно и Съобщение
+            $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
+            
+            // Масив с данни от плейсхолдера
+            $nRecArr['recipient'] = $recArr['recipient'];
+            $nRecArr['attn'] = $recArr['attn'];
+            $nRecArr['email'] = $recArr['email'];
+            $nRecArr['tel'] = $recArr['tel'];
+            $nRecArr['fax'] = $recArr['fax'];
+            $nRecArr['country'] = $recArr['country'];
+            $nRecArr['pcode'] = $recArr['pcode'];
+            $nRecArr['place'] = $recArr['place'];
+            $nRecArr['address'] = $recArr['address'];
+            
+            // Обикаляме всички останали стойности в масива
+            foreach ($nRecArr as $field) {
                 
-                // Записваме данните
-                blast_ListSend::save($recListSend, NULL, 'IGNORE');
+                // Всички данни ги записваме в една променлива
+                $allRecsWithPlaceHolders .= ' ' . $field;    
+            }
+
+            // Създаваме шаблон
+            $tpl = new ET($allRecsWithPlaceHolders);
+            
+            // Вземаме всички шаблони, които се използват
+            $allPlaceHolder = $tpl->getPlaceHolders();
+            
+            // Шаблон на Относно и Съобщение
+            $bodyAndSubTpl = new ET($bodyAndSubject);
+            
+            // Вземаме всички шаблони, които се използват
+            $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
+            
+            // Другите плейсхолдери
+            $otherDetArr = self::getEmailOtherPlaces($rec);
+            
+            // Полетата и описаниите им, които ще се използва за персонализация
+            $onlyAllFieldsArr = $classInst->getPersonalizationDescr($rec->perSrcObjectId);
+            
+            // Обединяване плейсхолдерите
+            $onlyAllFieldsArr = (array)$onlyAllFieldsArr + (array)$otherDetArr;
+            
+            // Създаваме масив с ключ и стойност имената на полетата, които ще се заместват
+            foreach ((array)$onlyAllFieldsArr as $field => $dummy) {
+                // Тримваме полето
+                $field = trim($field);
+                
+                // Името в долен регистър
+                $field = strtolower($field);
+                
+                // Добавяме в масива
+                $fieldsArr[$field] = $field;
+            }
+            
+            // Премахваме дублиращите се плейсхолдери
+            $allPlaceHolder = array_unique($allPlaceHolder);
+            
+            // Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
+            foreach ($allPlaceHolder as $placeHolder) {
+                
+                $placeHolderL = strtolower($placeHolder);
+                
+                // Ако плейсхолдера го няма във листа
+                if (!$fieldsArr[$placeHolderL]) {
+                    
+                    // Добавяме към съобщението за предупреждение
+                    $warning .= ($warning) ? ", {$placeHolder}" : $placeHolder;
+                    
+                    // Стринг на плейсхолдера
+                    $placeHolderStr = "[#" . $placeHolder . "#]";
+                    
+                    // Добавяме го в масива
+                    $warningPlaceHolderArr[$placeHolderStr] = $placeHolderStr;
+                }
+            }
+            
+            // Премахваме дублиращите се плейсхолдери
+            $bodyAndSubPlaceHolder = array_unique($bodyAndSubPlaceHolder);
+            
+            // Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
+            foreach ($bodyAndSubPlaceHolder as $placeHolder) {
+                
+                $placeHolderL = strtolower($placeHolder);
+                
+                // Ако плейсхолдера го няма във листа
+                if (!$fieldsArr[$placeHolderL]) {
+                    
+                    // Добавяме към съобщението за грешка
+                    $error .= ($error) ? ", {$placeHolder}" : $placeHolder;
+                }
+            }
+
+            // Показваме грешка, ако има шаблони, които сме въвели в повече в Относно и Съощение
+            if ($error) {
+                $form->setError('*', "|Шаблоните, които сте въвели ги няма в източника|*: {$error}");    
+            }
+            
+            // Показваме предупреждение за останалите шаблони
+            if ($warning) {
+                
+                // Сетваме грешката
+                $form->setWarning('*', "|Шаблоните, които сте въвели ги няма в източника|*: {$warning}"); 
+                
+                // При игнориране на грешката
+                if (!$form->gotErrors()) {
+                    
+                    // Обхождаме масива с стойност
+                    foreach ($nRecArr as $field => $val) {
+                        
+                        // Премахваме всички плейсхолдери, които не се използват
+                        $val = str_ireplace((array)$warningPlaceHolderArr, '', $val);    
+                        
+                        // Добавяме към записа
+                        $form->rec->{$field} = $val;
+                    }
+                }
             }
         }
     }
     
     
     /**
-     * Обработва данните и извиква функцията за изпращане на имейлите
+     * Изпълнява се след подготовката на ролите, необходимо за това действие
      * 
-     * @access private
+     * @param blast_Emails $mvc
+     * @param string $roles
+     * @param string $action
+     * @param object $rec
      */
-    function sending($rec)
+    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
     {
-        $id = $rec->id;
-        $containerId = $rec->containerId;
-        $threadId = $rec->threadId;
-        $boxFrom = $rec->from;
-        
-        $fromEmail = $rec->from;
-        
-        //Записваме в лога
-        blast_Emails::log("Изпращане на бласт имейли с id {$id}.");
-        
-        //Вземаме ($rec->sendPerMinute) имейли, на които не са пратени имейли
-        $query = blast_ListSend::getQuery();
-        $query->where("#emailId = '$rec->id'");
-        $query->where("#sentOn IS NULL");
-        $query->where("#state != 'stopped'");
-        $query->limit($rec->sendPerMinute);
-        
-        $listMail = array();
-        
-        //обновяваме времето на изпращане на всички имейли, които сме взели.
-        while ($recListSend = $query->fetch()) {
-            
-            // Ако е лист
-            if ($rec->listId) {
-                
-                // Вземаме детайлите
-                $listMailRec = blast_ListDetails::fetch("#id = '{$recListSend->listDetailId}' AND #state != 'stopped'");
-                
-                // Ако няма продължаваме
-                if (!$listMailRec) continue;
-                
-                // Добавяме ключа и имейлва в масива
-                $listMail[$listMailRec->id] = $listMailRec->key;
-            } elseif ($rec->group) {
-                
-                // Ако е група
-                
-                // Вземаме данните за групата
-                $dataForGroup = static::getDataFor($rec->group, $recListSend->groupDetailId);
-                
-                // Вземаме имейлите
-                $emailsArr = type_Emails::toArray($dataForGroup->rec['email']);
-
-                // Ако няма имейл
-                if (!$emailsArr[0]) continue;
-                
-                // Добавяме първия имейл в групата
-                $listMail[$recListSend->groupDetailId] = $emailsArr[0];
+        // Трябва да има права за сингъла на документа, за да може да активира, спира и/или обновява
+        if ((($action == 'activate') || ($action == 'stop') || ($action == 'update')) && $rec) {
+            if (!$mvc->haveRightFor('single', $rec)) {
+                $roles = 'no_one';
             }
-            
-            // Записваме дата на изпращане на новия имейл
-            $recListSendNew = new stdClass();
-            $recListSendNew->id = $recListSend->id;
-            $recListSendNew->sentOn = dt::verbal2mysql();
-            blast_ListSend::save($recListSendNew);
         }
+    }
+    
+    
+	/**
+	 * 
+	 * 
+	 * @param blast_Emails $mvc
+	 * @param object $row
+	 * @param object $rec
+	 */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        //При рендиране на листовия изглед показваме дали ще се прикачат файловете и/или документите
+        $attachArr = type_Set::toArray($rec->attachments);
+        if ($attachArr['files']) $row->Files = tr('Файловете');
+        if ($attachArr['documents']) $row->Documents = tr('Документите');
         
-        //Изпращаме персонален имейл до всички намерени адреси адреси
-        if (count($listMail)) {
-
-            //Спираме системния потребител
-            core_Users::cancelSystemUser();
-                
-            //Променяме потребителя за изпращане, от системен в потребителя, който е активирал имейла
-            $activator = core_Users::fetch($rec->activatedBy);
-            Mode::push('currentUserRec', $activator);
-            
-            foreach ($listMail as $id => $emailTo) {
-
-                //Клонираме записа
-                $nRec = clone $rec;    
-                
-                // Задаваме екшъна за изпращане
-                log_Documents::pushAction(
-                    array(
-                        'containerId' => $nRec->containerId,
-                        'action'      => log_Documents::ACTION_SEND,
-                        'data'        => (object)array(
-                            'from' => $fromEmail,
-                            'to'   => $emailTo,
-                            'detId'   => $id,
-                        )
-                    )
-                );
-            
-                //Тялото на съобщението
-                $body = $this->getEmailBody($nRec, $id, TRUE);
-                
-                $body->text = core_ET::unEscape($body->text);
-                
-                try {
-                    //Извикваме функцията за изпращане на имейли
-                    $status = email_Sent::sendOne(
-                        $boxFrom,
-                        $emailTo,
-                        $body->subject,
-                        $body,
-                        array(
-                           'encoding' => $nRec->encoding,
-                           'no_thread_hnd' => TRUE
-                        )
-                    );
-                } catch (Exception $e) {
-                    $status = FALSE;
-                }
-                
-                log_Documents::flushActions();
-                
-                // Ако възникне грешка при изпращане
-                if (!$status) {
-                    
-                    // Записваме имейла, като върнат
-                    log_Documents::returned($body->__mid);
-                }
+        // Манипулатора на документа
+        $row->handle = $mvc->getHandle($rec->id);
+        
+        // Линка към обекта, който се използва за персонализация
+        if ($rec->perSrcClassId && $rec->perSrcObjectId) {
+            $inst = cls::get($rec->perSrcClassId);
+            if ($inst->canUsePersonalization($rec->perSrcObjectId)) {
+                $row->srcLink = $inst->getPersonalizationSrcLink($rec->perSrcObjectId);
             }
+        }
+    }
+    
+    
+    /**
+     * Добавя съответните бутони в лентата с инструменти, в зависимост от състоянието
+     * 
+     * @param blast_Emails $mvc
+     * @param object $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        $state = $data->rec->state;
+        
+        if (($state == 'draft') || ($state == 'stopped')) {
             
-            Mode::pop('currentUserRec');
+            // Добавяме бутона Активирай, ако състоянието е чернова или спряно
             
-            //Стартираме системния потребител
-            core_Users::forceSystemUser();
+            if ($mvc->haveRightFor('activate', $rec->rec)) {
+                $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $rec->id), 'ef_icon = img/16/lightning.png');    
+            }
         } else {
             
-            //Ако няма повече пощенски кутии, на които не са пратени имейли сменяме статуса на затворен
-            $recNew = new stdClass();
-            $recNew->id = $rec->id;
-            $recNew->state = 'closed';
-            blast_Emails::save($recNew);
-        }
-    }
-    
-    
-	/**
-     * Подготвяме данните в rec'а
-     * 
-     * @param object $rec     - Обект с данните
-     * @param int    $detId - id на детайла на данните
-     */
-    function prepareRec(&$rec, $detId)
-    {
-        // Ако данните веднъж са приготвени, не ги приготвяме пак
-        if ($this->prepared[$rec->id][$detId]) {
-            
-            // 
-            $rec = $this->prepared[$rec->id][$detId];
-        } else {
-            
-            // Заглавието на темата
-            // Записваме заглавието, за да може да се използва при оформяне на имейла
-            $rec->subject = $this->getEmailSubject($rec, $detId);
-            
-            // Заместваме шаблоните в антетката с техните стойности
-            $this->replaceHeaderData($rec, $detId);
-           
-            // Заместваме данните в тялото на имейла
-            $rec->body = $this->replaceEmailData($rec->body, $rec, $detId, $rec->containerId);    
-            
-            // Записваме, че данните са приготвени
-            $this->prepared[$rec->id][$detId] = $rec;
-        }
-    }
-    
-    
-	/**
-     * Връща тялото на съобщението
-     * 
-     * @param object $rec - Данни за имейла
-     * @param int    $detId - id на детайла на данните
-     * @param bool   $sending - Дали ще изпращаме имейла
-     * 
-     * @return object $body - Обект с тялото на съобщението
-     * 		   string $body->html - HTMl частта
-     * 		   string $body->text - Текстовата част
-     *         array  $body->attachments - Прикачените файлове
-     */
-    function getEmailBody($rec, $detId, $sending=NULL)
-    {
-        $body = new stdClass();
-                
-        //Вземаме HTML частта
-        $body->html = $this->getEmailHtml($rec, $detId, $sending);
-        
-        //Вземаме текстовата част
-        $body->text = $this->getEmailText($rec, $detId);
-
-        $docsArr = array();
-        $attFhArr = array();
-        
-        //Дали да прикачим файловете
-        if (($rec->attachments) && ($sending)) {
-            $attachArr = type_Set::toArray($rec->attachments);
-        }
-        
-        //Ако сме избрали да се добавят документите, като прикачени
-        if ($attachArr['documents']) {
-            
-            //Вземаме манупулаторите на документите
-            $docsArr = $this->getDocuments($rec->id, $rec->body);
-            
-            $docsFhArr = array();
-            
-            foreach ($docsArr as $attachDoc) {
-                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-                // файл със съдържанието на документа в желания формат
-                $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-            
-                $docsFhArr += $fhArr;
+            // Добавяме бутона Спри, ако състоянието е активно или изчакване
+            if (($state == 'pending') || ($state == 'active')) {
+                if ($mvc->haveRightFor('stop', $rec->rec)) {
+                    $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png');
+                }
             }
             
-        }
-        
-        //Ако сме избрали да се добавят файловете, като прикачени
-        if ($attachArr['files']) {
-            
-            //Вземаме манупулаторите на файловете
-            $attFhArr = $this->getAttachments($rec->body);
-        }
-        
-        //Манипулаторите на файловете в масив
-        $body->attachmentsFh = (array)$attFhArr;
-        $body->documentsFh = (array)$docsFhArr;
-        
-        //id' тата на прикачените файлове с техните
-        $body->attachments = keylist::fromArray(fileman_Files::getIdFromFh($attFhArr));
-        $body->documents = keylist::fromArray(fileman_Files::getIdFromFh($docsFhArr));
-
-        // Други необходими данни за изпращането на имейла
-        $body->containerId = $rec->containerId;
-        $body->__mid = $rec->__mid;
-        $body->subject = $rec->subject;
-        
-        return $body;
-    }
-    
-    
-	/**
-     * Връща темата на имейла
-     * 
-     * @param object $rec - Данни за имейла
-     * @param email  $emailTo - Имейла на потребителя
-     * 
-     * @return string $res
-     */
-    function getEmailSubject($rec, $detId) 
-    {
-        //Заместваме всички шаблони, с техните стойности от БД
-        $res = $this->replaceEmailData($rec->subject, $rec, $detId, $rec->containerId);
-
-        return $res;
-    }
-    
-    
-	/**
-     * Взема HTML частта на имейл-а
-     * 
-     * @param object $rec     - Данни за имейла
-     * @param int    $detId - id на детайла на данните
-     * 
-     * @return core_ET $res
-     */
-    function getEmailHtml($rec, $detId, $sending)
-    {
-        // Опциите за генериране на тялото на имейла
-        $options = new stdClass();
-        
-        // Добавяме обработения rec към опциите
-        $options->rec = $rec;
-        $options->rec->__mid = $rec->__mid;
-        $options->__toEmail = $detId;
-        
-        // Вземаме тялото на имейла
-        $res = static::getDocumentBody($rec->id, 'xhtml', $options);
-        
-        // За да вземем mid'а който се предава на $options
-        $rec->__mid = $options->rec->__mid;
-        
-        // За да вземем subject'а със заменените данни
-        $rec->subject = $options->rec->subject;
-
-        //Ако изпращаме имейла
-        if ($sending) {
-            //Добавяме CSS, като inline стилове            
-            $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
-                "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . "\n" . file_get_contents(sbf('css/email.css', "", TRUE));
-             
-            $res = '<div id="begin">' . $res->getContent() . '<div id="end">'; 
-             
-            // Вземаме пакета
-            $conf = core_Packs::getConfig('csstoinline');
-            
-            // Класа
-            $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
-            
-            // Инстанция на класа
-            $inst = cls::get($CssToInline);
-            
-            // Стартираме процеса
-            $res =  $inst->convert($res, $css);  
-            
-            $res = str::cut($res, '<div id="begin">', '<div id="end">');    
-        }
-        
-        //Изчистваме HTMl коментарите
-        $res = email_Outgoings::clearHtmlComments($res);
-
-        return $res;
-    }
-    
-    
-	/**
-     * Взема текстовата част на имейл-а
-     * 
-     * @param object $rec     - Данни за имейла
-     * @param int    $detId - id на детайла на данните
-     * 
-     * @return core_ET $res 
-     */
-    function getEmailText($rec, $detId)
-    {
-        // Опциите за генериране на тялото на имейла
-        $options = new stdClass();
-        
-        // Добавяме обработения rec към опциите
-        $options->rec = $rec;
-        $options->rec->__mid = $rec->__mid;
-        $options->__toEmail = $detId;
-        
-        // Вземаме тялото на имейла
-        $res = static::getDocumentBody($rec->id, 'plain', $options);
-        
-        // За да вземем mid'а който се предава на $options
-        $rec->__mid = $options->rec->__mid;
-        
-        // За да вземем subject'а със заменените данни
-        $rec->subject = $options->rec->subject;
-        
-        return $res;
-    }
-    
-    
-	/**
-     * Заместваме шаблоните в полетата, които образуват антетката, с техните стойности
-     * 
-     * @param $rec object - Обект с данни, в които ще се заместват данните от антетката
-     * @param int    $detId - id на детайла на данните
-     */
-    function replaceHeaderData(&$rec, $detId) 
-    {
-        //Масив с всички полета, които образуват антетката
-        $headers = array();
-        $headers['recipient'] = 'recipient';
-        $headers['attn'] = 'attn';
-        $headers['email'] = 'email';
-        $headers['tel'] = 'tel';
-        $headers['fax'] = 'fax';
-        $headers['country'] = 'country';
-        $headers['pcode'] = 'pcode';
-        $headers['place'] = 'place';
-        $headers['address'] = 'address';
-        
-        //Обхождаме всички данни от антетката
-        foreach ($headers as $header) {
-            
-            //Ако нямаме въведена стойност, прескачаме
-            if (!$rec->$header) continue;
-            
-            //Заместваме данните в антетката
-            $rec->$header = $this->replaceEmailData($rec->$header, $rec, $detId, $rec->containerId);
+            // Добавяме бутон за обновяване в, ако състоянието е активно, изчакване или затворено
+            if (($state == 'pending') || ($state == 'active') || ($state == 'closed')) {
+                if ($mvc->haveRightFor('update', $rec->rec)) {
+                    $data->toolbar->addBtn('Обновяване', array($mvc, 'Update', $rec->id), 'ef_icon = img/16/update-icon.png, row=1');
+                }
+            }
         }
     }
     
     
     /**
-     * Заместваме всички шаблони, с техните стойности от БД
+     * Променяме шаблона в зависимост от мода
      * 
-     * @param mixed   $res    - шаблона, който ще се замества
-     * @param integer $listId - id' то на шаблона на имейла
-     * @param int     $detId - id на детайла на данните
-     * 
-     * @return mixed $res
+     * @param blast_Emails $mvc
+     * @param core_ET $tpl
+     * @param object $data
      */
-    function replaceEmailData($res, $rec, $detId, $cid)
-    {   
-        $id = $rec->id;
-        //Записваме текущите данни на потребителя
-        $this->setCurrentEmailData($rec, $detId, $cid);
-        
-        //Ако има данни, които да се заместват
-        if (count($this->emailData[$id][$detId])) {
-            
-            foreach ($this->emailData[$id][$detId] as $key => $value) {
-                
-                // Какво ще заместваме
-                $search = "[#{$key}#]";
-                
-                //Заместваме данните
-                $res = str_ireplace($search, $value, $res);
-            }     
+    function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        //Рендираме шаблона
+        if (Mode::is('text', 'xhtml')) {
+            //Ако сме в xhtml (изпращане) режим, рендираме шаблона за изпращане
+            $mvc->singleLayoutFile = 'blast/tpl/SingleLayoutBlast.shtml';
+        } elseif (Mode::is('text', 'plain')) {
+            //Ако сме в текстов режим, рендираме txt
+            $mvc->singleLayoutFile = 'blast/tpl/SingleLayoutBlast.txt';
+        } else {
+            $mvc->singleLayoutFile = 'blast/tpl/SingleLayoutEmails.shtml'; 
         }
-        
-        return $res;
     }
     
     
     /**
-     * Сетваме всички данни за текущия потребител
      * 
-     * @param integer $listId - id' то на текущия потребител
-     * @param int     $detId - id на детайла на данните
+     * 
+     * @param blast_Emails $mvc
+     * @param core_ET $tpl
+     * @param object $data
      */
-    function setCurrentEmailData($rec, $detId, $cid)
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-        $id = $rec->id;
-        if (!$this->emailData[$id][$detId]) {
+        // Полета До и Към
+        $attn = $data->row->recipient . $data->row->attn;
+        $attn = trim($attn);
+        
+        // Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
+        if (!$attn) {
+            $data->row->recipientEmail = $data->row->email;
+            unset($data->row->email);
+        }
+        
+        // Полета Град и Адрес
+        $addr = $data->row->place . $data->row->address;
+        $addr = trim($addr);
+        
+        // Ако липсва адреса и града
+        if (!$addr) {
             
-            if ($rec->listId) {
+            //Не се показва и пощенския код
+            unset($data->row->pcode);
+            
+            //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме държавата след фирмата
+            if ($data->row->recipient) {
+                $data->row->firmCountry = $data->row->country;
+            }
+            
+            //Не се показва и държавата
+            unset($data->row->country);
+            
+            $telFax = $data->row->tel . $data->row->fax;
+            $telFax = trim($telFax);
+            
+            //Имейла е само в дясната част, преместваме в ляво
+            if (!$telFax) {
+                $data->row->emailLeft = $data->row->email;
+                unset($data->row->email);
+            }
+        }        
+        
+        // Рендираме шаблона
+        if (!Mode::is('text', 'xhtml') && !Mode::is('text', 'plain')) {
+            
+            $perSrcClassInst = cls::get($data->rec->perSrcClassId);
+            $perSrcClassTitle = $perSrcClassInst->getPersonalizationTitle($data->rec->perSrcObjectId, TRUE);
+            
+            // Записите
+            $rec = $data->rec;
+            
+            // Ако състоянието е активирано или чернов
+            if ($rec->state == 'active' || $rec->state == 'waitnig') {
                 
-                if (is_numeric($detId)) {
-                    // Вземаме персоналната информация за потребителя
-                    $recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #id='[#2#]'", $rec->listId, $detId));
+                // Вземаме времето на следващото изпращане
+                // Ако има такова време
+                if ($nextStartTime = core_Cron::getNextStartTime(self::$cronSytemId)) {
+                    
+                    // Ако времето е преди въведената дата от потребителя
+                    if ($nextStartTime < $rec->startOn) {
+                        
+                        // Използваме дата на потребителя
+                        $nextStartTime = $rec->startOn;
+                    }
                 } else {
-                    // За съвместимост със стари версии
-                    $recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $rec->listId, $detId));
+                    
+                    // Вземаме времето въведено от потребителя
+                    $nextStartTime = $rec->startOn;
                 }
                 
-                // Десериализираме данните за потребителя
-                $this->emailData[$id][$detId] = unserialize($recList->data);
-            } elseif ($rec->group) {
-                
-                // Вземаме данните
-                $data = static::getDataFor($rec->group, $detId);
-                
-                // Подготвяме данните
-                $this->emailData[$id][$detId] = static::preparePlaceData($data);
+                // Ако сме успели да определим времето
+                if ($nextStartTime) {
+                    
+                    // Показваме вербалното време
+                    $data->row->NextStartTime = dt::mysql2verbal($nextStartTime, 'smartTime');
+                }
             }
+        }
+    }
+    
+    
+ 	/**
+ 	 * 
+ 	 * 
+ 	 * @param blast_Emails $mvc
+ 	 * @param object $data
+ 	 */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        // Да се показва полето за търсене
+        $data->listFilter->showFields = 'search';
+        
+        $data->listFilter->view = 'horizontal';
+        
+        //Добавяме бутон "Филтрирай"
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Сортиране на записите по състояние и по времето им на започване
+        $data->query->orderBy('state', 'ASC');
+        $data->query->orderBy('startOn', 'DESC');
+    }
+    
+    
+    /**
+     * Преди да подготвим данните за имейла, подготвяме rec
+     * 
+     * @param blast_Emails $mvc
+     * @param core_ET $res
+     * @param integer $id
+     * @param string $mode
+     * @param object $options
+     */
+    function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    {
+        // Записите за имейла
+        $emailRec = $mvc->fetch($id);
+        
+        // Очакваме да има такъв запис
+        expect($emailRec);
+        
+        // Намираме преполагаемия език на съобщението
+        core_Lg::push(self::getLanguage($emailRec->body, $emailRec->lg));
+        
+        $detDataArr = array();
+        
+        // Опитваме се да извлечен масива с данните
+        if ($options->__detArr) {
             
+            // Ако е подаден масива с данните
+            $detDataArr = $options->__detArr;
+        } elseif ($options->detId) {
             
-            $mid = doc_DocumentPlg::getMidPlace();
-            $urlBg = htmlentities(toUrl(array($this, 'Unsubscribe', $cid, 'm' => $mid, 'l' => 'bg'), 'absolute'), ENT_COMPAT | ENT_HTML401, 'UTF-8');
-            $urlEn = htmlentities(toUrl(array($this, 'Unsubscribe', $cid, 'm' => $mid, 'l' => 'en'), 'absolute'), ENT_COMPAT | ENT_HTML401, 'UTF-8');
+            // Ако е подадено id, вместо масива
+            $detDataArr = blast_EmailSend::getDataArr($options->detId);
+        }
+        
+        // Обединяваме детайлите
+        $otherDetArr = self::getEmailOtherPlaces($emailRec);
+        $detDataArr = (array)$detDataArr + (array)$otherDetArr;
+        
+        // Подготвяме данните за съответния имейл
+        $mvc->prepareRec($emailRec, $detDataArr);
+        
+        // Обединяваме рековете и ги добавяме в опциите
+        // За да може да запазим ->mid' от река
+        $options->rec = (object)((array)$emailRec + (array)$options->rec);
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    {
+        // Връщаме езика по подразбиране
+        core_Lg::pop();
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param blast_Emails $mvc
+     * @param array $res
+     * @param integer $id
+     * @param integer $userId
+     * @param object $data
+     */
+    public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
+    {
+        // id на детайла
+        $detId = $data->detId;
+        
+        if (!$detId) return ;
+        
+        // Масив с данните
+        $detArr = blast_EmailSend::getDataArr($detId);
+        
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            $rec = $mvc->fetch($id);
+        }
+        
+        // Подготвяме записите
+        $mvc->prepareRec($rec, $detArr);
+        
+        core_Users::sudo($userId);
+        
+        // Вземаме прикачените документи за този детайл с правата на активиралия потребител
+        $attachedDocs = (array)doc_RichTextPlg::getAttachedDocs($rec->body);
+        
+        core_Users::exitSudo();
+        
+        // Ако има прикачени документи
+        if (count($attachedDocs)) {
+            $attachedDocs = array_keys($attachedDocs);
+            $attachedDocs = array_combine($attachedDocs, $attachedDocs);  
 
-            //Създаваме линковете
-            $this->emailData[$id][$detId]['otpisvane'] = "[link={$urlBg}]тук[/link]";
-            $this->emailData[$id][$detId]['unsubscribe'] = "[link={$urlEn}]here[/link]";
-            $this->emailData[$id][$detId]['mid'] = $mid;
+            $res = array_merge($attachedDocs, (array)$res);
         }
     }
     
     
     /**
-     * Намира предполагаемия език на текста
+     * Интерфейсен метод
+     * Проверка дали нов документ може да бъде добавен в посочената папка, като начало на нишка.
      * 
-     * @param text $body - Текста, в който ще се търси
-     * 
-     * @return string $lg - Двубуквеното означение на предполагаемия език
-     */
-    static function getLanguage($body)
-    {
-        //Масив с всички предполагаеми езици
-        $lg = i18n_Language::detect($body);
-        
-        //Ако езика не е bg, връщаме en
-        if ($lg != 'bg') {
-            $lg = 'en';
-        }
-        
-        return $lg;
-    }
-    
-    
-    /**
-     * Вземаме всички прикачени документи
-     * 
-     * @param integer $id - id' то на имейла
-     * @param string  $body - Текста, в който ще се търсят документите
-     * 
-     * @return array $documents - Масив с манипулаторите на прикачените файлове
-     */
-    function getDocuments($id, $body)
-    {
-        $docsArr = $this->getPossibleTypeConvertings($id);
-        $docs     = array();
-        
-        //Обхождаме всички документи
-        foreach ($docsArr as $fileName => $checked) {
-            
-            //Намираме името и разширението на файла
-            if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
-                $ext = mb_substr($fileName, $dotPos + 1);
-            
-                $docHandle = mb_substr($fileName, 0, $dotPos);
-            } else {
-                $docHandle = $fileName;
-            }
-            
-            $doc = doc_Containers::getDocumentByHandle($docHandle);
-            expect($doc);
-            
-            //Масив с манипулаторите на конвертиранети файлове
-            $docs[] = compact('doc', 'ext', 'fileName');
-        }
-
-        return $docs;
-    }
-    
-    
-	/**
-     * Прикачените към документ файлове
+     * @see email_DocumentIntf
      *
-     * @param string $body - Текста, в който ще се гледат за файлове
+     * @param int $folderId - id на папката
      * 
-     * @return array $filesFh - Масив с манипулаторите на прикачените документи
+     * @return boolean
      */
-    function getAttachments($body)
+    public static function canAddToFolder($folderId)
     {
-        //Всички файлове в документа
-        $files = fileman_RichTextPlg::getFiles($body);
+        // Името на класа
+        $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
         
-        $filesFh = array();
+        // TODO
+        // Може да се добавя само в проекти и в групи
+//        if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) return FALSE;
+        if (($coverClassName != 'doc_unsortedfolders')) return FALSE;
         
-        //Преработваме масива да връща манупулаторите на файловете, в ключа и стойността на масива
-        foreach ($files as $fh => $fileName) {
-            $filesFh[$fh] = $fh;
-        }
-        
-        return $filesFh;
+        return TRUE;
     }
     
     
 	/**
-     * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast
-     */
-    function cron_SendEmails()
-    {
-        $this->checkForSending();
-        
-        return 'Изпращането приключи';
-    }
-    
-    
-    /**
-     * Изпълнява се след създаването на модела
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-        //Данни за работата на cron
-        $rec = new stdClass();
-        $rec->systemId = static::$cronSytemId;
-        $rec->description = 'Изпращане на много имейли';
-        $rec->controller = $mvc->className;
-        $rec->action = 'SendEmails';
-        $rec->period = 5;
-        $rec->offset = 0;
-        $rec->delay = 0;
-        $rec->timeLimit = 250;
-        $res .= core_Cron::addOnce($rec);
-        
-        //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
-        $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите имейли', NULL, '104857600', 'user', 'user');
-    }
-    
-    
-	/**
-     * Интерфейсен метод на doc_DocumentIntf
+     * Интерфейсен метод на 
+     * 
+     * @see email_DocumentIntf
+     * 
+     * @return object
      */
     function getDocumentRow($id)
     {
@@ -1886,299 +1761,34 @@ class blast_Emails extends core_Master
     }
     
     
-    /**
-     * Преди да подготвим данните за имейла, подготвяме rec
+	/**
+     * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast
      */
-    function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    function cron_SendEmails()
     {
-        // Записите за имейла
-        $emailRec = $mvc->fetch($id);
-        
-        // Очакваме да има такъв запис
-        expect($emailRec);
-        
-        // Намираме преполагаемия език на съобщението
-        core_Lg::push(static::getLanguage($emailRec->body));
-
-        // Ако е зададено __toDetId
-        if ($options->__toDetId) {
-            
-            // Използваме него
-            $detId = $options->__toDetId;
-        } else {
-            
-            // За съвместимост със старите системи
-            $detId = $options->__toEmail;
-        }
-        
-        if ($detId) {
-            
-            // Ако е лист
-            if ($emailRec->listId) {
-                
-                // Вземаме записа за изпращане за съответния запис
-                $listSendRec = blast_ListSend::fetch("#listDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
-            } elseif ($emailRec->group) {
-                
-                // Вземаме записа за изпращане за съответната група
-                $listSendRec = blast_ListSend::fetch("#groupDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
-            }
-    
-            // Ако състоянието е затворено, не се показва имейла
-//            expect(($listDetailRec->state != 'stopped' AND $listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
-    
-            if ($listSendRec) {
-    
-                // Ако състоянието на изпратения имейл е затворено
-                expect(($listSendRec->state != 'stopped') , 'Нямате достъп до този имейл');
-            }
-            
-            // Подготвяме данните за съответния имейл
-            $mvc->prepareRec($emailRec, $detId);
-    
-            // Добавяме данните в rec'a
-            $options->rec = $emailRec;
-        }
+        $this->sendEmails();
     }
     
     
     /**
-     * 
+     * Изпълнява се след създаването на модела
      */
-    function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
-        // Връщаме езика по подразбиране
-        core_Lg::pop();
-    }
-    
-    
-    /**
-     * Връща масив с плейсхолдери за съответната група
-     * 
-     * @param sting $group - Групата
-     * 
-     * @return array $arr - Масив с плейсхолдери
-     */
-    static function getGroupPlaceholders($group)
-    {
-        $arr = array();
-        switch ($group) {
-            
-            // Ако е фирма
-            case 'company':
-                $arr['name'] = 'company';
-                $arr['country'] = 'country';
-                $arr['pCode'] = 'pCode';
-                $arr['place'] = 'place';
-                $arr['address'] = 'address';
-                $arr['email'] = 'email';
-                $arr['tel'] = 'tel';
-                $arr['fax'] = 'fax';
-            break;
-            
-            // Ако е бизнес данни от лице
-            case 'personBiz':
-                $arr['salutation'] = 'salutation';
-                $arr['name'] = 'person';
-                $arr['buzCompanyId'] = 'company';
-                $arr['buzPosition'] = 'position';
-                $arr['buzEmail'] = 'email';
-                $arr['buzTel'] = 'tel';
-                $arr['buzFax'] = 'fax';
-                $arr['company_country'] = 'country';
-                $arr['company_pCode'] = 'pCode';
-                $arr['company_place'] = 'place';
-                $arr['company_address'] = 'address';
-            break;
-            
-            // Ако е лични данни от лице
-            case 'person':
-                $arr['salutation'] = 'salutation';
-                $arr['name'] = 'person';
-                $arr['country'] = 'country';
-                $arr['pCode'] = 'pCode';
-                $arr['place'] = 'place';
-                $arr['address'] = 'address';
-                $arr['email'] = 'email';
-                $arr['tel'] = 'tel';
-                $arr['fax'] = 'fax';
-            break;
-            
-            default:
-                ;
-            break;
-        }
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = self::$cronSytemId;
+        $rec->description = 'Изпращане на много имейли';
+        $rec->controller = $mvc->className;
+        $rec->action = 'SendEmails';
+        $rec->period = 5;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 250;
+        $res .= core_Cron::addOnce($rec);
         
-        return $arr;
-    }
-    
-    
-    /**
-     * Връща масив с данни за заместване за съответното писмо
-     * 
-     * @param string $group - Групата
-     * @param integer $id - id' то на записа от съответната група
-     * 
-     * @return array $data - Масив с данни
-     */
-    static function getDataFor($group, $id)
-    {
-        // Вземама масива с плейсхолдерите за съответната група
-        $placeArr = static::getGroupPlaceholders($group);
-        
-        // Ако е фирма
-        if ($group == 'company') {
-            
-            // Вземаме данните за фирмата
-            $rec = crm_Companies::fetch($id);
-            
-            // Класа на групата
-            $groupClass = 'crm_Companies';
-        } else {
-            
-            //Ако е лице
-            
-            // Вземаме данните за лицето
-            $rec = crm_Persons::fetch($id);
-            
-            // Класа на групата
-            $groupClass = 'crm_Persons';
-        }
-        
-        $data = new stdClass();
-        
-        // Обхождаме масива с плейсхолдерите
-        foreach ((array)$placeArr as $field => $place) {
-            
-            // Позициата на долната черта
-            $pos = mb_stripos($field, '_');
-            
-            // Ако няма долна черта
-            if ($pos === FALSE) {
-                
-                // Добавяме в масива плейсхолдера и стойността
-                $data->row[$place] = $groupClass::getVerbal($rec, $field);
-                $data->rec[$place] = $rec->{$field};
-            } else {
-                
-                // Типа
-                $type =  mb_substr($field, 0,$pos);
-                
-                // Полето
-                $nField = mb_substr($field, $pos+1);
-                
-                // Ако е фирма
-                if ($type = 'company') {
-                    
-                    // Ако има бизнес данни
-                    if ($rec->buzCompanyId && $companyRec->id != $rec->buzCompanyId) {
-                        
-                        // Вземаме записите за фирмата
-                        $companyRec = crm_Companies::fetch($rec->buzCompanyId);
-                    }
-                    
-                    // Ако има фирма
-                    if ($companyRec) {
-                        
-                        // Вземаме стойността на съответното поле
-                        $placeVal = crm_Companies::getVerbal($companyRec, $nField);
-                    }
-                    // Добавяме стойността в полето
-                    $data->row[$place] = $placeVal;
-                    $data->rec[$place] = $companyRec->{$nField};
-                }
-            }
-        }
-
-        return $data;
-    }
-    
-    
-    /**
-     * Подготвя данните за заместване - коя стойност да се иползва - вербалната или невербалната
-     * 
-     * @param object $data
-     * 
-     * @return array $nData - Масив с полетата и стойностите
-     */
-    static function preparePlaceData($data)
-    {
-        // Обхождаме записите
-        foreach ((array)$data->rec as $key => $value) {
-            
-            // Ако е един от зададените
-            if ($key == 'company' || $key == 'salutation' || $key == 'country') {
-                
-                // Използваме вербалната му стойност
-                $nData[$key] = $data->row[$key];
-            } else {
-                
-                // Използваме стойността от rec
-                $nData[$key] = $value;
-            }
-        }
-
-        return $nData;
-    }
-    
-    
-    /**
-     * 
-     * 
-     * @param blast_Emails $mvc
-     * @param array $res
-     * @param integer $id
-     * @param integer $userId
-     * @param object $data
-     */
-    public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
-    {
-        // id на детайла
-        $detId = $data->detId;
-        
-        if (!$detId) return ;
-        
-        // Записите за имейла
-        $emailRec = $mvc->fetch($id);
-        
-        // Очакваме да има такъв запис
-        expect($emailRec);
-        
-        // Ако е лист
-        if ($emailRec->listId) {
-            
-            // Вземаме записа за изпращане за съответния запис
-            $listSendRec = blast_ListSend::fetch("#listDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
-        } elseif ($emailRec->group) {
-            
-            // Вземаме записа за изпращане за съответната група
-            $listSendRec = blast_ListSend::fetch("#groupDetailId = '{$detId}' AND #emailId = '{$emailRec->id}'");
-        }
-        
-        // Подготвяме данните за съответния имейл
-        $mvc->prepareRec($emailRec, $detId);
-        
-        // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
-        if (!$userId) {
-            $userId = core_Users::getCurrent();
-            if ($userId <= 0) {
-                $userId = $mvc->getContainer($id)->activatedBy;
-            }
-        }
-        
-        core_Users::sudo($userId);
-        
-        // Вземаме прикачените документи за този детайл с правата на активиралия потребител
-        $attachedDocs = (array)doc_RichTextPlg::getAttachedDocs($emailRec->body);
-        
-        core_Users::exitSudo();
-        
-        // Ако има прикачени документи
-        if (count($attachedDocs)) {
-            $attachedDocs = array_keys($attachedDocs);
-            $attachedDocs = array_combine($attachedDocs, $attachedDocs);  
-
-            $res = array_merge($attachedDocs, (array)$res);
-        }
+        //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
+        $Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите имейли', NULL, '104857600', 'user', 'user');
     }
 }
