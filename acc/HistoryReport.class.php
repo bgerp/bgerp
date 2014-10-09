@@ -59,8 +59,8 @@ class acc_HistoryReport extends core_Manager
     public function prepareReportForm(core_Form &$form)
     {
     	$form->FLD('accountId','acc_type_Account(allowEmpty)', 'input,caption=Сметка,silent,mandatory', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
-    	$form->FLD('fromDate', 'date(allowEmpty)', 'caption=От,input,width=15em,mandatory');
-    	$form->FLD('toDate', 'date(allowEmpty)', 'caption=До,input,width=15em,mandatory');
+    	$form->FLD('fromDate', 'date(allowEmpty)', 'caption=От,input,mandatory');
+    	$form->FLD('toDate', 'date(allowEmpty)', 'caption=До,input,mandatory');
     	
     	$op = $this->getBalancePeriods();
     	
@@ -309,9 +309,9 @@ class acc_HistoryReport extends core_Manager
     	$filter = &$data->listFilter;
     	$filter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$filter->class = 'simpleForm';
-    	 
-    	$filter->FNC('fromDate', 'date', 'caption=От,input,width=15em');
-    	$filter->FNC('toDate', 'date', 'caption=До,input,width=15em');
+    	
+    	$filter->FNC('fromDate', 'date', 'caption=От,input');
+    	$filter->FNC('toDate', 'date', 'caption=До,input');
     	$filter->FNC('accNum', 'int', 'input=hidden');
     	$filter->FNC('ent1Id', 'int', 'input=hidden');
     	$filter->FNC('ent2Id', 'int', 'input=hidden');
