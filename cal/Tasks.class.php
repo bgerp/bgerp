@@ -351,11 +351,13 @@ class cal_Tasks extends core_Master
         // Подготвяме редовете на таблицата
         self::prepareListRows($data);
         
-        foreach ($data->recs as $id => $rec) {
-        	$row = $data->rows[$id];
-        	if ($rec->savedState == 'pending') {
-        		$row->title .= '<div style="margin-left: 10px;display:inline-block;" class="stateIndicator state-pending"></div>';
-        	}
+        if  (is_array($data->recs)) {
+	        foreach ($data->recs as $id => $rec) {
+	        	$row = $data->rows[$id];
+	        	if ($rec->savedState == 'pending') {
+	        		$row->title .= '<div style="margin-left: 10px;display:inline-block;" class="stateIndicator state-pending"></div>';
+	        	}
+	        }
         }
         
         $tpl = new ET("
