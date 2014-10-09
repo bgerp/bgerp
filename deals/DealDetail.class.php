@@ -335,7 +335,7 @@ abstract class deals_DealDetail extends core_Detail
         	//@TODO да махна изискването да има дебъг
         	if(haveRole('debug') && mp_Jobs::haveRightFor('add') && !Mode::is('printing') && !Mode::is('text', 'xhtml')){
         		$img = ht::createElement('img', array('src' => sbf('img/16/clipboard_text.png', '')));
-        		$jobLink = "<span style='margin-left:5px'>" . ht::createLink($img, array('mp_Jobs', 'add', 'originClass' => $mvc->getClassId(), 'originDocId' => $rec->id), NULL, 'title=Ново задание') . "</span>";
+        		$jobLink = "<span style='margin-left:5px'>" . ht::createLink($img, array('mp_Jobs', 'add', 'originClass' => $mvc->Master->getClassId(), 'originDocId' => $rec->id), NULL, 'title=Ново задание') . "</span>";
         		$row->productId->append($jobLink);
         	}
     	}

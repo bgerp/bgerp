@@ -159,6 +159,7 @@ abstract class deals_DeliveryDocumentDetail extends core_Detail
 						if($rec->classId == $p->classId && $rec->productId == $p->productId && $rec->packagingId == $p->packagingId){
 							$policyInfo = new stdClass();
 							$policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+							$policyInfo->discount = $p->discount;
 							break;
 						}
 					}
