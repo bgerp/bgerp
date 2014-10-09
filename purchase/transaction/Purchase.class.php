@@ -182,8 +182,8 @@ class purchase_transaction_Purchase
          	
         	$amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
-        	
-    		// Ако не е "Складируем" - значи е разход
+
+        	// Ако не е "Складируем" - значи е разход
 			if(empty($pInfo->meta['canStore'])){
 
 				// Ако е "Материали" дебит 601, иначе 602
@@ -324,13 +324,7 @@ class purchase_transaction_Purchase
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-       		if($rec->chargeVat == 'yes'){
-	        	$ProductManager = cls::get($detailRec->classId);
-	            $vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
-	            $amount = $detailRec->amount - ($detailRec->amount * $vat / (1 + $vat));
-	        } else {
-	        	$amount = $detailRec->amount;
-	        }
+        	$amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	
         	// Само складируемите продукти се изписват от склада

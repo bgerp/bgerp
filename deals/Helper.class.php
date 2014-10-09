@@ -98,7 +98,7 @@ abstract class deals_Helper
 		$map = array_merge(self::$map, $map);
 	
 		// Дали трябва винаги да не се показва ддс-то към цената
-		$hasVat = ($map['isInvoice']) ? FALSE : (($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE);
+		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE);
 		$discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
 	
 		// Обработваме всеки запис
@@ -121,18 +121,18 @@ abstract class deals_Helper
         	if($masterRec->$map['chargeVat'] == 'yes' && !$map['alwaysHideVat']){
         		$rec->$map['amountFld'] = round($rec->$map['amountFld'] + $vatRow, 2);
         	}
-        	
 
         	if($rec->$map['discount']){
         		$discount += $rec->$map['amountFld'] * $rec->$map['discount'];
         		$vatRow -= $vatRow * $rec->$map['discount'];
         	}
         	
-        	$amountRow += $rec->$map['amountFld'];
         	
+        	$amountRow += $rec->$map['amountFld'];
         	$amount += $noVatAmount;
         	$amountVat += $vatRow;
 		}
+		
 		
 		$mvc->_total = new stdClass();
 		$mvc->_total->amount = $amountRow;
