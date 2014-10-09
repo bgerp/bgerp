@@ -1234,7 +1234,7 @@ function setFormElementsWidth() {
         winWidth = 320;
     }
     // разстояние около формата
-    var outsideWidth = 40;
+    var outsideWidth = 42;
     if($('#all').length) {
     	outsideWidth = 30;
     }
