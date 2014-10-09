@@ -96,7 +96,8 @@ abstract class store_DocumentMaster extends core_Master
     	expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
     	expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
     	$dealInfo = $origin->getAggregateDealInfo();
-    
+    	$form->dealInfo = $dealInfo;
+    	
     	$form->setDefault('currencyId', $dealInfo->get('currency'));
     	$form->setDefault('currencyRate', $dealInfo->get('rate'));
     	$form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
@@ -112,10 +113,17 @@ abstract class store_DocumentMaster extends core_Master
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	if ($form->isSubmitted()) {
+    		$rec = &$form->rec;
 			if($rec->lineId){
-    		
+				
+				// Ако има локация и тя е различна от договорената, слагаме предупреждение
+    			if($rec->locationId && $rec->locationId != $form->dealInfo->get('deliveryLocation')){
+    				$agreedLocation = crm_Locations::getTitleById($form->dealInfo->get('deliveryLocation'));
+    				$form->setWarning('locationId', "Избраната локация е различна от договорената \"{$agreedLocation}\"");
+    			}
+				
     			// Ако има избрана линия и метод на плащане, линията трябва да има подочетно лице
-    			if($pMethods = $dealInfo->get('paymentMethodId')){
+    			if($pMethods = $form->dealInfo->get('paymentMethodId')){
     				if(cond_PaymentMethods::isCOD($pMethods) && !trans_Lines::hasForwarderPersonId($rec->lineId)){
     					$form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице!');
     				}
