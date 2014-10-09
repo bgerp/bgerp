@@ -59,7 +59,6 @@ abstract class deals_InvoiceMaster extends core_Master
 		'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
     	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
-        'accountId'           => 'lastDocUser|lastDoc',
     	//'template' 			  => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
