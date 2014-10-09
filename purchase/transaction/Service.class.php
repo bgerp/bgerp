@@ -72,22 +72,16 @@ class purchase_transaction_Service
     	$sign = ($reverse) ? -1 : 1;
     	
     	if(count($rec->details)){
-    		deals_Helper::fillRecs($this->class, $detailsRecs, $rec);
+    		deals_Helper::fillRecs($this->class, $detailsRecs, $rec, array('alwaysHideVat' => TRUE));
 			$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
     		
     		foreach ($rec->details as $dRec) {
     			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
-    			if($rec->chargeVat == 'yes'){
-    				$ProductManager = cls::get($dRec->classId);
-    				$vat = $ProductManager->getVat($dRec->productId, $rec->valior);
-    				$amount = $dRec->amount - ($dRec->amount * $vat / (1 + $vat));
-    			} else {
-    				$amount = $dRec->amount;
-    			}
-    	
+    			
     			// Ако е "Материали" дебит 601, иначе 602
     			$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
     	
+    			$amount = round($dRec->amount, 2);
     			$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;
     	
     			$entries[] = array(

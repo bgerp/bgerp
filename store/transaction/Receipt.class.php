@@ -133,20 +133,11 @@ class store_transaction_Receipt
         $currencyRate = $this->getCurrencyRate($rec);
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
-        deals_Helper::fillRecs($this->class, $rec->details, $rec);
-        
+        deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-        	
-        	if($rec->chargeVat == 'yes'){
-        		$ProductManager = cls::get($detailRec->classId);
-            	$vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
-            	$amount = $detailRec->amount - ($detailRec->amount * $vat / (1 + $vat));
-        	} else {
-        		$amount = $detailRec->amount;
-        	}
-        	
+        	$amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	
         	// Ако е материал дебит 302 иначе 321

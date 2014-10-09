@@ -544,6 +544,13 @@ abstract class store_DocumentMaster extends core_Master
     			$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
     			$aggregator->push('shippedPacks', $arr, $index);
     		}
+    		
+    		$vat = cls::get($dRec->classId)->getVat($dRec->productId);
+    		if($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate'){
+    			$dRec->packPrice += $dRec->packPrice * $vat;
+    		}
+    		
+    		$aggregator->pushToArray('productVatPrices', $dRec->packPrice, $index);
     	}
     }
 }

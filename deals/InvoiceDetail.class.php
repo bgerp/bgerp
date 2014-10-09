@@ -23,6 +23,7 @@ abstract class deals_InvoiceDetail extends core_Detail
 								'chargeVat'   => 'vatRate',
 								'quantityFld' => 'quantity',
 								'valior'      => 'date',
+								'alwaysHideVat' => TRUE,
 								'isInvoice' => TRUE);
 	
 
@@ -302,13 +303,13 @@ abstract class deals_InvoiceDetail extends core_Detail
 				if($baseInfo->classId == cat_Packagings::getClassId()){
 					$form->rec->packagingId = $baseInfo->id;
 				}
+			}
 				
-				if(isset($mvc->LastPricePolicy)){
-					$policyInfo = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $masterRec->rate);
+			if(isset($mvc->LastPricePolicy)){
+				$policyInfo = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $masterRec->rate);
 					
-					if($policyInfo->price != 0){
-						$form->setSuggestions('packPrice', array('' => '', "{$lastPrice}" => $lastPrice));
-					}
+				if($policyInfo->price != 0){
+					$form->setSuggestions('packPrice', array('' => '', "{$lastPrice}" => $lastPrice));
 				}
 			}
 		}

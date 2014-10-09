@@ -275,8 +275,6 @@ abstract class deals_DeliveryDocumentDetail extends core_Detail
 		$recs = &$data->recs;
 		$orderRec = $data->masterData->rec;
 	
-		if (empty($recs)) return;
-	
 		deals_Helper::fillRecs($mvc->Master, $recs, $orderRec);
 	}
 

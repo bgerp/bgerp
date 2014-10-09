@@ -83,7 +83,7 @@ class sales_transaction_Sale
         if ($actions['ship'] || $actions['pay']) {
             
             $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
-			deals_Helper::fillRecs($this->class, $rec->details, $rec);
+			deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
             
             if ($actions['ship']) {
                 // Продажбата играе роля и на експедиционно нареждане.
@@ -195,14 +195,7 @@ class sales_transaction_Sale
     		// Нескладируемите продукти дебит 703. Складируемите и вложими 706 останалите 701
     		$creditAccId = ($storable) ? (($materials) ? '706' : '701') : '703';
         	
-        	if($rec->chargeVat == 'yes'){
-        		$ProductManager = cls::get($detailRec->classId);
-            	$vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
-            	$amount = $detailRec->amount - ($detailRec->amount * $vat / (1 + $vat));
-        	} else {
-        		$amount = $detailRec->amount;
-        	}
-        	
+    		$amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             
         	$entries[] = array(
@@ -268,21 +261,21 @@ class sales_transaction_Sale
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         expect($rec->caseId, 'Генериране на платежна част при липсваща каса!'); 
         $amountBase = $quantityAmount = 0;
-        
         foreach ($rec->details as $detailRec) {
+        	$detailRec->amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
-        	$amountBase += $amount * $rec->currencyRate;
-        	
+        	$amountBase += $amount;
+        	 
         }
         
-        if($rec->chargeVat == 'separate'){
-        	$amountBase += $this->class->_total->vat * $rec->currencyRate;
+        if($rec->chargeVat == 'separate' || $rec->chargeVat == 'yes'){
+        	$amountBase += $this->class->_total->vat;
         }
         
-        $quantityAmount += $amountBase / $rec->currencyRate;
+        $quantityAmount += $amountBase;
         
         $entries[] = array(
-                'amount' => $amountBase, // В основна валута
+                'amount' => $amountBase  * $rec->currencyRate, // В основна валута
                 
                 'debit' => array(
                     '501', // Сметка "501. Каси"
