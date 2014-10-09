@@ -12,7 +12,14 @@
  * @license   GPL 3
  * @since     v 0.11
  * 
- * @method getEmailOtherPlaces(object $rec)
+ * @method array getEmailOtherPlaces(object $rec)
+ * @method string getHandle(integer $id)
+ * @method string getVerbalSizesFromArray(array $arr)
+ * @method boolean checkMaxAttachedSize(array $attachSizeArr)
+ * @method array getFilesSizes(array $sizeArr)
+ * @method array getDocumentsSizes(array $docsArr)
+ * @method array getAttachments(object $aRec)
+ * @method array getPossibleTypeConvertings(object $cRec)
  */
 class blast_Emails extends core_Master
 {
@@ -487,15 +494,15 @@ class blast_Emails extends core_Master
      * Връща тялото на съобщението
      * 
      * @param object $rec - Данни за имейла
-     * @param int    $detId - id на детайла на данните
-     * @param bool   $sending - Дали ще изпращаме имейла
+     * @param int $detId - id на детайла на данните
+     * @param boolen $sending - Дали ще изпращаме имейла
      * 
      * @return object $body - Обект с тялото на съобщението
      * 		   string $body->html - HTMl частта
      * 		   string $body->text - Текстовата част
      *         array  $body->attachments - Прикачените файлове
      */
-    protected function getEmailBody($rec, $detArr, $sending=NULL)
+    protected function getEmailBody($rec, $detArr, $sending=FALSE)
     {
         $body = new stdClass();
         
@@ -1126,6 +1133,8 @@ class blast_Emails extends core_Master
         // id на обекта на персонализация
         $perSrcObjId = $data->form->rec->perSrcObjectId;
         
+        $perOptArr = array();
+        
         // Ако е подаден такъв обект за персонализация
         if ($perSrcObjId) {
             
@@ -1178,20 +1187,14 @@ class blast_Emails extends core_Master
         $emailOption = email_Inboxes::getFromEmailOptions($form->rec->folderId);
         $form->setOptions('from', $emailOption);
         
-        // Ако създаваме нов
-        if (!$rec->id) {
-            
-            // Ако не създаваме копие
-            if (!Request::get('clone')) {
-                
-                // По подразбиране да е избран текущия имейл на потребителя
-                $form->setDefault('from', email_Inboxes::getUserInboxId());  
-            }
-        }
-        
         // Ако създаваме нов, тогава попълва данните за адресата по - подразбиране
         $rec = $data->form->rec;
+        
         if ((!$rec->id) && (!Request::get('clone'))) {
+            
+            // По подразбиране да е избран текущия имейл на потребителя
+            $form->setDefault('from', email_Inboxes::getUserInboxId());
+            
             $rec->recipient = '[#company#]';
             $rec->attn = '[#person#]';
             $rec->email = '[#email#]';
@@ -1577,7 +1580,7 @@ class blast_Emails extends core_Master
     
     
  	/**
- 	 * 
+ 	 * След порготвяне на формата за филтриране
  	 * 
  	 * @param blast_Emails $mvc
  	 * @param object $data
