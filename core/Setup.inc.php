@@ -466,9 +466,9 @@ if($step == 2) {
     $checkUpdate = isset($_GET['update']) || isset($_GET['revert']);
 
     if(defined('EF_PRIVATE_PATH')) {
-        $repos = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+        $repos = array(EF_PRIVATE_PATH, EF_APP_PATH);
     } else {
-        $repos = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+        $repos = array(EF_APP_PATH);
     }
     switch ($checkUpdate) {
         // Не се изисква сетъп
