@@ -196,7 +196,9 @@ class type_Time extends type_Varchar {
         if (!$this->suggestions) {
             if($this->params['suggestions']) {
                 $suggestions = explode('|', $this->params['suggestions']);
-                $this->suggestions[''] = '';
+                if ($this->params['allowEmpty']) {
+                    $this->suggestions[''] = '';
+                }
                 
                 foreach($suggestions as $opt) {
                     $this->suggestions[$opt] = $opt;
