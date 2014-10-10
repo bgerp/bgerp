@@ -1493,9 +1493,6 @@ class callcenter_Talks extends core_Master
             $text .= " | ". ht::createLink($personsImg, array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
         }
         
-        // Дали да се показва или не
-        $visibility = (mode::is('screenMode', 'narrow')) ? 'visible' : 'hidden';
-        
         // Ако сме в мобилен режим
         if (mode::is('screenMode', 'narrow')) {
             
