@@ -181,7 +181,7 @@ class blast_Emails extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id, subject, srcLink, from, sendPerMinute, startOn';
+    protected $listFields = 'id, subject, srcLink, from, sendPerCall, startOn';
     
     
     /**
@@ -219,7 +219,7 @@ class blast_Emails extends core_Master
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast)', 'caption=Съобщение,mandatory, changable');
-        $this->FLD('sendPerMinute', 'int(min=1, max=100)', 'caption=Изпращания в минута, input=none, mandatory');
+        $this->FLD('sendPerCall', 'int(min=1, max=100)', 'caption=Изпращания заедно, input=none, mandatory, oldFieldName=sendPerMinute, title=Брой изпращания заедно');
         $this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
@@ -289,9 +289,9 @@ class blast_Emails extends core_Master
      * Активира имейла, като добавя и списъка с имейлите
      * 
      * @param integer|object $id
-     * @param integer $perMinute
+     * @param integer $sendPerCall
      */
-    public static function activateEmail($id, $perMinute=5)
+    public static function activateEmail($id, $sendPerCall=5)
     {
         // Записа
         $rec = self::getRec($id);
@@ -302,7 +302,7 @@ class blast_Emails extends core_Master
         // Активираме имейла
         $rec->state = 'active';
         $rec->activatedBy = core_Users::getCurrent();
-        $rec->sendPerMinute = $perMinute;
+        $rec->sendPerCall = $sendPerCall;
         self::save($rec);
         
         return $updateCnt;
@@ -385,7 +385,7 @@ class blast_Emails extends core_Master
             }
             
             // Вземаме данните за имейлите, до които ще пращаме
-            $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerMinute);
+            $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerCall);
             
             // Ако няма данни, затваряме 
             if (!$dataArr) {
@@ -895,7 +895,7 @@ class blast_Emails extends core_Master
         $this->requireRightFor('activate', $rec);
         
         // Въвеждаме съдържанието на полетата
-        $form->input('sendPerMinute, startOn');
+        $form->input('sendPerCall, startOn');
         
         // Инстанция на избрания клас
         $srcClsInst = cls::get($rec->perSrcClassId);
@@ -956,7 +956,7 @@ class blast_Emails extends core_Master
             }
             
             // Упдейтва състоянието и данните за имейл-а
-            blast_Emails::save($form->rec, 'state,startOn,sendPerMinute,activatedBy,modifiedBy,modifiedOn');
+            blast_Emails::save($form->rec, 'state,startOn,sendPerCall,activatedBy,modifiedBy,modifiedOn');
             
             // Обновяваме списъка с имейлите
             $updateCnt = self::updateEmailList($form->rec->id);
@@ -983,13 +983,13 @@ class blast_Emails extends core_Master
         } else {
             
             // Стойности по подразбиране
-            $perMin = $rec->sendPerMinute ? $rec->sendPerMinute : 5;
-            $form->setDefault('sendPerMinute', $perMin);
+            $perMin = $rec->sendPerCall ? $rec->sendPerCall : 5;
+            $form->setDefault('sendPerCall', $perMin);
             $form->setDefault('startOn', $rec->startOn);
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
-        $form->showFields = 'sendPerMinute, startOn';
+        $form->showFields = 'sendPerCall, startOn';
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
