@@ -90,27 +90,45 @@ class type_Minutes extends type_Int {
      */
     function renderInput_($name, $value = '', &$attr = array())
     {
-        if (!$this->suggestions) {
-            $this->suggestions = array('' => '',
-                'на момента' => 'на момента',
-                '5 мин.'  => '5 мин.',
-                '10 мин.' => '10 мин.',
-                '15 мин.' => '15 мин.',
-                '30 мин.' => '30 мин.',
-                '45 мин.' => '45 мин.',
-                '45 мин.' => '45 мин.',
-                '1 час'   => '1 час',
-                '2 часа'  => '2 часа',
-                '8 часа'  => '8 часа',
-                '1 ден'   => '1 ден',
-                '2 дена'  => '2 дена',
-                '3 дена'  => '3 дена',
-                '7 дена'  => '7 дена');
-        }
-        
         if(is_numeric($value)) {
             $value = $this->toVerbal_($value);
         }
+        
+        if (!$this->suggestions) {
+            if($this->params['suggestions']) {
+                $suggestions = explode('|', $this->params['suggestions']);
+                if ($this->params['allowEmpty']) {
+                    $this->suggestions[''] = '';
+                }
+                
+                foreach($suggestions as $opt) {
+                    $this->suggestions[$opt] = $opt;
+                }
+                
+                if($value) {
+                    $this->suggestions[$value] = $value;
+                }
+                
+            } else {
+                $this->suggestions = array('' => '',
+                    'на момента' => 'на момента',
+                    '5 мин.'  => '5 мин.',
+                    '10 мин.' => '10 мин.',
+                    '15 мин.' => '15 мин.',
+                    '30 мин.' => '30 мин.',
+                    '45 мин.' => '45 мин.',
+                    '45 мин.' => '45 мин.',
+                    '1 час'   => '1 час',
+                    '2 часа'  => '2 часа',
+                    '8 часа'  => '8 часа',
+                    '1 ден'   => '1 ден',
+                    '2 дена'  => '2 дена',
+                    '3 дена'  => '3 дена',
+                    '7 дена'  => '7 дена');
+            }
+        }
+        
+        $this->fromVerbalSuggestions($value);
         
         return parent::renderInput_($name, $value, $attr);
     }
