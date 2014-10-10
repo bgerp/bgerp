@@ -183,10 +183,6 @@ class core_Packs extends core_Manager
         
         $appDirs = $this->getSubDirs(EF_APP_PATH);
         
-        $vendorDirs = $this->getSubDirs(EF_VENDORS_PATH);
-        
-        $efDirs = $this->getSubDirs(EF_EF_PATH);
-        
         if (defined('EF_PRIVATE_PATH')) {
             $privateDirs = $this->getSubDirs(EF_PRIVATE_PATH);
         }
@@ -196,43 +192,11 @@ class core_Packs extends core_Manager
                 $path = EF_APP_PATH . "/" . $dir . "/" . "Setup.class.php";
                 
                 if (file_exists($path)) {
-                    unset($vendorDirs[$dir]);
-                    unset($efDirs[$dir]);
                     
                     // Ако този пакет не е инсталиран - 
                     // добавяме го като опция за инсталиране
                     if(!$this->fetch("#name = '{$dir}'")) {
                         $opt[$dir] =  $dir .' - компонент на приложението';
-                    }
-                }
-            }
-        }
-        
-        if (count($vendorDirs)) {
-            foreach ($vendorDirs as $dir => $dummy) {
-                $path = EF_VENDORS_PATH . "/" . $dir . "/" . "Setup.class.php";
-                
-                if (file_exists($path)) {
-                    unset($efDirs[$dir]);
-                    
-                    // Ако този пакет не е инсталиран - 
-                    // добавяме го като опция за инсталиране
-                    if(!$this->fetch("#name = '{$dir}'")) {
-                        $opt[$dir] =  $dir .' - публичен компонент';
-                    }
-                }
-            }
-        }
-        
-        if (count($efDirs)) {
-            foreach ($efDirs as $dir => $dummy) {
-                $path = EF_EF_PATH . "/" . $dir . "/" . "Setup.class.php";
-                
-                if (file_exists($path)) {
-                    // Ако този пакет не е инсталиран - 
-                    // добавяме го като опция за инсталиране
-                    if(!$this->fetch("#name = '{$dir}'")) {
-                        $opt[$dir] = $dir . ' - компонент на фреймуърка"';
                     }
                 }
             }
