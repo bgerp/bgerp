@@ -61,3 +61,4 @@ filter:
         - 'tooltip/lib/*'
         - 'tremol/linux/*'
         - 'xmpphp/0.1rc2-r77/*'
+    paths: {  }
