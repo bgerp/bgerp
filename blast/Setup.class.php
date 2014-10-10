@@ -23,6 +23,20 @@ defIfNot('BGERP_BLAST_SUCCESS_ADD', 'Имейлът Ви е добавен в с
  */
 defIfNot('BGERP_BLAST_SUCCESS_REMOVED', 'Имейлът Ви е премахнат от списъка за информационни съобщения. Искате ли да добавите имейл-а си в листата?');
 
+
+/**
+ * Период на изпращането на информационни съобщения по крон
+ */
+defIfNot('BLAST_EMAILS_CRON_PERIOD', '1');
+
+
+/**
+ * Ограничение на времето при изпращане по крон
+ */
+defIfNot('BLAST_EMAILS_CRON_TIME_LIMIT', '50');
+
+
+
 /**
  * class blast_Setup
  *
@@ -82,7 +96,10 @@ class blast_Setup extends core_ProtoSetup
     
             
            // Текст, който се показва когато добавим имейл-а в списъка на блокираните имейли
-           'BGERP_BLAST_SUCCESS_REMOVED'   => array ('text(rows=5)', 'caption=Успешно добавяне в списъка с блокираните->Съобщение')
+           'BGERP_BLAST_SUCCESS_REMOVED'   => array ('text(rows=5)', 'caption=Успешно добавяне в списъка с блокираните->Съобщение'),
+           
+           'BLAST_EMAILS_CRON_PERIOD'   => array ('minutes(suggestions=1 мин.|2 мин.|5 мин.|10 мин.)', 'caption=Период на изпращане на информационни съобщения по крон->Време'),
+           'BLAST_EMAILS_CRON_TIME_LIMIT'   => array ('time(suggestions=30 сек.|50 сек.|1 мин.|2 мин.|3 мин.)', 'caption=Ограничение на времето при изпращане по крон->Време')
         );
     
     

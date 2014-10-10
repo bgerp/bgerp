@@ -1866,16 +1866,18 @@ class blast_Emails extends core_Master
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
+        $conf = core_Packs::getConfig('blast');
+        
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = self::$cronSytemId;
         $rec->description = 'Изпращане на много имейли';
         $rec->controller = $mvc->className;
         $rec->action = 'SendEmails';
-        $rec->period = 5;
+        $rec->period = $conf->BLAST_EMAILS_CRON_PERIOD;
         $rec->offset = 0;
         $rec->delay = 0;
-        $rec->timeLimit = 250;
+        $rec->timeLimit = $conf->BLAST_EMAILS_CRON_TIME_LIMIT;
         $res .= core_Cron::addOnce($rec);
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
