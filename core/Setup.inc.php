@@ -1364,10 +1364,10 @@ function dataBaseStat()
 
     $recordsRes = $DB->query("SELECT SUM(TABLE_ROWS) AS RECS
             FROM INFORMATION_SCHEMA.TABLES
-            WHERE TABLE_SCHEMA = '" . $DB->dbName ."'");
+            WHERE TABLE_SCHEMA = '" . mysql_real_escape_string($DB->dbName) ."'");
     $rows = $DB->fetchObject($recordsRes);
     
-    $tablesRes = $DB->query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". $DB->dbName ."';");
+    $tablesRes = $DB->query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". mysql_real_escape_string($DB->dbName) ."';");
     $tables = $DB->fetchObject($tablesRes);
     
     return array($tables->TABLES, $rows->RECS);
