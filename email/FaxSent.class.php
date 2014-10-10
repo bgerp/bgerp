@@ -457,7 +457,7 @@ class email_FaxSent extends core_Manager
             foreach ($faxesArr['fax'] as $fax) {
                 
                 // Разделяме домейн частта от номера
-                list($faxNum, $domain) = explode('@', $fax, 2);
+                list($faxNum) = explode('@', $fax, 2);
                 
                 // Добавяме към стринга
                 $faxNums .= ($faxNums) ? ", {$faxNum}" : $faxNum;
