@@ -393,7 +393,7 @@ class doc_Containers extends core_Manager
         }
 
         if($mustSave) {
-            $bSaved = doc_Containers::save($rec, $updateField);
+            doc_Containers::save($rec, $updateField);
 
             // Ако този документ носи споделяния на нишката, добавяме ги в списъка с отношения
             if($rec->state != 'draft' && $rec->state != 'rejected') {
@@ -1243,7 +1243,7 @@ class doc_Containers extends core_Manager
                 $err[$rec->id] .= 'Missing folderId; ';
             }
 
-            if(!doc_Folders::fetch($rec->folderId, 'id')) {
+            if($rec->folderId && !doc_Folders::fetch($rec->folderId, 'id')) {
                 $err[$rec->id] .= 'Missing folder;';
                 $tRec = doc_Threads::fetch($rec->threadId);
 
