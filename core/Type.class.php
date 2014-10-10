@@ -292,7 +292,11 @@ class core_Type extends core_BaseClass
         if(is_array($this->suggestions) && count($this->suggestions)) {
             Mode::push('text', 'plain');
             
-            unset($this->suggestions['']);
+            if (isset($this->suggestions[''])) {
+                $emptySuggestions = $this->suggestions[''];
+                unset($this->suggestions['']);
+            }
+            
 
             if($this->error) {
                 $opt[$this->fromVerbal($value)] = $value;
@@ -303,9 +307,15 @@ class core_Type extends core_BaseClass
                 $opt[$this->fromVerbal($s)] = $s;
             }
             ksort($opt);
-            $this->suggestions = array('' => '');
+            $this->suggestions = array();
+            
+            if (isset($emptySuggestions)) {
+                $this->suggestions[''] = $emptySuggestions;
+            }
+            
             foreach($opt as $o => $s) {
                 $v = $this->toVerbal_($o);
+                if (!isset($v)) continue;
                 $this->suggestions[$v] = $v;
             }
             Mode::pop('text');
