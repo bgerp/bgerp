@@ -23,6 +23,7 @@ class blast_Wrapper extends plg_ProtoWrapper
     function description()
     {
         $this->TAB('blast_Lists', 'Списъци', 'blast,ceo,admin');
+        $this->TAB('blast_ListDetails', 'Списъци', 'blast,ceo,admin');
         $this->TAB('blast_Emails', 'Имейли', 'ceo, blast');
         $this->TAB('blast_Sms', 'SMS-и');
         $this->TAB('blast_Faxes', 'Факсове');
