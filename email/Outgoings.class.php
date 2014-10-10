@@ -1037,7 +1037,7 @@ class email_Outgoings extends core_Master
                 
                 foreach ($emailArr as $email) {
                     if (stripos($email, '@fax.man')) {
-                        list($faxNum, $domain) = explode('@', $email, 2);
+                        list($faxNum) = explode('@', $email, 2);
                         $options['faxTo'] .= ', ' . $faxNum;
                     }
                 }
