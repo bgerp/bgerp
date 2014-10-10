@@ -1520,7 +1520,7 @@ class doc_DocumentPlg extends core_Plugin
      * @param string $res
      * @param array $dataArr
      */
-    function on_AfterGetVerbalSizesFromArray($mvc, $res, $dataArr)
+    function on_AfterGetVerbalSizesFromArray($mvc, &$res, $dataArr)
     {
         $sizeAll = 0;
         
@@ -1531,7 +1531,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Вербализираме стойността
         $FileSize = cls::get('fileman_FileSize');
-        $res = $verbalMaxUploadFileSize = $FileSize->toVerbal($sizeAll);
+        $res = $FileSize->toVerbal($sizeAll);
     }
     
     
