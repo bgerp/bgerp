@@ -13,6 +13,8 @@
  * @license   GPL 3
  * @since     v 0.1
  * @link
+ * 
+ * @deprecated
  */
 class type_Minutes extends type_Int {
     
