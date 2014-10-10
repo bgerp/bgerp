@@ -472,7 +472,7 @@ class cal_Reminders extends core_Master
     {
     	if ($data->recs) {
         	foreach((array)$data->recs as $id => $rec){
-    		    $row = $this->recToVerbal($rec);
+    		    $row = $mvc->recToVerbal($rec);
     		    
     		    if ($rec->repetitionEach != NULL) {
     				$data->rows[$id]->repetition = $row->repetitionEach . " " . $row->repetitionType;
