@@ -408,7 +408,6 @@ class callcenter_Talks extends core_Master
         
         // Вземаме променливите
         $startTime = Request::get('starttime');
-        $dialStatus = Request::get('dialstatus');
         $uniqId = Request::get('uniqueId');
         $outgoing = Request::get('outgoing');
         
