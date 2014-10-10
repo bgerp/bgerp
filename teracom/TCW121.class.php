@@ -189,10 +189,6 @@ class teracom_TCW121
             }
         }
 
-        echo "<br><pre>";
-        print_r($res);
-        echo "</pre>";
-
         return $res;
     }
 

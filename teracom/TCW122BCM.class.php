@@ -186,10 +186,6 @@ class teracom_TCW122BCM
             }
         }
 
-        echo "<br><pre>";
-        print_r($res);
-        echo "</pre>";
-
         return $res;
     }
 
