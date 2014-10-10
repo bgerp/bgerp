@@ -40,6 +40,7 @@ class cal_Wrapper extends plg_ProtoWrapper
         $this->TAB(array('cal_Calendar', 'year',  'from' => $from), 'Календар->Година', 'powerUser,admin');
         
         $this->TAB('cal_Tasks', 'Задачи', 'admin,doc,powerUser');
+        $this->TAB('cal_TaskConditions', 'Задачи', 'admin,doc,powerUser');
         $this->TAB('cal_Reminders', 'Напомняния', 'powerUser');
         $this->TAB('cal_Holidays', 'Празници', 'powerUser');
         $this->TAB('cal_Test', 'Тест', 'debuger');

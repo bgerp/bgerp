@@ -460,7 +460,7 @@ class cal_Tasks extends core_Master
         	$data->toolbar->removeBtn('btnActivate');
         }
         
-        if($data->rec->state == 'draft') {
+        if($data->rec->state == 'draft' || $data->rec->state == 'pending') {
         	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/task-option.png, row=2');
         }
         

@@ -2,14 +2,14 @@
 
 
 /**
- * Клас 'cal_TaskProgresses'
+ * Клас 'cal_TaskConditions'
  * 
- * @title Отчитане изпълнението на задачите
+ * @title Задаване на условия към задачите
  *
  *
  * @category  bgerp
- * @package   doc
- * @author    Milen Georgiev <milen@download.bg>
+ * @package   ca;
+ * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -32,26 +32,30 @@ class cal_TaskConditions extends core_Detail
     /**
      * Заглавие
      */
-    var $title = "Прогрес по задачите";
+    var $title = "Условия";
+    
+    
+    /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = 'Условие';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'createdOn,createdBy,message,progress,workingTime';
+    var $listFields = 'tools=#,createdOn,createdBy,message,progress,workingTime';
+    
+    
+    var $rowToolsField = 'condition';
     
     
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
     var $rowToolsSingleField = 'title';
-    
-    
-    /**
-     * Икона за единичния изглед
-     */
-    //var $singleIcon = 'img/16/task.png';
 
+    
     var $canAdd = 'powerUser';
 
     
@@ -184,30 +188,61 @@ class cal_TaskConditions extends core_Detail
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+    	//width:12px;height:12px;
+  		$row->condition = '<span style="margin-right:5px;position:relative;top:2px;">' . $row->condition . '</span>';
     	
     	if ($rec->progress == '0') {
     		$row->progress = "";
     	}
     	
     	if ($rec->activationCond == 'onProgress') {
-    		$row->condition = $row->progress . tr(" от изпълнението на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
+    		$row->condition .= $row->progress . tr(" от изпълнението на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
     	
     	if ($rec->activationCond == 'afterTime') {
-    		$row->condition = $row->distTime . tr(" след началото на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
+    		$row->condition .= $row->distTime . tr(" след началото на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
     	
     	if ($rec->activationCond == 'beforeTime') {
-    		$row->condition = $row->distTime . tr(" преди началото на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
+    		$row->condition .= $row->distTime . tr(" преди началото на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
     	
    		if ($rec->activationCond == 'afterTimeEnd') {
-    		$row->condition = $row->distTime . tr(" след края на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
+    		$row->condition .= $row->distTime . tr(" след края на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
     	
     	if ($rec->activationCond == 'beforeTimeEnd') {
-    		$row->condition = $row->distTime . tr(" преди края на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
+    		$row->condition .= $row->distTime . tr(" преди края на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    {
+    	if($action == 'edit' || $action == 'delete'){ 
+	    	if ($rec->id) {
+	        	if ($rec->state !== 'draft' || ($rec->state !== 'pending') ) { 
+	                $requiredRoles = 'no_one'; 
+	            }
+    	     }
+         }
+         
+         if ($action == 'edit') { 
+         	if ($rec->id) {
+	         	if (!cal_Tasks::haveRightFor('single', $rec)) {
+	         		$requiredRoles = 'no_one'; 
+	         	}
+         	}
+         }
     }
 
 
