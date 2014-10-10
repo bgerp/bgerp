@@ -43,7 +43,18 @@ class core_App
      * Начално инициализиране на приложението и системата
      */
     public static function initSystem()
-    {
+    {   
+        /**
+         * Дефинира, ако не е зададено името на кода на приложението
+         */
+        defIfNot('EF_APP_CODE_NAME', 'bgerp');
+
+
+        /**
+         * Директорията с приложението
+         */
+        defIfNot('EF_APP_PATH', EF_ROOT_PATH . '/' . EF_APP_CODE_NAME);
+
         // Регистрираме функция за автоматично зареждане на класовете
         spl_autoload_register(array('core_App', 'classAutoload'), TRUE, TRUE);
 
@@ -269,8 +280,6 @@ class core_App
             DEFINE('EF_APP_NAME_FIXED', TRUE);
         }
 
-        
-
 
         // Зареждаме конфигурационния файл на приложението. 
         // Ако липсва - показваме грешка.
@@ -281,18 +290,6 @@ class core_App
         }
         
 
-        /**
-         * Дефинира, ако не е зададено името на кода на приложението
-         */
-        defIfNot('EF_APP_CODE_NAME', EF_APP_NAME);
-
-
-        /**
-         * Директорията с приложението
-         */
-        defIfNot('EF_APP_PATH', EF_ROOT_PATH . '/' . EF_APP_CODE_NAME);
-
-        
         /**
          * Пътя до директорията за статичните браузърни файлове към приложението
          */
@@ -923,14 +920,14 @@ class core_App
        }
 
         if(defined('EF_PRIVATE_PATH')) {
-            $pathsArr = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+            $pathsArr = array(EF_PRIVATE_PATH, EF_APP_PATH);
         } else {
-            $pathsArr = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+            $pathsArr = array(EF_APP_PATH);
         }
 
         foreach($pathsArr as $base) {
             $fullPath = $base . '/' . $shortPath;
-
+ 
             if(is_readable($fullPath)) return $fullPath;
         }
 
