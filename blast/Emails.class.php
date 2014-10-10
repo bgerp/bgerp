@@ -1868,13 +1868,16 @@ class blast_Emails extends core_Master
     {
         $conf = core_Packs::getConfig('blast');
         
+        // За да получим минути
+        $period = round($conf->BLAST_EMAILS_CRON_PERIOD/60);
+        
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = self::$cronSytemId;
         $rec->description = 'Изпращане на много имейли';
         $rec->controller = $mvc->className;
         $rec->action = 'SendEmails';
-        $rec->period = $conf->BLAST_EMAILS_CRON_PERIOD;
+        $rec->period = $period;
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = $conf->BLAST_EMAILS_CRON_TIME_LIMIT;
