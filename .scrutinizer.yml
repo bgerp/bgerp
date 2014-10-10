@@ -61,8 +61,3 @@ filter:
         - 'tooltip/lib/*'
         - 'tremol/linux/*'
         - 'xmpphp/0.1rc2-r77/*'
-        - 'chromephp/ChromePHP.class.php'
-        - 'avatar/Avatarco.class.php'
-        - 'ckeditor/ckeditor_php4.php'
-        - 'ckeditor/ckeditor_php5.php'
-        - 'ckeditor/ckeditor.php'
