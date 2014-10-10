@@ -2119,13 +2119,13 @@ span.sharing-history-title {
   display: inline-block;
   min-width: 100%; }
 
-.narrow .main-container.narrow-scroll {
+.narrow-scroll .main-container {
   display: block; }
 
 .listBlock {
   display: table; }
 
-.narrow .narrow-scroll .listBlock {
+.narrow-scroll .listBlock {
   display: block; }
 
 .narrow .listRows .listTable {
@@ -2134,64 +2134,64 @@ span.sharing-history-title {
 .narrow .document .listTable {
   margin-bottom: 0; }
 
-.narrow .narrow-scroll div.alphabet  div.tab-row {
+.narrow-scroll div.alphabet  div.tab-row {
   width: 100%; }
 
-.narrow .narrow-scroll .listRows {
+.narrow-scroll .listRows {
   width: 100% !important;
   overflow-y: auto !important;
   _overflow: auto !important; }
 
-.narrow .narrow-scroll .single-thread .listRows {
+.narrow-scroll .single-thread .listRows {
   overflow: visible !important;
   _overflow: visible !important;
   width: auto !important; }
 
-.narrow .narrow-scroll .listRows::-webkit-scrollbar {
+.narrow-scroll .listRows::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 10px;
   height: 10px; }
 
-.narrow .narrow-scroll .listRows::-webkit-scrollbar-thumb {
+.narrow-scroll .listRows::-webkit-scrollbar-thumb {
   border-radius: 8px;
   background-color: rgba(0, 0, 0, 0.2); }
 
 .narrow .scrolling-holder {
   display: inline; }
 
-.narrow .narrow-scroll .scrolling-holder,
+.narrow-scroll .scrolling-holder,
 .overflow-scroll {
   width: 100% !important;
   overflow-x: auto !important;
   _overflow: auto !important;
   margin-bottom: 3px;
   display: block; }
-  .narrow .narrow-scroll .scrolling-holder .folder-cover,
+  .narrow-scroll .scrolling-holder .folder-cover,
   .overflow-scroll .folder-cover {
     margin-right: 2px; }
-  .narrow .narrow-scroll .scrolling-holder .document,
+  .narrow-scroll .scrolling-holder .document,
   .overflow-scroll .document {
     border: none;
     padding: 0 2px 0 0; }
-  .narrow .narrow-scroll .scrolling-holder .display-table,
+  .narrow-scroll .scrolling-holder .display-table,
   .overflow-scroll .display-table {
     display: table;
     width: 100%; }
-  .narrow .narrow-scroll .scrolling-holder .styled-table,
+  .narrow-scroll .scrolling-holder .styled-table,
   .overflow-scroll .styled-table {
     margin-bottom: 2px; }
-  .narrow .narrow-scroll .scrolling-holder > .antetka,
+  .narrow-scroll .scrolling-holder > .antetka,
   .overflow-scroll > .antetka {
     margin-top: 0; }
 
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar,
+.narrow-scroll .scrolling-holder::-webkit-scrollbar,
 .overflow-scroll::-webkit-scrollbar,
 .narrow .details .groupList::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 10px;
   height: 10px; }
 
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb,
+.narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb,
 .overflow-scroll::-webkit-scrollbar-thumb,
 .narrow .details .groupList::-webkit-scrollbar-thumb {
   -moz-border-radius: 8px;

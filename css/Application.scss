@@ -2307,7 +2307,7 @@ fieldset.sharing-history {
 	min-width: 100%;
 }
 
-.narrow .main-container.narrow-scroll {
+.narrow-scroll .main-container {
 	display: block;
 }
 
@@ -2315,7 +2315,7 @@ fieldset.sharing-history {
 	display: table;
 }
 
-.narrow .narrow-scroll .listBlock {
+.narrow-scroll .listBlock {
 	display: block;
 }
 
@@ -2327,29 +2327,29 @@ fieldset.sharing-history {
 	margin-bottom: 0;
 }
 
-.narrow .narrow-scroll div.alphabet  div.tab-row {
+.narrow-scroll div.alphabet  div.tab-row {
 	width: 100%;
 }
 
-.narrow .narrow-scroll .listRows {
+.narrow-scroll .listRows {
 	width: 100% !important;
 	overflow-y: auto !important;
 	_overflow: auto !important;
 }
 
-.narrow .narrow-scroll .single-thread .listRows {
+.narrow-scroll .single-thread .listRows {
 	overflow:visible !important;
 	_overflow: visible !important;
 	width:auto !important;
 }
 
-.narrow .narrow-scroll .listRows::-webkit-scrollbar {
+.narrow-scroll .listRows::-webkit-scrollbar {
 	-webkit-appearance: none;
 	width: 10px;
 	height: 10px;
 }
 
-.narrow .narrow-scroll .listRows::-webkit-scrollbar-thumb {
+.narrow-scroll .listRows::-webkit-scrollbar-thumb {
 	border-radius: 8px;
 	background-color: rgba(0, 0, 0, .2);
 }
@@ -2358,7 +2358,7 @@ fieldset.sharing-history {
 	display: inline;
 }
 
-.narrow .narrow-scroll .scrolling-holder, .overflow-scroll {
+.narrow-scroll .scrolling-holder, .overflow-scroll {
 	width: 100% !important;
 	overflow-x: auto !important;
 	_overflow: auto !important;
@@ -2383,13 +2383,13 @@ fieldset.sharing-history {
 	}
 }
 
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar, .narrow .details .groupList::-webkit-scrollbar {
+.narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar, .narrow .details .groupList::-webkit-scrollbar {
     -webkit-appearance: none;
     width: 10px;
     height: 10px;
 }
 
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb, .overflow-scroll::-webkit-scrollbar-thumb, .narrow .details .groupList::-webkit-scrollbar-thumb {
+.narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb, .overflow-scroll::-webkit-scrollbar-thumb, .narrow .details .groupList::-webkit-scrollbar-thumb {
     @include border-radius(8px);
     background-color: rgba(0, 0, 0, .2);
 }
