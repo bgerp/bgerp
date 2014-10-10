@@ -184,7 +184,9 @@ class email_Accounts extends core_Master
         while ($rec = $query->fetch()) {
             
             // Вземаме домейна
-            list($user, $domain) = explode('@', $rec->email);
+            list(, $domain) = explode('@', $rec->email);
+            
+            if (!$domain) continue;
             
             // Домейна в долен регистър
             $domain = mb_strtolower($domain);
