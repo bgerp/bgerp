@@ -690,7 +690,7 @@ class core_Db extends core_BaseClass
     	
         $dbRes = $db->query("SELECT SUM(TABLE_ROWS) AS RECS
                                     FROM INFORMATION_SCHEMA.TABLES 
-                                    WHERE TABLE_SCHEMA = '" . mysql_real_escape_string($db->dbName) ."'", TRUE);
+                                    WHERE TABLE_SCHEMA = '" . $db->escape($db->dbName) ."'", TRUE);
         
         if(!is_resource($dbRes)) {
         
