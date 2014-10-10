@@ -621,7 +621,7 @@ class core_Query extends core_FieldSet
             $tableName = "`" . $this->mvc->dbTableName . "`.* ";
         }
         
-        $query = "DELETE " . $dbTableName . "FROM";
+        $query = "DELETE " . mysql_real_escape_string($dbTableName) . "FROM";
         $query .= $this->getTables();
         
         $query .= $wh->w;
