@@ -216,7 +216,6 @@ class blast_Emails extends core_Master
         $this->FLD('perSrcClassId', 'class(interface=bgerp_PersonalizationSourceIntf)', 'caption=Източник на данни->Клас, silent, input=hidden');
         $this->FLD('perSrcObjectId', 'int', 'caption=Списък, mandatory, silent');
         
-        $this->FLD('group', 'enum(company=Фирми, personBiz=Лица (Бизнес данни), person=Лица (Частни данни))', 'caption=Група, mandatory, input=none');
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast)', 'caption=Съобщение,mandatory, changable');
@@ -246,11 +245,128 @@ class blast_Emails extends core_Master
         $this->FNC('srcLink', 'varchar', 'caption=Списък');
     }
     
-
-	/**
-     * Проверява дали има съобщения за изпращане и ги изпраща
+    
+    /**
+     * Създава имейл с посочените данни
+     * 
+     * @param integer $perSrcClassId
+     * @param integer $perSrcObjectId
+     * @param string $text
+     * @param string $subject
+     * @param array $otherParams
+     * 
+     * @return integer
      */
-    public function sendEmails()
+    public static function createEmail($perSrcClassId, $perSrcObjectId, $text, $subject, $otherParams = array())
+    {
+        // Задаваме стойност
+        $rec = new stdClass();
+        $rec->perSrcClassId = $perSrcClassId;
+        $rec->perSrcObjectId = $perSrcObjectId;
+        $rec->body = $text;
+        $rec->subject = $subject;
+        $rec->state = 'draft';
+        
+        // Задаваме стойности за останалите полета
+        foreach ((array)$otherParams as $fieldName => $value) {
+            if ($rec->$fieldName) continue;
+            $rec->$fieldName = $value;
+        }
+        
+        // Ако не е зададен имейл на изпращача, да се използва дефолтният му 
+        if (!$rec->from) {
+            $rec->from = email_Outgoings::getDefaultInboxId();
+        }
+        
+        // Записваме
+        $id = self::save($rec);
+        
+        return $id;
+    }
+    
+    
+    /**
+     * Активира имейла, като добавя и списъка с имейлите
+     * 
+     * @param integer|object $id
+     * @param integer $perMinute
+     */
+    public static function activateEmail($id, $perMinute=5)
+    {
+        // Записа
+        $rec = self::getRec($id);
+        
+        // Обновяваме списъка с имейлите
+        $updateCnt = self::updateEmailList($id);
+        
+        // Активираме имейла
+        $rec->state = 'active';
+        $rec->activatedBy = core_Users::getCurrent();
+        $rec->sendPerMinute = $perMinute;
+        self::save($rec);
+        
+        return $updateCnt;
+    }
+    
+    
+    /**
+     * Обновява списъка с имейлите
+     * 
+     * @param integer|object $id
+     * 
+     * @return integer
+     */
+    protected static function updateEmailList($id)
+    {
+        // Записа
+        $rec = self::getRec($id);
+        
+        // Инстанция на класа за персонализация
+        $srcClsInst = cls::get($rec->perSrcClassId);
+        
+        // Масива с данните за персонализация
+        $personalizationArr = $srcClsInst->getPresonalizationArr($rec->perSrcObjectId);
+        
+        // Масив с типовете на полетата
+        $descArr = $srcClsInst->getPersonalizationDescr($rec->perSrcObjectId);
+        
+        // Масив с всички имейл полета
+        $emailFieldsArr = self::getEmailFields($descArr);
+        
+        // Обновяваме листа и връщаме броя на обновленията
+        $updateCnt = blast_EmailSend::updateList($rec->id, $personalizationArr, $emailFieldsArr);
+        
+        return $updateCnt;
+    }
+    
+    
+    
+    /**
+     * Връща записа
+     * 
+     * @param integer|object $id
+     * 
+     * @return object
+     */
+    protected static function getRec($id)
+    {
+        // Ако е обект, приемаме, че е подаден самия запис
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            // Ако е id, фечваме записа
+            $rec = self::fetch($id);
+        }
+        
+        return $rec;
+    }
+    
+    
+	/**
+     * Проверява дали има имейли за изпращане, персонализира ги и ги изпраща
+     * Вика се от `cron`
+     */
+    protected function sendEmails()
     {
         // Всички активни или чакащи имейли, на които им е дошло времето за стартиране
         $query = blast_Emails::getQuery();
@@ -451,16 +567,11 @@ class blast_Emails extends core_Master
      */
     protected function replacePlaces($resStr, $detArr)
     {   
-        foreach ((array)$detArr as $key => $value) {
-            
-            // Какво ще заместваме
-            $search = "[#{$key}#]";
-            
-            //Заместваме данните
-            $resStr = str_ireplace($search, $value, $resStr);
-        }     
+        // Заместваме плейсхолдерите
+        $resStr = new ET($resStr);
+        $resStr->placeArray($detArr);
         
-        return $resStr;
+        return $resStr->getContent();
     }
     
     
@@ -847,17 +958,8 @@ class blast_Emails extends core_Master
             // Упдейтва състоянието и данните за имейл-а
             blast_Emails::save($form->rec, 'state,startOn,sendPerMinute,activatedBy,modifiedBy,modifiedOn');
             
-            // Масив с всчики данни за персонализация
-            $personalizationArr = $srcClsInst->getPresonalizationArr($rec->perSrcObjectId);
-            
-            // Масив с типовете на полетата
-            $descArr = $srcClsInst->getPersonalizationDescr($rec->perSrcObjectId);
-            
-            // Масив с всички имейл полета
-            $emailFieldsArr = self::getEmailFields($descArr);
-            
-            // Обновяваме запсите
-            $updateCnt = blast_EmailSend::updateList($form->rec->id, $personalizationArr, $emailFieldsArr);
+            // Обновяваме списъка с имейлите
+            $updateCnt = self::updateEmailList($form->rec->id);
             
             // В зависимост от броя на обновления променяме състоянието
             if ($updateCnt) {
@@ -882,7 +984,7 @@ class blast_Emails extends core_Master
             
             // Стойности по подразбиране
             $perMin = $rec->sendPerMinute ? $rec->sendPerMinute : 5;
-            $form->setDefault('sendPerMinute', 5);
+            $form->setDefault('sendPerMinute', $perMin);
             $form->setDefault('startOn', $rec->startOn);
         }
         
@@ -950,19 +1052,8 @@ class blast_Emails extends core_Master
         // Очакваме потребителя да има права за обновяване на съответния запис
         $this->requireRightFor('update', $rec);
         
-        $srcClsInst = cls::get($rec->perSrcClassId);
-        
-        // Масив с всчики данни за персонализация
-        $personalizationArr = $srcClsInst->getPresonalizationArr($rec->perSrcObjectId);
-        
-        // Масив с описанията на полетата
-        $descArr = $srcClsInst->getPersonalizationDescr($rec->perSrcObjectId);
-        
-        // Масив с всички имейл полета
-        $emailFieldsArr = self::getEmailFields($descArr);
-        
-        // Обновяваме запсите
-        $updateCnt = blast_EmailSend::updateList($rec->id, $personalizationArr, $emailFieldsArr);
+        // Обновяваме списъка с имейлите
+        $updateCnt = blast_Emails::updateEmailList($rec);
         
         // В зависимост от броя на обновления променяме състоянието
         if ($updateCnt) {
@@ -1193,7 +1284,7 @@ class blast_Emails extends core_Master
         if ((!$rec->id) && (!Request::get('clone'))) {
             
             // По подразбиране да е избран текущия имейл на потребителя
-            $form->setDefault('from', email_Inboxes::getUserInboxId());
+            $form->setDefault('from', email_Outgoings::getDefaultInboxId($rec->folderId));
             
             $rec->recipient = '[#company#]';
             $rec->attn = '[#person#]';
@@ -1542,9 +1633,6 @@ class blast_Emails extends core_Master
         
         // Рендираме шаблона
         if (!Mode::is('text', 'xhtml') && !Mode::is('text', 'plain')) {
-            
-            $perSrcClassInst = cls::get($data->rec->perSrcClassId);
-            $perSrcClassTitle = $perSrcClassInst->getPersonalizationTitle($data->rec->perSrcObjectId, TRUE);
             
             // Записите
             $rec = $data->rec;
