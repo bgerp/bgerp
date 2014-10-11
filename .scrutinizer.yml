@@ -1,4 +1,3 @@
----
 filter:
     excluded_paths:
-        - gantt/*
+        - 'tests/*'
