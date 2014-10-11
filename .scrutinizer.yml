@@ -1,2 +1,2 @@
 filter:
-    excluded_paths: [apachetika/1.2/*]
+    excluded_paths: [apachetika/*]
