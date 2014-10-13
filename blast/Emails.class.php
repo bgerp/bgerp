@@ -1583,7 +1583,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * 
+     * След рендиране на синъл обвивката
      * 
      * @param blast_Emails $mvc
      * @param core_ET $tpl
@@ -1602,28 +1602,28 @@ class blast_Emails extends core_Master
         }
         
         // Полета Град и Адрес
-        $addr = $data->row->place . $data->row->address;
-        $addr = trim($addr);
+        $addrStr = $data->row->place . $data->row->address;
+        $addrStr = trim($addrStr);
         
         // Ако липсва адреса и града
-        if (!$addr) {
+        if (!$addrStr) {
             
-            //Не се показва и пощенския код
+            // Не се показва и пощенския код
             unset($data->row->pcode);
             
-            //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме държавата след фирмата
+            // Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме държавата след фирмата
             if ($data->row->recipient) {
                 $data->row->firmCountry = $data->row->country;
             }
             
-            //Не се показва и държавата
+            // Не се показва и държавата
             unset($data->row->country);
             
-            $telFax = $data->row->tel . $data->row->fax;
-            $telFax = trim($telFax);
+            $telFaxStr = $data->row->tel . $data->row->fax;
+            $telFaxStr = trim($telFaxStr);
             
-            //Имейла е само в дясната част, преместваме в ляво
-            if (!$telFax) {
+            // Имейла е само в дясната част, преместваме в ляво
+            if (!$telFaxStr) {
                 $data->row->emailLeft = $data->row->email;
                 unset($data->row->email);
             }
