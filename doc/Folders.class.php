@@ -1099,11 +1099,6 @@ class doc_Folders extends core_Master
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
         $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
         
-        // Задаваме стойностите по подразбиране
-//        $form->setDefault('folOpenings', 'default');
-//        $form->setDefault('perPage', 'default');
-//        $form->setDefault('ordering', 'default');
-        
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
         
