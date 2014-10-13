@@ -582,6 +582,9 @@ class acc_HistoryReport extends core_Manager
     {
     	$recs = $data->allRecs;
     	
+    	// Ако в формата има грешки,
+    	if($data->listFilter->gotErrors()) return;
+    	
     	$tmpArray = array();
     	$quantity = $amount = 0;
     	 
@@ -594,7 +597,7 @@ class acc_HistoryReport extends core_Manager
     	}
     	 
     	// Нулираме му ключовете за по-лесно обхождане
-    	$tmpArray = array_values($tmpArray);
+    	$tmpArray = array_values(array_reverse($tmpArray));
     	
     	if(count($tmpArray)){
     
@@ -603,7 +606,7 @@ class acc_HistoryReport extends core_Manager
     			 
     			// Ако не е последния елемент
     			if($id != count($tmpArray)-1){
-    
+    				
     				// Взимаме дните между следващата дата и текущата от записа
     				$value = dt::daysBetween($tmpArray[$id+1]['valior'], $arr['valior']);
     			} else {
@@ -611,7 +614,7 @@ class acc_HistoryReport extends core_Manager
     				// Ако сме на последната дата
     				$value = 1;
     			}
-    			 
+    		
     			// Умножяваме съответните количества по дните разлика
     			$quantity += $value * $arr['blQuantity'];
     			$amount += $value * $arr['blAmount'];
