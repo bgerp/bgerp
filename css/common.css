@@ -1619,11 +1619,11 @@ div.alphabet div.tab-page {
       margin-top: 0;
       font-size: 0.85em; }
       .single-thread .document div.alphabet .tab-page .detail-info .listTable td {
-        background-color: #fefec2 !important; }
+        background-color: #fefec2; }
     .single-thread .document div.alphabet .tab-page .listTable {
       width: 100%; }
     .single-thread .document div.alphabet .tab-page .listTable td {
-      border: 1px dotted #bbbbbb !important;
+      border: 1px dotted #bbbbbb;
       text-align: center;
       padding: 2px; }
       .single-thread .document div.alphabet .tab-page .listTable td:first-child {
@@ -1642,17 +1642,17 @@ div.alphabet div.tab-page {
       .single-thread .document div.alphabet .tab-page .stateIndicator.state-closed {
         background-color: #dddddd; }
     .single-thread .document div.alphabet .tab-page .listTable th {
-      background-color: #fefec2 !important;
-      border-left: 1px solid transparent !important;
-      border-right: 1px solid transparent !important;
-      border-top: 1px solid transparent !important;
-      border-bottom: 1px dotted #bbbbbb !important;
+      background-color: #fefec2;
+      border-left: 1px solid transparent;
+      border-right: 1px solid transparent;
+      border-top: 1px solid transparent;
+      border-bottom: 1px dotted #bbbbbb;
       color: #333333;
       padding: 5px 0; }
       .single-thread .document div.alphabet .tab-page .listTable th:first-child {
-        border-left: 1px solid #bbbbbb !important; }
+        border-left: 1px solid #bbbbbb; }
       .single-thread .document div.alphabet .tab-page .listTable th:last-child {
-        border-right: 1px solid #bbbbbb !important; }
+        border-right: 1px solid #bbbbbb; }
   .single-thread .document div.alphabet .detail-info {
     border: none !important; }
   .single-thread .document div.alphabet div.tab-row .tab {

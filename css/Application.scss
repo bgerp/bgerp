@@ -911,7 +911,7 @@ td.portal-date {
 }
 
 .doc_Containers table.listTable td {
-	vertical-align: top !important;
+	vertical-align: top;
 }
 
 .doc_Containers > .single-thread > .listRows > table.listTable > tbody > tr {
@@ -945,7 +945,7 @@ td.portal-date {
 
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td{
-	background-color: #fed7d6 !important;
+	background-color: #fed7d6;
 }
 /*край на стилове при тредове*/
 
@@ -1106,7 +1106,7 @@ td.portal-date {
 
 .articleCell{
     min-width: 220px;
-    max-width: 270px !important;
+    max-width: 270px;
 }
 
 
@@ -1153,7 +1153,7 @@ pre.document {
 }
 
 .narrow .block_title {
-	font-size: 1.2em !important;
+	font-size: 1.2em;
 }
 
 .narrow .document .richtext {
@@ -1258,6 +1258,7 @@ pre.document {
 	clear: both;
 	float: none;
 }
+
 .document .listTable .acc-article-entries {
 	font-size: 0.8em;
     list-style: none; 
@@ -1402,15 +1403,15 @@ table.mc-calendar {
     td.mc-sunday {
         color: green;
     }
-	td.mc-holiday {
-	    color: red !important;
-	}
 	td.mc-saturday {
 	    color: #006030;
 	}
 	td.mc-today {
 	    border: solid 2px red;
 	}
+	td.mc-holiday {
+        color: red;
+    }
 }
 
 table.mc-header a {
@@ -1526,33 +1527,33 @@ td.constrColumnLeft {
 	display: block;
 	color: white;
 	font-size: 0.9em;
-	padding: 1px 2px 1px 2px !important;
+	padding: 1px 2px 1px 2px;
 	@include border-radius(3px);
 	@include shadow(2px,2px,3px,#666);
 }
 
 .narrow #notificationsCnt a {
 	font-size: 0.8em;
-	padding: 1px 3px 1px 3px !important;
+	padding: 1px 3px 1px 3px;
 	@include shadow(3px,3px,5px,#aaa);
 }
 
 #notificationsCnt a.haveNtf {
 	background-color: red;
-	border: solid 1px #c33 !important;
+	border: solid 1px #c33;
 }
 
 #notificationsCnt a.noNtf { 
     color: $gray3;
 	background-color: transparent;
-	border: none !important;
+	border: none;
 	@include no-shadow();
 }
 
 .narrow #notificationsCnt a.noNtf { 
 	color: #fff;
-	background-color: $gray4 !important; 
-	border: solid 1px #999 !important;
+	background-color: $gray4; 
+	border: solid 1px #999;
 }
 /*край на стилове за нотификация*/
 
@@ -1564,7 +1565,6 @@ td.constrColumnLeft {
 	div {
 		white-space: nowrap; 
 		padding-right: 5px;
-		text-decoration: none !important;
 		span{
 			display: block;
 			margin-bottom: 2px;
@@ -2624,18 +2624,13 @@ div.location.public {
 }
 
 .balance-custom-form select{
-    width: 100% !important;
+    width: 100%;
     max-width: 400px;
 }
 
 /*шаблон за журнал*/
 .acc_JournalDetails {
 	margin-top: 10px;
-}
-
-.acc_JournalDetails ul {
-	margin-left: 0 !important;
-	padding-left: 0 !important;
 }
 
 /*шаблон за журнал*/
@@ -2647,11 +2642,6 @@ div.location.public {
 	width: auto !important;
 }
 
-.btn-group-title {
-	margin-top: 10px;
-	margin-bottom: 2px;
-	margin-left: 2px;
-}
 /*край на bugFix - ширина при коментари на документ*/
 
 .trans_DeliveryTerms {
@@ -2663,10 +2653,6 @@ div.location.public {
     table td{
 	   word-break:break-all;
     }
-}
-
-.singleView h2 {
-	margin: 10px 0;
 }
 
 .cCode {
@@ -2691,13 +2677,6 @@ div.location.public {
 	h3 {
 		margin: 10px 0 12px;
 	}
-}
-.long-input {
-	width: 750px;
-}
-
-.narrow .long-input {
-	width: 100%;
 }
 /*край на email*/
 

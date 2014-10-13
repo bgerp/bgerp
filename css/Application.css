@@ -832,7 +832,7 @@ td.portal-date {
   max-width: 56em; }
 
 .doc_Containers table.listTable td {
-  vertical-align: top !important; }
+  vertical-align: top; }
 
 .doc_Containers > .single-thread > .listRows > table.listTable > tbody > tr {
   background-color: white; }
@@ -860,7 +860,7 @@ td.portal-date {
 
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td {
-  background-color: #fed7d6 !important; }
+  background-color: #fed7d6; }
 
 /*
  * край на стилове при тредове
@@ -995,7 +995,7 @@ td.portal-date {
 
 .articleCell {
   min-width: 220px;
-  max-width: 270px !important; }
+  max-width: 270px; }
 
 .no-border > tbody > tr > td {
   border: none !important; }
@@ -1035,7 +1035,7 @@ pre.document {
   color: #335533; }
 
 .narrow .block_title {
-  font-size: 1.2em !important; }
+  font-size: 1.2em; }
 
 .narrow .document .richtext {
   min-width: 220px;
@@ -1245,12 +1245,12 @@ table.mc-calendar {
     padding-right: 3px; }
   table.mc-calendar td.mc-sunday {
     color: green; }
-  table.mc-calendar td.mc-holiday {
-    color: red !important; }
   table.mc-calendar td.mc-saturday {
     color: #006030; }
   table.mc-calendar td.mc-today {
     border: solid 2px red; }
+  table.mc-calendar td.mc-holiday {
+    color: red; }
 
 table.mc-header a {
   color: #999999; }
@@ -1356,7 +1356,7 @@ td.constrColumnLeft {
   display: block;
   color: white;
   font-size: 0.9em;
-  padding: 1px 2px 1px 2px !important;
+  padding: 1px 2px 1px 2px;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   -ms-border-radius: 3px;
@@ -1367,27 +1367,27 @@ td.constrColumnLeft {
 
 .narrow #notificationsCnt a {
   font-size: 0.8em;
-  padding: 1px 3px 1px 3px !important;
+  padding: 1px 3px 1px 3px;
   -moz-box-shadow: 3px 3px 5px #aaaaaa;
   -webkit-box-shadow: 3px 3px 5px #aaaaaa;
   box-shadow: 3px 3px 5px #aaaaaa; }
 
 #notificationsCnt a.haveNtf {
   background-color: red;
-  border: solid 1px #cc3333 !important; }
+  border: solid 1px #cc3333; }
 
 #notificationsCnt a.noNtf {
   color: #dddddd;
   background-color: transparent;
-  border: none !important;
+  border: none;
   -moz-box-shadow: none;
   -webkit-box-shadow: none;
   box-shadow: none; }
 
 .narrow #notificationsCnt a.noNtf {
   color: white;
-  background-color: #bbbbbb !important;
-  border: solid 1px #999999 !important; }
+  background-color: #bbbbbb;
+  border: solid 1px #999999; }
 
 /*
  * край на стилове за нотификация
@@ -1400,8 +1400,7 @@ td.constrColumnLeft {
   text-decoration: none; }
   .profile-summary div {
     white-space: nowrap;
-    padding-right: 5px;
-    text-decoration: none !important; }
+    padding-right: 5px; }
     .profile-summary div span {
       display: block;
       margin-bottom: 2px; }
@@ -2400,7 +2399,7 @@ div.location.public {
     display: none; }
 
 .balance-custom-form select {
-  width: 100% !important;
+  width: 100%;
   max-width: 400px; }
 
 /*
@@ -2408,10 +2407,6 @@ div.location.public {
  */
 .acc_JournalDetails {
   margin-top: 10px; }
-
-.acc_JournalDetails ul {
-  margin-left: 0 !important;
-  padding-left: 0 !important; }
 
 /*
  * шаблон за журнал
@@ -2423,11 +2418,6 @@ div.location.public {
   display: inline-block;
   width: auto !important; }
 
-.btn-group-title {
-  margin-top: 10px;
-  margin-bottom: 2px;
-  margin-left: 2px; }
-
 /*
  * край на bugFix - ширина при коментари на документ
  */
@@ -2438,9 +2428,6 @@ div.location.public {
   max-width: 600px; }
   .core_Logs table.listTable > tbody > tr > td:last-child table td {
     word-break: break-all; }
-
-.singleView h2 {
-  margin: 10px 0; }
 
 .cCode {
   border: solid 1px #cccccc;
@@ -2463,12 +2450,6 @@ div.location.public {
   max-width: 600px; }
   .email-class h3 {
     margin: 10px 0 12px; }
-
-.long-input {
-  width: 750px; }
-
-.narrow .long-input {
-  width: 100%; }
 
 /*
  * край на email
