@@ -388,7 +388,7 @@ class acc_HistoryReport extends core_Manager
     	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
     	
     	// Изчисляваме крайното салдо за аналитичната сметка в периода преди избраните дати
-    	$Balance = new acc_ActiveShortBalance(array('from' => $data->fromDate, 'to' => $data->toDate, 'accs' => $accSysId, 'item1' => $rec->ent1Id, 'item2' => $rec->ent2Id, 'item3' => $rec->ent3Id));
+    	$Balance = new acc_ActiveShortBalance(array('from' => $data->fromDate, 'to' => $data->toDate, 'accs' => $accSysId, 'item1' => $rec->ent1Id, 'item2' => $rec->ent2Id, 'item3' => $rec->ent3Id, 'strict' => TRUE));
     	$calcedBalance = $Balance->getBalanceBefore(acc_Accounts::fetchField($rec->accountId, 'systemId'));
     	$indexArr = $rec->accountId . "|" . $rec->ent1Id . "|" . $rec->ent2Id . "|" . $rec->ent3Id;
     	

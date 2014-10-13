@@ -64,10 +64,11 @@ class acc_ActiveShortBalance {
 		
 		$this->from = $params['from'];
 		$this->to = $params['to'];
+		$strict = (isset($params['strict']) ? TRUE : FALSE);
 		
 		// Подготвяме заявката към базата данни
 		$jQuery = acc_JournalDetails::getQuery();
-		acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3'], TRUE);
+		acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3'], $strict);
 		
 		// Изчисляваме мини баланса
 		$this->recs = $jQuery->fetchAll();
