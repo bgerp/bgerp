@@ -159,7 +159,8 @@ class doc_Notes extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Интерфейсен метод на doc_DocumentIntf
+     * @see doc_DocumentIntf
      */
     function getDocumentRow($id)
     {
