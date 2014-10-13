@@ -549,8 +549,8 @@ class sales_QuotationsDetails extends core_Detail {
     		} else {
     			
     			// Ако няма извлича се цената от спецификацията
-    			$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, $dRec->classId, NULL, $dRec->quantity, $rec->date);
-    			$dRec->price = $price->price;
+    			$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, $dRec->classId, NULL, $dRec->quantity, $rec->date)->price;
+    			$dRec->price = deals_Helper::getPurePrice($price, $dRec->vatPercent, $rec->currencyRate, $rec->chargeVat);
     		}
     		
     		$dRec->optional = 'no';
@@ -571,5 +571,18 @@ class sales_QuotationsDetails extends core_Detail {
     	$productRec = $ProductMan->fetch($rec->productId);
     	$productRec->lastUsedOn = dt::now();
     	$ProductMan->save_($productRec);
+    }
+    
+    
+   /**
+    * Помощна ф-я обръщаща въведената цена в основна валута без ддс
+    */
+    private function getBasePrice($price, $currencyRate, $vatPercent, $chargeVat)
+    {
+    	if($chargeVat == 'yes'){
+			$price = $price / (1 + $vatPercent);
+    	}
+    	
+    	return $price * $currencyRate;
     }
 }
