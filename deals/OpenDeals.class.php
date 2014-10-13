@@ -15,7 +15,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -43,7 +43,7 @@ class deals_OpenDeals extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDeal, amountPaid, state=Състояние, newDoc=Създаване';
+    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDeal, amountPaid, state=Състояние, newDoc=Действие';
     
     
     /**
@@ -284,12 +284,12 @@ class deals_OpenDeals extends core_Manager {
 	    	$Cls = cls::get($className);
 	    	$str = mb_strtolower($Cls->singleTitle);
 	    	if($draftRec = $Cls->fetch("#threadId = '{$threadId}' AND #state = 'draft'")){
-	    		if($Cls->haveRightFor('edit', $draftRec)){
-	    			$btns .= ht::createBtn($title, array($className, 'single', $draftRec->id), NULL, NULL, "ef_icon={$Cls->singleIcon},title=Преглед на {$str} #{$Cls->getHandle($draftRec->id)}");
+	    		if($Cls->haveRightFor('single', $draftRec)){
+	    			$btns .= ht::createBtn($title, array($className, 'single', $draftRec->id), NULL, NULL, "ef_icon=img/16/view.png,title=Преглед на {$str} #{$Cls->getHandle($draftRec->id)}");
 	    		}
 	    	} else {
 	    		if($Cls->haveRightFor('add', (object)array('threadId' => $threadId))){
-	    			$btns .= ht::createBtn($title, array($className, 'add', 'originId' => $originId), NULL, NULL, "ef_icon={$Cls->singleIcon},title=Създаване на {$str}");
+	    			$btns .= ht::createBtn($title, array($className, 'add', 'originId' => $originId), NULL, NULL, "ef_icon=img/16/add.png,title=Създаване на {$str}");
 	    		}
 	    	}
 	    }
