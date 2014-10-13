@@ -1538,9 +1538,6 @@ class doc_Threads extends core_Manager
         // Добавяме функционални полета
         $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Добавяне на документ->Известяване, input=input');
         
-        // Задаваме стойностите по подразбиране
-//        $form->setDefault('notify', 'default');
-        
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
         
