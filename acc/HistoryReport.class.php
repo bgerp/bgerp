@@ -325,8 +325,8 @@ class acc_HistoryReport extends core_Manager
     	 
     	$op = $this->getBalancePeriods();
     	
-    	$filter->setSuggestions('fromDate', $op->fromOptions);
-    	$filter->setSuggestions('toDate', $op->toOptions);
+    	$filter->setSuggestions('fromDate', array('' => '') + $op->fromOptions);
+    	$filter->setSuggestions('toDate', array('' => '') + $op->toOptions);
     	$filter->setDefault('fromDate', $data->fromDate);
     	$filter->setDefault('toDate', $data->toDate);
     	 
