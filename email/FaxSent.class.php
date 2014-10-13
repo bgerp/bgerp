@@ -244,8 +244,8 @@ class email_FaxSent extends core_Manager
         //Всички факс номера
         $faxToArr = static::faxToArray($options->faxTo);
         
-//        $emailCss = file_get_contents(sbf('css/email.css', "", TRUE)); //TODO
-        $success  = $failure = array(); // списъци с изпратени и проблемни получатели
+        // Списъци с изпратени и проблемни получатели
+        $success  = $failure = array();
         
         // Инстанция на log_Documents за да работи on_Shutdown
         cls::get('log_Documents');
@@ -276,13 +276,9 @@ class email_FaxSent extends core_Manager
             // Подготовка на текста на писмото (HTML & plain text)
             $rec->__mid = NULL;
             
-            //HTML частта на факса
-//            $faxHtml = $Email->getEmailHtml($rec, $lg);
-            
             //Текстовата част на факса
             $faxText = core_ET::unEscape($Email->getEmailText($rec, $lg));
             
-//            $rec->html = $faxHtml //TODO не е нужно, защото HTML частта се добавя като прикачен файл
             $rec->text = $faxText;
             
             // Генериране на прикачените документи
