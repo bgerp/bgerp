@@ -1116,8 +1116,6 @@ class blast_Emails extends core_Master
     
 	/**
      * Добавяне или премахване на имейл в блокираните
-     * 
-     * @todo В момента не работи коректно. Гледа за mid в email_Sent
      */
     function act_Unsubscribe()
     {
