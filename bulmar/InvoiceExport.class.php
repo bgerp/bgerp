@@ -157,14 +157,14 @@ class bulmar_InvoiceExport extends core_Manager {
     		foreach ($invArr as $id => $inv){
     			$rec = &$data->recs[$id];
     			
-    			if(empty($rec->accountId) && $total > 0){
+    			if($total > 0){
     				$amount = ($total < $rec->amount) ? $total : $rec->amount;
     				$rec->amountPaid = $amount;
     				$total-= $amount;
     			}
     		}
     		
-    		if($total > 0 && empty($rec->accountId)){
+    		if($total > 0){
     			$data->recs[$id]->amountPaid += $total;
     			$total = 0;
     		}
@@ -230,7 +230,6 @@ class bulmar_InvoiceExport extends core_Manager {
     	$nRec->servicesAmount = $sign * round($byServices, 2);
     	$nRec->amount = $sign * (round($baseAmount, 2) + round($rec->vatAmount, 2));
     	$nRec->baseAmount = $sign * round($baseAmount, 2);
-    	$nRec->accountId = $rec->accountId;
     	
     	if($rec->dpOperation){
     		$nRec->dpOperation = $rec->dpOperation;
