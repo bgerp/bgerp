@@ -1619,8 +1619,6 @@ class email_Outgoings extends core_Master
         $footerData['company'] = tr($companyRec->name);
 
         // Името на потребителя
-//        $footerData['name'] = tr($personRec->name);
-//        $footerData['name'] = transliterate(tr($personRec->name));
         $footerData['name'] = transliterate($personRec->name);
         
         // Телефон
