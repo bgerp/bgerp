@@ -54,7 +54,7 @@ class drdata_Phones extends core_Manager {
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = 'Членове';
     
@@ -232,7 +232,7 @@ class drdata_Phones extends core_Manager {
             
             $tel = str_replace(array('(0)', '[0]', '++'), array('', '', '+') , $tel);
             
-            $sepArr = array(';', ',', ' ', '.');     // възможни сепаратори
+            $sepArr = array(';', ',', ' ', '.');      // възможни сепаратори
             foreach($sepArr as $sep) {
                 $test[] = explode($sep, $tel);
             }
@@ -506,7 +506,7 @@ class drdata_Phones extends core_Manager {
                         $this->debug(" [>13] ");
                         $error = TRUE;
                     }
-
+                    
                     if($obj->countryCode == '352') {
                         $maxAreaNum = 6;
                     } else {

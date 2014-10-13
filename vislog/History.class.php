@@ -18,7 +18,7 @@ class vislog_History extends core_Manager {
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = 'Система';
     
@@ -46,7 +46,7 @@ class vislog_History extends core_Manager {
      */
     var $canWrite = "no_one";
     
-
+    
     /**
      * Кой може да чете?
      */
@@ -54,15 +54,15 @@ class vislog_History extends core_Manager {
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo, admin, cms';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo, admin, cms';
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo, admin, cms';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo, admin, cms';
     
     
     /**
@@ -73,7 +73,7 @@ class vislog_History extends core_Manager {
         $this->FLD('ip', 'varchar(15)', 'caption=Ip,tdClass=aright');
         
         $this->FLD('HistoryResourceId', 'key(mvc=vislog_HistoryResources,select=query,allowEmpty)', 'caption=Query');
-                
+        
         $this->setDbIndex('ip');
     }
     
@@ -86,7 +86,7 @@ class vislog_History extends core_Manager {
     static function add($query, $returnCnt = FALSE)
     {
         $rec = new stdClass();
-
+        
         $rec->query = $query;
         
         $History = cls::get('vislog_History');
@@ -94,19 +94,19 @@ class vislog_History extends core_Manager {
         $History->save($rec);
         
         if($returnCnt) {
-        	if($rec->id) {
-        		
-        		// Преброяваме и връщаме броя посещения на ресурса
-	        	$historyQuery = $History->getQuery();
-	        	$historyQuery->where("#HistoryResourceId = {$rec->HistoryResourceId}");
-	        	
-	        	return $historyQuery->count();
-        	}
+            if($rec->id) {
+                
+                // Преброяваме и връщаме броя посещения на ресурса
+                $historyQuery = $History->getQuery();
+                $historyQuery->where("#HistoryResourceId = {$rec->HistoryResourceId}");
+                
+                return $historyQuery->count();
+            }
         } else {
-
+            
             return $rec->id;
         }
-	}
+    }
     
     
     /**
@@ -115,7 +115,7 @@ class vislog_History extends core_Manager {
      */
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->showFields = 'ip'; //, HistoryResourceId';
+        $data->listFilter->showFields = 'ip';  //, HistoryResourceId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input('ip', 'silent');
@@ -126,13 +126,12 @@ class vislog_History extends core_Manager {
         }
         
         if($HistoryResourceId = $data->listFilter->rec->HistoryResourceId){
-           // $data->query->where("#HistoryResourceId = {$HistoryResourceId}");
+            // $data->query->where("#HistoryResourceId = {$HistoryResourceId}");
         }
-
+        
         $data->query->orderBy("#createdOn=DESC");
-
     }
-
+    
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
@@ -160,12 +159,12 @@ class vislog_History extends core_Manager {
             $rec->HistoryResourceId = $mvc->HistoryResources->save($sRec);
         }
         
-        
         // Ако имаме такъв запис в последните 5 минути - връщаме FALSE, за да не продължи обработката
-        $conf = core_Packs::getConfig('vislog'); 
+        $conf = core_Packs::getConfig('vislog');
         $last5 = dt::addSecs(0 - $conf->VISLOG_ALLOW_SAME_IP);
+        
         if($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId} AND #createdOn > '{$last5}'")) {
-
+            
             return FALSE;
         }
         
@@ -183,7 +182,7 @@ class vislog_History extends core_Manager {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, TRUE);
         
         $ref = vislog_Referer::getReferer($rec->ip, $rec->createdOn);
-
+        
         if($ref) {
             $row->HistoryResourceId .= "<br><span style='font-size:0.6em;'>{$ref}</span>";
         }

@@ -30,7 +30,7 @@ class sens_Overviews extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Наблюдение";
     
@@ -63,15 +63,15 @@ class sens_Overviews extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,admin,sens';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,admin,sens';
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,admin,sens';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo,admin,sens';
     
     
     /**

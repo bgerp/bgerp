@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Оценка на щетите
  *
@@ -73,10 +74,10 @@ class support_Ratings extends core_Master
      * Кой има право да изтрива?
      */
     var $canDelete = 'no_one';
-
-
+    
+    
     /**
-     * 
+     * @todo Чака за документация...
      */
     var $canSingle = 'admin, support';
     
@@ -93,11 +94,11 @@ class support_Ratings extends core_Master
      */
     var $singleLayoutFile = 'support/tpl/SingleLayoutRatings.shtml';
     
-    
     /**
      * Икона по подразбиране за единичния обект
      */
-//    var $singleIcon = 'img/16/xxx.png';
+    //    var $singleIcon = 'img/16/xxx.png';
+    
     
     
     /**
@@ -122,11 +123,13 @@ class support_Ratings extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
-
+    
+    
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "10.4|Поддръжка";
+    
     
     /**
      * Описание на модела
@@ -139,7 +142,7 @@ class support_Ratings extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     function getDocumentRow($id)
     {
@@ -162,18 +165,18 @@ class support_Ratings extends core_Master
         return $row;
     }
     
-
+    
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
      * Добавянето на оценка не променя състоянието на треда
      */
     static function getThreadState($id)
     {
-
+        
         return NULL;
     }
-
-
+    
+    
     /**
      * Проверка дали нов документ може да бъде
      * добавен в посочената нишк-а
@@ -188,7 +191,7 @@ class support_Ratings extends core_Master
     }
     
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -203,7 +206,7 @@ class support_Ratings extends core_Master
     
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
@@ -213,7 +216,7 @@ class support_Ratings extends core_Master
     
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {

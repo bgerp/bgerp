@@ -24,7 +24,7 @@ class crm_Groups extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Групи";
     
@@ -33,7 +33,7 @@ class crm_Groups extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper,
-    				 plg_Rejected, doc_FolderPlg, plg_Search, plg_Translate';
+                     plg_Rejected, doc_FolderPlg, plg_Search, plg_Translate';
     
     
     /**
@@ -65,6 +65,7 @@ class crm_Groups extends core_Master
      */
     var $searchFields = 'sysId, name, allow, companiesCnt, personsCnt, info';
     
+    
     /**
      * Права
      */
@@ -78,23 +79,23 @@ class crm_Groups extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'powerUser';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'powerUser';
+     * Кой може да го разглежда?
+     */
+    var $canList = 'powerUser';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'powerUser';
     
     
     /**
      * Достъпа по подразбиране до папката, съответсваща на групата
      */
     var $defaultAccess = 'public';
-
-
+    
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -128,7 +129,7 @@ class crm_Groups extends core_Master
         $this->setDbUnique("name");
         $this->setDbUnique("sysId");
     }
-
+    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -147,7 +148,7 @@ class crm_Groups extends core_Master
         
         // Задаваме стойността по подразбиране
         $data->listFilter->setDefault('users', $default);
-                        
+        
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -158,26 +159,26 @@ class crm_Groups extends core_Master
         
         $rec = $data->listFilter->input('users,search', 'silent');
         
-    	$data->query->orderBy('#name');
-    	
+        $data->query->orderBy('#name');
+        
         // Филтриране по потребител/и
         if(!$data->listFilter->rec->users) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
         }
-
-        if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {  
+        
+        if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {
             
-        	$user = type_Keylist::toArray($data->listFilter->rec->users);
+            $user = type_Keylist::toArray($data->listFilter->rec->users);
             
-        	foreach($user as $u){
-        		
-        		$groupList = crm_Persons::fetchField($u, 'groupList');
-        		$data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
-        	}
+            foreach($user as $u){
+                
+                $groupList = crm_Persons::fetchField($u, 'groupList');
+                $data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
+            }
         }
-     }
- 
-
+    }
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -205,39 +206,40 @@ class crm_Groups extends core_Master
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         // Ако няма стойности
-        if (!$rec->companiesCnt) $rec->companiesCnt=0;
-        if (!$rec->personsCnt) $rec->personsCnt=0;
-       
+        if (!$rec->companiesCnt) $rec->companiesCnt = 0;
+        
+        if (!$rec->personsCnt) $rec->personsCnt = 0;
+        
         $row->companiesCnt = $mvc->getVerbal($rec, 'companiesCnt');
         $row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
         
         if($fields['-single']){
-	        $row->personsCnt = str_pad($row->personsCnt, '6', '0', STR_PAD_LEFT);
-	        $row->companiesCnt = str_pad($row->companiesCnt, '6', '0', STR_PAD_LEFT);
+            $row->personsCnt = str_pad($row->personsCnt, '6', '0', STR_PAD_LEFT);
+            $row->companiesCnt = str_pad($row->companiesCnt, '6', '0', STR_PAD_LEFT);
         }
         
         if (!$rec->companiesCnt && $fields['-single']) {
-        	if ($rec->allow == 'persons') {
-        		unset($row->companiesCnt);
-        	}
+            if ($rec->allow == 'persons') {
+                unset($row->companiesCnt);
+            }
         } else {
-        	$row->companiesCnt = new ET("<b>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
+            $row->companiesCnt = new ET("<b>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
         }
         
         if (!$rec->personsCnt && $fields['-single']) {
-        	if ($rec->allow == 'companies') {
-        		unset($row->personsCnt);
-        	}
+            if ($rec->allow == 'companies') {
+                unset($row->personsCnt);
+            }
         } else {
-        	$row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
+            $row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
         }
         
         $row->name = "<b>$row->name</b>";
         
         if($fields['-list']){
             $row->content = '<div>';
-            $row->content .= "<span style='font-size:14px;'>" . tr("Брой фирми") . ":</span> ". $row->companiesCnt;
-            $row->content .= ", <span style='font-size:14px;'>" . tr("Брой лица") . ":</span> ".  $row->personsCnt;
+            $row->content .= "<span style='font-size:14px;'>" . tr("Брой фирми") . ":</span> " . $row->companiesCnt;
+            $row->content .= ", <span style='font-size:14px;'>" . tr("Брой лица") . ":</span> " .  $row->personsCnt;
             $row->content .= '</div>';
         }
     }
@@ -302,7 +304,7 @@ class crm_Groups extends core_Master
                 'exName' => 'Потребителски профили',
                 'allow'  => 'persons',
             ),
-
+        
         );
         
         // END масив с данни за инициализация
@@ -314,9 +316,9 @@ class crm_Groups extends core_Master
         foreach ($data as $newData) {
             
             $newRec = (object) $newData;
-
+            
             $rec = $mvc->fetch("#sysId = '{$newRec->sysId}'");
-
+            
             if(!$rec) {
                 $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->name}')");
             }
@@ -324,7 +326,7 @@ class crm_Groups extends core_Master
             if(!$rec) {
                 $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->exName}')");
             }
-
+            
             if(!$rec) {
                 $rec = new stdClass();
                 $rec->companiesCnt = 0;
@@ -332,7 +334,7 @@ class crm_Groups extends core_Master
             }
             
             setIfNot($newRec->allow, 'companies_and_persons');
-
+            
             $rec->name  = $newRec->name;
             $rec->sysId = $newRec->sysId;
             $rec->allow = $newRec->allow;
@@ -340,7 +342,7 @@ class crm_Groups extends core_Master
             if(!$rec->id) {
                 $nAffected++;
             }
-
+            
             $mvc->save($rec, NULL, 'IGNORE');
         }
         
@@ -350,8 +352,8 @@ class crm_Groups extends core_Master
             $res .= "<li style='color:green;'>Добавени са {$nAffected} групи.</li>";
         }
     }
-
-
+    
+    
     /**
      * Създава, ако не е групата с посочениете данни и връща id-то и
      * $rec->name
@@ -365,11 +367,11 @@ class crm_Groups extends core_Master
     public static function forceGroup($gRec)
     {
         $rec = self::fetch("#sysId = '{$gRec->sysId}'");
-
+        
         if(!$rec) {
             $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}')");
         }
-
+        
         if(!$rec) {
             $rec = $gRec;
             
@@ -378,19 +380,17 @@ class crm_Groups extends core_Master
             $rec->companiesCnt = 0;
             $rec->personsCnt = 0;
             setIfNot($rec->state, 'active');
-
+            
             self::save($rec);
         }
-
+        
         return $rec->id;
-
     }
-
     
     
     /**
      * Връща id' тата на всички записи в групите
-     * 
+     *
      * @return array $idArr - Масив с id' тата на групите
      */
     static function getGroupRecsId()
@@ -400,6 +400,7 @@ class crm_Groups extends core_Master
         
         // Обхождаме всички записи
         $query = static::getQuery();
+        
         while($rec = $query->fetch()) {
             
             // Добавяме id' тата им в масива
@@ -412,7 +413,7 @@ class crm_Groups extends core_Master
     
     /**
      * Връща id то на записа от подадения sysId
-     * 
+     *
      * @param string $sysId
      */
     static function getIdFromSysId($sysId)

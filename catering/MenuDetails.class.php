@@ -23,7 +23,7 @@ class catering_MenuDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Кетъринг";
     
