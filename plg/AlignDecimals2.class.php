@@ -28,7 +28,7 @@ class plg_AlignDecimals2 extends core_Plugin
     	// Намираме всички полета, които се показват от типа Double
     	$decFields = array();
     	foreach ($mvc->fields as $name => $field){
-    		if($field->type instanceof type_Double && $filed->input != 'none'){
+    		if($field->type instanceof type_Double && $filed->input != 'none' && !($field->type instanceof type_Percent)){
     			$decFields[] = $name;
     		}
     	}
