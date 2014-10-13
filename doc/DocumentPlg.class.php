@@ -47,10 +47,6 @@ class doc_DocumentPlg extends core_Plugin
         // Ако липсва, добавяме поле за състояние
         if (!$mvc->fields['state']) {
             plg_State::setStateField($mvc);
-                
-         //    $mvc->FLD('state',
-         //           cls::get('type_Enum', array('options' => self::$stateArr)),
-         //        'caption=Състояние,column=none,input=none');
         }
         
         // Ако липсва, добавяме поле за съхранение на състоянието преди reject
