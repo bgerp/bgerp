@@ -566,12 +566,12 @@ class blast_Emails extends core_Master
      * @return string
      */
     protected function replacePlaces($resStr, $detArr)
-    {   
+    {
         // Заместваме плейсхолдерите
         $resStr = new ET($resStr);
         $resStr->placeArray($detArr);
         
-        return $resStr->getContent();
+        return core_ET::unEscape($resStr->getContent());
     }
     
     
