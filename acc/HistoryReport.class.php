@@ -592,10 +592,21 @@ class acc_HistoryReport extends core_Manager
     	// последните записи за всяка дата
     	if(count($recs)){
     		foreach ($recs as $rec){
-    			$tmpArray[$rec['valior']] = $rec;
+    			
+    			// Ако няма друг запис за тази дата добавяме го
+    			if(empty($tmpArray[$rec['valior']])){
+    				$tmpArray[$rec['valior']] = $rec;
+    			} else {
+    				
+    				// Ако има запис и текущия е с по ново ид, заместваме съществуващия,
+    				// така имаме последните записи за всяка дата
+    				if($rec['id'] > $tmpArray[$rec['valior']]['id']){
+    					$tmpArray[$rec['valior']] = $rec;
+    				}
+    			}
     		}
     	}
-    	 
+    	
     	// Нулираме му ключовете за по-лесно обхождане
     	$tmpArray = array_values(array_reverse($tmpArray));
     	
@@ -614,13 +625,13 @@ class acc_HistoryReport extends core_Manager
     				// Ако сме на последната дата
     				$value = 1;
     			}
-    		
+    			
     			// Умножяваме съответните количества по дните разлика
     			$quantity += $value * $arr['blQuantity'];
     			$amount += $value * $arr['blAmount'];
     		}
     	}
-    	 
+    	
     	// Колко са дните в избрания период
     	$daysInPeriod = dt::daysBetween($data->toDate, $data->fromDate) + 1;
     	
