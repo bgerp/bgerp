@@ -841,6 +841,13 @@ abstract class deals_DealMaster extends deals_DealBase
 			$actions = type_Set::toArray($rec->contoActions);
 			if(isset($actions['ship'])){
 				$row->isDelivered .= tr('ДОСТАВЕНО');
+				
+				if($rec->deliveryLocationId && $rec->shipmentStoreId){
+					if($ourLocation = store_Stores::fetchField($rec->shipmentStoreId, 'locationId')){
+						$row->ourLocation = crm_Locations::getTitleById($ourLocation) . ", " . crm_Locations::getAddress($ourLocation);
+						$row->ourLocation = trim($row->ourLocation, ", ");
+					}
+				}
 			}
 			
 			if(isset($actions['pay'])){
