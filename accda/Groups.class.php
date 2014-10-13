@@ -56,7 +56,7 @@ class accda_Groups extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Кой има права за сингъла на документа
      */
     var $canSingle = 'ceo,accda';
     
