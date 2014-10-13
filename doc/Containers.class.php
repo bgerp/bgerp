@@ -296,7 +296,6 @@ class doc_Containers extends core_Manager
             $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
             
             if($data->threadRec->state == 'opened') {
-                // TODO може да се направи бутона да не е активен
                 $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'ef_icon = img/16/close.png');
             } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
                 $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'ef_icon = img/16/open.png');
@@ -1181,18 +1180,10 @@ class doc_Containers extends core_Manager
         // Иконата на класа
         $sbfIcon = sbf($ctrInst->singleIcon, '"', $isAbsolute);
 
-        //Ако мода е xhtml
+        // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
             
-            // Ескейпваме плейсхолдърите
-            $title = core_ET::escape($title);
-            
-            // TODO може да се използва този начин вместо ескейпването
-            //$res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
-            
-            //Добаваме span с иконата и заглавиетео - не е линк
-            //TODO класа да не е linkWithIcon
-            $res = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$title} </span>";    
+            $res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
         } elseif (Mode::is('text', 'plain')) {
             
             // Ескейпваме плейсхолдърите и връщаме титлата
