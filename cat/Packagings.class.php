@@ -27,7 +27,7 @@ class cat_Packagings extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Каталог";
     
@@ -69,17 +69,17 @@ class cat_Packagings extends core_Manager
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'cat,ceo';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'cat,ceo';
-	
-	
+     * Кой може да го разглежда?
+     */
+    var $canList = 'cat,ceo';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'cat,ceo';
+    
+    
     /**
      * Кой може да го види?
      */
@@ -106,8 +106,8 @@ class cat_Packagings extends core_Manager
         
         $this->setDbUnique("name");
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -127,17 +127,17 @@ class cat_Packagings extends core_Manager
     }
     
     
-	/**
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$file = "cat/csv/Packagings.csv";
-    	$fields = array(0 => "name");
-    	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-    	$res .= $cntObj->html;
-    	
-    	return $res;
+        $file = "cat/csv/Packagings.csv";
+        $fields = array(0 => "name");
+        
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+        $res .= $cntObj->html;
+        
+        return $res;
     }
 }

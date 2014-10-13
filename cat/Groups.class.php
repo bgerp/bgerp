@@ -24,7 +24,7 @@ class cat_Groups extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Каталог";
     
@@ -33,7 +33,7 @@ class cat_Groups extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, 
-    				 doc_FolderPlg, plg_Search, plg_Translate';
+                     doc_FolderPlg, plg_Search, plg_Translate';
     
     
     /**
@@ -70,7 +70,7 @@ class cat_Groups extends core_Master
      * Икона за единичен изглед
      */
     var $singleIcon = 'img/16/category-icon.png';
-
+    
     
     /**
      * Кой може да чете
@@ -97,16 +97,16 @@ class cat_Groups extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'powerUser';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'powerUser';
-	
+     * Кой може да го разглежда?
+     */
+    var $canList = 'powerUser';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'powerUser';
+    
     
     /**
      * Кой може да качва файлове
@@ -124,8 +124,8 @@ class cat_Groups extends core_Master
      * Кой има право да го изтрие?
      */
     var $canDelete = 'cat,ceo';
-
-
+    
+    
     /**
      * Клас за елемента на обграждащия <div>
      */
@@ -150,12 +150,12 @@ class cat_Groups extends core_Master
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
-        						canBuy=Купуваеми,
-        						canStore=Складируеми,
-        						canConvert=Вложими,
-        						fixedAsset=ДМА,
-        						canManifacture=Производими,
-        						materials=Материали)', 'caption=Свойства->Списък,columns=2');
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=ДМА,
+                                canManifacture=Производими,
+                                materials=Материали)', 'caption=Свойства->Списък,columns=2');
         
         $this->setDbUnique("sysId");
     }
@@ -183,37 +183,38 @@ class cat_Groups extends core_Master
         
         $rec = $data->listFilter->input('product,search', 'silent');
         
-    	$data->query->orderBy('#name');
-    	
-        if($data->listFilter->rec->product) {  
-        	$groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
-           		$data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
+        $data->query->orderBy('#name');
+        
+        if($data->listFilter->rec->product) {
+            $groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
+            $data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
         }
- 
     }
     
-     /**
+    
+    /**
      * Изпълнява се след подготовка на Едит Формата
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	if(!haveRole('ceo')){
-    		
-    		// Кой може да променя мета пропъртитата на групите
-    		$data->form->setField('meta', 'input=none');
-    	}
+        if(!haveRole('ceo')){
+            
+            // Кой може да променя мета пропъртитата на групите
+            $data->form->setField('meta', 'input=none');
+        }
     }
     
     
-	/**
+    /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->productCnt = intval($rec->productCnt);
-    	if($fields['-list']){
-    		$row->name .= " ({$row->productCnt})";
-    	}
+        $row->productCnt = intval($rec->productCnt);
+        
+        if($fields['-list']){
+            $row->name .= " ({$row->productCnt})";
+        }
     }
     
     
@@ -227,14 +228,14 @@ class cat_Groups extends core_Master
      * @param int $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {   
+    {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
             $requiredRoles = 'no_one';
         }
     }
-
-
+    
+    
     /**
      * Връща keylist от id-та на групи, съответстващи на даден стрингов
      * списък от sysId-та, разделени със запетайки
@@ -242,21 +243,23 @@ class cat_Groups extends core_Master
     static function getKeylistBySysIds($list, $strict = FALSE)
     {
         $sysArr = arr::make($list);
-
+        
         foreach($sysArr as $sysId) {
             $id = static::fetchField("#sysId = '{$sysId}'", 'id');
+            
             if($strict) {
                 expect($id, $sysId, $list);
             }
+            
             if($id) {
                 $keylist .= '|' . $id;
             }
         }
-
+        
         if($keylist) {
             $keylist .= '|';
         }
-
+        
         return $keylist;
     }
     
@@ -266,19 +269,19 @@ class cat_Groups extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$file = "cat/csv/Groups.csv";
-    	$fields = array( 
-	    	0 => "name", 
-	    	1 => "info", 
-	    	2 => "sysId", 
-	    	3 => "meta",
-	    	4 => "access",
-	    	);
-    	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-    	$res .= $cntObj->html;
-    	
-    	return $res;
+        $file = "cat/csv/Groups.csv";
+        $fields = array(
+            0 => "name",
+            1 => "info",
+            2 => "sysId",
+            3 => "meta",
+            4 => "access",
+        );
+        
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+        $res .= $cntObj->html;
+        
+        return $res;
     }
     
     
@@ -287,20 +290,20 @@ class cat_Groups extends core_Master
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	if($rec->id){
-    		// Старите мета данни
-    		$rec->oldMeta = $mvc->fetchField($rec->id, 'meta');
-    	}
+        if($rec->id){
+            // Старите мета данни
+            $rec->oldMeta = $mvc->fetchField($rec->id, 'meta');
+        }
     }
     
     
-	/**
+    /**
      * След запис в модела
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         if($rec->oldMeta != $rec->meta) {
-        	
+            
             // Ако има промяна на групите, Инвалидира се кеша
             core_Cache::remove('cat_Products', "productsMeta");
         }
@@ -314,19 +317,21 @@ class cat_Groups extends core_Master
      */
     public static function getByMeta($meta)
     {
-    	$metaArr = arr::make($meta);
-    	$query = static::getQuery();
-    	if(count($metaArr)){
-	    	foreach ($metaArr as $m){
-	    		$query->like('meta', $m);
-	    	}
-    	}
-    	
-    	$res = array();
-    	while($rec = $query->fetch()){
-    		$res[$rec->id] = static::getTitleById($rec->id);
-    	}
-    	
-    	return $res;
+        $metaArr = arr::make($meta);
+        $query = static::getQuery();
+        
+        if(count($metaArr)){
+            foreach ($metaArr as $m){
+                $query->like('meta', $m);
+            }
+        }
+        
+        $res = array();
+        
+        while($rec = $query->fetch()){
+            $res[$rec->id] = static::getTitleById($rec->id);
+        }
+        
+        return $res;
     }
 }
