@@ -157,7 +157,7 @@ tr.noHover td:hover {
 .narrow a.subMenu, .narrow span.subMenu {
     font-size: 0.9em; 
     margin: 1px 2px 4px 8px;
-    display: inline-block !important; 
+    display: inline-block; 
 }
 
 #mainMenu {
@@ -398,7 +398,7 @@ div.folder-cover {
 		padding-bottom: 0;
 	}
 	.tab {
-		font-size: 0.7em !important;
+		font-size: 0.7em;
 	}
 	.tab-page .detail-info {
 		margin-bottom: 0 !important;
