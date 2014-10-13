@@ -472,9 +472,6 @@ class doc_Containers extends core_Manager
             $threadTitleArr[$rec->threadId] = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, FALSE), doc_Threads::maxLenTitle);
         }
         
-        // Текущия потребител да не се нотифицира
-//        unset($usersArr[$currUserId]);
-        
         // Кой линк да се използва за изичстване на нотификация
         $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
         
