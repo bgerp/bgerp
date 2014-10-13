@@ -40,9 +40,6 @@ defIfNot(DBCONF, '
  *                                                                           *
  *****************************************************************************/ 
 
-// Път по подразбиране за пакетите от \'vendors\'
- # defIfNot(\'EF_VENDORS_PATH\', EF_ROOT_PATH . \'/vendors\');
-
 // Път по подразбиране за пакетите от \'private\'
  # defIfNot(\'EF_PRIVATE_PATH\', EF_ROOT_PATH . \'/private\');
 

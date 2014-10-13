@@ -31,7 +31,6 @@ class unit_Tests extends core_Manager
         } else {
             $classes += $this->readClasses(EF_EF_PATH, $act);
             $classes = array_merge($classes, $this->readClasses(EF_APP_PATH, $act));
-            $classes += array_merge($classes, $this->readClasses(EF_VENDORS_PATH, $act));
         }
         foreach($classes as $testClass) { 
             if(strrpos($testClass, '_tests_')) {

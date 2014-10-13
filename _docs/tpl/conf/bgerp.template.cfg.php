@@ -81,9 +81,6 @@
  *                                                                           *
  *****************************************************************************/ 
 
-// Път по подразбиране за пакетите от 'vendors'
- # defIfNot('EF_VENDORS_PATH', EF_ROOT_PATH . '/vendors');
-
 // Път по подразбиране за пакетите от 'private'
  # defIfNot('EF_PRIVATE_PATH', EF_ROOT_PATH . '/private');
 
@@ -307,10 +304,6 @@
 
 // Времева зона
  # defIfNot('EF_TIMEZONE', 'Europe/Sofia');
-
-
-// Директорията с външни пакети
- # defIfNot('EF_VENDORS_PATH', EF_ROOT_PATH.'/vendors');
 
 
 // Базова директория, където се намират приложенията

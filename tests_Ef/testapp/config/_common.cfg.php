@@ -39,10 +39,6 @@ defIfNot('EF_SALT', '');
 // По подразбиране е 'EF_ROOT_PATH/conf'
  # DEFINE( EF_CONF_PATH, '' );
  
-// Директорията с външни пакети
-// По подразбиране е 'EF_ROOT/vendors'
- # DEFINE( EF_VENDORS_PATH, '' );
-
 // Директорията с временни файлове
 // По подразбиране е 'EF_ROOT/temp'
  # DEFINE( EF_TEMP_PATH, '' );

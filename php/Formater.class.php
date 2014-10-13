@@ -110,11 +110,11 @@ class php_Formater extends core_Manager
         
         if(defined('EF_PRIVATE_PATH')) {
             $form->FNC('src',
-                'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_VENDORS_PATH . ',' . EF_PRIVATE_PATH . ')',
+                'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_PRIVATE_PATH . ')',
                 'caption=Директории->Източник,input,mandatory');
         } else {
             $form->FNC('src',
-                'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_VENDORS_PATH . ', ' . EF_ALL_PATH . ')',
+                'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_ALL_PATH . ')',
                 'caption=Директории->Оригинален код,input');
         }
         

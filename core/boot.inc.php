@@ -110,7 +110,7 @@ try {
 /**
  * Тази функция определя пълния път до файла.
  * Като аргумент получава последната част от името на файла
- * Файла се търси в EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH
+ * Файла се търси в EF_APP_PATH, EF_EF_PATH
  * Ако не бъде открит, се връща FALSE
  */
 function getFullPath($shortPath)
