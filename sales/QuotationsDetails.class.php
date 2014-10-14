@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.11
  */
-class sales_QuotationsDetails extends core_Detail {
+class sales_QuotationsDetails extends doc_Detail {
     
     
     /**

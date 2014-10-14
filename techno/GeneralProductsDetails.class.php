@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno_GeneralProductsDetails extends core_Detail {
+class techno_GeneralProductsDetails extends doc_Detail {
     
     
     /**

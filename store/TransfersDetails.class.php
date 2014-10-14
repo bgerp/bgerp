@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_TransfersDetails extends core_Detail
+class store_TransfersDetails extends doc_Detail
 {
     /**
      * Заглавие

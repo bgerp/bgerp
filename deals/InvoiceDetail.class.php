@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class deals_InvoiceDetail extends core_Detail
+abstract class deals_InvoiceDetail extends doc_Detail
 {
 	
 	/**

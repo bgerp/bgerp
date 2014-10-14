@@ -16,7 +16,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class blast_ListDetails extends core_Detail
+class blast_ListDetails extends doc_Detail
 {
     /**
      * Плъгини за зареждане

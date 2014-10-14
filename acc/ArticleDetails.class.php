@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_ArticleDetails extends core_Detail
+class acc_ArticleDetails extends doc_Detail
 {
     
     

@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.11
  */
-class price_ConsumptionNormDetails extends core_Detail {
+class price_ConsumptionNormDetails extends doc_Detail {
     
     
     /**

@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class deals_DealDetail extends core_Detail
+abstract class deals_DealDetail extends doc_Detail
 {
  	/**
      * Изчисляване на сумата на реда

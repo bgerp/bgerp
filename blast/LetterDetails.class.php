@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class blast_LetterDetails extends core_Detail
+class blast_LetterDetails extends doc_Detail
 {
     
     

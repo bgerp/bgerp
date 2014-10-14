@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class dec_DeclarationDetails extends core_Detail
+class dec_DeclarationDetails extends doc_Detail
 {
     
     /**
