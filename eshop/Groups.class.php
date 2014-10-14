@@ -24,17 +24,17 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Каталог";
     
-
+    
     /**
      * Поддържани интерфейси
      */
     var $interfaces = 'cms_SourceIntf';
-
-
+    
+    
     /**
      * Плъгини за зареждане
      */
@@ -69,7 +69,7 @@ class eshop_Groups extends core_Master
      * Икона за единичен изглед
      */
     var $singleIcon = 'img/16/category-icon.png';
-
+    
     
     /**
      * Кой може да чете
@@ -96,16 +96,16 @@ class eshop_Groups extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'eshop,ceo';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'eshop,ceo';
-	
+     * Кой може да го разглежда?
+     */
+    var $canList = 'eshop,ceo';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'eshop,ceo';
+    
     
     /**
      * Кой може да качва файлове
@@ -123,12 +123,12 @@ class eshop_Groups extends core_Master
      * Кой има право да го изтрие?
      */
     var $canDelete = 'no_one';
-
-
+    
     /**
      * Нов темплейт за показване
      */
-   // var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
+    // var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
+    
     
     
     /**
@@ -143,8 +143,8 @@ class eshop_Groups extends core_Master
         $this->FLD('productCnt', 'int', 'input=none');
         $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню');
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготовката на формата за единичен запис
      */
@@ -153,14 +153,15 @@ class eshop_Groups extends core_Master
         $cQuery = cms_Content::getQuery();
         
         $classId = core_Classes::fetchIdByName($mvc->className);
+        
         while($rec = $cQuery->fetch("#source = {$classId} AND state = 'active'")) {
             $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
         }
-
+        
         $data->form->setOptions('menuId', $opt);
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготовката на вербалните стойности за всеки запис
      */
@@ -170,8 +171,8 @@ class eshop_Groups extends core_Master
             $row->name = ht::createLink($row->name, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
         }
     }
-
-
+    
+    
     /**
      * Показва списъка с всички групи
      */
@@ -186,12 +187,12 @@ class eshop_Groups extends core_Master
             expect($lg, $clsId);
             $data->menuId = cms_Content::fetchField("#lang = '{$lg}' AND #source = $clsId");
         }
-
+        
         cms_Content::setCurrent($data->menuId);
-
-        $this->prepareNavigation($data);   
-        $this->prepareAllGroups($data);  
-
+        
+        $this->prepareNavigation($data);
+        $this->prepareAllGroups($data);
+        
         $layout = $this->getLayout();
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
@@ -199,7 +200,7 @@ class eshop_Groups extends core_Master
         // Добавя канонично URL
         $url = toUrl($this->getUrlByMenuId($data->menuId), 'absolute');
         $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
-       
+        
         // Страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
         Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
@@ -210,21 +211,22 @@ class eshop_Groups extends core_Master
             }
             vislog_History::add("Всички групи «{$cRec->menu}»");
         }
-
+        
         return $layout;
     }
-
-
+    
+    
     /**
      * Екшън за единичен изглед на групата във витрината
      */
     function act_Show()
     {
         $data = new stdClass();
-
+        
         $data->groupId = Request::get('id', 'int');
+        
         if(!$data->groupId) {
-
+            
             return $this->act_ShowAll();
         }
         expect($groupRec = self::fetch($data->groupId));
@@ -232,7 +234,7 @@ class eshop_Groups extends core_Master
         
         $this->prepareGroup($data);
         $this->prepareNavigation($data);
-
+        
         $layout = $this->getLayout();
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderGroup($data), 'PAGE_CONTENT');
@@ -240,7 +242,7 @@ class eshop_Groups extends core_Master
         // Добавя канонично URL
         $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
         $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
-
+        
         // Страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
         Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
@@ -248,83 +250,86 @@ class eshop_Groups extends core_Master
         if(core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add("Група «" . $groupRec->name . "»");
         }
-
+        
         return $layout;
     }
-
-
+    
+    
     /**
      * Подготвя данните за показването на страницата със всички групи
      */
     function prepareAllGroups($data)
     {
         $query = self::getQuery();
-        $query->where("#state = 'active' AND #menuId = {$data->menuId}");  
+        $query->where("#state = 'active' AND #menuId = {$data->menuId}");
         
         while($rec = $query->fetch()) {
             $rec->url = self::getUrl($rec);
             $data->recs[] = $rec;
         }
-
+        
         $cRec = cms_Content::fetch($data->menuId);
-
+        
         $data->title = type_Varchar::escape($cRec->url);
     }
-
-
+    
+    
     /**
      * Подготвя данните за показването на една група
      */
     function prepareGroup_($data)
-    {    
+    {
         expect($rec = $data->rec = $this->fetch($data->groupId), $data);
         
         $rec->menuId = $rec->menuId;
-
+        
         $row = $data->row = new stdClass();
-
+        
         $row->name = $this->getVerbal($rec, 'name');
-
+        
         if($rec->image) {
-            $row->image = fancybox_Fancybox::getImage($rec->image, array(620, 620), array(1200, 1200), $row->name); 
+            $row->image = fancybox_Fancybox::getImage($rec->image, array(620, 620), array(1200, 1200), $row->name);
         }
-
+        
         $row->description = $this->getVerbal($rec, 'info');
-
+        
         Mode::set('SOC_TITLE', $row->name);
         Mode::set('SOC_SUMMARY', $row->info);
         
         $data->products = new stdClass();
         $data->products->groupId = $data->groupId;
-         
+        
         eshop_Products::prepareGroupList($data->products);
     }
-
-
+    
+    
     /**
      * Добавя бутони за разглеждане във витрината на групите с продукти
      */
     function on_AfterPrepareListToolbar($mvc, $data)
-    {   
+    {
         $cQuery = cms_Content::getQuery();
         
         $classId = core_Classes::fetchIdByName($mvc->className);
+        
         while($rec = $cQuery->fetch("#source = {$classId} AND state = 'active'")) {
-            $data->toolbar->addBtn( type_Varchar::escape($rec->menu), 
+            $data->toolbar->addBtn(type_Varchar::escape($rec->menu),
                 array('eshop_Groups', 'ShowAll', 'cMenuId' =>  $rec->id, 'PU' => 1));
         }
     }
-
+    
+    
     /**
-     *
+     * @todo Чака за документация...
      */
     function renderAllGroups_($data)
-    {   
+    {
         $all = new ET("<h1>{$data->title}</h1>");
         
         if(is_array($data->recs)) {
             foreach($data->recs as $rec) {
                 $tpl = new ET(getFileContent('eshop/tpl/GroupButton.shtml'));
+                
                 if($rec->icon) {
                     $img = new thumb_Img($rec->icon, 500, 180, 'fileman');
                     $tpl->replace(ht::createLink($img->createImg(), $rec->url), 'img');
@@ -334,15 +339,15 @@ class eshop_Groups extends core_Master
                 $all->append($tpl);
             }
         }
-
+        
         $all->prepend(tr('Всички продукти') . ' » ', 'PAGE_TITLE');
-
+        
         return $all;
     }
-
-
+    
+    
     /**
-     *
+     * @todo Чака за документация...
      */
     function renderGroup_($data)
     {
@@ -350,14 +355,13 @@ class eshop_Groups extends core_Master
         $groupTpl->setRemovableBlocks(array('PRODUCT'));
         $groupTpl->placeArray($data->row);
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
-
+        
         $groupTpl->prepend($data->row->name . ' » ', 'PAGE_TITLE');
-
-
+        
         return $groupTpl;
     }
-
-
+    
+    
     /**
      * Връща лейаута за единичния изглед на групата
      */
@@ -365,8 +369,7 @@ class eshop_Groups extends core_Master
     {
         Mode::set('wrapper', 'cms_Page');
         
-
-		if(Mode::is('screenMode', 'narrow')) {
+        if(Mode::is('screenMode', 'narrow')) {
             $layout = "eshop/tpl/ProductGroupsNarrow.shtml";
         } else {
             $layout =  "eshop/tpl/ProductGroups.shtml";
@@ -374,24 +377,23 @@ class eshop_Groups extends core_Master
         
         Mode::set('cmsLayout',  $layout);
         
-
         return new ET();
     }
     
-
+    
     /**
      * Подготвя данните за навигацията
      */
     function prepareNavigation_($data)
     {
-        $query = $this->getQuery(); 
+        $query = $this->getQuery();
         
         $query->where("#state = 'active'");
         
         $groupId   = $data->groupId;
         $productId = $data->productId;
         $menuId = $data->menuId;
-
+        
         if($productId) {
             $pRec = eshop_Products::fetch("#id = {$productId} AND #state = 'active'");
             $groupId = $pRec->groupId;
@@ -400,24 +402,25 @@ class eshop_Groups extends core_Master
         if($groupId) {
             $menuId = self::fetch($groupId)->menuId;
         }
-
+        
         $query->where("#menuId = {$menuId}");
- 
+        
         $l = new stdClass();
         $l->selected = ($groupId == NULL &&  $productId == NULL);
-
+        
         $l->url = $this->getUrlByMenuId($menuId);
+        
         if(haveRole('powerUser')) {
             $l->url['PU'] = 1;
         }
-
+        
         $l->title = tr('Всички продукти');;
         $l->level = 1;
         $data->links[] = $l;
-
+        
         $editSbf = sbf("img/16/edit.png", '');
         $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
- 
+        
         while($rec = $query->fetch()) {
             $l = new stdClass();
             $l->url = self::getUrl($rec);
@@ -432,8 +435,8 @@ class eshop_Groups extends core_Master
             $data->links[] = $l;
         }
     }
-
-
+    
+    
     /**
      * Връща каноничното URL на статията за външния изглед
      */
@@ -442,9 +445,9 @@ class eshop_Groups extends core_Master
         $mRec = cms_Content::fetch($rec->menuId);
         
         $lg = $mRec->lang;
-
+        
         $lg{0} = strtoupper($lg{0});
-
+        
         $url = array('A', 'g', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
         
         return $url;
@@ -458,10 +461,10 @@ class eshop_Groups extends core_Master
     {
         $vid = urldecode($url['id']);
         $act = strtolower($url['Act']);
-
+        
         if($vid && $act == 'show') {
-            $id = cms_VerbalId::fetchId($vid, 'eshop_Groups'); 
-
+            $id = cms_VerbalId::fetchId($vid, 'eshop_Groups');
+            
             if(!$id) {
                 $id = self::fetchField(array("#vid = '[#1#]'", $vid), 'id');
             }
@@ -469,36 +472,37 @@ class eshop_Groups extends core_Master
             if(!$id && is_numeric($vid)) {
                 $id = $vid;
             }
-
+            
             if($id) {
                 $url['Ctr'] = 'A';
                 $url['Act'] = 'g';
                 $url['id'] = $id;
             }
         }
-
+        
         unset($url['PU']);
-
+        
         return $url;
     }
-
-
+    
     // Интерфейс cms_SourceIntf
-     
-
+    
+    
+    
     /**
-     * Връща URL към себе си  
+     * Връща URL към себе си
      */
     function getUrlByMenuId($cMenuId)
-    {   
+    {
         $cMenuIdEn = cms_Content::fetchField(array("#source = [#1#] AND #lang = 'en' AND #state = 'active'" , eshop_Groups::getClassId()));
-
+        
         if($cMenuIdEn == $cMenuId) {
             $url = array('En', 'Products');
         }
         
         if(!$url) {
             $cMenuIdBg = cms_Content::fetchField(array("#source = [#1#] AND #lang = 'bg' AND #state = 'active'" , eshop_Groups::getClassId()));
+            
             if($cMenuIdBg == $cMenuId) {
                 $url = array('Bg', 'Products');
             }
@@ -510,27 +514,26 @@ class eshop_Groups extends core_Master
         
         return $url;
     }
-
-
+    
+    
     /**
      * Връща URL към съдържание в публичната част, което отговаря на посочения запис
      */
     function getUrlByRec($rec)
     {
         $url = self::getUrl($rec);
-
+        
         return $url;
     }
-
-
+    
+    
     /**
      * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
      */
     function getWorkshopUrl($menuId)
     {
         $url = array('eshop_Groups', 'list');
-
+        
         return $url;
     }
-    
 }

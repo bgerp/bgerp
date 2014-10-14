@@ -29,7 +29,7 @@ class dec_Statements extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Декларации";
     
@@ -44,7 +44,7 @@ class dec_Statements extends core_Master
      * Кой има право да чете?
      */
     var $canRead = 'ceo, dec';
-            
+    
     
     /**
      * Кой може да пише?
@@ -56,13 +56,12 @@ class dec_Statements extends core_Master
      * Кои полета ще виждаме в листовия изглед
      */
     var $listFields = 'id, title, createdOn, createdBy';
-
+    
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'title';
-    
     
     /**
      * Шаблон за единичния изглед
@@ -70,13 +69,14 @@ class dec_Statements extends core_Master
     //var $singleLayoutFile = 'hr/tpl/SingleLayoutShift.shtml';
     
     
+    
     /**
      * Описание на модела
      */
     function description()
     {
-		$this->FLD('title', 'varchar', 'caption=Заглавие, width=100%');
-		$this->FLD('text', 'richtext', 'caption=Текст');
+        $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%');
+        $this->FLD('text', 'richtext', 'caption=Текст');
     }
     
     
@@ -85,25 +85,22 @@ class dec_Statements extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	
-    	// Подготвяме пътя до файла с данните 
-    	$file = "dec/data/Statements.csv";
-    	
-    	// Кои колонки ще вкарваме
-    	$fields = array( 
-    		0 => "title", 
-    		1 => "text",
-    	
-    		
-    	);
-    	
-    	
-    	// Импортираме данните от CSV файла. 
-    	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
-     	
-    	// Записваме в лога вербалното представяне на резултата от импортирането 
-    	$res .= $cntObj->html;
- 		
+        
+        // Подготвяме пътя до файла с данните 
+        $file = "dec/data/Statements.csv";
+        
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => "title",
+            1 => "text",
+        
+        );
+        
+        // Импортираме данните от CSV файла. 
+        // Ако той не е променян - няма да се импортират повторно 
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE);
+        
+        // Записваме в лога вербалното представяне на резултата от импортирането 
+        $res .= $cntObj->html;
     }
 }
