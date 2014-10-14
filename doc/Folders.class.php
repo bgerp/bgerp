@@ -677,28 +677,22 @@ class doc_Folders extends core_Master
      */
     static function getLanguage($id)
     {
-        //Ако няма стойност, връщаме
+        // Ако няма стойност, връщаме
         if (!$id) return ;
         
-        // Търсим езика в поздравите
-        $lg = email_Salutations::getLg($id, NULL);
-
-        // Ако сме открили езика в обръщенията
-        if ($lg) return $lg;
-        
-        //id' то на класа, който е корица
+        // id' то на класа, който е корица
         $coverClassId = doc_Folders::fetchField($id, 'coverClass');
         
-        //Името на корицата на класа
+        // Името на корицата на класа
         $coverClass = cls::getClassName($coverClassId);
         
-        //Ако корицата не е Лице или Фирма
+        // Ако корицата не е Лице или Фирма
         if (($coverClass != 'crm_Persons') && ($coverClass != 'crm_Companies')) return ;
             
-        //Вземаме държавата
+        // Вземаме държавата
         $classRec = $coverClass::fetch("#folderId = '{$id}'", 'country');
         
-        //Ако няма въведена държава
+        // Ако няма въведена държава
         if (!$classRec->country) return ;
             
         // Вземаме стринга с официалните езици
@@ -902,7 +896,7 @@ class doc_Folders extends core_Master
 
                         $cls = cls::get($rec->coverClass);
 
-                        if(!$cls->fetch($rec->coverId)) {
+                        if($rec->coverId && !$cls->fetch($rec->coverId)) {
                             $err[$rec->id] .= 'Not exists cover; ';
                             $projectName = "LaF " . $className . ' ' . $rec->title;
                         }
