@@ -1179,14 +1179,14 @@ class doc_DocumentPlg extends core_Plugin
     	if ($rec->id) {
             $oRec = $mvc->fetch($rec->id);
             
-            if($action == 'delete') {
+            if ($action == 'delete') {
                 $requiredRoles = 'no_one';
             } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
                 $requiredRoles = 'no_one';
-            }elseif(($action == 'edit')) {
+            } elseif(($action == 'edit')) {
             	
             	// Ако потребителя няма достъп до сингъла, той не може и да редактира записа
-            	$haveRightForSingle = $mvc->haveRightFor('single', $rec->id);
+            	$haveRightForSingle = $mvc->haveRightFor('single', $rec->id, $userId);
             	if(!$haveRightForSingle){
             		$requiredRoles = 'no_one';
             	}
@@ -1215,7 +1215,7 @@ class doc_DocumentPlg extends core_Plugin
                 if ($firstContainerId == $oRec->containerId) {
                     
                     // Проверяваме за сингъл права в папката
-                    $haveRightForClone = doc_Folders::haveRightFor('single', $oRec->folderId);
+                    $haveRightForClone = doc_Folders::haveRightFor('single', $oRec->folderId, $userId);
                     
                     // Ако има права
                     if ($haveRightForClone) {
@@ -1229,7 +1229,7 @@ class doc_DocumentPlg extends core_Plugin
                 } else {
                     
                     // За останалите, проверяваме за сингъл в нишката
-                    $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId);
+                    $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId, $userId);
                     
                     // Ако има права
                     if ($haveRightForClone) {
@@ -1265,7 +1265,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Трябва да има права за добавяне
-            if (!$mvc->haveRightFor('add', $rec)) {
+            if (!$mvc->haveRightFor('add', $rec, $userId)) {
                 
                 // Трябва да има права за добавяне за да може да клонира
                 $requiredRoles = 'no_one';
