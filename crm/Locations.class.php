@@ -175,7 +175,13 @@ class crm_Locations extends core_Master {
         	if(empty($rec->title)){
         		if(isset($rec->pCode) && isset($rec->place) && isset($rec->countryId)){
         			$countryName = drdata_Countries::fetchField($rec->countryId, 'commonNameBg');
-        			$rec->title = "{$rec->pCode} {$rec->place}, {$countryName}";
+        			
+        			$lQuery = crm_Locations::getQuery();
+        			$lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
+        			$lQuery->XPR('count', 'int', 'COUNT(#id)');
+        			$count = $lQuery->fetch()->count + 1;
+        			
+        			$rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
         		} else {
         			$form->setError('title', 'Не е избрано име за локацията! Изберете име или посочете държава, град и код');
         			$form->setField('title', 'mandatory');

@@ -843,6 +843,9 @@ abstract class deals_DealMaster extends deals_DealBase
 			$actions = type_Set::toArray($rec->contoActions);
 			if(isset($actions['ship'])){
 				$row->isDelivered .= tr('ДОСТАВЕНО');
+				if($rec->state == 'rejected') {
+					$row->isDelivered = "<span class='quet'>{$row->isDelivered}</span>";
+				}
 				
 				if($rec->deliveryLocationId && $rec->shipmentStoreId){
 					if($ourLocation = store_Stores::fetchField($rec->shipmentStoreId, 'locationId')){
@@ -854,6 +857,9 @@ abstract class deals_DealMaster extends deals_DealBase
 			
 			if(isset($actions['pay'])){
 				$row->isPaid .= tr('ПЛАТЕНО');
+				if($rec->state == 'rejected') {
+					$row->isPaid = "<span class='quet'>{$row->isPaid}</span>";
+				}
 			}
 			
 			if($rec->makeInvoice == 'no' && isset($rec->amountToInvoice)){
