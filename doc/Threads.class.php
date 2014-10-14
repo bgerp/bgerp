@@ -1395,19 +1395,13 @@ class doc_Threads extends core_Manager
      */
     static function getLanguage($id)
     {
-        //Ако няма стойност, връщаме
+        // Ако няма стойност, връщаме
         if (!$id) return ;
         
-        // Търсим езика в поздравите
-        $lg = email_Salutations::getLg(NULL, $id);
-        
-        // Ако сме открили езика в обръщенията
-        if ($lg) return $lg;
-        
-        //Записа на нишката
+        // Записа на нишката
         $threadRec = doc_Threads::fetch($id);
         
-        //id' то на контейнера на първия документ в треда
+        // id' то на контейнера на първия документ в треда
         $firstContId = $threadRec->firstContainerId;
         
         // Ако няма id на първия документ
