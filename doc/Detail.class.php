@@ -34,12 +34,12 @@ abstract class doc_Detail extends core_Detail
 	 */
 	public static function on_AfterPrepareRetUrl($mvc, $res, $data)
 	{
-		// Ако е субмитната формата и не сме натиснали бутона "Запис и нов"
-		if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+		// Рет урл-то не сочи към мастъра само ако е натиснато 'Запис и Нов'
+		if (is_null($data->form->cmd) || $data->form->cmd === 'save') {
 			$master = $mvc->getMasterMvc($rec);
 			
 			// Променяма да сочи към single-a
 			$data->retUrl = toUrl(array($master, 'single', $data->form->rec->{$mvc->masterKey}));
-		}
+		} 
 	}
 }
