@@ -1183,6 +1183,13 @@ class doc_DocumentPlg extends core_Plugin
                 $requiredRoles = 'no_one';
             } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
                 $requiredRoles = 'no_one';
+            }elseif(($action == 'edit')) {
+            	
+            	// Ако потребителя няма достъп до сингъла, той не може и да редактира записа
+            	$haveRightForSingle = $mvc->haveRightFor('single', $rec->id);
+            	if(!$haveRightForSingle){
+            		$requiredRoles = 'no_one';
+            	}
             } elseif ($action == 'reject'  || $action == 'restore') {
                 if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     if($requiredRoles != 'no_one'){
