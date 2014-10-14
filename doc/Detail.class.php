@@ -15,4 +15,31 @@
 abstract class doc_Detail extends core_Detail
 {
 	
+	/**
+	 * Връща URL към единичния изглед на мастера
+	 */
+	public function getRetUrl($rec)
+	{
+		$master = $this->getMasterMvc($rec);
+		$masterKey = $this->getMasterKey($rec);
+		
+		$url = array($master, 'single', $rec->{$masterKey});
+		
+		return $url;
+	}
+	
+	
+	/**
+	 * Пренасочва URL за връщане след запис към сингъл изгледа
+	 */
+	public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+	{
+		// Ако е субмитната формата и не сме натиснали бутона "Запис и нов"
+		if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+			$master = $mvc->getMasterMvc($rec);
+			
+			// Променяма да сочи към single-a
+			$data->retUrl = toUrl(array($master, 'single', $data->form->rec->{$mvc->masterKey}));
+		}
+	}
 }
