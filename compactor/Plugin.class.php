@@ -68,6 +68,9 @@ class compactor_Plugin extends core_Plugin
         foreach($configFilesArr as $file) {
             sbf($file);
             $sbfFilePath = core_Sbf::getSbfFilePath($file);
+            if(!file_exists($sbfFilePath)) {
+                sleep(1);
+            }
             $times .= filemtime($sbfFilePath);
             if(isset($filesArr[$file])) {
                 unset($filesArr[$file]);
