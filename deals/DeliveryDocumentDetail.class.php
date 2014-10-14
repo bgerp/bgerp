@@ -113,9 +113,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			
 			$LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
 			if(isset($mvc->$LastPolicy)){
-				$policyInfo = $mvc->$LastPolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
-				if($policyInfo->price != 0){
-					$form->setSuggestions('packPrice', array('' => '', "{$policyInfo->price}" => $policyInfo->price));
+				$policyInfoLast = $mvc->$LastPolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+				if($policyInfoLast->price != 0){
+					$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
 				}
 			}
 		}

@@ -305,10 +305,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			}
 				
 			if(isset($mvc->LastPricePolicy)){
-				$policyInfo = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $masterRec->rate);
+				$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $masterRec->rate);
 					
 				if($policyInfo->price != 0){
-					$form->setSuggestions('packPrice', array('' => '', "{$lastPrice}" => $lastPrice));
+					$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
 				}
 			}
 		}
