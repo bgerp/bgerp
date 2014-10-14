@@ -223,9 +223,9 @@ abstract class deals_DealDetail extends doc_Detail
 	    	}
 	    	
 	    	if(isset($mvc->LastPricePolicy)){
-	    		$policyLastInfo = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
-	    		if($policyLastInfo->price != 0){
-	    			$form->setSuggestions('packPrice', array('' => '', "{$policyLastInfo->price}" => $policyLastInfo->price));
+	    		$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+	    		if($policyInfoLast->price != 0){
+	    			$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
 	    		}
 	    	}
         }
