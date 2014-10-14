@@ -3,9 +3,8 @@
 
 /**
  * Обръщения, които ще се търсят
- * @type type_Set
+ * Включва 'Здравейте,Здравей,Привет,Скъпи,Скъпа,Скъпо,Уважаеми,Уважаема,Уважаемо,Dear,Gentlemen,Ladies,Hi;
  */
-//defIfNot('EMAIL_SALUTATIONS_BEGIN', 'Здравейте,Здравей,Привет,Скъпи,Скъпа,Скъпо,Уважаеми,Уважаема,Уважаемо,Dear,Gentlemen,Ladies,Hi');
 defIfNot('EMAIL_SALUTATIONS_BEGIN', 'Здравей,Привет,Скъп,Уважаем,Dear,Gentlemen,Ladies,Hi');
 
 
@@ -26,106 +25,202 @@ class email_Salutations extends core_Manager
     /**
      * Шаблона за обръщение
      */
-    static $salutationsPattern;
+    protected static $salutationsPattern;
 
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'email_Wrapper, plg_Sorting, plg_Created, plg_RowTools';
+    public $loadList = 'email_Wrapper, plg_Sorting, plg_Created, plg_RowTools, plg_Search, plg_State';
 
     
     /**
      * Заглавие
      */
-    var $title = "Обръщение в имейлите";
+    public $title = "Обръщение в имейлите";
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, debug, email';
+    protected $canList = 'admin, debug, email';
     
     
     /**
      * Кой може да добавя
      */
-    var $canAdd = 'no_one';
+    protected $canAdd = 'no_one';
 	
     
     /**
      * Кой може да го редактира
      */
-    var $canEdit = 'admin, email';
+    protected $canEdit = 'admin, email';
     
     
     /**
      * Полетата, които ще се показват
      */
-    var $listFields = 'id, folderId, threadId, salutation, lg, userId';
+    public $listFields = 'id, folderId, threadId, salutation, toEmail, userId';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене
+     * @see plg_Search
+     */
+    public $searchFields = 'salutation, toEmail';
     
     
     /**
      * 
      */
-    function description()
+    public function description()
     {
-        $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер,notNull,value=0,input=none');
-        $this->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,notNull,value=0,input=none');
-        $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка,notNull,value=0,input=none');
+        $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер,input=none');
+        $this->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,input=none');
+        $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка,input=none');
         $this->FLD('userId', 'user', 'caption=Потребител,input=none');
         $this->FLD('salutation', 'varchar', 'caption=Обръщение');
-        $this->FLD('lg', 'varchar(2)', 'caption=Език');
-    }
-    
-    
-    /**
-     * Връща последното обръщение в нишката или в папката
-     * 
-     * @param doc_Folders $folderId - id на папка
-     * @param doc_Threads $threadId - id на нишка
-     * @param core_Users $userId - id на потребител
-     * @param boolean $depend - Дали да зависи от съдържанието на lg
-     * 
-     * @return string $salutation - Поздрава
-     */
-    public static function get($folderId, $threadId = NULL, $userId = NULL, $depend = TRUE)
-    {
-        // Ако не трябва да извлечем запис
-        if (!static::isGoodRec($folderId, $threadId)) return ;
-
-        return static::getRecForField('salutation', $folderId, $threadId, $userId);
-    }
-    
-    
-    /**
-     * Връща последното обръщение в нишката или в папката
-     * 
-     * @param doc_Folders $folderId - id на папка
-     * @param doc_Threads $threadId - id на нишка
-     * @param core_Users $userId - id на потребител
-     * @param boolean $depend - Дали да зависи от съдържанието на salutation
-     * 
-     * @param string $lg - Двубуквения код на езика
-     */
-    public static function getLg($folderId = NULL, $threadId = NULL, $userId = NULL, $depend = TRUE)
-    {
-        // Ако не трябва да извлечем запис
-        if (!static::isGoodRec($folderId, $threadId)) return ;
+        $this->FLD('toEmail', 'emails', 'caption=Имейл');
         
-        return static::getRecForField('lg', $folderId, $threadId, $userId, $depend);
+        $this->setDbUnique('containerId');
     }
     
+
+    /**
+     * Добавя обръщение
+     * 
+     * @param email_Outgoings $eRec - Изходящия имейл
+     */
+    public static function add($eRec)
+    {
+        // Ако липсва
+        if (!$eRec->threadId || !$eRec->folderId || !$eRec->containerId) return ;
+        
+        // За чернови документи да не се записва
+        if ($eRec->state == 'draft') return ;
+        
+        // Вземаме обръщенито в текстовата част
+        $salutation = self::getSalutations($eRec->body);
+        
+        // Ако няма обръщение да не се записва празен запис
+        if (!trim($salutation)) return ;
+        
+        // Ако няма такъв запис
+        if (!($nRec = self::fetch("#containerId = '{$eRec->containerId}'"))) {
+            // Създаваме запис в модела
+            $nRec = new stdClass();
+        }
+        
+        $nRec->folderId = $eRec->folderId;
+        $nRec->threadId = $eRec->threadId;
+        $nRec->containerId = $eRec->containerId;
+        $nRec->userId = core_Users::getCurrent();
+        $nRec->salutation = $salutation;
+        $nRec->toEmail = $eRec->email;
+        $nRec->state = $eRec->state;
+        
+        self::save($nRec, NULL, 'UPDATE');
+    }
+    
+    
+    /**
+     * Връща последното обръщение в нишката или в папката
+     * 
+     * @param doc_Folders $folderId - id на папка
+     * @param doc_Threads $threadId - id на нишка
+     * @param stribg $email - Имейл
+     * @param core_Users $userId - id на потребител
+     * 
+     * @return string - Поздрава
+     */
+    public static function get($folderId, $threadId=NULL, $email=NULL, $userId=NULL)
+    {
+        // Ако не трябва да извлечем запис
+        if (!self::isGoodRec($folderId, $threadId)) return ;
+        
+        // Вземаме всички обръщения от папката
+        $query = self::getQuery();
+        
+        // Ако е зададена папката
+        $query->where(array("#folderId = '[#1#]'", $folderId));
+        
+        // Да не се връщат оттеглените
+        $query->where("#state != 'rejected'");
+        
+        // Ако е зададено потребител
+        if ($userId) {
+            $query->where(array("#userId = '[#1#]'", $userId));
+        }
+        
+        // Подреждаме по създаване
+        $query->orderBy('createdOn', 'DESC');
+        
+        // Ако е подадене нишка, опитваме да извлечен поздрава от нишката
+        if ($threadId) {
+            $thClone = clone $query;
+            $thClone->where(array("#threadId = '[#1#]'", $threadId));
+            
+            $salutation = self::getSalutationFromQuery($thClone, $email);
+            
+            if ($salutation) return $salutation;
+        }
+        
+        // Намираме последното обръщение в поздрава
+        $salutation = self::getSalutationFromQuery($query, $email);
+        
+        return $salutation;
+    }
+    
+    
+    /**
+     * Връща обръщениет от заявката
+     * 
+     * @param core_Query $query
+     * @param string $email
+     * 
+     * @return boolean|string
+     */
+    protected static function getSalutationFromQuery($query, $email=NULL)
+    {
+        if (!$query) return FALSE;
+        
+        $salutation = '';
+        
+        // Вземаме записа
+        while ($rec = $query->fetch()) {
+            
+            if (!trim($rec->salutation)) continue;
+            
+            // Ако има обръщение да не се променя
+            if (!$salutation) {
+                $salutation = $rec->salutation;
+            }
+            
+            // Ако е подаден имейл, с по-голям приоритет е, ако отговаря на имейла
+            if ($email) {
+                if ($rec->toEmail == $email) {
+                    $salutation = $rec->salutation;
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        
+        return $salutation;
+    }
     
     /**
      * Проверяваме дали от дадената папка или нишка можем да извлечем съответните данни
+     * От всички нишки може. Ако не е подадена нишка, само от папки с корица контрагент
      * 
      * @param doc_Folders $folderId - id на папка
-     * @param doc_Threads $threadId - id на нишка+
+     * @param doc_Threads $threadId - id на нишка
      * 
      * @return boolean - Дали можем да извлечем запис
      */
-    static function isGoodRec($folderId = NULL, $threadId = NULL) 
+    protected static function isGoodRec($folderId = NULL, $threadId = NULL) 
     {
         // Ако няма папка и нишка
         if (!$folderId && !$threadId) return FALSE;
@@ -137,7 +232,7 @@ class email_Salutations extends core_Manager
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
 
-        // Ако не може да се наемери папката
+        // Ако не може да се намери папката
         if (!$folderId) return FALSE;
         
         // Ако няма нишка
@@ -145,7 +240,7 @@ class email_Salutations extends core_Manager
             
             // Вземаме корицата на папката
             $coverClass = strtolower(doc_Folders::fetchCoverClassName($folderId));
-
+            
             // Ако корицата не е контрагент, връщаме
             if (($coverClass != 'crm_persons') && ($coverClass != 'crm_companies')) {
                 
@@ -158,107 +253,12 @@ class email_Salutations extends core_Manager
                 // id' на корицата
                 $coverId = doc_Folders::fetchCoverId($folderId);  
                 
-                // Ако има потребителски профил, връщаме
-                if (crm_Profiles::getProfile($coverId)) return FALSE;      
+                // Ако има потребителски профил
+                if (crm_Profiles::fetch("#personId = '{$coverId}'")) return FALSE;      
             }
         }
         
         return TRUE;
-    }
-    
-    
-    /**
-     * Връща най - добрия запис за полето
-     * 
-     * @param string $field - Името на полето
-     * @param doc_Folders $folderId - id на папка
-     * @param doc_Threads $threadId - id на нишка
-     * @param core_Users $userId - id на потребител
-     * @param boolean $depend - Дали да зависи от съдържанието на salutation (за $field=lg) или lg (за $field=salutation)
-     * 
-     * @param string $fieldRec - Резултата
-     */
-    protected static function getRecForField($field, $folderId=NULL, $threadId = NULL, $userId = NULL, $depend = TRUE)
-    {
-        // Вземаме всички обръщения от папката
-        $query = static::getQuery();
-        
-        // Ако е зададена папката
-        if ($folderId) {
-            $query->where(array("#folderId = '[#1#]'", $folderId));    
-        }
-        
-        // Ако е зададено да се взема от нишката
-        if ($threadId) {
-            $query->where(array("#threadId = [#1#]", $threadId));    
-        }
-        
-        // Ако е зададено потребител
-        if ($userId) {
-            $query->where(array("#userId = [#1#]", $userId));
-        }
-        
-        $query->where("#{$field} IS NOT NULL");
-
-        // Само последния запис
-        $query->orderBy('createdOn', 'DESC');
-        
-        // Вземаме записа
-        while ($rec = $query->fetch()) {
-            
-            // Ако зависи от съдържанието
-            if ($depend) {
-                
-                // Ако не е празен стринг lg и salutation
-                if (trim($rec->lg) && trim($rec->salutation)) break;    
-            } else {
-                
-                // Ако не е празен стринг {$field}
-                if (trim($rec->{$field})) break;
-            }
-        }
-
-        // Ако има id на нишка, но не сме открили обръщение
-        if (!($fieldRec = $rec->{$field}) && $threadId && static::isGoodRec($folderId)) {
-            
-            // Вземаме последното обръщение в паката
-            $fieldRec = static::getRecForField($field, $folderId, FALSE, $userId);
-        }
-        
-        return $fieldRec;
-    }
-    
-
-    /**
-     * Създава обръщение
-     * 
-     * @param email_Outgoings $eRec - Изходящия имейл
-     */
-    public static function create($eRec)
-    {
-        // Ако липсва
-        if (!$eRec->threadId || !$eRec->folderId || !$eRec->containerId) return ;
-        
-        // Вземаме обръщенито в текстовата част
-        $salutation = static::getSalutations($eRec->body);
-        
-        // Ако няма връщаме
-        if (!trim($salutation)) $salutation = NULL;
-        
-        // Създаваме запис в модела
-        $nRec = new stdClass();
-        $nRec->folderId = $eRec->folderId;
-        $nRec->threadId = $eRec->threadId;
-        $nRec->containerId = $eRec->containerId;
-        $nRec->userId = core_Users::getCurrent();
-        $nRec->salutation = $salutation;
-        
-        //Масив с всички предполагаеми езици
-        $lgRates = lang_Encoding::getLgRates($eRec->body);
-        
-        $nRec->lg = arr::getMaxValueKey($lgRates);
-
-        static::save($nRec);
     }
     
     
@@ -269,10 +269,10 @@ class email_Salutations extends core_Manager
      * 
      * @return string  - Обръщението
      */
-    static function getSalutations($text)
+    protected static function getSalutations($text)
     {
         // Шаблона за намиране на обръщение в текст
-        $pattern = static::getSalutaionsPattern();
+        $pattern = self::getSalutaionsPattern();
         
         // Намираме обръщенито
         preg_match($pattern, $text, $matche);
@@ -285,10 +285,10 @@ class email_Salutations extends core_Manager
 	/**
 	 * Връща шаблона за обръщенията
      */
-    static function getSalutaionsPattern()
+    protected static function getSalutaionsPattern()
     {
         // Ако не е сетнат шаблона
-        if (!isset(static::$salutationsPattern)) {
+        if (!isset(self::$salutationsPattern)) {
             
             // Разбиваме текстовете на масив
             $salutationsArr = type_Set::toArray(EMAIL_SALUTATIONS_BEGIN);
@@ -310,47 +310,16 @@ class email_Salutations extends core_Manager
             if ($salutationPatter) {
                 
                 // Добавяме текста в шаблона
-                static::$salutationsPattern = "/^(?'space'\s*)(?'allText'(?'salutation'{$salutationPatter})(?'text'.*))/ui";    
+                self::$salutationsPattern = "/^(?'space'\s*)(?'allText'(?'salutation'{$salutationPatter})(?'text'.*))/ui";    
             } else {
                 
                 // Добавяме FALSE, за да не се опитваме да го определим пак
-                static::$salutationsPattern = FALSE;
+                self::$salutationsPattern = FALSE;
             }
         }
         
         // Връщаме резултата
-        return static::$salutationsPattern;
-    }
-	
-	
-	/**
-     * Променяме folderId на папката
-     * 
-     * @param doc_Containers $cRec - Запис от doc_Containers
-     */
-    static function updateRec($cRec)
-    {
-        // Ако няма containerId не се прави ништо
-        if (!$cRec->containerId) return ;
-
-        // Вземаем всички записи от модела от съответния контейнер
-        $query = static::getQuery();
-        $query->where("#containerId = '{$cRec->containerId}'");
-        
-        // Обхождаме всички записи
-        while($rec = $query->fetch()) {
-            
-            // Ако се е променило id' то на папката
-            if ($rec->folderId != $cRec->folderId) {
-                
-                // Обновяваме id' то
-                $nRec = new stdClass();
-                $nRec->id = $rec->id;
-                $nRec->folderId = $cRec->folderId;
-                
-                static::save($nRec);
-            }
-        }
+        return self::$salutationsPattern;
     }
     
     
@@ -368,7 +337,7 @@ class email_Salutations extends core_Manager
             $docRow = $doc->getDocumentRow();
             
             // Документа да е линк към single' а на документа
-            $row->threadId = ht::createLink(str::limitLen($docRow->title, 35), array($doc, 'single', $doc->that), NULL, $attr);
+            $row->threadId = ht::createLink(str::limitLen($docRow->title, 35), array($doc, 'single', $doc->that), NULL);
         } catch(Exception $e) {
             $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
         }
@@ -383,4 +352,20 @@ class email_Salutations extends core_Manager
             $row->folderId = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
         }
     }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     * 
+     * @param email_Salutations $mvc
+     * @param object $data
+     */
+	static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+        $data->listFilter->view = 'horizontal';
+    	$data->listFilter->showFields = 'search';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+	    $data->query->orderBy('createdOn', 'DESC');
+	}
 }
