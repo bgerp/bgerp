@@ -1048,22 +1048,25 @@ class email_Outgoings extends core_Master
             }
         }
         
-        // Ако активираме или директно изпращаме имейла или факс
-        if ($rec->__activation || $mvc->flagSendIt || $mvc->flagSendItFax) {
+        // Ако има id
+        if ($rec->id) {
             
-            // Ако има id
-            if ($rec->id) {
-                
-                // Вземаме целия запис
-                $nRec = $mvc->fetch($rec->id);
-            } else {
-                
-                // Клонираме
-                $nRec = clone($rec);
-            }
+            // Вземаме целия запис
+            $nRec = $mvc->fetch($rec->id);
+        } else {
             
-            // Записваме обръщението в модела
-            email_Salutations::create($nRec);
+            // Клонираме
+            $nRec = clone($rec);
+        }
+        
+        // Записваме обръщението в модела
+        email_Salutations::add($nRec);
+        
+        // Ако препащме имейла
+        if ($rec->forward && $rec->originId) {
+            
+            // Записваме в лога, че имейла, който е създаден е препратен
+            log_Documents::forward($rec);
         }
         
         // Ако препащме имейла
@@ -1533,7 +1536,7 @@ class email_Outgoings extends core_Master
     function getHeader($headerDataArr, $rec)
     {
         // Вземаме обръщението
-        $salutation = email_Salutations::get($rec->folderId, $rec->threadId);
+        $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email);
         
         // Ако сме открили обръщение използваме него
         if ($salutation) return $salutation;
@@ -1754,7 +1757,7 @@ class email_Outgoings extends core_Master
             }
         }
         
-        $data->lg = $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
+        $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
     }
     
     
