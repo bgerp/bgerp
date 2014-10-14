@@ -249,6 +249,7 @@ class email_Setup extends core_ProtoSetup
             'email_Salutations',
             'email_ThreadHandles',
             'migrate::transferThreadHandles',
+            'migrate::fixEmailSalutations'
         );
     
 
@@ -329,5 +330,35 @@ class email_Setup extends core_ProtoSetup
                 }
             }
         } 
+    }
+    
+    
+    /**
+     * Миграция
+     * Премахва празните записи и добавя toEmail
+     */
+    public static function fixEmailSalutations()
+    {
+        $query = email_Salutations::getQuery();
+        while ($rec = $query->fetch()) {
+            
+            // Ако няма обръщение, премахваме от списъка
+            if (!trim($rec->salutation) || !$rec->containerId) {
+                email_Salutations::delete($rec->id);
+                continue;
+            }
+            
+            // От имейла извличаме стойността на полето имейл и обновяваме записа
+            $doc = doc_Containers::getDocument($rec->containerId);
+            if (($doc->instance instanceof email_Outgoings) && $doc->that) {
+                $emailRec = $doc->instance->fetch($doc->that);
+                
+                $rec->state = $emailRec->state;
+                
+                $rec->toEmail = $emailRec->email;
+                
+                email_Salutations::save($rec);
+            }
+        }
     }
 }
