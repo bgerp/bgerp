@@ -780,7 +780,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		}
 		
 		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
-            if ($rec->{"amount{$amnt}"} == 0) {
+            if (round($rec->{"amount{$amnt}"}, 2) == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0,00</span>';
             } else {
             	$value = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
@@ -789,6 +789,8 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt){
+        	if(round($rec->{"amount{$amnt}"}, 2) == 0) continue;
+        	
         	$color = (round($rec->{"amount{$amnt}"}, 2) < 0) ? 'red' : 'green';
         	$row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
