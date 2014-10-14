@@ -1092,13 +1092,13 @@ class doc_Containers extends core_Manager
      */
     static function getLanguage($id)
     {
-        //Ако няма стойност, връщаме
+        // Ако няма стойност, връщаме
         if (!$id) return ;
         
-        //Записите на контейнера
+        // Записите на контейнера
         $doc = doc_Containers::getDocument($id);
         
-        //Вземаме записите на класа
+        // Вземаме записите на класа
         $docRec = $doc->fetch();
         
         if($docRec->textPart) {
@@ -1109,7 +1109,7 @@ class doc_Containers extends core_Manager
             $lg = $docRec->lg;
         }
 
-        //Връщаме езика
+        // Връщаме езика
         return $lg;
     }
     
@@ -1330,9 +1330,6 @@ class doc_Containers extends core_Manager
     {
         // Обновяваме записите за файловете
         doc_Files::updateRec($rec);
-        
-        // Обновяваме записите за обръщенията
-        email_Salutations::updateRec($rec);
     }
     
     
