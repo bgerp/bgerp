@@ -81,9 +81,10 @@ class purchase_transaction_Service
     			// Ако е "Материали" дебит 601, иначе 602
     			$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
     	
-    			$amount = round($dRec->amount, 2);
+    			$amount = $dRec->amount;
     			$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;
-    	
+    			$amount = round($amount, 2);
+    			
     			$entries[] = array(
     					'amount' => $sign * $amount * $rec->currencyRate, // В основна валута
     	

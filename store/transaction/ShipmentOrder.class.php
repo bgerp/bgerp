@@ -169,8 +169,10 @@ class store_transaction_ShipmentOrder
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
         
         foreach ($rec->details as $detailRec) {
-        	$amount = round($detailRec->amount, 2);
+        	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
+        	$amount = round($amount, 2);
+        	
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
         	
         	// Вложимите кредит 706, другите 701

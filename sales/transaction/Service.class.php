@@ -92,9 +92,10 @@ class sales_transaction_Service
 			$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
     		
     		foreach ($rec->details as $dRec) {
-    			$amount = round($dRec->amount, 2);
+    			$amount = $dRec->amount;
     			$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;
-    	
+    			$amount = round($amount, 2);
+    			
     			$entries[] = array(
     					'amount' => $sign * $amount * $rec->currencyRate, // В основна валута
     	

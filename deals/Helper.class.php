@@ -99,7 +99,7 @@ abstract class deals_Helper
 	
 		// Дали трябва винаги да не се показва ддс-то към цената
 		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE);
-		$discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
+		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
 	
 		// Обработваме всеки запис
 		foreach($recs as &$rec){
@@ -112,32 +112,44 @@ abstract class deals_Helper
 			// Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
 			$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
 			$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
+			
+			$noVatAmount = round($price->noVat * $rec->$map['quantityFld'], 2);
         	
-			$noVatAmount = round($price->noVat * $rec->$map['quantityFld'], 2) ;
-        	
-			$vatRow = round($noVatAmount * $vat, 2);
-        	
+			if($rec->$map['discount']){
+				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->$map['discount']), 2);
+			} else {
+				$withoutVatAndDisc = $noVatAmount;
+			}
+			
+			$vatRow = round($withoutVatAndDisc * $vat, 2);
+			
         	$rec->$map['amountFld'] = $noVatAmount;
         	if($masterRec->$map['chargeVat'] == 'yes' && !$map['alwaysHideVat']){
-        		$rec->$map['amountFld'] = round($rec->$map['amountFld'] + $vatRow, 2);
+        		$rec->$map['amountFld'] = round($rec->$map['amountFld'] + round($noVatAmount * $vat, 2), 2);
         	}
 
         	if($rec->$map['discount']){
         		$discount += $rec->$map['amountFld'] * $rec->$map['discount'];
-        		$vatRow -= $vatRow * $rec->$map['discount'];
         	}
         	
         	
         	$amountRow += $rec->$map['amountFld'];
         	$amount += $noVatAmount;
         	$amountVat += $vatRow;
+        	
+        	$amountJournal += $withoutVatAndDisc;
+        	if($masterRec->$map['chargeVat'] == 'yes') {
+        		$amountJournal += $vatRow;
+        	}
 		}
-		
 		
 		$mvc->_total = new stdClass();
 		$mvc->_total->amount = $amountRow;
 		$mvc->_total->vat = $amountVat;
-		$mvc->_total->discount = $discount;
+		
+		if(!$map['alwaysHideVat']){
+			$mvc->_total->discount = $amountRow - $amountJournal;
+		}
 	}
 	
 	

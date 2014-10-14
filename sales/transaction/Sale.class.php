@@ -195,9 +195,10 @@ class sales_transaction_Sale
     		// Нескладируемите продукти дебит 703. Складируемите и вложими 706 останалите 701
     		$creditAccId = ($storable) ? (($materials) ? '706' : '701') : '703';
         	
-    		$amount = round($detailRec->amount, 2);
+    		$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
-            
+        	$amount = round($amount, 2);
+        	
         	$entries[] = array(
                 'amount' => $amount * $rec->currencyRate, // В основна валута
                 
@@ -262,10 +263,9 @@ class sales_transaction_Sale
         expect($rec->caseId, 'Генериране на платежна част при липсваща каса!'); 
         $amountBase = $quantityAmount = 0;
         foreach ($rec->details as $detailRec) {
-        	$detailRec->amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
+        	$amount = round($amount, 2);
         	$amountBase += $amount;
-        	 
         }
         
         if($rec->chargeVat == 'separate' || $rec->chargeVat == 'yes'){

@@ -180,9 +180,10 @@ class purchase_transaction_Purchase
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
          	
-        	$amount = round($detailRec->amount, 2);
+        	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
-
+        	$amount = round($amount, 2);
+        	
         	// Ако не е "Складируем" - значи е разход
 			if(empty($pInfo->meta['canStore'])){
 
@@ -262,8 +263,8 @@ class purchase_transaction_Purchase
         $amountBase = $quantityAmount = 0;
         
         foreach ($rec->details as $detailRec) {
-        	$detailRec->amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
+        	$amount = round($amount, 2);
         	$amountBase += $amount;
         }
         

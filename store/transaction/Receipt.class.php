@@ -137,8 +137,9 @@ class store_transaction_Receipt
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-        	$amount = round($detailRec->amount, 2);
+        	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
+        	$amount = round($amount, 2);
         	
         	// Ако е материал дебит 302 иначе 321
         	$debitAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';

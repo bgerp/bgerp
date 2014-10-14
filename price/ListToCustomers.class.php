@@ -394,7 +394,7 @@ class price_ListToCustomers extends core_Detail
         	$comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
         	if($comparePrice){
         		$disc = ($rec->price - $comparePrice) / $comparePrice;
-        		$rec->discount = -1 * $disc;
+        		$rec->discount = round(-1 * $disc, 4);
         		
         		// Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
         		$rec->price  = $comparePrice;
