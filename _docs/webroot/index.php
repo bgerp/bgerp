@@ -34,14 +34,14 @@ if(!defined('EF_ROOT_PATH')) {
 }
 
 // Зареждаме началната процедура и глобалните функции
-if(!defined('EF_EF_PATH')) {
-	DEFINE( 'EF_EF_PATH', EF_ROOT_PATH . '/bgerp');
+if(!defined('EF_APP_PATH')) {
+	DEFINE( 'EF_APP_PATH', EF_ROOT_PATH . '/bgerp');
 }
 
 // Ако сме определили правилно папката с кода на фреймуърка,
 // продължаваме със началния скрипт. Иначе - извеждаме грешка
-if(is_dir(EF_EF_PATH)) {
-    require_once( EF_EF_PATH . "/core/boot.inc.php" );
+if(is_dir(EF_APP_PATH)) {
+    require_once( EF_APP_PATH . "/core/boot.inc.php" );
 } else {
-    die('Error in index.php: <b>' . EF_EF_PATH . '</b> is not directory.'); 
+    die('Error in index.php: <b>' . EF_APP_PATH . '</b> is not directory.'); 
 }

@@ -17,10 +17,6 @@ DEFINE('EF_DEBUG', TRUE);
 // са на едно място, дефинирането на EF_ROOT_PATH е удобство
  # DEFINE( 'EF_ROOT_PATH', 'PATH_TO_FOLDER');
 
-// Кода на фреймърка. По подразбиране е в
-// EF_ROOT_PATH/ef
- # DEFINE( 'EF_EF_PATH', 'PATH_TO_FOLDER');
-
 // Конфигурационите файлове. По подразбиране е в
 // EF_ROOT_PATH/conf
  # DEFINE( 'EF_CONF_PATH', 'PATH_TO_FOLDER');

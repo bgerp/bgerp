@@ -50,10 +50,6 @@ class core_App
         defIfNot('EF_APP_CODE_NAME', 'bgerp');
 
 
-        /**
-         * Директорията с приложението
-         */
-        defIfNot('EF_APP_PATH', EF_ROOT_PATH . '/' . EF_APP_CODE_NAME);
 
         // Регистрираме функция за автоматично зареждане на класовете
         spl_autoload_register(array('core_App', 'classAutoload'), TRUE, TRUE);
@@ -1072,23 +1068,7 @@ class core_App
     }
 
 
-    /**
-     * Дефинира константа, ако преди това не е била дефинирана
-     * Ако вторият и аргумент започва с '[#', то изпълнението се спира
-     * с изискване за дефиниция на константата
-     */
-    public static function defIfNot($name, $value = NULL)
-    {
-        if(!defined($name)) {
-            if(substr($name, 0, 2) == '[#') {
-                static::halt("Constant '{$name}' is not defined. Please edit: " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
-            } else {
-                define($name, $value);
-            }
-        }
-    }
-
-
+ 
     private static function prepareStack($stack)
     {
         // Вътрешни функции, чрез които може да се генерира прекъсване

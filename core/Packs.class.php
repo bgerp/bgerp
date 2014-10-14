@@ -174,7 +174,7 @@ class core_Packs extends core_Manager
     {
         
         if (!$this->fetch("#name = 'core'")) {
-            $path = EF_EF_PATH . "/core/Setup.class.php";
+            $path = EF_APP_PATH . "/core/Setup.class.php";
             
             if(file_exists($path)) {
                 $opt['core'] = 'Ядро на EF "core"';

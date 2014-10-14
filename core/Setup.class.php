@@ -246,8 +246,8 @@ class core_Setup extends core_ProtoSetup {
         
         if( CORE_OVERWRITE_HTAACCESS ) {
             $filesToCopy = array(
-                EF_EF_PATH . '/_docs/tpl/htaccessSBF.txt' => EF_SBF_PATH . '/.htaccess',
-                EF_EF_PATH . '/_docs/tpl/htaccessIND.txt' => EF_INDEX_PATH . '/.htaccess'
+                EF_APP_PATH . '/_docs/tpl/htaccessSBF.txt' => EF_SBF_PATH . '/.htaccess',
+                EF_APP_PATH . '/_docs/tpl/htaccessIND.txt' => EF_INDEX_PATH . '/.htaccess'
             );
             
             foreach($filesToCopy as $src => $dest) {

@@ -673,7 +673,7 @@ if($step == 3) {
     }
 
     $paths = array(
-        'index-tpl' => EF_EF_PATH . '/_docs/webroot/index.php',
+        'index-tpl' => EF_APP_PATH . '/_docs/webroot/index.php',
         'index' => EF_INDEX_PATH . '/index.php',
         'index-cfg' => EF_INDEX_PATH . '/index.cfg.php',
         'config' => EF_ROOT_PATH . '/conf/' . EF_APP_NAME . '.cfg.php',

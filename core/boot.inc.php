@@ -21,21 +21,27 @@ if (version_compare(phpversion(), '5.3.0') < 0) {
     die;    
 }
 
-require_once(EF_EF_PATH . '/core/exception/Expect.class.php');
+/**
+ * Директорията с приложението
+ */
+defIfNot('EF_APP_PATH', EF_APP_PATH);
 
 
-require_once(EF_EF_PATH . '/core/Debug.class.php');
+require_once(EF_APP_PATH . '/core/exception/Expect.class.php');
+
+
+require_once(EF_APP_PATH . '/core/Debug.class.php');
 
 
 // core_Debug::setErrorWaching();
 
 
 // Зареждаме 'CLS' класа за работа с класове
-require_once(EF_EF_PATH . "/core/Cls.class.php");
+require_once(EF_APP_PATH . "/core/Cls.class.php");
 
 
 // Зареждаме 'APP' класа с помощни функции за приложението
-require_once(EF_EF_PATH . "/core/App.class.php");
+require_once(EF_APP_PATH . "/core/App.class.php");
 
 
 try {
@@ -63,7 +69,7 @@ try {
      * Стартира Setup, ако в заявката присъства верен SetupKey
      */
     if (isset($_GET['SetupKey'])) {
-        require_once(EF_EF_PATH . "/core/Setup.inc.php");
+        require_once(EF_APP_PATH . "/core/Setup.inc.php");
     }
 
 
@@ -110,7 +116,7 @@ try {
 /**
  * Тази функция определя пълния път до файла.
  * Като аргумент получава последната част от името на файла
- * Файла се търси в EF_APP_PATH, EF_EF_PATH
+ * Файла се търси в EF_APP_PATH, EF_PRIVATE_PATH
  * Ако не бъде открит, се връща FALSE
  */
 function getFullPath($shortPath)
@@ -342,7 +348,9 @@ function setIfNot(&$p1, $p2)
  */
 function defIfNot($name, $value = NULL)
 {
-    return core_App::defIfNot($name, $value);
+    if(!defined($name)) {
+        define($name, $value);
+    }
 }
 
 
