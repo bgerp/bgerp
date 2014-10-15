@@ -17,20 +17,18 @@
                             <table class="innerTable border-table paddingCells">
                                 <tbody>
                                     <tr>
-                                        <td class="cell custom-header-bg vtop" style='width:35%;'><b>|Получател|*</b></td>
-                                        <td class="cell centered" rowspan='2' style='width:30%;'>
+                                        <td class="cell custom-header-bg vtop" style='width:38%;'><b>|Получател|*</b></td>
+                                        <td class="cell centered" rowspan='2'>
                                             <div class="document-title">|СКЛАДОВА РАЗПИСКА|*</div>
                                             <div style='padding-top:5px;'>
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>
                                             </div>
                                             <!--ET_BEGIN state-->
-                                            <br>
-                                            <div class="[#STATE_CLASS#]">[#state#]</div>
-                                            <br>
+                                            <div class="[#STATE_CLASS#]" style='margin:10px 0'>[#state#]</div>
                                             <!--ET_END state-->
                                         </td>
-                                        <td class="cell custom-header-bg vtop" style='width:35%;'><b>|Доставчик|*</b></td>
+                                        <td class="cell custom-header-bg vtop" style='width:38%;'><b>|Доставчик|*</b></td>
                                     </tr>
                                     <tr>
                                         <td class="cell">
@@ -38,6 +36,12 @@
                                             <div class='address-block'>
                                                 [#MyAddress#]
                                             </div>
+                                            <!--ET_BEGIN ourLocation-->
+					                           <div style='font-size: 0.9em;'>
+					                               <div class='custom-bg-block'>|Локация|*: <b>[#ourLocation#]</b></div>
+					                                   [#ourLocationAddress#]
+					                           </div>
+					                        <!--ET_END ourLocation-->
                                         </td>
                                         <td class="cell">
                                             <b>[#contragentName#]</b>
@@ -45,6 +49,12 @@
                                                 [#contragentCountryId#]
                                                 <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                                             </div>
+                                            <!--ET_BEGIN deliveryLocationId-->
+					                            <div style='font-size: 0.9em;'>
+					                                <div class='custom-bg-block'>|Локация|*: <b>[#locationId#]</b></div>
+					                                    [#deliveryLocationAddress#]
+					                            </div>
+					                        <!--ET_END deliveryLocationId-->
                                         </td>
                                     </tr>
                                 </tbody>
@@ -71,12 +81,6 @@
                                                     <td>[#storeId#]</td>
                                                 </tr>
                                                 <!--ET_END storeId-->
-                                                <!--ET_BEGIN locationId-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|До|*:</td>
-                                                    <td>[#locationId#]</td>
-                                                </tr>
-                                                <!--ET_END locationId-->
                                                 <!--ET_BEGIN lineId-->
                                                 <tr>
                                                     <td class='quiet nowrap aright' style='width:1%;'>|Транспорт|*: </td>
