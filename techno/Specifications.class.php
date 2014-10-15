@@ -123,8 +123,6 @@ class techno_Specifications extends core_Manager {
             'enum(active=Активирано, rejected=Отказано)', 
             'caption=Статус, input=none'
         );
-    	
-    	$this->setDbUnique('title');
     }
     
     
