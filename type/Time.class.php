@@ -194,11 +194,15 @@ class type_Time extends type_Varchar {
         }
 
         if (!$this->suggestions) {
+            
+            $this->suggestions = array();
+            
+            if ($this->params['allowEmpty']) {
+                $this->suggestions[''] = '';
+            }
+            
             if($this->params['suggestions']) {
                 $suggestions = explode('|', $this->params['suggestions']);
-                if ($this->params['allowEmpty']) {
-                    $this->suggestions[''] = '';
-                }
                 
                 foreach($suggestions as $opt) {
                     $this->suggestions[$opt] = $opt;
@@ -209,7 +213,7 @@ class type_Time extends type_Varchar {
                 }
                 
             } else {
-                $this->suggestions = array('' => '',
+                $this->suggestions += array(
                     'на момента' => 'на момента',
                     '5 мин.'  => '5 мин.',
                     '10 мин.' => '10 мин.',
