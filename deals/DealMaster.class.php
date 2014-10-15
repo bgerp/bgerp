@@ -854,7 +854,7 @@ abstract class deals_DealMaster extends deals_DealBase
 					
 					$contLocationAddress = crm_Locations::getAddress($rec->deliveryLocationId);
 					if($contLocationAddress != ''){
-						$row->deliveryLocationAddress = crm_Locations::getAddress($rec->deliveryLocationId);
+						$row->deliveryLocationAddress = $contLocationAddress;
 					}
 				}
 			}

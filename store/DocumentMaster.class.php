@@ -322,6 +322,21 @@ abstract class store_DocumentMaster extends core_Master
 	   	 
 	   	if(isset($fields['-single'])){
 	   		$mvc->prepareHeaderInfo($row, $rec);
+	   		
+	   		if($rec->locationId){
+	   			if($ourLocation = store_Stores::fetchField($rec->storeId, 'locationId')){
+	   				$row->ourLocation = crm_Locations::getTitleById($ourLocation);
+	   				$ourLocationAddress = crm_Locations::getAddress($ourLocation);
+	   				if($ourLocationAddress != ''){
+	   					$row->ourLocationAddress = $ourLocationAddress;
+	   				}
+	   			}
+	   				
+	   			$contLocationAddress = crm_Locations::getAddress($rec->locationId);
+	   			if($contLocationAddress != ''){
+	   				$row->deliveryLocationAddress = $contLocationAddress;
+	   			}
+	   		}
 	   	}
    }
 
