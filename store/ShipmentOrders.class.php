@@ -188,7 +188,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         	if($rec->locationId){
         		foreach (array('company','person','tel','country','pCode','place','address',) as $del){
         			 if($rec->$del){
-        			 	$form->setError("locationId,{$del}", 'Не може да има избрана локация, и въведени адресни данни');
+        			 	$form->setError("locationId,{$del}", 'Не може да има избрана локация и въведени адресни данни');
         			 	break;
         			 }
         		}
