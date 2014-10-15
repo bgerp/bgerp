@@ -237,12 +237,13 @@ class doc_Threads extends core_Manager
         $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 
             'allowEmpty,caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('folderId', 'input=hidden,silent');
+        $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
         
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $data->listFilter->showFields = 'folderId,search,order';
+        $data->listFilter->showFields = 'folderId,search,order,documentClassId';
         
         $data->listFilter->input(NULL, 'silent');
         
@@ -251,6 +252,30 @@ class doc_Threads extends core_Manager
         
         // id на папката
         $folderId = $data->listFilter->rec->folderId;
+
+        // Показваме или само оттеглените или всички останали нишки
+        if(Request::get('Rejected')) {
+        	$data->query->where("#state = 'rejected'");
+        } else {
+        	$data->query->where("#state != 'rejected' OR #state IS NULL");
+        }
+        
+        $documentsInThreadOptions = array();
+        $docQuery = clone $data->query;
+        $docQuery->where("#folderId = {$folderId}");
+        
+        $docQuery->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+        $docQuery->show('firstDocumentClassId');
+        $docQuery->groupBy("firstDocumentClassId");
+        while($docInThreadRec = $docQuery->fetch()){
+        	$documentsInThreadOptions[$docInThreadRec->firstDocumentClassId] = core_Classes::getTitleById($docInThreadRec->firstDocumentClassId);
+        }
+        
+        if(count($documentsInThreadOptions)) {
+        	$data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
+        } else {
+        	$data->listFilter->setReadOnly('documentClassId');
+        }
         
         // id на потребителя
         $userId = core_Users::getCurrent();
@@ -274,14 +299,7 @@ class doc_Threads extends core_Manager
         doc_Folders::requireRightFor('single', $folderRec);
         
         $mvc::applyFilter($data->listFilter->rec, $data->query);
-                
-        // Показваме или само оттеглените или всички останали нишки
-        if(Request::get('Rejected')) {
-            $data->query->where("#state = 'rejected'");
-        } else {
-            $data->query->where("#state != 'rejected' OR #state IS NULL");
-        }
-        
+
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
         bgerp_Notifications::clear($url);
@@ -330,7 +348,11 @@ class doc_Threads extends core_Manager
                 $query->orderBy('#allDocCnt=DESC,#state=ASC,#last=DESC,#id=DESC');
                 break;
         }
-        
+       
+        if($filter->documentClassId){
+        	$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+        	$query->where("#firstDocumentClassId = {$filter->documentClassId}");
+        }
     }
     
     
