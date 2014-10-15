@@ -336,6 +336,11 @@ abstract class store_DocumentMaster extends core_Master
 	   			if($contLocationAddress != ''){
 	   				$row->deliveryLocationAddress = $contLocationAddress;
 	   			}
+	   			
+	   			if($gln = crm_Locations::fetchField($rec->locationId, 'gln')){
+	   				$row->deliveryLocationAddress = $gln . ", " . $row->deliveryLocationAddress;
+	   				$row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ", ");
+	   			}
 	   		}
 	   	}
    }
@@ -426,7 +431,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
@@ -489,7 +494,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function loadSetupData()
+    public function loadSetupData()
     {
     	$res = '';
     	$this->setTemplates($res);
