@@ -239,6 +239,17 @@ class doc_Threads extends core_Manager
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
         
+        if(!isset($data->listFilter->fields['Rejected'])) {
+        	$data->listFilter->FNC('Rejected', 'varchar', 'input=hidden,silent');
+        }
+        
+        // Ако е зададено
+        if ($rejectedId = Request::get('Rejected', 'int')) {
+        
+        	// Задаваме стойността от заявката
+        	$data->listFilter->setDefault('Rejected', $rejectedId);
+        }
+        
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
