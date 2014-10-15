@@ -451,11 +451,15 @@ class sales_Sales extends deals_DealMaster
     		$nRec->managerId = $dRec->classId;
     		$nRec->quantity = $dRec->packQuantity;
     		if($dRec->discount){
-    			$nRec->discount = (round($dRec->discount, 2) * 100) . "%";
+    			$nRec->discount = $dRec->discount;
     		}
     		$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
     		$nRec->measure = ($dRec->packagingId) ? cat_Packagings::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
     		$nRec->vat = cls::get($dRec->classId)->getVat($dRec->productId, $rec->valior);
+    		if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
+    			$nRec->vat = 0;
+    		}
+    		
     		$nRec->price = $dRec->packPrice;
     		$nRec->vatGroup = cls::get($dRec->classId)->getParam($dRec->productId, 'vatGroup');
     		$nRec->name = $pInfo->productRec->name;
@@ -466,6 +470,9 @@ class sales_Sales extends deals_DealMaster
     	$nRec = new stdClass();
     	$nRec->type = 0;
     	$nRec->amount = round($rec->amountPaid, 2);
+    	
+    	$data->short = TRUE;
+    	$data->hasVat = ($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate') ? TRUE : FALSE;
     	$data->payments[] = $nRec;
     	$data->totalPaid = $nRec->amount;
     	
@@ -684,6 +691,7 @@ class sales_Sales extends deals_DealMaster
     	if($action == 'printfiscreceipt' && isset($rec)){
     		
     		$actions = type_Set::toArray($rec->contoActions);
+    		
     		if ($actions['ship'] && $actions['pay']) {
     			$conf = core_Packs::getConfig('sales');
     			
