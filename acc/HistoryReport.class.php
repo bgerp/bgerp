@@ -404,6 +404,7 @@ class acc_HistoryReport extends core_Manager
     	$jQuery->orderBy('id', 'ASC');
     	
     	$entriesInPeriod = $jQuery->fetchAll();
+    	
     	$rec->baseAmount = $calcedBalance[$indexArr]['blAmount'];
     	$rec->baseQuantity = $calcedBalance[$indexArr]['blQuantity'];
     	 
@@ -420,10 +421,16 @@ class acc_HistoryReport extends core_Manager
     	// Нулевия ред е винаги началното салдо
     	$zeroRec = array('docId' => "Начален баланс",
     			'valior'	  => $data->fromDate,
+    			'debitAmount' => 0,
+    			'debitQuantity' => 0,
+    			'creditQuantity' => 0,
+    			'creditAmount' => 0,
     			'blAmount'   => $rec->baseAmount,
     			'blQuantity' => $rec->baseQuantity,
     			'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
-    	 
+
+    	$debitQuantity = $debitAmount = $creditQuantity = $creditAmount = 0;
+    	
     	// Обхождаме всички записи и натрупваме сумите им към крайното салдо
     	if(count($entriesInPeriod)){
     		foreach ($entriesInPeriod as $jRec){
@@ -450,6 +457,7 @@ class acc_HistoryReport extends core_Manager
 			        		$calcedBalance[$index]['blQuantity'] += $jRec->{$quantityField} * $sign;
 			        		$entry[$quantityField] = $jRec->{$quantityField};
 			        		$entry['blQuantity'] = $calcedBalance[$index]['blQuantity'];
+			        		${"{$type}Quantity"} += $entry[$quantityField];
 			        	}
 			        	 
 			        	if (!empty($jRec->amount)) {
@@ -457,6 +465,7 @@ class acc_HistoryReport extends core_Manager
 			        		$calcedBalance[$index]['blAmount'] += $jRec->amount * $sign;
 			        		$entry["{$type}Amount"] = $jRec->amount;
 			        		$entry['blAmount'] = $calcedBalance[$index]['blAmount'];
+			        		${"{$type}Amount"} += $entry["{$type}Amount"];
 			        	}
 			        }
     			}
@@ -472,12 +481,19 @@ class acc_HistoryReport extends core_Manager
     	$rec->blQuantity = $calcedBalance[$indexArr]['blQuantity'];
     	$row->blAmount = $Double->toVerbal($rec->blAmount);
     	$row->blQuantity = $Double->toVerbal($rec->blQuantity);
+    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount') as $fld){
+    		//$row->$fld = $Double->toVerbal($rec->$fld);
+    	}
     	
     	// Последния ред е крайното салдо
     	$lastRec = array('docId'      => "Краен баланс",
 		    			 'valior'	  => $data->toDate,
 		    			 'blAmount'   => $rec->blAmount,
 		    			 'blQuantity' => $rec->blQuantity,
+    					 'debitAmount' => $debitAmount,
+    					 'debitQuantity' => $debitQuantity,
+    					 'creditQuantity' => $creditQuantity,
+    					 'creditAmount' => $creditQuantity,
 		    			 'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
     	
     	// Преизчисляваме пейджъра с новия брой на записите
