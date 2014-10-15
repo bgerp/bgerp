@@ -1099,8 +1099,10 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 }
 
 .vFormField {
-	border:none;
 	width:100%;
+	select {
+	   max-width: 400px;
+	}
 }
 
 .formTable > tr > td {	
@@ -1136,10 +1138,6 @@ div.hFormField {
 	float: left;
 	margin-right: 0.3em;
 	margin-bottom: 0.3em;
-}
-
-table.vFormField {
-	width:100%;
 }
 
 td.formElement {
