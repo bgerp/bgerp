@@ -815,10 +815,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
 	        }
 	        
-	        if($rec->deliveryLocationId){
-	        	$row->deliveryLocationId = crm_Locations::getAddress($rec->deliveryLocationId);
-	        }
-	        
 	    	if($rec->note){
 				$notes = explode('<br>', $row->note);
 				foreach ($notes as $note){
@@ -849,8 +845,16 @@ abstract class deals_DealMaster extends deals_DealBase
 				
 				if($rec->deliveryLocationId && $rec->shipmentStoreId){
 					if($ourLocation = store_Stores::fetchField($rec->shipmentStoreId, 'locationId')){
-						$row->ourLocation = crm_Locations::getTitleById($ourLocation) . ", " . crm_Locations::getAddress($ourLocation);
-						$row->ourLocation = trim($row->ourLocation, ", ");
+						$row->ourLocation = crm_Locations::getTitleById($ourLocation);
+						$ourLocationAddress = crm_Locations::getAddress($ourLocation);
+						if($ourLocationAddress != ''){
+							$row->ourLocationAddress = $ourLocationAddress;
+						}
+					}
+					
+					$contLocationAddress = crm_Locations::getAddress($rec->deliveryLocationId);
+					if($contLocationAddress != ''){
+						$row->deliveryLocationAddress = crm_Locations::getAddress($rec->deliveryLocationId);
 					}
 				}
 			}
