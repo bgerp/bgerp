@@ -2,7 +2,7 @@
 <TremolFpServer Command="Receipt" Description="*** Описание в дневникa ***">
 [#ITEMS#]
    <!--ET_BEGIN ITEM-->
-       [#ITEM#]<Item Description="[#name#]" Price="[#price#]" Quantity="[#quantity#]" VatInfo="[#vatGroup#]" UnitName="[#measure#]" <!--ET_BEGIN discount-->Discount="[#discount#]"<!--ET_END discount--> />
+       [#ITEM#]<Item Description="[#name#]" Price="[#price#]" Quantity="[#quantity#]" VatInfo="[#vatGroupId#]" UnitName="[#measure#]" <!--ET_BEGIN discountPercent-->Discount="[#discountPercent#]"<!--ET_END discountPercent--> />
    <!--ET_END ITEM-->
    [#PAYMENTS#]
    <!--ET_BEGIN PAY-->

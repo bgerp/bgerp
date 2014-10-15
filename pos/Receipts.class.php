@@ -1203,8 +1203,9 @@ class pos_Receipts extends core_Master {
     			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
     			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
     			$nRec->vat = $rec->param;
-    			$nRec->price = $rec->price;
+    			$nRec->price = $rec->price / (1 + $rec->param);
     			$nRec->name = $pInfo->productRec->name;
+    			$nRec->vatGroup = cls::get('cat_Products')->getParam($rec->productId, 'vatGroup');
     			
     			$products[] = $nRec;
     		} elseif(strpos($rec->action, 'payment') !== FALSE) {
@@ -1219,6 +1220,8 @@ class pos_Receipts extends core_Master {
     		}
     	}
     	
+    	$data->short = FALSE;
+    	$data->hasVat = TRUE;
     	$data->products = $products;
     	$data->payments = $payments;
     	

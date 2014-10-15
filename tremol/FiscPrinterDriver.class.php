@@ -33,6 +33,18 @@ class tremol_FiscPrinterDriver extends core_Manager {
     private static $vatGroups = array('A' => 1, 'Б' => 2, 'В' => 3, 'Г' => 4);
     
     
+    /**
+     * Коя данъчна група отговаря на 0 ставка на ддс-то
+     */
+    private $groupNoVat = 'A';
+    
+    
+    /**
+     * Шаблон за продукта в кратката бележка
+     */
+    private $shortRowTpl = "Артикули *[#group#]";
+    
+    
    /*
     * Имплементация на pos_FiscalPrinterIntf
     */
@@ -52,35 +64,51 @@ class tremol_FiscPrinterDriver extends core_Manager {
         // Добавяме към шаблона всеки един продаден продукт
         $itemBlock = $contentTpl->getBlock('ITEM');
         
-        foreach ($data->products as $p){
-        	$p->name = str_replace('"', "'", $p->name);
-        	$p->price = $p->price * (1 + $p->vat);
-        	$p->vatGroup = self::$vatGroups[$p->vatGroup];
+        $products = $data->products;
+        if($data->short){
+        	$newProducts = array();
+        	foreach ($products as $p){
+        		if(empty($newProducts[$p->vatGroup])){
+        			$newProducts[$p->vatGroup] = new stdClass();
+        			$nameTpl = new core_ET($this->shortRowTpl);
+        			
+        			$vatGroup = ($data->hasVat === TRUE) ? $p->vatGroup : $this->groupNoVat;
+        			$nameTpl->replace($vatGroup, 'group');
+        			$newProducts[$p->vatGroup]->name = $nameTpl->getContent();
+        			$newProducts[$p->vatGroup]->vatGroupId = self::$vatGroups[$vatGroup];
+        			$newProducts[$p->vatGroup]->quantity = 1;
+        		}
+        		
+        		$noVatAmount = round($p->price * $p->quantity, 2);
+        		
+        		if($p->discount){
+        			$withoutVatAndDisc = round($noVatAmount * (1 - $p->discount), 2);
+        		} else {
+        			$withoutVatAndDisc = $noVatAmount;
+        		}
+        		
+        		$vatRow = round($withoutVatAndDisc * $p->vat, 2);
+        		$newProducts[$p->vatGroup]->price += round($withoutVatAndDisc + $vatRow, 2);
+        	}
+        	
+        	$data->products = $newProducts;
+        } else {
+        	foreach ($data->products as $p){
+        		$p->name = str_replace('"', "'", $p->name);
+        		$p->price = $p->price * (1 + $p->vat);
+        		
+        		$vatGroup = ($data->hasVat === TRUE) ? $p->vatGroup : $this->groupNoVat;
+        		$p->vatGroupId = self::$vatGroups[$vatGroup];
+        		$p->price = round($p->price, 4);
+        		if($p->discount){
+        			$p->discountPercent = (round($p->discount, 2) * 100) . "%";
+        		}
+        	}
         }
         
-        // Проверяваме дали точната сума на продуктите е равна на платената
-        // Умножаваме по 10 докато се изравнят грешките от закръглянията
-        $mp = 0.1;
-        do {
-        	$mp *= 10;
-        	$total = 0;
-        	foreach ($data->products as $p){
-        		$total += round($p->price * $mp, 2) * $p->quantity / $mp;
-        	}
-        	$total = round($total, 2);
-        	
-        } while($total != $data->totalPaid && $mp <= 10000);
-        
         foreach ($data->products as $p){
+        	
         	$block = clone $itemBlock;
-        	
-        	if($mp != 1){
-        		$p->name .= " * {$mp}";
-        		$p->price *= $mp;
-        		$p->quantity /= $mp;
-        	}
-        	$p->price = round($p->price, 4);
-        	
         	$block->placeObject($p);
         	$block->removeBlocks();
         	$contentTpl->append($block, 'ITEMS');
@@ -102,7 +130,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
     
     /**
      * Форсира изтегляне на файла за фискалния принтер
-     * 
+     * 	short -> TRUE / FALSE дали да е подробна бележката или не
      * 	[products] = array(
      * 		'id'        => ид на продукт
      * 		'managerId' => ид на мениджър на продукт
