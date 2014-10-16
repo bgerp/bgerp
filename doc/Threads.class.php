@@ -266,19 +266,19 @@ class doc_Threads extends core_Manager
 
         $rejected = Request::get('Rejected');
         
-        // Показваме или само оттеглените или всички останали нишки
-        if($rejected) {
-        	$data->query->where("#state = 'rejected'");
-        } else {
-        	$data->query->where("#state != 'rejected' OR #state IS NULL");
-        }
-
         $docQuery = clone $data->query;
         $documentsInThreadOptions = self::getDocumentsInThread($folderId, $docQuery, $rejected);
         if(count($documentsInThreadOptions)) {
         	$data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
         } else {
         	$data->listFilter->setReadOnly('documentClassId');
+        }
+        
+        // Показваме или само оттеглените или всички останали нишки
+        if($rejected) {
+        	$data->query->where("#state = 'rejected'");
+        } else {
+        	$data->query->where("#state != 'rejected' OR #state IS NULL");
         }
         
         // id на потребителя
@@ -316,23 +316,30 @@ class doc_Threads extends core_Manager
      */
     private static function getDocumentsInThread($folderId, $docQuery, $rejected)
     {
-    	$documentsInThreadOptions = core_Cache::get("doc_Folders", "{$rejected}folder{$folderId}");
+    	$documentsInThreadOptions = core_Cache::get("doc_Folders", "folder{$folderId}");
     	
     	if($documentsInThreadOptions === FALSE) {
 			$documentsInThreadOptions = array();
     		$docQuery->where("#folderId = {$folderId}");
     		 
     		$docQuery->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-    		$docQuery->show('firstDocumentClassId');
-    		$docQuery->groupBy("firstDocumentClassId");
+    		$docQuery->show('firstDocumentClassId, state');
     		while($docInThreadRec = $docQuery->fetch()){
-    			$documentsInThreadOptions[$docInThreadRec->firstDocumentClassId] = core_Classes::getTitleById($docInThreadRec->firstDocumentClassId);
+    			$index = ($docInThreadRec->state == 'rejected') ? 'rejected' : 'notrejected';
+    			
+    			if(!isset($documentsInThreadOptions[$index][$docInThreadRec->firstDocumentClassId])){
+    				$documentsInThreadOptions[$index][$docInThreadRec->firstDocumentClassId] = core_Classes::getTitleById($docInThreadRec->firstDocumentClassId);
+    			}
     		}
     		
-    		core_Cache::set("doc_Folders", "{$rejected}folder{$folderId}", $documentsInThreadOptions, 1440);
-    	}
+    		core_Cache::set("doc_Folders", "folder{$folderId}", $documentsInThreadOptions, 1440);
+    	} 
     	
-    	return $documentsInThreadOptions;
+    	if(is_null($rejected)){
+    		return $documentsInThreadOptions['notrejected'];
+    	} else {
+    		return $documentsInThreadOptions['rejected'];
+    	}
     }
     
     
@@ -1658,6 +1665,5 @@ class doc_Threads extends core_Manager
     	// Изтриваме от кеша видовете документи в папката и в коша и
     	$folderId = self::fetchField($id, 'folderId');
     	core_Cache::remove("doc_Folders", "folder{$folderId}");
-    	core_Cache::remove("doc_Folders", "1folder{$folderId}");
     }
 }
