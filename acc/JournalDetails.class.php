@@ -158,10 +158,6 @@ class acc_JournalDetails extends core_Detail
         $query->EXT('reason', 'acc_Journal', 'externalKey=journalId');
         $query->EXT('jid', 'acc_Journal', 'externalName=id');
         $query->where("#state = 'active'");
-        
-        if($from){
-        	$from = dt::verbal2mysql($from, FALSE);
-        }
         $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
         
         // Трябва да има поне една зададена сметка
