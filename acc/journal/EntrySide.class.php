@@ -1,14 +1,21 @@
 <?php
+
 /**
  * Помощен клас моделиращ дебитна или кредитна част на ред от счетоводна транзакция
  *
  * Използва се само от acc_journal_Entry.
- * 
- * @author developer
+ *
+ * @category bgerp
+ * @package acc
+ * @author Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2014 Experta OOD
+ * @license GPL 3
+ * @since v 0.1
  * @see acc_journal_Entry
  */
 class acc_journal_EntrySide
 {
+    
     /**
      * @var string
      */
@@ -19,42 +26,36 @@ class acc_journal_EntrySide
      * @var string
      */
     const CREDIT = 'credit';
-
     
     /**
      *
      * @var acc_journal_Account
      */
     protected $account;
-
-
+    
     /**
      *
      * @var array
      */
     protected $items;
-
-
+    
     /**
      *
      * @var float
      */
     protected $amount;
-
-
+    
     /**
      *
      * @var float
      */
     protected $quantity;
-
-
+    
     /**
      *
      * @var float
      */
     protected $price;
-
     
     /**
      * @var string
@@ -73,8 +74,8 @@ class acc_journal_EntrySide
         $this->init($data);
         $this->type = $type;
     }
-
-
+    
+    
     /**
      * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
@@ -92,8 +93,7 @@ class acc_journal_EntrySide
             "Липсва {$this->type} част на транзакция", array('data'=>$transactionData)
         );
         
-        $data->amount = $transactionData['amount']; // Сума в основна валута
-        
+        $data->amount = $transactionData['amount'];  // Сума в основна валута
         if (array_key_exists('quantity', $d)) {
             $data->quantity = $d['quantity'];
             unset($d['quantity']);
@@ -107,38 +107,43 @@ class acc_journal_EntrySide
             count($d) <= 3,
             "{$this->type}: Макс 3 пера",  array('data'=>$transactionData)
         );
-            
+        
         // Изтриваме празните позиции за пера
         foreach (array_keys($d) as $i) {
             if (is_null($d[$i])) {
                 unset($d[$i]);
             }
         }
-            
+        
         $data->items = $d;
         
         // Делегираме работата по инитициализацията на метода init()
         $this->init($data);
     }
     
-
+    /**
+     * Инициализира транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
+     *
+     * @param stdClass $data
+     * @return void
+     */
     public function init($data)
     {
         $data = (object)$data;
-		
+        
         $this->amount   = isset($data->amount)   ? floatval($data->amount) : NULL;
         $this->quantity = isset($data->quantity) ? floatval($data->quantity) : NULL;
         $this->price    = isset($data->price)    ? floatval($data->price) : NULL;
         $this->account  = $data->account instanceof acc_journal_Account ? $data->account :
-                                new acc_journal_Account($data->account);
-
+        new acc_journal_Account($data->account);
+        
         $this->items = array();
-		
+        
         if (is_array($data->items)) {
             foreach ($data->items as $item) {
-            	
+                
                 $this->items[] = $item instanceof acc_journal_Item ? $item :
-                                    new acc_journal_Item($item);
+                new acc_journal_Item($item);
             }
         }
         
@@ -149,7 +154,7 @@ class acc_journal_EntrySide
     
     /**
      * Има ли зададена стойност поле на класа
-     * 
+     *
      * @param string $name
      * @return boolean
      */
@@ -162,14 +167,14 @@ class acc_journal_EntrySide
         if ($name == 'price') {
             return !is_null($this->getPrice());
         }
-    
+        
         return isset($this->{$name});
     }
     
-
+    
     /**
      * Readonly достъп до полетата на обекта
-     * 
+     *
      * @param string $name
      * @return mixed
      * @throws core_exception_Expect когато полето не е дефинирано в класа
@@ -177,7 +182,7 @@ class acc_journal_EntrySide
     public function __get($name)
     {
         expect(property_exists($this, $name), $name);
-
+        
         if ($name == 'price') {
             return $this->getPrice();
         }
@@ -185,7 +190,7 @@ class acc_journal_EntrySide
         return $this->{$name};
     }
     
-
+    
     /**
      * Ще приеме ли сметката зададените пера?
      *
@@ -200,41 +205,42 @@ class acc_journal_EntrySide
         return TRUE;
     }
     
-
+    
     /**
      * Изчислява, ако е възможно, незададеното amount/quantity
-     * 
-     *  amount   = price * quantity, ако са зададени price и quantity
-     *  quantity = amount / price, ако са зададени price и amount
      *
-     *  В останалите случаи не прави нищо.
+     * amount   = price * quantity, ако са зададени price и quantity
+     * quantity = amount / price, ако са зададени price и amount
+     *
+     * В останалите случаи не прави нищо.
      */
     public function evaluate()
     {
         switch (true) {
-            case isset($this->amount) && isset($this->quantity) && isset($this->price):
-                break;
-            case isset($this->quantity) && isset($this->price):
-                $this->amount = $this->quantity * $this->price;
-                break;
-            case isset($this->amount) && isset($this->price):
-                $this->quantity = $this->amount / $this->price;
-                break;
+            case isset($this->amount) && isset($this->quantity) && isset($this->price) :
+            break;
+            case isset($this->quantity) && isset($this->price) :
+            $this->amount = $this->quantity * $this->price;
+            break;
+            case isset($this->amount) && isset($this->price) :
+            $this->quantity = $this->amount / $this->price;
+            break;
         }
     }
     
-    
+    /**
+     * @see acc_journal_Item
+     */
     public function forceItems()
     {
         /* @var $item acc_journal_Item */
         foreach ($this->items as $i => $item) {
-            $item->force($this->account->{'groupId' . ($i+1)});
+            $item->force($this->account->{'groupId' . ($i + 1)});
         }
     }
     
     
     /**
-     * 
      * @return array
      */
     public function getData()
@@ -249,7 +255,7 @@ class acc_journal_EntrySide
             "{$type}Quantity" => $this->quantity, // 'double'
             "{$type}Price"    => $this->price, // 'double(minDecimals=2)'
         );
-
+        
         return $rec;
     }
     
@@ -262,6 +268,7 @@ class acc_journal_EntrySide
         if (!empty($this->quantity)) {
             $this->quantity = -$this->quantity;
         }
+        
         if (!empty($this->amount)) {
             $this->amount = -$this->amount;
         }
@@ -270,7 +277,7 @@ class acc_journal_EntrySide
     
     /**
      * Връща зададената или изчислена цена
-     * 
+     *
      * @return float NULL, ако цената нито е зададена, нито може да бъде изчислена
      */
     protected function getPrice()
@@ -280,13 +287,13 @@ class acc_journal_EntrySide
         }
         
         if (isset($this->amount) && isset($this->quantity)) {
-        	if($this->quantity){
-        		return $this->amount / $this->quantity;
-        	} else {
-        		
-        		// Зада няма деление на нула, ако к-то е нула
-        		return 0;
-        	}
+            if($this->quantity){
+                return $this->amount / $this->quantity;
+            } else {
+                
+                // Зада няма деление на нула, ако к-то е нула
+                return 0;
+            }
         }
         
         return NULL;
@@ -298,20 +305,20 @@ class acc_journal_EntrySide
      */
     public function getClosedItems()
     {
-    	$closedItems = array();
-    	
-    	// Ако има пера, обхождаме ги
-    	if(count($this->items)){
-    		foreach ($this->items as $item){
-    			
-    			// Запомняме затворените пера
-    			if($item->isClosed() && isset($item->id)){
-    				$closedItems[$item->id] = $item->id;
-    			}
-    		}
-    	}
-    	
-    	// Връщаме затворените пера или празен масив, ако всички са отворени
-    	return $closedItems;
+        $closedItems = array();
+        
+        // Ако има пера, обхождаме ги
+        if(count($this->items)){
+            foreach ($this->items as $item){
+                
+                // Запомняме затворените пера
+                if($item->isClosed() && isset($item->id)){
+                    $closedItems[$item->id] = $item->id;
+                }
+            }
+        }
+        
+        // Връщаме затворените пера или празен масив, ако всички са отворени
+        return $closedItems;
     }
 }

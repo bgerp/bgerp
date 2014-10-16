@@ -28,8 +28,8 @@ class acc_plg_Registry extends core_Plugin
         $mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
         $mvc->fetchFieldsBeforeDelete['id'] = 'id';
     }
-
-
+    
+    
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
@@ -43,7 +43,7 @@ class acc_plg_Registry extends core_Plugin
         if (!($mvc instanceof core_Master) && $suggestions = self::getSelectableLists($mvc)) {
             $data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name,maxColumns=1)', 'caption=Номенклатури->Избор,input,remember');
             $data->form->setSuggestions('lists', $suggestions);
-    
+            
             if ($data->form->rec->id) {
                 $data->form->setDefault('lists',
                     keylist::fromArray(acc_Lists::getItemLists($mvc, $data->form->rec->id)));
@@ -51,7 +51,7 @@ class acc_plg_Registry extends core_Plugin
         }
     }
     
-
+    
     /**
      * След промяна на обект от регистър
      *
@@ -76,9 +76,9 @@ class acc_plg_Registry extends core_Plugin
         
         // Обединяваме номенклатурите в които се записва обекта, с тези
         // в които вече е участва или неучаства
-    	$objectList = acc_Items::fetchField("#classId = {$mvc->getClassId()} AND #objectId = {$id}", 'lists');
+        $objectList = acc_Items::fetchField("#classId = {$mvc->getClassId()} AND #objectId = {$id}", 'lists');
         $rec->lists = keylist::merge($rec->lists, $objectList);
-    	
+        
         if(empty($fieldList) || $fieldListArr['lists']) {
             acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
         }
@@ -106,7 +106,6 @@ class acc_plg_Registry extends core_Plugin
         return $suggestions;
     }
     
-    
     /**
      * Дали поддържа екстендъри
      */
@@ -114,7 +113,6 @@ class acc_plg_Registry extends core_Plugin
     {
         return isset($mvc->_plugins['groups_Extendable']);
     }
-    
     
     /**
      * Дали има детайл
@@ -130,12 +128,12 @@ class acc_plg_Registry extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($res != 'no_one' && $action == 'delete' && isset($rec)){
-    		if(acc_Items::fetchItem($mvc->getClassId(), $rec->id)){
-    			
-    			// Не може да се изтрива ако обекта вече е перо
-    			$res = 'no_one';
-    		}
-    	}
+        if($res != 'no_one' && $action == 'delete' && isset($rec)){
+            if(acc_Items::fetchItem($mvc->getClassId(), $rec->id)){
+                
+                // Не може да се изтрива ако обекта вече е перо
+                $res = 'no_one';
+            }
+        }
     }
 }

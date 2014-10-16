@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
  * Използва се по време на инициализацията на системата, при създаването на първия период
@@ -44,18 +45,19 @@ defIfNot('ACC_DETAILED_BALANCE_ROWS', 500);
 class acc_Setup extends core_ProtoSetup
 {
     
+    
     /**
      * Версия на пакета
      */
     var $version = '0.1';
     
-
+    
     /**
      * Необходими пакети
      */
     var $depends = 'currency=0.1';
     
-
+    
     /**
      * Мениджър - входна точка в пакета
      */
@@ -78,49 +80,49 @@ class acc_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'acc_Lists',
-            'acc_Items',
-            'acc_Periods',
-            'acc_Accounts',
-            'acc_Limits',
-            'acc_Balances',
-            'acc_BalanceDetails',
-            'acc_Articles',
-            'acc_ArticleDetails',
-            'acc_Journal',
-            'acc_JournalDetails',
-    		'acc_Features',
-    		'migrate::removeYearInterfAndItem',
-    		'migrate::updateItemNums2',
-        );
+        'acc_Lists',
+        'acc_Items',
+        'acc_Periods',
+        'acc_Accounts',
+        'acc_Limits',
+        'acc_Balances',
+        'acc_BalanceDetails',
+        'acc_Articles',
+        'acc_ArticleDetails',
+        'acc_Journal',
+        'acc_JournalDetails',
+        'acc_Features',
+        'migrate::removeYearInterfAndItem',
+        'migrate::updateItemNums2',
+    );
     
-
+    
     /**
-	 * Описание на конфигурационните константи
-	 */
-	var $configDescription = array(
-		'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
-		'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Баланс->Редове в детайлния баланс,unit=бр.'),
-	);
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
+        'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Баланс->Редове в детайлния баланс,unit=бр.'),
+    );
     
     
     /**
      * Роли за достъп до модула
      */
     var $roles = array(
-                    'acc', 
-                    array('accMaster', 'acc')
-                 );
-
+        'acc',
+        array('accMaster', 'acc')
+    );
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
-            array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
-        );
-	
+        array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
+        array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
+    );
+    
     
     /**
      * Настройки за Cron
@@ -133,7 +135,7 @@ class acc_Setup extends core_ProtoSetup
             'action' => "DeleteUnusedItems",
             'period' => 1440,
             'timeLimit' => 100
-            ),
+        ),
         array(
             'systemId' => "Create Periods",
             'description' => "Създаване на нови счетоводни периоди",
@@ -141,7 +143,7 @@ class acc_Setup extends core_ProtoSetup
             'action' => "createFuturePeriods",
             'period' => 1440,
             'offset' => 60,
-            ),
+        ),
         array(
             'systemId' => 'RecalcBalances',
             'description' => 'Преизчисляване на баланси',
@@ -149,11 +151,14 @@ class acc_Setup extends core_ProtoSetup
             'action' => 'Recalc',
             'period' => 1,
             'timeLimit' => 55,
-            ),
-        );
-
+        ),
+    );
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
     var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_HistoryReport";
-
+    
     
     /**
      * Де-инсталиране на пакета
@@ -172,26 +177,31 @@ class acc_Setup extends core_ProtoSetup
      */
     function updateItemNums2()
     {
-    	$Items = cls::get('acc_Items');
-    	$itemsQuery = $Items->getQuery();
-    	do{
+        $Items = cls::get('acc_Items');
+        $itemsQuery = $Items->getQuery();
+        
+        do{
             try {
                 $iRec = $itemsQuery->fetch();
+                
                 if($iRec === NULL) break;
             } catch (core_exception_Expect $e) {
                 continue;
             }
-    		if(cls::load($iRec->classId, TRUE)){
-    			$Register = cls::get($iRec->classId);
+            
+            if(cls::load($iRec->classId, TRUE)){
+                $Register = cls::get($iRec->classId);
+                
                 if($iRec->objectId) {
                     $regRec = $Register->getItemRec($iRec->objectId);
+                    
                     if($regRec->num != $iRec->num){
                         $iRec->num = $regRec->num;
                         $Items->save_($iRec, 'num');
                     }
                 }
-    		}
-    	} while( TRUE);
+            }
+        } while(TRUE);
     }
     
     
@@ -200,20 +210,20 @@ class acc_Setup extends core_ProtoSetup
      */
     function removeYearInterfAndItem()
     {
-    	// Изтриваме интерфейса на годините от таблицата с итнерфейсите
-    	if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsAccRegIntf'")){
-    		core_Interfaces::delete($oldIntRec->id);
-    	}
-    	
-    	if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsRegIntf'")){
-    		core_Interfaces::delete($oldIntRec->id);
-    	}
-    	
-    	// Изтриваме и перата за години със стария меджър 'години'
-    	if($oldYearManId = core_Classes::fetchIdByName('acc_Years')){
-    		if(acc_Items::fetch("#classId = '{$oldYearManId}'")){
-    			acc_Items::delete("#classId = '{$oldYearManId}'");
-    		}
-    	}
+        // Изтриваме интерфейса на годините от таблицата с итнерфейсите
+        if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsAccRegIntf'")){
+            core_Interfaces::delete($oldIntRec->id);
+        }
+        
+        if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsRegIntf'")){
+            core_Interfaces::delete($oldIntRec->id);
+        }
+        
+        // Изтриваме и перата за години със стария меджър 'години'
+        if($oldYearManId = core_Classes::fetchIdByName('acc_Years')){
+            if(acc_Items::fetch("#classId = '{$oldYearManId}'")){
+                acc_Items::delete("#classId = '{$oldYearManId}'");
+            }
+        }
     }
 }

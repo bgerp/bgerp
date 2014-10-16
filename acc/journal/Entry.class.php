@@ -1,20 +1,24 @@
 <?php
 
+
 /**
  * Клас моделиращ ред от счетоводна транзакция
- * 
- * @author Stefan Stefanov <stefan.bg@gmail.com>
  *
+ * @category bgerp
+ * @package acc
+ * @author Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2014 Experta OOD
+ * @license GPL 3
+ * @since v 0.1
  */
 class acc_journal_Entry
 {
     /**
      * Дебитна част на ред от счетоводна транзакция
-     * 
+     *
      * @var acc_journal_EntrySide
      */
     public $debit;
-    
     
     /**
      * Кредитна част на ред от счетоводна транзакция
@@ -23,14 +27,12 @@ class acc_journal_Entry
      */
     public $credit;
     
-    
     /**
      * Стойност на реда в основна валута
-     * 
+     *
      * @var float
      */
     public $amount;
-
     
     /**
      * @var acc_JournalDetails
@@ -40,7 +42,7 @@ class acc_journal_Entry
     
     /**
      * Конструктор
-     * 
+     *
      * @param object|array $debitData дебитната част на реда
      * @param object|array $creditData кредитната част на реда
      */
@@ -51,8 +53,8 @@ class acc_journal_Entry
         
         $this->JournalDetails = cls::get('acc_JournalDetails');
     }
-
-
+    
+    
     /**
      * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
@@ -69,7 +71,6 @@ class acc_journal_Entry
     
     
     /**
-     * 
      * @param array $data
      * @return acc_journal_Entry
      */
@@ -82,7 +83,6 @@ class acc_journal_Entry
     
     
     /**
-     * 
      * @param array $data
      * @return acc_journal_Entry
      */
@@ -96,7 +96,7 @@ class acc_journal_Entry
     
     /**
      * Удостоверяване на допустимостта на един ред от счетоводна транзакция.
-     * 
+     *
      * @return boolean
      */
     public function check()
@@ -108,7 +108,7 @@ class acc_journal_Entry
         // стратегия (LIFO, FIFO, WAC).
         if ($this->credit->account->hasStrategy()) {
             acc_journal_Exception::expect(
-                $this->credit->account->isDimensional(), 
+                $this->credit->account->isDimensional(),
                 'Сметките със стратегия трябва да са с размерна аналитичност'
             );
         }
@@ -117,7 +117,7 @@ class acc_journal_Entry
         if ($this->credit->account->isDimensional()) {
             // Количеството по кредита е задължително за сметки с размерна аналитичност
             acc_journal_Exception::expect(
-                isset($this->credit->quantity), 
+                isset($this->credit->quantity),
                 'Липсва количество при кредитиране на сметка с размерна аналитичност'
             );
         }
@@ -126,10 +126,10 @@ class acc_journal_Entry
         if ($this->debit->account->isDimensional()) {
             // Количеството по дебита е задължително за сметки с размерна аналитичност
             acc_journal_Exception::expect(
-                isset($this->debit->quantity), 
+                isset($this->debit->quantity),
                 'Липсва количество при дебитиране на сметка с размерна аналитичност'
             );
-
+            
             // Наличието на цена по дебита, за сметки с размерна аналитичност е
             // 1. Задължително, ако кореспондиращата кредит сметка НЯМА стратегия
             // 2. Забранено, ако  кореспондиращата кредит сметка ИМА стратегия
@@ -137,7 +137,7 @@ class acc_journal_Entry
             if ($this->credit->account->hasStrategy()) {
             } else {
                 acc_journal_Exception::expect(
-                    isset($this->debit->price), 
+                    isset($this->debit->price),
                     'Липсва цена при дебитиране на сметка с размерна аналитичност, която кореспондира с кредит сметка без стратегия'
                 );
             }
@@ -147,16 +147,18 @@ class acc_journal_Entry
         
         return TRUE;
     }
-
     
+    /**
+     * Проверява кредитната и дебитната стойност на транзакцията
+     */
     protected function checkAmounts()
     {
         $PRECISION = 0.001;
         
         if (isset($this->debit->amount) && isset($this->credit->amount)) {
             acc_journal_Exception::expect(
-                abs($this->debit->amount - $this->credit->amount) < $PRECISION 
-                    &&
+                abs($this->debit->amount - $this->credit->amount) < $PRECISION
+                &&
                 abs($this->debit->amount - $this->amount()) < $PRECISION,
                 "Дебит-стойността на транзакцията не съвпада с кредит-стойността"
             );
@@ -165,9 +167,10 @@ class acc_journal_Entry
         return TRUE;
     }
     
+    
     /**
      * Връща сумата на реда от транзакция или NULL, ако е неопределена
-     * 
+     *
      * @return number
      */
     public function amount()
@@ -175,6 +178,7 @@ class acc_journal_Entry
         if (isset($this->amount)) {
             return $this->amount;
         }
+        
         if (isset($this->debit->amount)) {
             return $this->debit->amount;
         }
@@ -182,22 +186,24 @@ class acc_journal_Entry
         return $this->credit->amount;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     public function save($transactionId)
     {
         $this->debit->forceItems();
         $this->credit->forceItems();
         
-        $entryRec = $this->debit->getData() 
-                    + $this->credit->getData()
-                    + array(
-                          'journalId' => $transactionId,
-                          'amount'    => $this->amount()
-                      );
-        
+        $entryRec = $this->debit->getData()
+        + $this->credit->getData()
+        + array(
+            'journalId' => $transactionId,
+            'amount'    => $this->amount()
+        );
         
         return $this->JournalDetails->save((object)$entryRec);
     }
+    
     
     /**
      * Обръща знаците на запис на транзакция

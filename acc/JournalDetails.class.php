@@ -54,7 +54,7 @@ class acc_JournalDetails extends core_Detail
     {
         // Ключ към матера
         $this->FLD('journalId', 'key(mvc=acc_Journal)', 'column=none,input=hidden,silent');
-
+        
         // Дебитна аналитична сметка
         $this->FLD('debitAccId', 'key(mvc=acc_Accounts,select=title)',
             'silent,caption=Дебит->Сметка и пера,mandatory,input=hidden');
@@ -72,7 +72,7 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('creditItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 3');
         $this->FLD('creditQuantity', 'double(smartRound)', 'caption=Кредит->К-во');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
-
+        
         // Обща сума на транзакцията
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
     }
@@ -83,7 +83,7 @@ class acc_JournalDetails extends core_Detail
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$data->query->orderBy("#id", 'ASC');
+        $data->query->orderBy("#id", 'ASC');
     }
     
     
@@ -135,9 +135,9 @@ class acc_JournalDetails extends core_Detail
     }
     
     
-	/**
+    /**
      * Филтрира заявка към модела за показване на определени данни
-     * 
+     *
      * @param core_Query $query - Заявка към модела
      * @param mixed $accs       - списък от систем ид-та на сметките
      * @param mixed $itemsAll   - списък от пера, за които може да са на произволна позиция
@@ -145,13 +145,13 @@ class acc_JournalDetails extends core_Detail
      * @param mixed $items2     - списък с пера, от които поне един може да е на втора позиция
      * @param mixed $items3     - списък с пера, от които поне един може да е на трета позиция
      * @param boolean $strict   - ако перата са NULL да се търсят записи в журнала със стойност NULL,
-     * 							  иначе приема че не трябва да се търсят пера
+     * иначе приема че не трябва да се търсят пера
      */
-	public static function filterQuery(core_Query &$query, $from, $to, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL, $strict = FALSE)
+    public static function filterQuery(core_Query &$query, $from, $to, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL, $strict = FALSE)
     {
-    	expect($query->mvc instanceof acc_JournalDetails);
-    	
-    	$query->EXT('valior', 'acc_Journal', 'externalKey=journalId');
+        expect($query->mvc instanceof acc_JournalDetails);
+        
+        $query->EXT('valior', 'acc_Journal', 'externalKey=journalId');
         $query->EXT('state', 'acc_Journal', 'externalKey=journalId');
         $query->EXT('docType', 'acc_Journal', 'externalKey=journalId');
         $query->EXT('docId', 'acc_Journal', 'externalKey=journalId');
@@ -159,59 +159,59 @@ class acc_JournalDetails extends core_Detail
         $query->EXT('jid', 'acc_Journal', 'externalName=id');
         $query->where("#state = 'active'");
         $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
-    	
-    	// Трябва да има поне една зададена сметка
-    	$accounts = arr::make($accs);
-    	
-    	if(count($accounts) >= 1){
-	    	foreach ($accounts as $sysId){
-	    		$acc = acc_Accounts::getRecBySystemId($sysId);
-		    	$query->where("#debitAccId = {$acc->id}");
-		    	$query->orWhere("#creditAccId = {$acc->id}");
-		    }
-    	}
-    	
-    	// Перата които може да са на произволна позиция
-    	$itemsAll = arr::make($itemsAll);
-    	
-    	if(count($itemsAll)){
-    		foreach ($itemsAll as $itemId){
-    			 
-    			// Трябва да инт число
-    			expect(ctype_digit($itemId));
-    			 
-    			// .. и перото да участва на произволна позиция
-    			$query->where("#debitItem1 = {$itemId}");
-    			$query->orWhere("#debitItem2 = {$itemId}");
-    			$query->orWhere("#debitItem3 = {$itemId}");
-    			$query->orWhere("#creditItem1 = {$itemId}");
-    			$query->orWhere("#creditItem2 = {$itemId}");
-    			$query->orWhere("#creditItem3 = {$itemId}");
-    		}
-    	}
-    	
-    	// Проверка на останалите параметри от 1 до 3
-    	foreach (range(1, 3) as $i){
-    		$var = ${"items{$i}"};
-    		
-    		if(!$var){
-    			if($strict){
-    				
-    				// Ако търсенето е стриктно и стойността на перото е NULL се търси за запис с NULl
-		    		$query->where("#debitItem{$i} IS NULL");
-		    		$query->orWhere("#creditItem{$i} IS NULL");
-    			}
-    			continue;
-    		}
-    		
-    		$varArr = arr::make($var);
-    		
-    		// За перата се изисква поне едно от тях да е на текущата позиция
-    		foreach($varArr as $itemId){
-    			$query->where("#debitItem{$i} = {$itemId}");
-    			$query->orWhere("#creditItem{$i} = {$itemId}");
-    		}
-    	}
+        
+        // Трябва да има поне една зададена сметка
+        $accounts = arr::make($accs);
+        
+        if(count($accounts) >= 1){
+            foreach ($accounts as $sysId){
+                $acc = acc_Accounts::getRecBySystemId($sysId);
+                $query->where("#debitAccId = {$acc->id}");
+                $query->orWhere("#creditAccId = {$acc->id}");
+            }
+        }
+        
+        // Перата които може да са на произволна позиция
+        $itemsAll = arr::make($itemsAll);
+        
+        if(count($itemsAll)){
+            foreach ($itemsAll as $itemId){
+                
+                // Трябва да инт число
+                expect(ctype_digit($itemId));
+                
+                // .. и перото да участва на произволна позиция
+                $query->where("#debitItem1 = {$itemId}");
+                $query->orWhere("#debitItem2 = {$itemId}");
+                $query->orWhere("#debitItem3 = {$itemId}");
+                $query->orWhere("#creditItem1 = {$itemId}");
+                $query->orWhere("#creditItem2 = {$itemId}");
+                $query->orWhere("#creditItem3 = {$itemId}");
+            }
+        }
+        
+        // Проверка на останалите параметри от 1 до 3
+        foreach (range(1, 3) as $i){
+            $var = ${"items{$i}"};
+            
+            if(!$var){
+                if($strict){
+                    
+                    // Ако търсенето е стриктно и стойността на перото е NULL се търси за запис с NULl
+                    $query->where("#debitItem{$i} IS NULL");
+                    $query->orWhere("#creditItem{$i} IS NULL");
+                }
+                continue;
+            }
+            
+            $varArr = arr::make($var);
+            
+            // За перата се изисква поне едно от тях да е на текущата позиция
+            foreach($varArr as $itemId){
+                $query->where("#debitItem{$i} = {$itemId}");
+                $query->orWhere("#creditItem{$i} = {$itemId}");
+            }
+        }
     }
     
     
@@ -220,13 +220,13 @@ class acc_JournalDetails extends core_Detail
      */
     public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
-    	foreach ($query->getDeletedRecs() as $rec) {
-    		foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
-    			if(isset($rec->$item)){
-    				$mvc->Master->affectedItems[$rec->$item] = $rec->$item;
-    			}
-    		}
-    	}
+        foreach ($query->getDeletedRecs() as $rec) {
+            foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
+                if(isset($rec->$item)){
+                    $mvc->Master->affectedItems[$rec->$item] = $rec->$item;
+                }
+            }
+        }
     }
     
     
@@ -235,12 +235,12 @@ class acc_JournalDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	// В кой баланс е влязъл записа
-    	$valior = $mvc->Master->fetchField($rec->journalId, 'valior');
-    	$balanceValior = acc_Balances::fetch("#fromDate <= '{$valior}' AND '{$valior}' <= #toDate");
-    	
-    	// Линкове към сметките в баланса
-    	$row->debitAccId = acc_Balances::getAccountLink($rec->debitAccId, $balanceValior);
-    	$row->creditAccId = acc_Balances::getAccountLink($rec->creditAccId, $balanceValior);
+        // В кой баланс е влязъл записа
+        $valior = $mvc->Master->fetchField($rec->journalId, 'valior');
+        $balanceValior = acc_Balances::fetch("#fromDate <= '{$valior}' AND '{$valior}' <= #toDate");
+        
+        // Линкове към сметките в баланса
+        $row->debitAccId = acc_Balances::getAccountLink($rec->debitAccId, $balanceValior);
+        $row->creditAccId = acc_Balances::getAccountLink($rec->creditAccId, $balanceValior);
     }
 }
