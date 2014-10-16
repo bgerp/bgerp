@@ -489,7 +489,7 @@ class core_tests_DateTime extends unit_Class
      */
     static function today()
     {
-        return self::now(false);
+        return self::now(FALSE);
     }
 
 
