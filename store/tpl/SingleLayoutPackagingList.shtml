@@ -134,7 +134,7 @@
                                                 <!--ET_BEGIN locationId-->
                                                 <tr>
                                                     <td class='nowrap quiet aright'>Delivery place:</td>
-                                                    <td>[#locationId#]</td>
+                                                    <td><b>[#locationId#]</b>, [#deliveryLocationAddress#]</td>
                                                 </tr>
                                                 <!--ET_END locationId-->
                                                 <!--ET_BEGIN lineId-->
