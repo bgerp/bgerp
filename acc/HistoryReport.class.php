@@ -434,11 +434,11 @@ class acc_HistoryReport extends core_Manager
         // Обхождаме всички записи и натрупваме сумите им към крайното салдо
         if(count($entriesInPeriod)){
             foreach ($entriesInPeriod as $jRec){
-                $entry = array('id'       => $jRec->id,
-                    'docType'  => $jRec->docType,
-                    'docId'    => $jRec->docId,
-                    'reason'   => $jRec->reason,
-                    'valior'   => $jRec->valior);
+                $entry = array('id' => $jRec->id,
+			                   'docType'  => $jRec->docType,
+			                   'docId'    => $jRec->docId,
+			                   'reason'   => $jRec->reason,
+			                   'valior'   => $jRec->valior);
                 
                 $add = FALSE;
                 
@@ -482,21 +482,17 @@ class acc_HistoryReport extends core_Manager
         $rec->blQuantity = $calcedBalance[$indexArr]['blQuantity'];
         $row->blAmount = $Double->toVerbal($rec->blAmount);
         $row->blQuantity = $Double->toVerbal($rec->blQuantity);
-        foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount') as $fld){
-            //$row->$fld = $Double->toVerbal($rec->$fld);
-        }
-        
         
         // Последния ред е крайното салдо
-        $lastRec = array('docId'      => "Краен баланс",
-            'valior'      => $data->toDate,
-            'blAmount'   => $rec->blAmount,
-            'blQuantity' => $rec->blQuantity,
-            'debitAmount' => $debitAmount,
-            'debitQuantity' => $debitQuantity,
-            'creditQuantity' => $creditQuantity,
-            'creditAmount' => $creditQuantity,
-            'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
+        $lastRec = array('docId' => "Краен баланс",
+			             'valior'      => $data->toDate,
+			             'blAmount'   => $rec->blAmount,
+			             'blQuantity' => $rec->blQuantity,
+			             'debitAmount' => $debitAmount,
+			             'debitQuantity' => $debitQuantity,
+			             'creditQuantity' => $creditQuantity,
+			             'creditAmount' => $creditAmount,
+			             'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
         
         // Преизчисляваме пейджъра с новия брой на записите
         $conf = core_Packs::getConfig('acc');
