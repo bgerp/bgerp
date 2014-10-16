@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   accda
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     ДА Документи
@@ -31,7 +31,7 @@ class accda_Documents extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Заглавието в единствено число
      */
     var $singleTitle = 'Протокол за промяна на ДА';
     
@@ -104,14 +104,16 @@ class accda_Documents extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Абревиатура
      */
     var $abbr = 'Dac';
+    
     
     /**
      * Поле за търсене
      */
     var $searchFields = 'folderId, threadId, containerId';
+    
     
     /**
      * Групиране на документите
@@ -124,14 +126,14 @@ class accda_Documents extends core_Master
      */
     function description()
     {
-    	$this->FLD('docType', 'enum(SR=протокол за въвеждане в експлоатация,
+        $this->FLD('docType', 'enum(SR=протокол за въвеждане в експлоатация,
                                        EN=протокол за промяна,
                                        IM=амортизационен план,
                                        OOP=протокол за ликвидация)', 'caption=Тип документ');
     }
     
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -140,10 +142,10 @@ class accda_Documents extends core_Master
     public static function canAddToFolder($folderId)
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
-
+        
         return $folderClass == 'store_Stores';
     }
-
+    
     
     /**
      * Интерфейсен метод на doc_DocumentIntf
@@ -168,8 +170,8 @@ class accda_Documents extends core_Master
     /**
      * След подготовката на туулбара на списъчния изглед
      */
-	static function on_AfterPrepareListToolbar($mvc, &$data)
+    static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	$data->toolbar->removeBtn('btnAdd');
+        $data->toolbar->removeBtn('btnAdd');
     }
 }

@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   accda
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -24,12 +24,10 @@ class accda_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-      
         
         $this->TAB('accda_Da', 'Инвентарна книга', 'ceo,accda');
         $this->TAB('accda_Groups', 'Групи', 'ceo,accda');
         $this->TAB('accda_Documents', 'Документи', 'ceo,accda');
-      
         
         $this->title = 'ДА « Счетоводство';
         Mode::set('menuPage', 'Счетоводство:ДА');
