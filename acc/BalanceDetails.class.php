@@ -896,13 +896,6 @@ class acc_BalanceDetails extends core_Detail
                     $rec->amount = $amount;
                 }
             }
-            
-            // Ако е коригираща операция, също извличаме сумата по стратегия
-            if($debitType == 'active' && $rec->debitQuantity < 0 && $rec->amount < 0){
-                if ($amount = $debitStrategy->consume($rec->debitQuantity)) {
-                    $rec->amount = $amount;
-                }
-            }
         }
     }
     
