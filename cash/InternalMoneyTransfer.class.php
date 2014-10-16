@@ -480,4 +480,15 @@ class cash_InternalMoneyTransfer extends core_Master
     	
     	return $this->getVerbal($rec, 'reason');
     }
+    
+    
+	/**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(__CLASS__);
+    
+    	return $self->singleTitle . " №$rec->id";
+    }
 }
