@@ -9,10 +9,9 @@
  * @category  vendors
  * @package   avatar
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class avatar_Setup extends core_ProtoSetup
 {
@@ -53,8 +52,8 @@ class avatar_Setup extends core_ProtoSetup
      */
     function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -85,8 +84,8 @@ class avatar_Setup extends core_ProtoSetup
      */
     function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
