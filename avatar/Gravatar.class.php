@@ -11,7 +11,7 @@
  * @category  vendors
  * @package   avatar
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,7 +28,7 @@ class avatar_Gravatar extends core_Manager {
      * Списък плъгини за зареждане
      */
     var $loadList = 'plg_Created';
-
+    
     
     /**
      * Връща URL към аватара на посочения имейл
@@ -40,7 +40,7 @@ class avatar_Gravatar extends core_Manager {
         $imgUrl = "http://www.gravatar.com/avatar/{$md5}?d=wavatar&s={$width}";
         
         $thmb = new thumb_Img($imgUrl, $width, $width, 'url');
-
+        
         return $thmb->getUrl();
     }
     
