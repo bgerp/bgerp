@@ -105,7 +105,7 @@ class prosms_SMS extends core_Manager
                 
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sendError';
-                $nRes['msg'] = tr("Не може да се изпрати");
+                $nRes['msg'] = "|Не може да се изпрати";
             } else {
                 
                 // Ако няма грешки
@@ -115,7 +115,7 @@ class prosms_SMS extends core_Manager
                 
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sended';
-                $nRes['msg'] = tr("Успешно изпратен SMS");
+                $nRes['msg'] = "|Успешно изпратен SMS";
                 $nRes['uid'] = $uid;
             }
         } else {
@@ -124,7 +124,7 @@ class prosms_SMS extends core_Manager
             
             // Сетваме грешките
             $nRes['sendStatus'] = 'sendError';
-            $nRes['msg'] = tr("Липсва константа за URL' то");
+            $nRes['msg'] = "|Липсва константа за URL' то";
             
             // Записваме в лога
             static::log("Липсва константа за URL' то");
