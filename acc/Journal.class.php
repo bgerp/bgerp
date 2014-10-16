@@ -534,7 +534,7 @@ class acc_Journal extends core_Master
         $jQuery = acc_JournalDetails::getQuery();
         
         $now = dt::now();
-        acc_JournalDetails::filterQuery($jQuery, NULL, $now, NULL, $itemRec->id);
+        acc_JournalDetails::filterQuery($jQuery, $itemRec->createdOn, $now, NULL, $itemRec->id);
         
         if($showAllRecs === FALSE) return $jQuery->fetchAll();
         
@@ -545,11 +545,13 @@ class acc_Journal extends core_Master
             $jIds[$jRec->journalId] = $jRec->journalId;
         }
         
+        $createdOn = dt::verbal2mysql($itemRec->createdOn, FALSE);
+        
         // Извличаме всички транзакции на намерените журнали
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId');
         $jQuery->EXT('docId', 'acc_Journal', 'externalKey=journalId');
-        $jQuery->where("#createdOn BETWEEN '{$itemRec->createdOn}' AND '{$now}'");
+        $jQuery->where("#createdOn BETWEEN '{$createdOn}' AND '{$now}'");
         $jQuery->orderBy("#id", 'ASC');
         
         if(count($jIds)){
