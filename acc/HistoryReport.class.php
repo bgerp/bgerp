@@ -417,7 +417,7 @@ class acc_HistoryReport extends core_Manager
         if(round($rec->baseQuantity, 4) < 0){
             $row->baseQuantity = "<span style='color:red'>{$row->baseQuantity}</span>";
         }
-        
+        //bp($calcedBalance);//143
         // Нулевия ред е винаги началното салдо
         $zeroRec = array('docId' => "Начален баланс",
             'valior'      => $data->fromDate,
@@ -430,7 +430,7 @@ class acc_HistoryReport extends core_Manager
             'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
         
         $debitQuantity = $debitAmount = $creditQuantity = $creditAmount = 0;
-        
+       
         // Обхождаме всички записи и натрупваме сумите им към крайното салдо
         if(count($entriesInPeriod)){
             foreach ($entriesInPeriod as $jRec){
@@ -451,6 +451,8 @@ class acc_HistoryReport extends core_Manager
                     $ent2Id = !empty($jRec->{"{$type}Item2"}) ? $jRec->{"{$type}Item2"} : NULL;
                     $ent3Id = !empty($jRec->{"{$type}Item3"}) ? $jRec->{"{$type}Item3"} : NULL;
                     $index = $accId . "|" . $ent1Id . "|" . $ent2Id . "|" . $ent3Id;
+                    
+                    if($indexArr != $index) continue;
                     
                     if(isset($calcedBalance[$index])){
                         if (!empty($jRec->{$quantityField})) {
