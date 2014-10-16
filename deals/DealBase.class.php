@@ -215,34 +215,42 @@ abstract class deals_DealBase extends core_Master
     	 
     	// Записите от журнала засягащи това перо
     	$entries = acc_Journal::getEntries(array($mvc, $rec->id));
-    	 
+    	
     	// Към тях добавяме и самия документ
     	$entries[] = (object)array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
     	
-    	// За всеки запис
+    	$entries1 = array();
     	foreach ($entries as $ent){
-    
+    		$index = $ent->docType . "|" . $ent->docId;
+    		if(!isset($entries1[$index])){
+    			$entries1[$index] = $ent;
+    		}
+    	}
+    	
+    	// За всеки запис
+    	foreach ($entries1 as $ent){
+    		
     		// Ако има метод 'getValidatedTransaction'
     		$Doc = cls::get($ent->docType);
-    
+    		
     		// Ако транзакцията е направена от друг тред запомняме от кой документ е направена
     		$threadId = $Doc->fetchField($ent->docId, 'threadId');
     		if($threadId != $rec->threadId){
     			$mvc->usedIn[$dealItem->id][] = $Doc->getHandle($ent->docId);
     		}
-    
+    		
     		if(cls::existsMethod($Doc, 'getValidatedTransaction')){
-    			 
+    			
     			// Ако има валидна транзакция, проверяваме дали има затворени пера
     			$transaction = $Doc->getValidatedTransaction($ent->docId);
-    			 
+    			
     			if($transaction){
     				// Добавяме всички приключени пера
     				$closedItems += $transaction->getClosedItems();
     			}
     		}
     	}
-    	 
+    	
     	if($rec->state != 'closed'){
     		unset($closedItems[$dealItem->id]);
     	}
