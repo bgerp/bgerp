@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Версия на JS компонента
  */
@@ -8,13 +9,13 @@ defIfNot('AUTOSIZE_VERSION', 'v1.18.4');
 
 
 /**
- *
+ * Максималните редове в широк режим
  */
 defIfNot('AUTOSIZE_MAX_ROWS_WIDE', '600');
 
 
 /**
- *
+ * Максималните редове в тесен режим
  */
 defIfNot('AUTOSIZE_MAX_ROWS_NARROW', '400');
 
@@ -26,11 +27,11 @@ defIfNot('AUTOSIZE_MAX_ROWS_NARROW', '400');
  * @category  vendors
  * @package   autosize
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class autosize_Setup extends core_ProtoSetup 
+class autosize_Setup extends core_ProtoSetup
 {
     
     
@@ -69,17 +70,18 @@ class autosize_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         
-           'AUTOSIZE_VERSION' => array ('enum(v1.18.4=v1.18.4,
-           									  v1.18.9=v1.18.9)', 'mandatory, caption=Версията на програмата->Версия'),
-             );
+        'AUTOSIZE_VERSION' => array ('enum(v1.18.4=v1.18.4,
+                                                 v1.18.9=v1.18.9)', 'mandatory, caption=Версията на програмата->Версия'),
+    );
+    
     
     /**
      * Инсталиране на пакета
      */
     function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -95,8 +97,8 @@ class autosize_Setup extends core_ProtoSetup
      */
     function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
