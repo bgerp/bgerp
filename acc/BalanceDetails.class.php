@@ -720,6 +720,13 @@ class acc_BalanceDetails extends core_Detail
                     foreach ($l1 as $ent2 => $l2) {
                         foreach ($l2 as $ent3 => $rec) {
                             $rec['balanceId'] = $balanceId;
+                            
+                            foreach (array('blAmount', 'baseAmount') as $fld){
+                            	if(!is_null($rec[$fld])){
+                            		$rec[$fld] = round($rec[$fld], 2);
+                            	}
+                            }
+                            
                             $this->save((object)$rec);
                         }
                     }
@@ -1000,7 +1007,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         // Машинно закръгляне
-        $v = round($v, 8);
+        $v = round($v, 5);
     }
     
     
