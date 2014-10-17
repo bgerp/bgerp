@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Добавя бланка в началото на документите, които се изпращат или принтират
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -30,7 +31,7 @@ class bgerp_plg_Blank extends core_Plugin
             //Създаваме и заместваме логото на фирмата
             $logoPath = self::getCompanyLogoUrl();
             $logo = "<img src=" . $logoPath . " alt='Logo'  width='750' height='87'>";
-
+            
             $blank->replace($logo, 'blankImage');
             
             // Дали режимът е печат?
@@ -46,13 +47,13 @@ class bgerp_plg_Blank extends core_Plugin
             
             // URL за за src="..." атрибута, на <img> тага на QR баркода
             $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
-             
+            
             // Създаваме <img> елемент за QR баркода
             $qrImg = ht::createElement('img', array('alt' => 'View doc', 'width' => 87, 'height' => 87, 'src' => $qrImgSrc));
             
             // URL за линка, който стои под QR кода
             $qrLinkUrl = toUrl(array('L', 'S', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
-
+            
             // Под картинката с QR баркод, слагаме хипервръзка към документа
             $qrA = ht::createElement('a', array('target' => '_blank',  'href' => $qrLinkUrl), $qrImg);
             
@@ -74,7 +75,7 @@ class bgerp_plg_Blank extends core_Plugin
         $lg = core_Lg::getCurrent();
         
         // Вземема конфигурационните константи
-        $conf = core_Packs::getConfig('bgerp');   
+        $conf = core_Packs::getConfig('bgerp');
         
         // Вземам бланката в зависимост от езика
         $companyLogo = core_Packs::getConfigValue($conf, 'BGERP_COMPANY_LOGO');

@@ -18,15 +18,17 @@
  */
 class bgerp_Wrapper extends plg_ProtoWrapper
 {
-
+    
+    
     /**
      * Описание на табовете
      */
     function description()
     {
         $this->TAB('bgerp_Menu', 'Меню', 'admin');
+        
         // $this->TAB('bgerp_Portal', 'Портал', 'admin');
-        $this->TAB('bgerp_Notifications', 'Известия', 'admin'); 
-        $this->TAB('bgerp_Recently', 'Последни', 'admin');         
-     }
+        $this->TAB('bgerp_Notifications', 'Известия', 'admin');
+        $this->TAB('bgerp_Recently', 'Последни', 'admin');
+    }
 }

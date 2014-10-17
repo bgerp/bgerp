@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>, Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,13 +23,13 @@ class bgerp_L extends core_Manager
      */
     var $title = 'Хоронология на действията с на документи';
     
-
+    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'bgerp_Wrapper, plg_RowTools, plg_Printing, plg_Created';
     
-
+    
     /**
      * Дължина на манипулатора 'mid'
      */
@@ -37,7 +37,7 @@ class bgerp_L extends core_Manager
     
     
     /**
-     * 
+     * Да не се кодират id-тата
      */
     var $protectId = FALSE;
     
@@ -62,39 +62,38 @@ class bgerp_L extends core_Manager
         $this->FLD('res', 'key(mvc=bgerp_LRes,select=title)', 'caption=Ресурс');
         $this->FLD('cid', 'key(mvc=doc_Containers)', 'caption=Контейнер,notNull,value=0');
         $this->FLD('tid', 'key(mvc=doc_Thread)', 'caption=Нишка,notNull');
-
+        
         $this->setDbUnique('mid');
         $this->setDbIndex('tid');
         $this->setDbUnique('action,cid,res,createdBy');
     }
-
-
-
+    
+    
     /**
      * Добавя запис в документния лог, за действие направено от потребител на системата
      */
     function add($action, $tid, $cid = 0, $res = NULL, $refId = NULL)
-    {   
+    {
         $rec = new stdClass();
-
+        
         $L = cls::get('bgerp_L');
-
+        
         // Очакваме само дайствие, допустимо за извършване от регистриран потребител
         $actType = $L->fields['action']->type;
         expect(isset($actType->options[$action]));
         $rec->action = $action;
-
+        
         // Ако нямаме зададен ресурс, той се попълва с IP-то на текущия потребител
         if(!isset($res)) {
             $rec->res = core_Users::getRealIpAddr();
         }
-
+        
         $rec->tid   = $tid;
         $rec->cid   = $cid;
         $rec->refId = $refId;
     }
-
-
+    
+    
     /**
      * Добавя запис в документния лог, за действие, производно на друго действие, записано в този лог
      */
@@ -109,10 +108,10 @@ class bgerp_L extends core_Manager
         $tid   = $refRec->tid;
         $cid   = $refRec->cid;
         $refId = $refRec->id;
-       
+        
         static::add($action, $tid, $cid, $res, $refId);
     }
-
+    
     
     /**
      * Екшъна за показване на документи
@@ -123,7 +122,7 @@ class bgerp_L extends core_Manager
         try {
             //Вземаме номера на контейнера
             expect($cid = Request::get('id', 'int'));
-
+            
             // Вземаме документа
             expect($doc = doc_Containers::getDocument($cid));
             
@@ -143,6 +142,7 @@ class bgerp_L extends core_Manager
             
             // Трасираме стека с действията докато намерим SEND екшън
             $i = 0;
+            
             while ($action = log_Documents::getAction($i--)) {
                 
                 $options = (array)$action->data;
@@ -192,7 +192,7 @@ class bgerp_L extends core_Manager
             if($rec && $rec->threadId) {
                 
                 if($doc->instance->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
-
+                    
                     return new Redirect(array($doc->instance, 'single', $rec->id));
                 }
             }
@@ -210,7 +210,6 @@ class bgerp_L extends core_Manager
             $html->append("\n" . '<meta name="robots" content="noindex, nofollow">', 'HEAD');
             
             return $html;
-            
         } catch (core_exception_Expect $ex) {
             // Опит за зареждане на несъществуващ документ или документ с невалиден MID.
             
@@ -219,29 +218,28 @@ class bgerp_L extends core_Manager
             // наличен, но няма достатъчно права за достъп до него, а именно - да покаже
             // логин форма.
             
-            requireRole('user'); // Ако има логнат потребител, този ред няма никакъв ефект. 
-                                 // Ако няма - това ще форсира потребителя да се логне и ако
-                                 // логинът е успешен, управлението ще се върне отново тук
-
+            requireRole('user');  // Ако има логнат потребител, този ред няма никакъв ефект.
+            // Ако няма - това ще форсира потребителя да се логне и ако
+            // логинът е успешен, управлението ще се върне отново тук
+            
             // До тук се стига ако логнат потребител заяви липсващ документ или документ с 
             // невалиден MID. 
-
+            
             // Ако потребителя има права до треда на документа, то той му се показва
             if($doc) {
                 
                 if($doc->instance->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
-
+                    
                     return new Redirect(array($doc->instance, 'single', $rec->id));
                 }
             }
             
-            expect(FALSE); // Същото се случва и ако документа съществува, но потребителя няма 
-                           // достъп до него.
+            expect(FALSE);  // Същото се случва и ако документа съществува, но потребителя няма
+            // достъп до него.
         }
     }
-
-
-
+    
+    
     /**
      * Показва QR баркод, сочещт към съответния документ
      * Параметъра $id се приема като номер на контейнер
@@ -259,10 +257,10 @@ class bgerp_L extends core_Manager
         
         // Вземаме IP' то
         $ip = core_Users::getRealIpAddr();
-
+        
         // При отваряне на имейла от получателя, отбелязваме като видян.
         if ($mid) log_Documents::received($mid, NULL, $ip);
-
+        
         $docUrl = static::getDocLink($cid, $mid);
         
         barcode_Qr::getImg($docUrl, 3, 0, 'L', NULL);
@@ -270,8 +268,8 @@ class bgerp_L extends core_Manager
         // Връщаме стария режим
         Mode::set('text', $text);
     }
-
-
+    
+    
     /**
      * Връща линк към този контролер, който показава документа от посочения контейнер
      *

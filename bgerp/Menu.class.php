@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -36,17 +36,16 @@ class bgerp_Menu extends core_Manager
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'admin';
-
+     * Кой може да го разглежда?
+     */
+    var $canList = 'admin';
+    
     
     /**
      * Кой има право да променя системните данни?
      */
     var $canEditsysdata = 'admin';
     
-
     
     /**
      * Описание на модела
@@ -72,15 +71,15 @@ class bgerp_Menu extends core_Manager
     function getMenuObject()
     {
         $cacheKey = 'menuObj_' . core_Lg::getCurrent();
-
-        $menuObj = core_Cache::get('Menu', $cacheKey);
-
-        if(!is_array($menuObj)) {
         
+        $menuObj = core_Cache::get('Menu', $cacheKey);
+        
+        if(!is_array($menuObj)) {
+            
             $query = $this->getQuery();
             
             $query->orderBy("#row,#id", "ASC");
-             
+            
             while($rec = $query->fetch()) {
                 $rec->row = (int) $rec->row;
                 $rec->menuTr = tr($rec->menu);
@@ -90,36 +89,36 @@ class bgerp_Menu extends core_Manager
                 $rec->act = $rec->act ? $rec->act : 'default';
                 $menuObj[$rec->menu . ':' . $rec->subMenu] = $rec;
             }
-
+            
             core_Cache::set('Menu', $cacheKey, $menuObj, 1400);
-        } 
+        }
         
         // Ако няма нито един запис в Менюто, но имаме права за администратор, 
         // и текущия контролер не е core_*, редирекваме към core_Packs
         if(!count($menuObj) && (strpos(Request::get('Ctr'), 'core_') === FALSE)) {
             redirect(array('core_Packs'));
-        }  
-
+        }
+        
         return $menuObj;
     }
-
+    
     
     /**
      * Изтриване на кеша
      */
     function on_AfterSave($mvc, $id, $rec)
     {
-
+        
         $mvc->savedItems[$rec->id] = TRUE;
     }
     
-
+    
     /**
      * Изтриване на кеша
      */
     function on_AfterDelete($mvc, $id, $rec)
-    {   
-
+    {
+        
         core_Cache::remove('Menu', 'menuObj');
     }
     
@@ -138,7 +137,7 @@ class bgerp_Menu extends core_Manager
         if(isset($menuObj[$key])) return $key;
         
         if(Mode::is('pageMenuKey')) return Mode::get('pageMenuKey');
-
+        
         $ctr = Request::get('Ctr');
         
         if ($ctr) {
@@ -153,11 +152,11 @@ class bgerp_Menu extends core_Manager
         
         // При логване да не показва менютата
         if($ctr == 'core_Users' && strtolower($act) == 'login') return '_none_';
-
+        
         $act = $act ? $act : 'default';
         $ctrArr = explode('_', $ctr);
         $pack = $ctrArr[0];
-
+        
         $bestW = 0;
         $bestKey = NULL;
         
@@ -167,8 +166,8 @@ class bgerp_Menu extends core_Manager
                 if($rec->ctr == $ctr && $rec->act == $act) return $key;
                 
                 $w = 1.0 * ($rec->pack == $pack) +
-                     1.0 * ($rec->ctr == $ctr) +
-                     max(0.7 * ($rec->act == $act), 0.5 * ($rec->act == 'default' || $rec->act == 'list'));
+                1.0 * ($rec->ctr == $ctr) +
+                max(0.7 * ($rec->act == $act), 0.5 * ($rec->act == 'default' || $rec->act == 'list'));
                 
                 if($w >= 1) {
                     if($w > $bestW) {
@@ -218,13 +217,13 @@ class bgerp_Menu extends core_Manager
                 // Първоначално задаваме 'нормално' състояние на елемента от менюто
                 $rec->state = 2;
                 $rec->link = TRUE;
-
+                
                 if(!haveRole($rec->accessByRoles)) {
                     
                     // Менютата, които се скриват при недостатъчно права, не се обработват
                     if($rec->autoHide == 'yes') continue;
                     
-                    $rec->state = 1;     //disabled
+                    $rec->state = 1;      //disabled
                     $rec->link  = FALSE;
                 }
                 
@@ -242,11 +241,11 @@ class bgerp_Menu extends core_Manager
                 if((!isset($menus[$rec->menu])) || $menus[$rec->menu]->state < $rec->state) {
                     $menus[$rec->menu] = $rec;
                 }
-
+                
                 if($lastRec->menu != $rec->menu && $rec->state != 1) {
                     $lastRec =  $rec;
                 }
-
+                
                 $rec->menuCtr = $lastRec->ctr;
                 $rec->menuAct = $lastRec->act;
             }
@@ -265,13 +264,13 @@ class bgerp_Menu extends core_Manager
                 }
             }
         }
-         
+        
         // До тук имаме определени два списъка $menus (с главните менюта) и $subMenus (с под-менютата);
         
         if(Mode::is('screenMode', 'narrow')) {
             
-        	$conf = core_Packs::getConfig('core');
-        	
+            $conf = core_Packs::getConfig('core');
+            
             $menuLink = ht::createLink($conf->EF_APP_TITLE, array($this, 'Show'));
             
             $tpl->append($menuLink , "MENU_ROW");
@@ -332,7 +331,7 @@ class bgerp_Menu extends core_Manager
         
         $url  = toUrl(array('bgerp_Portal', 'Show'));
         $attr = array('id' => 'nCntLink');
-
+        
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
             $attr['class'] = 'haveNtf';
@@ -355,10 +354,10 @@ class bgerp_Menu extends core_Manager
         } else {
             $url = array($rec->ctr, $rec->act);
         }
-
-        if($rec->state == 3 ) {
+        
+        if($rec->state == 3) {
             $attr['class'] = 'menuItem selected';
-        } elseif ($rec->state == 2 ) {
+        } elseif ($rec->state == 2) {
             $attr['class'] = 'menuItem';
         } else {
             $attr['class'] = 'menuItem';
@@ -368,11 +367,11 @@ class bgerp_Menu extends core_Manager
         if(!$rec->link) {
             $url = NULL;
         }
-
+        
         if(!$url) {
             $attr['class'] .= ' btn-disabled';
         }
-
+        
         return ht::createLink($title, $url, '', $attr);
     }
     
@@ -385,7 +384,7 @@ class bgerp_Menu extends core_Manager
         requireRole('user');
         
         Mode::set('pageMenuKey', '_none_');
-
+        
         if(!Mode::is('screenMode', 'narrow')) redirect(array('bgerp_Portal', 'Show'));
         
         $tpl = new ET(
@@ -401,13 +400,14 @@ class bgerp_Menu extends core_Manager
             if(!isset($menu[$rec->menu]) || !haveRole($menu[$rec->menu]->accessByRoles)) {
                 $menu[$rec->menu] = $rec;
             }
-
+            
             $subMenu[$rec->menu][$rec->subMenu] = $rec;
         }
         
         foreach($menu as $rec) {
             $url = haveRole($rec->accessByRoles) ?  array($rec->ctr, $rec->act) : array();
             $class = 'mainMenu';
+            
             if(!count($url)) {
                 $class .= ' btn-disabled';
             }
@@ -415,18 +415,21 @@ class bgerp_Menu extends core_Manager
             $row = 'MENU_ROW';
             $tpl->append($link, $row);
             $first = TRUE;
+            
             foreach($subMenu[$rec->menu] as $subRec) {
-
+                
                 $url = haveRole($subRec->accessByRoles) ?  array($subRec->ctr, $subRec->act) : array();
                 $class = 'subMenu';
+                
                 if(!count($url)) {
                     $class .= ' btn-disabled';
                 }
+                
                 if($first) {
                     $class .= ' subMenu-first';
                     $first = FALSE;
                 }
-                $link = ht::createLink($subRec->subMenuTr, $url, 
+                $link = ht::createLink($subRec->subMenuTr, $url,
                     NULL, array('class' => $class));
                 $tpl->append($link, $row);
             }
@@ -442,7 +445,7 @@ class bgerp_Menu extends core_Manager
     static function addOnce($row, $menu, $subMenu, $ctr, $act, $accessByRoles = 'user', $autoHide = 'no')
     {
         $Manu = cls::get('bgerp_Menu');
-
+        
         $rec = new stdClass();
         $rec->row = $row;
         $rec->menu = $menu;
@@ -450,7 +453,7 @@ class bgerp_Menu extends core_Manager
         $rec->ctr = $ctr;
         $rec->act = $act;
         $rec->autoHide = $autoHide;
-        $rec->createdBy = -1;     // По този начин, системният потребител е автор на менюто
+        $rec->createdBy = -1;      // По този начин, системният потребител е автор на менюто
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->getRolesAsKeylist($accessByRoles);
         
@@ -462,18 +465,20 @@ class bgerp_Menu extends core_Manager
         
         // Изтриване на направените точки от менюто, които влизат в противоречие с текущата
         $del = self::delete(array("#ctr = '[#1#]' AND #act = '[#2#]' {$addCond}", $ctr, $act));
+        
         if($act == 'default') {
             $del += self::delete(array("#ctr = '[#1#]' AND #act = '[#2#]' {$addCond}", $ctr, ''));
         }
         $del += self::delete(array("#menu = '[#1#]' AND #subMenu = '[#2#]' {$addCond}", $menu, $subMenu));
+        
         if($del) {
             $res .= "<li class='debug-new'>Изтвиване на {$del} елемент/а на менюто, поради дублиране</li>\n";
         }
-
+        
         self::save($rec);
         
         if($exRec) {
-            if($exRec->row != $rec->row || $exRec->accessByRoles != $rec->accessByRoles ||$exRec->autoHide != $rec->autoHide) { 
+            if($exRec->row != $rec->row || $exRec->accessByRoles != $rec->accessByRoles || $exRec->autoHide != $rec->autoHide) {
                 $res .= "<li class=\"debug-notice\">Обновяване елемента на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>\n";
             } else {
                 $res .= "<li class='debug-info'>Без промяна на елемента на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>\n";
@@ -481,13 +486,13 @@ class bgerp_Menu extends core_Manager
         } else {
             if($rec->id) {
                 $res .= "<li class='debug-new'>Създаване елемент на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>";
-            } 
+            }
         }
-
+        
         return $res;
     }
     
-
+    
     /**
      * При спиране на скрипта
      */
@@ -498,7 +503,7 @@ class bgerp_Menu extends core_Manager
             
             // Премахваме кеша на менюто за всички езици
             $lgArr = core_Lg::getLangs();
-
+            
             foreach($lgArr as $lg => $title) {
                 $cacheKey = 'menuObj_' . $lg;
                 core_Cache::remove('Menu', $cacheKey);
@@ -507,6 +512,7 @@ class bgerp_Menu extends core_Manager
             // Ако е зададено да се изтриват
             if ($this->deleteNotInstalledMenu) {
                 $query = self::getQuery();
+                
                 while($rec = $query->fetch("#createdBy = -1")) {
                     if(!$this->savedItems[$rec->id]) {
                         $this->delete($rec->id);
@@ -525,8 +531,8 @@ class bgerp_Menu extends core_Manager
         if(isDebug()) {
             $data->toolbar->addBtn('Изпразване', array($mvc, 'DeleteAll'), array(
                     'warning' => 'Наистина ли желаете да премахнете всички записи?'),
-            		'ef_icon = img/16/delete.png'
-            		);
+                'ef_icon = img/16/delete.png'
+            );
         }
     }
     
@@ -544,7 +550,7 @@ class bgerp_Menu extends core_Manager
         }
     }
     
-        
+    
     /**
      * Премахване на пакет от менюто
      */
@@ -570,7 +576,7 @@ class bgerp_Menu extends core_Manager
         
         return $msg;
     }
-
+    
     
     /**
      * Рендира основното меню на страницата
@@ -580,7 +586,7 @@ class bgerp_Menu extends core_Manager
         if(Mode::is('screenMode', 'narrow')) {
             $tpl = new ET("
                 <div id='mainMenu'>
-                     <div class='menuRow clearfix21'><img class='favicon' src=".sbf("img/favicon.ico")." alt=''>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
+                     <div class='menuRow clearfix21'><img class='favicon' src=" . sbf("img/favicon.ico") . " alt=''>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
                 </div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
         } else {
@@ -595,7 +601,7 @@ class bgerp_Menu extends core_Manager
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
             
             $img = ht::createElement('img', array('src' => sbf('img/bgerp.png', ''), 'alt' => '', 'style' => 'border:0; border-top:5px solid transparent;'));
-
+            
             $logo = ht::createLink($img, array('bgerp_Portal', 'Show'));
             
             $tpl->replace($logo, 'logo');
@@ -608,25 +614,24 @@ class bgerp_Menu extends core_Manager
         $tpl->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $tpl->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
         $tpl->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
-
+        
         return $tpl;
     }
-
-
+    
+    
     /**
      * функция, която автоматично изчиства лишите линкове от менюто
      */
     function repair()
     {
         $query = $this->getQuery();
+        
         while($rec = $query->fetch()) {
             if(!cls::load($rec->ctr, TRUE)) {
                 $this->delete($rec->id);
-
+                
                 $res .= "<li style='color:red;'>Премахнато е {$rec->menu} -> {$rec->menu}</li>";
             }
         }
-
     }
-   
 }
