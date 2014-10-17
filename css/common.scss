@@ -1098,7 +1098,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 	margin-left: 0;
 }
 
-.vFormField {
+.listFilter .vFormField {
 	width:100%;
 	select:not(.combo) {
 	   max-width:400px;
