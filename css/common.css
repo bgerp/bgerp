@@ -1062,7 +1062,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .vFormField {
   width: 100%; }
-  .vFormField select {
+  .vFormField select:not(.combo) {
     max-width: 400px; }
 
 .formTable > tr > td {
