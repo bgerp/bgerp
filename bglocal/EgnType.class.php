@@ -5,14 +5,14 @@
 /**
  * Клас 'drdata_EgnType' -
  *
+ * тип ЕГН
  *
- * @category  vendors
- * @package   drdata
+ * @category  bgerp
+ * @package   bglocal
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class bglocal_EgnType extends type_Varchar
 {
@@ -31,7 +31,10 @@ class bglocal_EgnType extends type_Varchar
     
     
     /**
-     * @todo Чака за документация...
+     * Performs the parity check - we expect a 10-digit number!
+     *
+     * @param string $egn_string
+     * @return boolean
      */
     function isValid($value)
     {
@@ -64,7 +67,7 @@ class bglocal_EgnType extends type_Varchar
     
     
     /**
-     * @todo Чака за документация...
+     * Представя ЕГН-то в разбираем за потребителя вид
      */
     function toVerbal($value)
     {

@@ -5,14 +5,14 @@
 /**
  * Клас 'drdata_Mvr'
  *
+ * МВР по страната
  *
- * @category  vendors
- * @package   drdata
+ * @category  bgerp
+ * @package   bglocal
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class bglocal_Mvr extends core_Manager
 {
@@ -97,19 +97,19 @@ class bglocal_Mvr extends core_Manager
     {
         
         // Подготвяме пътя до файла с данните 
-    	$file = "bglocal/data/Mvr.csv";
-    	
-    	// Кои колонки ще вкарваме
-    	$fields = array( 
-    		0 => "city", 
-    		1 => "account",
-    	);
-    	    	
-    	// Импортираме данните от CSV файла. 
-    	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
-     	
-    	// Записваме в лога вербалното представяне на резултата от импортирането 
-    	$res .= $cntObj->html;
+        $file = "bglocal/data/Mvr.csv";
+        
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => "city",
+            1 => "account",
+        );
+        
+        // Импортираме данните от CSV файла. 
+        // Ако той не е променян - няма да се импортират повторно 
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE);
+        
+        // Записваме в лога вербалното представяне на резултата от импортирането 
+        $res .= $cntObj->html;
     }
 }
