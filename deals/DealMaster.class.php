@@ -530,14 +530,18 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Ако има склад, се нотифицира отговорника му
     	if(empty($actions['ship']) && $rec->shipmentStoreId){
-    		$toChiefs = store_Stores::fetchField($rec->shipmentStoreId, 'chiefs');
-    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toChiefs);
+    		$storeRec = cash_Cases::fetch($rec->shipmentStoreId);
+    		if($storeRec->autoShare == 'yes'){
+    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $storeRec->chiefs);
+    		}
     	}
     		
     	// Ако има каса се нотифицира касиера
     	if(empty($actions['pay']) && $rec->caseId){
-    		$toCashiers = cash_Cases::fetchField($rec->caseId, 'cashiers');
-    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
+    		$caseRec = cash_Cases::fetch($rec->caseId);
+    		if($caseRec->autoShare == 'yes'){
+    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
+    		}
     	}
     	
     	// Текущия потребител се премахва от споделянето

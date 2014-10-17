@@ -214,8 +214,10 @@ class bank_ExchangeDocument extends core_Master
                 $rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
             }
             
-            $sharedUsers = bank_OwnAccounts::fetchField($rec->peroTo, 'operators');
-            $rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
+            $bankRec = bank_OwnAccounts::fetch($rec->peroTo);
+            if($bankRec->autoShare == 'yes'){
+            	$rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
+            }
         }
     }
     
