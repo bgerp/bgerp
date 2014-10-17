@@ -3,26 +3,29 @@
 
 
 /**
- * Клас 'blast_Lists' - Списъци за масово разпращане
+ * Клас 'blast_Lists' -
+ *
+ * Списъци за масово разпращане
  *
  *
  * @category  bgerp
  * @package   blast
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Списъци с контакти
  */
 class blast_Lists extends core_Master
 {
-	
+    
+    
     /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
     var $defaultFolder = 'Списъци за разпращане';
-	
+    
     
     /**
      * Полета, които ще се клонират
@@ -76,24 +79,24 @@ class blast_Lists extends core_Master
      * Кой може да го отхвърли?
      */
     var $canReject = 'blast,ceo,admin';
-
-	    
+    
+    
     /**
      * Кой може да го възстанови?
      */
     var $canRestore = 'blast,ceo,admin';
-        
+    
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'blast,ceo,admin';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'blast,ceo,admin';
+     * Кой може да го разглежда?
+     */
+    var $canList = 'blast,ceo,admin';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'blast,ceo,admin';
     
     
     /**
@@ -125,15 +128,18 @@ class blast_Lists extends core_Master
      */
     var $singleLayoutFile = 'blast/tpl/SingleLayoutLists.shtml';
     
+    
     /**
      * Поле за търсене
      */
     var $searchFields = 'title, keyField, contactsCnt, folderId, threadId, containerId ';
     
+    
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "2.1|Циркулярни";
+    
     
     /**
      * Описание на модела (таблицата)
@@ -150,7 +156,7 @@ class blast_Lists extends core_Master
         
         $this->setDbUnique('title');
     }
-
+    
     
     /**
      * Проверка дали нов документ може да бъде добавен в
@@ -163,7 +169,7 @@ class blast_Lists extends core_Master
     {
         // Името на класа
         $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
-
+        
         // Ако не е папка проект или контрагент, не може да се добави
         if (($coverClassName != 'doc_unsortedfolders')) return FALSE;
     }
@@ -218,11 +224,11 @@ class blast_Lists extends core_Master
                 $caption = trim($valueArr[1]);
                 
                 //Ескейпваме заглавието
-//                $caption = htmlspecialchars($caption, ENT_COMPAT | ENT_HTML401, 'UTF-8');
-//                $caption = core_Type::escape($caption);
+                //                $caption = htmlspecialchars($caption, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                //                $caption = core_Type::escape($caption);
                 
                 //Ескейпваме непозволените символи в заглавието
-//                $caption = str_replace(array('=', '\'', '$', '|'), array('&#61;', '&#39;', '&#36;', '&#124;'), $caption);
+                //                $caption = str_replace(array('=', '\'', '$', '|'), array('&#61;', '&#39;', '&#36;', '&#124;'), $caption);
                 
                 //Изчистваме заглавието на полето и го съединяваме със заглавието
                 $newValue = $fieldName . '=' . $caption;
@@ -286,7 +292,7 @@ class blast_Lists extends core_Master
     function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-          
+        
         $row = new stdClass();
         
         //Заглавие
@@ -305,8 +311,8 @@ class blast_Lists extends core_Master
         
         return $row;
     }
-
-
+    
+    
     /**
      * Връща CSV представяне на данните в списъка
      */
@@ -316,62 +322,60 @@ class blast_Lists extends core_Master
         $fieldsArr = blast_ListDetails::getFncFieldsArr($rec->allFields);
         
         $csv = '';
-
+        
         self::addCsvRow($csv, $fieldsArr);
-
- 
+        
         $dQuery = blast_ListDetails::getQuery();
         $dQuery->where("#listId = {$rec->id}");
         
         $listDetails = cls::get('blast_ListDetails');
         $listDetails->addFNC($rec->allFields);
-
-        while($r = $dQuery->fetch()) {  
+        
+        while($r = $dQuery->fetch()) {
             $data = unserialize($r->data);
             
             $row = array();
+            
             foreach($fieldsArr as $key => $caption) {
                 $row[$key] = $data[$key . '_'];
             }
             
             self::addCsvRow($csv, $row);
-         
         }
-
+        
         return $csv;
     }
+    
     
     /**
      * Добавя един ред в CSV структура
      */
     static function addCsvRow(&$csv, $row)
-    { 
+    {
         $div = '';
-
+        
         foreach($row as $value) {
-
+            
             // escape
             if (preg_match('/\\r|\\n|,|"/', $value)) {
                 $value = '"' . str_replace('"', '""', $value) . '"';
             }
-                    
+            
             $csv .= $div . $value;
-
+            
             $div = ',';
         }
-                
-                 
+        
         $csv .= "\n";
-
+        
         return $csv;
     }
     
-    
     /**
      * Преобразува стринга с полета в масив с инстанции на класовете
-     * 
+     *
      * @param string $fields
-     * 
+     *
      * @return array
      */
     protected static function getFieldsArr($fields)
@@ -387,34 +391,35 @@ class blast_Lists extends core_Master
         foreach ($fieldsArr as $name => $caption) {
             $name = strtolower($name);
             $paramArr = array('caption' => $caption);
+            
             switch ($name) {
                 
                 case 'email' :
                     $type = 'type_Email';
-                break;
+                    break;
                 
                 case 'emails' :
                     $type = 'type_Emails';
-                break;
+                    break;
                 
                 case 'vat' :
                     $type = 'drdata_VatType';
-                break;
+                    break;
                 
                 case 'fax' :
                 case 'mobile' :
                 case 'tel' :
                 case 'phone' :
                     $type = 'drdata_PhoneType';
-                break;
+                    break;
                 
                 case 'country' :
                     $type = 'type_Varchar';
                     $paramArr['remember'] = 'remember';
-                break;
+                    break;
                 
                 default :
-                    $type = 'type_Varchar';
+                $type = 'type_Varchar';
                 break;
             }
             $fieldsArr[$name] = cls::get($type, $paramArr);
@@ -427,9 +432,9 @@ class blast_Lists extends core_Master
     /**
      * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
      * @see bgerp_PersonalizationSourceIntf
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return array
      */
     public function getPersonalizationDescr($id)
@@ -447,15 +452,15 @@ class blast_Lists extends core_Master
     
     
     /**
-     * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value 
+     * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
      * @see bgerp_PersonalizationSourceIntf
-     * 
+     *
      * @param integer $id
      * @param integer $limit
-     * 
+     *
      * @return array
      */
-    public function getPresonalizationArr($id, $limit=0)
+    public function getPresonalizationArr($id, $limit = 0)
     {
         $resArr = array();
         
@@ -464,11 +469,13 @@ class blast_Lists extends core_Master
         $detailQuery->where("#listId = '{$id}'");
         $detailQuery->where("#state != 'stopped'");
         $detailQuery->where("#state != 'rejected'");
+        
         if ($limit) {
             $detailQuery->limit($limit);
         }
         
         $cnt = 0;
+        
         while ($rec = $detailQuery->fetch()) {
             $resArr[$rec->id] = unserialize($rec->data);
         }
@@ -480,13 +487,13 @@ class blast_Lists extends core_Master
     /**
      * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
      * @see bgerp_PersonalizationSourceIntf
-     * 
+     *
      * @param integer|object $id
      * @param boolean $verbal
-     * 
+     *
      * @return string
      */
-    public function getPersonalizationTitle($id, $verbal=TRUE)
+    public function getPersonalizationTitle($id, $verbal = TRUE)
     {
         if (is_object($id)) {
             $rec = $id;
@@ -508,10 +515,10 @@ class blast_Lists extends core_Master
     /**
      * Дали потребителя може да използва дадения източник на персонализация
      * @see bgerp_PersonalizationSourceIntf
-     * 
+     *
      * @param integer $id
      * @param integer $userId
-     * 
+     *
      * @return boolean
      */
     public function canUsePersonalization($id, $userId = NULL)
@@ -526,9 +533,9 @@ class blast_Lists extends core_Master
     /**
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас, които са достъпни за посочения потребител
      * @see bgerp_PersonalizationSourceIntf
-     * 
+     *
      * @param integer $userId
-     * 
+     *
      * @return array
      */
     public function getPersonalizationOptions($userId = NULL)
@@ -559,9 +566,9 @@ class blast_Lists extends core_Master
     
     /**
      * Връща линк, който сочи към източника за персонализация
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return core_ET
      */
     public function getPersonalizationSrcLink($id)

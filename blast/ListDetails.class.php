@@ -18,6 +18,7 @@
  */
 class blast_ListDetails extends doc_Detail
 {
+    
     /**
      * Плъгини за зареждане
      */
@@ -40,44 +41,44 @@ class blast_ListDetails extends doc_Detail
      * Кой може да пише?
      */
     var $canWrite = 'blast,ceo,admin';
-
-	    
+    
+    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'blast,ceo,admin';
-
-
+    
+    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'blast,ceo,admin';
-           
+    
     
     /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'blast,ceo,admin';
     
-
+    
     /**
      * Кой може да го възстанови?
      */
     var $canRestore = 'blast,ceo,admin';
     
-        
+    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'blast,ceo,admin';
     
-        
+    
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'blast,ceo,admin';
-
-	
+     * Кой може да го разглежда?
+     */
+    var $canList = 'blast,ceo,admin';
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -102,8 +103,6 @@ class blast_ListDetails extends doc_Detail
     var $listItemsPerPage = 100;
     
     
-
-
     /**
      * Описание на полетата на модела
      */
@@ -135,8 +134,8 @@ class blast_ListDetails extends doc_Detail
      * Преди подготвяне на едит формата
      */
     static function on_BeforePrepareEditForm($mvc, &$res, $data)
-    { 
-        if($id = Request::get('id', 'int')) {  
+    {
+        if($id = Request::get('id', 'int')) {
             expect($rec = $mvc->fetch($id));
             expect($masterRec = $mvc->Master->fetch($rec->listId));
         } elseif($masterKey = Request::get($mvc->masterKey, 'int')) {
@@ -145,7 +144,7 @@ class blast_ListDetails extends doc_Detail
         
         expect($masterRec);
         
-        $data->masterRec = $masterRec;     // @todo: Да се сложи в core_Detail
+        $data->masterRec = $masterRec;      // @todo: Да се сложи в core_Detail
         $mvc->addFNC($masterRec->allFields);
     }
     
@@ -224,9 +223,9 @@ class blast_ListDetails extends doc_Detail
         }
         
         if ($rec->state != 'stopped') {
-			
+            
             // Бутон за спиране
-			$row->state = HT::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE));
+            $row->state = HT::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE));
         } else {
             
             // Бутон за активиране
@@ -287,10 +286,10 @@ class blast_ListDetails extends doc_Detail
         
         return new Redirect(getRetUrl());
     }
-
+    
     
     /**
-     * 
+     * След като се поготви заявката за модела
      */
     function on_AfterGetQuery($mvc, $query)
     {
@@ -342,7 +341,7 @@ class blast_ListDetails extends doc_Detail
         
         return $fieldsArr;
     }
-
+    
     
     /**
      * Добавя бутон за импортиране на контакти
@@ -363,7 +362,7 @@ class blast_ListDetails extends doc_Detail
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
         $exp->functions['importcsvfromcontacts'] = 'blast_ListDetails::importCsvFromContacts';
         $exp->functions['importcsvfromlists'] = 'blast_Lists::importCsvFromLists';
-
+        
         $exp->DEF('#listId', 'int', 'fromRequest');
         
         $exp->DEF('#source=Източник', 'enum(csv=Copy&Paste на CSV данни, 
@@ -389,19 +388,19 @@ class blast_ListDetails extends doc_Detail
         
         $exp->rule("#csvData", "importCsvFromContacts('crm_Companies', #companiesGroup)");
         $exp->rule("#csvData", "importCsvFromContacts('crm_Persons', #personsGroup)");
-
+        
         $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
-
+        
         $exp->question("#blastList", tr("Изберете списъка от който да се импортират даните"), "#source == 'blastList'", 'title=' . tr('Импортиране от съществуващ списък'));
         $exp->rule("#csvData", "importCsvFromLists(#blastList)", '#blastList');
-
+        
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');
         $exp->question("#csvFile", tr("Въведете файл с контактни данни във CSV формат") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл'));
         $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
         
         $exp->rule("#csvColumnsCnt", "count(getCsvColNames(#csvData,#delimiter,#enclosure))");
         $exp->WARNING(tr("Възможен е проблем с формата на CSV данните, защото е открита само една колона"), '#csvColumnsCnt == 2');
-        $exp->ERROR(tr("Има проблем с формата на CSV данните"). ". <br>" . tr("Моля проверете дали правилно сте въвели данните и разделителя"), '#csvColumnsCnt < 2');
+        $exp->ERROR(tr("Има проблем с формата на CSV данните") . ". <br>" . tr("Моля проверете дали правилно сте въвели данните и разделителя"), '#csvColumnsCnt < 2');
         
         $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', array('value' => ','), 'mandatory');
         $exp->SUGGESTIONS("#delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
@@ -439,13 +438,13 @@ class blast_ListDetails extends doc_Detail
             
             $csv = $exp->getValue('#csvData');
             $delimiter = $exp->getValue('#delimiter');
-           
+            
             $enclosure = $exp->getValue('#enclosure');
             
             if(!is_array($csv)) {
                 $csvRows = explode("\n", trim($csv));
             } else {
-                 $csvRows = $csv;
+                $csvRows = $csv;
             }
             
             // Ако първия ред са имена на колони - махаме ги
@@ -458,12 +457,14 @@ class blast_ListDetails extends doc_Detail
             
             $newCnt = $skipCnt = $updateCnt = 0;
             
-            if(count($csvRows)) {  
+            if(count($csvRows)) {
                 foreach($csvRows as $row) {
                     $rowArr = str_getcsv($row, $delimiter, $enclosure);
                     $rec = new stdClass();
+                    
                     foreach($fieldsArr as $name => $caption) {
                         $id = $exp->getValue("#col{$name}");
+                        
                         if($id == NULL) continue;
                         $rec->{$name} = trim($rowArr[$id-1]);
                     }
@@ -509,7 +510,7 @@ class blast_ListDetails extends doc_Detail
                     
                     $this->save($rec);
                 }
-                $exp->message = tr("Добавени са"). " {$newCnt} " . tr("нови записа") . ", " . tr("обновени") . " - {$updateCnt}, " . tr("пропуснати") . " - {$skipCnt}";
+                $exp->message = tr("Добавени са") . " {$newCnt} " . tr("нови записа") . ", " . tr("обновени") . " - {$updateCnt}, " . tr("пропуснати") . " - {$skipCnt}";
             } else {
                 $exp->message = tr("Липсват данни за добавяне");
             }
@@ -601,7 +602,7 @@ class blast_ListDetails extends doc_Detail
     /**
      * Връща масив с опции - заглавията на колоните
      */
-    static function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL, $escape=TRUE)
+    static function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL, $escape = TRUE)
     {
         if(is_array($csvData)) {
             $rowsOrig = $csvData;
@@ -648,6 +649,7 @@ class blast_ListDetails extends doc_Detail
             $resArr = arr::combine(array(NULL => ''), $rowArr);
             array_unshift($resArr, "");
             unset($resArr[0]);
+            
             return $resArr;
         }
     }
@@ -701,9 +703,9 @@ class blast_ListDetails extends doc_Detail
             
             $csv[] = $rCsv;
         }
-		
-        $csv = array_merge(array($columns),(array)$csv);
-		
+        
+        $csv = array_merge(array($columns), (array)$csv);
+        
         return $csv;
     }
 }

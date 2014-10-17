@@ -3,7 +3,7 @@
 
 /**
  * Лог на изпратените писма
- * 
+ *
  * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -14,72 +14,60 @@
 class blast_EmailSend extends core_Detail
 {
     
-    
     /**
      * Заглавие
      */
     public $title = "Лог на изпращаните писма";
-    
     
     /**
      * Кой има право да чете?
      */
     protected $canRead = 'ceo, blast';
     
-    
     /**
      * Кой има право да променя?
      */
     protected $canEdit = 'no_one';
-    
     
     /**
      * Кой има право да добавя?
      */
     protected $canAdd = 'no_one';
     
-    
     /**
      * Кой може да го види?
      */
     protected $canView = 'ceo, blast';
-    
     
     /**
      * Кой може да го разглежда?
      */
     protected $canList = 'ceo, blast';
     
-    
     /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'no_one';
-    
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'blast_Wrapper, plg_Created';
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'emailId';
-    
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'email, sentOn, state';
     
-    
     /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
-    
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
@@ -105,14 +93,14 @@ class blast_EmailSend extends core_Detail
     
     /**
      * Обновява списъка
-     * 
+     *
      * @param integer $emailId - id на мастер (blast_Emails)
      * @param array $dataArr - Масив с данните - ключ id на източника и стойност самите данни
      * @param array $emailFieldsArr - Масив с полета, които се използва за имейл
-     * 
+     *
      * @return integer - Броя на добавените записи
      */
-    public static function updateList($emailId, $dataArr, $emailFieldsArr=array())
+    public static function updateList($emailId, $dataArr, $emailFieldsArr = array())
     {
         $cnt = 0;
         
@@ -152,13 +140,13 @@ class blast_EmailSend extends core_Detail
     
     /**
      * Връща данните за подадения emailId
-     * 
+     *
      * @param integer $emailId - id на мастер (blast_Emails)
      * @param integer $count - Дали да има ограничени в броя на записите
-     * 
+     *
      * @return array
      */
-    public static function getDataArrForEmailId($emailId, $count=NULL)
+    public static function getDataArrForEmailId($emailId, $count = NULL)
     {
         $resArr = array();
         
@@ -183,9 +171,9 @@ class blast_EmailSend extends core_Detail
     
     /**
      * Връща данните за подаденот id
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return array
      */
     public static function getDataArr($id)
@@ -198,7 +186,7 @@ class blast_EmailSend extends core_Detail
     
     /**
      * Маркира като изпратени
-     * 
+     *
      * @param array $idsArr
      */
     public static function markAsSent($dataArr)
@@ -218,7 +206,7 @@ class blast_EmailSend extends core_Detail
     
     /**
      * Променя времето на изпращане и имейла
-     * 
+     *
      * @param array $idsArr
      */
     public static function setTimeAndEmail($idsArr)
@@ -239,17 +227,17 @@ class blast_EmailSend extends core_Detail
     
     /**
      * След подготвяне на формата за филтриране
-     * 
+     *
      * @param blast_EmailSend $mvc
      * @param stdClass $data
      */
     function on_AfterPrepareListFilter($mvc, &$data)
-	{
-	    // Подреждаме записите, като неизпратените да се по-нагоре
-	    $data->query->orderBy("state", 'ASC');
-	    $data->query->orderBy("createdOn", 'DESC');
-	    $data->query->orderBy("sentOn", 'DESC');
-	}
+    {
+        // Подреждаме записите, като неизпратените да се по-нагоре
+        $data->query->orderBy("state", 'ASC');
+        $data->query->orderBy("createdOn", 'DESC');
+        $data->query->orderBy("sentOn", 'DESC');
+    }
     
     
     /**

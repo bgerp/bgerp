@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/148
@@ -17,12 +17,12 @@ class blast_Letters extends core_Master
 {
     
     
-   /**
+    /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
     var $defaultFolder = 'Циркулярни писма';
-	
+    
     
     /**
      * Наименование на единичния обект
@@ -85,10 +85,10 @@ class blast_Letters extends core_Master
     
     
     /**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo, blast';
-	
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo, blast';
+    
     
     /**
      * Кой може да го изтрие?
@@ -106,7 +106,6 @@ class blast_Letters extends core_Master
      * Кой може да променя активирани записи
      */
     var $canChangerec = 'blast, ceo, admin';
-    
     
     
     /**
@@ -156,6 +155,7 @@ class blast_Letters extends core_Master
      */
     var $letterTemp = NULL;
     
+    
     /**
      * Групиране на документите
      */
@@ -163,10 +163,10 @@ class blast_Letters extends core_Master
     
     
     /**
-     * 
+     * Полета, които ще се клонират
      */
     var $cloneFields = 'listId, group, subject, body, numLetters, template, recipient, attn, country, pcode, place, address,position';
-
+    
     
     /**
      * Описание на модела
@@ -189,7 +189,8 @@ class blast_Letters extends core_Master
         $this->FLD('place', 'varchar', 'caption=Адресат->Град/с, width=100%, changable');
         $this->FLD('country', 'varchar', 'caption=Адресат->Държава, width=100%, changable');
     }
-
+    
+    
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -201,7 +202,7 @@ class blast_Letters extends core_Master
     {
         // Името на класа
         $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
-
+        
         // Ако не е папка проект или контрагент, не може да се добави
         if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) return FALSE;
     }
@@ -267,7 +268,7 @@ class blast_Letters extends core_Master
                 
                 return redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
             }
-    
+            
             if (!$form->rec->id) {
                 
                 //Ако добавяме нов показваме всички списъци
@@ -327,7 +328,7 @@ class blast_Letters extends core_Master
         }
         
         $row = new stdClass();
-
+        
         //Заглавие
         $row->title = $subject;
         
@@ -368,7 +369,7 @@ class blast_Letters extends core_Master
             
             // Опции за документа
             $options = new stdClass();
-
+            
             // Вземаме мастера на детайла
             $options->rec = static::fetch($letterDetail->letterId);
             
@@ -380,14 +381,14 @@ class blast_Letters extends core_Master
             
             // Вземаме документа в xhtml формат
             $res = $this->getDocumentBody($options->rec->id, 'xhtml', $options);
-
+            
             // Добавяме към шаблона
             $tpl->append($res);
             
             // Попваме съответния екшън
             log_Documents::popAction();
         }
-
+        
         // Ако състоянито на детайла не е затворен
         // За да запишем датата на първото отпечтване
         if ($letterDetail->state != 'closed') {
@@ -397,7 +398,7 @@ class blast_Letters extends core_Master
             $newLetterDetail->id = $letterDetail->id;
             $newLetterDetail->state = 'closed';
             $newLetterDetail->printedDate = dt::verbal2mysql();
-            blast_LetterDetails::save($newLetterDetail);    
+            blast_LetterDetails::save($newLetterDetail);
             
             //Проверяваме дали има други непринтирани писма, и ако няма сменяме състоянието на затворено
             $this->closeLetter($letterDetail->letterId);
@@ -408,7 +409,7 @@ class blast_Letters extends core_Master
     
     
     /**
-     * 
+     * Преди да подготвим данните за имейла, подготвяме rec
      */
     function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
@@ -417,7 +418,7 @@ class blast_Letters extends core_Master
         if ($id) {
             
             // Вземаме данните от базата
-            $options->rec = static::fetch($id);    
+            $options->rec = static::fetch($id);
         }
         
         // Намираме преполагаемия език на писмото
@@ -425,16 +426,15 @@ class blast_Letters extends core_Master
         
         // Ако име, тогава да се рендира
         if ($options->__toListId) {
-        
+            
             // Ако е лист
             if ($options->rec->listId) {
                 
                 // Фетчваме детайла за съответния лист
-                $detailRec = blast_ListDetails::fetch($options->__toListId);    
-            
+                $detailRec = blast_ListDetails::fetch($options->__toListId);
+                
                 // Десериализираме данните
                 $data = unserialize($detailRec->data);
-                
             } elseif ($options->rec->group) {
                 
                 // Ако е група
@@ -443,13 +443,11 @@ class blast_Letters extends core_Master
                 if ($options->rec->group == 'company') {
                     
                     $group = 'company';
-                
                 } elseif ($options->rec->group == 'person') {
                     
                     // Ако групата е лице
                     
                     $group = 'person';
-                    
                 }  elseif ($options->rec->group == 'personBiz') {
                     
                     // Ако групата е бизнес данни от лице
@@ -460,7 +458,7 @@ class blast_Letters extends core_Master
                 // Вземаме масива с плейсхолдерите, които ще се заместват
                 $data = static::getDataFor($group, $options->__toListId);
             }
-        
+            
             // Обхождаме масива с данните
             foreach ((array)$data as $key => $value) {
                 
@@ -478,6 +476,7 @@ class blast_Letters extends core_Master
                 $options->rec->address = str_ireplace($search, $value, $options->rec->address);
                 $options->rec->position = str_ireplace($search, $value, $options->rec->position);
             }
+            
             // Добавяме, че разглеждаме детайла
             $options->rec->__detail = TRUE;
         }
@@ -485,7 +484,7 @@ class blast_Letters extends core_Master
     
     
     /**
-     * 
+     * След подготвените данни за имейла, подготвяме rec
      */
     function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
@@ -495,8 +494,9 @@ class blast_Letters extends core_Master
     
     
     /**
-     * 
-     * 
+     * Функция която скрива бланката с логото на моята фирма
+     * при принтиране ако документа е базиран на
+     * "приходен банков документ"
      */
     function renderSingleLayout_(&$data)
     {
@@ -514,22 +514,22 @@ class blast_Letters extends core_Master
             
             //Проверява дали е файл
             if (!is_file($fullPath)) {
-
+                
                 // Редиректваме към сингъла
-                return redirect(array('blast_Letters', 'single', $data->rec->id), FALSE,tr("Файлът на шаблона не може да се намери. Моля изберете друг шаблон."));
+                return redirect(array('blast_Letters', 'single', $data->rec->id), FALSE, tr("Файлът на шаблона не може да се намери. Моля изберете друг шаблон."));
             }
             
             // Вземаме шаблона
             $tpl = getTplFromFile($filePath);
             
-            return $tpl;        
+            return $tpl;
         }
         
         // Ако има лист
         if ($data->rec->listId) {
-
+            
             // Добавяме линк към листа
-            $data->row->ListLink = ht::createLink($data->row->listId, array('blast_Lists', 'single', $data->rec->listId));    
+            $data->row->ListLink = ht::createLink($data->row->listId, array('blast_Lists', 'single', $data->rec->listId));
         } elseif ($data->rec->group) {
             
             // Ако е група
@@ -580,7 +580,7 @@ class blast_Letters extends core_Master
             $newLetter = new stdClass();
             $newLetter->id = $id;
             $newLetter->state = 'closed';
-            blast_Letters::save_($newLetter); // Ако е прекъсваема, отбелязва с 1 повече принтиране в историята
+            blast_Letters::save_($newLetter);  // Ако е прекъсваема, отбелязва с 1 повече принтиране в историята
         }
     }
     
@@ -622,19 +622,19 @@ class blast_Letters extends core_Master
         
         // Очакваме да имаме такъв запис
         expect($rec = static::fetch($form->rec->id));
-
+        
         // Очакваме потребителя да има права за активиране
         $this->haveRightFor('activation', $rec);
         
         // Въвеждаме съдържанието на полетата
         $form->input('numLetters');
-
+        
         // По подразбиране да е избрана стойността от записа
         $form->setDefault('numLetters', $rec->numLetters);
         
         // Вземаме ret_url
         $retUrl = getRetUrl();
-    
+        
         // URL' то където ще се редиректва при отказ
         $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
         
@@ -657,7 +657,7 @@ class blast_Letters extends core_Master
             
             // Броя на пимсмата, които ще се печатат едновремнно
             $numLetters = $form->rec->numLetters;
-
+            
             // Очакваме да е зададение
             expect($numLetters);
             
@@ -694,7 +694,7 @@ class blast_Letters extends core_Master
                 
                 // Обхождаме откритите резултата
                 while ($recListDetail = $queryListDetails->fetch()) {
-    
+                    
                     // Ако нямаме запис с id'то в модела
                     if (!keylist::isIn($recListDetail->id, $exist)) {
                         
@@ -746,12 +746,12 @@ class blast_Letters extends core_Master
                 
                 // Сортираме масива, като най - отгоре са записити с най - малко id
                 asort($allNewId);
-
+                
                 // Групираме записите по максималния брой, който ще се печатат заедно
                 for ($i = 0; $i < count($allNewId); $i = $i + $numLetters) {
                     $slicedNewId = array_slice($allNewId, $i, $numLetters, TRUE);
                     $keylist = keylist::fromArray($slicedNewId);
-
+                    
                     //Добавяме новите записи в модела
                     $newLetterDetail = new stdClass();
                     $newLetterDetail->letterId = $rec->id;
@@ -759,7 +759,7 @@ class blast_Letters extends core_Master
                     blast_LetterDetails::save($newLetterDetail);
                 }
             }
-
+            
             // След като приключи операцията редиректваме към същата страница, където се намирахме
             return redirect($retUrl, FALSE, tr("Успешно активирахте писмото."));
         }
@@ -785,7 +785,7 @@ class blast_Letters extends core_Master
         $form->info = new ET ('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
         
         // Опциите за създаване на тялот
-        $options = new stdClass(); 
+        $options = new stdClass();
         
         // Ако е листа
         if ($rec->listId) {
@@ -808,7 +808,6 @@ class blast_Letters extends core_Master
                     break;
                 }
             }
-            
         } elseif ($rec->group) {
             
             // Ако е група
@@ -853,7 +852,7 @@ class blast_Letters extends core_Master
         
         // Записите
         $options->rec = $rec;
-
+        
         // Вземаме документа в xhtml формат
         $res = $this->getDocumentBody($options->rec->id, 'xhtml', $options);
         
@@ -887,7 +886,7 @@ class blast_Letters extends core_Master
         
         // Очакваме да има такъв запис
         expect($rec = $this->fetch($id));
-
+        
         // Очакваме потребителя да има права за спиране
         $this->haveRightFor('stop', $rec);
         
@@ -911,12 +910,12 @@ class blast_Letters extends core_Master
                 
                 // Изтриваме записите
                 blast_LetterDetails::delete($dRec->id);
-            }    
+            }
         }
         
         // Вземаме ret_url
         $retUrl = getRetUrl();
-    
+        
         // URL' то където ще се редиректва при отказ
         $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
         
@@ -954,10 +953,10 @@ class blast_Letters extends core_Master
     }
     
     
-	/**
-	* Изпълнява се след въвеждането на даните от формата
-	* Проверява дали сме въвели несъществуващ шаблон
-	*/
+    /**
+     * Изпълнява се след въвеждането на даните от формата
+     * Проверява дали сме въвели несъществуващ шаблон
+     */
     function on_AfterInputEditForm($mvc, &$form)
     {
         // Ако формата е изпраена успешно
@@ -1025,8 +1024,8 @@ class blast_Letters extends core_Master
                 }
                 
                 // Вземаме всички полета, които ще се заместват
-                $listsRecAllFields = blast_Lists::fetchField($listId, 'allFields');   
-
+                $listsRecAllFields = blast_Lists::fetchField($listId, 'allFields');
+                
                 //Вземаме всички имена на полетата на данните, които ще се заместват
                 preg_match_all('/(^)([^=]+)/m', $listsRecAllFields, $allFieldsArr);
                 
@@ -1054,9 +1053,9 @@ class blast_Letters extends core_Master
             foreach ($nRecArr as $field) {
                 
                 // Всички данни ги записваме в една променлива
-                $allRecsWithPlaceHolders .= ' ' . $field;    
+                $allRecsWithPlaceHolders .= ' ' . $field;
             }
-
+            
             // Създаваме шаблон
             $tpl = new ET($allRecsWithPlaceHolders);
             
@@ -1068,7 +1067,7 @@ class blast_Letters extends core_Master
             
             // Вземаме всички шаблони, които се използват
             $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
-
+            
             // Обхождаме масива с плейсхолдерите
             foreach ((array)$onlyAllFieldsArr as $field) {
                 
@@ -1107,7 +1106,7 @@ class blast_Letters extends core_Master
             
             // Премахваме дублиращите се плейсхолдери
             $bodyAndSubPlaceHolder = array_unique($bodyAndSubPlaceHolder);
-
+            
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($bodyAndSubPlaceHolder as $placeHolder) {
                 
@@ -1116,22 +1115,22 @@ class blast_Letters extends core_Master
                 
                 // Ако плейсхолдера го няма във листа
                 if (!$fieldsArr[$placeHolderL]) {
-
+                    
                     // Добавяме към съобщението за грешка
                     $error .= ($error) ? ", {$placeHolder}" : $placeHolder;
                 }
             }
-
+            
             // Показваме грешка, ако има шаблони, които сме въвели в повече в Относно и Съощение
             if ($error) {
-                $form->setError('*', "|Шаблоните, които сте въвели ги няма в БД|*: {$error}");    
+                $form->setError('*', "|Шаблоните, които сте въвели ги няма в БД|*: {$error}");
             }
             
             // Показваме предупреждение за останалите шаблони
             if ($warning) {
                 
                 // Сетваме грешката
-                $form->setWarning('*', "|Шаблоните, които сте въвели ги няма в БД|*: {$warning}"); 
+                $form->setWarning('*', "|Шаблоните, които сте въвели ги няма в БД|*: {$warning}");
                 
                 // При игнориране на грешката
                 if (!$form->gotErrors()) {
@@ -1140,7 +1139,7 @@ class blast_Letters extends core_Master
                     foreach ($nRecArr as $field => $val) {
                         
                         // Премахваме всички плейсхолдери, които не се използват
-                        $val = str_ireplace((array)$warningPlaceHolderArr, '', $val);    
+                        $val = str_ireplace((array)$warningPlaceHolderArr, '', $val);
                         
                         // Добавяме към записа
                         $form->rec->{$field} = $val;
@@ -1153,27 +1152,28 @@ class blast_Letters extends core_Master
     
     /**
      * Връща масив с плейсхолдери за съответната група
-     * 
+     *
      * @param sting $group - Групата
-     * 
+     *
      * @return array $arr - Масив с плейсхолдери
      */
     static function getGroupPlaceholders($group)
     {
         $arr = array();
+        
         switch ($group) {
             
             // Ако е фирма
-            case 'company':
+            case 'company' :
                 $arr['name'] = 'company';
                 $arr['country'] = 'country';
                 $arr['pCode'] = 'pCode';
                 $arr['place'] = 'place';
                 $arr['address'] = 'address';
-            break;
-            
-            // Ако е бизнес данни от лице
-            case 'personBiz':
+                break;
+                
+                // Ако е бизнес данни от лице
+            case 'personBiz' :
                 
                 $arr['salutation'] = 'salutation';
                 $arr['name'] = 'names';
@@ -1184,10 +1184,10 @@ class blast_Letters extends core_Master
                 $arr['company_place'] = 'place';
                 $arr['company_address'] = 'address';
                 
-            break;
-            
-            // Ако е лични данни от лице
-            case 'person':
+                break;
+                
+                // Ако е лични данни от лице
+            case 'person' :
                 
                 $arr['salutation'] = 'salutation';
                 $arr['name'] = 'names';
@@ -1196,10 +1196,10 @@ class blast_Letters extends core_Master
                 $arr['place'] = 'place';
                 $arr['address'] = 'address';
                 
-            break;
+                break;
             
-            default:
-                ;
+            default :
+            ;
             break;
         }
         
@@ -1209,10 +1209,10 @@ class blast_Letters extends core_Master
     
     /**
      * Връща масив с данни за заместване за съответното писмо
-     * 
+     *
      * @param string $group - Групата
      * @param integer $id - id' то на записа от съответната група
-     * 
+     *
      * @return array $data - Масив с данни
      */
     static function getDataFor($group, $id)
@@ -1253,10 +1253,10 @@ class blast_Letters extends core_Master
             } else {
                 
                 // Типа
-                $type =  mb_substr($field, 0,$pos);
+                $type =  mb_substr($field, 0, $pos);
                 
                 // Полето
-                $nField = mb_substr($field, $pos+1);
+                $nField = mb_substr($field, $pos + 1);
                 
                 // Ако е фирма
                 if ($type = 'company') {
@@ -1274,21 +1274,22 @@ class blast_Letters extends core_Master
                         // Вземаме стойността на съответното поле
                         $placeVal = crm_Companies::getVerbal($companyRec, $nField);
                     }
+                    
                     // Добавяме стойността в полето
                     $data[$place] = $placeVal;
                 }
             }
         }
-
+        
         return $data;
     }
     
     
-	/**
+    /**
      * Намира предполагаемия език на текста
-     * 
+     *
      * @param text $body - Текста, в който ще се търси
-     * 
+     *
      * @return string $lg - Двубуквеното означение на предполагаемия език
      */
     static function getLanguage($body)
@@ -1308,15 +1309,13 @@ class blast_Letters extends core_Master
     
     
     /**
-     * 
-     * 
      * @param blast_Letters $mvc
      * @param array $res
      * @param integer $id
      * @param integer $userId
      * @param object $data
      */
-    public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
+    public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId = NULL, $data = NULL)
     {
         $toListId = $data->toListId;
         
@@ -1333,11 +1332,10 @@ class blast_Letters extends core_Master
         if ($letterRec->listId) {
             
             // Фетчваме детайла за съответния лист
-            $detailRec = blast_ListDetails::fetch($toListId);    
+            $detailRec = blast_ListDetails::fetch($toListId);
             
             // Десериализираме данните
             $data = unserialize($detailRec->data);
-            
         } elseif ($letterRec->group) {
             
             // Ако е група
@@ -1351,6 +1349,7 @@ class blast_Letters extends core_Master
         // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
         if (!$userId) {
             $userId = core_Users::getCurrent();
+            
             if ($userId <= 0) {
                 $userId = $mvc->getContainer($id)->activatedBy;
             }
