@@ -21,19 +21,11 @@ if (version_compare(phpversion(), '5.3.0') < 0) {
     die;    
 }
 
-/**
- * Директорията с приложението
- */
-defIfNot('EF_APP_PATH', EF_APP_PATH);
-
-
+// Зареждаме класовете за обработка на грешки
 require_once(EF_APP_PATH . '/core/exception/Expect.class.php');
 
 
 require_once(EF_APP_PATH . '/core/Debug.class.php');
-
-
-// core_Debug::setErrorWaching();
 
 
 // Зареждаме 'CLS' класа за работа с класове
@@ -65,9 +57,7 @@ try {
     ini_set('zlib.output_compression', 'Off');
 
 
-    /**
-     * Стартира Setup, ако в заявката присъства верен SetupKey
-     */
+    // Стартира Setup, ако в заявката присъства верен SetupKey
     if (isset($_GET['SetupKey'])) {
         require_once(EF_APP_PATH . "/core/Setup.inc.php");
     }
