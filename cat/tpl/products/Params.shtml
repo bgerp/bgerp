@@ -1,12 +1,10 @@
-<table cellpagging="0" cellspacing=0>
-
-<!--ET_BEGIN param-->
-	[#param#]
-	<tr>
-    <td class="right-align" >[#paramId#]:</td>
-    <td style="padding-right:15px">[#paramValue#]</td>
-    <td> [#tools#]</td>
+<table>
+    <!--ET_BEGIN param-->
+    [#param#]
+    <tr>
+        <td class="right-align" >[#paramId#]:</td>
+        <td style="padding-right:15px">[#paramValue#]</td>
+        <td> [#tools#]</td>
     </tr>
-<!--ET_END param-->
-
+    <!--ET_END param-->
 </table>

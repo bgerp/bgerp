@@ -44,7 +44,7 @@ class survey_Surveys extends core_Master {
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/survey.png';
+    var $singleIcon = 'img/16/text_list_bullets.png';
     
     
     /**
@@ -110,7 +110,7 @@ class survey_Surveys extends core_Master {
 	/**
      * Групиране на документите
      */
-    var $newBtnGroup = "9.2|Обслужване";
+    var $newBtnGroup = "18.2|Други";
     
     
     /**
@@ -124,7 +124,7 @@ class survey_Surveys extends core_Master {
      */
     function description()
     {
-    	$this->FLD('title', 'varchar(50)', 'caption=Заглавие, mandatory, width=400px');
+    	$this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=400px');
 		$this->FLD('description', 'text(rows=2)', 'caption=Oписание, mandatory, width=100%');
     	$this->FLD('enddate', 'date(format=d.m.Y)', 'caption=Краен срок,width=8em,mandatory');
     	$this->FLD('summary', 'enum(internal=Вътрешно,personal=Персонално,public=Публично)', 'caption=Обобщение,mandatory,width=8em');
@@ -257,7 +257,7 @@ class survey_Surveys extends core_Master {
     	if($summary && $data->rec->state == 'active') {
     		
     		unset($url['summary']);
-    		$data->toolbar->addBtn('Анкета',  $url, 'ef_icon=img/16/survey.png');
+    		$data->toolbar->addBtn('Анкета',  $url, 'ef_icon=img/16/text_list_bullets.png');
     		$data->toolbar->buttons['btnPrint']->url['summary'] = 'ok';
     	}
     	
@@ -289,7 +289,6 @@ class survey_Surveys extends core_Master {
      */
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
-    	jquery_Jquery::enable($tpl);
     	$tpl->push('survey/tpl/css/styles.css', 'CSS');
     	$tpl->push(('survey/js/scripts.js'), 'JS');
     	jquery_Jquery::run($tpl, "surveyActions();");

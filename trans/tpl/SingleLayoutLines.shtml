@@ -1,76 +1,70 @@
 [#SingleToolbar#]
 <div class='document'>
-	 	<!--ET_BEGIN blank-->
-			[#blank#]
-		<!--ET_END blank-->
-		<!--ET_BEGIN header-->
-	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
-	</div>
-	<!--ET_END header-->
-	<div class='scrolling-holder'>
-		<div>
-			<div class='line-header'>[#title#]</div>
-			<table class='styled-table'>
-				<tr>
-					<td>|Начало|*:</td>
-					<td>[#start#]</td>
-				</tr>
-				<tr>
-					<td>|Дестинация|*:</td>
-					<td>[#destination#]</td>
-				</tr>
-				<tr>
-					<td>|Повторение|*:</td>
-					<td>[#repeat#]</td>
-				</tr>
-			</table>
-		</div>
-			
-		<!--ET_BEGIN ADDITIONAL-->
-		[#ADDITIONAL#]
-		<div>
-			<div class='line-header'>|Допълнително|*</div>
-			<table class='styled-table'>
-				<!--ET_BEGIN vehicleId-->
-				<tr>
-					<td>|Транс. средство|*:</td>
-					<td>[#vehicleId#]</td>
-				</tr>
-				<!--ET_END vehicleId-->
-				
-				<!--ET_BEGIN forwarderId-->
-				<tr>
-					<td>|Транспортна фирма|*:</td>
-					<td>[#forwarderId#]</td>
-				</tr>
-				<!--ET_END forwarderId-->
-				
-				<!--ET_BEGIN forwarderPersonId-->
-				<tr>
-					<td>|МОЛ|*:</td>
-					<td>[#forwarderPersonId#]</td>
-				</tr>
-				<!--ET_END forwarderPersonId-->
-			</table>
-		</div>
-		<!--ET_END ADDITIONAL-->
-		
-		<div style='margin-bottom:15px' class='line-detail'>
-			<div class='line-header'>|Експедиции|*</div>
-			[#Shipments#]
-		</div>
-		
-		<div style='margin-bottom:15px' class='line-detail'>
-			<div class='line-header'>|Товари от доставчици|*</div>
-			[#Receipts#]
-		</div>
-		
-		<!--ET_BEGIN Transfers-->
-		<div class='line-detail'>
-			<div class='line-header'>|Доставки|*</div>
-			[#Transfers#]
-		</div>
-		<!--ET_END Transfers-->
-	</div>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <!--ET_END header-->
+    <div class='scrolling-holder'>
+        <div>
+            <div class='line-header'>[#title#]</div>
+            <table class='styled-table'>
+                <tr>
+                    <td>|Начало|*:</td>
+                    <td>[#start#]</td>
+                </tr>
+                <tr>
+                    <td>|Дестинация|*:</td>
+                    <td>[#destination#]</td>
+                </tr>
+                <tr>
+                    <td>|Повторение|*:</td>
+                    <td>[#repeat#]</td>
+                </tr>
+            </table>
+        </div>
+        <!--ET_BEGIN ADDITIONAL-->
+        [#ADDITIONAL#]
+        <div>
+            <div class='line-header'>|Допълнително|*</div>
+            <table class='styled-table'>
+                <!--ET_BEGIN vehicleId-->
+                <tr>
+                    <td>|Транс. средство|*:</td>
+                    <td>[#vehicleId#]</td>
+                </tr>
+                <!--ET_END vehicleId-->
+                <!--ET_BEGIN forwarderId-->
+                <tr>
+                    <td>|Транспортна фирма|*:</td>
+                    <td>[#forwarderId#]</td>
+                </tr>
+                <!--ET_END forwarderId-->
+                <!--ET_BEGIN forwarderPersonId-->
+                <tr>
+                    <td>|МОЛ|*:</td>
+                    <td>[#forwarderPersonId#]</td>
+                </tr>
+                <!--ET_END forwarderPersonId-->
+            </table>
+        </div>
+        <!--ET_END ADDITIONAL-->
+        <div style='margin-bottom:15px' class='line-detail'>
+            <div class='line-header'>|Експедиции|*</div>
+            [#Shipments#]
+        </div>
+        <div style='margin-bottom:15px' class='line-detail'>
+            <div class='line-header'>|Товари от доставчици|*</div>
+            [#Receipts#]
+        </div>
+        <!--ET_BEGIN Transfers-->
+        <div class='line-detail'>
+            <div class='line-header'>|Доставки|*</div>
+            [#Transfers#]
+        </div>
+        <!--ET_END Transfers-->
+    </div>
 </div>

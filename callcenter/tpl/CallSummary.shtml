@@ -1,57 +1,60 @@
-<div id="callSummary">
-	<table>
-		
-		<!--ET_BEGIN duration-->
-			<tr>
-				<td class='quiet' colspan=2>|Продължителност|*:</td>
-			</tr>
-			
-			<tr>	
-				<td colspan=2>[#duration#]</td>
-			</tr>
-		<!--ET_END duration-->
-		
-		<!--ET_BEGIN ANSWERED-->
-		<tr class='border-top'>
-			<td class='quiet'>|Отговорено|*:</td><td align='right'>[#ANSWERED#] |бр.|*</td>
-		</tr>
-		<!--ET_END ANSWERED-->
-		
-		<!--ET_BEGIN NO_ANSWER-->
-		<tr>
-			<td class='quiet'>|Без отговор|*:</td><td align='right'>[#NO_ANSWER#] |бр.|*</td>
-		</tr>
-		<!--ET_END NO_ANSWER-->
-		
-		<!--ET_BEGIN BUSY-->
-		<tr>
-			<td class='quiet'>|Заето|*:</td><td align='right'>[#BUSY#] |бр.|*</td>
-		</tr>
-		<!--ET_END BUSY-->
-		
-		<!--ET_BEGIN FAILED-->
-		<tr>
-			<td class='quiet'>|Прекъснато|*:</td><td align='right'>[#FAILED#] |бр.|*</td>
-		</tr>
-		<!--ET_END FAILED-->
-		
-		<!--ET_BEGIN UNKNOWN-->
-		<tr>
-			<td class='quiet'>|Неизвестно|*:</td><td align='right'>[#UNKNOWN#] |бр.|*</td>
-		</tr>
-		<!--ET_END UNKNOWN-->
-		
-		<!--ET_BEGIN OTHER-->
-			<tr>
-				<td class='quiet'>|Други|*:</td><td align='right'>[#OTHER#] |бр.|*</td>
-			</tr>
-		<!--ET_END OTHER-->
-		
-		
-		<!--ET_BEGIN TOTAL-->
-			<tr class='border-top'>
-				<td class='quiet'>|Повиквания|*:</td><td align='right'>[#TOTAL#] |бр.|*</td>
-			</tr>
-		<!--ET_END TOTAL-->
-	</table>
+<div class="callSummary">
+    <table>
+        <!--ET_BEGIN duration-->
+        <tr>
+            <td class='quiet' colspan=2>|Продължителност|*:</td>
+        </tr>
+        <tr>
+            <td colspan=2>[#duration#]</td>
+        </tr>
+        <!--ET_END duration-->
+        <!--ET_BEGIN ANSWERED-->
+        <tr class='border-top'>
+            <td class='quiet'>|Отговорено|*:</td>
+            <td class='aright'>[#ANSWERED#] |бр.|*</td>
+        </tr>
+        <!--ET_END ANSWERED-->
+        <!--ET_BEGIN REDIRECTED-->
+        <tr>
+            <td class='quiet'>|Пренасочено|*:</td>
+            <td class='aright'>[#REDIRECTED#] |бр.|*</td>
+        </tr>
+        <!--ET_END REDIRECTED-->
+        <!--ET_BEGIN NO_ANSWER-->
+        <tr>
+            <td class='quiet'>|Без отговор|*:</td>
+            <td class='aright'>[#NO_ANSWER#] |бр.|*</td>
+        </tr>
+        <!--ET_END NO_ANSWER-->
+        <!--ET_BEGIN BUSY-->
+        <tr>
+            <td class='quiet'>|Заето|*:</td>
+            <td class='aright'>[#BUSY#] |бр.|*</td>
+        </tr>
+        <!--ET_END BUSY-->
+        <!--ET_BEGIN FAILED-->
+        <tr>
+            <td class='quiet'>|Прекъснато|*:</td>
+            <td class='aright'>[#FAILED#] |бр.|*</td>
+        </tr>
+        <!--ET_END FAILED-->
+        <!--ET_BEGIN UNKNOWN-->
+        <tr>
+            <td class='quiet'>|Неизвестно|*:</td>
+            <td class='aright'>[#UNKNOWN#] |бр.|*</td>
+        </tr>
+        <!--ET_END UNKNOWN-->
+        <!--ET_BEGIN OTHER-->
+        <tr>
+            <td class='quiet'>|Други|*:</td>
+            <td class='aright'>[#OTHER#] |бр.|*</td>
+        </tr>
+        <!--ET_END OTHER-->
+        <!--ET_BEGIN TOTAL-->
+        <tr class='border-top'>
+            <td class='quiet'>|Повиквания|*:</td>
+            <td class='aright'>[#TOTAL#] |бр.|*</td>
+        </tr>
+        <!--ET_END TOTAL-->
+    </table>
 </div>

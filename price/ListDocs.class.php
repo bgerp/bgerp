@@ -39,7 +39,7 @@ class price_ListDocs extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc';
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc, Products=cat_Products';
     	
     
     
@@ -132,11 +132,11 @@ class price_ListDocs extends core_Master
      */
     function description()
     {
-    	$this->FLD('date', 'date(smartTime)', 'caption=Дата,mandatory,width=6em;');
-    	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em');
-    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,width=8em,input');
+    	$this->FLD('date', 'date(smartTime)', 'caption=Дата,mandatory');
+    	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandatory');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,input');
     	$this->FLD('vat', 'enum(yes=с ДДС,no=без ДДС)','caption=ДДС');
-    	$this->FLD('title', 'varchar(155)', 'caption=Заглавие,width=15em');
+    	$this->FLD('title', 'varchar(155)', 'caption=Заглавие');
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
@@ -210,7 +210,7 @@ class price_ListDocs extends core_Master
     	$polQuery = price_Lists::getQuery();
     	while($polRec = $polQuery->fetch()){
     		if(price_Lists::haveRightFor('read')){
-    			$options[$polRec->id] = price_Lists::getTitleById($polRec->id);
+    			$options[$polRec->id] = price_Lists::getTitleById($polRec->id, FALSE);
     		}
     	}
     	
@@ -374,6 +374,9 @@ class price_ListDocs extends core_Master
     private function calculateProductsPrice(&$data)
     {
     	$rec = &$data->rec;
+    	$rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, acc_Periods::getBaseCurrencyCode($rec->date));
+    	$rec->listRec = price_Lists::fetch($rec->policyId);
+    	
     	if(!count($rec->details->products)) return;
     	$packArr = keylist::toArray($rec->packagings);
     	
@@ -385,7 +388,16 @@ class price_ListDocs extends core_Master
     	foreach($rec->details->products as &$product){
     		
     		// Изчисляваме цената за продукта в основна мярка
-    		$product->priceM = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
+    		$displayedPrice = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date, TRUE);
+    		$vat = $this->Products->getVat($product->productId);
+    		$displayedPrice = deals_Helper::getDisplayPrice($displayedPrice, $vat, $rec->currencyRate, $rec->vat);
+    		if(!empty($rec->listRec->roundingPrecision)){
+    			$displayedPrice = round($displayedPrice, $rec->listRec->roundingPrecision);
+    		} else {
+    			$displayedPrice = deals_Helper::roundPrice($displayedPrice);
+    		}
+    		
+    		$product->priceM = $displayedPrice;
     		$productInfo = cat_Products::getProductInfo($product->productId);
     		
     		// Ако е пълен ценоразпис и има засичане на опаковките или е непълен и има опаковки
@@ -412,7 +424,6 @@ class price_ListDocs extends core_Master
 				    			$exRec->priceP = $object->priceP;
 				    			$rec->details->recs[] = $exRec;
     						} else {
-    							
     							// Всички останали опаковки са на нов ред, без цена
     							unset($object->priceM);
 			    				$rec->details->recs[] = $object;
@@ -444,10 +455,18 @@ class price_ListDocs extends core_Master
     private function calculateProductWithPack($rec, $product, $packagingRec)
     {
     	$clone = clone $product;
-    	$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packagingRec->packagingId, $rec->date);
+    	$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packagingRec->packagingId, $rec->date, TRUE);
     	if(!$price) return;
     	
     	$clone->priceP  = $packagingRec->quantity * $price;
+    	$vat = $this->Products->getVat($product->productId);
+    	$clone->priceP = deals_Helper::getDisplayPrice($clone->priceP, $vat, $rec->currencyRate, $rec->vat);
+    	if(!empty($rec->listRec->roundingPrecision)){
+    		$clone->priceP = round($clone->priceP, $rec->listRec->roundingPrecision);
+    	} else {
+    		$clone->priceP = deals_Helper::roundPrice($clone->priceP);
+    	}
+    	
     	$clone->perPack = $packagingRec->quantity;
     	$clone->eanCode = ($packagingRec->eanCode) ? $packagingRec->eanCode : NULL;
     	$clone->pack    = $packagingRec->packagingId;
@@ -482,10 +501,6 @@ class price_ListDocs extends core_Master
     	}
     	
     	foreach (array('priceP', 'priceM') as $priceFld) {
-    		$vat = ($masterRec->vat == 'yes') ? $rec->vat : 0;
-    		$price = $rec->$priceFld * (1 + $vat);
-    		$rec->$priceFld = currency_CurrencyRates::convertAmount($price, $masterRec->date, NULL, $masterRec->currencyId);
-        	
     		if($rec->$priceFld){
         		$row->$priceFld = $double->toVerbal($rec->$priceFld);
         	}
@@ -497,12 +512,15 @@ class price_ListDocs extends core_Master
     		$row->pack .= "&nbsp;({$double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
 		}
     	
+		$row->code = $varchar->toVerbal($rec->code);
+		$row->eanCode = $varchar->toVerbal($rec->eanCode);
+		
     	if($rec->measureId && $rec->priceM){
     		$row->measureId = $measureShort;
+    	} else {
+    		unset($row->productId);
+    		unset($row->code);
     	}
-    	
-    	$row->code = $varchar->toVerbal($rec->code);
-    	$row->eanCode = $varchar->toVerbal($rec->eanCode);
     	
     	return $row;
     }
@@ -538,11 +556,11 @@ class price_ListDocs extends core_Master
 	    foreach ($data->rec->products->recs as $groupId => $products1){
 			foreach ($products1 as $index => $dRec){
 				if($dRec->priceM){
-					core_Math::roundNumber($dRec->priceM, $maxDecM, 2);
+					core_Math::roundNumber($dRec->priceM, $maxDecM);
 				}
 				
 				if($dRec->priceP){
-					core_Math::roundNumber($dRec->priceP, $maxDecP, 2);
+					core_Math::roundNumber($dRec->priceP, $maxDecP);
 				}
 			}
 	    }
@@ -555,13 +573,13 @@ class price_ListDocs extends core_Master
 				$rec = $data->rec->products->recs[$groupId][$index];
 				if($row->priceM){
 					$Double->params['decimals'] = max(2, $maxDecM);
-					$rec->priceM = core_Math::roundNumber($rec->priceM, $maxDecM, 2);
+					$rec->priceM = core_Math::roundNumber($rec->priceM, $maxDecM);
 					$row->priceM = $Double->toVerbal($rec->priceM);
 				}
 				
 				if($row->priceP){
 					$Double->params['decimals'] = max(2, $maxDecP);
-					$rec->priceP = core_Math::roundNumber($rec->priceP, $maxDecP, 2);
+					$rec->priceP = core_Math::roundNumber($rec->priceP, $maxDecP);
 					$row->priceP = $Double->toVerbal($rec->priceP);
 				}
 			}
@@ -629,6 +647,7 @@ class price_ListDocs extends core_Master
      *  	- Ако са посочени определени групи, то продукта
      *  	  го показваме в първата обходена група, която е
      *  	  посочена в масива с определените групи
+     *  
      * @param array $array - Масив с информацията за продуктите
      * @param array $groupsArr - Кои групи ще се показват,
      * 							 NULL ако са всичките
@@ -751,6 +770,21 @@ class price_ListDocs extends core_Master
         return $tpl->getContent();
     }
     
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     *
+     * @param $threadId int ид на нишката
+     */
+    public static function canAddToThread($threadId)
+    {
+        // Добавяме тези документи само в персонални папки
+        $threadRec = doc_Threads::fetch($threadId);
+
+        return self::canAddToFolder($threadRec->folderId);
+    }
+
     
 	/**
      * В кои корици може да се вкарва документа

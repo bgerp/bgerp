@@ -175,11 +175,15 @@ class mp_Jobs extends core_Master
     	$rec = &$form->rec;
     	
         if(empty($rec->specId)){
-	        $specId = $mvc->getSpecByOrigin($form);
-	        $rec->specId = $specId;
-	        $form->setReadOnly('specId');
-	        
-        	if($jobRec = $mvc->getLastJob($specId, 'draft')){
+	        expect($docClass = Request::get('originClass', 'int'));
+		    expect($docId = Request::get('originDocId', 'int'));
+		    
+		    expect(cls::get($docClass) instanceof techno_Specifications);
+		    expect(cls::get($docClass)->fetch($docId));
+		    $rec->specId = $docId;
+		    $form->setReadOnly('specId');
+		    
+        	if($jobRec = $mvc->getLastJob($rec->specId, 'draft')){
         		$link = ht::createLink($mvc->getHandle($jobRec->id), array($mvc, 'single', $jobRec->id));
     			$form->setWarning('specId', "Тази спецификация има вече задание чернова|* {$link}");
     		}
@@ -238,37 +242,6 @@ class mp_Jobs extends core_Master
     			$rec->data = $data;
     		}
     	}
-    }
-    
-    
-    /**
-     * Връща ид-то на спецификацията по зададените параметри в урл-то
-     * @param core_Form $form
-     * @return int
-     */
-    private function getSpecByOrigin(&$form)
-    {
-    	expect($docClass = Request::get('originClass', 'int'));
-	    expect($docId = Request::get('originDocId', 'int'));
-	    $origin = new core_ObjectReference($docClass, $docId);
-	       
-	    if($origin->instance instanceof sales_SalesDetails){
-	        $sRec = $origin->fetch();
-	        $Class = cls::get($sRec->classId);
-	        	
-	        expect($Class instanceof techno_Specifications);
-	        $specId = $sRec->productId;
-	        $form->setDefault('quantity', $sRec->packQuantity);
-	        	
-	    } elseif($origin->haveInterface('techno_ProductsIntf')){
-	        $specId = techno_Specifications::fetchByDoc($docClass, $docId)->id;
-	    } else {
-	    	
-	    	// Небива да се стига до тук
-	        expect(FALSE);
-	    }
-	    
-	    return $specId;
     }
     
     

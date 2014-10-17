@@ -688,6 +688,9 @@ class label_Labels extends core_Master
             // Заместваме в шаблона всички данни
             $template->placeArray($row);
             
+            // Вкарваме CSS-a, като инлайн
+            $template = label_Templates::addCssToTemplate($data->rec->templateId, $template);
+            
             // Заместваме шаблона в таблицата на страницата
             $tpl->replace($template, $n);
             

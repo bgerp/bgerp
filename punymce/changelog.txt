@@ -1,0 +1,9 @@
+Version 1.0 (2008-08-22)
+	Fixed bug where the entity encoding plugin wasn't working correctly.
+	Fixed bug where the emoticons would not get converted from images properly on IE.
+	Fixed bug where IE would produce an error exception if you pressed the source button while having a image selected.
+	Fixed bug where Safari would fail if you inserted an image and switched to source mode.
+	Fixed bug where backspace produced odd results when the forceblocks plugin was enabled.
+	Fixed bug where the emoticons plugin was bleeding out an h variable in the global scope.
+	Fixed so all classes are namespaced with the mce prefix to avoid collisions.
+	Renamed DOM property of the editor to dom to be more consistent with TinyMCE (might break thirdparty plugins).

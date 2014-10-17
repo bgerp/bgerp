@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
  * Използва се по време на инициализацията на системата, при създаването на първия период
@@ -16,6 +17,18 @@ defIfNot('BASE_CURRENCY_CODE', 'BGN');
 
 
 /**
+ * Толеранс за допустимо разминаване на суми
+ */
+defIfNot('ACC_MONEY_TOLERANCE', '0.01');
+
+
+/**
+ * Колко реда да се показват в детайлния баланс
+ */
+defIfNot('ACC_DETAILED_BALANCE_ROWS', 500);
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -25,7 +38,7 @@ defIfNot('BASE_CURRENCY_CODE', 'BGN');
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,11 +51,12 @@ class acc_Setup extends core_ProtoSetup
      */
     var $version = '0.1';
     
-
+    
     /**
      * Необходими пакети
      */
     var $depends = 'currency=0.1';
+    
     
     /**
      * Мениджър - входна точка в пакета
@@ -66,71 +80,84 @@ class acc_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'acc_Lists',
-            'acc_Items',
-            'acc_Periods',
-            'acc_Accounts',
-            'acc_Limits',
-            'acc_Balances',
-            'acc_BalanceDetails',
-            'acc_Articles',
-            'acc_ArticleDetails',
-            'acc_Journal',
-            'acc_JournalDetails',
-    		'acc_OpenDeals',
-    		'acc_Features'
-        );
+        'acc_Lists',
+        'acc_Items',
+        'acc_Periods',
+        'acc_Accounts',
+        'acc_Limits',
+        'acc_Balances',
+        'acc_BalanceDetails',
+        'acc_Articles',
+        'acc_ArticleDetails',
+        'acc_Journal',
+        'acc_JournalDetails',
+        'acc_Features',
+        'migrate::removeYearInterfAndItem',
+        'migrate::updateItemNums2',
+    );
     
-
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
+        'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Баланс->Редове в детайлния баланс,unit=бр.'),
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'acc';
-
+    var $roles = array(
+        'acc',
+        array('accMaster', 'acc')
+    );
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
-            array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
-        );
-	
-	
+        array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
+        array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
+    );
+    
+    
     /**
-     * Инсталиране на пакета
+     * Настройки за Cron
      */
-    function install()
-    {
-        // Добавяне на класа за репорти
-    	core_Classes::add('acc_ReportDetails');
-    	
-        //Данни за работата на cron
-        $rec = new stdClass();
-        $rec->systemId = 'RecalcBalances';
-        $rec->description = 'Преизчисляване на баланси';
-        $rec->controller = 'acc_Balances';
-        $rec->action = 'Recalc';
-        $rec->period = 1;
-        $rec->offset = 0;
-        $rec->delay = 0;
-        $rec->timeLimit = 55;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $html .= "<li><font color='green'>Задаване по крон да преизчислява баланси</font></li>";
-        } else {
-            $html .= "<li>Отпреди Cron е бил нагласен да преизчислява баланси</li>";
-        }
-		
-        // Добавяне на роля за старши касиер
-        $html .= core_Roles::addRole('accMaster', 'acc') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
-        
-    	$html = parent::install();
-
-        return $html;
-    }
+    var $cronSettings = array(
+        array(
+            'systemId' => "Delete Items",
+            'description' => "Изтриване на неизползвани затворени пера",
+            'controller' => "acc_Items",
+            'action' => "DeleteUnusedItems",
+            'period' => 1440,
+            'timeLimit' => 100
+        ),
+        array(
+            'systemId' => "Create Periods",
+            'description' => "Създаване на нови счетоводни периоди",
+            'controller' => "acc_Periods",
+            'action' => "createFuturePeriods",
+            'period' => 1440,
+            'offset' => 60,
+        ),
+        array(
+            'systemId' => 'RecalcBalances',
+            'description' => 'Преизчисляване на баланси',
+            'controller' => 'acc_Balances',
+            'action' => 'Recalc',
+            'period' => 1,
+            'timeLimit' => 55,
+        ),
+    );
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_HistoryReport";
     
     
     /**
@@ -142,5 +169,61 @@ class acc_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Обновява номерата на перата
+     */
+    function updateItemNums2()
+    {
+        $Items = cls::get('acc_Items');
+        $itemsQuery = $Items->getQuery();
+        
+        do{
+            try {
+                $iRec = $itemsQuery->fetch();
+                
+                if($iRec === NULL) break;
+            } catch (core_exception_Expect $e) {
+                continue;
+            }
+            
+            if(cls::load($iRec->classId, TRUE)){
+                $Register = cls::get($iRec->classId);
+                
+                if($iRec->objectId) {
+                    $regRec = $Register->getItemRec($iRec->objectId);
+                    
+                    if($regRec->num != $iRec->num){
+                        $iRec->num = $regRec->num;
+                        $Items->save_($iRec, 'num');
+                    }
+                }
+            }
+        } while(TRUE);
+    }
+    
+    
+    /**
+     * Миграция, която премахва данните останали от мениджъра за годините
+     */
+    function removeYearInterfAndItem()
+    {
+        // Изтриваме интерфейса на годините от таблицата с итнерфейсите
+        if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsAccRegIntf'")){
+            core_Interfaces::delete($oldIntRec->id);
+        }
+        
+        if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsRegIntf'")){
+            core_Interfaces::delete($oldIntRec->id);
+        }
+        
+        // Изтриваме и перата за години със стария меджър 'години'
+        if($oldYearManId = core_Classes::fetchIdByName('acc_Years')){
+            if(acc_Items::fetch("#classId = '{$oldYearManId}'")){
+                acc_Items::delete("#classId = '{$oldYearManId}'");
+            }
+        }
     }
 }

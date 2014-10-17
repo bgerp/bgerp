@@ -83,7 +83,7 @@ class bnav_BnavImporter extends core_Manager {
     	
     	// Взимат се всички полета на мениджъра, в който ще се импортира
     	$Dfields = $this->mvc->selectFields();
-    	$selFields = arr::make(static::$importFields, TRUE);
+    	$selFields = arr::make(self::$importFields, TRUE);
     	
     	// За всяко поле посочено в, проверява се имали го като поле
     	// ако го има се добавя в масива с неговото наименование
@@ -203,7 +203,7 @@ class bnav_BnavImporter extends core_Manager {
     		$nRec = new stdClass();
     		$nRec->name = $measure;
     		$nRec->shortName = $measure;
-    		$uomQuery = cat_UoM::getQuery();
+    		
     		$id = cat_UoM::ifExists($measure);
     		if(!$id){
     			$id = cat_UoM::save($nRec);
@@ -256,6 +256,6 @@ class bnav_BnavImporter extends core_Manager {
      */
     public static function isApplicable($className)
     {
-    	return $className == static::$applyOnlyTo;
+    	return $className == self::$applyOnlyTo;
     }
 }

@@ -292,7 +292,7 @@ en,Фактура за про_288aa,Sale invoice
 en,Фамилен,Family
 en,Филтрирай,Filter
 en,Филтър,Filter
-en,Финанси,Finances
+en,Финанси,Finance
 en,Фирма,Company
 en,Цени,Prices
 en,Частен,Private
@@ -344,7 +344,7 @@ en,Кога?,When?
 en,Кой?,Who?
 en,Какво?,What?
 en,часа,hours
-en,мин.,min.
+en,мин.,min
 en,час,hour
 en,и,and
 en,Периодични про_b38f,Scheduled tasks
@@ -484,11 +484,11 @@ en,Карти,Cards
 en,Четци,Readers
 en,Обекти,Objects
 en,Собственици,Owners
-en,Оборотни ведом_cdde,Trial Balance
+en,Оборотни ведом_cdde,Trial balances
 en,Период,Period
 en,от,from
 en,до,to
-en,Мемориални Орд_2c4e,Memo orders
+en,Мемориални ордери,Accounting memos
 en,Журнал,Journal
 en,Списък с всичк_25ee6,List with all currencies
 en,Валута,Currency
@@ -540,8 +540,12 @@ en,По дни,Daily
 en,По часове,Hourly
 en,Без осредняване,Without averaging
 en,Осредняване,Averaging
-en,Сензор,Sensor
-en,Записи от сенз_bf0f9,Records from sensors
+en,Индикатор,Indicator
+en,Индикатори,Indicators
+en,Порт,Port
+en,Портове,Ports
+en,Контролери,Controllers
+en,Лог на индикаторите,Indicator's log
 en,Мениджър изгледи,Views manager
 en,Наблюдение,Surveillance
 en,Показания,Indications
@@ -808,7 +812,7 @@ en,Артикул,Item
 en,Свойства,Properties
 en,Стоки - други,Goods - other
 en,Добави към пот_57ea5,Add to user
-en,сек.,sec.
+en,сек.,sec
 en,Вътрешен,Internal
 en,Контакт,Contact
 en,Външен,External
@@ -849,7 +853,7 @@ en,Палитри,Palettes
 en,Задания,Assignments
 en,Задания за про_80703,Assignments for production
 en,В процес на раз_26e5,Under construction
-en,Универсален пр_b8e9,General product
+en,Универсален пр_b8e9,General Product
 en,Технолог,Technologist
 en,Мастила,Inks
 en,Покупки,Purchases
@@ -892,7 +896,7 @@ en,Брой,Number
 en,normal,normal
 en,Затворено,Closed
 en,Точки,Points
-en,Типове сигнали,Types of signals
+en,Типове сигнали,Issue types
 en,Нов вътрешен,New internal
 en,Получено на,Received on
 en,Мобилен номер,Mobile number
@@ -933,7 +937,7 @@ en,Бланка,Template
 en,Привет,Greetings
 en,Персонализаци_12704,Personalization of
 en,Първи документ,First document
-en,изпращания,Sent items
+en,изпращания,sents
 en,използване,use
 en,Използван доку_e8f2,Used document
 en,сваляния,downloads
@@ -968,7 +972,7 @@ en,Преместване на_58e9,Moving thread of documents
 en,"Моля, посочете _dd0b",Please specify where to move selected thread
 en,Използване,Using
 en,отпечатване,print
-en,входящ документ,Incoming document
+en,входящ документ,Incoming Document
 en,Съдебна регист_99ba,Court Registration
 en,Преместване на_bbc8,Moving threads of documents
 en,"Моля, посочете _1d89",Please specify where to move selected threads
@@ -998,6 +1002,9 @@ en,"Моля, посочете _abdb",Please choose where you want the document 
 en,Препратен имейл,forwarded email
 en,Артикули в кат_f7279,Products in Catalog
 en,Труд,Labor
+en,Финансова сделка,Finance Deal
+en,Авансов отчет,Petty Cash Report
+en,Служебен аванс,Petty Cash
 en,Външни услуги,Outside services
 en,Спецификация,Specification
 en,Всички потреби_ec69,All users
@@ -1011,7 +1018,7 @@ en,Предупреждение,Warning
 en,Игнорирай пред_32cc,Ignore the warning
 en,Възможно е дуб_6e72b,Possible duplication with the following person
 en,Полето трябва _35b3d,The field must contain 10 digits.
-en,Не е валидно ЕГ_50e3,Not valid Personal Number./Not valid Foreign Personal Number.
+en,Не е валидно ЕГ_50e3,Not valid EGN./Not valid Foreign Personal ID.
 en,Управители,Managers
 en,Служители,Personnel
 en,Човешки ресурси,Human Resources
@@ -1046,7 +1053,7 @@ en,Отчети за POS пр_e9fc7,Reports for POS sales
 en,Молби за отпуски,Applications for leave
 en,Командировки,Business trips
 en,Заповеди за от_0349e,Orders to leave
-en,Болнични листи,Hospital lists
+en,Болнични листи,Sick leaves
 en,ГРЕШКА В ПРИЛО_9cbdc,Application Error
 en,Без дата,No date
 en,Отработено време,Spent time
@@ -1117,35 +1124,35 @@ en,Редактиране,Edit
 en,Експортиране,Export
 en,Фирми в групата,Companies in group 
 en,Документи в ни_b50a6,Documents into the threads
-en,Вносна бележка,Deposit slip
-en,Платежно нареж_52bd,Payment order
-en,Касова обмяна _25076,Cash currency exchange
+en,Вносна бележка,Deposit Slip
+en,Платежно нареж_52bd,Payment Order
+en,Касова обмяна _25076,Cash Currency Exchange
 en,Банкова обмяна_8e6b,Bank currency exchange
-en,Вътрешен касов_c9c7,Internal cash transfer
-en,Вътрешен банко_0366,Internal bank transfer
-en,Разходен банко_9860,Outgoing bank transfer
-en,Приходен банко_ac29,Incoming bank transfer
-en,Разходен касов_5ac8,Debit cash order
-en,Приходен касов_9be4,Credit cash order
+en,Вътрешен касов_c9c7,Internal Cash Transfer
+en,Вътрешен банко_0366,Internal Bank Transfer
+en,Разходен банко_9860,Outgoing Bank Transfer
+en,Приходен банко_ac29,Incoming Bank Transfer
+en,Разходен касов_5ac8,Debit Cash Order
+en,Приходен касов_9be4,Credit Cash Order
 en,Поддържани сис_2c07,Supported systems
 en,Прототип,Prototype
 en,Позволени типове,Allowed types
 en,Няма достъпна _a3fb2,No accessible system
 en,Анкета,Survey
-en,Лабораторен тест,Laboratory test
-en,Разходна норма,Consumption norm
+en,Лабораторен тест,Laboratory Test
+en,Разходна норма,Consumption Norm
 en,Протокол за пр_2df4e,Protocol for changing LTA
 en,Пускане в експ_8dd6f,Commissioning of LTA
-en,Мемориален ордер,Order of transactions
-en,Болничен лист,Hospital list
-en,Трудов договор,Labor contract
-en,Ценоразпис,Price list
-en,Отчет за бързи _7c74,Report for quick sales
+en,Мемориален ордер,Accounting Memo
+en,Болничен лист,Sick Leave
+en,Трудов договор,Employment Contract
+en,Ценоразпис,Price List
+en,Отчет за бързи _7c74,POS Report
 en,Оферта от дост_b4b32,Supplier Quotation
-en,Експедиционно _da6c,Shipping order
-en,Циркулярно писмо,Circular letter
-en,Циркулярен имейл,Circular email
-en,Циркулярни кон_d435,Circular contacts
+en,Експедиционно _da6c,Shipping Order
+en,Циркулярно писмо,Circular Letter
+en,Циркулярен имейл,Circular Email
+en,Списък с контакти,Contact List
 en,Отпечатъци,Fingerprints
 en,Спам,Spam
 en,Разписки,Receipts
@@ -1175,7 +1182,7 @@ en,Банка,Bank
 en,Валидност,Validity
 en,Издаване,Issuance
 en,Лична карта,Identity card
-en,Служебна инфор_c0d2,Work communcations
+en,Служебна инфор_c0d2,Business information
 en,Вътрешно,Internally
 en,Фото,Picture
 en,Мобилен,Mobile
@@ -1183,7 +1190,7 @@ en,Лични комуника_9a93,Personal communications
 en,Служебни комун_382c,Work communcations
 en,Нас. място,City
 en,Пощ. код,Postal code
-en,ЕГН,Personal Number
+en,ЕГН,EGN
 en,Обръщение,Salutation
 en,Импорт,Import
 en,Рожден ден,Birthday
@@ -1197,8 +1204,8 @@ en,сподели,share
 en,Редактиране на,Edit of
 en,Наистина ли ис_9f50b,Are you sure you want to ACTIVATE the document?
 en,Сигнал,Signal
-en,Молба за отпуск,Application for leave
-en,Входящ документ,Incoming document
+en,Молба за отпуск,Leave Application
+en,Входящ документ,Incoming Document
 en,Задача,Task
 en,Добавяне на но_877ab,Adding new document to this thread
 en,са преместени в,are moved to
@@ -1242,8 +1249,8 @@ en,Циркулярни име_3d6e,Circular emails
 en,Ценоразписи,Price lists
 en,Фактури за про_aec89,Sales Invoice
 en,Списъци с конт_d23a7,Contact lists
-en,Сигнали,Signals
-en,Резолюция на с_c297a,Resolution on the signal
+en,Сигнали,Issues
+en,Резолюция на с_c297a,Issues Resolution
 en,Разходни касов_8e6a,Debit cash orders
 en,Разходни банко_a3df,Outgoing bank transfers
 en,Разходни Норми,Consumption norms
@@ -1251,7 +1258,7 @@ en,Приходни касов_b832,Credit cash orders
 en,Приходни банко_d760,Incoming bank transfers
 en,Превантивни де_876d,Preventive action
 en,Платежни нареж_731d,Payment orders
-en,Оценка на сигнал,Rating of the signal
+en,Оценка на сигнал,Issue Evaluation
 en,Оферти за покупки,Quotations for purchases
 en,Отчети за бърз_50379,Reports for quick sales
 en,Нареждане разп_4678,Cash payment order
@@ -1294,9 +1301,9 @@ en,Под меню,Sub-menu
 en,Меню,Menu
 en,Ред,Row
 en,Елементи на ме_1d410,Menu Items
-en,Освободено,Freed
-en,Събудено,Awaken
-en,Оттеглено,Withdrawed
+en,Освободено,Released
+en,Събудено,Awoken
+en,Оттеглено,Rejected
 en,Скрито,Hidden
 en,Приключено,Closed
 en,Отворено,Opened
@@ -1462,8 +1469,8 @@ en,Път,Path
 en,Път до хранилище,Path to repository
 en,Подпапка,Subfolder
 en,Няма файлове,No files
-en,Група файлове,Group of files
-en,група файлове,group of files
+en,Група файлове,File List
+en,група файлове,File List
 en,Автоматизации,Automatizations
 en,Последователи,Followers
 en,Следени,Followed
@@ -1531,8 +1538,8 @@ en,и друг документ,and other document
 en,Транспортна линия,Transport line
 en,Транспортни линии,Transport lines
 en,транспортна линия,transport line
-en,Заповед за отпуск,Leave order
-en,Командировка,Business trip
+en,Заповед за отпуск,Leave Order
+en,Командировка,Travel Order
 en,Дестинация,Destination
 en,Допълнително,Additionally
 en,Превозвач,Carrier
@@ -1614,8 +1621,8 @@ en,Липсва избор за,Missing choice for
 en,Таблица,Table
 en,Графика,Chart
 en,Професии,Professions
-en,Бюджетиране « Финанси,Budget « Finances
-en,Валути « Финанси,Currencies « Finances
+en,Бюджетиране « Финанси,Budget « Finance
+en,Валути « Финанси,Currencies « Finance
 en,ТРЗ « Персонал,Payroll « Staff
 en,Обяснение,Explanation
 en,Плащания,Payments
@@ -1684,3 +1691,4 @@ en,Вашият адрес,Your address
 en,"Моля, изберете текущ/а","Please, choose current"
 en,"Възможен е проблем с домейна","Possible problem with the domain"
 en,"Благодарим за Вашето запитване, получено на [#1#] в [#2#] чрез нашия уеб сайт.","Thank you for your inquiry received on [#1#] at [#2#] through our web site."
+en,Счетоводен признак за групиране,Accounting attribute grouping

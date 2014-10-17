@@ -1,35 +1,35 @@
 <div class="singleView email-class">
 [#SingleToolbar#]
-
-    <h3><div style="padding:5px;" class=" [#STATE_CLASS#]">|Шаблон|* <b style="color:green">[#name#]</b></div></h3>
-            <div class='scrolling-holder' style='margin-bottom: 20px'>
-            <table class="styled-table" width="99%">
-                <tr>
-                    <td class="title-style" width="150px">№</td>
-                    <td> [#id#]</td>
-                </tr>
-                <tr>
-                    <td class="title-style">|Име|*</td>
-                    <td>[#name#]</td>
-                </tr>
-                <tr>
-                    <td class="title-style">|Документ|*</td>
-                    <td>[#docClassId#]</td>
-                </tr>
-                <tr>
-                    <td class="title-style" width="150px">|Език|*</td>
-                    <td> [#lang#]</td>
-                </tr>
-                <tr>
-                    <td class="title-style" width="150px">|Видимост|*</td>
-                    <td> [#state#]</td>
-                </tr>
-            </table>
-     </div>
-       
-   <div class='scrolling-holder'>
-   [#content#]
-   </div>
-   <br>
-   <div><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
-            <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+<h3>
+    <div style="padding:5px;" class=" [#STATE_CLASS#]">|Шаблон|* <b style="color:green">[#name#]</b></div>
+</h3>
+<div class='scrolling-holder' style='margin-bottom: 20px'>
+    <table class="styled-table" style='width:99%'>
+        <tr>
+            <td class="title-style" style='width:150px'>№</td>
+            <td> [#id#]</td>
+        </tr>
+        <tr>
+            <td class="title-style">|Име|*</td>
+            <td>[#name#]</td>
+        </tr>
+        <tr>
+            <td class="title-style">|Документ|*</td>
+            <td>[#docClassId#]</td>
+        </tr>
+        <tr>
+            <td class="title-style" style='width:150px'>|Език|*</td>
+            <td> [#lang#]</td>
+        </tr>
+        <tr>
+            <td class="title-style" style='width:150px'>|Видимост|*</td>
+            <td> [#state#]</td>
+        </tr>
+    </table>
+</div>
+<div class='scrolling-holder'>
+    [#content#]
+</div>
+<br>
+<div><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
+<div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>

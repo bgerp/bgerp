@@ -23,6 +23,19 @@ class doc_Folders extends core_Master
     
     
     /**
+     * Интерфейси
+     */
+    var $interfaces = 'custom_SettingsIntf';
+    
+    
+    /**
+     * Кой може да модофицира
+     * @see custom_SettingsIntf
+     */
+    var $canModify = 'powerUser';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf';
@@ -160,43 +173,39 @@ class doc_Folders extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $data->listFilter->showFields = 'search,users,order';
-        $data->listFilter->input('search,users,order', 'silent');
-        
-    	if(!$data->listFilter->rec->users) {
-            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
-        }
-        
-        if(!$data->listFilter->rec->search) {
-            $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
-            $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
-            $data->title = 'Папките на |*<font color="green">' .
-            $data->listFilter->fields['users']->type->toVerbal($data->listFilter->rec->users) . '</font>';
-        } else {
-            $data->title = 'Търсене на папки отговарящи на |*<font color="green">"' .
-            $data->listFilter->fields['search']->type->toVerbal($data->listFilter->rec->search) . '"</font>';
-        }
-        
-        // Ограничения при показване на папките
-        static::restrictAccess($data->query);
-        
-        switch($data->listFilter->rec->order) {
-            case 'last' :
-                $data->query->orderBy('#last', 'DESC');
-            case 'pending' :
-            default :
-            $data->query->orderBy('#state=DESC,#last=DESC');
-        }
+     	// Добавяме поле във формата за търсене
+		$data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+		$data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+		// Показваме само това поле. Иначе и другите полета
+		// на модела ще се появят
+		$data->listFilter->showFields = 'search,users,order';
+		$data->listFilter->input('search,users,order', 'silent');
+		
+		if(!$data->listFilter->rec->users) {
+			$data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+		}
+		
+		if(!$data->listFilter->rec->search) {
+			$data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
+			$data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+			$data->title = 'Папките на |*<span class="green">' .
+			$data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</span>';
+		} else {
+			$data->title = 'Търсене на папки отговарящи на |*<span class="green">"' .
+			$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
+		}
+		
+		// Ограничения при показване на папките
+		static::restrictAccess($data->query);
+		switch($data->listFilter->rec->order) {
+			case 'last' :
+				$data->query->orderBy('#last', 'DESC');
+			case 'pending' :
+		default :
+				$data->query->orderBy('#state=DESC,#last=DESC');
+		}
     }
     
     
@@ -399,19 +408,33 @@ class doc_Folders extends core_Master
                 // ако имаме повече отворени теми от преди
                 if($exOpenThreadsCnt < $rec->openThreadsCnt) {
                     
-                    $msg = '|Отворени теми в|*' . " \"$rec->title\"";
+                    // id на класа
+                    $folderClassId = doc_Folders::getClassId();
                     
-                    $url = array('doc_Threads', 'list', 'folderId' => $id);
+                    // Вземаме данните
+                    $noNotificationsUsersArr = custom_Settings::fetchUsers($folderClassId, $rec->id, 'folOpenings');
                     
                     $userId = $rec->inCharge;
                     
+                    $msg = '|Отворени теми в|*' . " \"$rec->title\"";
+                    
+                    $url = array('doc_Threads', 'list', 'folderId' => $id);
+                        
                     $priority = 'normal';
                     
-                    bgerp_Notifications::add($msg, $url, $userId, $priority);
+                    // В зависимост от персонализацията избираме дали да покажим нотификацията
+                    if ($noNotificationsUsersArr[$userId] == 'yes' || ($noNotificationsUsersArr[$userId] != 'no' && (!$noNotificationsUsersArr[-1] || $noNotificationsUsersArr[-1] == 'yes'))) {                        
+                        
+                        bgerp_Notifications::add($msg, $url, $userId, $priority);
+                    }
                     
                     if($rec->shared) {
                         foreach(keylist::toArray($rec->shared) as $userId) {
-                            bgerp_Notifications::add($msg, $url, $userId, $priority);
+                            
+                            // В зависимост от персонализацията избираме дали да покажим нотификацията
+                            if ($noNotificationsUsersArr[$userId] == 'yes' || ($noNotificationsUsersArr[$userId] != 'no' && (!$noNotificationsUsersArr[-1] || $noNotificationsUsersArr[-1] == 'yes'))) {
+                                bgerp_Notifications::add($msg, $url, $userId, $priority);
+                            }
                         }
                     }
                 } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
@@ -509,6 +532,8 @@ class doc_Folders extends core_Master
     {
         $rec = new stdClass();
         $rec->coverClass = core_Classes::fetchIdByName($coverMvc);
+        
+        expect($rec->coverClass);
         
         // Задаваме няколко параметъра по подразбиране за 
         $rec->status = '';
@@ -652,28 +677,22 @@ class doc_Folders extends core_Master
      */
     static function getLanguage($id)
     {
-        //Ако няма стойност, връщаме
+        // Ако няма стойност, връщаме
         if (!$id) return ;
         
-        // Търсим езика в поздравите
-        $lg = email_Salutations::getLg($id, NULL);
-
-        // Ако сме открили езика в обръщенията
-        if ($lg) return $lg;
-        
-        //id' то на класа, който е корица
+        // id' то на класа, който е корица
         $coverClassId = doc_Folders::fetchField($id, 'coverClass');
         
-        //Името на корицата на класа
+        // Името на корицата на класа
         $coverClass = cls::getClassName($coverClassId);
         
-        //Ако корицата не е Лице или Фирма
+        // Ако корицата не е Лице или Фирма
         if (($coverClass != 'crm_Persons') && ($coverClass != 'crm_Companies')) return ;
             
-        //Вземаме държавата
+        // Вземаме държавата
         $classRec = $coverClass::fetch("#folderId = '{$id}'", 'country');
         
-        //Ако няма въведена държава
+        // Ако няма въведена държава
         if (!$classRec->country) return ;
             
         // Вземаме стринга с официалните езици
@@ -715,15 +734,11 @@ class doc_Folders extends core_Master
         $rec = new stdClass();
         $rec->inCharge = $userId;
         $rec->access = 'private';
-
-        // Ако има избрана кутия по подразбиране
-        if ($inboxId = crm_Personalization::getInboxId($userId)) {
-            
-            $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, $userId);
-        }
         
-        if ($emailOptions && $emailOptions[$inboxId]) {
-            
+        $conf = core_Packs::getConfig('email');
+        $defaultSentBox = $conf->EMAIL_DEFAULT_SENT_INBOX;
+        
+        if ($defaultSentBox && ($inboxId = email_Outgoings::getDefaultInboxId(NULL, $userId))) {
             $inboxRec = email_Inboxes::fetch($inboxId);
             
             $rec->email = $inboxRec->email;
@@ -782,15 +797,7 @@ class doc_Folders extends core_Master
             $res = core_ET::escape($title);
         } elseif (Mode::is('text', 'xhtml') || !$haveRight) {
             
-            // Ескейпваме плейсхолдърите
-            $title = core_ET::escape($title);
-            
-            // TODO може да се използва този начин вместо ескейпването
-            //$res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
-            
-            // Добаваме span с иконата и заглавиетео - не е линк
-            // TODO класа да не е linkWithIcon
-            $res = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$title} </span>";    
+            $res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
         } else {
 
             // Дали линка да е абсолютен
@@ -889,7 +896,7 @@ class doc_Folders extends core_Master
 
                         $cls = cls::get($rec->coverClass);
 
-                        if(!$cls->fetch($rec->coverId)) {
+                        if($rec->coverId && !$cls->fetch($rec->coverId)) {
                             $err[$rec->id] .= 'Not exists cover; ';
                             $projectName = "LaF " . $className . ' ' . $rec->title;
                         }
@@ -1023,5 +1030,92 @@ class doc_Folders extends core_Master
         }
         
         return $sharedUsersArr;
+    }
+    
+    
+    /**
+     * Извиква се след изчисляване на ролите необходими за дадено действие
+     * 
+     * @param doc_Folders $mvc
+     * @param string $res
+     * @param string $action
+     * @param object $rec
+     * @param integer $userId
+     */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
+    {
+        // @see custom_Settings
+        if ($action == 'modify' && $rec) {
+            if (!$mvc->haveRightFor('single', $rec)) {
+                $res = 'no_one';
+            }
+        }
+    }
+    
+    
+    /**
+     * Добавя типа на папката към полетата за търсене
+     * 
+     * @param doc_Folders $mvc
+     * @param string $searchKeywords
+     * @param object $rec
+     */
+    static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+        if (!$rec->coverClass) return ;
+        $class = cls::get($rec->coverClass);
+        $title = $class->getTitle();
+        $searchKeywords .= " " . plg_Search::normalizeText($title);
+    }
+    
+    
+    /**
+     * Интерфейсен метод на custom_SettingsIntf
+     * Подготвяме формата за персонализиране на настройките за нишката
+     * 
+     * @param core_Form $form
+     * @see custom_SettingsIntf
+     */
+    function prepareCustomizationForm(&$form)
+    {
+        // Задаваме таба на менюто да сочи към документите
+        Mode::set('pageMenu', 'Документи');
+        Mode::set('pageSubMenu', 'Всички');
+        $this->currentTab = 'Теми';
+        
+        // Определяме заглавито
+        $rec = $this->fetch($form->rec->objectId);
+        $row = $this->recToVerbal($rec, 'title');
+        $form->title = 'Настройка на|*: ' . $row->title;
+        
+        // Добавяме функционални полета
+        $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени нишки->Известяване, input=input');
+        $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
+        $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
+        
+        // Сетваме стринг за подразбиране
+        $defaultStr = 'По подразбиране|*: ';
+        
+        // Ако сме в мобилен режим, да не е хинт
+        $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
+        
+        // Сетваме стойност по подразбиране
+        $form->setParams('folOpenings', array($paramType => $defaultStr . '|Винаги'));
+        $form->setParams('perPage', array($paramType => $defaultStr . '20'));
+        $form->setParams('ordering', array($paramType => $defaultStr . '|Първо отворените'));
+    }
+    
+    
+    /**
+     * Интерфейсен метод на custom_SettingsIntf
+     * Проверява въведените данни във формата
+     * 
+     * @param core_Form $form
+     * @see custom_SettingsIntf
+     */
+    function checkCustomizationForm(&$form)
+    {
+        
+        return ;
     }
 }

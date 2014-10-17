@@ -23,7 +23,7 @@ class sens_OverviewDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Наблюдение";
     

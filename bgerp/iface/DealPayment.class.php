@@ -23,14 +23,6 @@ class bgerp_iface_DealPayment
 
 
     /**
-     * 3-буквен ISO код на валута
-     *
-     * @var string
-     */
-    public $currency;
-
-
-    /**
      * Банкова сметка (ако $method указва плащане по банков път)
      *
      * @var int key(mvc=bank_Accounts)

@@ -29,8 +29,5 @@ class budget_Wrapper extends plg_ProtoWrapper
         $this->TAB('budget_Balances', 'Баланс', 'ceo,budget');
         $this->TAB('budget_Reports', 'По подразделения / Дейности', 'ceo,budget');
         
-       
-        $this->title = 'Бюджетиране « Финанси';
-        Mode::set('menuPage', 'Финанси:Бюджетиране');
     }
 }

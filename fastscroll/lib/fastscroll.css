@@ -1,0 +1,33 @@
+/* стилове за бутоните за скролиране*/
+#scroll-to-top, #scroll-to-bottom{
+    padding:2px;
+    position:fixed;
+    width:32px;
+    height:32px;
+    opacity:0.7;
+    cursor: pointer;
+    z-index: 9999;
+    background-repeat: no-repeat;
+}
+
+#scroll-to-top{
+    bottom:65px;
+    right:30px;
+    display: none;
+    background-image:url('../../img/up-arrow.png');
+}
+
+#scroll-to-bottom{
+    bottom:40px;
+    right:30px;
+    display: none;
+    background-image:url('../../img/down-arrow.png');
+}
+
+.narrow #scroll-to-top , .narrow #scroll-to-bottom{
+    right:15px;
+}
+
+#scroll-to-top:hover, #scroll-to-bottom:hover{
+    opacity:1;
+}

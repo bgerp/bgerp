@@ -47,10 +47,6 @@ class doc_DocumentPlg extends core_Plugin
         // Ако липсва, добавяме поле за състояние
         if (!$mvc->fields['state']) {
             plg_State::setStateField($mvc);
-                
-         //    $mvc->FLD('state',
-         //           cls::get('type_Enum', array('options' => self::$stateArr)),
-         //        'caption=Състояние,column=none,input=none');
         }
         
         // Ако липсва, добавяме поле за съхранение на състоянието преди reject
@@ -92,17 +88,36 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['Changed'] = 'log_Documents';
             $mvc->details['Used'] = 'log_Documents';
         }
+        
+        // Дали могат да се принтират оттеглените документи
+        setIfNot($mvc->printRejected, FALSE);
     }
     
     
     /**
      * Изпълнява се след подготовката на единичния изглед
      * Подготвя иконата за единичния изглед
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $data
      */
-    function on_AfterPrepareSingle($mvc, &$res, $data)
+    function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
-        
+    }
+    
+    
+    /**
+     * Изпълнява се преди подготовката на единичния изглед
+     * Пушва екшъна за принтиране в лога
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $data
+     */
+    function on_BeforePrepareSingle($mvc, &$res, $data)
+    {
         if (Request::get('Printing') && empty($data->__MID__)) {
             $data->__MID__ = log_Documents::saveAction(
                 array(
@@ -125,11 +140,11 @@ class doc_DocumentPlg extends core_Plugin
                     'reject',
                     $data->rec->id
                 ),
-                'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32,title=Оттегляне на документа');
+                'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=Оттегляне на документа');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {
-            $data->toolbar->removeBtn("*");
+            $data->toolbar->removeBtn("*", (($mvc->printRejected) ? 'btnPrint' : NULL));
             $data->toolbar->addBtn('Възстановяване', array(
                     $mvc,
                     'restore',
@@ -155,9 +170,10 @@ class doc_DocumentPlg extends core_Plugin
                     'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
             }
         } else {
-            //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
             //TODO да се "премахне" и оптимизира
-            $data->toolbar->removeBtn('btnPrint');
+            if($data->rec->state == 'draft' || ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') || ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === FALSE)){
+            	$data->toolbar->removeBtn('btnPrint');
+            }
         }
 
         //Добавяме бутон за клониране ако сме посочили, кои полета ще се клонират
@@ -210,7 +226,7 @@ class doc_DocumentPlg extends core_Plugin
             $data->rejectedCnt = $data->rejQuery->count();
             
             if($data->rejectedCnt) {
-                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin fright,order=50,row=2', 'ef_icon = img/16/bin_closed.png' );
             }
         }
     }
@@ -223,7 +239,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         if(Request::get('Rejected')) {
             $data->title = new ET('[#1#]', tr($data->title));
-            $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</font>");
+            $data->title->append("&nbsp;<span class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</span>");
         }
     }
     
@@ -254,8 +270,6 @@ class doc_DocumentPlg extends core_Plugin
                 $tpl = new ET(tr(' от [#user#] на [#date#]'));
                 $row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
             }
-            
-           // bp($row);
         }
     }
     
@@ -349,7 +363,14 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако е намерен контейнера - обновява го
         if($containerId) {
-            doc_Containers::update($containerId);
+            
+            $updateAll = TRUE;
+            
+            if ($fields && !isset($fields['modifiedOn'])) {
+                $updateAll = FALSE;
+            }
+            
+            doc_Containers::update($containerId, $updateAll);
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
@@ -859,6 +880,69 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         $mvc->invoke('AfterPrepareDocumentLocation', array($data->form));
+        
+        $userListRolesArr = array();
+        
+        // Обхождаме всичко полета в модела
+        foreach ((array)$mvc->fields as $fieldName => $field) {
+            
+            // Ако са от type_Richtext
+            if ($field->type instanceof type_Richtext) {
+                $richTextFieldsArr[$fieldName] = $field;
+            } else if ($field->type instanceof type_UserList) {
+                
+                // Ако са от type_UserList
+                
+                $userListFieldsArr[$fieldName] = $field;
+                
+                // Ако са зададени роли за полето
+                if ($field->type->params['roles']) {
+                    
+                    // Масив с всички роли
+                    $userRolesArr = arr::make($field->type->params['roles'], TRUE);
+                    $userListRolesArr = array_merge($userRolesArr, $userRolesArr);
+                }
+                
+            }
+        }
+        
+        // Ако има поне едно поле от тип type_UserList
+        if (!$userListFieldsArr) {
+            $shareUserRoles = 'no_one';
+            $userRolesForShare = 'no_one';
+        } else {
+            
+            // Ако са зададени роли в type_UserList
+            if ($userListRolesArr) {
+                $shareUserRoles = implode(',', $userListRolesArr);
+            }
+        }
+        
+        // Ако има поне едно поле от тип type_Richtext
+        if ($richTextFieldsArr) {
+            
+            // Обхождаме всички ричтекст полета
+            foreach ((array)$richTextFieldsArr as $fieldName => $field) {
+                
+                // Ако не са зададени роли за споделяне в ричтекст полето 
+                if (!$mvc->fields[$fieldName]->type->params['shareUsersRoles']) {
+                    
+                    // Добавяме в параметрите ролите за споделяне
+                    $mvc->fields[$fieldName]->type->params['shareUsersRoles'] = $shareUserRoles;
+                    
+                    // Ако има роли за споделяне
+                    if ($userRolesForShare) {
+                        
+                        // Ако не са зададени в ричтекст
+                        if (!$mvc->fields[$fieldName]->type->params['userRolesForShare']) {
+                            
+                            // Добавяме ролите, които могат да споделят към потребители
+                            $mvc->fields[$fieldName]->type->params['userRolesForShare'] = $userRolesForShare;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     
@@ -874,7 +958,7 @@ class doc_DocumentPlg extends core_Plugin
         if (empty($data->form->rec->id) && $data->form->rec->threadId && $data->form->rec->originId) {
             $folderId = ($data->form->rec->folderId) ? $data->form->rec->folderId : doc_Threads::fetchField('folderId');
         	
-            if($mvc->canAddToFolder($folderId) && $mvc->onlyFirstInThread !== FALSE){
+            if(($mvc->canAddToFolder($folderId) !== FALSE) && $mvc->onlyFirstInThread !== FALSE){
             	$data->form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985','ef_icon = img/16/save_and_new.png');
             }
         }
@@ -894,7 +978,8 @@ class doc_DocumentPlg extends core_Plugin
             $fRec = doc_Folders::fetch($form->rec->folderId);
             $title = tr(mb_strtolower($mvc->singleTitle));
         	if(core_Users::getCurrent('id', FALSE)){
-        		 $title .= ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
+                list($t,) = explode('<div', doc_Folders::recToVerbal($fRec)->title);
+        		$title .= ' |в|* ' . $t;
         	}
         }
         
@@ -921,7 +1006,8 @@ class doc_DocumentPlg extends core_Plugin
             $thRec = doc_Threads::fetch($form->rec->threadId);
             
             if($thRec->firstContainerId != $form->rec->containerId) {
-                $title = tr(mb_strtolower($mvc->singleTitle)) . $in . doc_Threads::recToVerbal($thRec)->title;
+                list($t,) = explode('<div', doc_Threads::recToVerbal($thRec)->title);
+                $title = tr(mb_strtolower($mvc->singleTitle)) . $in . $t;
             }
         }
        
@@ -986,7 +1072,7 @@ class doc_DocumentPlg extends core_Plugin
             core_Users::exitSudo();
         }
         
-        // Връщаме старата стойност на 'printing' и 'text'
+        // Връщаме старата стойност на 'text'
         Mode::pop('text');
     }
     
@@ -1007,9 +1093,6 @@ class doc_DocumentPlg extends core_Plugin
     {
         expect($mode == 'plain' || $mode == 'html' || $mode == 'xhtml');
         
-        // Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
-        Mode::push('printing', TRUE);
-                
         // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
         // във формата, указан от `text` режима (plain или html)
         Mode::push('text', $mode);
@@ -1050,9 +1133,8 @@ class doc_DocumentPlg extends core_Plugin
             core_Users::exitSudo();
         }
         
-        // Връщаме старата стойност на 'printing' и 'text'
+        // Връщаме старата стойност на 'text'
         Mode::pop('text');
-        Mode::pop('printing');
     }
     
     
@@ -1097,10 +1179,17 @@ class doc_DocumentPlg extends core_Plugin
     	if ($rec->id) {
             $oRec = $mvc->fetch($rec->id);
             
-            if($action == 'delete') {
+            if ($action == 'delete') {
                 $requiredRoles = 'no_one';
             } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
                 $requiredRoles = 'no_one';
+            } elseif(($action == 'edit')) {
+            	
+            	// Ако потребителя няма достъп до сингъла, той не може и да редактира записа
+            	$haveRightForSingle = $mvc->haveRightFor('single', $rec->id, $userId);
+            	if(!$haveRightForSingle){
+            		$requiredRoles = 'no_one';
+            	}
             } elseif ($action == 'reject'  || $action == 'restore') {
                 if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     if($requiredRoles != 'no_one'){
@@ -1116,6 +1205,8 @@ class doc_DocumentPlg extends core_Plugin
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме
+                    
+                $haveRightForClone = FALSE;
                 
                 // id на първия документ
                 $firstContainerId = doc_Threads::fetch($oRec->threadId)->firstContainerId;
@@ -1124,7 +1215,7 @@ class doc_DocumentPlg extends core_Plugin
                 if ($firstContainerId == $oRec->containerId) {
                     
                     // Проверяваме за сингъл права в папката
-                    $haveRightForClone = doc_Folders::haveRightFor('single', $oRec->folderId);
+                    $haveRightForClone = doc_Folders::haveRightFor('single', $oRec->folderId, $userId);
                     
                     // Ако има права
                     if ($haveRightForClone) {
@@ -1133,12 +1224,12 @@ class doc_DocumentPlg extends core_Plugin
                         $docMvc = doc_Containers::getDocument($oRec->containerId);
                         
                         // Ако може да е начало на нишка
-                        $haveRightForClone = $docMvc->instance->canAddToFolder($oRec->folderId);
+                        $haveRightForClone = ($docMvc->instance->canAddToFolder($oRec->folderId) === FALSE) ? FALSE : TRUE;
                     }
                 } else {
                     
                     // За останалите, проверяваме за сингъл в нишката
-                    $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId);
+                    $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId, $userId);
                     
                     // Ако има права
                     if ($haveRightForClone) {
@@ -1147,20 +1238,37 @@ class doc_DocumentPlg extends core_Plugin
                         $docMvc = doc_Containers::getDocument($oRec->containerId);
                         
                         // Ако може да се добавя в нишката
-                        $haveRightForClone = $docMvc->instance->canAddToThread($oRec->threadId);
+                        $haveRightForClone = ($docMvc->instance->canAddToThread($oRec->threadId) === FALSE) ? FALSE : TRUE;
                     }
                 }
                 
                 // Ако един от двата начина върне, че имаме права
-                if ($haveRightForClone) {
+                if (!$haveRightForClone) {
                 
-                    // Задаваме права
-                    $requiredRoles = 'powerUser';
-                } else {
-                    
                     // Никой не може да клонира
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+        
+        // @see plg_Clone
+        // Ако ще се клонират данните
+        if ($rec && ($action == 'cloneuserdata')) {
+            
+            if ($rec->threadId && $rec->containerId) {
+                $tRec = doc_Threads::fetch($rec->threadId);
+                
+                // Ако е първи документ, да се клонира в нова нишка
+                if ($tRec->firstContainerId == $rec->containerId) {
+                    unset($rec->threadId);
+                }
+            }
+            
+            // Трябва да има права за добавяне
+            if (!$mvc->haveRightFor('add', $rec, $userId)) {
+                
+                // Трябва да има права за добавяне за да може да клонира
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -1344,8 +1452,13 @@ class doc_DocumentPlg extends core_Plugin
         //Превръщаме $res в масив
         $res = (array)$res;
         
-        //Вземаме данните
-        $rec = $mvc::fetch($id);
+        // Ако е обект, използваме го директно
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            //Вземаме данните
+            $rec = $mvc::fetch($id);
+        }
         
         //Обхождаме всички полета
         foreach ($mvc->fields as $field) {
@@ -1366,6 +1479,162 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща максимално допустимия размер за прикачени файлове
+     * 
+     * @param core_Mvc $mvc
+     * @param integer $min
+     */
+    function on_AfterGetMaxAttachFileSizeLimit($mvc, &$max)
+    {
+        static $maxSize;
+                
+        if (!$maxSize) {
+            if (!$max) {
+                
+                $conf = core_Packs::getConfig('email');
+                $maxAttachedLimit = $conf->EMAIL_MAX_ATTACHED_FILE_LIMIT;
+                
+                // Инстанция на класа за определяне на размера
+                $FileSize = cls::get('fileman_FileSize');
+                
+                // Вземаме размерите, които ще влияят за изпращането на файлове
+                $memoryLimit = ini_get('memory_limit');
+                
+                // Вземаме вербалното им представяне
+                $memoryLimit = $FileSize->fromVerbal($memoryLimit) / 3;
+                
+                // Вземаме мининалния размер
+                $maxSize = min($maxAttachedLimit, $memoryLimit);
+            }
+        }
+        
+        $max = $maxSize;
+    }
+    
+    
+    /**
+     * Връща вербалната стойност на размерите подадени в масива
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param array $dataArr
+     */
+    function on_AfterGetVerbalSizesFromArray($mvc, &$res, $dataArr)
+    {
+        $sizeAll = 0;
+        
+        // Събираме стойностите от масива
+        foreach ($dataArr as $size) {
+            $sizeAll += $size;
+        } 
+        
+        // Вербализираме стойността
+        $FileSize = cls::get('fileman_FileSize');
+        $res = $FileSize->toVerbal($sizeAll);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param boolean $res
+     * @param array $sizeArr
+     */
+    function on_AfterCheckMaxAttachedSize($mvc, &$res, $sizeArr)
+    {
+        $nSize=0;
+        
+        $min = $mvc->getMaxAttachFileSizeLimit();
+        
+        // Обхождаме масива
+        foreach ((array)$sizeArr as $size) {
+            
+            // Добавяме към размера
+            $nSize += $size;
+            
+            // Ако общия размер на файловете е над допустимия минимум
+            if ($nSize > $min) {
+                
+                $res = FALSE;
+                
+                return ;
+            }
+        }
+        
+        $res = TRUE;
+    }
+    
+    
+    /**
+     * Връща масив с размерите на прикачените файлове
+     * 
+     * @param core_Mvc $mvc
+     * @param array $resArr
+     * @param array $filesArr
+     */
+    function on_AfterGetFilesSizes($mvc, &$resArr, $filesArr)
+    {
+        foreach ((array)$filesArr as $fileHnd => $dummy) {
+            
+            // Вземаме метаданните за файла
+            $meta = fileman::getMeta($fileHnd);
+            
+            // Добавяме размера за този манипулатор
+            $resArr[$fileHnd] = $meta['size'];
+        }
+    }
+    
+    
+    /**
+     * Връща размера на всички подадени документи
+     * 
+     * @param core_Mvc $mvc
+     * @param array $resArr
+     * @param array $docsArr
+     */
+    function on_AfterGetDocumentsSizes($mvc, &$resArr, $docsArr)
+    {
+        foreach ((array)$docsArr as $doc) {
+            $resArr[$doc['fileName']] = $doc['doc']->getDocumentSize($doc['ext']);
+        }
+    }
+    
+    
+    /**
+     * Връща размера на документа
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param integer $id
+     * @param integer $type
+     */
+    function on_AfterGetDocumentSize($mvc, &$res, $id, $type)
+    {
+        switch (strtolower($type)) {
+            case 'pdf':
+                $res = 300000;
+            break;
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param integer $id
+     * 
+     * @see email_Incomings->on_BeforeGetTypeConvertingsByClass()
+     * @see email_Incomings->on_BeforeCheckSizeForAttach()
+     */
+    function on_AfterCheckSizeForAttach($mvc, &$res, $id)
+    {
     }
     
     
@@ -1461,9 +1730,6 @@ class doc_DocumentPlg extends core_Plugin
         
         if (strtolower($type) != 'pdf') return ;
         
-        //Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
-        Mode::push('printing', TRUE);
-        
         //Емулираме режим 'xhtml', за да покажем статичните изображения
         Mode::push('text', 'xhtml');
         
@@ -1476,8 +1742,10 @@ class doc_DocumentPlg extends core_Plugin
         //Името на класа
         $className = $fileInfo['className'];
         
+        $rec = $className::fetchByHandle($fileInfo);
+        
         //Вземаме containerId' то на документа
-        $containerId = $className::fetchField($fileInfo['id'], 'containerId');
+        $containerId = $rec->containerId;
         
         //Ако няма containerId - прескачаме
         if (!$containerId) return;
@@ -1501,9 +1769,6 @@ class doc_DocumentPlg extends core_Plugin
         
         //Връщаме старата стойност на 'text'
         Mode::pop('text');
-        
-        //Връщаме старата стойност на 'printing'
-        Mode::pop('printing');         
     }
         
     
@@ -1589,7 +1854,33 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
-    public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL)
+   /**
+    * Метод по подразбиране за намиране на прикачените картинки в документ
+    * 
+    * @param core_Mvc $mvc - 
+    * @param array $res - Масив с откритете прикачените файлове
+    * @param integer $rec - 
+    */
+    function on_AfterGetLinkedImages($mvc, &$res, $rec)
+    {
+        if (!is_object($rec)) {
+            $rec = $mvc->fetch($rec);
+        }
+        
+        // Намираме прикачените файлове
+        $res = array_merge(fileman_GalleryRichTextPlg::getImages($rec->body), (array)$res);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param array $res
+     * @param integer $id
+     * @param integer $userId
+     */
+    public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
     {
         // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
         if (!$userId) {
@@ -1618,20 +1909,6 @@ class doc_DocumentPlg extends core_Plugin
         $res = array_merge($attachedDocs, (array)$res);
         
         core_Users::exitSudo();
-    }
-
-
-    /**
-     * Връща URL към единичния изглед на мастера
-     */
-    function on_AfterGetRetUrl($mvc, &$res, $rec)
-    {
-        $master = $mvc->getMasterMvc($rec);
-        $masterKey = $mvc->getMasterKey($rec);
-
-        $url = array($master, 'single', $rec->{$masterKey});
-
-        $res = $url;
     }
     
     
@@ -1758,21 +2035,38 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Прихваща извикването на GetCloneFields от plg_Clone.
-     * Връща полетата, които трябва да се клонират.
-     * Във мениджъра могат да се добавят и другите полета - subject, body и т.н.
+     * Преди записване на клонирания запис
      * 
      * @param core_Mvc $mvc
-     * @param array $fieldsArr
+     * @param object $rec
+     * @param object $nRec
      * 
      * @see plg_Clone
      */
-    function on_GetCloneFields($mvc, &$fieldsArr)
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
-        // Добавяме полетата, които да се клонират
-        $fieldsArr['threadId'] = TRUE;
-        $fieldsArr['folderId'] = TRUE;
-        $fieldsArr['originId'] = TRUE;
+        // Премахваме ненужните полета
+        unset($nRec->searchKeywords);
+        unset($nRec->createdOn);
+        unset($nRec->createdBy);
+        unset($nRec->modifiedOn);
+        unset($nRec->modifiedBy);
+        unset($nRec->state);
+        unset($nRec->brState);
+        
+        setIfNot($thredId, $nRec->threadId, $rec->threadId);
+        setIfNot($containerId, $nRec->containerId, $rec->containerId);
+        
+        if ($thredId && $containerId) {
+            $tRec = doc_Threads::fetch($thredId);
+            
+            // Ако е първи документ, да се клонира в нова нишка
+            if ($tRec->firstContainerId == $containerId) {
+                unset($nRec->threadId);
+            }
+        }
+        
+        unset($nRec->containerId);
     }
     
     

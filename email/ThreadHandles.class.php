@@ -27,6 +27,18 @@ class  email_ThreadHandles extends core_Manager
 
 
     /**
+     * Никой не може да добавя или изтрива или променя манипулаторите
+     */
+    var $canWrite = 'no_one';
+
+
+    /**
+     * Разглеждането на манипулаторите е оставено за debug-режим
+     */
+    var $canList = 'debug';
+
+
+    /**
      * Описание полетата на модела
      */
     function description()

@@ -99,7 +99,8 @@ class cams_Cameras extends core_Master
         }
         
         if(Request::get('thumb')) {
-            $img = thumbnail_Thumbnail::resample($img, array(64));
+            $imgInst = new thumb_Img(array($img, 64, 64, 'gdRes', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
+            $img = $imgInst->getScaledGdRes();
         }
         
         header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
@@ -173,7 +174,7 @@ class cams_Cameras extends core_Master
         
         $row->title = "<b>{$row->title}</b>";
         $row->caption = new ET('[#1#]<br>', $row->title);
-        $row->caption->append("<small style='font-size:0.8em'><i>{$row->driver}</i></small>&nbsp;");
+        $row->caption->append("<small><i>{$row->driver}</i></small>&nbsp;");
         $row->caption->append(ht::createLink("<img width=16 height=16 src=" . sbf('img/16/testing.png') . ">", array($mvc, 'Settings', $rec->id)));
         
         if($driver->havePtzControl()) {

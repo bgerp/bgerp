@@ -16,7 +16,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class blast_ListDetails extends core_Detail
+class blast_ListDetails extends doc_Detail
 {
     /**
      * Плъгини за зареждане
@@ -342,24 +342,6 @@ class blast_ListDetails extends core_Detail
         
         return $fieldsArr;
     }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, необходимо за това действие
-     */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
-    {        
-        // Ако листа не е използван никъде тогава може да се изтрива
-        if ($action == 'delete') {
-            
-            // Ако сме използвали листа в имейл, който сме активирали
-            if (blast_Emails::fetch("#listId = '{$rec->listId}' AND #state != 'draft'")) {
-                
-                // Никой да не може да изтрива потребител. Само да може да се редактира
-                $roles = 'no_one';     
-            }
-        }
-    }
 
     
     /**
@@ -441,13 +423,13 @@ class blast_ListDetails extends core_Detail
         
         foreach($fieldsArr as $name => $caption) {
             $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
-            $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
+            $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure, NULL, FALSE)");
             $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,'{$caption}')");
             
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
         $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
-        $exp->question("#priority", tr("Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето") . " <font color=green>'" . $fieldsArr[$listRec->keyField] . "'</font> ?", TRUE, 'title=' . tr('Приоритет на данните'));
+        $exp->question("#priority", tr("Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето") . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", TRUE, 'title=' . tr('Приоритет на данните'));
         
         $exp->question($qFields, tr("Въведете съответстващите полета") . ":", TRUE, 'title=' . tr('Съответствие между полетата на източника и списъка'));
         
@@ -619,7 +601,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Връща масив с опции - заглавията на колоните
      */
-    static function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL)
+    static function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL, $escape=TRUE)
     {
         if(is_array($csvData)) {
             $rowsOrig = $csvData;
@@ -647,7 +629,11 @@ class blast_ListDetails extends core_Detail
         
         //Ескейпваме стойностите
         foreach ($rowArr as $key => $value) {
-            $rowArr[$key] = core_Type::escape($value);
+            if ($escape) {
+                $rowArr[$key] = core_Type::escape($value);
+            } else {
+                $rowArr[$key] = $value;
+            }
         }
         
         if(!count($rowArr)) return array();
@@ -683,7 +669,7 @@ class blast_ListDetails extends core_Detail
             
             foreach($mvc->fields as $field => $dummy) {
                 
-                $type = $mvc->fields[$field]->type;
+                $type = $mvc->getFieldType($field);
                 
                 if ($type instanceof type_Key) {
                     $value = $mvc->getVerbal($cRec, $field);

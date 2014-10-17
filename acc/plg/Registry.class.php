@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,8 +28,8 @@ class acc_plg_Registry extends core_Plugin
         $mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
         $mvc->fetchFieldsBeforeDelete['id'] = 'id';
     }
-
-
+    
+    
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
@@ -39,10 +39,11 @@ class acc_plg_Registry extends core_Plugin
             return;
         }
         
-        if ($suggestions = static::getSelectableLists($mvc)) {
+        // Могат да се избират номенклатури от формата само ако не е наследник на core_Master и има номенклатури за избор
+        if (!($mvc instanceof core_Master) && $suggestions = self::getSelectableLists($mvc)) {
             $data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name,maxColumns=1)', 'caption=Номенклатури->Избор,input,remember');
             $data->form->setSuggestions('lists', $suggestions);
-    
+            
             if ($data->form->rec->id) {
                 $data->form->setDefault('lists',
                     keylist::fromArray(acc_Lists::getItemLists($mvc, $data->form->rec->id)));
@@ -50,7 +51,7 @@ class acc_plg_Registry extends core_Plugin
         }
     }
     
-
+    
     /**
      * След промяна на обект от регистър
      *
@@ -75,22 +76,11 @@ class acc_plg_Registry extends core_Plugin
         
         // Обединяваме номенклатурите в които се записва обекта, с тези
         // в които вече е участва или неучаства
-    	$objectList = acc_Items::fetchField("#classId = {$mvc->getClassId()} AND #objectId = {$id}", 'lists');
+        $objectList = acc_Items::fetchField("#classId = {$mvc->getClassId()} AND #objectId = {$id}", 'lists');
         $rec->lists = keylist::merge($rec->lists, $objectList);
-    	
+        
         if(empty($fieldList) || $fieldListArr['lists']) {
             acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-        }
-    }
-    
-    
-    /**
-     * Преди изтриване се обновяват перата
-     */
-    function on_AfterDelete($mvc, &$res, $query)
-    {
-        foreach ($query->getDeletedRecs() as $rec) {
-            acc_Lists::updateItem($mvc, $rec->id, NULL);
         }
     }
     
@@ -116,7 +106,6 @@ class acc_plg_Registry extends core_Plugin
         return $suggestions;
     }
     
-    
     /**
      * Дали поддържа екстендъри
      */
@@ -125,12 +114,26 @@ class acc_plg_Registry extends core_Plugin
         return isset($mvc->_plugins['groups_Extendable']);
     }
     
-    
     /**
      * Дали има детайл
      */
     protected static function hasDetail($mvc, $detailAlias, $detailName = NULL)
     {
         return $mvc instanceof core_Master && $mvc->hasDetail($detailAlias, $detailName);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+        if($res != 'no_one' && $action == 'delete' && isset($rec)){
+            if(acc_Items::fetchItem($mvc->getClassId(), $rec->id)){
+                
+                // Не може да се изтрива ако обекта вече е перо
+                $res = 'no_one';
+            }
+        }
     }
 }

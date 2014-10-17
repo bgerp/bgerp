@@ -69,6 +69,18 @@ class store_Stores extends core_Master
 
 	
 	/**
+	 * Кой може да пише
+	 */
+	var $canReject = 'ceo, storeMaster';
+	
+	
+	/**
+	 * Кой може да пише
+	 */
+	var $canRestore = 'ceo, storeMaster';
+	
+	
+	/**
      * Детайла, на модела
      */
     var $details = 'AccReports=acc_ReportDetails';
@@ -172,11 +184,12 @@ class store_Stores extends core_Master
         $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('chiefs', 'userList(roles=store|ceo)', 'caption=Отговорници,mandatory');
+        $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Товарачи');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
         $this->FLD('strategy', 'class(interface=store_iface_ArrangeStrategyIntf)', 'caption=Стратегия');
     	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
-    	$this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
+    	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
     }
     
     
@@ -208,28 +221,10 @@ class store_Stores extends core_Master
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->id,
+                'num' => "St" . $rec->id,
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec = $self->fetch($objectId)) {
-        	$result = $self->getHyperlink($objectId);
-        } else {
-            $result = '<i>' . tr('неизвестно') . '</i>';
         }
         
         return $result;
@@ -287,9 +282,13 @@ class store_Stores extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'select' && $rec){
-    		$cu = core_Users::getCurrent();
-    		if(keylist::isIn($cu, $rec->chiefs) || keylist::isIn($cu, $rec->workersIds)){
-    			$res = 'ceo,storeWorker';
+    		
+    		// Ако не може да избира склада, проверяваме дали е складов работник, и имали още тази роля
+    		if($res == 'no_one'){
+    			$cu = core_Users::getCurrent();
+    			if(keylist::isIn($cu, $rec->workersIds) && haveRole($mvc->getFieldType('workersIds')->getRoles())){
+    				$res = 'ceo,storeWorker';
+    			}
     		}
     	}
     }
@@ -348,5 +347,14 @@ class store_Stores extends core_Master
     			$row->locationId = crm_Locations::getHyperLink($rec->locationId);
     		}
     	}
+    }
+    
+    
+    /**
+     * Поставя изискване да се селектират само активните записи
+     */
+    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    {
+    	$where .= ($where ? " AND " : "") . " #state != 'rejected'";
     }
 }

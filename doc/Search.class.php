@@ -77,9 +77,9 @@ class doc_Search extends core_Manager
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->title = 'Tърсене на документи';
+        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=100%,caption=Обхват');
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
-        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=100%,caption=Обхват');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
         
         // Търсим дали има посочена или текуща
@@ -108,7 +108,7 @@ class doc_Search extends core_Manager
         
         $data->listFilter->setDefault('author', 'all_users');
 
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass, state, author, fromDate, toDate';
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input(NULL, 'silent');
@@ -242,10 +242,16 @@ class doc_Search extends core_Manager
              */
             
             // Ако ще се филтира по състояни и текущия потребител (автор)
-            if ($filterRec->state && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
+            if ($filterRec->state) {
+                
+                $url = array($mvc, 'state' => $filterRec->state);
+                
+                // Ако се филтрира по текущия автор
+                if ($filterRec->author && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
+                    $url['author'] = core_Users::getCurrent();
+                }
                 
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние
-                $url = array($mvc, 'state' => $filterRec->state, 'author' => core_Users::getCurrent());
                 bgerp_Notifications::clear($url);
             }
         } else {
@@ -279,8 +285,12 @@ class doc_Search extends core_Manager
         // Ако няма информация, да не се изпълнява
         if (!$info || !$info['className'] || !$info['id']) return ;
         
+        $className = $info['className'];
+        
+        $rec = $className::fetchByHandle($info);
+        
         // Ако имаме права за сингъла и ако има такъв документ, да се редиректне там
-        redirect(array($info['className'], 'single', $info['id']));
+        redirect(array($info['className'], 'single', $rec->id));
     }
     
     

@@ -37,7 +37,7 @@ class trz_Orders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, trz_Wrapper, trz_LeavesWrapper, 
+    var $loadList = 'plg_RowTools, trz_Wrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
     				 plg_Printing, doc_plg_BusinessDoc,bgerp_plg_Blank';
     
@@ -215,7 +215,6 @@ class trz_Orders extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	//bp($data->form->fields[personId]);
     	$nowYear = dt::mysql2Verbal(dt::now(),'Y');
     	for($i = 0; $i < 5; $i++){
     		$years[] = $nowYear - $i;
@@ -269,13 +268,28 @@ class trz_Orders extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if(doc_Threads::haveRightFor('add', $data->сrec->threadId) == FALSE){
+        if(doc_Threads::haveRightFor('add', $data->rec->threadId) == FALSE){
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
         
     }
     
     
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     *
+     * @param $threadId int ид на нишката
+     */
+    public static function canAddToThread($threadId)
+    {
+        // Добавяме тези документи само в персонални папки
+        $threadRec = doc_Threads::fetch($threadId);
+
+        return self::canAddToFolder($threadRec->folderId);
+    }
+
+
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка 

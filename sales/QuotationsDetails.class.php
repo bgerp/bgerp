@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.11
  */
-class sales_QuotationsDetails extends core_Detail {
+class sales_QuotationsDetails extends doc_Detail {
     
     
     /**
@@ -63,7 +63,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals, doc_plg_HidePrices, plg_SaveAndNew';
     
     
     /**
@@ -107,13 +107,13 @@ class sales_QuotationsDetails extends core_Detail {
     	$this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'input=hidden,caption=Политика,silent,oldFieldName=productManId');
-    	$this->FLD('quantity', 'double(Min=0)', 'caption=К-во,width=8em;');
-    	$this->FLD('price', 'double', 'caption=Ед. цена, input,width=8em');
-        $this->FLD('discount', 'percent(maxDecimals=2)', 'caption=Отстъпка,width=8em');
-        $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
-    	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,width=8em;');
+    	$this->FLD('quantity', 'double(Min=0)', 'caption=К-во');
+    	$this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input');
+        $this->FLD('discount', 'percent(maxDecimals=2)', 'caption=Отстъпка');
+        $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс;');
+    	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
-        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,width=10em');
+        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,remember');
     }
     
     
@@ -140,16 +140,16 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	// Подготовка за показване на задължителнтие продукти
-    	deals_Helper::fillRecs($notOptional, $masterRec, static::$map);
+    	deals_Helper::fillRecs($mvc, $notOptional, $masterRec, static::$map);
     	
     	if(empty($data->noTotal)){
     		
     		// Запомня се стойноста и ддс-то само на опционалните продукти
-    		$data->summary = deals_Helper::prepareSummary($masterRec->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
     	}
     	
     	// Подготовка за показване на опционалните продукти
-    	deals_Helper::fillRecs($optional, $masterRec, static::$map);
+    	deals_Helper::fillRecs($mvc, $optional, $masterRec, static::$map);
     	$recs = $notOptional + $optional;
     	
     	// Изчисляване на цената с отстъпка
@@ -193,7 +193,7 @@ class sales_QuotationsDetails extends core_Detail {
 	   		$products = array();
 	   		$products[$rec->productId] = $productName;
 	    } else {
-	    	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $masterRec->originId);
+	    	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
 	    }
 	   
         $form->setDefault('optional', 'no');
@@ -235,7 +235,6 @@ class sales_QuotationsDetails extends core_Detail {
 	    			
 	    			return;
 	    		}
-	    		
 	    	}
 	    	
     		if($rec->optional == 'no' && !$rec->quantity){
@@ -256,31 +255,24 @@ class sales_QuotationsDetails extends core_Detail {
 	    	}
 	    	
 	    	if(!$rec->price){
-	    		$price = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, NULL, $rec->quantity, $masterRec->date);
+	    		$Policy = $ProductMan->getPolicy();
+	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, NULL, $rec->quantity, $masterRec->date, $masterRec->currencyRate, $masterRec->chargeVat);
 	    		
 	    		if(!$price->price){
 	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
 	    		}
+	    		
 	    		$rec->price = $price->price;
-	    	} else {
 	    		
-	    		// Ако има цена, тя се конвертира до основна валута без ддс
-	    		$rec->price = $mvc->getBasePrice($rec->price, $masterRec->currencyRate, $rec->vatPercent, $masterRec->chargeVat);
+	    		if($price->discount){
+	    			$rec->discount = $price->discount;
+	    		}
 	    	}
-    	}
-    }
-    
-    
-    /**
-     * Помощна ф-я обръщаща въведената цена в основна валута без ддс
-     */
-    private function getBasePrice($price, $currencyRate, $vatPercent, $chargeVat)
-    {
-    	if($chargeVat == 'yes'){
-	    	$price = $price / (1 + $vatPercent);
+	    	
+	    	// Обръщаме в основна валута без ддс
+	    	$vat = cls::get($rec->classId)->getVat($rec->productId);
+	    	$rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 	    }
-	    		
-	    return $price * $currencyRate;
     }
     
     
@@ -296,7 +288,7 @@ class sales_QuotationsDetails extends core_Detail {
             
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
-            	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $masterRec->containerId);
+            	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
                 
             	// Ако е спецификация и офертата е генерирана от нейния драйвер
             	// тази спецификация може винаги да се добавя в офертата
@@ -456,7 +448,6 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	// Закачане на JS
-        jquery_Jquery::enable($tpl);
         $tpl->push('sales/js/ResizeQuoteTable.js', 'JS');
         jquery_Jquery::run($tpl, "resizeQuoteTable();");
         
@@ -558,8 +549,8 @@ class sales_QuotationsDetails extends core_Detail {
     		} else {
     			
     			// Ако няма извлича се цената от спецификацията
-    			$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, $dRec->classId, NULL, $dRec->quantity, $rec->date);
-    			$dRec->price = $price->price;
+    			$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, $dRec->classId, NULL, $dRec->quantity, $rec->date)->price;
+    			$dRec->price = deals_Helper::getPurePrice($price, $dRec->vatPercent, $rec->currencyRate, $rec->chargeVat);
     		}
     		
     		$dRec->optional = 'no';
@@ -580,5 +571,18 @@ class sales_QuotationsDetails extends core_Detail {
     	$productRec = $ProductMan->fetch($rec->productId);
     	$productRec->lastUsedOn = dt::now();
     	$ProductMan->save_($productRec);
+    }
+    
+    
+   /**
+    * Помощна ф-я обръщаща въведената цена в основна валута без ддс
+    */
+    private function getBasePrice($price, $currencyRate, $vatPercent, $chargeVat)
+    {
+    	if($chargeVat == 'yes'){
+			$price = $price / (1 + $vatPercent);
+    	}
+    	
+    	return $price * $currencyRate;
     }
 }

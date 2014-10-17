@@ -24,11 +24,11 @@ class pos_Wrapper extends plg_ProtoWrapper
     {
     	$this->TAB('pos_Points', 'Точки на продажба', 'ceo,pos');
         $this->TAB('pos_Receipts', 'Бележки за продажба', 'ceo,pos');
-        $this->TAB('pos_Favourites', 'Бързи бутони', 'ceo,pos');
         $this->TAB('pos_Reports', 'Отчети', 'ceo,pos');
         $this->TAB('pos_Stocks', 'Наличности', 'ceo,pos');
-        $this->TAB('pos_Payments', 'Средства за плащане', 'ceo,pos');
-        $this->TAB('pos_Cards', 'Клиентски карти', 'ceo,pos');
+        $this->TAB('pos_Favourites', 'Настройки->Бързи бутони', 'ceo,pos');
+        $this->TAB('pos_FavouritesCategories', 'Настройки->Категории', 'ceo,pos');
+        $this->TAB('pos_Cards', 'Настройки->Клиентски карти', 'ceo,pos');
         
         $this->title = 'Точки на продажба';
     }

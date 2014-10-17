@@ -32,6 +32,18 @@ defIfNot('CALLCENTER_DEVIATION_BETWEEN_TIMES', '3600');
 
 
 /**
+ * Услуга за изпращане на SMS
+ */
+defIfNot('CALLCENTER_SMS_SERVICE', '');
+
+
+/**
+ * Данни за изпращача
+ */
+defIfNot('CALLCENTER_SMS_SENDER', '');
+
+
+/**
  * Инсталиране/Деинсталиране на мениджъри свързани с callcenter модула
  *
  * @category  bgerp
@@ -73,11 +85,15 @@ class callcenter_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     var $systemActions = array(
-           
        'Актуализиране' => array ('callcenter_Numbers', 'update', 'ret_url' => TRUE),
-    
     );
     
+    
+    /**
+     * Път до css файла
+     */
+//    var $commonCSS = 'callcenter/css/callSummary.css';
+   
     
     /**
      * Описание на конфигурационните константи
@@ -88,6 +104,8 @@ class callcenter_Setup extends core_ProtoSetup
        'CALLCENTER_MAX_CALL_DURATION' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Максимално време на продължителност на разговорите->Време, width=100px'),
        'CALLCENTER_DEVIATION_BETWEEN_TIMES' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Допустимото отклонение при регистриране на обажданията->Време, width=100px'),
        'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar', 'caption=Разрешени IP адреси от които да се регистрира обаждане->IP адрес'),
+       'CALLCENTER_SMS_SERVICE' => array('class(interface=callcenter_SentSMSIntf, select=title, allowEmpty)', 'caption=Изпращане на SMS->Услуга'),
+       'CALLCENTER_SMS_SENDER' => array('varchar', 'caption=Изпращане на SMS->Изпращач'),
     );
     
     
@@ -144,5 +162,37 @@ class callcenter_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+
+    /**
+     * Проверява дали услугата позволява съответния изпращач
+     * 
+     * @return string
+     */
+    function checkConfig()
+    {
+        $conf = core_Packs::getConfig('callcenter');
+        
+        // Ако не е зададена услуга или изпращач
+        if ((!$conf->CALLCENTER_SMS_SERVICE) || (!$conf->CALLCENTER_SMS_SENDER)) return ;
+        
+        // Инстанция на услугата
+        $inst = cls::get($conf->CALLCENTER_SMS_SERVICE);
+        
+        // Параметри на услугата
+        $paramsArr = $inst->getParams();
+        
+        // Ако не са зададени позволение имена за изпращач
+        if (!$paramsArr['allowedUserNames']) return ;
+        
+        // Ако изпращача не е в допустимите
+        if (!$paramsArr['allowedUserNames'][$conf->CALLCENTER_SMS_SENDER]) {
+            
+            // Стринг с позволените
+            $allowedUsers = implode(', ', $paramsArr['allowedUserNames']);
+            
+            return "Невалиден изпращач. Позволените са: {$allowedUsers}";
+        }
     }
 }

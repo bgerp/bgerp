@@ -28,14 +28,20 @@ class email_Wrapper extends plg_ProtoWrapper
         // Ако имаме права ceo
         // Да е първия таб
         if (haveRole('ceo')) {
-            $this->TAB('email_Incomings', 'Входящи', 'admin, ceo');
-        } else {
-            $this->TAB('email_Returned', 'Входящи', 'admin, ceo');
+            $this->TAB('email_Incomings', 'Входящи->Съобщения', 'ceo');
+        } 
+        if (haveRole('admin,email')) {
+            $this->TAB('email_Returned', 'Входящи->Върнати', 'admin,email');
+            $this->TAB('email_Receipts', 'Входящи->Разписки', 'admin,email');
+            $this->TAB('email_Spam', 'Входящи->Спам', 'admin,email');
+            $this->TAB('email_Unparsable', 'Входящи->Непарсируеми', 'admin,email');
+            $this->TAB('email_Fingerprints', 'Входящи->Отпечатъци', 'admin,email');
         }
         
         $this->TAB('email_Inboxes', 'Кутии', 'ceo, admin, user');
-        $this->TAB('email_Accounts', 'Сметки', 'admin');
-        $this->TAB('email_Filters', 'Рутиране', 'admin, debug');
+        $this->TAB('email_Accounts', 'Акаунти', 'admin');
+        $this->TAB('email_Filters', 'Рутиране->Потребителски правила', 'admin, debug');
+        $this->TAB('email_Router', 'Рутиране->Автоматично рутиране', 'admin, debug');
         $this->TAB('email_Salutations', 'Обръщения', 'debug');
         $this->TAB('email_ThreadHandles', 'Манипулатори', 'debug');
 

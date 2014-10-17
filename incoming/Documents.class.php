@@ -15,10 +15,12 @@
  */
 class incoming_Documents extends core_Master
 {
+    
     /**
      * Старото име на класа
      */
     var $oldClassName = 'doc_Incomings';
+    
     
     /**
      * Поддържани интерфейси
@@ -33,7 +35,7 @@ class incoming_Documents extends core_Master
     
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     var $singleTitle = 'Входящ документ';
     
@@ -87,11 +89,11 @@ class incoming_Documents extends core_Master
     
     
     /**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'powerUser';
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'powerUser';
     
-	
+    
     /**
      * Плъгини за зареждане
      */
@@ -139,11 +141,13 @@ class incoming_Documents extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'title, fileHnd, date, total, keywords';
-
+    
+    
     /**
      * Групиране на документите
-     */ 
-    var $newBtnGroup = "1.6|Общи";
+     */
+    var $newBtnGroup = "18.6|Други";
+    
     
     /**
      * Описание на модела
@@ -152,28 +156,27 @@ class incoming_Documents extends core_Master
     {
         $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory, recently');
         $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory');
-        $this->FLD('number', 'varchar', 'caption=Номер, width=50%');
+        $this->FLD('number', 'varchar(15)', 'caption=Номер, width=50%');
         $this->FLD('date', 'date', 'caption=Дата, width=50%');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума, width=50%');
         $this->FLD('keywords', 'text', 'caption=Описание, width=100%');
         $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни, input=none');
         
         $this->setDbUnique('dataId');
-    } 
-
+    }
+    
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
-    {   
+    {
         // $tpl->replace(log_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
     }
     
     
     /**
-     * 
-     * 
+     * @todo Чака за документация...
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -182,7 +185,7 @@ class incoming_Documents extends core_Master
         $titleSuggestions['Платежно нареждане'] = 'Платежно нареждане';
         $titleSuggestions['Товарителница'] = 'Товарителница';
         $data->form->prependSuggestions('title', $titleSuggestions);
-
+        
         // Манупулатора на файла
         $fileHnd = $mvc->db->escape(Request::get('fh'));
         
@@ -214,16 +217,16 @@ class incoming_Documents extends core_Master
                         
                         // Вземаме cid'a на баркода
                         $cid = log_Documents::getDocumentCidFromURL($barcodeObj->code);
-
+                        
                         // Ако не може да се намери cid, прескачаме
                         if (!$cid) continue;
-    
+                        
                         // Попълваме описанието за файла
-                        $data->form->setDefault('title', "Сканиран");    
+                        $data->form->setDefault('title', "Сканиран");
                         
                         // Вземаме данните за контейнера
                         $cRec = doc_Containers::fetch($cid);
-    
+                        
                         // Задаваме папката и нишката
                         $data->form->rec->folderId = $cRec->folderId;
                         $data->form->rec->threadId = $cRec->threadId;
@@ -235,23 +238,23 @@ class incoming_Documents extends core_Master
                     
                     // Ако сме открили съвпадение, прекъсваме цикъла
                     if ($cid) break;
-                }    
+                }
             }
-
+            
             // Попълваме описанието за файла
-            $data->form->setDefault('keywords', $keyWords);    
+            $data->form->setDefault('keywords', $keyWords);
             
             // Файла да е избран по подразбиране
             $data->form->setDefault('fileHnd', $fileHnd);
             
             // Файла да е само за четене
-//            $data->form->setReadOnly('fileHnd'); // TODO след като се промени core_FieldSet
+            //            $data->form->setReadOnly('fileHnd'); // TODO след като се промени core_FieldSet
         }
     }
     
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     function on_AfterInputEditForm($mvc, $form)
     {
@@ -274,21 +277,21 @@ class incoming_Documents extends core_Master
                     $title = static::getVerbal($dRec, 'title');
                     
                     // Създаваме линк към single'a на документа
-                    $link = ht::createLink($title, array($mvc, 'single', $dRec->id));    
+                    $link = ht::createLink($title, array($mvc, 'single', $dRec->id));
                     
                     // Добавяме към съобщението за грешка самия линк
                     $error .= ": {$link}";
                 }
                 
                 // Задаваме съобщението за грешка
-                $form->setError('fileHnd', $error);    
+                $form->setError('fileHnd', $error);
             }
         }
     }
-
+    
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     function on_BeforeSave(&$invoker, &$id, &$rec)
     {
@@ -301,22 +304,22 @@ class incoming_Documents extends core_Master
     /**
      * Връща ключовите думи на документа
      * @todo Да се реализира
-     * 
+     *
      * @return;
      */
     static function getKeywords($fileHnd)
     {
         
         return "test {$fileHnd}";
-    }  
+    }
     
     
     /**
      * Създава документ от сканиран файл
-     * 
+     *
      * @param fileHnd $fh - Манупулатора на файла, за който ще се създаде документ
      * @param integer $containerId - doc_Containers id' то на файла
-     * 
+     *
      * @return integer $id - id' то на записания документ
      */
     static function createFromScannedFile($fh, $containerId)
@@ -326,10 +329,10 @@ class incoming_Documents extends core_Master
         
         // id' то на данните на докуемента
         $dataId = $fRec->dataId;
-
+        
         // Ако има документ със същото id
         if (static::fetch("#dataId = '{$dataId}'")) {
-
+            
             return ;
         }
         
@@ -359,9 +362,9 @@ class incoming_Documents extends core_Master
     
     /**
      * Връща прикачения файл в документа
-     * 
+     *
      * @param mixed $rec - id' то на записа или самия запис, в който ще се търси
-     * 
+     *
      * @return arrray - Масив името на файла и манипулатора му (ключ на масива)
      */
     function getAttachments($rec)
@@ -384,7 +387,7 @@ class incoming_Documents extends core_Master
     }
     
     
-	/**
+    /**
      * Реализация  на интерфейсния метод ::getThreadState()
      */
     static function getThreadState($id)
@@ -394,7 +397,7 @@ class incoming_Documents extends core_Master
     
     
     /**
-     * 
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     function getDocumentRow($id)
     {
@@ -404,13 +407,13 @@ class incoming_Documents extends core_Master
         $row = new stdClass();
         
         $row->title = $this->getVerbal($rec, 'title');
-
+        
         $row->author = $this->getVerbal($rec, 'createdBy');
         
         $row->authorId = $rec->createdBy;
         
         $row->state = $rec->state;
-
+        
         $row->recTitle = $rec->title;
         
         return $row;
@@ -428,30 +431,30 @@ class incoming_Documents extends core_Master
     }
     
     
-	/**
-	 * Връща файла, който се използва в документа
-     * 
+    /**
+     * Връща файла, който се използва в документа
+     *
      * @param object $rec - Запис
      */
-     function getLinkedFiles($rec)
-     {
-         // Ако не е обект
-         if (!is_object($rec)) {
-             
-             // Извличаваме записа
-             $rec = $this->fetch($rec);    
-         }
-         
-         // Вземаме записите за файла
-         $fRec = fileman_Files::fetchByFh($rec->fileHnd);
-         
-         // Добавяме в масива манипулатора и името на файла
-         $fhArr[$rec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
-         
-         return $fhArr;
-     }
-     
-     
+    function getLinkedFiles($rec)
+    {
+        // Ако не е обект
+        if (!is_object($rec)) {
+            
+            // Извличаваме записа
+            $rec = $this->fetch($rec);
+        }
+        
+        // Вземаме записите за файла
+        $fRec = fileman_Files::fetchByFh($rec->fileHnd);
+        
+        // Добавяме в масива манипулатора и името на файла
+        $fhArr[$rec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
+        
+        return $fhArr;
+    }
+    
+    
     /**
      * Показва меню от възможности за създаване на входящи документие
      */
@@ -495,7 +498,7 @@ class incoming_Documents extends core_Master
                     $tpl->append("\n<tr><td>");
                     $tpl->append(ht::createBtn($arr['title'], array($arr['class'], $arr['action'], 'fh' => $fh, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($arr['icon'], '') . ");width:100%;text-align:left;"));
                     $tpl->append("</td></tr>");
-                }    
+                }
             }
         }
         
@@ -508,16 +511,16 @@ class incoming_Documents extends core_Master
     
     /**
      * В кои корици може да се вкарва документа
-     * 
+     *
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf');
+        return array('doc_ContragentDataIntf');
     }
     
     
-	 /**
+    /**
      * Може ли входящ документ да се добави в посочената папка?
      * Входящи документи могат да се добавят само в папки с корица контрагент.
      *
@@ -527,8 +530,7 @@ class incoming_Documents extends core_Master
     public static function canAddToFolder($folderId)
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
-    
+        
         return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     }
- 
 }

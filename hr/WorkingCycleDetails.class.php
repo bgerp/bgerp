@@ -15,19 +15,25 @@
 class hr_WorkingCycleDetails extends core_Detail
 {
     
+    
     /**
      * Заглавие
      */
     var $title = "Работни цикли - детайли";
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $singleTitle = "Работен цикъл";
-    
-    
-    var $masterKey = 'cycleId';
     
     /**
      * @todo Чака за документация...
+     */
+    var $masterKey = 'cycleId';
+    
+    
+    /**
+     * Страница от менюто
      */
     var $pageMenu = "Персонал";
     
@@ -36,70 +42,71 @@ class hr_WorkingCycleDetails extends core_Detail
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_SaveAndNew, plg_RowZebra';
-
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
     var $listFields = 'day,mode=Режим,start,duration,break';
     
+    /**
+     * @todo Чака за документация...
+     */
     var $rowToolsField = 'day';
-
     
-
+    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'ceo,hr';
-
-
-
+    
+    
     /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('cycleId', 'key(mvc=hr_WorkingCycles,select=name)', 'column=none');
-
+        
         $this->FLD('day', 'int', 'caption=Ден,mandatory');
         $this->FLD('start', 'time(suggestions=00:00|01:00|02:00|03:00|04:00|05:00|06:00|07:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|19:00|20:00|21:00|22:00|23:00,format=H:M)', 'caption=Начало');
         $this->FLD('duration', 'time(suggestions=00|6:00|6:30|7:00|7:30|8:00|8:30|9:00|9:30|10:00|10:30|11:00|11:30|12:00)', 'caption=Времетраене');
         $this->FLD('break',    'time(suggestions=00|0:30|00:45|1:00|00)', 'caption=Почивка');
-
     }
+    
     
     /**
      * Подготовката на формата за въвеждане
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
- 
+        
         $data->form->setOptions('day', $mvc->getDayOptions($data->masterRec, $data->form->rec->day));
-
-
     }
-
     
-	/**
+    
+    /**
      * Подготовка на бутоните на формата за добавяне/редактиране.
      */
     function on_AfterPrepareEditToolbar($mvc, &$res, $data)
-    {           	
-    	if(count($data->form->fields['day']->options) <= 1) {
-    		$data->form->toolbar->removeBtn('saveAndNew');
-    	}
+    {
+        if(count($data->form->fields['day']->options) <= 1) {
+            $data->form->toolbar->removeBtn('saveAndNew');
+        }
     }
-
+    
     
     /**
      * Сортиране
      */
     function on_AfterPrepareListFilter($mvc, &$data)
     {
-
+        
         $data->query->orderBy('#day');
     }
-
-
-
+    
+    
     /**
-     *
+     * @todo Чака за документация...
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -117,7 +124,6 @@ class hr_WorkingCycleDetails extends core_Detail
             $type = 'дневен';
         }
         
-
         $row->mode = tr($type);
     }
     
@@ -135,17 +141,16 @@ class hr_WorkingCycleDetails extends core_Detail
     static public function getWorkingShiftType($start, $duration)
     {
         
+        $night = self::getSection($start, $duration, 21 * 60 * 60, 8 * 60 * 60);
         
-    	$night = self::getSection($start, $duration, 21*60*60, 8*60*60);
+        $first = self::getSection($start, $duration, 5 * 60 * 60, 8 * 60 * 60);
         
-        $first = self::getSection($start, $duration, 5*60*60, 8*60*60);
+        $second = self::getSection($start, $duration, 13 * 60 * 60, 8 * 60 * 60);
         
-        $second = self::getSection($start, $duration, 13*60*60, 8*60*60);
+        $normal = self::getSection($start, $duration, 9 * 60 * 60, 8 * 60 * 60);
         
-        $normal = self::getSection($start, $duration, 9*60*60, 8*60*60);
-                
         $max = max($night, $first, $second, $normal);
-       
+        
         if($duration == 0) {
             $shiftType = 0;
         }elseif($max == $night) {
@@ -157,10 +162,9 @@ class hr_WorkingCycleDetails extends core_Detail
         } elseif ($max == $normal) {
             $shiftType = 4;
         }
-
+        
         return $shiftType;
     }
-
     
     
     /**
@@ -168,17 +172,17 @@ class hr_WorkingCycleDetails extends core_Detail
      * За периодите се очаква, че са задаени в часове:минути формат
      */
     static function getSection($start1, $duration1, $start2, $duration2)
-    {   
+    {
         
         $start = max($start1, $start2);
         $end = min($start1 + $duration1, $start2 + $duration2);
-
+        
         $sec = max(0, $end - $start);
-
+        
         return (int) $sec;
     }
-
-
+    
+    
     /**
      * Връща опциите за дните
      */
@@ -189,19 +193,19 @@ class hr_WorkingCycleDetails extends core_Detail
         }
         
         $query = self::getQuery();
+        
         while($rec = $query->fetch(array("#cycleId = [#1#]", $mRec->id))) {
             if($day != $rec->day) {
                 unset($opt[$rec->day]);
             }
         }
-
+        
         return $opt;
     }
-
-
-
+    
+    
     /**
-     *
+     * @todo Чака за документация...
      */
     function on_AfterGetRequiredRoles($mvc, &$roles, $act, $rec, $user = NULL)
     {
@@ -209,12 +213,11 @@ class hr_WorkingCycleDetails extends core_Detail
             if($rec->cycleId) {
                 $cnt = hr_WorkingCycleDetails::count("#cycleId = {$rec->cycleId}");
                 $maxCnt = hr_WorkingCycles::fetchField($rec->cycleId, 'cycleDuration');
+                
                 if($cnt >= $maxCnt) {
                     $roles = 'no_one';
                 }
             }
-        } 
+        }
     }
-
-
 }

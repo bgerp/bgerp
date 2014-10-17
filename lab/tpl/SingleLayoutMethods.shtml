@@ -1,28 +1,12 @@
 <div class='singleView'>
-[#SingleToolbar#]
-                 <!-- BEGIN container -->  
-               
-
-					<h2 class='[#STATE_CLASS#]'>|Метод|*:&nbsp;&nbsp;&nbsp;[#name#]</h2>
-		
-					 <div class='label'>|Оборудване|*: <b>[#equipment#]</b></div> 
-	                          
-	                         <div class='label'>|Параметър|*: <b>[#paramId#]</b></div>
-	
-	                      <!-- END Блок ляво -->   
-	                           
-	                      
-	                     <!-- BEGIN Блок долу --> 
-	                     <div class='clear_l f_left'>
-	                        <b>|Описание|*:</b>
-	                        <div class='clear_l' style='max-width: 500px;'>[#description#]</div>
-	                     </div>
-	                     <!-- END Блок долу -->
-	                     
-	                     <div style='clear: both;'></div>
-	                     
-	             
-                 <!-- END container -->
-                     
-                 <div style='clear: both;'></div>
-</div> 
+    [#SingleToolbar#]
+    <h2 class='[#STATE_CLASS#]'>|Метод|*:&nbsp;&nbsp;&nbsp;[#name#]</h2>
+    <div class='label'>|Оборудване|*: <b>[#equipment#]</b></div>
+    <div class='label'>|Параметър|*: <b>[#paramId#]</b></div>
+    <div class='clear_l f_left'>
+        <b>|Описание|*:</b>
+        <div class='clear_l' style='max-width: 500px;'>[#description#]</div>
+    </div>
+    <div style='clear: both;'></div>
+    <div style='clear: both;'></div>
+</div>

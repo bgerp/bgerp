@@ -1314,27 +1314,16 @@ class distro_Files extends core_Detail
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
         $rec = new stdClass();
         $rec->systemId = 'SyncFiles';
-        $rec->description = 'Синхронизира файловете в хранилищете със записите в модела';
+        $rec->description = 'Синхронизиране на файловете в хранилищата със записите в модела';
         $rec->controller = $mvc->className;
         $rec->action = 'SyncFiles';
         $rec->period = 3;
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 120;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да синхронизира файловете.</font></li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да сваля синхронизира файловете.</li>";
-        }
-        
-        return $res;
+        $res .= core_Cron::addOnce($rec);
     }
     
     
@@ -1365,7 +1354,7 @@ class distro_Files extends core_Detail
         // Манипулатора на файла
         $masterKey = Request::get($this->masterKey);
         
-        // Ескеbp(йпваме манипулатора
+        // Ескейпваме манипулатора
         $masterKey = $this->db->escape($masterKey);
         
         // Записа за съответния файл

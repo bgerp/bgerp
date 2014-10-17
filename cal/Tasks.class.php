@@ -25,13 +25,14 @@ class cal_Tasks extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg, plg_Search, change_Plugin';
+    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, 
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin';
     
 
     /**
@@ -43,7 +44,7 @@ class cal_Tasks extends core_Master
     /**
      * Какви детайли има този мастер
      */
-    var $details = 'cal_TaskProgresses';
+    var $details = 'cal_TaskProgresses, cal_TaskConditions';
 
     
     /**
@@ -61,7 +62,7 @@ class cal_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, sharedUsers';
+    var $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, afterTask, afterTaskProgress, sharedUsers';
     
     
     /**
@@ -165,15 +166,14 @@ class cal_Tasks extends core_Master
      */
     var $newBtnGroup = "1.3|Общи"; 
     
-    static $view = array (
+    static $view = array(
 						    'WeekHour' => 1,
 						    'WeekHour4' => 2,
     						'WeekHour6' => 3,
     						'WeekDay' => 4,
     						'Months' => 5,
     						'YearWeek' => 6,
-    						'Years'=> 7,
-    				
+    			            'Years'=> 7,
     				);
     				
      var $filterFieldDateFrom = 'timeStart';
@@ -185,26 +185,26 @@ class cal_Tasks extends core_Master
      */
     function description()
     {
-        $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%');
+        $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable');
         $this->FLD('priority', 'enum(low=Нисък,
                                     normal=Нормален,
                                     high=Висок,
                                     critical=Критичен)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
-        $this->FLD('description',     'richtext(bucket=calTasks)', 'caption=Описание');
+        $this->FLD('description',     'richtext(bucket=calTasks)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,mandatory');
+        $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,mandatory,changable');
         
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 
             'caption=Времена->Начало, silent, changable');
         
         // Продължителност на задачата
-        $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност, changable');
+        $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable');
         
         // Краен срок на задачата
-        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',     'caption=Времена->Край, changable');
+        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable');
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -217,6 +217,18 @@ class cal_Tasks extends core_Master
         
         // Колко време е отнело изпълнението?
         $this->FLD('workingTime', 'time',     'caption=Отработено време,input=none');
+        
+         // Очакван край на задачата
+        $this->FLD('expectationTimeEnd', 'datetime', 'caption=Времена->Очакван край,input=none');
+        
+        // Очаквано начало на задачата
+        $this->FLD('expectationTimeStart', 'datetime', 'caption=Времена->Очаквано начало,input=none');
+        
+        // Изчислен старт  на задачата
+        $this->FLD('timeCalc', 'datetime', 'caption=Времена->Изчислен старт,input=none');
+        
+        // Точното време на активация на задачата
+        $this->FLD('timeActivated', 'datetime', 'caption=Времена->Активирана на,input=none');
     }
 
 
@@ -232,13 +244,12 @@ class cal_Tasks extends core_Master
         if(Mode::is('screenMode', 'narrow')){
         	$data->form->fields[priority]->maxRadio = 2;
         }
-
+        
         $rec = $data->form->rec;
  
         if($rec->allDay == 'yes') {
             list($rec->timeStart,) = explode(' ', $rec->timeStart);
         }
-        
     }
 
 
@@ -307,12 +318,12 @@ class cal_Tasks extends core_Master
         $now = dt::verbal2mysql();
         
         if(Mode::is('listTasks', 'by')) {
-            $data->query->where("#createdBy = $userId AND (#timeStart < '{$now}' || #timeStart IS NULL)");
+            $data->query->where("#createdBy = $userId");
         } else { 
-            $data->query->where("#sharedUsers LIKE '%|{$userId}|%' AND (#timeStart < '{$now}' || #timeStart IS NULL)");
+            $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
         }
 
-        $data->query->where("#state = 'active'");
+        $data->query->where("#state = 'active' OR #state = 'pending'");
         $data->query->orderBy("timeStart=DESC");
         
         // Подготвяме навигацията по страници
@@ -325,8 +336,11 @@ class cal_Tasks extends core_Master
         self::prepareListRecs($data);
  
         if (is_array($data->recs)) {
+        
             foreach($data->recs  as   &$rec) {
+            	$rec->savedState = $rec->state;
                 $rec->state = '';
+
             }    
         }
 
@@ -336,6 +350,15 @@ class cal_Tasks extends core_Master
         
         // Подготвяме редовете на таблицата
         self::prepareListRows($data);
+        
+        if  (is_array($data->recs)) {
+	        foreach ($data->recs as $id => $rec) {
+	        	$row = $data->rows[$id];
+	        	if ($rec->savedState == 'pending') {
+	        		$row->title .= '<div style="margin-left: 10px;display:inline-block;" class="stateIndicator state-pending"></div>';
+	        	}
+	        }
+        }
         
         $tpl = new ET("
             [#PortalPagerTop#]
@@ -420,15 +443,6 @@ class cal_Tasks extends core_Master
         	}
         }
     }
-    
-    
-    /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
-    {
-    	$mvc->updateTaskToCalendar($rec->id);
-    }
 
 
     /**
@@ -440,9 +454,14 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if($data->rec->state == 'active') {
+        if($data->rec->state == 'active' || $data->rec->state == 'pending') {
             $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png');
             $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2');
+        	$data->toolbar->removeBtn('btnActivate');
+        }
+        
+        if($data->rec->state == 'draft' || $data->rec->state == 'pending') {
+        	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/task-option.png, row=2');
         }
         
         // ако имаме зададена продължителност
@@ -474,7 +493,6 @@ class cal_Tasks extends core_Master
         		$data->toolbar->buttons['Активиране']->error = "Има колизия във времената на задачата";
         	}
         }
-      
     }
 
 
@@ -528,34 +546,30 @@ class cal_Tasks extends core_Master
     
     /**
 	 * 
-     * Функция, която се извиква след активирането на документа
+     * Функция, която се извиква преди активирането на документа
 	 * 
 	 * @param unknown_type $mvc
 	 * @param unknown_type $rec
 	 */
-    public static function on_AfterActivation($mvc, $rec)
+    public static function on_BeforeActivation($mvc, $rec)
     {
-    	$query = self::getQuery();
-    	
-    	if (!$rec->timeStart) {
-    		
-    		 $subscribedArr = keylist::toArray($rec->sharedUsers); 
-                if(count($subscribedArr)) { 
-                    $message = "Стартирана е задачата \"" . self::getVerbal($rec, 'title') . "\"";
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                    $customUrl = array('cal_Tasks', 'single',  $rec->id);
-                    $priority = 'normal';
-                    foreach($subscribedArr as $userId) {   
-                        if($userId > 0  &&  
-                            doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-                            bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
-                        }
-                    }
-                }
+    	// изчисляваме очакваните времена
+    	self::calculateExpectationTime($rec);
 
-            $rec->notifySent = 'yes';
+    	// проверяваме дали може да стане задачата в активно състояние
+    	$canActivate = self::canActivateTask($rec);
 
-            self::save($rec, 'notifySent');
+    	if ($canActivate->cond == TRUE) { 
+
+    		if ($canActivate->calcTime) {
+    			$rec->timeCalc = $canActivate->calcTime;
+    			$rec->state = 'pending';
+    			
+    			self::save($rec, 'timeCalc');
+    		}
+        // ако не може, задачата ставачакаща
+    	} else {
+    		$rec->state = 'pending';
     	}
     }
     
@@ -586,10 +600,7 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	
     	$cu = core_Users::getCurrent();
-    	
-       
    
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent');
@@ -747,11 +758,38 @@ class cal_Tasks extends core_Master
     }
     
     
-    static function on_AfterRenderWrapping($mvc, &$tpl)
+	/**
+     * След подготовка на сингъла
+     */
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	jquery_Jquery::enable($tpl);
+        $row = &$data->row;
+        $rec = &$data->rec;
+        
+        if ($rec->afterTaskProgress == "0") {
+            
+            $row->afterTaskProgress = "";
+        }
     }
- 
+    
+    
+ 	static function on_AfterInputChanges($mvc, &$res, $rec) 
+    {
+    	// Ако не е обект, а е подаден id
+        if (!is_object($rec)) {
+            
+            // Опитваме се да извлечем данните
+            $rec = cal_Tasks::fetch($rec);
+        }
+        
+        // Очакваме да има такъв запис
+        expect($rec, 'Няма такъв запис');
+
+    	if ($res->notifySent === 'yes') {
+    		$rec->notifySent = 'no';
+    	}
+    }
+    
     
     /**
      * Обновява информацията за задачата в календара
@@ -925,32 +963,34 @@ class cal_Tasks extends core_Master
      */
     function cron_SendNotifications()
     {
-        $query = $this->getQuery();
-        $now = dt::verbal2mysql();
-        $query->where("#state = 'active'  AND #notifySent = 'no' AND #timeStart <= '{$now}'");
-        
-        while($rec = $query->fetch()) {
-            list($date, $time) = explode(' ', $rec->timeStart);  
-            if($time != '00:00:00') {
-                $subscribedArr = keylist::toArray($rec->sharedUsers); 
-                if(count($subscribedArr)) { 
-                    $message = "Стартирана е задачата \"" . $this->getVerbal($rec, 'title') . "\"";
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                    $customUrl = array('cal_Tasks', 'single',  $rec->id);
-                    $priority = 'normal';
-                    foreach($subscribedArr as $userId) {  
-                        if($userId > 0  &&  
-                            doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-                            bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
-                        }
-                    }
-                }
-            }
+       // Обикаляме по всички чакащи задачи 
+       $query = $this->getQuery();
+       $query->where("#state = 'pending'");
+       
+	   $activatedTasks = array ();
+	   $now = dt::verbal2mysql();
 
-            $rec->notifySent = 'yes';
+	   while ($rec = $query->fetch()) { 
 
-            $this->save($rec, 'notifySent');
-        }
+	   	   // изчисляваме очакваните времена
+		   self::calculateExpectationTime($rec);
+		   // и проверяваме дали може да я активираме
+		   $canActivate = self::canActivateTask($rec);
+
+		   if ($canActivate != FALSE) { 
+		   	   if ($now >= $canActivate) {  
+				   $rec->state = 'active';
+				   $rec->timeActivated = $now;
+
+				   $activatedTasks[] = $rec;
+				       
+				   // и да изпратим нотификация на потребителите
+       			   self::doNotificationForActiveTasks($activatedTasks);
+		       }       
+		   }
+		   
+		   self::save($rec, 'state, timeActivated, expectationTimeEnd, expectationTimeStart');
+	   }    
     }
 
 
@@ -974,19 +1014,14 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "StartTasks";
-        $rec->description = "Известява за стартирани задачи";
+        $rec->description = "Известяване за стартирани задачи";
         $rec->controller = "cal_Tasks";
         $rec->action = "SendNotifications";
         $rec->period = 1;
         $rec->offset = 0;
-        
-        $Cron->addOnce($rec);
-        
-        $res .= "<li>Известяване за стартирани задачи по крон</li>";
+        $res .= core_Cron::addOnce($rec);
         
         // Създаваме, кофа, където ще държим всички прикачени файлове в задачи
         $Bucket = cls::get('fileman_Buckets');
@@ -999,8 +1034,7 @@ class cal_Tasks extends core_Master
      */
     static function getGantt ($data)
     {
-//       / bp($data);
-	    // масив с цветове
+        // масив с цветове
     	$colors = array( "#610b7d", 
 				    	"#1b7d23",
 				    	"#4a4e7d",
@@ -1163,10 +1197,8 @@ class cal_Tasks extends core_Master
 
 	    // връщаме един обект от всички масиви
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
-//bp($resTask, $res, dt::timestamp2mysql(1388527200), dt::timestamp2mysql(1393970399));
 
 	    $chart = gantt_Adapter::render($res);
-	//bp($chart);
 	
 	    return $chart;
     	
@@ -1239,15 +1271,13 @@ class cal_Tasks extends core_Master
         $ganttType = Request::get('View');
         
         // намираме го в масива
-    	$curIndex = static::$view[$ganttType];
+    	$curIndex = self::$view[$ganttType];
         
     	// следващия ще е с индекс текущия +1
     	$next = $curIndex + 1;
         
-        if ($next <= count (static::$view)) {
-       		$nextType = array_search($next, static::$view);
-       		$currUrl['Act'] = 'list';
-	        $currUrl['Chart'] = 'Gantt';
+        if ($next <= count (self::$view)) {
+       		$nextType = array_search($next, self::$view);
 	        $currUrl['View'] = $nextType;
 	       
        		$nextUrl = $currUrl;
@@ -1257,9 +1287,7 @@ class cal_Tasks extends core_Master
         $prev = $curIndex - 1;
     	
         if ($prev >= 1) {
-       		$prevType = array_search($prev, static::$view);
-       		$currUrl['Act'] = 'list';
-	        $currUrl['Chart'] = 'Gantt';
+       		$prevType = array_search($prev, self::$view);
 	        $currUrl['View'] = $prevType;
        		$prevUrl = $currUrl;
         }
@@ -1291,7 +1319,7 @@ class cal_Tasks extends core_Master
     	//       [2] - ден
     	$startExplode =  explode("-", $startTasksTime[0]);
     	$endExplode = explode("-", $endTasksTime[0]);
-    	
+
     	// иконите на стрелките
     	$iconPlus = sbf("img/16/gantt-arr-down.png",'');
     	$iconMinus = sbf("img/16/gantt-arr-up.png",'');
@@ -1514,7 +1542,7 @@ class cal_Tasks extends core_Master
 	    		
 	    		$curDate = $startTasksTime[0]. " 00:00:00"; 
 	    		$toDate = dt::addDays(3, $endTasksTime[0]). " 23:59:59"; 
-	            // bp($curDate, $toDate, );
+	            
 	    		// генерираме номерата на седмиците между началото и края
 	    		while ($curDate < $toDate){
 	    		    $color = cal_Calendar::getColorOfDay($curDate);
@@ -1613,9 +1641,11 @@ class cal_Tasks extends core_Master
     public static function calcTasksMinStartMaxEndTime ($data)
     {  
         if($data->recs){ 
-        	
+        	$data = $data->recs;
+        } 
+        if(is_array($data)){
     	// за всеки едиин запис от базата данни
-    	foreach($data->recs as $rec){ 
+    	foreach($data as $rec){ 
     		
     		if($rec->timeStart){
 	    		// ако няма продължителност на задачата
@@ -1641,6 +1671,7 @@ class cal_Tasks extends core_Master
 	    		}
     		}
     	}
+        }
     	
     	if (count($start) >= 2 && count($end) >=2) {
 	    	$startTime = min($start);
@@ -1651,7 +1682,306 @@ class cal_Tasks extends core_Master
     	}
       
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
-      }
+    
     }
 
+    
+    /**
+     * Може ли една задача да стане в състояние 'active'?
+     * 
+     * @param stdClass $rec
+     * @return date
+     */
+    static public function canActivateTask($rec)
+    {
+    	// сега
+    	$now = dt::verbal2mysql(); 
+    	$nowTimeStamp = dt::mysql2timestamp($now);
+    	// вчера
+        $yesterday = $nowTimeStamp - (24 * 60 * 60); 
+    	$yesterdayDate =  dt::timestamp2Mysql($yesterday);
+    	
+    	$calcTime = FALSE;
+    	
+        // Ако сме активирали през singleToolbar-а
+	    if ($rec->id) {
+	    	$query = cal_TaskConditions::getQuery();
+	    	$query->where("#baseId = '{$rec->id}'");
+
+	    	while($recCond = $query->fetch()) {
+				$arrCond[] = $recCond;
+	    	}
+	    	// ако задачата е зависима
+	    	if (is_array($arrCond)) {
+    			foreach ($arrCond as $cond) { 
+    				// зависиама по прогрес
+		    		if ($cond->activationCond == "onProgress") { 
+		    			// процентите на завършване на бащината задача
+		    			$progress = self::fetchField($cond->dependId, "progress");
+		    			
+		    			// ако е равен или по голям на искания от потребутеля процент
+		    			if ($progress >= $cond->progress) {
+		    				// времето за стартирване на текущата задача е сега
+			    			$calcTime = $now; 
+			    		}
+			    	// ако ще правим изчисления по времена
+		    		} else { 
+                        // правим масив с всички изчислени времена
+		    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
+		    		} 		 
+		     	}
+		     	// взимаме и началното време на текущата задача,
+		     	// ако има такова
+		     	$timeStart = self::fetchField($rec->id, "timeStart");
+		     	
+		     	if (!$timeStart) {
+		     		// в противен случай го слагаме 0
+		     		$timeStart = 0;
+		     	}
+		     	// прибавяме го към масива
+		     	array_push($calcTimeS, $timeStart);
+		     	
+		     	// най-малкото време е времето за стартирване на текущата задача
+		     	$calcTime = min($calcTimeS);
+
+		    // задачата не е зависима от други задачи
+    		} else { 
+    			if ($rec->timeStart) {
+    				// времето за стартиране е времето оказано от потребителя
+    				$calcTime = $rec->timeStart;
+    			} else {
+    				// ако не е оказано време от потребителя - е сега
+    				$calcTime = $now;
+    			}
+    		}
+	    } elseif (!$rec->id && $rec->timeStart) { 
+    		if (is_array($arrCond)) { 
+    			foreach ($arrCond as $cond) { 
+		    		if ($cond->activationCond == "onProgress") { 
+		    			// proverka za systoqnieto ?!? 
+		    			$progress = self::fetchField($cond->dependId, "progress");
+		    			
+		    			if ($progress >= $cond->progress) {
+			    			$calcTime = $now; 
+			    		}
+		    		} else { 
+		    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
+		    		}
+		     	}
+		     	$timeStart = self::fetchField($rec->id, "timeStart");
+		     	
+		     	if (!$timeStart) {
+		     		$timeStart = 0;
+		     	}
+		     	
+		     	array_push($calcTimeS, $timeStart);
+		     	
+		     	$calcTime = min($calcTimeS);
+    			
+    		} else {
+    			$calcTime = $rec->timeStart;
+    		}
+    	} elseif (!$rec->timeStart && !$rec->id) { 
+    		$calcTime = $now;
+    	}
+    	
+    	// връщаме времето за активиране
+    	return $calcTime;
+    }
+   
+    
+    /**
+     * Правим нотификация на всички шернати потребители
+     * че е стартирана задачата
+     */
+    static public function doNotificationForActiveTasks($activatedTasks)
+    {
+    	foreach($activatedTasks as $rec) {
+
+	    	$subscribedArr = keylist::toArray($rec->sharedUsers); 
+			
+	    	if(is_array($subscribedArr)) {  
+				$message = "Стартирана е задачата \"" . self::getVerbal($rec, 'title') . "\"";
+				$url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+				$customUrl = array('cal_Tasks', 'single',  $rec->id);
+				$priority = 'normal';
+				
+				foreach($subscribedArr as $userId) {   
+					if($userId > 0  &&  
+					   doc_Threads::haveRightFor('single', $rec->threadId, $userId)) { 
+						bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
+					}
+				}
+			}
+  			
+  			$rec->notifySent = 'yes';
+
+        	self::save($rec, 'notifySent');
+        }
+    }
+    
+    
+    /**
+     * Изчисляваме новото начало за стратиране на задачата
+     * ако тя е зависима по време от някоя друга
+     * 
+     * @param stdClass $rec
+     * @param stdClass $recCond
+     */
+    static public function calculateExpectationTime (&$rec)
+    {
+    	// сега
+    	$now = dt::verbal2mysql(); 
+    	
+        // ако задачата има id следователно може да е зависима от други
+    	if($rec->id) {
+    	    $query = cal_TaskConditions::getQuery();
+	    		
+	    	$query->where("#baseId = '{$rec->id}'");
+	    		
+	    	while ($recCond = $query->fetch()) {
+	    		$arrCond[] = $recCond;
+	    	}
+	    	
+	    	if (is_array($arrCond)) { 
+	    	    foreach($arrCond as $cond) {
+	    	    	 // правим масив с всички изчислени времена
+	    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
+    	    		//$timeEnd = self::fetchField($cond->dependId, "expectationTimeEnd");
+	    	    }
+	    	  
+		     	// взимаме и началното време на текущата задача,
+		     	// ако има такова
+		     	$timeStartRec = self::fetchField($rec->id, "timeStart");
+		     	
+		     	if (!$timeStartRec) {
+		     		// в противен случай го слагаме 0
+		     		$timeStartRec = 0;
+		     	}
+		     	// прибавяме го към масива
+		     	array_push($calcTimeS, $timeStartRec);
+		     	
+		     	// най-малкото време е времето за стартирване на текущата задача
+		     	$timeStart = min($calcTimeS);
+		     	
+		     // ако не е зависима от други взимаме нейните начало и край
+	    	} else {
+	    		$timeStart = self::fetchField($rec->id, "timeStart");
+    	    	$timeEnd = self::fetchField($rec->id, "timeEnd");
+	    	}
+	    // ако няма id, то имаме директно началото и края й	
+    	} else {
+    		$timeStart = $rec->timeStart;
+    		$timeEnd = $rec->timeEnd;
+    	}
+	    
+    	// ако задачата няма начало и край
+	    if ($timeStart == NULL && $timeEnd == NULL) { 
+		    	
+			$expStart = $now;
+			$expEnd = $now;
+		    	
+		// ако задачата има начало
+		// може да определим и края й
+	    } elseif ($timeStart && !$timeEnd) {
+	    	$expStart = $timeStart;
+	   		$expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $rec->timeDuration);
+	    		
+	    // ако задачата има край
+	    // можем да кажем кога е началото й
+	    } elseif ($timeEnd && !$timeStart) {
+	    	$expEnd = $timeEnd;
+	    	$expStart = dt::timestamp2Mysql(dt::mysql2timestamp($expEnd) - $rec->timeDuration);
+	    		
+	    // ако има и начало и край
+	    // то очакваните начало и край са тези
+	    } elseif ($timeStart && $timeEnd) {
+	   		$expStart = $timeStart;
+			$expEnd = $timeEnd;
+	    }
+
+    	$rec->expectationTimeStart = $expStart;
+    	$rec->expectationTimeEnd = $expEnd;
+    	
+    	//self::save($rec, 'expectationTimeStart, expectationTimeEnd');
+    }
+        
+    
+    /**
+     * Изчисляваме новото наало за стратиране на задачата
+     * ако тя е зависима по време от някоя друга
+     * 
+     * @param stdClass $rec
+     * @param stdClass $recCond
+     */
+    static public function calculateTimeToStart ($rec, $recCond)
+    {
+    	// времето от което зависи новата задача е началото на зависимата задача
+    	// "timeCalc"
+    	$dependTimeStart = self::fetchField($recCond->dependId, "expectationTimeStart");
+    	$dependTimeEnd = self::fetchField($recCond->dependId, "expectationTimeEnd");
+    	$now = dt::verbal2mysql(); 
+
+    	if (!$dependTimeStart) { 
+    		$dependTimeStart = self::fetchField($recCond->dependId, "timeActivated");
+    	}
+    	
+    	if (!$dependTimeEnd) {
+    		$dependTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($dependTimeStart) + $recCond->timeDuration);
+    	}
+
+    	// ако имаме условие след началото на задачата
+    	if ($recCond->activationCond == 'afterTime') {
+    		// прибавяме отместването след началото
+    		$calcTime = dt::mysql2timestamp($dependTimeStart) + $recCond->distTime;
+    		$calcTimeStart = dt::timestamp2Mysql($calcTime);
+    	} elseif ($recCond->activationCond == 'beforeTime') {
+    		// в противен случай го вадим
+    		$calcTime = dt::mysql2timestamp($dependTimeStart) - $recCond->distTime;
+    		$calcTimeStart = dt::timestamp2Mysql($calcTime);
+    	} elseif ($recCond->activationCond == 'afterTimeEnd'){
+    		// прибавяме отместването в кря
+    		$calcTime = dt::mysql2timestamp($dependTimeEnd) + $recCond->distTime;
+    		$calcTimeStart = dt::timestamp2Mysql($calcTime);
+    	} else {
+    		// в противен случай го вадим
+    		$calcTime = dt::mysql2timestamp($dependTimeEnd) - $recCond->distTime;
+    		$calcTimeStart = dt::timestamp2Mysql($calcTime);
+    	}
+
+    	// ако задачата е безкрайна
+    	if (!$rec->timeStart) { 
+    		$rec->timeCalc = $calcTimeStart;
+    		self::save($rec, 'timeCalc');
+    			    	
+    		// връщаме изчисленото време
+    		return $calcTimeStart;
+    		// в противен случай гледаме коя е най-голямата дата и нея взимаме
+    	} else {
+    		
+    		if ($rec->timeStart > $calcTimeStart) {
+    			$rec->timeCalc = $rec->timeStart;
+    			self::save($rec, 'timeCalc');
+    			
+    			return $rec->timeStart;
+    		} else {
+    			$rec->timeCalc = $calcTimeStart;
+    			self::save($rec, 'timeCalc');
+    			
+    			return $calcTimeStart;
+    		}
+    	}
+    }
+   
+    
+    /**
+     * Да се показвали бърз бутон за създаване на документа в папка
+     */
+    public function mustShowButton($folderRec, $userId = NULL)
+    {
+    	$Cover = doc_Folders::getCover($folderRec->id);
+    	 
+    	// Показваме бутона само ако корицата на папката е 'проект'
+    	return ($Cover->instance instanceof doc_UnsortedFolders) ? TRUE : FALSE;
+    }
 }

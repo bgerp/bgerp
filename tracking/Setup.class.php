@@ -44,7 +44,7 @@ defIfNot('CMD', '');
 /**
  * Клас 'tracking_Setup'
  *
- * @category  vendors
+ * @category  bgerp
  * @package   tracking
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
@@ -89,7 +89,7 @@ class tracking_Setup extends core_ProtoSetup
             'DATA_SENDER' => array ('ip', 'mandatory, caption=Адрес на изпращач'),
             'DOMAIN' => array ('varchar(255)', 'mandatory, caption=Домейн'),
             'RESTART_PERIOD' => array ('int()', 'mandatory, caption=Период за рестарт'),
-            'PID' => array ('varchar(readonly)', 'caption=PID на процеса за слушане'),
+            'PID' => array ('varchar(readonly)', 'caption=PID на процеса за слушане,input=readonly,readonly'),
            // 'CMD' => array ('varchar(255)', 'input=hidden, caption=Команда на процеса'),
     );
     
@@ -98,8 +98,8 @@ class tracking_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'tracking_Log',
-            'tracking_Vehicles'
+            'tracking_Vehicles',
+            'tracking_Log'
     );
 
     /**
@@ -111,8 +111,9 @@ class tracking_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.4, 'Мониторинг', 'Tracking', 'tracking_Log', 'default', "tracking,ceo,admin"),
+            array(3.4, 'Мониторинг', 'Проследяване', 'tracking_Vehicles', 'default', "tracking,ceo,admin"),
     );
+    
     
     /**
      * Добавяне на крон
@@ -123,8 +124,6 @@ class tracking_Setup extends core_ProtoSetup
         $conf = core_Packs::getConfig('tracking');
     
         // Наглася Cron да стартира приемача на данни
-        $Cron = cls::get('core_Cron');
-    
         $rec = new stdClass();
         $rec->systemId = "trackingWatchDog";
         $rec->description = "Грижа приемача на данни да е пуснат";
@@ -132,18 +131,20 @@ class tracking_Setup extends core_ProtoSetup
         $rec->action = "WatchDog";
         $rec->period = (int) $conf->RESTART_PERIOD / 60;
         $rec->offset = 0;
-    
-        if ($Cron->addOnce($rec)) {
-            $html .= "<li><font color='green'>Задаване по крон WatchDog tracking</font></li>";
+        $html .= core_Cron::addOnce($rec);
+
+        if ($pid = self::Start()) {
+            $html .= "<li class='green'>Стартиран слушач за тракерите - pid={$pid}</li>";
         } else {
-            $html .= "<li>Отпреди Cron е бил нагласен за WatchDog tracking</li>";
+            $html .= "<li>Процеса за тракерите е стартиран от преди това.</li>";
         }
     
         $html .= parent::install();
     
         return $html;
     }
-
+    
+    
     /**
      * Проверява дали е пуснат сървиса, и ако не е го пуска
      *
@@ -153,9 +154,8 @@ class tracking_Setup extends core_ProtoSetup
     public function cron_WatchDog()
     {
         if (!self::isStarted()) {
-            self::Start(); echo ("Startiran");
+            self::Start();
         }
-        echo ("OK");
         /* 
          * @todo: На определено време е добре сървиса да се рестартира.
          */
@@ -192,13 +192,13 @@ class tracking_Setup extends core_ProtoSetup
      */
     private static function Stop()
     {
-        $conf = core_Packs::getConfig('tracking');
-        
-        if (!empty($conf->PID)) {
-            posix_kill($conf->PID, 9);
+        $pid = core_Packs::getConfigKey('tracking', 'PID');
+
+        if (!empty($pid)) {
+            $res = posix_kill($pid, 9);
         }
-    
-        return (TRUE);
+        
+        return ($res);
     }
     
     
@@ -235,6 +235,13 @@ class tracking_Setup extends core_ProtoSetup
      */
     function deinstall()
     {
+        // Спираме процеса
+        if (TRUE === self::Stop()) {
+            $res = "Успешно спрян процес.";
+        } else {
+            $res = "Неуспешно спрян процес.";
+        }
+        
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
         

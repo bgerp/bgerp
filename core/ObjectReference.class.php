@@ -1,0 +1,179 @@
+<?php
+
+
+
+/**
+ * Указател към обект от зададен клас, евентуално приведен (cast) към зададен интерфейс.
+ *
+ *
+ * @category  ef
+ * @package   core
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class core_ObjectReference
+{
+    
+    
+    /**
+     * От кой клас е обекта, към който сочи указателя
+     *
+     * @var string име на клас
+     */
+    var $className;
+    
+    
+    /**
+     * Данни, които уникално идентифицират обект от класа.
+     *
+     * Това може да бъде първичния ключ на модела (id от БД). Също може да е цял запис от модела.
+     * Зависи от конкретния интерфейс.
+     *
+     * Ако е зададен интерфейс, тази стойност се поставя като първи параметър при извикването
+     * на същинския метод-реализация.
+     *
+     * @var mixed
+     */
+    var $that;
+    
+    
+    /**
+     * Интерфейс, към който да бъде приведен обекта
+     *
+     * @var int key(mvc=core_Interfaces)
+     */
+    var $interface;
+    
+    
+    /**
+     * Инстанция на обекта, съдържащ методите-реализации
+     *
+     * @var object
+     */
+    var $instance;
+    
+    
+    /**
+     * Конструктор
+     *
+     * @param mixed $class име на клас, key(mvc=core_Classes) или инстанция на клас (т.е. обект)
+     * @param mixed $object
+     * @param string $interface име на интерфейс
+     */
+    function __construct($classId, $object, $interface = NULL)
+    {
+        $this->className = cls::getClassName($classId);
+        $this->that = $object;
+        
+        if($interface) {
+            $this->interface = $interface;
+            $this->instance = cls::getInterface($interface, $classId);
+        } else {
+            $this->instance = cls::get($classId);
+        }
+    }
+    
+    
+    /**
+     * Поставя $that в началото на списъка с аргументи и препредава контрола на същинския метод-реализация
+     *
+     * Не прави проверка, дали той съществува, защото реализацията би могла да бъде индиректна -
+     * в плъгин.
+     *
+     * @param string $method
+     * @param array $args
+     */
+    function __call($method, $args)
+    {
+        array_unshift($args, $this->that);
+        
+        return call_user_func_array(array($this->instance, $method), $args);
+    }
+    
+    
+    public function __get($property)
+    {
+        return $this->instance->{$property};
+    }
+    
+    
+    public function __isset($property)
+    {
+        return isset($this->instance->{$property});
+    }
+    
+    
+    /**
+     * Инстанция на класа на обекта, към който сочи този указател
+     * 
+     * @return int key(mvc=core_Classes)
+     */
+    public function getInstance()
+    {
+        if (is_null($this->interface)) {
+            return $this->instance;
+        }
+        
+        return $this->instance->class;
+    }
+    
+    
+    /**
+     * Поддържа ли се зададения интерфейс от тази референция?
+     * 
+     * @param string $interface
+     * @return boolean
+     */
+    public function haveInterface($interface)
+    {
+        return cls::haveInterface($interface, $this->getInstance());
+    }
+    
+    
+    /**
+     * Предизвиква събитие в класа на тази референция
+     * 
+     * @param string $event
+     * @param array $args
+     */
+    public function invoke($event, $args = array())
+    {
+    	$this->instance->invoke($event, $args);
+    }
+    
+    
+    /**
+     * Записа, към който е референция този обект
+     * 
+     * @return stdClass
+     */
+    public function rec($field = null)
+    {
+        $result = $this->getInstance()->fetchRec($this->that);
+        
+        if (!empty($field)) {
+            $result = $result->{$field};
+        }
+        
+        return $result;
+    }
+    
+    
+    /**
+     * Първичния ключ на записа, към който е референция този обект
+     * 
+     * @return int
+     */
+    public function id()
+    {
+        if (is_object($this->that)) {
+            $id = $this->that->id;
+        } else {
+            $id = $this->that;
+        }
+        
+        return $id;
+    }
+}

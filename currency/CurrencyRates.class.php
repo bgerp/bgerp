@@ -40,6 +40,12 @@ class currency_CurrencyRates extends core_Detail
     
     
     /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = "Валутен курс";
+
+    
+    /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 20;
@@ -188,24 +194,19 @@ class currency_CurrencyRates extends core_Detail
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "update_currencies_afternoon";
-        $rec->description = "Зарежда валутни курсове";
+        $rec->description = "Зареждане на валутните курсове";
         $rec->controller = "currency_CurrencyRates";
         $rec->action = "RetrieveCurrencies";
         $rec->period = 24 * 60;
         $rec->offset = 17 * 60;
-        $Cron->addOnce($rec);
+        $res .= core_Cron::addOnce($rec);
         
         unset($rec->id);
         $rec->systemId = "update_currencies_night";
         $rec->offset = 21 * 60;
-        
-        $Cron->addOnce($rec);
-        
-        $res .= "<li style='color:#660000'>На Cron са зададени update_currencies_afternoon и update_currencies_night</li>";
+        $res .= core_Cron::addOnce($rec);
     }
     
     
@@ -412,7 +413,7 @@ class currency_CurrencyRates extends core_Detail
     	
     	$difference = round(abs($givenRate - $knownRate) / min($givenRate, $knownRate) * 100);
     	if($difference > $percent) {
-		    return 'Въведения курс е много различен от текущия';
+		    return "Въведения курс е много различен от очаквания '{$knownRate}'";
 		}
 		 
 		return FALSE;

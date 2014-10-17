@@ -38,15 +38,15 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, bankAccountId, type';
+    var $listFields = 'tools=Пулт, title, bankAccountId, currency=Валута, type, blAmount=Сума';
     
     
     /**
-	 * Кое поле отговаря на кой работи с дадена сметка
-	 */
-	var $inChargeField = 'operators';
-	
-	
+     * Кое поле отговаря на кой работи с дадена сметка
+     */
+    var $inChargeField = 'operators';
+    
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -60,11 +60,23 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-	* Кой може да селектира?
-	*/
-	var $canSelect = 'ceo,bank';
-	
-	
+     * Кой може да селектира?
+     */
+    var $canSelect = 'ceo,bank';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canReject = 'ceo, bankMaster';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canRestore = 'ceo, bankMaster';
+    
+    
     /**
      * Кой може да пише?
      */
@@ -72,21 +84,21 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-	 * Кой може да селектира всички записи
-	 */
-	var $canSelectAll = 'ceo, bankMaster';
-	
-	
+     * Кой може да селектира всички записи
+     */
+    var $canSelectAll = 'ceo, bankMaster';
+    
+    
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'bank,ceo';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'bank,ceo';
+     * Кой може да го разглежда?
+     */
+    var $canList = 'bank,ceo';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'bank,ceo';
     
     
     /**
@@ -125,29 +137,25 @@ class bank_OwnAccounts extends core_Master {
      */
     var $singleIcon = 'img/16/own-bank.png';
     
-    
     /**
      * Детайли на този мастър обект
-     * 
+     *
      * @var string|array
      */
     public $details = 'AccReports=acc_ReportDetails';
-    
     
     /**
      * Кой  може да вижда счетоводните справки?
      */
     public $canReports = 'ceo,bank,acc';
     
-    
     /**
      * По кои сметки ще се правят справки
      */
     public $balanceRefAccounts = '503';
     
-    
     /**
-     * По кой итнерфейс ще се групират сметките 
+     * По кой итнерфейс ще се групират сметките
      */
     public $balanceRefGroupBy = 'bank_OwnAccRegIntf';
     
@@ -159,24 +167,79 @@ class bank_OwnAccounts extends core_Master {
     {
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
         $this->FLD('type', 'enum(current=Разплащателна,
-            					 deposit=Депозитна,
-            				     loan=Кредитна,
-            					 personal=Персонална,
-            					 capital=Набирателна)', 'caption=Тип,mandatory');
+                                 deposit=Депозитна,
+                                 loan=Кредитна,
+                                 personal=Персонална,
+                                 capital=Набирателна)', 'caption=Тип,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name, makeLinks)', 'caption=Титуляри->Име,mandatory');
         $this->FLD('together',  'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Оператори,mandatory');
+        $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
     }
     
-	
-	/**
+    
+    /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
+    function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
-    	$row->bankAccountId = ht::createLink($row->bankAccountId, array('bank_Accounts', 'single', $rec->bankAccountId));
+        $row->bankAccountId = ht::createLink($row->bankAccountId, array('bank_Accounts', 'single', $rec->bankAccountId));
+        
+        if(isset($fields['-list'])){
+            $bankItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+            $Balance = new acc_ActiveShortBalance(array('itemsAll' => $bankItem->id));
+            $rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $bankItem->id);
+            
+            $Double = cls::get('type_Double');
+            $Double->params['decimals'] = 2;
+            $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "<span>";
+            
+            if($rec->blAmount < 0){
+                $row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+            }
+        }
+        
+        $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+        $row->currency = currency_Currencies::getCodeById($currencyId);
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     */
+    static function on_AfterPrepareListFields($mvc, $data)
+    {
+        $data->listFields['blAmount'] .= ", " . acc_Periods::getBaseCurrencyCode();
+    }
+    
+    
+    /**
+     * След рендиране на лист таблицата
+     */
+    public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+        if(!count($data->rows)) return;
+        
+        foreach ($data->recs as $rec){
+            $total += $rec->blAmount;
+        }
+        
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+        $total = $Double->toVerbal($total);
+        
+        if($total < 0){
+            $total = "<span style='color:red'>{$total}</span>";
+        }
+        
+        $colspan = count($data->listFields) - 1;
+        $lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
+        $lastRow->replace(tr("Общо"), 'caption');
+        $lastRow->replace($total, 'total');
+        
+        $tpl->append($lastRow, 'ROW_AFTER');
     }
     
     
@@ -188,17 +251,17 @@ class bank_OwnAccounts extends core_Master {
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-    	$optionAccounts = $mvc->getPossibleBankAccounts();
-    	
-    	$titulars = $mvc->getTitulars();
+        $optionAccounts = $mvc->getPossibleBankAccounts();
+        
+        $titulars = $mvc->getTitulars();
         
         $data->form->setOptions('bankAccountId', $optionAccounts);
         $data->form->setSuggestions('titulars', $titulars);
-    	
+        
         // Номера на сметката не може да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts
         if($data->form->rec->id) {
-        	$data->form->setReadOnly('bankAccountId');
+            $data->form->setReadOnly('bankAccountId');
         }
     }
     
@@ -209,19 +272,20 @@ class bank_OwnAccounts extends core_Master {
      */
     function getTitulars()
     {
-    	$options = array();
-    	$groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
-    	$personQuery = crm_Persons::getQuery();
-    	$personQuery->where("#groupList LIKE '%|{$groupId}|%'");
-    	while($personRec = $personQuery->fetch()) {
-    		$options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
-    	}   	
-    	
-    	if(count($options) == 0) {
-    		return Redirect(array('crm_Persons', 'list'), NULL, 'Няма лица в група "Управители" за титуляри на "нашите сметки". Моля добавете !');
-    	}
-    	
-    	return $options;
+        $options = array();
+        $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
+        $personQuery = crm_Persons::getQuery();
+        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
+        
+        while($personRec = $personQuery->fetch()) {
+            $options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
+        }
+        
+        if(count($options) == 0) {
+            return Redirect(array('crm_Persons', 'list'), NULL, 'Няма лица в група "Управители" за титуляри на "нашите сметки". Моля добавете !');
+        }
+        
+        return $options;
     }
     
     
@@ -231,9 +295,9 @@ class bank_OwnAccounts extends core_Master {
      */
     function getPossibleBankAccounts()
     {
-    	$bankAccounts = cls::get('bank_Accounts');
-    	
-    	// Извличаме само онези сметки, които са на нашата фирма и не са
+        $bankAccounts = cls::get('bank_Accounts');
+        
+        // Извличаме само онези сметки, които са на нашата фирма и не са
         // записани в bank_OwnAccounts
         $ourCompany        = crm_Companies::fetchOurCompany();
         $queryBankAccounts = $bankAccounts->getQuery();
@@ -242,11 +306,11 @@ class bank_OwnAccounts extends core_Master {
         $options = array();
         
         while($rec = $queryBankAccounts->fetch()) {
-           if (!static::fetchField("#bankAccountId = " . $rec->id , 'id')) {
-               $options[$rec->id] = $bankAccounts->getVerbal($rec, 'iban');
-           }
+            if (!static::fetchField("#bankAccountId = " . $rec->id , 'id')) {
+                $options[$rec->id] = $bankAccounts->getVerbal($rec, 'iban');
+            }
         }
-       
+        
         return $options;
     }
     
@@ -260,19 +324,19 @@ class bank_OwnAccounts extends core_Master {
     function canAddOwnAccount()
     {
         $ourCompany = crm_Companies::fetchOurCompany();
-    	
+        
         $accountsQuery = bank_Accounts::getQuery();
-    	$accountsQuery->where("#contragentId = {$ourCompany->id}");
+        $accountsQuery->where("#contragentId = {$ourCompany->id}");
         $accountsQuery->where("#contragentCls = {$ourCompany->classId}");
         $accountsNumber = $accountsQuery->count();
-    	$ownAccountsQuery = $this->getQuery();
-    	$ownAccountsNumber = $ownAccountsQuery->count();
-    	
+        $ownAccountsQuery = $this->getQuery();
+        $ownAccountsNumber = $ownAccountsQuery->count();
+        
         if($ownAccountsNumber == $accountsNumber) {
-    		return FALSE;
-    	}
-    	
-    	return TRUE;
+            return FALSE;
+        }
+        
+        return TRUE;
     }
     
     
@@ -282,24 +346,26 @@ class bank_OwnAccounts extends core_Master {
      */
     static function getOwnAccountInfo($id = NULL)
     {
-    	if($id) {
-    		$ownAcc = static::fetch($id);
-    	} else {
-    		$ownAcc = static::fetch(static::getCurrent());
-    	}
-    	
-    	$acc = bank_Accounts::fetch($ownAcc->bankAccountId);
-    	if(!$acc->bank) {
-    		$acc->bank = bglocal_Banks::getBankName($acc->iban);
-    	}
-    	if(!$acc->bic) {
-    		$acc->bic = bglocal_Banks::getBankBic($acc->iban);
-    	}
-    	
-    	return $acc;
+        if($id) {
+            $ownAcc = static::fetch($id);
+        } else {
+            $ownAcc = static::fetch(static::getCurrent());
+        }
+        
+        $acc = bank_Accounts::fetch($ownAcc->bankAccountId);
+        
+        if(!$acc->bank) {
+            $acc->bank = bglocal_Banks::getBankName($acc->iban);
+        }
+        
+        if(!$acc->bic) {
+            $acc->bic = bglocal_Banks::getBankBic($acc->iban);
+        }
+        
+        return $acc;
     }
     
-
+    
     /**
      * Изпълнява се след въвеждането на данните от формата
      */
@@ -316,17 +382,16 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-     * Обработка на ролите 
+     * Обработка на ролите
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action)
     {
-     	if($action == 'add') {
-     		if(!$mvc->canAddOwnAccount()) {
-     			$res = 'no_one';
-     		}
-     	}
+        if($action == 'add') {
+            if(!$mvc->canAddOwnAccount()) {
+                $res = 'no_one';
+            }
+        }
     }
-    
     
     /*******************************************************************************************
      * 
@@ -342,12 +407,13 @@ class bank_OwnAccounts extends core_Master {
     static function getItemRec($objectId)
     {
         $result = NULL;
+        
         if ($rec = static::fetch($objectId)) {
-        	$account = bank_Accounts::fetch($rec->bankAccountId);
-        	$cCode = currency_Currencies::getCodeById($account->currencyId);
+            $account = bank_Accounts::fetch($rec->bankAccountId);
+            $cCode = currency_Currencies::getCodeById($account->currencyId);
             $result = (object)array(
-                'num'      => $rec->id,
-			    'title'    => $cCode . " - " . $rec->title,
+                'num'      => "B" . $rec->id,
+                'title'    => $cCode . " - " . $rec->title,
                 'features' => 'foobar' // @todo!
             );
         }
@@ -375,53 +441,64 @@ class bank_OwnAccounts extends core_Master {
      */
     static function getOwnAccounts()
     {
-    	$Iban = cls::get('iban_Type');
-    	$accounts = array();
-    	$query = static::getQuery();
-    	while($rec = $query->fetch()) {
-    		$account = bank_Accounts::fetch($rec->bankAccountId);
-    		$cCode = currency_Currencies::getCodeById($account->currencyId);
-    		$verbal = $Iban->toVerbal($account->iban);
-    		$accounts[$rec->id] = "{$cCode} - {$verbal}";
-    	}
-    	
-    	return $accounts;
+        $Iban = cls::get('iban_Type');
+        $accounts = array();
+        $query = static::getQuery();
+        
+        while($rec = $query->fetch()) {
+            $account = bank_Accounts::fetch($rec->bankAccountId);
+            $cCode = currency_Currencies::getCodeById($account->currencyId);
+            $verbal = $Iban->toVerbal($account->iban);
+            $accounts[$rec->id] = "{$cCode} - {$verbal}";
+        }
+        
+        return $accounts;
     }
     
     
-	/**
+    /**
      * Подготвя и осъществява търсене по банка, изпозлва се
      * в банковите документи
-     * @param stdClass $data 
+     * @param stdClass $data
      * @param array $fields - масив от полета в полета в които ще се
      * търси по bankId
      */
     public static function prepareBankFilter(&$data, $fields = array())
     {
-    	$data->listFilter->FNC('own', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Сметка,width=16em,silent');
-		$data->listFilter->showFields .= ',own';
-		$data->listFilter->setDefault('own', static::getCurrent('id', FALSE));
-		$data->listFilter->input();
-		if($filter = $data->listFilter->rec) {
-			if($filter->own) {
-				foreach($fields as $fld){
-					$data->query->orWhere("#{$fld} = {$filter->own}");
-				}
-			}
-		}
+        $data->listFilter->FNC('own', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Сметка,silent');
+        $data->listFilter->showFields .= ',own';
+        $data->listFilter->setDefault('own', static::getCurrent('id', FALSE));
+        $data->listFilter->input();
+        
+        if($filter = $data->listFilter->rec) {
+            if($filter->own) {
+                foreach($fields as $fld){
+                    $data->query->orWhere("#{$fld} = {$filter->own}");
+                }
+            }
+        }
     }
     
     
-	/**
-	 * Преди подготовка на резултатите
-	 */
-	function on_AfterPrepareListFilter($mvc, &$data)
-	{
-		if(!haveRole($mvc->canSelectAll)){
-			
-			// Показват се само записите за които отговаря потребителя
-			$cu = core_Users::getCurrent();
-			$data->query->where("#operators LIKE '%|{$cu}|%'");
-		}
-	}
+    /**
+     * Поставя изискване да се селектират само активните записи
+     */
+    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    {
+        $where .= ($where ? " AND " : "") . " #state != 'rejected'";
+    }
+    
+    
+    /**
+     * Преди подготовка на резултатите
+     */
+    function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        if(!haveRole($mvc->canSelectAll)){
+            
+            // Показват се само записите за които отговаря потребителя
+            $cu = core_Users::getCurrent();
+            $data->query->where("#operators LIKE '%|{$cu}|%'");
+        }
+    }
 }

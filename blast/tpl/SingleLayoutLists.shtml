@@ -1,89 +1,65 @@
 [#SingleToolbar#]
-<!-- BEGIN container -->
 <div class='document'>
-
-	 <div class='header [#STATE_CLASS#]'>
-	 	<span style='[#iconStyle#]'>|Списък за масово разпращане|* - [#ident#]</span>
-	 </div>
-	<div class='scrolling-holder'>
-	<div class='antetka'>
-		<div style='float:left;'>  <small>   
-			<table cellspacing='1' class='top-table'>
-			
-			<!--ET_BEGIN title-->          
-				<tr>
-				    <td  align='right' style='white-space: nowrap;'>|Заглавие|*:</td>
-				    <td><b>[#title#]</b></td>
-				</tr>
-			<!--ET_END title-->
-			
-			<!--ET_BEGIN keyField-->          
-				<tr>
-				    <td  align='right' style='white-space: nowrap;'>|Ключово поле|*:</td>
-				    <td><b>[#keyField#]</b></td>
-				</tr>
-			<!--ET_END keyField-->
-
-			
-			<!--ET_BEGIN allFields-->          
-				<tr>
-				    <td  align='right' style='white-space: nowrap;'>|Всички полета|*:</td>
-				    <td>[#allFields#]</td>
-				</tr>
-			<!--ET_END allFields-->
-			
-			<!--ET_BEGIN lastUsedOn-->          
-				<tr>
-				    <td align='right' style='white-space: nowrap;'>|Последна употреба|*:</td>
-				    <td>[#lastUsedOn#]</td>
-				</tr>
-			<!--ET_END lastUsedOn-->
-			
-			<!--ET_BEGIN createdOn-->          
-				<tr>
-				    <td align='right' style='white-space: nowrap;'>|Създадено на|*:</td>
-				    <td>[#createdOn#]</td>
-				</tr>
-			<!--ET_END createdOn-->
-			
-			<!--ET_BEGIN createdBy-->          
-				<tr>
-				    <td align='right' style='white-space: nowrap;'>|Създадено от|*:</td>
-				    <td>[#createdBy#]</td>
-				</tr>
-			<!--ET_END createdBy-->
-						
-			</table>   </small>  
-		</div>    
-			<div style='clear: both;'></div>
-	</div>
-	
-	<div style='clear: both;'></div>
-	
-	<!-- BEGIN footer -->        
-		<div class='clear_l f_left block_subtitle mt_50px'>
-		    
-		</div>
-    <!-- END footer -->
-
-    <div style='clear: both;'></div> 
-    <div class='overflow-scroll'>
-		<!-- ET_BEGIN DETAILS --> 
-		<div style='display:inline-block;margin-top:10px;'>
-		
-                               
-					<!--ET_BEGIN DETAILS-->
-						<div class='details'>
-							[#DETAILS#]
-						</div>
-					<!--ET_END DETAILS-->
-					
-       	</div>    
-       	<!-- ET_END DETAILS -->
-	</div>
-	
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#]'>|Списък за масово разпращане|* - <b>[#ident#]</b></div>
+    </div>
+    <div class='scrolling-holder'>
+        <div class='antetka small'>
+                    <table class='top-table'>
+                        <!--ET_BEGIN title-->          
+                        <tr>
+                            <td  class='aright' style='white-space: nowrap;'>|Заглавие|*:</td>
+                            <td><b>[#title#]</b></td>
+                        </tr>
+                        <!--ET_END title-->
+                        <!--ET_BEGIN keyField-->          
+                        <tr>
+                            <td  class='aright' style='white-space: nowrap;'>|Ключово поле|*:</td>
+                            <td><b>[#keyField#]</b></td>
+                        </tr>
+                        <!--ET_END keyField-->
+                        <!--ET_BEGIN allFields-->          
+                        <tr>
+                            <td  class='aright' style='white-space: nowrap;'>|Всички полета|*:</td>
+                            <td>[#allFields#]</td>
+                        </tr>
+                        <!--ET_END allFields-->
+                        <!--ET_BEGIN lastUsedOn-->          
+                        <tr>
+                            <td class='aright' style='white-space: nowrap;'>|Последна употреба|*:</td>
+                            <td>[#lastUsedOn#]</td>
+                        </tr>
+                        <!--ET_END lastUsedOn-->
+                        <!--ET_BEGIN createdOn-->          
+                        <tr>
+                            <td class='aright' style='white-space: nowrap;'>|Създадено на|*:</td>
+                            <td>[#createdOn#]</td>
+                        </tr>
+                        <!--ET_END createdOn-->
+                        <!--ET_BEGIN createdBy-->          
+                        <tr>
+                            <td class='aright' style='white-space: nowrap;'>|Създадено от|*:</td>
+                            <td>[#createdBy#]</td>
+                        </tr>
+                        <!--ET_END createdBy-->
+                    </table>
+            <div style='clear: both;'></div>
+        </div>
+        <div style='clear: both;'></div>
+        <div class='clear_l f_left block_subtitle mt_50px'>
+        </div>
+        <div style='clear: both;'></div>
+        <div class='overflow-scroll'>
+            <!-- ET_BEGIN DETAILS --> 
+            <div style='display:inline-block;margin-top:10px;'>
+                <!--ET_BEGIN DETAILS-->
+                <div class='details'>
+                    [#DETAILS#]
+                </div>
+                <!--ET_END DETAILS-->
+            </div>
+            <!-- ET_END DETAILS -->
+        </div>
     </div>
 </div>
-<!-- END container -->
-     
 <div style='clear: both;'></div>

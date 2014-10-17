@@ -58,7 +58,7 @@ class bnav_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('bnavPlugin', 'bnav_Plugin', 'cat_Products', 'private');
         
         // Добавяме Импортиращия драйвър в core_Classes
-        core_Classes::add('bnav_bnavImporter');
+        $html .= core_Classes::add('bnav_bnavImporter');
         
         return $html;
     }

@@ -1,219 +1,176 @@
-#quot-table{
-	margin-top:10px;
-	border-collapse:collapse;
-	margin-bottom:0px;
-}
+#quot-table {
+  margin-top: 10px;
+  border-collapse: collapse;
+  margin-bottom: 0px; }
 
-.narrow #quot-table{
-	margin-left:0;
-}
+.narrow #quot-table {
+  margin-left: 0; }
 
-.quote_title{
-	margin-top:12px;
-	margin-bottom:10px;	
-	font-size:2em;
-	font-weight:bold;
-	color:#636363;
-	font-family: impact;
-}
+.quote_title {
+  margin-top: 12px;
+  margin-bottom: 10px;
+  font-size: 2em;
+  font-weight: bold;
+  color: #636363;
+  font-family: impact; }
 
-.state-rejected .quote-title{
-	color:#999;	
-}
+.state-rejected .quote-title {
+  color: #999999; }
 
 .title-info {
-	margin:2px 0 !important;
-}
+  margin: 2px 0 !important; }
 
-.receiver{
-	color:#636363;
-	text-decoration:underline;
-}
+.receiver {
+  color: #636363;
+  text-decoration: underline; }
 
-.receiver-block{
-	padding-top:12px;
-	min-height:170px;
-	width:40%;
-	float:left;
-}
+.receiver-block {
+  padding-top: 12px;
+  min-height: 170px;
+  width: 40%;
+  float: left; }
 
-.narrow .receiver-block, .narrow .quot-title-td{
-	clear:both;
-	float:none;
-	width:100%;
-	margin-top:10px;
-}
+.narrow .receiver-block,
+.narrow .quot-title-td {
+  clear: both;
+  float: none;
+  width: 100%;
+  margin-top: 10px; }
 
-#condition-title{
-	font-weight:bold;
-	text-decoration:underline;
-}
+#condition-title {
+  font-weight: bold;
+  text-decoration: underline; }
 
-.wide #condition-title, .wide #conditions, .wide #quote-username{
-	margin-top:20px;
-}
+.wide #condition-title,
+.wide #conditions,
+.wide #quote-username {
+  margin-top: 20px; }
 
-#sign-place{
-	display:inline-block;
-	width:150px;
-	border-bottom:1px dotted #000;
-	margin-left:8px;
-	margin-right:15px;
-}
+#conditions {
+  margin-top: 5px; }
 
-.narrow .sign-user{
-	display:inline-block;
-}
+#details-holder,
+#optional-holder {
+  margin-top: 15px; }
 
-#conditions{
-	margin-top:5px;
-}
+#optional-holder {
+  margin-top: 25px; }
 
-#details-holder, #optional-holder{
-	margin-top:15px;
-}
+.narrow .products-table {
+  font-size: 0.9em;
+  width: 100%; }
 
-#optional-holder{
-	margin-top:25px;
-}
+#details-holder p,
+#optional-holder p {
+  margin-bottom: 10px; }
 
-.narrow .products-table{
-	font-size:0.9em;
-	width:100%;
-}
+.products-table tr td.total-td-label {
+  vertical-align: bottom !important;
+  text-align: right;
+  font-size: 0.9em; }
 
-#details-holder p, #optional-holder p{
-	margin-bottom:10px;
-}
+.total-quote-td,
+.total-td-label {
+  background-color: transparent; }
 
-.products-table tr td.total-td-label{
-	vertical-align:bottom !important;
-	text-align:right;
-	font-size:0.9em;
-}
+.products-table {
+  border: 1px solid #cccccc;
+  border-collapse: collapse;
+  width: 100%; }
 
-.total-quote-td, .total-td-label{
-	background-color:transparent;
-}
+.products-table th {
+  border: 1px solid #cccccc;
+  background-color: #e0e0e0 !important;
+  padding: 5px; }
 
-.products-table{
-	border:1px solid #ccc;
-	border-collapse:collapse;
-	width:100%;
-}
+.products-table td {
+  border: 1px solid #cccccc;
+  padding: 5px;
+  vertical-align: top !important; }
 
-.products-table th{
-	border:1px solid #ccc;
-	background-color:#e0e0e0 !important;
-	padding:5px;
-}
-
-.products-table td{
-	border:1px solid #ccc;
-	padding:5px;
-	vertical-align:top !important;
-}
-
-.doc_Containers table.listTable td.misc-info{
-	vertical-align:top !important;
-}
+.doc_Containers table.listTable td.misc-info {
+  vertical-align: top !important; }
 
 .discount {
-	color:green;
-	margin-top:5px
-}
+  color: green;
+  margin-top: 5px; }
 
-.offer-rowtools-id .rowtools{
-	display:inline-block;
-	width:auto;
-}
+.offer-rowtools-id .rowtools {
+  display: inline-block;
+  width: auto; }
 
-.offer-rowtools-id span{
-	display:inline-block;
-	vertical-align:top;
-}
+.offer-rowtools-id span {
+  display: inline-block;
+  vertical-align: top; }
 
-.quiantity-misc{
-	padding-top:5px;
-	font-size:0.9em;
-}
+.quiantity-misc {
+  padding-top: 5px;
+  font-size: 0.9em; }
 
-#add-others{
-    position: relative;
-    top: 2px;
-    margin-left:5px;
-}
+#add-others {
+  position: relative;
+  top: 2px;
+  margin-left: 5px; }
 
 .oldAmount {
-	text-decoration:line-through;
-	font-size:0.9em;
-	color: #999999;
-}
+  text-decoration: line-through;
+  font-size: 0.9em;
+  color: #999999; }
 
-.page-break{
-	display: none;
-}
+.page-break {
+  display: none; }
 
-#quot-title-td{
-	width:55%;
-	float:left;
-}
+#quot-title-td {
+  width: 55%;
+  float: left; }
 
-.discount{
-	font-size:0.9em;
-}
+.discount {
+  font-size: 0.9em; }
 
-.richtext table{
-	clear:both; 
-}
+.richtext table {
+  clear: both; }
 
-@media print{
-	#quot-table{
-		margin-top:0px;
-	}
-	
-	#quot-table, #condition-title, #conditions,#quote-username, #details-holder, #optional-holder{
-		margin-left:0px;
-	}
-	
-	.products-table{
-		width:100%;
-	}
-	
-	.page-break	{ 
-		display: block; 
-		page-break-before: always;
-	}
-	
-	#quot-title-td{
-		width:60%;
-	}
-}
+@media print {
+  #quot-table {
+    margin-top: 0px; }
 
-.expired-quote{
-	color:darkred;
-	font-weight:bold;
-	font-style:italic;
-	margin-left:5px;
-}
+  #quot-table,
+  #condition-title,
+  #conditions,
+  #quote-username,
+  #details-holder,
+  #optional-holder {
+    margin-left: 0px; }
 
-.printing .quote-header{
-	border-bottom:1px solid #ccc !important;
-}
+  .products-table {
+    width: 100%; }
 
-.quote-header td.gray-bg{
-	background-color:#e0e0e0 !important;
-}
+  .page-break {
+    display: block;
+    page-break-before: always; }
 
-.quote-header .cell{
-	border: 1px solid #ccc !important;
-}
+  #quot-title-td {
+    width: 60%; } }
 
-.quote-header td b{
-	background:transparent !important;
-}
+.expired-quote {
+  color: darkred;
+  font-weight: bold;
+  font-style: italic;
+  margin-left: 5px; }
 
-#business-doc-summary-table td{
-	padding:1px;
-	border:0px !important;
-}
+.printing .quote-header {
+  border-bottom: 1px solid #cccccc !important; }
+
+.quote-header td.gray-bg {
+  background-color: #e0e0e0 !important; }
+
+.quote-header .cell {
+  border: 1px solid #cccccc !important; }
+
+.quote-header td b {
+  background: transparent !important; }
+
+#business-doc-summary-table td {
+  padding: 1px;
+  border: 0px !important; }
+

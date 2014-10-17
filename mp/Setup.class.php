@@ -64,6 +64,12 @@ class mp_Setup extends core_ProtoSetup
    
     
     /**
+     * Път до css файла
+     */
+//    var $commonCSS = 'mp/tpl/styles.css';
+    
+    
+    /**
      * Де-инсталиране на пакета
      */
     function deinstall()

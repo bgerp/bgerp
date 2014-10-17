@@ -1,11 +1,11 @@
-<div id='forum-index'>
-<div id='navigation'>
-[#NAVIGATION#]
-</div>
-<div id='topic-form'>
-<div id='form_header'>
-<h3>[#header#]</h3>
-</div>
-[#FORM#]
-</div>
+<div class='forum-index'>
+    <div class='navigation'>
+        [#NAVIGATION#]
+    </div>
+    <div class='topic-form'>
+        <div class='form_header'>
+            <h3>[#header#]</h3>
+        </div>
+        [#FORM#]
+    </div>
 </div>

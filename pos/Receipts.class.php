@@ -272,10 +272,11 @@ class pos_Receipts extends core_Master {
 	/**
      * Извлича информацията за всички продукти които са продадени чрез
      * тази бележки, във вид подходящ за контирането
+     * 
      * @param int id - ид на бележката
      * @param boolean $count - FALSE  връща масив от продуктите
      * 						   TRUE връща само броя на продуктите
-     * @return array $products - Масив от продукти
+     * @return mixed $products - Масив от продукти
      */
     public static function getProducts($id, $count = FALSE)
     {
@@ -283,7 +284,6 @@ class pos_Receipts extends core_Master {
     	
     	$products = array();
     	$totalQuantity = 0;
-    	$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
     	
     	$query = pos_ReceiptDetails::getQuery();
     	$query->where("#receiptId = {$id}");
@@ -432,7 +432,7 @@ class pos_Receipts extends core_Master {
 			$pointRec = pos_Points::fetch($rec->pointId);
 			
 			// Трябва точката да има драйвър, да има инсталирани драйвъри и бележката да е чернова
-			if($pointRec->driver && array_key_exists($pointRec->driver, core_Classes::getOptionsByInterface('pos_FiscPrinterIntf')) && $rec->state == 'draft'){
+			if($pointRec->driver && array_key_exists($pointRec->driver, core_Classes::getOptionsByInterface('sales_FiscPrinterIntf')) && $rec->state == 'draft'){
 				$res = $mvc->getRequiredRoles('close', $rec);
 			} else {
 				$res = 'no_one';
@@ -455,6 +455,7 @@ class pos_Receipts extends core_Master {
     	
     	// Лейаут на терминала
     	$tpl = getTplFromFile("pos/tpl/terminal/Layout.shtml");
+    	$tpl->replace(pos_Points::getTitleById($rec->pointId), 'PAGE_TITLE');
     	Mode::set('wrapper', 'page_Empty');
     	
     	// Добавяме бележката в изгледа
@@ -492,7 +493,6 @@ class pos_Receipts extends core_Master {
      */
     private function pushFiles(&$tpl)
     {
-    	jquery_Jquery::enable($tpl);
 	    $tpl->push('pos/tpl/css/styles.css', 'CSS');
 	    $tpl->push('pos/js/scripts.js', 'JS');
 		jquery_Jquery::run($tpl, "posActions();");
@@ -572,8 +572,6 @@ class pos_Receipts extends core_Master {
     		// Добавяне на таба с бързите бутони
     		$tpl->append($this->getSelectFavourites(), 'CHOOSE_DIV');
     		
-    		$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
-    		
     		// Добавяне на таба с избор
     		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
     		$tab .= "<li><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts'>Чернови</a></li>";
@@ -627,15 +625,19 @@ class pos_Receipts extends core_Master {
 	    	$absUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'absolute');
 	    	
     	} else {
+    		$discUrl = $addClient = $addUrl = $addUrl = $modQUrl = NULL;
     		$disClass = 'disabledBtn';
     		$disabled = 'disabled';
     	}
+    	
+    	$value = NULL;
     	
     	// Ако има последно добавен продукт, записваме ид-то на записа в скрито поле
     	if($lastRow = Mode::get('lastAdded')){
     		$value = $lastRow;
     		Mode::setPermanent('lastAdded', NULL);
     	}
+    	
     	$browserInfo = Mode::get('getUserAgent');
     	if(strrpos($browserInfo, "Android") !== FALSE){
     		$htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
@@ -736,6 +738,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
 
+    	$payUrl = $recUrl = array();
     	if($this->haveRightFor('pay', $rec)){
     		$payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
     	}
@@ -744,7 +747,7 @@ class pos_Receipts extends core_Master {
     	
     	// Показваме всички активни методи за плащания
     	$disClass = ($payUrl) ? '' : 'disabledBtn';
-    	$payments = pos_Payments::fetchSelected();
+    	$payments = cond_Payments::fetchSelected();
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "$payment->id", 'data-url' => $payUrl);
 	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
@@ -755,7 +758,7 @@ class pos_Receipts extends core_Master {
 	    	$recUrl = array($this, 'printReceipt', $rec->id);
 	    }
 	    $disClass = ($recUrl) ? '' : 'disabledBtn';
-	    $block->append(ht::createBtn('Касов бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка')), 'PAYMENT_TYPE');
+	    $block->append(ht::createBtn('Касов бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка')), 'CLOSE_BTNS');
 	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
 	    if ($this->haveRightFor('close', $rec)) {
@@ -774,6 +777,7 @@ class pos_Receipts extends core_Master {
     			}
 	        }
 	    } else {
+	    	$contoUrl = $confInvUrl = NULL;
 	    	$hint = $hintInv = tr("Не може да приключите бележката, докато не е платена");
 	    }
 	    
@@ -797,8 +801,9 @@ class pos_Receipts extends core_Master {
     	$this->requireRightFor('printReceipt', $rec);
     	
     	$Driver = cls::get(pos_Points::fetchField($rec->pointId, 'driver'));
+    	$driverData = $this->getFiscPrinterData($rec);
     	
-    	return $Driver->createFile($id);
+    	return $Driver->createFile($driverData);
     }
     
     
@@ -825,23 +830,19 @@ class pos_Receipts extends core_Master {
         $currencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
         $posRec = pos_Points::fetch($rec->pointId);
         
-        $result = new bgerp_iface_DealResponse();
-        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        $result = new bgerp_iface_DealAggregator();
         
-        $result->agreed->amount                 = $rec->total;
-        $result->agreed->currency               = $currencyId;
-        $result->agreed->vatType 				= 'yes';
-        $result->agreed->payment->method        = cond_PaymentMethods::fetchField("#name = 'COD'", 'id');
-        $result->agreed->payment->currencyId    = $currencyId;
-        $result->agreed->payment->caseId        = $posRec->caseId;
-       
-        $result->shipped->amount                 = $rec->total;
-        $result->shipped->currency               = $currencyId;
-        $result->shipped->vatType 				 = 'yes';
-        $result->shipped->payment->currencyId    = $currencyId;
-        $result->shipped->payment->caseId        = $posRec->caseId;
-        $result->shipped->delivery->storeId      = $posRec->storeId;
-        $result->shipped->delivery->time         = $rec->valior;
+        
+        $result->set('dealType', sales_Sales::AGGREGATOR_TYPE);
+        $result->set('amount', $rec->total);
+        $result->set('currency', $currencyId);
+        $result->set('vatType', 'yes');
+        $result->set('agreedValior', $rec->valior);
+        $result->set('storeId', $posRec->storeId);
+        $result->set('paymentMethodId', cond_PaymentMethods::fetchField("#name = 'COD'", 'id'));
+        $result->set('caseId', $posRec->caseId);
+        $result->set('amountPaid', $rec->total);
+        $result->set('deliveryAmount', $rec->total);
          
         $productManId = cat_Products::getClassId();
         
@@ -851,13 +852,13 @@ class pos_Receipts extends core_Master {
             $p->classId     = $productManId;
             $p->productId   = $pr->productId;
             $p->packagingId = $pr->packagingId;
-            $p->discount    = $dRec->discountPercent;
+            $p->discount    = $pr->discountPercent;
             $p->quantity    = $pr->quantity;
             $p->price       = $pr->price;
             $p->uomId       = $pr->uomId;
             
-            $result->agreed->products[] = $p;
-            $result->shipped->products[] = clone $p;
+            $result->push('products', $p);
+            $result->push('shippedProducts', $p);
         }
         
         return $result;
@@ -1019,6 +1020,7 @@ class pos_Receipts extends core_Master {
 	    	$html = $this->getResultsTable($searchString, $rec);
 	    } else {
     		$html = ' ';
+    		$rec = NULL;
     	}
     	
     	if(Request::get('ajax_mode')){
@@ -1076,7 +1078,7 @@ class pos_Receipts extends core_Master {
     		// Ако продукта не отговаря на търсения стринг, го пропускаме
     		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
     		
-    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), NULL, NULL, $data->rec->createdOn);
+    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), NULL, NULL, $data->rec->createdOn, 1, 'yes');
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;
@@ -1109,14 +1111,17 @@ class pos_Receipts extends core_Master {
     	$Double->params['decimals'] = 2;
     	$row = new stdClass();
     	
-    	$row->price = $Double->toVerbal($obj->price * (1 + $obj->vat));
+    	$row->price = $Double->toVerbal($obj->price);
     	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
     	$row->stock = $Double->toVerbal($obj->stock);
     	
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
     		$addUrl = toUrl(array('pos_Receipts', 'addProduct', $data->rec->id), 'local');
+    	} else {
+    		$addUrl = NULL;
     	}
+    	
     	$row->productId = "<span class='pos-add-res-btn' data-url='{$addUrl}' data-productId='{$obj->productId}'>" . cat_Products::getTitleById($obj->productId) . "</span>";
     	if($data->showParams){
     		$params = keylist::toArray($data->showParams);
@@ -1134,12 +1139,12 @@ class pos_Receipts extends core_Master {
     		$row->stock = "<span style='color:red'>$row->stock</span>";	
     	}
     	
-    	if($rec->stock){
+    	if($obj->stock){
     		$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
     	}
     	
     	if($obj->photo && !Mode::is('screenMode', 'narrow')) {
-    		$thumb = new img_Thumb($obj->photo, 64, 64);
+    		$thumb = new thumb_Img($obj->photo, 64, 64);
     		$arr = array();
     		$row->photo = "<div class='pos-search-pic'>" . $thumb->createImg($arr) . "</div>";
     		$data->showImg = TRUE;
@@ -1167,5 +1172,59 @@ class pos_Receipts extends core_Master {
     	}
     	
     	return $table->get($data->rows, $fields)->getContent();
+    }
+    
+    
+    /**
+     * Подготвя данните за драйвера на фискалния принтер
+     */
+    private function getFiscPrinterData($id)
+    {
+    	$receiptRec = $this->fetchRec($id);
+    	$data = new stdClass();
+    	$data->totalPaid = 0;
+    	
+    	$payments = $products = array();
+    	$query = pos_ReceiptDetails::getQuery();
+    	$query->where("#receiptId = '{$receiptRec->id}'");
+    	
+    	// Разделяме детайлите на плащания и продажби
+    	while($rec = $query->fetch()){
+    		$nRec = new stdClass();
+    		
+    		// Всеки продукт
+    		if(strpos($rec->action, 'sale') !== FALSE){
+    			$nRec->id = $rec->productId;
+    			$nRec->managerId = cat_Products::getClassId();
+    			$nRec->quantity = $rec->quantity;
+    			if($rec->discountPercent){
+    				$nRec->discount = (round($rec->discountPercent, 2) * 100) . "%";
+    			}
+    			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
+    			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    			$nRec->vat = $rec->param;
+    			$nRec->price = $rec->price / (1 + $rec->param);
+    			$nRec->name = $pInfo->productRec->name;
+    			$nRec->vatGroup = cls::get('cat_Products')->getParam($rec->productId, 'vatGroup');
+    			
+    			$products[] = $nRec;
+    		} elseif(strpos($rec->action, 'payment') !== FALSE) {
+    			
+    			// Всяко плащане
+    			list(, $type) = explode('|', $rec->action);
+    			$nRec->type = cond_Payments::fetchField($type, 'code');
+    			$nRec->amount = round($rec->amount, 2);
+    			$data->totalPaid += $nRec->amount;
+    			
+    			$payments[] = $nRec;
+    		}
+    	}
+    	
+    	$data->short = FALSE;
+    	$data->hasVat = TRUE;
+    	$data->products = $products;
+    	$data->payments = $payments;
+    	
+    	return $data;
     }
 }

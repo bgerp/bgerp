@@ -9,11 +9,11 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_ArticleDetails extends core_Detail
+class acc_ArticleDetails extends doc_Detail
 {
     
     
@@ -21,14 +21,14 @@ class acc_ArticleDetails extends core_Detail
      * Заглавие
      */
     var $title = "Мемориален ордер";
-
-     
+    
+    
     /**
      * Наименование на единичния обект
      */
     var $singleTitle = 'Счетоводна статия';
-
-
+    
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -57,9 +57,9 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Активен таб
      */
-    var $currentTab = 'Мемориални Ордери';
-
-        
+    var $currentTab = 'Мемориални ордери';
+    
+    
     /**
      * Кой има право да чете?
      */
@@ -77,7 +77,7 @@ class acc_ArticleDetails extends core_Detail
      */
     var $canAdd = 'ceo,acc';
     
-
+    
     /**
      * Кой може да го разглежда?
      */
@@ -88,12 +88,17 @@ class acc_ArticleDetails extends core_Detail
      * Кой може да го изтрие?
      */
     var $canDelete = 'ceo,accMaster';
-
-	
+    
+    
     /**
      * Полета свързани с цени
      */
     var $priceFields = 'debitQuantity, debitPrice, creditQuantity, creditPrice, amount';
+    
+    /**
+     * Работен кеш
+     */
+    protected static $cache = array();
     
     
     /**
@@ -104,22 +109,22 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
-            'silent,caption=Дебит->Сметка и пера,mandatory,input');
-        $this->FLD('debitEnt1', 'acc_type_Item(select=titleLink)', 'caption=Дебит->перо 1');
-        $this->FLD('debitEnt2', 'acc_type_Item(select=titleLink)', 'caption=Дебит->перо 2');
-        $this->FLD('debitEnt3', 'acc_type_Item(select=titleLink)', 'caption=Дебит->перо 3');
-        $this->FLD('debitQuantity', 'double', 'width=120px,caption=Дебит->Количество');
+            'silent,caption=Дебит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
+        $this->FLD('debitEnt1', 'acc_type_Item(select=title,allowEmpty)', 'caption=Дебит->перо 1,remember');
+        $this->FLD('debitEnt2', 'acc_type_Item(select=title,allowEmpty)', 'caption=Дебит->перо 2,remember');
+        $this->FLD('debitEnt3', 'acc_type_Item(select=title,allowEmpty)', 'caption=Дебит->перо 3,remember');
+        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         $this->FLD('creditAccId', 'acc_type_Account(remember)',
-            'silent,caption=Кредит->Сметка и пера,mandatory,input');
-        $this->FLD('creditEnt1', 'acc_type_Item(select=titleLink)', 'caption=Кредит->перо 1');
-        $this->FLD('creditEnt2', 'acc_type_Item(select=titleLink)', 'caption=Кредит->перо 2');
-        $this->FLD('creditEnt3', 'acc_type_Item(select=titleLink)', 'caption=Кредит->перо 3');
-        $this->FLD('creditQuantity', 'double', 'width=120px,caption=Кредит->Количество');
+            'silent,caption=Кредит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
+        $this->FLD('creditEnt1', 'acc_type_Item(select=title,allowEmpty)', 'caption=Кредит->перо 1,remember');
+        $this->FLD('creditEnt2', 'acc_type_Item(select=title,allowEmpty)', 'caption=Кредит->перо 2,remember');
+        $this->FLD('creditEnt3', 'acc_type_Item(select=title,allowEmpty)', 'caption=Кредит->перо 3,remember');
+        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
-       
-        $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума');
+        
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума,remember=info');
     }
     
     
@@ -130,7 +135,6 @@ class acc_ArticleDetails extends core_Detail
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
-        $Varchar = cls::get('type_Varchar');
         
         if (count($recs)) {
             foreach ($recs as $id=>$rec) {
@@ -138,20 +142,14 @@ class acc_ArticleDetails extends core_Detail
                 
                 foreach (array('debit', 'credit') as $type) {
                     $ents = "";
-                    $accRec = acc_Accounts::fetch($rec->{"{$type}AccId"});
                     
                     foreach (range(1, 3) as $i) {
                         $ent = "{$type}Ent{$i}";
+                        
                         if ($rec->{$ent}) {
-                            $row->{$ent} = $mvc->recToVerbal($rec, $ent)->{$ent};
-                            $num = $Varchar->toVerbal(acc_Items::fetchField($rec->{$ent}, 'num'));
-                            $listGroupTitle = acc_Lists::fetchField($accRec->{"groupId{$i}"}, 'name');
-                            
-                            $ents .= "<tr><td align='right'>{$num}. </td><td>{$row->{$ent}}</td</tr>";
+                            $ents .= "<tr><td> <span style='margin-left:10px; font-size: 11px; color: #747474;'>{$i}.</span> <span>{$row->{$ent}}</span></td</tr>";
                         }
                     }
-                    
-                    $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . acc_Accounts::getVerbal($accRec, 'title');
                     
                     if (!empty($ents)) {
                         $row->{"{$type}AccId"} .=
@@ -177,7 +175,8 @@ class acc_ArticleDetails extends core_Detail
             return;
         }
         
-        $query = clone $data->query;
+        $query = acc_ArticleDetails::getQuery();
+        $query->where("#articleId = {$data->masterId}");
         $query->orderBy("id", "DESC");
         $lastRec = $query->fetch();
         
@@ -190,9 +189,9 @@ class acc_ArticleDetails extends core_Detail
         );
         $form->view = 'horizontal';
         $form->FLD('debitAccId', 'acc_type_Account(allowEmpty)',
-            'silent,caption=Дебит,mandatory,width=300px');
+            'silent,caption=Дебит,mandatory');
         $form->FLD('creditAccId', 'acc_type_Account(allowEmpty)',
-            'silent,caption=Кредит,mandatory,width=300px');
+            'silent,caption=Кредит,mandatory');
         
         $form->setDefault('debitAccId', $lastRec->debitAccId);
         $form->setDefault('creditAccId', $lastRec->creditAccId);
@@ -219,7 +218,7 @@ class acc_ArticleDetails extends core_Detail
             $form = $data->accSelectToolbar->renderHtml();
             
             if($form) {
-                $tpl = $form->getContent();
+                $tpl = $form;
             }
         }
     }
@@ -238,7 +237,6 @@ class acc_ArticleDetails extends core_Detail
             Redirect(array('acc_Articles', 'single', $rec->articleId), FALSE, "Не са избрани сметки за дебит и кредит.");
         }
         
-        $quantityOnly = $dimensional = FALSE;
         $form->setReadOnly('debitAccId');
         $form->setReadOnly('creditAccId');
         
@@ -253,6 +251,8 @@ class acc_ArticleDetails extends core_Detail
         $quantityOnly = ($debitAcc->rec->type == 'passive' && $debitAcc->rec->strategy) ||
         ($creditAcc->rec->type == 'active' && $creditAcc->rec->strategy);
         
+        $masterRec = $mvc->Master->fetch($form->rec->articleId);
+        
         foreach (array('debit' => 'Дебит', 'credit' => 'Кредит') as $type => $caption) {
             
             $acc = ${"{$type}Acc"};
@@ -265,10 +265,16 @@ class acc_ArticleDetails extends core_Detail
             
             foreach ($acc->groups as $i=>$list) {
                 if (!$list->rec->itemsCnt) {
-                    redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"{$list->rec->name}\""));
+                    redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"" . acc_Lists::getVerbal($list->rec, 'name') . "\""));
                 }
+                
                 $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
                 $form->setField("{$type}Ent{$i}", "mandatory,input,caption={$caption}->" . $list->rec->name);
+                
+                // Ако може да се избират приключени пера, сетваме параметър в типа на перата
+                if($masterRec->useCloseItems == 'yes'){
+                    $form->getField("{$type}Ent{$i}")->type->params['showAll'] = TRUE;
+                }
             }
             
             if (!$acc->isDimensional) {
@@ -374,15 +380,6 @@ class acc_ArticleDetails extends core_Detail
     
     
     /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
-    {
-        $mvc->Master->detailsChanged($rec->{$mvc->masterKey}, $mvc, $rec);
-    }
-    
-    
-    /**
      * Преди изтриване на запис
      */
     static function on_BeforeDelete($mvc, &$res, &$query, $cond)
@@ -397,26 +394,50 @@ class acc_ArticleDetails extends core_Detail
     
     
     /**
-     * След изтриване на запис
+     * Изпълнява се след подготовката на ролите
      */
-    static function on_AfterDelete($mvc, &$res, $query, $cond)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-        foreach ($query->notifyMasterIds as $masterId => $_) {
-            $mvc->Master->detailsChanged($masterId, $mvc);
+        if(($action == 'edit' || $action == 'delete') && isset($rec)){
+            $articleState = acc_Articles::fetchField($rec->articleId, 'state');
+            
+            if($articleState != 'draft'){
+                $res = 'no_one';
+            }
         }
     }
     
     
     /**
-     * Изпълнява се след подготовката на ролите
+     * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if(($action == 'edit' || $action == 'delete') && isset($rec)){
-    		$articleState = acc_Articles::fetchField($rec->articleId, 'state');
-    		if($articleState != 'draft'){
-    			$res = 'no_one';
-    		}
-    	}
+        foreach (array('debitEnt1', 'debitEnt2', 'debitEnt3', 'creditEnt1', 'creditEnt2', 'creditEnt3') as $fld){
+            if(isset($rec->$fld)){
+                
+                // Кешираме името на перото
+                if(!isset(static::$cache['items'][$rec->$fld])){
+                    static::$cache['items'][$rec->$fld] = acc_Items::getVerbal($rec->$fld, 'titleLink');
+                }
+                
+                $row->$fld = static::$cache['items'][$rec->$fld];
+            }
+        }
+        
+        // В кой баланс е влязал записа
+        $valior = $mvc->Master->fetchField($rec->articleId, 'valior');
+        $balanceValior = acc_Balances::fetch("#fromDate <= '{$valior}' AND '{$valior}' <= #toDate");
+        
+        // Кешираме линковете към сметките
+        foreach (array('debitAccId', 'creditAccId') as $accId){
+            if(!isset(static::$cache['accs'][$rec->$accId])){
+                static::$cache['accs'][$rec->$accId] = acc_Balances::getAccountLink($rec->$accId, $balanceValior);
+            }
+        }
+        
+        // Линкове към сметките в баланса
+        $row->debitAccId = static::$cache['accs'][$rec->debitAccId];
+        $row->creditAccId = static::$cache['accs'][$rec->creditAccId];
     }
 }

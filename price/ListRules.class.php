@@ -138,7 +138,7 @@ class price_ListRules extends core_Detail
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('from', 'date', 'input,caption=В сила,width=6em');
+        $data->listFilter->FNC('from', 'date', 'input,caption=В сила');
 		$data->listFilter->setField('id', 'input=none');
 		$data->listFilter->setField('type', 'input=none');
         $data->listFilter->showFields = 'search, from';
@@ -163,6 +163,7 @@ class price_ListRules extends core_Detail
     {  
         // Проверка, дали цената я няма в кеша
     	$price = price_History::getPrice($listId, $datetime, $productId);
+    	
         if(isset($price)) return $price;
 
         price_ListToCustomers::canonizeTime($datetime);
@@ -195,7 +196,6 @@ class price_ListRules extends core_Detail
 
                 $listRec = price_Lists::fetch($listId);
                 list($date, $time) = explode(' ', $datetime);
-                // echo "<li> Row $price";
 
                 // В каква цена е този ценоразпис?
                 $currency = $rec->currency;
@@ -211,14 +211,12 @@ class price_ListRules extends core_Detail
                 // Конвертираме в базова валута
                 $price = currency_CurrencyRates::convertAmount($price, $date, $currency);
 
-                // echo "<li> CC $price";
                 // Ако правилото е с включен ват или не е зададен, но ценовата оферта е с VAT, той трябва да се извади
                 if($rec->vat == 'yes' || (!$rec->vat && $listRec->vat == 'yes')) {
                     // TODO: Тук трябва да се извади VAT, защото се смята, че тези цени са без VAT
                     $vat = cat_Products::getVat($productId, $date);
                     $price = $price / (1 + $vat);
                 }
-                // echo "<li> VAT $price";
 
 			} else {
                 expect($parent = price_Lists::fetchField($listId, 'parent'));
@@ -246,8 +244,11 @@ class price_ListRules extends core_Detail
             }
         }
         
-        $price = round($price, 10);
-
+        $listRec = price_Lists::fetch($listId);
+        	
+        // По дефолт правим някакво машинно закръгляне
+        $price = round($price, 8);
+        
         // Записваме току-що изчислената цена в историята;
         price_History::setPrice($price, $listId, $datetime, $productId);
 
@@ -266,18 +267,18 @@ class price_ListRules extends core_Detail
         $type = $rec->type;
     	
         $masterRec = price_Lists::fetch($rec->listId);
-		$masterTitle = price_Lists::getVerbal($masterRec, 'title');
+		$masterTitle = $masterRec->title;
 
         if($masterRec->parent) {
             $parentRec = price_Lists::fetch($masterRec->parent);
-		    $parentTitle = price_Lists::getVerbal($parentRec, 'title');
+		    $parentTitle = $parentRec->title;
         }
 		
         $availableProducts = price_GroupOfProducts::getAllProducts();
         if(count($availableProducts)){
         	$form->setOptions('productId', $availableProducts);
         } else {
-        	$form->fields['productId']->type->options = array('' => '');
+        	$form->getFieldType('productId')->options = array('' => '');
         }
         
     	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
@@ -291,6 +292,8 @@ class price_ListRules extends core_Detail
             $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
             $form->setOptions('calculation', $calcOpt);
         }
+ 	
+ 	$masterTitle = type_Users::escape($masterTitle);
  		
         switch($type) {
             case 'groupDiscount' :
@@ -300,8 +303,10 @@ class price_ListRules extends core_Detail
             case 'discount' :
                 $form->setField('groupId,price,currency,vat', 'input=none');
                 $title = "Правило за марж в ценова политика|* \"$masterTitle\"";
-                $unit = ($masterRec->vat == 'yes') ? "с ДДС" : "без ДДС";
-                $form->setField('targetPrice', "unit = {$unit}");
+                
+                $form->getField('targetPrice')->unit = "|*" . $masterRec->currency . ", ";
+                $form->getField('targetPrice')->unit .= ($masterRec->vat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
+                
                 break;
             case 'value' :
                 $form->setField('groupId,discount,calculation,targetPrice', 'input=none');
@@ -505,12 +510,12 @@ class price_ListRules extends core_Detail
 
         // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
         if(strlen(substr(strrchr($rec->price, "."), 1) > 2)){
-        	$mvc->fields['price']->type->params['decimals'] = 5;
+        	$mvc->getFieldType('price')->params['decimals'] = 5;
         } else {
-        	$mvc->fields['price']->type->params['decimals'] = 2;
+        	$mvc->getFieldType('price')->params['decimals'] = 2;
         }
         
-        $price = $mvc->fields['price']->type->toVerbal($rec->price);
+        $price = $mvc->getFieldType('price')->toVerbal($rec->price);
         
         // Област
         if($rec->productId) {
@@ -573,7 +578,7 @@ class price_ListRules extends core_Detail
    /**
     * Задаваме надценки/отстъпки за началните категории
     */
-    static function loadSetupData()
+    function loadSetupData()
     {
         $csvFile = __DIR__ . "/setup/csv/Groups.csv";
         $inserted = 0;
@@ -596,7 +601,11 @@ class price_ListRules extends core_Detail
                             }
                     }
             }
-            $res .= "<li style='color:green;'>Записани {$inserted} нови групови наддценки/отстъпки</li>";
+            if($inserted) {
+                $res .= "<li style='color:green;'>Записани {$inserted} нови групови наддценки/отстъпки</li>";
+            } else {
+                $res .= "<li>Не са добавени нови групови наддценки/отстъпки</li>";
+            }
         } else {
             $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
         }

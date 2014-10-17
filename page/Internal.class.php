@@ -36,6 +36,7 @@ class page_Internal extends page_Html {
         
         $this->push('css/common.css','CSS');
         $this->push('css/Application.css','CSS');
+        $this->push('css/default-theme.css','CSS');
 
         $browserInfo = Mode::get("getUserAgent");
         
@@ -46,7 +47,8 @@ class page_Internal extends page_Html {
 		       select {padding-left: 0.2em !important;}
 		         ", "STYLES");
         }
-      
+        
+        jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         
         $this->push('Cache-Control: no-cache, must-revalidate', 'HTTP_HEADER');

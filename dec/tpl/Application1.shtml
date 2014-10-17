@@ -1,67 +1,76 @@
 <div class='dec-document'>
-<br><div class='fright'> Приложение №1 към чл.4, ал.3</div>
-
-<br><h3><p class="centered">ДЕКЛАРАЦИЯ ЗА СЪОТВЕТСТВИЕ<br></p></h3><p class="centered"><b>с изискванията на чл.4, ал.1 от Наредбата за опаковките и отпадъците от опаковки</b></p>
-
-<br><br>
-<div class='scrolling-holder'>
-<table>
-        <tr>
-        	<td class='nowrap'  width= 1%  align='right' style='padding-right:20px;'>Производител/доставчик:</td>
-        	<td>[#MyCompany#]<!--ET_BEGIN MyCompanyVatNo-->, с ЕИН [#MyCompanyVatNo#]<!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->, ЕИК [#uicId#]<!--ET_END uicId--></td>
-        </tr>
-        
-        <tr>
-       		<td class='nowrap'  width= 1%  align='right' style='padding-right:20px;'>Представляван от:</td>
-        	<td><!--ET_BEGIN manager-->[#manager#]<!--ET_END manager--></td>
-        </tr>
-        
-        <tr>
-        	<td class='nowrap'  width= 1%  align='right' style='padding-right:20px;'>Седалище на фирмата:  </td>
-        	<td><!--ET_BEGIN MyCountry-->[#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#]<!--ET_END MyAddress--></td>
-        </tr>
-</table>
-</div>
-<br><br>
-<p class="centered"><b>Д Е К Л А Р И Р А М, Ч Е</b> </p>
-<br>
-	
-<div class='indent'>1. Опаковката/опаковъчният материал </div>
-                <!--ET_BEGIN material-->
-					[#material#]
-				<!--ET_END material-->
-
-<div class='indent'>отговаря на изискванията на чл.4, ал.1 от Наредбата за опаковките и отпадъците от опаковки.</div>
-<br>
-<div class='indent'> 2. Опаковката/опаковъчният материал е изпитана/изпитан за съответствие в</div>
-	<div>
-	<!--ET_BEGIN statements-->
-		[#statements#]
-	<!--ET_END statements-->
-	</div>
-
-
-<!--ET_BEGIN note-->
-	<div>
-		[#note#]
-	</div>
-<!--ET_END note-->
-<br>
-<div class='indent'>Декларирам, че ми е известна отговорността, която нося съгласно чл.313 от НК и другите нормативни актове на Република България и Европейския съюз.</div>
-
- <br>
- <br>
- <br>
-  <div class='scrolling-holder'>
-     <table class='signiture'>
-        <tr>
-        <td width=1%>Декларатор: </td>
-        <td> </td>
-        </tr>
-        <tr>
-        <td></td>
-        <td class='nowrap' width=1%><span class="sign_names"><!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declaratorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo--></span></td>
-        </tr>
-     </table>
-  </div>
+    <br>
+    <div class='fright'> Приложение №1 към чл.4, ал.3</div>
+    <br>
+    <h3>
+        <p class="centered">ДЕКЛАРАЦИЯ ЗА СЪОТВЕТСТВИЕ<br></p>
+    </h3>
+    <p class="centered"><b>с изискванията на чл.4, ал.1 от Наредбата за опаковките и отпадъците от опаковки</b></p>
+    <br><br>
+    <div class='scrolling-holder'>
+        <table>
+            <tr>
+                <td class='nowrap aright' style='padding-right:20px;width:1%;'>Производител/доставчик:</td>
+                <td>
+                    [#MyCompany#]<!--ET_BEGIN MyCompanyVatNo-->, с ЕИН [#MyCompanyVatNo#]<!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->, ЕИК [#uicId#]<!--ET_END uicId-->
+                </td>
+            </tr>
+            <tr>
+                <td class='nowrap aright' style='padding-right:20px;width:1%;'>Представляван от:</td>
+                <td>
+                    <!--ET_BEGIN manager-->[#manager#]<!--ET_END manager-->
+                </td>
+            </tr>
+            <tr>
+                <td class='nowrap aright' style='padding-right:20px;width:1%;'>Седалище на фирмата:  </td>
+                <td>
+                    <!--ET_BEGIN MyCountry-->[#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#]<!--ET_END MyAddress-->
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br><br>
+    <p class="centered"><b>Д Е К Л А Р И Р А М, Ч Е</b> </p>
+    <br>
+    <div class='indent'>1. Опаковката/опаковъчният материал </div>
+    <!--ET_BEGIN material-->
+    [#material#]
+    <!--ET_END material-->
+    <div class='indent'>отговаря на изискванията на чл.4, ал.1 от Наредбата за опаковките и отпадъците от опаковки.</div>
+    <br>
+    <div class='indent'> 2. Опаковката/опаковъчният материал е изпитана/изпитан за съответствие в</div>
+    <div>
+        <!--ET_BEGIN statements-->
+        [#statements#]
+        <!--ET_END statements-->
+    </div>
+    <!--ET_BEGIN note-->
+    <div>
+        [#note#]
+    </div>
+    <!--ET_END note-->
+    <br>
+    <div class='indent'>Декларирам, че ми е известна отговорността, която нося съгласно чл.313 от НК и другите нормативни актове на Република България и Европейския съюз.</div>
+    <br>
+    <br>
+    <br>
+    <div class='scrolling-holder'>
+        <table class='signiture'>
+            <tr>
+                <td style='width:1%;'>Декларатор: </td>
+                <td> </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class='nowrap' style='width:1%;'>
+                    <span class="sign_names">
+                        <!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declaratorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo-->
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class='footerDocBlock'>
+        <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+    </div>
 </div>

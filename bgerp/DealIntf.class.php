@@ -21,11 +21,11 @@ class bgerp_DealIntf
      * Информацията, която този документ допринася към сделка
      *
      * @param int $id ид на документ
-     * @return bgerp_iface_DealResponse
+     * @param bgerp_iface_DealAggregator $aggregator - в него се натрупват обобщените данни
      */
-    public function getDealInfo($id)
+    public function pushDealInfo($id, &$aggregator)
     {
-        return $this->class->getDealInfo($id);
+        return $this->class->pushDealInfo($id, $aggregator);
     }
     
 }

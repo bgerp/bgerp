@@ -1,25 +1,17 @@
 <div class="singleView">
-       		[#SingleToolbar#] 
-            <h2>[#SingleTitle#]</h2>
-            <!--ET_BEGIN accountId-->
-            <h3>
-                [#accountId#]
-            </h3>
-            <!--ET_END accountId-->
-            <div class='fleft'>
-            
-            <table class="styled-table">
-				<tr>
-					<td class="title-style">|Период|*</td>
-					<td> [#periodId#]</td>
-				</tr>
-				<!--ET_BEGIN lastCalculate-->
-				<tr>
-					<td class="title-style">|Изчислена|*</td>
-					<td>[#lastCalculate#]</td>
-				</tr>
-				<!--ET_END lastCalculate-->
-			</table>
-            
-            [#DETAILS#]
- </div>          
+    [#SingleToolbar#] 
+    <h2>[#SingleTitle#]</h2>
+    <!--ET_BEGIN accountId-->
+    <h3>
+        [#accountId#]
+    </h3>
+    <!--ET_END accountId-->
+    <div  style='margin-bottom: 10px'>
+        <span class='quiet'>|Период|* :</span> [#periodId#]. 
+        <span class='quiet'>|Изчислена|*:</span> [#lastCalculate#]
+    </div>
+    <div class='fleft' style='margin-right: 20px;'>
+        [#DETAILS#]
+        [#ListPagerTop#]
+    </div>
+</div>

@@ -133,9 +133,6 @@ class bgerp_L extends core_Manager
             // Очакваме да не е чернова или оттеглен документ
             expect($rec->state != 'rejected' && $rec->state != 'draft', 'Липсващ документ');
             
-            //Спираме режима за принтиране
-            Mode::set('printing', FALSE); // @todo Необходимо ли е?
-
             //
             // Проверка за право на достъп според MID
             //
@@ -144,34 +141,19 @@ class bgerp_L extends core_Manager
             expect($mid = Request::get('m'));
             expect(log_Documents::opened($cid, $mid));
             
-            $options = array();
-
             // Трасираме стека с действията докато намерим SEND екшън
             $i = 0;
             while ($action = log_Documents::getAction($i--)) {
                 
-                // Ако е изпратен
-                if ($action->action == log_Documents::ACTION_SEND) {
-                    
-                    // Активатора и последния модифицирал на изпратения документ
-                    if (!$activatedBy) {
-                        
-                        $sendContainerRec = doc_Containers::fetch($action->containerId);
-                        $activatedBy = $sendContainerRec->activatedBy;
-                    }
-                    
-                    if ($action->data->detId) {
-                        $options['__toDetId'] = $action->data->detId;
-                    }
-                    $options['__toEmail'] = $action->data->to;
-                }
+                $options = (array)$action->data;
                 
                 // Ако има изпратено от
-                if ($action->data->sendedBy > 0 && !$options['__userId']) {
+                if (($action->data->sendedBy > 0) && (!$options['__userId'] || $options['__userId'] <= 0)) {
                     $options['__userId'] = $action->data->sendedBy;
                 }
                 
                 // Ако е принтиран
+                // TODO ще се оправи
                 if ($action->action == log_Documents::ACTION_PRINT) {
                     $options['__toListId'] = $action->data->toListId;
                     
@@ -179,12 +161,30 @@ class bgerp_L extends core_Manager
                         $options['__userId'] = $action->createdBy;
                     }
                 }
-            }
-            
-            // Ако няма потребител или е системата - за бласт
-            if (!$options['__userId'] || $options['__userId'] <= 0) {
-                if ($activatedBy > 0) {
-                    $options['__userId'] = $activatedBy;
+                
+                // Ако е изпратен
+                if ($action->action == log_Documents::ACTION_SEND) {
+                    
+                    $activatedBy = $action->createdBy;
+                    
+                    // Активатора и последния модифицирал на изпратения документ
+                    if (!$activatedBy || $activatedBy <= 0) {
+                        $activatedBy = $rec->activatedBy;
+                    }
+                    
+                    // Активатора и последния модифицирал на изпратения документ
+                    if (!$activatedBy || $activatedBy <= 0) {
+                        
+                        $sendContainerRec = doc_Containers::fetch($action->containerId);
+                        $activatedBy = $sendContainerRec->activatedBy;
+                    }
+                    
+                    // Ако няма потребител или е системата - за бласт
+                    if (!$options['__userId'] || $options['__userId'] <= 0) {
+                        if ($activatedBy > 0) {
+                            $options['__userId'] = $activatedBy;
+                        }
+                    }
                 }
             }
             
@@ -249,6 +249,10 @@ class bgerp_L extends core_Manager
      */
     function act_B()
     {
+        // Пускаме xhtml режима при вземане на QR кода
+        $text = Mode::get('text');
+        Mode::set('text', 'xhtml');
+        
         //Вземаме номера на контейнера
         $cid = Request::get('id', 'int');
         $mid = Request::get('m');
@@ -260,8 +264,11 @@ class bgerp_L extends core_Manager
         if ($mid) log_Documents::received($mid, NULL, $ip);
 
         $docUrl = static::getDocLink($cid, $mid);
-
+        
         barcode_Qr::getImg($docUrl, 3, 0, 'L', NULL);
+        
+        // Връщаме стария режим
+        Mode::set('text', $text);
     }
 
 
@@ -275,7 +282,8 @@ class bgerp_L extends core_Manager
      */
     static function getDocLink($cid, $mid)
     {
-        $url = toUrl(array('L', 'S', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
+        $url = toUrl(array('L', 'S', $cid, 'm' => $mid), $isAbsolute, TRUE, array('m'));
         
         return $url;
     }

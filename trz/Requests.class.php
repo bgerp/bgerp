@@ -37,7 +37,7 @@ class trz_Requests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, trz_Wrapper, trz_LeavesWrapper, 
+    var $loadList = 'plg_RowTools, trz_Wrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
     				 plg_Printing, doc_plg_BusinessDoc,plg_AutoFilter,doc_SharablePlg,bgerp_plg_Blank';
     
@@ -157,7 +157,7 @@ class trz_Requests extends core_Master
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
-    	$this->FLD('note', 'richtext(rows=5, bucket=Notes)', 'caption=Информация->Бележки');
+    	$this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=trz|ceo)', 'caption=Информация->Бележки');
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
@@ -251,7 +251,6 @@ class trz_Requests extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	//bp($data->form->fields[personId]);
     	$nowYear = dt::mysql2Verbal(dt::now(),'Y');
     	for($i = 0; $i < 5; $i++){
     		$years[] = $nowYear - $i;
@@ -371,7 +370,6 @@ class trz_Requests extends core_Master
     	$p = 1;
     	$a = '2013-05-02';
     	$b = '2013-05-10';
-    	bp(cal_Calendar::calcLeaveDays($a,$b));
     }
     
     
@@ -442,6 +440,21 @@ class trz_Requests extends core_Master
     }
     
     
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     *
+     * @param $threadId int ид на нишката
+     */
+    public static function canAddToThread($threadId)
+    {
+        // Добавяме тези документи само в персонални папки
+        $threadRec = doc_Threads::fetch($threadId);
+
+        return self::canAddToFolder($threadRec->folderId);
+    }
+
+
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка 

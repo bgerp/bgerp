@@ -26,7 +26,7 @@ class acc_Articles extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Мемориални Ордери";
+    var $title = "Мемориални ордери";
     
     
     /**
@@ -34,7 +34,7 @@ class acc_Articles extends core_Master
      */
     var $loadList = 'plg_RowTools, plg_Printing, doc_plg_HidePrices,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, bgerp_plg_Blank, plg_Search';
+                     doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search';
     
     
     /**
@@ -116,9 +116,9 @@ class acc_Articles extends core_Master
     
     
     /**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,acc';
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo,acc';
     
     
     /**
@@ -130,7 +130,7 @@ class acc_Articles extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason, valior';
+    var $searchFields = 'reason, valior, id';
     
     
     /**
@@ -143,7 +143,12 @@ class acc_Articles extends core_Master
      * Групиране на документите
      */
     var $newBtnGroup = "6.1|Счетоводни";
-      
+    
+    /**
+     * Документи заопашени за обновяване
+     */
+    protected $updated = array();
+    
     
     /**
      * Описание на модела
@@ -154,40 +159,33 @@ class acc_Articles extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,input=none');
+        $this->FLD('useCloseItems', 'enum(no=Не,yes=Да)', 'caption=Използване на приключени пера->Избор,maxRadio=2,notNull,default=no,input=none');
+        
+        // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
+        if(haveRole('accMaster')){
+            $this->canUseClosedItems = TRUE;
+        }
     }
     
     
-	/**
-     * Малко манипулации след подготвянето на формата за филтриране
+    /**
+     * Преди показване на форма за добавяне/промяна
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->FNC('dateFrom', 'date', 'input,caption=От');
-    	$data->listFilter->FNC('dateTo', 'date', 'input,caption=До');
-    	$data->listFilter->setDefault('dateFrom', date('Y-m-01'));
-		$data->listFilter->setDefault('dateTo', date("Y-m-t", strtotime(dt::now())));
-    	
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
-    	$data->listFilter->showFields = 'dateFrom,dateTo,search';
-    	$data->listFilter->input(NULL, 'silent');
-    	
-    	$data->query->orderBy('id', 'DESC');
-    	
-    	if($data->listFilter->rec->dateFrom){
-    		$data->query->where(array("#valior >= '[#1#]'", $data->listFilter->rec->dateFrom));
-    	}
-    	
-    	if($data->listFilter->rec->dateTo){
-    		$data->query->where(array("#valior <= '[#1#] 23:59:59'", $data->listFilter->rec->dateTo));
-    	}
+        // Ако потребителя може да избира приключени пера, показваме опцията за избор на формата
+        if($mvc->canUseClosedItems === TRUE){
+            
+            $data->form->setField('useCloseItems', 'input');
+            $data->form->setDefault('useCloseItems', 'no');
+        }
     }
     
     
     /**
      * Прави заглавие на МО от данните в записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
         $valior = self::getVerbal($rec, 'valior');
         
@@ -198,8 +196,12 @@ class acc_Articles extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        if(empty($rec->totalAmount)){
+            $row->totalAmount = $mvc->getFieldType('totalAmount')->toVerbal(0);
+        }
+        
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
     }
     
@@ -207,7 +209,7 @@ class acc_Articles extends core_Master
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
-    static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
+    public static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
     {
         $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }
@@ -216,7 +218,7 @@ class acc_Articles extends core_Master
     /**
      * След подготовка на сингъла
      */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $row = &$data->row;
         $rec = &$data->rec;
@@ -229,16 +231,27 @@ class acc_Articles extends core_Master
     
     
     /**
-     * Извиква се при промяна на някой от записите в детайл-модел
-     *
-     * @param core_Master $mvc
-     * @param int $masterId първичен ключ на мастър записа, чиито детайли са се променили
-     * @param core_Detail $detailsMvc
-     * @param stdClass $detailsRec данните на детайл записа, който е причинил промяната (ако има)
+     * След промяна в детайлите на обект от този клас
      */
-    static function on_AfterDetailsChanged($mvc, &$res, $masterId, $detailsMvc, $detailsRec = NULL)
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-        $mvc::updateAmount($masterId);
+        // Запомняне кои документи трябва да се обновят
+        if(!empty($id)){
+            $mvc->updated[$id] = $id;
+        }
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(count($mvc->updated)){
+            foreach ($mvc->updated as $id) {
+                $mvc->updateAmount($id);
+            }
+        }
     }
     
     
@@ -247,7 +260,7 @@ class acc_Articles extends core_Master
      *
      * @param int $id първичен ключ на статия
      */
-    private static function updateAmount($id)
+    private function updateAmount($id, $modified = TRUE)
     {
         $dQuery = acc_ArticleDetails::getQuery();
         $dQuery->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields' => 'amount'));
@@ -256,18 +269,20 @@ class acc_Articles extends core_Master
         
         $result = NULL;
         
-        $rec = self::fetch($id);
+        $rec = $this->fetch($id);
+        
         if ($r = $dQuery->fetch("#articleId = {$id}")) {
             $rec->totalAmount = $r->sumAmount;
         } else {
-        	$rec->totalAmount = 0;
+            $rec->totalAmount = 0;
         }
         
-        $result = self::save($rec);
-        
-        return $result;
+        if($modified){
+            acc_Articles::save($rec);
+        } else {
+            acc_Articles::save_($rec);
+        }
     }
-    
     
     /*******************************************************************************************
      * 
@@ -285,13 +300,15 @@ class acc_Articles extends core_Master
     {
         // Извличане на мастър-записа
         expect($rec = self::fetchRec($id));
-
+        
         $result = (object)array(
             'reason' => $rec->reason,
             'valior' => $rec->valior,
-            'totalAmount' => round($rec->totalAmount, 2),
+            'totalAmount' => 0,
             'entries' => array()
         );
+        
+        $totalAmount = 0;
         
         if (!empty($rec->id)) {
             // Извличаме детайл-записите на документа. В случая просто копираме полетата, тъй-като
@@ -300,27 +317,46 @@ class acc_Articles extends core_Master
             $query = acc_ArticleDetails::getQuery();
             
             while ($entry = $query->fetch("#articleId = {$rec->id}")) {
+                $debitRec = acc_Accounts::fetch($entry->debitAccId);
+                $creditRec = acc_Accounts::fetch($entry->creditAccId);
+                
                 $result->entries[] = array(
                     'amount' => round($entry->amount, 2),
-                
+                    
                     'debit' => array(
-                        acc_Accounts::fetchField($entry->debitAccId, 'num'),
+                        $debitRec->systemId,
                         $entry->debitEnt1, // Перо 1
                         $entry->debitEnt2, // Перо 2
                         $entry->debitEnt3, // Перо 3
                         'quantity' => $entry->debitQuantity,
                     ),
-                
+                    
                     'credit' => array(
-                        acc_Accounts::fetchField($entry->creditAccId, 'num'),
+                        $creditRec->systemId,
                         $entry->creditEnt1, // Перо 1
                         $entry->creditEnt2, // Перо 2
                         $entry->creditEnt3, // Перо 3
                         'quantity' => $entry->creditQuantity,
                     ),
                 );
+                
+                // Проверка дали трябва да се сума на движението
+                $quantityOnly = ($debitRec->type == 'passive' && $debitRec->strategy) ||
+                ($creditRec->type == 'active' && $creditRec->strategy);
+                
+                // Ако трябва да е само количество, премахваме нулевата сума
+                if($quantityOnly){
+                    unset($result->entries[count($result->entries) - 1]['amount']);
+                }
+                
+                //Добавяме сумата (ако я има) към общото
+                if(isset($result->entries[count($result->entries) - 1]['amount'])){
+                    $totalAmount += $result->entries[count($result->entries) - 1]['amount'];
+                }
             }
         }
+        
+        $result->totalAmount = $totalAmount;
         
         return $result;
     }
@@ -338,8 +374,7 @@ class acc_Articles extends core_Master
         
         return self::save($rec, 'state');
     }
-
-
+    
     /****************************************************************************************
      *                                                                                      *
      *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
@@ -350,33 +385,33 @@ class acc_Articles extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
         $row = new stdClass();
         
         $row->title = tr("Мемориален ордер");
-
+        
         if($rec->state == 'draft') {
             $row->title .= ' (' . tr("чернова") . ')';
         } else {
             $row->title .= ' (' . $this->getVerbal($rec, 'totalAmount') . ' BGN' . ')';
             $row->title = str_replace("&nbsp;", " ", $row->title);
         }
-
+        
         $row->subTitle = type_Varchar::escape($rec->reason);
         
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
-       
+        
         return $row;
     }
     
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -385,7 +420,7 @@ class acc_Articles extends core_Master
     public static function canAddToFolder($folderId)
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
-    	
+        
         return cls::haveInterface('doc_ContragentDataIntf', $folderClass) || $folderClass == 'doc_UnsortedFolders';
     }
     
@@ -393,27 +428,27 @@ class acc_Articles extends core_Master
     /**
      * Екшън създаващ обратен мемориален ордер на контиран документ
      */
-    function act_RevertArticle()
+    public function act_RevertArticle()
     {
-    	$this->requireRightFor('write');
-    	expect($docClassId = Request::get('docType', 'int'));
-    	expect($docId = Request::get('docId', 'int'));
-    	
-    	$DocClass = cls::get($docClassId);
-    	$DocClass->requireRightFor('correction', $docId);
-    	expect($journlRec = acc_Journal::fetchByDoc($docClassId, $docId));
-		expect($result = static::createReverseArticle($journlRec));
-    	
-    	return Redirect(array('acc_Articles', 'single', $result[1]), FALSE, "Създаден е успешно обратен Мемориален ордер");
+        $this->requireRightFor('write');
+        expect($docClassId = Request::get('docType', 'int'));
+        expect($docId = Request::get('docId', 'int'));
+        
+        $DocClass = cls::get($docClassId);
+        $DocClass->requireRightFor('correction', $docId);
+        expect($journlRec = acc_Journal::fetchByDoc($docClassId, $docId));
+        expect($result = static::createReverseArticle($journlRec));
+        
+        return Redirect(array('acc_Articles', 'single', $result[1]), FALSE, "Създаден е успешно обратен Мемориален ордер");
     }
     
     
-	/**
+    /**
      * Създава нов МЕМОРИАЛЕН ОРДЕР-чернова, обратен на зададения документ.
-     * 
-     * Контирането на този МО би неутрализирало счетоводния ефект, породен от контирането на 
+     *
+     * Контирането на този МО би неутрализирало счетоводния ефект, породен от контирането на
      * оригиналния документ, зададен с <$docClass, $docId>
-     * 
+     *
      * @param stdClass $journlRec - запис от журнала
      */
     public static function createReverseArticle($journlRec)
@@ -426,7 +461,7 @@ class acc_Articles extends core_Master
             'totalAmount' => $journlRec->totalAmount,
             'state'       => 'draft',
         );
-      
+        
         $journalDetailsQuery = acc_JournalDetails::getQuery();
         $entries = $journalDetailsQuery->fetchAll("#journalId = {$journlRec->id}");
         
@@ -484,8 +519,50 @@ class acc_Articles extends core_Master
      */
     public function getContoReason($id)
     {
-    	$rec = $this->fetchRec($id);
-    	
-    	return $this->getVerbal($rec, 'reason');
+        $rec = $this->fetchRec($id);
+        
+        return $this->getVerbal($rec, 'reason');
+    }
+    
+    
+    /**
+     * Изпълнява се след обновяване на журнала
+     */
+    public static function on_AfterJournalUpdated($mvc, $id, $journalId)
+    {
+        // Ако отнякъде е променена статията на документа, обновяваме го с новата информация
+        
+        // Всички детайли на МО
+        $rec = $mvc->fetchRec($id);
+        $dQuery = acc_ArticleDetails::getQuery();
+        $dQuery->where("#articleId = {$id}");
+        
+        // Всички детайли на променения журнал
+        $jQuery = acc_JournalDetails::getQuery();
+        $jQuery->where("#journalId = {$journalId}");
+        $jRecs = $jQuery->fetchAll();
+        
+        while($dRec = $dQuery->fetch()){
+            foreach ($jRecs as $jRec){
+                if($dRec->debitAccId == $jRec->debitAccId && $dRec->debitEnt1 == $jRec->debitItem1 && $dRec->debitEnt2 == $jRec->debitItem2 && $dRec->debitEnt3 == $jRec->debitItem3 &&
+                    $dRec->creditAccId == $jRec->creditAccId && $dRec->creditEnt1 == $jRec->creditItem1 && $dRec->creditEnt2 == $jRec->creditItem2 && $dRec->creditEnt3 == $jRec->creditItem3){
+                    if(!is_null($jRec->debitPrice)){
+                        $dRec->debitPrice = $jRec->debitPrice;
+                    }
+                    
+                    if(!is_null($jRec->creditPrice)){
+                        $dRec->creditPrice = $jRec->creditPrice;
+                    }
+                    
+                    $dRec->amount = $jRec->amount;
+                    
+                    break;
+                }
+            }
+            
+            acc_ArticleDetails::save($dRec);
+        }
+        
+        $mvc->updateAmount($id, TRUE);
     }
 }

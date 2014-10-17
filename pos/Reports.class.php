@@ -19,7 +19,7 @@ class pos_Reports extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl, deals_DealsAccRegIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl, deals_DealsAccRegIntf, acc_RegisterIntf';
     
     
     /**
@@ -351,7 +351,7 @@ class pos_Reports extends core_Master {
     		
     		// Ако детайла е плащане
     		$row->pack = $currencyCode;
-    		$value = pos_Payments::getTitleById($obj->value);
+    		$value = cond_Payments::getTitleById($obj->value);
     		$row->value = tr("Плащания") . ": &nbsp;<i>{$value}</i>";
     		$row->ROW_ATTR['class'] = 'report-payment';
     		unset($row->quantity);
@@ -529,5 +529,45 @@ class pos_Reports extends core_Master {
         if(!$res) { 
             $res = $mvc->singleIcon;
         }
+    }
+    
+    
+    /**
+     * Перо в номенклатурите, съответстващо на този продукт
+     *
+     * Част от интерфейса: acc_RegisterIntf
+     */
+    static function getItemRec($objectId)
+    {
+    	$result = NULL;
+    	 
+    	if ($rec = self::fetch($objectId)) {
+    		$result = (object)array(
+    				'num' => $objectId,
+    				'title' => static::getRecTitle($rec),
+    		);
+    	}
+    	
+    	return $result;
+    }
+     
+     
+    /**
+     * @see acc_RegisterIntf::itemInUse()
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(__CLASS__);
+    
+    	return "{$self->singleTitle} №{$rec->id}";
     }
 }

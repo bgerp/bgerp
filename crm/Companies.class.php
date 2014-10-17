@@ -25,6 +25,10 @@ class crm_Companies extends core_Master
     var $interfaces = array(
         // Интерфейс на всички счетоводни пера, които представляват контрагенти
         'crm_ContragentAccRegIntf',
+
+        // Интерфейс за счетоводни пера, отговарящи на фирми
+        'crm_CompanyAccRegIntf',
+
         
         // Интерфейс за всякакви счетоводни пера
         'acc_RegisterIntf',
@@ -146,6 +150,12 @@ class crm_Companies extends core_Master
      * Кой може да го възстанови?
      */
     var $canRestore = 'powerUser';
+
+
+    /**
+     * Поле, в което да се постави връзка към папката в листови изглед
+     */
+    var $listFieldForFolderLink = 'folder';
  
 	
     /**
@@ -237,7 +247,7 @@ class crm_Companies extends core_Master
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData');
         
         // Данъчен номер на фирмата
-        $this->FLD('vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,class=contactData');
+        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData');
         $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData');
         
         // Допълнителна информация
@@ -390,11 +400,6 @@ class crm_Companies extends core_Master
             
             // Да има само 2 колони
             $data->form->setField('groupList', array('maxColumns' => 2));    
-        }
-        
-        // Не може да се променят номенклатурите от формата
-    	if($form->fields['lists']){
-        	$form->setField('lists', 'input=none');
         }
     }
     
@@ -568,9 +573,9 @@ class crm_Companies extends core_Master
             $eml = $mvc->getVerbal($rec, 'email');
             
             // phonesBox
-            $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
-            $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
-            $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
+            $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : "";
+            $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : "";
+            $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : "";
             $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
         } else {
             
@@ -585,10 +590,10 @@ class crm_Companies extends core_Master
         	$currentCountry = $mvc->getVerbal($rec, 'place');
         	$country = $currentCountry;
         }
-      
+                
        	$currentId = $mvc->getVerbal($rec, 'id');
-        $row->nameList = '<span class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
-        "</span><span class='custom-rowtools'>". $row->id .' </span></span>';
+        $row->nameList = '<div class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
+        "</span><div class='custom-rowtools'>". $row->id . ' </div>'. $row->folder .'</div>';
         
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
         
@@ -623,6 +628,26 @@ class crm_Companies extends core_Master
         
         // Обновяме номерата
         $mvc->updateNumbers($rec);
+    }
+    
+    
+    /**
+     * Подготвяме опциите на тип key
+     *
+     * @param std Class $mvc
+     * @param array $options
+     * @param std Class $typeKey
+     */    
+    static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
+    {
+       if ($typeKey->params['select'] == 'name') {
+	       $query = $mvc->getQuery();
+	       $mvc->restrictAccess($query);
+	       
+	       while($rec = $query->fetch("#state != 'rejected'")) {
+	       	   $typeKey->options[$rec->id] = $rec->name . " ({$rec->id})";
+	       }
+       }
     }
     
     
@@ -1004,7 +1029,7 @@ class crm_Companies extends core_Master
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->id,
+                'num' => "F" . $rec->id,
                 'title' => $rec->name,
                 'features' => array('Държава' => $self->getVerbal($rec, 'country'),
             						'Град' => $self->getVerbal($rec, 'place'),)
@@ -1016,24 +1041,6 @@ class crm_Companies extends core_Master
             }
             
             $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec = $self->fetch($objectId)) {
-            $result = $self->getHyperlink($objectId);
-        } else {
-            $result = '<i>' . tr('неизвестно') . '</i>';
         }
         
         return $result;
@@ -1447,28 +1454,30 @@ class crm_Companies extends core_Master
     
 	/**
      * Връща пълния конкатениран адрес на контрагента
+     * 
      * @param int $id - ид на контрагент
-     * @return param $adress - адреса
+     * @return core_ET $tpl - адреса
      */
     public function getFullAdress($id)
     {
-    	$adress = '';
-    	expect($rec = $this->fetch($id));
+    	expect($rec = $this->fetchRec($id));
     	
+    	$obj = new stdClass();
+    	$tpl = new ET("[#country#]<br>[#pCode#] [#place#]<br>[#address#]");
     	if($rec->country){
-    		$adress .= crm_Persons::getVerbal($rec, 'country');
+    		$obj->country = crm_Persons::getVerbal($rec, 'country');
     	}
     
+    	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->$fld){
-    			$adress .= ((strlen($adress) && $fld != 'place') ? ", " : " ") . $rec->$fld;
+    			$obj->$fld = $Varchar->toVerbal($rec->$fld);
     		}
     	}
     	
-    	$Varchar = cls::get('type_Varchar');
-    	$adress = $Varchar->toVerbal($adress);
+    	$tpl->placeObject($obj);
     	
-    	return trim($adress);
+    	return $tpl;
     }
     
     
@@ -1488,7 +1497,7 @@ class crm_Companies extends core_Master
     		$groupName = crm_Groups::getTitleById($groupId);
     		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
     		
-    		core_Statuses::newStatus(tr("|Фирмата е включено в група |* '{$groupName}'"));
+    		core_Statuses::newStatus(tr("|Фирмата е включена в група |* '{$groupName}'"));
     		
     		return $this->save($rec, 'groupList');
     	}

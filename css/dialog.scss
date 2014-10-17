@@ -1,0 +1,114 @@
+.dialog-window {
+    border: 0;
+    width: auto;
+    padding:5px;
+    overflow: hidden;
+    background-color:#f5f5f5 !important;
+    font-family:Helvetica,Verdana,Sans-serif;
+}
+
+.dialog-window .tab-page {
+    position:relative;
+}
+
+.dialog-window .tab {
+    font-size:12px;
+}
+
+.dialog-window .tab a {
+    text-decoration:none;
+    color:#000066;
+}
+
+.dialog-window  .tab-title {
+     padding-left:20px;  
+     background-repeat:no-repeat;
+     background-position: 0px center;
+     font-size:1.1em;
+}
+
+.dialog-close {
+	position: absolute;
+	top: 5px;
+	right: 0px;
+	font-size: 12px;
+}
+
+.dialog-еrror {
+	margin-top: 5px;
+	border: solid 1px red;
+	background-color: #ffc;
+}
+
+.dialog-еrror ul{
+	margin: 0;
+	padding: 5px;
+	list-style: none;
+	color: #F00;
+	font-size: 0.9em;
+}
+
+.filemanGallery .listTitle{
+	font-size: 1em;
+	font-weight: bold;
+}
+
+.dialog-window .chzn-container,  .dialog-window input[name='imgTitle'], select{
+	width: 100% !important;
+}
+
+.dialog-window .chzn-drop, .dialog-window .chzn-search input{
+	width: 99% !important;
+}
+
+.dialog-title {
+	margin-top: 5px;
+	padding: 5px;
+	border: solid 1px #ccc;
+	background-color: #ffe;
+	margin-bottom: 5px;
+	font-size: 0.9em;
+	padding-left: 23px !important;
+	background-repeat: no-repeat;
+	background-position: 3px center;
+}
+
+.dialog-window .vertical .formTitle {
+	background: none !important;
+	border: none;
+	color: #000;
+	font-weight: bold;
+	font-size: 1em; 
+	position:relative;
+	top: -5px;
+	padding: 0px;
+}
+
+.narrow .vertical .formTitle {
+	font-size: 1em; 
+}
+
+.dialog-window .vertical .formSection {
+	background: none !important;
+	padding: 0px;
+}
+
+.dialog-window .vertical .formTable{
+	-moz-box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    width: 100%;
+    td {
+        border: none !important;
+        max-width: 220px;
+    }
+}
+
+.dialog-window .vertical .formToolbar, .dialog-window.narrow .vertical .formToolbar {
+	background: none;
+	border: none !important;
+}
+
+.dialog-window .formFieldCaption{
+	font-size: 0.96em;
+}

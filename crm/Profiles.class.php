@@ -9,7 +9,7 @@
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
- * @since     v 0.12
+ * @since     0.12
  */
 class crm_Profiles extends core_Master
 {
@@ -18,7 +18,7 @@ class crm_Profiles extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = array('crm_ProfileIntf');
+    var $interfaces = 'crm_ProfileIntf';
     
     
     /**
@@ -252,7 +252,7 @@ class crm_Profiles extends core_Master
         		        $attr['title'] = tr('Логин лог за потребителя');
                         
                         // URL за промяна
-                        $loginLogUrl = array('core_LoginLog', 'list', 'userId' => $userId, 'ret_url' => TRUE);
+                        $loginLogUrl = array('core_LoginLog', 'list', 'users' => $userId, 'ret_url' => TRUE);
                         
                         $data->LoginLog->row = new stdClass();
                         
@@ -263,6 +263,14 @@ class crm_Profiles extends core_Master
             } else {
                 unset($data->User->row->lastLoginIp);
             }
+        }
+        
+        // Ако има права за модифициране на настройките за персоналзиране
+        // @see custom_SettingsIntf
+        if (core_Users::haveRightFor('personalize', $data->rec->userId)) {
+            
+            // Добавяме бутона, който сочи към екшъна за персонализиране
+            $data->toolbar->addBtn('Персонализиране', array('core_Users', 'Personalize', $data->rec->userId, 'ret_url' => TRUE), 'ef_icon=img/16/customize.png,title=Персонализиране на настройките,row=2');
         }
     }
     
@@ -701,9 +709,10 @@ class crm_Profiles extends core_Master
         if(!$userId) {
             $userId = core_Users::getCurrent();
         }
-
+        
+        $userRec = core_Users::fetch($userId);
+        
         if(!$title) {
-            $userRec = core_Users::fetch($userId);
             $title = self::getUserTitle($userRec->nick);
         }
 
@@ -718,12 +727,14 @@ class crm_Profiles extends core_Master
                     $attr['class'] .= " {$role}"; break;
                 } 
             }
-
-            $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
             
-            if($before < 5*60) {
+            if ($userRec->lastActivityTime) {
+                $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
+            }
+            
+            if(($before !== NULL) && $before < 5*60) {
                 $attr['class'] .= ' active';
-            } elseif($before > 60*60) {
+            } elseif(!$before || $before > 60*60) {
                 $attr['class'] .= ' inactive';
             }
 
@@ -746,7 +757,7 @@ class crm_Profiles extends core_Master
     static function getUserTitle($nick)
     {
         list($l, $r) = explode('@', $nick);
-        $title = str_replace(' ', '&nbsp;', mb_convert_case(str_replace(array('.', '_'), array(' ', ' '), $l), MB_CASE_TITLE, "UTF-8"));
+        $title = core_Users::stringToNickCase($l);
         if($r) {
             $title .= '@' . $r;
         }
@@ -790,6 +801,23 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Създаваме собствена форма за филтриране
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $data
+     */
+    static function on_BeforePrepareListFilter($mvc, $res, &$data)
+    {
+        $formParams = array(
+            'method' => 'GET',
+//            'toolbar' => ht::createSbBtn('Филтър')
+        );
+        $data->listFilter = cls::get('core_Form', $formParams);
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -803,8 +831,6 @@ class crm_Profiles extends core_Master
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	 
     	$data->listFilter->showFields = 'search';
-        
-        $data->listFilter->input('search', 'silent');
         
         $data->query->orderBy("lastLoginTime", "DESC");
     }

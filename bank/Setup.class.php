@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * class bank_Setup
  *
@@ -10,7 +11,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -47,38 +48,44 @@ class bank_Setup extends core_ProtoSetup
      */
     var $info = "Банкови сметки, операции и справки";
     
-	
-	/**
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'bank_Accounts',
-            'bank_OwnAccounts',
-            'bank_IncomeDocuments',
-        	'bank_SpendingDocuments',
-            'bank_InternalMoneyTransfer',
-            'bank_ExchangeDocument',
-        	'bank_PaymentOrders',
-            'bank_CashWithdrawOrders',
-        	'bank_DepositSlips',
-        );
-        
-        
+        'bank_Accounts',
+        'bank_OwnAccounts',
+        'bank_IncomeDocuments',
+        'bank_SpendingDocuments',
+        'bank_InternalMoneyTransfer',
+        'bank_ExchangeDocument',
+        'bank_PaymentOrders',
+        'bank_CashWithdrawOrders',
+        'bank_DepositSlips',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     var $roles = 'bank';
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', "bank, ceo"),
-        );
-        
+        array(2.2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', "bank, ceo"),
+    );
     
-	/**
+    /**
+     * Път до css файла
+     */
+    //    var $commonCSS = 'bank/tpl/css/belejka.css, bank/tpl/css/styles.css';
+    
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
@@ -87,11 +94,12 @@ class bank_Setup extends core_ProtoSetup
         
         // Добавяне на роля за старши касиер
         if($roleRec = core_Roles::fetch("#role = 'masterBank'")){
-    		core_Roles::delete("#role = 'masterBank'");
-    	}
-    	
-    	$html .= core_Roles::addRole('bankMaster', 'bank') ? "<li style='color:green'>Добавена е роля <b>bankMaster</b></li>" : '';
-    	return $html;
+            core_Roles::delete("#role = 'masterBank'");
+        }
+        
+        $html .= core_Roles::addOnce('bankMaster', 'bank');
+        
+        return $html;
     }
     
     

@@ -21,7 +21,7 @@ class groups_Extendable extends core_Plugin
      * @param mixed $res
      * @param mixed $data
      */
-    public function on_BeforePrepareSingle(core_Master $master, &$res, $data)
+    public static function on_BeforePrepareSingle(core_Master $master, &$res, $data)
     {
         static::attachExtenders($master, $data->rec);
     }

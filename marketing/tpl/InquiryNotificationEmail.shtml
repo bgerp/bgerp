@@ -1,46 +1,45 @@
 <div>
-<b>|Информация за продукта|*</b><br/>
-<!--ET_BEGIN DATA_ROW-->
-[#CAPTION#]: [#VALUE#]<br/>
-<!--ET_END DATA_ROW-->
-<!--ET_BEGIN quantity-->
-[#quantity#]<b>|Количества|*</b><br/>
-<!--ET_BEGIN quantity1-->
-|Количество|*: [#quantity1#]<br/>
-<!--ET_END quantity1-->
-<!--ET_BEGIN quantity2-->
-|Количество|*: [#quantity2#]<br/>
-<!--ET_END quantity2-->
-<!--ET_BEGIN quantity3-->
-|Количество|*: [#quantity3#]<br/>
-<!--ET_END quantity3-->
-<br/><!--ET_END quantity-->
-<b>|Контактни дани|*</b><br/>
-<!--ET_BEGIN company-->
-|Фирма|*: [#company#]<br/>
-<!--ET_END company-->
-<!--ET_BEGIN country-->
-|Държава|*: [#country#]<br/>
-<!--ET_END country-->
-|Лице|*: [#name#]<br/>
-|Имейл|*: [#email#]<br/>
-<!--ET_BEGIN tel-->
-|Телефони|*: [#tel#]<br/>
-<!--ET_END tel-->
-<!--ET_BEGIN pCode-->
-|П. код|*: [#pCode#]<br/>
-<!--ET_END pCode-->
-<!--ET_BEGIN place-->
-|Град|*: [#place#]<br/>
-<!--ET_END place-->
-<!--ET_BEGIN address-->
-|Адрес|*: [#address#]<br/>
-<!--ET_END address-->
-
-<br />
-<b>|Системни данни|*</b><br/>
-|Дата|*: [#time#] <br/>
-|ИП|*: [#ip#]<br/>
-|Браузър|*: [#browser#]<br/>
-<br/>
+    <b>|Информация за продукта|*</b><br>
+    <!--ET_BEGIN DATA_ROW-->
+    [#CAPTION#]: [#VALUE#]<br>
+    <!--ET_END DATA_ROW-->
+    <!--ET_BEGIN quantity-->
+    [#quantity#]<b>|Количества|*</b><br>
+    <!--ET_BEGIN quantity1-->
+    |Количество|*: [#quantity1#]<br>
+    <!--ET_END quantity1-->
+    <!--ET_BEGIN quantity2-->
+    |Количество|*: [#quantity2#]<br>
+    <!--ET_END quantity2-->
+    <!--ET_BEGIN quantity3-->
+    |Количество|*: [#quantity3#]<br>
+    <!--ET_END quantity3-->
+    <br/><!--ET_END quantity-->
+    <b>|Контактни дани|*</b><br>
+    <!--ET_BEGIN company-->
+    |Фирма|*: [#company#]<br>
+    <!--ET_END company-->
+    <!--ET_BEGIN country-->
+    |Държава|*: [#country#]<br>
+    <!--ET_END country-->
+    |Лице|*: [#name#]<br>
+    |Имейл|*: [#email#]<br>
+    <!--ET_BEGIN tel-->
+    |Телефони|*: [#tel#]<br>
+    <!--ET_END tel-->
+    <!--ET_BEGIN pCode-->
+    |П. код|*: [#pCode#]<br>
+    <!--ET_END pCode-->
+    <!--ET_BEGIN place-->
+    |Град|*: [#place#]<br>
+    <!--ET_END place-->
+    <!--ET_BEGIN address-->
+    |Адрес|*: [#address#]<br>
+    <!--ET_END address-->
+    <br>
+    <b>|Системни данни|*</b><br>
+    |Дата|*: [#time#] <br>
+    |ИП|*: [#ip#]<br>
+    |Браузър|*: [#browser#]<br>
+    <br>
 </div>

@@ -31,7 +31,7 @@ class price_ConsumptionNormGroups extends core_Manager {
 	/**
 	* Плъгини за зареждане
 	*/
-	var $loadList = 'plg_RowTools, plg_Created, price_Wrapper, price_ConsumptionNormWrapper, plg_Printing, plg_Sorting';
+	var $loadList = 'plg_RowTools, plg_Created, price_Wrapper, plg_Printing, plg_Sorting';
 	    
 	    
 	/**

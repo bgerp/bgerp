@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.11
  */
-class sales_SaleRequestDetails extends core_Detail {
+class sales_SaleRequestDetails extends doc_Detail {
     
     
     /**
@@ -55,7 +55,7 @@ class sales_SaleRequestDetails extends core_Detail {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, quantity, uomId=Мярка, price, discount, amount=Сума';
+    public $listFields = 'productId, uomId=Мярка, quantity, price, discount, amount=Сума';
     
     
     /**
@@ -76,11 +76,28 @@ class sales_SaleRequestDetails extends core_Detail {
     function description()
     {
     	$this->FLD('requestId', 'key(mvc=sales_SaleRequests)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field');
+    	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden,oldFieldName=productManId');
-    	$this->FLD('quantity', 'double', 'caption=К-во,width=8em', 'tdClass=small-field');
-    	$this->FLD('price', 'double', 'caption=Ед. цена,width=8em');
-        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
+    	$this->FLD('quantity', 'double', 'caption=К-во', 'tdClass=small-field');
+    	$this->FLD('price', 'double', 'caption=Ед. цена');
+        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка');
+        $this->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
+    }
+    
+    
+    /**
+     * Изчисляване на сумата на реда
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function on_CalcAmount(core_Mvc $mvc, $rec)
+    {
+    	if (empty($rec->price) || empty($rec->quantity)) {
+    		return;
+    	}
+    
+    	$rec->amount = $rec->price * $rec->quantity;
     }
     
     
@@ -102,14 +119,14 @@ class sales_SaleRequestDetails extends core_Detail {
     	$recs = &$data->recs;
     	$masterRec = $data->masterData->rec;
     	
-    	deals_Helper::fillRecs($data->recs, $masterRec, static::$map);
+    	deals_Helper::fillRecs($mvc->Master, $data->recs, $masterRec, static::$map);
     }
     
     
     /**
      * Скриване на колоната за отстъпка ако няма отстъпки
      */
-    public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
         $haveDiscount = FALSE;
@@ -139,9 +156,6 @@ class sales_SaleRequestDetails extends core_Detail {
     	}
     	
     	$measureId = $productMan->getProductInfo($rec->productId, NULL)->productRec->measureId;
-    	$row->uomId = cat_UoM::getTitleById($measureId);
-    	
-    	$row->amount = $mvc->fields['price']->type->toVerbal($rec->price * $rec->quantity);
-    	$row->amount = "<div style='text-align:right'>{$row->amount}</div>";
+    	$row->uomId = cat_UoM::getShortName($measureId);
     }
 }

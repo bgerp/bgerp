@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   accda
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -40,30 +40,31 @@ class accda_Setup extends core_ProtoSetup
      */
     var $info = "Дълготрайни активи";
     
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'accda_Da',
-            'accda_Groups',
-            'accda_Documents',
-        );
-
-        
+        'accda_Da',
+        'accda_Groups',
+        'accda_Documents',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     var $roles = 'accda';
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.2, 'Счетоводство', 'ДА', 'accda_Da', 'default', "accda, ceo"),
-        );
+        array(2.2, 'Счетоводство', 'ДА', 'accda_Da', 'default', "accda, ceo"),
+    );
     
-        
+    
     /**
      * Де-инсталиране на пакета
      */

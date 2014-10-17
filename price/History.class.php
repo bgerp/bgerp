@@ -217,7 +217,6 @@ class price_History extends core_Manager
     static function getPrice($listId, $datetime, $productId, $packagingId = NULL)
     {
         $validFrom = self::canonizeTime($datetime);
-        
         if(!$validFrom) return;
         
         $cond = "#listId = {$listId} AND #validFrom = '{$validFrom}' AND #productId = {$productId}";
@@ -267,7 +266,6 @@ class price_History extends core_Manager
     	requireRole('admin,debug');
     	
     	$this->truncate();
-    	core_Statuses::newStatus(tr('Успешно са изтрити кешираните цени!'));
     	
     	followRetUrl();
     }
@@ -279,5 +277,6 @@ class price_History extends core_Manager
     public function truncate()
     {
     	$this->db->query("TRUNCATE TABLE `{$this->dbTableName}`");
+    	core_Statuses::newStatus(tr('Кешираните цени са изтрити'));
     }
  }

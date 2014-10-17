@@ -89,6 +89,18 @@ class cams_Records extends core_Master
      */
     var $canRead = 'ceo,cams, admin';
     
+    
+    /**
+     * Права за маркиране
+     */
+    var $canMark = 'ceo,cams,admin';
+
+
+    /**
+     * Права за размаркиране
+     */
+    var $canUnmark = 'ceo,cams,admin';
+    
     // Ръчно не могат да се добавят записи
     //var $canEdit = 'no_one';
     //var $canAdd = 'no_one';
@@ -379,7 +391,7 @@ class cams_Records extends core_Master
         
         expect($rec = $this->fetch($id));
         
-        $this->requireRightFor('marked', $rec);
+        $this->requireRightFor('mark', $rec);
         
         $rec->marked = 'yes';
         
@@ -398,7 +410,7 @@ class cams_Records extends core_Master
         
         expect($rec = $this->fetch($id));
         
-        $this->requireRightFor('marked', $rec);
+        $this->requireRightFor('unmark', $rec);
         
         $fp = $this->getFilePaths($rec->startTime, $rec->cameraId);
         
@@ -475,7 +487,10 @@ class cams_Records extends core_Master
         // Преоразмеряваме големите картинки
         if(count($toThumb)) {
             foreach($toThumb as $src => $dest) {
-                $thumb = thumbnail_Thumbnail::makeThumbnail($src, array(280, 210));
+                
+                $img = new thumb_Img(array($src, 280, 210, 'path', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
+                $thumb = $img->getScaledGdRes();
+                
                 imagejpeg($thumb, $dest, 85);
             }
         }
@@ -534,7 +549,7 @@ class cams_Records extends core_Master
         // Ако няма никаква камера, редиректваме към камерите, 
         // със съобщение за въведат поне една камера
         if(!isset($fRec->cameraId)) {
-            core_Message::redirect("Моля въведете поне една камера", 'page_Error', NULL, array('cams_Cameras'));
+            redirect(array('cams_Cameras'), TRUE, "Моля въведете поне една камера");
         }
         
         // Задаваме, така получената камера, като последно използвана
@@ -567,7 +582,7 @@ class cams_Records extends core_Master
         $camUrl = toUrl(array('cams_Cameras', 'Single', $fRec->cameraId));
         
         $data->title = "Записи на камера|* <a href='{$camUrl}'>{$camTitle}</a> |от" .
-        "|* <font color='green'>{$startPage}</font> |до|* <font  color='green'>{$startPageEnd}</font>";
+        "|* <span class=\"green\">{$startPage}</span> |до|* <span class=\"green\">{$startPageEnd}</span>";
         
         $startPageMysql = dt::verbal2mysql($startPage);
         
@@ -913,27 +928,24 @@ class cams_Records extends core_Master
         }
         
         // Наглася Cron да стартира записването на камерите
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "record_video";
-        $rec->description = "Записва от камерите";
+        $rec->description = "Правят се записи от камерите";
         $rec->controller = "cams_Records";
         $rec->action = "RecordVideo";
         $rec->period = (int) $conf->CAMS_CLIP_DURATION / 60;
         $rec->offset = 0;
-        
-        $Cron->addOnce($rec);
+        $res .= core_Cron::addOnce($rec);
+
         
         $rec = new stdClass();
         $rec->systemId = "delete_old_video";
-        $rec->description = "Изтрива старите записи от камерите";
+        $rec->description = "Изтриване на старите записи от камерите";
         $rec->controller = "cams_Records";
         $rec->action = "DeleteOldRecords";
         $rec->period = (int) 2 * $conf->CAMS_CLIP_DURATION / 60;
         $rec->offset = 0;
-        
-        $Cron->addOnce($rec);
+        $res .= core_Cron::addOnce($rec);
     }
     
     

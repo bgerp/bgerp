@@ -22,13 +22,13 @@ class doc_RichTextPlg extends core_Plugin
      * Шаблона трябва да не започва и/или да не завършва с буква и/или цифра
      * 
      * @param begin    - Символа преди шаблона
+     * @param dsSign    - Символа за документа
      * @param dsName  - Името на шаблона, с # отпред
      * @param name     - Името на шаблона, без # отпред
      * @param abbr     - Абревиатурата на шаблона
      * @param id       - id' то на шаблона
-     * @param end      - Символа след шаблона
      */
-    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'\#(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})))(?'end'[^a-z0-9а-я]|$){1}/iu";
+    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'(?'dsSign'\#)(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))){1}/iu";
     
     
     /**
@@ -36,14 +36,13 @@ class doc_RichTextPlg extends core_Plugin
      */
     function on_AfterCatchRichElements($mvc, &$html)
     {
-        if (Request::get('Printing')) {
-            return;
-        }
-        
         $this->mvc = $mvc;
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
+        
+        // Прихваща всички никове в ричтекста
+        $html = preg_replace_callback(rtac_Plugin::$pattern, array($this, '_catchNick'), $html);
     }
     
     
@@ -56,12 +55,15 @@ class doc_RichTextPlg extends core_Plugin
      */
     function _catchFile($match)
     {
-        //Име на файла
-        $docName = $match['dsName'];
-
         if (!$doc = doc_Containers::getDocumentByHandle($match)) {
             return $match[0];
         }
+        
+        // Абревиатурарата
+        $abbr = ($doc->instance->abbr) ? $doc->instance->abbr : $match['abbr'];
+        
+        //Име на файла
+        $docName = $match['dsSign'] . $abbr . $match['id'];
         
         $mvc    = $doc->instance;
         $docRec = $doc->rec();
@@ -78,47 +80,33 @@ class doc_RichTextPlg extends core_Plugin
             $this->mvc->_htmlBoard[$place] = "{$docName} ( $link )";
         } else {
             
-            //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+            // Икона на линка
+            $attr['ef_icon'] = $doc->getIcon($doc->that);
             
-            $sbfIcon = sbf($doc->getIcon($doc->that), '"', $isAbsolute);
+            // Атрибути на линка
+            $attr['class'] = 'docLink';
             
-            $title = substr($docName, 1);
+            $attr['rel'] = 'nofollow';
             
-            if(Mode::is('text', 'xhtml') && !Mode::is('pdf')) {
+            // Ако изпращаме или принтираме документа
+            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
                 
-                // Създаваме линк
-                $href = ht::createLink($title, $link);
-                
-                // Добавяме линк и иконата
-                $icon = "<img src={$sbfIcon} width='16' height='16' style='float:left;margin:3px 2px 4px 0px;' alt=''>";
-                $this->mvc->_htmlBoard[$place] = "<div style='display:inline-block;'>{$icon}{$href}</div>";  
+                // Линка да се отваря на нова страница
+                $attr['target'] = '_blank';    
             } else {
-                
-                //Създаваме линк в html формат
-                $style = "background-image:url({$sbfIcon});";
-                
-                // Атрибути на линка
-                $attr['class'] = 'linkWithIcon';
-                $attr['style'] = $style;
-                
-                // Ако изпращаме или принтираме документа
-                if ($isAbsolute) {
-                    
-                    // Линка да се отваря на нова страница
-                    $attr['target'] = '_blank';    
-                }
-                
-                $href = ht::createLink($title, $link, NULL, $attr);
-                
-                //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
-                $this->mvc->_htmlBoard[$place] = $href->getContent();
+                // Ако линка е в iframe да се отваря в родителския(главния) прозорец
+                $attr['target'] = "_parent";
             }
+            
+            $href = ht::createLink($docName, $link, NULL, $attr);
+            
+            //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
+            $this->mvc->_htmlBoard[$place] = $href->getContent();
         }
 
         //Стойността, която ще заместим в регулярния израз
         //Добавяме символите отркити от регулярниярния израз, за да не се развали текста
-        $res = $match['begin'] . "[#{$place}#]" . $match['end'];
+        $res = $match['begin'] . "[#{$place}#]";
 
         return  $res;
     }
@@ -155,9 +143,9 @@ class doc_RichTextPlg extends core_Plugin
                 
                 $docs[$name] = compact('name', 'mvc', 'rec');
             }
-            
-            return $docs;
         }
+        
+        return $docs;
     }
     
     
@@ -173,29 +161,38 @@ class doc_RichTextPlg extends core_Plugin
         // Ако не е подадено нищо
         if (!trim($fileName)) return ;
         
-        //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
+        // Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
         preg_match("/(?'name'(?'abbr'[a-z]+)(?'id'[0-9]+))/i", $fileName, $matches);
         
-        //Преобразуваме абревиатурата от намерения стринг в главни букви
+        // Преобразуваме абревиатурата от намерения стринг в главни букви
         $abbr = strtoupper($matches['abbr']);
         
         // Вземаме всички класове и техните абревиатури от документната система
         $abbrArr = doc_Containers::getAbbr();
         
-        //Името на класа
+        // Името на класа
         $className = $abbrArr[$abbr];
         
         //id' то на класа
         $id = $matches['id'];
         
-        //Провяряваме дали имаме права
-        if (($className) && ($className::haveRightFor('single', $id))) {
+        // Вземаме записа от модела
+        if ($id && $className) {
             
-            //Името на класа
-            $info['className'] = $className;
+            // Името на класа
+            $handleInfo['className'] = $className;
             
-            //id' то на класа
-            $info['id'] = $id;
+            // id' то на класа
+            $handleInfo['id'] = $id;
+            
+            $rec = $className::fetchByHandle($handleInfo);
+        }
+        
+        // Провяряваме дали имаме права и дали има такъв запис
+        if (($rec) && ($className::haveRightFor('single', $rec))) {
+            
+            // Масив с id и класа
+            $info = $handleInfo;
             
             return $info;
         }
@@ -206,10 +203,10 @@ class doc_RichTextPlg extends core_Plugin
      * Прихваща извикването на getInfoFromDocHandle
      * Връща информация за документа, от манипулатора му
      */
-    function on_GetInfoFromDocHandle($mvc, &$res, $fileHnd)
+    function on_GetInfoFromDocHandle($mvc, &$res, $fileName)
     {
         // Вземаме информация за файла
-        $fileInfo = static::getFileInfo($fileHnd);
+        $fileInfo = static::getFileInfo($fileName);
         
         // Ако няма, връщаме
         if (!$fileInfo) return ;
@@ -217,8 +214,10 @@ class doc_RichTextPlg extends core_Plugin
         // Вземаме инстанция на класа
         $class = cls::get($fileInfo['className']);
         
+        $rec = $class->fetchByHandle($fileInfo);
+        
         // Вземаме записа от контейнера на съответния документ
-        $cRec = $class->getContainer($fileInfo['id']);
+        $cRec = $class->getContainer($rec->id);
         
         // Добавяме датата
         $res['date'] = dt::mysql2verbal($cRec->createdOn);
@@ -326,5 +325,34 @@ class doc_RichTextPlg extends core_Plugin
             // Добавяне в групата за добавяне на документ
             $toolbarArr->add($documentUpload, 'filesAndDoc', 1000.055);
         }
+    }
+    
+    
+    /**
+     * Прихваща никовете и създава линкове към сингъла на профилите
+     * 
+     * @param array $match
+     */
+    function _catchNick($match)
+    {
+        // Да не сработва в текстов режим
+        if (Mode::is('text', 'plain')) return $match[0];
+        
+        // Вземаме id на записа от ника
+        $nick = $match['nick'];
+        $nick = strtolower($nick);
+        $id = core_Users::fetchField(array("LOWER (#nick) = '[#1#]'", $nick));
+        
+        if (!$id) return $match[0];
+        
+        // Добавяме в борда
+        $place = $this->mvc->getPlace();
+        
+        // За ника използваме и префикса от стринга
+        $nick = $match['pre'] . core_Users::prepareNick($match['nick']);
+        
+        $this->mvc->_htmlBoard[$place] = crm_Profiles::createLink($id, $nick);
+        
+        return "[#{$place}#]";
     }
 }

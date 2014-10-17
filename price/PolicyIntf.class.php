@@ -19,16 +19,26 @@ class price_PolicyIntf
     
     
     /**
-     * Връща цената за посочения продукт към посочения клиент на посочената дата
+     * Връща цената на продукта на посочения клиент
+     * 
+     * @param int $customerClass - ид на класа на контрагента
+     * @param int $customerId - ид на клиента
+     * @param int $productId - ид на продукта
+     * @param int $productManId - ид на класа на продуктовия мениджър
+     * @param int $packagingId - ид на опаковка
+     * @param double $quantity - количество
+     * @param datetime $date - към коя дата искаме цената
+     * @param double $rate - валутен курс
+     * @param enum(yes,no,export,separate) $chargeVat - да се начислявали ДДС или не върху цената
      * 
      * @return object
-     * $rec->price  - цена
-     * $rec->discount - отстъпка
-     * $rec->priority - приоритет на цената (0, 1 или 2)
+     * 			$rec->price  - цена
+     * 			$rec->discount - отстъпка
+     * 			$rec->priority - приоритет на цената (0, 1 или 2)
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
-        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $date);
+        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $date, $rate, $chargeVat);
     }
     
     

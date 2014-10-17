@@ -73,22 +73,25 @@ class crm_Formatter extends core_Manager
      */
     public static function renderTel($numbers, $prefix = NULL, $countryId = NULL)
     {
-    	
-        if (Mode::is('screenMode', 'wide') && $prefix != NULL) {
-        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+    	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-        	// Иконата на класа
-        	$icon = sbf("img/16/telephone2.png", '', $isAbsolute);
+        // Иконата на класа
+        $icon = sbf("img/16/telephone2.png", '', $isAbsolute);
+      		
+	    $PhonesVerbal = cls::get('drdata_PhoneType');
+	        		
+	    // парсирваме всеки телефон
+	    $parsTel = $PhonesVerbal->toVerbal($numbers);
         	
-        	$res = "<img class='communicationImg' src='{$icon}' />{$prefix}<span class='communication'>" . " ". $numbers ."</span>";
-        	//$res = "<span 'class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/telephone2.png') . ');'>" . $prefix. " ". $numbers . "</span>";
-        } elseif (Mode::is('screenMode', 'narrow') && $prefix != NULL) {
-        	$res = $prefix. "<span class='communication'>" . " ". $numbers ."</span>";
+        if ($prefix != NULL) {
+        	        	
+        	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $prefix. " ". $parsTel . "</span>";
+
         } else {
-        	$res = "<img class='communicationImg' src='{$icon}' /><span class='communication'>". $numbers ."</span>";
+        	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>". $parsTel ."</span>";
         }
-   
+ 
         return $res;
     }
  
@@ -102,47 +105,65 @@ class crm_Formatter extends core_Manager
      */
     public static function renderFax($numbers, $prefix = NULL, $countryId = NULL)
     {
-    	if (Mode::is('screenMode', 'wide') && $prefix != NULL) {
-        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+    	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-        	// Иконата на класа
-        	$icon = sbf("img/16/fax2.png", '', $isAbsolute);
-        	
-        	$res = "<img class='communicationImg' src='{$icon}' />{$prefix}<span class='communication'>" . " ". $numbers ."</span>";
-        	//$res = "<span 'class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/telephone2.png') . ');'>" . $prefix. " ". $numbers . "</span>";
-        } elseif (Mode::is('screenMode', 'narrow') && $prefix != NULL) {
-        	$res = $prefix. "<span class='communication'>" . " ". $numbers ."</span>";
-        } else {
-        	$res = "<img class='communicationImg' src='{$icon}' /><span class='communication'>". $numbers ."</span>";
-        }
-   
-        return $res;
-    }
-    
-    
-    /**
-     * Превръщане на телефонните номера и факсове в линкове
-     * 
-     * @param varchar $verbal
-     * @param drdata_PhoneType $canonical
-     * @param boolean $isFax
-     */
-    public static function getLink_($verbal, $canonical, $isFax = FALSE)
-    {
-        $conf = core_Packs::getConfig('crm'); 
+        // Иконата на класа
+        $icon = sbf("img/16/fax2.png", '', $isAbsolute);
+      		
+	    $PhonesVerbal = cls::get('drdata_PhoneType');
+	        		
+	    // парсирваме всеки телефон
+	    $parsTels = $PhonesVerbal->toArray($numbers);
         
-        $PhonesCanonical = cls::get('drdata_PhoneType');
-        
-        if (Mode::is('screenMode', 'wide') && $conf->CRM_TEL_LINK_WIDE == 'yes') {
-        	$res = $PhonesCanonical->toVerbal($canonical) ;
-        }
-        
-    	if (Mode::is('screenMode', 'narrow') && $conf->CRM_TEL_LINK_NARROW == 'yes') {
-        	$res = $PhonesCanonical->toVerbal($canonical) ;
-        }
+	    if (is_array($parsTels)) {
+		    foreach ($parsTels as $parsTel) {
+			    $fax = $PhonesVerbal->getLink($numbers, $parsTel->original, TRUE, NULL);
+		    }
+	    } else {
+	    	$fax = $numbers;
+	    }
+
+		if ($prefix != NULL) {
+		     	
+			$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $prefix. " ". $fax ."</span>";
+
+		} else {
+			$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>". $fax ."</span>";
+		}
 
         return $res;
+    } 
+
+    
+	/**
+     * Рендиране на телефонен номер
+     * 
+     * @param drdata_PhoneType $numbers
+     * @param string $prefix
+     * @param int $countryId
+     */
+    public static function renderMob($numbers, $prefix = NULL, $countryId = NULL)
+    {
+    	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        // Иконата на класа
+        $icon = sbf("img/16/mobile2.png", '', $isAbsolute);
+      		
+	    $PhonesVerbal = cls::get('drdata_PhoneType');
+	        		
+	    // парсирваме всеки телефон
+	    $parsTel = $PhonesVerbal->toVerbal($numbers);
+        	
+        if ($prefix != NULL) {
+        	        	
+        	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $prefix. " ". $parsTel . "</span>";
+
+        } else {
+        	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>". $parsTel ."</span>";
+        }
+ 
+        return $res;
     }
-   
 }

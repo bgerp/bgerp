@@ -61,7 +61,7 @@ class budget_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.2, 'Финанси', 'Бюджетиране', 'budget_Assets', 'default', "budget, ceo"),
+            array(2.2, 'Финанси', 'Бюджет', 'budget_Assets', 'default', "budget, ceo"),
         );    
 
     

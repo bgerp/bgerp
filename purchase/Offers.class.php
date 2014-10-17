@@ -238,6 +238,21 @@ class purchase_Offers extends core_Master
     }
     
     
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     *
+     * @param $threadId int ид на нишката
+     */
+    public static function canAddToThread($threadId)
+    {
+        // Добавяме тези документи само в персонални папки
+        $threadRec = doc_Threads::fetch($threadId);
+
+        return self::canAddToFolder($threadRec->folderId);
+    }
+
+    
 	 /**
      * Може ли документ-оферта да се добави в посочената папка?
      * Документи-оферта могат да се добавят само в папки с корица контрагент.

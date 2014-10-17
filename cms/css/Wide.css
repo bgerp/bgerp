@@ -1,124 +1,54 @@
-body{
-	margin: 0;
-	padding: 0;
-	border: 0;
-	background-color:#ccc;
-	font-family:Verdana,Helvetica,Arial,Sans-serif;
-	font-size:16px;
-	text-align:center;
-}
-
-#cmsTop{
-	position: relative;
-}
-
-.narrow #cmsTop  img{
-	float:left;
-	width:100%;
-	background-color:white !important;
-}
+body {
+  background-color: #cccccc; }
 
 #cmsMenu {
-	  background-color:#333;
-	  color:#333 !important;
-}
+  background-color: #333333; }
 
 #cmsMenu a {
-	color:#ddd;
-	border:solid 1px #333;
-	text-shadow:2px 2px 2px #000;
-	-moz-border-radius:5px;
-	border-radius: 5px;
-	margin-left:15px;
-	line-height:normal;
-}
+  color: #dddddd;
+  border: solid 1px #333333;
+  text-shadow: 2px 2px 2px black; }
+
 
 #cmsMenu a:hover {
-  color:#fff;
-}
+  color: white; }
 
 #cmsMenu a.selected {
-  color:#fff;
-  background-color:#99f;
-}
+  color: white;
+  background-color: #9999ff; }
 
+#cmsTop,
+#cmsBottom,
+#cmsTop.a,
+#cmsBottom.a {
+  color: white; }
 
-#cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
-	color: white;
-}
-
-#all #cmsTop, #cmsTop img {
-    background-color:white !important;
-}
-
+#all #cmsTop,
+#cmsTop img {
+  background-color: white !important; }
 
 #cmsBottom {
-	background-color: #333;
-}
+  background-color: #333333; }
 
 #all {
-	border: solid 1px #777;
-	border-bottom: none;
-}
+  border: solid 1px #777777;
+  border-bottom: none; }
 
 #maincontent {
-	background-color:white;
-}
+  background-color: white; }
 
 #cmsNavigation .nav_item a {
-	color:#336;
-	border:none;
-}
+  color: #333366; }
 
 #cmsNavigation .sel_page a {
-	color:#334;
-	background:#ddf;
-	border:solid 1px #ccf;
-}
+  color: #333344;
+  background: #ddddff;
+  border: solid 1px #ccccff; }
 
 #cmsNavigation .level1 {
-	color:#333;
-}
+  color: #333333; }
 
-#cmsNavigation div:first-child {
-}
+.richtext h2 {
+  background-color: #ddddff;
+  padding: 5px; }
 
-#cmsNavigation .level2 {
-}
-
-#cmsNavigation .level3 {
-}
-
-
-
-.richtext h2 { 
-	background-color: #ddf;
-	padding:5px;
-}
-
-/*Ако newsbar е пуснат и искаме да се показва под картинката трябва да има паддинг */
-#cmsTop{
-    1padding-bottom:42px;
-}
-
-.newsbar{
-    width:100%; 
-    text-align:center; 
-    position:absolute; 
-    bottom:0px; 
-    margin:0px; 
-    display:block;
-    font-size:0.9em; 
-    padding-top:12px; 
-    padding-bottom:10px; 
-    left: 0;
-    z-index: 100;
-}
-
-.newsbar .richtext{
-    line-height:1.1em;
-}
-
-.narrow .newsbar{
-    padding-bottom:8px; 
-}

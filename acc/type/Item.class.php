@@ -9,18 +9,12 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class acc_type_Item extends type_Key
 {
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    const MAX_SUGGESTIONS = 50;
     
     
     /**
@@ -31,7 +25,6 @@ class acc_type_Item extends type_Key
         $params['params']['mvc'] = 'acc_Items';
         
         setIfNot($params['params']['select'], 'title');
-        setIfNot($params['params']['maxSuggestions'], self::MAX_SUGGESTIONS);
         
         parent::init($params);
     }
@@ -42,9 +35,13 @@ class acc_type_Item extends type_Key
      *
      * `$this->params['root']` е префикс, който трябва да имат номерата на всички опции
      */
-    private function prepareOptions()
+    public function prepareOptions()
     {
         expect($lists = $this->params['lists'], $this);
+        
+        if (isset($this->options)) {
+            return;
+        }
         
         $mvc = cls::get($this->params['mvc']);
         $select = $this->params['select'];
@@ -56,7 +53,7 @@ class acc_type_Item extends type_Key
         $this->options = array();
         
         $cleanQuery = $mvc->getQuery();
-        $cleanQuery->show("id, {$select}");
+        $cleanQuery->show("id, {$select}, state");
         
         // За всяка от зададените в `lists` номенклатури, извличаме заглавието и принадлежащите 
         // й пера. Заглавието става <OPTGROUP> елемент, перата - <OPTION> елементи
@@ -72,7 +69,6 @@ class acc_type_Item extends type_Key
                 $this->options["x{$listRec->id}"] = (object)array(
                     'title' => $listRec->caption,
                     'group' => TRUE,
-                    //                    'attr'  => array('class' => 'list'),
                 );
             }
             
@@ -80,10 +76,27 @@ class acc_type_Item extends type_Key
             $query = clone($cleanQuery);
             $query->where("#lists LIKE '%|{$listRec->id}|%'");
             
-            while ($itemRec = $query->fetch()) {
-                $this->options["{$itemRec->id}.{$listRec->id}"] = strip_tags($itemRec->{$select});
+            // Показваме само активните, само ако е не е зададено в типа 'showAll'
+            if(empty($this->params['showAll'])){
+                $query->where("#state = 'active'");
             }
+            
+            while ($itemRec = $query->fetch()) {
+                $title = $itemRec->{$select};
+                
+                // Ако перото е затворено, указваме го в името му
+                if($itemRec->state == 'closed'){
+                    $title .= " (" . tr('затворено') . ")";
+                }
+                
+                // Слагаме вербалното име на перата, и за всеки случай премахваме html таговете ако има
+                $this->options["{$itemRec->id}.{$listRec->id}"] = $title;
+            }
+            
+            $where .= ($query->where) ? $query->getWhereAndHaving()->w : ' ';
         }
+        
+        $this->handler = md5($this->getSelectFld() . $where . $this->params['mvc']);
     }
     
     
@@ -94,9 +107,16 @@ class acc_type_Item extends type_Key
     {
         $this->prepareOptions();
         
+        $conf = core_Packs::getConfig('core');
+        setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
+        
         foreach ($this->options as $key => $val) {
             if (!is_object($val) && intval($key) == $value) {
-                $value = $key;
+                
+                // Workaround
+                // Ако опциите са повече от допустимите и се използва Ajax, подаваме инт еквивалента на стойността за да
+                // работи, иначе връща грешни данни, ако не се използва Ajax подаваме дробната стойност
+                $value = (count($this->options) > $maxSuggestions) ? intval($key) : $key;
                 break;
             }
         }

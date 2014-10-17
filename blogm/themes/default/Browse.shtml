@@ -1,31 +1,28 @@
 <div class='blogm-browse'>
-	
-	<!--ET_BEGIN BROWSE_HEADER-->
-	<div class='blog-browse-header'>
-		[#BROWSE_HEADER#]
-	</div>
-	<!--ET_END BROWSE_HEADER-->
+    <!--ET_BEGIN BROWSE_HEADER-->
+    <div class='blog-browse-header'>
+        [#BROWSE_HEADER#]
+    </div>
+    <!--ET_END BROWSE_HEADER-->
+    <!--ET_BEGIN ROW-->
+    <div class='blogm-browse-article'>
+        <!--ET_BEGIN articleBrowse-->
+        [#articleBrowse#]
+        <div class='blogm-article-info'>
+            <span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#]</span>
+            [#createdOn#], [#author#] |в|* [#categories#] 
+        </div>
+        <!--ET_END articleBrowse-->
+        <div class='blogm-article-title'>
+            [#title#]
+        </div>
+        <div class='blogm-article-body'>
+            [#body#]
+        </div>
+        <div class="clearfix21"></div>
+    </div>
+    <!--ET_END ROW-->
+    <br>
+    [#newerArticles#][#olderArticles#]
+</div>
 
-	<!--ET_BEGIN ROW-->
-	<div class='blogm-browse-article'>
-	<!--ET_BEGIN articleBrowse-->
-	[#articleBrowse#]
-		<div class='blogm-article-info'>
-			<span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#]</span>
-			[#createdOn#], [#author#] |в|* [#categories#] 
-		</div>
-	<!--ET_END articleBrowse-->
-		<div class='blogm-article-title'>
-			[#title#]
-		</div>
-		<div class='blogm-article-body'>
-			[#body#]
-		</div>
-     	<div class="clearfix21"></div>
-	</div>
-	<!--ET_END ROW-->
-	
-	<br>
-	[#newerArticles#][#olderArticles#]
-
-</div> 

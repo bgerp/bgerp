@@ -14,12 +14,6 @@ defIfNot(BGERP_COMPANY_LOGO, '');
 
 
 /**
- * Офсет преди текущото време при липса на 'Затворено на' в нотификциите
- */
-defIfNot(BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE, '60');
-
-
-/**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
@@ -31,7 +25,7 @@ defIfNot(BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE, '60');
  * @since     v 0.1
  * @link
  */
-class bgerp_Setup {
+class bgerp_Setup extends core_ProtoSetup {
     
     
     /**
@@ -58,17 +52,13 @@ class bgerp_Setup {
     var $info = "Основно меню и портал на bgERP";
     
         
-    
     /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-           
-       'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка на английски (750х100 px)->Изображение'),
-
-       'BGERP_COMPANY_LOGO'   => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка на български (750х100 px)->Изображение'),
-       
-       'BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE'   => array ('time(suggestions=10 сек.|30 сек.|1 мин|2 мин|30 мин|1 час)', "caption=Офсет преди текущото време при липса на 'Затворено на' в нотификциите->Време"),
+       'BGERP_COMPANY_LOGO' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На български, customizeBy=powerUser'),
+    
+       'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
      );
     
     
@@ -83,9 +73,15 @@ class bgerp_Setup {
     
     
     /**
+     * Път до js файла
+     */
+//    var $commonJS = 'js/PortalSearch.js';
+    
+    
+    /**
      * Инсталиране на пакета
      */
-    function install($Plugins = NULL)
+    function install()
     {
         // Предотвратяваме логването в Debug режим
         Debug::$isLogging = FALSE;
@@ -115,9 +111,9 @@ class bgerp_Setup {
         $isFirstSetup = ($Packs->count() == 0);
         
         // Списък на основните модули на bgERP
-        $packs = "core,fileman,drdata,bglocal,editwatch,recently,thumbnail,doc,acc,currency,cms,
+        $packs = "core,fileman,drdata,bglocal,editwatch,recently,thumb,custom,doc,acc,currency,cms,
                   email,crm, cat, trans, price, blast,rfid,hr,trz,lab,sales,mp,marketing,store,cond,cash,bank,
-                  budget,purchase,accda,sens,cams,cal,fconv,log,fconv,cms,blogm,forum,deals,
+                  budget,purchase,accda,sens,cams,frame,cal,fconv,log,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,techno,
                   callcenter,social,hyphen,distro,dec,status,phpmailer";
         
@@ -129,7 +125,7 @@ class bgerp_Setup {
         // Добавяме допълнителните пакети, само при първоначален Setup
         $Folders = cls::get('doc_Folders');
         if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen,help,toast,compactor";
+            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen,help,toast,compactor,rtac";
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();
@@ -143,7 +139,7 @@ class bgerp_Setup {
 
     	if (Request::get('SHUFFLE')) {
         	
-        	// Ако е зададен параметър shuffle  в урл-то разбуркваме пакетите
+        	// Ако е зададен параметър shuffle  в урл-то разбъркваме пакетите
         	if (!is_array($packs)) {
         		$packs = arr::make($packs);
 	        }
@@ -169,7 +165,9 @@ class bgerp_Setup {
                         $force = TRUE; 
                         $Packs->alreadySetup[$p . $force] = FALSE;
                         //$haveError = TRUE;
+                        file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
                         $haveError[$p] .= "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage(). " " .date('H:i:s')."</h3>";
+
                     }
                  }
             }
@@ -180,7 +178,10 @@ class bgerp_Setup {
                     $packsInst[$p] = cls::get($p . '_Setup');
                     if (method_exists($packsInst[$p], 'loadSetupData')) {
                         try {
-                            $packsInst[$p]->loadSetupData();
+                            $html .= "<h2>Инициализиране на $p</h2>";
+                            $html .= "<ul>";
+                            $html .= $packsInst[$p]->loadSetupData();
+                            $html .= "</ul>";
                             $isLoad[$p] = TRUE;
                             // Махаме грешките, които са възникнали, но все пак са се поправили
                             // в не дебъг режим
@@ -189,6 +190,7 @@ class bgerp_Setup {
                             }
                          } catch(core_exception_Expect $exp) {
                             //$haveError = TRUE;
+                            file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
                             $haveError[$p] .= "<h3 style='color:red'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " .date('H:i:s')."</h3>";
                         }
                     }
@@ -204,7 +206,7 @@ class bgerp_Setup {
 		$Bucket->createBucket('bnav_importCsv', 'CSV за импорт', 'csv', '20MB', 'user', 'every_one');
 		
 		// Добавяме Импортиращия драйвър в core_Classes
-        core_Classes::add('bgerp_BaseImporter');
+        $html .= core_Classes::add('bgerp_BaseImporter');
         
         //TODO в момента се записват само при инсталация на целия пакет
         
@@ -221,9 +223,9 @@ class bgerp_Setup {
         // Да се изтрият необновените менюта
         $Menu->deleteNotInstalledMenu = TRUE;
         
-        $html .= $Menu->addItem(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin');
+        $html .= bgerp_Menu::addOnce(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin');
 
-        $html .= $Menu->addItem(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
+        $html .= bgerp_Menu::addOnce(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
         
         $html .= $Menu->repair();
         
@@ -234,6 +236,18 @@ class bgerp_Setup {
 
         return $html;
     }
+
+
+    /**
+     * Временно, преди този клас да стане наследник на core_ProtoSetup
+     */
+    function loadSetupData()
+    {
+    }
+
+ 
+       
+
     
     
 }

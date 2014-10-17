@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * История на файловете
  *
@@ -26,7 +25,7 @@ class bgerp_F extends core_Manager
      * Да не се кодират id-тата
      */
     var $protectId = FALSE;
-
+    
     
     /**
      * Екшън за показване на файловете, на нерегистрираните потребители
@@ -44,12 +43,26 @@ class bgerp_F extends core_Manager
         
         // Очакваме да има изпратен документ с mid' а
         expect(($rec = log_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
-
+        
+        // Записваме, ако не е записоно, че файла е отворено от ip
+        log_Documents::opened($rec->containerId, $mid);
+        
         // Вземаме документа
         $doc = doc_Containers::getDocument($rec->containerId);
         
+        // Записа на файла
+        $docRec = $doc->fetch();
+        
+        expect($docRec);
+        
+        // Ако докъмента е отхвърлен, да не се показва на нерегистрирани потребители
+        if ($docRec->state == 'rejected') {
+            
+            requireRole('user');
+        }
+        
         // Вземаме линкнатите файлове в документите
-        $linkedFiles = $doc->getLinkedFiles($rec);
+        $linkedFiles = $doc->getLinkedFiles();
         
         // Имената на файловете в долен регистър
         $linkedFiles = array_map('mb_strtolower', $linkedFiles);
@@ -82,9 +95,6 @@ class bgerp_F extends core_Manager
             $fRec = fileman_Files::fetchByFh($fh);
         }
         
-        // Записваме, ако не е записоно, че файла е отворено от ip
-        log_Documents::opened($rec->containerId, $mid);
-        
         // В зависимост от това дали има права за разгреждане - линк към сингъла или за сваляне
         $url = fileman_Files::generateUrl_($fh, TRUE);
         
@@ -95,4 +105,85 @@ class bgerp_F extends core_Manager
         redirect($url);    
     }
     
+    
+    /**
+     * Екшън за показване на картинки на нерегистрирани потребители
+     */
+    function act_T()
+    {
+        // MID на изпратената картинка
+        $mid = Request::get('id');
+        
+        // Името на картинката
+        $name = Request::get('n');
+        expect($name, 'Липсва име на файл');
+        
+        // Ако няма MID, трябва да е регистриран потребител
+        if (!$mid) {
+            requireRole('user');
+        } else {
+            
+            // Опитваме се да определим изпращенето от MID'a
+            expect(($rec = log_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
+            
+            // Записваме, ако не е записоно, че файла е отворено от ip
+            log_Documents::opened($rec->containerId, $mid);
+            
+            // Вземаме документа
+            $doc = doc_Containers::getDocument($rec->containerId);
+            
+            // Запис за документа
+            $docRec = $doc->fetch();
+            
+            // Ако е оттеглен
+            if ($docRec->state == 'rejected') {
+                
+                // Само логнати могат да разглеждат
+                requireRole('user');
+            }
+            
+            // Вземаме линкнатите файлове в документите
+            $linkedImages = $doc->getLinkedImages();
+            
+            // Очакваме зададения да е във файла
+            expect($linkedImages[$name]);
+        }
+        
+        // Запис за картинката
+        $imgRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $name));
+        expect($imgRec, 'Няма информация за файла');
+        
+        // Запис за групата
+        $groupRec = fileman_GalleryGroups::fetch($imgRec->groupId);
+        expect($groupRec, 'Няма информация за файла');
+        
+        // Широчината и височината на картинката
+        $width = ($groupRec->width) ? $groupRec->width : 900;
+        $height = ($groupRec->height) ? $groupRec->height : 900;
+        
+        if ($mid) {
+            $isAbsolute = FALSE;
+        } else {
+            $isAbsolute = TRUE;
+        }
+        
+        // Генерираме thumbnail
+        $Img = new thumb_Img(array($imgRec->src, $width, $height, 'fileman', 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => $name));
+        
+        // Ако има MID
+        if ($mid) {
+            // Форсираме свалянето му
+            $Img->forceDownload();
+        } else {
+            if (fileman_GalleryImages::haveRightFor('single', $imgRec)) {
+                
+                // Вземаме деферед URL
+                $url = $Img->getUrl('deferred');
+                
+                return new Redirect($url);
+            }
+            
+            expect(FALSE);
+        }
+    }
 }

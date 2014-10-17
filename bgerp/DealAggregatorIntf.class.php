@@ -33,4 +33,28 @@ class bgerp_DealAggregatorIntf
         return $this->class->getAggregateDealInfo($id);
     }
     
+    
+    /**
+     * Връща масив с кои платежни операции са позволени
+     * Масив с елементи:
+     * 			[operation_system_id]['title'] - име на операцията
+     * 								 ['debit'] - systemId на дебитната сметка ('*' ако сметката се определя от документа)
+     * 								 ['credit'] - systemId на кредит сметка ('*' ако сметката се определя от документа)
+     * 								 ['reverse'] - TRUE/FALSE  дали да е обратна операция
+     * 
+     */
+    public function getPaymentOperations($id)
+    {
+    	return $this->class->getPaymentOperations($id);
+    }
+    
+    
+    /**
+     * Връща масив с кои операции са позволени за експедиране/доставяне на услуги
+     *
+     */
+    public function getShipmentOperations($id)
+    {
+    	return $this->class->getShipmentOperations($id);
+    }
 }

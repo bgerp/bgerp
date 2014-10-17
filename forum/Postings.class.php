@@ -86,8 +86,8 @@ class forum_Postings extends core_Detail {
 	function description()
 	{
 		$this->FLD('boardId', 'key(mvc=forum_Boards, select=title)', 'caption=Дъска, input=hidden, silent');
-		$this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory, placeholder=Заглавие, width=100%');
-		$this->FLD('body', 'richtext(bucket=Notes)', 'caption=Съдържание, mandatory, placeholder=Добавете вашия коментар, width=100%');
+		$this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory, placeholder=Заглавие');
+		$this->FLD('body', 'richtext(bucket=Notes)', 'caption=Съдържание, mandatory, placeholder=Добавете вашия коментар');
 		$this->FLD('type', 'enum(normal=Нормална,sticky=Важна,announcement=Съобщение)', 'caption=Тип, value=normal');
 		$this->FLD('postingsCnt', 'int', 'caption=Коментари, input=none, value=0');
 		$this->FLD('views', 'int', 'caption=Прегледи, input=none, value=0');
@@ -593,7 +593,7 @@ class forum_Postings extends core_Detail {
 		// Ако можем да добавяме нов постинг в темата и тя е отключена
 		if($this->haveRightFor('add', $data->rec)) { 
 			$addUrl = array($this, 'Add', 'boardId' => $data->board->id , 'themeId' => $data->rec->id, 'ret_url' => TRUE );
-			$tpl->replace(ht::createBtn('Коментирай', $addUrl, NULL, NULL, 'id=btnAdd', 'ef_icon = img/16/star_2.png'), 'ADD_COMMENT');
+			$tpl->replace(ht::createBtn('Коментирай', $addUrl, NULL, NULL, 'class=btnComment', 'ef_icon = img/16/star_2.png'), 'ADD_COMMENT');
 		}
 		
 		$tpl = $this->renderTopicToolbar($data, $tpl);
@@ -699,7 +699,7 @@ class forum_Postings extends core_Detail {
 	{
 		// Форма за местене на тема
 		$data->form = cls::get('core_Form');
-		$data->form->FNC('boardTo', 'key(mvc=forum_Boards,select=title)', 'caption = Избери,input,width=100%');
+		$data->form->FNC('boardTo', 'key(mvc=forum_Boards,select=title)', 'caption = Избери,input');
 		$data->form->setHidden('theme', $data->rec->id);
 		$data->form->setDefault('boardTo', $data->board->id);
 		$data->form->title = "Местене на тема|* : <b>{$data->row->title}</b>";
@@ -1098,8 +1098,8 @@ class forum_Postings extends core_Detail {
         if($filter = $data->listFilter->rec) {
 	    	if($filter->board > 0) {
 					$data->query->where("#boardId = {$filter->board}");
-					$verbalBoard = $data->listFilter->fields['board']->type->toVerbal($filter->board);
-					$data->title .= ' в дъска |*<font color="darkblue">"' . $verbalBoard . '"</font>';
+					$verbalBoard = $data->listFilter->getFieldType('board')->toVerbal($filter->board);
+					$data->title .= ' в дъска |*<span style="color:darkblue;">"' . $verbalBoard . '"</font>';
 				}
 				
         	if($filter->posting == 'all') {

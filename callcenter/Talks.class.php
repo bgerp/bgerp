@@ -18,7 +18,7 @@ class callcenter_Talks extends core_Master
     /**
      * Заглавие на модела
      */
-    var $title = 'Разговори';
+    var $title = 'Телефонни разговори';
     
     
     /**
@@ -135,7 +135,7 @@ class callcenter_Talks extends core_Master
         $this->FLD('internalData', 'keylist(mvc=callcenter_Numbers)', 'caption=Вътрешен->Потребител, width=100%, oldFieldName=calledData');
         
 //        $this->FLD('mp3', 'varchar', 'caption=Аудио');
-        $this->FLD('dialStatus', 'enum(NO ANSWER=Без отговор, FAILED=Прекъснато, BUSY=Заето, ANSWERED=Отговорено, UNKNOWN=Няма информация)', 'allowEmpty, caption=Състояние, hint=Състояние на обаждането');
+        $this->FLD('dialStatus', 'enum(NO ANSWER=Без отговор, FAILED=Прекъснато, BUSY=Заето, ANSWERED=Отговорено, UNKNOWN=Няма информация, REDIRECTED=Пренасочено)', 'allowEmpty, caption=Състояние, hint=Състояние на обаждането');
         $this->FLD('uniqId', 'varchar', 'caption=Номер');
         $this->FLD('startTime', 'datetime(format=smartTime)', 'caption=Време->Начало');
         $this->FLD('answerTime', 'datetime(format=smartTime)', 'allowEmpty, caption=Време->Отговор');
@@ -188,7 +188,7 @@ class callcenter_Talks extends core_Master
             $externalClass = ($externalNumArr[0]->mobile) ? 'mobile' : 'telephone';
             
             // Добавяме стил за телефони        
-            $row->externalNum = "<div class='{$externalClass}'>" . $row->externalNum . "</div>";
+            $row->externalNum = "<div class='{$externalClass} crm-icon'>" . $row->externalNum . "</div>";
         } else {
             
             // Вероятно е обаждане от вътрешен номер. Да няма оцветяване.
@@ -282,21 +282,21 @@ class callcenter_Talks extends core_Master
                 $div = "<div style='margin-top:5px;'>";
                 
                 // Добавяме данните към номерата
-                $row->externalNum .=  $div. $row->externalData . "</div>";
+                $row->externalNum .= $div . $row->externalData . "</div>";
                 $row->internalNum .= $div . $row->internalData . "</div>";
             
                 // Ако има продължителност
                 if ($rec->duration) {
-                 
+                    
                     // Ако няма вербална стойност
-                    if (!$duration = $row->duration) {
+                    if (!($duration = $row->duration)) {
                      
                         // Вземаме вербалната стойност
                         $duration = static::getVerbal($rec, 'duration');
                     }
                     
                     // Добавяме след времето на позвъняване
-                    $row->startTime .= $div . $duration;
+                    $row->startTime .= $div . $duration . "</div>";
                 }
             }
         }
@@ -306,6 +306,13 @@ class callcenter_Talks extends core_Master
             $row->DialStatusClass .= ' dialStatus-opened';
         } elseif ($rec->dialStatus == 'ANSWERED') {
             $row->DialStatusClass .= ' dialStatus-answered';
+        } elseif ($rec->dialStatus == 'REDIRECTED') {
+            $row->DialStatusClass .= ' dialStatus-redirected';
+            
+            // Ако няма продължителност на разговора
+            if (!$rec->duration) {
+                $row->duration = $mvc->getVerbal($rec, 'dialStatus');
+            }
         } else {
             $row->DialStatusClass .= ' dialStatus-failed';
             $row->duration = $mvc->getVerbal($rec, 'dialStatus');
@@ -328,8 +335,9 @@ class callcenter_Talks extends core_Master
      */
     public static function on_AfterPrepareListRows($mvc, $data)
     {
+        $dialStatusType = Request::get('dialStatusType');
         // Изчистваме нотификацията
-        $url = array('callcenter_Talks', 'list');
+        $url = array('callcenter_Talks', 'list', 'dialStatusType' => $dialStatusType);
         bgerp_Notifications::clear($url);  
     }
     
@@ -400,7 +408,6 @@ class callcenter_Talks extends core_Master
         
         // Вземаме променливите
         $startTime = Request::get('starttime');
-        $dialStatus = Request::get('dialstatus');
         $uniqId = Request::get('uniqueId');
         $outgoing = Request::get('outgoing');
         
@@ -690,7 +697,15 @@ class callcenter_Talks extends core_Master
             // Добавяме в rec
             $rec->answerTime = $answerTime;
             $rec->endTime = $endTime;
-            $rec->dialStatus = $dialStatus;
+            
+            // Ако не е бил зададен отпреди
+            if (!isset($rec->dialStatus)) {
+                $rec->dialStatus = $dialStatus;
+            } else {
+            
+                // Отбелязваме обаждането като пренасочено
+                $rec->dialStatus = 'REDIRECTED';
+            }
             
             // Обновяваме записа
             $savedId = static::save($rec, NULL, 'UPDATE');
@@ -892,16 +907,23 @@ class callcenter_Talks extends core_Master
      */
     static function addNotification($rec)
     {
-        // Ако няма потребители на този номер или е отговорено
+        // Ако е изходящо обаждане или е отговорено
         if ($rec->dialStatus == 'ANSWERED' || $rec->callType == 'outgoing') return;
+        
+        $isRedirected = FALSE;
         
         // Параметри на нотификацията
         $priority = 'normal';
-        $url = array('callcenter_Talks', 'list');
-        $customUrl = $url;
+        $customUrl = array('callcenter_Talks', 'list');
         
-        // Линка да сочи към всички пропуснати повиквания
-        $customUrl['dialStatusType'] = 'incoming_MISSED';
+        if ($rec->dialStatus == 'REDIRECTED') {
+            // Линка да сочи към всички пропуснати повиквания
+            $customUrl['dialStatusType'] = 'incoming_REDIRECTED';
+            $isRedirected = TRUE;
+        } else {
+            // Линка да сочи към всички пропуснати повиквания
+            $customUrl['dialStatusType'] = 'incoming_MISSED';
+        }
         
         // Вземаме потребителите, които отговарят за съответния номер
         $usersArr = callcenter_Numbers::getUserForNum($rec->internalNum);
@@ -910,7 +932,12 @@ class callcenter_Talks extends core_Master
         foreach ((array)$usersArr as $user) {
             
             // Времето на последно виждане на листовия изглед
-            $lastClosedTime = bgerp_Notifications::getLastClosedTime($url, $user);
+            $lastClosedTime = bgerp_Notifications::getLastClosedTime($customUrl, $user);
+            
+            // Ако няма време на последно виждане, максимум преди 1 седмица
+            if (!$lastClosedTime) {
+                $lastClosedTime = dt::subtractSecs(604800);
+            }
             
             // Вземаме всички неотоговрени входящи обаждания към съответния номер след последното време за листване
             $query = static::getQuery();
@@ -930,6 +957,10 @@ class callcenter_Talks extends core_Master
             // Последните обаждания са с по голям приоритет
             $query->orderBy('startTime', 'DESC');
             
+            if ($isRedirected) {
+                $query->where("#dialStatus = 'REDIRECTED'");
+            }
+            
             // Броя на пропуснатите обажданият от резултата
             $qCnt = $query->count();
             
@@ -938,9 +969,15 @@ class callcenter_Talks extends core_Master
             
             // В зависимост от броя, определяме стринга за съобещение
             if ($qCnt > 1) {
-                $message = "|Имате| {$qCnt} |пропуснати повиквания от|*";
+                
+                $dialTypeText = ($isRedirected) ? 'пренасочени' : 'пропуснати';
+                
+                $message = "|Имате| {$qCnt} |{$dialTypeText} повиквания от|*";
             } else {
-                $message = "|Имате пропуснато повикване от|*";
+                
+                $dialTypeText = ($isRedirected) ? 'пренасочено' : 'пропуснато';
+                
+                $message = "|Имате {$dialTypeText} повикване от|*";
             }
             
             // Нулираме стойностите
@@ -995,7 +1032,7 @@ class callcenter_Talks extends core_Master
             $message = $message . ' ' . $namesStr;
             
             // Нотифицираме съответния потребител
-            bgerp_Notifications::add($message, $url, $user, $priority, $customUrl);
+            bgerp_Notifications::add($message, $customUrl, $user, $priority);
         }
     }
     
@@ -1032,6 +1069,7 @@ class callcenter_Talks extends core_Master
         
         $statusOptions['incoming'] = $incomingsOptions;
         $statusOptions['incoming_ANSWERED'] = tr('Отговорено');
+        $statusOptions['incoming_REDIRECTED'] = tr('Пренасочени');
         $statusOptions['incoming_NO ANSWER'] = tr('Без отговор');
         $statusOptions['incoming_BUSY'] = tr('Заето');
         $statusOptions['incoming_FAILED'] = tr('Прекъснато');
@@ -1148,8 +1186,9 @@ class callcenter_Talks extends core_Master
                 if ($dialStatus) {
                     // Ако статуса е пропуснат
                     if ($dialStatus == 'MISSED') {
-                        // Показва всички обаждания, които не са отговорени
+                        // Показва всички обаждания, които не са отговорени или пренасочени
                         $data->query->where("#dialStatus != 'ANSWERED'");
+                        $data->query->where("#dialStatus != 'REDIRECTED'");
                     } else {
                         // Търсим по статус на обаждане
                         $data->query->where(array("#dialStatus = '[#1#]'", $dialStatus));
@@ -1344,20 +1383,19 @@ class callcenter_Talks extends core_Master
         // Вземаме записа
         $rec = static::fetch($id);
         
-        // Ако е отговорено
-        if (!$rec->dialStatus || $rec->dialStatus == 'ANSWERED') {
+        // Ако е изходящо обаждане
+        if ($rec->callType == 'outgoing') {
             
-            // Ако е изходящо обаждане
-            if ($rec->callType == 'outgoing') {
-                
-                // Икона за изходящо обаждане
-                $this->singleIcon = 'img/16/outgoing.png';
-            } else {
-                
-                // Ако в входящо
-                $this->singleIcon = 'img/16/incoming.png';
-            }
+            // Икона за изходящо обаждане
+            $this->singleIcon = 'img/16/outgoing.png';
         } else {
+            
+            // Ако в входящо
+            $this->singleIcon = 'img/16/incoming.png';
+        }
+        
+        // Ако е отговорено
+        if ($rec->dialStatus && ($rec->dialStatus != 'ANSWERED') && ($rec->dialStatus != 'REDIRECTED')) {
             
             // Ако е изходящо обаждане
             if ($rec->callType == 'outgoing') {
@@ -1368,6 +1406,14 @@ class callcenter_Talks extends core_Master
                 
                 // Ако в входящо
                 $this->singleIcon = 'img/16/incoming-failed.png';
+            }
+        } else if ($rec->dialStatus == 'REDIRECTED') {
+            
+            // Ако е изходящо обаждане
+            if ($rec->callType != 'outgoing') {
+                
+                // Ако в входящо и е пренасочено
+                $this->singleIcon = 'img/16/incoming-redirected.png';
             }
         }
     }
@@ -1447,9 +1493,6 @@ class callcenter_Talks extends core_Master
             $text .= " | ". ht::createLink($personsImg, array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
         }
         
-        // Дали да се показва или не
-        $visibility = (mode::is('screenMode', 'narrow')) ? 'visible' : 'hidden';
-        
         // Ако сме в мобилен режим
         if (mode::is('screenMode', 'narrow')) {
             
@@ -1515,12 +1558,10 @@ class callcenter_Talks extends core_Master
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'fixDialStatus';
-        $rec->description = 'Променя статуса на обажданията без статуси на без отговор';
+        $rec->description = 'Променят се статусите на обажданията от "без статуси" на "без отговор"';
         $rec->controller = $mvc->className;
         $rec->action = 'FixDialStatus';
         $rec->period = 5;
@@ -1528,16 +1569,9 @@ class callcenter_Talks extends core_Master
         $rec->delay = 0;
         $rec->timeLimit = 100;
         
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да променя статуса на обажданията без статуси на без отговор.</font></li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да променя статуса на обажданията без статуси на без отговор.</li>";
-        }
-        
+        $res .= core_Cron::addOnce($rec);
+
         // Миграция, за стари бази, където може да имаме сгрешени времена за разговорите
-        
         $conf = core_Packs::getConfig('callcenter');
         
         // Ако има зададена стойност
@@ -1573,7 +1607,7 @@ class callcenter_Talks extends core_Master
                 
                 $changetTalksStr = implode(', ', $changedTalksArr);
                 
-                $res .= "<li><font color='green'>Бяха съкратение времената на {$cnt} {$word} - {$changetTalksStr}</font></li>";
+                $res .= "<li><span class=\"green\">Бяха съкратение времената на {$cnt} {$word} - {$changetTalksStr}</span></li>";
             }
         }
         
@@ -1648,7 +1682,7 @@ class callcenter_Talks extends core_Master
             
             $changetTalksStr = implode(', ', $nChangedTalksArr);
             
-            $res .= "<li><font color='green'>Бяха променени времената на {$cnt} {$word} - {$changetTalksStr}</font></li>";
+            $res .= "<li><span class=\"green\">Бяха променени времената на {$cnt} {$word} - {$changetTalksStr}</span></li>";
         }
     }
     

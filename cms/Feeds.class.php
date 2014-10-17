@@ -119,15 +119,12 @@ class cms_Feeds extends core_Manager {
 				 break;
 
         	case 'rss2' : 
-        		 $pubDate = $this->getPubDate($items);
-        		 
         		 // Инстанцираме нова хранилка от тип RSS 2.0
         		 $feed = new RSS2FeedWriter();
   				 $feed->setChannelElement('language', $rec->lg);
   				 $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
   				 if($rec->logo){
-  				 	$img = new img_Thumb($rec->logo, 120, 120, 'fileman');
-  				 	$img->isAbsolute = TRUE;
+  				 	$img = new thumb_Img(array($rec->logo, 120, 120, 'fileman', 'isAbsolute' => TRUE));
   				 	
   				 	$feed->setImage($rec->title, toUrl(array($this, 'get', $rec->id), 'absolute'), $img->getUrl());
   				 }
@@ -265,7 +262,7 @@ class cms_Feeds extends core_Manager {
 	static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
 	{
 		// Подготвяме адреса на хранилката
-		$rssLink = array($this, 'get', $rec->id);
+		$rssLink = array($mvc, 'get', $rec->id);
         $typeUrl = cls::get('type_Url');
 		$row->url = $typeUrl->toVerbal(toUrl($rssLink, 'absolute'));
 		
@@ -337,7 +334,7 @@ class cms_Feeds extends core_Manager {
 		
         $src = sbf("cms/img/rss_icon_glass_gray24.PNG", "");
 
-        $img = ht::createElement('img', array('src' => $src));
+        $img = ht::createElement('img', array('src' => $src, 'alt' => 'RSS Feeds'));
 
 		$link = ht::createLink($img, $url, NULL, array('class' => 'soc-following noSelect'));
 		

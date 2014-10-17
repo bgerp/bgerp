@@ -86,7 +86,7 @@ class crm_Setup extends core_ProtoSetup
             'crm_Profiles',
             'crm_Locations',
             'crm_Formatter',
-    
+            'migrate::movePersonalizationData',
         );
     
 
@@ -139,15 +139,8 @@ class crm_Setup extends core_ProtoSetup
         $rec->period      = 24*60*60;
         $rec->offset      = 16;
         $rec->delay       = 0;
+        $html .= core_Cron::addOnce($rec);
         
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $html .= "<li style='color:green;'>Cron: Обновяване на събитията за хората в календара</li>";
-        } else {
-            $html .= "<li>Cron от преди е бил нагласен: Обновяване на събитията за хората в календара</li>";
-        }
-
         return $html;
     }
     
@@ -161,5 +154,64 @@ class crm_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Фунцкия за миграция
+     * Премества персонализационните данни за потребителя от crm_Personalization в core_Users
+     */
+    static function movePersonalizationData()
+    {
+        $query = crm_Personalization::getQuery();
+        $query->where('1=1');
+        while($rec = $query->fetch()) {
+            try {
+                
+                $nArr = array();
+                
+                $userId = crm_Profiles::fetchField($rec->profileId, 'userId');
+                
+                $oldConfigData = core_Users::fetchField($userId, 'configData');
+                
+                if ($rec->inbox) {
+                    if (!isset($oldConfigData['EMAIL_DEFAULT_SENT_INBOX'])) {
+                        $nArr['EMAIL_DEFAULT_SENT_INBOX'] = $rec->inbox;
+                    }
+                }
+                
+                if ($rec->header) {
+                    if (!isset($oldConfigData['EMAIL_OUTGOING_HEADER_TEXT'])) {
+                        $nArr['EMAIL_OUTGOING_HEADER_TEXT'] = $rec->header;
+                    }
+                }
+                
+                if ($rec->signature) {
+                    if (!isset($oldConfigData['EMAIL_OUTGOING_FOOTER_TEXT'])) {
+                        $nArr['EMAIL_OUTGOING_FOOTER_TEXT'] = $rec->signature;
+                    }
+                }
+                
+                if ($rec->logo) {
+                    if (!isset($oldConfigData['BGERP_COMPANY_LOGO'])) {
+                        $nArr['BGERP_COMPANY_LOGO'] = $rec->logo;
+                    }
+                }
+                
+                if ($rec->logoEn) {
+                    if (!isset($oldConfigData['BGERP_COMPANY_LOGO_EN'])) {
+                        $nArr['BGERP_COMPANY_LOGO_EN'] = $rec->logoEn;
+                    }
+                }
+                
+                if ($nArr) {
+                    $nArr = (array)$nArr + (array)$oldConfigData;
+                    $nRec = new stdClass();
+                    $nRec->id = $userId;
+                    $nRec->configData = $nArr;
+                    core_Users::save($nRec, 'configData');
+                }
+            } catch (Exception $e) { }
+        }
     }
 }

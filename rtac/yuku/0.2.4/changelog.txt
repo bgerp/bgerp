@@ -1,0 +1,4 @@
+Промяна на позицията при недостатъчно място: 
+if (position.left + this.$el.offset().left > $(window).width()/2) {  
+      position.left = $(window).width()/2 - this.$el.offset().left;
+}

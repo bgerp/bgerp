@@ -28,7 +28,7 @@ class trz_SalaryIndicators extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected,  plg_SaveAndNew, 
-                    trz_Wrapper, trz_SalaryWrapper';
+                    trz_Wrapper';
     
     
     /**
@@ -204,7 +204,6 @@ class trz_SalaryIndicators extends core_Manager
     function act_Test()
     {
     	$date = '2013-07-16';
-    	bp(self::getIndicatorNames());
     }
     
     
@@ -306,18 +305,13 @@ class trz_SalaryIndicators extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "CollectIndicators";
-        $rec->description = "Индикатори на заплатите";
+        $rec->description = "Изпращане на данните към показателите за заплатите";
         $rec->controller = "trz_SalaryIndicators";
         $rec->action = "Indicators";
         $rec->period = 3*60;
         $rec->offset = 0;
-        
-        $Cron->addOnce($rec);
-        
-        $res .= "<li>Напомняне  по крон</li>";
+        $res .= core_Cron::addOnce($rec);
     }
 }

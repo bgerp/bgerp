@@ -175,8 +175,8 @@ class blast_Letters extends core_Master
     {
         $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Списък, mandatory');
         $this->FLD('group', 'enum(company=Фирми, personBiz=Лица (Бизнес данни), person=Лица (Частни данни))', 'caption=Група, mandatory, input=none');
-        $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, width=100%, mandatory, width=100%, changable');
-        $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory, width=100%, changable');
+        $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, mandatory, changable');
+        $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory, changable');
         $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory, input=none, hint=Колко писма ще се печатат едновременно');
         $this->FLD('template', 'enum(triLeft=3 части - ляво,
             triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory, changable');
@@ -203,10 +203,7 @@ class blast_Letters extends core_Master
         $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
 
         // Ако не е папка проект или контрагент, не може да се добави
-        if (($coverClassName != 'doc_unsortedfolders') && 
-            ($coverClassName != 'crm_persons') &&
-            ($coverClassName != 'crm_groups') &&
-            ($coverClassName != 'crm_companies')) return FALSE;
+        if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) return FALSE;
     }
     
     
@@ -601,7 +598,7 @@ class blast_Letters extends core_Master
             $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id, 'ret_url' => TRUE), 'ef_icon = img/16/lightning.png');
         } elseif ($state == 'active') {
             //Добавяме бутона Спри, ако състоянието е активно или изчакване
-            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id, 'ret_url' => TRUE),  'ef_icon = img/16/close16.png');
+            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id, 'ret_url' => TRUE),  'ef_icon = img/16/gray-close.png');
         }
     }
     
@@ -1307,5 +1304,72 @@ class blast_Letters extends core_Master
         }
         
         return $lg;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param blast_Letters $mvc
+     * @param array $res
+     * @param integer $id
+     * @param integer $userId
+     * @param object $data
+     */
+    public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
+    {
+        $toListId = $data->toListId;
+        
+        if (!$toListId) return ;
+        
+        // Вземаме данните от базата
+        $letterRec = $mvc->fetch($id);
+        
+        expect($letterRec);
+        
+        $data = array();
+        
+        // Ако е лист
+        if ($letterRec->listId) {
+            
+            // Фетчваме детайла за съответния лист
+            $detailRec = blast_ListDetails::fetch($toListId);    
+            
+            // Десериализираме данните
+            $data = unserialize($detailRec->data);
+            
+        } elseif ($letterRec->group) {
+            
+            // Ако е група
+            
+            $group = $letterRec->group;
+            
+            // Вземаме масива с плейсхолдерите, които ще се заместват
+            $data = static::getDataFor($group, $toListId);
+        }
+        
+        // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+            if ($userId <= 0) {
+                $userId = $mvc->getContainer($id)->activatedBy;
+            }
+        }
+        
+        core_Users::sudo($userId);
+        
+        // За всички полета опитваме да извлечем прикаченте файлове
+        foreach ((array)$data as $name => $value) {
+            $attachedDocs = (array)doc_RichTextPlg::getAttachedDocs($value);
+            
+            if (count($attachedDocs)) {
+                $attachedDocs = array_keys($attachedDocs);
+                $attachedDocs = array_combine($attachedDocs, $attachedDocs);
+                
+                $res = array_merge($attachedDocs, (array)$res);
+            }
+        }
+        
+        core_Users::exitSudo();
     }
 }

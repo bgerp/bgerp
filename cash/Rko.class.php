@@ -20,7 +20,7 @@ class cash_Rko extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_Rko, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -124,7 +124,7 @@ class cash_Rko extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'number, valior, contragentName';
+    var $searchFields = 'number, valior, contragentName, id';
     
     
     /**
@@ -158,13 +158,13 @@ class cash_Rko extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,width=100%,mandatory');
-    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=30%,summary=amount');
-    	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
-    	$this->FLD('number', 'int', 'caption=Номер,width=50%,width=30%');
+    	$this->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
+    	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
+    	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('number', 'int', 'caption=Номер');
     	$this->FLD('peroCase', 'key(mvc=cash_Cases, select=name)', 'caption=Каса');
-    	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Получател,mandatory,width=100%');
+    	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Получател,mandatory');
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
     	$this->FLD('contragentAdress', 'varchar(255)', 'input=hidden');
@@ -174,14 +174,15 @@ class cash_Rko extends core_Master
     	$this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
-    	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс,width=6em');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
+    	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс');
     	$this->FLD('notes', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
-    	 
+    	$this->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
+    	
         // Поставяне на уникален индекс
     	$this->setDbUnique('number');
     }
@@ -202,7 +203,6 @@ class cash_Rko extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-    	$folderId = $data->form->rec->folderId;
     	$form = &$data->form;
     	
     	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
@@ -213,9 +213,9 @@ class cash_Rko extends core_Master
         expect($origin = $mvc->getOrigin($form->rec));
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         $dealInfo = $origin->getAggregateDealInfo();
-        expect(count($dealInfo->allowedPaymentOperations));
         
-        $options = self::getOperations($dealInfo->allowedPaymentOperations);
+        $pOperations = $dealInfo->get('allowedPaymentOperations');
+        $options = self::getOperations($pOperations);
         expect(count($options));
         
     	// Използваме помощната функция за намиране името на контрагента
@@ -223,34 +223,31 @@ class cash_Rko extends core_Master
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 	$dealInfo = $origin->getAggregateDealInfo();
     		 	
-    		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_DEAL){
-    		 		$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 	if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
+    		 		$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
     		 		if($amount <= 0) {
     		 			$amount = 0;
     		 		}
     		 			
-    		 		$defaultOperation = $mvc->getDefaultOperation($dealInfo);
+    		 		$defaultOperation = $dealInfo->get('defaultCaseOperation');
     		 		if($defaultOperation == 'case2supplierAdvance'){
-    		 			$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
+    		 			$amount = ($dealInfo->get('agreedDownpayment') - $dealInfo->get('downpayment')) / $dealInfo->get('rate');
     		 		}
     		 	}
-    		 	
     		 		
-    		 	if($caseId = $dealInfo->agreed->payment->caseId){
-    		 		$cashRec = cash_Cases::fetch($caseId);
+    		 	if($caseId = $dealInfo->get('caseId')){
     		 			 
     		 		// Ако потребителя има права, логва се тихо
     		 		cash_Cases::selectSilent($caseId);
     		 	}
     		 	
-    		 	$cId = ($dealInfo->shipped->currency) ? $dealInfo->shipped->currency : $dealInfo->paid->currency;
+    		 	$cId = $dealInfo->get('currency');
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($cId);
     		 	
-    		 	$rate = ($dealInfo->shipped->rate) ? $dealInfo->shipped->rate : $dealInfo->paid->rate;
-    		 	$form->rec->rate = $rate;
-    		 		
-    		 	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
-    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 	$form->rec->rate = $dealInfo->get('rate');
+    		 	
+    		 	if($dealInfo->get('dealType') == purchase_Purchases::AGGREGATOR_TYPE){
+    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->get('currency'));
     		 	}
     	}  else {
     		$defaultOperation = 'case2supplier';
@@ -267,8 +264,10 @@ class cash_Rko extends core_Master
     	if(isset($defaultOperation) && array_key_exists($defaultOperation, $options)){
     		$form->rec->operationSysId = $defaultOperation;	
         }
-        $form->setReadOnly('peroCase', cash_Cases::getCurrent());
-        $form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
+        
+        $form->setDefault('peroCase', cash_Cases::getCurrent());
+        $cData = cls::get($contragentClassId)->getContragentData($contragentId);
+    	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
        
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
@@ -293,35 +292,6 @@ class cash_Rko extends core_Master
     
     
     /**
-     * Помощна ф-я връщаща дефолт операцията за документа
-     */
-    private function getDefaultOperation(bgerp_iface_DealResponse $dealInfo)
-    {
-    	$paid = $dealInfo->paid;
-    	$agreed = $dealInfo->agreed;
-    	
-    	// Ако е продажба пораждащия документ
-    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
-    		if(isset($agreed->downpayment)){
-    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'caseAdvance2customer' : 'case2customer';
-    		} else {
-    			$defaultOperation = 'case2customer';
-    		}
-    	} elseif($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
-    		if(isset($agreed->downpayment)){
-    			
-    			//bp($paid->downpayment,$agreed->downpayment);
-    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'case2supplierAdvance' : 'case2supplier';
-    		} else {
-    			$defaultOperation = 'case2supplier';
-    		}
-    	}
-    	
-    	return $defaultOperation;	
-    }
-    
-    
-    /**
      * Проверка и валидиране на формата
      */
     function on_AfterInputEditForm($mvc, $form)
@@ -335,9 +305,12 @@ class cash_Rko extends core_Master
     		
     		// Коя е дебитната и кредитната сметка
 	        $operation = $dealInfo->allowedPaymentOperations[$rec->operationSysId];
+    		$debitAcc = empty($operation['reverse']) ? $operation['debit'] : $operation['credit'];
+    		$creditAcc = empty($operation['reverse']) ? $operation['credit'] : $operation['debit'];
     		
-	        $rec->debitAccount = $operation['debit'];
-    		$rec->creditAccount = $operation['credit'];
+	        $rec->debitAccount = $debitAcc;
+    		$rec->creditAccount = $creditAcc;
+    		$rec->isReverse = empty($operation['reverse']) ? 'no' : 'yes';
     		
 	    	$rec->contragentClassId = doc_Folders::fetchField($rec->folderId, 'coverClass');
 	        $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
@@ -350,8 +323,7 @@ class cash_Rko extends core_Master
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
         	if(!$rec->rate){
-        		
-		    	// Изчисляваме курса към основната валута ако не е дефиниран
+        		// Изчисляваме курса към основната валута ако не е дефиниран
 		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
 		    } else {
 		    	if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
@@ -377,18 +349,12 @@ class cash_Rko extends core_Master
     	if($fields['-single']){
     		
     		// Адреса на контрагента
-    		$row->contragentAddress = trim(
-                sprintf("<br>%s<br>%s %s<br> %s", 
-                 	$row->contragentCountry,
-                    $row->contragentPcode,
-                    $row->contragentPlace,
-                    $row->contragentAdress
-                )
-            );
+    		$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+    		$row->contragentAddress = $contragent->getFullAdress();
     	   
     		if($rec->rate != 1) {
 		   		$rec->equals = round($rec->amount * $rec->rate, 2);
-		   		$row->equals = $mvc->fields['amount']->type->toVerbal($rec->equals);
+		   		$row->equals = $mvc->getFieldType('amount')->toVerbal($rec->equals);
 		   		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
 		    } 
 		    
@@ -406,7 +372,7 @@ class cash_Rko extends core_Master
     		// Вземаме данните за нашата фирма
         	$ownCompanyData = crm_Companies::fetchOwnCompany();
         	$Companies = cls::get('crm_Companies');
-        	$row->organisation = $Companies->getTitleById($ownCompanyData->companyId);
+        	$row->organisation = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         	$row->organisationAddress = $Companies->getFullAdress($ownCompanyData->companyId);
             
     		// Извличаме имената на създателя на документа (касиера)
@@ -429,75 +395,6 @@ class cash_Rko extends core_Master
 	static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$tpl->push('cash/tpl/styles.css', 'CSS');
-    }
-    
-    
-   	/**
-   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-   	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 */
-    public static function getTransaction($id)
-    {
-       	// Извличаме записа
-        expect($rec = self::fetchRec($id));
-        
-        $origin = self::getOrigin($rec);
-        $dealInfo = $origin->getAggregateDealInfo();
-        $amount = round($rec->rate * $rec->amount, 2);
-        
-        // Дебита е винаги във валутата на пораждащия документ,
-        $debitCurrency = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-        $debitQuantity = round($amount / $dealInfo->agreed->rate, 2);
-        
-        $creditArr =  array(
-                        $rec->creditAccount, // кредитна сметка
-                            array('cash_Cases', $rec->peroCase), // перо каса
-                            array('currency_Currencies', $rec->currencyId), // перо валута
-                        'quantity' => $rec->amount,
-                    );
-        
-        $debitArr = array(
-        		$rec->debitAccount, // дебитната сметка
-        		array($rec->contragentClassId, $rec->contragentId),  // перо контрагент
-        		array($origin->className, $origin->that), // Перо сделка
-        		array('currency_Currencies', $debitCurrency),      // перо валута
-        		'quantity' => $debitQuantity,
-        );
-        
-        // Подготвяме информацията която ще записваме в Журнала
-        $result = (object)array(
-            'reason'  => $rec->reason,   // основанието за ордера
-            'valior'  => $rec->valior,   // датата на ордера
-            'entries' => array(
-                array(
-                    'amount' => $amount,	// равностойноста на сумата в основната валута
-                    'debit' => $debitArr,
-                    'credit' => $creditArr,
-                ),
-            )
-        );
-        
-        return $result;
-    }
-    
-	
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        $rec->state = 'active';
-        
-    	if ($this->save($rec)) {
-            // Нотифицираме origin-документа, че някой от веригата му се е променил
-            if ($origin = $this->getOrigin($rec)) {
-                $ref = new core_ObjectReference($this, $rec);
-                $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-            }
-        }
     }
     
     
@@ -546,18 +443,6 @@ class cash_Rko extends core_Master
     }
     
     
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public static function getHandle($id)
-    {
-    	$rec = static::fetch($id);
-    	$self = cls::get(get_called_class());
-    	
-    	return $self->abbr . $rec->number;
-    }
-    
-    
 	/**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
@@ -567,17 +452,14 @@ class cash_Rko extends core_Master
      */
 	public static function canAddToThread($threadId)
     {
-    	$threadRec = doc_Threads::fetch($threadId);
-    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
-    	
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
     		
     		// Ако няма позволени операции за документа не може да се създава
-    		$dealInfo = $firstDoc->getAggregateDealInfo();
-    		$options = self::getOperations($dealInfo->allowedPaymentOperations);
+    		$operations = $firstDoc->getPaymentOperations();
+    		$options = self::getOperations($operations);
     			
     		return count($options) ? TRUE : FALSE;
     	}
@@ -597,59 +479,13 @@ class cash_Rko extends core_Master
     }
     
     
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public static function fetchByHandle($parsedHandle)
-    {
-        return static::fetch("#number = '{$parsedHandle['id']}'");
-    }
-    
-    
 	/**
-     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     * Имплементация на @link bgerp_DealIntf::pushDealInfo()
      */
-    public function getDealInfo($id)
+    public function pushDealInfo($id, &$aggregator)
     {
         $rec = self::fetchRec($id);
-    
-        /* @var $result bgerp_iface_DealResponse */
-        $result = new bgerp_iface_DealResponse();
-    	
-        // При продажба платеното се намалява, ако е покупка се увеличава
-        $origin = static::getOrigin($rec);
-        $sign = ($origin->className == 'purchase_Purchases') ? 1 : -1;
-    
-        $result->paid->amount          = $sign * $rec->amount * $rec->rate;
-        $result->paid->currency        = currency_Currencies::getCodeById($rec->currencyId);
-        $result->paid->rate 	       = $rec->rate;
-        $result->paid->payment->caseId = $rec->peroCase;
-    	$result->paid->operationSysId  = $rec->operationSysId;
-        
-        if($rec->operationSysId == 'case2supplierAdvance' || $rec->operationSysId == 'caseAdvance2customer'){
-    		$result->paid->downpayment = $result->paid->amount;
-    		$result->paid->downpayments[$rec->currencyId] = array('amount' => $sign * $rec->amount, 
-    															  'amountBase' => $result->paid->amount);
-        }
-    	
-        return $result;
-    }
-    
-    
-	/**
-     * След оттегляне на документа
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param object|int $id
-     */
-    public static function on_AfterReject($mvc, &$res, $id)
-    {
-        // Нотифицираме origin-документа, че някой от веригата му се е променил
-        if ($origin = $mvc->getOrigin($id)) {
-            $ref = new core_ObjectReference($mvc, $id);
-            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
-        }
+        $aggregator->setIfNot('caseId', $rec->peroCase);
     }
     
     
@@ -697,17 +533,6 @@ class cash_Rko extends core_Master
     {
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
-    	
-    	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
-    	if($action == 'conto' && isset($rec)){
-	    	$origin = $mvc->getOrigin($rec);
-	    	if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
-	    		$originState = $origin->fetchField('state');
-		    	if($originState === 'closed'){
-		        	$res = 'no_one';
-		        }
-	    	}
-        }
     }
     
     

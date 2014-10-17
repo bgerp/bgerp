@@ -13,14 +13,15 @@ cls::load('acc_strategy_Strategy');
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class acc_strategy_LIFO extends acc_strategy_Strategy
 {
     
     
     /**
-     * @todo Чака за документация...
+     * Извличане на паричната стойност на зададено количество.
+     * @param double $quantity
+     * @return double
      */
     function consume($quantity)
     {

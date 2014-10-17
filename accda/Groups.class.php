@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   accda
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     ДА Групи
@@ -47,7 +47,7 @@ class accda_Groups extends core_Master
      * Кой има право да променя?
      */
     var $canEdit = 'ceo,accda';
-  
+    
     
     /**
      * Кой може да го разглежда?
@@ -56,7 +56,7 @@ class accda_Groups extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Кой има права за сингъла на документа
      */
     var $canSingle = 'ceo,accda';
     
@@ -95,8 +95,8 @@ class accda_Groups extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'id';
-
-     
+    
+    
     /**
      * Икона за единичен изглед
      */
@@ -107,6 +107,7 @@ class accda_Groups extends core_Master
      * Клас за елемента на обграждащия <div>
      */
     var $cssClass = 'folder-cover';
+    
     
     /**
      * Нов темплейт за показване
@@ -119,20 +120,19 @@ class accda_Groups extends core_Master
      */
     function description()
     {
-    	$this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory, translate');
+        $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory, translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
         $this->FLD('productCnt', 'int', 'input=none');
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
-        						canBuy=Купуваеми,
-        						canStore=Складируеми,
-        						canConvert=Вложими,
-        						fixedAsset=ДМА,
-        						canManifacture=Производими)', 'caption=Свойства->Списък,columns=2');
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=ДМА,
+                                canManifacture=Производими)', 'caption=Свойства->Списък,columns=2');
         
         $this->setDbUnique("sysId");
     }
-
 }

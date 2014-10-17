@@ -25,7 +25,7 @@ class pos_FavouritesCategories extends core_Manager {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing,
-    				 pos_Wrapper, pos_FavouritesWrapper';
+    				 pos_Wrapper';
 
     
     /**
@@ -81,7 +81,7 @@ class pos_FavouritesCategories extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory,width=19em');
+    	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
         
         $this->setDbUnique('name');
     }

@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.11
  */
-class price_ConsumptionNormDetails extends core_Detail {
+class price_ConsumptionNormDetails extends doc_Detail {
     
     
     /**
@@ -31,7 +31,7 @@ class price_ConsumptionNormDetails extends core_Detail {
 	/**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Sorting';
+    var $loadList = 'plg_RowTools, plg_Sorting, price_Wrapper';
     
     
     /**
@@ -71,9 +71,9 @@ class price_ConsumptionNormDetails extends core_Detail {
     function description()
     {
     	$this->FLD('normId', 'key(mvc=price_ConsumptionNorms)', 'caption=Норма, input=hidden, silent');
-    	$this->FLD('dProductId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
-    	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,width=10em');
-    	$this->FLD('quantity', 'int', 'caption=Количество,mandatory,width=10em');
+    	$this->FLD('dProductId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт');
+    	$this->FLD('dUom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка');
+    	$this->FLD('quantity', 'int', 'caption=Количество,mandatory');
     }
     
     
@@ -156,7 +156,7 @@ class price_ConsumptionNormDetails extends core_Detail {
     			// Проверяваме дали мярката е от позволените за продукта
     			$similarMeasures = cat_UoM::getSameTypeMeasures($productUom);
     			if(!array_key_exists($rec->dUom, $similarMeasures)){
-    				$form->setError('dUom', 'Избраната мярка не е от същата група като основната мярка на продукта');
+    				$form->setError('dUom', "Избраната мярка не е от същата група като основната мярка на продукта (" . cat_Uom::getTitleById($productUom) . ')');
     			}
     		} else {
     			

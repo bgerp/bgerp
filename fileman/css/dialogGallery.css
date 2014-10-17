@@ -1,0 +1,34 @@
+.galleryListTable{
+	max-height: 460px;
+	overflow: auto;
+}
+
+.galleryListTable .listTable{
+	width: 100%;
+}
+
+.galleryListTable .listTable tr td:first-child{
+	text-align:center;
+	width:60px;
+}
+
+.galleryListTable .file-log-link{
+	margin-left: 8px;
+}
+
+.galleryListTable .listTable tr td:last-child{
+	width:1%;
+}
+
+.noicon.button{
+	display: inline-block;
+    float: left;
+}
+
+#imgFile_file_name_id{
+	word-break: break-all;
+    display: inline-block;
+    float: left;
+    max-width: 190px;
+	
+}

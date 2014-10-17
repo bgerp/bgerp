@@ -55,7 +55,7 @@ class bgerp_plg_Groups extends core_Plugin
             
             setIfNot($groupField, $mvc->groupField, 'groupList');
 
-            $groupFieldType = $mvc->fields[$groupField]->type;
+            $groupFieldType = $mvc->getFieldType($groupField);
             
             $allGroups = $groupFieldType->getSuggestions();
             
@@ -98,7 +98,7 @@ class bgerp_plg_Groups extends core_Plugin
                 $id = $selArr[$selOneKey];
                 $groups = $mvc->fetchField($id, $groupField);
                 $form->title = 'Промяна в групите на |*<i style="color:#ffffaa">' .  $mvc->getTitleById($selArr[0]) . '</i>';
-                $form->FNC('groups', $mvc->fields[$groupField]->type, 'caption=Групи,input');
+                $form->FNC('groups', $mvc->getFieldType($groupField), 'caption=Групи,input');
                 $form->setDefault('groups', $groups);
             } else {
                 $form->title = 'Групиране на |*' . $selArrCnt . '| ' . mb_strtolower($mvc->title);

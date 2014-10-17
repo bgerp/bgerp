@@ -63,6 +63,12 @@ class cat_Products extends core_Master {
     
     
     /**
+     * Да се показват ли в репортите нулевите редове
+     */
+    public $balanceRefShowZeroRows = TRUE;
+    
+    
+    /**
      * По кой итнерфейс ще се групират сметките 
      */
     public $balanceRefGroupBy = 'cat_ProductAccRegIntf';
@@ -273,15 +279,19 @@ class cat_Products extends core_Master {
     	}
     	
     	if($rec->id){
+    		$oldRec = $mvc->fetch($rec->id);
+    		
     		// Старите мета данни
-    		$rec->oldGroups = $mvc->fetchField($rec->id, 'groups');
+    		$rec->oldGroups = $oldRec->groups;
+    		$rec->oldName = $oldRec->name;
+    		$rec->oldCode = $oldRec->code;
     	}
     }
     
     
     /**
-     * Извлича мета данните на продукт според групите
-     * в които участва
+     * Извлича мета данните на продукт според групите в които участва
+     * 
      * @param mixed $groups - групи в които участва
      */
     private static function getMetaData($groups)
@@ -325,7 +335,7 @@ class cat_Products extends core_Master {
         	// извличане на мета данните според групите
     		if($meta = $mvc->getMetaData($rec->groups)){
     			$Groups = cls::get(cat_Groups);
-        		$row->meta = $Groups->fields['meta']->type->toVerbal($meta);
+        		$row->meta = $Groups->getFieldType('meta')->toVerbal($meta);
     		}
     		
             // fancybox ефект за картинките
@@ -372,7 +382,8 @@ class cat_Products extends core_Master {
         						canStore=Складируеми,
         						canConvert=Вложими,
         						fixedAsset=ДМА,
-        						canManifacture=Производими)', 'input');
+        						canManifacture=Производими,
+        						materials=Материали)', 'input');
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -409,37 +420,18 @@ class cat_Products extends core_Master {
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->code,
+                'num' => "A" . $rec->code,
                 'title' => $rec->name,
                 'uomId' => $rec->measureId,
                 'features' => array()
             );
-        }
-        
-    	if($rec->groups){
-            $groups = strip_tags($self->getVerbal($rec, 'groups'));
-            $result->features = $result->features + arr::make($groups, TRUE);
-        }
             
-        $result->features = $self->Params->getFeatures($self, $objectId, $result->features);
-        
-        return $result;
-    }
-    
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        $self->recTitleTpl = NULL;
-    	
-        if ($rec = self::fetch($objectId)) {
-            $result = $self->getHyperlink($objectId);
-        } else {
-            $result = '<i>' . tr('неизвестно') . '</i>';
+            if($rec->groups){
+            	$groups = strip_tags($self->getVerbal($rec, 'groups'));
+            	$result->features = $result->features + arr::make($groups, TRUE);
+            }
+            
+            $result->features = $self->Params->getFeatures($self, $objectId, $result->features);
         }
         
         return $result;
@@ -481,7 +473,7 @@ class cat_Products extends core_Master {
     	}
     	
     	// Премахват се тези продукти до които потребителя няма достъп
-    	static::unsetUnavailableProducts($products);
+    	self::unsetUnavailableProducts($products);
     	
     	// Ако е посочен лимит, връщаме първите $limit продукти
     	if(isset($limit)){
@@ -489,17 +481,6 @@ class cat_Products extends core_Master {
     	}
     	
     	return $products;
-    }
-    
-    
-    /**
-     * Дали има поне един продаваем продукт за клиента
-     */
-    public function hasSellableProduct($contragentClassId, $contragentId, $date)
-    {
-    	$sellable = static::getByProperty('canSell', 1);
-    	
-    	return count($sellable);
     }
     
     
@@ -572,6 +553,7 @@ class cat_Products extends core_Master {
     
     /**
      * Метод връщаш информация за продукта и неговите опаковки
+     * 
      * @param int $productId - ид на продукта
      * @param int $packagingId - ид на опаковката, по дефолт NULL
      * @return stdClass $res
@@ -597,7 +579,7 @@ class cat_Products extends core_Master {
     	$res->productRec = $productRec;
     	
     	// Добавяне на мета данните за продукта
-    	if($meta = explode(',', static::getMetaData($productRec->groups))){
+    	if($meta = explode(',', self::getMetaData($productRec->groups))){
 	    	foreach($meta as $value){
 	    		$res->meta[$value] = TRUE;
 	    	}
@@ -641,6 +623,7 @@ class cat_Products extends core_Master {
     
     /**
      * Връща ид на продукта и неговата опаковка по зададен Код/Баркод
+     * 
      * @param mixed $code - Код/Баркод на търсения продукт
      * @return stdClass $res - Информация за намерения продукт
      * и неговата опаковка
@@ -680,9 +663,9 @@ class cat_Products extends core_Master {
     
     
     /**
-     *  Проверява дали съществува продукт с такъв код,
-     *  Кода и ЕАН-то на продукта както и тези на опаковките им
+     *  Проверява дали съществува продукт с такъв код, Кода и ЕАН-то на продукта както и тези на опаковките им
      *  трябва да са уникални
+     *  
      *  @param string $code - Код/Баркод на продукт
      *  @return boolean int/FALSE - id на продукта с такъв код или
      *  FALSE ако няма такъв продукт
@@ -700,6 +683,7 @@ class cat_Products extends core_Master {
     /**
      * Връща всички продукти които са в посочените групи/група 
      * зададени, чрез техни systemId-та
+     * 
      * @param mixed $group - sysId (стринг) или масив от sysId-та на групи
      * @return array $result - Продукти отговарящи на посочената група/групи
      */
@@ -724,6 +708,7 @@ class cat_Products extends core_Master {
     
     /**
      * Връща ДДС на даден продукт
+     * 
      * @param int $productId - Ид на продукт
      * @param date $date - Дата към която начисляваме ДДС-то
      * @return double $vat - ДДС-то на продукта:
@@ -760,9 +745,8 @@ class cat_Products extends core_Master {
             $mvc->updateGroupsCnt = TRUE;
         }
         
-    	if($rec->oldGroups != $rec->groups) {
-        	
-        	// Ако има промяна на групите, Инвалидира се кеша
+        // Ако има промяна в групите, името или кода инвалидираме кеша
+    	if($rec->oldGroups != $rec->groups || $rec->oldName != $rec->name || $rec->oldCode != $rec->code) {
             core_Cache::remove('cat_Products', "productsMeta");
         }
     }
@@ -835,7 +819,7 @@ class cat_Products extends core_Master {
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$file = "cat/csv/Products.csv";
     	$fields = array( 
@@ -845,7 +829,7 @@ class cat_Products extends core_Master {
 	    	3 => "csv_groups",
 	    	4 => "access");
     	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	$res .= $cntObj->html;
     	
     	return $res;
@@ -857,51 +841,9 @@ class cat_Products extends core_Master {
      *
      * @return array() - масив с опции, подходящ за setOptions на форма
      */
-    public function getProducts($customerClass, $customerId, $datetime = NULL)
+    public function getProducts($customerClass, $customerId, $datetime = NULL, $properties, $limit = NULL)
     {
-    	return static::getByProperty('canSell');
-    }
-    
-    
-    /**
-     * По кои политики се намира цената на продукта
-     */
-    public function getPolicies()
-    {
-    	return array('price_ListToCustomers', 'sales_SalesLastPricePolicy');
-    }
-    
-    
-    /**
-     * Връща цената за посочения продукт към посочения клиент на посочената дата
-     * спрямо посочените ценови политики, Връща цената с най-голям
-     * приоритет от намерените
-     * @return object
-     * $rec->price  - цена
-     * $rec->discount - отстъпка
-     */
-    public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
-    {
-    	$prices = array();
-    	$policies = $this->getPolicies();
-    	foreach($policies as $name){
-    		$Policy = cls::get($name);
-    		$price = $Policy->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime);
-    		if($price->price){
-    			$prices[] = $price;
-    		}
-    	}
-    	
-    	if(!count($prices)){
-    		return NULL;
-    	} else {
-    		
-    		// Сортиране на намерените цени по техния приоритет
-    		arr::order($prices, $field = 'priority', 'DESC');
-    		
-    		// Връща се цената с най-голям приоритет
-    		return $prices[0];
-    	}
+    	return static::getByProperty($properties, $limit);
     }
     
     
@@ -913,6 +855,7 @@ class cat_Products extends core_Master {
     {
     	// Ценоразпис себестойност
     	$listId = price_ListRules::PRICE_LIST_COST;
+    	price_ListToCustomers::canonizeTime($date);
     	
     	return price_ListRules::getPrice($listId, $productId, $packagingId, $date);
     }
@@ -974,7 +917,7 @@ class cat_Products extends core_Master {
 	    	
 	    	while($rec = $query->fetch()){
 	    		if(!array_key_exists($rec->id, $tmp)){
-	    			$tmp[$rec->id] = static::getTitleById($rec->id);
+	    			$tmp[$rec->id] = static::getTitleById($rec->id, FALSE);
 	    		}
 	    		
 	    		$products[$rec->id] = $tmp[$rec->id];
@@ -1057,7 +1000,7 @@ class cat_Products extends core_Master {
      * @return string $title - заглавието на продукта, ако има параметър за име на
      * зададения език, връща него.
      */
-    public static function getTitleById($id, $escaped = TRUE, $lang = 'bg')
+    public static function getTitleById($id, $escaped = TRUE, $full = FALSE, $lang = 'bg')
     {
      	// Ако езика е различен от българския
     	if($lang != 'bg'){
@@ -1124,6 +1067,8 @@ class cat_Products extends core_Master {
     public function getBasePackInfo($id)
     {
     	$basePack = cat_products_Packagings::fetch("#productId = '{$id}' AND #isBase = 'yes'");
+    	$arr = array();
+    	
     	if($basePack){
     		$arr['name'] = cat_Packagings::getTitleById($basePack->packagingId);
     		$arr['quantity'] = $basePack->quantity;
@@ -1138,5 +1083,14 @@ class cat_Products extends core_Master {
     	}
     		
     	return (object)$arr;
+    }
+    
+    
+    /**
+     * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
+     */
+    public function getPolicy()
+    {
+    	return cls::get('price_ListToCustomers');
     }
 }

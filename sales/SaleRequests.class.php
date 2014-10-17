@@ -29,7 +29,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Sreq';
+    public $abbr = 'Srq';
     
     
     /**
@@ -118,13 +118,13 @@ class sales_SaleRequests extends core_Master
     {
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,fromOffer');
         $this->FLD('contragentId', 'int', 'input=hidden,fromOffer');
-		$this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description)','caption=Плащане->Метод,width=8em,fromOffer');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,fromOffer,oldFieldName=paymentCurrencyId');
-        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em,fromOffer,oldFieldName=rate');
+		$this->FLD('others', 'text(rows=4)', 'caption=Условия');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description)','caption=Плащане->Метод,fromOffer');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,fromOffer,oldFieldName=paymentCurrencyId');
+        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,fromOffer,oldFieldName=rate');
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat,fromOffer');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,fromOffer');
-        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,fromOffer');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,fromOffer');
+        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,fromOffer');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Поръчано,input=none,summary=amount'); // Сумата на договорената стока
         $this->FLD('amountVat', 'double(decimals=2)', 'input=none');
         $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
@@ -201,12 +201,12 @@ class sales_SaleRequests extends core_Master
     		$this->sales_SaleRequestDetails->save($item);
     	}
     	
-    	deals_Helper::fillRecs($items, $rec, sales_SaleRequestDetails::$map);
-    	$amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
-        $amountDeal -= $rec->_total->discount;
+    	deals_Helper::fillRecs($this, $items, $rec, sales_SaleRequestDetails::$map);
+    	$amountDeal = ($rec->chargeVat == 'no') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+        $amountDeal -= $this->_total->discount;
         $rec->amountDeal = $amountDeal * $rec->currencyRate;
-        $rec->amountVat  = $rec->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
+        $rec->amountVat  = $this->_total->vat * $rec->currencyRate;
+        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
         $this->save($rec);
         
     	if($cmd == 'active'){
@@ -309,7 +309,7 @@ class sales_SaleRequests extends core_Master
 	    		}
     		}
     		
-    		$form->FNC($index, "double(decimals=2)", "width=7em,input,caption={$product->title},{$mandatory}");
+    		$form->FNC($index, "double(decimals=2)", "input,caption={$product->title},{$mandatory}");
     		if($product->suggestions){
     			$form->setSuggestions($index, $product->options);
     		} else {
@@ -386,7 +386,7 @@ class sales_SaleRequests extends core_Master
         $result->quoted->payment->method = $rec->paymentMethodId;
     	
     	foreach ($details as $dRec) {
-            $result->quoted->products[] = new sales_model_QuotationProduct($dRec);
+            $result->quoted->products[] = $dRec;
         }
         
         return $result;
@@ -465,7 +465,7 @@ class sales_SaleRequests extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = deals_Helper::prepareSummary($rec->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
@@ -482,14 +482,14 @@ class sales_SaleRequests extends core_Master
     	// Данните на "Моята фирма"
         $ownCompanyData = crm_Companies::fetchOwnCompany();
         
-    	$row->MyCompany      = $ownCompanyData->company;
+    	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         $row->MyAddress      = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId);;
         $row->MyCompanyVatNo = $ownCompanyData->vatNo;
         
-        $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $row->contragentAddress = $contragent->getFullAdress();
-        
-        $row->contragentName = $contragent->getTitleById();
+        $ContragentClass = cls::get($rec->contragentClassId);
+        $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
+       	$cData = $ContragentClass->getContragentData($rec->contragentId);
+    	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
     }
     
     
@@ -510,7 +510,7 @@ class sales_SaleRequests extends core_Master
 	    	}
 	    	$row->id .= " {$id}";
 	    	@$rec->amountDeal = $rec->amountDeal / $rec->currencyRate;
-	    	$row->amountDeal = "<span class='cCode' style='float:left;margin-right:3px'>{$rec->currencyId}</span>" . $mvc->fields['amountDeal']->type->toVerbal($rec->amountDeal);
+	    	$row->amountDeal = "<span class='cCode' style='float:left;margin-right:3px'>{$rec->currencyId}</span>" . $mvc->getFieldType('amountDeal')->toVerbal($rec->amountDeal);
     	}
 	    
 	    if($fields['-single']){
@@ -564,7 +564,7 @@ class sales_SaleRequests extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if ($data->rec->state == 'active') {
-    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'order=22,ef_icon = img/16/star_2.png,title=Създаване на нова продажба по заявката');
+    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'order=22,ef_icon = img/16/cart_go.png,title=Създаване на нова продажба по заявката');
     	}
     	
     	if($data->rec->state == 'draft') {

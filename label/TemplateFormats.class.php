@@ -571,15 +571,10 @@ class label_TemplateFormats extends core_Detail
                 // Ако има зададен стойност
                 if ($val) {
                     
-                    // Вземаме умалено изборажение със зададените размер
-                    $thumb= new img_Thumb($val, $rec->formatParams['Width'], $rec->formatParams['Height']);
+                    $possibleRotation = ($rec->formatParams['Rotation'] == 'yes') ? 'left' : NULL;
                     
-                    // Ако е зададена възможна ротация
-                    if ($rec->formatParams['Rotation'] == 'yes') {
-                        
-                        // Задаваме да се ротира на ляво
-                        $thumb->allowRotateToSide = 'left';
-                    }
+                    // Вземаме умалено изборажение със зададените размер
+                    $thumb= new thumb_Img(array($val, $rec->formatParams['Width'], $rec->formatParams['Height'], 'fileman', 'possibleRotation' => $possibleRotation));
                     
                     // Добавяме вербалната стойност
                     $verbalValArr[$valStr] = $thumb->createImg($attr);

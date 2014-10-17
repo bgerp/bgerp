@@ -93,7 +93,7 @@ class bgerp_Recently extends core_Manager
      * @param integer $userId
      * @param enum $priority
      */
-    static function add($type, $objectId, $userId = NULL)
+    static function add($type, $objectId, $userId = NULL, $hidden)
     {
         // Не добавяме от опресняващи ajax заявки
         if(Request::get('ajax_mode')) return;
@@ -107,7 +107,8 @@ class bgerp_Recently extends core_Manager
         $rec->objectId  = $objectId;
         $rec->userId    = $userId ? $userId : core_Users::getCurrent();
         $rec->last      = dt::verbal2mysql();
-        
+        $rec->hidden    = $hidden;
+      
         $rec->id = bgerp_Recently::fetchField("#type = '{$type}'  AND #objectId = $objectId AND #userId = {$rec->userId}");
         
         bgerp_Recently::save($rec);
@@ -152,10 +153,6 @@ class bgerp_Recently extends core_Manager
                 $row->title = $folderRow->title;
                 $state = $folderRec->state;
                 
-                if(doc_Folders::haveRightToFolder($folderRec->id)){
-                	$row->title .= ht::createLink(' ', array('doc_Threads', 'ShowDocMenu', 'folderId' => $folderRec->id), NULL, array('class'=>'portalAddDoc','ef_icon' => 'img/16/add1-16.png'));
-                	$row->title = '<div>' . $row->title .'</div>';
-                }
             } catch (core_exception_Expect $ex) {
                 $row->title = tr("Проблемна папка|* № {$rec->objectId}");
             }
@@ -185,11 +182,6 @@ class bgerp_Recently extends core_Manager
                     
                 $threadRec = doc_Threads::fetch($docRec->threadId);
                 $state     = $threadRec->state;
-                
-                if(doc_Threads::haveRightFor('newdoc', $docRec->threadId)){
-                	$row->title .= ht::createLink(' ', array('doc_Containers', 'ShowDocMenu', 'threadId' => $docRec->threadId), NULL, array('class'=>'portalAddDoc','ef_icon' => 'img/16/add1-16.png'));
-                	$row->title = '<div>' . $row->title .'</div>';
-                }
                 
             } catch (core_exception_Expect $ex) {
                 $row->title = tr("Проблемен контейнер|* № {$rec->objectId}");
@@ -277,13 +269,13 @@ class bgerp_Recently extends core_Manager
         
         // Подготвяме филтрирането
         $Recently->prepareListFilter($data);
-        
+       
         // Подготвяме навигацията по страници
         $Recently->prepareListPager($data);
         
         // Подготвяме записите за таблицата
         $Recently->prepareListRecs($data);
-        
+         
         // Подготвяме редовете на таблицата
         $Recently->prepareListRows($data);
         
@@ -500,5 +492,22 @@ class bgerp_Recently extends core_Manager
     function getDivId()
     {
         return $this->className . '_PortalTable';
+    }
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
+     * 
+     * @param string $status
+     * 
+     * @return string
+     * @see bgerp_RefreshRowsPlg
+     */
+    function getContentHash($status)
+    {
+        // Премахваме всички тагове
+        $hash = md5(trim(strip_tags($status)));
+        
+        return $hash;
     }
 }

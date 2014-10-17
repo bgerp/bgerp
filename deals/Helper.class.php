@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -77,88 +77,79 @@ abstract class deals_Helper
 	
 	
 	/**
-	 * Калкулиране на сумата на реда
-	 * @param double $price           - цената
-	 * @param int $packQuantity       - количеството
-	 * @param double $vat             - процента ддс
-	 * @param boolean $isPriceWithVat - дали цената е с включено ддс
-	 * @param currencyCode 			  - валута
-	 * @param discount				  - отстъпка
-	 */
-	private static function calcAmount($price, $packQuantity, $vat, $isPriceWithVat = TRUE, $currencyCode, $discount)
-	{
-		$arr = array();
-		$arr['amount'] = $price * $packQuantity;
-		
-		$arr['discount'] = ($discount) ? $arr['amount'] * $discount : 0;
-		
-		if($isPriceWithVat){
-			$arr['vatAmount'] = ($arr['amount'] - $arr['discount']) * $vat / (1 + $vat);
-		} else {
-			$arr['vatAmount'] = ($arr['amount'] - $arr['discount']) * $vat;
-		}
-		
-		$arr['amount'] = $arr['amount'];
-	
-		return (object)$arr;
-	}
-	
-	
-	/**
 	 * Помощен метод използван в бизнес документите за показване на закръглени цени на редовете
 	 * и за изчисляване на общата цена
-	 * 
+	 *
 	 * @param array $recs - записи от детайли на модел
 	 * @param stdClass $masterRec - мастър записа
 	 * @param array $map - масив с мапващи стойностите на полета от фунцкията
 	 * с полета в модела, има стойности по подрабзиране (@see static::$map)
 	 */
-	public static function fillRecs(&$recs, &$masterRec, $map = array())
+	public static function fillRecs(&$mvc, &$recs, &$masterRec, $map = array())
 	{
-		if(count($recs) === 0) return;
+		if(count($recs) === 0) {
+			unset($mvc->_total);
+			return;
+		}
+	
 		expect(is_object($masterRec));
-		
+	
 		// Комбиниране на дефолт стойнсотите с тези подадени от потребителя
 		$map = array_merge(self::$map, $map);
-		
+	
 		// Дали трябва винаги да не се показва ддс-то към цената
-		if($map['alwaysHideVat']) {
-			$hasVat = FALSE;
-		} else {
-			$hasVat = ($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE;
-		}
-		
-		$discount = $amount = $amountVat = 0;
-		
+		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE);
+		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
+	
+		// Обработваме всеки запис
 		foreach($recs as &$rec){
 			$vat = 0;
-        	if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
-                $ProductManager = cls::get($rec->$map['classId']);
-                $vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
-            }
-           
-            // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
-        	$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
-        	$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
+			if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
+				$ProductManager = cls::get($rec->$map['classId']);
+				$vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
+			}
+			
+			// Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
+			$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
+			$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
+			
+			$noVatAmount = round($price->noVat * $rec->$map['quantityFld'], 2);
         	
-        	// Калкулира се сумата на реда
-        	$amountObj = self::calcAmount($rec->$map['priceFld'], $rec->$map['quantityFld'], $vat, $hasVat, $masterRec->$map['currencyId'], $rec->$map['discount']);
-        	
-        	// Изчисляване на цената без търговската отстъпка
-        	if($amountObj->discount){
-        		 $rec->$map['discAmountFld'] = $amountObj->discount;
-                 $discount += $rec->$map['discAmountFld'];
+			if($rec->$map['discount']){
+				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->$map['discount']), 2);
+			} else {
+				$withoutVatAndDisc = $noVatAmount;
+			}
+			
+			$vatRow = round($withoutVatAndDisc * $vat, 2);
+			
+        	$rec->$map['amountFld'] = $noVatAmount;
+        	if($masterRec->$map['chargeVat'] == 'yes' && !$map['alwaysHideVat']){
+        		$rec->$map['amountFld'] = round($rec->$map['amountFld'] + round($noVatAmount * $vat, 2), 2);
+        	}
+
+        	if($rec->$map['discount']){
+        		$discount += $rec->$map['amountFld'] * $rec->$map['discount'];
         	}
         	
-        	$rec->$map['amountFld']  = $amountObj->amount;
-        	$amount          		+= $amountObj->amount;
-        	$amountVat       		+= $amountObj->vatAmount;
+        	
+        	$amountRow += $rec->$map['amountFld'];
+        	$amount += $noVatAmount;
+        	$amountVat += $vatRow;
+        	
+        	$amountJournal += $withoutVatAndDisc;
+        	if($masterRec->$map['chargeVat'] == 'yes') {
+        		$amountJournal += $vatRow;
+        	}
 		}
 		
-		$masterRec->_total           = new stdClass();
-        $masterRec->_total->amount   = $amount;
-        $masterRec->_total->vat      = $amountVat;
-        $masterRec->_total->discount = $discount;
+		$mvc->_total = new stdClass();
+		$mvc->_total->amount = $amountRow;
+		$mvc->_total->vat = $amountVat;
+		
+		if(!$map['alwaysHideVat']){
+			$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
+		}
 	}
 	
 	
@@ -185,6 +176,8 @@ abstract class deals_Helper
 	public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = FALSE, $lang = 'bg')
 	{
 		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
+		$arr = array();
+		
 		$values = (array)$values;
 		$arr['currencyId'] = $currencyId;                          // Валута на документа
 		
@@ -205,6 +198,7 @@ abstract class deals_Helper
 			$arr['vatAmount'] = $values['vat'] * $currencyRate; // С-та на ддс-то в основна валута
 			$arr['vatCurrencyId'] = $baseCurrency; 				// Валутата на ддс-то е основната за периода
 			$arr['baseAmount'] = $arr['total'] * $currencyRate; // Данъчната основа
+			$arr['baseAmount'] = ($arr['baseAmount']) ? $arr['baseAmount'] : "<span class='quiet'>0,00</span>";;
 			$arr['baseCurrencyId'] = $baseCurrency; 			// Валутата на данъчната основа е тази на периода
 		} else { // ако не е фактура
 			$arr['vatAmount'] = $values['vat']; 		// ДДС-то
@@ -227,7 +221,7 @@ abstract class deals_Helper
 		$arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0,00</span>";
 		$arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0,00</span>";
 		
-		if($arr['vatAmount'] === NULL && $chargeVat == 'separate'){
+		if(!$arr['vatAmount'] && ($invoice || $chargeVat == 'separate')){
 			$arr['vatAmount'] = "<span class='quiet'>0,00</span>";
 		}
 		
@@ -254,43 +248,63 @@ abstract class deals_Helper
 	 * @param double $price - цена във валута
 	 * @param double $vat - ддс 
 	 * @param double $rate - валутен курс
-	 * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ддс-то
+	 * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ДДС-то
+	 * @param int $round - до колко знака да се закръгли
+	 * 
 	 * @return double $price - цената във валутата
 	 */
-	static function getPriceToCurrency($price, $vat, $rate, $chargeVat)
-	{
+	public static function getDisplayPrice($price, $vat, $rate, $chargeVat, $round = NULL)
+	{	
 		// Ако няма цена, но има такъв запис се взима цената от него
 	    if ($chargeVat == 'yes') {
+	    	
 	          // Начисляване на ДДС в/у цената
 	         $price *= 1 + $vat;
 	    }
 	   
-	    $price /= $rate;
-	    $price = static::roundPrice($price);
+	    // Обреъщаме в валутата чийто курс е подаден
+	    if($rate != 1){
+	    	$price /= $rate;
+	    }
+	   
+	    // Закръгляме при нужда
+	    if($round){
+	    	$price = round($price, $round);
+	    } else {
+	    	
+	    	// Ако не е посочено закръгляне, правим машинно закръгляне
+	    	$price = deals_Helper::roundPrice($price);
+	    }
 	    
+	    // Връщаме обработената цена
 	    return $price;
 	}
 	
-
+	
 	/**
 	 * Помощна ф-я обръщаща цена от от сума във валута в основната валута
+	 * това е обратната ф-я на `deals_Helper::getDisplayPrice`
 	 * 
 	 * @param double $price - цена във валута
 	 * @param double $vat - ддс 
 	 * @param double $rate - валутен курс
 	 * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ддс-то
+	 * 
 	 * @return double $price - цената в основна валута без ддс
 	 */
-	static function getPriceFromCurrency($price, $vat, $rate, $chargeVat)
+	public static function getPurePrice($price, $vat, $rate, $chargeVat)
 	{
 		// Ако няма цена, но има такъв запис се взима цената от него
 	    if ($chargeVat == 'yes') {
-	          // Начисляване на ДДС в/у цената
+	         
+	    	 // Премахваме ДДС-то при нужда
 	         $price /= 1 + $vat;
 	    }
 	  
+	    // Обръщаме в основната валута
 	    $price *= $rate;
 	    
+	    // Връщаме обработената цена
 	    return $price;
 	}
 }

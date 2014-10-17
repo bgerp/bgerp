@@ -29,7 +29,7 @@ class cms_ObjectPlg extends core_Plugin
         if(haveRole('cms,admin,ceo') && $data->rec->state != 'rejected' ) {
             $data->toolbar->addBtn('Вграждане', 
                     array('cms_Objects', 'add', 'sourceClass' => $mvc->className, 'type' => 'object', 'sourceId' => $data->rec->id),
-                    'ef_icon=img/16/world_go.png,order=19,autohide,row=2,title=Вземи таг за вграждане');
+                    'ef_icon=img/16/world_go.png,order=19,row=2,title=Вземи таг за вграждане');
 
             Request::setProtected('sourceClass,type,sourceId');
         }
@@ -56,7 +56,8 @@ class cms_ObjectPlg extends core_Plugin
     function on_AfterRenderCmsObject($mvc, &$res, $data, $tpl)
     {
         if(!$res) {
-            $res = $mvc->renderSingle($data, $tpl);
+            $data->singleLayout = $tpl;
+            $res = $mvc->renderSingle($data);
         }
     }
     

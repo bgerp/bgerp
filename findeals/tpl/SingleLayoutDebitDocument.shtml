@@ -1,0 +1,47 @@
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <!--ET_END header-->
+    <table class='styled-table'>
+    	<tr>
+            <td>|Вальор|*</td>
+            <td>[#valior#]</td>
+        </tr>
+        <tr>
+            <td>|Име|*</td>
+            <td>[#name#]</td>
+        </tr>
+        <tr>
+            <td>|Финансова сделка|*</td>
+            <td>[#dealId#]</td>
+        </tr>
+        <tr>
+            <td>|Сума|*</td>
+            <td><span class='cCode'>[#currencyId#]</span> [#amount#]</td>
+        </tr>
+        <!--ET_BEGIN amountBase-->
+        <tr>
+            <td>|Курс|*</td>
+            <td>[#rate#]</td>
+        </tr>
+        <tr>
+            <td>|Равностойност|*</td>
+            <td><span class='cCode'>[#baseCurrency#]</span> [#amountBase#]</td>
+        </tr>
+        <!--ET_END amountBase-->
+    </table>
+    <div>
+        [#description#]
+    </div>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
+</div>

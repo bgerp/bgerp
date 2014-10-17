@@ -63,7 +63,12 @@ class techno_GeneralProducts extends core_Master {
      * Шаблон за единичен изглед
      */
     var $singleLayoutFile = 'techno/tpl/SingleLayoutGeneralProducts.shtml';
-    
+
+    /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/doc.png';
+
     
     /**
      * Кой може да го прочете?
@@ -104,7 +109,7 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, description, measureId, code';
+    var $searchFields = 'title, description, measureId, code, id';
     
     
     /**
@@ -118,12 +123,12 @@ class techno_GeneralProducts extends core_Master {
      */
     function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%');
-    	$this->FLD('description', 'richtext(rows=6, bucket=Notes)', 'caption=Описание,mandatory,width=100%');
+    	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory,remember=info');
+    	$this->FLD('description', 'richtext(rows=6, bucket=Notes)', 'caption=Описание,mandatory');
 		$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory');
     	$this->FLD('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение');
-		$this->FLD('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em');
-        $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em');
+		$this->FLD('code', 'varchar(64)', 'caption=Параметри->Код,remember=info');
+        $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN');
 		$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2');
@@ -134,9 +139,9 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
-    	$mvc->setTemplates($res);
+    	$this->setTemplates($res);
     }
     
     
@@ -150,13 +155,7 @@ class techno_GeneralProducts extends core_Master {
     	$tplArr[] = array('name' => 'Универсален продукт кратък изглед без компоненти', 
     					  'content' => 'techno/tpl/SingleLayoutGeneralProductsShortComponents.shtml', 'lang' => 'bg');
     	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за универсални продукти, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+        $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
     
@@ -196,9 +195,10 @@ class techno_GeneralProducts extends core_Master {
 	    	}
 	    	
 	    	if($rec->image){
-	     		$size = array(130, 130);
 	     		$file = fileman_Files::fetchByFh($rec->image);
-	     		$row->image = thumbnail_Thumbnail::getImg($file->fileHnd, $size);
+	     		
+	     		$img = new thumb_Img(array($file->fileHnd, 130, 130, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change'));
+	            $row->image = $img->getUrl('forced');
 	     	}
     	}
     }
@@ -230,23 +230,6 @@ class techno_GeneralProducts extends core_Master {
     
     
     /**
-     * Връща информация за ед цена на продукта, отстъпката и таксите
-     * @param stdClass $data - дата от модела
-     * @param int $packagingId - ид на опаковка
-     * @param double quantity - количество
-     * @param datetime $datetime - дата
-     * @return stdClass $priceInfo - информация за цената на продукта
-     * 				[price]- начална цена
-     * 				[discount]  - отстъпка
-     * 				[tax]     - нач. такса
-     */
-    public function getPriceInfo($productId, $packagingId = NULL, $quantity = 1, $datetime = NULL)
-    {    
-    	return $this->techno_GeneralProductsDetails->getTotalPrice($productId);
-    }
-    
-    
-    /**
      * Подготвя данните за краткия изглед
      */
     public function prepareData($id)
@@ -256,6 +239,7 @@ class techno_GeneralProducts extends core_Master {
     	$data = new stdClass();
     	$data->rec = $this->fetch($id);
     	$fields['-single'] = TRUE;
+    	$fields['-short'] = TRUE;
     	$data->row = $this->recToVerbal($data->rec, $fields);
     	
     	// Извличане на детайлите (компонентите)
@@ -311,6 +295,7 @@ class techno_GeneralProducts extends core_Master {
     {
 	    $res = new stdClass();
 	    $res->productRec = $this->fetch($productId);
+	    $res->productRec->name = $res->productRec->title;
 	    
 	    if($res->productRec->meta){
 	    	$meta = explode(',', $res->productRec->meta);
@@ -352,7 +337,12 @@ class techno_GeneralProducts extends core_Master {
     {
     	expect($paramId = cat_Params::fetchIdBySysId($sysId));
     	
-    	return $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
+    	$value = $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
+    	
+    	if($value) return $value;
+    	
+    	// Връщаме дефолт стойността за параметъра
+     	return cat_Params::getDefault($paramId);
     }
     
     
@@ -366,13 +356,12 @@ class techno_GeneralProducts extends core_Master {
      */
     function getUsedDocs_($productId)
     {
-    	$description = $this->fetchField($productId, 'description');
+    	$res = array();
+    	
     	if($usedDocs = doc_RichTextPlg::getAttachedDocs($productId->description)) {
 	    	foreach ($usedDocs as $doc){
 	    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
 	    	}
-    	} else {
-    		$res = array();
     	}
     	
     	return $res;
@@ -479,7 +468,7 @@ class techno_GeneralProducts extends core_Master {
      	$params = $this->getInquiryParams();
      	
 		foreach ($params as $name => $obj){
-		    $form->FNC($name, $obj->type, "caption=Информация за продукта->{$obj->title},input,params,width=100%,after=drvId");
+		    $form->FNC($name, $obj->type, "caption=Информация за продукта->{$obj->title},input,params,after=drvId");
 		    if($obj->mandatory){
 		    	$form->setField($name, 'mandatory');
 		    }
@@ -547,4 +536,23 @@ class techno_GeneralProducts extends core_Master {
      	
      	return $id->title;
      }
+     
+     
+	/**
+	* Връща информация за ед цена на продукта, отстъпката и таксите
+	* 
+	* @param stdClass $data - дата от модела
+	* @param int $packagingId - ид на опаковка
+	* @param double quantity - количество
+	* @param datetime $datetime - дата
+	* 
+	* @return stdClass $priceInfo - информация за цената на продукта
+	* [price]- начална цена
+	* [discount] - отстъпка
+	* [tax] - нач. такса
+	*/
+	public function getPriceInfo($productId, $packagingId = NULL, $quantity = 1, $datetime = NULL)
+	{
+		return $this->techno_GeneralProductsDetails->getTotalPrice($productId);
+	}
 }

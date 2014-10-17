@@ -19,19 +19,19 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
    
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Касови обмени на валути";
+    public $title = "Касови обмени на валути";
     
     
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Printing, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, cash_Wrapper, plg_Printing, acc_plg_Contable,
      	plg_Sorting,doc_DocumentPlg, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_SharablePlg';
     
@@ -39,91 +39,91 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, valior, reason, folderId, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
+    public $listFields = "tools=Пулт, number=Номер, valior, reason, folderId, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'reason';
+    public $rowToolsSingleField = 'reason';
     
     
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Касова обмяна на валута';
+    public $singleTitle = 'Касова обмяна на валута';
     
     
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/money_exchange.png';
+    public $singleIcon = 'img/16/money_exchange.png';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,cash';
+	public $canList = 'ceo,cash';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,cash';
+	public $canSingle = 'ceo,cash';
 	
 	
     /**
      * Абревиатура
      */
-    var $abbr = "Sv";
+    public $abbr = "Ced";
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'cash, ceo';
+    public $canRead = 'cash, ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'cash, ceo';
+    public $canWrite = 'cash, ceo';
     
     
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc, cash, ceo';
+    public $canConto = 'acc, cash, ceo';
     
     
     /**
      * Кой може да сторнира
      */
-    var $canRevert = 'cash, ceo';
+    public $canRevert = 'cash, ceo';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'bank/tpl/SingleExchangeDocument.shtml';
+    public $singleLayoutFile = 'bank/tpl/SingleExchangeDocument.shtml';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.8|Финанси";
+    public $newBtnGroup = "4.8|Финанси";
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason, peroFrom, peroTo';
+    public $searchFields = 'reason, peroFrom, peroTo, id';
     
     
 	/**
@@ -131,15 +131,15 @@ class cash_ExchangeDocument extends core_Master
      */
     function description()
     {
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=23em,input,mandatory');
-    	$this->FLD('peroFrom', 'key(mvc=cash_Cases, select=name)','caption=От->Каса,width=12em');
-    	$this->FLD('creditCurrency', 'key(mvc=currency_Currencies, select=code)','caption=От->Валута,width=6em');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
+    	$this->FLD('peroFrom', 'key(mvc=cash_Cases, select=name)','caption=От->Каса');
+    	$this->FLD('creditCurrency', 'key(mvc=currency_Currencies, select=code)','caption=От->Валута');
     	$this->FLD('creditPrice', 'double(smartRound)', 'input=none');
-    	$this->FLD('creditQuantity', 'double(smartRound)', 'width=6em,caption=От->Сума');
-        $this->FLD('peroTo', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=12em');
-        $this->FLD('debitCurrency', 'key(mvc=currency_Currencies, select=code)','caption=Към->Валута,width=6em');
-        $this->FLD('debitQuantity', 'double(smartRound)', 'width=6em,caption=Към->Сума');
+    	$this->FLD('creditQuantity', 'double(smartRound)', 'caption=От->Сума');
+        $this->FLD('peroTo', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса');
+        $this->FLD('debitCurrency', 'key(mvc=currency_Currencies, select=code)','caption=Към->Валута');
+        $this->FLD('debitQuantity', 'double(smartRound)', 'caption=Към->Сума');
        	$this->FLD('debitPrice', 'double(smartRound)', 'input=none');
         $this->FLD('equals', 'double(smartRound)', 'input=none,caption=Общо,summary=amount');
        	$this->FLD('rate', 'double(smartRound)', 'input=none');
@@ -154,7 +154,7 @@ class cash_ExchangeDocument extends core_Master
 	/**
 	 *  Подготовка на филтър формата
 	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	public static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		// Добавяме към формата за търсене търсене по Каса
 		cash_Cases::prepareCaseFilter($data, array('peroFrom', 'peroTo'));
@@ -181,7 +181,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Подготовка на формата за добавяне
      */
-    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
     	$form = &$data->form;
     	$cCase = cash_Cases::getCurrent();
@@ -199,7 +199,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Проверка след изпращането на формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     { 
     	if ($form->isSubmitted()){
     		
@@ -234,9 +234,11 @@ class cash_ExchangeDocument extends core_Master
 		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
 		    }
 		    
-    		$toCashiers = cash_Cases::fetchField($rec->peroTo, 'cashiers');
-    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
-    		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+		    $caseRec = cash_Cases::fetch($rec->peroTo);
+    		if($caseRec->autoShare == 'yes'){
+    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
+    			$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+    		}
     	}
     }
     
@@ -244,7 +246,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      *  Обработки по вербалното представяне на данните
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->number = static::getHandle($rec->id);
     	if($fields['-list']){
@@ -267,33 +269,53 @@ class cash_ExchangeDocument extends core_Master
     /**
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
+   	 *  
+   	 *  Ако избраната валута е в основна валута
+   	 *  	
+   	 *  	Dt: 501. Каси 					(Каса, Валута)
+   	 *  	Ct: 501. Каси					(Каса, Валута)
+   	 *  
+   	 *  Ако е в друга валута различна от основната
+   	 *  
+   	 *  	Dt: 501. Каси 					         (Каса, Валута)
+   	 *  	Ct: 481. Разчети по курсови разлики		 (Валута)
+   	 *  
+   	 *  	Dt: 481. Разчети по курсови разлики	     (Валута)
+   	 *  	Ct: 501. Каси 					         (Каса, Валута)
    	 */
     public static function getTransaction($id)
     {
     	// Извличаме записа
         expect($rec = self::fetchRec($id));
         
-        $entry = array(
-            'amount' => $rec->debitQuantity * $rec->debitPrice,
-            'debit' => array(
-                '501',
-        		array('cash_Cases', $rec->peroTo),
-        		array('currency_Currencies', $rec->debitCurrency),
-                'quantity' => $rec->debitQuantity
-            ),
-            'credit' => array(
-                '501',
-            	array('cash_Cases', $rec->peroFrom),
-            	array('currency_Currencies', $rec->creditCurrency),
-                'quantity' => $rec->creditQuantity
-            ),
-        );
+        $toCase = array('501',
+        					array('cash_Cases', $rec->peroTo),
+        					array('currency_Currencies', $rec->debitCurrency),
+                		'quantity' => $rec->debitQuantity);
+        
+        $fromCase = array('501',
+            				array('cash_Cases', $rec->peroFrom),
+            				array('currency_Currencies', $rec->creditCurrency),
+                		'quantity' => $rec->creditQuantity);
+        
+        if($rec->creditCurrency == acc_Periods::getBaseCurrencyId($rec->valior)){
+        	$entry = array('amount' => $rec->debitQuantity * $rec->debitPrice, 'debit' => $toCase, 'credit' => $fromCase);
+        	$entry = array($entry);
+        } else {
+        	$entry = array();
+        	$entry[] = array('amount' => $rec->debitQuantity * $rec->debitPrice, 
+        					'debit' => $toCase, 
+        					'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
+        	$entry[] = array('amount' => $rec->debitQuantity * $rec->debitPrice, 
+        				   'debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity), 
+        			       'credit' => $fromCase);
+        }
       	
       	// Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason' => $rec->reason,   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
-            'entries' => array($entry)
+            'entries' => $entry,
         );
         
         return $result;
@@ -351,7 +373,7 @@ class cash_ExchangeDocument extends core_Master
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
@@ -373,5 +395,16 @@ class cash_ExchangeDocument extends core_Master
     	$rec = $this->fetchRec($id);
     	
     	return $this->getVerbal($rec, 'reason');
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(__CLASS__);
+    
+    	return $self->singleTitle . " №$rec->id";
     }
 }

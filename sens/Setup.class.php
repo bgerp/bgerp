@@ -101,19 +101,15 @@ class sens_Setup extends core_ProtoSetup
             unset($drvObject);
         }
          
-        $Cron = cls::get('core_Cron');
-        
         $rec = new stdClass();
         $rec->systemId = "sens_GetIndications";
-        $rec->description = "Взима данни от активни сензори";
+        $rec->description = "Вземат се данни от активни сензори";
         $rec->controller = "sens_Sensors";
         $rec->action = "Process";
         $rec->period = 1;
         $rec->offset = 0;
         $rec->timeLimit = 30;
-        $Cron->addOnce($rec);
-        
-        $html .= "<li style='color:#660000'>На Cron e зададенo да следи сензорите</li>";
+        $html .= core_Cron::addOnce($rec);
         
         return $html;
     }

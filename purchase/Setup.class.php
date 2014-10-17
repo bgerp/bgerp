@@ -1,15 +1,16 @@
 <?php
 
-/**
- * Толеранс за автоматичното затваряне на покупките за доставеното - платеното
- */
-defIfNot('PURCHASE_CLOSE_TOLERANCE', '0.01');
-
 
 /**
  * Покупки до колко дни назад без да са модифицирани да се затварят автоматично
  */
 defIfNot('PURCHASE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
+
+
+/**
+ * Колко покупки да се приключват автоматично брой
+ */
+defIfNot('PURCHASE_CLOSE_OLDER_NUM', 15);
 
 
 /**
@@ -90,12 +91,18 @@ class purchase_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'PURCHASE_CLOSE_TOLERANCE'     => array("double(decimals=2)", 'caption=Покупки->Толеранс за приключване'),
-			'PURCHASE_OVERDUE_CHECK_DELAY' => array("time", "caption=Покупки->Толеранс за просрочване"),
-			'PURCHASE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Покупки->Затваряне на по-стари от'),
-		);
-		
-		
+			'PURCHASE_OVERDUE_CHECK_DELAY' => array("time", "caption=Толеранс за просрочване на покупката->Време"),
+			'PURCHASE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на покупката->Дни'),
+			'PURCHASE_CLOSE_OLDER_NUM'     => array("int", 'caption=По колко покупки да се приключват автоматично на опит->Брой'),
+	);
+	
+	
+	/**
+	 * Път до css файла
+	 */
+//	var $commonCSS = 'purchase/tpl/invoiceStyles.css';
+	
+	
 	/**
      * Инсталиране на пакета
      */
@@ -104,10 +111,10 @@ class purchase_Setup extends core_ProtoSetup
     	$html = parent::install();
         
         // Добавяме политиката "По последна покупна цена"
-        core_Classes::add('purchase_PurchaseLastPricePolicy');
+        $html .= core_Classes::add('purchase_PurchaseLastPricePolicy');
         
         // Добавяне на роля за старши куповач
-        $html .= core_Roles::addRole('purchaseMaster', 'purchase') ? "<li style='color:green'>Добавена е роля <b>purchaseMaster</b></li>" : '';
+        $html .= core_Roles::addOnce('purchaseMaster', 'purchase');
         
         return $html;
     }

@@ -1,0 +1,52 @@
+<div class="singleView">
+	
+	[#SingleToolbar#]
+	
+	<h2><div style="padding:5px;">|Хранилище|* <b style="color:green;">[#verbalName#]</b></div></h2>
+	
+	<div class='listTopContainer clearfix21'>
+		[#SingleFilter#]
+	</div>
+	
+	<!--ET_BEGIN SinglePager-->
+		<div class='top-pager'> 
+			[#SinglePager#]
+		</div>
+	<!--ET_END SinglePager-->
+	
+	<table class="styled-table" width="100%">
+		<tr>
+			<th colspan="2">|Информация|*</th>
+		</tr>
+		
+		<!--ET_BEGIN access-->
+			<tr>
+				<td class="title-style">|Достъп|*</td>
+				<td>[#access#]</td>
+			</tr>
+		<!--ET_END access-->
+		
+		<!--ET_BEGIN fullPath-->
+			<tr>
+				<td class="title-style">|Път|*</td>
+				<td>[#fullPath#]</td>
+			</tr>
+		<!--ET_END fullPath-->
+		
+		
+		<!--ET_BEGIN ignore-->
+			<tr>
+				<td class="title-style">|Игнориране|*</td>
+				<td>[#ignore#]</td>
+			</tr>
+		<!--ET_END ignore-->
+		
+	</table>
+	
+	<!--ET_BEGIN FileTree-->
+		<div class="file-tree">
+			[#FileTree#]
+		</div>
+	<!--ET_END FileTree-->
+	
+</div>

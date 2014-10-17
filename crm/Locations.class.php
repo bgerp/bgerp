@@ -107,21 +107,21 @@ class crm_Locations extends core_Master {
     {
         $this->FLD('contragentCls', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Собственик->Клас,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
-        $this->FLD('title', 'varchar', 'caption=Наименование,width=100%');
+        $this->FLD('title', 'varchar', 'caption=Наименование');
         $this->FLD('type', 'enum(correspondence=За кореспонденция,
             headquoter=Главна квартира,
             shipping=За получаване на пратки,
             office=Офис,shop=Магазин,
             storage=Склад,
             factory=Фабрика,
-            other=Друг)', 'caption=Тип,mandatory,width=15.4em');
+            other=Друг)', 'caption=Тип,mandatory');
         $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава,class=contactData');
         $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
-        $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код,width=15.4em');
+        $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код');
         $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
         $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
@@ -175,7 +175,13 @@ class crm_Locations extends core_Master {
         	if(empty($rec->title)){
         		if(isset($rec->pCode) && isset($rec->place) && isset($rec->countryId)){
         			$countryName = drdata_Countries::fetchField($rec->countryId, 'commonNameBg');
-        			$rec->title = "{$rec->pCode} {$rec->place}, {$countryName}";
+        			
+        			$lQuery = crm_Locations::getQuery();
+        			$lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
+        			$lQuery->XPR('count', 'int', 'COUNT(#id)');
+        			$count = $lQuery->fetch()->count + 1;
+        			
+        			$rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
         		} else {
         			$form->setError('title', 'Не е избрано име за локацията! Изберете име или посочете държава, град и код');
         			$form->setField('title', 'mandatory');
@@ -245,7 +251,7 @@ class crm_Locations extends core_Master {
     /**
      * Премахване на бутона за добавяне на нова локация от лист изгледа
      */
-    function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
+    public static function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
     {
         $data->toolbar->removeBtn('btnAdd');
     }
@@ -381,7 +387,7 @@ class crm_Locations extends core_Master {
         $locationRecs = static::getContragentLocations($contragentClassId, $contragentId);
         
         foreach ($locationRecs as &$rec) {
-            $rec = static::getTitleById($rec->id);
+            $rec = static::getTitleById($rec->id, FALSE);
         }
 	
         if(!$intKeys && count($locationRecs)){
@@ -394,34 +400,18 @@ class crm_Locations extends core_Master {
     
     /**
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
+     * 
      * @param int $id
+     * @return core_ET $tpl 
      */
     public static function getAddress($id)
     {
     	expect($rec = static::fetch($id));
     	$row = static::recToVerbal($rec);
     	
-    	$string = '';
+    	$string = "{$row->countryId}, {$row->pCode} {$row->place}, {$row->address}";
+    	$string = trim($string, ",  ");
     	
-    	if($rec->countryId){
-    		$string .= $row->countryId . ", ";
-    	}
-    	
-    	if($rec->pCode){
-    		$string .= $row->pCode . " ";
-    	}
-    	
-    	if($rec->place){
-    		$string .= $row->place . ", ";
-    	}
-    	
-    	if(!$rec->address){
-    		$string .= $row->address;
-    	}
-    	
-    	$Varchar = cls::get('type_Varchar');
-    	$sting = $Varchar->toVerbal($string);
-    	
-    	return trim($string, ", ");
+    	return $string;
     }
 }

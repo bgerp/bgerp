@@ -107,7 +107,7 @@ class blogm_Categories extends core_Manager {
 		
 		// Взимаме заявката към категориите, според избрания език
 		$query = static::getQuery();
-		static::filterByLang($query, $lang);
+		self::filterByLang($query, $lang);
 		while($rec = $query->fetch()) {
 			$options[$rec->id] = static::getVerbal($rec, 'title');
 		}
@@ -162,7 +162,7 @@ class blogm_Categories extends core_Manager {
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	static::filterByLang($data->query);
+    	self::filterByLang($data->query);
     }
     
     

@@ -98,7 +98,19 @@ class help_Setup extends core_ProtoSetup
 
     );
 
-        
+
+    /**
+     * Път до js файла
+     */
+//    var $commonJS = 'js/tooltipCustom.js';
+    
+    
+    /**
+     * Път до css файла
+     */
+//    var $commonCSS = 'css/tooltip.css';
+    
+    
     /**
      * Инсталиране на пакета
      */

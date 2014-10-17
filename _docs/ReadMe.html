@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1251">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Win32)">
+	<META NAME="CREATED" CONTENT="20110202;12054900">
+	<META NAME="CHANGED" CONTENT="20110202;12064700">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { margin: 2cm }
+		P { margin-bottom: 0.21cm }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="bg-BG" DIR="LTR">
+<P STYLE="margin-bottom: 0cm">В zip файла - дистрибутив на фреймуърка
+се съдържат следните директории с файлове:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><B>[_docs]</B> - документация и
+	шаблони на файлове, които не са част от фреймуърка:
+	конфигурационни,<B>.htaccess</B> 
+	</P>
+</UL>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><B>[ef_root]</B> - ядрото на
+	фреймуърка, външни компоненти, примерни приложения 
+	</P>
+</UL>
+<UL>
+	<LI><P><B>[webroot]</B> - директория, която съдържа index.php -
+	трябва да се постави във webroot на apache</P>
+	<P></P>
+	<P><BR>Необходими действия, за да се инталира EF и приложенията
+	(elvis, store, sbg);<BR><BR><B>1.</B> Да се копира папката ef_root
+	на подходящо място във файловата система;<BR><BR><B>2.</B> Да се
+	копира папката webroot (или само съдържанието и) във webroot на
+	Apache; <BR><BR><B>3.</B> Да се осигурят права за четене и запис на
+	Apache в горните 2 папки;<BR><BR><B>4.</B> Да се създадат
+	потребители и бази в MySQL, желателно със същите имена, като на
+	приложенията;<BR><BR><B>5.</B> Да се се създадат по един файл в
+	папката [conf] за всяко приложение, като се използва шаблона
+	myapp.cfg.php от документацията. Той трябва да има същото име, като
+	на приложението и разширение .cfg.php . В него трябва да се попълнят
+	параметрите на връзката с MySQL сървъра. По подразбиране, само
+	паролата прябва да се попълни.<BR><BR><B>6.</B> Да се копира от
+	документацията файла _common.cfg.php в папката [conf]. Може да му се
+	настроят някои параметри;<BR><BR>7. Да се копират файловете
+	.htaccess и index.cfg.php в папката [webroot] или където се намира
+	файлът index.php . Ако се работи на отдалечен сървър, в
+	index.cfg.php трябва да се укаже TRUE за EF_DEBUG;<BR><BR>8. Да се
+	стартира процедурата по начално установяване от съответното URL.
+	Например:  <FONT FACE="monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal"><SPAN STYLE="background: transparent">http</SPAN></SPAN></SPAN></FONT><FONT COLOR="#339933"><FONT FACE="monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal"><SPAN STYLE="background: transparent">:</SPAN></SPAN></SPAN></FONT></FONT><FONT COLOR="#666666"><FONT FACE="monospace"><I><SPAN STYLE="font-weight: normal"><SPAN STYLE="background: transparent">//localhost/root/elvis/core_Packs/Setup/</SPAN></SPAN></I></FONT></FONT></P>
+</UL>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+</BODY>
+</HTML>

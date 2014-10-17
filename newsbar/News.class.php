@@ -229,14 +229,14 @@ class newsbar_News extends core_Master
     	$hexTransparency = dechex($rec->transparency * 255);
         $forIE = "#". $hexTransparency. str_replace("#", "", $rec->color);
     	
-    	$row->news = new ET ("<div class='newsbar' style='background-color: rgb([#r#], [#g#], [#b#]); 
+    	$row->news = new ET ("<div style=\"background-color: rgb([#r#], [#g#], [#b#]); 
             										   background-color: rgba([#r#], [#g#], [#b#], [#transparency#]);
-           											   background:transparent \0; 
+           											   background:transparent\9; 
                           filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]);
-                          -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]) ';
-                          zoom: 1;'>
-            <b>$rec->news</b>
-            </div><div class='clearfix21'></div>");
+                          -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#])';
+                          zoom: 1;\">
+            <b>[#1#]</b>
+            </div><div class='clearfix21'></div>", $row->news);
     	
     	$row->news->replace($rgb[0], 'r');
         $row->news->replace($rgb[1], 'g');

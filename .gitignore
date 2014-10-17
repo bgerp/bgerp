@@ -1,12 +1,4 @@
 syntax: regexp
-^\.settings$
-syntax: regexp
-^\.buildpath$
-syntax: regexp
-^\.project$
-syntax: regexp
-^common/Deleteme\.class\.php$
-syntax: regexp
 ^tests$
 /.settings
 /.project

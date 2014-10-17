@@ -1,26 +1,21 @@
 <div class='blogm-article-info'>
-	<span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#]</span>
-	[#createdOn#], [#author#] |в|* [#categories#] 
+    <span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#]</span>
+    [#createdOn#], [#author#] |в|* [#categories#] 
 </div>
 <div class='blogm-article-title'>[#title#]</div>
 <div class='blogm-article-body'>
-	[#body#]
+    [#body#]
 </div>
-
 <!--ET_BEGIN SHARE_TOOLBAR-->
-
-	[#SHARE_TOOLBAR#]
-
+[#SHARE_TOOLBAR#]
 <!--ET_END SHARE_TOOLBAR-->
-
 <!--ET_BEGIN COMMENTS-->
 <div class='blogm-comments'>
-	[#COMMENTS#]
+    [#COMMENTS#]
 </div>
 <!--ET_END COMMENTS-->
-
 <!--ET_BEGIN COMMENT_FORM-->
 <div class='blogm-comment-form'>
-	[#COMMENT_FORM#]
+    [#COMMENT_FORM#]
 </div>
 <!--ET_END COMMENT_FORM-->

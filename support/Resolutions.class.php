@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Финална резолюция
  *
@@ -73,10 +74,10 @@ class support_Resolutions extends core_Master
      * Кой има право да изтрива?
      */
     var $canDelete = 'no_one';
-
-
+    
+    
     /**
-     * 
+     * @todo Чака за документация...
      */
     var $canSingle = 'admin, support';
     
@@ -93,11 +94,11 @@ class support_Resolutions extends core_Master
      */
     var $singleLayoutFile = 'support/tpl/SingleLayoutResolutions.shtml';
     
-    
     /**
      * Икона по подразбиране за единичния обект
      */
-//    var $singleIcon = 'img/16/xxx.png';
+    //    var $singleIcon = 'img/16/xxx.png';
+    
     
     
     /**
@@ -122,11 +123,13 @@ class support_Resolutions extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
-
+    
+    
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "10.5|Поддръжка";
+    
     
     /**
      * Описание на модела
@@ -139,7 +142,7 @@ class support_Resolutions extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     function getDocumentRow($id)
     {
@@ -162,17 +165,17 @@ class support_Resolutions extends core_Master
         return $row;
     }
     
-
+    
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
      * Добавянето на резолюция затваря треда
      */
     static function getThreadState($id)
     {
-
+        
         return 'closed';
     }
-
+    
     
     /**
      * Проверка дали нов документ може да бъде
@@ -188,7 +191,7 @@ class support_Resolutions extends core_Master
     }
     
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -203,7 +206,7 @@ class support_Resolutions extends core_Master
     
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
@@ -212,14 +215,14 @@ class support_Resolutions extends core_Master
     }
     
     
-	/**
-	 * 
+    /**
+     * @todo Чака за документация...
      */
     public static function on_BeforeActivation($mvc, &$rec)
     {
         // Вземаме записа 
         if (!$rec->threadId && $rec->id) {
-            $nRec = $mvc->fetch($rec->id);    
+            $nRec = $mvc->fetch($rec->id);
         } elseif ($rec->threadId) {
             $nRec = clone($rec);
         }
@@ -228,13 +231,13 @@ class support_Resolutions extends core_Master
         if ($nRec->threadId) {
             
             // Затваряме сигнала
-            support_Issues::closeIssue($nRec->threadId);   
+            support_Issues::closeIssue($nRec->threadId);
         }
     }
     
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {

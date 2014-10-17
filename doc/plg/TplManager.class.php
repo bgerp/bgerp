@@ -39,7 +39,7 @@ class doc_plg_TplManager extends core_Plugin
     /**
      * Изпълнява се след закачане на детайлите
      */
-    public function on_AfterAttachDetails(core_Mvc $mvc, &$res, $details)
+    public static function on_AfterAttachDetails(core_Mvc $mvc, &$res, $details)
     {
     	if($mvc->details){
         	$details = arr::make($mvc->details);
@@ -131,6 +131,11 @@ class doc_plg_TplManager extends core_Plugin
     	// За текущ език се избира този на шаблона
 		$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
     	core_Lg::push($lang);
+    	
+    	// Ако ще се замества целия сингъл, подменяме го елегантно
+    	if(!$mvc->templateFld){
+    		$data->singleLayout = doc_TplManager::getTemplate($data->rec->template);
+    	}
     }
     
     
@@ -160,17 +165,10 @@ class doc_plg_TplManager extends core_Plugin
      */
     function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
     {
-    	// Ако има избран шаблон то той се замества в еденичния изглед
-    	$content = doc_TplManager::getTemplate($data->rec->template);
-    	
+    	// Ако има посочен плейсхолдър където да отива шаблона, то той се използва
     	if($mvc->templateFld){
-    		
-    		// Ако има посочен плейсхолдър където да отива шаблона, то той се използва
+    		$content = doc_TplManager::getTemplate($data->rec->template);
     		$tpl->replace($content, $mvc->templateFld);
-    	} else {
-    		
-    		// Ако няма плейсхолър за шаблона, то се замества целия еденичен изглед
-    		$tpl = $content;
     	}
     }
     

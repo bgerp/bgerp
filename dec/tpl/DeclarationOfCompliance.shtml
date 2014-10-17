@@ -1,56 +1,64 @@
 <div class='dec-document'>
-<div class='scrolling-holder'>
-<br><div class='indent'>The undersigned, [#manager#] <!--ET_BEGIN manager--></div><!--ET_END manager-->
-<div>representing manufacturer/supplier:
-[#MyCompany#], <!--ET_BEGIN MyCountry-->with address [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->city [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> with VAT ID [#MyCompanyVatNo#]<!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->, UIC [#uicId#],<!--ET_END uicId--></div>
-
-	
-
-<div>the sale invoice <b>№ [#invoiceNo#]</b> products
-
-	<!--ET_BEGIN products-->
-			[#products#]
-	<!--ET_END products-->
-	
-	<!--ET_BEGIN material-->
-<b>are made of:</b> [#material#]</div>
-<!--ET_END material-->
-
-<div><b>delivered to:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->with address [#contragentCountry#], <!--ET_END contragentCountry-->
-<!--ET_BEGIN contragentAddress-->city [#contragentAddress#], <!--ET_END contragentAddress--> 
-<!--ET_BEGIN contragentCompanyVatNo--> with VAT ID [#contragentCompanyVatNo#], <!--ET_END contragentCompanyVatNo-->  <!--ET_BEGIN contragentUicId--> UIC [#contragentUicId#],<!--ET_END contragentUicId-->
-</div>
-<br><br>
-<p class="centered"><b>HEREBY DECLARE:</b> </p>
-<br>
-<div>own responsibility, that </div>
-
-<!--ET_BEGIN statements-->
-	<div>
-		[#statements#]
-	</div>
-<!--ET_END statements-->
-
-<!--ET_BEGIN note-->
-	<div>
-		[#note#]
-	</div>
-<!--ET_END note-->
-<br>
-<div class='indent'>We guarantee that our company will be responsible and shall accept any claim about verity of statements in this declaration.</div>
-
- <br>
- <br>
- <br>
-     <table class='signiture'>
-        <tr>
-        <td width=1%>Declarer: </td>
-        <td> </td>
-        </tr>
-        <tr>
-        <td></td>
-        <td class='nowrap' width=1%><span class="sign_names"><!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declaratorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo--></span></td>
-        </tr>
-     </table>
-</div>
+    <div class='scrolling-holder'>
+        <br>
+        <div class='indent'>
+            The undersigned, [#manager#] <!--ET_BEGIN manager-->
+        </div>
+        <!--ET_END manager-->
+        <div>
+            representing manufacturer/supplier:
+            [#MyCompany#], <!--ET_BEGIN MyCountry-->with address [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->city [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> with VAT ID [#MyCompanyVatNo#]<!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->, UIC [#uicId#],<!--ET_END uicId-->
+        </div>
+        <div>
+            the sale invoice <b>№ [#invoiceNo#]</b> products
+            <!--ET_BEGIN products-->
+            [#products#]
+            <!--ET_END products-->
+            <!--ET_BEGIN material-->
+            <b>are made of:</b> [#material#]
+        </div>
+        <!--ET_END material-->
+        <div>
+            <b>delivered to:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->with address [#contragentCountry#], <!--ET_END contragentCountry-->
+            <!--ET_BEGIN contragentAddress-->city [#contragentAddress#], <!--ET_END contragentAddress--> 
+            <!--ET_BEGIN contragentCompanyVatNo--> with VAT ID [#contragentCompanyVatNo#], <!--ET_END contragentCompanyVatNo-->  <!--ET_BEGIN contragentUicId--> UIC [#contragentUicId#],<!--ET_END contragentUicId-->
+        </div>
+        <br><br>
+        <p class="centered"><b>HEREBY DECLARE:</b> </p>
+        <br>
+        <div>own responsibility, that </div>
+        <!--ET_BEGIN statements-->
+        <div>
+            [#statements#]
+        </div>
+        <!--ET_END statements-->
+        <!--ET_BEGIN note-->
+        <div>
+            [#note#]
+        </div>
+        <!--ET_END note-->
+        <br>
+        <div class='indent'>We guarantee that our company will be responsible and shall accept any claim about verity of statements in this declaration.</div>
+        <br>
+        <br>
+        <br>
+        <table class='signiture'>
+            <tr>
+                <td style='width:1%'>Declarer: </td>
+                <td> </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class='nowrap' style='width:1%'>
+                    <span class="sign_names">
+                        <!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declaratorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo-->
+                    </span>
+                </td>
+            </tr>
+        </table>
+        <div class='footerDocBlock'>
+	        <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+	    </div>
+    </div>
+    
 </div>

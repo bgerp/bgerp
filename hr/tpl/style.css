@@ -1,81 +1,72 @@
 table.mc-calendar {
-	font-size: 0.8em;
-	width:500px;
-	1border-collapse:collapse;
-}
+  font-size: 0.8em;
+  width: 500px;
+  1border-collapse: collapse; }
 
-.narrow table.mc-calendar{
-	width:100%;
-}
+.narrow table.mc-calendar {
+  width: 100%; }
 
 table.mc-calendar td.mc-day {
-	text-align: right;
-	border: none;
-	font-weight: bold;
-	width: 10em;
-	color:#333; 
-	
-}
-table.mc-calendar td.mc-day span{
-	margin-left:7px;
-	text-transform:uppercase;
-	width:10px;
-	text-align:center;
-} 
+  text-align: right;
+  border: none;
+  font-weight: bold;
+  width: 10em;
+  color: #333333; }
+
+table.mc-calendar td.mc-day span {
+  margin-left: 7px;
+  text-transform: uppercase;
+  width: 10px;
+  text-align: center; }
+
 table.mc-calendar td.mc-week-nb {
-	border: none;
-	padding: 3px;
-}
-.mc-wd-name{
-	text-align:center !important;
-}
+  border: none;
+  padding: 3px; }
+
+.mc-wd-name {
+  text-align: center !important; }
+
 table.mc-calendar td.mc-wd-name {
-	text-align: right;
-	padding-right: 3px;
-}
+  text-align: right;
+  padding-right: 3px; }
 
 table.mc-calendar td.mc-sunday {
-	color: green;
-}
+  color: green; }
 
 table.mc-calendar td.mc-holiday {
-	color: red !important;
-}
+  color: red !important; }
 
 table.mc-calendar td.mc-saturday {
-	color: #006030;
-}
+  color: #006030; }
 
 table.mc-calendar td.mc-today {
-	border: solid 2px red;
-}
+  border: solid 2px red; }
 
 table.mc-header a {
-	color: #999;
-}
+  color: #999999; }
 
-.cal-legend td{
-	font-weight:bold;
-	text-align:center;
-	padding:3px;
-}
+.cal-legend td {
+  font-weight: bold;
+  text-align: center;
+  padding: 3px; }
 
-table.mc-calendar td.rest span, .cal-legend td.rest{
-	color:#D00; important!
-}
+table.mc-calendar td.rest span,
+.cal-legend td.rest {
+  color: #dd0000; }
 
-table.mc-calendar td.first span, .cal-legend td.first{
-	color: #008400; important!
-}
+table.mc-calendar td.first span,
+.cal-legend td.first {
+  color: #008400; }
 
-table.mc-calendar td.second span, .cal-legend td.second{
-	color:#df770b; important!
-}
+table.mc-calendar td.second span,
+.cal-legend td.second {
+  color: #df770b; }
 
-table.mc-calendar td.third span, .cal-legend td.third{
-	color: #0005c1; important!
-}
+table.mc-calendar td.third span,
+.cal-legend td.third {
+  color: #0005c1; }
 
-table.mc-calendar td.diurnal span, .cal-legend td.diurnal{
-	color:  #770ea3; important!
-}
+table.mc-calendar td.diurnal span,
+.cal-legend td.diurnal {
+  color: #770ea3; }
+

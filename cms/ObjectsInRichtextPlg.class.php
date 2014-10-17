@@ -22,10 +22,10 @@ class cms_ObjectsInRichtextPlg extends core_Plugin
     function on_AfterCatchRichElements($mvc, &$html)
     {        
         $this->mvc = $mvc;
-         
+        
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         // Обработваме елементите [obj=????]  
-        $html = preg_replace_callback("/\[obj(=([^\]]*)|)\]\s*/si", array($this, 'catchObjects'), $html);
+        $html = preg_replace_callback("/\[obj(=([^\]]*)|)\]/si", array($this, 'catchObjects'), $html);
     }
     
     

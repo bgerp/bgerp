@@ -17,7 +17,7 @@ class email_Fingerprints extends core_Manager
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper,  email_incoming_Wrapper, plg_RowTools, plg_Sorting, plg_AutoFilter';
+    var $loadList = 'email_Wrapper, plg_RowTools, plg_Sorting, plg_AutoFilter';
     
     
     /**

@@ -245,7 +245,7 @@ class survey_Votes extends core_Manager {
     	if(isset($surveyId)) {
     		if($surveyTitleRec = survey_Surveys::fetch($surveyId)) {
     			$title = survey_Surveys::getVerbal($surveyTitleRec, 'title');
-    			$data->title = "Гласуване за|* <font color=green>{$title}</font>";
+    			$data->title = "Гласуване за|* <span class=\"green\">{$title}</span>";
     		}
     	}
     }

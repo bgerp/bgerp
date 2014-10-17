@@ -1,0 +1,73 @@
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  float: left;
+  min-width: 160px;
+  padding: 5px 0;
+  margin: 2px 0 0;
+  list-style: none;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  *border-right-width: 2px;
+  *border-bottom-width: 2px;
+  -webkit-border-radius: 6px;
+     -moz-border-radius: 6px;
+          border-radius: 6px;
+  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+     -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  -webkit-background-clip: padding-box;
+     -moz-background-clip: padding;
+          background-clip: padding-box;
+}
+
+
+.dropdown-menu > li > a {
+  display: block;
+  padding: 3px 20px;
+  clear: both;
+  font-weight: normal;
+  line-height: 20px;
+  color: #333333;
+  white-space: nowrap;
+}
+
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus,
+.dropdown-submenu:hover > a,
+.dropdown-submenu:focus > a ,
+.dropdown-menu > .active > a,
+.dropdown-menu > .active > a:hover,
+.dropdown-menu > .active > a:focus {
+  text-decoration: none;
+}
+
+.dropdown-menu > .active > a,.dropdown-menu > li:hover > a{
+	cursor: pointer;
+}
+
+.autocomplete-name, .autocomplete-block-text{
+    font-size: smaller;
+    color: #777;
+    margin-left: 5px;
+}
+
+.dropdown-menu > .active > a .autocomplete-name, .dropdown-menu > li:hover > a .autocomplete-name,
+.dropdown-menu > .active > a .autocomplete-block-text, .dropdown-menu > li:hover > a .autocomplete-block-text {
+    color: #fff;
+}
+
+.autocomplete-block{
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.autocomplete-block-image{
+	margin-right: 5px;
+	position: relative;
+	top: 2px;
+}

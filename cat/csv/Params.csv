@@ -1,13 +1,13 @@
-Дължина,size,,length
-Височина,size,,height
-Тегло,weight,,weight
-Дебелина,size,,thickness
-Обем,volume,,volume
-Плътност,density,,density
-Цвят,varchar,,color
-ДДС,percent,%,vat
-Н. такси,double,лв,bTax
-Транспортно Тегло,weight,,transportWeight
-Транспортен Обем,volume,,transportVolume
-title_EN,varchar,,titleEN
-Данъчна група,enum,,vatType,"А,Б,В,Г"
+Дължина,size,,length,,
+Височина,size,,height,,
+Тегло,weight,,weight,,
+Дебелина,size,,thickness,,
+Обем,volume,,volume,,
+Плътност,density,,density,,
+Цвят,varchar,,color,,
+ДДС,percent,%,vat,,
+Н. такси,double,лв,bTax,,
+Транспортно Тегло,weight,,transportWeight,,
+Транспортен Обем,volume,,transportVolume,,
+title_EN,varchar,,titleEN,,
+Данъчна група,enum,,vatGroup,"А,Б,В,Г","Б",

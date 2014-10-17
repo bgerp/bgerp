@@ -26,7 +26,7 @@ class store_PalletTypes extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, store_Wrapper, plg_RowTools, store_PalletteWrapper';
+    var $loadList = 'plg_Created, plg_LastUsedKeys, store_Wrapper, plg_RowTools';
     
     
     /**

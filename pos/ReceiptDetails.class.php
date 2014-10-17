@@ -132,8 +132,8 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->requireRightFor('add', $rec);
     	
     	$discount = Request::get('amount');
-    	$this->fields['discountPercent']->type->params['Max']=1;
-    	$discount = $this->fields['discountPercent']->type->fromVerbal($discount);
+    	$this->getFieldType('discountPercent')->params['Max']=1;
+    	$discount = $this->getFieldType('discountPercent')->fromVerbal($discount);
     	if(!isset($discount)){
     		core_Statuses::newStatus(tr('|Не е въведено валидна процентна отстъпка|*!'), 'error');
     		return $this->returnError($rec->receiptId);
@@ -163,7 +163,7 @@ class pos_ReceiptDetails extends core_Detail {
 	/**
      * След подготовка на записите от базата данни
      */
-    public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
@@ -263,7 +263,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$quantityId = Request::get('amount');
     	
     	// Трябва да е подадено валидно количество
-    	$quantityId = $this->fields['quantity']->type->fromVerbal($quantityId);
+    	$quantityId = $this->getFieldType('quantity')->fromVerbal($quantityId);
     	if(!$quantityId){
     		core_Statuses::newStatus(tr('|Не е въведено валидно количество|*!'), 'error');
     		return $this->returnError($rec->receiptId);
@@ -305,11 +305,11 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Трябва да е подаден валидно ид на начин на плащане
     	$type = Request::get('type');
-    	if(!pos_Payments::fetch($type))  return $this->returnError($recId);
+    	if(!cond_Payments::fetch($type))  return $this->returnError($recId);
     	
     	// Трябва да е подадена валидна сума
     	$amount = Request::get('amount');
-    	$amount = $this->fields['amount']->type->fromVerbal($amount);
+    	$amount = $this->getFieldType('amount')->fromVerbal($amount);
     	if(!$amount || $amount <= 0){
     		core_Statuses::newStatus(tr('|Трябва да въведете положителна сума|*!'), 'error');
 	    	return $this->returnError($recId);
@@ -318,7 +318,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$diff = abs($receipt->paid - $receipt->total);
     	
     	// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
-    	if(!pos_Payments::returnsChange($type) && (string)$amount > (string)$diff){
+    	if(!cond_Payments::returnsChange($type) && (string)$amount > (string)$diff){
     		core_Statuses::newStatus(tr('|Не може с този платежен метод да се плати по-голяма сума от общата|*!'), 'error');
 	    	return $this->returnError($recId);
     	}
@@ -468,7 +468,7 @@ class pos_ReceiptDetails extends core_Detail {
     			}
     			break;
     		case "payment":
-    			$row->actionValue = pos_Payments::getTitleById($action->value);
+    			$row->actionValue = cond_Payments::getTitleById($action->value);
     			if($fields['-list']){
     				$row->productId = tr('Плащане') . ": " . $row->actionValue;
     				unset($row->quantity,$row->value);
@@ -506,9 +506,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
     	$perPack = ($productInfo->packagingRec->quantity) ? $productInfo->packagingRec->quantity : 1;
     	
-    	$vat = cat_Products::getVat($rec->productId, $receiptDate);
     	$rec->price = $rec->price * (1 - $rec->discountPercent);
-    	$rec->price += ($rec->price * $vat);
     	$row->price = $Double->toVerbal($rec->price);
     	$row->amount = $Double->toVerbal($rec->price * $rec->quantity);
     	if($rec->discountPercent < 0){
@@ -606,7 +604,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
     	
     	$Policy = cls::get('price_ListToCustomers');
-    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->createdOn);
+    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->createdOn, 1, 'yes');
     	
     	$rec->price = $price->price * $perPack;
     	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);

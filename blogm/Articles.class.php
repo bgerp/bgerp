@@ -406,7 +406,6 @@ class blogm_Articles extends core_Master {
         $data->ogp = new stdClass();
     	
     	// Добавяме изображението за ографа ако то е дефинирано от потребителя
-       // bp(fileman_RichTextPlg::getFiles($data->rec->body));
         
         
         if($data->rec->body) {
@@ -427,9 +426,10 @@ class blogm_Articles extends core_Master {
         if($fileSrc) {
 	        $file = fileman_Files::fetchByFh($fileSrc);
 	        $type = fileman_Files::getExt($file->name);
-	        $attr = array('isAbsolute' => TRUE, 'qt' => '');
-        	$size = array(200, 200, 'max' => TRUE);
-	        $imageURL = thumbnail_Thumbnail::getLink($file->fileHnd, $size, $attr);
+	        
+	        $img = new thumb_Img(array($file->fileHnd, 200, 200, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
+	        $imageURL = $img->getUrl('forced');
+	        
 	    	$data->ogp->imageInfo = array('url'=> $imageURL,
 	    						    	  'type'=> "image/{$type}",
 	    						 		);
@@ -886,7 +886,7 @@ class blogm_Articles extends core_Master {
     	$query->likeKeylist('categories', keylist::fromArray($categories));
     	
     	if($like){
-    		$fldType = $this->fields[$this->feedFilterField]->type;
+    		$fldType = $this->getFieldType($this->feedFilterField);
     		if($fldType instanceof type_Keylist){
     			$query->likeKeylist($this->feedFilterField, $like);
     		} else {

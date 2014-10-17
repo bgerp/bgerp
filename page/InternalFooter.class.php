@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * URL за подаване на сигнал за поддръжка на bgERP
+ */
+defIfNot('BGERP_SUPPORT_URL', 'http://experta.bg/support_Issues/new/?systemId=1');
+
+/**
  * Клас 'page_InternalFooter' - Долния завършек на страницата
  *
  * Файлът може да се подмени с друг
@@ -32,10 +37,8 @@ class page_InternalFooter extends core_ET {
         if(Mode::is('screenMode', 'narrow')) {
             if($nick) {
                 $this->append(ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Изход на " . $nick)));
-                $this->append("&nbsp;|&nbsp;");
             }
-            $this->append("<a href='#top'>" . tr('Горе') . "</a>");
-            
+                        
             if($isGet) {
                 $this->append("&nbsp;|&nbsp;");
                 $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE)));
@@ -78,7 +81,23 @@ class page_InternalFooter extends core_ET {
                                      Време за изпълнение: [#DEBUG::getExecutionTime#]
                                      [#Debug::getLog#]</div>"));
             }
+            
         }
+
+        if(defined('BGERP_SUPPORT_URL') && strpos(BGERP_SUPPORT_URL, '//') !== FALSE) {
+            $email = email_Inboxes::getUserEmail();
+            if(!$email) {
+                $email = core_Users::getCurrent('email');
+            }
+            list($user, $domain) = explode('@', $email);
+            $name = core_Users::getCurrent('names');
+            $img = sbf('img/16/bug.png', '');
+            $btn = "<input title='Сигнал за бъг, въпрос или предложение' style='border:none; background-color:transparent; vertical-align: middle' type=image src='{$img}' name='Cmd[refresh]' value=1>";
+            $form = new et("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
+            $this->append('&nbsp;|&nbsp;');
+            $this->append($form);
+        }
+
     }
 
 

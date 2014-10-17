@@ -1,23 +1,180 @@
-<div id='invoice-header'>
-	<div id='titleHolder'>
-		<div id='invoiceTitle2'><span id='invType'>[#type#]</span></div>
-	    <div class='title-subInfo'>|Номер|* <span class='subtitle-text'>[#number#]</span></div>
-	    <div class='title-subInfo'>|Дата|* <span class='subtitle-text'>[#date#]</span></div>
-		<div class='title-subInfo'>|Място|* <span class='subtitle-text'>[#dealPlace#]</span></div>
-		<div class='title-subInfo original'>|ОРИГИНАЛ|* </div>
-		<!--ET_BEGIN originInv-->
-		<div id='origin-title'>|към Фактура|* <b>[#originInv#]</b> |от|* [#originInvDate#]</div>
-		<!--ET_END originInv-->
-	</div>
-	<div id='contragent-data'>
-		<div id='contragent-label'>|Получател|* </div>
-		<div class='contragent-info'>[#MyCompany#]</div>
-		<div class='contragent-info'>[#MyAddress#]</div>
-		<!--ET_BEGIN contragentVatNo-->
-		<div class ='contragent-vat'>|номер по ЗДДС|*</div>
-		<div class='contragent-info'>[#MyCompanyVatNo#]</div>
-		<!--ET_END contragentVatNo-->
-		<div class ='contragent-info' style='font-size:14px'><b>|ЕИК|*</b></div>
-		<div class='contragent-info'>[#uicId#]</div>
-	</div>
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <!--ET_END header-->
+    <div class='scrolling-holder'>
+        <table style='width:100%' id='inv-holder'>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class='invoice-header'>
+                            <div class='titleHolder'>
+                                <div class='invoiceTitle2'><span class='invType'>[#type#]</span></div>
+                                <div class='title-subInfo'>|Номер|* <span class='subtitle-text'>[#number#]</span></div>
+                                <div class='title-subInfo'>|Дата|* <span class='subtitle-text'>[#date#]</span></div>
+                                <div class='title-subInfo'>|Място|* <span class='subtitle-text'>[#dealPlace#]</span></div>
+                                <div class='title-subInfo original'>|ОРИГИНАЛ|* </div>
+                                <!--ET_BEGIN originInv-->
+                                <div id='origin-title'>|към Фактура|* <b>[#originInv#]</b> |от|* [#originInvDate#]</div>
+                                <!--ET_END originInv-->
+                            </div>
+                            <div class='contragent-data'>
+                                <div class='contragent-label'>|Получател|* </div>
+                                <div class='contragent-info'>[#MyCompany#]</div>
+                                <div class='contragent-info'>[#MyAddress#]</div>
+                                <br>
+                                <!--ET_BEGIN MyCompanyVatNo-->
+                                <div><span class ='contragent-vat'>|номер по ЗДДС|*:</span> [#MyCompanyVatNo#]</div>
+                                <!--ET_END MyCompanyVatNo-->
+                                <div class ='contragent-info' ><span class ='contragent-vat'>|ЕИК|*: </span>[#uicId#]</div>
+                            </div>
+                        </div>
+                        <!--ET_BEGIN sales_InvoiceDetails-->
+                        <div class='details'>
+                            [#purchase_InvoiceDetails#]
+                        </div>
+                        <!--ET_END sales_InvoiceDetails-->
+                        <div class="lines"></div>
+                        <table class="innerTable footer-notes" border="1" cellpadding="5" style='width:100%'>
+                            <tbody>
+                                <tr>
+                                    <td style='line-height: 140%;'>
+                                        <!--ET_BEGIN vatReason-->
+                                        <div><span class='quiet'>|Основание за ДДС|*:</span> [#vatReason#]</div>
+                                        <!--ET_END vatReason-->
+                                        <!--ET_BEGIN vatDate-->  
+                                        <span class='quiet'>|Данъчно събитие|*:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <!--ET_END vatDate-->  
+                                        <!--ET_BEGIN rate--> 
+                                        <span class='quiet'>|Курс|*:</span>  [#rate#]
+                                        <!--ET_END rate-->  
+                                        <div class='custom-bg-block' style= ''><b>|Плащане|*</b></div>
+                                        <!--ET_BEGIN paymentMethodId-->
+                                        <div><span class='quiet'>|Начин|* :</span>  [#paymentMethodId#]</div>
+                                        <!--ET_END paymentMethodId-->
+                                        <!--ET_BEGIN deadline-->
+                                        [#deadline#]
+                                        <div>
+                                            <!--ET_BEGIN DUE_DATE-->
+                                            <span class='quiet'>|Краен срок за плащане|*:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
+                                            <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
+                                            <span class="smallData">|Лихва за просрочено плащане|*: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
+                                            <!--ET_END OVERDUE_INTEREST_RATE-->
+                                        </div>
+                                        <!--ET_END deadline-->
+                                        <!--ET_BEGIN deadlineForBalancePayment-->
+                                        <div><span class='quiet'>|Окончателно до|*: </span>[#deadlineForBalancePayment#]</div>
+                                        <!--ET_END deadlineForBalancePayment-->
+                                        <!--ET_BEGIN accountId-->
+                                        <hr>
+                                        <div>
+                                            <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
+                                            <div class="smallData">
+                                                <!--ET_BEGIN bank-->
+                                                <div>
+                                                    [#bank#]
+                                                    <!--ET_END bank-->
+                                                    <!--ET_BEGIN bic-->
+                                                    , BIC: [#bic#]
+                                                </div>
+                                                <!--ET_END bic-->
+                                            </div>
+                                        </div>
+                                        <!--ET_END accountId-->
+                                        <!--ET_BEGIN deliveryInfo-->
+                                        [#deliveryInfo#]
+                                        <div class='custom-bg-block'><b>|Доставка|*</b></div>
+                                        <!--ET_BEGIN deliveryId-->
+                                        [#deliveryId#]
+                                        <!--ET_END deliveryId-->
+                                        <!--ET_BEGIN deliveryPlaceId-->
+                                        [#deliveryPlaceId#]
+                                        <!--ET_END deliveryPlaceId-->
+                                        <!--ET_END deliveryInfo-->
+                                        <!--ET_BEGIN additionalInfo-->
+                                        <hr>
+                                        <div>|Бележки|*</div>
+                                        <div>[#additionalInfo#]</div>
+                                        <!--ET_END additionalInfo-->
+                                    </td>
+                                    <td id='invoice-info' style='width:40%'>
+                                        <table border='0' cellpadding='3' style='margin-bottom: 20px;width:100%;' id='business-doc-summary-table'>
+                                            <tr class='nowrap'>
+                                                <td class='aright'>|Стойност|*:</td>
+                                                <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>
+                                                <td class='aright' style='width:1%'> <b>[#value#]</b></td>
+                                            </tr>
+                                            <!--ET_BEGIN discountValue-->
+                                            <tr class='nowrap'>
+                                                <td class='aright'>|Отстъпка|* :</td>
+                                                <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
+                                                <td class='aright'><b>[#discountValue#]</b></td>
+                                            </tr>
+                                            <!--ET_END discountValue-->
+                                            <!--ET_BEGIN neto-->
+                                            <tr class='nowrap'>
+                                                <td class='aright'>|Нето|* :</td>
+                                                <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
+                                                <td class='aright'><b>[#neto#]</b></td>
+                                            </tr>
+                                            <!--ET_END neto-->
+                                            <!--ET_BEGIN baseAmount-->
+                                            <tr class='nowrap'>
+                                                <td class='aright'>|Данъчна основа|*  :</td>
+                                                <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
+                                                <td class='aright'><b>[#baseAmount#]</b></td>
+                                            </tr>
+                                            <!--ET_END baseAmount-->
+                                            <tr>
+                                                <td colspan='3' style='padding:0px'>
+                                                    <hr>
+                                                </td>
+                                            </tr>
+                                            <!--ET_BEGIN vatAmount-->
+                                            <tr class='nowrap'>
+                                                <td class='aright'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
+                                                <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
+                                                <td class='aright'><b>[#vatAmount#]</b></td>
+                                            </tr>
+                                            <!--ET_END vatAmount-->
+                                            <tr class='nowrap'>
+                                                <td class='aright'>|Общо|* :</td>
+                                                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+                                                <td class='aright'><b>[#total#]</b></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan='3' style='text-align:right'>
+                                                    <!--ET_BEGIN sayWords-->
+                                                    <hr>
+                                                    |С думи|*:
+                                                    [#sayWords#]
+                                                    <!--ET_END sayWords-->
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <!--ET_BEGIN fileHnd-->
+                                        <hr>
+                                        <div class='custom-bg-block'><b>|Оригинален документ|*</b></div>
+                                        <span style='float:right'>[#fileHnd#]</span>
+                                        <!--ET_END fileHnd-->
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
 </div>

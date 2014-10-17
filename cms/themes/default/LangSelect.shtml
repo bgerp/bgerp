@@ -1,50 +1,10 @@
-<style>
-
-.wide .langSelect{
-	margin:10px 20px;
-}
-
-.narrow .langSelect{
-	margin:20px auto;
-}
-
-.langSelect .langLink a {
-	margin-top:10px;
-	font-size:1.1em;
-	display:block;
-	padding:5px 10px;
-	background-color:#eee;
-	border:solid 1px #ccc;
-	max-width:600px;
-	color:#333 !important;
-}
-
-.langSelect .langLink a:hover{
-	background-color:#f3fbfb;
-	outline:none;
-	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-}
-
-.langSelect .langLink a.selected {
-	background-color:#CCEEEE;
-	color:#333 !important;
-}
-
-.langSelect .langLink img{
-	position:relative;
-	top:3px;
-	margin-right:10px;
-}
-</style>
-
-
 <table class='langSelect'>
-	<!--ET_BEGIN HEADER-->
-		<h2>[#HEADER#]</h2>
-	<!--ET_END HEADER-->
-	<!--ET_BEGIN SELECTOR-->
-	<tr class='langLink'>
-		<td>[#SELECTOR#]</td>
-	</tr>
-	<!--ET_END SELECTOR-->
+    <!--ET_BEGIN HEADER-->
+    <h2>[#HEADER#]</h2>
+    <!--ET_END HEADER-->
+    <!--ET_BEGIN SELECTOR-->
+    <tr class='langLink'>
+        <td>[#SELECTOR#]</td>
+    </tr>
+    <!--ET_END SELECTOR-->
 </table>

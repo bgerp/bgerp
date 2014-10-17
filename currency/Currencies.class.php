@@ -27,9 +27,7 @@ class currency_Currencies extends core_Master {
      */
     var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper, acc_plg_Registry,
                      plg_Sorting, plg_State2';
-                     
-    //var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper,
-    //                 CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
+    
     
     /**
      * Шаблон за единичния изглед
@@ -136,7 +134,6 @@ class currency_Currencies extends core_Master {
         $this->FLD('code', 'varchar(3)', 'caption=Код,mandatory,width=60px');
         $this->FLD('lastUpdate', 'date', 'caption=Последно->обновяване, input=none');
         $this->FLD('lastRate', 'double', 'caption=Последно->курс, input=none');
-        //$this->FLD('groups', 'keylist(mvc=currency_CurrencyGroups, select=name)', 'caption=Групи');
         
         $this->setDbUnique('code');
     }
@@ -193,9 +190,12 @@ class currency_Currencies extends core_Master {
         }
     }
     
-    function on_BeforeRenderDetails($mvc, $res, &$data)
+    
+    /**
+     * Преди рендиране на детайлите
+     */
+    public static function on_BeforeRenderDetails($mvc, $res, &$data)
     {
-    	
     	return FALSE;
     }
     
@@ -206,7 +206,7 @@ class currency_Currencies extends core_Master {
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->removeBtn('btnAdd');
         
@@ -247,7 +247,7 @@ class currency_Currencies extends core_Master {
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$file = "currency/csv/Currencies.csv";
     	$fields = array( 
@@ -255,7 +255,7 @@ class currency_Currencies extends core_Master {
 	    	1 => "csv_code", 
 	    	2 => "state",);
     	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	$res .= $cntObj->html;
     	
     	return $res;
@@ -338,24 +338,6 @@ class currency_Currencies extends core_Master {
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec = $self->fetch($objectId)) {
-        	$result = $self->getHyperlink($objectId);
-        } else {
-            $result = '<i>' . tr('неизвестно') . '</i>';
         }
         
         return $result;

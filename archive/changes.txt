@@ -1,0 +1,41 @@
+Променена setCli($path) функция, за да избегнем задължениети 7z да е разположено в '/usr/local/bin/7z'.
+Ако го няма там, тогава използваме дефинираната от нас.
+
+Оригинална:
+	/**
+     * @param string $path
+     *
+     * @throws Archive_7z_Exception
+     * @return Archive_7z
+     */
+    public function setCli($path)
+    {
+        $this->cli = str_replace('\\', '/', realpath($path));
+
+        if (is_executable($this->cli) === false) {
+            throw new Archive_7z_Exception('Cli is not available');
+        }
+
+        return $this;
+    }
+
+Променена на:
+	/**
+     * @param string $path
+     *
+     * @throws Archive_7z_Exception
+     * @return Archive_7z
+     */
+    public function setCli($path)
+    {
+        $this->cli = str_replace('\\', '/', realpath($path));
+
+        if ($this->cli && is_executable($this->cli) === false) {
+            
+            throw new Archive_7z_Exception('Cli is not available');
+        }
+        
+        $this->cli = ARCHIVE_7Z_PATH;
+
+        return $this;
+    }

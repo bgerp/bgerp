@@ -7,63 +7,106 @@
  * Съхранява хронологични данни от тракери
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   tracking
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class tracking_Log extends core_Manager
-{
+class tracking_Log extends core_Master {
     
     /**
      * Заглавие
      */
-    public $title = 'Tracking';
+    public $title = 'Лог';
     
     /**
-     * Заглавие
+     * Права
      */
     public $canList = 'tracking, admin, ceo';
-    
+
     /**
      * Плъгини за зареждане
      *
      * var string|array
      */
-    public $loadList = 'plg_Created, tracking_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools, plg_LastUsedKeys, tracking_Wrapper';
     
     /**
      * Полета за показване
      *
      * var string|array
      */
-    public $listFields = 'trackerId, text, remoteIp, createdOn';
+    public $listFields = 'id,vehicleId, driverId, text, fixTime, remoteIp, createdOn';
     
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('trackerId', 'varchar(12)', 'caption=Тракер Id');
-        $this->FLD('data', 'blob', 'caption=tracking данни');
-        $this->FNC('text', 'html', 'caption=tracking данни');
+        $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number, allowEmpty=true)', 'caption=Автомобил');
+        $this->FLD('driverId', 'key(mvc=crm_Persons, select=name, allowEmpty=true)', 'caption=Водач');
+        $this->FLD('location', 'location_Type', 'caption=Локация');
+        
+        $this->FLD('data', 'blob', 'caption=Данни');
+        $this->FLD('fixTime', 'datetime()', 'caption=Време на засичне');
+        $this->FNC('text', 'html', 'caption=Данни');
         $this->FLD('remoteIp', 'ip', 'caption=Tракер IP');
     }
     
+    /**
+     * Добавя форма за търсене
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FNC('dateFrom','date','caption=От,input');
+        $data->listFilter->FNC('dateTo','date','caption=Сега,input');
+        
+        $data->listFilter->showFields = 'vehicleId,driverId,dateFrom,dateTo';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтър');
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $rec = $data->listFilter->input();
+        
+        if ($rec) {
+            if ($rec->vehicleId) {
+                $data->query->where("#vehicleId = {$rec->vehicleId}");
+            }
+        
+            if ($rec->driverId) {
+                $data->query->where("#driverId = '{$rec->driverId}'");
+            }
+            
+            if ($rec->dateFrom) {
+                if (empty($rec->dateTo)) {
+                    $rec->dateTo = date("Y-m-d");
+                }
+                // Понеже fixTime съдържа времева част - кастваме до дата
+                $data->query->where("CAST(#fixTime AS DATE) BETWEEN '{$rec->dateFrom}' AND '{$rec->dateTo}'");
+            }
+        }
+        
+        $data->query->orderBy('#fixTime', 'DESC');        
+    }
     
-    public function on_CalcText($mvc, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
+    {
+        $data = self::parseTrackingData($rec->data);
+        $rec->location = self::DMSToDD($data['latitude'])
+            . "," . self::DMSToDD($data['longitude']);
+        $l = cls::get('location_Type');
+        $row->location = $l->toVerbal($rec->location);
+    }
+        
+    protected function on_CalcText($mvc, $rec)
     {
         $data = self::parseTrackingData($rec->data);
 
-        $dateTimeTracking = "20" . substr($data['date'],4,2) . "-" . substr($data['date'],2,2) . "-" . substr($data['date'],0,2)
-                . " " . substr($data['time'],0,2) . ":" . substr($data['time'],2,2) . ":" . substr($data['time'],4,2); 
-                
-        $rec->text  = "Дата: " . $dateTimeTracking . "<br>";
+        $rec->text  = "Дата: " . $data['fixTime'] . "<br>";
         $rec->text .= "Статус: " . (($data['status'] == 'A')?'Валиден':'Невалиден'). "<br>";
-        $rec->text .= "Ширина: " . $data['latitude'] . "<br>";
-        $rec->text .= "Дължина: " . $data['longitude'] . "<br>";
         $rec->text .= "Ширина DD: " . self::DMSToDD($data['latitude']) . "<br>";
         $rec->text .= "Дължина DD: " . self::DMSToDD($data['longitude']) . "<br>";
         $rec->text .= "Скорост: " . $data['speed'] . " км/ч<br>";
@@ -81,18 +124,32 @@ class tracking_Log extends core_Manager
     public function act_Log()
     {
         $conf = core_Packs::getConfig('tracking');
+        // Ако получаваме данни от неоторизирано IP ги игнорираме
         if ($_SERVER['REMOTE_ADDR'] != $conf->DATA_SENDER) {
-
+            file_put_contents('tracking.log', "\n неоторизирано IP", FILE_APPEND);
+            exit;
+        }
+        file_put_contents('tracking.log', "\n accepted", FILE_APPEND);
+        
+        $trackerId = Request::get('trackerId', 'varchar');
+        $trackerData = Request::get('data', 'varchar');
+        $remoteIp = Request::get('remoteIp', 'varchar');
+        // Махаме порта от IP адреса
+        $remoteIp = substr($remoteIp, 0, strpos($remoteIp, ':'));
+        
+        // Взимаме данните за колата, на която е закачен тракера
+        $recVehicle = tracking_Vehicles::getRecByTrackerId($trackerId);
+        if (FALSE === $recVehicle) {
+            /* @TODO Логваме съобщение, че нямаме въведена кола за този тракер */
+            file_put_contents("tracking.log", "\n Липсваща кола с тракер No:{$trackerId}". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
+            
             exit;
         }
         
-        $trackerId = Request::get('trackerId', 'varchar');
-        $data = Request::get('data', 'varchar');
-        $remoteIp = Request::get('remoteIp', 'varchar');
+        $trackerDataArr = self::parseTrackingData($trackerData);
         
         // Проверяваме дали скоростта е нула
-        $dataArr = self::parseTrackingData($data);
-        if (($dataArr['speed']-0.01) < 0) {
+         if (($trackerDataArr['speed']-0.01) < 0) {
             // Проверяваме последния запис от този тракер, дали е с нулева скорост. Ако - да - не го записваме
             $query = $this->getQuery();
             $query->show('data');
@@ -102,15 +159,18 @@ class tracking_Log extends core_Manager
             $rec = $query->fetch();
             $recData = self::parseTrackingData($rec->data); 
             if (is_array($recData) && ($recData['speed'] -0.01) < 0) {
+                file_put_contents('tracking.log', "\n NEZAPISAN", FILE_APPEND);
+                
                 // Не го записваме
                 exit;
             }
         }
         
-        // Махаме порта от IP адреса
-        $remoteIp = substr($remoteIp, 0, strpos($remoteIp, ':'));
+        $rec->vehicleId = $recVehicle->id;
+        $rec->driverId = $recVehicle->personId;
         $rec->trackerId = $trackerId;
-        $rec->data = $data;
+        $rec->data = $trackerData;
+        $rec->fixTime = self::GMT2Local($trackerDataArr['fixTime']);
         $rec->remoteIp = $remoteIp;
         
         $this->save($rec);
@@ -136,6 +196,11 @@ class tracking_Log extends core_Manager
         $res['speed'] = $arrData[6];
         $res['heading'] = $arrData[7];
         $res['date'] = $arrData[8];
+        // Ако имаме дата и час - конструираме времето на фиксиране в mysql формат
+        if (!empty($res['date']) && !empty($res['time'])) {
+            $res['fixTime'] = "20" . substr($res['date'],4,2) . "-" . substr($res['date'],2,2) . "-" . substr($res['date'],0,2)
+                . " " . substr($res['time'],0,2) . ":" . substr($res['time'],2,2) . ":" . substr($res['time'],4,2);
+        } 
         
         
         return $res;
@@ -165,6 +230,16 @@ class tracking_Log extends core_Manager
         return $res;
     }
 
+    /**
+     * Превръща от GMT Mysql време в локано
+     * 
+     * @param string  - datetime - в UTC
+     * @return string  - DateTime локално време в Mysql формат
+     */
+    private function GMT2Local($date)
+    {
+        return date("Y-m-d H:i:s", strtotime($date . " UTC"));
+    }
     
     /**
      * Връща Tracker данните

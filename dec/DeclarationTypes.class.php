@@ -29,7 +29,7 @@ class dec_DeclarationTypes extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Търговия";
     
@@ -38,7 +38,7 @@ class dec_DeclarationTypes extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_SaveAndNew, plg_Modified, sales_Wrapper, 
-    				 dec_Wrapper, doc_ActivatePlg, plg_Printing, plg_RowTools';
+                     doc_ActivatePlg, plg_Printing, plg_RowTools';
     
     
     /**
@@ -54,34 +54,34 @@ class dec_DeclarationTypes extends core_Master
     
     
     /**
-    * Кой може да го разглежда?
-    */
+     * Кой може да го разглежда?
+     */
     var $canList = 'ceo,dec';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     var $canSingle = 'ceo,dec';
-
-	
+    
+    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'ceo,dec';
-
-
+    
+    
     /**
      * Кой има право да променя системните данни?
      */
     var $canEditsysdata = 'ceo,dec';
-
+    
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, name,createdBy,modifiedOn';
-
+    
     
     /**
      * Файл с шаблон за единичен изглед
@@ -100,8 +100,8 @@ class dec_DeclarationTypes extends core_Master
         
         $this->setDbUnique('name');
     }
-
-
+    
+    
     /**
      * Създава начални шаблони за трудови договори, ако такива няма
      */
@@ -115,7 +115,7 @@ class dec_DeclarationTypes extends core_Master
             $rec->sysId = $rec->name;
             $rec->createdBy = -1;
             self::save($rec);
-
+            
             // Декларация за сответствие EN
             $rec = new stdClass();
             $rec->name = 'Declaration of compliance';
@@ -141,95 +141,97 @@ class dec_DeclarationTypes extends core_Master
             self::save($rec);
             
             // Ако имаме вече създадени шаблони 
-        } else { 
-        	
-        	$query = self::getQuery();
-        	
-        	// Намираме тези, които са създадени от системата
-	        $query->where("#createdBy = -1"); 
-	        $sysContracts = array();
-	        while ($recPrev = $query->fetch()){
-	        	$sysContracts[] = $recPrev;
-	        }
-	        if(is_array($sysContracts)){
-	        // и ги ъпдейтваме с последните промени в шаблоните
-		        foreach($sysContracts as $sysContract){
-			        switch ($sysContract->name) {
-		                case 'Декларация за съответствие' :
-		                	$rec = new stdClass();
-		                	$rec->id = $sysContract->id;
-		                    $rec->script = getFileContent('dec/tpl/AgreementDeclaration.shtml');
-		                    
-					        self::save($rec,'script');
-		                    break;
-		                    
-		                case 'Declaration of compliance' :
-		                	$rec = new stdClass();
-		                	$rec->id = $sysContract->id;
-		                    $rec->script = getFileContent('dec/tpl/DeclarationOfCompliance.shtml');
-				            
-		                    self::save($rec,'script');
-		                    break;
-		                    
-		                case 'Приложение №1' :
-		                	$rec = new stdClass();
-		                	$rec->id = $sysContract->id;
-		                    $rec->script = getFileContent('dec/tpl/Application1.shtml');
-				            
-		                    self::save($rec,'script');
-		                    break;
-		                    
-		                case 'Приложение №5' :
-		                	$rec = new stdClass();
-		                	$rec->id = $sysContract->id;
-		                    $rec->script = getFileContent('dec/tpl/Application5.shtml');
-				            
-		                    self::save($rec,'script');
-		                    break;
-		            }
-		        }
-	        }
+        } else {
+            
+            $query = self::getQuery();
+            
+            // Намираме тези, които са създадени от системата
+            $query->where("#createdBy = -1");
+            $sysContracts = array();
+            
+            while ($recPrev = $query->fetch()){
+                $sysContracts[] = $recPrev;
+            }
+            
+            if(is_array($sysContracts)){
+                // и ги ъпдейтваме с последните промени в шаблоните
+                foreach($sysContracts as $sysContract){
+                    switch ($sysContract->name) {
+                        case 'Декларация за съответствие' :
+                            $rec = new stdClass();
+                            $rec->id = $sysContract->id;
+                            $rec->script = getFileContent('dec/tpl/AgreementDeclaration.shtml');
+                            
+                            self::save($rec, 'script');
+                            break;
+                        
+                        case 'Declaration of compliance' :
+                            $rec = new stdClass();
+                            $rec->id = $sysContract->id;
+                            $rec->script = getFileContent('dec/tpl/DeclarationOfCompliance.shtml');
+                            
+                            self::save($rec, 'script');
+                            break;
+                        
+                        case 'Приложение №1' :
+                            $rec = new stdClass();
+                            $rec->id = $sysContract->id;
+                            $rec->script = getFileContent('dec/tpl/Application1.shtml');
+                            
+                            self::save($rec, 'script');
+                            break;
+                        
+                        case 'Приложение №5' :
+                            $rec = new stdClass();
+                            $rec->id = $sysContract->id;
+                            $rec->script = getFileContent('dec/tpl/Application5.shtml');
+                            
+                            self::save($rec, 'script');
+                            break;
+                    }
+                }
+            }
         }
     }
     
     
     /**
      * След подготовка на тулбара на единичен изглед.
-     * 
+     *
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
     function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	// Ако записът е създаден от системата
-    	if($data->rec->sysId){
-    		
-    		// Добавяме бутон за клонирането му
-    		$data->toolbar->addBtn('Клонирай', array('dec_DeclarationTypes', 'add', 'originId' => $data->rec->id), 'ef_icon=img/16/copy16.png');
-    	}
+        // Ако записът е създаден от системата
+        if($data->rec->sysId){
+            
+            // Добавяме бутон за клонирането му
+            $data->toolbar->addBtn('Клонирай', array('dec_DeclarationTypes', 'add', 'originId' => $data->rec->id), 'ef_icon=img/16/copy16.png');
+        }
     }
     
     
     /**
      * След потготовка на формата за добавяне / редактиране.
-     * 
+     *
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
     function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$form = &$data->form;
-    	
-    	// Вземаме ид-то на оригиналния запис
-    	if($originId = Request::get('originId', 'int')){
-    		
-    		// Намираме оригиналния запис
-    		$originRec = $this->fetch($originId);
-
-    		// слагаме стойностите във формата
-    		$form->setDefault('name', $originRec->name . "1");
-    		$form->setDefault('script', $originRec->script);
-    	}
+        $form = &$data->form;
+        
+        // Вземаме ид-то на оригиналния запис
+        if($originId = Request::get('originId', 'int')){
+            
+            // Намираме оригиналния запис
+            $originRec = $this->fetch($originId);
+            
+            // слагаме стойностите във формата
+            $form->setDefault('name', $originRec->name . "1");
+            $form->setDefault('script', $originRec->script);
+        }
     }
     
     
@@ -242,9 +244,8 @@ class dec_DeclarationTypes extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-  	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
-    	
-    	    	
+    
     }
 }

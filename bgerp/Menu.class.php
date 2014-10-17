@@ -291,7 +291,7 @@ class bgerp_Menu extends core_Manager
                 
                 foreach($subMenus as $key => $rec) {
                     if($notFirst) {
-                        $tpl->append("<font style='color:#ccc;font-size:0.8em;vertical-align: 20%;'>&nbsp;|&nbsp;</font>", 'SUB_MENU');
+                        $tpl->append("<span style='color:#ccc;font-size:0.8em;vertical-align: 20%;'>&nbsp;|&nbsp;</span>", 'SUB_MENU');
                     }
                     $link = $this->createLink($rec->subMenuTr, $rec);
                     $tpl->append($link, 'SUB_MENU');
@@ -439,8 +439,10 @@ class bgerp_Menu extends core_Manager
     /**
      * Добавя елемент в основното меню на системата. Използва се в началното установяване
      */
-    function addItem($row, $menu, $subMenu, $ctr, $act, $accessByRoles = 'user', $autoHide = 'no')
+    static function addOnce($row, $menu, $subMenu, $ctr, $act, $accessByRoles = 'user', $autoHide = 'no')
     {
+        $Manu = cls::get('bgerp_Menu');
+
         $rec = new stdClass();
         $rec->row = $row;
         $rec->menu = $menu;
@@ -452,31 +454,37 @@ class bgerp_Menu extends core_Manager
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->getRolesAsKeylist($accessByRoles);
         
-        $rec->id = $this->fetchField(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #ctr = '[#3#]' AND #act = '[#4#]' AND #createdBy = -1", 
-            $menu, $subMenu, $ctr, $act), 'id');
+        $exRec = self::fetch(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #ctr = '[#3#]' AND #act = '[#4#]'", $menu, $subMenu, $ctr, $act));
         
-        if($rec->id) {
+        if($exRec && ($rec->id = $exRec->id)) {
             $addCond = "AND #id != {$rec->id}";
         }
         
-        $this->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #createdBy = -1 {$addCond}", $ctr, $act));
-        $this->delete(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #createdBy = -1 {$addCond}", $menu, $subMenu));
-
-        // expect( (count(explode('|', $rec->accessByRoles)) - 2) == count(explode(',', $accessByRoles)));
-        
-        $oldId = $rec->id;
-
-        $id = $this->save($rec);
-        
-        if($oldId) {
-            return "<li style='color:#600;'> Обновен е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";
-        } else {
-            if($id) {
-                return "<li style='color:green;'> Добавен е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";
-            } else {
-                return "<li style='color:red;'> Eлементa на менюто \"{$rec->menu} » {$rec->subMenu}\" не бе добавен, поради дублиране</li>";
-            }
+        // Изтриване на направените точки от менюто, които влизат в противоречие с текущата
+        $del = self::delete(array("#ctr = '[#1#]' AND #act = '[#2#]' {$addCond}", $ctr, $act));
+        if($act == 'default') {
+            $del += self::delete(array("#ctr = '[#1#]' AND #act = '[#2#]' {$addCond}", $ctr, ''));
         }
+        $del += self::delete(array("#menu = '[#1#]' AND #subMenu = '[#2#]' {$addCond}", $menu, $subMenu));
+        if($del) {
+            $res .= "<li class='debug-new'>Изтвиване на {$del} елемент/а на менюто, поради дублиране</li>\n";
+        }
+
+        self::save($rec);
+        
+        if($exRec) {
+            if($exRec->row != $rec->row || $exRec->accessByRoles != $rec->accessByRoles ||$exRec->autoHide != $rec->autoHide) { 
+                $res .= "<li class=\"debug-notice\">Обновяване елемента на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>\n";
+            } else {
+                $res .= "<li class='debug-info'>Без промяна на елемента на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>\n";
+            }
+        } else {
+            if($rec->id) {
+                $res .= "<li class='debug-new'>Създаване елемент на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>";
+            } 
+        }
+
+        return $res;
     }
     
 
@@ -572,7 +580,7 @@ class bgerp_Menu extends core_Manager
         if(Mode::is('screenMode', 'narrow')) {
             $tpl = new ET("
                 <div id='mainMenu'>
-                     <div class='menuRow clearfix21'><img class='favicon' src=".sbf("img/favicon.ico").">[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
+                     <div class='menuRow clearfix21'><img class='favicon' src=".sbf("img/favicon.ico")." alt=''>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
                 </div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
         } else {
@@ -586,9 +594,9 @@ class bgerp_Menu extends core_Manager
                 </div> <div class='clearfix'></div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
             
-            $logo = ht::createLink("<IMG  SRC=" .
-                sbf('img/bgerp.png') . "  BORDER=\"0\" ALT=\"\" style='border-top:5px solid transparent;'>",
-                array('bgerp_Portal', 'Show'));
+            $img = ht::createElement('img', array('src' => sbf('img/bgerp.png', ''), 'alt' => '', 'style' => 'border:0; border-top:5px solid transparent;'));
+
+            $logo = ht::createLink($img, array('bgerp_Portal', 'Show'));
             
             $tpl->replace($logo, 'logo');
         }
@@ -599,7 +607,7 @@ class bgerp_Menu extends core_Manager
         
         $tpl->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $tpl->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
-        $tpl->prepend("\n<meta name=\"google\" value=\"notranslate\">", 'HEAD');
+        $tpl->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
 
         return $tpl;
     }

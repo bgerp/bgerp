@@ -30,6 +30,12 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Интерфейси
+     */
+    var $interfaces = 'custom_SettingsIntf';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     var $canList = 'powerUser';
@@ -39,6 +45,13 @@ class doc_Threads extends core_Manager
      * 
      */
     var $canWrite = 'no_one';
+    
+    
+    /**
+     * Кой може да модофицира
+     * @see custom_SettingsIntf
+     */
+    var $canModify = 'powerUser';
     
     
     /**
@@ -59,12 +72,17 @@ class doc_Threads extends core_Manager
     var $listFields = 'title=Заглавие,author=Автор,last=Последно,hnd=Номер,allDocCnt=Документи,createdOn=Създаване';
     
     
+    /**
+     * 
+     */
     var $canNewdoc = 'powerUser';
+    
     
     /**
      * Какви действия са допустими с избраните редове?
      */
     var $doWithSelected = 'open=Отваряне,close=Затваряне,restore=Възстановяване,reject=Оттегляне,move=Преместване';
+    
     
     /**
      * Данните на адресата, с най - много попълнени полета
@@ -79,6 +97,7 @@ class doc_Threads extends core_Manager
      * @see doc_Threads::updateThread()
      */
     protected static $updateQueue = array();
+    
     
     /**
      * Описание на модела на нишките от контейнери за документи
@@ -113,6 +132,9 @@ class doc_Threads extends core_Manager
         
         // Създателя на последния документ в нишката
         $this->FLD('lastAuthor', 'key(mvc=core_Users)', 'caption=Последно->От, input=none');
+        
+        // Ид-та на контейнерите оттеглени при цялостното оттегляне на треда, при възстановяване на треда се занулява
+        $this->FLD('rejectedContainersInThread', 'blob(serialize,compress)', 'caption=Заглавие, input=none');
         
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
@@ -191,7 +213,7 @@ class doc_Threads extends core_Manager
         $title->replace($user, 'user');
         
         if(Request::get('Rejected')) {
-            $title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</font>", 'folder');
+            $title->append("&nbsp;<span class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</span>", 'folder');
         }
         
         $title->replace($user, 'user');
@@ -202,6 +224,12 @@ class doc_Threads extends core_Manager
     }
     
     
+    /**
+     * 
+     * 
+     * @param doc_Threads $mvc
+     * @param object $data
+     */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
@@ -209,14 +237,62 @@ class doc_Threads extends core_Manager
         $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 
             'allowEmpty,caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('folderId', 'input=hidden,silent');
+        $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
+        
+        if(!isset($data->listFilter->fields['Rejected'])) {
+        	$data->listFilter->FNC('Rejected', 'varchar', 'input=hidden,silent');
+        }
+        
+        // Ако е зададено
+        if ($rejectedId = Request::get('Rejected', 'int')) {
+        
+        	// Задаваме стойността от заявката
+        	$data->listFilter->setDefault('Rejected', $rejectedId);
+        }
         
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $data->listFilter->showFields = 'folderId,search,order';
-
+        $data->listFilter->showFields = 'folderId,search,order,documentClassId';
+        
         $data->listFilter->input(NULL, 'silent');
+        
+        // id на класа
+        $folderClassId = doc_Folders::getClassId();
+        
+        // id на папката
+        $folderId = $data->listFilter->rec->folderId;
+
+        $rejected = Request::get('Rejected');
+        
+        $docQuery = clone $data->query;
+        $documentsInThreadOptions = self::getDocumentsInThread($folderId, $docQuery, $rejected);
+        if(count($documentsInThreadOptions)) {
+        	$data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
+        } else {
+        	$data->listFilter->setReadOnly('documentClassId');
+        }
+        
+        // Показваме или само оттеглените или всички останали нишки
+        if($rejected) {
+        	$data->query->where("#state = 'rejected'");
+        } else {
+        	$data->query->where("#state != 'rejected' OR #state IS NULL");
+        }
+        
+        // id на потребителя
+        $userId = core_Users::getCurrent();
+        
+        // Вземаме данните
+        $vals = custom_Settings::fetchValues($folderClassId, $folderId, $userId);
+        
+        // Ако е зададено подреждане в персонализацията
+        if ($vals['ordering']) {
+            
+            // Подреждаме по зададената стойност
+            $data->listFilter->setDefault('order', $vals['ordering']);
+        }
         
         expect($folderId = $data->listFilter->rec->folderId);
         
@@ -227,18 +303,43 @@ class doc_Threads extends core_Manager
         doc_Folders::requireRightFor('single', $folderRec);
         
         $mvc::applyFilter($data->listFilter->rec, $data->query);
-                
-        // Показваме или само оттеглените или всички останали нишки
-        if(Request::get('Rejected')) {
-            $data->query->where("#state = 'rejected'");
-        } else {
-            $data->query->where("#state != 'rejected' OR #state IS NULL");
-        }
-        
+
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
         bgerp_Notifications::clear($url);
-        bgerp_Recently::add('folder', $folderId);
+        bgerp_Recently::add('folder', $folderId, NULL, ($folderRec->state == 'rejected') ? 'yes' : 'no');
+    }
+    
+    
+    /**
+     * Намира всички типове документи които са начало на нишка в посочената папка
+     */
+    private static function getDocumentsInThread($folderId, $docQuery, $rejected)
+    {
+    	$documentsInThreadOptions = core_Cache::get("doc_Folders", "folder{$folderId}");
+    	
+    	if($documentsInThreadOptions === FALSE) {
+			$documentsInThreadOptions = array();
+    		$docQuery->where("#folderId = {$folderId}");
+    		 
+    		$docQuery->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+    		$docQuery->show('firstDocumentClassId, state');
+    		while($docInThreadRec = $docQuery->fetch()){
+    			$index = ($docInThreadRec->state == 'rejected') ? 'rejected' : 'notrejected';
+    			
+    			if(!isset($documentsInThreadOptions[$index][$docInThreadRec->firstDocumentClassId])){
+    				$documentsInThreadOptions[$index][$docInThreadRec->firstDocumentClassId] = core_Classes::getTitleById($docInThreadRec->firstDocumentClassId);
+    			}
+    		}
+    		
+    		core_Cache::set("doc_Folders", "folder{$folderId}", $documentsInThreadOptions, 1440);
+    	} 
+    	
+    	if(is_null($rejected)){
+    		return $documentsInThreadOptions['notrejected'];
+    	} else {
+    		return $documentsInThreadOptions['rejected'];
+    	}
     }
     
     
@@ -283,7 +384,11 @@ class doc_Threads extends core_Manager
                 $query->orderBy('#allDocCnt=DESC,#state=ASC,#last=DESC,#id=DESC');
                 break;
         }
-        
+       
+        if($filter->documentClassId){
+        	$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+        	$query->where("#firstDocumentClassId = {$filter->documentClassId}");
+        }
     }
     
     
@@ -318,7 +423,7 @@ class doc_Threads extends core_Manager
             array('doc_Containers', 'list',
                 'threadId' => $rec->id,
                 'folderId' => $rec->folderId,
-                'Q' => Request::get('search')),
+                'Q' => Request::get('search') ? Request::get('search') : NULL),
             NULL, $attr);
 
         if($docRow->subTitle) {
@@ -629,20 +734,47 @@ class doc_Threads extends core_Manager
                     'folderId' => $destFolderId
                 )
             )) {
-            
-            // Нотифицираме новата и старата папка за настъпилото преместване
-            
-            // $currentFolderId сега има една нишка по-малко
-            doc_Folders::updateFolderByContent($currentFolderId);
-            
-            // $destFolderId сега има една нишка повече
-            doc_Folders::updateFolderByContent($destFolderId);
-            
-            //
-            // Добавяме нови правила за рутиране на базата на току-що направеното преместване.
-            //
-            // expect($firstContainerId = static::fetchField($id, 'firstContainerId'));
-            // email_Router::updateRoutingRules($firstContainerId, $destFolderId);
+                
+                // Изчистваме нотификацията до потребители, които нямат достъп до нишката
+                $urlArr = array('doc_Containers', 'list', 'threadId' => $id);
+                $usersArr = bgerp_Notifications::getNotifiedUserArr($urlArr);
+                $nRec = doc_Threads::fetch($id, '*', FALSE);
+                
+                if ($usersArr) {
+                    foreach ((array)$usersArr as $userId => $hidden) {
+                        
+                        // Ако има права до сингъла
+                        if (doc_Threads::haveRightFor('single', $nRec, $userId)) {
+                            
+                            // Ако е скрит, го показваме
+                            if ($hidden == 'yes') {
+                                
+                                // Показваме
+                                bgerp_Notifications::setHidden($urlArr, 'no', $userId);
+                            }
+                        } else {
+                            
+                            // Ако нямаме права и се показва 
+                            if ($hidden == 'no') {
+                                bgerp_Notifications::setHidden($urlArr, 'yes', $userId);
+                            }
+                        }
+                    }
+                }
+                
+                // Нотифицираме новата и старата папка за настъпилото преместване
+                
+                // $currentFolderId сега има една нишка по-малко
+                doc_Folders::updateFolderByContent($currentFolderId);
+                
+                // $destFolderId сега има една нишка повече
+                doc_Folders::updateFolderByContent($destFolderId);
+                
+                //
+                // Добавяме нови правила за рутиране на базата на току-що направеното преместване.
+                //
+                // expect($firstContainerId = static::fetchField($id, 'firstContainerId'));
+                // email_Router::updateRoutingRules($firstContainerId, $destFolderId);
         }
     }
     
@@ -847,8 +979,7 @@ class doc_Threads extends core_Manager
             }
             
             doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor');
-            
-        } else {
+         } else {
             // Ако липсват каквито и да е документи в нишката - изтриваме я
             self::delete($id);
         }
@@ -876,7 +1007,20 @@ class doc_Threads extends core_Manager
         static::save($rec);
 
         // Оттегляме всички контейнери в нишката
-        doc_Containers::rejectByThread($rec->id);
+        $rejectedIds = doc_Containers::rejectByThread($rec->id);
+        
+        // Добавяме и контейнера на първия документ в треда
+        $rejectedIds[] = $rec->firstContainerId;
+        
+        // Обръщаме последователността на обратно
+        $rejectedIds = array_reverse($rejectedIds);
+        	
+        // Ако има оттеглени контейнери с треда, запомняме ги, за да може при възстановяване да възстановим само тях
+        $rec->rejectedContainersInThread = $rejectedIds;
+        	
+        static::save($rec, 'rejectedContainersInThread');
+        
+        self::invalidateDocumentCache($rec->id);
     }
     
     
@@ -900,6 +1044,15 @@ class doc_Threads extends core_Manager
 
         // Възстановяваме всички контейнери в нишката
         doc_Containers::restoreByThread($rec->id);
+        
+        if($rec->rejectedContainersInThread){
+        	
+        	// Зануляваме при нужда списъка с оттеглените ид-та
+        	unset($rec->rejectedContainersInThread);
+        	static::save($rec, 'rejectedContainersInThread');
+        }
+        
+        self::invalidateDocumentCache($rec->id);
     }
     
     
@@ -919,10 +1072,67 @@ class doc_Threads extends core_Manager
             $data->rejectedCnt = $mvc->count("#folderId = {$data->folderId} AND #state = 'rejected'");
             
             if($data->rejectedCnt) {
-                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})" . $rejectedCntVerb , 
-                    array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", 
+                    array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
+            }
+            
+            // Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
+            if($managersIds = self::getFastButtons($data->folderId)){
+            	foreach ($managersIds as $classId){
+            		$Cls = cls::get($classId);
+            		$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на {$Cls->singleTitle}");
+            	}
             }
         }
+        
+        // Ако има права за модифициране на настройките за персоналзиране
+        if (doc_Folders::haveRightFor('modify', $data->folderId)) {
+            
+            // Добавяме бутон в тулбара
+            $folderClassId = core_Classes::fetchIdByName('doc_Folders');
+            custom_Settings::addBtn($data->toolbar, $folderClassId, $data->folderId, 'Настройки');
+        }
+    }
+    
+    
+    /**
+     * Връща масив с ид-та на мениджърите за които ще има бързи, ако няма връща NULL
+     */
+    private static function getFastButtons($folderId)
+    {
+    	$managersIds = array();
+    	
+    	// Ако няма кеширани, $managersIds намираме ги
+    	if(!count($managersIds)){
+    		
+    		// Намираме имали класове с интерфейса за добавяне
+    		$classesToAdd = core_Classes::getOptionsByInterface('doc_AddToFolderIntf');
+    		
+    		if(count($classesToAdd)){
+    			$folderRec = doc_Folders::fetch($folderId);
+    			$cu = core_Users::getCurrent();
+    		
+    			// За всеки мениджър
+    			foreach ($classesToAdd as $classId => $className){
+    						
+    				// Проверяваме дали може да се добавя като бърз бутон
+    				if(cls::load($className, TRUE)){
+    					
+    					$Cls = cls::get($className);
+    					if($Cls->haveRightFor('add', (object)array('folderId' => $folderRec->id))){
+    						
+    						// Ако имплементира интерфейсния метод 'mustShowButton', и той върне TRUE
+    						if(cls::existsMethod($Cls, 'mustShowButton') && $Cls->mustShowButton($folderRec, $cu)){
+    							$managersIds[$classId] = $classId;
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	// Връщаме ид-та на всички мениджъри, които да имат бързи бутони
+    	return count($managersIds) ? $managersIds : NULL;
     }
     
     
@@ -982,6 +1192,13 @@ class doc_Threads extends core_Manager
             if($rec->state == 'opened' || $rec->state == 'closed') {
                 $res = $mvc->getRequiredRoles('single', $rec, $userId);
             } else {
+                $res = 'no_one';
+            }
+        }
+        
+        // @see custom_Settings
+        if ($action == 'modify' && $rec) {
+            if (!$mvc->haveRightFor('single', $rec)) {
                 $res = 'no_one';
             }
         }
@@ -1239,19 +1456,13 @@ class doc_Threads extends core_Manager
      */
     static function getLanguage($id)
     {
-        //Ако няма стойност, връщаме
+        // Ако няма стойност, връщаме
         if (!$id) return ;
         
-        // Търсим езика в поздравите
-        $lg = email_Salutations::getLg(NULL, $id);
-        
-        // Ако сме открили езика в обръщенията
-        if ($lg) return $lg;
-        
-        //Записа на нишката
+        // Записа на нишката
         $threadRec = doc_Threads::fetch($id);
         
-        //id' то на контейнера на първия документ в треда
+        // id' то на контейнера на първия документ в треда
         $firstContId = $threadRec->firstContainerId;
         
         // Ако няма id на първия документ
@@ -1331,15 +1542,7 @@ class doc_Threads extends core_Manager
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
             
-            // Ескейпваме плейсхолдърите
-            $title = core_ET::escape($title);
-            
-            // TODO може да се използва този начин вместо ескейпването
-            //$res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
-            
-            // Добаваме span с иконата и заглавиетео - не е линк
-            // TODO класа да не е linkWithIcon
-            $res = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> {$title} </span>";    
+            $res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
         } elseif (Mode::is('text', 'plain')) {
             
             // Ескейпваме плейсхолдърите и връщаме титлата
@@ -1365,5 +1568,102 @@ class doc_Threads extends core_Manager
     function on_AfterPrepareListFields($mvc, $res, $data)
     {
         $data->listFields['title'] = "|*<div style='min-width:240px'>|" . $data->listFields['title'] . '|*</div>';
+    }
+    
+    
+    /**
+     * Интерфейсен метод на custom_SettingsIntf
+     * Подготвяме формата за персонализиране на настройките за нишката
+     * 
+     * @param core_Form $form
+     * @see custom_SettingsIntf
+     */
+    function prepareCustomizationForm(&$form)
+    {
+        // Задаваме таба на менюто да сочи към документите
+        Mode::set('pageMenu', 'Документи');
+        Mode::set('pageSubMenu', 'Всички');
+        $this->currentTab = 'Нишка';
+        
+        // Определяме заглавито
+        $rec = $this->fetch($form->rec->objectId);
+        $row = $this->recToVerbal($rec, 'title');
+        $form->title .= ' на нишка|*: ' . $row->title;
+        
+        // Добавяме функционални полета
+        $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Добавяне на документ->Известяване, input=input');
+        
+        // Сетваме стринг за подразбиране
+        $defaultStr = 'По подразбиране|*: ';
+        
+        // Ако сме в мобилен режим, да не е хинт
+        $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
+        
+        // Подсказки за позразбиране
+        $form->setParams('notify', array($paramType => $defaultStr . '|Винаги'));
+    }
+    
+    
+    /**
+     * Интерфейсен метод на custom_SettingsIntf
+     * Проверява въведените данни във формата
+     * 
+     * @param core_Form $form
+     * @see custom_SettingsIntf
+     */
+    function checkCustomizationForm(&$form)
+    {
+        
+        return ;
+    }
+    
+    
+    /**
+     * Преди подготвяне на пейджъра, ако има персонализация да се използва
+     * 
+     * @param doc_Threads $mvc
+     * @param object $res
+     * @param object $data
+     */
+    function on_BeforePrepareListPager($mvc, &$res, &$data)
+    {
+        // id на класа
+        $folderClassId = doc_Folders::getClassId();
+        
+        // id на папката
+        $folderId = Request::get('folderId');
+        
+        // id на потребителя
+        $userId = core_Users::getCurrent();
+        
+        // Вземаме данните
+        $vals = custom_Settings::fetchValues($folderClassId, $folderId, $userId);
+        
+        // Ако е зададено да се страницира
+        if ($vals['perPage']) {
+            
+            // Променяме броя на страниците
+            $mvc->listItemsPerPage = $vals['perPage'];
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	self::invalidateDocumentCache($rec->id);
+    }
+    
+    
+    /**
+     * Инвалидиране на кеша за видовете документи в папката
+     */
+    private static function invalidateDocumentCache($id)
+    {
+    	// Изтриваме от кеша видовете документи в папката и в коша и
+    	$folderId = self::fetchField($id, 'folderId');
+    	core_Cache::remove("doc_Folders", "folder{$folderId}");
     }
 }

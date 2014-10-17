@@ -258,9 +258,10 @@ class email_Mime extends core_BaseClass
             if(empty($ip) || !type_Ip::isPublic($ip)) {
                 $regExp = '/Received:.*?((?:\d+\.){3}\d+)/';
                 preg_match_all($regExp, $this->getHeadersStr(), $matches);
+                
                 if($ipCnt = count($matches[1])) {
                     for($i = $ipCnt - 1; $i >= 0; $i--) {
-                    if(strpos($matches[0][$i], '.google.com')) continue;
+                        if(strpos($matches[0][$i], '.google.com')) continue;
                         if(type_Ip::isPublic($matches[1][$i])) {
                             $ip = $matches[1][$i];
                             break;
@@ -766,7 +767,6 @@ class email_Mime extends core_BaseClass
 
         // Отделяме хедърите от данните
         if($bestPos < strlen($data)) {
- 
             do {
                 list($line, $data) = explode($nl, $data, 2);
 
@@ -780,9 +780,7 @@ class email_Mime extends core_BaseClass
                 $headerStr .= ($headerStr ? $nl : '') . $line;
 
             } while ($data);
-
         }
-
 
         $p = &$this->parts[$index];
         
@@ -857,8 +855,17 @@ class email_Mime extends core_BaseClass
         // Парсираме хедър-а 'Content-Disposition'
         $cd = $this->extractHeader($p, 'Content-Disposition', array('filename'));
         
-        if($cd[0]) {
+        // Парсираме хедър-а 'Content-ID'
+        $cid = $this->getHeader('Content-ID', $p);
+        
+        if ($cd[0]) {
             $p->attachment = $cd[0];
+        } else {
+            
+            // Ако е изпуснат Content-Disposition, но има Content-ID, отбелязваме файла, като inline
+            if ($cid) {
+                $p->attachment = 'inline';
+            }
         }
         
         // Ако частта е съставна, рекурсивно изваждаме частите и
@@ -931,11 +938,11 @@ class email_Mime extends core_BaseClass
                 // Текстовата част, без да се гледа HTML частта
                 if ($p->subType == 'PLAIN') $this->justTextPart = $text;
                 
+                // Ако часта е HTML - конвертираме я до текст
                 if($p->subType == 'HTML') {
                     $text = html2text_Converter::toRichText($text);
-                    $text = type_Richtext::removeEmptyLines($text, 2);
                 }
-                
+
                 $textRate = $this->getTextRate($text);
                 
                 // Отдаваме предпочитания на плейн-частта, ако идва от bgERP
@@ -946,13 +953,13 @@ class email_Mime extends core_BaseClass
                         $textRate = $textRate * 1.8;
                     }
 
-                    // Ако обаче, текст часта съдържа значително количество HTML елементи,
+                    // Ако обаче, текст частта съдържа значително количество HTML елементи,
                     // ние не я предпочитаме
                     $k = (mb_strlen(strip_tags($text)) + 1) / (mb_strlen($text) + 1);
                     $textRate = $textRate * $k * $k;
                 }
                 
-                // Ако нямаме никакъв текст в тази текстова част, не записваме данните
+                // Ако нямаме никакъв текст или картинки в тази текстова част, не записваме данните
                 if(($textRate < 1) && (stripos($data, '<img ') === FALSE)) return;
                 
                 if($p->subType == 'HTML') {
@@ -961,14 +968,23 @@ class email_Mime extends core_BaseClass
                     $p->data = $text;
                 }
                 
+                // Ако е прикачен файл, намаляме рейтинга
+                if ($p->attachment) {
+                    $textRate = $textRate * 0.5;
+                }
+                
                 if($textRate > (1.05 * $this->bestTextRate)) {
-                    if($p->subType == 'HTML') {
-                        // Записваме данните
-                        $this->textPart = $text;
-                    } else {
-                        $this->textPart = $p->data;
+                    
+                    // Записваме данните
+                    $this->textPart = $text;
+                    
+                    // Премахваме излишните празни линии
+                    $this->textPart = type_Richtext::removeEmptyLines($this->textPart, 2);
+
+                    if($p->subType != 'HTML') {
                         $this->bestTextIndex = $index;
                     }
+
                     $this->bestTextRate = $textRate;
                     $this->charset = i18n_Charset::getCanonical($p->charset);
                     $this->detectedCharset = i18n_Charset::detect($data, $p->charset, $p->subType == 'HTML');
@@ -982,7 +998,9 @@ class email_Mime extends core_BaseClass
                 
                 // Ако частта представлява атачнат файл, определяме името му и разширението му
                 $fileName = $this->getFileName($index);
-                $cid = trim($this->getHeader('Content-ID', $p), '<>');
+                
+                $cid = trim($cid, '<>');
+                
                 $p->filemanId = $this->addFile($data, $fileName, 'inline', $cid);
             }
         }

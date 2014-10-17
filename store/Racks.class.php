@@ -26,7 +26,7 @@ class store_Racks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, store_Wrapper';
+    var $loadList = 'plg_Created, plg_LastUsedKeys, plg_RowTools, store_Wrapper';
     
     
     /**
@@ -98,9 +98,15 @@ class store_Racks extends core_Master
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'num';
     
-    
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/rack.png';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -108,11 +114,9 @@ class store_Racks extends core_Master
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
         $this->FLD('num', 'int', 'caption=Стелаж №,mandatory');
-        $this->FLD('rows', 'enum(1,2,3,4,5,6,7,8)', 'caption=Редове,mandatory');
-        $this->FLD('columns', 'int(max=24)', 'caption=Колони,mandatory');
-        $this->FLD('specification', 'varchar(255)', 'caption=Спецификация');
+        $this->FLD('rows', 'int(max=100)', 'caption=Редове,mandatory');
+        $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory');
         $this->FLD('comment', 'text', 'caption=Коментар');
-        $this->FNC('rackView', 'text', 'caption=Стелажи');
         $this->FLD('groupsAllowed', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи');
         $this->FLD('constrColumnsStep', 'int', 'caption=Носещи колони през брой палет места');
         
@@ -410,7 +414,6 @@ class store_Racks extends core_Master
         
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
         
-        // if (!empty($detailsForRackArr)) bp($detailsForRackArr);
         $constrColumnsStep = $mvc->fetchField($rec->id, 'constrColumnsStep');
         
         // html
@@ -426,33 +429,7 @@ class store_Racks extends core_Master
             $html .= "<span style='color: #777777;'>ID</span> <span style='color: red;'>" . $rec->id . "</span>";
         }
         
-        // Ако има права за delete добавяме линк с икона за delete
-        if ($mvc->haveRightFor('delete', $rec)) {
-            $delImg = "<img src=" . sbf('img/16/delete.png') . " style='position: relative; top: 1px;'>";
-            $delUrl = toUrl(array($mvc, 'delete', $rec->id, 'ret_url' => TRUE));
-            $delLink = ht::createLink($delImg, $delUrl);
-            
-            $html .= " " . $delLink;
-        }
-        
-        // Ако има права за edit добавяме линк с икона за edit
-        if ($mvc->haveRightFor('edit', $rec)) {
-            $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " style='position: relative; top: 1px;'>";
-            $editUrl = toUrl(array($mvc, 'edit', $rec->id, 'ret_url' => TRUE));
-            $editLink = ht::createLink($editImg, $editUrl);
-            
-            $html .= " " . $editLink;
-        }
-        
-        // Ако има права за single добавяме линк с икона за single
-        if ($mvc->haveRightFor('single', $rec)) {
-            $singleImg = "<img src=" . sbf('img/16/view.png') . " style='position: relative; top: 1px;'>";
-            $singleUrl = toUrl(array($mvc, 'single', $rec->id, 'ret_url' => TRUE));
-            $singleLink = ht::createLink($singleImg, $singleUrl);
-            
-            $html .= " " . $singleLink;
-        }
-        
+         
         $html .= "</div>";
         
         $html .= "<table cellspacing='1' class='pallet-table'>";

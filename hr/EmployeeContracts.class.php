@@ -35,7 +35,7 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Персонал";
     
@@ -44,6 +44,10 @@ class hr_EmployeeContracts extends core_Master
      * За плъгина acc_plg_DocumentSummary
      */
     var $filterFieldDateFrom = 'startFrom';
+    
+    /**
+     * @todo Чака за документация...
+     */
     var $filterFieldDateTo = 'endOn';
     
     
@@ -74,16 +78,16 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,hr';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,hr';
-	
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,hr';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo,hr';
+    
     
     /**
      * Кой може да пише?
@@ -108,6 +112,7 @@ class hr_EmployeeContracts extends core_Master
      */
     var $abbr = "Td";
     
+    
     /**
      * Поле за търсене
      */
@@ -115,12 +120,15 @@ class hr_EmployeeContracts extends core_Master
                          departmentId, positionId, startFrom, 
                          endOn, folderId, threadId, containerId';
     
+    
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "5.1|Човешки ресурси";
     
-    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
     var $listFields = 'id,typeId,personId=Имена,positionId=Позиция,startFrom,endOn';
     
     
@@ -133,7 +141,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
      * $autoList.
-     * 
+     *
      * @see acc_plg_Registry
      * @var string
      */
@@ -171,7 +179,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('forYearsOfService', 'percent(decimals=2)', "caption=Възнагражение->За стаж");
         $this->FLD('compersations', 'double(decimals=2)', "caption=Възнагражение->За вредности");
         $this->FLD('degreePay', 'double(decimals=2)', "caption=Възнагражение->За научна степен");
-
+        
         // Срокове
         $this->FLD('startFrom', 'date(format=d.m.Y)', "caption=Време->Начало,mandatory");
         $this->FLD('endOn', 'date(format=d.m.Y)', "caption=Време->Край");
@@ -179,30 +187,30 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days)', "caption=Време->Годишен отпуск,unit=дни");
         $this->FLD('notice', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', "caption=Време->Предизвестие,unit=дни");
         $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month)', "caption=Време->Изпитателен срок, unit=мес");
-
-        $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
+        
+        $this->FLD('descriptions', 'richtext(bucket=humanResources, shareUsersRoles=trz|ceo)', 'caption=Условия->Допълнителни');
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
     }
     
     
-	/**
+    /**
      * След подготовка на тулбара на единичен изглед.
-     * 
+     *
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         // Ако нямаме права за писане в треда
-    	if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
-    		
-    		// Премахваме бутона за коментар
-	    	$data->toolbar->removeBtn('Коментар');
-	    }
+        if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
+            
+            // Премахваме бутона за коментар
+            $data->toolbar->removeBtn('Коментар');
+        }
     }
-
+    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -213,83 +221,87 @@ class hr_EmployeeContracts extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	if ($data->query->fetch()) {
-    		
-	    	$data->listFilter->fields['departmentId']->caption = 'Отдел'; 
-	    	$data->listFilter->fields['professionId']->caption = 'Професия'; 
-	    	$data->listFilter->fields['departmentId']->mandatory = NULL; 
-	    	$data->listFilter->fields['positionId']->mandatory = NULL;    	
-	        // Показваме само това поле. Иначе и другите полета 
-	        // на модела ще се появят
-	        $data->listFilter->showFields .= ' ,departmentId, professionId';
-	        
-	        $data->listFilter->input();
-	
-	        if($filterRec = $data->listFilter->rec){
-	        	if($filterRec->departmentId){
-	        		$data->query->where(array("#departmentId = '[#1#]'", $filterRec->departmentId));
-	        	}
-	        	
-	        	if($filterRec->positionId){
-	        		$data->query->where(array("#positionId = '[#1#]'", $filterRec->positionId));
-	        	}
-	        }
-    	} else {
-    		
-    		return;
-    	}
+        if ($data->query->fetch()) {
+            
+            $data->listFilter->fields['departmentId']->caption = 'Отдел';
+            $data->listFilter->fields['professionId']->caption = 'Професия';
+            $data->listFilter->fields['departmentId']->mandatory = NULL;
+            $data->listFilter->fields['positionId']->mandatory = NULL;
+            
+            // Показваме само това поле. Иначе и другите полета 
+            // на модела ще се появят
+            $data->listFilter->showFields .= ' ,departmentId, professionId';
+            
+            $data->listFilter->input();
+            
+            if($filterRec = $data->listFilter->rec){
+                if($filterRec->departmentId){
+                    $data->query->where(array("#departmentId = '[#1#]'", $filterRec->departmentId));
+                }
+                
+                if($filterRec->positionId){
+                    $data->query->where(array("#positionId = '[#1#]'", $filterRec->positionId));
+                }
+            }
+        } else {
+            
+            return;
+        }
     }
     
     
-	/**
+    /**
      * Извиква се след изпълняването на екшън
      */
     function on_AfterAction(&$invoker, &$tpl, $act)
     {
-    	if (strtolower($act) == 'single' && haveRole('hr,ceo') && !Mode::is('printing')) {
-    		
-    		// Взимаме ид-то на молбата
-    		$id = Request::get('id', 'int');
-    		
-    		// намираме, кой е текущия потребител
-    		$cu =  core_Users::getCurrent();
-    		
-    		// взимаме записа от модела
-    		$rec = self::fetch($id);
-    		
-    		// превръщаме кей листа на споделените потребители в масив
-    		$sharedUsers = type_Keylist::toArray($rec->sahredUsers);
-    		
-    		// добавяме текущия потребител
-    		$sharedUsers[$cu] = $cu;
-    		
-    		// връщаме в кей лист масива
-    		$rec->sharedUsers =  keylist::fromArray($sharedUsers);
-    		    		
-    		self::save($rec, 'sharedUsers');
-
-    		return  Redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
-    	}
+        if (strtolower($act) == 'single' && haveRole('hr,ceo') && !Mode::is('printing')) {
+            
+            // Взимаме ид-то на молбата
+            $id = Request::get('id', 'int');
+            
+            // намираме, кой е текущия потребител
+            $cu =  core_Users::getCurrent();
+            
+            // взимаме записа от модела
+            $rec = self::fetch($id);
+            
+            // превръщаме кей листа на споделените потребители в масив
+            $sharedUsers = type_Keylist::toArray($rec->sahredUsers);
+            
+            // добавяме текущия потребител
+            $sharedUsers[$cu] = $cu;
+            
+            // връщаме в кей лист масива
+            $rec->sharedUsers =  keylist::fromArray($sharedUsers);
+            
+            self::save($rec, 'sharedUsers');
+            
+            return  Redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
+        }
     }
-
+    
     
     /**
-     * @todo Чака за документация...
+     * Модифициране на edit формата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	$rec = $data->form->rec;
+        $rec = $data->form->rec;
         
-    	// Скриваме опцията за номеклатурата
-    	//$data->form->fields['lists']->input = "none";
-    	
+        // Скриваме опцията за номеклатурата
+        //$data->form->fields['lists']->input = "none";
+        
         $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
         
         if ('crm_Persons' == $coverClass) {
-        	$data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
-	        $data->form->setReadonly('personId');
+            $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+            $data->form->setReadonly('personId');
         }
- 
     }
     
     
@@ -312,50 +324,51 @@ class hr_EmployeeContracts extends core_Master
         $row = $data->row;
         
         $rec = $data->rec;
-       
+        
         $row->script = hr_ContractTypes::fetchField($rec->typeId, 'script');
         
         $row->num = $data->rec->id;
         
         $row->employeeRec         = crm_Persons::fetch($rec->personId);
         $row->employeeRec->idCard = crm_ext_IdCards::fetch("#personId = {$rec->personId}");
-
-        if(!$row->employeeRec->egn) {  
+        
+        if(!$row->employeeRec->egn) {
             unset($row->employeeRec->egn);
         }
-
+        
         $row->employerRec = crm_Companies::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
         
         $row->managerRec = crm_Persons::fetch($rec->managerId);
         $row->managerRec->idCard = crm_ext_IdCards::fetch("#personId = {$rec->managerId}");
         $row->employersRec = crm_ext_CourtReg::fetch("#companyId = {$row->employerRec->id}");
-
+        
         if(!$row->managerRec->egn) {
             unset($row->managerRec->egn);
         }
-
+        
         // Взимаме данните за Длъжността
         $position = hr_Positions::recToVerbal(hr_Positions::fetch($rec->positionId, 'name, salaryBase, forYearsOfService, compensations,
-												    annualLeave, notice, probation'));
+                                                    annualLeave, notice, probation'));
+        
         // Вземаме данните за Структурата
         $department = hr_Departments::recToVerbal(hr_Departments::fetch($rec->departmentId, 'nkid, type'));
-      
+        
         if((!$rec->salaryBase || !$rec->forYearsOfService || !$rec->compensations) &&
-           (!$rec->annualLeave || !$rec->notice || !$rec->probation)) { ;
-        	
-        	// Професията
-        	$row->positionsId = $position->professionId;
-        	
-        	// Заплатата
-        	$row->salaryBase = $position->salaryBase;
-        	
-        	// Процент прослужено време
-        	$row->forYearsOfService = $position->forYearsOfService;
-        	
-        	// Заплащане за вредност
-        	$row->compensations = $position->compensations;
-        	
-        	// Годишен отпуск
+            (!$rec->annualLeave || !$rec->notice || !$rec->probation)) { ;
+            
+            // Професията
+            $row->positionsId = $position->professionId;
+            
+            // Заплатата
+            $row->salaryBase = $position->salaryBase;
+            
+            // Процент прослужено време
+            $row->forYearsOfService = $position->forYearsOfService;
+            
+            // Заплащане за вредност
+            $row->compensations = $position->compensations;
+            
+            // Годишен отпуск
             $row->annualLeave = $position->annualLeave;
             
             // Предизвестие
@@ -373,120 +386,118 @@ class hr_EmployeeContracts extends core_Master
         
         // Извличане на данните за професията
         $nkpd = hr_Professions::fetchField($rec->professionId, 'nkpd');
-
+        
         // Национална класификация на професиите и длъжностите
         $row->professionsRec->nkpd = bglocal_NKPD::getTitleById($nkpd);
-                
+        
         // Национална класификация на икономическите дейности 
         $row->departmentRec->nkid = $department->nkid;
         
         // Вид на структурата
         $row->departmentRec->type = $department->type;
-     
+        
         // Изчисляваме работното време
         $houresInSec = self::houresForAWeek($rec->id);
         $houres = $houresInSec / 60 / 60;
         
         $row->shiftRec = new stdClass();
-                        
+        
         if($houres % 2 !== 0){
-        	$min = round(($houres - round($houres)) * 60);
-        	
-        	$row->shiftRec->weekhours =  round($houres) . " часа". " и " . $min . " мин.";	
+            $min = round(($houres - round($houres)) * 60);
+            
+            $row->shiftRec->weekhours =  round($houres) . " часа" . " и " . $min . " мин.";
         } else {
-	        // да добавя и минитуте
-			$row->shiftRec->weekhours =  $houres . " часа";
+            // да добавя и минитуте
+            $row->shiftRec->weekhours =  $houres . " часа";
         }
-       
+        
         // Продължителността на договора
         $row->term = (int)$rec->term;
         
-		$res = $data;
+        $res = $data;
     }
     
     
- 	/**
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
+     *
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	$rec = $form->rec;
-
-    	// След като се записали/активирали формата
-    	if($rec->typeId){ 
-    		
-    		// Вземаме шаблона на труговия договор
-    		$tpl = hr_ContractTypes::fetchField($rec->typeId, 'script');
-    		
-    		// и намираме всички плейсхолдери в него
-    		preg_match_all('/\[#([a-zA-Z0-9_:]{1,})#\]/', $tpl, $matches);
-    	
-    	
-	    	// помощен масив, тези полете от формата на модела не са от значение за шаблона
-	    	$sysArray = array("id", "ret_url", "typeId", "managerId", "personId", "departmentId",
-	    					  "descriptions", "sharedUsers", "sharedViews", "searchKeywords","professionId",
-	    					  "folderId", "threadId", "containerId", "originId", "state", "brState",
-	    					  "lastUsedOn", "createdOn", "createdBy", "modifiedOn", "modifiedBy", "lists");
-    	
-	    	// От всички полета на модела
-	    	foreach($rec as $name=>$value){
-	       		$formField[$name] = $name;
-	       		
-	       		for($i = 0; $i <= count($sysArray); $i++){
-	       			// махаме тези от помощния масив
-	       			unset($formField[$sysArray[$i]]);
-	       		}
-	    	}
-    	
-	    	// намираме сечението на останалите полета и полетата от шаблона
-	    	$mandatoryFields = array_intersect($formField, $matches[1]);
-	    	
-			foreach($mandatoryFields as $field){
-				// Ако имаме непопълнено поле от гореполучения масив
-				if($rec->$field == NULL){ 
-					// Предупреждамае потребителя
-					$form->setWarning($field, "Непопълнено поле". "\n" . "|* <b>|" . $form->fields[$field]->caption . "!" . "|*</b> |");
-				}
-			}
-    	}
+        $rec = $form->rec;
+        
+        // След като се записали/активирали формата
+        if($rec->typeId){
+            
+            // Вземаме шаблона на труговия договор
+            $tpl = hr_ContractTypes::fetchField($rec->typeId, 'script');
+            
+            // и намираме всички плейсхолдери в него
+            preg_match_all('/\[#([a-zA-Z0-9_:]{1,})#\]/', $tpl, $matches);
+            
+            // помощен масив, тези полете от формата на модела не са от значение за шаблона
+            $sysArray = array("id", "ret_url", "typeId", "managerId", "personId", "departmentId",
+                "descriptions", "sharedUsers", "sharedViews", "searchKeywords", "professionId",
+                "folderId", "threadId", "containerId", "originId", "state", "brState",
+                "lastUsedOn", "createdOn", "createdBy", "modifiedOn", "modifiedBy", "lists");
+            
+            // От всички полета на модела
+            foreach($rec as $name=>$value){
+                $formField[$name] = $name;
+                
+                for($i = 0; $i <= count($sysArray); $i++){
+                    // махаме тези от помощния масив
+                    unset($formField[$sysArray[$i]]);
+                }
+            }
+            
+            // намираме сечението на останалите полета и полетата от шаблона
+            $mandatoryFields = array_intersect($formField, $matches[1]);
+            
+            foreach($mandatoryFields as $field){
+                // Ако имаме непопълнено поле от гореполучения масив
+                if($rec->$field == NULL){
+                    // Предупреждамае потребителя
+                    $form->setWarning($field, "Непопълнено поле" . "\n" . "|* <b>|" . $form->fields[$field]->caption . "!" . "|*</b> |");
+                }
+            }
+        }
     }
     
     
-	/**
+    /**
      * След промяна на обект от регистър
      */
     function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
-    	if($rec->state == 'active'){
-    		    		    		
-    		// Взимаме запълването до сега
-    		$employmentOccupied = hr_Positions::fetchField($rec->positionId, 'employmentOccupied');
-    		
-    		// Изчисляваме работното време
-	        $houresInSec = self::houresForAWeek($rec->id);
-	        $houres = $houresInSec / 60 / 60;
-        
-    		$recPosition = new stdClass();
-		    $recPosition->id = $rec->positionId;
-		    
-		    // Ако работната седмица е над 35ч е един щат
-		    if($houres >= 35){
-		    	$recPosition->employmentOccupied = $employmentOccupied + 1;
-		    } else {
-		    	
-		    	// в противен случай е половин щат
-		    	$recPosition->employmentOccupied = $employmentOccupied + 0.5;
-		    }
-
-		    // записваме новата стойност
-			hr_Positions::save($recPosition,'employmentOccupied');
-    		
-    	}
+        if($rec->state == 'active'){
+            
+            // Взимаме запълването до сега
+            $employmentOccupied = hr_Positions::fetchField($rec->positionId, 'employmentOccupied');
+            
+            // Изчисляваме работното време
+            $houresInSec = self::houresForAWeek($rec->id);
+            $houres = $houresInSec / 60 / 60;
+            
+            $recPosition = new stdClass();
+            $recPosition->id = $rec->positionId;
+            
+            // Ако работната седмица е над 35ч е един щат
+            if($houres >= 35){
+                $recPosition->employmentOccupied = $employmentOccupied + 1;
+            } else {
+                
+                // в противен случай е половин щат
+                $recPosition->employmentOccupied = $employmentOccupied + 0.5;
+            }
+            
+            // записваме новата стойност
+            hr_Positions::save($recPosition, 'employmentOccupied');
+        }
     }
-  
+    
     
     /**
      * Render single
@@ -502,13 +513,13 @@ class hr_EmployeeContracts extends core_Master
         $lsTpl = cls::get('legalscript_Engine', array('script' => $row->script));
         
         unset($row->script);
-
+        
         $contract = $lsTpl->render($row);
-
+        
         $res = new ET("[#toolbar#]
         <div class='document'>
-		[#blank#]<br>
-		[#contract#]</div> <div style='clear:both;'></div>
+        [#blank#]<br>
+        [#contract#]</div> <div style='clear:both;'></div>
         
         ");
         
@@ -527,70 +538,74 @@ class hr_EmployeeContracts extends core_Master
      */
     static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
-    	// Проверяваме дали имаме въведени позиции
-    	$query = hr_Positions::getQuery();
-       
-    	if($query->fetchAll() == FALSE){
-        	
-    		// Ако няма, изискваме от потребителя да въведе
-    		return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели позиция");
-    	}
+        // Проверяваме дали имаме въведени позиции
+        $query = hr_Positions::getQuery();
+        
+        if($query->fetchAll() == FALSE){
+            
+            // Ако няма, изискваме от потребителя да въведе
+            return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели позиция");
+        }
     }
-
     
+    /**
+     * @todo Чака за документация...
+     */
     static function act_Test()
     {
-    	$id = 2;
-    	//bp(Mode::is('Printing'));
+        $id = 2;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     static public function getWorkingSchedule($id)
     {
-    	$departmentId = self::fetchField($id, 'departmentId');
-    	
-    	$schedule = hr_Departments::fetchField($departmentId, 'schedule');
-    	
-    	return $schedule;
+        $departmentId = self::fetchField($id, 'departmentId');
+        
+        $schedule = hr_Departments::fetchField($departmentId, 'schedule');
+        
+        return $schedule;
     }
     
     
     /**
-     * 
      * Изчислява седмичното натоварване според графика в секунди
      * @param int $id
      */
     static public function houresForAWeek($id)
     {
-    	// Кой е графика
-    	$scheduleId = static::getWorkingSchedule($id);
-    	
-    	// Каква продължителност има
-    	$duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
-    	
-    	// Извличане на данните за циклите
+        // Кой е графика
+        $scheduleId = static::getWorkingSchedule($id);
+        
+        // Каква продължителност има
+        $duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
+        
+        // Извличане на данните за циклите
         $stateDetails = hr_WorkingCycleDetails::getQuery();
-
-		// Подробности за конкретния цикъл
-		$stateDetails->where("#cycleId='{$scheduleId}'");
-		while ($rec = $stateDetails->fetch()){
-			$cycleDetails [] = $rec;
-		}
-		
-		if(is_array($cycleDetails)){
-			foreach($cycleDetails as $cycDuration){
-			
-				$allHours += $cycDuration->duration;
-				$break += $cycDuration->break;
-			}
-			
-			$hoursWeekSec = ($allHours - $break) / $duration  * 7 ;
-		} else {
-			$hoursWeekSec = 0;
-		}
-		return $hoursWeekSec;
+        
+        // Подробности за конкретния цикъл
+        $stateDetails->where("#cycleId='{$scheduleId}'");
+        
+        while ($rec = $stateDetails->fetch()){
+            $cycleDetails [] = $rec;
+        }
+        
+        if(is_array($cycleDetails)){
+            foreach($cycleDetails as $cycDuration){
+                
+                $allHours += $cycDuration->duration;
+                $break += $cycDuration->break;
+            }
+            
+            $hoursWeekSec = ($allHours - $break) / $duration  * 7 ;
+        } else {
+            $hoursWeekSec = 0;
+        }
+        
+        return $hoursWeekSec;
     }
-
+    
     /*******************************************************************************************
      * 
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
@@ -610,7 +625,7 @@ class hr_EmployeeContracts extends core_Master
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
                 'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
-                'num' => $rec->id,
+                'num' => "Ec" . $rec->id,
                 'features' => 'foobar' // @todo!
             );
         }
@@ -620,24 +635,6 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec = $self->fetch($objectId)) {
-            $result = $self->getHyperlink($objectId);
-        } else {
-            $result = '<i>' . tr('неизвестно') . '</i>';
-        }
-        
-        return $result;
-    }
-
-	
-    /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
      */
@@ -645,12 +642,10 @@ class hr_EmployeeContracts extends core_Master
     {
         // @todo!
     }
-        
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
-    
     
     /****************************************************************************************
      *                                                                                      *
@@ -661,7 +656,7 @@ class hr_EmployeeContracts extends core_Master
     
     /**
      * Проверка дали нов документ може да бъде добавен в
-     * посочената папка 
+     * посочената папка
      *
      * @param $folderId int ид на папката
      */
@@ -670,7 +665,7 @@ class hr_EmployeeContracts extends core_Master
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
         if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
-        	return TRUE;
+            return TRUE;
         }
         
         /*$personId = doc_Folders::fetchCoverId($folderId);
@@ -682,7 +677,7 @@ class hr_EmployeeContracts extends core_Master
         
         return FALSE;
     }
- 
+    
     
     /**
      * Интерфейсен метод на doc_DocumentInterface
@@ -702,13 +697,12 @@ class hr_EmployeeContracts extends core_Master
     }
     
     
-	/**
+    /**
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getAllowedFolders()
     {
-    	return array('crm_PersonAccRegIntf');
+        return array('crm_PersonAccRegIntf');
     }
- 
 }

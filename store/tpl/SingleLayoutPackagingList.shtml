@@ -1,136 +1,188 @@
 [#SingleToolbar#]
 <div class='document'>
- 
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-
-	<!--ET_BEGIN header-->
-		<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
-		</div>
-	<!--ET_END header-->
-<table width=100% cellpadding="0" cellspacing="0">
-    <tbody>
-    <tr>
-        <td>
-           	<div class='scrolling-holder'>
-           	<div class='display-table'>
-            <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
-                <tbody>
-                <tr>
-                    <td class="cell custom-header-bg" width="35%"><b>Receiver</b></td>
-                    <td class="cell" align="center" width="30%" rowspan='2'>
-                        <div class="document-title">PACKAGING LIST</div>
-                        
-                        <div style="padding-top:5px;">
-                        	№ <span class="bigData">[#id#]</span> / 
-                        	<span class="bigData">[#valior#]</span>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <!--ET_END header-->
+    <table style="width:100%">
+        <tbody>
+            <tr>
+                <td>
+                    <div class='scrolling-holder'>
+                        <div class='display-table'>
+                            <table class="innerTable border-table paddingCells">
+                                <tbody>
+                                    <tr>
+                                        <td class="cell custom-header-bg" style="width:35%"><b>Receiver</b></td>
+                                        <td class="cell centered" rowspan='2' style="width:30%">
+                                            <div class="document-title">PACKAGING LIST</div>
+                                            <div style="padding-top:5px;">
+                                                № <span class="bigData">[#id#]</span> / 
+                                                <span class="bigData">[#valior#]</span>
+                                            </div>
+                                            <!--ET_BEGIN state-->
+                                            <br>
+                                            <div class="[#STATE_CLASS#]">[#state#]</div>
+                                            <br>
+                                            <!--ET_END state-->
+                                        </td>
+                                        <td class="cell custom-header-bg" style="width:35%"><b>Supplier</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="cell">
+                                            <b>[#contragentName#]</b>
+                                            <div class='address-block'>
+                                                [#contragentCountryId#]
+                                                <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                                            </div>
+                                        </td>
+                                        <td class="cell">
+                                            <b>[#MyCompany#]</b>
+                                            <div class='address-block'>
+                                                [#MyAddress#]
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="lines"></div>
+                            <div class="details">
+                                [#store_ShipmentOrderDetails#]
+                            </div>
+                            <div class="lines"></div>
+                            <table class="innerTable footer-notes paddingCells" style="width:100%">
+                                <tbody>
+                                    <tr>
+                                        <td class="topCell first vtop"  style="width:50%">
+                                            <table class='shipment-table' style="width:100%" >
+                                                <!--ET_BEGIN DELIVERY_ADRESS-->
+                                                [#DELIVERY_ADRESS#]
+                                                <tr>
+                                                    <td colspan='2' style='border-bottom:1px solid #999;' class='quiet nowrap'>Delivery address</td>
+                                                </tr>
+                                                <!--ET_BEGIN company-->
+                                                <tr>
+                                                    <td class='quiet aright'>Company:</td>
+                                                    <td>[#company#]</td>
+                                                </tr>
+                                                <!--ET_END company-->
+                                                <!--ET_BEGIN person-->
+                                                <tr>
+                                                    <td class='quiet aright'>Person:</td>
+                                                    <td>[#person#]</td>
+                                                </tr>
+                                                <!--ET_END person-->
+                                                <!--ET_BEGIN country-->
+                                                <tr>
+                                                    <td class='quiet aright'>Country:</td>
+                                                    <td>[#country#]</td>
+                                                </tr>
+                                                <!--ET_END country-->
+                                                <!--ET_BEGIN tel-->
+                                                <tr>
+                                                    <td class='quiet aright'>Phones:</td>
+                                                    <td>[#tel#]</td>
+                                                </tr>
+                                                <!--ET_END tel-->
+                                                <!--ET_BEGIN pCode-->
+                                                <tr>
+                                                    <td class='quiet aright'>Post code:</td>
+                                                    <td>[#pCode#]</td>
+                                                </tr>
+                                                <!--ET_END pCode-->
+                                                <!--ET_BEGIN place-->
+                                                <tr>
+                                                    <td class='quiet aright'>City:</td>
+                                                    <td>[#place#]</td>
+                                                </tr>
+                                                <!--ET_END place-->
+                                                <!--ET_BEGIN address-->
+                                                <tr>
+                                                    <td class='quiet aright'>Address:</td>
+                                                    <td>[#address#]</td>
+                                                </tr>
+                                                <!--ET_END address-->
+                                                <!--ET_END DELIVERY_ADRESS-->
+                                                <!--ET_BEGIN note-->
+                                                <tr>
+                                                    <td colspan=2 >
+                                                        <hr>
+                                                        [#note#]
+                                                    </td>
+                                                </tr>
+                                                <!--ET_END note-->
+                                            </table>
+                                        </td>
+                                        <td>
+                                            <table class='shipment-table' style="width:100%">
+                                                <!--ET_BEGIN deliveryTime-->
+                                                <tr>
+                                                    <td class='nowrap quiet aright' style="width:1%">Delivery time:</td>
+                                                    <td>[#deliveryTime#]</td>
+                                                </tr>
+                                                <!--ET_END deliveryTime-->
+                                                <!--ET_BEGIN storeId-->
+                                                <tr>
+                                                    <td class='nowrap quiet aright'>From store:</td>
+                                                    <td>[#storeId#]</td>
+                                                </tr>
+                                                <!--ET_END storeId-->
+                                                <!--ET_BEGIN locationId-->
+                                                <tr>
+                                                    <td class='nowrap quiet aright'>Delivery place:</td>
+                                                    <td><b>[#locationId#]</b>, [#deliveryLocationAddress#]</td>
+                                                </tr>
+                                                <!--ET_END locationId-->
+                                                <!--ET_BEGIN lineId-->
+                                                <tr>
+                                                    <td class='nowrap quiet aright'>Transport: </td>
+                                                    <td>[#lineId#]</td>
+                                                </tr>
+                                                <!--ET_END lineId-->
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <hr>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            <div>Total weight:&nbsp;[#weight#] &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;[#volume#] &nbsp;&nbsp;&nbsp;&nbsp;Collets count:&nbsp;[#colletsCount#]</div>
+                                            <hr>
+                                            <table class='centered' style="width:100%">
+                                                <tr>
+                                                    <td class='centered' style='border-right:1px solid #999;width:50%;'>Received:</td>
+                                                    <td class='centered'>Created by:</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style='height:40px;border-right:1px solid #999'>&nbsp;</td>
+                                                    <td></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                                                    <td class='nowrap centared'><span class="sign_names">[#username#]</span></td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr class='footerDocInfo'>
+                                        <td colspan="2">
+                                             <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        
-                        <!--ET_BEGIN state-->
-                        <br/>
-                        <div class="[#STATE_CLASS#]">[#state#]</div>
-                        <!--ET_END state-->
-                    </td>
-                    <td class="cell custom-header-bg" width="35%"><b>Supplier</b></td>
-                    </tr>
-                    <tr>
-                    <td class="cell">
-                    <!--ET_BEGIN contragent-->
-                        <b>[#contragentName#]</b><br>
-                        <br>
-                        <!--ET_BEGIN contragentAddress-->
-                            [#contragentAddress#]<br>
-                        <!--ET_END contragentAddress-->
-					<!--ET_END contragent-->
-					</td>
-					<td class="cell">
-                    <!--ET_BEGIN supplier-->
-                        <b>[#MyCompany#]</b><br>
-                        <br>
-                        [#MyAddress#] <br>
-                    <!--ET_END supplier-->
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-			<div class="lines"></div>
-			<div class="details">
-            		[#store_ShipmentOrderDetails#]
-           	</div>
-           	<div class="lines"></div>		
-            <table class="innerTable footer-notes" border="1" cellpadding="5" cellspacing="0" width="100%">
-                <tbody><tr>
-                    <td class="topCell first" valign="top" width=50%>
-                    
-                    <table class='shipment-table' width=100% >
-                    <!--ET_BEGIN deliveryTime-->
-                        <tr>
-                            <td width='1%' class='nowrap quiet' align=right>Delivery time:</td>
-                            <td>[#deliveryTime#]</td>
-                        </tr>
-                    <!--ET_END deliveryTime-->
-                    <!--ET_BEGIN storeId-->
-                        <tr>
-                            <td class='nowrap quiet' align=right>From store:</td>
-                            <td>[#storeId#]</td>
-                        </tr>
-                    <!--ET_END storeId-->
-                    <!--ET_BEGIN locationId-->
-                        <tr>
-                            <td class='nowrap quiet' align=right>Delivery place:</td>
-                            <td>[#locationId#]</td>
-                        </tr>
-                    <!--ET_END locationId-->
-                    <!--ET_BEGIN lineId-->
-                        <tr>
-                            <td class='nowrap quiet' align=right>Transport: </td>
-                            <td>[#lineId#]</td>
-                        </tr>
-                    <!--ET_END lineId--> 
-                    <!--ET_BEGIN note-->
-                        <tr>
-                            <td colspan=2 > 
-                                    <hr>
-                                    [#note#]
-                            </td>
-                        </tr>
-                     <!--ET_END note-->
-                    </table>
-                    </td>
-                    <td>
-                        <div>Total weight:&nbsp;[#weight#] &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;[#volume#] &nbsp;&nbsp;&nbsp;&nbsp;Collets count:&nbsp;[#colletsCount#]</div>
-	                
-	                    <hr>
-                           
-                              <table align=center width='100%'>
-                                   <tr>
-                                        <td width='50%' align=center style='border-right:1px solid #999'>Received:</td>
-                                        <td align=center>Created by:</td>
-                                    </tr>
-                                    <tr>
-                                        <td style='height:40px;border-right:1px solid #999'>&nbsp;</td><td></td>
-                                    </tr>
-                                    <tr>
-                                       
-                                        <td align=center style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                          <td class='nowrap' align=center><span class="sign_names">[#username#]</span></td>
-                                        
-                                    </tr>           
-                              </table> 
-                    </td>
-                       
-                </tbody>
-            </table>
-            
- 				<!--ET_BEGIN DETAILS-->
-				<div class='details'>
-					[#DETAILS#]
-				</div>
-				<!--ET_END DETAILS-->
-        </td>
-    </tr>
-    </tbody>
-</table>
+                    </div>
+                    <!--ET_BEGIN DETAILS-->
+                    <div class='details'>
+                        [#DETAILS#]
+                    </div>
+                    <!--ET_END DETAILS-->
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </div>

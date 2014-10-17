@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Ценоразписи от каталога
@@ -113,8 +113,9 @@ class price_Lists extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика,width=100%');
+        $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика');
         $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,noChange');
+        $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Отстъпка към');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без начисляване)', 'caption=ДДС'); 
@@ -122,9 +123,9 @@ class price_Lists extends core_Master
         $this->FNC('validFrom', 'datetime', 'caption=Прикрепяне->В сила от,input=hidden');
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
-        $this->FLD('roundingPrecision', 'double', 'caption=Закръгляне->Точност');
-        $this->FLD('roundingOffset', 'double', 'caption=Закръгляне->Отместване');
-
+        $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Десетични знаци');
+        $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
+        
         $this->setDbUnique('title');
     }
 
@@ -151,7 +152,7 @@ class price_Lists extends core_Master
             $form->setField('public', 'input=hidden');
             $form->setField('customer', 'input');
             $form->setField('validFrom', 'input');
-            $title = $cMvc->gettitleById($rec->cId);
+            $title = $cMvc->gettitleById($rec->cId, FALSE);
             $rec->customer =  $title;
             $rec->public = 'no';
             $form->setReadonly('customer');
@@ -178,6 +179,22 @@ class price_Lists extends core_Master
 
 
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		if(($form->rec->id) && isset($form->rec->discountCompared) && $form->rec->discountCompared == $form->rec->id){
+    			$form->setError('discountCompared', 'Неможе да изберете същата политика');
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след създаване на нов набор от ценови правила
      */
     function on_AfterCreate($mvc, $rec)
@@ -202,6 +219,8 @@ class price_Lists extends core_Master
         if($rec->parent) {
             $row->parent = ht::createLink($row->parent, array('price_Lists', 'Single', $rec->parent));
         }
+        
+        $row->currency = "<span class='cCode'>{$row->currency}</span>";
     }
 
 
@@ -229,9 +248,9 @@ class price_Lists extends core_Master
      * Себестойност - тук се задават цените на придобиване на стоките, продуктите и услугите
      * Каталог - това са цените които се публикуват
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function loadSetupData()
     {
-		if(!$mvc->fetchField(price_ListRules::PRICE_LIST_COST, 'id')) {
+		if(!$this->fetchField(price_ListRules::PRICE_LIST_COST, 'id')) {
             $rec = new stdClass();
             $rec->id = price_ListRules::PRICE_LIST_COST;
             $rec->parent = NULL;
@@ -241,10 +260,10 @@ class price_Lists extends core_Master
             $rec->public = 'no';
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
-            $mvc->save($rec, NULL, 'REPLACE');
+            $this->save($rec, NULL, 'REPLACE');
         }
         
-        if(!$mvc->fetchField(price_ListRules::PRICE_LIST_CATALOG, 'id')) {
+        if(!$this->fetchField(price_ListRules::PRICE_LIST_CATALOG, 'id')) {
             $rec = new stdClass();
             $rec->id = price_ListRules::PRICE_LIST_CATALOG;
             $rec->parent = price_ListRules::PRICE_LIST_COST;
@@ -252,9 +271,10 @@ class price_Lists extends core_Master
             $rec->currency = acc_Periods::getBaseCurrencyCode();
             $rec->vat = 'yes';
             $rec->public = 'yes';
+            $rec->roundingPrecision = 3;
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
-            $mvc->save($rec, NULL, 'REPLACE');
+            $this->save($rec, NULL, 'REPLACE');
         }
     }
 }

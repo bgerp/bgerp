@@ -1,49 +1,62 @@
 [#SingleToolbar#]
-                 
-	<div class='document'>
-		<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#]'>|Задача|* <b>[#ident#]</b> ([#state#])</div>
-		</div>
-
-		<div class='antetka' style='line-height:150%;'>
-			<b>[#title#]</b><br>
-			<small>
-			<div>
-				|Приоритет|*: [#priority#]
-			</div>
-			<div>
-				|Отговорници|*: [#shareLog#]
-			</div>
-				
-			<!--ET_BEGIN timeStart-->
-            |Начало|*: [#timeStart#]<br>
-            <!--ET_END timeStart-->
-
-			<!--ET_BEGIN timeDuration-->
-            |Продължителност|*: [#timeDuration#]<br>
-            <!--ET_END timeDuration-->
-            
-			<!--ET_BEGIN timeEnd-->
-	        |Краен срок|*: [#timeEnd#] [#remainingTime#]<br />                   
-			<!--ET_END timeEnd-->
-			
-			 
-	        |Прогрес|*: [#progressBar#] [#progress#] <br />
-			
-			<!--ET_BEGIN workingTime-->
-	        |Отработено време|*: [#workingTime#] <br />                   
-			<!--ET_END workingTime-->
-			
-
-			</small>
-		</div>
- 	    <div style='padding-top:10px;'>[#description#]</div>
-		
-		<!--ET_BEGIN DETAILS-->
-			<div class='details'>
-				[#DETAILS#]
-			</div>
-		<!--ET_END DETAILS-->
-		
-        <div style='clear: both;'></div>
-    </div>         
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#]'>|Задача|* <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <div class='antetka' style='line-height:150%;'>
+        <b>[#title#]</b><br>
+        <div class="small">
+            <table class='full-width'>
+                <tr>
+                    <td>
+                        <div>
+                            |Приоритет|*: [#priority#]
+                        </div>
+                        <div>
+                            |Отговорници|*: [#shareLog#]
+                        </div>
+                        <!--ET_BEGIN timeStart-->
+                        |Начало|*: [#timeStart#]<br>
+                        <!--ET_END timeStart-->
+                        <!--ET_BEGIN timeDuration-->
+                        |Продължителност|*: [#timeDuration#]<br>
+                        <!--ET_END timeDuration-->
+                        <!--ET_BEGIN timeEnd-->
+                        |Краен срок|*: [#timeEnd#] [#remainingTime#]<br>                   
+                        <!--ET_END timeEnd-->
+                       
+                    </td>
+                    <!--ET_BEGIN dependsInfo-->
+                    [#dependsInfo#]
+                    <td style='padding-left:30px;width:45%;'>
+                        |Прогрес|*: [#progressBar#] [#progress#] <br>
+                        <!--ET_BEGIN workingTime-->
+                        |Отработено време|*: [#workingTime#] <br>                   
+                        <!--ET_END workingTime-->
+                        <!--ET_BEGIN afterTask-->
+                        |Започване след задача|*: [#afterTask#]<br>
+                        <!--ET_END afterTask-->
+                        <!--ET_BEGIN afterTaskProgress-->
+                        |Прогрес на задачата|*: [#afterTaskProgress#]<br>
+                        <!--ET_END afterTaskProgress-->
+                         <!--ET_BEGIN expectationTimeEnd-->
+                        |Очакван край|*: [#expectationTimeEnd#] <br>                   
+                        <!--ET_END expectationTimeEnd-->
+                        <!--ET_END dependsInfo-->
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div style='padding-top:10px;'>[#description#]</div>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
+    <div style='clear: both;'></div>
+</div>
+<div style='clear: both;'></div>

@@ -1,19 +1,20 @@
 <div id='summary-title'>|Резултати|*:</div>
-<ul id = 'summary'>
-<!--ET_BEGIN ROW-->
-	<li style='margin-top:10px;margin-bottom:10px;'>
-		<div class='summary-question'>[#QUESTION#] 
-		<!--ET_BEGIN points--><span class='summary-points'>[#points#] |точки|*</span><!--ET_END points-->
-		</div>
-		<ul class='summary-answers' style='list-style:none'>
-			<!--ET_BEGIN subRow-->
-			<li>
-				<span class='summary-answer'>[#text#]</span> - 
-				<span class='summary-percent'>[#percent#]</span> %  
-				<span class='summary-votes'>( [#votes#] |гласа|* )</span>
-			</li>
-			<!--ET_END subRow-->
-		</ul>
-	</li>
-<!--ET_END ROW-->
+<ul id = 'survey-summary'>
+    <!--ET_BEGIN ROW-->
+    <li style='margin-top:10px;margin-bottom:10px;'>
+        <div class='summary-question'>
+            [#QUESTION#] 
+            <!--ET_BEGIN points--><span class='summary-points'>[#points#] |точки|*</span><!--ET_END points-->
+        </div>
+        <ul class='summary-answers' style='list-style:none'>
+            <!--ET_BEGIN subRow-->
+            <li>
+                <span class='summary-answer'>[#text#]</span> - 
+                <span class='summary-percent'>[#percent#]</span> %  
+                <span class='summary-votes'>( [#votes#] |гласа|* )</span>
+            </li>
+            <!--ET_END subRow-->
+        </ul>
+    </li>
+    <!--ET_END ROW-->
 </ul>

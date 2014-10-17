@@ -9,7 +9,7 @@ defIfNot('EMAIL_MAX_FETCHING_TIME', 30);
 /**
  * Максималната разрешена памет за използване
  */
-defIfNot('EMAIL_MAX_ALLOWED_MEMORY', '800M');
+defIfNot('EMAIL_MAX_ALLOWED_MEMORY', '838860800');
 
 
 /**
@@ -78,6 +78,57 @@ defIfNot('EMAIL_THREAD_HANDLE_LEGACY_TYPES', 'type0');
 
 
 /**
+ * Максимален размер на примкачените файлове при изпращане на имейл
+ * 20MB
+ */
+defIfNot('EMAIL_MAX_ATTACHED_FILE_LIMIT', 20971520);
+
+
+/**
+ * Имейла по подразбиране, при изпращане
+ */
+defIfNot('EMAIL_DEFAULT_SENT_INBOX', '');
+
+
+/**
+ * Хедъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл
+ */
+defIfNot('EMAIL_OUTGOING_HEADER_TEXT', "[#hello#] [#salutation#] [#name#]");
+
+
+/**
+ * Хедъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл - на английски
+ */
+defIfNot('EMAIL_OUTGOING_HEADER_TEXT_EN', "[#hello#] [#salutation#] [#name#]");
+
+
+/**
+ * Футъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл
+ */
+defIfNot('EMAIL_OUTGOING_FOOTER_TEXT', "Сърдечни поздрави,\r
+[#name#]\r
+[#company#]\r
+[#position#]\r
+Тел.: [#tel#]\r
+Факс: [#fax#]\r
+[#email#]\r
+[#website#]");
+
+
+/**
+ * Футъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл - на английски
+ */
+defIfNot('EMAIL_OUTGOING_FOOTER_TEXT_EN', "Best regards,\r
+[#name#]\r
+[#company#]\r
+[#position#]\r
+Tel.: [#tel#]\r
+Fax: [#fax#]\r
+[#email#]\r
+[#website#]");
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -137,7 +188,7 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_POP3_TIMEOUT'  => array ('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на POP3 сокета->Време'),
             
             // Максималната разрешена памет за използване
-            'EMAIL_MAX_ALLOWED_MEMORY' => array ('fileman_FileSize', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер, suggestions=10 kB|20 kB|30 kB|40 kB'),
+            'EMAIL_MAX_ALLOWED_MEMORY' => array ('fileman_FileSize', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер, suggestions=100 MB|200 MB|400 MB|800 MB|1200 MB'),
 
             // Шаблон за име на папки
             'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
@@ -155,14 +206,26 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи в текстовата част на входящите имейли->Символи'),
             
             // Тип на манипулатора в събджекта
-            'EMAIL_THREAD_HANDLE_POS' => array ('enum(BEFORE_SUBJECT=Преди събдекта,AFTER_SUBJECT=След събджекта)', 'caption=Манипулатор на нишка в събджект на имейл->Позиция'),
+            'EMAIL_THREAD_HANDLE_POS' => array ('enum(BEFORE_SUBJECT=Преди събджекта,AFTER_SUBJECT=След събджекта)', 'caption=Манипулатор на нишка в събджект на имейл->Позиция'),
             
             // Позиция на манипулатора в събджекта
             'EMAIL_THREAD_HANDLE_TYPE' => array ('enum(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Тип'),
             
             // Позиция на манипулатора в събджекта
             'EMAIL_THREAD_HANDLE_LEGACY_TYPES' => array ('set(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Наследени,columns=1'),
-
+            
+            // Максимален размер на прикачените файлове и документи
+            'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array ('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
+            
+            'EMAIL_DEFAULT_SENT_INBOX' => array ('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изходящ имейл->По подразбиране, customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
+    
+            'EMAIL_OUTGOING_HEADER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Привет, customizeBy=powerUser'),
+    
+            'EMAIL_OUTGOING_HEADER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Привет EN, customizeBy=powerUser'),
+    
+            'EMAIL_OUTGOING_FOOTER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Подпис, customizeBy=powerUser'),
+    
+            'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Подпис EN, customizeBy=powerUser'),
         );
         
         
@@ -186,6 +249,7 @@ class email_Setup extends core_ProtoSetup
             'email_Salutations',
             'email_ThreadHandles',
             'migrate::transferThreadHandles',
+            'migrate::fixEmailSalutations'
         );
     
 
@@ -252,18 +316,49 @@ class email_Setup extends core_ProtoSetup
     function transferThreadHandles()
     {
         $docThreads = cls::get('doc_Threads');
+        
+        if($docThreads->db->isFieldExists($docThreads->dbTableName, 'handle')) {
+            // Манипулатор на нишката (thread handle)
+            $docThreads->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
 
-        // Манипулатор на нишката (thread handle)
-        $docThreads->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
+            $tQuery = $docThreads->getQuery();
 
-        $tQuery = $docThreads->getQuery();
-
-        while($rec = $tQuery->fetch("#handle IS NOT NULL")) {
-            $rec->handle = strtoupper($rec->handle);
-            if($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
-                email_ThreadHandles::save( (object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle));
+            while($rec = $tQuery->fetch("#handle IS NOT NULL")) {
+                $rec->handle = strtoupper($rec->handle);
+                if($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
+                    email_ThreadHandles::save( (object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle));
+                }
+            }
+        } 
+    }
+    
+    
+    /**
+     * Миграция
+     * Премахва празните записи и добавя toEmail
+     */
+    public static function fixEmailSalutations()
+    {
+        $query = email_Salutations::getQuery();
+        while ($rec = $query->fetch()) {
+            
+            // Ако няма обръщение, премахваме от списъка
+            if (!trim($rec->salutation) || !$rec->containerId) {
+                email_Salutations::delete($rec->id);
+                continue;
+            }
+            
+            // От имейла извличаме стойността на полето имейл и обновяваме записа
+            $doc = doc_Containers::getDocument($rec->containerId);
+            if (($doc->instance instanceof email_Outgoings) && $doc->that) {
+                $emailRec = $doc->instance->fetch($doc->that);
+                
+                $rec->state = $emailRec->state;
+                
+                $rec->toEmail = $emailRec->email;
+                
+                email_Salutations::save($rec);
             }
         }
-
     }
 }

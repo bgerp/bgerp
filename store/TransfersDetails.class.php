@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_TransfersDetails extends core_Detail
+class store_TransfersDetails extends doc_Detail
 {
     /**
      * Заглавие
@@ -86,8 +86,8 @@ class store_TransfersDetails extends core_Detail
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('productId', 'key(mvc=store_Products,select=name)', 'caption=Продукт,notNull,mandatory,silent');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
-        $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка');
+        $this->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FLD('isConvertable', 'enum(no,yes)', 'input=none');
@@ -138,7 +138,7 @@ class store_TransfersDetails extends core_Detail
     /**
      * След обработка на записите от базата данни
      */
-    public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
     
@@ -150,7 +150,7 @@ class store_TransfersDetails extends core_Detail
                     $row->packagingId = ($rec->uomId) ? $row->uomId : '???';
                 } else {
                     $shortUomName = cat_UoM::getShortName($rec->uomId);
-                    $row->quantityInPack = $mvc->fields['quantityInPack']->type->toVerbal($rec->quantityInPack);
+                    $row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
             }
@@ -219,7 +219,7 @@ class store_TransfersDetails extends core_Detail
             $rec->uomId = $productInfo->productRec->measureId;
             
             // Дали продукта е вложим
-            $rec->isConvertable = isset($productInfo->meta['canConvert']) ? 'yes' : 'no';
+            $rec->isConvertable = isset($productInfo->meta['materials']) ? 'yes' : 'no';
     	}
     }
     

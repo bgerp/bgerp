@@ -91,8 +91,8 @@ class forum_Boards extends core_Master {
 	 */
 	function description()
 	{
-		$this->FLD('title', 'varchar(50)', 'caption=Име, mandatory, width=400px');
-		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory, width=100%');
+		$this->FLD('title', 'varchar(50)', 'caption=Име, mandatory');
+		$this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory');
 		$this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория, mandatory');
 		$this->FLD('boardType', 'enum(normal=Нормална,confidential=Конфиденциална)', 'caption=Достъп->Тип, notNull, value=normal');
 		$this->FLD('shared', 'userList', 'caption=Достъп->Споделяне');
@@ -308,11 +308,13 @@ class forum_Boards extends core_Master {
 	 */
 	function renderNavigation($data)
 	{
+		$navigation = '';
 		if($data->navigation) {
 			foreach($data->navigation as $nav) {
 				$navigation .= $nav . "&nbsp;»&nbsp;"; 
 			}
 		}
+		
 		// Премахваме излишните символи от края на линка
 		$navigation = trim($navigation, "&nbsp»&nbsp;");
 		$navigation = "<span id='navigation-inner-link'>" . $navigation . "</span>";
@@ -508,9 +510,9 @@ class forum_Boards extends core_Master {
 	static function on_AfterPrepareListToolbar($mvc, &$data)
     {
 		if($cat = Request::get('category')){
-			$url = array($this, 'forum', 'cat' => $cat);
+			$url = array($mvc, 'forum', 'cat' => $cat);
 		} else {
-			$url = array($this, 'forum');
+			$url = array($mvc, 'forum');
 		  }
 		
     	$data->toolbar->addBtn('Преглед', $url);

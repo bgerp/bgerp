@@ -17,7 +17,7 @@ class email_Returned extends core_Manager
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper,  email_incoming_Wrapper';
+    var $loadList = 'email_Wrapper';
     
     
     /**

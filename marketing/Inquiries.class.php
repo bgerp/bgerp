@@ -165,9 +165,9 @@ class marketing_Inquiries extends core_Master
     function description()
     {
     	$this->FLD('drvId', 'class(interface=techno_ProductsIntf,select=title,allowEmpty)', 'caption=Тип,silent,mandatory');
-    	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,width=6em');
-    	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,width=6em');
-    	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,width=6em');
+    	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество');
+    	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество');
+    	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество');
     	
     	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Лице за връзка,contragentDataField=person');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава,mandatory');
@@ -464,6 +464,7 @@ class marketing_Inquiries extends core_Master
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->title = $mvc->getTitle($rec);
     		
+    		$attr = array();
     		$attr['class'] = 'linkWithIcon';
     		$attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, $attr);
@@ -563,8 +564,6 @@ class marketing_Inquiries extends core_Master
              */
             $PML->Encoding = "quoted-printable";
     		
-    		Mode::push('printing', TRUE);
-    		
     		Mode::push('text', 'plain');
     		
     		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
@@ -615,8 +614,6 @@ class marketing_Inquiries extends core_Master
         	
     		Mode::pop('text');
     		
-    		Mode::pop('printing');
-    		
     		// Име на фирма/лице / име на продукта
     		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
@@ -657,9 +654,11 @@ class marketing_Inquiries extends core_Master
     	$rec = $this->fetchRec($id);
     	$Driver = cls::get($rec->drvId);
     	
-    	$name = $this->fields['name']->type->toVerbal((($rec->company) ? $rec->company : $rec->name));
+    	$name = $this->getFieldType('name')->toVerbal((($rec->company) ? $rec->company : $rec->name));
     	
-    	return $subject = "{$name} / {$Driver->getProductTitle((object)$rec->data)}";
+    	$subject = "{$name} / {$Driver->getProductTitle((object)$rec->data)}";
+    	
+    	return $subject;
     }
     
     
@@ -734,7 +733,6 @@ class marketing_Inquiries extends core_Master
         $time = dt::mysql2verbal($rec->createdOn, 'H:i');
 
         $tpl = new ET(tr("Благодарим за Вашето запитване, получено на [#1#] в [#2#] чрез нашия уеб сайт."), $date, $time);
-        $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
     }

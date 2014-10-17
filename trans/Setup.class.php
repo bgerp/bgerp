@@ -71,9 +71,15 @@ class trans_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-		'TRANS_LINES_CRON_INTERVAL' => array("time", 'caption=Период за генериране и затваряне на линии'),
+		'TRANS_LINES_CRON_INTERVAL' => array("time", 'caption=Период за генериране и затваряне на линии->Време'),
 	);
 
+	
+	/**
+	 * Път до css файла
+	 */
+//	var $commonCSS = 'trans/tpl/LineStyles.css';
+	
 	
     /**
      * Де-инсталиране на пакета

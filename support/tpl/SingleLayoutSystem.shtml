@@ -1,45 +1,37 @@
 <div class='SingleView'>
-	[#SingleToolbar#]
-<div class='scrolling-holder'>
-	<div class="folder-cover [#STATE_CLASS#]">
-	  <div class="inner-folder">
-		<div class="block_title [#STATE_CLASS#] special-title">
-	         [#SingleIcon#] |Поддръжка на|* "[#name#]"
+    [#SingleToolbar#]
+    <div class='scrolling-holder'>
+        <div class="folder-cover [#STATE_CLASS#]">
+            <div class="inner-folder">
+                <div class="block_title [#STATE_CLASS#] special-title">
+                    [#SingleIcon#] |Поддръжка на|* "[#name#]"
+                </div>
+                <!--ET_BEGIN prototype-->
+                <fieldset class="detail-info">
+                    <legend class="groupTitle">|Прототип|*</legend>
+                    <div class="groupList">
+                        <div>[#prototype#]</div>
+                    </div>
+                </fieldset>
+                <!--ET_END prototype-->
+                <!--ET_BEGIN allowedTypes-->
+                <fieldset class="detail-info">
+                    <legend class="groupTitle">|Позволени типове|*</legend>
+                    <div class="groupList">
+                        [#allowedTypes#]
+                    </div>
+                </fieldset>
+                <!--ET_END allowedTypes-->
+                <div>
+                    <br>
+                    |Компоненти|*:
+                    <!--ET_BEGIN DETAILS-->
+                    <div class='details'>
+                        [#DETAILS#]
+                    </div>
+                    <!--ET_END DETAILS-->
+                </div>
+            </div>
         </div>
-		
-		
-			 <!--ET_BEGIN prototype-->
-		        <fieldset class="detail-info">
-		            <legend class="groupTitle">|Прототип|*</legend>
-		            <div class="groupList">
-		                    
-						<div>[#prototype#]</div>
-				            
-		            </div>
-		        </fieldset>
-		       <!--ET_END prototype-->
-			
-			<!--ET_BEGIN allowedTypes-->
-			<fieldset class="detail-info">
-	            <legend class="groupTitle">|Позволени типове|*</legend>
-	            <div class="groupList">
-					[#allowedTypes#]
-	            </div>
-	        </fieldset>
-			<!--ET_END allowedTypes-->
-		    
-		<div>
-		<br />
-			|Компоненти|*:
-			
-			<!--ET_BEGIN DETAILS-->
-				<div class='details'>
-					[#DETAILS#]
-				</div>
-			<!--ET_END DETAILS-->
-			
-		</div>
-	</div>
-   </div>
-  </div>
+    </div>
 </div>

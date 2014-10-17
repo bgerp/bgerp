@@ -43,7 +43,7 @@ class cash_Cases extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, name, cashiers';
+    var $listFields = 'tools=Пулт, name, cashiers, blAmount=Сума';
     
     
     /**
@@ -78,6 +78,18 @@ class cash_Cases extends core_Master {
      * Кой може да пише
      */
     var $canWrite = 'ceo, cashMaster';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canReject = 'ceo, cashMaster';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canRestore = 'ceo, cashMaster';
     
     
     /**
@@ -159,15 +171,38 @@ class cash_Cases extends core_Master {
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,oldFiled=Title,mandatory');
         $this->FLD('cashiers', 'userList(roles=cash|ceo)', 'caption=Касиери,mandatory');
+        $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
     }
     
     
 	/**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
+    function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
+        
+        if(isset($fields['-list'])){
+        	$caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+        	$Balance = new acc_ActiveShortBalance(array('itemsAll' => $caseItem->id));
+        	$rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $caseItem->id);
+        	
+        	$Double = cls::get('type_Double');
+        	$Double->params['decimals'] = 2;
+        	$row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "<span>";
+        	if($rec->blAmount < 0){
+        		$row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+        	}
+        }
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     */
+    static function on_AfterPrepareListFields($mvc, $data)
+    {
+    	$data->listFields['blAmount'] .= ", " . acc_Periods::getBaseCurrencyCode();
     }
     
     
@@ -194,6 +229,33 @@ class cash_Cases extends core_Master {
     }
     
     
+    /**
+     * След рендиране на лист таблицата
+     */
+    public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+    	if(!count($data->rows)) return;
+    	
+    	foreach ($data->recs as $rec){
+    		$total += $rec->blAmount;
+    	}
+    	
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	$total = $Double->toVerbal($total);
+    	if($total < 0){
+    		$total = "<span style='color:red'>{$total}</span>";
+    	}
+    	
+    	$colspan = count($data->listFields) - 1;
+    	$lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
+    	$lastRow->replace(tr("Общо"), 'caption');
+    	$lastRow->replace($total, 'total');
+    	
+    	$tpl->append($lastRow, 'ROW_AFTER');
+    }
+    
+    
     /*******************************************************************************************
      * 
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
@@ -212,28 +274,10 @@ class cash_Cases extends core_Master {
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->id,
+                'num' => "Cs" . $rec->id,
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec = $self->fetch($objectId)) {
-        	$result = $self->getHyperlink($objectId);
-        } else {
-            $result = '<i>' . tr('неизвестно') . '</i>';
         }
         
         return $result;
@@ -254,6 +298,15 @@ class cash_Cases extends core_Master {
 	}
     
     
+	/**
+	 * Поставя изискване да се селектират само активните записи
+	 */
+	public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+	{
+		$where .= ($where ? " AND " : "") . " #state != 'rejected'";
+	}
+	
+	
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId

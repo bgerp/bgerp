@@ -23,11 +23,6 @@ defIfNot('BLOGM_COOKIE_LIFETIME', '2592000');
 defIfNot('BLOGM_ARTICLES_PER_PAGE', '5');
 
 
-/**
- *  Код за споделяне на статия
- */
-defIfNot('BLOGM_ARTICLE_SHARE', '');
-
 
 /**
   * class blogm_Setup
@@ -81,11 +76,9 @@ class blogm_Setup extends core_ProtoSetup
 	var $configDescription = array(
 			'BLOGM_DEFAULT_THEME' => array ('class(interface=blogm_ThemeIntf,select=title)', 'caption=Тема по подразбиране в блога->Тема'),
 			
-			'BLOGM_MAX_COMMENT_DAYS' => array ('time(suggestions=15 дни|30 дни|45 дни|50 дни)', 'caption=Време, след което статията се заключва за коментиране->Дни'),
+			'BLOGM_MAX_COMMENT_DAYS' => array ('time(uom=days,suggestions=1 ден|2 дни|5 дни|1 седмица|2 седмици|30 дни|45 дни|50 дни)', 'caption=След колко време статията да се заключва за коментиране?->Време'),
 
-            'BLOGM_ARTICLE_SHARE' => array ('html', 'caption=Код за споделяне на статията->HTML код'),
-
-            'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Броят на статии, които да се показват на страница->Бр. статии '),
+            'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Колко статии да се показват на една страница->Брой'),
 	
 	);
 	
@@ -143,7 +136,7 @@ class blogm_Setup extends core_ProtoSetup
         $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'user', 'every_one');
 
 		// Добавяме класа връщащ темата в core_Classes
-        core_Classes::add('blogm_DefaultTheme');
+        $html .= core_Classes::add('blogm_DefaultTheme');
         
 		return $html;
 	}

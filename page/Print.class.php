@@ -41,6 +41,7 @@ class page_Print extends page_Html {
 			}
          ", "STYLES");
         
+        jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . ">", "HEAD");

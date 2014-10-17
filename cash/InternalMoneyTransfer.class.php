@@ -44,7 +44,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, valior, reason, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, valior, reason, folderId, currencyId=Валута, amount, state, createdOn, createdBy, modifiedOn, modifiedBy";
     
     
     /**
@@ -86,7 +86,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Vpt";
+    var $abbr = "Cvt";
     
     
     /**
@@ -128,7 +128,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason,creditCase,debitBank,debitCase';
+    var $searchFields = 'reason,creditCase,debitBank,debitCase, id';
     
     
     /**
@@ -143,16 +143,16 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка)', 'caption=Операция,width=100%,mandatory,silent');
-    	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,width=6em,mandatory,summary=amount');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=20em,input,mandatory');
-    	$this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,width=300px,input=none');
-    	$this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)','caption=От->Каса,width=300px');
-    	$this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
-        $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=300px,input=none');
-    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,width=20em,input=none');
+    	$this->FLD('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка)', 'caption=Операция,mandatory,silent');
+    	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
+    	$this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,input=none');
+    	$this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)','caption=От->Каса');
+    	$this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,input=none');
+        $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,input=none');
+    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -219,7 +219,7 @@ class cash_InternalMoneyTransfer extends core_Master
     	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
     	$form->title = 'Нов вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png');
-        $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')),  'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', toUrl(array('cash_InternalMoneyTransfer', 'list')),  'ef_icon = img/16/close16.png');
         
        	$folderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
        	$form->setDefault('folderId', $folderId);
@@ -292,17 +292,21 @@ class cash_InternalMoneyTransfer extends core_Master
     {
     	$rec = &$form->rec;
     	if($rec->operationSysId == 'case2case') {
-    		$toCashiers = cash_Cases::fetchField($rec->debitCase, 'cashiers');
-    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
-    		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+    		$caseRec = cash_Cases::fetch($rec->debitCase);
+    		if($caseRec->autoShare == 'yes'){
+    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
+    			$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+    		}
     		
     		// Двете Каси трябва да са различни
     	if($rec->creditCase == $rec->debitCase) {
     			$form->setError("debitCase", 'Дестинацията е една и съща !!!');
     		} 
     	} elseif($rec->operationSysId == 'case2bank') {
-    		$sharedUsers = bank_OwnAccounts::fetchField($rec->debitBank, 'operators');
-    		$rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
+    		$bankRec = bank_OwnAccounts::fetch($rec->debitBank);
+    		if($bankRec->autoShare == 'yes'){
+    			$rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
+    		}
     		
     		$debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
     		if($debitInfo->currencyId != $rec->currencyId) {
@@ -330,7 +334,7 @@ class cash_InternalMoneyTransfer extends core_Master
 	    		$double = cls::get('type_Double');
 	    		$double->params['decimals'] = 2;
 	    		$equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
-    			$row->equals = $mvc->fields['amount']->type->toVerbal($equals);
+    			$row->equals = $mvc->getFieldType('amount')->toVerbal($equals);
 	    		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
     		}
     		
@@ -367,6 +371,23 @@ class cash_InternalMoneyTransfer extends core_Master
 	/**
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
+   	 *  
+   	 *  Ако избраната валута е в основна валута
+   	 *  	
+   	 *  	Dt: 501. Каси 					(Каса, Валута)
+   	 *  		503. Разплащателни сметки	(Банкова сметка, Валута)
+   	 *  	
+   	 *  Ct: 501. Каси					(Каса, Валута)
+   	 *  
+   	 *  Ако е в друга валута различна от основната
+   	 *  
+   	 *  	Dt: 501. Каси 					         (Каса, Валута)
+   	 *  		503. Разплащателни сметки	         (Банкова сметка, Валута)
+   	 *  	
+   	 *  Ct: 481. Разчети по курсови разлики		 (Валута)
+   	 *  
+   	 *  	Dt: 481. Разчети по курсови разлики	     (Валута)
+   	 *  	Ct: 501. Каси 					         (Каса, Валута)
    	 */
     public static function getTransaction($id)
     {
@@ -376,28 +397,30 @@ class cash_InternalMoneyTransfer extends core_Master
         ($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
         $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
         $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
-        $entry = array(
-            'amount' => $amount,
-            'credit' => array(
-                $rec->creditAccId,
-        		array('cash_Cases', $rec->creditCase),
-        		array('currency_Currencies', $rec->currencyId),
-                'quantity' => $rec->amount
-            ),
-            'debit' => array(
-                $rec->debitAccId,
-            	$debitArr,
-            	array('currency_Currencies', $rec->currencyId),
-                'quantity' => $rec->amount
-            ),
-        );
+        
+        $creditArr = array($rec->creditAccId, 
+        					 array('cash_Cases', $rec->creditCase),
+        					 array('currency_Currencies', $rec->currencyId),
+                		  'quantity' => $rec->amount);
+        
+        $toArr = array($rec->debitAccId,$debitArr,
+        				array('currency_Currencies', $rec->currencyId),
+        				'quantity' => $rec->amount);
+        
+        if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
+        	$entry = array('amount' => $amount, 'debit' => $toArr, 'credit' => $creditArr);
+        	$entry = array($entry);
+        } else {
+        	$entry = array();
+        	$entry[] = array('amount' => $amount, 'debit' => $toArr, 'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount));
+        	$entry[] = array('amount' => $amount, 'debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount), 'credit'  => $creditArr);
+        }
       	
       	// Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason' => $rec->reason,   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
-            'entries' => array($entry)
-        );
+            'entries' => $entry);
         
         return $result;
     }
@@ -460,5 +483,16 @@ class cash_InternalMoneyTransfer extends core_Master
     	$rec = $this->fetchRec($id);
     	
     	return $this->getVerbal($rec, 'reason');
+    }
+    
+    
+	/**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(__CLASS__);
+    
+    	return $self->singleTitle . " №$rec->id";
     }
 }

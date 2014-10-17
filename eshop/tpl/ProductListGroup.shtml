@@ -1,12 +1,9 @@
 <div class='eshop-product-list'>
-	[#image#]
-	<div class='eshop-product-list-name'>[#name#] [#editLink#]</div>
-			
-
-	<div class='eshop-product-labels'>
-		[#code#] [#coMoq#] [#coInquiry#]
-	</div>
-
-	[#info#]
-	<div class='clearfix21'></div>
+    [#image#]
+    <div class='eshop-product-list-name'>[#name#] [#editLink#]</div>
+    <div class='eshop-product-labels'>
+        [#code#] [#coMoq#] [#coInquiry#]
+    </div>
+    [#info#]
+    <div class='clearfix21'></div>
 </div>

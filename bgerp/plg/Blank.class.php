@@ -19,7 +19,7 @@ class bgerp_plg_Blank extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         //Ако принтираме или пращаме документа
         if ((Mode::is('text', 'xhtml')) || (Mode::is('printing'))) {
@@ -39,14 +39,19 @@ class bgerp_plg_Blank extends core_Plugin
             // ID на контейнера
             $cid = $data->rec->containerId;
             
+            // Ако е подаден __MID__, да се използва, вместо плейсхолдера
+            if (!($mid = $data->__MID__)) {
+                $mid = doc_DocumentPlg::getMidPlace();
+            }
+            
             // URL за за src="..." атрибута, на <img> тага на QR баркода
-            $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => doc_DocumentPlg::getMidPlace()), 'absolute', TRUE, array('m'));
+            $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
              
             // Създаваме <img> елемент за QR баркода
             $qrImg = ht::createElement('img', array('alt' => 'View doc', 'width' => 87, 'height' => 87, 'src' => $qrImgSrc));
             
             // URL за линка, който стои под QR кода
-            $qrLinkUrl = toUrl(array('L', 'S', $cid, 'm' => doc_DocumentPlg::getMidPlace()), 'absolute', TRUE, array('m'));
+            $qrLinkUrl = toUrl(array('L', 'S', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
 
             // Под картинката с QR баркод, слагаме хипервръзка към документа
             $qrA = ht::createElement('a', array('target' => '_blank',  'href' => $qrLinkUrl), $qrImg);
@@ -68,66 +73,40 @@ class bgerp_plg_Blank extends core_Plugin
         // Езика на писмото
         $lg = core_Lg::getCurrent();
         
-        // Прихващаме грешката
-        try {
+        // Вземема конфигурационните константи
+        $conf = core_Packs::getConfig('bgerp');   
         
-            // Ако езика не е английски
-            if ($lg != 'en') {
-                
-                // Вземаме логото на потребителя
-                $companyLogoFh = crm_Personalization::getLogo();    
-            } else {
-                
-                // Вземамем логото на потребителя на ЕН
-                $companyLogoFh = crm_Personalization::getLogo(FALSE, TRUE);
-            }
+        // Вземам бланката в зависимост от езика
+        $companyLogo = core_Packs::getConfigValue($conf, 'BGERP_COMPANY_LOGO');
         
-        } catch (Exception $e) {}
+        $filemanInst = cls::get('fileman_Files');
         
-        // Ако няма лого на потребителя
-        if (!$companyLogoFh) {
+        $sourceType = 'path';
+        
+        // Проверяваме дали е манипулатор на файл
+        if ($companyLogo && (strlen($companyLogo) == FILEMAN_HANDLER_LEN) && ($filemanInst->fetchByFh($companyLogo))) {
+            $sourceType = 'fileman';
+        } else {
             
-            // Вземема конфигурационните константи
-            $conf = core_Packs::getConfig('bgerp');   
-
-            // Ако езика не е английски
-            if ($lg != 'en') {
-                
-                // Ако не е дефинирана константата за българско лого
-                if (!$companyLogoFh = $conf->BGERP_COMPANY_LOGO) {
-                    
-                    // Логото на компанията по поразбиране (BG)
+            // Ако не е зададено логото
+            if (!$companyLogo) {
+                if ($lg == 'bg') {
                     $companyLogo = 'bgerp/img/companyLogo.png';
-                }    
-            } else {
-                // Ако не е дефинирана константата за английско лого
-                if (!$companyLogoFh = $conf->BGERP_COMPANY_LOGO_EN) {
-                    
-                    // Логото на компанията по поразбиране (EN)
+                } else {
                     $companyLogo = 'bgerp/img/companyLogoEn.png';
                 }
             }
+            
+            // Ако не е манипулатор, очакваме да е път
+            $companyLogo = core_App::getFullPath($companyLogo);
         }
         
-        // Ако има открито лог на потребителя
-        if ($companyLogoFh) {
-            
-            // Ако сме дефинирали логото на компанията с fileHandler
-            // Масив със стойности, необходими за създаване на thumbnail
-            $attr = array('baseName' => 'companyLogo', 'isAbsolute' => TRUE, 'qt' => '"');
-            
-            // Размера на thumbnail изображението
-            $size = array('750', '100');
-            
-            // Създаваме тумбнаил с параметрите
-            $companyLogoPath = thumbnail_Thumbnail::getLink($companyLogoFh, $size, $attr);
-        } elseif ($companyLogo) {
-            
-            // Намираме абсолютния път до файла
-            $companyLogoPath = sbf($companyLogo, '"', TRUE);
-        } 
+        $isAbsolute = (boolean)Mode::is('text', 'xhtml');
         
-        // За генериране на PDF логото трябва да е с абсолютен път
+        // Създаваме thumbnail с определени размери
+        $thumb = new thumb_Img(array($companyLogo, 750, 87, $sourceType, 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => 'companyLog'));
+        
+        $companyLogoPath = $thumb->getUrl();
         
         return $companyLogoPath;
     }

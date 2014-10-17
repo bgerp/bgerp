@@ -1,30 +1,31 @@
 <div class="singleView">
-[#SingleToolbar#]
-	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">|Работен цикъл|* <b style="color:green;">[#name#]</b></div></h2>
-	<table class="styled-table" width="100%">
-		<tr>
-			<td class="title-style"> №</td>
-			<td>[#id#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">|Наименование|*</td>
-			<td>[#name#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">|Брой дни|*</td>
-			<td>[#cycleDuration#]</td>
-		</tr>
-	 	<!--ET_BEGIN info-->
-		<tr>
-			<td class="title-style">|Информация|*</td>
-			<td>[#info#]</td>
-		</tr>
-		<!--ET_END info-->
-	</table>
-	[#DETAILS#]
-	<div style='margin-top:10px;'>
-		<span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] 
-		<!--ET_BEGIN createdOn-->|на|* [#createdOn#]<!--ET_END createdOn-->
-	</div>
-
+    [#SingleToolbar#]
+    <h2>
+        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Работен цикъл|* <b style="color:green;">[#name#]</b></div>
+    </h2>
+    <table class="styled-table">
+        <tr>
+            <td class="title-style"> №</td>
+            <td>[#id#]</td>
+        </tr>
+        <tr>
+            <td class="title-style">|Наименование|*</td>
+            <td>[#name#]</td>
+        </tr>
+        <tr>
+            <td class="title-style">|Брой дни|*</td>
+            <td>[#cycleDuration#]</td>
+        </tr>
+        <!--ET_BEGIN info-->
+        <tr>
+            <td class="title-style">|Информация|*</td>
+            <td>[#info#]</td>
+        </tr>
+        <!--ET_END info-->
+    </table>
+    [#DETAILS#]
+    <div style='margin-top:10px;'>
+        <span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] 
+        <!--ET_BEGIN createdOn-->|на|* [#createdOn#]<!--ET_END createdOn-->
+    </div>
 </div>

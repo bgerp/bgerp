@@ -1,0 +1,34 @@
+<table>
+<!--ET_BEGIN num-->
+<tr>
+<td class='quiet aright'>|Номер|*:</td>
+<td>[#num#]</td>
+</tr>
+<!--ET_END num-->
+<!--ET_BEGIN title-->
+<tr>
+	<td class='quiet aright'>|Перо|*: </td>
+	<td>[#title#]</td>
+</tr>
+<!--ET_END title-->
+
+<!--ET_BEGIN createdOn-->
+<tr>
+<td class='quiet aright'>|Създаване|*:</td>
+<td> [#createdOn#]</td>
+</tr>
+<!--ET_END createdOn-->
+
+<!--ET_BEGIN createdBy-->
+<tr>
+<td class='quiet aright'>|От|*:</td>
+<td> [#createdBy#]</td>
+</tr>
+<!--ET_END createdBy-->
+
+<tr>
+<td colspan='2' style='text-align:right'>
+[#link#]
+</td>
+</tr>
+</table>

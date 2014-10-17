@@ -71,7 +71,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         // Формата се инпутва
         $form->input();
         if ($form->isSubmitted()) {
-            if ($p = static::getReasonParams($form)) {
+            if ($p = self::getReasonParams($form)) {
                 $tpl = new Redirect(
                 
                 	// Редирект към създаването на документа в ясната папка
@@ -83,8 +83,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         
         // Ако няма поне едно поле key във формата
         if(!count($form->selectFields("#key"))){ 
-        	$msg = tr('Не може да се добави документ в папка, защото възможните списъци за избор са празни');
-        	return Redirect(core_Message::getErrorUrl($msg, 'page_Error'));
+        	error(tr('Не може да се добави документ в папка, защото възможните списъци за избор са празни'));
         }
         
         $form->title = 'Избор на папка';
@@ -147,7 +146,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     	
     	// Подготовка на формата за избор на папка
     	$form = cls::get('core_Form');
-    	static::getFormFields($mvc, $form, $coversArr);
+    	self::getFormFields($mvc, $form, $coversArr);
     	
     	return $form;
     }

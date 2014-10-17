@@ -4,10 +4,9 @@
 
 /**
  * Клас  'cat_type_Uom' 
- * Тип за мерни еденици. Позволява да се въведе стойност с
- * нейната мярка по подобие на типа 'type_Time'. Примерно "5 килограма" и подобни.
- * Разпознава се коя мярка отговаря на посочения стринг и стойността се записва в
- * базата данни с основната си мярка
+ * Тип за мерни еденици. Представлява на един ред числов инпут и до него комбобокс
+ * с опции, производните на дадена мярка. Задължително е да има дефиниран параметър на полето
+ * 'unit' със стойност систем ид-то на някоя мярка (@see cat_UoM)
  *
  *
  * @category  bgerp
@@ -39,9 +38,9 @@ class cat_type_Uom extends type_Varchar {
     
 
     /**
-     * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
+     * Клас за <td> елемент, който показва данни от този тип
      */
-    public $cellAttr = 'align="right"';
+    public $tdClass = 'rightCol';
     
     
     /**
@@ -80,6 +79,8 @@ class cat_type_Uom extends type_Varchar {
     	// Ако няма стойност
     	if(!$value) return NULL;
     	
+    	if(empty($value['lP'])) return NULL;
+    	
     	// Ако стойността е масив
     	if(is_array($value)){
     		$numPart = trim($value['lP']);
@@ -116,25 +117,31 @@ class cat_type_Uom extends type_Varchar {
     function renderInput_($name, $value = '', &$attr = array())
 	{
 		// Ако има запис, конвертира се в удобен вид
-		if(isset($value)){
-			if(empty($this->error)){
+        
+            $convObject = new stdClass();
+            
+            expect($unitRec = cat_UoM::fetchBySinonim($this->params['unit']));
+
+		    if($value === NULL || $value === ''){
+				$convObject->value = '';
+                $convObject->measure = $unitRec->id;
+			} elseif (empty($this->error)){
 				$convObject = cat_UoM::smartConvert($value, $this->params['unit'], FALSE, TRUE);
 			} else {
-				$convObject = new stdClass();
 				$convObject->value = $value['lP'];
 				$convObject->measure = $value['rP'];
 			}
-		}
+		
 		
 		// Рендиране на частта за въвеждане на числото
-		setIfNot($attr['size'], '7em');
+
 		$inputLeft = $this->double->renderInput($name . '[lP]', $convObject->value, $attr);
 		unset($attr['size']);
 		
 		// Извличане на всички производни мярки
 		$options = cat_UoM::getSameTypeMeasures($this->baseMeasureId, TRUE);
         unset($options['']);
-        
+
 		$inputRight = " &nbsp;" . ht::createSmartSelect($options, $name . '[rP]', $convObject->measure);
 		
 		// Добавяне на дясната част към лявата на полето

@@ -58,12 +58,6 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * В кой плейсхолдър ще се слага шаблона от doc_plg_TplManager
-     */
-    public $templateFld = 'QUOTE_HEADER';
-    
-    
-    /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/document_quote.png';
@@ -102,13 +96,13 @@ class sales_Quotations extends core_Master
     /**
      * Шаблон за еденичен изглед
      */
-    public $singleLayoutFile = 'sales/tpl/SingleLayoutQuote.shtml';
+    //public $singleLayoutFile = 'sales/tpl/SingleLayoutQuote.shtml';
    
    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'paymentMethodId, reff, company, person, email, folderId';
+    public $searchFields = 'paymentMethodId, reff, company, person, email, folderId, id';
     
    
     /**
@@ -162,12 +156,12 @@ class sales_Quotations extends core_Master
     	
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description)','caption=Плащане->Метод,width=15em,salecondSysId=paymentMethodSale');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,oldFieldName=paymentCurrencyId');
-        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em,oldFieldName=rate');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,oldFieldName=paymentCurrencyId');
+        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,oldFieldName=rate');
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,salecondSysId=deliveryTermSale');
-        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
+        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,hint=Изберете локация или въведете нова');
         
 		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
         $this->FLD('person', 'varchar', 'caption=Получател->Лице, changable, class=contactData');
@@ -179,8 +173,8 @@ class sales_Quotations extends core_Master
         $this->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData');
         $this->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData');
     	
-    	$this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,width=8em');
-    	$this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
+    	$this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност');
+    	$this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия');
     }
     
     
@@ -236,9 +230,9 @@ class sales_Quotations extends core_Master
 	       		
        			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
 	       		if(!$price){
-	       			$data->form->fields['row1']->type->params['require'] = 'both';
-	       			$data->form->fields['row2']->type->params['require'] = 'both';
-	       			$data->form->fields['row3']->type->params['require'] = 'both';
+	       			$data->form->getFieldType('row1')->params['require'] = 'both';
+	       			$data->form->getFieldType('row2')->params['require'] = 'both';
+	       			$data->form->getFieldType('row3')->params['require'] = 'both';
 	       		}
        		}
        }
@@ -355,10 +349,8 @@ class sales_Quotations extends core_Master
 	    	$row->number = $mvc->getHandle($rec->id);
 			$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
 			
-			if($row->address){
-				$row->contragentAdress = $row->address . ",";
-			}
-			$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$row->pcode, $row->place, $row->country)); 
+			$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+			$row->contragentAddress = $contragent->getFullAdress();
 			
 			if($rec->currencyRate == 1){
 				unset($row->currencyRate);
@@ -386,7 +378,7 @@ class sales_Quotations extends core_Master
 			
 			$ownCompanyData = crm_Companies::fetchOwnCompany();
 	        $Companies = cls::get('crm_Companies');
-	        $row->MyCompany = $Companies->getTitleById($ownCompanyData->companyId);
+	        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
 	        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
 		}
 		
@@ -449,15 +441,6 @@ class sales_Quotations extends core_Master
     			
     			// Ако документа се създава, то не може да се активира
     			$res = 'no_one';
-    		} else {
-    			
-    			// Ако няма задължителни продукти/услуги не може да се активира
-    			$detailQuery = $mvc->sales_QuotationsDetails->getQuery();
-    			$detailQuery->where("#quotationId = {$rec->id}");
-    			$detailQuery->where("#optional = 'no'");
-    			if(!$detailQuery->count()){
-    				$res = 'no_one';
-    			}
     		}
     	}
     	
@@ -619,7 +602,7 @@ class sales_Quotations extends core_Master
     		$uIndex =  "{$detail->productId}|{$detail->policyId}";
     		if(array_key_exists($uIndex, $products) || !$detail->quantity) return NULL;
     		$total += $detail->quantity * ($detail->price * (1 + $detail->discount));
-    		$products[$uIndex] = new sales_model_QuotationProduct($detail);
+    		$products[$uIndex] = $detail;
     	}
     	
     	return array_values($products);
@@ -674,18 +657,16 @@ class sales_Quotations extends core_Master
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
+    	$tplArr = array();
     	$tplArr[] = array('name' => 'Оферта нормален изглед', 'content' => 'sales/tpl/QuotationHeaderNormal.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Оферта изглед за писмо', 'content' => 'sales/tpl/QuotationHeaderLetter.shtml', 'lang' => 'bg');
     	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $mvc->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за оферти, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+    	$res = '';
+        $res .= doc_TplManager::addOnce($this, $tplArr);
+        
+        return $res;
     }
     
     
@@ -723,5 +704,18 @@ class sales_Quotations extends core_Master
         $rec = (is_object($rec)) ? $rec : static::fetch($rec);
     	
     	return tr("|Оферта|* №{$rec->id}");
+    }
+    
+    
+    /**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     *
+     * @param int|object $id
+     * @return bgerp_iface_DealAggregator
+     * @see bgerp_DealIntf::getDealInfo()
+     */
+    public function pushDealInfo($id, &$aggregator)
+    {
+    	
     }
 }

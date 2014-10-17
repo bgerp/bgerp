@@ -46,7 +46,7 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
        if(!$date){
        	   $date = dt::now();
@@ -71,6 +71,9 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
         	
         	return NULL;
         }
+        
+        $vat = cls::get($lastRec->classId)->getVat($lastRec->productId);
+        $lastRec->price = deals_Helper::getDisplayPrice($lastRec->price, $vat, $rate, $chargeVat);
         
         return (object)array('price' => $lastRec->price, 'discount' => $lastRec->discount);
     }

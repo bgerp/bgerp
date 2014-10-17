@@ -98,7 +98,7 @@ class cond_ConditionsToCustomers extends core_Manager
     		if($condType == 'delCond'){
     			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'cond_DeliveryTerms', 'select' => 'codeName', 'allowEmpty' => 'allowEmpty')));
     		} elseif($condType == 'payMethod'){
-    			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'cond_paymentMethods', 'select' => 'name', 'allowEmpty' => 'allowEmpty')));
+    			$form->fields['value']->type = cls::get('type_Key', array('params' => array('mvc' => 'cond_paymentMethods', 'select' => 'name', 'allowEmpty' => 'allowEmpty')));
     		} else {
     			$form->fields['value']->type = cat_Params::getParamTypeClass($form->rec->conditionId, 'cond_Parameters');
     		}
@@ -170,8 +170,13 @@ class cond_ConditionsToCustomers extends core_Manager
     {
     	$type = cond_Parameters::fetchField($rec->conditionId, 'type');
         if($type != 'enum' && $type != 'delCond' && $type != 'payMethod'){
-            $Type = cls::get("type_{$type}");
-            $row->value = $Type->toVerbal($rec->value);
+        	try{
+        		$Type = cls::get("type_{$type}");
+        		$row->value = $Type->toVerbal($rec->value);
+        	} catch(Exception $e){
+        		$row->value = "??????????????";
+        	}
+            
         } elseif($type == 'delCond'){
             $row->value = cond_DeliveryTerms::recToVerbal($rec->value, 'codeName')->codeName;
         } elseif($type == 'payMethod'){

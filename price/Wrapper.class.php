@@ -26,7 +26,8 @@ class price_Wrapper extends plg_ProtoWrapper
     {
         $this->TAB('price_Lists', 'Политики', 'ceo,price');
         $this->TAB('price_Groups', 'Групи', 'ceo,price');
-        $this->TAB('price_ConsumptionNorms', 'Разх. норми');
+        $this->TAB('price_ConsumptionNorms', 'Разх. норми->Разходни норми');
+        $this->TAB('price_ConsumptionNormGroups', 'Разх. норми->Групи');
         $this->TAB('price_ListDocs', 'Ценоразписи', 'ceo,price');
         $this->TAB('price_History', 'Кеш', 'debug');
 	}

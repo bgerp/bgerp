@@ -55,7 +55,8 @@ class cal_Setup extends core_ProtoSetup
             'cal_Tasks',
             'cal_TaskProgresses',
             'cal_Holidays',
-        	'cal_Reminders'
+        	'cal_Reminders',
+    		'cal_TaskConditions'
         );
 
         
@@ -73,6 +74,17 @@ class cal_Setup extends core_ProtoSetup
         );
 
     
+    /**
+     * Път до js файла
+     */
+//    var $commonJS = 'cal/js/mouseEvent.js';
+    
+    
+    /**
+     * Път до css файла
+     */
+//    var $commonCSS = 'cal/tpl/style.css';
+   
     /**
      * Деинсталиране
      */

@@ -23,7 +23,7 @@ class store_RackDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Логистика";
     
@@ -50,8 +50,8 @@ class store_RackDetails extends core_Detail
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-
-
+    
+    
     /**
      * Кой има право да чете?
      */

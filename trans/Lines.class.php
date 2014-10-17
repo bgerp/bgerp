@@ -48,7 +48,7 @@ class trans_Lines extends core_Master
     /**
      * По кои полета ще се търси
      */
-    public $searchFields = 'title, destination, vehicleId, forwarderId, forwarderPersonId';
+    public $searchFields = 'title, destination, vehicleId, forwarderId, forwarderPersonId, id';
     
     
     /**
@@ -134,7 +134,7 @@ class trans_Lines extends core_Master
      */
     public function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Заглавие,width=100%');
+    	$this->FLD('title', 'varchar', 'caption=Заглавие');
     	$this->FLD('start', 'datetime', 'caption=Начало, mandatory');
     	$this->FLD('destination', 'varchar(255)', 'caption=Дестинация,mandatory');
     	$this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец)', 'caption=Повторение');
@@ -430,19 +430,13 @@ class trans_Lines extends core_Master
     	
         $rec = new stdClass();
         $rec->systemId    = "CreateNewLines";
-        $rec->description = "Затваря и създава нови транспортни линии";
+        $rec->description = "Затваряне и създаване на нови транспортни линии";
         $rec->controller  = "trans_Lines";
         $rec->action      = "CreateNewLines";
         $rec->period      = $period;
         $rec->offset 	  = 0;
         $rec->delay 	  = 0;
         $rec->timeLimit   = 100;
-        
-        $Cron = cls::get('core_Cron');
-        if($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да приключва и да създава нови транспортни линии.</font></li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да приключва и да създава нови транспортни линии.</li>";
-        }
+        $res .= core_Cron::addOnce($rec);
     }
 }

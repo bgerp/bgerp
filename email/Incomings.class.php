@@ -91,7 +91,7 @@ class email_Incomings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'email_Wrapper, email_incoming_Wrapper, doc_DocumentPlg, 
+    var $loadList = 'email_Wrapper, doc_DocumentPlg, 
     				plg_RowTools, plg_Printing, email_plg_Document, 
     				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank,
     				plg_AutoFilter';
@@ -136,7 +136,7 @@ class email_Incomings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,subject,createdOn=Дата,fromEml=От,toBox=До,accId,boxIndex,routeBy,uid,country';
+    var $listFields = 'id,subject,createdOn=Дата,fromEml=От,toBox=До,accId,routeBy,uid,country';
     
     
     /**
@@ -150,7 +150,7 @@ class email_Incomings extends core_Master
      */
     function description()
     {
-        $this->FLD('accId', 'key(mvc=email_Accounts,select=email, allowEmpty)', 'caption=Акаунт, autoFilter');
+        $this->FLD('accId', 'key(mvc=email_Accounts,select=email, allowEmpty)', 'caption=Имейл акаунт, autoFilter');
         $this->FLD("subject", "varchar", "caption=Тема");
         $this->FLD("fromEml", "email", 'caption=От->Имейл');
         $this->FLD("fromName", "varchar", 'caption=От->Име');
@@ -173,7 +173,6 @@ class email_Incomings extends core_Master
         $this->FLD('files', 'keylist(mvc=fileman_Files)', 'caption=Файлове, input=none');
         $this->FLD('emlFile', 'key(mvc=fileman_Files)', 'caption=eml файл, input=none');
         $this->FLD('htmlFile', 'key(mvc=fileman_Files)', 'caption=html файл, input=none');
-        $this->FLD('boxIndex', 'int', 'caption=Индекс');
         $this->FLD('uid', 'int', 'caption=Imap UID');
         
         $this->FLD('routeBy', 'enum(thread, preroute, from, fromTo, domain, toBox, country)', 'caption=Рутиране');
@@ -224,7 +223,7 @@ class email_Incomings extends core_Master
         $lockKey = 'Inbox:' . $accRec->id;
                    
         if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
-            $this->log("Кутията {$accRec->email} е заключена от друг процес");
+            $this->log("Кутията {$accRec->email} е заключена от друг процес", NULL, 7);
 
             return;
         }
@@ -238,7 +237,7 @@ class email_Incomings extends core_Master
         // Логването и генериране на съобщение при грешка е винаги в контролерната част
         if ($imapConn->connect() === FALSE) {
             $errMsg = "Грешка на <b>\"{$accRec->user} ({$accRec->server})\"</b>:  " . $imapConn->getLastError() . "";
-            $this->log($errMsg);
+            $this->log($errMsg, NULL, 14);
             $htmlRes .= $errMsg;
             
             return;
@@ -265,7 +264,7 @@ class email_Incomings extends core_Master
 
                 if(($i % 100) == 1 || ( ($i - $firstUnreadMsg) < 100)) {
                     $logMsg = "Fetching message {$i} from {$accRec->email}: {$status}";
-                    $this->log($logMsg);
+                    $this->log($logMsg, NULL, 7);
                 }
                 
                 // Изтриване на писмото, ако ако сметката е настроена така
@@ -325,7 +324,7 @@ class email_Incomings extends core_Master
         // Показваме стринга
         echo "<h3> $msg </h3>";
 
-        $this->log($msg);
+        $this->log($msg, NULL, 7);
     }
 
 
@@ -579,12 +578,12 @@ class email_Incomings extends core_Master
     protected function isDownloaded($imapConn, $msgNum)
     {
         static $isDown = array();
-        $this->log("Check Down: $msgNum  ");
+        $this->log("Check Down: $msgNum  ", NULL, 7);
         $accId = $imapConn->accRec->id;
 
         // Номерата почват от 1
         if($msgNum < 1) {
-            $this->log("TRUE: $msgNum < 1");
+            $this->log("TRUE: $msgNum < 1", NULL, 7);
 
             return TRUE;
         }
@@ -595,7 +594,7 @@ class email_Incomings extends core_Master
 
             // Ако няма хедъри, значи има грешка
             if(!$headers) {
-                $this->log("[{$accId}][{$msgNum}] - missing headers");
+                $this->log("[{$accId}][{$msgNum}] - missing headers", NULL, 7);
 
                 return TRUE;
             }
@@ -603,7 +602,7 @@ class email_Incomings extends core_Master
             $isDown[$accId][$msgNum] = email_Fingerprints::isDown($headers);
         }
         
-        $this->log("Result: $msgNum  " . $isDown[$accId][$msgNum]);
+        $this->log("Result: $msgNum  " . $isDown[$accId][$msgNum], NULL, 7);
 
         return $isDown[$accId][$msgNum];
     }
@@ -664,9 +663,6 @@ class email_Incomings extends core_Master
         if(!$rec->subject) {
             $row->subject .= '[' . tr('Липсва заглавие') . ']';
         }
-        
-        // Показва до събджекта номера на писмото от пощенската кутия
-        // $row->subject .= " ($rec->boxIndex)";
         
         if($fields['-single']) {
             if ($rec->files) {
@@ -824,27 +820,16 @@ class email_Incomings extends core_Master
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
         $rec = new stdClass();
         $rec->systemId = 'DownloadEmails';
-        $rec->description = 'Сваля и-имейлите в модела';
+        $rec->description = 'Сваляне на имейли в модела';
         $rec->controller = $mvc->className;
         $rec->action = 'DownloadEmails';
         $rec->period = 2;
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да сваля имейлите в модела.</font></li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да сваля имейлите.</li>";
-        }
-        
-        return $res;
+        $res .= core_Cron::addOnce($rec);
     }
     
     
@@ -1411,7 +1396,7 @@ class email_Incomings extends core_Master
             $i++;
             
             if($i % 100 == 1) {
-                $this->log("Update email $i");
+                $this->log("Update email $i", NULL, 7);
             }
             self::save($rec);
         }
@@ -1474,8 +1459,44 @@ class email_Incomings extends core_Master
         //Името на файла е с големи букви, както са документите
         $name = strtoupper($name) . '.eml';
         
+        // Ако размера е над допустимите за изпращане, да не се добавя автоматично
+        $attach = 'on';
+        if ($mvc->checkSizeForAttach($id) === FALSE) {
+            $attach = 'off';
+        }
+        
         //Задаваме полето за избор, да е избран по подразбиране
-        $res[$name] = 'on';
+        $res[$name] = $attach;
+    }
+    
+    
+    /**
+     * Проверява дали документа може да се праща по имейл
+     * В зависимост от големината на EML файла
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     * @param unknown_type $id
+     */
+    function on_BeforeCheckSizeForAttach($mvc, &$res, $id)
+    {
+        // Записа
+        $rec = $mvc->fetch($id);
+        $emlFile = $rec->emlFile;
+        
+        if (!$emlFile) return ;
+        
+        // Записа за EML файла
+        $fRec = fileman_Files::fetch($emlFile);
+        
+        if (!$fRec || !$fRec->dataId) return ;
+        
+        // Данните за файла
+        $data = fileman_Data::fetch($fRec->dataId);
+        $sizeArr[$fRec->fileHnd] = $data->fileLen;
+        
+        // Проверавяме дали размера е в допустимите граници
+        $res = $mvc->checkMaxAttachedSize($sizeArr);
     }
     
     
@@ -1506,6 +1527,23 @@ class email_Incomings extends core_Master
                 if ($fh) {
                     $res[$fh] = $fh;
                 } 
+                  
+            break;
+        }
+    }
+
+    function on_BeforeGetDocumentSize($mvc, &$res, $id, $type)
+    {
+        switch (strtolower($type)) {
+            case 'eml':
+        
+                // Вземаме id' то на EML файла
+                $emlFileId = $mvc->fetchField($id, 'emlFile');
+                
+                // Манипулатора на файла
+                $dataId = fileman_Files::fetchField($emlFileId, 'dataId');
+                
+                $res = fileman_Data::fetchField($dataId, 'fileLen');
                   
             break;
         }

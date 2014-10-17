@@ -55,18 +55,19 @@ class help_Info extends core_Master
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'debug, help';
+    var $canWrite = 'help';
 
-    
+    var $canAdd = 'help';
+
     /**
      * Описание на модела
      */
     function description()
     {
         $this->FNC('title', 'varchar', 'caption=Област');
-		$this->FLD('class', 'varchar(64)', 'caption=Име на класа');
-		$this->FLD('action', 'varchar(13)', 'caption=Метод');
-        $this->FLD('lg', 'varchar(2)', 'caption=Език');
+		$this->FLD('class', 'varchar(64)', 'caption=Име на класа,mandatory,silent');
+		$this->FLD('action', 'varchar(13)', 'caption=Метод,mandatory,silent');
+        $this->FLD('lg', 'varchar(2)', 'caption=Език,mandatory,silent');
 		$this->FLD('text', 'richtext', 'caption=Помощна информацията, hint=Текст на информацията за помощ');
 
         $this->setDbUnique('class,lg,action');
@@ -97,6 +98,8 @@ class help_Info extends core_Master
             2 => 'lg',
     		3 => 'text',
     	);
+
+        $mvc->importing = TRUE;
     	
     	// Импортираме данните от CSV файла. 
     	// Ако той не е променян - няма да се импортират повторно 
@@ -112,16 +115,36 @@ class help_Info extends core_Master
      */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	switch ($action) { 
-    		// ако метода е добавяне 
-            case 'add':
-            	// и нямяме роля debug
-    			if(!haveRole('debug')) {
-				        // никой не може да пише в модела
-						$requiredRoles = 'no_one';
-				}
-                break;
+    	if($action == 'edit' || $action == 'add') {
+            if(!haveRole('help')) {
+			    $requiredRoles = 'no_one';
+		    } else {
+    	        $requiredRoles = 'help';
+            }
     	}
     }
+    
+    
+    /**
+     * След всяко обновяване на модела прави опит да запише csv файла
+     */
+    function on_AfterSave($mvc, $id, $rec) 
+    {
+        // За да не променяме излишно хелпа
+        if($mvc->importing || !haveRole('help')) return;
+
+        $query = self::getQuery();
+        
+        while($r = $query->fetch()) {
+            $recs[] = $r;
+        }
+        
+        $csv = csv_Lib::createCsv($recs, array('class', 'action', 'lg', 'text'), $mvc);
+        
+        $file = "help/data/HelpInfo.csv";
+        $path = getFullPath($file);
+        file_put_contents($path, $csv);
+    }
+
 
 }

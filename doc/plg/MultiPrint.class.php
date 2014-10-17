@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -58,38 +58,39 @@ class doc_plg_MultiPrint extends core_Plugin
      */
 	static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-    	if(Mode::get('printing')) {
-    		$originalTpl = clone($tpl);
-    		$tpl=new ET('');
-    		$copiesNum = count($mvc->printParams);
-    		if(!$copiesNum)
-    			$copiesNum = '2';
-	    	for($i = 1; $i <= $copiesNum; $i++) {
+    	// Ако не сме в режим принтиране не правим нищо
+    	if(!Mode::get('printing')) return;
+    	
+    	$originalTpl = clone($tpl);
+    	$tpl = new ET('');
+    		
+    	$copiesNum = (count($mvc->printParams)) ? count($mvc->printParams) : 2;
+    		
+	    for($i = 1; $i <= $copiesNum; $i++) {
 	    			
-	    			// Ако сме в режим принтиране, добавяме копие на ордера
-		    		$clone = clone($originalTpl);
+	    	// Ако сме в режим принтиране, добавяме копие на ордера
+		    $clone = clone($originalTpl);
 		    		
-		    		// Добавяме зададените параметри в $mvc->printParams, най отгоре на документа
-		    		if(count($mvc->printParams) > 0) {
-		    			$paramET = '';
-		    			foreach($mvc->printParams[$i-1] as $param) {
-		    				$paramET .= $param . " &nbsp;&nbsp;&nbsp;";
-		    			}
-		    			$clone->prepend(new ET("<span style='margin-left:24px'>[#paramET#]</span>"));
-		    			$clone->replace($paramET, 'paramET');
-		    		}
+		    // Добавяме зададените параметри в $mvc->printParams, най отгоре на документа
+		    if(count($mvc->printParams) > 0) {
+		    	$paramET = '';
+		    	foreach($mvc->printParams[$i-1] as $param) {
+		    		$paramET .= $param . " &nbsp;&nbsp;&nbsp;";
+		    	}
+		    	$clone->prepend(new ET("<span style='margin-left:24px'>[#paramET#]</span>"));
+		    	$clone->replace($paramET, 'paramET');
+		    }
 		    		
-		    		// Контейнер в който ще вкараме документа + шаблона с параметрите му
-		    		$container= new ET("<div style='margin:0px;float:left;padding:0px;min-width:0px;border-bottom:1px dotted black'>[#clone#]</div>");
-		    		$container->replace($clone,'clone');
-		    		$tpl->append($container);
+		    // Контейнер в който ще вкараме документа + шаблона с параметрите му
+		    $container = new ET("<div class='print-break'>[#clone#]</div>");
+		    $container->replace($clone, 'clone');
 		    		
-		    		// добавяме print-page-break на всеки  2 документа
-		    		//@TODO да се добавя автоматино с Jquery при нужда
-		    		if($i%2==0)
-	    				$tpl->append("<div class='print-page-break'></div>");
-	    			$tpl->removeBlocks();
-	    	}
-    	}
+		    // За всяко копие предизвикваме ивент в документа, ако той иска да добави нещо към шаблона на копието
+		    $mvc->invoke('AfterRenderPrintCopy', array($container, $i));
+		    
+		    $tpl->append($container);
+	    				
+	    	$tpl->removeBlocks();
+	    }
     }
 }

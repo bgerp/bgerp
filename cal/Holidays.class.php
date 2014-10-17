@@ -23,7 +23,7 @@ class cal_Holidays extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Кой може да разглежда сингъла на документа
      */
     var $canSingle = 'powerUser';
     

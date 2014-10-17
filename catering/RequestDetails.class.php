@@ -23,7 +23,7 @@ class catering_RequestDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Кетъринг";
     
@@ -94,7 +94,6 @@ class catering_RequestDetails extends core_Detail
     
     
     /**
-     *
      * Ако няма права ceo,catering се показват заявките само за потребителя
      * Ако има права ceo,catering записите се сортират първо по $personId
      * Ако заявката е със state=closed се скрива колоната за редакция на записите

@@ -100,7 +100,7 @@ class hr_Professions extends core_Master
     
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-    	//bp($data->rec, $data->singleFields, $data);
+
     }
     
     /**

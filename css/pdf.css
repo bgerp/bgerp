@@ -1,23 +1,21 @@
-.document{
-	width:850px;
-}
+.document {
+  width: 850px; }
 
 .linkWithIcon {
-    background-position: 3px bottom !important;
-}
+  background-position: 3px bottom !important; }
 
 .docBgIcon {
-    background-position: 3px 7px !important;
-}
+  background-position: 3px 7px !important; }
 
 div.richtextHide {
-	display:block !important;
-}
+  display: block !important; }
 
 .richtext {
-	font-family: default !important;
-}
+  font-family: default !important; }
 
-code, kbd, pre, samp {
-    font-family: Courier New, serif !important;
-}
+code,
+kbd,
+pre,
+samp {
+  font-family: Courier New, serif !important; }
+

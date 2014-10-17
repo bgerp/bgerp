@@ -74,14 +74,14 @@ class doc_Comments extends core_Master
      * Кой има право да изтрива?
      */
     var $canDelete = 'no_one';
-
-
+    
+    
     /**
-     * 
+     * @todo Чака за документация...
      */
     var $canSingle = 'powerUser';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -123,13 +123,13 @@ class doc_Comments extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
-
+    
+    
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "1.1|Общи"; 
-
-
+    var $newBtnGroup = "1.1|Общи";
+    
     
     /**
      * Описание на модела
@@ -142,7 +142,7 @@ class doc_Comments extends core_Master
     }
     
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -179,7 +179,7 @@ class doc_Comments extends core_Master
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($cid);
                 $oRow = $oDoc->getDocumentRow();
-                $rec->subject = tr('|За|*: ') . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');    
+                $rec->subject = tr('|За|*: ') . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
             }
         }
     }
@@ -215,7 +215,7 @@ class doc_Comments extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     function getDocumentRow($id)
     {
@@ -238,7 +238,7 @@ class doc_Comments extends core_Master
         return $row;
     }
     
-
+    
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
      * Добавянето на коментар не променя състоянието на треда
@@ -264,9 +264,9 @@ class doc_Comments extends core_Master
      * Изпълнява се след подготовката на ролите
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {   
-    	if($action == 'add' && empty($rec)){
-    		$requiredRoles = 'no_one';
-    	}
+    {
+        if($action == 'add' && empty($rec)){
+            $requiredRoles = 'no_one';
+        }
     }
 }

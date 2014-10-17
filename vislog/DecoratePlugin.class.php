@@ -18,7 +18,7 @@ class vislog_DecoratePlugin extends core_Plugin
 	/**
      * Декорира ip адреса с html връзки
      */
-    static function on_AfterDecorateIp($mvc, &$res, $ip, $time = NULL)
+    static function on_AfterDecorateIp($mvc, &$res, $ip, $time = NULL, $coloring = FALSE)
     {   
         // Ако показваме чист текст или подготвяме HTML за навън - лишаваме се от декорациите
         if(Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) {
@@ -64,6 +64,10 @@ class vislog_DecoratePlugin extends core_Plugin
 
         if(!$name) {
             $name = $ip;
+        }
+
+        if($coloring) {
+            $name = str::coloring($name);
         }
  
         $res = new ET("<div class='vislog'>[#1#]&nbsp;<span class='vislog-ip'>{$name}</span>&nbsp;[#2#]</div>", $country, $count);

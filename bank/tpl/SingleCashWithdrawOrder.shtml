@@ -1,192 +1,168 @@
 [#SingleToolbar#]
-
 <div class='document'>
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-	<!--ET_BEGIN header-->
-	<div class='header [#STATE_CLASS#]' style='width:99%'>
-		<div class='docBgIcon' style='[#iconStyle#]'>[#header#]</div>
-	</div>
-	<!--ET_END header-->
-	<div class='scrolling-holder'>
-		<div class='belejka_container'>
-			
-			
-		    <div class='belejka_header'>
-		            <div class='container'>
-		                <div class='label_left'>|До|*</div>
-		                <div class='right_block'>
-		                    <div class='text border_b'>
-		                        [#execBank#]
-		                    </div>
-		                    <div class='label_mid'>
-		                        |банка|*
-		                    </div>                
-		                </div>
-		            </div>
-		            
-		            <div class='container'>
-		                <div class='label_left'>&nbsp;</div>
-		                <div class='right_block'>
-		                    <div class='text border_b'>
-		                        [#issuePlaceAndDate#]
-		                    </div>
-		                    <div class='label_mid'>
-		                        |място и дата на подаване|*
-		                    </div>                
-		                </div>
-		            </div>        
-		            <div class='container'>
-		                <div class='label_left'>|Клон|*</div>
-		                <div class='right_block'>
-		                    <div class='text border_b'>
-		                        [#execBankBranch#] 
-		                    </div>    
-		                </div>
-		            </div>
-		            
-		            <div class='container'>
-		                <div class='label_left'>&nbsp;</div>
-		                <div class='right_block'>
-		                    <div class='text border_b_white'>
-		                        &nbsp;
-		                    </div>
-		                    <div class='label_mid'>
-		                        &nbsp;
-		                    </div>                
-		                </div>
-		            </div>
-		            
-		            <div class='container'>
-		                <div class='label_left'>|Адрес|*</div>
-		                <div class='right_block'>
-		                    <div class='text border_b'>
-		                        [#execBankAdress#]
-		                    </div>
-		                    <div class='label_mid'>
-		                        &nbsp;
-		                    </div>                
-		                </div>
-		            </div>
-		            
-		            <div class='container'>
-		                <div class='label_left'>&nbsp;</div>
-		                <div class='right_block'>
-		                    <div class='text border_b'>
-		                        &nbsp;
-		                    </div>
-		                    <div class='label_mid'>
-		                        |подписи на лицата, които могат да се разпореждат|*
-		                    </div>                
-		                </div>
-		            </div>
-		                                    
-		    </div>
-		     <!-- END belejka_header -->
-		        
-		        <div class='belejka'>
-		            <div class='bg_white line'>
-		                   <div class='text pos_rel'>
-		                   <span class='pos_abs small_text_top_left'>|Наредител - име|*</span><br>
-		                      [#ordererName#] 
-		                   </div>                                        
-		            </div>
-		               
-		            <div class='bg_white line'>
-		                <div class='bg_red text border_r' style='width: 450px;'>
-		                <span class='pos_abs small_text_top_left'>|IBAN на наредителя|*</span><br>
-		                   [#ordererIban#]
-		                </div>                                       
-		            </div>
-		            
-		            <div class='bg_white line'>
-		                <div class='text'>
-		                 <span class='pos_abs small_text_top_left'>|При банка (банка, клон)|*</span><br>
-		                   [#ordererBank#]
-		                </div>                                       
-		            </div>
-		            
-		            <div class='bg_red line'>
-		                <div class='bg_white text a_center border_r' style='width: 250px; letter-spacing: normal; line-height: 15px; padding: 5px;'>
-		                   <span class='b'>|НАРЕЖДАНЕ|*<br/>|РАЗПИСКА|*</span>
-		                </div>
-		                <div class='bg_white text a_center border_r' style='width: 110px; letter-spacing: normal; line-height: 15px; padding:5px;'>
-		                   <span class='b'>|Платете|*<br/>|в брой|*</span>
-		                </div>     
-		                <div class='text border_r' style = 'width:67px'>
-		                 <span class='pos_abs small_text_top_left'  style='width:50px'>|Вид валута|*</span><br>
-		                   [#currencyId#]
-		                </div>
-		                <div class='text bg_red a_right' style='width: 365px;'>
-		                   <span class='pos_abs small_text_top_left'>|Сума|*</span><br>
-		                   [#amount#]
-		                </div>                                        
-		            </div>        
-		            
-		            <div class='bg_white line'>
-		                <div class='text'>
-		                <span class='pos_abs small_text_top_left'>|С думи|*</span><br>
-		                   [#sayWords#]
-		                </div>                                       
-		            </div>        
-		            
-		            <div class='bg_white line'>
-		                <div class='text'>
-		                <span class='pos_abs small_text_top_left'>|Упълномощавам - трите имена на лицето, упълномощено да получи стоката|*</span><br>
-		                   [#proxyName#]
-		                </div>                                       
-		            </div>                
-		            
-		            <div class='bg_red line'>
-		                <div class='text border_r' style='width: 250px;'>
-		                <span class='pos_abs small_text_top_left'>|Документ за самоличност №|*</span><br>
-		                   [#proxyIdCard#]
-		                   
-		                </div>
-		                <div class='text border_r' style='width: 249px;'>
-		                <span class='pos_abs small_text_top_left'>|ЕГН|*</span><br>
-		                   [#proxyEgn#]
-		                   
-		                </div>          
-		                <div class='text''>
-		                 <span class='pos_abs small_text_top_left'>|Получател|*</span><br>
-		                   &nbsp;
-		                  
-		                </div>
-		            </div>
-		            
-		            <div class='bg_red line'>
-		                <div class='text border_r b' style='width: 250px; height:30px; line-height:30px;'>
-		                   <span style='text-transform: none; letter-spacing: normal;'>|Получих сумата|*</span>
-		                </div>
-		                <div class='text border_r' style='width: 119px;'>
-		                   <span class='pos_abs small_text_top_left'>|Контролен подпис|*</span><br>
-		                   &nbsp;
-		                   
-		                </div>          
-		                <div class='text border_r' style='width: 119px;'>
-		                   <span class='pos_abs small_text_top_left'>|Банков служител|*</span><br>
-		                   &nbsp;
-		                   
-		                </div>
-		                <div class='text'>
-		                <span class='pos_abs small_text_top_left'>|Касиер|*</span><br>
-		                   &nbsp;
-		                   
-		                </div>            
-		            </div>
-				</div>
-		 </div>    
-		        <!-- END belejka -->    
- 	</div>
-				<!--ET_BEGIN DETAILS-->
-					<div class='details'>
-						[#DETAILS#]
-					</div>
-				<!--ET_END DETAILS-->
-				
-		    
-		<!-- END belejka_container -->
-
-</div><!-- document -->
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]' style='width:99%'>
+        <div class='docBgIcon' style='[#iconStyle#]'>[#header#]</div>
+    </div>
+    <!--ET_END header-->
+    <div class='scrolling-holder'>
+        <div class='belejka_container'>
+            <div class='belejka_header'>
+                <div class='container'>
+                    <div class='label_left'>|До|*</div>
+                    <div class='right_block'>
+                        <div class='text border_b'>
+                            [#execBank#]
+                        </div>
+                        <div class='label_mid'>
+                            |банка|*
+                        </div>
+                    </div>
+                </div>
+                <div class='container'>
+                    <div class='label_left'>&nbsp;</div>
+                    <div class='right_block'>
+                        <div class='text border_b'>
+                            [#issuePlaceAndDate#]
+                        </div>
+                        <div class='label_mid'>
+                            |място и дата на подаване|*
+                        </div>
+                    </div>
+                </div>
+                <div class='container'>
+                    <div class='label_left'>|Клон|*</div>
+                    <div class='right_block'>
+                        <div class='text border_b'>
+                            [#execBankBranch#] 
+                        </div>
+                    </div>
+                </div>
+                <div class='container'>
+                    <div class='label_left'>&nbsp;</div>
+                    <div class='right_block'>
+                        <div class='text border_b_white'>
+                            &nbsp;
+                        </div>
+                        <div class='label_mid'>
+                            &nbsp;
+                        </div>
+                    </div>
+                </div>
+                <div class='container'>
+                    <div class='label_left'>|Адрес|*</div>
+                    <div class='right_block'>
+                        <div class='text border_b'>
+                            [#execBankAdress#]
+                        </div>
+                        <div class='label_mid'>
+                            &nbsp;
+                        </div>
+                    </div>
+                </div>
+                <div class='container'>
+                    <div class='label_left'>&nbsp;</div>
+                    <div class='right_block'>
+                        <div class='text border_b'>
+                            &nbsp;
+                        </div>
+                        <div class='label_mid'>
+                            |подписи на лицата, които могат да се разпореждат|*
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END belejka_header -->
+            <div class='belejka'>
+                <div class='bg_white line'>
+                    <div class='text pos_rel'>
+                        <span class='pos_abs small_text_top_left'>|Наредител - име|*</span><br>
+                        [#ordererName#] 
+                    </div>
+                </div>
+                <div class='bg_white line'>
+                    <div class='bg_red text border_r' style='width: 450px;'>
+                        <span class='pos_abs small_text_top_left'>|IBAN на наредителя|*</span><br>
+                        [#ordererIban#]
+                    </div>
+                </div>
+                <div class='bg_white line'>
+                    <div class='text'>
+                        <span class='pos_abs small_text_top_left'>|При банка (банка, клон)|*</span><br>
+                        [#ordererBank#]
+                    </div>
+                </div>
+                <div class='bg_red line'>
+                    <div class='bg_white text a_center border_r' style='width: 250px; letter-spacing: normal; line-height: 15px; padding: 5px;'>
+                        <span class='b'>|НАРЕЖДАНЕ|*<br>|РАЗПИСКА|*</span>
+                    </div>
+                    <div class='bg_white text a_center border_r' style='width: 110px; letter-spacing: normal; line-height: 15px; padding:5px;'>
+                        <span class='b'>|Платете|*<br>|в брой|*</span>
+                    </div>
+                    <div class='text border_r' style = 'width:67px'>
+                        <span class='pos_abs small_text_top_left'  style='width:50px'>|Вид валута|*</span><br>
+                        [#currencyId#]
+                    </div>
+                    <div class='text bg_red a_right' style='width: 365px;'>
+                        <span class='pos_abs small_text_top_left'>|Сума|*</span><br>
+                        [#amount#]
+                    </div>
+                </div>
+                <div class='bg_white line'>
+                    <div class='text'>
+                        <span class='pos_abs small_text_top_left'>|С думи|*</span><br>
+                        [#sayWords#]
+                    </div>
+                </div>
+                <div class='bg_white line'>
+                    <div class='text'>
+                        <span class='pos_abs small_text_top_left'>|Упълномощавам - трите имена на лицето, упълномощено да получи стоката|*</span><br>
+                        [#proxyName#]
+                    </div>
+                </div>
+                <div class='bg_red line'>
+                    <div class='text border_r' style='width: 250px;'>
+                        <span class='pos_abs small_text_top_left'>|Документ за самоличност №|*</span><br>
+                        [#proxyIdCard#]
+                    </div>
+                    <div class='text border_r' style='width: 249px;'>
+                        <span class='pos_abs small_text_top_left'>|ЕГН|*</span><br>
+                        [#proxyEgn#]
+                    </div>
+                    <div class='text'>
+                        <span class='pos_abs small_text_top_left'>|Получател|*</span><br>
+                        &nbsp;
+                    </div>
+                </div>
+                <div class='bg_red line'>
+                    <div class='text border_r b' style='width: 250px; height:30px; line-height:30px;'>
+                        <span style='text-transform: none; letter-spacing: normal;'>|Получих сумата|*</span>
+                    </div>
+                    <div class='text border_r' style='width: 119px;'>
+                        <span class='pos_abs small_text_top_left'>|Контролен подпис|*</span><br>
+                        &nbsp;
+                    </div>
+                    <div class='text border_r' style='width: 119px;'>
+                        <span class='pos_abs small_text_top_left'>|Банков служител|*</span><br>
+                        &nbsp;
+                    </div>
+                    <div class='text'>
+                        <span class='pos_abs small_text_top_left'>|Касиер|*</span><br>
+                        &nbsp;
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END belejka -->    
+    </div>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
+    <!-- END belejka_container -->
+</div>
+<!-- document -->

@@ -29,15 +29,15 @@ class hr_Departments extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Персонал";
-        
+    
+    
     
     /**
      * Плъгини за зареждане
      */
-   
     var $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing,
                      plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
     
@@ -49,16 +49,16 @@ class hr_Departments extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,hr';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,hr';
-	
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,hr';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo,hr';
+    
     
     /**
      * Кой може да пише?
@@ -71,7 +71,7 @@ class hr_Departments extends core_Master
      */
     var $singleLayoutFile = 'hr/tpl/SingleLayoutDepartment.shtml';
     
-
+    
     /**
      * Единична икона
      */
@@ -82,27 +82,26 @@ class hr_Departments extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'name';
-
-
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, name, type, nkid, staff, locationId, employmentTotal, employmentOccupied, schedule';
     
-
+    
     /**
      * Детайли на този мастер
      */
     var $details = 'Grafic=hr_WorkingCycles,Positions=hr_Positions';
     
-    
     // Подготвяме видовете графики 
     static $chartTypes = array(
-            'List' => 'Tаблица',
-            'StructureChart' => 'Графика',
-        );
-
-        
+        'List' => 'Tаблица',
+        'StructureChart' => 'Графика',
+    );
+    
+    
     /**
      * Описание на модела
      */
@@ -123,7 +122,7 @@ class hr_Departments extends core_Master
                                  shift=Смяна)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД, hint=Номер по НКИД');
         $this->FLD('staff', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=В състава на,width=100%');
-
+        
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
@@ -139,25 +138,24 @@ class hr_Departments extends core_Master
     static function on_AfterPrepareEditForm($mvc, $data)
     {
         $data->form->setOptions('locationId', array('' => '&nbsp;') + crm_Locations::getOwnLocations());
-
+        
         // Да не може да се слага в звена, които са в неговия състав
         if($id = $data->form->rec->id) {
             $notAllowedCond = "#id NOT IN (" . implode(',', self::getInheritors($id, 'staff')) . ")";
-
-
-        }  
+        }
         
         $query = self::getQuery();
         $query->orderBy('#orderStr');
+        
         while($r = $query->fetch($notAllowedCond)) {
-                self::expandRec($r);
-                $opt[$r->id] = $r->name;
+            self::expandRec($r);
+            $opt[$r->id] = $r->name;
         }
-
+        
         $data->form->setOptions('staff', $opt);
     }
-
-
+    
+    
     /**
      * Връща наследниците на даден запис
      */
@@ -165,22 +163,23 @@ class hr_Departments extends core_Master
     {
         $arr[$id] = $id;
         $query = self::getQuery();
+        
         while($rec = $query->fetch("#{$field} = $id")) {
- 
+            
             self::getInheritors($rec->id, $field, $arr);
         }
-
+        
         return $arr;
     }
-
-
+    
+    
     /**
      * Добавя данните за записа, които зависят от неговите предшественици и от неговите детайли
      */
     static function expandRec($rec)
     {
         $parent = $rec->staff;
-
+        
         while($parent && ($pRec = self::fetch($parent))) {
             $rec->name = $pRec->name . ' » ' . $rec->name;
             setIfNot($rec->nkid, $pRec->nkid);
@@ -188,8 +187,8 @@ class hr_Departments extends core_Master
             $parent = $pRec->staff;
         }
     }
-
-
+    
+    
     /**
      * Определя заглавието на записа
      */
@@ -199,8 +198,8 @@ class hr_Departments extends core_Master
         
         return parent::getRecTitle($rec, $escaped);
     }
-
-
+    
+    
     /**
      * Изпънява се преди превръщането във вербални стойности на записа
      */
@@ -208,7 +207,7 @@ class hr_Departments extends core_Master
     {
         self::expandRec($rec);
     }
-
+    
     
     /**
      * Проверка за зацикляне след субмитване на формата. Разпъване на всички наследени роли
@@ -216,7 +215,7 @@ class hr_Departments extends core_Master
     static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
-
+        
         // Ако формата е субмитната и редактираме запис
         if ($form->isSubmitted() && ($rec->id)) {
             
@@ -226,16 +225,15 @@ class hr_Departments extends core_Master
                 
                 // Ако има грешки
                 if ($expandedDepartment[$rec->id]) {
-                    $form->setError('dependent', "|Не може отдела да е подчинен на себе си");  
+                    $form->setError('dependent', "|Не може отдела да е подчинен на себе си");
                 } else {
                     $rec->dependent = keylist::fromArray($expandedDepartment);
                 }
-
             }
-         }
+        }
     }
     
-
+    
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
@@ -251,6 +249,7 @@ class hr_Departments extends core_Master
     static function on_BeforeSave($mvc, $id, $rec)
     {
         $rec->orderStr = '';
+        
         if($rec->staff) {
             $rec->orderStr = self::fetchField($rec->staff, 'orderStr');
         }
@@ -266,12 +265,12 @@ class hr_Departments extends core_Master
      * @param stdClass $data
      */
     static function on_BeforePrepareListPager($mvc, &$res, $data) {
-    	// Ако искаме да видим графиката на структурата
-    	// не ни е необходимо страницирване
-    	if(Request::get('Chart')  == 'Structure') {
-    		// Задаваме броя на елементите в страница
+        // Ако искаме да видим графиката на структурата
+        // не ни е необходимо страницирване
+        if(Request::get('Chart')  == 'Structure') {
+            // Задаваме броя на елементите в страница
             $mvc->listItemsPerPage = 1000000;
-    	}
+        }
     }
     
     
@@ -286,20 +285,20 @@ class hr_Departments extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'delete'){
-	    	if ($rec->id) {
-	        	
-	    		$haveContracts = hr_EmployeeContracts::fetch("#departmentId = '{$rec->id}'");
-	    		
+        if($action == 'delete'){
+            if ($rec->id) {
+                
+                $haveContracts = hr_EmployeeContracts::fetch("#departmentId = '{$rec->id}'");
+                
                 $haveSubDeparments = self::fetch("#staff = '{$rec->id}'");
-
-	    		if($haveContracts || $haveSubDeparments){
-	    			$requiredRoles = 'no_one';
-	    		}
-    	     }
-         }
+                
+                if($haveContracts || $haveSubDeparments){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
-
+    
     
     /**
      * Добавя след таблицата
@@ -310,22 +309,16 @@ class hr_Departments extends core_Master
      */
     function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
-    	$chartType = Request::get('Chart');
-    	
-    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+        $chartType = Request::get('Chart');
         
-        $tabs->TAB('List', 'Таблица', array($mvc, 'list', 'Chart'=> 'List'));
-
-        $tabs->TAB('Structure', 'Графика', array($mvc, 'list', 'Chart'=> 'Structure'));
-       
         if($chartType == 'Structure') {
-        	
-        	$tpl = static::getChart($data);
+            
+            $tpl = static::getChart($data);
+            
+            $mvc->currentTab = "Структура->Графика";
+        } else {
+            $mvc->currentTab = "Структура->Таблица";
         }
-        
-        $tpl = $tabs->renderHtml($tpl, $chartType);
-               
-        $mvc->currentTab = 'Структура';
     }
     
     
@@ -334,27 +327,27 @@ class hr_Departments extends core_Master
      */
     static function getChart ($data)
     {
-      
-    	foreach($data->recs as $rec){
-    	    // Ако имаме родител 
-    		if($parent = $rec->staff) { 
-    			// взимаме чистото име на наследника
-    			$name = self::fetchField($rec->id, 'name');
-    		} else {
-    			// в противен случай, го взимаме
-    			// както е
-    			$name = $rec->name;
-    		}
-    		
-    		$res[]=array(
-    				'id' => $rec->id,
-    				'title' => $name,
-    				'parent_id' => $rec->staff === NULL ? "NULL" : $rec->staff,
-    		);
-    	}
-    	
+        
+        foreach((array)$data->recs as $rec){
+            // Ако имаме родител 
+            if($parent = $rec->staff) {
+                // взимаме чистото име на наследника
+                $name = self::fetchField($rec->id, 'name');
+            } else {
+                // в противен случай, го взимаме
+                // както е
+                $name = $rec->name;
+            }
+            
+            $res[] = array(
+                'id' => $rec->id,
+                'title' => $name,
+                'parent_id' => $rec->staff === NULL ? "NULL" : $rec->staff,
+            );
+        }
+        
         $chart = orgchart_Adapter::render_($res);
-
-    	return $chart;
+        
+        return $chart;
     }
 }

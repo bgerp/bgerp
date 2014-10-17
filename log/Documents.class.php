@@ -1112,6 +1112,15 @@ class log_Documents extends core_Manager
 			// Milen: Това какво прави? Супер неясно глобално предаване на параметри!!!
 			if(static::getAction()) {
 				static::getAction()->id = $rec->id;
+				
+			} else {
+			    
+			    // Ако няма пушнат екшън и има подаден екшън, пушваме го
+			    if ($actionData) {
+			        $actionData['id'] = $rec->id;
+			    
+			        static::pushAction($actionData);
+			    }
 			}
             
             return $rec->mid;
@@ -1363,7 +1372,7 @@ class log_Documents extends core_Manager
                 }
             }
             
-            $linkedDocs = $midDoc->getLinkedDocuments($sendedBy);
+            $linkedDocs = $midDoc->getLinkedDocuments($sendedBy, $fParent->data);
             
             // свързан ли е?
             expect(isset($linkedDocs[$requestedDoc->getHandle()]));
@@ -2217,6 +2226,11 @@ class log_Documents extends core_Manager
         $count = 0;
         
         while ($action = static::popAction()) {
+            
+            if (!$action->threadId && $action->containerId) {
+                $action->threadId = doc_Containers::fetchField($action->containerId, 'threadId');
+            }
+            
             static::save($action);
             $count++;
         }
@@ -2332,7 +2346,13 @@ class log_Documents extends core_Manager
         		$row = new stdClass();
         		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
         		$state = $class::fetchField($d->id, 'state');
-        		$row->link = ht::createLink($d->title, array($class, 'single', $d->id), NULL, $iconStles);
+        		if ($class::haveRightFor('single', $d->id)) {
+        		    $singleUrl = array($class, 'single', $d->id);
+        		} else {
+        		    $singleUrl = array();
+        		}
+        		
+        		$row->link = ht::createLink($d->title, $singleUrl, NULL, $iconStles);
 	        	$row->link = "<span style ='text-align:left;margin-left:2px;display:block'>{$row->link}</span>";
 	        	$row->author = $d->author;
 	        	$time =  dt::mysql2verbal($d->lastUsedOn, 'smartTime');

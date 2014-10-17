@@ -26,7 +26,7 @@ class cal_Calendar extends core_Master
     /**
      * Класове за автоматично зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, plg_GroupByDate, cal_View, plg_Printing, plg_Search';
+    var $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, plg_GroupByDate, plg_Printing, plg_Search';
     
     
     /**
@@ -147,7 +147,7 @@ class cal_Calendar extends core_Master
         $this->FLD('key', 'varchar(40)', 'caption=Ключ');
 
         // Дата на събититието
-        $this->FLD('time', new type_Datetime(array('cellAttr' => 'class="portal-date"', 'format' => 'smartTime')), 'caption=Време');
+        $this->FLD('time', 'datetime(format=smartTime)', 'caption=Време,tdClass=portal-date');
         
         // Продължителност на събитието
         $this->FLD('duration', 'time', 'caption=Продължителност');
@@ -211,6 +211,7 @@ class cal_Calendar extends core_Master
         // Обновяваме информацията за новопостъпилите събития
         if(count($events)) {
             foreach($events as $e) {
+          
                 if(!trim($e->users)) {
                     unset($e->users);
                 }
@@ -283,17 +284,16 @@ class cal_Calendar extends core_Master
       	
 		  $data->listFilter->rec->selectedUsers = 
 		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
-		  
-		  $data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
-	      $data->query->orWhere('#users IS NULL OR #users = ""');
-	  }
+      	}  
+		
+      	$data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
+	    $data->query->orWhere('#users IS NULL OR #users = ""');
+	 
     }
 
     
     function on_AfterRenderWrapping($mvc, &$tpl)
     {
-    	jquery_Jquery::enable($tpl);
-    	
     	$tpl->push('cal/tpl/style.css', 'CSS');
     	$tpl->push('cal/js/mouseEvent.js', 'JS');
     	
@@ -311,10 +311,9 @@ class cal_Calendar extends core_Master
      */
  	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
-    	//bp(&$roles, $action, $rec, $userId);
     	if($action == 'day' || $action == 'week' || $action == 'month' || $action == 'year'){
 	    	 $requiredRoles = 'user';
-         }
+        }
     }
     
     
@@ -336,6 +335,7 @@ class cal_Calendar extends core_Master
         if($url['Ctr'] == 'crm_Persons') {
         	$isLink = crm_Persons::haveRightFor('single', $url['id']);
         }
+       
         // TODO
         $attr['class'] = 'linkWithIcon';
         if($rec->type == 'leave'){
@@ -523,11 +523,11 @@ class cal_Calendar extends core_Master
         $prevtLink['cal_year'] = $py;
         $prevtLink = toUrl($prevtLink);
         
-        $header = "<table class='mc-header' width='100%' cellpadding='0'>
+        $header = "<table class='mc-header' style='width:100%'>
                 <tr>
-                    <td align='left'><a href='{$prevtLink}'>{$prevMonth}</a></td>
-                    <td align='center'><b>{$currentMonth}</b></td>
-                    <td align='right'><a href='{$nextLink}'>{$nextMonth}</a></td>
+                    <td class='aleft'><a href='{$prevtLink}'>{$prevMonth}</a></td>
+                    <td class='centered'><b>{$currentMonth}</b></td>
+                    <td class='aright'><a href='{$nextLink}'>{$nextMonth}</a></td>
                 </tr>
             </table>";
         
@@ -566,7 +566,7 @@ class cal_Calendar extends core_Master
 
         if (is_array($state->recs)) {
             foreach($state->recs as $id => $rec) {
-            	//bp($id, $rec);
+            
                 if($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
                     $time = dt::mysql2timestamp($rec->time);
                     $i = (int) date('j', $time);
@@ -723,6 +723,7 @@ class cal_Calendar extends core_Master
     {
     	self::requireRightFor('day');
     	
+    	$this->currentTab = "Календар->Ден";
     	    	
     	$data = new stdClass();
     	$data->query = $this->getQuery();
@@ -746,6 +747,8 @@ class cal_Calendar extends core_Master
     {
     	self::requireRightFor('week');
     	
+    	$this->currentTab = "Календар->Седмица";
+    	
     	$data = new stdClass();
     	$data->query = $this->getQuery();
     	$data->action = 'week';
@@ -766,8 +769,9 @@ class cal_Calendar extends core_Master
      */
     function act_Month()
     {
-    	
     	self::requireRightFor('month');
+    	
+    	$this->currentTab = "Календар->Месец";
     	
     	$data = new stdClass();
     	$data->query = $this->getQuery();
@@ -790,7 +794,9 @@ class cal_Calendar extends core_Master
     function act_Year()
     {
     	self::requireRightFor('year');
- 
+    	
+    	$this->currentTab = "Календар->Година";
+    	
     	$data = new stdClass();
     	$data->query = $this->getQuery();
     	$data->action = 'year';
@@ -1304,6 +1310,8 @@ class cal_Calendar extends core_Master
 	    		
 	     	    // Картинката за задачите
 	     		$img = self::getIconByType($rec->type, $rec->key);
+	     		
+	     		$rec->title = type_Varchar::escape($rec->title);
 				
 	     		if($hourKey == "allDay" ){
 	     			if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel') {
@@ -1366,6 +1374,8 @@ class cal_Calendar extends core_Master
 	    		
 	     	    // Картинката за задачите
 	            $img = self::getIconByType($rec->type, $rec->key);
+	            
+	            $rec->title = type_Varchar::escape($rec->title);
 	            
 	            if($hourKey == "allDay"){
 	            	if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel'){
@@ -1439,6 +1449,8 @@ class cal_Calendar extends core_Master
 	    		
 	     	    // Картинката за задачите
 	            $img = self::getIconByType($rec->type, $rec->key);
+	            
+	            $rec->title = type_Varchar::escape($rec->title);
 	            
 	        	if($hourKey == "allDay" ){
 	     			if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel') {
@@ -1700,12 +1712,8 @@ class cal_Calendar extends core_Master
 			         
 			      
 			    // Заместваме всички масиви
-			
-			    $cTpl->placeArray($aHrefs);
-			    $cTpl->placeArray($overs);
-			    $cTpl->placeArray($outs);
-	   
-	    		$cTpl->placeArray($hourArr);
+				$cTpl->placeArray($aHrefs);
+			    $cTpl->placeArray($hourArr);
 	    		
 	    		//Връщаме към мастера
 	    		$cTpl->append2master();
@@ -1829,8 +1837,6 @@ class cal_Calendar extends core_Master
 
              // Заместваме всички масиви в шаблона
 		     $cTpl->placeArray($aHrefs);
-		     $cTpl->placeArray($overs);
-		     $cTpl->placeArray($outs);
 		     $cTpl->placeArray($hourArr);
      
     		   			

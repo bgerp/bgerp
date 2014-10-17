@@ -197,6 +197,12 @@ class crm_Persons extends core_Master
     public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
                     ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards';
     
+    
+    /**
+     * Поле, в което да се постави връзка към папката в листови изглед
+     */
+    var $listFieldForFolderLink = 'folder';
+
 
     /**
      * Предефинирани подредби на листовия изглед
@@ -238,15 +244,15 @@ class crm_Persons extends core_Master
         $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData');
-        $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,class=contactData');
-        $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,class=contactData');
+        $this->FLD('buzTel', 'drdata_PhoneType(type=tel)', 'caption=Служебни комуникации->Телефони,class=contactData');
+        $this->FLD('buzFax', 'drdata_PhoneType(type=fax)', 'caption=Служебни комуникации->Факс,class=contactData');
         $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,class=contactData');
 
         // Лични комуникации
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData');
-        $this->FLD('tel', 'drdata_PhoneType', 'caption=Лични комуникации->Телефони,class=contactData,silent');
-        $this->FLD('mobile', 'drdata_PhoneType', 'caption=Лични комуникации->Мобилен,class=contactData,silent');
-        $this->FLD('fax', 'drdata_PhoneType', 'caption=Лични комуникации->Факс,class=contactData,silent');
+        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Телефони,class=contactData,silent');
+        $this->FLD('mobile', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Мобилен,class=contactData,silent');
+        $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Лични комуникации->Факс,class=contactData,silent');
         $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData');
 
         // Допълнителна информация
@@ -358,7 +364,7 @@ class crm_Persons extends core_Master
             $date = Request::get('date', 'date');
 
             if($date) {
-                $data->title = "Именници на <font color='green'>" . dt::mysql2verbal($date, 'd.m.Y, l') . "</font>";
+                $data->title = "Именници на <span class=\"green\">" . dt::mysql2verbal($date, 'd.m.Y, l') . "</span>";
             } else {
                 $data->title = "Именници";
             }
@@ -543,19 +549,19 @@ class crm_Persons extends core_Master
             
                 // Мобилен телефон
                 $mob = $mvc->getVerbal($rec, 'mobile');
-                $row->phonesBox .= $mob ? "<div class='mobile'>{$mob}</div>" : "";
+                $row->phonesBox .= $mob ? "<div class='crm-icon mobile'>{$mob}</div>" : "";
                 
                 // Телефон
                 $tel = $mvc->getVerbal($rec, $rec->buzTel ? 'buzTel' : 'tel');
-                $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
+                $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : "";
                 
                 // Факс
                 $fax = $mvc->getVerbal($rec, $rec->buzFax ? 'buzFax' : 'fax');
-                $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
+                $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : "";
                 
                 // Email
                 $eml = $mvc->getVerbal($rec, $rec->buzEmail ? 'buzEmail' : 'email');
-                $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
+                $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : "";
     
                 $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
             } else {
@@ -565,8 +571,10 @@ class crm_Persons extends core_Master
             }
         }
         $currentId = $mvc->getVerbal($rec, 'id');
-        $row->nameList = '<span class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
-        "</span><span class='custom-rowtools'>". $row->id .' </span></span>';
+
+
+        $row->nameList = '<div class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
+        "</span><div class='custom-rowtools'>". $row->id . ' </div>' . $row->folder .'</div>';
       
         $row->title =  $mvc->getTitleById($rec->id);
 
@@ -658,6 +666,26 @@ class crm_Persons extends core_Master
         
         // Обновяме номерата
         $mvc->updateNumbers($rec);
+    }
+    
+    
+    /**
+     * Подготвяме опциите на тип key
+     *
+     * @param std Class $mvc
+     * @param array $options
+     * @param std Class $typeKey
+     */    
+    static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
+    {
+       if ($typeKey->params['select'] == 'name') {
+	       $query = $mvc->getQuery();
+	       $mvc->restrictAccess($query);
+	       
+	       while($rec = $query->fetch("#state != 'rejected'")) {
+	       	   $typeKey->options[$rec->id] = $rec->name . " ({$rec->id})";
+	       }
+       }
     }
     
     
@@ -919,7 +947,7 @@ class crm_Persons extends core_Master
 
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->id,
+                'num' => "P" . $rec->id,
                 'title' => $rec->name,
                 'features' => array('Държава' => static::getVerbal($rec, 'country'),
             						'Град' => static::getVerbal($rec, 'place'),)
@@ -931,24 +959,6 @@ class crm_Persons extends core_Master
             }
             
             $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
-        }
-
-        return $result;
-    }
-
-
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-
-        if ($rec = $self->fetch($objectId)) {
-            $result = $self->getHyperlink($objectId);
-        } else {
-            $result = '<i>' . tr('неизвестно') . '</i>';
         }
 
         return $result;
@@ -1035,15 +1045,15 @@ class crm_Persons extends core_Master
         		$tpl->append("<div style='font-weight:bold;'>{$row->name}</div>", 'persons');
         		
         		if($row->mobile) {
-        			$tpl->append("<div class='mobile'>{$row->mobile}</div>", 'persons');
+        			$tpl->append("<div class='crm-icon mobile'>{$row->mobile}</div>", 'persons');
         		}
         	
         		if($row->buzTel) {
-        			$tpl->append("<div class='telephone'>{$row->buzTel}</div>", 'persons');
+        			$tpl->append("<div class='crm-icon telephone'>{$row->buzTel}</div>", 'persons');
         		}
         	
         		if($row->buzEmail) {
-        			$tpl->append("<div class='email'>{$row->buzEmail}</div>", 'persons');
+        			$tpl->append("<div class='crm-icon email'>{$row->buzEmail}</div>", 'persons');
         		}
         	
         		$tpl->append("</div>", 'persons');
@@ -1250,9 +1260,10 @@ class crm_Persons extends core_Master
             $contrData->pFax = $person->fax;
             $contrData->pAddress = $person->address;
             $contrData->pEmail = $person->email;
-
+			
+            $contrData->salutationRec = $person->salutation;
             $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');
-            
+			
             // Ако е свързан с фирма
             if ($person->buzCompanyId) {
                 
@@ -1697,22 +1708,21 @@ class crm_Persons extends core_Master
             $data->form->setField('groupList', array('maxColumns' => 2));    
         }
         
-    	// Не може да се променят номенклатурите от формата
-    	if($form->fields['lists']){
-        	$form->setField('lists', 'input=none');
-        }
-        
         if(empty($form->rec->buzCompanyId)){
-        	$form->setReadOnly('buzLocationId');
+		    $form->setField('buzLocationId', 'input=none');
         }
-        
-        $form->addAttr('buzCompanyId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['buzLocationId'].value ='';this.form.submit();"));
+
+        if(!$form->rec->id && $form->rec->buzCompanyId) {  
+            $form->setReadOnly('buzCompanyId');
+        } else {
+            $form->addAttr('buzCompanyId', array('onchange' => "addCmdRefresh(this.form); if(document.forms['{$form->formAttr['id']}'].elements['buzLocationId'] != undefined) document.forms['{$form->formAttr['id']}'].elements['buzLocationId'].value ='';this.form.submit();"));
+        }
     	
         if($form->rec->buzCompanyId){
         	$locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
 			$form->setOptions('buzLocationId', $locations);
 			if(!count($locations)){
-				$form->setReadOnly('buzLocationId');
+				$form->setField('buzLocationId', 'input=none');
 			}
         }
     }
@@ -1743,6 +1753,7 @@ class crm_Persons extends core_Master
         if (in_array($ext, $vCardExtArr) && (static::haveRightFor('add') && (fileman_Files::haveRightFor('single', $fRec)))) {
             
             // Създаваме масива за съзване на визитка
+        	$arr = array();
             $arr['vcard']['class'] = 'crm_Persons';
             $arr['vcard']['action'] = 'extractVcard';
             $arr['vcard']['title'] = 'Лице';
@@ -2253,22 +2264,24 @@ class crm_Persons extends core_Master
      */
     public function getFullAdress($id)
     {
-    	$adress = '';
-    	expect($rec = $this->fetch($id));
-    	if($rec->country){
-    		$adress .= crm_Persons::getVerbal($rec, 'country');
-    	}
+    	expect($rec = $this->fetchRec($id));
     	
+    	$obj = new stdClass();
+    	$tpl = new ET("[#country#]<br>[#pCode#] [#place#]<br>[#address#]");
+    	if($rec->country){
+    		$obj->country = crm_Persons::getVerbal($rec, 'country');
+    	}
+    
+    	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->$fld){
-    			$adress .= ((strlen($adress) && $fld != 'place') ? ", " : " ") . $rec->$fld;
+    			$obj->$fld = $Varchar->toVerbal($rec->$fld);
     		}
     	}
     	
-    	$Varchar = cls::get('type_Varchar');
-    	$adress = $Varchar->toVerbal($adress);
+    	$tpl->placeObject($obj);
     	
-    	return trim($adress);
+    	return $tpl;
     }
 
 

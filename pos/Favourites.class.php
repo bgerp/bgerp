@@ -25,7 +25,7 @@ class pos_Favourites extends core_Manager {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Sorting,
-    				 plg_Printing, pos_Wrapper, pos_FavouritesWrapper, plg_State2';
+    				 plg_Printing, pos_Wrapper, plg_State2';
 
     /**
      * Полета, които ще се показват в листов изглед
@@ -98,7 +98,7 @@ class pos_Favourites extends core_Manager {
     	// намираме дефолт контрагента на текущата точка на продажба
     	$contragentId = pos_Points::defaultContragent();
     	$ProductMan = cls::get('cat_Products');
-    	$data->form->setOptions('productId', $ProductMan->getProducts(crm_Persons::getClassId(), $contragentId));
+    	$data->form->setOptions('productId', $ProductMan->getProducts(crm_Persons::getClassId(), $contragentId), 'canSell');
     }
     
     
@@ -269,13 +269,14 @@ class pos_Favourites extends core_Manager {
 	{
     	$blockTpl = $tpl->getBlock('ITEM');
 		
-		$attr = array('isAbsolute' => FALSE, 'qt' => '');
-        $size = array(80, 'max' => TRUE);
     	foreach($products as $row) {
     		$row->url = toUrl(array('pos_Receipts', 'addProduct'), 'local');
     		if($row->image){
-    			$imageUrl = thumbnail_Thumbnail::getLink($row->image, $size, $attr);
-    			$row->image = ht::createElement('img', array('src' => $imageUrl, 'width'=>'90px', 'height'=>'90px'));
+    		    
+    	        $img = new thumb_Img(array($row->image, 80, 80, 'fileman', 'isAbsolute' => FALSE, 'mode' => 'large-no-change'));
+    	        $imageURL = $img->getUrl('forced');
+    		    
+    			$row->image = ht::createElement('img', array('src' => $imageURL, 'width'=>'90px', 'height'=>'90px'));
     		}
     			
     		$rowTpl = clone($blockTpl);

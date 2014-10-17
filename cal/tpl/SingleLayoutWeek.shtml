@@ -1,46 +1,48 @@
 [#SingleToolbar#]
-
-		<div class='header'>
-			<p class="calTitle" >[#title#]</p>
-			<span style='width:15%;'>[#ListFilter#]</span>
-		</div>
-
-		<div class="clearfix" style="min-height:10px;"></div>
-		<!--ET_BEGIN event-->	
-		
-         <div class='scrolling-holder'>
-         		<div class="clearfix21"></div>
-                <table cellspacing='1' class='mc-calendar mc-calendar-week'>
-				<tr>
-					 <th class="calWeekTime"><b>|Време|*</b></th>
-                     <td onclick="goToWeekDate('[#date0Js#]');" class="[#c0#]"><b>[#0#]</b></td>
-                     <td onclick="goToWeekDate('[#date1Js#]');" class="[#c1#]"><b>[#1#]</b></td>
-                     <td onclick="goToWeekDate('[#date2Js#]');" class="[#c2#]"><b>[#2#]</b></td>
-                     <td onclick="goToWeekDate('[#date3Js#]');" class="[#c3#]"><b>[#3#]</b></td>
-                     <td onclick="goToWeekDate('[#date4Js#]');" class="[#c4#]"><b>[#4#]</b></td>
-                     <td onclick="goToWeekDate('[#date5Js#]');" class="[#c5#]"><b>[#5#]</b></td>
-                     <td onclick="goToWeekDate('[#date6Js#]');" class="[#c6#]"><b>[#6#]</b></td>
-                   
-                 </tr>
-                
-                 
-                 <!--ET_BEGIN COMMENT_LI-->
-                 <tr class="[#colTr#]" data-cal-time="[#timeJs#]">
-                 
-                     <th class="calWeekH">[#time#]</th>
-                     <td ondblclick="createDblWeekTask('[#date0Js#][#timeJs#]');" [#over0#][#out0#] class="[#col#]" data-cal-date="[#date0Js#]"><div class="relative-holder">[#d0#]<a class="add-task-btn" onclick="createWeekTask('[#date0Js#][#timeJs#]');">[#href0#]</a></div></td>
-                     <td ondblclick="createDblWeekTask('[#date1Js#][#timeJs#]');" [#over1#][#out1#] class="[#col#]" data-cal-date="[#date1Js#]"><div class="relative-holder">[#d1#]<a class="add-task-btn" onclick="createWeekTask('[#date1Js#][#timeJs#]');">[#href1#]</a></div></td>
-                     <td ondblclick="createDblWeekTask('[#date2Js#][#timeJs#]');" [#over2#][#out2#] class="[#col#]" data-cal-date="[#date2Js#]"><div class="relative-holder">[#d2#]<a class="add-task-btn" onclick="createWeekTask('[#date2Js#][#timeJs#]');">[#href2#]</a></div></td>
-                     <td ondblclick="createDblWeekTask('[#date3Js#][#timeJs#]');" [#over3#][#out3#] class="[#now#]" data-cal-date="[#date3Js#]"><div class="relative-holder">[#d3#]<a class="add-task-btn" onclick="createWeekTask('[#date3Js#][#timeJs#]');">[#href3#]</a></div></td>
-                     <td ondblclick="createDblWeekTask('[#date4Js#][#timeJs#]');" [#over4#][#out4#] class="[#col#]" data-cal-date="[#date4Js#]"><div class="relative-holder">[#d4#]<a class="add-task-btn" onclick="createWeekTask('[#date4Js#][#timeJs#]');">[#href4#]</a></div></td>
-                     <td ondblclick="createDblWeekTask('[#date5Js#][#timeJs#]');" [#over5#][#out5#] class="[#col#]" data-cal-date="[#date5Js#]"><div class="relative-holder">[#d5#]<a class="add-task-btn" onclick="createWeekTask('[#date5Js#][#timeJs#]');">[#href5#]</a></div></td>
-                     <td ondblclick="createDblWeekTask('[#date6Js#][#timeJs#]');" [#over6#][#out6#] class="[#col#]" data-cal-date="[#date6Js#]"><div class="relative-holder">[#d6#]<a class="add-task-btn" onclick="createWeekTask('[#date6Js#][#timeJs#]');">[#href6#]</a></div></td>
-                 </tr>
-                 <!--ET_END COMMENT_LI-->
-                               
-                 </table>
-			</div>
-         <!--ET_END event-->
-         
-         <div style='clear: both;'></div>
-      
+<div class="calTitle" >[#title#]</div>
+<div>[#ListFilter#]</div>
+<div class="clearfix" style="min-height:10px;"></div>
+<!--ET_BEGIN event-->	
+<div class='scrolling-holder'>
+    <div class="clearfix21"></div>
+    <table class='mc-calendar mc-calendar-week'>
+        <tr>
+            <th class="calWeekTime"><b>|Време|*</b></th>
+            <td onclick="goToWeekDate('[#date0Js#]');" class="[#c0#]"><b>[#0#]</b></td>
+            <td onclick="goToWeekDate('[#date1Js#]');" class="[#c1#]"><b>[#1#]</b></td>
+            <td onclick="goToWeekDate('[#date2Js#]');" class="[#c2#]"><b>[#2#]</b></td>
+            <td onclick="goToWeekDate('[#date3Js#]');" class="[#c3#]"><b>[#3#]</b></td>
+            <td onclick="goToWeekDate('[#date4Js#]');" class="[#c4#]"><b>[#4#]</b></td>
+            <td onclick="goToWeekDate('[#date5Js#]');" class="[#c5#]"><b>[#5#]</b></td>
+            <td onclick="goToWeekDate('[#date6Js#]');" class="[#c6#]"><b>[#6#]</b></td>
+        </tr>
+        <!--ET_BEGIN COMMENT_LI-->
+        <tr class="[#colTr#]" data-cal-time="[#timeJs#]">
+            <th class="calWeekH">[#time#]</th>
+            <td ondblclick="createDblWeekTask('[#date0Js#][#timeJs#]');" class="[#col#]" data-cal-date="[#date0Js#]">
+                <div class="relative-holder">[#d0#]<a class="add-task-btn" onclick="createWeekTask('[#date0Js#][#timeJs#]');">[#href0#]</a></div>
+            </td>
+            <td ondblclick="createDblWeekTask('[#date1Js#][#timeJs#]');" class="[#col#]" data-cal-date="[#date1Js#]">
+                <div class="relative-holder">[#d1#]<a class="add-task-btn" onclick="createWeekTask('[#date1Js#][#timeJs#]');">[#href1#]</a></div>
+            </td>
+            <td ondblclick="createDblWeekTask('[#date2Js#][#timeJs#]');" class="[#col#]" data-cal-date="[#date2Js#]">
+                <div class="relative-holder">[#d2#]<a class="add-task-btn" onclick="createWeekTask('[#date2Js#][#timeJs#]');">[#href2#]</a></div>
+            </td>
+            <td ondblclick="createDblWeekTask('[#date3Js#][#timeJs#]');" class="[#now#]" data-cal-date="[#date3Js#]">
+                <div class="relative-holder">[#d3#]<a class="add-task-btn" onclick="createWeekTask('[#date3Js#][#timeJs#]');">[#href3#]</a></div>
+            </td>
+            <td ondblclick="createDblWeekTask('[#date4Js#][#timeJs#]');" class="[#col#]" data-cal-date="[#date4Js#]">
+                <div class="relative-holder">[#d4#]<a class="add-task-btn" onclick="createWeekTask('[#date4Js#][#timeJs#]');">[#href4#]</a></div>
+            </td>
+            <td ondblclick="createDblWeekTask('[#date5Js#][#timeJs#]');" class="[#col#]" data-cal-date="[#date5Js#]">
+                <div class="relative-holder">[#d5#]<a class="add-task-btn" onclick="createWeekTask('[#date5Js#][#timeJs#]');">[#href5#]</a></div>
+            </td>
+            <td ondblclick="createDblWeekTask('[#date6Js#][#timeJs#]');" class="[#col#]" data-cal-date="[#date6Js#]">
+                <div class="relative-holder">[#d6#]<a class="add-task-btn" onclick="createWeekTask('[#date6Js#][#timeJs#]');">[#href6#]</a></div>
+            </td>
+        </tr>
+        <!--ET_END COMMENT_LI-->
+    </table>
+</div>
+<!--ET_END event-->
+<div style='clear: both;'></div>

@@ -64,11 +64,11 @@ class bgerp_Portal extends core_Manager
             ");
         } else {
             $tpl = new ET("
-            <table width=100% class='top-table large-spacing'>
+            <table style='width:100%' class='top-table large-spacing'>
             <tr>
-                <td width=32%>[#LEFT_COLUMN#]</td>
-                <td width=36%>[#NOTIFICATIONS#]</td>
-                <td width=32%>[#RIGHT_COLUMN#]</td>
+                <td style='width:32%'>[#LEFT_COLUMN#]</td>
+                <td style='width:36%'>[#NOTIFICATIONS#]</td>
+                <td style='width:32%'>[#RIGHT_COLUMN#]</td>
             </tr>
             </table>
             ");
@@ -133,7 +133,6 @@ class bgerp_Portal extends core_Manager
 
         $tpl->append($calendarHeader, 'RIGHT_COLUMN');
         
-        jquery_Jquery::enable($tpl);
 		$tpl->push('js/PortalSearch.js', 'JS');
         jquery_Jquery::run($tpl, "portalSearch();");
         

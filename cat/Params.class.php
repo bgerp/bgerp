@@ -33,7 +33,7 @@ class cat_Params extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,typeExt,type,options,lastUsedOn';
+    var $listFields = 'id,typeExt,type,options,default,lastUsedOn';
     
     
     /**
@@ -106,7 +106,8 @@ class cat_Params extends core_Manager
         $this->FLD('sysId', 'varchar(32)', 'input=none');
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последно използване,input=hidden');
         $this->FNC('typeExt', 'varchar', 'caption=Име');
-        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Използвай като признак за групиране->Избор,notNull,default=no,maxRadio=2,value=no,hint=Да служили параметъра като признак за групиране');
+        $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
+        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Да служили параметъра като признак за групиране');
         
         $this->setDbUnique('name, suffix');
         $this->setDbUnique("sysId");
@@ -187,10 +188,9 @@ class cat_Params extends core_Manager
     	
     	$options = array();
     	while($rec = $query->fetch()){
-    		$row = static::recToVerbal($rec, 'name,suffix');
-    		$title = $row->name;
+    		$title = $rec->name;
     		if($rec->suffix){
-    			$title .= " ({$row->suffix})";
+    			$title .= " ({$rec->suffix})";
     		}
     		$options[$rec->{$index}] = $title;
     	}
@@ -217,9 +217,7 @@ class cat_Params extends core_Manager
             $optType = ($rec->type == 'enum') ? 'options' : 'suggestions';
             
             $options = explode(',', $rec->options);
-            foreach($options as $i => &$opt){
-                $opt = type_Varchar::escape($opt);
-            }
+            
             $options = array('' => '') + array_combine($options, $options);
             $os = array($optType => $options);
         }
@@ -241,11 +239,29 @@ class cat_Params extends core_Manager
 	    	1 => "type", 
 	    	2 => "suffix", 
 	    	3 => "sysId",
-    		4 => "options");
+    		4 => "options",
+    		5 => "default");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
     
     	return $res;
+    }
+    
+    
+    /**
+     * Връща дефолт стойността за параметъра
+     * 
+     * @param $paramId - ид на параметър
+     * @return NULL|string
+     */
+    public static function getDefault($paramId)
+    {
+    	// Ако няма гледаме имали дефолт за параметъра
+    	$default = self::fetchField($paramId, 'default');
+    	
+    	if(isset($default) && $default != '') return $default;
+    	
+    	return NULL;
     }
 }

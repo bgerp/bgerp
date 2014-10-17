@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   accda
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Дълготрайни активи
@@ -148,10 +148,11 @@ class accda_Da extends core_Master
     static function getItemRec($objectId)
     {
         $result = NULL;
+        $self = cls::get(get_called_class());
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->num,
+                'num' => $self->abbr . $rec->num,
                 'title' => $rec->title,
                 'features' => 'foobar' // @todo!
             );
@@ -161,7 +162,7 @@ class accda_Da extends core_Master
     }
     
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -170,10 +171,9 @@ class accda_Da extends core_Master
     public static function canAddToFolder($folderId)
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
-    
+        
         return $folderClass == 'doc_UnsortedFolders';
     }
-    
     
     
     /**
@@ -211,43 +211,47 @@ class accda_Da extends core_Master
      */
     static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-    	$data->row->createdByName = core_Users::getVerbal($data->rec->createdBy, 'names');
-    	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
-		
-    	if ($data->rec->location) {
-    		$locationRec = crm_Locations::fetch($data->rec->location);
-    		if($locationRec->address || $locationRec->place || $locationRec->countryId){
-    			$locationRow = crm_Locations::recToVerbal($locationRec);
-    			if($locationRow->address){
-    				$data->row->locationAddress .= ", {$locationRow->address}";
-    			}
-    			if($locationRow->place){
-    				$data->row->locationAddress .= ", {$locationRow->place}";
-    			}
-    			if($locationRow->countryId){
-    				$data->row->locationAddress .= ", {$locationRow->countryId}";
-    			}
-    		}
-    	}
-    }
-    
-    
-	/**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
-    {
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
-    		$tpl->removeBlock('header');
-    	}
+        $data->row->createdByName = core_Users::getVerbal($data->rec->createdBy, 'names');
+        $data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
+        
+        if ($data->rec->location) {
+            $locationRec = crm_Locations::fetch($data->rec->location);
+            
+            if($locationRec->address || $locationRec->place || $locationRec->countryId){
+                $locationRow = crm_Locations::recToVerbal($locationRec);
+                
+                if($locationRow->address){
+                    $data->row->locationAddress .= ", {$locationRow->address}";
+                }
+                
+                if($locationRow->place){
+                    $data->row->locationAddress .= ", {$locationRow->place}";
+                }
+                
+                if($locationRow->countryId){
+                    $data->row->locationAddress .= ", {$locationRow->countryId}";
+                }
+            }
+        }
     }
     
     
     /**
-     * В корици на папки с какви интерфейси може да се слага 
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+            $tpl->removeBlock('header');
+        }
+    }
+    
+    
+    /**
+     * В корици на папки с какви интерфейси може да се слага
      */
     public static function getAllowedFolders()
     {
-    	return array('accda_DaFolderCoverIntf');
+        return array('accda_DaFolderCoverIntf');
     }
 }

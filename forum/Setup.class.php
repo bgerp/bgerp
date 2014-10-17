@@ -90,8 +90,14 @@ class forum_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(3.5, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms,forum, admin, ceo"),
         );
-	
-        
+    
+    
+    /**
+     * Път до css файла
+     */
+    var $commonCSS = 'forum/tpl/styles.css';
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -100,7 +106,7 @@ class forum_Setup extends core_ProtoSetup
     	$html = parent::install();
     	
     	// Добавяме класа връщащ темата в core_Classes
-        core_Classes::add('forum_DefaultTheme');
+        $html .= core_Classes::add('forum_DefaultTheme');
         
         return $html;
     }

@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class dec_DeclarationDetails extends core_Detail
+class dec_DeclarationDetails extends doc_Detail
 {
     
     /**
@@ -36,7 +36,7 @@ class dec_DeclarationDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, sales_Wrapper, dec_Wrapper,
+    var $loadList = 'plg_RowTools, sales_Wrapper,
     				 plg_SaveAndNew, plg_RowZebra, Declarations=dec_Declarations';
 
     
@@ -68,7 +68,7 @@ class dec_DeclarationDetails extends core_Detail
 		$res = new ET(' <ol>
 							<!--ET_BEGIN COMMENT_LI-->
 	
-								<li><b>[#title#]</b></br>[#text#]</li>
+								<li></br>[#text#]</li>
 	
 							<!--ET_END COMMENT_LI-->
 						</ol>

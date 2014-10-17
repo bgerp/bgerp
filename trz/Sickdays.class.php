@@ -209,8 +209,7 @@ class trz_Sickdays extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	//bp($data->form->fields[personId]);
-        $data->form->setDefault('reason', 3);
+    	$data->form->setDefault('reason', 3);
         if(Request::get('accruals')){
         	$data->form->setField('paidByEmployer', 'input, mandatory');
         	$data->form->setField('paidByHI', 'input, mandatory');
@@ -360,6 +359,21 @@ class trz_Sickdays extends core_Master
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
     
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     *
+     * @param $threadId int ид на нишката
+     */
+    public static function canAddToThread($threadId)
+    {
+        // Добавяме тези документи само в персонални папки
+        $threadRec = doc_Threads::fetch($threadId);
+
+        return self::canAddToFolder($threadRec->folderId);
+    }
+
     
     /**
      * Проверка дали нов документ може да бъде добавен в

@@ -38,7 +38,7 @@ class cal_TaskProgresses extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'createdOn,createdBy,message,progress,workingTime';
+    var $listFields = 'createdOn,createdBy,message,progress,workingTime,expectationTime';
     
     
     /**
@@ -52,11 +52,10 @@ class cal_TaskProgresses extends core_Detail
      */
     var $singleIcon = 'img/16/task.png';
 
+    
     var $canAdd = 'powerUser';
-
-    
-    
-     
+   
+         
     /**
      * Описание на модела (таблицата)
      */
@@ -71,8 +70,12 @@ class cal_TaskProgresses extends core_Detail
         // Колко време е отнело изпълнението?
         $this->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)',     'caption=Отработено време');
         
+        // Очакван край на задачата
+        $this->FLD('expectationTimeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 
+            'caption=Очакван край, silent');
+        
         // Статус съобщение
-        $this->FLD('message',    'richtext(rows=5)', 'caption=Съобщение,width=300px');
+        $this->FLD('message',    'richtext(rows=5)', 'caption=Съобщение');
     }
 
 
@@ -123,6 +126,32 @@ class cal_TaskProgresses extends core_Detail
     }
     
     
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     * @param unknown_type $data
+     */
+    function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	if (count($data->recs)) {
+    		foreach ($data->rows as $row) {
+    			if ($row->expectationTimeEnd !== '') {
+    				$row->expectationTimeEnd = '';
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     * @param unknown_type $data
+     */
 	function on_AfterRenderListTable($mvc, &$res, $data)
     {
         if(!count($data->recs)) {
@@ -138,11 +167,13 @@ class cal_TaskProgresses extends core_Detail
 												[#createdBy#]&nbsp; 
 												[#progress#]&nbsp;
 												<span class="nowrap">[#workingTime#]</span> 
+												
 											</td>
 											<td>
 												[#message#]
 											</td>
 										</tr>
+										
 									<!--ET_END COMMENT_LI-->
 								</table>
                 ');
@@ -150,7 +181,7 @@ class cal_TaskProgresses extends core_Detail
 			foreach($data->recs as $rec){
 				
 				$row = $this->recToVerbal($rec);
-							
+				
 				$cTpl = $res->getBlock("COMMENT_LI");
 				$cTpl->placeObject($row);
 				$cTpl->removeBlocks();
@@ -158,14 +189,19 @@ class cal_TaskProgresses extends core_Detail
 			}
     	}
     }
-    
 
+    
     /**
-     *
+     * 
+     * Enter description here ...
+     * @param unknown_type $mvc
+     * @param unknown_type $id
+     * @param unknown_type $rec
+     * @param unknown_type $saveFileds
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        $tRec = cal_Tasks::fetch($rec->taskId, 'workingTime,progress,state, title, threadId, createdBy');
+        $tRec = cal_Tasks::fetch($rec->taskId, 'workingTime, progress, state, title, expectationTimeEnd, threadId, createdBy');
 
         // Определяне на прогреса
         if(isset($rec->progress)) {
@@ -190,6 +226,8 @@ class cal_TaskProgresses extends core_Detail
             $tRec->workingTime = $rec->workingTimeSum;
         }
 
+        $tRec->expectationTimeEnd = $rec->expectationTimeEnd;
+        
         cal_Tasks::save($tRec);
     }
 

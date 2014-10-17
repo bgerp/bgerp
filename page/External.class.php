@@ -24,6 +24,7 @@ class page_External extends page_Html
         
         $this->push('css/common.css', 'CSS');
         $this->push('css/Application.css', 'CSS');
+        jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . ">", "HEAD");
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');

@@ -55,7 +55,7 @@ class price_ConsumptionNorms extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, price_Wrapper, price_ConsumptionNormWrapper, doc_DocumentPlg,
+    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg';
     
     
@@ -150,9 +150,9 @@ class price_ConsumptionNorms extends core_Master {
      */
     function description()
     {
-    	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт,width=18em');
-    	$this->FLD('uom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,width=18em');
-    	$this->FLD('info', 'text(rows=4)', 'caption=Информация,width=18em');
+    	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт');
+    	$this->FLD('uom', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка');
+    	$this->FLD('info', 'text(rows=4)', 'caption=Информация');
     	$this->FLD('groups', 'keylist(mvc=price_ConsumptionNormGroups, select=title)', 'caption=Групи, mandatory');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     
@@ -171,7 +171,7 @@ class price_ConsumptionNorms extends core_Master {
     		if($form->rec->uom) {
     			$similarMeasures = cat_UoM::getSameTypeMeasures($productUom);
     			if(!array_key_exists($form->rec->uom, $similarMeasures)) {
-    				$form->setError('uom', 'Избраната мярка не е от същата група като основната мярка на продукта');
+    				$form->setError('uom', "Избраната мярка не е от същата група като основната мярка на продукта (" . cat_Uom::getTitleById($productUom) . ')');
     			}
     		} else {
     			$form->rec->uom = $productUom;
@@ -538,8 +538,8 @@ class price_ConsumptionNorms extends core_Master {
     private function prepareCalcPrice(&$data)
     {
     	$form = cls::get("core_Form");
-    	$form->FNC('uom', 'key(mvc=cat_UoM, select=name)', 'input,caption=Мярка,width=11em');
-    	$form->FNC('quantity', 'int', 'input,caption=Количество,width=11em');
+    	$form->FNC('uom', 'key(mvc=cat_UoM, select=name)', 'input,caption=Мярка');
+    	$form->FNC('quantity', 'int', 'input,caption=Количество');
     	if(!$data->rec->uom){
     		$data->rec->uom = cat_Products::fetchField($data->rec->productId, 'measureId');
     	}
@@ -610,8 +610,8 @@ class price_ConsumptionNorms extends core_Master {
 	{	
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
-		$data->listFilter->FNC('gr', 'key(mvc=price_ConsumptionNormGroups, select=title, allowEmpty)', 'placeholder=Група,width=9em,silent');
-		$data->listFilter->FNC('measure', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'width=9em,caption=Мярка,silent');
+		$data->listFilter->FNC('gr', 'key(mvc=price_ConsumptionNormGroups, select=title, allowEmpty)', 'placeholder=Група,silent');
+		$data->listFilter->FNC('measure', 'key(mvc=cat_UoM, select=name, allowEmpty)', 'caption=Мярка,silent');
 		$data->listFilter->showFields = 'search,gr,measure';
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
@@ -644,10 +644,6 @@ class price_ConsumptionNorms extends core_Master {
 				$res = 'no_one';
 			}
 		}
-		
-		if($action == 'add') {
-			$res = $mvc->canAdd;
-		}
 	}
 	
 	
@@ -659,6 +655,8 @@ class price_ConsumptionNorms extends core_Master {
      */
     public static function canAddToFolder($folderId)
     {
+        return FALSE;
+
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
     
         return $folderClass == 'cat_Products';
@@ -674,6 +672,9 @@ class price_ConsumptionNorms extends core_Master {
      */
 	public static function canAddToThread($threadId)
     {
+
+return FALSE;
+
 		$folderId = doc_Threads::fetchField($threadId, 'folderId');
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
         

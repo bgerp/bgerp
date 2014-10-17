@@ -116,7 +116,6 @@ class trz_Bonuses extends core_Master
     function act_Test()
     {
     	$date = '2013-07-16';
-    	//bp(self::getSalaryIndicators($date));
     }
     
     

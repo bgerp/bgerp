@@ -1,29 +1,27 @@
 <div class='singleView'>
     [#SingleToolbar#]
-
-<h3><div style="padding:5px;" class=" [#STATE_CLASS#]">|Брояч|* 
-    <b style="color:green;display:inline-block;word-break:break-all">[#name#]</b>
-</div></h3>
+    <h3>
+        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Брояч|* 
+            <b style="color:green;display:inline-block;word-break:break-all">[#name#]</b>
+        </div>
+    </h3>
     <div class='scrolling-holder'>
-            
-            <table class="styled-table" width="99%">
-                <tr>
-                    <td class="title-style" width="1px">|Минимално|*</td>
-                    <td> [#min#]</td>
-                </tr>
-                 <tr>
-                    <td class="title-style">|Максимално|*</td>
-                    <td> [#max#]</td>
-                </tr>
-                <tr>
-                    <td class="title-style">|Стъпка|*</td>
-                    <td>[#step#]</td>
-                </tr>
-            </table> 
+        <table class="styled-table" style='width:99%'>
+            <tr>
+                <td class="title-style" style='width:1px'>|Минимално|*</td>
+                <td> [#min#]</td>
+            </tr>
+            <tr>
+                <td class="title-style">|Максимално|*</td>
+                <td> [#max#]</td>
+            </tr>
+            <tr>
+                <td class="title-style">|Стъпка|*</td>
+                <td>[#step#]</td>
+            </tr>
+        </table>
     </div>
-   <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
-   
-   <br>
-   
-   [#DETAILS#]
+    <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+    <br>
+    [#DETAILS#]
 </div>

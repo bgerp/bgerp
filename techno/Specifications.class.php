@@ -55,7 +55,7 @@ class techno_Specifications extends core_Manager {
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'title, folderId, docClassId';
+    public $searchFields = 'title, folderId, docClassId, id';
     
     
     /**
@@ -123,8 +123,6 @@ class techno_Specifications extends core_Manager {
             'enum(active=Активирано, rejected=Отказано)', 
             'caption=Статус, input=none'
         );
-    	
-    	$this->setDbUnique('title');
     }
     
     
@@ -166,10 +164,11 @@ class techno_Specifications extends core_Manager {
      * Това са всички спецификации от неговата папка, както и
      * всички общи спецификации (създадени в папка "Проект")
      */
-    function getProducts($customerClass, $customerId, $date = NULL, $limit = NULL)
+    function getProducts($customerClass, $customerId, $date = NULL, $properties, $limit = NULL)
     {
     	$Class = cls::get($customerClass);
     	$folderId = $Class->forceCoverAndFolder($customerId, FALSE);
+    	$properties = arr::make($properties);
     	
     	$count = 0;
     	$products = array();
@@ -177,28 +176,28 @@ class techno_Specifications extends core_Manager {
     	$query->where("#folderId = {$folderId}");
     	$query->orWhere("#common = 'yes'");
     	$query->where("#state = 'active'");
+    	
     	while($rec = $query->fetch()){
     		if(cls::load($rec->docClassId, TRUE)){
     			$DocClass = cls::get($rec->docClassId);
     			if($DocClass->fetchField($rec->docId, 'state') != 'active') continue;
-    			$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
-    			$count++;
-    			if(isset($limit) && $count >= $limit) break;
+    			$flag = FALSE;
+    			
+    			$info = $DocClass->getProductInfo($rec->docId);
+    			
+	    		foreach ($properties as $prop){
+	    			if(empty($info->meta[$prop])) $flag = TRUE;
+	    		}
+    			
+	    		if(!$flag){
+	    			$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
+	    			$count++;
+	    			if(isset($limit) && $count >= $limit) break;
+	    		}
     		}
     	}
     	
     	return $products;
-    }
-    
-    
-    /**
-     * Дали има поне един продаваем продукт за клиента
-     */
-    public function hasSellableProduct($contragentClassId, $contragentId, $date)
-    {
-    	$sellable = $this->getProducts($contragentClassId, $contragentId, $date);
-    	
-    	return count($sellable);
     }
     
     
@@ -239,7 +238,11 @@ class techno_Specifications extends core_Manager {
     {
     	expect($rec = static::fetchRec($id));
     	
-    	return new core_ObjectReference($rec->docClassId, $rec->docId);
+    	if(cls::load($rec->docClassId, TRUE)){
+    		return new core_ObjectReference($rec->docClassId, $rec->docId);
+    	} else {
+    		return NULL;
+    	}
     }
     
     
@@ -256,44 +259,6 @@ class techno_Specifications extends core_Manager {
     }
     
     
-    /**
-     * Връща цената за посочения продукт към посочения
-     * клиент на посочената дата
-     * Цената се изчислява по формулата формулата:
-     * ([начални такси] * (1 + [максимална надценка]) + [количество] * 
-     *  [единична себестойност] *(1 + [минимална надценка])) / [количество]
-     * 
-     * @return object
-     * $rec->price  - цена
-     * $rec->discount - отстъпка
-     */
-    public function getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId = NULL, $quantity = 1, $datetime = NULL)
-    {
-    	$TechnoClass = static::getDriver($id);
-    	$priceInfo = $TechnoClass->getPriceInfo($packagingId, $quantity, $datetime);
-    	
-    	if($priceInfo->price){
-    		$price = new stdClass();
-    		if($priceInfo->discount){
-    			$price->discount = $priceInfo->discount;
-    		}
-    		
-    		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
-    		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
-    		$price->price = ($priceInfo->tax * (1 + $maxCharge) 
-    					+ $quantity * $priceInfo->price * (1 + $minCharge)) / $quantity;
-    		
-    		return $price;
-    	}
-    	
-    	// Ако продукта няма цена, връщаме цената от последно
-    	// продадената спецификация на този клиент (ако има)
-    	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
-    	
-    	return $LastPricePolicy->getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId, $quantity, $datetime);
-	}
-    
-    
 	/**
      * Връща цената по себестойност на продукта
      * @TODO себестойността да идва от заданието
@@ -302,6 +267,9 @@ class techno_Specifications extends core_Manager {
     public function getSelfValue($productId, $packagingId = NULL, $quantity = 1, $date = NULL)
     {
     	$TechnoClass = static::getDriver($productId);
+    	
+    	if(empty($TechnoClass)) return NULL;
+    	
     	$priceInfo = $TechnoClass->getPriceInfo($packagingId, $quantity, $date);
     	
     	if($priceInfo->price){
@@ -324,10 +292,14 @@ class techno_Specifications extends core_Manager {
      * 		        TRUE - връща целия шаблон на спецификацията
      * @return core_ET - шаблон с представянето на спецификацията
      */
-     public static function getTitleById($id, $escaped = TRUE, $full = FALSE)
+     public static function getTitleById($id, $escaped = TRUE, $full = FALSE, $lang = 'bg')
      {
 	    $TechnoClass = static::getDriver($id);
      	
+	    if(empty($TechnoClass)){
+	    	return "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+	    }
+	    
      	if($full !== TRUE) {
     		return $TechnoClass->getTitleById($escaped);
     	}
@@ -350,6 +322,8 @@ class techno_Specifications extends core_Manager {
     {
     	$TechnoClass = static::getDriver($id);
     	
+    	if(empty($TechnoClass)) return NULL;
+    	
     	return $TechnoClass->getProductInfo($packagingId);
     }
     
@@ -360,6 +334,8 @@ class techno_Specifications extends core_Manager {
 	public function getPacks($productId)
     {
     	$TechnoClass = static::getDriver($productId);
+    	
+    	if(empty($TechnoClass)) return NULL;
     	
     	return $TechnoClass->getPacks();
     }
@@ -416,11 +392,14 @@ class techno_Specifications extends core_Manager {
 	*/
     function getItemRec($objectId)
     {
-        $info = $this->getProductInfo($objectId);
+        $self = cls::get(__CLASS__);
+        
+    	$info = $this->getProductInfo($objectId);
         $itemRec = (object)array(
-            'num' => 'SPC' . $objectId,
+            'num' => 'Sp' . $objectId,
             'title' => $info->productRec->title,
             'uomId' => $info->productRec->measureId,
+        	'features' => array("{$self->title}" => $self->title,)
         );
         
         return $itemRec;
@@ -474,7 +453,18 @@ class techno_Specifications extends core_Manager {
 	*/
     function getLinkToObj($objectId)
     {
-    	return static::getHyperlink($objectId);
+    	$Driver = static::getDriver($objectId);
+    	
+    	if(isset($Driver)){
+    		$link = "<span style='color:red'>" . tr('Нямате права') . "</span>";
+    		if($Driver->instance->haveRightFor('single', $Driver->that)) {
+    			$link = ht::createLink(tr('Връзка') , array($Driver->className, 'Single', $Driver->that));
+    		}
+    	} else {
+    		$link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+    	}
+    	
+    	return $link;
     }
     
     
@@ -489,7 +479,7 @@ class techno_Specifications extends core_Manager {
     		
     		$link =  $Driver->getHyperlink($icon);
     	} catch(Exception $e){
-    		$link = tr('Проблем с показването');
+    		$link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
     	}
     	
     	return $link;
@@ -504,6 +494,8 @@ class techno_Specifications extends core_Manager {
     public function getParam($id, $sysId)
     {
     	$TechnoClass = static::getDriver($id);
+    	
+    	if(empty($TechnoClass)) return NULL;
     	
     	return $TechnoClass->getParam($sysId);
     }
@@ -520,7 +512,11 @@ class techno_Specifications extends core_Manager {
     {
     	$TechnoClass = static::getDriver($productId);
     	
-    	return $TechnoClass->getWeight($productId, $packagingId);
+    	if(isset($TechnoClass)){
+    		return $TechnoClass->getWeight($productId, $packagingId);
+    	} else {
+    		return FALSE;
+    	}
     }
     
     
@@ -535,7 +531,11 @@ class techno_Specifications extends core_Manager {
     {
     	$TechnoClass = static::getDriver($productId);
     	
-    	return $TechnoClass->getVolume($productId, $packagingId);
+    	if(isset($TechnoClass)){
+    		return $TechnoClass->getVolume($productId, $packagingId);
+    	} else {
+    		return FALSE;
+    	}
     }
     
     
@@ -551,11 +551,15 @@ class techno_Specifications extends core_Manager {
      */
     public function getBasePackInfo($id)
     {
+    	$res = (object)array('name' => NULL, 'quantity' => 1);
+    	
     	try{
     		$TechnoClass = static::getDriver($id);
-    		$res = $TechnoClass->getBasePackInfo();
+    		if(isset($TechnoClass)){
+    			$res = $TechnoClass->getBasePackInfo();
+    		}
     	} catch(Exception $e){
-    		$res = (object)array('name' => NULL, 'quantity' => 1);
+    		
     	}
     	
     	return $res;
@@ -595,5 +599,59 @@ class techno_Specifications extends core_Manager {
      */
     static function getHandle($id)
     {
+    }
+    
+    
+    /**
+     * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
+     */
+    public function getPolicy()
+    {
+    	return $this;
+    }
+    
+    
+    /**
+     * Връща цената за посочения продукт към посочения
+     * клиент на посочената дата
+     * Цената се изчислява по формулата формулата:
+     * ([начални такси] * (1 + [максимална надценка]) + [количество] *
+     * [единична себестойност] *(1 + [минимална надценка])) / [количество]
+     *
+     * @return object
+     * $rec->price цена
+     * $rec->discount отстъпка
+     */
+    public function getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId = NULL, $quantity = 1, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    {
+    	$TechnoClass = static::getDriver($id);
+    	
+    	if(empty($TechnoClass)) return NULL;
+    	
+    	$priceInfo = $TechnoClass->getPriceInfo($packagingId, $quantity, $datetime);
+    	
+    	if($priceInfo->price){
+    		$price = new stdClass();
+    		if($priceInfo->discount){
+    			$price->discount = $priceInfo->discount;
+    		}
+    			
+    		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    		$price->price = ($priceInfo->tax * (1 + $maxCharge)
+    				+ $quantity * $priceInfo->price * (1 + $minCharge)) / $quantity;
+    		
+    		
+    		$vat = cls::get($productManId)->getVat($id);
+    		$price->price = deals_Helper::getDisplayPrice($price->price, $vat, $rate, $chargeVat, 2);
+    		
+    		return $price;
+    	}
+    			
+    	// Ако продукта няма цена, връщаме цената от последно
+    	// продадената спецификация на този клиент (ако има)
+    	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
+    			
+    	return $LastPricePolicy->getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
     }
 }

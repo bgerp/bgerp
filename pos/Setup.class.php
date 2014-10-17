@@ -72,7 +72,6 @@ class pos_Setup extends core_ProtoSetup
         	'pos_FavouritesCategories',
         	'pos_Reports',
     		'pos_Stocks',
-        	'pos_Payments',
     		'pos_Cards',
         );
     
@@ -92,6 +91,18 @@ class pos_Setup extends core_ProtoSetup
     
     
     /**
+     * Път до js файла
+     */
+//    var $commonJS = 'pos/js/scripts.js';
+    
+    
+    /**
+     * Път до css файла
+     */
+//    var $commonCSS = 'pos/tpl/css/styles.css';
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
@@ -103,10 +114,10 @@ class pos_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
          
         // Добавяме класа връщащ темата в core_Classes
-        core_Classes::add('pos_DefaultTheme');
+        $html .= core_Classes::add('pos_DefaultTheme');
         
         // Добавяне на роля за старши пос
-        $html .= core_Roles::addRole('posMaster', 'pos') ? "<li style='color:green'>Добавена е роля <b>posMaster</b></li>" : '';
+        $html .= core_Roles::addOnce('posMaster', 'pos');
         
         return $html;
     }

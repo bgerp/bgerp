@@ -73,6 +73,12 @@ class price_Setup extends core_ProtoSetup
     
     
     /**
+     * Път до css файла
+     */
+//    var $commonCSS = 'price/tpl/NormStyles.css';
+    
+    
+    /**
      * Де-инсталиране на пакета
      */
     function deinstall()
@@ -91,6 +97,8 @@ class price_Setup extends core_ProtoSetup
     function priceHistoryTruncate()
     {
         $history = cls::get('price_History');
-        $history->truncate();
+        if($history->db->tableExists($history->dbTableName)) {
+            $history->truncate();
+        }
     }
 }

@@ -1,71 +1,53 @@
 <div class="singleView">
-	[#SingleToolbar#]
-	<div class="document">
-		<!--ET_BEGIN blank-->
-			[#blank#]
-		<!--ET_END blank-->
-		<!--ET_BEGIN header-->
-			<div class='header [#STATE_CLASS#]'>
-				<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
-			</div>
-		<!--ET_END header-->
-		<h3 class="centered">[#SingleTitle#]</h3>
-		<h3 class="centered">|П Р О Т О К О Л|* &nbsp; № [#id#]</h3>
-	
-		<p class="centered">|За въвеждане в експлоатация на ДА|*</p>
-		<br />
-		
-		<p>|Днес|*, [#inUseSince#]|г|*, |комисия в състав|*:</p>
-		
-		<p>1. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
-		
-		<p>2. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
-		
-		<p>3. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
-		
-		<br />
-		
-		<p>|Въведе в експлоатаци|* <b>[#title#]</b>, </p>
-		
-		<p>|с инвентарен|* № <b>[#num#]</b> <!--ET_BEGIN serial-->|и сериен|* № <b>[#serial#]</b><!--ET_END serial-->.</p>
-		
-		<p>|Описание на актива|*: [#info#].</p>
-		
-		<p>|Произход на актива|*: [#origin#].</p>
-		
-		<p>|Активът се намира на следната локация|*: [#location#][#locationAddress#].</p>
-		
-		<p>|Годишна амортизационна норма|*: [#amortNorm#].</p>
-		
-		<br />
-		
-		<p>|Подписи на лицата въвели актива в експлоатация|*:</p>
-		
-		<p>1. . . . . . . . . . . . . . . . . . . .</p>
-		
-		<p>2. . . . . . . . . . . . . . . . . . . .</p>
-		
-		<p>3. . . . . . . . . . . . . . . . . . . .</p>
-		
-		<br />
-		
-		<div class="sign-holder">
-		<table>
-			<tr>
-			      <td>|Протоколът е създаден от|*: </td>
-			      <td>
-			</tr>
-			<tr>
-		          <td></td>
-		          <td><span class='sign_names'>/ [#createdByName#] /</span></td>
-		    </tr>
-		</table>
-	</div>
-	
-	<!--ET_BEGIN DETAILS-->
-		<div class='details'>
-			[#DETAILS#]
-		</div>
-	<!--ET_END DETAILS-->
-	</div>
+    [#SingleToolbar#]
+    <div class="document">
+        <!--ET_BEGIN blank-->
+        [#blank#]
+        <!--ET_END blank-->
+        <!--ET_BEGIN header-->
+        <div class='header [#STATE_CLASS#]'>
+            <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+        </div>
+        <!--ET_END header-->
+        <h3 class="centered">[#SingleTitle#]</h3>
+        <h3 class="centered">|П Р О Т О К О Л|* &nbsp; № [#id#]</h3>
+        <p class="centered">|За въвеждане в експлоатация на ДА|*</p>
+        <br>
+        <p>|Днес|*, [#inUseSince#]|г|*, |комисия в състав|*:</p>
+        <p>1. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
+        <p>2. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
+        <p>3. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
+        <br>
+        <p>|Въведе в експлоатаци|* <b>[#title#]</b>, </p>
+        <p>
+            |с инвентарен|* № <b>[#num#]</b> <!--ET_BEGIN serial-->|и сериен|* № <b>[#serial#]</b><!--ET_END serial-->.
+        </p>
+        <p>|Описание на актива|*: [#info#].</p>
+        <p>|Произход на актива|*: [#origin#].</p>
+        <p>|Активът се намира на следната локация|*: [#location#][#locationAddress#].</p>
+        <p>|Годишна амортизационна норма|*: [#amortNorm#].</p>
+        <br>
+        <p>|Подписи на лицата въвели актива в експлоатация|*:</p>
+        <p>1. . . . . . . . . . . . . . . . . . . .</p>
+        <p>2. . . . . . . . . . . . . . . . . . . .</p>
+        <p>3. . . . . . . . . . . . . . . . . . . .</p>
+        <br>
+        <div class="sign-holder">
+            <table>
+                <tr>
+                    <td>|Протоколът е създаден от|*: </td>
+                    <td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><span class='sign_names'>/ [#createdByName#] /</span></td>
+                </tr>
+            </table>
+        </div>
+        <!--ET_BEGIN DETAILS-->
+        <div class='details'>
+            [#DETAILS#]
+        </div>
+        <!--ET_END DETAILS-->
+    </div>
 </div>

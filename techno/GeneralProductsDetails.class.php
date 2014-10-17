@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno_GeneralProductsDetails extends core_Detail {
+class techno_GeneralProductsDetails extends doc_Detail {
     
     
     /**
@@ -118,7 +118,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     		$products = array($rec->componentId => $products[$rec->componentId]);
     	}
     	
-    	$form->fields['componentId']->type = cls::get("type_Enum", array('options' => $products));
+    	$form->getField('componentId')->type = cls::get("type_Enum", array('options' => $products));
     }
     
     
@@ -161,7 +161,11 @@ class techno_GeneralProductsDetails extends core_Detail {
         		$Policy = cls::get('price_ListToCustomers');
 		        $contClass = doc_Folders::fetchCoverClassId($folderId);
 			    $contId = doc_Folders::fetchCoverId($folderId);
-			    $rec->price = $Policy->getPriceInfo($contClass, $contId, $rec->componentId, cat_Products::getClassId(), NULL, $rec->cQuantity, dt::now())->price;
+			    
+			    if($rec->componentId != -1){
+			    	$rec->price = $Policy->getPriceInfo($contClass, $contId, $rec->componentId, cat_Products::getClassId(), NULL, $rec->cQuantity, dt::now(), 1, 'no')->price;
+			    }
+			    
 			    if(!$rec->price){
 			        $form->setError('price', 'Проблем при извличането на цената! Моля задайте ръчно');
 			    }

@@ -67,7 +67,7 @@ class label_CounterItems extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_Created, plg_Modified';
+    var $loadList = 'label_Wrapper, plg_Created, plg_Modified, plg_Sorting';
     
     
     /**
@@ -77,9 +77,21 @@ class label_CounterItems extends core_Detail
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'id, labelId, number, modifiedOn, modifiedBy, createdOn, createdBy';
+    
+    
+    /**
      * Активен таб
      */
     var $currentTab = 'Брояч';
+    
+    
+    /**
+     * По колко реда от резултата да показва на страница в детайла на документа
+     */
+    var $listItemsPerPage = 20;
     
     
 	/**
@@ -142,4 +154,16 @@ class label_CounterItems extends core_Detail
         // Записваме
         return static::save($rec);
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param label_CounterItems $mvc
+     * @param object $data
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+	    $data->query->orderBy('modifiedOn', 'DESC');
+	}
 }

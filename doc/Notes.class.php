@@ -159,7 +159,8 @@ class doc_Notes extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Интерфейсен метод на doc_DocumentIntf
+     * @see doc_DocumentIntf
      */
     function getDocumentRow($id)
     {
@@ -190,5 +191,18 @@ class doc_Notes extends core_Master
     static function getThreadState($id)
     {
         return NULL;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
+     */
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $row->handle = $mvc->getHandle($rec->id);
     }
 }

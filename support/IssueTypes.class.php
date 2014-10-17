@@ -72,7 +72,7 @@ class support_IssueTypes extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, plg_RowTools';
+    var $loadList = 'support_Wrapper, plg_RowTools, plg_State2';
     
     
     /**

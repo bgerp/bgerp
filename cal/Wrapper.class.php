@@ -25,8 +25,22 @@ class cal_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('cal_Calendar', 'Календар', 'powerUser,admin');
+        $from = Request::get('from', 'date');
+        
+        if(!$from) {
+            $from = dt::verbal2mysql();
+        }
+		
+        $from = dt::mysql2verbal($from, 'd.m.Y');
+        
+        $this->TAB(array('cal_Calendar', 'list',  'from' => $from), 'Календар->Списък', 'powerUser,admin');
+        $this->TAB(array('cal_Calendar', 'day',  'from' => $from), 'Календар->Ден', 'powerUser,admin');
+        $this->TAB(array('cal_Calendar', 'week',  'from' => $from), 'Календар->Седмица', 'powerUser,admin');
+        $this->TAB(array('cal_Calendar', 'month',  'from' => $from), 'Календар->Месец', 'powerUser,admin');
+        $this->TAB(array('cal_Calendar', 'year',  'from' => $from), 'Календар->Година', 'powerUser,admin');
+        
         $this->TAB('cal_Tasks', 'Задачи', 'admin,doc,powerUser');
+        $this->TAB('cal_TaskConditions', 'Задачи', 'admin,doc,powerUser');
         $this->TAB('cal_Reminders', 'Напомняния', 'powerUser');
         $this->TAB('cal_Holidays', 'Празници', 'powerUser');
         $this->TAB('cal_Test', 'Тест', 'debuger');

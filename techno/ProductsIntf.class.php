@@ -15,22 +15,11 @@
 class techno_ProductsIntf
 {
     
-    
-    /**
-     * Връща информация за ед цена на продукта, отстъпката и таксите
-     * @param int $id - ид на продукт
-     * @param int $packagingId - ид на опаковка
-     * @param double quantity - количество
-     * @param datetime $datetime - дата
-     * @return stdClass $priceInfo - информация за цената на продукта
-     * 				[price]- начална цена
-     * 				[discount]  - отстъпка
-     * 				[tax]     - нач. такса
-     */
-    public function getPriceInfo($id, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
-    {
-    	return $this->class->getPrice($id, $packagingId, $quantity, $datetime);
-    }
+	
+	/**
+	 * Класа имплементиращ интерфейса
+	 */
+	public $class;
     
     
     /**
@@ -41,9 +30,9 @@ class techno_ProductsIntf
      * и опаковките му ако $packagingId не е зададено, иначе връща
      * информацията за подадената опаковка
      */
-    public static function getProductInfo($id, $packagingId = NULL)
+    public function getProductInfo($id, $packagingId = NULL)
     {
-    	return $this->getProductInfo($id, $packagingId);
+    	return $this->class->getProductInfo($id, $packagingId);
     }
     
     
@@ -52,9 +41,9 @@ class techno_ProductsIntf
      * @param int $id - ид на продукт
      * @param date $date - дата
      */
-    public static function getVat($id, $date = NULL)
+    public function getVat($id, $date = NULL)
     {
-    	return $this->getVat($id, $date);
+    	return $this->class->getVat($id, $date);
     }
     
     
@@ -138,7 +127,7 @@ class techno_ProductsIntf
      */
 	public function renderAdditionalParams($id, $data)
     {
-    	return $this->class->renderAdditionalParams($data);
+    	return $this->class->renderAdditionalParams($id, $data);
     }
     
     
@@ -189,7 +178,7 @@ class techno_ProductsIntf
      /**
       * Връща прикачените файлове
       */
-     public static function getAttachedFiles($rec)
+     public function getAttachedFiles($rec)
      {
      	return $this->class->getAttachedFiles($rec);
      }

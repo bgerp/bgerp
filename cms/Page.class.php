@@ -55,7 +55,9 @@ class cms_Page extends page_Html {
         
         $this->push('css/common.css','CSS');
         $this->push('css/Application.css','CSS');
+        $this->push('css/default-theme.css', 'CSS');
         $this->push('cms/css/Wide.css', 'CSS');
+        jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         
         // Евентуално се кешират страници за не PowerUsers
@@ -80,10 +82,7 @@ class cms_Page extends page_Html {
         
         // Скрипт за генериране на min-height, според устройството
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
-        
-        // Падинг за логин формата
-        $this->append("runOnLoad(loginFormPadding);", "JQRUN");
-        
+                
         // Добавка за разпознаване на браузъра
         $Browser = cls::get('core_Browser');
         $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');

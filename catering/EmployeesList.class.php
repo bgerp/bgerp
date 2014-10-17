@@ -114,16 +114,16 @@ class catering_EmployeesList extends core_Manager
      *
      * @return int $personId
      */
-    function getPersonIdForCurrentUser()
+    static function getPersonIdForCurrentUser()
     {
         // get current user name
         $userName = Users::getCurrent('names');
         
         // get $personId
-        $personId = $this->CrmPersons->fetchField("#name = '{$userName}'", 'id');
+        $personId = crm_Persons::fetchField("#name = '{$userName}'", 'id');
         
         // get $personId
-        $personId = $this->fetchField("#personId = '{$personId}'", 'id');
+        $personId = self::fetchField("#personId = '{$personId}'", 'id');
         
         return $personId;
     }
@@ -134,10 +134,10 @@ class catering_EmployeesList extends core_Manager
      *
      * @return int $personName
      */
-    function getPersonNameForCurrentUser()
+    static function getPersonNameForCurrentUser()
     {
         // get current user name
-        $userName = Users::getCurrent('names');
+        $userName = core_Users::getCurrent('names');
         
         $personName = $userName;
         
@@ -188,7 +188,7 @@ class catering_EmployeesList extends core_Manager
         
     	// Check current user roles
         if (!haveRole('ceo,catering')) {
-            $personId = $this->getPersonIdForCurrentUser();
+            $personId = self::getPersonIdForCurrentUser();
             
             $data->query->where("#id = '{$personId}'");
             

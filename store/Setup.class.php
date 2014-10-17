@@ -34,6 +34,12 @@ class store_Setup extends core_ProtoSetup
     
     
     /**
+     * Необходими пакети
+     */
+    var $depends = 'acc=0.1';
+    
+    
+    /**
      * Стартов контролер за връзката в системното меню
      */
     var $startCtr = 'store_Movements';
@@ -82,7 +88,7 @@ class store_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.2, 'Логистика', 'Складове', 'store_Movements', 'default', "storeWorker,ceo"),
+            array(3.2, 'Логистика', 'Склад', 'store_Movements', 'default', "storeWorker,ceo"),
         );
     
     
@@ -101,10 +107,11 @@ class store_Setup extends core_ProtoSetup
     {
         $html = parent::install();      
         
-        core_Classes::add('store_ArrangeStrategyTop');
-        core_Classes::add('store_ArrangeStrategyBottom');
-        core_Classes::add('store_ArrangeStrategyMain');
+        $html .=  core_Classes::add('store_ArrangeStrategyTop');
+        $html .= core_Classes::add('store_ArrangeStrategyBottom');
+        $html .= core_Classes::add('store_ArrangeStrategyMain');
         
+        // Забравена миграция
     	if($roleRec = core_Roles::fetch("#role = 'masterStore'")){
     		core_Roles::delete("#role = 'masterStore'");
     	}
@@ -114,10 +121,18 @@ class store_Setup extends core_ProtoSetup
     	$html .= $Plugins->installPlugin('Синхронизиране на складовите наличности', 'store_plg_BalanceSync', 'acc_Balances', 'private');
     	
         // Добавяне на роля за старши складажия
-        $html .= core_Roles::addRole('store', 'storeWorker') ? "<li style='color:green'>Добавена е роля <b>store</b> наследяваща <b>storeWorker</b></li>" : '';
-    	$html .= core_Roles::addRole('storeMaster', 'store') ? "<li style='color:green'>Добавена е роля <b>storeMaster</b> наследяваща <b>store</b></li>" : '';
+        $html .= core_Roles::addOnce('store', 'storeWorker');
+    	$html .= core_Roles::addOnce('storeMaster', 'store');
 		
     	
+    	
+    	return $html;
+    }
+    
+
+    function loadSetupData()
+    {
+        $res = parent::loadSetupData();
     	// Ако няма посочени от потребителя сметки а синхронизация
     	$config = core_Packs::getConfig('store');
     	if(strlen($config->STORE_ACC_ACCOUNTS) === 0){
@@ -129,12 +144,12 @@ class store_Setup extends core_ProtoSetup
     		
     		// Записват се ид-та на дефолт сметките за синхронизация
     		core_Packs::setConfig('store', array('STORE_ACC_ACCOUNTS' => keylist::fromArray($accArray)));
-    		$html .= "<li style='color:green'>Дефолт счетодовни сметки за синхронизация на продуктите<b>" . implode(',', $accArray) . "</b></li>";
+    		$res .= "<li style='color:green'>Дефолт счетодовни сметки за синхронизация на продуктите<b>" . implode(',', $accArray) . "</b></li>";
     	}
-    	
-    	return $html;
+        
+        return $res;
     }
-    
+
     
     /**
      * Де-инсталиране на пакета

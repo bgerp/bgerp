@@ -29,7 +29,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=purchase_transaction_CloseDeal';
     
     
     /**
@@ -94,11 +94,13 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     
     
     /**
-     * Какви ще са контировките на надплатеното/отписаното и авансите
+     * След дефиниране на полетата на модела
      */
-    public $contoAccounts = array('downpayments' => array(
-    									'debit' => '401',
-    									'credit' => '402'),);
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+    	// Добавяме към модела, поле за избор на с коя сделка да се приключи
+    	$mvc->FLD('closeWith', 'key(mvc=purchase_Purchases,allowEmpty)', 'caption=Приключи с,input=none');
+    }
     
     
     /**
@@ -116,6 +118,25 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     }
     
     
+    /**
+     * Връща разликата с която ще се приключи сделката
+     * @param mixed  $threadId - ид на нишката или core_ObjectReference
+     * 							 към първия документ в нишката
+     * @return double $amount - разликата на платеното и експедираното
+     */
+    public static function getClosedDealAmount($threadId)
+    {
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->instance, $firstDoc->that));
+    	 
+    	$cost = acc_Balances::getBlAmounts($jRecs, '6912', 'debit')->amount;
+    	$inc = acc_Balances::getBlAmounts($jRecs, '7912', 'credit')->amount;
+    	 
+    	// Разликата между платеното и доставеното
+    	return $inc - $cost;
+    }
+    
+    
 	/**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -123,20 +144,9 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     {
     	$row->DOC_NAME = tr("ПОКУПКА");
     	
-    	if($rec->amount == 0){
-    		$costAmount = $incomeAmount = 0;
-    	} elseif($rec->amount < 0){
-    		$incomeAmount = -1 * $rec->amount;
-    		$costAmount = 0;
-    		$row->type = tr('Приход');
-    	} elseif($rec->amount > 0){
-    		$costAmount = -1 * $rec->amount;
-    		$incomeAmount = 0;
-    		$row->type = tr('Разход');
+    	if($rec->closeWith){
+    		$row->closeWith = ht::createLink($row->closeWith, array('purchase_Purchases', 'single', $rec->closeWith));
     	}
-    	
-    	$row->costAmount = $mvc->fields['amount']->type->toVerbal($costAmount);
-    	$row->incomeAmount = $mvc->fields['amount']->type->toVerbal($incomeAmount);
     }
     
     
@@ -160,8 +170,8 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     public static function isPurchaseDiffAllowed($purchaseRec)
     {
     	$diff = round($purchaseRec->amountDelivered - $purchaseRec->amountPaid, 2);
-    	$conf = core_Packs::getConfig('purchase');
-    	$res = ($diff >= -1 * $conf->PURCHASE_CLOSE_TOLERANCE && $diff <= $conf->PURCHASE_CLOSE_TOLERANCE);
+    	$conf = core_Packs::getConfig('acc');
+    	$res = ($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE);
     	
     	return $res;
     }
@@ -172,108 +182,24 @@ class purchase_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
+    	if($res == 'no_one') return;
+    	
     	if(($action == 'add' || $action == 'conto') && isset($rec)){
     		
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
 	    		$originRec = $origin->fetch();
-	    			
-	    		if($res == 'no_one') return;
     			
-	    		// Ако разликата между доставеното/платеното е по голяма, се изисква
-	    		// потребителя да има по-големи права за да създаде документа
-	    		if(!self::isPurchaseDiffAllowed($originRec)){
-	    			$res = 'ceo,purchaseMaster';
-	    		} else {
-	    			$res = 'ceo,purchase';
+	    		if($originRec->state == 'active' && $origin->instance instanceof purchase_Purchases){
+	    			
+	    			// Ако разликата между доставеното/платеното е по голяма, се изисква
+	    			// потребителя да има по-големи права за да създаде документа
+	    			if(!self::isPurchaseDiffAllowed($originRec)){
+	    				$res = 'ceo,purchaseMaster';
+	    			}
 	    		}
     		}
     	}
-    }
-    
-    
-    /**
-     * Връща записа за начисляване на извънредния приход/разход
-     * ------------------------------------------------------
-     * Надплатеното:  Dt: 6912. Надплатени по покупки
-     * 				  Ct:  401. Задължения към доставчици (Доставчици, Валути)
-     * 
-     * Недоплатеното: Dt:  401. Задължения към доставчици (Доставчици, Валути)
-     * 				  Ct: 7912. Отписани задължения по покупки
-     */
-	protected function getCloseEntry($amount, $totalAmount, $docRec, $dealType)
-    {
-    	$entry = array();
-    	
-    	if($amount < 0){
-    		
-    		// Записа за извънреден приход
-	    	$entry = array(
-	    		'amount' => $totalAmount,
-	    		'debit'  => array('401',
-	    								array($docRec->contragentClassId, $docRec->contragentId), 
-	                        			array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-	                       			'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	            'credit' => array('7912', 'quantity' => $totalAmount),
-	    	);
-    	} elseif($amount > 0){
-    		// Записа за извънреден разход
-	    	$entry = array(
-	    		'amount' => $totalAmount,
-	    		'debit'  => array('6912', 'quantity' => $totalAmount),
-	    		'credit' => array('401',
-	    								array($docRec->contragentClassId, $docRec->contragentId), 
-	                        			array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-	                       			'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
-	    	);
-    	}
-    	
-    	// Връщане на записа
-    	return $entry;
-    }
-    
-    
-	/**
-     * Прехвърля не неначисленото ДДС
-     * 		Dt: 302. Суровини и материали     		(Складове, Суровини и Материали)
-     * 			321. Стоки и продукти			    (Складове, Стоки и Продукти)
-     * 			602. Разходи за външни услуги       (Услуги)
-     * 
-     * 		Ct: 4530. ДДС за начисляване
-     * 
-     */
-    protected function transferVatNotCharged($dealInfo, $docRec, &$total)
-    {
-    	$vatToCharge = $dealInfo->invoiced->vatToCharge;
-    	
-    	$total = 0;
-    	$entries = array();
-    	foreach ($vatToCharge as $type => $amount){
-    		if($amount){
-    			$amount = currency_Currencies::round($amount);
-    			$total += $amount;
-    			list($classId, $productId, $packagingId) = explode("|", $type);
-    			$meta = cls::get($classId)->getProductInfo($productId)->meta;
-    			$invProduct = $dealInfo->shipped->findProduct($productId, $classId, $packagingId);
-    			
-    			if(isset($meta['canStore'])){
-    				$debitAcc = (isset($meta['canConvert'])) ? '302' : '321';
-    				$storeId = ($dealInfo->shipped->delivery->storeId) ? $dealInfo->shipped->delivery->storeId : $dealInfo->agreed->delivery->storeId;
-    				$debitEnt = array($debitAcc, array('store_Stores', $storeId),array($classId, $productId), 'quantity' => $invProduct->quantity);
-    			} else {
-    				$debitAcc = '602';
-    				$debitEnt = array($debitAcc, array($classId, $productId), 'quantity' => $invProduct->quantity);
-    			}
-    				
-    			$entries[] = array(
-	    			'amount' => $amount,
-	    			'debit'  => $debitEnt,
-	            	'credit' => array('4530', 'quantity' => $amount),
-    			);
-    		}
-    	}
-    	
-    	return $entries;
     }
     
     
@@ -286,10 +212,10 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	$res = parent::canAddToThread($threadId);
     	if(!$res) return FALSE;
     	 
-    	$dealInfo = static::getDealInfo($threadId);
-    	 
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
     	// Може само към нишка, породена от продажба
-    	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_PURCHASE) return FALSE;
+    	if(!($firstDoc->instance instanceof purchase_Purchases)) return FALSE;
     	 
     	return TRUE;
     }

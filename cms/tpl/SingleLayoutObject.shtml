@@ -1,28 +1,29 @@
 <div class="singleView">
-[#SingleToolbar#]
-	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">|Обект|* <b style="color:green;">[#titleTag#]</b></div></h2>
-	<table class="styled-table" width="100%">
-		<tr>
-			<td class="title-style">|Таг|*</td>
-			<td>[#tag#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">|Източник|*</td>
-			<td>[#sourceClass#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">|Тип|*</td>
-			<td>[#type#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">ID</td>
-			<td>[#sourceId#]</td>
-		</tr>
-	</table>
-	<div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
-	<div style='margin:10px 0'>|Изглед|*:</div>
-	<div class='scrolling-holder'>
-	[#view#]
-	</div>
-	
+    [#SingleToolbar#]
+    <h2>
+        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Обект|* <b style="color:green;">[#titleTag#]</b></div>
+    </h2>
+    <table class="styled-table" width="100%">
+        <tr>
+            <td class="title-style">|Таг|*</td>
+            <td>[#tag#]</td>
+        </tr>
+        <tr>
+            <td class="title-style">|Източник|*</td>
+            <td>[#sourceClass#]</td>
+        </tr>
+        <tr>
+            <td class="title-style">|Тип|*</td>
+            <td>[#type#]</td>
+        </tr>
+        <tr>
+            <td class="title-style">ID</td>
+            <td>[#sourceId#]</td>
+        </tr>
+    </table>
+    <div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+    <div style='margin:10px 0'>|Изглед|*:</div>
+    <div class='scrolling-holder'>
+        [#view#]
+    </div>
 </div>

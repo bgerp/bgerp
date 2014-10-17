@@ -97,22 +97,22 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
 
         // Съкратено име на плащането
-        $this->FLD('name', 'varchar(32)', 'caption=Име,width=100%,  mandatory');
+        $this->FLD('name', 'varchar(32)', 'caption=Име,  mandatory');
 
         // Текстово описание
-        $this->FLD('description', 'text(rows=5)', 'caption=Описание, mandatory,width=100%, ');
+        $this->FLD('description', 'text(rows=5)', 'caption=Описание, mandatory, ');
         
         // Процент на авансовото плащане
-        $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,width=7em,hint=Процент,oldFieldName=payAdvanceShare');
+        $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');
         
         // Процент на плащане преди експедиция
-        $this->FLD('paymentBeforeShipping', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,width=7em,hint=Процент,oldFieldName=payBeforeReceiveShare');
+        $this->FLD('paymentBeforeShipping', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,hint=Процент,oldFieldName=payBeforeReceiveShare');
         
         // Плащане при получаване
-        $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане при доставка->Дял,width=7em,hint=Процент,oldFieldName=payOnDeliveryShare');
+        $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане при доставка->Дял,hint=Процент,oldFieldName=payOnDeliveryShare');
         
         // Колко дни след фактуриране да е балансовото плащане?
-        $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,width=7em,hint=дни,oldFieldName=payBeforeInvTerm');
+        $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
         
         $this->setDbUnique('sysId');
         $this->setDbUnique('name');
@@ -236,6 +236,8 @@ class cond_PaymentMethods extends core_Master
     		$today = dt::verbal2mysql();
     	}
     	
+    	$restAmount = round($restAmount, 4);
+    	
     	// Ако остатъка за плащане е 0 или по-малко
     	if($restAmount <= 0) return FALSE;
     	
@@ -282,7 +284,7 @@ class cond_PaymentMethods extends core_Master
             3 => 'downpayment',
             4 => 'paymentBeforeShipping',
             5 => 'paymentOnDelivery',
-            6 => 'daysForBalancePayment');
+            6 => 'timeBalancePayment');
             
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
@@ -302,6 +304,9 @@ class cond_PaymentMethods extends core_Master
     {
     	// Ако няма ид, няма очакван аванс
     	if(!$id) return NULL;
+    	
+    	// Ако сумата е 0, няма очакван аванс
+    	if($amount == 0) return NULL;
     	
     	// Трябва да са подадени валидни данни
     	expect(is_numeric($amount));

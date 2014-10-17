@@ -48,7 +48,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      */
     function getProductInfo($productId, $packagingId = NULL)
     {
-        return $this->class->getProductInfo($productId, $packagingId = NULL);
+        return $this->class->getProductInfo($productId, $packagingId);
     }
     
     
@@ -70,21 +70,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      */
     function getProducts($customerClass, $customerId, $date = NULL)
     {
-        return $this->class->getProducts($customerClass, $customerId, $date = NULL);
-    }
-    
-    
-	/**
-     * Връща цената за посочения продукт към посочения клиент на посочената дата
-     * Спрямо ценовите политики които използва
-     * 
-     * @return object
-     * $rec->price  - цена
-     * $rec->discount - отстъпка
-     */
-    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL)
-    {
-        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $date);
+        return $this->class->getProducts($customerClass, $customerId, $date);
     }
     
     
@@ -109,7 +95,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      */
     function getByProperty($properties, $limit = NULL)
     {
-    	return $this->class->getByProperty($properties);
+    	return $this->class->getByProperty($properties, $limit);
     }
     
     
@@ -134,15 +120,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
 	public function getWeight($productId, $packagingId = NULL)
     {
     	return $this->class->getWeight($productId, $packagingId);
-    }
-    
-    
-    /**
-     * Дали има поне един продаваем продукт за клиента
-     */
-    public function hasSellableProduct($contragentClassId, $contragentId, $date)
-    {
-    	return $this->class->hasSellableProduct($contragentClassId, $contragentId);
     }
     
     
@@ -172,5 +149,14 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     public function getBasePackInfo($productId)
     {
     	return $this->class->getBasePackInfo($productId);
+    }
+    
+    
+    /**
+     * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
+     */
+    public function getPolicy()
+    {
+    	return $this->class->getPolicy();
     }
 }

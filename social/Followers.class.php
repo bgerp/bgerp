@@ -89,21 +89,16 @@ class social_Followers extends core_Master
     	$query = static::getQuery();
     	$query->orderBy("#order");
 		$socialNetworks = $query->fetchAll("#state = 'active'");
-
+		
 		// За всеки един запис от базата
 		foreach($socialNetworks as $socialNetwork){
-			
+		    
 			// Вземаме качената икона
 			if($socialNetwork->icon){
 				
-				$attr = array('baseName' => $socialNetwork->title, 'isAbsolute' => TRUE, 'qt' => '');
-            
-	            // Размера на thumbnail изображението
-	            $size = array('24', '24');
+	            $imgInst = new thumb_Img(array($socialNetwork->icon, 24, 24, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change', 'verbalName' => $socialNetwork->title));
+	            $icon = $imgInst->getUrl('forced');
 	            
-	            // Създаваме тумбнаил с параметрите
-	            $icon = thumbnail_Thumbnail::getLink($socialNetwork->icon, $size, $attr);
-		
 				// Ако тя липсва
 			} else {
 					
@@ -129,7 +124,7 @@ class social_Followers extends core_Master
 			// Добавямего към шаблона
 			$tpl->append($link);  
 		}
-
+		
 		// Връщаме тулбар за споделяне в социалните мреци
 		return $tpl;
     }

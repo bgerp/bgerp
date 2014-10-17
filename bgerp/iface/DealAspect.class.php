@@ -20,14 +20,14 @@ class bgerp_iface_DealAspect
      * @var array of bgerp_iface_DealProduct
      */
     public $products = array();
-
-	
+    
+    
     /**
-     * Списък от направените авансови плащания по валути
+     * Списък (масив) от характеристики на продукти
      *
      * @var array of bgerp_iface_DealProduct
      */
-    public $downpayments = array();
+    public $shippedProducts = array();
     
     
     /**
@@ -79,6 +79,14 @@ class bgerp_iface_DealAspect
     
     
     /**
+     * Колко е очакваното авансово плащане
+     *
+     * @var double
+     */
+    public $downpaymentExpect;
+    
+    
+    /**
      * Обща сума на приспаднатото авансово плащане (ако има)
      *
      * @var double
@@ -87,11 +95,9 @@ class bgerp_iface_DealAspect
     
     
     /**
-     * Оставащо ДДС за начисляване
-     *
-     * @var double
+     * Сумата на фактурираното
      */
-    public $vatToCharge = NULL;
+    public $amountInvoiced;
     
     
     /**
@@ -108,6 +114,9 @@ class bgerp_iface_DealAspect
      * @var bgerp_iface_DealPayment
      */
     public $payment;
+    
+    
+    
     
     
 	public function __construct()
@@ -137,17 +146,6 @@ class bgerp_iface_DealAspect
         
     	foreach ($aspect->products as $p) {
             $this->pushProduct($p);
-        }
-        
-    	foreach ($aspect->downpayments as $currencyId => $d) {
-    		$this->downpayments[$currencyId]['amount'] += $d['amount'];
-            $this->downpayments[$currencyId]['amountBase'] += $d['amountBase'];
-        }
-        
-        if($aspect->vatToCharge){
-        	foreach ($aspect->vatToCharge as $type => $vatAmount){
-        		$this->vatToCharge[$type] += $vatAmount;
-        	}
         }
         
         if (isset($aspect->delivery)) {

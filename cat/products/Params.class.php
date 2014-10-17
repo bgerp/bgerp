@@ -126,7 +126,7 @@ class cat_products_Params extends cat_products_Detail
         $form = &$data->form;
         
     	if(!$form->rec->id){
-    		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['paramValue'].value ='';this.form.submit();"));
+    		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
 	    	expect($productId = $form->rec->productId);
 			$options = self::getRemainingOptions($productId, $form->rec->id);
 			expect(count($options));
@@ -184,7 +184,13 @@ class cat_products_Params extends cat_products_Detail
     public static function fetchParamValue($productId, $sysId)
     {
      	if($paramId = cat_Params::fetchIdBySysId($sysId)){
-     		return static::fetchField("#productId = {$productId} AND #paramId = {$paramId}", 'paramValue');
+     		$paramValue = static::fetchField("#productId = {$productId} AND #paramId = {$paramId}", 'paramValue');
+     		
+     		// Ако има записана конкретна стойност за този продукт връщаме я
+     		if($paramValue) return $paramValue;
+     		
+     		// Връщаме дефолт стойността за параметъра
+     		return cat_Params::getDefault($paramId);
      	}
      	
      	return NULL;
@@ -254,7 +260,6 @@ class cat_products_Params extends cat_products_Detail
      */
     public function getFeatures($class, $objectId, $features)
     {
-    	$classId = cls::get($class)->getClassId();
     	$query = $this->getQuery();
     	
     	$query->where("#productId = '{$objectId}'");
