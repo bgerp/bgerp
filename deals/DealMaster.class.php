@@ -353,11 +353,11 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case 'undelivered':
 						$data->query->where("#deliveredRound < #dealRound");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active'");
 						break;
 					case 'unpaid':
 						$data->query->where("#paidRound < #deliveredRound");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active'");
 						break;
 				}
 			}
