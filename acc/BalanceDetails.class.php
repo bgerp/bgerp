@@ -721,9 +721,19 @@ class acc_BalanceDetails extends core_Detail
                         foreach ($l2 as $ent3 => $rec) {
                             $rec['balanceId'] = $balanceId;
                             
+                            // Ако има сума закръгляме я до втория знак преди запис
                             foreach (array('blAmount', 'baseAmount') as $fld){
                             	if(!is_null($rec[$fld])){
                             		$rec[$fld] = round($rec[$fld], 2);
+                            	}
+                            }
+                            
+                            // Закръгляме количествата само ако закръглени равнят на нула
+                            foreach (array('blQuantity', 'baseQuantity') as $fld){
+                            	if(!is_null($rec[$fld])){
+                            		if(!is_null($rec[$fld]) && round($rec[$fld], 8) == 0){
+                            			$rec[$fld] = round($rec[$fld], 8);
+                            		}
                             	}
                             }
                             
