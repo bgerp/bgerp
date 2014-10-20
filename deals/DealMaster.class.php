@@ -704,15 +704,16 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param unknown $rec
      * @param unknown $nRec
      */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
-    	unset($nRec->contoActions, 
-    		  $nRec->paymentState, 
+    	unset($nRec->contoActions,
     		  $nRec->amountDelivered, 
     		  $nRec->amountBl,  
     		  $nRec->amountPaid, 
     		  $nRec->amountInvoiced, 
     		  $nRec->amountToInvoice);
+    	
+    	$nRec->paymentState = 'pending';
     }
     
     
@@ -1027,6 +1028,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	} else {
     		unset($rec->closedDocuments);
     	}
+    	
     	$mvc->save($rec, 'closedDocuments');
     }
     
