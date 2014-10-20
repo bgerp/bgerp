@@ -2,8 +2,6 @@
 
 
 
-
-
 /**
  * Клас 'avatar_Plugin' -
  *
@@ -11,10 +9,9 @@
  * @category  vendors
  * @package   avatar
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class avatar_Plugin extends core_Plugin
 {
@@ -54,7 +51,7 @@ class avatar_Plugin extends core_Plugin
     
     
     /**
-     * @todo Чака за документация...
+     * От масива за източник прави ключ и стойност и ги поставя след определено поле
      */
     function insertAfter($sourceArr, $afterField, $key, $value)
     {
@@ -78,9 +75,10 @@ class avatar_Plugin extends core_Plugin
         if(!$width) {
             $width = Mode::is('screenMode', 'narrow') ? 48 : 100;
         }
+        
         if($userId < 0) {
             // Ако става дума за системния потребител
-             $imgUrl = sbf('img/100/system.png', '');
+            $imgUrl = sbf('img/100/system.png', '');
         } elseif($userId > 0) {
             // Ако се търси аватара на потребител на системата
             $userRec = core_Users::fetch($userId);
@@ -88,8 +86,8 @@ class avatar_Plugin extends core_Plugin
             if($userRec->avatar) {
                 $key = md5($userId . "@/@" . EF_SALT) . "_{$width}.png";
                 $attr['baseName'] = $key;
-	            $imgInst = new thumb_Img(array($userRec->avatar, $width, round($width * 1.5), 'fileman', 'isAbsolute' => FALSE, 'mode' => 'small-no-change', 'verbalName' => $key));
-	            $imgUrl = $imgInst->getUrl('forced');
+                $imgInst = new thumb_Img(array($userRec->avatar, $width, round($width * 1.5), 'fileman', 'isAbsolute' => FALSE, 'mode' => 'small-no-change', 'verbalName' => $key));
+                $imgUrl = $imgInst->getUrl('forced');
             } else {
                 $imgUrl = avatar_Gravatar::getUrl($userRec->email, $width);
             }
@@ -107,7 +105,7 @@ class avatar_Plugin extends core_Plugin
         unset($attr['baseName']);
         
         unset($attr['isAbsolute']);
-
+        
         $img = ht::createElement('img', $attr);
         
         return $img;

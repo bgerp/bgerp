@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Текст за отписване от информационните съобщение
  */
@@ -36,7 +37,6 @@ defIfNot('BLAST_EMAILS_CRON_PERIOD', '60');
 defIfNot('BLAST_EMAILS_CRON_TIME_LIMIT', '50');
 
 
-
 /**
  * class blast_Setup
  *
@@ -47,7 +47,7 @@ defIfNot('BLAST_EMAILS_CRON_TIME_LIMIT', '50');
  * @category  bgerp
  * @package   blast
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -78,74 +78,72 @@ class blast_Setup extends core_ProtoSetup
      */
     var $info = "Разпращане на циркулярни имейл-и, sms-и, писма, ...";
     
+    
     /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
         
-           // Текст за потвърждаване на отписването
-           'BGERP_BLAST_UNSUBSCRIBE' => array ('text(rows=5)', 'caption=Потвърждаване на отписването от списъка за изпращане->Съобщение'),
-    
-         
-           // Текст, който се показва, ако не може да се намери имейл адреса в системата
-           'BGERP_BLAST_NO_MAIL'   => array ('text(rows=5)', 'caption=Липсващ имейл за отписване от списъка за изпращане->Съобщение'),
-    
-             
-           // Teкст, който се показва когато премахнем имейл-а от блокираните
-           'BGERP_BLAST_SUCCESS_ADD'   => array ('text(rows=5)', 'caption=Успешно премахване от списъка с блокираните->Съобщение'),
-    
-            
-           // Текст, който се показва когато добавим имейл-а в списъка на блокираните имейли
-           'BGERP_BLAST_SUCCESS_REMOVED'   => array ('text(rows=5)', 'caption=Успешно добавяне в списъка с блокираните->Съобщение'),
-           
-           'BLAST_EMAILS_CRON_PERIOD'   => array ('time(suggestions=1 мин.|2 мин.|5 мин.|10 мин.)', 'caption=Период на изпращане на информационни съобщения по крон->Време'),
-           'BLAST_EMAILS_CRON_TIME_LIMIT'   => array ('time(suggestions=30 сек.|50 сек.|1 мин.|2 мин.|3 мин.)', 'caption=Ограничение на времето при изпращане по крон->Време')
-        );
+        // Текст за потвърждаване на отписването
+        'BGERP_BLAST_UNSUBSCRIBE' => array ('text(rows=5)', 'caption=Потвърждаване на отписването от списъка за изпращане->Съобщение'),
+        
+        // Текст, който се показва, ако не може да се намери имейл адреса в системата
+        'BGERP_BLAST_NO_MAIL'   => array ('text(rows=5)', 'caption=Липсващ имейл за отписване от списъка за изпращане->Съобщение'),
+        
+        // Teкст, който се показва когато премахнем имейл-а от блокираните
+        'BGERP_BLAST_SUCCESS_ADD'   => array ('text(rows=5)', 'caption=Успешно премахване от списъка с блокираните->Съобщение'),
+        
+        // Текст, който се показва когато добавим имейл-а в списъка на блокираните имейли
+        'BGERP_BLAST_SUCCESS_REMOVED'   => array ('text(rows=5)', 'caption=Успешно добавяне в списъка с блокираните->Съобщение'),
+        
+        'BLAST_EMAILS_CRON_PERIOD'   => array ('time(suggestions=1 мин.|2 мин.|5 мин.|10 мин.)', 'caption=Период на изпращане на информационни съобщения по крон->Време'),
+        'BLAST_EMAILS_CRON_TIME_LIMIT'   => array ('time(suggestions=30 сек.|50 сек.|1 мин.|2 мин.|3 мин.)', 'caption=Ограничение на времето при изпращане по крон->Време')
+    );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'blast_Lists',
-            'blast_ListDetails',
-            'blast_Emails',
-            'blast_BlockedEmails',
-            'blast_Letters',
-            'blast_LetterDetails',
-            'blast_EmailSend',
-            'migrate::fixListId',
-            'migrate::fixEmails'
-        );
-
-        
+        'blast_Lists',
+        'blast_ListDetails',
+        'blast_Emails',
+        'blast_BlockedEmails',
+        'blast_Letters',
+        'blast_LetterDetails',
+        'blast_EmailSend',
+        'migrate::fixListId',
+        'migrate::fixEmails'
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     var $roles = 'blast';
- 
     
-   /**
-	* Инсталиране на пакета
-	*/
-	function install()
-	{
-		$html = parent::install();
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('csvContacts', 'CSV контактни данни', 'csv,txt,text,', '10MB', 'user', 'ceo');
         
-		return $html;
-	}
-	
-	
+        return $html;
+    }
+    
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', "ceo, blast"),
-        );   
+        array(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', "ceo, blast"),
+    );
     
     
     /**
@@ -210,6 +208,7 @@ class blast_Setup extends core_ProtoSetup
             }
             
             $emailStr = '';
+            
             foreach ((array)$nRec->data as $name => $val) {
                 if ($name != 'email') continue;
                 $emailsArr = type_Emails::toArray($val);
@@ -224,6 +223,7 @@ class blast_Setup extends core_ProtoSetup
                 $masterRec = blast_Emails::fetch($nRec->emailId);
                 $lQuery = log_Documents::getQuery();
                 $lQuery->where("#containerId = '{$masterRec->containerId}'");
+                
                 while ($lRec = $lQuery->fetch()) {
                     if ($lRec->data->detId != $rec->listDetailId) continue;
                     $lRec->data->detId = $nRec->id;
@@ -244,6 +244,7 @@ class blast_Setup extends core_ProtoSetup
         $blsInst->db->connect();
         
         $listId = str::phpToMysqlName('listId');
+        
         if (!$blsInst->db->isFieldExists($blsInst->dbTableName, $listId)) return ;
         
         $blsInst->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист, mandatory');
@@ -254,6 +255,7 @@ class blast_Setup extends core_ProtoSetup
         $query->where("#perSrcObjectId IS NULL");
         
         $listClassId = blast_Lists::getClassId();
+        
         while ($rec = $query->fetch()) {
             $nRec = new stdClass();
             $nRec->id = $rec->id;

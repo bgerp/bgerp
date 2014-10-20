@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @todo:     Да се документира този клас
@@ -33,32 +33,32 @@ class acc_Lists extends core_Manager {
      * Активен таб на менюто
      */
     var $menuPage = 'Счетоводство:Настройки';
-
+    
     
     /**
      * Заглавие
      */
     var $title = 'Номенклатури';
     
-
+    
     /**
      * Наименование на единичния обект
      */
     var $singleTitle = 'Номенклатура';
-
-
+    
+    
     /**
      * Кой може да го разглежда?
      */
     var $canList = 'ceo,acc';
     
     
-    /**  
-     * Кой има право да променя системните данни?  
-     */  
+    /**
+     * Кой има право да променя системните данни?
+     */
     var $canEditsysdata = 'accMaster';
-
-
+    
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -74,7 +74,7 @@ class acc_Lists extends core_Manager {
     /**
      * Описание на модела (таблицата)
      */
-    function description() 
+    function description()
     {
         // Трибуквен, уникален номер
         $this->FLD('num', 'int(3,size=3)', 'caption=Номер,remember=info,mandatory,notNull,export');
@@ -105,7 +105,7 @@ class acc_Lists extends core_Manager {
         
         // Титла - хипервръзка
         $this->FNC('title', 'html', 'column=none');
-
+        
         // Дали елементите имат размерност
         $this->FLD('isDimensional', 'enum(no=Не,yes=Да)', 'caption=Размерност, export,maxRadio=2,width=8em');
         
@@ -140,7 +140,7 @@ class acc_Lists extends core_Manager {
         $rec->nameLink = $name;
         
         if(acc_Lists::haveRightFor('list')){
-        	$rec->nameLink = ht::createLink($rec->nameLink, array ('acc_Items', 'list', 'listId' => $rec->id));
+            $rec->nameLink = ht::createLink($rec->nameLink, array ('acc_Items', 'list', 'listId' => $rec->id));
         }
     }
     
@@ -156,7 +156,7 @@ class acc_Lists extends core_Manager {
         $rec->title = $num . '.&nbsp;' . $name;
     }
     
-
+    
     /**
      * Извлича запис по име
      */
@@ -168,7 +168,7 @@ class acc_Lists extends core_Manager {
     
     /**
      * Извлича запис на модела acc_Lists според системен идентификатор
-     * 
+     *
      * @param string $systemId
      * @return stdClass
      */
@@ -215,12 +215,12 @@ class acc_Lists extends core_Manager {
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	if (($data->form->rec->id && $data->form->rec->itemsCnt) || $data->form->rec->systemId) {
+        if (($data->form->rec->id && $data->form->rec->itemsCnt) || $data->form->rec->systemId) {
             
             // Забрана за промяна на интерфейса на непразните номенклатури
             $data->form->setReadonly('regInterfaceId');
         } else {
-           $data->form->setField('regInterfaceId', 'allowEmpty');
+            $data->form->setField('regInterfaceId', 'allowEmpty');
         }
         
         $data->form->setDefault('isDimensional', 'no');
@@ -234,12 +234,11 @@ class acc_Lists extends core_Manager {
     static function updateSummary($id)
     {
         expect($rec = self::fetch($id), $id);
-
         
         $itemsQuery = acc_Items::getQuery();
         $itemsQuery->where("#state = 'active'");
         $itemsQuery->where("#lists LIKE '%|{$id}|%'");
-
+        
         $rec->itemsCnt = $itemsQuery->count();
         
         self::save($rec);
@@ -290,7 +289,7 @@ class acc_Lists extends core_Manager {
      * @return array ключове - ид-та на номенклатурите, в които е регистриран обекта,
      * стойности - наименования на номенклатурите.
      */
-    static function getPossibleLists($class) 
+    static function getPossibleLists($class)
     {
         $result = array ();
         
@@ -301,8 +300,8 @@ class acc_Lists extends core_Manager {
             // Извличаме всички номенклатури без интерфейс и без systemId
             $query->where("(#regInterfaceId IS NULL OR #regInterfaceId = '') AND (#systemId IS NULL || #systemId = '')");
         } else {
-        	
-        	// Ако има клас проверяваме за тези номенклатури, чийто интерфейс е поддържан от класа
+            
+            // Ако има клас проверяваме за тези номенклатури, чийто интерфейс е поддържан от класа
             $ifaceIds = array_keys(core_Interfaces::getInterfaceIds($class));
             
             if (count($ifaceIds)) {
@@ -316,7 +315,7 @@ class acc_Lists extends core_Manager {
                 $result [$rec->id] = self::getVerbal($rec, 'title');
             }
         }
-       
+        
         return $result;
     }
     
@@ -345,21 +344,21 @@ class acc_Lists extends core_Manager {
     
     /**
      * Конвертира списък от номенклатури към масив.
-     * 
+     *
      * Списъкът може да бъде зададен по различни начини:
-     * 
+     *
      *  o като масив:          array(l1, l2, ...)
      *  o като keylist стринг: |l1|l2|...|
      *  o като стринг-масив:   l1, l2, ...
-     *  
+     *
      * Всеки елемент на списъка може да бъде стринг или цяло число. Те се интерпретират:
-     * 
+     *
      *  o стринг     - systemId на номенклатура
-     *  o цяло число - първичен ключ на номенклатура 
-     * 
+     *  o цяло число - първичен ключ на номенклатура
+     *
      * @param array|string $lists списък от номенклатури
      * @return array масив от първични ключове на номенклатури (и по ключове, и по стойности)
-     * 
+     *
      */
     protected static function listsToArray($lists)
     {
@@ -370,8 +369,7 @@ class acc_Lists extends core_Manager {
             $lists = keylist::toArray($lists);
         }
         
-        $lists = arr::make($lists); // NULL, стринг-масив или масив -> масив
-        
+        $lists = arr::make($lists);  // NULL, стринг-масив или масив -> масив
         // Преобразуваме стринговите елементи към първични ключове (id-та)
         foreach ($lists as &$list) {
             if(!is_numeric($list)) {
@@ -380,7 +378,7 @@ class acc_Lists extends core_Manager {
         }
         
         if (count($lists)) {
-            $lists = array_combine($lists, $lists);    
+            $lists = array_combine($lists, $lists);
         }
         
         return $lists;
@@ -394,19 +392,19 @@ class acc_Lists extends core_Manager {
      *
      * @param mixed $class инстанция / име / ид (@see core_Classes::getId())
      * @param int $objectId
-     * @param array|string|keylist $lists списък от номенклатури, към които да се добави перото 
+     * @param array|string|keylist $lists списък от номенклатури, към които да се добави перото
      * @param boolean $forced дали да обновяваме списъка към които е перото
-     *                        Ако перото липсва - създава се
+     * Ако перото липсва - създава се
      * @return int ид на обновеното перо или null, ако няма такова перо
      */
     static function updateItem($class, $objectId, $lists = NULL, $forced = TRUE)
     {
-		// Нормализираме подадения списък от номенклатури
-		$lists = self::listsToArray($lists);
-		
+        // Нормализираме подадения списък от номенклатури
+        $lists = self::listsToArray($lists);
+        
         // Извличаме запис за перо (ако има)
         $itemRec = self::fetchItem($class, $objectId);
-
+        
         if (!$itemRec && !$lists) {
             // Не може да се създава перо, което не е в нито една номенклатура
             return NULL;
@@ -431,7 +429,7 @@ class acc_Lists extends core_Manager {
         // Номенклатурите, в които перото не е било, но сега ще бъде включено. Ще попитаме всяка
         // от тях дали ще приеме нашето перо.
         $addedToLists = array_diff($lists, $oldLists);
-
+        
         if (!empty($addedToLists)) {
             // Перото трябва да поддържа интерфейса на всяка номенклатура, в която иска да бъде
             // добавено.
@@ -440,8 +438,8 @@ class acc_Lists extends core_Manager {
             foreach ($addedToLists as $listId) {
                 $listIfaceId = static::fetchField($listId, 'regInterfaceId');
                 expect(
-                    empty($listIfaceId) || !empty($itemInterfaceIds[$listIfaceId]), 
-                    "Класът '" . core_Classes::fetchField($itemRec->classId, 'name') . "' не поддържа нужния интерфейс '" . core_Interfaces::fetchField($listIfaceId, 'name'). "'"
+                    empty($listIfaceId) || !empty($itemInterfaceIds[$listIfaceId]),
+                    "Класът '" . core_Classes::fetchField($itemRec->classId, 'name') . "' не поддържа нужния интерфейс '" . core_Interfaces::fetchField($listIfaceId, 'name') . "'"
                 );
             }
         }
@@ -454,10 +452,10 @@ class acc_Lists extends core_Manager {
         acc_Items::syncItemRec($itemRec, $AccRegister, $objectId);
         
         $itemRec->state = empty($lists) ? 'closed' : 'active';
-       
+        
         if (($result = acc_Items::save($itemRec)) && $itemRec->state == 'active') {
             $AccRegister->itemInUse($objectId, true);
-        
+            
             // Нотифициране на номенклатурите, от които перото е било премахнато
             $removedFromLists = array_diff($oldLists, $lists);
             
@@ -472,23 +470,23 @@ class acc_Lists extends core_Manager {
     
     /**
      * Изтрива перо, съответстващо на обект от регистър
-     * 
+     *
      * Затваря перо от регистъра, затворените и неизползваните пера се изтриват по крон
      *
      * @param mixed $class инстанция / име / ид (@see core_Classes::getId())
      * @param int $objectId
      * @return boolean true при успех, false при грешка, null при липсващо перо
      */
-    static function removeItem($class, $objectId) 
+    static function removeItem($class, $objectId)
     {
         $result = NULL;
         
         // Извличаме съществуващия запис за перо
         if ($itemRec = self::fetchItem($class, $objectId)) {
-             
-             // Перото е използвано - маркираме като 'closed', но не изтриваме
-             $itemRec->state = 'closed';
-             $result = acc_Items::save($itemRec);
+            
+            // Перото е използвано - маркираме като 'closed', но не изтриваме
+            $itemRec->state = 'closed';
+            $result = acc_Items::save($itemRec);
         }
         
         $AccRegister = cls::getInterface('acc_RegisterIntf', $class);
@@ -499,7 +497,7 @@ class acc_Lists extends core_Manager {
     
     
     /**
-     * @todo Чака за документация...
+     * Взима записи от базата
      */
     private static function fetchItem($class, $objectId)
     {
@@ -508,20 +506,20 @@ class acc_Lists extends core_Manager {
         
         return $itemRec;
     }
-
+    
     
     /**
      * Дали посочената номенклатура има размерност
      */
     static public function isDimensional($id)
     {
-        $result =  ('yes' == self::fetchField($id, 'isDimensional')); 
+        $result =  ('yes' == self::fetchField($id, 'isDimensional'));
         
         return $result;
     }
     
     
-	/**
+    /**
      * Намира дали дадена номенклатура се намира в някоя от групуте на сметката
      * и на коя позиция
      * @param varchar $accSysId - systemId на сметката
@@ -529,39 +527,39 @@ class acc_Lists extends core_Manager {
      * @return mixed 1/2/3/NULL - Позицията на която е номенклатурата или
      * NULL ако не се среща
      */
-     static function getPosition($accSysId, $iface)
-     {
-     	
-    	// Ако е подаден Ид на интерфейса очакваме да има такъв запис
-     	if (is_numeric($iface)) {
-    		expect($iface = core_Interfaces::fetch($iface), 'Няма такъв интерфейс');
-    	} else {
-    		
-    		expect($iface = core_Interfaces::fetch(array("#name='[#1#]'",$iface)), 'Няма такъв интерфейс2');
-    	}
-    	$ifaceId = $iface->id;
-    	
-    	// Очакваме да има сметка с това systemId
-    	expect($acc = acc_Accounts::getRecBySystemId($accSysId), "Няма сметка със systemId {$accSysId}");
-    	
-    	// Извличаме информацията за номенклатурите на сметката
-    	$acc = acc_Accounts::getAccountInfo($acc->id);
-    	
-    	foreach ($acc->groups as $i => $list)  {
-    		
-    		// За всяка номенклатура проверяваме дали отговаря на този интерфейс
-    		if($list->rec->regInterfaceId == $ifaceId) {
-    			
-    			// Ако отговаря връщаме позицията на номенклатурата
-    			return $i;
-    		}
-    	}
-    	
-    	// Ако никоя номенклатура е поддържа интерфейса връщаме NULL
-    	return NULL;
+    static function getPosition($accSysId, $iface)
+    {
+        
+        // Ако е подаден Ид на интерфейса очакваме да има такъв запис
+        if (is_numeric($iface)) {
+            expect($iface = core_Interfaces::fetch($iface), 'Няма такъв интерфейс');
+        } else {
+            
+            expect($iface = core_Interfaces::fetch(array("#name='[#1#]'", $iface)), 'Няма такъв интерфейс2');
+        }
+        $ifaceId = $iface->id;
+        
+        // Очакваме да има сметка с това systemId
+        expect($acc = acc_Accounts::getRecBySystemId($accSysId), "Няма сметка със systemId {$accSysId}");
+        
+        // Извличаме информацията за номенклатурите на сметката
+        $acc = acc_Accounts::getAccountInfo($acc->id);
+        
+        foreach ($acc->groups as $i => $list)  {
+            
+            // За всяка номенклатура проверяваме дали отговаря на този интерфейс
+            if($list->rec->regInterfaceId == $ifaceId) {
+                
+                // Ако отговаря връщаме позицията на номенклатурата
+                return $i;
+            }
+        }
+        
+        // Ако никоя номенклатура е поддържа интерфейса връщаме NULL
+        return NULL;
     }
-
-
+    
+    
     /**
      * Обработка, преди импортиране на запис при начално зареждане
      */
@@ -580,41 +578,42 @@ class acc_Lists extends core_Manager {
      */
     public static function getItemsByList($class, $sysId)
     {
-    	$res = array();
-    	expect($Class = cls::get($class));
-    	expect($list = static::fetchBySystemId($sysId));
-    	if($items = acc_Items::getClassItems($Class, $list->id)){
-    		foreach ($items as $id){
-    			$res[$id] = $Class->getTitleById($id);
-    		}
-    	}
-    	
-    	return $res;
+        $res = array();
+        expect($Class = cls::get($class));
+        expect($list = static::fetchBySystemId($sysId));
+        
+        if($items = acc_Items::getClassItems($Class, $list->id)){
+            foreach ($items as $id){
+                $res[$id] = $Class->getTitleById($id);
+            }
+        }
+        
+        return $res;
     }
     
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function loadSetupData() 
+    function loadSetupData()
     {
-    	// Подготвяме пътя до файла с данните 
-		$file = "acc/csv/Lists.csv";  
-		  	
-    	// Кои колонки ще вкарваме
-    	$fields = array( 
-	    	0 => "num", 
-	    	1 => "name", 
-	    	2 => "regInterfaceId", 
-	    	3 => "systemId",
-	    	4 => "isDimensional"
-	    );
-    	    	
-    	// Импортираме данните от CSV файла. 
-    	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL); 
-     	
-    	// Записваме в лога вербалното представяне на резултата от импортирането 
-    	$res .= $cntObj->html;
+        // Подготвяме пътя до файла с данните 
+        $file = "acc/csv/Lists.csv";
+        
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => "num",
+            1 => "name",
+            2 => "regInterfaceId",
+            3 => "systemId",
+            4 => "isDimensional"
+        );
+        
+        // Импортираме данните от CSV файла. 
+        // Ако той не е променян - няма да се импортират повторно 
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL);
+        
+        // Записваме в лога вербалното представяне на резултата от импортирането 
+        $res .= $cntObj->html;
     }
 }

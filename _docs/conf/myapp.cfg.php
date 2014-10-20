@@ -51,6 +51,8 @@ DEFINE('EF_USERS_PASS_SALT', '');
 // Препоръчителна стойност между 200 и 500
 DEFINE('EF_USERS_HASH_FACTOR', 0);
 
+// Git бранч
+DEFINE('BGERP_GIT_BRANCH', 'master');
 
 // Вербално заглавие на приложението
 DEFINE('EF_APP_TITLE', 'bgERP');

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Интерфейс за регистри източници на пера
@@ -17,13 +17,12 @@
 class acc_RegisterIntf
 {
     
-	
-	/**
-	 * Инстанция на мениджъра имащ интерфейса
-	 */
+    /**
+     * Инстанция на мениджъра имащ интерфейса
+     */
     public $class;
-	
-	
+    
+    
     /**
      * Преобразуване на запис на регистър към запис за перо в номенклатура (@see acc_Items)
      *
@@ -63,5 +62,4 @@ class acc_RegisterIntf
     {
         return $this->class->itemInUse($objectId, $inUse);
     }
-    
 }

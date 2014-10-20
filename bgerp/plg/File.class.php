@@ -1,13 +1,14 @@
 <?php
 
 
+
 /**
  * Плъгин за работа с файлове
  *
  * @category  bgerp
  * @package   bgerp
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,17 +29,17 @@ class bgerp_plg_File extends core_Plugin
         
         // Действието
         $action = log_Documents::getAction();
-
+        
         // Ако не изпращаме имейла, да не сработва
-//        if ((!$action) || in_array($action->action, array(log_Documents::ACTION_DISPLAY, log_Documents::ACTION_RECEIVE, log_Documents::ACTION_RETURN))) return ;
+        //        if ((!$action) || in_array($action->action, array(log_Documents::ACTION_DISPLAY, log_Documents::ACTION_RECEIVE, log_Documents::ACTION_RETURN))) return ;
         if (!$action) return ;
         
         // Името на файла
         $name = fileman_Files::fetchByFh($fh, 'name');
-
+        
         //Генерираме връзката 
         $res = toUrl(array('F', 'S', doc_DocumentPlg::getMidPlace(), 'n' => $name), $isAbsolute, TRUE, array('n'));
-
+        
         return FALSE;
     }
 }

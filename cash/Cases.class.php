@@ -171,6 +171,7 @@ class cash_Cases extends core_Master {
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,oldFiled=Title,mandatory');
         $this->FLD('cashiers', 'userList(roles=cash|ceo)', 'caption=Касиери,mandatory');
+        $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
     }
     
     

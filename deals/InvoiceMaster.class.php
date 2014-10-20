@@ -859,6 +859,13 @@ abstract class deals_InvoiceMaster extends core_Master
     		if(!$row->vatAmount){
     			$row->vatAmount = "<span class='quiet'>0,00</span>";
     		}
+    		
+    		if($rec->deliveryPlaceId){
+    			if($gln = crm_Locations::fetchField($rec->deliveryPlaceId, 'gln')){
+    				$row->deliveryPlaceId .= ', ' . $gln;
+    			}
+    		}
+    		
     		$mvc->prepareMyCompanyInfo($row);
     	}
     }

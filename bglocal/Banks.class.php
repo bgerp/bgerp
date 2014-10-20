@@ -5,10 +5,10 @@
  * Клас 'drdata_Banks - Банки'
  *
  *
- * @category  vendors
- * @package   drdata
+ * @category  bgerp
+ * @package   bglocal
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -77,9 +77,9 @@ class bglocal_Banks extends core_Manager
     
     
     /**
-     *  Подреждаме банките по азбучен ред
+     * Подреждаме банките по азбучен ред
      */
-	static function on_AfterPrepareListFilter($mvc, &$data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#name');
     }
@@ -94,9 +94,9 @@ class bglocal_Banks extends core_Manager
     static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = "bglocal/data/Banks.csv";
-    	$fields = array(0 => "name", 1 => "bic");
-    	$cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
-    	$res .= $cntObj->html;
+        $fields = array(0 => "name", 1 => "bic");
+        $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
+        $res .= $cntObj->html;
     }
     
     
@@ -107,31 +107,31 @@ class bglocal_Banks extends core_Manager
      */
     static function getBankName($iban)
     {
-    	if(preg_match("/^#/", $iban)) return NULL;
-    	$parts = iban_Type::getParts($iban);
-    	
-    	if($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
-    		return $rec->name;
-    	} else {
-    		return NULL;
-    	}
+        if(preg_match("/^#/", $iban)) return NULL;
+        $parts = iban_Type::getParts($iban);
+        
+        if($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
+            return $rec->name;
+        } else {
+            return NULL;
+        }
     }
     
     
-     /**
+    /**
      * Връща името на бика на банката  по зададен IBAN
      * @param string $iban
      * @return string $rec->bic or NULL
      */
     static function getBankBic($iban)
     {
-    	if(preg_match("/^#/", $iban)) return NULL;
-    	$parts = iban_Type::getParts($iban);
-    	
-    	if($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
-    		return $rec->bic;
-    	} else {
-    		return NULL;
-    	}
+        if(preg_match("/^#/", $iban)) return NULL;
+        $parts = iban_Type::getParts($iban);
+        
+        if($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
+            return $rec->bic;
+        } else {
+            return NULL;
+        }
     }
 }

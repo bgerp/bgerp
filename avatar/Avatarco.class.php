@@ -17,7 +17,7 @@
  * @category  vendors
  * @package   avatar
  * @author    Rodion Baskakov <rodion.baskakov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @usage
@@ -27,28 +27,25 @@ class avatar_Avatarco
     
     
     /**
-     * @static SPRITE_SIZE stores size of a single sprite to draw pattern on
-     * @static MIN_SPRITES_PER_SIDE stores a minimum quantity of elements in square
-     * @static MAX_SPRITES_PER_SIDE stores a maximum quantity of elements in square
-     * @static MIN_PICTURE_SIZE the smallest size of output image
+     * stores size of a single sprite to draw pattern on
      */
     const SPRITE_SIZE = 100;
     
     
     /**
-     * @todo Чака за документация...
+     * stores a minimum quantity of elements in square
      */
     const MIN_SPRITES_PER_SIDE = 2;
     
     
     /**
-     * @todo Чака за документация...
+     * stores a maximum quantity of elements in square
      */
     const MAX_SPRITES_PER_SIDE = 10;
     
     
     /**
-     * @todo Чака за документация...
+     * the smallest size of output image
      */
     const MIN_PICTURE_SIZE = 10;
     

@@ -1,8 +1,9 @@
 <?php
 
 
+
 /**
- * @todo Чака за документация...
+ * "Подправка" за кодиране на баркода
  */
 defIfNot('BARCODE_SALT', md5(EF_SALT . '_BARCODE'));
 
@@ -11,10 +12,10 @@ defIfNot('BARCODE_SALT', md5(EF_SALT . '_BARCODE'));
  * Клас 'barcode_Qr' - Генериране на QR изображения
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   barcode
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -63,7 +64,7 @@ class barcode_Qr extends core_Manager
         );
         
         //Генерира QR изображение
-        barcode_Generator::printImg('qr',$text, NULL, $params);
+        barcode_Generator::printImg('qr', $text, NULL, $params);
     }
     
     

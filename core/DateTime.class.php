@@ -564,7 +564,7 @@ class core_DateTime
      */
     static function today()
     {
-        return self::now(false);
+        return self::now(FALSE);
     }
     
     

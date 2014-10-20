@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -33,13 +33,13 @@ class acc_Accounts extends core_Manager
      * Активен таб на менюто
      */
     var $menuPage = 'Счетоводство:Настройки';
-
-     
+    
+    
     /**
      * Наименование на единичния обект
      */
     var $singleTitle = 'Сметкоплан';
-
+    
     
     /**
      * Кой има право да чете?
@@ -59,7 +59,6 @@ class acc_Accounts extends core_Manager
     var $canAdd = 'ceo,accMaster';
     
     
-    
     /**
      * Кой може да го разглежда?
      */
@@ -76,11 +75,11 @@ class acc_Accounts extends core_Manager
      * Кой може да го изтрие?
      */
     var $canDelete = 'ceo,accMaster';
-
     
-    /**  
-     * Кой има право да променя системните данни?  
-     */  
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
     var $canEditsysdata = 'no_one';
     
     
@@ -88,7 +87,7 @@ class acc_Accounts extends core_Manager
      * Кой може да променя състоянието и ...;
      */
     var $canAdmin = 'ceo,accMaster';
-
+    
     
     /**
      * Брой записи на страница
@@ -145,7 +144,7 @@ class acc_Accounts extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Изчисление на "синтетичните" (1 и 2 разрядни) сметки
      */
     static function on_CalcIsSynthetic($mvc, &$rec) {
         $rec->isSynthetic = (strlen($rec->num) < 3);
@@ -177,7 +176,7 @@ class acc_Accounts extends core_Manager
     
     
     /**
-     * 
+     * Подготовка на филтър формата
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
@@ -217,7 +216,7 @@ class acc_Accounts extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Проверка уникално ли е числото
      */
     function isUniquenum($rec)
     {
@@ -242,7 +241,7 @@ class acc_Accounts extends core_Manager
         }
         
         if ($form->isSubmitted()) {
-
+            
             // Ако не е цяло число
             if (!ctype_digit($form->rec->num)) {
                 
@@ -265,35 +264,33 @@ class acc_Accounts extends core_Manager
             $form->setError('num', 'Съществува сметка с този номер');
         }
         
-
-	// Валидация: "синтетичните" (1 и 2 разрядни) сметки
-	// (т.е. разделите и групите на Сметкоплана) НЕ допускат избор на "Тип";
-
-	if ($form->rec->isSynthetic) {
-
-	// ако сметката е "Синтетична"
-
-		if (!empty($form->rec->type))
-
-		// и полето "Тип" НЕ е празно
-
-		$form->setError('type', "Разделите и Групите на Сметкоплана нямат|* <b>|Тип|*</b> | !");
-	}
-
-	// Валидация: всички останали (>=3 разряздните - "аналитични") сметки
-	// изискват задаване на "Тип"
-	else {
-
-	// ако сметката НЕ е "Синтетична"
-
-		if (empty($form->rec->type))
-
-		// и полето "Тип" е празно
-
-		$form->setError('type', "Изберете|* <b>|Тип|*</b> |на сметката!");
-	}
-
-
+        // Валидация: "синтетичните" (1 и 2 разрядни) сметки
+        // (т.е. разделите и групите на Сметкоплана) НЕ допускат избор на "Тип";
+        
+        if ($form->rec->isSynthetic) {
+            
+            // ако сметката е "Синтетична"
+            
+            if (!empty($form->rec->type))
+            
+            // и полето "Тип" НЕ е празно
+            
+            $form->setError('type', "Разделите и Групите на Сметкоплана нямат|* <b>|Тип|*</b> | !");
+        }
+        
+        // Валидация: всички останали (>=3 разряздните - "аналитични") сметки
+        // изискват задаване на "Тип"
+        else {
+            
+            // ако сметката НЕ е "Синтетична"
+            
+            if (empty($form->rec->type))
+            
+            // и полето "Тип" е празно
+            
+            $form->setError('type', "Изберете|* <b>|Тип|*</b> |на сметката!");
+        }
+        
         // Определяне на избраните номенклатури.
         $groupFields = array();
         
@@ -396,36 +393,36 @@ class acc_Accounts extends core_Manager
         }
     }
     
-
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function loadSetupData() 
+    function loadSetupData()
     {
-    	// Подготвяме пътя до файла с данните 
-    	$file = "acc/csv/Accounts.csv";
-    	
-    	// Кои колонки ще вкарваме
-    	$fields = array( 
-    		0 => "num", 
-    		1 => "title",
-    		2 => "type",
-    		3 => "strategy",
-    		4 => "csv_groupId1",
-    		5 => "csv_groupId2",
-    		6 => "csv_groupId3",
-    		7 => "systemId",
-    		8 => "state",
-    		9 => "csv_createdBy",
-    	);
-    	    	
-    	// Импортираме данните от CSV файла. 
-    	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL); 
-     	
-    	// Записваме в лога вербалното представяне на резултата от импортирането 
-    	$res .= $cntObj->html;
-
+        // Подготвяме пътя до файла с данните 
+        $file = "acc/csv/Accounts.csv";
+        
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => "num",
+            1 => "title",
+            2 => "type",
+            3 => "strategy",
+            4 => "csv_groupId1",
+            5 => "csv_groupId2",
+            6 => "csv_groupId3",
+            7 => "systemId",
+            8 => "state",
+            9 => "csv_createdBy",
+        );
+        
+        // Импортираме данните от CSV файла. 
+        // Ако той не е променян - няма да се импортират повторно 
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL);
+        
+        // Записваме в лога вербалното представяне на резултата от импортирането 
+        $res .= $cntObj->html;
+        
         return $res;
     }
     
@@ -435,13 +432,13 @@ class acc_Accounts extends core_Manager
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
-    	if (isset($rec->csv_groupId1) || isset($rec->csv_groupId2) || isset($rec->csv_groupId3) || isset($rec->csv_createdBy)) {
-    		
-    		$rec->groupId1 = self::getListsId($rec->csv_groupId1);
-    		$rec->groupId2 = self::getListsId($rec->csv_groupId2);
-    		$rec->groupId3 = self::getListsId($rec->csv_groupId3);
-    		$rec->createdBy = -1;
-    	}
+        if (isset($rec->csv_groupId1) || isset($rec->csv_groupId2) || isset($rec->csv_groupId3) || isset($rec->csv_createdBy)) {
+            
+            $rec->groupId1 = self::getListsId($rec->csv_groupId1);
+            $rec->groupId2 = self::getListsId($rec->csv_groupId2);
+            $rec->groupId3 = self::getListsId($rec->csv_groupId3);
+            $rec->createdBy = -1;
+        }
     }
     
     
@@ -461,22 +458,22 @@ class acc_Accounts extends core_Manager
             return NULL;
         }
         
-        expect( preg_match('/\((\d+)\)\s*$/', $string, $matches),
-                    'Некоректно форматирано име на номенклатура, очаква се `Име (код)`', 
-                    $string);
+        expect(preg_match('/\((\d+)\)\s*$/', $string, $matches),
+            'Некоректно форматирано име на номенклатура, очаква се `Име (код)`',
+            $string);
         
         // Проблем: парсиран е код, но не е намерена номенклатура с този код
         $num = (int)$matches[1];
         expect(($listId = acc_Lists::fetchField("#num={$num}", 'id')),
-                'В ' . "acc/csv/Accounts.csv" . ' има номер на номенклатура, която не е открита в acc_Lists', 
-                $num, $string);
+            'В ' . "acc/csv/Accounts.csv" . ' има номер на номенклатура, която не е открита в acc_Lists',
+            $num, $string);
         
         return $listId;
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле) на $class отговарящи на условието where
      */
     function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
     {
@@ -656,20 +653,20 @@ class acc_Accounts extends core_Manager
     
     
     /**
-     * 
+     * Вземане на запис от базата, чрес системното му ид
      */
     static function getRecBySystemId($systemId)
     {
-    	expect($rec = static::fetch(array("#systemId = '[#1#]'", $systemId)), "Липсва сметка със `systemId`={$systemId}");
-    
-    	return $rec;
+        expect($rec = static::fetch(array("#systemId = '[#1#]'", $systemId)), "Липсва сметка със `systemId`={$systemId}");
+        
+        return $rec;
     }
     
     
-	/**
+    /**
      * Информация за сч. сметка
      */
-	static function getAccountInfo($accountId)
+    static function getAccountInfo($accountId)
     {
         $acc = (object)array(
             'rec' => acc_Accounts::fetch($accountId),

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'bgerp_data_Translations'
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -21,18 +22,18 @@ class bgerp_data_Translations extends core_MVC
      */
     static function loadData()
     {
-    	$file = "bgerp/data/csv/Translations.csv";
-
+        $file = "bgerp/data/csv/Translations.csv";
+        
         $mvc = cls::get('core_Lg');
-
-    	$fields = array( 
-	    	0 => "lg", 
-	    	1 => "kstring", 
-	    	2 => "translated", 
-	    	3 => "csv_createdBy",
-	    	);
-    	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+        
+        $fields = array(
+            0 => "lg",
+            1 => "kstring",
+            2 => "translated",
+            3 => "csv_createdBy",
+        );
+        
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
         
         $res = static::addForAllLg();
         
@@ -41,7 +42,7 @@ class bgerp_data_Translations extends core_MVC
         return $res;
     }
     
-
+    
     /**
      * Добавя съдържанието на преводите, които са зададени в EF_LANGUAGES
      * Добавя за всички езици без `en` и `bg`
@@ -50,17 +51,18 @@ class bgerp_data_Translations extends core_MVC
     {
         // Масив в всички езици
         $langArr = core_Lg::getLangs();
-
+        
         // Премахваме английския и българския
         unset($langArr['en']);
         unset($langArr['bg']);
         
         // Ако няма повече езици, не се изпълянва
         if (!count($langArr)) return ;
-
+        
         // Вземаме всички преводи на английски
         $query = core_Lg::getQuery();
         $query->where("#lg = 'en'");
+        
         while ($enLangRec = $query->fetch()) {
             
             // Добавяме ги в масив
@@ -79,7 +81,7 @@ class bgerp_data_Translations extends core_MVC
                 $nRec->kstring = $enLangRec->kstring;
                 $nRec->translated = $enLangRec->translated;
                 $nRec->createdBy = -1;
-         
+                
                 // Опитваме се да запишем данните за съответния език
                 core_Lg::save($nRec, NULL, 'IGNORE');
                 
@@ -101,5 +103,4 @@ class bgerp_data_Translations extends core_MVC
         
         return $res;
     }
-
 }

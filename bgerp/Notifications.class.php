@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Dimiter Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Известявания
@@ -34,8 +34,8 @@ class bgerp_Notifications extends core_Manager
      * Името на полито, по което плъгина GroupByDate ще групира редовете
      */
     var $groupByDateField = 'modifiedOn';
-
-
+    
+    
     /**
      * Заглавие
      */
@@ -54,30 +54,30 @@ class bgerp_Notifications extends core_Manager
     var $canRead = 'admin';
     
     
-    /** 
-	 *  Полета по които ще се търси
-	 */
-	var $searchFields = 'msg';
-	
-	
-	/**
-	 * Как се казва полето за пълнотекстово търсене
-	 */
-	var $searchInputField = 'noticeSearch';
+    /**
+     * Полета по които ще се търси
+     */
+    var $searchFields = 'msg';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'admin';
-	
-	
-	/**
+     * Как се казва полето за пълнотекстово търсене
+     */
+    var $searchInputField = 'noticeSearch';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'admin';
+    
+    
+    /**
      * Офсет преди текущото време при липса на 'Затворено на' в нотификциите
      */
-	const NOTIFICATIONS_LAST_CLOSED_BEFORE = 60;
-	
-	
+    const NOTIFICATIONS_LAST_CLOSED_BEFORE = 60;
+    
+    
     /**
      * Описание на модела
      */
@@ -92,7 +92,7 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('customUrl', 'varchar', 'caption=URL->Обект');
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
         $this->FLD('closedOn', 'datetime', 'caption=Затворено на');
-
+        
         $this->setDbUnique('url, userId');
     }
     
@@ -127,25 +127,27 @@ class bgerp_Notifications extends core_Manager
         $rec->id = $r->id;
         $rec->state = 'active';
         $rec->hidden = 'no';
+        
         if($customUrl) {
             $rec->customUrl = toUrl($customUrl, 'local', FALSE);
         }
         
         bgerp_Notifications::save($rec);
     }
-     
+    
     
     /**
      * Отбелязва съобщение за прочетено
      */
     static function clear($urlArr, $userId = NULL)
-    {   
+    {
         // Не изчистваме от опресняващи ajax заявки
         if(Request::get('ajax_mode')) return;
-
+        
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }
+        
         if(empty($userId)) {
             return;
         }
@@ -165,8 +167,8 @@ class bgerp_Notifications extends core_Manager
             bgerp_Notifications::save($rec, 'state,modifiedOn,closedOn');
         }
     }
-
-
+    
+    
     /**
      * Връща кога за последен път е затваряна нотификацията с дадено URL от даден потребител
      */
@@ -175,15 +177,15 @@ class bgerp_Notifications extends core_Manager
         $url = toUrl($urlArr, 'local', FALSE);
         
         $query = self::getQuery();
-
-        if (!$userId) { 
+        
+        if (!$userId) {
             $userId = core_Users::getCurrent();
         }
-
+        
         $query->where("#url = '{$url}' AND #userId = '{$userId}'");
-
+        
         if($rec = $query->fetch()) {
-
+            
             return $rec->closedOn;
         }
     }
@@ -191,9 +193,9 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Връща нотифицираните потребители към съответното URL
-     * 
+     *
      * @param array $urlArr
-     * 
+     *
      * @return array
      */
     static function getNotifiedUserArr($urlArr)
@@ -202,6 +204,7 @@ class bgerp_Notifications extends core_Manager
         
         $query = self::getQuery();
         $query->where("#url = '{$url}'");
+        
         while ($rec = $query->fetch()) {
             $usersArr[$rec->userId] = $rec->hidden;
         }
@@ -209,18 +212,19 @@ class bgerp_Notifications extends core_Manager
         return $usersArr;
     }
     
+    
     /**
      * Скрива посочените записи
      * Обикновено след Reject
      */
-    static function setHidden($urlArr, $hidden = 'yes', $userId = NULL) 
+    static function setHidden($urlArr, $hidden = 'yes', $userId = NULL)
     {
         $url = toUrl($urlArr, 'local', FALSE);
         
         $query = self::getQuery();
-
+        
         $query->where("#url = '{$url}'");
-
+        
         if ($userId) {
             $query->where("#userId = '{$userId}'");
         }
@@ -241,7 +245,7 @@ class bgerp_Notifications extends core_Manager
                 if ($rec->cnt == 0) {
                     
                     // Скриваме
-                    $rec->hidden = $hidden;     
+                    $rec->hidden = $hidden;
                 }
             } elseif ($hidden == 'no') {
                 
@@ -257,7 +261,7 @@ class bgerp_Notifications extends core_Manager
             self::save($rec);
         }
     }
-
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -317,15 +321,15 @@ class bgerp_Notifications extends core_Manager
         
         // Създаваме заявката
         $data->query = $Notifications->getQuery();
-
-        $data->query->show("msg,state,userId,priority,cnt,url,customUrl,modifiedOn,modifiedBy,searchKeywords"); 
+        
+        $data->query->show("msg,state,userId,priority,cnt,url,customUrl,modifiedOn,modifiedBy,searchKeywords");
         
         // Подготвяме полетата за показване
         $data->listFields = 'modifiedOn=Време,msg=Съобщение';
         
         $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
         $data->query->orderBy("state,modifiedOn=DESC");
-
+        
         if(Mode::is('screenMode', 'narrow') && !Request::get('noticeSearch')) {
             $data->query->where("#state = 'active'");
         }
@@ -356,10 +360,10 @@ class bgerp_Notifications extends core_Manager
         
         return $tpl;
     }
-
-
+    
+    
     /**
-     * @todo Чака за документация...
+     * Преброява отворените нотификации за всеки потребител
      */
     static function getOpenCnt($userId = NULL)
     {
@@ -379,7 +383,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Рендира портала
      */
     function renderPortal($data)
     {
@@ -398,7 +402,7 @@ class bgerp_Notifications extends core_Manager
                 
                 <div id='{$divId}'>
                     <!--ET_BEGIN PortalTable-->
-                    	[#PortalTable#]
+                        [#PortalTable#]
                     <!--ET_END PortalTable-->
                 </div>
                 
@@ -412,11 +416,11 @@ class bgerp_Notifications extends core_Manager
             // Попълваме горния страньор
             $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
             
-        	if($data->listFilter){
-        		$formTpl = $data->listFilter->renderHtml();
-        		$formTpl->removeBlocks();
-        		$formTpl->removePlaces();
-            	$tpl->append($formTpl, 'ListFilter');
+            if($data->listFilter){
+                $formTpl = $data->listFilter->renderHtml();
+                $formTpl->removeBlocks();
+                $formTpl->removePlaces();
+                $tpl->append($formTpl, 'ListFilter');
             }
             
             // Попълваме долния страньор
@@ -441,15 +445,15 @@ class bgerp_Notifications extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->view = 'horizontal';
-    	
-    	if(strtolower(Request::get('Act')) == 'show'){
-    	    
-    	    $data->listFilter->showFields = $mvc->searchInputField;
-    	    
-        	bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
-    	} else {
-    	    
+        $data->listFilter->view = 'horizontal';
+        
+        if(strtolower(Request::get('Act')) == 'show'){
+            
+            $data->listFilter->showFields = $mvc->searchInputField;
+            
+            bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
+        } else {
+            
             // Добавяме поле във формата за търсене
             $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
             
@@ -460,21 +464,21 @@ class bgerp_Notifications extends core_Manager
             $data->listFilter->input();
             
             // Бутон за филтриране
-    		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-    	    
+            $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+            
             // Ако не е избран потребител по подразбиране
             if(!$data->listFilter->rec->usersSearch) {
                 
                 // Да е текущия
                 $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
             }
-        	
-        	// Ако има филтър
+            
+            // Ако има филтър
             if($filter = $data->listFilter->rec) {
                 
                 // Ако се търси по всички и има права ceo
-    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo'))) {
-    			    // Търсим всичко
+                if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo'))) {
+                    // Търсим всичко
                 } else {
                     
                     // Масив с потребителите
@@ -484,7 +488,7 @@ class bgerp_Notifications extends core_Manager
                     if (count((array)$usersArr)) {
                         
                         // Показваме всички потребители
-        			    $data->query->orWhereArr('userId', $usersArr);
+                        $data->query->orWhereArr('userId', $usersArr);
                     } else {
                         
                         // Не показваме нищо
@@ -492,9 +496,9 @@ class bgerp_Notifications extends core_Manager
                     }
                 }
             }
-    	}
-    	
-    	$data->query->orderBy("#modifiedOn", 'DESC');  
+        }
+        
+        $data->query->orderBy("#modifiedOn", 'DESC');
     }
     
     
@@ -502,11 +506,12 @@ class bgerp_Notifications extends core_Manager
      * Какво правим след сетъпа на модела?
      */
     static function on_AfterSetupMVC($mvc, &$res)
-    {   
+    {
         if(!$mvc->fetch("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
             $count = 0;
             $query = static::getQuery();
             $query->orderBy("#id", "DESC");
+            
             while($rec = $query->fetch()){
                 // Обновяваме ключовите думи на нотификациите, ако нямат
                 if($rec->searchKeywords) continue;
@@ -522,7 +527,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Абонира функцията за промяна на броя на нотификациите по AJAX
-     * 
+     *
      * @return core_ET $tpl
      */
     static function subscribeCounter()
@@ -558,7 +563,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
-     * 
+     *
      * @return string
      */
     function getDivId()
@@ -569,9 +574,9 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
-     * 
+     *
      * @param string $status
-     * 
+     *
      * @return string
      * @see bgerp_RefreshRowsPlg
      */

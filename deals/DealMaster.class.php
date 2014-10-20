@@ -530,14 +530,18 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Ако има склад, се нотифицира отговорника му
     	if(empty($actions['ship']) && $rec->shipmentStoreId){
-    		$toChiefs = store_Stores::fetchField($rec->shipmentStoreId, 'chiefs');
-    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toChiefs);
+    		$storeRec = cash_Cases::fetch($rec->shipmentStoreId);
+    		if($storeRec->autoShare == 'yes'){
+    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $storeRec->chiefs);
+    		}
     	}
     		
     	// Ако има каса се нотифицира касиера
     	if(empty($actions['pay']) && $rec->caseId){
-    		$toCashiers = cash_Cases::fetchField($rec->caseId, 'cashiers');
-    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
+    		$caseRec = cash_Cases::fetch($rec->caseId);
+    		if($caseRec->autoShare == 'yes'){
+    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
+    		}
     	}
     	
     	// Текущия потребител се премахва от споделянето
@@ -815,10 +819,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
 	        }
 	        
-	        if($rec->deliveryLocationId){
-	        	$row->deliveryLocationId = crm_Locations::getAddress($rec->deliveryLocationId);
-	        }
-	        
 	    	if($rec->note){
 				$notes = explode('<br>', $row->note);
 				foreach ($notes as $note){
@@ -849,8 +849,21 @@ abstract class deals_DealMaster extends deals_DealBase
 				
 				if($rec->deliveryLocationId && $rec->shipmentStoreId){
 					if($ourLocation = store_Stores::fetchField($rec->shipmentStoreId, 'locationId')){
-						$row->ourLocation = crm_Locations::getTitleById($ourLocation) . ", " . crm_Locations::getAddress($ourLocation);
-						$row->ourLocation = trim($row->ourLocation, ", ");
+						$row->ourLocation = crm_Locations::getTitleById($ourLocation);
+						$ourLocationAddress = crm_Locations::getAddress($ourLocation);
+						if($ourLocationAddress != ''){
+							$row->ourLocationAddress = $ourLocationAddress;
+						}
+					}
+					
+					$contLocationAddress = crm_Locations::getAddress($rec->deliveryLocationId);
+					if($contLocationAddress != ''){
+						$row->deliveryLocationAddress = $contLocationAddress;
+					}
+					
+					if($gln = crm_Locations::fetchField($rec->deliveryLocationId, 'gln')){
+						$row->deliveryLocationAddress = $gln . ", " . $row->deliveryLocationAddress;
+						$row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ", ");
 					}
 				}
 			}

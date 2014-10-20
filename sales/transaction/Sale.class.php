@@ -328,7 +328,7 @@ class sales_transaction_Sale
         		$creditAccId = ($materials) ? '302' : '321';
         		$debitAccId = ($materials) ? '706' : '701';
         		
-        		$selfValue = cls::get($detailRec->classId)->getSelfValue($detailRec->productId, $detailRec->packagingId, NULL, $rec->valior);
+        		$selfValue = cls::get($detailRec->classId)->getSelfValue($detailRec->productId, $detailRec->packagingId, $detailRec->quantity, $rec->valior);
         		$entries[] = array(
         			'amount' => $selfValue * $detailRec->quantity,
 	                'debit' => array(

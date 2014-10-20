@@ -292,17 +292,21 @@ class cash_InternalMoneyTransfer extends core_Master
     {
     	$rec = &$form->rec;
     	if($rec->operationSysId == 'case2case') {
-    		$toCashiers = cash_Cases::fetchField($rec->debitCase, 'cashiers');
-    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
-    		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+    		$caseRec = cash_Cases::fetch($rec->debitCase);
+    		if($caseRec->autoShare == 'yes'){
+    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
+    			$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+    		}
     		
     		// Двете Каси трябва да са различни
     	if($rec->creditCase == $rec->debitCase) {
     			$form->setError("debitCase", 'Дестинацията е една и съща !!!');
     		} 
     	} elseif($rec->operationSysId == 'case2bank') {
-    		$sharedUsers = bank_OwnAccounts::fetchField($rec->debitBank, 'operators');
-    		$rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
+    		$bankRec = bank_OwnAccounts::fetch($rec->debitBank);
+    		if($bankRec->autoShare == 'yes'){
+    			$rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
+    		}
     		
     		$debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
     		if($debitInfo->currencyId != $rec->currencyId) {
@@ -479,5 +483,16 @@ class cash_InternalMoneyTransfer extends core_Master
     	$rec = $this->fetchRec($id);
     	
     	return $this->getVerbal($rec, 'reason');
+    }
+    
+    
+	/**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(__CLASS__);
+    
+    	return $self->singleTitle . " №$rec->id";
     }
 }

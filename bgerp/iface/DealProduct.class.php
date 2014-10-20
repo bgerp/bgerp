@@ -1,15 +1,15 @@
 <?php
 
+
 /**
  * Описание на продукт, участващ в сделка
  *
  * @category  bgerp
  * @package   bgerp
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- *
  */
 class bgerp_iface_DealProduct
 {
@@ -19,8 +19,7 @@ class bgerp_iface_DealProduct
      * @var int|string|core_Manager
      */
     public $classId;
-
-
+    
     /**
      * Първичен ключ на продукт (в рамките на мениджъра му)
      *
@@ -28,16 +27,14 @@ class bgerp_iface_DealProduct
      * @see $classId
      */
     public $productId;
-
-
+    
     /**
      * Мярка
-     * 
+     *
      * @var int key(mvc=cat_UoM)
      */
     public $uomId;
-
-
+    
     /**
      * Опаковка
      *
@@ -45,16 +42,14 @@ class bgerp_iface_DealProduct
      * @see cat_Packagings
      */
     public $packagingId;
-
-
+    
     /**
      * Количество
      *
      * @var double
      */
     public $quantity;
-
-
+    
     /**
      * Количество
      *
@@ -62,22 +57,19 @@ class bgerp_iface_DealProduct
      */
     public $quantityDelivered;
     
-    
     /**
      * Цена
      *
      * @var double
      */
     public $price;
-
-
+    
     /**
      * Отстъпка
      *
      * @var double в интервала [0..1]
      */
     public $discount;
-    
     
     /**
      * Тегло на продукта (ако има)
@@ -87,7 +79,6 @@ class bgerp_iface_DealProduct
      */
     public $weight;
     
-    
     /**
      * Обем на продукта (ако има)
      *
@@ -95,7 +86,6 @@ class bgerp_iface_DealProduct
      * @see $classId
      */
     public $volume;
-    
     
     /**
      * Срок на продукта
@@ -108,7 +98,7 @@ class bgerp_iface_DealProduct
     
     /**
      * Първичния ключ на мениджъра на продукта
-     * 
+     *
      * @return int key(mvc=core_Classes)
      */
     public function getClassId()
@@ -116,12 +106,13 @@ class bgerp_iface_DealProduct
         return cls::get($this->classId)->getClassId();
     }
     
+    
     /**
      * Проверява дали два продукта от сделка са съпоставими
-     * 
+     *
      * Съпоставими са продуктите от един и същ мениджър и първичен ключ и се търгуват в една и
-     * съща опаковка.  
-     * 
+     * съща опаковка.
+     *
      * @param bgerp_iface_DealProduct $p продукта, с който сравняваме
      * @return boolean
      */
@@ -130,19 +121,20 @@ class bgerp_iface_DealProduct
         return $this->isIdentifiedBy($p->productId, $p->getClassId(), $p->packagingId);
     }
     
+    
     /**
      * Проверява дали два продукта от сделка са съпоставими
-     * 
+     *
      * Съпоставими са продуктите от един и същ мениджър и първичен ключ и се търгуват в една и
-     * съща опаковка.  
-     * 
+     * съща опаковка.
+     *
      * @param bgerp_iface_DealProduct $p продукта, с който сравняваме
      * @return boolean
      */
     public function isIdentifiedBy($productId, $classId, $packagingId)
     {
         return $classId == $this->getClassId() &&
-            $productId == $this->productId &&
-            $packagingId == $this->packagingId;
+        $productId == $this->productId &&
+        $packagingId == $this->packagingId;
     }
 }

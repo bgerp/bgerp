@@ -116,12 +116,12 @@ class clickatell_SMS extends core_Manager
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sended';
                 $nRes['uid'] = trim($sendStatusArr[1]);
-                $nRes['msg'] = tr("Успешно изпратен SMS");
+                $nRes['msg'] = "|Успешно изпратен SMS";
             } else {
                 
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sendError';
-                $nRes['msg'] = tr("Не може да се изпрати");
+                $nRes['msg'] = "|Не може да се изпрати";
             }
         } else {
             
@@ -129,7 +129,7 @@ class clickatell_SMS extends core_Manager
             
             // Сетваме грешките
             $nRes['sendStatus'] = 'sendError';
-            $nRes['msg'] = tr("Липсва константа за URL' то");
+            $nRes['msg'] = "|Липсва константа за URL' то";
             
             // Записваме в лога
             static::log("Липсва константа за URL' то");

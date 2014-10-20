@@ -1,9 +1,10 @@
 <?php
 
 
+
 /**
  * Рефрешване на рендиранията на нотификации и последни
- * 
+ *
  * @category  ef
  * @package   plg
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -15,7 +16,6 @@
 class bgerp_RefreshRowsPlg extends core_Plugin
 {
     
-    
     /**
      * Колко време да стои в лога записа
      */
@@ -25,7 +25,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
     /**
      * След извикване на `render`.
      * Абонира извикването на функцията по AJAX
-     * 
+     *
      * @param core_Mvc $mvc
      * @param core_Et $tpl
      */
@@ -80,7 +80,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
     
     /**
      * Преди извикване на екшъна
-     * 
+     *
      * @param core_Mvc $mvc
      * @param array $res
      * @param string $action
@@ -102,7 +102,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         
         // Времето на извикване на страницата
         $hitTime = Request::get('hitTime');
-
+        
         // Рендираме резултата
         $tpl = $mvc->render();
         
@@ -150,17 +150,15 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         
         return FALSE;
     }
-
     
     
     /**
-     * 
      * Връща URL-то за рефрешване
-     * 
+     *
      * @param core_Mvc $mvc
      * @param array $res
      * @param array $url
-     * 
+     *
      * @return array
      */
     function on_AfterGetRefreshRowsUrl($mvc, &$res, $url)
@@ -168,16 +166,16 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         $url['Ctr'] = $mvc;
         $url['Act'] = 'render';
         unset($url['id']);
-
+        
         $res = $url;
     }
     
     
     /**
      * Връща съдържанието на шаблона
-     * 
+     *
      * @param core_ET $tpl
-     * 
+     *
      * @return string
      */
     static function getContent($tpl)
@@ -200,7 +198,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
     
     /**
      * Връща хеша от URL-то и времето на извикване на страницата
-     * 
+     *
      * @param array $refreshUrl
      * @param integer $hitTime
      */
@@ -218,7 +216,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
     
     /**
      * Функция по подразбиране, за връщане на хеша на резултата
-     * 
+     *
      * @param core_Mvc $mvc
      * @param string $res
      * @param string $status
@@ -231,7 +229,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
     
     /**
      * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
-     * 
+     *
      * @param core_Mvc $mvc
      * @param string $res
      */

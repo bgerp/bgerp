@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Директория, в която ще се държат екстрактнатите файлове
  */
@@ -26,25 +27,22 @@ defIfNot('ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT', 104857600);
  * @category  vendors
  * @package   archive
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class archive_Adapter
 {
     
-    
     /**
      * Инстанция на класа
      */
     protected $inst;
     
-    
     /**
      * Пътя до временния файл на архива
      */
     protected $path;
-    
     
     /**
      * Временната директория с временните файлове, екстрактнати от архива
@@ -54,7 +52,7 @@ class archive_Adapter
     
     /**
      * При създаване на инстанция на класа, инициализираме някои променливи
-     * 
+     *
      * @param fileHandler $fh - Манипулатор на файл
      */
     function init($fh)
@@ -64,7 +62,7 @@ class archive_Adapter
         
         // Пътя до файла
         $this->path = fileman::extract($fh);
-
+        
         // Инстанция на архива
         $this->inst = new Archive_7z($this->path);
     }
@@ -72,7 +70,7 @@ class archive_Adapter
     
     /**
      * Връща в дървовидна структура съдържанието на архива, които сочат в съответното URL
-     * 
+     *
      * @param array $url - Масив с URL
      */
     function tree($url)
@@ -88,7 +86,7 @@ class archive_Adapter
         
         // Инстанция на класа
         $tableInst = cls::get('core_Tree');
-
+        
         // Обхождаме масива
         foreach ((array)$entriesArr as $key => $entry) {
             
@@ -131,9 +129,9 @@ class archive_Adapter
     
     /**
      * Връща масив от обекти със информацията за съдържанието на файла
-     * 
+     *
      * @param ingeger $entry - Индекса на файла от архива
-     * 
+     *
      * @return mixed - Ако е подаден индекс, връща обект с информация за съответния файл/папка
      * Ако не е подаден индек, масив с всички файлове/папки, като обекти
      */
@@ -163,7 +161,7 @@ class archive_Adapter
     
     /**
      * Качва в кофа файла в съответния индекс и връща манипулатора на качения файл
-     * 
+     *
      * @param integer $index - Индекса на файла в архива
      */
     public function getFile($index)
@@ -183,7 +181,7 @@ class archive_Adapter
             // Ако възникне грешка
             expect(FALSE, 'Възникна грешка при свалянето на файла');
         }
-                
+        
         // Ако няма размер
         expect($size, 'Не е файл');
         
@@ -205,13 +203,13 @@ class archive_Adapter
         
         return $fh;
     }
-
-
-	/**
+    
+    
+    /**
      * Изтрива временния файл
      */
     public function deleteTempPath()
-    {   
+    {
         // Изтрива временния файл
         fileman::deleteTempPath($this->path);
     }
@@ -220,9 +218,9 @@ class archive_Adapter
     /**
      * Абсорбираме файла от архива.
      * Качваме подадения файл от архива, в кофата 'archive'
-     * 
+     *
      * @param string $path - Вътрешния път в архива
-     * 
+     *
      * @param fileHandler $fh - Манипулатора на файла
      */
     protected function absorbFile($path)
@@ -241,7 +239,7 @@ class archive_Adapter
         if (is_file($path)) {
             
             // Абсорбираме файла
-            $fh = fileman::absorb($path, 'archive');    
+            $fh = fileman::absorb($path, 'archive');
         }
         
         // Изтриваме временнада директория със съдържанието му
@@ -253,7 +251,7 @@ class archive_Adapter
     
     /**
      * Екстрактваме файла от архива и връщаме пътя във файловата система
-     * 
+     *
      * @param string $path - Вътрешния път в архива
      */
     function extractEntry($path)
@@ -265,11 +263,11 @@ class archive_Adapter
         $this->inst->extractEntry($path);
         
         // Връщаме пълния път до файла
-        return $this->dir . '/' . $path;        
+        return $this->dir . '/' . $path;
     }
     
     
-	/**
+    /**
      * Задаваме временна директроя, където ще се разархивират файловете
      */
     protected function setOutputDirectory()

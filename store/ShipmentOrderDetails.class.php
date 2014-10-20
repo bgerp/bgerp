@@ -154,8 +154,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     {
         // Преброява броя на колетите, само ако се показва тази информация
         if(isset($data->listFields['info'])){
-        	$orderRec->colletsCount = $mvc->countCollets($recs);
-        	$data->masterData->row->colletsCount = cls::get('type_Int')->toVerbal($orderRec->colletsCount);
+        	$data->masterData->row->colletsCount = cls::get('type_Int')->toVerbal($mvc->countCollets($data->recs));
         }
     }
     
@@ -167,6 +166,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     private function countCollets($recs)
     {
     	$count = 0;
+    	
+    	if(!count($recs)) return 0;
+    	
     	foreach ($recs as $rec){
     		
     		// За всяка информация за колети

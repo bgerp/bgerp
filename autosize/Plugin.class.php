@@ -9,10 +9,9 @@
  * @category  vendors
  * @package   ckeditor
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class autosize_Plugin extends core_Plugin {
     
@@ -22,7 +21,7 @@ class autosize_Plugin extends core_Plugin {
      */
     function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr = array())
     {
-       
+        
         ht::setUniqId($attr);
         $attr['class'] .= ' autosize';
     }
@@ -33,8 +32,8 @@ class autosize_Plugin extends core_Plugin {
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
-    	$conf = core_Packs::getConfig('autosize');
-    	        
+        $conf = core_Packs::getConfig('autosize');
+        
         $tpl->push("autosize/" . $conf->AUTOSIZE_VERSION . "/jquery.autosize.min.js", "JS");
         
         jquery_Jquery::run($tpl, "$('.autosize').autosize({maxHeight:$(window).height() - 150});");

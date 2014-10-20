@@ -151,11 +151,18 @@
                     var address = $(that).val();
 					
 					if(address == ""){
-						address =  $("select[name=countryId] option:selected").text() + ', ' + $("input[name=place]").val();
+						if($("select[name=countryId] option:selected").text()){
+							address =  $("select[name=countryId] option:selected").text();
+						} else {
+							address =  $("input[name=countryId]").val();
+						}
+						address +=  ', ' + $("input[name=place]").val();
+						if($("input[name=address]").val()) {
+							address += " , " + $("input[name=address]").val();
+						}
 					}
-
+					
                     if(address == ""){
-
                         alert("Моля въведете адрес или Lng/Lat позиция.");
                     }else{
                         if(isLngLat(address)){

@@ -25,29 +25,30 @@ class acc_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-       	$this->TAB('acc_Balances', 'Оборотни ведомости', 'ceo,acc');
+        $this->TAB('acc_Balances', 'Оборотни ведомости', 'ceo,acc');
         
-       	$act = Request::get('Act');
-       	$ctr = Request::get('Ctr');
-       	$histUrl = array();
-       	
-       	// Ако екшъна е хронологичната справка, активираме таба
+        $act = Request::get('Act');
+        $ctr = Request::get('Ctr');
+        $histUrl = array();
+        
+        // Ако екшъна е хронологичната справка, активираме таба
         if(strtolower($act) == 'history' && $ctr == 'acc_HistoryReport'){
-	    	$histUrl = getCurrentUrl();
+            $histUrl = getCurrentUrl();
         }
         
-    	if(!count($histUrl)) {
-    		
-    		// Ако няма хрон. справка извличаме я от сесията
-    		if(empty($histUrl)){
-    			$histUrl = Mode::get('lastBalanceHistory');
-    		}
-    		if(empty($histUrl)){
-            	$histUrl = array();
+        if(!count($histUrl)) {
+            
+            // Ако няма хрон. справка извличаме я от сесията
+            if(empty($histUrl)){
+                $histUrl = Mode::get('lastBalanceHistory');
+            }
+            
+            if(empty($histUrl)){
+                $histUrl = array();
             }
         } else {
-        	
-        	// Ако има, записваме я в сесията
+            
+            // Ако има, записваме я в сесията
             Mode::setPermanent('lastBalanceHistory', $histUrl);
         }
         
@@ -56,6 +57,6 @@ class acc_Wrapper extends plg_ProtoWrapper
         $this->TAB('acc_Journal', 'Журнал', 'ceo,acc');
         
         $this->title = 'Книги « Счетоводство';
-        Mode::set('menuPage','Счетоводство:Книги');
+        Mode::set('menuPage', 'Счетоводство:Книги');
     }
 }

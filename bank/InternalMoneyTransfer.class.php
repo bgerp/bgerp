@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,7 +20,7 @@ class bank_InternalMoneyTransfer extends core_Master
      * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
-   
+    
     
     /**
      * Заглавие на мениджъра
@@ -38,7 +38,7 @@ class bank_InternalMoneyTransfer extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, plg_Printing, acc_plg_Contable,
-     	plg_Sorting, doc_DocumentPlg, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
+         plg_Sorting, doc_DocumentPlg, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
     
     
     /**
@@ -90,15 +90,15 @@ class bank_InternalMoneyTransfer extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'bank,ceo';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'bank,ceo';
+     * Кой може да го разглежда?
+     */
+    var $canList = 'bank,ceo';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'bank,ceo';
     
     
     /**
@@ -130,53 +130,52 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     var $searchFields = 'valior, reason, creditBank, debitBank, id';
     
-    
     /**
      * Позволени операции
      */
     public $allowedOperations = array('bank2case' => array('debit' => '501', 'credit' => '503'),
-    								  'bank2bank' => array('debit' => '503', 'credit' => '503'));
+        'bank2bank' => array('debit' => '503', 'credit' => '503'));
     
     
-	/**
+    /**
      * Описание на модела
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'enum(bank2bank=Вътрешен банков трансфер,bank2case=Захранване на каса)', 'caption=Операция,mandatory,silent');
-    	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
-    	$this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,input=none');
-    	$this->FLD('creditBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=От->Банк. сметка');
-    	$this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,input=none');
-        $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,input=none');
-    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,input=none');
-        $this->FLD('state', 
-            'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
+        $this->FLD('operationSysId', 'enum(bank2bank=Вътрешен банков трансфер,bank2case=Захранване на каса)', 'caption=Операция,mandatory,silent');
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
+        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+        $this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
+        $this->FLD('creditAccId', 'acc_type_Account()', 'caption=Кредит,input=none');
+        $this->FLD('creditBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'caption=От->Банк. сметка');
+        $this->FLD('debitAccId', 'acc_type_Account()', 'caption=Дебит,input=none');
+        $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)', 'caption=Към->Каса,input=none');
+        $this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'caption=Към->Банк. сметка,input=none');
+        $this->FLD('state',
+            'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)',
             'caption=Статус, input=none'
         );
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
-	
     
-	/**
-	 *  Подготовка на филтър формата
-	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
-	{
-		// Добавяме към формата за търсене търсене по Каса
-		bank_OwnAccounts::prepareBankFilter($data, array('creditBank', 'debitBank'));
-	}
-	
-	
+    
     /**
-     *  Добавяме помощник за избиране на сч. операция
+     * Подготовка на филтър формата
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Добавяме към формата за търсене търсене по Каса
+        bank_OwnAccounts::prepareBankFilter($data, array('creditBank', 'debitBank'));
+    }
+    
+    
+    /**
+     * Добавяме помощник за избиране на сч. операция
      */
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
-    	if ($action != 'add') {
+        if ($action != 'add') {
             
             return;
         }
@@ -185,11 +184,11 @@ class bank_InternalMoneyTransfer extends core_Master
             
             return;
         }
-
-     	if($folderId = Request::get('folderId')){
-	        if($folderId != bank_OwnAccounts::fetchField(bank_OwnAccounts::getCurrent(), 'folderId')){
-	        	return Redirect(array('bank_OwnAccounts', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна сметка");
-	        }
+        
+        if($folderId = Request::get('folderId')){
+            if($folderId != bank_OwnAccounts::fetchField(bank_OwnAccounts::getCurrent(), 'folderId')){
+                return Redirect(array('bank_OwnAccounts', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна сметка");
+            }
         }
         
         // Има ли вече зададено основание? 
@@ -213,17 +212,17 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     static function prepareReasonForm()
     {
-    	$form = cls::get('core_Form');
-    	$form->method = 'GET';
-    	$form->FNC('operationSysId', 'enum(bank2bank=Вътрешен банков трансфер,bank2case=Захранване на каса)', 'input,caption=Операция');
-    	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
-    	$form->title = 'Нов вътрешен банков трансфер';
+        $form = cls::get('core_Form');
+        $form->method = 'GET';
+        $form->FNC('operationSysId', 'enum(bank2bank=Вътрешен банков трансфер,bank2case=Захранване на каса)', 'input,caption=Операция');
+        $form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
+        $form->title = 'Нов вътрешен банков трансфер';
         $form->toolbar->addSbBtn('Напред', '', array('class'=>'fright'), 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', toUrl(array('bank_InternalMoneyTransfer', 'list')), 'ef_icon = img/16/close16.png');
         
         $folderId = bank_OwnAccounts::forceCoverAndFolder(bank_OwnAccounts::getCurrent());
-       	$form->setDefault('folderId', $folderId);
-       	
+        $form->setDefault('folderId', $folderId);
+        
         return $form;
     }
     
@@ -232,140 +231,150 @@ class bank_InternalMoneyTransfer extends core_Master
      * Подготовка на формата за добавяне
      */
     static function on_AfterPrepareEditForm($mvc, $res, $data)
-    { 
-    	$form = &$data->form;
-    	
-    	// Очакваме и намираме коя е извършената операция
-    	if(!$form->rec->id) {
-    		expect($operationSysId = Request::get('operationSysId'));
-    	} else {
-    		$operationSysId = $form->rec->operationSysId;
-    	}
+    {
+        $form = &$data->form;
+        
+        // Очакваме и намираме коя е извършената операция
+        if(!$form->rec->id) {
+            expect($operationSysId = Request::get('operationSysId'));
+        } else {
+            $operationSysId = $form->rec->operationSysId;
+        }
         
         switch($operationSysId) {
-        	case "bank2bank":
-        		$form->setField("debitBank", "input");
-        		$form->setOptions('debitBank', bank_OwnAccounts::getOwnAccounts());
-        		break;
-        	case "bank2case":
-        		$form->setField("debitCase", "input");
-        		break;
+            case "bank2bank" :
+                $form->setField("debitBank", "input");
+                $form->setOptions('debitBank', bank_OwnAccounts::getOwnAccounts());
+                break;
+            case "bank2case" :
+                $form->setField("debitCase", "input");
+                break;
         }
-       
+        
         $form->setReadOnly('operationSysId');
         $today = dt::verbal2mysql();
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-      	$form->setReadOnly('creditBank', bank_OwnAccounts::getCurrent());
+        $form->setReadOnly('creditBank', bank_OwnAccounts::getCurrent());
     }
     
-     
+    
     /**
      * Проверка след изпращането на формата
      */
     function on_AfterInputEditForm($mvc, $form)
-    { 
-    	if ($form->isSubmitted()){
-    		
-    		$rec = &$form->rec;
-    		
-    		$rec->debitAccId = $mvc->allowedOperations[$rec->operationSysId]['debit'];
-    		$rec->creditAccId = $mvc->allowedOperations[$rec->operationSysId]['credit'];
-    		
-    		// Проверяваме дали валутите на дебитната сметка съвпадат
-    		// с тези на кредитната
-    		$mvc->validateForm($form);
-    	}
+    {
+        if ($form->isSubmitted()){
+            
+            $rec = &$form->rec;
+            
+            $rec->debitAccId = $mvc->allowedOperations[$rec->operationSysId]['debit'];
+            $rec->creditAccId = $mvc->allowedOperations[$rec->operationSysId]['credit'];
+            
+            // Проверяваме дали валутите на дебитната сметка съвпадат
+            // с тези на кредитната
+            $mvc->validateForm($form);
+        }
     }
     
     
     /**
      * При Банка -> Каса
-     *    Валутата на касата към която прехвърляме приема стойноста на
-     *    валутата на сметката от която местим
-     * При Банка -> Банка 
-     *    Проверява дали банковата сметка към която прехвърляме да е 
-     *    същата като тази на банката от която местим, ако не - сетва 
-     *    грешка
-     * 
-     * @param core_Form $form 
+     * Валутата на касата към която прехвърляме приема стойноста на
+     * валутата на сметката от която местим
+     * При Банка -> Банка
+     * Проверява дали банковата сметка към която прехвърляме да е
+     * същата като тази на банката от която местим, ако не - сетва
+     * грешка
+     *
+     * @param core_Form $form
      */
     function validateForm($form)
     {
-    	$rec = &$form->rec;
-    	$creditInfo = bank_OwnAccounts::getOwnAccountInfo($rec->creditBank);
-    		
-    	if($rec->operationSysId == 'bank2bank') {
-    		$sharedUsers = bank_OwnAccounts::fetchField($rec->debitBank, 'operators');
-    		$rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
-    		
-	    	// Двете банкови сметки трябва да са различни
-	    	if($rec->creditBank == $rec->debitBank) {
-	    			$form->setError("debitBank", 'Дестинацията е една и съща !!!');
-	    			return;
-	    	} 
-	    			
-	    	$debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
-	    	if($creditInfo->currencyId != $debitInfo->currencyId) {
-	    		$form->setError("debitBank, creditBank", 'Банковите сметки не са в една валута !!!');
-	    		return;
-	    	} 
-	    	
-	    	if($creditInfo->currencyId != $rec->currencyId) {
-	    			$form->setError("debitBank, creditBank", 'Банковите сметки не са в посочената валута !!!');
-	    			return;
-	    	}
-    	} elseif($rec->operationSysId == 'bank2case') {
-    		$toCashiers = cash_Cases::fetchField($rec->debitCase, 'cashiers');
-    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
-    		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
-    		
-    		if($creditInfo->currencyId != $rec->currencyId) {
-    		  	$form->setError("debitEnt1,creditEnt1", 'Банковата сметка не е в посочената валута !!!');
-    		  	return;
-    		}
-    	} 
+        $rec = &$form->rec;
+        $creditInfo = bank_OwnAccounts::getOwnAccountInfo($rec->creditBank);
+        
+        if($rec->operationSysId == 'bank2bank') {
+        	$bankRec = bank_OwnAccounts::fetch($rec->debitBank);
+        	if($bankRec->autoShare == 'yes'){
+        		$rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
+        	}
+            
+            // Двете банкови сметки трябва да са различни
+            if($rec->creditBank == $rec->debitBank) {
+                $form->setError("debitBank", 'Дестинацията е една и съща !!!');
+                
+                return;
+            }
+            
+            $debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
+            
+            if($creditInfo->currencyId != $debitInfo->currencyId) {
+                $form->setError("debitBank, creditBank", 'Банковите сметки не са в една валута !!!');
+                
+                return;
+            }
+            
+            if($creditInfo->currencyId != $rec->currencyId) {
+                $form->setError("debitBank, creditBank", 'Банковите сметки не са в посочената валута !!!');
+                
+                return;
+            }
+        } elseif($rec->operationSysId == 'bank2case') {
+        	$caseRec = cash_Cases::fetch($rec->debitCase);
+        	if($caseRec->autoShare == 'yes'){
+        		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
+        		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+        	}
+            
+            if($creditInfo->currencyId != $rec->currencyId) {
+                $form->setError("debitEnt1,creditEnt1", 'Банковата сметка не е в посочената валута !!!');
+                
+                return;
+            }
+        }
     }
     
     
     /**
-     *  Обработки по вербалното представяне на данните
+     * Обработки по вербалното представяне на данните
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->number = static::getHandle($rec->id);
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}
-    	
-    	if($fields['-single']) {
-    		$row->currency = currency_Currencies::getCodeById($rec->currencyId);
-    		
-    		// Изчисляваме равностойността на сумата в основната валута
-    		
-	    	if($rec->rate != '1') {
-	    		$double = cls::get('type_Double');
-	    		$double->params['decimals'] = 2;
-	    		$equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
-    			$row->equals = $mvc->getFieldType('amount')->toVerbal($equals);
-	    		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
-    		}
-    		
-    		// Показваме заглавието само ако не сме в режим принтиране
-		    if(!Mode::is('printing')){
-		    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-		    }
-		    
-		    $row->creditBank = bank_OwnAccounts::getHyperLink($rec->creditBank, TRUE);
-		    
-		    if($rec->debitCase){
-		    	$row->debitCase = cash_Cases::getHyperLink($rec->debitCase, TRUE);
-		    }
-		    
-		    if($rec->debitBank){
-		    	$row->debitBank = bank_OwnAccounts::getHyperLink($rec->debitBank, TRUE);
-		    }
-    	}
+        $row->number = static::getHandle($rec->id);
+        
+        if($fields['-list']){
+            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+        }
+        
+        if($fields['-single']) {
+            $row->currency = currency_Currencies::getCodeById($rec->currencyId);
+            
+            // Изчисляваме равностойността на сумата в основната валута
+            
+            if($rec->rate != '1') {
+                $double = cls::get('type_Double');
+                $double->params['decimals'] = 2;
+                $equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
+                $row->equals = $mvc->getFieldType('amount')->toVerbal($equals);
+                $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
+            }
+            
+            // Показваме заглавието само ако не сме в режим принтиране
+            if(!Mode::is('printing')){
+                $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+            }
+            
+            $row->creditBank = bank_OwnAccounts::getHyperLink($rec->creditBank, TRUE);
+            
+            if($rec->debitCase){
+                $row->debitCase = cash_Cases::getHyperLink($rec->debitCase, TRUE);
+            }
+            
+            if($rec->debitBank){
+                $row->debitBank = bank_OwnAccounts::getHyperLink($rec->debitBank, TRUE);
+            }
+        }
     }
     
     
@@ -373,41 +382,42 @@ class bank_InternalMoneyTransfer extends core_Master
      * Поставя бутони за генериране на други банкови документи възоснова
      * на този, само ако документа е "чернова".
      */
-	static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($data->rec->state == 'draft') {
-	    	$rec = $data->rec;
-	    	if(bank_CashWithdrawOrders::haveRightFor('add')){
-	    		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
-	    	}
-	    }
+        if($data->rec->state == 'draft') {
+            $rec = $data->rec;
+            
+            if(bank_CashWithdrawOrders::haveRightFor('add')){
+                $data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
+            }
+        }
     }
     
     
-	/**
-   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-   	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 *  
-   	 *  Ако избраната валута е в основна валута
-   	 *  	
-   	 *  	Dt: 501. Каси 					(Каса, Валута)
-   	 *  		503. Разплащателни сметки	(Банкова сметка, Валута)
-   	 *  	
-   	 *  	Ct: 503. Разплащателни сметки	(Банкова сметка, Валута)
-   	 *  
-   	 *  Ако е в друга валута различна от основната
-   	 *  
-   	 *  	Dt: 501. Каси 					         (Каса, Валута)
-   	 *  		503. Разплащателни сметки	         (Банкова сметка, Валута)
-   	 *  	
-   	 *  	Ct: 481. Разчети по курсови разлики		 (Валута)
-   	 *  
-   	 *  	Dt: 481. Разчети по курсови разлики	     (Валута)
-   	 *  	Ct: 503. Разплащателни сметки	(Банкова сметка, Валута)
-   	 */
+    /**
+     * Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
+     * Създава транзакция която се записва в Журнала, при контирането
+     *
+     * Ако избраната валута е в основна валута
+     *
+     * Dt: 501. Каси                     (Каса, Валута)
+     * 503. Разплащателни сметки    (Банкова сметка, Валута)
+     *
+     * Ct: 503. Разплащателни сметки    (Банкова сметка, Валута)
+     *
+     * Ако е в друга валута различна от основната
+     *
+     * Dt: 501. Каси                              (Каса, Валута)
+     * 503. Разплащателни сметки             (Банкова сметка, Валута)
+     *
+     * Ct: 481. Разчети по курсови разлики         (Валута)
+     *
+     * Dt: 481. Разчети по курсови разлики         (Валута)
+     * Ct: 503. Разплащателни сметки    (Банкова сметка, Валута)
+     */
     public static function getTransaction($id)
     {
-    	// Извличаме записа
+        // Извличаме записа
         expect($rec = self::fetchRec($id));
         
         ($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
@@ -415,25 +425,25 @@ class bank_InternalMoneyTransfer extends core_Master
         $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
         
         $fromBank = array($rec->creditAccId,
-        				array('bank_OwnAccounts', $rec->creditBank),
-        				array('currency_Currencies', $rec->currencyId),
-                	'quantity' => $rec->amount);
+            array('bank_OwnAccounts', $rec->creditBank),
+            array('currency_Currencies', $rec->currencyId),
+            'quantity' => $rec->amount);
         
         $toArr = array($rec->debitAccId,
-            			$debitArr,
-            			array('currency_Currencies', $rec->currencyId),
-                	'quantity' => $rec->amount);
+            $debitArr,
+            array('currency_Currencies', $rec->currencyId),
+            'quantity' => $rec->amount);
         
         if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
-        	$entry = array('amount' => $amount, 'debit' => $toArr, 'credit' => $fromBank);
-        	$entry = array($entry);
+            $entry = array('amount' => $amount, 'debit' => $toArr, 'credit' => $fromBank);
+            $entry = array($entry);
         } else {
-        	$entry = array();
-        	$entry[] = array('amount' => $amount, 'debit' => $toArr, 'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount));
-        	$entry[] = array('amount' => $amount, 'debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount), 'credit' => $fromBank);
+            $entry = array();
+            $entry[] = array('amount' => $amount, 'debit' => $toArr, 'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount));
+            $entry[] = array('amount' => $amount, 'debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount), 'credit' => $fromBank);
         }
         
-      	// Подготвяме информацията която ще записваме в Журнала
+        // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason' => $rec->reason,   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
@@ -444,7 +454,7 @@ class bank_InternalMoneyTransfer extends core_Master
     }
     
     
-	/**
+    /**
      * @param int $id
      * @return stdClass
      * @see acc_TransactionSourceIntf::getTransaction
@@ -453,12 +463,12 @@ class bank_InternalMoneyTransfer extends core_Master
     {
         $rec = self::fetchRec($id);
         $rec->state = 'closed';
-                
+        
         return self::save($rec);
     }
     
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -468,38 +478,49 @@ class bank_InternalMoneyTransfer extends core_Master
     {
         // Може да създаваме документ-а само в дефолт папката му
         if ($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
-        	
-        	return TRUE;
-        } 
-        	
-       return FALSE;
+            
+            return TRUE;
+        }
+        
+        return FALSE;
     }
     
     
-	/**
+    /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     function getDocumentRow($id)
     {
-    	$rec = $this->fetch($id);
+        $rec = $this->fetch($id);
         $row = new stdClass();
         $row->title = $this->singleTitle . " №{$id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-		$row->recTitle = $rec->reason;
-		
+        $row->recTitle = $rec->reason;
+        
         return $row;
     }
     
     
-	/**
+    /**
      * Връща счетоводното основание за документа
      */
     public function getContoReason($id)
     {
-    	$rec = $this->fetchRec($id);
-    	
-    	return $this->getVerbal($rec, 'reason');
+        $rec = $this->fetchRec($id);
+        
+        return $this->getVerbal($rec, 'reason');
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $self = cls::get(__CLASS__);
+        
+        return $self->singleTitle . " №$rec->id";
     }
 }

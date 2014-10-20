@@ -123,8 +123,6 @@ class techno_Specifications extends core_Manager {
             'enum(active=Активирано, rejected=Отказано)', 
             'caption=Статус, input=none'
         );
-    	
-    	$this->setDbUnique('title');
     }
     
     
@@ -394,11 +392,14 @@ class techno_Specifications extends core_Manager {
 	*/
     function getItemRec($objectId)
     {
-        $info = $this->getProductInfo($objectId);
+        $self = cls::get(__CLASS__);
+        
+    	$info = $this->getProductInfo($objectId);
         $itemRec = (object)array(
             'num' => 'Sp' . $objectId,
             'title' => $info->productRec->title,
             'uomId' => $info->productRec->measureId,
+        	'features' => array("{$self->title}" => $self->title,)
         );
         
         return $itemRec;

@@ -1,13 +1,14 @@
 <?php 
 
+
 /**
  * НКИД-Национална класификация на икономическите дейности
  *
  *
  * @category  bgerp
- * @package   hr
+ * @package   bglocal
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -25,7 +26,7 @@ class bglocal_NKID extends core_Master
      * Заглавие в единствено число
      */
     var $singleTitle = "НКИД";
-  
+    
     
     /**
      * Плъгини за зареждане
@@ -53,7 +54,7 @@ class bglocal_NKID extends core_Master
     {
         $this->FLD('key', 'varchar', 'caption=Код, mandatory');
         $this->FLD('title', 'text', "caption=Наименование");
-               
+        
         $this->setDbUnique('key');
     }
     
@@ -63,9 +64,9 @@ class bglocal_NKID extends core_Master
      */
     static function on_BeforeSave($mvc, $res, $rec)
     {
-    	if(isset($rec->csv_title)){
-    		$rec->title = $rec->key. " ". $rec->csv_title;
-    	}
+        if(isset($rec->csv_title)){
+            $rec->title = $rec->key . " " . $rec->csv_title;
+        }
     }
     
     
@@ -74,9 +75,9 @@ class bglocal_NKID extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
- 		$file = "bglocal/data/nkid.csv";
-    	$fields = array(0 => "key", 1 => "csv_title");
-    	$cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
-    	$res .= $cntObj->html;
+        $file = "bglocal/data/nkid.csv";
+        $fields = array(0 => "key", 1 => "csv_title");
+        $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
+        $res .= $cntObj->html;
     }
 }

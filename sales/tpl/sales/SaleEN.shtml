@@ -6,40 +6,50 @@
                 <table class="innerTable border-table paddingCells">
                     <tbody>
                         <tr>
-                            <td class='custom-header-bg' style='width:33%;'><b>Receiver</b></td>
-                            <td class="cell centered" rowspan = '2' style='width:34%;'>
+                            <td class='custom-header-bg' style='width:38%;'><b>Receiver</b></td>
+                            <td class="cell centered" rowspan = '2'>
                                 <div class="document-title">SALES CONTRACT</div>
                                 <div style="padding-top:5px;">
                                     № <span class="bigData">[#id#]</span> / 
                                     <span class="bigData">[#valior#]</span>
                                 </div>
                                 <!--ET_BEGIN state-->
-                                <br>
-                                <div class="[#STATE_CLASS#]">[#state#]</div>
-                                <br>
+                                <div class="[#STATE_CLASS#]" style='margin:10px 0'>[#state#]</div>
                                 <!--ET_END state-->
                             </td>
-                            <td class='custom-header-bg' style='width:33%;'><b>Supplier</b></td>
+                            <td class='custom-header-bg' style='width:38%;'><b>Supplier</b></td>
                         </tr>
                         <tr>
                             <td>
                                 <!--ET_BEGIN contragentName-->
-                                <b>[#contragentName#]</b>
-                                <!--ET_BEGIN contragentAddress-->
-                                <div class='address-block'>
-                                    [#contragentAddress#]
-                                </div>
-                                <!--ET_END contragentAddress-->
+                                    <b>[#contragentName#]</b>
+                                    <!--ET_BEGIN contragentAddress-->
+                                    <div class='address-block'>
+                                        [#contragentAddress#]
+                                    </div>
+                                    <!--ET_END contragentAddress-->
+                                    <!--ET_BEGIN deliveryLocationId-->
+                                        <div style='font-size: 0.9em;'>
+                                            <div class='custom-bg-block'>Location: <b>[#deliveryLocationId#]</b></div>
+                                            [#deliveryLocationAddress#]
+                                        </div>
+                                    <!--ET_END deliveryLocationId-->
                                 <!--ET_END contragentName-->
                             </td>
                             <td>
                                 <!--ET_BEGIN MyCompany-->
-                                <b>[#MyCompany#]</b>
-                                <!--ET_BEGIN MyAddress-->
-                                <div class='address-block'>
-                                    [#MyAddress#]
-                                </div>
-                                <!--ET_END MyAddress-->
+                                    <b>[#MyCompany#]</b>
+                                    <!--ET_BEGIN MyAddress-->
+                                    <div class='address-block'>
+                                        [#MyAddress#]
+                                    </div>
+                                    <!--ET_END MyAddress-->
+                                    <!--ET_BEGIN ourLocation-->
+                                        <div style='font-size: 0.9em;'>
+                                            <div class='custom-bg-block'>Location: <b>[#ourLocation#]</b></div>
+                                            [#ourLocationAddress#]
+                                        </div>
+                                    <!--ET_END ourLocation-->
                                 <!--ET_END MyCompany-->
                             </td>
                         </tr>
@@ -110,9 +120,6 @@
                                     <!--ET_BEGIN deliveryTermId-->
                                     <li>
                                         Delivery: <b>[#deliveryTermId#]</b>
-                                        <!--ET_BEGIN deliveryLocationId-->
-                                        [#deliveryLocationId#]
-                                        <!--ET_END deliveryLocationId-->
                                     </li>
                                     <!--ET_END deliveryTermId-->
                                     <!--ET_BEGIN pricesAtDate-->
@@ -234,3 +241,4 @@
         </tr>
     </tbody>
 </table>
+</div>

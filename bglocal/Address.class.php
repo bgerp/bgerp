@@ -3,16 +3,17 @@
 
 
 /**
- * Клас 'drdata_Address' функции за работа с адреси
+ * Клас 'drdata_Address'
+ *
+ * функции за работа с адреси
  *
  *
- * @category  vendors
- * @package   drdata
+ * @category  bgerp
+ * @package   bglocal
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @link
  */
 class bglocal_Address extends core_MVC
 {
@@ -224,7 +225,7 @@ class bglocal_Address extends core_MVC
     
     
     /**
-     * @todo Чака за документация...
+     * Тестов екшън
      */
     function act_Test()
     {
@@ -247,7 +248,7 @@ class bglocal_Address extends core_MVC
     
     
     /**
-     * @todo Чака за документация...
+     * Тестов екшън
      */
     function act_Test2()
     {
@@ -295,7 +296,7 @@ class bglocal_Address extends core_MVC
     
     
     /**
-     * @todo Чака за документация...
+     * Извличаме контакти
      */
     function extractContact($text)
     {
@@ -303,19 +304,19 @@ class bglocal_Address extends core_MVC
         static $regards, $companyTypes, $companyWords, $givenNames;
         
         if(empty($regards)) {
-        	$regards = getFileContent('bglocal/data/regards.txt');
+            $regards = getFileContent('bglocal/data/regards.txt');
         }
         
         if(empty($companyTypes)) {
-        	$companyTypes = getFileContent('bglocal/data/companyTypes.txt');
+            $companyTypes = getFileContent('bglocal/data/companyTypes.txt');
         }
         
         if(empty($companyWords)) {
-        	$companyWords = getFileContent('bglocal/data/companyWords.txt');
+            $companyWords = getFileContent('bglocal/data/companyWords.txt');
         }
         
         if(empty($givenNames)) {
-        	$givenNames = getFileContent('bglocal/data/givenNames.txt');
+            $givenNames = getFileContent('bglocal/data/givenNames.txt');
         }
         
         $div = array('@NO_DIV@', '|');
@@ -414,15 +415,15 @@ class bglocal_Address extends core_MVC
         static $regards, $companyTypes, $companyWords, $givenNames;
         
         if(empty($companyTypes)) {
-        	$companyTypes = getFileContent('bglocal/data/companyTypes.txt');
+            $companyTypes = getFileContent('bglocal/data/companyTypes.txt');
         }
         
         if(empty($companyWords)) {
-        	$companyWords = getFileContent('bglocal/data/companyWords.txt');
+            $companyWords = getFileContent('bglocal/data/companyWords.txt');
         }
         
         if(empty($givenNames)) {
-        	$givenNames = getFileContent('bglocal/data/givenNames.txt');
+            $givenNames = getFileContent('bglocal/data/givenNames.txt');
         }
         
         if(strpos(trim($line), '>') === 0) return;
@@ -514,7 +515,7 @@ class bglocal_Address extends core_MVC
         
         // Позиция
         if(preg_match("/(strategy|projects|purchaser|accountancy|design|sales|services|" .
-                "purchasing|department|broker|secretary|agent|агент|assistant|key account|sales|" . 
+                "purchasing|department|broker|secretary|agent|агент|assistant|key account|sales|" .
                 "marketing|направление|operation|assistenz|търговски|експорт|импорт|логистика|dep\." .
                 "|depart\.|manager|buyer|Direktorius|officer|support|обслужване|managing|executive|изпълнителен|" .
                 "директор|отдел|department|изпълнителен|управител|специалист|мениджър|отдел|Корпоративни Клиенти)/ui", $line)) {
@@ -622,7 +623,7 @@ class bglocal_Address extends core_MVC
     
     
     /**
-     * @todo Чака за документация...
+     * Извличаме данни
      */
     function extractContactData1($text, $email = NULL, $country = NULL) {
     }

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Dimiter Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Маркиране на прочетено известяване
@@ -23,7 +23,7 @@ class bgerp_plg_NotificationsSeen extends core_Plugin
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
-    	$Request = core_Cls::get('core_Request');
+        $Request = core_Cls::get('core_Request');
         $id = $Request->get('id', 'int');
         $user = core_Users::getCurrent();
         

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'acc_strategy_FIFO' -
  *
@@ -10,14 +11,15 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class acc_strategy_FIFO extends acc_strategy_Strategy
 {
     
     
     /**
-     * @todo Чака за документация...
+     * Извличане на паричната стойност на зададено количество.
+     * @param double $quantity
+     * @return double
      */
     function consume($quantity)
     {
@@ -36,7 +38,7 @@ class acc_strategy_FIFO extends acc_strategy_Strategy
             $quantity -= $q;
             $amount += $a;
         };
-
+        
         // Изчисляваме остатъка и коригираме с него общата стойност.
         $a = ($a / $q) * $quantity;
         $amount += $a;

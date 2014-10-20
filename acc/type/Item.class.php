@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -40,7 +40,7 @@ class acc_type_Item extends type_Key
         expect($lists = $this->params['lists'], $this);
         
         if (isset($this->options)) {
-        	return;
+            return;
         }
         
         $mvc = cls::get($this->params['mvc']);
@@ -78,18 +78,18 @@ class acc_type_Item extends type_Key
             
             // Показваме само активните, само ако е не е зададено в типа 'showAll'
             if(empty($this->params['showAll'])){
-            	$query->where("#state = 'active'");
+                $query->where("#state = 'active'");
             }
             
             while ($itemRec = $query->fetch()) {
-            	$title = $itemRec->{$select};
-            	
-            	// Ако перото е затворено, указваме го в името му
-            	if($itemRec->state == 'closed'){
-            		$title .= " (" . tr('затворено') . ")";
-            	}
-            	
-            	// Слагаме вербалното име на перата, и за всеки случай премахваме html таговете ако има
+                $title = $itemRec->{$select};
+                
+                // Ако перото е затворено, указваме го в името му
+                if($itemRec->state == 'closed'){
+                    $title .= " (" . tr('затворено') . ")";
+                }
+                
+                // Слагаме вербалното име на перата, и за всеки случай премахваме html таговете ако има
                 $this->options["{$itemRec->id}.{$listRec->id}"] = $title;
             }
             
@@ -112,10 +112,10 @@ class acc_type_Item extends type_Key
         
         foreach ($this->options as $key => $val) {
             if (!is_object($val) && intval($key) == $value) {
-            	
-            	// Workaround
-            	// Ако опциите са повече от допустимите и се използва Ajax, подаваме инт еквивалента на стойността за да
-            	// работи, иначе връща грешни данни, ако не се използва Ajax подаваме дробната стойност
+                
+                // Workaround
+                // Ако опциите са повече от допустимите и се използва Ajax, подаваме инт еквивалента на стойността за да
+                // работи, иначе връща грешни данни, ако не се използва Ajax подаваме дробната стойност
                 $value = (count($this->options) > $maxSuggestions) ? intval($key) : $key;
                 break;
             }

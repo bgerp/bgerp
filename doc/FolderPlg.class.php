@@ -100,15 +100,23 @@ class doc_FolderPlg extends core_Plugin
             
             $openThreads = $fRec->openThreadsCnt ? "|* ({$fRec->openThreadsCnt})" : "";
             
-            $data->toolbar->addBtn('Папка' . $openThreads,
-                array('doc_Threads', 'list',
-                    'folderId' => $data->rec->folderId),
-                array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png'));
+            if(doc_Folders::haveRightFor('single', $data->rec->folderId)){
+            	$data->toolbar->addBtn('Папка' . $openThreads,
+            			array('doc_Threads', 'list',
+            					'folderId' => $data->rec->folderId),
+            			array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png'));
+            } else {
+            	$data->toolbar->addBtn('Папка' . $openThreads,array(),
+            			array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'error' => 'Нямате достъп до папката'));
+            }
+            
         } else {
-            $title = $mvc->getFolderTitle($data->rec->id);
-            $data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
-                    'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
-                    ), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$title}"));
+        	if($mvc->haveRightFor('single', $data->rec) && $mvc->haveRightFor('write', $data->rec)){
+        		$title = $mvc->getFolderTitle($data->rec->id);
+        		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
+        				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
+        		), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$title}"));
+        	}
         }
     }
 
@@ -273,7 +281,11 @@ class doc_FolderPlg extends core_Plugin
     
         $rec->folderId = $mvc->forceCoverAndFolder($rec);
  
-        $res = new Redirect(array('doc_Threads', 'list', 'folderId' => $rec->folderId));
+        if(doc_Folders::haveRightFor('single', $rec->folderId)){
+        	$res = new Redirect(array('doc_Threads', 'list', 'folderId' => $rec->folderId), 'Папката е създадена успешно');
+        } else {
+        	$res = new Redirect(array($mvc, 'single', $rec->id));
+        }
         
         return FALSE;
     }

@@ -60,7 +60,10 @@ class core_Debug
         
         self::init();
         
-        self::$timers[$name] = new stdClass();
+        if(!isset(self::$timers[$name])){
+        	self::$timers[$name] = new stdClass();
+        }
+        
         self::$timers[$name]->start = dt::getMicrotime();
     }
     

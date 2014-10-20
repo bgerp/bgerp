@@ -1060,9 +1060,10 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .narrow .form-filter-btn {
   margin-left: 0; }
 
-.vFormField {
-  border: none;
+.listFilter .vFormField {
   width: 100%; }
+  .listFilter .vFormField select:not(.combo) {
+    max-width: 400px; }
 
 .formTable > tr > td {
   padding: 3px; }
@@ -1093,9 +1094,6 @@ div.hFormField {
   float: left;
   margin-right: 0.3em;
   margin-bottom: 0.3em; }
-
-table.vFormField {
-  width: 100%; }
 
 td.formElement {
   padding: 3px; }

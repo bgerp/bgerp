@@ -3,16 +3,16 @@
 
 
 /**
- * Клас 'drdata_DistrictCourts - Окръжни съдилища'
+ * Клас 'drdata_DistrictCourts' -
  *
+ * Окръжни съдилища
  *
  * @category  vendors
  * @package   drdata
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class bglocal_DistrictCourts extends core_Manager
 {
