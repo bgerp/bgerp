@@ -184,12 +184,12 @@ class store_Stores extends core_Master
         $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('chiefs', 'userList(roles=store|ceo)', 'caption=Отговорници,mandatory');
-        $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Товарачи');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
         $this->FLD('strategy', 'class(interface=store_iface_ArrangeStrategyIntf)', 'caption=Стратегия');
     	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
+    	$this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
     }
     
     
