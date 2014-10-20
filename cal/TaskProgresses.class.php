@@ -54,6 +54,11 @@ class cal_TaskProgresses extends core_Detail
 
     
     var $canAdd = 'powerUser';
+    
+    /**
+     * Активен таб на менюто
+     */
+    var $currentTab = 'Задачи';
    
          
     /**

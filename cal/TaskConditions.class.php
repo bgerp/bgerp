@@ -57,6 +57,11 @@ class cal_TaskConditions extends core_Detail
 
     
     var $canAdd = 'powerUser';
+    
+    /**
+     * Активен таб на менюто
+     */
+    var $currentTab = 'Задачи';
 
     
     
@@ -189,7 +194,7 @@ class cal_TaskConditions extends core_Detail
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
     	//width:12px;height:12px;
-  		$row->condition = '<span style="margin-right:5px;position:relative;top:2px;">' . $row->condition . '</span>';
+  	    $row->condition = '<span style="margin-right:5px;position:relative;top:2px;">' . $row->condition . '</span>';
     	
     	if ($rec->progress == '0') {
     		$row->progress = "";
