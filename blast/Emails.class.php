@@ -261,7 +261,7 @@ class blast_Emails extends core_Master
     {
         // Задаваме стойност
         $rec = new stdClass();
-        $rec->perSrcClassId = $perSrcClassId;
+        $rec->perSrcClassId = core_Classes::getId($perSrcClassId);
         $rec->perSrcObjectId = $perSrcObjectId;
         $rec->body = $text;
         $rec->subject = $subject;
