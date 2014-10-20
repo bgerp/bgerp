@@ -1015,8 +1015,17 @@ class core_Form extends core_FieldSet
      */
     function setError($field, $msg, $ignorable = FALSE)
     {
-        $arr = arr::make($field);
+        // Премахваме дублиращи се съобщения
+        if(is_array($this->errors)) {
+            foreach($this->errors as $errRec) {
+                if($errRec->msg == $msg) {
+                    $msg = FALSE;
+                }
+            }
+        }
         
+        // Добавяме еднократно грешката и маркираме всички полета
+        $arr = arr::make($field);
         foreach($arr as $f) {
             $errRec = new stdClass();
             $errRec->msg = $msg;
