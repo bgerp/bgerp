@@ -244,6 +244,9 @@ class core_Cron extends core_Manager
                 // подходящо форматиран към лога
                 if ($content) {
                     $content = "<p><i>$content</i></p>";
+                    if(Request::get('forced')) {
+                        echo $content;
+                    }
                 }
                 
                 $workingTime = round($this->getMicrotime() - $startingMicroTime, 2);
