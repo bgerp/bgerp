@@ -212,6 +212,7 @@ class core_Setup extends core_ProtoSetup {
         'core_Browser',
         'migrate::clearBrowserInfo',
         'core_Settings',
+        'core_Forwards',
     );
     
     
@@ -265,7 +266,7 @@ class core_Setup extends core_ProtoSetup {
             $html .= "<li class=\"green\">Изтрити са $delCnt файла в " . EF_SBF_PATH . "/</li>";
         }
         
-        // Нагласяване на Крон
+        // Нагласяване на Крон да почиства кеша
         $rec = new stdClass();
         $rec->systemId = 'ClearCache';
         $rec->description = 'Почистване на обектите с изтекъл срок';
@@ -275,7 +276,19 @@ class core_Setup extends core_ProtoSetup {
         $rec->offset = 2 * 60;
         $rec->delay = 0;
         $rec->timeLimit = 200;
-        $res .= core_Cron::addOnce($rec);
+        $html .= core_Cron::addOnce($rec);
+
+        // Нагласяване на Крон да почиства core_Forwards
+        $rec = new stdClass();
+        $rec->systemId = 'ClearForwards';
+        $rec->description = 'Почистване на callback връзките с изтекъл срок';
+        $rec->controller = 'core_Forwards';
+        $rec->action = 'DeleteExpiredLinks';
+        $rec->period = 24 * 60;
+        $rec->offset = 3 * 60;
+        $rec->delay = 0;
+        $rec->timeLimit = 200;
+        $html .= core_Cron::addOnce($rec);
 
 
         $html .= core_Classes::rebuild();
