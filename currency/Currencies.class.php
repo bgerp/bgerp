@@ -226,10 +226,6 @@ class currency_Currencies extends core_Master {
         if (empty($data->form->rec->id) && ($groupId = Request::get('groupId', 'int'))) {
             $data->form->setDefault('groups', '|' . $groupId . '|');
         }
-        
-        if($data->form->rec->state == 'closed'){
-        	$data->form->setField('lists', 'input=none');
-        }
     }
     
     
