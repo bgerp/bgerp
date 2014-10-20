@@ -132,7 +132,7 @@ class email_Salutations extends core_Manager
      * @param stribg $email - Имейл
      * @param core_Users $userId - id на потребител
      * 
-     * @return string - Поздрава
+     * @return NULL|string - Поздрава
      */
     public static function get($folderId, $threadId=NULL, $email=NULL, $userId=NULL)
     {
@@ -164,6 +164,12 @@ class email_Salutations extends core_Manager
             $salutation = self::getSalutationFromQuery($thClone, $email);
             
             if ($salutation) return $salutation;
+        }
+        
+        // Ако е подадена нишка, но не сме открили обръщението в нишката
+        if ($threadId) {
+            // Проверяваме дали може да се използва записа за папката
+            if (!self::isGoodRec($folderId, NULL)) return ;
         }
         
         // Намираме последното обръщение в поздрава
