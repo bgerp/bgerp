@@ -68,7 +68,7 @@ class type_Datetime extends type_Date {
         $attr['style'] .= ';vertical-align:top; max-width:4em;';
         unset($attr['id']);
         
-        if(strlen($time) == 5) {
+        if(strlen($time) == 5 || strlen($time) == 0) {
             $sugArr = explode('|', '08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00');
             $sugArr[] = $time;
             sort($sugArr);
@@ -79,7 +79,19 @@ class type_Datetime extends type_Date {
             if(!is_array($ts)) {
                 $ts = array('' => '') + arr::make(str_replace('|', ',', $ts), TRUE);
             }
-        } else {
+        } elseif(strlen($time) == 8){
+        	$sugArr = explode('|', '08:00:00|09:00:00|10:00:00|11:00:00|12:00:00|13:00:00|14:00:00|15:00:00|16:00:00|17:00:00|18:00:00');
+        	$sugArr[] = $time;
+        	sort($sugArr);
+        	$sugList = implode('|', $sugArr);
+        	
+        	setIfNot($ts, $this->params['timeSuggestions'], $sugList);
+        	
+        	if(!is_array($ts)) {
+        		$ts = array('' => '') + arr::make(str_replace('|', ',', $ts), TRUE);
+        	}
+        }else {
+        	
             $ts = array('' => '', $time => $time);
         }
 
