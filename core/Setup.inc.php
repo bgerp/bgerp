@@ -857,8 +857,9 @@ if ($step == 'setup') {
             $logModified = FALSE;
         }
 //    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog) || $logModified);
-    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog));
-    
+//    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog));
+    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns);
+     
     if ($percents < 100) {
         $percents = 100;
         $width = 4.5*$percents;
