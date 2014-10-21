@@ -861,7 +861,8 @@ if ($step == 'setup') {
 //    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog) || $logModified);
 //    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog));
 //    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns);
-    } while ($numRows < $totalRecords && $numColumns <= $totalColumns);
+//    } while ($numRows < $totalRecords && $numColumns <= $totalColumns);
+        } while (setupProcess());
     
     if ($percents < 100) {
         $percents = 100;
