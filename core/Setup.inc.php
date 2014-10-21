@@ -938,9 +938,13 @@ if($step == start) {
         file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
     }
     
+    $Packs = cls::get('core_Users');
+    $Packs->setupMVC();
+    
     $Packs = cls::get('core_Packs');
     $Packs->setupMVC();
     $Packs->checkSetup();
+    
     // за сега стартираме пакета bgERP за пълно обновяване
     $Packs->setupPack("bgerp");
 
