@@ -494,14 +494,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	// Ако има Авансово плащане може да се активира
 	   	if(isset($rec->dpAmount)){
 	   		$res = (round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)) ? FALSE : TRUE;
-	   		//bp($res);
-	   		/*
-	   		 * if($rec->dpOperation == 'accrued'){
-	   			$res = TRUE;
-	   		} else {
-	   			$res = (round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)) ? FALSE : TRUE;
-	   		}
-	   		 */
+	   		
 	   		return;
 	   	}
 	   	 
