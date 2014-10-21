@@ -219,7 +219,7 @@ class cal_Tasks extends core_Master
         $this->FLD('workingTime', 'time',     'caption=Отработено време,input=none');
         
          // Очакван край на задачата
-        $this->FLD('expectationTimeEnd', 'datetime', 'caption=Времена->Очакван край,input=none');
+        $this->FLD('expectationTimeEnd', 'datetime(format=smartTime)', 'caption=Времена->Очакван край,input=none');
         
         // Очаквано начало на задачата
         $this->FLD('expectationTimeStart', 'datetime', 'caption=Времена->Очаквано начало,input=none');
@@ -293,6 +293,13 @@ class cal_Tasks extends core_Master
         	$row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, "ef_icon=img/16/calendar5.png");
         	$row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, "ef_icon=img/16/calendar5.png");
         }
+        
+        if ($rec->timeDuration || $rec->timeEnd) {
+        	$row->expectationTimeEnd =  dt::mysql2verbal($rec->expectationTimeEnd, 'smartTime'); 
+        	
+        } else {
+        	$row->expectationTimeEnd = '';
+        } 
     }
 
 
@@ -562,10 +569,8 @@ class cal_Tasks extends core_Master
     	$canActivate = self::canActivateTask($rec);
      
     	if ($now >= $canActivate) { 
-
-    		$rec->timeCalc = $canActivate->calcTime;
-    			
-    		self::save($rec, 'timeCalc');
+    		
+            $rec->timeCalc = $canActivate->calcTime;
     		
         // ако не може, задачата ставачакаща
     	} else {
@@ -976,7 +981,7 @@ class cal_Tasks extends core_Master
 		   self::calculateExpectationTime($rec);
 		   // и проверяваме дали може да я активираме
 		   $canActivate = self::canActivateTask($rec);
-
+           
 		   if ($canActivate != FALSE) { 
 		   	   if ($now >= $canActivate) {  
 				   $rec->state = 'active';
@@ -1722,7 +1727,7 @@ class cal_Tasks extends core_Master
 		    			// ако е равен или по голям на искания от потребутеля процент
 		    			if ($progress >= $cond->progress) {
 		    				// времето за стартирване на текущата задача е сега
-			    			$calcTime = $now; 
+			    			$calcTime = $now;
 			    		}
 			    	// ако ще правим изчисления по времена
 		    		} else { 
@@ -1734,16 +1739,16 @@ class cal_Tasks extends core_Master
 		     	// ако има такова
 		     	$timeStart = self::fetchField($rec->id, "timeStart");
 		     	
-		     	if (!$timeStart) {
-		     		// в противен случай го слагаме 0
-		     		$timeStart = 0;
+		     	if ($timeStart != NULL) { 
+			     	// прибавяме го към масива
+			     	array_push($calcTimeS, $timeStart);
+			     	
+			     	// най-малкото време е времето за стартирване на текущата задача
+			     	$calcTime = min($calcTimeS);	
+		     	} else {
+		     	    $calcTime = min ($calcTimeS);
 		     	}
-		     	// прибавяме го към масива
-		     	array_push($calcTimeS, $timeStart);
 		     	
-		     	// най-малкото време е времето за стартирване на текущата задача
-		     	$calcTime = min($calcTimeS);
-
 		    // задачата не е зависима от други задачи
     		} else { 
     			if ($rec->timeStart) {
@@ -1751,7 +1756,7 @@ class cal_Tasks extends core_Master
     				$calcTime = $rec->timeStart;
     			} else {
     				// ако не е оказано време от потребителя - е сега
-    				$calcTime = $now;
+    				$calcTime = $rec->expectationTimeStart;
     			}
     		}
 	    } elseif (!$rec->id && $rec->timeStart) { 
@@ -1770,19 +1775,21 @@ class cal_Tasks extends core_Master
 		     	}
 		     	$timeStart = self::fetchField($rec->id, "timeStart");
 		     	
-		     	if (!$timeStart) {
-		     		$timeStart = 0;
+    			if ($timeStart != NULL) { 
+			     	// прибавяме го към масива
+			     	array_push($calcTimeS, $timeStart);
+			     	
+			     	// най-малкото време е времето за стартирване на текущата задача
+			     	$calcTime = min($calcTimeS);	
+		     	} else {
+		     	    $calcTime = min ($calcTimeS);
 		     	}
-		     	
-		     	array_push($calcTimeS, $timeStart);
-		     	
-		     	$calcTime = min($calcTimeS);
     			
     		} else {
     			$calcTime = $rec->timeStart;
     		}
     	} elseif (!$rec->timeStart && !$rec->id) { 
-    		$calcTime = $now;
+    		$calcTime = $now; 
     	}
     	
     	// връщаме времето за активиране
@@ -1876,7 +1883,7 @@ class cal_Tasks extends core_Master
     	}
 	    
     	// ако задачата няма начало и край
-	    if ($timeStart == NULL && $timeEnd == NULL) { 
+	    if ($timeStart == NULL && $timeEnd == NULL && $rec->timeDuration == NULL) { 
 		    	
 			$expStart = $now;
 			$expEnd = $now;
@@ -1898,6 +1905,15 @@ class cal_Tasks extends core_Master
 	    } elseif ($timeStart && $timeEnd) {
 	   		$expStart = $timeStart;
 			$expEnd = $timeEnd;
+	    } elseif ($rec->timeDuration && $timeStart && !$timeEnd) {
+	    	$expStart = $timeStart;
+	    	$expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $rec->timeDuration);
+	    } elseif ($rec->timeDuration && !$timeStart && !$timeEnd){
+	    	$expStart = $now;
+	    	$expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $rec->timeDuration);
+	    } elseif ($rec->timeDuration && $timeEnd && !$timeStart){
+	    	$expStart = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) - $rec->timeDuration);
+	    	$expEnd = $timeEnd;
 	    }
 
     	$rec->expectationTimeStart = $expStart;
