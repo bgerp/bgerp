@@ -577,6 +577,9 @@ class cat_Products extends core_Master {
     	
     	$res = new stdClass();
     	$res->productRec = $productRec;
+    	if($grRec = cat_products_VatGroups::getCurrentGroup($productId)){
+    		$res->productRec->vatGroup = $grRec->title;
+    	}
     	
     	// Добавяне на мета данните за продукта
     	if($meta = explode(',', self::getMetaData($productRec->groups))){
