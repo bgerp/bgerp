@@ -252,11 +252,11 @@ function comboBoxInit(id, suffix) {
     if (txtCombo && selCombo) {
         var width = txtCombo.offsetWidth;
         var arrow = 22;
-
+        var clipPadding = isIE() ? 1 : 3;
         selCombo.style.width = (width + 1) + 'px';
         txtCombo.style.width = (width - arrow + 6) + 'px';
         txtCombo.style.marginRight = (arrow - 5) + 'px';
-        selCombo.style.clip = 'rect(auto, auto, auto, ' + (width - arrow + 3) + 'px)';
+        selCombo.style.clip = 'rect(auto, auto, auto, ' + (width - arrow + clipPadding) + 'px)';
         txtCombo.style.paddingRight = '2px';
 
         if (txtCombo.offsetHeight != selCombo.offsetHeight) {
