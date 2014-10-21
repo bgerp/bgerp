@@ -275,7 +275,7 @@ class blast_Emails extends core_Master
         $rec->sendPerCall = $sendPerCall;
         $rec->startOn = dt::now();
         self::save($rec);
-        bp($rec);
+        
         return $updateCnt;
     }
     
