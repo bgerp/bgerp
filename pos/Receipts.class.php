@@ -1205,7 +1205,9 @@ class pos_Receipts extends core_Master {
     			$nRec->vat = $rec->param;
     			$nRec->price = $rec->price / (1 + $rec->param);
     			$nRec->name = $pInfo->productRec->name;
-    			$nRec->vatGroup = cls::get('cat_Products')->getParam($rec->productId, 'vatGroup');
+    			if($pInfo->productRec){
+    				$nRec->vatGroup = $pInfo->productRec->vatGroup;
+    			}
     			
     			$products[] = $nRec;
     		} elseif(strpos($rec->action, 'payment') !== FALSE) {

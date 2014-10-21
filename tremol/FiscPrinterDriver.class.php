@@ -28,21 +28,25 @@ class tremol_FiscPrinterDriver extends core_Manager {
     
     
     /**
-     * На коя ддс група кое ид от касовия апарат съответства
-     */
-    private static $vatGroups = array('A' => 1, 'Б' => 2, 'В' => 3, 'Г' => 4);
-    
-    
-    /**
-     * Коя данъчна група отговаря на 0 ставка на ддс-то
-     */
-    private $groupNoVat = 'A';
-    
-    
-    /**
      * Шаблон за продукта в кратката бележка
      */
-    private $shortRowTpl = "Артикули *[#group#]";
+    private $shortRowTpl = "Сума *[#group#]";
+    
+    
+    /**
+     * Кои кодове от фискалния принтер отговарят на данъчните групи
+     */
+    private function getVatGroupKeys()
+    {
+    	$res = array();
+    	
+    	$conf = core_Packs::getConfig('tremol');
+    	foreach (array('А' => 'A', 'Б' => 'B', 'В' => 'V', 'Г' => 'G') as $title => $sysId){
+    		$res[$title] = $conf->{"TREMOL_GROUP_{$sysId}"};
+    	}
+    	
+    	return $res;
+    }
     
     
    /*
@@ -64,18 +68,32 @@ class tremol_FiscPrinterDriver extends core_Manager {
         // Добавяме към шаблона всеки един продаден продукт
         $itemBlock = $contentTpl->getBlock('ITEM');
         
+        $conf = core_Packs::getConfig('tremol');
+        $vatGroups = self::getVatGroupKeys();
+        $defaultGroup = ($data->hasVat) ? $conf->TREMOL_BASE_GROUP_WITH_VAT : $conf->TREMOL_BASE_GROUP_WITH_ZERO_VAT;
+        $defaultGroup = acc_VatGroups::fetchField("#sysId = '{$defaultGroup}'", 'title');   
+             
         $products = $data->products;
+        
+        // Попълваме ддс групите на артикулите
+        foreach ($data->products as $p){
+        	if(empty($p->vatGroup)){
+        		$p->vatGroup = $defaultGroup;
+        	} else {
+        		$p->vatGroup = ($data->hasVat) ? $p->vatGroup : $defaultGroup;
+        	}
+        }
+        
         if($data->short){
         	$newProducts = array();
         	foreach ($products as $p){
-        		if(empty($newProducts[$p->vatGroup])){
+				if(empty($newProducts[$p->vatGroup])){
         			$newProducts[$p->vatGroup] = new stdClass();
         			$nameTpl = new core_ET($this->shortRowTpl);
         			
-        			$vatGroup = ($data->hasVat === TRUE) ? $p->vatGroup : $this->groupNoVat;
-        			$nameTpl->replace($vatGroup, 'group');
+        			$nameTpl->replace($p->vatGroup, 'group');
         			$newProducts[$p->vatGroup]->name = $nameTpl->getContent();
-        			$newProducts[$p->vatGroup]->vatGroupId = self::$vatGroups[$vatGroup];
+        			$newProducts[$p->vatGroup]->vatGroupId = $vatGroups[$p->vatGroup];
         			$newProducts[$p->vatGroup]->quantity = 1;
         		}
         		
@@ -97,8 +115,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
         		$p->name = str_replace('"', "'", $p->name);
         		$p->price = $p->price * (1 + $p->vat);
         		
-        		$vatGroup = ($data->hasVat === TRUE) ? $p->vatGroup : $this->groupNoVat;
-        		$p->vatGroupId = self::$vatGroups[$vatGroup];
+        		$p->vatGroupId = $vatGroups[$p->vatGroup];
         		$p->price = round($p->price, 4);
         		if($p->discount){
         			$p->discountPercent = (round($p->discount, 2) * 100) . "%";
@@ -107,7 +124,6 @@ class tremol_FiscPrinterDriver extends core_Manager {
         }
         
         foreach ($data->products as $p){
-        	
         	$block = clone $itemBlock;
         	$block->placeObject($p);
         	$block->removeBlocks();
