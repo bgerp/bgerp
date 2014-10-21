@@ -53,7 +53,7 @@ class cat_Products extends core_Master {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails';
+    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails,VatGroups=cat_products_VatGroups';
     
     
     /**
