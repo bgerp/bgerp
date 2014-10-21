@@ -724,9 +724,9 @@ class cat_Products extends core_Master {
     		$date = dt::now();
     	}
     	
-    	// Ако има фиксиран параметър "ДДС" го връщаме
-    	if($value = cat_products_Params::fetchParamValue($productId, 'vat')){
-    		return $value;
+    	if($groupRec = cat_products_VatGroups::getCurrentGroup($productId)){
+    		
+    		return $groupRec->vat;
     	}
     	
     	// Връщаме ДДС-то от периода
