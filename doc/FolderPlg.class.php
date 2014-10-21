@@ -105,9 +105,6 @@ class doc_FolderPlg extends core_Plugin
             			array('doc_Threads', 'list',
             					'folderId' => $data->rec->folderId),
             			array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png'));
-            } else {
-            	$data->toolbar->addBtn('Папка' . $openThreads,array(),
-            			array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'error' => 'Нямате достъп до папката'));
             }
             
         } else {

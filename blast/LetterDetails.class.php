@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -39,13 +39,13 @@ class blast_LetterDetails extends doc_Detail
      * Кой може да го отхвърли?
      */
     var $canReject = 'blast,ceo';
-
-	    
+    
+    
     /**
      * Кой може да го възстанови?
      */
     var $canRestore = 'blast,ceo';
-        
+    
     
     /**
      * Кой може да го изтрие?
@@ -132,7 +132,7 @@ class blast_LetterDetails extends doc_Detail
         
         // Вземаме записите
         $masterRec = $masterClass->fetch($rec->{$masterKey});
-
+        
         // Обхождаме масива
         foreach ($listDetArr as $listDet) {
             

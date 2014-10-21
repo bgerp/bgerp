@@ -322,6 +322,15 @@ class core_Request
         
         $Request = & cls::get('core_Request');
         
+        $ctr = $Request::get('Ctr');
+        // Проверяваме за криптиран линк
+        if(!$Request::get('Act') && 
+            strlen($ctr) == core_Forwards::CORE_FORWARD_SYSID_LEN &&
+            preg_match("/^[a-z]+$/", $ctr)) {
+
+            return core_Forwards::go($ctr);
+        }
+
         $vars = arr::make($vars, TRUE);
         
         if (count($vars)) {

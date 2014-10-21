@@ -27,16 +27,17 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_Packs', 'Пакети', 'admin');
         $this->TAB('core_Users', 'Потребители', 'admin');
         $this->TAB('core_Roles', 'Роли', 'admin');
-        $this->TAB('core_Classes', 'Класове', 'debug');
-        $this->TAB('core_Interfaces', 'Интерфейси', 'debug');
         $this->TAB('core_Lg', 'Превод', 'admin');
         $this->TAB('core_Logs', 'Логове->Общ', 'admin');
         $this->TAB('core_LoginLog', 'Логове->Логин', 'admin');
         $this->TAB('core_Cron', 'Крон');
         $this->TAB('core_Plugins', 'Плъгини', 'admin');
-        $this->TAB('core_Cache', 'Кеш', 'admin');
-        $this->TAB('core_Browser', 'Браузър', 'admin, debug');
-        $this->TAB('core_Locks', 'Заключвания', 'debug');
-        $this->TAB('core_Settings', 'Персонализация', 'debug');
+        $this->TAB('core_Cache', 'Вътрешни->Кеш', 'admin');
+        $this->TAB('core_Browser', 'Вътрешни->Браузър', 'admin, debug');
+        $this->TAB('core_Classes', 'Вътрешни->Класове', 'debug');
+        $this->TAB('core_Interfaces', 'Вътрешни->Интерфейси', 'debug');
+        $this->TAB('core_Locks', 'Вътрешни->Заключвания', 'debug');
+        $this->TAB('core_Settings', 'Вътрешни->Персонализация', 'debug');
+        $this->TAB('core_Forwards', 'Вътрешни->Пренасочвания', 'debug');
     }
 }

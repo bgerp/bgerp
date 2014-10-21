@@ -53,7 +53,7 @@ class cat_Products extends core_Master {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails';
+    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails,VatGroups=cat_products_VatGroups';
     
     
     /**
@@ -577,6 +577,9 @@ class cat_Products extends core_Master {
     	
     	$res = new stdClass();
     	$res->productRec = $productRec;
+    	if($grRec = cat_products_VatGroups::getCurrentGroup($productId)){
+    		$res->productRec->vatGroup = $grRec->title;
+    	}
     	
     	// Добавяне на мета данните за продукта
     	if($meta = explode(',', self::getMetaData($productRec->groups))){
@@ -724,9 +727,9 @@ class cat_Products extends core_Master {
     		$date = dt::now();
     	}
     	
-    	// Ако има фиксиран параметър "ДДС" го връщаме
-    	if($value = cat_products_Params::fetchParamValue($productId, 'vat')){
-    		return $value;
+    	if($groupRec = cat_products_VatGroups::getCurrentGroup($productId)){
+    		
+    		return $groupRec->vat;
     	}
     	
     	// Връщаме ДДС-то от периода

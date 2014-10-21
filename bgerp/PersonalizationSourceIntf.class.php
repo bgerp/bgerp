@@ -1,9 +1,8 @@
 <?php
 
 
+
 /**
- * 
- * 
  * @category  bgerp
  * @package   bgerp
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -17,9 +16,9 @@ class bgerp_PersonalizationSourceIntf
     
     /**
      * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return array
      */
     function getPersonalizationDescr($id)
@@ -30,14 +29,14 @@ class bgerp_PersonalizationSourceIntf
     
     
     /**
-     * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value 
-     * 
+     * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
+     *
      * @param integer $id
      * @param integer $limit
-     * 
+     *
      * @return array
      */
-    function getPresonalizationArr($id, $limit=0)
+    function getPresonalizationArr($id, $limit = 0)
     {
         
         return $this->class->getPresonalizationArr($id, $limit);
@@ -46,13 +45,13 @@ class bgerp_PersonalizationSourceIntf
     
     /**
      * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
-     * 
+     *
      * @param integer $id
      * @param boolean $verbal
-     * 
+     *
      * @return string
      */
-    function getPersonalizationTitle($id, $verbal=FALSE)
+    function getPersonalizationTitle($id, $verbal = FALSE)
     {
         
         return $this->class->getPersonalizationTitle($id, $verbal);
@@ -61,10 +60,10 @@ class bgerp_PersonalizationSourceIntf
     
     /**
      * Връща TRUE или FALSE дали потребителя може да използва дадения източник на персонализация
-     * 
+     *
      * @param integer $id
      * @param integer $userId
-     * 
+     *
      * @return boolean
      */
     function canUsePersonalization($id, $userId = NULL)
@@ -76,9 +75,9 @@ class bgerp_PersonalizationSourceIntf
     
     /**
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас, които са достъпни за посочения потребител
-     * 
+     *
      * @param integer $userId
-     * 
+     *
      * @return array
      */
     function getPersonalizationOptions($userId = NULL)
@@ -90,9 +89,9 @@ class bgerp_PersonalizationSourceIntf
     
     /**
      * Връща линк, който сочи към източника за персонализация
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return core_ET
      */
     function getPersonalizationSrcLink($id)

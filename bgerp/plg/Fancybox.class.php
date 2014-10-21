@@ -1,9 +1,10 @@
 <?php
 
 
+
 /**
  * Създава линк към свалянето на картинката в plain режим
- * 
+ *
  * @category  bgerp
  * @package   plg
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -17,7 +18,7 @@ class bgerp_plg_Fancybox extends core_Plugin
     
     /**
      * Създава линк към свалянето на картинката в plain режим
-     * 
+     *
      * @param core_Mvc $mvc
      * @param core_Et $resTpl
      * @param string $fh

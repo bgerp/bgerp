@@ -209,7 +209,7 @@ abstract class deals_Helper
 			unset($arr['vatAmount'], $arr['vatCurrencyId']); // не се показват данни за ддс-то
 		} else { // ако е фактура или е сотделно ддс
 			if($arr['total']){
-				$arr['vat'] = round(($values['vat'] / $arr['total']) * 100, 1); // % ддс
+				$arr['vat'] = round(($values['vat'] / $arr['total']) * 100); // % ддс
 				$arr['total'] = $arr['total'] + $values['vat']; 	  // Крайното е стойноста + ддс-то
 			}
 		}

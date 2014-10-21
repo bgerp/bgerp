@@ -1,20 +1,21 @@
 <?php
 
 
+
 /**
  * Замества абсолютните линкове в richText полетата, които сочат към системата с тяхното заглавие и икона на файла
  *
  * Замества следните URL-та:
  *
- *     o doc_Containers/list/?threadId=??????
- *     o doc_Threads/list/?folderId=??????
- *     o [mvc]/single/[id]
- *     
+ * o doc_Containers/list/?threadId=??????
+ * o doc_Threads/list/?folderId=??????
+ * o [mvc]/single/[id]
+ *
  *
  * @category  bgerp
  * @package   bgerp
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,7 +24,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
     
     
     /**
-     * 
+     * Изпълнява се преди да се обработят вътрешните URL-та
      */
     function on_BeforeInternalUrl($rt, &$res, $url, $title, $rest)
     {
@@ -61,7 +62,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             $rt->_htmlBoard[$place] = $boardRes;
             
             // Прекратяваме по нататъшното изпълнени на програмата
-            return FALSE;    
+            return FALSE;
         }
         
         // Нишки
@@ -75,7 +76,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             
             // Вземаме вербалния линка към папката
             $boardRes = doc_Threads::getVerbalLink($params);
-
+            
             // Ако функцията не върне FALSE 
             if ($boardRes === FALSE) {
                 
@@ -87,9 +88,9 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             $rt->_htmlBoard[$place] = $boardRes;
             
             // Прекратяваме по нататъшното изпълнени на програмата
-            return FALSE;    
+            return FALSE;
         }
-
+        
         // Сингъл
         if ($act == 'single') {
             
@@ -101,7 +102,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             
             // Вземаме вербалния линка към папката
             $boardRes = doc_Containers::getVerbalLink($params);
-
+            
             // Ако функцията не върне FALSE 
             if ($boardRes === FALSE) {
                 
@@ -113,7 +114,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             $rt->_htmlBoard[$place] = $boardRes;
             
             // Прекратяваме по нататъшното изпълнени на обработката на събитието
-            return FALSE;         
+            return FALSE;
         }
         
         return ;

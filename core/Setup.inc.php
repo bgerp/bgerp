@@ -754,11 +754,13 @@ if ($step == 'setup') {
 
     set_time_limit(1000);
 
-    $calibrate = 1000;
-    $totalRecords = 168100;
-    $totalTables = 287;
+    $calibrate = 100;
+    $totalRecords = 169700;
+//    $totalTables = 304;
+    $totalColumns = 3852;
     $percents = $persentsBase = $persentsLog = 0;
-    $total = $totalTables*$calibrate + $totalRecords;
+//    $total = $totalTables*$calibrate + $totalRecords;
+    $total = $totalColumns*$calibrate + $totalRecords;
     // Пращаме стиловете
     echo ($texts['styles']);
 //    contentFlush ($texts['styles']);
@@ -815,10 +817,11 @@ if ($step == 'setup') {
         clearstatcache(EF_TEMP_PATH . '/setupLog.html');
         $fTime = filemtime(EF_TEMP_PATH . '/setupLog.html');
         clearstatcache(EF_TEMP_PATH . '/setupLog.html');
-        list($numTables, $numRows) = dataBaseStat(); 
+        list($numTables, $numRows, $numColumns) = dataBaseStat(); 
 
         // От базата идват 80% от прогрес бара
-        $percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
+//        $percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
+        $percentsBase = round(($numRows+$calibrate*$numColumns*(4/5))/$total,2)*100;
         
         // Изчитаме лог-а
         $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
@@ -855,7 +858,10 @@ if ($step == 'setup') {
         } else {
             $logModified = FALSE;
         }
-    } while ($numRows < $totalRecords && $numTables <= $totalTables || !empty($setupLog) || $logModified);
+//    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog) || $logModified);
+//    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog));
+//    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns);
+    } while ($numRows < $totalRecords && $numColumns <= $totalColumns);
     
     if ($percents < 100) {
         $percents = 100;
@@ -1370,7 +1376,10 @@ function dataBaseStat()
     $tablesRes = $DB->query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". $DB->escape($DB->dbName) ."';");
     $tables = $DB->fetchObject($tablesRes);
     
-    return array($tables->TABLES, $rows->RECS);
+    $tablesColumnsRes = $DB->query("SELECT COUNT(*) AS COLUMNS FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '". $DB->escape($DB->dbName) ."';");
+    $tablesColumns = $DB->fetchObject($tablesColumnsRes);
+    
+    return array($tables->TABLES, $rows->RECS, $tablesColumns->COLUMNS);
 }
 
 

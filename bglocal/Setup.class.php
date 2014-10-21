@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class drdata_Setup
  *
@@ -8,14 +9,14 @@
  * доктор за адресни данни
  *
  *
- * @category  vendors
- * @package   drdata
+ * @category  bgerp
+ * @package   bglocal
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class bglocal_Setup extends core_ProtoSetup 
+class bglocal_Setup extends core_ProtoSetup
 {
     
     
@@ -41,28 +42,27 @@ class bglocal_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Готови данни и типове от различни области";
-
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            
-            'bglocal_Mvr',
-          	'bglocal_Banks',
-            'bglocal_Address',
-       		'bglocal_NKID',
-            'bglocal_NKPD',
-            'bglocal_DistrictCourts',
-        );
+        
+        'bglocal_Mvr',
+        'bglocal_Banks',
+        'bglocal_Address',
+        'bglocal_NKID',
+        'bglocal_NKPD',
+        'bglocal_DistrictCourts',
+    );
     
-
     /**
      * Роли за достъп до модула
      */
     //var $roles = 'currency';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */

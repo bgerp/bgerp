@@ -282,6 +282,25 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     */
+    public static function canAddToThread($threadId)
+    {
+    	$firstDocument = doc_Threads::getFirstDocument($threadId);
+    	
+    	if(!$firstDoc) return FALSE;
+    	
+    	// Може да се добавя само към активна продажба
+    	if($firstDocument->instance instanceof sales_Sales && $firstDocument->fetchField('state') == 'active'){
+    		
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
      * Извиква се преди рендирането на 'опаковката'
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)

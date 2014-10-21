@@ -2271,6 +2271,24 @@ function render_scrollTo(docId) {
     getEO().scrollTo(docId);
 }
 
+function render_replaceById(data) {
+	 
+    // Неоходимите параметри
+    var id = data.id;
+    var html = data.html;
+ 
+    var idsArr = data.Ids.split(",");
+
+
+	var id;
+
+	for (index = 0; index < idsArr.length; ++index) {
+		id = "#" + idsArr[index];
+		$(id).html( $(html).find(id).html() );
+	}
+
+}
+
 
 /**
  * Функция, която добавя даден текст в съответния таг

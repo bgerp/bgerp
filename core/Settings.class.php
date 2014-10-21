@@ -49,7 +49,7 @@ class core_Settings extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified';
+    public $loadList = 'plg_Modified,plg_SystemWrapper';
     
     
     /**

@@ -553,20 +553,20 @@ class cal_Tasks extends core_Master
 	 */
     public static function on_BeforeActivation($mvc, $rec)
     {
+    	$now = dt::verbal2mysql();
+    	
     	// изчисляваме очакваните времена
     	self::calculateExpectationTime($rec);
 
     	// проверяваме дали може да стане задачата в активно състояние
     	$canActivate = self::canActivateTask($rec);
+     
+    	if ($now >= $canActivate) { 
 
-    	if ($canActivate->cond == TRUE) { 
-
-    		if ($canActivate->calcTime) {
-    			$rec->timeCalc = $canActivate->calcTime;
-    			$rec->state = 'pending';
+    		$rec->timeCalc = $canActivate->calcTime;
     			
-    			self::save($rec, 'timeCalc');
-    		}
+    		self::save($rec, 'timeCalc');
+    		
         // ако не може, задачата ставачакаща
     	} else {
     		$rec->state = 'pending';

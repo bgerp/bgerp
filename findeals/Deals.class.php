@@ -324,16 +324,16 @@ class findeals_Deals extends deals_DealBase
     		if($rec->secondContragentClassId){
     			$row->secondContragentId = cls::get($rec->secondContragentClassId)->getHyperLink($rec->secondContragentId, TRUE);
     		}
+
+    		$lastBalance = acc_Balances::getLastBalance();
+    		if(acc_Balances::haveRightFor('single', $lastBalance)){
+    			$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
+    			$row->accountId = ht::createLink($row->accountId, $accUrl);
+    		}
     	}
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}
-    	
-    	$lastBalance = acc_Balances::getLastBalance();
-    	if(acc_Balances::haveRightFor('single', $lastBalance)){
-    		$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
-    		$row->accountId = ht::createLink($row->accountId, $accUrl);
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -457,7 +457,9 @@ class findeals_Deals extends deals_DealBase
     		$data->row->$fld = $this->getFieldType('amountDeal')->toVerbal($data->rec->$fld);
     		if($data->rec->$fld == 0){
     			$data->row->$fld = "<span class='quiet'>{$data->row->$fld}</span>";
-    		} 
+    		} elseif($data->rec->$fld < 0){
+    			$data->row->$fld = "<span class='red'>{$data->row->$fld}</span>";
+    		}
     	}
     }
     

@@ -9,13 +9,13 @@
  * http://blog.nazdrave.net/?page_id=333
  *
  *
- * @category  vendors
- * @package   drdata
- * @author
- * @copyright 2006 - 2012 Experta OOD
+ * @category  bgerp
+ * @package   bglocal
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     да се поиска разрешението от автора за izpolzwaneto в GPL проект
+ * @internal  да се поиска разрешението от автора за използването в GPL проект
  */
 class bglocal_BulgarianEGN {
     

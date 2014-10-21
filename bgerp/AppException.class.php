@@ -4,11 +4,14 @@ class bgerp_AppException extends Exception
     public $options;
     
     public $message;
-
+    
+    /**
+     * Конструктор
+     */
     public function __construct($message, $options = array())
     {
         parent::__construct($message);
-
+        
         $this->options = $options;
         $this->message = $message;
     }
@@ -16,7 +19,7 @@ class bgerp_AppException extends Exception
     
     /**
      * Генерира exception от съотв. клас, в случай че зададеното условие не е изпълнено
-     * 
+     *
      * @param boolean $condition
      * @param string $message
      * @param array $options
@@ -28,7 +31,10 @@ class bgerp_AppException extends Exception
             throw new static($message, $options);
         }
     }
-
+    
+    /**
+     * Конвертира към стринг
+     */
     public function __toString()
     {
         if (!empty($this->options['redirect'])) {

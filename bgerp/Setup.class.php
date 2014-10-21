@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * FileHandler на логото на фирмата на английски
  */
@@ -20,10 +21,9 @@ defIfNot(BGERP_COMPANY_LOGO, '');
  * @category  bgerp
  * @package   bgerp
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @link
  */
 class bgerp_Setup extends core_ProtoSetup {
     
@@ -51,31 +51,31 @@ class bgerp_Setup extends core_ProtoSetup {
      */
     var $info = "Основно меню и портал на bgERP";
     
-        
+    
     /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-       'BGERP_COMPANY_LOGO' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На български, customizeBy=powerUser'),
-    
-       'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
-     );
+        'BGERP_COMPANY_LOGO' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На български, customizeBy=powerUser'),
+        
+        'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
+    );
     
     
     /**
      * Описание на системните действия
      */
     var $systemActions = array(
-           
-       'Поправка' => array ('doc_Folders', 'repair')
+        
+        'Поправка' => array ('doc_Folders', 'repair')
     
     );
-    
     
     /**
      * Път до js файла
      */
-//    var $commonJS = 'js/PortalSearch.js';
+    //    var $commonJS = 'js/PortalSearch.js';
+    
     
     
     /**
@@ -89,7 +89,7 @@ class bgerp_Setup extends core_ProtoSetup {
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->repair();
-
+        
         $managers = array(
             'bgerp_Menu',
             'bgerp_Portal',
@@ -98,7 +98,7 @@ class bgerp_Setup extends core_ProtoSetup {
         );
         
         $instances = array();
-
+        
         foreach ($managers as $manager) {
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
@@ -124,6 +124,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Добавяме допълнителните пакети, само при първоначален Setup
         $Folders = cls::get('doc_Folders');
+        
         if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
             $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen,help,toast,compactor,rtac";
         } else {
@@ -136,46 +137,50 @@ class bgerp_Setup extends core_ProtoSetup {
                 }
             }
         }
-
-    	if (Request::get('SHUFFLE')) {
-        	
-        	// Ако е зададен параметър shuffle  в урл-то разбъркваме пакетите
-        	if (!is_array($packs)) {
-        		$packs = arr::make($packs);
-	        }
-	        shuffle($packs);
-	        $packs = implode(',', $packs);
+        
+        if (Request::get('SHUFFLE')) {
+            
+            // Ако е зададен параметър shuffle  в урл-то разбъркваме пакетите
+            if (!is_array($packs)) {
+                $packs = arr::make($packs);
+            }
+            shuffle($packs);
+            $packs = implode(',', $packs);
         }
-
+        
         $haveError = array();
+        
         do {
             $loop++;
+            
             // Извършваме инициализирането на всички включени в списъка пакети
             foreach (arr::make($packs) as $p) {
                 if (cls::load($p . '_Setup', TRUE) && !$isSetup[$p]) {
                     try {
                         $html .= $Packs->setupPack($p);
                         $isSetup[$p] = TRUE;
+                        
                         // Махаме грешките, които са възникнали, но все пак
                         // са се поправили в не дебъг режим
                         if (!isDebug()) {
                             unset($haveError[$p]);
                         }
                     } catch (core_exception_Expect $exp) {
-                        $force = TRUE; 
+                        $force = TRUE;
                         $Packs->alreadySetup[$p . $force] = FALSE;
+                        
                         //$haveError = TRUE;
                         file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
-                        $haveError[$p] .= "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage(). " " .date('H:i:s')."</h3>";
-
+                        $haveError[$p] .= "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
                     }
-                 }
+                }
             }
-        
+            
             // Извършваме инициализирането на всички включени в списъка пакети
             foreach (arr::make($packs) as $p) {
                 if (cls::load($p . '_Setup', TRUE) && !$isLoad[$p]) {
                     $packsInst[$p] = cls::get($p . '_Setup');
+                    
                     if (method_exists($packsInst[$p], 'loadSetupData')) {
                         try {
                             $html .= "<h2>Инициализиране на $p</h2>";
@@ -183,29 +188,30 @@ class bgerp_Setup extends core_ProtoSetup {
                             $html .= $packsInst[$p]->loadSetupData();
                             $html .= "</ul>";
                             $isLoad[$p] = TRUE;
+                            
                             // Махаме грешките, които са възникнали, но все пак са се поправили
                             // в не дебъг режим
                             if (!isDebug()) {
                                 unset($haveError[$p]);
                             }
-                         } catch(core_exception_Expect $exp) {
+                        } catch(core_exception_Expect $exp) {
                             //$haveError = TRUE;
                             file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
-                            $haveError[$p] .= "<h3 style='color:red'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " .date('H:i:s')."</h3>";
+                            $haveError[$p] .= "<h3 style='color:red'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
                         }
                     }
                 }
             }
         } while (!empty($haveError) && ($loop<5));
-
+        
         $html .= implode("\n", $haveError);
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на бележките
         $Bucket = cls::get('fileman_Buckets');
         $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '1GB', 'user', 'user');
-		$Bucket->createBucket('bnav_importCsv', 'CSV за импорт', 'csv', '20MB', 'user', 'every_one');
-		
-		// Добавяме Импортиращия драйвър в core_Classes
+        $Bucket->createBucket('bnav_importCsv', 'CSV за импорт', 'csv', '20MB', 'user', 'every_one');
+        
+        // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bgerp_BaseImporter');
         
         //TODO в момента се записват само при инсталация на целия пакет
@@ -214,17 +220,16 @@ class bgerp_Setup extends core_ProtoSetup {
         //Зарежда данни за инициализация от CSV файл за core_Lg
         $html .= bgerp_data_Translations::loadData();
         
-
         // Инсталираме плъгина за прихващане на първото логване на потребител в системата
         $html .= $Plugins->installPlugin('First Login', 'bgerp_plg_FirstLogin', 'core_Users', 'private');
-
+        
         $Menu = cls::get('bgerp_Menu');
         
         // Да се изтрият необновените менюта
         $Menu->deleteNotInstalledMenu = TRUE;
         
         $html .= bgerp_Menu::addOnce(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin');
-
+        
         $html .= bgerp_Menu::addOnce(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
         
         $html .= $Menu->repair();
@@ -232,22 +237,15 @@ class bgerp_Setup extends core_ProtoSetup {
         // Принудително обновяване на ролите
         $html .= core_Roles::rebuildRoles();
         $html .= core_Users::rebuildRoles();
-
-
+        
         return $html;
     }
-
-
+    
+    
     /**
      * Временно, преди този клас да стане наследник на core_ProtoSetup
      */
     function loadSetupData()
     {
     }
-
- 
-       
-
-    
-    
 }

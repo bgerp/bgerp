@@ -353,11 +353,11 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case 'undelivered':
 						$data->query->where("#deliveredRound < #dealRound");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active'");
 						break;
 					case 'unpaid':
 						$data->query->where("#paidRound < #deliveredRound");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active'");
 						break;
 				}
 			}
@@ -511,7 +511,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * При нова сделка, се ънсетва threadId-то, ако има
      */
-    static function on_AfterPrepareDocumentLocation($mvc, $form)
+    public static function on_AfterPrepareDocumentLocation($mvc, $form)
     {   
     	if($form->rec->threadId && !$form->rec->id){
 		     unset($form->rec->threadId);
@@ -579,7 +579,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща тялото на имейл по подразбиране
      */
-    static function getDefaultEmailBody($id)
+    public static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
         $self = cls::get(get_called_class());
@@ -683,7 +683,7 @@ abstract class deals_DealMaster extends deals_DealBase
       * @see acc_RegisterIntf::itemInUse()
       * @param int $objectId
       */
-     static function itemInUse($objectId)
+     public static function itemInUse($objectId)
      {
      	
      }
@@ -704,15 +704,16 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param unknown $rec
      * @param unknown $nRec
      */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
-    	unset($nRec->contoActions, 
-    		  $nRec->paymentState, 
+    	unset($nRec->contoActions,
     		  $nRec->amountDelivered, 
     		  $nRec->amountBl,  
     		  $nRec->amountPaid, 
     		  $nRec->amountInvoiced, 
     		  $nRec->amountToInvoice);
+    	
+    	$nRec->paymentState = 'pending';
     }
     
     
@@ -839,6 +840,20 @@ abstract class deals_DealMaster extends deals_DealBase
 					break;
 			}
 			$row->$fld = ' ';
+			
+			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+				if($rec->shipmentStoreId){
+					$row->shipmentStoreId = store_Stores::getHyperlink($rec->shipmentStoreId);
+				}
+				
+				if($rec->caseId){
+					$row->caseId = cash_Cases::getHyperlink($rec->caseId);
+				}
+				
+				if($rec->caseId){
+					$row->caseId = cash_Cases::getHyperlink($rec->caseId);
+				}
+			}
 			
 			$actions = type_Set::toArray($rec->contoActions);
 			if(isset($actions['ship'])){
@@ -1013,6 +1028,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	} else {
     		unset($rec->closedDocuments);
     	}
+    	
     	$mvc->save($rec, 'closedDocuments');
     }
     

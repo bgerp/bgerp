@@ -150,7 +150,7 @@ class acc_Items extends core_Manager
         $this->FLD('objectId', 'int', "input=hidden,silent,column=none,caption=Обект");
         
         // Мярка на перото. Има смисъл само ако мастър номенклатурата е отбелязана като 
-        // "оразмерима" (acc_Lists::dimensional == true). Мярката се показва и въвежда само 
+        // "оразмерима" (acc_Lists::isDimensional == true). Мярката се показва и въвежда само 
         // ако има смисъл.
         $this->FLD('uomId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember');
         
@@ -354,7 +354,7 @@ class acc_Items extends core_Manager
         $listId = $mvc->getCurrentListId();
         $listRec = $mvc->Lists->fetch($listId);
         
-        if($listRec->dimensional == 'no') {
+        if($listRec->isDimensional == 'no') {
             unset($data->listFields['uomId']);
         }
         
