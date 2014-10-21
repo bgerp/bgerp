@@ -129,7 +129,7 @@ class trz_Orders extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Ord";
+    var $abbr = "Tor";
     
     
     /**
