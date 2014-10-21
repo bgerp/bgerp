@@ -430,8 +430,8 @@ function setupKey()
 	// Сетъп ключ, ако не е зададен
 	defIfNot('BGERP_SETUP_KEY', md5(EF_SALT . '*9fbaknc'));
 
-	// Валидност средно 50 сек.
-	return md5(BGERP_SETUP_KEY . round(time()/100));
+	// Валидност средно 250 сек.
+	return md5(BGERP_SETUP_KEY . round(time()/1000));
 }
 
 
