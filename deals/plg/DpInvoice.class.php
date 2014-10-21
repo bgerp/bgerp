@@ -258,6 +258,27 @@ class deals_plg_DpInvoice extends core_Plugin
     /**
      * Изпълнява се след създаване
      */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fieldList = NULL)
+    {
+    	if(isset($rec->id) && empty($fieldList)){
+    		if($mvc->Master) return;
+    		
+    		// Ако е ДИ или КИ не правим нищо
+    		if($rec->type != 'invoice') return;
+    		 
+    		// Ако има авансово плащане
+    		if($rec->dpAmount && $rec->dpOperation == 'accrued'){
+    			$l = time();
+    			status_Messages::newStatus($l, 'warning');
+    			$mvc->updateMaster($rec->id);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване
+     */
     public static function on_AfterCreate($mvc, $rec)
     {
     	if($mvc->Master) return;
@@ -267,7 +288,6 @@ class deals_plg_DpInvoice extends core_Plugin
     	
     	// Ако има авансово плащане
     	if($rec->dpAmount && $rec->dpOperation == 'accrued'){
-    		$mvc->updateMaster($rec->id);
     		
     		// Така спираме изпълнението на on_AfterCreate в фактурата
     		return FALSE;

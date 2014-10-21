@@ -197,7 +197,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$rec->dealValue = $this->_total->amount * $rec->rate;
     	$rec->vatAmount = $this->_total->vat * $rec->rate;
     	$rec->discountAmount = $this->_total->discount * $rec->rate;
-    	$this->save($rec);
+    	$this->save($rec, 'dealValue,vatAmount,discountAmount');
     }
     
     
