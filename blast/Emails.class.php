@@ -208,7 +208,7 @@ class blast_Emails extends core_Master
                                     cp1251=Windows Cyrillic|* (CP1251),
                                     koi8-r=Rus Cyrillic|* (KOI8-R),
                                     cp2152=Western|* (CP1252),
-                                    ascii=Латиница|* (ASCII))', 'caption=Знаци, changable');
+                                    ascii=Латиница|* (ASCII))', 'caption=Знаци, changable,notNull');
         
         $this->FLD('attachments', 'set(files=Файловете,documents=Документите)', 'caption=Прикачи, changable');
         $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable');
@@ -275,7 +275,7 @@ class blast_Emails extends core_Master
         $rec->sendPerCall = $sendPerCall;
         $rec->startOn = dt::now();
         self::save($rec);
-        
+        bp($rec);
         return $updateCnt;
     }
     
