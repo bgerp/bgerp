@@ -136,7 +136,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кой е основния детайл
      */
-    protected $mainDetail = 'sales_InvoiceDetails';
+    public $mainDetail = 'sales_InvoiceDetails';
     
     
     /**

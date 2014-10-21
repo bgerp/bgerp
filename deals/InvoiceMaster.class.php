@@ -177,13 +177,13 @@ abstract class deals_InvoiceMaster extends core_Master
      * Обновява информацията на документа
      * @param int $id - ид на документа
      */
-    public function updateMaster($id)
+    public function updateMaster($id, $save = TRUE)
     {
     	$rec = $this->fetchRec($id);
     	$Detail = $this->mainDetail;
     	
     	$query = $this->$Detail->getQuery();
-    	$query->where("#{$this->$Detail->masterKey} = '{$id}'");
+    	$query->where("#{$this->$Detail->masterKey} = '{$rec->id}'");
     	$recs = $query->fetchAll();
     	
     	if(count($recs)){
@@ -197,7 +197,10 @@ abstract class deals_InvoiceMaster extends core_Master
     	$rec->dealValue = $this->_total->amount * $rec->rate;
     	$rec->vatAmount = $this->_total->vat * $rec->rate;
     	$rec->discountAmount = $this->_total->discount * $rec->rate;
-    	$this->save($rec, 'dealValue,vatAmount,discountAmount');
+    	
+    	if($save){
+    		$this->save($rec);
+    	}
     }
     
     
@@ -491,7 +494,14 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	// Ако има Авансово плащане може да се активира
 	   	if(isset($rec->dpAmount)){
 	   		$res = (round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)) ? FALSE : TRUE;
-	   
+	   		//bp($res);
+	   		/*
+	   		 * if($rec->dpOperation == 'accrued'){
+	   			$res = TRUE;
+	   		} else {
+	   			$res = (round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)) ? FALSE : TRUE;
+	   		}
+	   		 */
 	   		return;
 	   	}
 	   	 
