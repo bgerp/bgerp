@@ -34,6 +34,12 @@ class fileman_webdrv_Generic extends core_Manager
     
     
     /**
+     * Кой може да разглежда драйвер
+     */
+    protected $canView = 'every_one';
+    
+    
+    /**
      * Връща всички табове, които ги има за съответния файл
      * 
      * @param object $fRec - Записите за файла
@@ -81,8 +87,17 @@ class fileman_webdrv_Generic extends core_Manager
      */
     function act_Text()
     {
-        // Манупулатора на файла
-        $fileHnd = Request::get('id'); 
+        // Очакваме да има права за виждане
+        $this->requireRightFor('view');
+        
+        // Манипулатора на файла
+        $fileHnd = Request::get('id');
+        
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Очакваме да има права за разглеждане на записа
+        $this->requireRightFor('view', $fRec);
         
         // Вземаме текста
         $content = fileman_Indexes::getInfoContentByFh($fileHnd, 'text');
@@ -140,8 +155,17 @@ class fileman_webdrv_Generic extends core_Manager
      */
     function act_Preview()
     {
+        // Очакваме да има права за виждане
+        $this->requireRightFor('view');
+        
         // Манипулатора на файла
         $fileHnd = Request::get('id');
+        
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Очакваме да има права за разглеждане на записа
+        $this->requireRightFor('view', $fRec);
         
         // Вземаме масива с изображенията
         $jpgArr = fileman_Indexes::getInfoContentByFh($fileHnd, 'jpg');
@@ -207,9 +231,17 @@ class fileman_webdrv_Generic extends core_Manager
      */
     function act_Barcodes()
     {
+        // Очакваме да има права за виждане
+        $this->requireRightFor('view');
         
-        // Манупулатора на файла
-        $fileHnd = Request::get('id'); 
+        // Манипулатора на файла
+        $fileHnd = Request::get('id');
+        
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Очакваме да има права за разглеждане на записа
+        $this->requireRightFor('view', $fRec);
         
         // Вземаме баркодовете
         $barcodes = fileman_Indexes::getInfoContentByFh($fileHnd, 'barcodes');
@@ -262,8 +294,17 @@ class fileman_webdrv_Generic extends core_Manager
      */
     function act_Info()
     {
-        // Манупулатора на файла
-        $fileHnd = Request::get('id'); 
+        // Очакваме да има права за виждане
+        $this->requireRightFor('view');
+        
+        // Манипулатора на файла
+        $fileHnd = Request::get('id');
+        
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Очакваме да има права за разглеждане на записа
+        $this->requireRightFor('view', $fRec);
         
         // Вземаме текста
         $content = fileman_Indexes::getInfoContentByFh($fileHnd, 'metadata');
@@ -387,8 +428,17 @@ class fileman_webdrv_Generic extends core_Manager
      */
     function act_Html()
     {
-        // Манупулатора на файла
-        $fileHnd = Request::get('id'); 
+        // Очакваме да има права за виждане
+        $this->requireRightFor('view');
+        
+        // Манипулатора на файла
+        $fileHnd = Request::get('id');
+        
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Очакваме да има права за разглеждане на записа
+        $this->requireRightFor('view', $fRec);
         
         // Вземаме текста
         $content = fileman_Indexes::getInfoContentByFh($fileHnd, 'html');
@@ -776,26 +826,26 @@ class fileman_webdrv_Generic extends core_Manager
      */
     function act_AbsorbFileInArchive()
     {
-        // Манипулатора на архива
-        $fh = $this->db->escape(Request::get('id'));
+        // Очакваме да има права за виждане
+        $this->requireRightFor('view');
+        
+        // Манипулатора на файла
+        $fileHnd = Request::get('id');
+        
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Очакваме да има права за разглеждане на записа
+        $this->requireRightFor('view', $fRec);
         
         // Индекса на файла
         $index = Request::get('index', 'int');
-        
-        // Записите за съответния архив
-        $rec = fileman_Files::fetchByFh($fh);
-        
-        // Изискваме да име права за single
-        fileman_Files::requireRightFor('single', $rec);
         
         // Опитваме се да качим файла
         try {
             
             // Опитваме се да вземем манипулатора на файла
-            $fh = static::uploadFileFromArchive($rec, Request::get('index', 'int'));
-            
-            // Ако всичко е ОК, редиректваме към сингъла на файла
-            return new Redirect(array('fileman_Files', 'single', $fh, '#' => 'fileDetail'));
+            $fileHnd = static::uploadFileFromArchive($fRec, $index);
         } catch (Exception $e) {
             
             // Ако възникне exception
@@ -806,7 +856,27 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Редиреткваме към single'а на качения файл
-        return new Redirect(array('fileman_Files', 'single', $fh, '#' => 'fileDetail'));    
+        return new Redirect(array('fileman_Files', 'single', $fileHnd, '#' => 'fileDetail'));    
+    }
+
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако ще разглежда файла трябва да има права до сингъла му
+        if ($rec && ($action == 'view')) {
+            if (!fileman_Files::haveRightFor('single', $rec, $userId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
