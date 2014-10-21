@@ -1032,7 +1032,7 @@ class crm_Companies extends core_Master
                 'num' => "F" . $rec->id,
                 'title' => $rec->name,
                 'features' => array('Държава' => $self->getVerbal($rec, 'country'),
-            						'Град' => $self->getVerbal($rec, 'place'),)
+            						'Град' => bglocal_Address::canonizePlace($self->getVerbal($rec, 'place')),)
             );
             
             if($rec->groupList){
