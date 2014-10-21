@@ -273,6 +273,7 @@ class blast_Emails extends core_Master
         $rec->state = 'active';
         $rec->activatedBy = core_Users::getCurrent();
         $rec->sendPerCall = $sendPerCall;
+        $rec->startOn = dt::now();
         self::save($rec);
         
         return $updateCnt;
@@ -339,6 +340,7 @@ class blast_Emails extends core_Master
         $query = blast_Emails::getQuery();
         $now = dt::verbal2mysql();
         $query->where("#startOn <= '{$now}'");
+        $query->orWhere("#startOn IS NULL");
         $query->where("#state = 'active'");
         $query->orWhere("#state = 'pending'");
         
