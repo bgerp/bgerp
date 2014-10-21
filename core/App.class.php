@@ -280,7 +280,7 @@ class core_App
         // Зареждаме конфигурационния файл на приложението. 
         // Ако липсва - показваме грешка.
         // Шаблон за този файл има в директорията [_docs]
-        if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
+        if ((include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
             halt('Error in boot.php: Missing configuration file: ' .
                 EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
         }
