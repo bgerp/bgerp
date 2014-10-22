@@ -2830,9 +2830,9 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 	$('span.countdown').each(function() {
 		var text = $(this).text();
 		var res = text.split(":");
-		var hour = res[0];
-		var min = parseInt(res[1]);
-		var sec =  parseInt(res[2]);
+		var hour =  parseInt(res[0],10);
+		var min = parseInt(res[1],10);
+		var sec =  parseInt(res[2],10);
 		
 		if(!(hour == 0 && min == 0 && sec==0 )) {
 			sec--;
@@ -2858,6 +2858,10 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 			}
 			
 			//добавяме водещи нули ако е необходимо
+			if(hour < 10){
+				hour = "0" +  hour;
+			}
+			
 			if(sec < 10){
 				sec = "0" +  sec;
 			}
