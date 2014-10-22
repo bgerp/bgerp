@@ -487,13 +487,13 @@ class type_Richtext extends type_Blob
             while(($oldLevel = count($state)) > $level) {  
                 $oldType = $state[$oldLevel-1]; 
                 unset($state[$oldLevel-1]);
-                $res .= "</{$oldType}>";
+                $res .= "</{$oldType}>" . "<br>";
             }
 
             if($level == $oldLevel) {
                 if($type != ($oldType = $state[$oldLevel-1])) {
                     if($oldType) {  
-                        $res .= "</{$oldType}>";
+                        $res .= "</{$oldType}>" . "<br>";
                     }
                     if($type) {
                         $res .= "<{$type}>";
