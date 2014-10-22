@@ -18,7 +18,7 @@ class bgerp_plg_FirstLogin extends core_Plugin
     /**
      * Прихващаме всяко логване в системата
      */
-    function on_AfterLogin($mvc, $userRec, $refresh)
+    function on_AfterLogin($mvc, $userRec, $inputs, $refresh)
     {
         // Ако не се логва, а се рефрешва потребителя
         if ($refresh) return ;
