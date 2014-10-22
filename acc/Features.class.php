@@ -288,7 +288,7 @@ class acc_Features extends core_Manager
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if($mvc->haveRightFor('sync')){
-    		$data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => TRUE), NULL, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/view.png,title=Ресинхронизиране на свойствата на перата');
+    		$data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => TRUE), NULL, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
     	}
     }
     
