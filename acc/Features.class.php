@@ -3,8 +3,7 @@
 
 
 /**
- * Регистър за свойства на счетоводните пера. Записите в него се синхронизират с перото
- * след негова промяна
+ * Регистър за свойства на счетоводните пера. Записите в него се синхронизират с перото след негова промяна
  *
  * @category  bgerp
  * @package   acc
@@ -20,74 +19,80 @@ class acc_Features extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Свойства";
+    public $title = "Свойства";
     
     
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'acc_WrapperSettings, plg_State2, plg_Search,
+    public $loadList = 'acc_WrapperSettings, plg_State2, plg_Search,
                      plg_Created, plg_Sorting, plg_ExportCsv';
     
     
     /**
      * Активен таб на менюто
      */
-    var $menuPage = 'Счетоводство:Настройки';
+    public $menuPage = 'Счетоводство:Настройки';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,acc';
+    public $canList = 'ceo,acc';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, itemId, feature, value, state";
+    public $listFields = "id, itemId, feature, value, state";
     
     
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Свойство';
+    public $singleTitle = 'Свойство';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'acc, ceo';
+    public $canRead = 'acc, ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'no_one';
+    public $canWrite = 'no_one';
     
     
     /**
      * Кой може да променя състоянието на валутата
      */
-    var $canChangestate = 'no_one';
+    public $canChangestate = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой може да го редактира?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
+    
+    
+    /**
+     * Кой може да го ресинхронизира?
+     */
+    public $canSync = 'ceo,accMaster';
     
     
     /**
      * Полета за търсене
      */
-    var $searchFields = 'itemId, feature, value';
+    public $searchFields = 'itemId, feature, value';
     
     /**
      * Брой записи на страница
@@ -111,7 +116,7 @@ class acc_Features extends core_Manager
     /**
      * Подредба на записите
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search';
@@ -159,6 +164,7 @@ class acc_Features extends core_Manager
                 if(empty($value)) continue;
                 
                 $value = str_replace('&nbsp;', ' ', $value);
+                $update = TRUE;
                 
                 // Подготвяме записа за добавяне/обновяване
                 $rec = (object)array('itemId' => $itemId, 'feature' => $feat, 'value' => $value, 'state' => 'active', 'lastUpdated' => $now);
@@ -166,11 +172,17 @@ class acc_Features extends core_Manager
                 // Ако не е уникален, значи ъпдейтваме свойство
                 if(!$self->isUnique($rec, $fields, $exRec)){
                     $rec->id = $exRec->id;
+                    
+                    // Ако има такъв запис и той е със същата стойност не обновяваме
+                    if($value == $exRec->value){
+                    	$update = FALSE;
+                    }
                 }
                 
-                //@TODO ДА НЕ СЕ ЗАПИСВА АКО СА СЪЩИТЕ
-                // Запис/обновяване
-                $self->save($rec);
+                // Обновяване при нужда
+                if($update){
+                	$self->save($rec);
+                }
                 
                 // Запомняме всички обновени свойства
                 $updated[] = $rec->id;
@@ -209,7 +221,7 @@ class acc_Features extends core_Manager
     /**
      * Обновяване на свойствата на перото, ако обекта е перо
      */
-    public function syncFeatures($classId, $objectId)
+    public static function syncFeatures($classId, $objectId)
     {
         $itemId = acc_Items::fetchItem($classId, $objectId)->id;
         
@@ -267,5 +279,45 @@ class acc_Features extends core_Manager
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if($mvc->haveRightFor('sync')){
+    		$data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => TRUE), NULL, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/view.png,title=Ресинхронизиране на свойствата на перата');
+    	}
+    }
+    
+    
+    /**
+     * Синхронизиране на таблицата със свойствата
+     */
+    public function act_Sync()
+    {
+    	$this->requireRightFor('sync');
+    	
+    	$items = array();
+    	
+    	// Свойствата на кои пера са записани в таблицата
+    	$query = $this->getQuery();
+    	$query->show("itemId");
+    	$query->groupBy('itemId');
+    	while($rec = $query->fetch()){
+    		$items[$rec->itemId] = $rec->itemId;
+    	}
+    	
+    	// За всяко перо синхронизираме свойствата му
+    	if(count($items)){
+    		foreach ($items as $itemId){
+    			self::syncItem($itemId);
+    		}
+    	}
+    	
+    	// Редирект към списъка на свойствата
+    	return Redirect(array($this, 'list'), FALSE, tr('Всички свойства са синхронизирани успешно'));
     }
 }
