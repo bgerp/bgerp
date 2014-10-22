@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'acc_Lists' -
+ * Клас 'acc_Lists' - Счетоводни номенклатури
  *
  *
  * @category  bgerp
@@ -12,7 +12,6 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class acc_Lists extends core_Manager {
     
@@ -89,7 +88,7 @@ class acc_Lists extends core_Manager {
         $this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none');
         
         // Последно използване
-        $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=none');
+        $this->FLD('lastUseOn', 'datetime(format=smartTime)', 'caption=Последно,input=none');
         
         // Състояние на номенклатурата
         $this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none');
@@ -118,7 +117,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изчислява полето 'caption', като конкатенира номера с името на номенклатурата
      */
-    static function on_CalcCaption($mvc, $rec)
+    public static function on_CalcCaption($mvc, $rec)
     {
         if (!$rec->name) {
             $rec->name = $mvc::fetchField($rec->id, 'name');
@@ -134,7 +133,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изчислява полето 'nameLink', като име с хипервръзка към перата от тази номенклатура
      */
-    static function on_CalcNameLink($mvc, $rec)
+    public static function on_CalcNameLink($mvc, $rec)
     {
         $name = $mvc->getVerbal($rec, 'name');
         $rec->nameLink = $name;
@@ -148,7 +147,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изчислява полето 'title'
      */
-    static function on_CalcTitle($mvc, $rec)
+    public static function on_CalcTitle($mvc, $rec)
     {
         $name = $mvc->getVerbal($rec, 'name');
         $num = $mvc->getVerbal($rec, 'num');
@@ -160,7 +159,7 @@ class acc_Lists extends core_Manager {
     /**
      * Извлича запис по име
      */
-    static function fetchByName($name)
+    public static function fetchByName($name)
     {
         return self::fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name));
     }
@@ -172,7 +171,7 @@ class acc_Lists extends core_Manager {
      * @param string $systemId
      * @return stdClass
      */
-    static public function fetchBySystemId($systemId)
+    public static function fetchBySystemId($systemId)
     {
         return self::fetch(array ("#systemId = '[#1#]'", $systemId));
     }
@@ -181,7 +180,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изпълнява се преди запис на номенклатурата
      */
-    static function on_BeforeSave($mvc, $id, $rec)
+    public static function on_BeforeSave($mvc, $id, $rec)
     {
         if (!$rec->id) {
             $rec->itemCount = 0;
@@ -192,7 +191,7 @@ class acc_Lists extends core_Manager {
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL)
     {
         if (($action == 'delete')) {
             
@@ -213,7 +212,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изпълнява се след подготовка на формата за редактиране
      */
-    static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         if (($data->form->rec->id && $data->form->rec->itemsCnt) || $data->form->rec->systemId) {
             
@@ -231,7 +230,7 @@ class acc_Lists extends core_Manager {
      * Предизвиква обновяване на обобщената информация за
      * номенклатура с посоченото id
      */
-    static function updateSummary($id)
+    public static function updateSummary($id)
     {
         expect($rec = self::fetch($id), $id);
         
@@ -239,8 +238,16 @@ class acc_Lists extends core_Manager {
         $itemsQuery->where("#state = 'active'");
         $itemsQuery->where("#lists LIKE '%|{$id}|%'");
         
+        // Обновяваме броя на перата в номенклатурата
         $rec->itemsCnt = $itemsQuery->count();
         
+        // Намираме кога последно е използвано перо от номенклатурата
+        $itemsQuery->XPR('lastused', 'datetime', 'max(#lastUseOn)');
+        if($lastuse = $itemsQuery->fetch()->lastused){
+        	$rec->lastUseOn = $lastuse;
+        }
+        
+        // Обновяваме информацията за номенклатурата
         self::save($rec);
     }
     
@@ -248,7 +255,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изпълнява се преди подготовката на показваните редове
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('num');
     }
@@ -262,7 +269,7 @@ class acc_Lists extends core_Manager {
      * @return array ключове - ид-та на номенклатурите, в които е регистриран обекта,
      * стойности - наименования на номенклатурите.
      */
-    static function getItemLists($class, $objectId)
+    public static function getItemLists($class, $objectId)
     {
         $result = array ();
         
@@ -289,7 +296,7 @@ class acc_Lists extends core_Manager {
      * @return array ключове - ид-та на номенклатурите, в които е регистриран обекта,
      * стойности - наименования на номенклатурите.
      */
-    static function getPossibleLists($class)
+    public static function getPossibleLists($class)
     {
         $result = array ();
         
@@ -331,7 +338,7 @@ class acc_Lists extends core_Manager {
      * @param int $objectId
      * @return int ид на перото, съответстващо на обекта в тази номенклатура
      */
-    static function addItem($listId, $class, $objectId)
+    public static function addItem($listId, $class, $objectId)
     {
         if ($itemRec = self::fetchItem($class, $objectId)) {
             $lists = keylist::addKey($itemRec->lists, $listId);
@@ -341,6 +348,7 @@ class acc_Lists extends core_Manager {
         
         return self::updateItem($class, $objectId, $lists);
     }
+    
     
     /**
      * Конвертира списък от номенклатури към масив.
@@ -397,7 +405,7 @@ class acc_Lists extends core_Manager {
      * Ако перото липсва - създава се
      * @return int ид на обновеното перо или null, ако няма такова перо
      */
-    static function updateItem($class, $objectId, $lists = NULL, $forced = TRUE)
+    public static function updateItem($class, $objectId, $lists = NULL, $forced = TRUE)
     {
         // Нормализираме подадения списък от номенклатури
         $lists = self::listsToArray($lists);
@@ -477,7 +485,7 @@ class acc_Lists extends core_Manager {
      * @param int $objectId
      * @return boolean true при успех, false при грешка, null при липсващо перо
      */
-    static function removeItem($class, $objectId)
+    public static function removeItem($class, $objectId)
     {
         $result = NULL;
         
@@ -511,7 +519,7 @@ class acc_Lists extends core_Manager {
     /**
      * Дали посочената номенклатура има размерност
      */
-    static public function isDimensional($id)
+    public static function isDimensional($id)
     {
         $result =  ('yes' == self::fetchField($id, 'isDimensional'));
         
@@ -527,7 +535,7 @@ class acc_Lists extends core_Manager {
      * @return mixed 1/2/3/NULL - Позицията на която е номенклатурата или
      * NULL ако не се среща
      */
-    static function getPosition($accSysId, $iface)
+    public static function getPosition($accSysId, $iface)
     {
         
         // Ако е подаден Ид на интерфейса очакваме да има такъв запис
@@ -595,7 +603,7 @@ class acc_Lists extends core_Manager {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function loadSetupData()
+    public function loadSetupData()
     {
         // Подготвяме пътя до файла с данните 
         $file = "acc/csv/Lists.csv";
