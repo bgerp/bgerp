@@ -1,0 +1,3 @@
+Моля променете данните за [link=/crm_Companies/list/]Моята Фирма ООД[/link].
+Пускане на [link=http://www.bgerp.com/Bg/Rachno-instalirane/]Cron[/link].
+За повече информация [link=http://www.bgerp.com/Bg/Kakvo-e-bgERP/]Документация[/link].

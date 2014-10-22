@@ -202,6 +202,7 @@ class core_Setup extends core_ProtoSetup {
         'core_Plugins',
         'core_Packs',
         'core_Cron',
+        'core_CallOnTime',
         'core_Logs',
         'core_Lg',
         'core_Roles',
