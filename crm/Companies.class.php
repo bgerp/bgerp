@@ -894,7 +894,7 @@ class crm_Companies extends core_Master
             $eRec->name = $expertaName;
             $eRec->groupList = "|". crm_Groups::fetchField("#name = 'Доставчици'", 'id') . "|";
             $eRec->country = drdata_Countries::fetchField("#commonNameBg = 'България'");
-            $eRec->pCore = '5000';
+            $eRec->pCode = '5000';
             $eRec->place = 'гр. В. Търново';
             $eRec->address = 'ул. П. Евтимий №7';
             $eRec->website = 'http://experta.bg';
