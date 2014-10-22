@@ -1621,6 +1621,25 @@ function preventDoubleSubmission(id) {
 
 
 /*
+ * Функция за предпазване от двоен клик
+ */
+var lastClickTime, timeSinceClick;
+function preventDoubleClick() {
+	if (lastClickTime) {
+		timeSinceClick = jQuery.now() - lastClickTime;
+	}
+	
+	if ((typeof lastClickTime == 'undefined') || ((typeof timeSinceClick != 'undefined') && timeSinceClick > 3000)) {
+		lastClickTime = jQuery.now();
+	    return true;
+	}
+	
+	// Блокиране на клика,  за определено време
+	return false;
+}
+
+
+/*
  * Функция за подравняване на числа по десетичния знак
  */
 function tableElemsFractionsWidth() {
