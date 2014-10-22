@@ -143,6 +143,7 @@ class cat_type_Uom extends type_Varchar {
         unset($options['']);
 
 		$inputRight = " &nbsp;" . ht::createSmartSelect($options, $name . '[rP]', $convObject->measure);
+		$inputRight = "<span style='vertical-align: top'>" . $inputRight . "</span>";
 		
 		// Добавяне на дясната част към лявата на полето
         $inputLeft->append($inputRight);

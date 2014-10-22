@@ -754,12 +754,13 @@ if ($step == 'setup') {
 
     set_time_limit(1000);
 
-    $calibrate = 1000;
+    $calibrate = 100;
     $totalRecords = 169700;
-    $totalTables = 304;
-    $totalColumns = 3870;
+//    $totalTables = 304;
+    $totalColumns = 3852;
     $percents = $persentsBase = $persentsLog = 0;
-    $total = $totalTables*$calibrate + $totalRecords;
+//    $total = $totalTables*$calibrate + $totalRecords;
+    $total = $totalColumns*$calibrate + $totalRecords;
     // Пращаме стиловете
     echo ($texts['styles']);
 //    contentFlush ($texts['styles']);
@@ -819,7 +820,8 @@ if ($step == 'setup') {
         list($numTables, $numRows, $numColumns) = dataBaseStat(); 
 
         // От базата идват 80% от прогрес бара
-        $percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
+//        $percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
+        $percentsBase = round(($numRows+$calibrate*$numColumns*(4/5))/$total,2)*100;
         
         // Изчитаме лог-а
         $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
@@ -858,8 +860,10 @@ if ($step == 'setup') {
         }
 //    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog) || $logModified);
 //    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog));
-    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns);
-     
+//    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns);
+//    } while ($numRows < $totalRecords && $numColumns <= $totalColumns);
+        } while (setupProcess());
+    
     if ($percents < 100) {
         $percents = 100;
         $width = 4.5*$percents;
@@ -934,9 +938,13 @@ if($step == start) {
         file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
     }
     
+    $Packs = cls::get('core_Users');
+    $Packs->setupMVC();
+    
     $Packs = cls::get('core_Packs');
     $Packs->setupMVC();
     $Packs->checkSetup();
+    
     // за сега стартираме пакета bgERP за пълно обновяване
     $Packs->setupPack("bgerp");
 

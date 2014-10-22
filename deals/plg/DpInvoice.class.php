@@ -159,7 +159,7 @@ class deals_plg_DpInvoice extends core_Plugin
         		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 6);
         		
 	        	if($rec->dpAmount > $downpayment){
-	            	$form->setError('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
+	            	$form->setWarning('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
 	            }
 	            
         		if($rec->dpAmount < 0){
@@ -182,6 +182,11 @@ class deals_plg_DpInvoice extends core_Plugin
         	
         	if($rec->dpOperation){
         		$rec->dpAmount = $rec->dpAmount * $rec->rate;
+        		
+        		// Обновяваме данните на мастър-записа при редакция
+        		if(isset($rec->id)){
+        			$mvc->updateMaster($rec, FALSE);
+        		}
         	}
         }
     }

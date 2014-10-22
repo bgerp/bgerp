@@ -208,10 +208,11 @@ class blast_Emails extends core_Master
                                     cp1251=Windows Cyrillic|* (CP1251),
                                     koi8-r=Rus Cyrillic|* (KOI8-R),
                                     cp2152=Western|* (CP1252),
-                                    ascii=Латиница|* (ASCII))', 'caption=Знаци, changable');
+                                    ascii=Латиница|* (ASCII))', 'caption=Знаци, changable,notNull');
         
         $this->FLD('attachments', 'set(files=Файловете,documents=Документите)', 'caption=Прикачи, changable');
-        $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable');
+        $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
+        
         $this->FNC('srcLink', 'varchar', 'caption=Списък');
     }
     
@@ -273,6 +274,7 @@ class blast_Emails extends core_Master
         $rec->state = 'active';
         $rec->activatedBy = core_Users::getCurrent();
         $rec->sendPerCall = $sendPerCall;
+        $rec->startOn = dt::now();
         self::save($rec);
         
         return $updateCnt;
@@ -339,6 +341,7 @@ class blast_Emails extends core_Master
         $query = blast_Emails::getQuery();
         $now = dt::verbal2mysql();
         $query->where("#startOn <= '{$now}'");
+        $query->orWhere("#startOn IS NULL");
         $query->where("#state = 'active'");
         $query->orWhere("#state = 'pending'");
         

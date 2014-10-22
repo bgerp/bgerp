@@ -54,6 +54,9 @@ class bglocal_Address extends core_MVC
         "dupnica" => "Дупница",
         "dupnitsa" => "Дупница",
         "dzhebel" => "Джебел",
+    	"dolna oryahovitsa" => "Долна Оряховица",
+    	"d oryahovitsa" => "Долна Оряховица",
+    	"debelets" => "Дебелец",
         "elena" => "Елена",
         "elhovo" => "Елхово",
         "etropole" => "Етрополе",
@@ -67,6 +70,7 @@ class bglocal_Address extends core_MVC
         "glavnica" => "Главница",
         "glavnitsa" => "Главница",
         "glavniza" => "Главница",
+    	"gabrovo" => "Габрово",
         "goce delchev" => "Гоце Делчев",
         "gorna oriahovitsa" => "Г. Оряховица",
         "gorna oryahovitsa" => "Г. Оряховица",
@@ -117,6 +121,7 @@ class bglocal_Address extends core_MVC
         "nova zagora" => "Нова загора",
         "oriahovo" => "Оряхово",
         "oryahovo" => "Оряхово",
+    	"omurtag" => "Омуртаг",
         "p trambesh" => "П. Трамбеш",
         "panagyurishte" => "Панагюрище",
         "paris" => "Париж",
@@ -162,11 +167,13 @@ class bglocal_Address extends core_MVC
         "sofiq" => "София",
         "sofya" => "София",
         "sopot" => "Сопот",
+    	"sevlievo" => "Севлиево",
         "sozopol" => "Созопол",
         "st zagora" => "Ст. Загора",
         "stara zagora" => "Ст. Загора",
         "straldzha" => "Стралджа",
         "stralja" => "Стралджа",
+    	"strajitsa" => "Стражица",
         "stz" => "Ст. Загора",
         "svilengrad" => "Свиленград",
         "svishtov" => "Свищов",
@@ -205,7 +212,7 @@ class bglocal_Address extends core_MVC
         "zarevo" => "Царево",
         "zlatica" => "Златица",
         "zlatitsa" => "Златица",
-        "zlatograd" => "Златоград"
+        "zlatograd" => "Златоград",
     );
     
     
@@ -229,7 +236,7 @@ class bglocal_Address extends core_MVC
      */
     function act_Test()
     {
-        $form = cls::get('core_Form');
+    	$form = cls::get('core_Form');
         
         $form->FNC('text' , 'text' , 'caption=Текст,input');
         

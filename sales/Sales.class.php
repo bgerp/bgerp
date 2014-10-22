@@ -461,7 +461,10 @@ class sales_Sales extends deals_DealMaster
     		}
     		
     		$nRec->price = $dRec->packPrice;
-    		$nRec->vatGroup = cls::get($dRec->classId)->getParam($dRec->productId, 'vatGroup');
+    		if($pInfo->productRec->vatGroup){
+    			$nRec->vatGroup = $pInfo->productRec->vatGroup;
+    		}
+    		
     		$nRec->name = $pInfo->productRec->name;
     		
     		$data->products[] = $nRec;

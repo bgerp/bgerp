@@ -3748,7 +3748,7 @@ body.narrow {
             page-break-after: avoid;
         }
     }
-    .footer-notes{
+    .footer-notes, .print-block{
         page-break-inside: avoid;
     }
 	#statuses, .toast-container{

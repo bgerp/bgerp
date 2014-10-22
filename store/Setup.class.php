@@ -133,7 +133,7 @@ class store_Setup extends core_ProtoSetup
     function loadSetupData()
     {
         $res = parent::loadSetupData();
-    	// Ако няма посочени от потребителя сметки а синхронизация
+    	// Ако няма посочени от потребителя сметки за синхронизация
     	$config = core_Packs::getConfig('store');
     	if(strlen($config->STORE_ACC_ACCOUNTS) === 0){
     		$accArray = array();

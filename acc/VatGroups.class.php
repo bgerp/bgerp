@@ -71,7 +71,7 @@ class acc_VatGroups extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title,countryId,vat,createdOn,createdBy,modifiedOn,modifiedBy,state';
+    public $listFields = 'tools=Пулт,title,vat,createdOn,createdBy,modifiedOn,modifiedBy,state';
     
     
     /**
@@ -98,12 +98,12 @@ class acc_VatGroups extends core_Manager
     {
     	// Информация за нишката
     	$this->FLD('title', 'varchar(3)', 'caption=Заглавие,mandatory');
-    	$this->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory');
+    	//$this->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory');
     	$this->FLD('vat', 'percent', 'caption=ДДС,mandatory');
-    	$this->FLD('sysId', 'varchar(3)', 'input=none');
+    	$this->FLD('sysId', 'varchar(3)', 'mandatory,caption=Систем ID');
     	
     	// Уникален индекс
-    	$this->setDbUnique('title,countryId');
+    	$this->setDbUnique('title');
     }	
    
     
@@ -114,22 +114,6 @@ class acc_VatGroups extends core_Manager
     {
     	$form = &$data->form;
     	$form->setSuggestions('vat', array('' => '') + arr::make('0 %,7 %,9 %,20 %', TRUE));
-    	$conf = core_Packs::getConfig('crm');
-    	
-    	// По подразбиране е държавата на "Моята фирма"
-    	$ownCountryId = drdata_Countries::getIdByName($conf->BGERP_OWN_COMPANY_COUNTRY);
-    	$form->setDefault('countryId', $ownCountryId);
-    }
-    
-    
-    /**
-     * Изпълнява се преди импортирването на данните
-     */
-    public static function on_BeforeImportRec($mvc, &$rec)
-    {
-    	if (isset($rec->csv_country)){
-    		$rec->countryId = drdata_Countries::fetchField("#commonName = '{$rec->csv_country}'", 'id');
-    	}
     }
     
     
@@ -144,9 +128,8 @@ class acc_VatGroups extends core_Manager
     	// Кои колонки ще вкарваме
     	$fields = array(
     			0 => "title",
-    			1 => "csv_country",
-    			2 => "vat",
-    			3 => "sysId",
+    			1 => "vat",
+    			2 => "sysId",
     	);
     
     	// Импортираме данните от CSV файла.
@@ -157,5 +140,23 @@ class acc_VatGroups extends core_Manager
     	$res .= $cntObj->html;
     
     	return $res;
+    }
+    
+    
+    /**
+     * Подготвя опциите за селектиране
+     */
+    public function makeArray4Select_($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
+    {
+    	$query = self::getQuery();
+    	$options = array();
+    	while($rec = $query->fetch($where)){
+    		$title = self::getTitleById($rec->{$index}) . " - " . self::getVerbal($rec, 'vat');
+    		$title = str_replace("&nbsp;", " ", $title);
+    		
+    		$options[$rec->{$index}] = $title;
+    	}
+    	 
+    	return $options;
     }
 }

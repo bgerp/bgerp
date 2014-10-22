@@ -54,6 +54,7 @@ class cat_Setup extends core_ProtoSetup
             'cat_products_Params',
             'cat_products_Packagings',
             'cat_products_Files',
+    		'cat_products_VatGroups',
             'cat_Params',
             'cat_Packagings',
         );

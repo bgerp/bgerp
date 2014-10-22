@@ -54,6 +54,12 @@ class cond_Parameters extends core_Master
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    var $canEditsysdata = 'ceo,cond';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'ceo,cond';

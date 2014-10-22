@@ -950,7 +950,7 @@ class crm_Persons extends core_Master
                 'num' => "P" . $rec->id,
                 'title' => $rec->name,
                 'features' => array('Държава' => static::getVerbal($rec, 'country'),
-            						'Град' => static::getVerbal($rec, 'place'),)
+            						'Град' => bglocal_Address::canonizePlace(static::getVerbal($rec, 'place')))
             );
             
         	if($rec->groupList){
