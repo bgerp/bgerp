@@ -79,4 +79,16 @@ class doc_plg_TplManagerDetail extends core_Plugin
     	$lang = doc_TplManager::fetchField($data->masterData->rec->template, 'lang');
     	core_Lg::push($lang);
     }
+    
+    
+    /**
+     * След подготовка на записите
+     */
+    public static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	// Ако има скриптов клас за шаблона, подаваме му данните 
+    	if($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template)){
+    		$Script->modifyDetailData($mvc, $data);
+    	}
+    }
 }

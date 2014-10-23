@@ -212,6 +212,11 @@ class doc_plg_TplManager extends core_Plugin
     				}
     			}
     		}
+    		
+    		// Ако има скриптов клас за шаблона, подаваме му данните
+    		if($Script = doc_TplManager::getTplScriptClass($data->rec->template)){
+    			$Script->modifyMasterData($mvc, $data);
+    		}
     	}
     }
 }

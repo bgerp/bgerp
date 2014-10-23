@@ -38,7 +38,8 @@ abstract class doc_TplScript {
 	 * @param stdClass $data - данни
 	 * @return void
 	 */
-	public function modifyMasterData(core_Mvc $mvc, &$data){
+	public function modifyMasterData(core_Mvc $mvc, &$data)
+	{
 		
 	}
 	
@@ -50,7 +51,8 @@ abstract class doc_TplScript {
 	 * @param stdClass $data - данни
 	 * @return void
 	 */
-	public function modifyDetailData(core_Mvc $detail, &$data){
+	public function modifyDetailData(core_Mvc $detail, &$data)
+	{
 	
 	}
 }
