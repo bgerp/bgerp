@@ -365,6 +365,11 @@ abstract class deals_InvoiceMaster extends core_Master
     		unset($invArr[$key]);
     	}
     
+    	if($form->rec->type == 'credit_note'){
+    		unset($invArr['dueDate']);
+    		$form->setField('dueDate', 'input=none');
+    	}
+    	
     	// Копиране на повечето от полетата на фактурата
     	foreach($invArr as $field => $value){
     		$form->setDefault($field, $value);
@@ -379,7 +384,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$form->setField('deliveryId', 'input=none');
     	$form->setField('deliveryPlaceId', 'input=none');
     
-    	foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId') as $name){
+    	foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'dueDate') as $name){
     		if($form->rec->$name){
     			$form->setReadOnly($name);
     		}
@@ -701,16 +706,9 @@ abstract class deals_InvoiceMaster extends core_Master
     			$form->setField('deliveryPlaceId', 'input=hidden');
     		}
     		
-    		// Намира се датата в реда фактура/експедиция/сделка
-    		foreach (array('invoicedValior', 'shippedValior', 'agreedValior') as $asp){
-    			if($date = $aggregateInfo->get($asp)){
-    				break;
-    			}
-    		}
-    		
     		// Извлича се платежния план
     		if($form->rec->paymentMethodId){
-    			$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $aggregateInfo->get('amount'), $date);
+    			$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
     		}
     		
     		if(isset($plan) && isset($plan['deadlineForBalancePayment'])){
