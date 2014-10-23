@@ -3596,9 +3596,17 @@ body.narrow {
         min-width: 0;
         max-width: 840px;
     }
-    .blankImage img, .qrcode img{
+    .blankImage img, .qrcode img {
         width: 100%;
         height: auto !important;
+    }
+    .blankImage img {
+        max-width: 750px;
+        max-height: 87px;
+    }
+    .qrcode img{
+        max-width: 87px;
+        max-height: 87px;
     }
     .footerDocInfo{
         display: table-row;

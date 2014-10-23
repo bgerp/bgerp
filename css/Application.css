@@ -3379,6 +3379,12 @@ only screen and (max-width: 320px) {
   .external .qrcode img {
     width: 100%;
     height: auto !important; }
+  .external .blankImage img {
+    max-width: 750px;
+    max-height: 87px; }
+  .external .qrcode img {
+    max-width: 87px;
+    max-height: 87px; }
   .external .footerDocInfo {
     display: table-row; }
   .external .footerDocBlock {
