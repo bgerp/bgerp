@@ -388,7 +388,7 @@ class core_App
     public static function shutdown($sendOutput = TRUE)
     {
         
-        if ($sendOutput) {
+        if (!static::isDebug() && $sendOutput) {
             self::flushAndClose();
         }
 

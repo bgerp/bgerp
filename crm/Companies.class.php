@@ -901,7 +901,7 @@ class crm_Companies extends core_Master
             $eRec->tel = '062/611-539, 062/611-540';
             $eRec->vatId = 'BG104066415';
             $eRec->email = 'team@experta.bg';
-            $eRec->info = 'Консултант за внедряване';
+            $eRec->info = 'Разработчик и Консултант за внедряване на bgERP';
             
             if (self::save($eRec)) {
                 $html .= "<li style='color:green'>Добавена е фирмата '{$expertaName}'</li>";
