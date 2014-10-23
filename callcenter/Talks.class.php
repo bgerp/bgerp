@@ -1132,6 +1132,8 @@ class callcenter_Talks extends core_Master
                 // Премахваме нулите и + от началото на номера
                 $number = ltrim($number, '0+');
                 
+                $number = str_replace('*', '%', $number);
+                
                 // Търсим във външните и вътрешните номера
                 $data->query->where(array("#externalNum LIKE '%[#1#]'", $number));
                 $data->query->orWhere(array("#internalNum LIKE '%[#1#]'", $number));
