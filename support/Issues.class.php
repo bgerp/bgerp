@@ -158,6 +158,12 @@ class support_Issues extends core_Master
      * 
      */
     var $cloneFields = 'componentId, typeId, title, description, priority';
+    
+    
+    /**
+     * Кой има право да клонира?
+     */
+    protected $canClone = 'powerUser';
 	
     
     /**

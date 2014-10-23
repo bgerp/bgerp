@@ -34,6 +34,12 @@ class blast_Lists extends core_Master
     
     
     /**
+     * Кой има право да клонира?
+     */
+    protected $canClone = 'ceo, blast, admin';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg, plg_Search';
