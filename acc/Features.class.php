@@ -294,13 +294,23 @@ class acc_Features extends core_Manager
     
     
     /**
-     * Синхронизиране на таблицата със свойствата
+     * Синхронизиране на таблицата със свойствата по крон
      */
-    public function act_Sync()
+    public function cron_SyncFeatures()
     {
-    	$this->requireRightFor('sync');
-    	
+    	// Синхронизира всички свойства на перата
+    	$this->syncAllItems();
+    }
+    
+    
+    /**
+     * Синхронизира всички пера
+     */
+    private function syncAllItems()
+    {
     	$items = array();
+    	 
+    	core_Debug::$isLogging = FALSE;
     	
     	// Свойствата на кои пера са записани в таблицата
     	$query = $this->getQuery();
@@ -310,12 +320,28 @@ class acc_Features extends core_Manager
     		$items[$rec->itemId] = $rec->itemId;
     	}
     	
-    	// За всяко перо синхронизираме свойствата му
+    	// Ако има пера
     	if(count($items)){
     		foreach ($items as $itemId){
+    			
+    			// За всяко перо синхронизираме свойствата му
     			self::syncItem($itemId);
     		}
     	}
+    	
+    	core_Debug::$isLogging = TRUE;
+    }
+    
+    
+    /**
+     * Синхронизиране на таблицата със свойствата
+     */
+    public function act_Sync()
+    {
+    	$this->requireRightFor('sync');
+    	
+    	// Синхронизира всички свойства на перата
+    	$this->syncAllItems();
     	
     	// Редирект към списъка на свойствата
     	return Redirect(array($this, 'list'), FALSE, tr('Всички свойства са синхронизирани успешно'));
