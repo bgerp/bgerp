@@ -226,31 +226,25 @@ class hr_EmployeeContracts extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        if ($data->query->fetch()) {
+        $data->listFilter->fields['departmentId']->caption = 'Отдел';
+        $data->listFilter->fields['professionId']->caption = 'Професия';
+        $data->listFilter->fields['departmentId']->mandatory = NULL;
+        $data->listFilter->fields['positionId']->mandatory = NULL;
             
-            $data->listFilter->fields['departmentId']->caption = 'Отдел';
-            $data->listFilter->fields['professionId']->caption = 'Професия';
-            $data->listFilter->fields['departmentId']->mandatory = NULL;
-            $data->listFilter->fields['positionId']->mandatory = NULL;
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields .= ' ,departmentId, professionId';
             
-            // Показваме само това поле. Иначе и другите полета 
-            // на модела ще се появят
-            $data->listFilter->showFields .= ' ,departmentId, professionId';
+        $data->listFilter->input();
             
-            $data->listFilter->input();
-            
-            if($filterRec = $data->listFilter->rec){
-                if($filterRec->departmentId){
-                    $data->query->where(array("#departmentId = '[#1#]'", $filterRec->departmentId));
-                }
-                
-                if($filterRec->positionId){
-                    $data->query->where(array("#positionId = '[#1#]'", $filterRec->positionId));
-                }
+        if($filterRec = $data->listFilter->rec){
+        	if($filterRec->departmentId){
+            	$data->query->where(array("#departmentId = '[#1#]'", $filterRec->departmentId));
             }
-        } else {
-            
-            return;
+                
+            if($filterRec->positionId){
+            	$data->query->where(array("#positionId = '[#1#]'", $filterRec->positionId));
+            }
         }
     }
     
@@ -606,12 +600,45 @@ class hr_EmployeeContracts extends core_Master
         }
     }
     
+	/**
+     * Валидиране на полето 'dateId' - дата на трудовия договор
+     * Предупреждение ако има трудов договор с по-нова дата (само при update!)
+     */
+    public static function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
+    {
+    	$newDate = $mvc->getNewestContractDate();
+    	if($newDate > $rec->dateId) {
+    		
+    		// Най-новият валиден трудов договор в БД е по-нов от настоящият.
+    		$form->setError('dateId',
+    				'Не може да се запише трудов договор с дата по-малка от последния активен трудов договор (' .
+    				dt::mysql2verbal($getNewestContractRec->date, 'd.m.y') .
+    				')'
+    		);
+    	}
+    }
+    
     /**
      * @todo Чака за документация...
      */
     static function act_Test()
     {
         $id = 2;
+    }
+    
+    
+	/**
+     * Връща датата на последната ф-ра
+     */
+    protected function getNewestContractDate()
+    {
+    	$query = $this->getQuery();
+    	$query->where("#state = 'active'");
+    	$query->orderBy('dateId', 'DESC');
+    	$query->limit(1);
+    	$lastRec = $query->fetch();
+    	
+    	return $lastRec->dateId;
     }
     
     
