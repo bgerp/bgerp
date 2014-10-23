@@ -3356,6 +3356,9 @@ only screen and (max-width: 320px) {
   .footerDocBlock a {
     color: #333333 !important; }
 
+.footerDocTable {
+  display: none; }
+
 /*
  * край на queries
  */
@@ -3380,6 +3383,8 @@ only screen and (max-width: 320px) {
     display: table-row; }
   .external .footerDocBlock {
     display: block; }
+  .external .footerDocTable {
+    display: table; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -3556,7 +3561,10 @@ only screen and (max-width: 320px) {
     border-top: 1px solid #666666 !important; }
 
   .footerDocInfo {
-    display: table-row !important; } }
+    display: table-row !important; }
+
+  .footerDocTable {
+    display: table !important; } }
 
   .printing .docBgIcon {
     padding: 0 !important;

@@ -3576,6 +3576,10 @@ body.narrow {
         color:#333 !important;
     }
 }
+
+.footerDocTable {
+	display: none;
+}
 /*край на queries*/
 
 .external {
@@ -3601,6 +3605,9 @@ body.narrow {
     }
     .footerDocBlock{
         display: block;
+    }
+    .footerDocTable {
+        display: table;
     }
 }
 
@@ -3780,6 +3787,9 @@ body.narrow {
     }
 	.footerDocInfo {
         display: table-row !important;
+    }
+    .footerDocTable {
+        display: table !important;
     }
 }
 
