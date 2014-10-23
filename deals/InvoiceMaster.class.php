@@ -90,6 +90,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
     	$mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
     	$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Начин, export=Csv');
+    	$mvc->FLD('dueDate', 'date', 'caption=Плащане->Краен срок');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden');
     	$mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
@@ -700,8 +701,23 @@ abstract class deals_InvoiceMaster extends core_Master
     			$form->setField('deliveryPlaceId', 'input=hidden');
     		}
     		
+    		// Намира се датата в реда фактура/експедиция/сделка
+    		foreach (array('invoicedValior', 'shippedValior', 'agreedValior') as $asp){
+    			if($date = $aggregateInfo->get($asp)){
+    				break;
+    			}
+    		}
+    		
+    		// Извлича се платежния план
+    		$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $aggregateInfo->get('amount'), $date);
+    		if(isset($plan['deadlineForBalancePayment'])){
+				$form->setReadOnly('dueDate', $plan['deadlineForBalancePayment']);
+    		}	else {
+    			$form->setField('dueDate', 'input=none');
+    		}
+    		
     		$data->aggregateInfo = $aggregateInfo;
-    	}
+    	} 
     	 
     	// Ако ориджина също е фактура
     	if($origin->className  == $mvc->className){
