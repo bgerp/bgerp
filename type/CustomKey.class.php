@@ -140,6 +140,7 @@ class type_CustomKey extends type_Key
             $options = $this->options;
         }
         
+        $oValue = $value;
         $value = trim($value);
 
         if (count($options) > $maxSuggestions) {
@@ -181,13 +182,16 @@ class type_CustomKey extends type_Key
             // вербална стойност на полето, а директно стойността на ключовото поле.
             $keyValue = $value;
         }
-
+        
         if (isset($keyValue)) {
             if ($rec = $this->fetchForeignRec($keyValue)) {
 		        $keyName = $this->getKeyField();
 		        expect ($keyValue == $rec->{$keyName});
 		        
                 return $rec->{$keyName};
+            } elseif (($this->params['allowEmpty']) && ($oValue == ' ')) {
+                
+                return $keyValue;
             }
         }
         
