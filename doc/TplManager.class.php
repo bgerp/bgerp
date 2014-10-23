@@ -152,7 +152,7 @@ class doc_TplManager extends core_Master
     	// Ако има избран документ, се подготвят допълнителните полета
     	if($form->rec->docClassId){
     		$DocClass = cls::get($form->rec->docClassId); 
-    		$this->prepareToggleFields($DocClass, $form);
+    		$mvc->prepareToggleFields($DocClass, $form);
     	}
     }
     

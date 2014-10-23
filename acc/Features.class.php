@@ -312,6 +312,9 @@ class acc_Features extends core_Manager
     	 
     	core_Debug::$isLogging = FALSE;
     	
+    	// Удължаваме времето за мак. изпълнение
+    	set_time_limit(1000);
+    	
     	// Свойствата на кои пера са записани в таблицата
     	$query = $this->getQuery();
     	$query->show("itemId");
