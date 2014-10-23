@@ -169,6 +169,12 @@ class blast_Letters extends core_Master
     
     
     /**
+     * Кой има право да клонира?
+     */
+    protected $canClone = 'ceo, blast';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
