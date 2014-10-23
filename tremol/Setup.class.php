@@ -1,6 +1,41 @@
 <?php
 
 
+/**
+ * Дефолт група за артикули без ддс
+ */
+defIfNot('TREMOL_BASE_GROUP_WITH_ZERO_VAT', 'A');
+
+
+/**
+ * Дефолт група за артикули с ддс
+ */
+defIfNot('TREMOL_BASE_GROUP_WITH_VAT', 'B');
+
+
+/**
+ * Дефолт група за артикули с ддс
+ */
+defIfNot('TREMOL_GROUP_A', 1);
+
+
+/**
+ * Дефолт група за артикули с ддс
+ */
+defIfNot('TREMOL_GROUP_B', 2);
+
+
+/**
+ * Дефолт група за артикули с ддс
+ */
+defIfNot('TREMOL_GROUP_V', 3);
+
+
+/**
+ * Дефолт група за артикули с ддс
+ */
+defIfNot('TREMOL_GROUP_G', 4);
+
 
 /**
  * class tremol_Setup
@@ -42,6 +77,19 @@ class tremol_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Фискален принтер на Тремол";
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    		'TREMOL_BASE_GROUP_WITH_ZERO_VAT' => array("customKey(mvc=acc_VatGroups,key=sysId,select=title,allowEmpty)", 'caption=Дефолт за артикули с нулева ставка на ДДС->Група'),
+    		'TREMOL_BASE_GROUP_WITH_VAT'      => array("customKey(mvc=acc_VatGroups,key=sysId,select=title,allowEmpty)", 'caption=Дефолт за артикули с  ДДС->Група'),
+    		'TREMOL_GROUP_A'                  => array("int", 'caption=Кодове за синхронизация с фискалния принтер->Група "А"'),
+    		'TREMOL_GROUP_B'  				  => array("int", 'caption=Кодове за синхронизация с фискалния принтер->Група "Б"'),
+    		'TREMOL_GROUP_V'  				  => array("int", 'caption=Кодове за синхронизация с фискалния принтер->Група "В"'),
+    		'TREMOL_GROUP_G'  				  => array("int", 'caption=Кодове за синхронизация с фискалния принтер->Група "Г"'),
+    );
     
     
     /**

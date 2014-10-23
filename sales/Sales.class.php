@@ -396,7 +396,7 @@ class sales_Sales extends deals_DealMaster
 	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/shipment.png,title=Експедиране на артикулите от склада,order=9.21');
 	        }
 	        
-    		if(sales_Proformas::haveRightFor('add')){
+    		if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn("Проформа", array('sales_Proformas', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'row=2,ef_icon=img/16/invoice.png,title=Създаване на проформа,order=9.9992');
 		    }
 	    	
@@ -461,7 +461,10 @@ class sales_Sales extends deals_DealMaster
     		}
     		
     		$nRec->price = $dRec->packPrice;
-    		$nRec->vatGroup = cls::get($dRec->classId)->getParam($dRec->productId, 'vatGroup');
+    		if($pInfo->productRec->vatGroup){
+    			$nRec->vatGroup = $pInfo->productRec->vatGroup;
+    		}
+    		
     		$nRec->name = $pInfo->productRec->name;
     		
     		$data->products[] = $nRec;

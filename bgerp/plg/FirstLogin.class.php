@@ -18,8 +18,11 @@ class bgerp_plg_FirstLogin extends core_Plugin
     /**
      * Прихващаме всяко логване в системата
      */
-    function on_AfterLogin($mvc, $userRec)
+    function on_AfterLogin($mvc, $userRec, $inputs, $refresh)
     {
+        // Ако не се логва, а се рефрешва потребителя
+        if ($refresh) return ;
+        
         if(!$userRec->lastLoginTime && haveRole('admin') && core_Users::count('1=1') == 1) {
             
             //Зарежда данните за "Моята фирма"
@@ -28,6 +31,79 @@ class bgerp_plg_FirstLogin extends core_Plugin
             $html .= email_Accounts::loadData();
             
             $mvc->log($html);
+            
+            // Добавяме еднократно изивкване на функцията по крон
+            $callOn = dt::addSecs(120);
+            $currUserId = core_Users::getCurrent();
+            core_CallOnTime::setOnce('bgerp_plg_FirstLogin', 'welcomeNote', $userRec->id, $callOn);
         }
+    }
+    
+    
+    /**
+     * Извиква се от core_CallOnTime
+     * @see core_CallOnTime
+     * 
+     * @param integer $userId
+     */
+    function callback_welcomeNote($userId)
+    {
+        // Форсираме правата на потребителя
+        core_Users::sudo($userId);
+        
+        // Езика на потребител
+        $lg = core_Lg::getCurrent();
+        
+        // Оптиваме се да определим пътя до файла в зависимост от езика
+        $filePath = '';
+        $filePathBegin = '/bgerp/tpl/WelcomeNote';
+        $filePathEnd .= '.txt';
+        if ($lg) {
+            $lgU = strtoupper($lg);
+            
+            // Ако има файл за текущия език да се използва той
+            $pFilePath = $filePathBegin . '_' . $lgU . $filePathEnd;
+            if (getFullPath($pFilePath)) {
+                $filePath = $pFilePath;
+            } else {
+                // Ако текущия език не е bg, опитваме да използваме английския вариант
+                if (($lg != 'bg') && ($lg != 'en')) {
+                    $pFilePath = $filePathBegin . '_EN' . $filePathEnd;
+                    if (getFullPath($pFilePath)) {
+                        $filePath = $pFilePath;
+                    }
+                }
+            }
+        }
+        
+        // Ако не сме определили пътя до файла, използваме по-подразбиране
+        if (!$filePath) {
+            $filePath = $filePathBegin . $filePathEnd;
+        }
+        
+        // Превеждаме заглавието
+        $subject = tr('Първи стъпки');
+        
+        // Спираме 
+        core_Users::exitSudo();
+        
+        // Папката на потребителя
+        $folderId = doc_Folders::getDefaultFolder($userId);
+        
+        // Вземаме съдържанието на файла
+        $tpl = getTplFromFile($filePath);
+        expect($tpl);
+        
+        // Активираме бележка със съдържание на файла
+        $nRec = new stdClass();
+        $nRec->subject = $subject;
+        $nRec->body = $tpl->getContent();
+        $nRec->folderId = $folderId;
+        $nRec->sharedUsers = type_UserList::fromArray(array($userId => $userId));
+        $nRec->version = 0;
+        $nRec->subVersion = 1;
+        $nRec->state = 'active';
+        
+        doc_Notes::save($nRec);
     }
 }

@@ -116,7 +116,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'typeId, managerId, personId, specialty, 
+    var $searchFields = 'typeId,dateId, managerId, personId, specialty, 
                          departmentId, positionId, startFrom, 
                          endOn, folderId, threadId, containerId';
     
@@ -153,9 +153,12 @@ class hr_EmployeeContracts extends core_Master
      */
     function description()
     {
-        $this->FLD('typeId', 'key(mvc=hr_ContractTypes,select=name)', "caption=Тип");
+        $this->FLD('typeId', 'key(mvc=hr_ContractTypes,select=name)', "caption=Договор->Тип");
         
-        $this->FLD('managerId', 'key(mvc=crm_Persons,select=name,group=managers)', 'caption=Управител, mandatory');
+        $this->FLD('managerId', 'key(mvc=crm_Persons, select=name,group=managers)', 'caption=Договор->Управител, mandatory');
+        
+        $this->FLD('numId', 'int', 'caption=Договор->Номер');
+        $this->FLD('dateId', 'date(format=d.m.Y)', 'caption=Договор->Дата, mandatory');
         
         // Служител
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Имена, mandatory,width=100%');
@@ -163,7 +166,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност,width=100%');
         $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №,width=100%');
         $this->FLD('diplomIssuer', 'varchar', 'caption=Служител->Издадена от,width=100%');
-        $this->FLD('lengthOfService', 'time(suggestions=1 мес|2 мес|3 мес|4 мес|5 мес|6 мес|7 мес|8 мес|9 мес|10 мес|11 мес|12 мес|2 год|3 год|5 год,uom=months)', 'caption=Служител->Трудов стаж, unit=мес');
+        $this->FLD('lengthOfService', 'time(suggestions=1 мес|2 мес|3 мес|4 мес|5 мес|6 мес|7 мес|8 мес|9 мес|10 мес|11 мес|12 мес|2 год|3 год|5 год,uom=months,allowEmpty)', 'caption=Служител->Трудов стаж, unit=мес');
         
         // Отдел - външно поле от модела hr_Positions
         $this->EXT('departmentId', 'hr_Positions', 'externalKey=positionId,caption=Отдел');
@@ -183,15 +186,17 @@ class hr_EmployeeContracts extends core_Master
         // Срокове
         $this->FLD('startFrom', 'date(format=d.m.Y)', "caption=Време->Начало,mandatory");
         $this->FLD('endOn', 'date(format=d.m.Y)', "caption=Време->Край");
-        $this->FLD('term', 'time(suggestions=3 мес|6 мес|9 мес|12 мес|24 мес,uom=months)', "caption=Време->Продължителност, unit=мес");
-        $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days)', "caption=Време->Годишен отпуск,unit=дни");
-        $this->FLD('notice', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', "caption=Време->Предизвестие,unit=дни");
-        $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month)', "caption=Време->Изпитателен срок, unit=мес");
+        $this->FLD('term', 'time(suggestions=3 мес|6 мес|9 мес|12 мес|24 мес,uom=months,allowEmpty)', "caption=Време->Продължителност, unit=мес");
+        $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days,allowEmpty)', "caption=Време->Годишен отпуск,unit=дни");
+        $this->FLD('notice', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days,allowEmpty)', "caption=Време->Предизвестие,unit=дни");
+        $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month,allowEmpty)', "caption=Време->Изпитателен срок, unit=мес");
         
         $this->FLD('descriptions', 'richtext(bucket=humanResources, shareUsersRoles=trz|ceo)', 'caption=Условия->Допълнителни');
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
+        
+        $this->setDbUnique('numId');
     }
     
     
@@ -289,7 +294,7 @@ class hr_EmployeeContracts extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
         
@@ -298,10 +303,23 @@ class hr_EmployeeContracts extends core_Master
         
         $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
         
+        //Полето Служител->Име не може да се променя
         if ('crm_Persons' == $coverClass) {
             $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
             $data->form->setReadonly('personId');
         }
+        // по дефолт слагаме днешна дата
+        $data->form->setDefault('dateId', dt::verbal2mysql());
+        
+        // сладаме Управители
+        $managers = $mvc->getManagers();
+        $data->form->setOptions('managerId', $managers);
+        
+    	if(!haveRole('ceo,hr')){
+    		$data->form->setField('numId', 'input=none');
+    	}
+    	
+    	$data->form->setDefault('numId', self::getNexNumber());
     }
     
     
@@ -327,7 +345,8 @@ class hr_EmployeeContracts extends core_Master
         
         $row->script = hr_ContractTypes::fetchField($rec->typeId, 'script');
         
-        $row->num = $data->rec->id;
+        //tuk
+        //$row->num = $data->rec->id;
         
         $row->employeeRec         = crm_Persons::fetch($rec->personId);
         $row->employeeRec->idCard = crm_ext_IdCards::fetch("#personId = {$rec->personId}");
@@ -464,6 +483,15 @@ class hr_EmployeeContracts extends core_Master
                 }
             }
         }
+        
+    	if ($form->isSubmitted()) {
+
+	        if($rec->numId){
+		        if(!$mvc->isNumberInRange($rec->numId)){
+					$form->setError('numId', "Номер '{$rec->numId}' е извън позволения интервал");
+				}
+	        }
+        }
     }
     
     
@@ -549,11 +577,64 @@ class hr_EmployeeContracts extends core_Master
     }
     
     /**
+     * Преди запис в модела
+     */
+    public static function on_BeforeSave($mvc, $id, $rec)
+    {
+        if($rec->state == 'active' || $rec->state == 'draft'){
+        	if(empty($rec->numId)){
+        		$rec->numId = self::getNexNumber();
+        		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->numId);
+        	}
+        }
+    }
+    
+    /**
+     * Валидиране на полето 'number' - номер на фактурата
+     * 
+     * Предупреждение при липса на ф-ра с номер едно по-малко от въведения.
+     */
+    public function on_ValidateNumber(core_Mvc $mvc, $rec, core_Form $form)
+    {
+        if (empty($rec->numId)) {
+            return;
+        }
+        
+        $prevNumber = intval($rec->numId)-1;
+        if (!$mvc->fetchField("#numId = {$prevNumber}")) {
+            $form->setWarning('numId', 'Липсва договор с предходния номер!');
+        }
+    }
+    
+    /**
      * @todo Чака за документация...
      */
     static function act_Test()
     {
         $id = 2;
+    }
+    
+    
+    /**
+     * Връща всички Всички лица, които могат да бъдат титуляри на сметка
+     * тези включени в група "Управители"
+     */
+    function getManagers()
+    {
+        $options = array();
+        $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
+        $personQuery = crm_Persons::getQuery();
+        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
+        
+        while($personRec = $personQuery->fetch()) {
+            $options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
+        }
+        
+        if(count($options) == 0) {
+            return Redirect(array('crm_Persons', 'list'), NULL, 'Няма лица в група "Управители" за управител. Моля добавете !');
+        }
+        
+        return $options;
     }
     
     /**
@@ -705,4 +786,39 @@ class hr_EmployeeContracts extends core_Master
     {
         return array('crm_PersonAccRegIntf');
     }
+    
+    
+    /**
+     * Дали подадения номер е в позволения диапазон за номера на фактури
+     * @param $number - номера на фактурата
+     */
+    private function isNumberInRange($numId)
+    {
+    	expect($numId);
+    	$conf = core_Packs::getConfig('sales');
+    	
+    	return ($conf->SALE_INV_MIN_NUMBER <= $numId && $numId <= $conf->SALE_INV_MAX_NUMBER);
+    }
+    
+    
+    /**
+     * Ф-я връщаща следващия номер на фактурата, ако той е в границите
+     * @return int - следващия номер на фактура
+     */
+    protected static function getNexNumber()
+    {
+    	$conf = core_Packs::getConfig('sales');
+    	
+    	$query = static::getQuery();
+    	$query->XPR('maxNum', 'int', 'MAX(#numId)');
+    	if(!$maxNum = $query->fetch()->maxNum){
+    		$maxNum = $conf->SALE_INV_MIN_NUMBER;
+    	}
+    	$nextNum = $maxNum + 1;
+    	
+    	if($nextNum > $conf->SALE_INV_MAX_NUMBER) return NULL;
+    	
+    	return $nextNum;
+    }
+    
 }

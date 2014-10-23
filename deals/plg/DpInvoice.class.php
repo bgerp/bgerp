@@ -76,6 +76,10 @@ class deals_plg_DpInvoice extends core_Plugin
         
         // Показване на закръглената сума
         $form->rec->dpAmount = round($form->rec->dpAmount / $form->rec->rate, 6);
+        
+        if($form->rec->dpOperation == 'accrued'){
+        	$form->setField('dueDate', 'input=none');
+        }
     }
     
     
@@ -159,7 +163,7 @@ class deals_plg_DpInvoice extends core_Plugin
         		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 6);
         		
 	        	if($rec->dpAmount > $downpayment){
-	            	$form->setError('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
+	            	$form->setWarning('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
 	            }
 	            
         		if($rec->dpAmount < 0){
@@ -182,6 +186,11 @@ class deals_plg_DpInvoice extends core_Plugin
         	
         	if($rec->dpOperation){
         		$rec->dpAmount = $rec->dpAmount * $rec->rate;
+        		
+        		// Обновяваме данните на мастър-записа при редакция
+        		if(isset($rec->id)){
+        			$mvc->updateMaster($rec, FALSE);
+        		}
         	}
         }
     }
@@ -258,27 +267,6 @@ class deals_plg_DpInvoice extends core_Plugin
     /**
      * Изпълнява се след създаване
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fieldList = NULL)
-    {
-    	if(isset($rec->id) && empty($fieldList)){
-    		if($mvc->Master) return;
-    		
-    		// Ако е ДИ или КИ не правим нищо
-    		if($rec->type != 'invoice') return;
-    		 
-    		// Ако има авансово плащане
-    		if($rec->dpAmount && $rec->dpOperation == 'accrued'){
-    			$l = time();
-    			status_Messages::newStatus($l, 'warning');
-    			$mvc->updateMaster($rec->id);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се след създаване
-     */
     public static function on_AfterCreate($mvc, $rec)
     {
     	if($mvc->Master) return;
@@ -288,6 +276,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	
     	// Ако има авансово плащане
     	if($rec->dpAmount && $rec->dpOperation == 'accrued'){
+    		$mvc->updateMaster($rec->id);
     		
     		// Така спираме изпълнението на on_AfterCreate в фактурата
     		return FALSE;

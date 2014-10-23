@@ -24,7 +24,7 @@ if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
 }
 
 // Колко време е валидно заключването - в секунди
-DEFINE ('SETUP_LOCK_PERIOD', 120);
+DEFINE ('SETUP_LOCK_PERIOD', 240);
 
 defIfNot('BGERP_GIT_BRANCH', 'dev');
 
@@ -754,13 +754,12 @@ if ($step == 'setup') {
 
     set_time_limit(1000);
 
-    $calibrate = 100;
+    $calibrate = 1000;
     $totalRecords = 169700;
-//    $totalTables = 304;
-    $totalColumns = 3852;
+    $totalTables = 308;
     $percents = $persentsBase = $persentsLog = 0;
-//    $total = $totalTables*$calibrate + $totalRecords;
-    $total = $totalColumns*$calibrate + $totalRecords;
+    $total = $totalTables*$calibrate + $totalRecords;
+
     // Пращаме стиловете
     echo ($texts['styles']);
 //    contentFlush ($texts['styles']);
@@ -817,11 +816,10 @@ if ($step == 'setup') {
         clearstatcache(EF_TEMP_PATH . '/setupLog.html');
         $fTime = filemtime(EF_TEMP_PATH . '/setupLog.html');
         clearstatcache(EF_TEMP_PATH . '/setupLog.html');
-        list($numTables, $numRows, $numColumns) = dataBaseStat(); 
+        list($numTables, $numRows) = dataBaseStat(); 
 
         // От базата идват 80% от прогрес бара
-//        $percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
-        $percentsBase = round(($numRows+$calibrate*$numColumns*(4/5))/$total,2)*100;
+        $percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
         
         // Изчитаме лог-а
         $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
@@ -858,10 +856,7 @@ if ($step == 'setup') {
         } else {
             $logModified = FALSE;
         }
-//    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog) || $logModified);
-//    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns || !empty($setupLog));
-//    } while ($numRows < $totalRecords && $numTables <= $totalTables && $numColumns <= $totalColumns);
-    } while ($numRows < $totalRecords && $numColumns <= $totalColumns);
+      } while (setupProcess() || !empty($setupLog) || $logModified);
     
     if ($percents < 100) {
         $percents = 100;
@@ -916,8 +911,8 @@ if($step == start) {
     flush();
     ob_end_clean();
 
-    GLOBAL $setupFlag, $setupLog;
-    $setupLog = TRUE;
+    GLOBAL $setupFlag;
+
     $setupFlag = TRUE;
     // Създаваме празен Log файл
     file_put_contents(EF_TEMP_PATH . '/setupLog.html', '');
@@ -926,10 +921,11 @@ if($step == start) {
     setlocale(LC_ALL, 'en_US.UTF8');
 
     $ef = new core_Setup();
+
     try {
         try {
             $res = $ef->install();
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'OK' . $res);
+            file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'Start OK ...' . $res);
         } catch (core_exception_Expect $e) {
             file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getAsHtml());
         }
@@ -938,12 +934,11 @@ if($step == start) {
     }
     
     $Packs = cls::get('core_Packs');
-    $Packs->setupMVC();
-    $Packs->checkSetup();
-    // за сега стартираме пакета bgERP за пълно обновяване
+
     $Packs->setupPack("bgerp");
 
     setupUnlock();
+
     exit;
 }
 
@@ -1305,12 +1300,13 @@ function setupUnlock()
 function setupProcess()
 {
     if (@file_exists(EF_TEMP_PATH . "/setupLock.tmp")) {
-        clearstatcache(EF_TEMP_PATH . "/setupLock.tmp");
-        if (time() - filemtime(EF_TEMP_PATH . "/setupLock.tmp") > SETUP_LOCK_PERIOD) {
-            setupUnlock();
+        return TRUE;
+//         clearstatcache(EF_TEMP_PATH . "/setupLock.tmp");
+//         if (time() - filemtime(EF_TEMP_PATH . "/setupLock.tmp") > SETUP_LOCK_PERIOD) {
+//             setupUnlock();
             
-            return FALSE;
-        }
+//             return FALSE;
+//        }
     } else {
         
         return FALSE;   
@@ -1376,10 +1372,7 @@ function dataBaseStat()
     $tablesRes = $DB->query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". $DB->escape($DB->dbName) ."';");
     $tables = $DB->fetchObject($tablesRes);
     
-    $tablesColumnsRes = $DB->query("SELECT COUNT(*) AS COLUMNS FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '". $DB->escape($DB->dbName) ."';");
-    $tablesColumns = $DB->fetchObject($tablesColumnsRes);
-    
-    return array($tables->TABLES, $rows->RECS, $tablesColumns->COLUMNS);
+    return array($tables->TABLES, $rows->RECS);
 }
 
 

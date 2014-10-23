@@ -289,7 +289,7 @@ class deals_OpenDeals extends core_Manager {
 	    		}
 	    	} else {
 	    		if($Cls->haveRightFor('add', (object)array('threadId' => $threadId))){
-	    			$btns .= ht::createBtn($title, array($className, 'add', 'originId' => $originId), NULL, NULL, "ef_icon=img/16/add.png,title=Създаване на {$str}");
+	    			$btns .= ht::createBtn($title, array($className, 'add', 'originId' => $originId), NULL, NULL, "ef_icon=img/16/add1-16.png,title=Създаване на {$str}");
 	    		}
 	    	}
 	    }

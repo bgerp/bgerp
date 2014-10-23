@@ -862,10 +862,11 @@ class crm_Companies extends core_Master
      */
     static function loadData()
     {
-        $conf = core_Packs::getConfig('crm');
-        
-        if (!static::fetch(crm_Setup::BGERP_OWN_COMPANY_ID)){
-
+        $html = '';
+        if (!static::fetch(crm_Setup::BGERP_OWN_COMPANY_ID)) {
+            
+            $conf = core_Packs::getConfig('crm');
+            
             $rec = new stdClass();
             $rec->id = crm_Setup::BGERP_OWN_COMPANY_ID;
             $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
@@ -881,8 +882,29 @@ class crm_Companies extends core_Master
             
             if(static::save($rec, NULL, 'REPLACE')) {
                 
-                $html = "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
+                $html .= "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
                 crm_Setup::BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
+            }
+        }
+        
+        // Добавяме визитка за Експерта ООД
+        $expertaName = 'Експерта ООД';
+        if (!self::fetch("#name = '{$expertaName}'")) {
+            $eRec = new stdClass();
+            $eRec->name = $expertaName;
+            $eRec->groupList = "|". crm_Groups::fetchField("#name = 'Доставчици'", 'id') . "|";
+            $eRec->country = drdata_Countries::fetchField("#commonNameBg = 'България'");
+            $eRec->pCode = '5000';
+            $eRec->place = 'гр. В. Търново';
+            $eRec->address = 'ул. П. Евтимий №7';
+            $eRec->website = 'http://experta.bg';
+            $eRec->tel = '062/611-539, 062/611-540';
+            $eRec->vatId = 'BG104066415';
+            $eRec->email = 'team@experta.bg';
+            $eRec->info = 'Разработчик и Консултант за внедряване на bgERP';
+            
+            if (self::save($eRec)) {
+                $html .= "<li style='color:green'>Добавена е фирмата '{$expertaName}'</li>";
             }
         }
         
@@ -1032,7 +1054,7 @@ class crm_Companies extends core_Master
                 'num' => "F" . $rec->id,
                 'title' => $rec->name,
                 'features' => array('Държава' => $self->getVerbal($rec, 'country'),
-            						'Град' => $self->getVerbal($rec, 'place'),)
+            						'Град' => bglocal_Address::canonizePlace($self->getVerbal($rec, 'place')),)
             );
             
             if($rec->groupList){

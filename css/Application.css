@@ -3522,7 +3522,8 @@ only screen and (max-width: 320px) {
     .print-break.print-nobreak {
       page-break-after: avoid; }
 
-  .footer-notes {
+  .footer-notes,
+  .print-block {
     page-break-inside: avoid; }
 
   #statuses,

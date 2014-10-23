@@ -199,7 +199,7 @@ class cash_Pko extends core_Master
     /**
      *  Обработка на формата за редакция и добавяне
      */
-    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	$folderId = $data->form->rec->folderId;
     	$form = &$data->form;
@@ -218,36 +218,33 @@ class cash_Pko extends core_Master
         expect(count($options));
         
         // Използваме помощната функция за намиране името на контрагента
-    	if(empty($form->rec->id)) {
-    		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
-    		 	if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
+    	
+    	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
+    	if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
     		 		
-    		 		$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
-    		 		if($amount <= 0) {
-    		 			$amount = 0;
-    		 		}
+    		$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
+    		if($amount <= 0) {
+    		 	$amount = 0;
+    	}
     		 		 
-    		 		$defaultOperation = $dealInfo->get('defaultCaseOperation');
-    		 		if($defaultOperation == 'customer2caseAdvance'){
-    		 			$amount = ($dealInfo->get('agreedDownpayment') - $dealInfo->get('downpayment')) / $dealInfo->get('rate');
-    		 		}
-    		 	}
+    	$defaultOperation = $dealInfo->get('defaultCaseOperation');
+    	if($defaultOperation == 'customer2caseAdvance'){
+    		 	$amount = ($dealInfo->get('agreedDownpayment') - $dealInfo->get('downpayment')) / $dealInfo->get('rate');
+    		 }
+    	}
     		 	
-	    		if($caseId = $dealInfo->get('caseId')){
+	    if($caseId = $dealInfo->get('caseId')){
 	    		 	
-	    		 	// Ако потребителя има права, логва се тихо
-	    		 	cash_Cases::selectSilent($caseId);
-	    		}
+	    	// Ако потребителя има права, логва се тихо
+	    	cash_Cases::selectSilent($caseId);
+	    }
     		 	
-	    		$cId = $dealInfo->get('currency');
-    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($cId);
-    		 	$form->rec->rate = $dealInfo->get('rate');
+	    $cId = $dealInfo->get('currency');
+	    $form->setDefault('currencyId', currency_Currencies::getIdByCode($cId));
+	    $form->setDefault('rate', $dealInfo->get('rate'));
     		 		
-    		 	if($dealInfo->get('dealType') == sales_Sales::AGGREGATOR_TYPE){
-    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->get('currency'));
-    		 	}
-    	} else {
-    		$defaultOperation = 'customer2case';
+    	if($dealInfo->get('dealType') == sales_Sales::AGGREGATOR_TYPE){
+    		 $form->setDefault('amount', currency_Currencies::round($amount, $dealInfo->get('currency')));
     	}
     	
     	// Поставяме стойности по подразбиране
@@ -259,7 +256,7 @@ class cash_Pko extends core_Master
         
     	$form->setOptions('operationSysId', $options);
     	if(isset($defaultOperation) && array_key_exists($defaultOperation, $options)){
-    		$form->rec->operationSysId = $defaultOperation;	
+    		$form->setDefault('operationSysId', $defaultOperation);	
         }
         
     	$form->setDefault('peroCase', cash_Cases::getCurrent());

@@ -280,7 +280,7 @@ class core_App
         // Зареждаме конфигурационния файл на приложението. 
         // Ако липсва - показваме грешка.
         // Шаблон за този файл има в директорията [_docs]
-        if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
+        if ((include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
             halt('Error in boot.php: Missing configuration file: ' .
                 EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
         }
@@ -416,13 +416,15 @@ class core_App
         while (ob_get_level() > 0) {
             ob_end_clean();
         }
-
-        $len = strlen($content);             // Get the length
-        header("Content-Length: $len");     // Close connection after $size characters
-        header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
-        header('Pragma: no-cache'); // HTTP 1.0.
-        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Proxies.
-        header('Connection: close');
+        
+        if (!headers_sent()) {
+            $len = strlen($content);             // Get the length
+            header("Content-Length: $len");     // Close connection after $size characters
+            header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
+            header('Pragma: no-cache'); // HTTP 1.0.
+            header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Proxies.
+            header('Connection: close');
+        }
         
         echo $content;                       // Output content
             

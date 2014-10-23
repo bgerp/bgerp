@@ -110,7 +110,10 @@
                                         <!--ET_END vatReason-->
                                         <!--ET_BEGIN vatDate-->  
                                         <span class='quiet'>|Данъчно събитие|*:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                        <!--ET_END vatDate-->  
+                                        <!--ET_END vatDate-->
+                                        <!--ET_BEGIN dueDate-->
+                                        <div><span class='quiet'>|Плащане до|*:</span> [#dueDate#]</div>
+                                        <!--ET_END dueDate--> 
                                         <!--ET_BEGIN rate--> 
                                         <span class='quiet'>|Курс|* / <i>Rate</i>:</span>  [#rate#]
                                         <!--ET_END rate-->  

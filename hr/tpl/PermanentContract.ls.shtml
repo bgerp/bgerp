@@ -1,6 +1,6 @@
 <h1 class="centered">БЕЗСРОЧЕН ТРУДОВ ДОГОВОР</h1>
-<p class="centered">№ [#num#] / [#createdDate#] г.</p>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Днес, [#createdDate#] г. в гр./с [#employerRec_place#], [#employerRec_address#], между: <b>[#employerRec_name#]</b>
+<p class="centered">№ [#numId#] / [#dateId#] г.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Днес, [#dateId#] г. в гр./с [#employerRec_place#], [#employerRec_address#], между: <b>[#employerRec_name#]</b>
 със седалище и адрес на управление [#employerRec_address#],
 регистрирано по фирмено дело № [#employersRec_regCompanyFileNumber#]/[#employersRec_regCompanyFileYear#]г.,
 в [#employersRec_regCourt#] 

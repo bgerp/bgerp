@@ -188,7 +188,7 @@ class bank_IncomeDocuments extends core_Master
     /**
      * Подготовка на формата за добавяне
      */
-    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = &$data->form;
         $today = dt::verbal2mysql();
@@ -212,7 +212,7 @@ class bank_IncomeDocuments extends core_Master
         $form->setOptions('operationSysId', $options);
         
         if(isset($form->defaultOperation) && array_key_exists($form->defaultOperation, $options)){
-            $form->rec->operationSysId = $form->defaultOperation;
+        	$form->setDefault('operationSysId', $form->defaultOperation);
         }
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);

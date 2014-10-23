@@ -25,22 +25,21 @@ class thumb_M extends core_Mvc
 
         $arguments = core_Crypt::decodeVar($id, thumb_Img::getCryptKey());
 
-        $thumb = new thumb_Img($arguments);
+        $this->thumb = new thumb_Img($arguments);
         
-        if( file_exists($file = $thumb->getThumbPath()) ) {
+        if( file_exists($file = $this->thumb->getThumbPath()) ) {
             $ext = fileman_Files::getExt($file);
             self::addTypeHeader($ext);
             header('Content-Length: ' . filesize($file));
             readfile($file);
             flush();
-            $this->thumb = $thumb;
 
             shutdown();
         } else {
 
             self::addTypeHeader($ext);
 
-            redirect($thumb->getUrl('forced'));
+            redirect($this->thumb->getUrl('forced'));
         }
     }
 

@@ -29,6 +29,12 @@ class support_Corrections extends core_Master
     
     
     /**
+     * Кой има право да клонира?
+     */
+    protected $canClone = 'powerUser';
+    
+    
+    /**
      * Заглавие
      */
     var $title = "Коригиращи действия";

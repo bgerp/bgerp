@@ -3,9 +3,7 @@
 
 
 /**
- * Мениджър на пера.
- *
- * Перата са детайли (master-detail) на модела Номенклатури (@see acc_Lists)
+ * Мениджър регистър на счетоводните пера
  *
  *
  * @category  bgerp
@@ -91,6 +89,7 @@ class acc_Items extends core_Manager
      */
     var $rowToolsField = 'tools';
     
+    
     /**
      * Опашка от записи за записване в on_Shutdown
      *
@@ -99,19 +98,6 @@ class acc_Items extends core_Manager
      */
     protected $touched = array();
     
-    /**
-     * Опашка от пера на които да се задейства ивент
-     *
-     * @var array Масив от записи на acc_Items (с ключове - ид-та на записи)
-     */
-    protected static $affected = array();
-    
-    /**
-     * Опашка от приключени пера на които да се задейства ивент
-     *
-     * @var array Масив от записи на acc_Items (с ключове - ид-та на записи)
-     */
-    protected static $closed = array();
     
     /**
      * Шаблон (ET) за заглавие на перо
@@ -119,6 +105,7 @@ class acc_Items extends core_Manager
      * @var string
      */
     public $recTitleTpl = '[#title#] ( [#num#] )';
+    
     
     /**
      * Кеш на уникален индекс
@@ -158,7 +145,7 @@ class acc_Items extends core_Manager
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none');
         
         // Кога за последно е използвано
-        $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=none');
+        $this->FLD('lastUseOn', 'datetime(format=smartTime)', 'caption=Последно,input=none');
         
         // Титла - хипервръзка
         $this->FNC('titleLink', 'html', 'column=none');
