@@ -111,6 +111,7 @@ class doc_TplManager extends core_Master
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', "caption=Документ, width=100%,mandatory,silent");
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         $this->FLD('content', 'text', "caption=Текст,column=none, width=100%,mandatory");
+        $this->FLD('path', 'varchar', "caption=Файл,column=none, width=100%,mandatory");
         $this->FLD('originId', 'key(mvc=doc_TplManager)', "input=hidden,silent");
         $this->FLD('hash', 'varchar', "input=none");
         
@@ -341,15 +342,16 @@ class doc_TplManager extends core_Master
             // Ако файла на шаблона не е променян, то записа не се обновява
             expect($object->hash = md5_file(getFullPath($object->content)));
             
-            if($exRec && ($exRec->name == $object->name) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields)){
+            if($exRec && ($exRec->name == $object->name) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields) && ($exRec->path == $object->content)){
                 $skipped++;
                 continue;
             }
 
+            $object->path = $object->content;
             $object->content = getFileContent($object->content);
             $object->createdBy = -1;
             $object->state = 'active';
-         
+            
             static::save($object);
 
             ($object->id) ? $updated++ : $added++;
@@ -408,5 +410,42 @@ class doc_TplManager extends core_Master
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща скриптовия клас на шаблона (ако има)
+     * 
+     * @param int $templateId - ид на шаблона
+     * @return mixed $Script/False - заредения клас, или FALSE ако неможе се зареди
+     */
+    public static function getTplScriptClass($templateId)
+    {
+    	if(!$templateId) return;
+    	
+    	$filePath = doc_TplManager::fetchField($templateId, 'path');
+    	
+    	if(!$filePath) return;
+    	
+    	$filePath = str_replace(".shtml", '.class.php', $filePath);
+    	
+    	// Ако физически съществува този файл
+    	if(getFullPath($filePath)){
+    		$supposedClassname = str_replace("/", '_', $filePath);
+    		$supposedClassname = str_replace(".class.php", '', $supposedClassname);
+    		
+    		// Опитваме се да го заредим,Трябва и да е наследник на 'doc_TplScript'
+    		if(cls::load($supposedClassname, TRUE) && is_subclass_of($supposedClassname, 'doc_TplScript')){
+    			
+    			// Зареждаме го
+    			$Script = cls::get($supposedClassname);
+    			
+    			// Връщаме заредения клас
+    			return $Script;
+    		}
+    	}
+    	
+    	// Ако не е открит такъв файл
+    	return FALSE;
     }
 }  
