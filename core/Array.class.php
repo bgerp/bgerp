@@ -360,4 +360,49 @@ class core_Array
             }
         }
     }
+    
+    
+    /**
+     * Поставя елементите на масив на преди или след елементите на друг масив
+     * 
+     * @param array $array - асоциативния масив в който ще слагаме елементите
+     * @param mixed $elementArr - масив с елементи или стринг
+     * @param string $before - преди кой ключ да се сложи
+     * @param string $after - след кой ключ да се сложи
+     */
+    public static function placeInAssocArray(&$array, $elementArr, $before = NULL, $after = NULL)
+    {
+    	expect(is_array($array));
+    	$elementsArr = arr::make($elementArr, TRUE);
+    	
+    	if(isset($before) || isset($after)) {
+    		foreach ($elementsArr as $key => $value){
+    			$newFields = array();
+    			
+    			$isSet = FALSE;
+    			 
+    			foreach($array as $exName => $exFld) {
+    			
+    				if($before == $exName) {
+    					$isSet = TRUE;
+    					$newFields[$key] = $value;
+    				}
+    			
+    				if(!$isSet || ($exName != $key)) {
+    					$newFields[$exName] = &$array[$exName];
+    				}
+    			
+    				if($after == $exName) {
+    					$newFields[$key] = $value;
+    					$isSet = TRUE;
+    				}
+    			}
+    			 
+    			$array = $newFields;
+    		}
+    		
+    	} else {
+    		$array = array_merge($array, $elementsArr);
+    	}
+    }
 }
