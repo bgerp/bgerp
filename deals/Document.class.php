@@ -79,9 +79,9 @@ abstract class deals_Document extends core_Master
 		expect(count($dealInfo->get('allowedPaymentOperations')));
 		 
 		// Показваме само тези финансови операции в които е засегнат контрагента
-		$options = findeals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
-		expect(count($options));
-		$form->setOptions('dealId', $options);
+		//$options = findeals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
+		
+		//$form->setSuggestions('dealId', $options);
 		 
 		$form->dealInfo = $dealInfo;
 		$form->setDefault('operationSysId', $mvc::$operationSysId);
@@ -152,11 +152,6 @@ abstract class deals_Document extends core_Master
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
     		// Ако няма позволени операции за документа не може да се създава
     		$dealInfo = $firstDoc->getAggregateDealInfo();
-    		
-    		// Ако няма финансови сделки в които  замесен контрагента, не може да се създава
-    		$options = findeals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
-    		
-    		if(!count($options)) return FALSE;
     		
     		// Ако няма позволени операции за документа не може да се създава
     		$operations = $dealInfo->get('allowedPaymentOperations');
