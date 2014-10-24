@@ -39,6 +39,11 @@ class cms_Content extends core_Manager
    // var $listFields = ' ';
     
      
+    /**
+     * Кой може да променя състоянието на валутата
+     */
+    public $canChangestate = 'cms,admin,ceo';
+    
     
     /**
      * Кой може да пише?
