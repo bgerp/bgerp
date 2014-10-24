@@ -417,7 +417,7 @@ class acc_HistoryReport extends core_Manager
         if(round($rec->baseQuantity, 4) < 0){
             $row->baseQuantity = "<span style='color:red'>{$row->baseQuantity}</span>";
         }
-        //bp($calcedBalance);//143
+        
         // Нулевия ред е винаги началното салдо
         $zeroRec = array('docId' => "Начален баланс",
             'valior'      => $data->fromDate,
@@ -486,15 +486,15 @@ class acc_HistoryReport extends core_Manager
         $row->blQuantity = $Double->toVerbal($rec->blQuantity);
         
         // Последния ред е крайното салдо
-        $lastRec = array('docId' => "Краен баланс",
-			             'valior'      => $data->toDate,
-			             'blAmount'   => $rec->blAmount,
-			             'blQuantity' => $rec->blQuantity,
-			             'debitAmount' => $debitAmount,
-			             'debitQuantity' => $debitQuantity,
+        $lastRec = array('docId'          => "Краен баланс",
+			             'valior'         => $data->toDate,
+			             'blAmount'       => $rec->blAmount,
+			             'blQuantity'     => $rec->blQuantity,
+			             'debitAmount'    => $debitAmount,
+			             'debitQuantity'  => $debitQuantity,
 			             'creditQuantity' => $creditQuantity,
-			             'creditAmount' => $creditAmount,
-			             'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
+			             'creditAmount'   => $creditAmount,
+			             'ROW_ATTR'       => array('style' => 'background-color:#eee;font-weight:bold'));
         
         // Преизчисляваме пейджъра с новия брой на записите
         $conf = core_Packs::getConfig('acc');
@@ -601,6 +601,8 @@ class acc_HistoryReport extends core_Manager
     {
         $recs = $data->allRecs;
         
+        if(empty($data->listFilter)) return;
+        
         // Ако в формата има грешки,
         if($data->listFilter->gotErrors()) return;
         
@@ -698,14 +700,14 @@ class acc_HistoryReport extends core_Manager
         // Подготвяме таблицата с данните извлечени от журнала
         $table = cls::get('core_TableView', array('mvc' => $this->Balance));
         $data->listFields = array('valior'         => 'Вальор',
-            'docId'             => 'Документ',
-            'reason'           => 'Забележки',
-            'debitQuantity'  => 'Дебит->К-во',
-            'debitAmount'    => 'Дебит->Сума',
-            'creditQuantity' => 'Кредит->К-во',
-            'creditAmount'   => 'Кредит->Сума',
-            'blQuantity'     => 'Остатък->К-во',
-            'blAmount'       => 'Остатък->Сума',
+					              'docId'          => 'Документ',
+					              'reason'         => 'Забележки',
+					              'debitQuantity'  => 'Дебит->К-во',
+					              'debitAmount'    => 'Дебит->Сума',
+					              'creditQuantity' => 'Кредит->К-во',
+					              'creditAmount'   => 'Кредит->Сума',
+					              'blQuantity'     => 'Остатък->К-во',
+					              'blAmount'       => 'Остатък->Сума',
         );
         
         // Ако равнят не показваме количествата
