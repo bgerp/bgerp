@@ -76,21 +76,18 @@ try {
 
 } catch (core_exception_Expect $e) {
  
-    if(is_array($e->debug) && isset($e->debug['mysqlErrCode']) && $e->debug['mysqlErrCode'] == 1146 && core_Db::databaseEmpty()) {
+    if (isDebug()) {
+        $e->showMessage();
+    } elseif (isset($e->debug['mysqlErrCode']) && ($e->debug['mysqlErrCode'] == 1146 || $e->debug['mysqlErrCode'] == 1054) || core_Db::databaseEmpty()) {
+        // При празна база или грешка в базата редиректваме безусловно към сетъп-а в не дебъг
 
-        // При празна база редиректваме безусловно към сетъп-а
         redirect(array('Index', 'SetupKey' => setupKey()));
-
-    } elseif(is_array($e->debug) && isset($e->debug['mysqlErrCode']) && $e->debug['mysqlErrCode'] == 1049) {
-
+    } elseif (isset($e->debug['mysqlErrCode']) && $e->debug['mysqlErrCode'] == 1049) {
         // Създаваме и редиректваме
         mysql_query("CREATE DATABASE " . EF_DB_NAME);
+
         redirect(array('Index', 'SetupKey' => setupKey()));
-
-    } else { 
-        $e->showMessage(); 
     }
-
 }
 
 
