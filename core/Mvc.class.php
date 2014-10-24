@@ -620,7 +620,9 @@ class core_Mvc extends core_FieldSet
     function isUnique($rec, &$fields = array(), &$exRec = NULL)
     {
         $fields = arr::make($fields);
-
+        
+        $checkFields = array();
+        
         if(count($fields)) {
             $checkFields[] = $fields;
         } else {
@@ -637,7 +639,7 @@ class core_Mvc extends core_FieldSet
                 return TRUE;
             }
         }
-
+        
         foreach($checkFields as $fArr) {
             $fieldSetFlag = TRUE;
             $cond = $rec->id ? "#id != $rec->id" : '';
