@@ -175,9 +175,9 @@ class core_CallOnTime extends core_Manager
             self::save($nRec, 'state');
             
             try {
-                
+                $class = cls::get($rec->className);
                 // Изпълняваме подадената функция с префикс callback_
-                $callback = array($rec->className, 'callback_' . $rec->methodName);
+                $callback = array($class, 'callback_' . $rec->methodName);
                 $res .= call_user_func($callback, $rec->data) . "\n";
                 
                 // Изтриваме след като се изпълни веднъж

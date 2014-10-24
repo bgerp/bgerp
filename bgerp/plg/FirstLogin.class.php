@@ -46,8 +46,11 @@ class bgerp_plg_FirstLogin extends core_Plugin
      * 
      * @param integer $userId
      */
-    function callback_welcomeNote($userId)
+    public static function callback_welcomeNote($userId)
     {
+        // Очакваме да е подаден валиден потребител
+        if ($userId <= 0) return ;
+        
         // Форсираме правата на потребителя
         core_Users::sudo($userId);
         
