@@ -18,8 +18,11 @@ class bgerp_plg_FirstLogin extends core_Plugin
     /**
      * Прихващаме всяко логване в системата
      */
-    function on_AfterLogin($mvc, $userRec)
+    function on_AfterLogin($mvc, $userRec, $inputs, $refresh)
     {
+        // Ако не се логва, а се рефрешва потребителя
+        if ($refresh) return ;
+        
         if(!$userRec->lastLoginTime && haveRole('admin') && core_Users::count('1=1') == 1) {
             
             //Зарежда данните за "Моята фирма"

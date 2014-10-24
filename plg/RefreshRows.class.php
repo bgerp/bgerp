@@ -43,6 +43,10 @@ class plg_RefreshRows extends core_Plugin
             $attr = array('name' => 'rowsContainer');
             ht::setUniqId($attr);
             
+            // Вземаме съдържанието от шаблона
+            // Трябва да се определи преди добавянето на дива
+            $content = static::getContent($tpl);
+            
             // Добавяме текста в див с уникално id
             $tpl->prepend("<div id='{$attr['id']}'>");
             $tpl->append("</div>");
@@ -65,9 +69,6 @@ class plg_RefreshRows extends core_Plugin
                 // Записваме времето на извикване
                 Mode::set('hitTime', dt::mysql2timestamp());
             }
-            
-            // Вземаме съдържанието от шаблона
-            $content = static::getContent($tpl);
             
             // Вземаме кеша на съдържанието
             $contentHash = $mvc->getContentHash($content);
@@ -115,7 +116,7 @@ class plg_RefreshRows extends core_Plugin
         
         // Вземаме шаблона
         $tpl = Request::forward($refreshUrl);
-
+        
         // Ако липсва шаблона, да не се изпълнява
         if (!$tpl) return FALSE;
         
@@ -217,9 +218,9 @@ class plg_RefreshRows extends core_Plugin
      * @param string $status
      * @param object $data
      */
-    function on_AftergetContentHash($mvc, &$res, &$status)
+    function on_AfterGetContentHash($mvc, &$res, &$status)
     {
-        $res = md5($status);
+        $res = md5(trim($status));
     }
     
     

@@ -458,10 +458,11 @@ class type_Richtext extends type_Blob
 
                 $indent = mb_strlen($l, 'UTF8') - mb_strlen(ltrim($matches[3]), 'UTF8');  
                  while(isset($lines[$i+1]) && (($indent == (mb_strlen($lines[$i+1]) - mb_strlen(ltrim($lines[$i+1], ' ')))) || (trim($lines[$i+1]) == '<br>'))) {
+
                     if(trim($lines[$i+1]) == '<br>') {
-                        $matches[3] .= "\n" . "<div style='height:5px;'></div>";
+                        $matches[3] .= "<br>" . "<span style='height:5px; display:block;'></span>";
                     } else {
-                        $matches[3] .= "\n" . ltrim($lines[$i+1]);
+                        $matches[3] .= ltrim($lines[$i+1]);
                     }
                     $i++;
                  }
@@ -480,22 +481,22 @@ class type_Richtext extends type_Blob
 
             while(($oldLevel = count($state)) < $level) {
                 $state[$oldLevel] = $type;
-                $res .= "<{$type}>\n";
+                $res .= "<{$type}>";
             }
             
             while(($oldLevel = count($state)) > $level) {  
                 $oldType = $state[$oldLevel-1]; 
                 unset($state[$oldLevel-1]);
-                $res .= "</{$oldType}>\n";
+                $res .= "</{$oldType}>" . "<br>";
             }
 
             if($level == $oldLevel) {
                 if($type != ($oldType = $state[$oldLevel-1])) {
                     if($oldType) {  
-                        $res .= "</{$oldType}>\n";
+                        $res .= "</{$oldType}>" . "<br>";
                     }
                     if($type) {
-                        $res .= "<{$type}>\n";
+                        $res .= "<{$type}>";
                     }
                 }
                 
@@ -507,8 +508,6 @@ class type_Richtext extends type_Blob
             $res .= "{$l}\n";
 
             $debug[] = array($l, $state, $level, $oldLevel);
-            
-
         }
 
         return $res;

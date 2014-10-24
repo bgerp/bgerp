@@ -46,6 +46,12 @@ class distro_Group extends core_Master
     
     
     /**
+     * Кой има право да клонира?
+     */
+    protected $canClone = 'admin';
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'admin';

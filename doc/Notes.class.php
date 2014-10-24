@@ -34,6 +34,12 @@ class doc_Notes extends core_Master
     
     
     /**
+     * Кой има право да клонира?
+     */
+    protected $canClone = 'powerUser';
+    
+    
+    /**
      * Заглавие
      */
     var $title = "Бележки";

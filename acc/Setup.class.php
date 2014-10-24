@@ -153,6 +153,14 @@ class acc_Setup extends core_ProtoSetup
             'period' => 1,
             'timeLimit' => 55,
         ),
+    	array(
+    		'systemId' => "SyncAccFeatures",
+    		'description' => "Синхронизация на счетоводните свойства",
+    		'controller' => "acc_Features",
+    		'action' => "SyncFeatures",
+    		'period' => 1440,
+    		'offset' => 60,
+    	),
     );
     
     /**

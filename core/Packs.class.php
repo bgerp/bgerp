@@ -589,7 +589,8 @@ class core_Packs extends core_Manager
         DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
         
         if ($setupFlag && $pack == 'bgerp') {
-            shutdown();
+            // в setup-a очакваме резултат
+            return;
         }
 
         return $res;

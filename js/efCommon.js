@@ -1621,6 +1621,25 @@ function preventDoubleSubmission(id) {
 
 
 /*
+ * Функция за предпазване от двоен клик
+ */
+var lastClickTime, timeSinceClick;
+function preventDoubleClick() {
+	if (lastClickTime) {
+		timeSinceClick = jQuery.now() - lastClickTime;
+	}
+	
+	if ((typeof lastClickTime == 'undefined') || ((typeof timeSinceClick != 'undefined') && timeSinceClick > 3000)) {
+		lastClickTime = jQuery.now();
+	    return true;
+	}
+	
+	// Блокиране на клика,  за определено време
+	return false;
+}
+
+
+/*
  * Функция за подравняване на числа по десетичния знак
  */
 function tableElemsFractionsWidth() {
@@ -2375,6 +2394,74 @@ function render_redirect(data) {
     document.location = url;
 }
 
+var blinkerWorking = false;
+/**
+ * Функция на нотифициране, чрез звук и премигане на текста и иконката в таба
+ * използва с efae
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.title - заглавие, което ще се задава
+ * data.favicon - път до фав иконата
+ * data.blinkTimes - брой премигвания
+ * data.blinkIntervalHide - милисекунди скриване
+ * data.blinkIntervalDisplay - милисекунди показване
+ * data.soundOgg - път до ogg файла
+ * data.soundMp3 - път до mp3 файла
+ */
+function render_Notify(data){
+	if(blinkerWorking) return;
+	
+	if(data.soundMp3 != undefined || data.soundOgg  != undefined){
+		// добавяме аудио таг и пускаме звука
+		setTimeout(function(){
+			$('body').append("<div class='soundBlock'></div>");
+		    $(".soundBlock").append('<audio autoplay="autoplay"><source src=' + data.soundMp3 + ' type="audio/mpeg" /><source src=' + data.soundOgg + ' type="audio/ogg" /><embed hidden="true" autostart="true" loop="false" src=' + data.soundMp3 +' /></audio>');
+		}, 500);
+		
+		//махаме аудио тага
+		setTimeout(function(){
+			$(".soundBlock").remove();
+		}, 2000);
+	}
+	
+	blinkerWorking = true;
+	var counter = 1;
+	var oldTitle = document.title;
+    var title = data.title ? data.title : " ";
+	//генерираме новата фав икона
+	var newIcon = document.createElement('link');
+	newIcon.type = 'image/x-icon';
+	newIcon.rel = 'shortcut icon';
+	newIcon.href = data.favicon;
+	
+	//запазваме старата фав икона
+	var oldIconPath = $('link[rel="shortcut icon"]')[0].href;
+	var oldIcon = document.createElement('link');
+	oldIcon.type = 'image/x-icon';
+	oldIcon.rel = 'shortcut icon';
+	oldIcon.href = oldIconPath;
+	
+	var interval = setInterval(function(){
+		// задамаваме новия текст и икона
+		document.title = title;
+		//document.getElementsByTagName('head')[0].appendChild(newIcon);
+		$('head').append(newIcon);
+		
+		var timeOut = setTimeout(function(){
+			// задамаваме старите текст и икона
+			$('head').append(oldIcon);
+			document.title = oldTitle;
+		}, data.blinkIntervalDisplay);
+		
+		counter++;
+		// дали са мигнали достатъчно пъти
+		if(counter > data.blinkTimes) {
+			blinkerWorking = false;
+			clearInterval(interval);
+		}
+	}, data.blinkIntervalHide + data.blinkIntervalDisplay);	
+}
+
 
 /**
  * Функция, която отваря посоченото URL, като спира разпространението на събитието
@@ -2811,9 +2898,9 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 	$('span.countdown').each(function() {
 		var text = $(this).text();
 		var res = text.split(":");
-		var hour = res[0];
-		var min = parseInt(res[1]);
-		var sec =  parseInt(res[2]);
+		var hour =  parseInt(res[0],10);
+		var min = parseInt(res[1],10);
+		var sec =  parseInt(res[2],10);
 		
 		if(!(hour == 0 && min == 0 && sec==0 )) {
 			sec--;
@@ -2839,6 +2926,10 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 			}
 			
 			//добавяме водещи нули ако е необходимо
+			if(hour < 10){
+				hour = "0" +  hour;
+			}
+			
 			if(sec < 10){
 				sec = "0" +  sec;
 			}

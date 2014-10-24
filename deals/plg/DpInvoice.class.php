@@ -76,6 +76,10 @@ class deals_plg_DpInvoice extends core_Plugin
         
         // Показване на закръглената сума
         $form->rec->dpAmount = round($form->rec->dpAmount / $form->rec->rate, 6);
+        
+        if($form->rec->dpOperation == 'accrued'){
+        	$form->setField('dueDate', 'input=none');
+        }
     }
     
     

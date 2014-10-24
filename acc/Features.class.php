@@ -288,8 +288,51 @@ class acc_Features extends core_Manager
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if($mvc->haveRightFor('sync')){
-    		$data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => TRUE), NULL, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/view.png,title=Ресинхронизиране на свойствата на перата');
+    		$data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => TRUE), NULL, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
     	}
+    }
+    
+    
+    /**
+     * Синхронизиране на таблицата със свойствата по крон
+     */
+    public function cron_SyncFeatures()
+    {
+    	// Синхронизира всички свойства на перата
+    	$this->syncAllItems();
+    }
+    
+    
+    /**
+     * Синхронизира всички пера
+     */
+    private function syncAllItems()
+    {
+    	$items = array();
+    	 
+    	core_Debug::$isLogging = FALSE;
+    	
+    	// Удължаваме времето за мак. изпълнение
+    	set_time_limit(1000);
+    	
+    	// Свойствата на кои пера са записани в таблицата
+    	$query = $this->getQuery();
+    	$query->show("itemId");
+    	$query->groupBy('itemId');
+    	while($rec = $query->fetch()){
+    		$items[$rec->itemId] = $rec->itemId;
+    	}
+    	
+    	// Ако има пера
+    	if(count($items)){
+    		foreach ($items as $itemId){
+    			
+    			// За всяко перо синхронизираме свойствата му
+    			self::syncItem($itemId);
+    		}
+    	}
+    	
+    	core_Debug::$isLogging = TRUE;
     }
     
     
@@ -300,22 +343,8 @@ class acc_Features extends core_Manager
     {
     	$this->requireRightFor('sync');
     	
-    	$items = array();
-    	
-    	// Свойствата на кои пера са записани в таблицата
-    	$query = $this->getQuery();
-    	$query->show("itemId");
-    	$query->groupBy('itemId');
-    	while($rec = $query->fetch()){
-    		$items[$rec->itemId] = $rec->itemId;
-    	}
-    	
-    	// За всяко перо синхронизираме свойствата му
-    	if(count($items)){
-    		foreach ($items as $itemId){
-    			self::syncItem($itemId);
-    		}
-    	}
+    	// Синхронизира всички свойства на перата
+    	$this->syncAllItems();
     	
     	// Редирект към списъка на свойствата
     	return Redirect(array($this, 'list'), FALSE, tr('Всички свойства са синхронизирани успешно'));

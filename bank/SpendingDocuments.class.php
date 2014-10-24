@@ -212,7 +212,7 @@ class bank_SpendingDocuments extends core_Master
         $form->setOptions('operationSysId', $options);
         
         if(isset($form->defaultOperation) && array_key_exists($form->defaultOperation, $options)){
-            $form->rec->operationSysId = $form->defaultOperation;
+            $form->setDefault('operationSysId', $form->defaultOperation);
         }
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);

@@ -90,6 +90,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
     	$mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
     	$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Начин, export=Csv');
+    	$mvc->FLD('dueDate', 'date', 'caption=Плащане->Краен срок');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden');
     	$mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
@@ -364,6 +365,11 @@ abstract class deals_InvoiceMaster extends core_Master
     		unset($invArr[$key]);
     	}
     
+    	if($form->rec->type == 'credit_note'){
+    		unset($invArr['dueDate']);
+    		$form->setField('dueDate', 'input=none');
+    	}
+    	
     	// Копиране на повечето от полетата на фактурата
     	foreach($invArr as $field => $value){
     		$form->setDefault($field, $value);
@@ -378,7 +384,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$form->setField('deliveryId', 'input=none');
     	$form->setField('deliveryPlaceId', 'input=none');
     
-    	foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId') as $name){
+    	foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'dueDate') as $name){
     		if($form->rec->$name){
     			$form->setReadOnly($name);
     		}
@@ -700,8 +706,19 @@ abstract class deals_InvoiceMaster extends core_Master
     			$form->setField('deliveryPlaceId', 'input=hidden');
     		}
     		
+    		// Извлича се платежния план
+    		if($form->rec->paymentMethodId){
+    			$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
+    		}
+    		
+    		if(isset($plan) && isset($plan['deadlineForBalancePayment'])){
+				$form->setReadOnly('dueDate', $plan['deadlineForBalancePayment']);
+    		}	else {
+    			$form->setField('dueDate', 'input=none');
+    		}
+    		
     		$data->aggregateInfo = $aggregateInfo;
-    	}
+    	} 
     	 
     	// Ако ориджина също е фактура
     	if($origin->className  == $mvc->className){

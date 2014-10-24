@@ -288,7 +288,7 @@ class sales_Proformas extends deals_InvoiceMaster
     {
     	$firstDocument = doc_Threads::getFirstDocument($threadId);
     	
-    	if(!$firstDoc) return FALSE;
+    	if(!$firstDocument) return FALSE;
     	
     	// Може да се добавя само към активна продажба
     	if($firstDocument->instance instanceof sales_Sales && $firstDocument->fetchField('state') == 'active'){

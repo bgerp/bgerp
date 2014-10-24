@@ -85,13 +85,7 @@ class findeals_AdvanceDeals extends findeals_Deals
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,detailedName,folderId,state,createdOn,createdBy';
-    
-
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'id,detailedName,folderId,state,createdOn,createdBy';
     
     
     /**

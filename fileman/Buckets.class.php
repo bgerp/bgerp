@@ -119,10 +119,26 @@ class fileman_Buckets extends core_Manager {
 
         if($row->extensions) {
             $extArr = explode(',', $row->extensions);
+            
             foreach($extArr as $ext) {
                 if(strpos($ext, '/')) {
+                    $mimeExtArr = fileman_Mimes::getExtByMime($ext);
+                    $mimeExtArr = arr::make($mimeExtArr, TRUE);
+                    
+                    $extStrArr = arr::make($info->extensions, TRUE);
+                    $extStrArr = arr::combine($extStrArr, $mimeExtArr);
+                    $info->extensions = implode(', ', $extStrArr);
+                    
                     $info->accept .= ($info->accept ? ', ' : '') . mb_strtolower(trim($ext));
                 } else {
+                    
+                    $extMimeArr = fileman_Mimes::getMimeByExt($ext);
+                    $extMimeArr = arr::make($extMimeArr, TRUE);
+                    
+                    $acceptArr = arr::make($info->accept, TRUE);
+                    $acceptArr = arr::combine($acceptArr, $extMimeArr);
+                    $info->accept = implode(', ', $acceptArr);
+                    
                     $info->extensions .= ($info->extensions ? ', ' : '') . mb_strtolower(trim($ext));
                 }
             }
@@ -132,7 +148,7 @@ class fileman_Buckets extends core_Manager {
         $info->title = tr("Добавяне на файл(ове)");
 
         $info->maxFileSize = $row->maxSize;
-
+        
         return $info;
     }
 
