@@ -39,7 +39,7 @@ class core_CallOnTime extends core_Manager
      */
     protected $canDelete = 'no_one';
 	
-	
+
 	/**
 	 * 
 	 */
@@ -49,7 +49,7 @@ class core_CallOnTime extends core_Manager
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'plg_State';
+    public $loadList = 'plg_State,plg_SystemWrapper';
     
     
 	/**
@@ -175,9 +175,9 @@ class core_CallOnTime extends core_Manager
             self::save($nRec, 'state');
             
             try {
-                
+                $class = cls::get($rec->className);
                 // Изпълняваме подадената функция с префикс callback_
-                $callback = array($rec->className, 'callback_' . $rec->methodName);
+                $callback = array($class, 'callback_' . $rec->methodName);
                 $res .= call_user_func($callback, $rec->data) . "\n";
                 
                 // Изтриваме след като се изпълни веднъж

@@ -129,7 +129,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,typeId,personId=Имена,positionId=Позиция,startFrom,endOn';
+    var $listFields = 'id,typeId,numId,dateId,personId=Имена,positionId=Позиция,startFrom,endOn';
     
     
     /**
@@ -494,17 +494,19 @@ class hr_EmployeeContracts extends core_Master
      */
     function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
-        if($rec->state == 'active'){
+    	$position = self::fetchField($id, "positionId");
+
+    	if($rec->state == 'active'){
             
             // Взимаме запълването до сега
-            $employmentOccupied = hr_Positions::fetchField($rec->positionId, 'employmentOccupied');
+            $employmentOccupied = hr_Positions::fetchField($position, 'employmentOccupied');
             
             // Изчисляваме работното време
             $houresInSec = self::houresForAWeek($rec->id);
             $houres = $houresInSec / 60 / 60;
             
             $recPosition = new stdClass();
-            $recPosition->id = $rec->positionId;
+            $recPosition->id = $position;
             
             // Ако работната седмица е над 35ч е един щат
             if($houres >= 35){
@@ -570,18 +572,20 @@ class hr_EmployeeContracts extends core_Master
         }
     }
     
+    
     /**
      * Преди запис в модела
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-        if($rec->state == 'active' || $rec->state == 'draft'){
+        if($rec->state == 'draft'){
         	if(empty($rec->numId)){
         		$rec->numId = self::getNexNumber();
         		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->numId);
         	}
         }
     }
+    
     
     /**
      * Валидиране на полето 'number' - номер на фактурата
@@ -600,6 +604,7 @@ class hr_EmployeeContracts extends core_Master
         }
     }
     
+    
 	/**
      * Валидиране на полето 'dateId' - дата на трудовия договор
      * Предупреждение ако има трудов договор с по-нова дата (само при update!)
@@ -617,6 +622,7 @@ class hr_EmployeeContracts extends core_Master
     		);
     	}
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -663,6 +669,7 @@ class hr_EmployeeContracts extends core_Master
         
         return $options;
     }
+
     
     /**
      * @todo Чака за документация...
@@ -750,6 +757,7 @@ class hr_EmployeeContracts extends core_Master
     {
         // @todo!
     }
+    
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

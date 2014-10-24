@@ -89,7 +89,7 @@ class core_Logs extends core_Manager
         $rec->detail = $detail;
         $rec->lifeTime = $lifeTime;
         
-        return core_Logs::save($rec, NULL, 'delayed');
+        return core_Logs::save($rec );
     }
     
     

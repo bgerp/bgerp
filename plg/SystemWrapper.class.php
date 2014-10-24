@@ -32,12 +32,13 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_LoginLog', 'Логове->Логин', 'admin');
         $this->TAB('core_Cron', 'Крон');
         $this->TAB('core_Plugins', 'Плъгини', 'admin');
-        $this->TAB('core_Cache', 'Вътрешни->Кеш', 'admin');
-        $this->TAB('core_Browser', 'Вътрешни->Браузър', 'admin, debug');
+        $this->TAB('core_Cache', 'Вътрешни->Кеш', 'debug');
+        $this->TAB('core_Browser', 'Вътрешни->Браузър', 'debug');
         $this->TAB('core_Classes', 'Вътрешни->Класове', 'debug');
         $this->TAB('core_Interfaces', 'Вътрешни->Интерфейси', 'debug');
         $this->TAB('core_Locks', 'Вътрешни->Заключвания', 'debug');
         $this->TAB('core_Settings', 'Вътрешни->Персонализация', 'debug');
         $this->TAB('core_Forwards', 'Вътрешни->Пренасочвания', 'debug');
+        $this->TAB('core_CallOnTime', 'Вътрешни->Отложени', 'debug');
     }
 }
