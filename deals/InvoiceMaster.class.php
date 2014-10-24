@@ -48,23 +48,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Стратегии за дефолт стойностти
-     */
-    public static $defaultStrategies = array(
-    	'place'               => 'lastDocUser|lastDoc',
-    	'responsible'         => 'lastDocUser|lastDoc',
-    	'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
-    	'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
-    	'uicNo'     		  => 'lastDocUser|lastDoc|clientData',
-		'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
-    	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
-        'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
-    	'accountId'           => 'lastDocUser|lastDoc',
-    	//'template' 		  => 'lastDocUser|lastDoc|LastDocSameCuntry',
-    );
-    
-    
-    /**
      * Опашка от записи за записване в on_Shutdown
      */
     protected $updated = array();
