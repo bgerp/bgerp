@@ -731,55 +731,9 @@ class fileman_Files extends core_Master
         
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
-
-            // Предишното име на файла
-            $oldFileName = $fRec->name;
             
-            // Вземаме новото име на файла
-            $newFileName = $form->rec->name;
-            
-            // Ако сме редактирали името
-            if ($newFileName != $oldFileName) {
-                
-                // Изтриваме файла от sbf и от модела
-                fileman_Download::deleteFileFromSbf($fRec->id);
-                
-                // Вземамем новото възможно име
-                $newFileName = $this->getPossibleName($newFileName, $fRec->bucketId);
-                
-                // Записа, който ще запишем
-                $nRec = new stdClass();
-                $nRec->id = $fRec->id;
-                $nRec->name = $newFileName;
-                $nRec->fileHnd = $fRec->fileHnd;
-
-                // Вземаме разширението на новия файл
-                $newExt = fileman_Files::getExt($newFileName);
-                
-                // Вземаме разширението на стария файл
-                $oldExt = fileman_Files::getExt($oldFileName);
-                
-                // Ако няма проблем при записването
-                if (static::save($nRec) && ($newExt != $oldExt)) {
-                    
-                    // Изтриваме всички предишни индекси за файла
-                    fileman_Indexes::deleteIndexesForData($fRec->dataId);
-                    
-                    // Ако има разширение
-                    if ($newExt) {
-                        
-                        // Вземаме драйверите
-                        $drivers = fileman_Indexes::getDriver($newExt);    
-                        
-                        // Обикаляме всички открити драйвери
-                        foreach($drivers as $drv) {
-                            
-                            // Стартираме процеса за извличане на данни
-                            $drv->startProcessing($fRec);
-                        }
-                    }    
-                }
-            }
+            // Преименува файла
+            self::renameFile($fRec, $form->rec->name, TRUE);
 
             // Редиректваме
             Redirect($retUrl);
@@ -802,6 +756,73 @@ class fileman_Files extends core_Master
         $form->title = "Редактиране на файл|*:  {$fileName}";
         
         return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Преименува файла
+     * 
+     * @param object $fRec
+     * @param string $newFileName
+     * @param boolean $forceDriver
+     * 
+     * @return NULL|boolean
+     */
+    public static function renameFile($fRec, $newFileName, $forceDriver=FALSE)
+    {
+        // Предишното име на файла
+        $oldFileName = $fRec->name;
+        
+        // Ако имената съвпадат, няма какво да се променя
+        if ($newFileName == $oldFileName) return ;
+        
+        // Изтриваме файла от sbf и от модела
+        fileman_Download::deleteFileFromSbf($fRec->id);
+        
+        // Вземамем новото възможно име
+        $newFileName = self::getPossibleName($newFileName, $fRec->bucketId);
+        
+        // Записа, който ще запишем
+        $nRec = new stdClass();
+        $nRec->id = $fRec->id;
+        $nRec->name = $newFileName;
+        $nRec->fileHnd = $fRec->fileHnd;
+        $saveId = static::save($nRec);
+        
+        if (!$saveId) return FALSE;
+        
+        // Ако е форсирано рендирането на драйверите
+        if ($forceDriver) {
+            
+            // Вземаме разширението на новия файл
+            $newExt = fileman_Files::getExt($newFileName);
+            
+            // Вземаме разширението на стария файл
+            $oldExt = fileman_Files::getExt($oldFileName);
+            
+            // Ако е променое разширението
+            if ($newExt != $oldExt) {
+                
+                // Изтриваме всички предишни индекси за файла
+                fileman_Indexes::deleteIndexesForData($fRec->dataId);
+                
+                // Ако има разширение
+                if ($newExt) {
+                    
+                    // Вземаме драйверите
+                    $drivers = fileman_Indexes::getDriver($newExt);    
+                    
+                    // Обикаляме всички открити драйвери
+                    foreach($drivers as $drv) {
+                        
+                        // Стартираме процеса за извличане на данни
+                        $drv->startProcessing($fRec);
+                    }
+                }    
+            }
+        }
+        
+        return TRUE;
     }
     
     
