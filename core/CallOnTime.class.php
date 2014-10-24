@@ -39,7 +39,7 @@ class core_CallOnTime extends core_Manager
      */
     protected $canDelete = 'no_one';
 	
-	
+
 	/**
 	 * 
 	 */
@@ -49,7 +49,7 @@ class core_CallOnTime extends core_Manager
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'plg_State';
+    public $loadList = 'plg_State,plg_SystemWrapper';
     
     
 	/**
