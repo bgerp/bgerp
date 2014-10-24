@@ -665,12 +665,18 @@ div.acc-detail {
       padding-right: 5px; }
     .additionalInfo-holder .additionalInfo td {
       white-space: nowrap;
-      border: none !important; }
+      border: none !important;
+      text-align: left !important; }
+    .additionalInfo-holder .additionalInfo .aright {
+      text-align: right !important; }
   .additionalInfo-holder .anchor-arrow {
     cursor: pointer; }
 
 .narrow .additionalInfo {
   font-size: 0.9em; }
+
+.portal table.listTable .additionalInfo-holder td {
+  border: none !important; }
 
 /*
  * детайли

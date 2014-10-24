@@ -720,6 +720,10 @@ div.acc-detail {
 	   td{
 	       white-space: nowrap;
 	       border: none !important;
+	       text-align: left !important;
+	   }
+	   .aright{
+	       text-align: right !important;
 	   }
 	}
 	.anchor-arrow {
@@ -729,6 +733,10 @@ div.acc-detail {
 
 .narrow .additionalInfo {
 	font-size: 0.9em;
+}
+
+.portal table.listTable .additionalInfo-holder td{
+	  border: none !important;
 }
 
 /*детайли*/
