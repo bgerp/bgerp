@@ -3,7 +3,7 @@
 error_reporting( E_ALL & ~E_NOTICE  & ~E_DEPRECATED);
 
 // Дали да са включени финкциите за дебъг и настройка
-DEFINE('EF_DEBUG', TRUE);
+DEFINE('EF_DEBUG', FALSE);
 
 // Името на папката със статичните ресурсни файлове:
 // css, js, png, gif, jpg, flv, swf, java, xml, txt, html ...
