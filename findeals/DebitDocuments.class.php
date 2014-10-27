@@ -122,11 +122,14 @@ class findeals_DebitDocuments extends deals_Document
     /**
      * Проверка и валидиране на формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputDocumentEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	
     	if ($form->isSubmitted()){
+    		
+    		expect($rec->dealId);
+    		
     		$oprtations = $form->dealInfo->get('allowedPaymentOperations');
     		$operation = $oprtations[$rec->operationSysId];
     		$debitAcc = findeals_Deals::fetchField($rec->dealId, 'accountId');
