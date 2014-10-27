@@ -396,9 +396,11 @@ abstract class deals_DealDetail extends doc_Detail
                 if (empty($rec->packagingId)) {
                 	$row->packagingId = ($rec->uomId) ? $row->uomId : $row->packagingId;
                 } else {
-                    $shortUomName = cat_UoM::getShortName($rec->uomId);
-                    $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
-                	$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
+                   if(cat_Packagings::fetchField($rec->packagingId, 'showContents') == 'yes'){
+                   		$shortUomName = cat_UoM::getShortName($rec->uomId);
+                   		$row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
+                   		$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
+                   }
                 }
             }
         }

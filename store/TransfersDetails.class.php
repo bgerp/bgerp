@@ -149,9 +149,11 @@ class store_TransfersDetails extends doc_Detail
                 if (empty($rec->packagingId)) {
                     $row->packagingId = ($rec->uomId) ? $row->uomId : '???';
                 } else {
-                    $shortUomName = cat_UoM::getShortName($rec->uomId);
-                    $row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
-                    $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
+                	if(cat_Packagings::fetchField($rec->packagingId, 'showContents') == 'yes'){
+                		$shortUomName = cat_UoM::getShortName($rec->uomId);
+                		$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
+                		$row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
+                	}
                 }
             }
         }
