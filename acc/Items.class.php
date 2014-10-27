@@ -226,6 +226,7 @@ class acc_Items extends core_Manager
             $mvc->save($rec);
         }
         
+        // Синхронизира свойствата на перото
         acc_Features::syncItem($id);
     }
     
@@ -301,7 +302,7 @@ class acc_Items extends core_Manager
                 $mvc::on_CalcTitleLink($mvc, $rec);
             }
             
-            $form->info = $mvc->getVerbal($rec, 'title');
+            $form->info = $mvc->getVerbal($rec, 'titleLink');
         }
         
         $form->setSuggestions('lists', acc_Lists::getPossibleLists($rec->classId));
@@ -314,6 +315,12 @@ class acc_Items extends core_Manager
         
         if ($rec->id) {
             $form->title = "|Редактиране на перо|*";
+        }
+        
+        $listId = $mvc->getCurrentListId();
+        $listRec = $mvc->Lists->fetch($listId);
+        if($listRec->isDimensional == 'no') {
+        	$form->setField('uomId', 'input=none');
         }
     }
     
