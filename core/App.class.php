@@ -486,8 +486,33 @@ class core_App
 
         static::shutdown(FALSE);
     }
-
-
+    
+    
+    /**
+     * Връща резултата, като JSON и спира процеса
+     * 
+     * $resArr array
+     */
+    public static function getJson($resArr)
+    {
+        // За да не се кешира
+        header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
+        header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+        header("Cache-Control: post-check=0, pre-check=0", false);
+        header("Pragma: no-cache");
+        
+        // Указваме, че ще се връща JSON
+        header('Content-Type: application/json');
+        
+        // Връщаме резултата в JSON формат
+        echo json_encode($resArr);
+        
+        // Прекратяваме процеса
+        self::shutdown();
+    }
+    
+    
     /**
      * Връща текущото GET URL
      */
