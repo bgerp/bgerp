@@ -42,7 +42,7 @@ abstract class deals_Document extends core_Master
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
-    	$mvc->FNC('dealHandler', 'varchar', 'caption=Сделка 2,mandatory,input');
+    	$mvc->FNC('dealHandler', 'varchar', 'caption=Сделка,mandatory,input');
     	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=detailedName,allowEmpty)', 'caption=Сделка,input=none');
     	$mvc->FLD('amount', 'double(smartRound)', 'caption=Сума,mandatory,summary=amount');
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
@@ -94,6 +94,8 @@ abstract class deals_Document extends core_Master
 			$form->setDefault('description', "Към документ #{$origin->getHandle()}");
 			$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
 			$form->rec->rate = $dealInfo->get('rate');
+		} else {
+			$form->rec->dealHandler = findeals_Deals::getHandle($form->rec->dealId);
 		}
 		 
 		$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
@@ -115,9 +117,9 @@ abstract class deals_Document extends core_Master
 				$doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
 				if(!$doc){
 					$form->setError('dealHandler', 'Няма документ с такъв хендлър');
+				} else {
+					$rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
 				}
-				
-				$rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
 			}
 		}
 		
