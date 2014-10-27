@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -38,7 +38,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools';
+    var $loadList = 'plg_RowTools, cond_Wrapper';
     
     
     /**
@@ -63,6 +63,12 @@ class cond_ConditionsToCustomers extends core_Manager
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     var $fetchFieldsBeforeDelete = 'id, cClass, cId, conditionId';
+    
+    
+    /**
+     * Активен таб
+     */
+    var $currentTab = 'Параметри';
     
     
     /**
