@@ -48,6 +48,12 @@ class acc_JournalDetails extends core_Detail
     
     
     /**
+     *  Брой теми на страница
+     */
+    var $listItemsPerPage = "40";
+    
+    
+    /**
      * Описание на модела
      */
     function description()
