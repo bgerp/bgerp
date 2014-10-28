@@ -336,6 +336,9 @@ class smssync_SMS extends core_Manager
                 }
             }
             
+            // Записваме в лога
+            self::log('Не е позволен достъпа от IP-то: ' . $realIpAdd);
+            
             return FALSE;
         }
         
