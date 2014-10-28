@@ -60,7 +60,7 @@ class bgerp_plg_FirstLogin extends core_Plugin
         // Оптиваме се да определим пътя до файла в зависимост от езика
         $filePath = '';
         $filePathBegin = '/bgerp/tpl/WelcomeNote';
-        $filePathEnd .= '.txt';
+        $filePathEnd = '.txt';
         if ($lg) {
             $lgU = strtoupper($lg);
             
