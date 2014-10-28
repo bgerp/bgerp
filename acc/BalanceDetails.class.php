@@ -126,6 +126,8 @@ class acc_BalanceDetails extends core_Detail
                 $mvc->doGrouping($data, (array)$data->groupingForm->rec, $data->groupingForm->cmd);
             }
             
+            if(!count($data->recs)) return;
+            
             $data->allRecs = $data->recs;
             
             // Преизчисляваме пейджъра с новия брой на записите
