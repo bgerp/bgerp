@@ -129,7 +129,7 @@ class callcenter_SMS extends core_Master
         $this->FLD('text', 'text', 'caption=Текст, mandatory');
         
         $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
-        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане, waiting=Чакащо)', 'caption=Статус, input=none, hint=Статус на съобщението');
+        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане, pending=Чакащо)', 'caption=Статус, input=none, hint=Статус на съобщението');
         $this->FLD('receivedTime', 'datetime(format=smartTime)', 'caption=Получено на, input=none');
         
         $this->FLD('encoding', 'enum(auto=Автоматично, utf-8=Уникод|* (UTF-8), ascii=Латиница|* (ASCII))', 'caption=Знаци');
@@ -177,6 +177,9 @@ class callcenter_SMS extends core_Master
         // Подготвяме текстовата част
         $messageStr = self::prepareMessage($message);
         
+        // Очакваме да може да се изпрати съответния SMS
+        expect(self::canSend($service, $messageStr, $sender), 'Не може да се изпрати');
+        
         // Изпращаме съобщението към услугата за изпращане на SMS
         $sendStatusArr = $serviceInst->sendSMS($number, $messageStr, $sender);
         
@@ -185,7 +188,7 @@ class callcenter_SMS extends core_Master
     
     
     /**
-     * Проверява дали може да се изпрати съответния имейл
+     * Проверява дали може да се изпрати даденото съобщение
      * 
      * @param integer|string $service
      * @param string|array $message
@@ -272,10 +275,13 @@ class callcenter_SMS extends core_Master
      * @param string $status
      * @param integer $receivedTimestamp
      */
-    public static function update($service, $uid, $status, $receivedTimestamp=NULL)
+    public static function update_($service, $uid, $status, $receivedTimestamp=NULL)
     {
         // Вземаме записа
         $rec = self::fetch(array("#uid = '[#1#]' AND #service = '[#2#]'", $uid, $service));
+        
+        // Ако няма такъв запис
+        if (!$rec) return ;
         
         // Сменяме статуса и времето на получаване
         $rec->status = $status;
@@ -444,7 +450,7 @@ class callcenter_SMS extends core_Master
         // Ако е инпутната формата без грешки
         if ($form->isSubmitted()) {
             
-            // Очакваме да може да се изпрати съответния имейл
+            // Очакваме да може да се изпрати съответния SMS
 //            expect(self::canSend($rec->service, $rec->text, $rec->sender));
             
             // Изпращаме SMS-a
@@ -564,8 +570,8 @@ class callcenter_SMS extends core_Master
             $row->SMSStatusClass .= ' sms-receiveError';
         } elseif ($rec->status == 'sendError') {
             $row->SMSStatusClass .= ' sms-sendError';
-        } elseif ($rec->status == 'waiting') {
-            $row->SMSStatusClass .= ' sms-waiting';
+        } elseif ($rec->status == 'pending') {
+            $row->SMSStatusClass .= ' sms-pending';
         } 
         
         // Добавяме класа
