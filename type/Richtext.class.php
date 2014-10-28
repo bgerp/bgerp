@@ -65,6 +65,12 @@ class type_Richtext extends type_Blob
     const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))+)\[\/bQuote\]#mis";
     
     
+    /**
+     * Заместител на [bQuote=???]
+     */
+    const BQUOTE_DIV_BEGIN = "<div class='richtext-quote'>";
+    
+    
 	/**
      * Инициализиране на типа
      * Задава, че да се компресира
@@ -306,12 +312,13 @@ class type_Richtext extends type_Blob
         } else if ($html) {
             
             // Опитваме се поне да заместим цитатите
-            $html = str_replace(array('[bQuote]', '[/bQuote]'), array("<div class='richtext-quote'>", "</div>"), $html);
+            $html = str_replace('[/bQuote]', "</div>", $html);
+            $html = preg_replace_callback("/\[bQuote(=([^\]]+)){0,1}\]/i", array($this, '_catchBQuoteSingle'), $html);
         }
         
         $from = array("[bQuote]", "[/bQuote]");
         if(!Mode::is('text', 'plain')) {
-            $to = array("<div class='richtext-quote'>", "</div>");
+            $to = array(self::BQUOTE_DIV_BEGIN, "</div>");
         } else {
             $to = array("", "");
         }
@@ -751,10 +758,25 @@ class type_Richtext extends type_Blob
         } else {
             
             // Добавяме в цитата, ако не сме в текстов режим
-            $quote = "<div class='richtext-quote'>" . $quote . "</div>";
+            $quote = self::BQUOTE_DIV_BEGIN . $quote . "</div>";
         }
         
         $this->invoke('afterCatchBQuote', array(&$quote, $match[2]));
+        
+        return $quote;
+    }
+    
+    
+    /**
+     * Заменя елемента [bQuote=???]
+     * Алтернатива на _catchBQuote. Когато гръме регулярния израз. Замества само [bQuote=???] със съответния div
+     */
+    function _catchBQuoteSingle($match)
+    {
+        $quote = '';
+        $this->invoke('afterCatchBQuote', array(&$quote, $match[2]));
+        
+        $quote .= self::BQUOTE_DIV_BEGIN;
         
         return $quote;
     }
