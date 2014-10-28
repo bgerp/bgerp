@@ -303,6 +303,10 @@ class type_Richtext extends type_Blob
         // Ако възникне грешка при обработката, да не се прави никаква обработка
         if ($bQHtml = preg_replace_callback(self::QUOTE_PATTERN, array($this, '_catchBQuote'), $html)) {
             $html = $bQHtml;
+        } else if ($html) {
+            
+            // Опитваме се поне да заместим цитатите
+            $html = str_replace(array('[bQuote]', '[/bQuote]'), array("<div class='richtext-quote'>", "</div>"), $html);
         }
         
         $from = array("[bQuote]", "[/bQuote]");
