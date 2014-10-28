@@ -2644,16 +2644,10 @@ div.location.public {
 /*шаблон за журнал*/
 
 
-/*bugFix - ширина при коментари на документ*/
+
 .btn-group .button {
 	display: inline-block;
 	width: auto !important;
-}
-
-/*край на bugFix - ширина при коментари на документ*/
-
-.trans_DeliveryTerms {
-	max-width: 800px;
 }
 
 .core_Logs table.listTable > tbody > tr > td:last-child {
