@@ -2426,7 +2426,7 @@ function render_Notify(data){
 	
 	blinkerWorking = true;
 	var counter = 1;
-	var oldTitle = document.title;
+	var blankTitle = "\u200E";
     var title = data.title ? data.title : " ";
 	//генерираме новата фав икона
 	var newIcon = document.createElement('link');
@@ -2450,7 +2450,7 @@ function render_Notify(data){
 		var timeOut = setTimeout(function(){
 			// задамаваме старите текст и икона
 			$('head').append(oldIcon);
-			document.title = oldTitle;
+			document.title = blankTitle;
 		}, data.blinkIntervalDisplay);
 		
 		counter++;
@@ -2459,7 +2459,7 @@ function render_Notify(data){
 			blinkerWorking = false;
 			clearInterval(interval);
 		}
-	}, data.blinkIntervalHide + data.blinkIntervalDisplay);	
+	}, data.blinkIntervalHide + data.blinkIntervalDisplay);
 }
 
 
