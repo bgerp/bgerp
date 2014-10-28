@@ -5,20 +5,17 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
     </div>
     <!--ET_END header-->
-    
     <div class='scrolling-holder'>
         <div class='display-table'>
         	[#TABS#]
         	<!--ET_BEGIN DEAL_HISTORY-->
-        	<div style='padding-top:10px;padding-bottom:10px'>
         	[#DEAL_HISTORY#]
-       	 	</div>
         	<!--ET_END DEAL_HISTORY-->
         	
             <!--ET_BEGIN STATISTIC_BAR-->
             [#STATISTIC_BAR#]
             <div class="sale-summary">
-                <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
+                <table class='paddingCells' style='width:100%;'>
                     <tr>
                         <td class = 'sum-th'>
                             |Салдо|*, [#currencyId#]
@@ -48,35 +45,35 @@
             </div>
             <!--ET_END STATISTIC_BAR-->
             [#SINGLE_CONTENT#]
+          
+		    <table class='styled-table' style='width: 100%; margin: 10px 0;'>
+		        <!--ET_BEGIN dealName-->
+		        <tr>
+		            <td>|Наименование|*</td>
+		            <td>[#dealName#]</td>
+		        </tr>
+		        <!--ET_END dealName-->
+		        <tr>
+		            <td>|Сметка|*</td>
+		            <td>[#accountId#]</td>
+		        </tr>
+		        <!--ET_BEGIN description-->
+		        <tr>
+		            <td>|Описание|*</td>
+		            <td>[#description#]</td>
+		        </tr>
+		        <!--ET_END description-->
+		        <!--ET_BEGIN closedDocuments-->
+		        <tr>
+		            <td>|Обединява|*</td>
+		            <td>[#closedDocuments#]</td>
+		        </tr>
+		        <!--ET_END closedDocuments-->
+		    </table>
+		    <!--ET_BEGIN DETAILS-->
+		    [#DETAILS#]
+		    <!--ET_END DETAILS-->
+		    [#PAGER#]
         </div>
-        <div style = 'margin-top:10px'></div>
     </div>
-    <table class='styled-table' width='100%'>
-        <!--ET_BEGIN dealName-->
-        <tr>
-            <td>|Наименование|*</td>
-            <td>[#dealName#]</td>
-        </tr>
-        <!--ET_END dealName-->
-        <tr>
-            <td>|Сметка|*</td>
-            <td>[#accountId#]</td>
-        </tr>
-        <!--ET_BEGIN description-->
-        <tr>
-            <td>|Описание|*</td>
-            <td>[#description#]</td>
-        </tr>
-        <!--ET_END description-->
-        <!--ET_BEGIN closedDocuments-->
-        <tr>
-            <td>|Обединява|*</td>
-            <td>[#closedDocuments#]</td>
-        </tr>
-        <!--ET_END closedDocuments-->
-    </table>
-    <!--ET_BEGIN DETAILS-->
-    [#DETAILS#]
-    <!--ET_END DETAILS-->
-    [#PAGER#]
 </div>

@@ -75,7 +75,7 @@ class acc_BalanceDetails extends core_Detail
      */
     private static $cache = array();
     
-    
+    public $listItemsPerPage = 2;
     /**
      * Описание на модела
      */
@@ -124,6 +124,30 @@ class acc_BalanceDetails extends core_Detail
         if ($mvc->isDetailed()) {
             if($data->groupingForm->isSubmitted()){
                 $mvc->doGrouping($data, (array)$data->groupingForm->rec, $data->groupingForm->cmd);
+            }
+            
+            if(!count($data->recs)) return;
+            
+            $data->allRecs = $data->recs;
+            
+            // Преизчисляваме пейджъра с новия брой на записите
+            $conf = core_Packs::getConfig('acc');
+            $Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS));
+            $Pager->itemsCount = count($data->recs);
+            $Pager->calc();
+            $data->pager = $Pager;
+            
+            $start = $data->pager->rangeStart;
+            $end = $data->pager->rangeEnd - 1;
+            
+            // Махаме тези записи които не са в диапазона на страницирането
+            $count = 0;
+            
+            foreach ($data->recs as $id => $rec){
+            	if(!($count >= $start && $count <= $end)){
+            		unset($data->recs[$id]);
+            	}
+            	$count++;
             }
             
             if(count($data->recs)){
@@ -204,10 +228,10 @@ class acc_BalanceDetails extends core_Detail
         
         if(!$this->isDetailed()) return;
         
-        $recs = $data->recs;
+        $recs = $data->allRecs;
         
         $arr = array('debitAmount', 'creditAmount', 'baseAmount', 'blAmount');
-        $debitQuantity = $debitAmount = $creditAmount = $baseQuantity = $baseAmount = $blAmount =  0;
+        $debitQuantity = $debitAmount = $creditAmount = $baseQuantity = $baseAmount = $blAmount = 0;
         
         foreach ($recs as $rec){
             foreach ($arr as $param){
@@ -390,25 +414,6 @@ class acc_BalanceDetails extends core_Detail
         // Заменяме записите с новите
         $data->recs = $groupedRecs;
         
-        // Преизчисляваме пейджъра с новия брой на записите
-        $conf = core_Packs::getConfig('acc');
-        $Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS));
-        $Pager->itemsCount = count($data->recs);
-        $Pager->calc();
-        $data->pager = $Pager;
-        
-        $start = $data->pager->rangeStart;
-        $end = $data->pager->rangeEnd - 1;
-        
-        // Махаме тези записи които не са в диапазона на страницирането
-        $count = 0;
-        
-        foreach ($data->recs as $id => $rec){
-            if(!($count >= $start && $count <= $end)){
-                unset($data->recs[$id]);
-            }
-            $count++;
-        }
     }
     
     

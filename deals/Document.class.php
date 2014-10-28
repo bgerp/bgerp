@@ -42,7 +42,8 @@ abstract class deals_Document extends core_Master
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
-    	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=detailedName,allowEmpty)', 'mandatory,caption=Сделка');
+    	$mvc->FNC('dealHandler', 'varchar', 'caption=Сделка,mandatory,input');
+    	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=detailedName,allowEmpty)', 'caption=Сделка,input=none');
     	$mvc->FLD('amount', 'double(smartRound)', 'caption=Сума,mandatory,summary=amount');
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
     	$mvc->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс');
@@ -79,9 +80,11 @@ abstract class deals_Document extends core_Master
 		expect(count($dealInfo->get('allowedPaymentOperations')));
 		 
 		// Показваме само тези финансови операции в които е засегнат контрагента
-		//$options = findeals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
+		$suggestions = findeals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
 		
-		//$form->setSuggestions('dealId', $options);
+		if(count($suggestions)){
+			$form->setSuggestions('dealHandler', array('' => '') + $suggestions);
+		}
 		 
 		$form->dealInfo = $dealInfo;
 		$form->setDefault('operationSysId', $mvc::$operationSysId);
@@ -91,11 +94,40 @@ abstract class deals_Document extends core_Master
 			$form->setDefault('description', "Към документ #{$origin->getHandle()}");
 			$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
 			$form->rec->rate = $dealInfo->get('rate');
+		} else {
+			$form->rec->dealHandler = findeals_Deals::getHandle($form->rec->dealId);
 		}
 		 
 		$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
 	}
 
+	
+	/**
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param core_Form $form
+	 */
+	public static function on_AfterInputEditForm($mvc, &$form)
+	{
+		if($form->isSubmitted()){
+			$rec = &$form->rec;
+			
+			if($rec->dealHandler){
+				$doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
+				if(!$doc){
+					$form->setError('dealHandler', 'Няма документ с такъв хендлър');
+				} else {
+					$rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
+				}
+			}
+		}
+		
+
+
+		$mvc->invoke('AfterInputDocumentEditForm', array($form));
+	}
+	
 	
 	/**
 	 * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -201,7 +233,7 @@ abstract class deals_Document extends core_Master
 	/**
 	 * Извиква се след подготовката на toolbar-а за табличния изглед
 	 */
-	static function on_AfterPrepareListToolbar($mvc, &$data)
+	public static function on_AfterPrepareListToolbar($mvc, &$data)
 	{
 		$data->toolbar->removeBtn('btnAdd');
 	}

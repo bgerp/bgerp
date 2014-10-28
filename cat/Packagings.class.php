@@ -41,7 +41,7 @@ class cat_Packagings extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,contentPlastic,contentPaper,contentGlass,contentMetals,contentWood';
+    var $listFields = 'id,name,contentPlastic,contentPaper,contentGlass,contentMetals,contentWood,showContents';
     
     
     /**
@@ -93,6 +93,12 @@ class cat_Packagings extends core_Manager
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    var $canEditsysdata = 'ceo,cat';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -103,6 +109,7 @@ class cat_Packagings extends core_Manager
         $this->FLD('contentGlass', 'percent', 'caption=Стъкло');
         $this->FLD('contentMetals', 'percent', 'caption=Метали');
         $this->FLD('contentWood', 'percent', 'caption=Дървесина');
+        $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка,notNull,default=yes');
         
         $this->setDbUnique("name");
     }

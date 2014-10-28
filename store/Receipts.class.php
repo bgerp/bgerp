@@ -36,7 +36,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, store_plg_Document';
 
@@ -129,6 +129,14 @@ class store_Receipts extends store_DocumentMaster
      * Основна операция
      */
     protected static $defOperationSysId = 'delivery';
+    
+    
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    		'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    );
     
     
     /**
