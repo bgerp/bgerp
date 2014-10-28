@@ -197,18 +197,23 @@ class doc_RichTextPlg extends core_Plugin
             return $info;
         }
     }
-
+    
     
     /**
-     * Прихваща извикването на getInfoFromDocHandle
-     * Връща информация за документа, от манипулатора му
+     * Прихваща извикването на AfterCatchBQuote в type_RichText
+     * Добавя дата и автор на цитата
+     * 
+     * @param type_RichText $mvc
+     * @param string $quote
+     * @param string $hnd
      */
-    function on_GetInfoFromDocHandle($mvc, &$res, $fileName)
+    function on_AfterCatchBQuote($mvc, &$quote, $hnd)
     {
-        // Вземаме информация за файла
-        $fileInfo = static::getFileInfo($fileName);
+        if (!trim($hnd)) return ;
         
-        // Ако няма, връщаме
+        // Вземаме информация за файла
+        $fileInfo = static::getFileInfo($hnd);
+        
         if (!$fileInfo) return ;
         
         // Вземаме инстанция на класа
@@ -219,14 +224,18 @@ class doc_RichTextPlg extends core_Plugin
         // Вземаме записа от контейнера на съответния документ
         $cRec = $class->getContainer($rec->id);
         
+        if (!$cRec) return ;
+        
         // Добавяме датата
-        $res['date'] = dt::mysql2verbal($cRec->createdOn);
+        $date = dt::mysql2verbal($cRec->createdOn);
+        
+        $author = '';
         
         // Ако има създател
         if ($cRec->createdBy > 0) {
             
             // Добавяме имената на автора
-            $res['author'] = core_Users::getVerbal($cRec->createdBy, 'names');
+            $author = core_Users::getVerbal($cRec->createdBy, 'names');
         } else {
             
             // Ако няма създател или е системата
@@ -238,10 +247,43 @@ class doc_RichTextPlg extends core_Plugin
                 $dRow = $class->getDocumentRow($fileInfo['id']);
                 
                 // Добавяме автора
-                $res['author'] = $dRow->author;
+                $author = $dRow->author;
                 
                 // Добавяме имейла, ако има такъв
-                $res['authorEmail'] = $dRow->authorEmail;
+                $authorEmail = $dRow->authorEmail;
+                
+                if ($authorEmail) {
+                    $emailInst = cls::get('type_Email');
+                    
+                    // Вземаме вербалния имейл
+                    $author = $emailInst->toVerbal($authorEmail);
+                }
+            }
+        }
+        
+        // Определяме данните за цитата
+        $authorInfo = '';
+        if ($date) {
+            $authorInfo = $date . " ";
+        }
+        if ($author) {
+            $authorInfo .= "&lt;{$author}&gt;";
+        } 
+        
+        // Ако има данни ги добавяме към цитата
+        if ($authorInfo) {
+            // Ако сме в текстов режим
+            if (Mode::is('text', 'plain')) {
+                
+                // Добавяме към цитата автора и дата
+                $quote = $authorInfo . $quote; 
+            } else {
+                
+                // Автора и датата
+                $authorInfo = "<div class='quote-title'>{$authorInfo}</div>";
+                
+                // Добавяме информация за автора
+                $quote = $authorInfo . $quote;
             }
         }
     }

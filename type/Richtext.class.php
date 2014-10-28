@@ -739,9 +739,6 @@ class type_Richtext extends type_Blob
         // Ако няма цитата, връщаме
         if(!strlen($quote)) return "";
         
-        // Манипулатора на файла
-        $docHnd = $match[2];
-        
         // Ако сме в текстов режим
         if (Mode::is('text', 'plain')) {
             
@@ -757,60 +754,7 @@ class type_Richtext extends type_Blob
             $quote = "<div class='richtext-quote'>" . $quote . "</div>";
         }
         
-        // Ако има манипулатор на документа
-        if ($docHnd) {
-            
-            // Извикваме функцията
-            $this->invoke('getInfoFromDocHandle', array(&$dInfo, $docHnd));
-            
-            // Датата
-            $date = $dInfo['date'];
-            
-            // Ако има имейл
-            if ($dInfo['authorEmail']) {
-                
-                // Инстанция на имейка
-                $emailInst = cls::get('type_Email');
-                
-                // Вземаме вербалния имейл
-                $dInfo['authorEmail'] = $emailInst->toVerbal($dInfo['authorEmail']);
-            }
-            
-            // Определяме автора
-            $author = ($dInfo['authorEmail']) ? $dInfo['authorEmail'] : $dInfo['author'];
-            
-            // Ако има дата
-            if ($date) {
-                
-                // Добавяме в стринга
-                $authorInfo = $date . " ";
-            }
-            
-            // Ако има автор
-            if ($author) {
-                
-                // Добавяме автора в стринга
-                $authorInfo .= "&lt;{$author}&gt;";
-            }
-            
-            // Ако има информация за автора
-            if ($authorInfo) {
-                
-                // Ако сме в текстов режим
-                if (Mode::is('text', 'plain')) {
-                    
-                    // Добавяме към цитата автора и дата
-                    $quote = $authorInfo . $quote; 
-                } else {
-                    
-                    // Автора и датата
-                    $authorInfo = "<div class='quote-title'>{$authorInfo}</div>";
-                    
-                    // Добавяме информация за автора
-                    $quote = $authorInfo . $quote;
-                }
-            }
-        }
+        $this->invoke('afterCatchBQuote', array(&$quote, $match[2]));
         
         return $quote;
     }
