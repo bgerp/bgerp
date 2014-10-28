@@ -65,6 +65,12 @@ class type_Richtext extends type_Blob
     const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))+)\[\/bQuote\]#mis";
     
     
+    /**
+     * Заместител на [bQuote=???]
+     */
+    const BQUOTE_DIV_BEGIN = "<div class='richtext-quote'>";
+    
+    
 	/**
      * Инициализиране на типа
      * Задава, че да се компресира
@@ -306,12 +312,13 @@ class type_Richtext extends type_Blob
         } else if ($html) {
             
             // Опитваме се поне да заместим цитатите
-            $html = str_replace(array('[bQuote]', '[/bQuote]'), array("<div class='richtext-quote'>", "</div>"), $html);
+            $html = str_replace('[/bQuote]', "</div>", $html);
+            $html = preg_replace_callback("/\[bQuote(=([^\]]+)){0,1}\]/i", array($this, '_catchBQuoteSingle'), $html);
         }
         
         $from = array("[bQuote]", "[/bQuote]");
         if(!Mode::is('text', 'plain')) {
-            $to = array("<div class='richtext-quote'>", "</div>");
+            $to = array(self::BQUOTE_DIV_BEGIN, "</div>");
         } else {
             $to = array("", "");
         }
@@ -739,9 +746,6 @@ class type_Richtext extends type_Blob
         // Ако няма цитата, връщаме
         if(!strlen($quote)) return "";
         
-        // Манипулатора на файла
-        $docHnd = $match[2];
-        
         // Ако сме в текстов режим
         if (Mode::is('text', 'plain')) {
             
@@ -754,63 +758,25 @@ class type_Richtext extends type_Blob
         } else {
             
             // Добавяме в цитата, ако не сме в текстов режим
-            $quote = "<div class='richtext-quote'>" . $quote . "</div>";
+            $quote = self::BQUOTE_DIV_BEGIN . $quote . "</div>";
         }
         
-        // Ако има манипулатор на документа
-        if ($docHnd) {
-            
-            // Извикваме функцията
-            $this->invoke('getInfoFromDocHandle', array(&$dInfo, $docHnd));
-            
-            // Датата
-            $date = $dInfo['date'];
-            
-            // Ако има имейл
-            if ($dInfo['authorEmail']) {
-                
-                // Инстанция на имейка
-                $emailInst = cls::get('type_Email');
-                
-                // Вземаме вербалния имейл
-                $dInfo['authorEmail'] = $emailInst->toVerbal($dInfo['authorEmail']);
-            }
-            
-            // Определяме автора
-            $author = ($dInfo['authorEmail']) ? $dInfo['authorEmail'] : $dInfo['author'];
-            
-            // Ако има дата
-            if ($date) {
-                
-                // Добавяме в стринга
-                $authorInfo = $date . " ";
-            }
-            
-            // Ако има автор
-            if ($author) {
-                
-                // Добавяме автора в стринга
-                $authorInfo .= "&lt;{$author}&gt;";
-            }
-            
-            // Ако има информация за автора
-            if ($authorInfo) {
-                
-                // Ако сме в текстов режим
-                if (Mode::is('text', 'plain')) {
-                    
-                    // Добавяме към цитата автора и дата
-                    $quote = $authorInfo . $quote; 
-                } else {
-                    
-                    // Автора и датата
-                    $authorInfo = "<div class='quote-title'>{$authorInfo}</div>";
-                    
-                    // Добавяме информация за автора
-                    $quote = $authorInfo . $quote;
-                }
-            }
-        }
+        $this->invoke('afterCatchBQuote', array(&$quote, $match[2]));
+        
+        return $quote;
+    }
+    
+    
+    /**
+     * Заменя елемента [bQuote=???]
+     * Алтернатива на _catchBQuote. Когато гръме регулярния израз. Замества само [bQuote=???] със съответния div
+     */
+    function _catchBQuoteSingle($match)
+    {
+        $quote = '';
+        $this->invoke('afterCatchBQuote', array(&$quote, $match[2]));
+        
+        $quote .= self::BQUOTE_DIV_BEGIN;
         
         return $quote;
     }
