@@ -212,7 +212,6 @@ class acc_ActiveShortBalance {
             $bQuery = acc_BalanceDetails::getQuery();
             $bQuery->where("#balanceId = {$balanceRec->id}");
             $bQuery->show('accountId,ent1Id,ent2Id,ent3Id,blAmount,blQuantity');
-            $bQuery->where('#accountId = 117');
             
             while($bRec = $bQuery->fetch()){
                 
@@ -235,11 +234,9 @@ class acc_ActiveShortBalance {
                 $bRec = (array)$bRec;
                 $newBalance[$index] = $bRec;
             }
-           // bp($newBalance);
+          
             $newFrom = dt::addDays(1, $balanceRec->toDate);
             $newFrom = dt::verbal2mysql($newFrom, FALSE);
-            
-           
         }
         
         $newTo = dt::addDays(-1, $this->from);
