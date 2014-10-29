@@ -189,6 +189,7 @@ class acc_ActiveShortBalance {
     public function getBalanceBefore($accs, &$accArr = NULL)
     {
         $newBalance = array();
+        $accInfos = array();
         
         // Намираме последния изчислен баланс преди началната дата
         $balanceRec = $this->acc_Balances->getBalanceBefore($this->from);
@@ -206,16 +207,24 @@ class acc_ActiveShortBalance {
         
         // Ако има такъв баланс
         if($balanceRec){
-            
+        	
             // Извличаме неговите записи
             $bQuery = acc_BalanceDetails::getQuery();
             $bQuery->where("#balanceId = {$balanceRec->id}");
             $bQuery->show('accountId,ent1Id,ent2Id,ent3Id,blAmount,blQuantity');
+            $bQuery->where('#accountId = 117');
             
             while($bRec = $bQuery->fetch()){
                 
-                // Ако е за синтетична сметка, пропускаме го
-                if(empty($bRec->ent1Id) && empty($bRec->ent2Id) && empty($bRec->ent3Id)) continue;
+            	if(!isset($accInfos[$bRec->accountId])){
+            		$accInfos[$bRec->accountId] = acc_Accounts::getAccountInfo($bRec->accountId);
+            	}
+            	
+            	if(count($accInfos[$bRec->accountId]->groups)){
+            		
+            		// Ако е за синтетична сметка, пропускаме го
+            		if(empty($bRec->ent1Id) && empty($bRec->ent2Id) && empty($bRec->ent3Id)) continue;
+            	}
                 
                 // Ако има подадени сметки и сметката на записа не е в масива пропускаме
                 if(count($accArr) && !in_array($bRec->accountId, $accArr)) continue;
@@ -226,9 +235,11 @@ class acc_ActiveShortBalance {
                 $bRec = (array)$bRec;
                 $newBalance[$index] = $bRec;
             }
-            
+           // bp($newBalance);
             $newFrom = dt::addDays(1, $balanceRec->toDate);
             $newFrom = dt::verbal2mysql($newFrom, FALSE);
+            
+           
         }
         
         $newTo = dt::addDays(-1, $this->from);
