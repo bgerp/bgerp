@@ -26,7 +26,7 @@ class accda_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'accda_Da';
+    var $startCtr = 'accda_FixedAssets';
     
     
     /**
@@ -45,7 +45,7 @@ class accda_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-        'accda_Da',
+        'accda_FixedAssets',
         'accda_Groups',
         'accda_Documents',
     );
@@ -61,7 +61,7 @@ class accda_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-        array(2.2, 'Счетоводство', 'ДА', 'accda_Da', 'default', "accda, ceo"),
+        array(2.2, 'Счетоводство', 'ДА', 'accda_FixedAssets', 'default', "accda, ceo"),
     );
     
     
