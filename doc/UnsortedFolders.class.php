@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,7 +19,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'accda_DaFolderCoverIntf, price_PriceListFolderCoverIntf, trans_LinesFolderCoverIntf, frame_FolderCoverIntf';
+    var $interfaces = 'price_PriceListFolderCoverIntf, trans_LinesFolderCoverIntf, frame_FolderCoverIntf';
     
     
     /**
