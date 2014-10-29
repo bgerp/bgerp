@@ -1,0 +1,51 @@
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <!--ET_END header-->
+    <table class='styled-table'>
+    	<tr>
+            <td>|Вальор|*</td>
+            <td>[#valior#]</td>
+        </tr>
+        <tr>
+            <td>|Период|*</td>
+            <td>[#periodId#]</td>
+        </tr>
+        <tr>
+        	<td colspan='2'>|Суми от касов апарат|*</td>
+        </tr>
+        <!--ET_BEGIN amountVatGroup1-->
+        <tr>
+            <td>|Група|* "А"</td>
+            <td>[#amountVatGroup1#]</td>
+        </tr>
+        <!--ET_END amountVatGroup1-->
+        
+        <!--ET_BEGIN amountVatGroup2-->
+        <tr>
+            <td>|Група|* "Б"</td>
+            <td>[#amountVatGroup2#]</td>
+        </tr>
+        <!--ET_END amountVatGroup2-->
+        
+        <!--ET_BEGIN amountVatGroup3-->
+        <tr>
+            <td>|Група|* "В"</td>
+            <td>[#amountVatGroup3#]</td>
+        </tr>
+        <!--ET_END amountVatGroup3-->
+        
+        <!--ET_BEGIN amountVatGroup4-->
+        <tr>
+            <td>|Група|* "Г"</td>
+            <td>[#amountVatGroup4#]</td>
+        </tr>
+        <!--ET_END amountVatGroup4-->
+    </table>
+</div>
