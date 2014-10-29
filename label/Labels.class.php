@@ -102,7 +102,7 @@ class label_Labels extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing, plg_Created, plg_Rejected, plg_Modified, plg_Search';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing, plg_Created, plg_Rejected, plg_Modified, plg_Search, plg_Clone, plg_Sorting';
     
     
     /**
@@ -875,6 +875,13 @@ class label_Labels extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
+            
+            // Ако ще се клонира, трябва да има права за добавяне
+            if ($action == 'cloneuserdata') {
+                if (!$mvc->haveRightFor('add', $rec, $userId)) {
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
     
@@ -936,5 +943,27 @@ class label_Labels extends core_Master
     {
         // Активираме шаблона
         label_Templates::activateTemplate($rec->templateId);
+    }
+    
+    
+    /**
+     * Премахваме някои полета преди да клонираме
+     * @see plg_Clone
+     * 
+     * @param label_Labels $mvc
+     * @param object $rec
+     * @param object $nRec
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+        unset($nRec->searchKeywords);
+        unset($nRec->printedCnt);
+        unset($nRec->modifiedOn);
+        unset($nRec->modifiedBy);
+        unset($nRec->state);
+        unset($nRec->exState);
+        unset($nRec->lastUsedOn);
+        unset($nRec->createdOn);
+        unset($nRec->createdBy);
     }
 }
