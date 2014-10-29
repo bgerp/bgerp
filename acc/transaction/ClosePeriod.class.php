@@ -99,48 +99,36 @@ class acc_transaction_ClosePeriod
     	$entries[] = array('amount' => $amountFromFiscPrinter, 'debit' => array('4535'), 'credit' => array('4532'));
     	$total += $amountFromFiscPrinter;
     	
-    	// Намираме текущите салда по '4531'
     	$bQuery = acc_BalanceDetails::getQuery();
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4531');
-    	$sumRec4531 = new stdClass();
+    	$bQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL && #ent3Id");
+    	$amount4531 = $bQuery->fetch()->blAmount;
     	
-    	while($bRec = $bQuery->fetch()){
-    		$sumRec4531->debitAmount += $bRec->debitAmount;
-    		$sumRec4531->creditAmount += $bRec->creditAmount;
-    		$sumRec4531->blAmount += $bRec->blAmount;
-    	}
-    	
-    	
-    	// Текущите салда по '4532'
     	$bQuery = acc_BalanceDetails::getQuery();
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4532');
-    	
-    	$sumRec4532 = new stdClass();
-    	while($bRec = $bQuery->fetch()){
-    		$sumRec4532->debitAmount += $bRec->debitAmount;
-    		$sumRec4532->creditAmount += $bRec->creditAmount;
-    		$sumRec4532->blAmount += $bRec->blAmount;
-    	}
+    	$bQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
+    	$amount4532 = $bQuery->fetch()->blAmount;
     	
     	// Местим дебитното салдо на '4531' в '4532'
-    	$sumRec4531->debitAmount = ($sumRec4531->debitAmount) ? $sumRec4531->debitAmount : 0;
-    	$entries[] = array('amount' => $sumRec4531->debitAmount, 'debit' => array('4532'), 'credit' => array('4531'));
-    	$total += $sumRec4531->debitAmount;
+    	$amount4531 = ($amount4531) ? $amount4531 : 0;
+    	$entries[] = array('amount' => abs($amount4531), 'debit' => array('4532'), 'credit' => array('4531'));
+    	$total += abs($amount4531);
     	
-    	// Колко ще бъде крайното салдо на '4532' след изпълнението на тези операции
-    	$amount4532 = $sumRec4531->debitAmount + $sumRec4532->blAmount - $amountFromFiscPrinter;
+    	$amount = $amount4532 - $amountFromFiscPrinter + abs($amount4531);
     	
     	// Ако по 4532 накрая имаме кредитно или дебитно салдо
-    	if($amount4532 <= 0){
-    		$am = $sumRec4532->creditAmount + $amountFromFiscPrinter;
-    		$entries[] = array('amount' => $am, 'debit' => array('4532'), 'credit' => array('4539'));
+    	if($amount <= 0){
+    		$entries[] = array('amount' => abs($amount), 'debit' => array('4532'), 'credit' => array('4539'));
     	} else {
     		$am = $sumRec4532->debitAmount;
-    		$entries[] = array('amount' => $am, 'debit' => array('4538'), 'credit' => array('4532'));
+    		$entries[] = array('amount' => abs($amount), 'debit' => array('4538'), 'credit' => array('4532'));
     	}
+    	 
+    	$total += abs($amount);
+    	 
+    	return $entries;
     	
-    	// @TODO
-    	$total += $am;
+    	bp($amount4531, $amount4532);
     	
     	return $entries;
     }
