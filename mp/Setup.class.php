@@ -47,6 +47,8 @@ class mp_Setup extends core_ProtoSetup
     var $managers = array(
             'mp_Jobs',
             'mp_Tasks',
+    		'mp_Resources',
+    		'mp_ObjectResources'
         );
 
         
