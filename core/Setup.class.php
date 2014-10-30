@@ -285,8 +285,8 @@ class core_Setup extends core_ProtoSetup {
         $rec->description = 'Почистване на callback връзките с изтекъл срок';
         $rec->controller = 'core_Forwards';
         $rec->action = 'DeleteExpiredLinks';
-        $rec->period = 24 * 60;
-        $rec->offset = 3 * 60;
+        $rec->period = 60;
+        $rec->offset = 3;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
