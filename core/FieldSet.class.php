@@ -437,4 +437,22 @@ class core_FieldSet extends core_BaseClass
             $field->$param = $value;
         }
     }
+    
+    
+    /**
+     * Задава подадените параметри към типа на полето
+     *
+     * @param string $name
+     * @param array $params
+     */
+    function setFieldTypeParams($name, $params=array())
+    {
+    	$params = arr::make($params, TRUE);
+    
+    	$fieldType = $this->getFieldType($name);
+    
+    	foreach ($params as $param => $value) {
+    		$fieldType->params[$param] = $value;
+    	}
+    }
 }
