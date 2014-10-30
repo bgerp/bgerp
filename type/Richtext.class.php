@@ -460,7 +460,7 @@ class type_Richtext extends type_Blob
      * Функция за заместване на [li] елементите
      */
     static function replaceList($text)
-    { 
+    {
         $lines = explode("\n", $text);
         $lines[] = '';
         
@@ -472,7 +472,7 @@ class type_Richtext extends type_Blob
 
             $type = '';
             $level = 0;
-            if(preg_match("/^( *)(\[li\]|\* |[1-9][0-9]*[\.]{1})(.+)/i", $l, $matches) ) {
+            if(preg_match("/^( *)(\[li\]|\* |%\.)(.+)/i", $l, $matches) ) {
 
                 $indent = mb_strlen($l, 'UTF8') - mb_strlen(ltrim($matches[3]), 'UTF8');  
                  while(isset($lines[$i+1]) && (($indent == (mb_strlen($lines[$i+1]) - mb_strlen(ltrim($lines[$i+1], ' ')))) || (trim($lines[$i+1]) == '<br>'))) {
@@ -488,7 +488,7 @@ class type_Richtext extends type_Blob
                 $level = round((strlen($matches[1]))/2);
                 $level = max($level, 1);
                                 // 1,2,3,4,
-                if(is_numeric($matches[2]{0})) {
+                if (trim($matches[2]{0} == '%')) {
                     $type = 'ol';
                 } else {
                     $type = 'ul';
@@ -527,7 +527,7 @@ class type_Richtext extends type_Blob
 
             $debug[] = array($l, $state, $level, $oldLevel);
         }
-
+        
         return $res;
     }
 
