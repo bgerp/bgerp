@@ -194,14 +194,6 @@ class cat_Products extends core_Master {
 	 * @var string
 	 */
 	public $recTitleTpl = '[#name#] ( [#code#] )';
-	
-	
-	/**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     * 
-     * @enum(equipment=Оборудване,labor=Труд,material=Материал)
-     */
-    var $resourceType = 'material';
     
     
     /**

@@ -219,14 +219,6 @@ class crm_Persons extends core_Master
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     * 
-     * @enum(equipment=Оборудване,labor=Труд,material=Материал)
-     */
-    var $resourceType = 'labor';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     function description()
