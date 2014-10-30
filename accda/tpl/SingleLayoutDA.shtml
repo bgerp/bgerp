@@ -10,8 +10,8 @@
         </div>
         <!--ET_END header-->
         <h3 class="centered">[#SingleTitle#]</h3>
-        <h3 class="centered">|П Р О Т О К О Л|* &nbsp; № [#id#]</h3>
-        <p class="centered">|За въвеждане в експлоатация на ДА|*</p>
+        <h3 class="centered">|П Р О Т О К О Л|* &nbsp; № [#id#] / [#inUseSince#]</h3>
+        <p class="centered">|За въвеждане в експлоатация на Дълготраен актив|*</p>
         <br>
         <p>|Днес|*, [#inUseSince#]|г|*, |комисия в състав|*:</p>
         <p>1. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>

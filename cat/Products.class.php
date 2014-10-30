@@ -19,7 +19,7 @@ class cat_Products extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,techno_SpecificationFolderCoverIntf,mp_ResourceSourceIntf';
+    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,techno_SpecificationFolderCoverIntf,mp_ResourceSourceIntf,accda_DaFolderCoverIntf';
     
     
     /**
