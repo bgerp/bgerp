@@ -86,7 +86,7 @@ class crm_Persons extends core_Master
     /**
      * Полета, които се показват в листови изглед
      */
-    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name';
+    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
 
 
     /**
