@@ -48,6 +48,7 @@ class acc_BalanceDetails extends core_Detail
      */
     var $Lists;
     
+    
     /**
      * Временен акумулатор при изчисляване на баланс
      * (@see acc_BalanceDetails::calculateBalance())
@@ -55,6 +56,7 @@ class acc_BalanceDetails extends core_Detail
      * @var array
      */
     public $balance;
+    
     
     /**
      *
@@ -65,17 +67,19 @@ class acc_BalanceDetails extends core_Detail
      */
     private $strategies;
     
+    
     /**
      * Кой има достъп до хронологичната справка
      */
     public $canHistory = 'powerUser';
+    
     
     /**
      * Работен кеш
      */
     private static $cache = array();
     
-    public $listItemsPerPage = 2;
+    
     /**
      * Описание на модела
      */
@@ -95,9 +99,6 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума,tdClass=ballance-field');
         $this->FLD('blQuantity', 'double(maxDecimals=3)', 'caption=Салдо->Количество,tdClass=ballance-field');
         $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума,tdClass=ballance-field');
-        
-        $conf = core_Packs::getConfig('acc');
-        $this->listItemsPerPage = $conf->ACC_DETAILED_BALANCE_ROWS;
     }
     
     
