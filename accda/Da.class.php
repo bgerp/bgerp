@@ -118,7 +118,7 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,valior,num,title,serial,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,valior,num,title,serial,createdOn,createdBy,isContable';
     
     
     /**
@@ -226,9 +226,17 @@ class accda_Da extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        $folderClass = doc_Folders::getCover($folderId);
-       
-        return $folderClass->haveInterface('accda_DaFolderCoverIntf');
+        $folderCover = doc_Folders::getCover($folderId);
+      
+        if($folderCover->instance instanceof cat_Products){
+        	$pInfo = $folderCover->getProductInfo();
+        	if(isset($pInfo->meta['fixedAsset'])){
+        		
+        		return TRUE;
+        	}
+        }
+        
+        return FALSE;
     }
     
     
@@ -364,6 +372,20 @@ class accda_Da extends core_Master
     			$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура|* '{$listName}'");
     			core_Statuses::newStatus($msg);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(empty($rec->id)){
+    		$rec->isContable = 'yes';
     	}
     }
     
