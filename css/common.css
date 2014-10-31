@@ -764,13 +764,6 @@ a.header:hover {
 .btn-with-selected-disabled:hover {
   background-color: #dddddd !important; }
 
-.wide .btn-reject {
-  background-image: url('../img/16/reject.png');
-  padding-left: 22px !important;
-  background-repeat: no-repeat !important;
-  background-position: 3px center;
-  float: right; }
-
 .wide .btn-settings {
   background-image: url('../img/16/settings.png');
   padding-left: 22px !important;
