@@ -56,7 +56,7 @@ class mp_ObjectResources extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,mp';
+	public $canList = 'ceo,debug';
     
     
     /**
@@ -90,13 +90,41 @@ class mp_ObjectResources extends core_Manager
     {
     	$this->FLD('classId', 'class(interface=mp_ResourceSourceIntf)', 'input=hidden,silent');
     	$this->FLD('objectId', 'int', 'input=hidden,caption=Обект,silent');
-    	$this->FLD('resourceId', 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс');
+    	$this->FLD('resourceId', 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory');
     	
     	// Поставяне на уникални индекси
     	$this->setDbUnique('classId,objectId,resourceId');
     }
 
-
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	$Class = cls::get($rec->classId);
+    	expect(cls::haveInterface('mp_ResourceSourceIntf', $Class));
+    	
+    	$resourceType = $Class->getResourceType($rec->objectId);
+    	
+    	$options = mp_Resources::makeArray4Select('title', array("#type = '{$resourceType}'"));
+    	
+    	if(count($options)){
+    		$form->setOptions('resourceId', $options);
+    	} else {
+    		$form->setReadOnly('resourceId');
+    		$resourceType = cls::get('mp_Resources')->getFieldType('type')->toVerbal($resourceType);
+    		$form->info = tr("|Няма ресурси от тип|* <b>'{$resourceType}'</b>");
+    	}
+    }
+    
+    
     /**
      * Подготвя показването на ресурси
      */

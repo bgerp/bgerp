@@ -2355,4 +2355,16 @@ class crm_Persons extends core_Master
     	
     	return FALSE;
     }
+    
+     
+    /**
+     * Какъв е дефолтния тип ресурс на обекта
+     *
+     * @param int $id - ид на обекта
+     * @return enum(equipment=Оборудване,labor=Труд,material=Материал) - тип на ресурса
+     */
+    public function getResourceType($id)
+    {
+    	return 'labor';
+    }
 }

@@ -34,4 +34,16 @@ class mp_ResourceSourceIntf
 	{
 		$this->class->canHaveResource($id);
 	}
+	
+	
+	/**
+	 * Какъв е дефолтния тип ресурс на обекта
+	 *
+	 * @param int $id - ид на обекта
+	 * @return enum(equipment=Оборудване,labor=Труд,material=Материал) - тип на ресурса
+	 */
+	public function getResourceType($id)
+	{
+		$this->class->getResourceType($id);
+	}
 }

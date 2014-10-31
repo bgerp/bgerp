@@ -571,7 +571,8 @@ class cat_Products extends core_Master {
     public static function getProductInfo($productId, $packagingId = NULL)
     {
     	// Ако няма такъв продукт връщаме NULL
-    	if(!$productRec = static::fetch($productId)) {
+    	if(!$productRec = static::fetchRec($productId)) {
+    		
     		return NULL;
     	}
     	
@@ -1108,9 +1109,40 @@ class cat_Products extends core_Master {
     {
     	// Всеки артикул може да присъства само веднъж като ресурс
     	if(!mp_ObjectResources::fetch("#classId = '{$this->getClassId()}' AND #objectId = {$id}")){
+    		$pInfo = $this->getProductInfo($id);
     		
-    		return TRUE;
+    		// Може да се добавя ресурс само към Артикули, които са материали или ДА
+    		if(isset($pInfo->meta['materials']) || isset($pInfo->meta['fixedAsset'])){
+    			
+    			return TRUE;
+    		}
     	} 
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Какъв е дефолтния тип ресурс на обекта
+     *
+     * @param int $id - ид на обекта
+     * @return enum(equipment=Оборудване,labor=Труд,material=Материал) - тип на ресурса
+     */
+    public function getResourceType($id)
+    {
+    	$pInfo = $this->getProductInfo($id);
+    	
+    	// Ако артикула е ДМА, ще може да се избират само ресурси - оборудване
+    	if(isset($pInfo->meta['fixedAsset'])){
+    		
+    		return 'equipment';
+    	}
+    	
+    	// Ако артикула е материал, ще може да се избират само ресурси - materiali
+    	if(isset($pInfo->meta['materials'])){
+    	
+    		return 'material';
+    	}
     	
     	return FALSE;
     }
