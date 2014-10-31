@@ -2394,7 +2394,10 @@ function render_redirect(data) {
     document.location = url;
 }
 
+var oldTitle;
+var oldIconPath;
 var blinkerWorking = false;
+
 /**
  * Функция на нотифициране, чрез звук и премигане на текста и иконката в таба
  * използва с efae
@@ -2403,63 +2406,123 @@ var blinkerWorking = false;
  * data.title - заглавие, което ще се задава
  * data.favicon - път до фав иконата
  * data.blinkTimes - брой премигвания
- * data.blinkIntervalHide - милисекунди скриване
- * data.blinkIntervalDisplay - милисекунди показване
  * data.soundOgg - път до ogg файла
  * data.soundMp3 - път до mp3 файла
  */
-function render_Notify(data){
+function render_Notify(data) {
 	if(blinkerWorking) return;
 	
-	if(data.soundMp3 != undefined || data.soundOgg  != undefined){
-		// добавяме аудио таг и пускаме звука
-		setTimeout(function(){
-			$('body').append("<div class='soundBlock'></div>");
-		    $(".soundBlock").append('<audio autoplay="autoplay"><source src=' + data.soundMp3 + ' type="audio/mpeg" /><source src=' + data.soundOgg + ' type="audio/ogg" /><embed hidden="true" autostart="true" loop="false" src=' + data.soundMp3 +' /></audio>');
-		}, 500);
-		
-		//махаме аудио тага
-		setTimeout(function(){
-			$(".soundBlock").remove();
-		}, 2000);
-	}
-	
+	playSound(data.soundMp3, data.soundOgg);
 	blinkerWorking = true;
 	var counter = 1;
-	var blankTitle = "\u200E";
-    var title = data.title ? data.title : " ";
-	//генерираме новата фав икона
-	var newIcon = document.createElement('link');
-	newIcon.type = 'image/x-icon';
-	newIcon.rel = 'shortcut icon';
-	newIcon.href = data.favicon;
 	
+	// ако няма зададен текст, ще скриваме титлата
+    var title = data.title ? data.title : '\u200E';
+    
 	//запазваме старата фав икона
-	var oldIconPath = $('link[rel="shortcut icon"]')[0].href;
-	var oldIcon = document.createElement('link');
-	oldIcon.type = 'image/x-icon';
-	oldIcon.rel = 'shortcut icon';
-	oldIcon.href = oldIconPath;
+	oldIconPath = $('link[rel="shortcut icon"]')[0].href;
+	
+	// подготвяме фав иконките
+	var newIcon = prepareFavIcon(data.favicon);
+	var oldIcon = prepareFavIcon(oldIconPath);
 	
 	var interval = setInterval(function(){
-		// задамаваме новия текст и икона
-		document.title = title;
-		//document.getElementsByTagName('head')[0].appendChild(newIcon);
-		$('head').append(newIcon);
+		// Задаваме новия текст и икона
+		setTitle(title);
+		setFavIcon(newIcon);
 		
+		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
-			// задамаваме старите текст и икона
-			$('head').append(oldIcon);
-			document.title = blankTitle;
-		}, data.blinkIntervalDisplay);
+			restoreTitle(oldTitle);
+			restoreFavIcon(oldIcon);
+		}, 600);
 		
 		counter++;
+		
 		// дали са мигнали достатъчно пъти
 		if(counter > data.blinkTimes) {
 			blinkerWorking = false;
 			clearInterval(interval);
 		}
-	}, data.blinkIntervalHide + data.blinkIntervalDisplay);
+	}, 1000);
+}
+
+/**
+ * задава титла на страницата
+ * @param title
+ */
+function setTitle(title) {
+	oldTitle = document.title;
+	document.title = title;
+}
+
+
+/**
+ * задава старата титла
+ * @param oldTitle
+ */
+function restoreTitle(oldTitle) {
+	document.title = oldTitle;
+}
+
+/**
+ * връща необходимия за смяна на фав иконата таг
+ * @param iconPath - пътя до картинката
+ * @returns icon
+ */
+function prepareFavIcon(iconPath) {
+	var icon = document.createElement('link');
+	icon.type = 'image/x-icon';
+	icon.rel = 'shortcut icon';
+	icon.href = iconPath;
+	
+	return icon;
+}
+
+
+/**
+ * задава фав икона
+ * @param icon - иконата, която ще задаваме
+ */
+function setFavIcon(icon){
+	$('head').append(icon);
+}
+
+
+/**
+ * задава старата фав икона
+ * @param oldIcon - иконата, която ще задаваме
+ */
+function restoreFavIcon(oldIcon) {
+	$('head').append(oldIcon);
+}
+
+
+/**
+ * изпълнява аудио
+ * @param soundMp3 - път до mp3 файла
+ * @param soundOgg - път до ogg файла
+ */
+function playSound(soundMp3, soundOgg){
+	if(soundMp3 != undefined || soundOgg  != undefined){
+		// добавяме аудио таг и пускаме звука
+		setTimeout(function(){
+			$('body').append("<div class='soundBlock'></div>");
+		    $(".soundBlock").append('<audio autoplay="autoplay" onended="removeParentTag(this);">' + 
+		    		'<source src=' + soundMp3 + ' type="audio/mpeg" />' + 
+		    		'<source src=' + soundOgg + ' type="audio/ogg" />' + 
+		    		'<embed hidden="true" autostart="true" loop="false" src=' + soundMp3 +' />' +
+		    	'</audio>');
+		}, 500);
+	}
+}
+
+
+/**
+ * изтрива бащата на зададения елемент
+ */
+function removeParentTag(el) {
+	$(el).parent().remove();
 }
 
 
