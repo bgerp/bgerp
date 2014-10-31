@@ -95,23 +95,11 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
     	
-    	if($mvc->getField('type', FALSE)){
-    		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
-    		$data->listFilter->showFields .= ',invType';
-    	}
-    	
     	$data->listFilter->showFields .= ',invState';
     	$data->listFilter->input();
     	$data->listFilter->setDefault('invState', 'all');
     	
     	if($rec = $data->listFilter->rec){
-    		
-    		// Филтър по тип на фактурата
-    		if($rec->invType){
-    			if($rec->invType != 'all'){
-    				$data->query->where("#type = '{$rec->invType}'");
-    			}
-    		}
     		
     		// Филтър по състояние
     		if($rec->invState){
@@ -120,7 +108,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
-    	
     }
     
     

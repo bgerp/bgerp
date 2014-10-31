@@ -168,7 +168,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=hidden');
-        $this->FLD('cashDown', 'double', 'input=none');
+        $this->FLD('cashDown', 'double(decimals=2)', 'input=none,summary=amount,caption=В брой');
         
         $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
         $this->FLD('docId', 'int', 'input=hidden,silent');
@@ -481,5 +481,31 @@ class sales_Invoices extends deals_InvoiceMaster
    	{
    		$query->orWhere("#state = 'rejected' AND #brState = 'active'");
    		$query->where("#state != 'draft'");
+   	}
+   	
+   	
+   	/**
+   	 *  Подготовка на филтър формата
+   	 */
+   	public static function on_AfterPrepareListFilter($mvc, $data)
+   	{
+   		if(!$data->listFilter->getField('invType', FALSE)){
+   			$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие, inCash=Платено в брой)', 'caption=Вид,input,silent');
+   		}
+   		
+   		$data->listFilter->showFields .= ',invType';
+   		
+   		$data->listFilter->input(NULL, 'silent');
+   		
+   		if($rec = $data->listFilter->rec){
+   			if($rec->invType){
+   				if($rec->invType == 'inCash'){
+   					$data->query->where("#cashDown IS NOT NULL || #cashDown > 0");
+   					$data->listFields["cashDown"] = 'Платено в брой';
+   				} elseif($rec->invType == 'invoice' || $rec->invType == 'credit_note' || $rec->invType == 'debit_note'){
+   					$data->query->where("#type = '{$rec->invType}'");
+   				}
+   			}
+   		}
    	}
 }
