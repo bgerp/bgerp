@@ -60,7 +60,7 @@ class accda_transaction_Da
     			);
     		} else {
     			$creditArr = array('613',
-    					array('accda_Da', $rec->id),
+    					array('cat_Products', $rec->productId),
     					'quantity' => 1,);
     		}
     		 
