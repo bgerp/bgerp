@@ -415,7 +415,7 @@ class core_Settings extends core_Manager
      * @param array $valArr
      * @param integer|NULL $userOrRole
      */
-    protected static function setValues($key, $valArr, $userOrRole = NULL)
+    public static function setValues($key, $valArr, $userOrRole = NULL)
     {
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
@@ -426,7 +426,7 @@ class core_Settings extends core_Manager
         $oldRec = static::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
         
         // Ако няма стойности, изтриваме записа
-        if (!$valArr) {
+        if (!$valArr && $oldRec) {
             self::delete($oldRec->id);
             
             return ;
