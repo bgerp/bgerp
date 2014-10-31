@@ -168,6 +168,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=hidden');
+        $this->FLD('cashDown', 'double', 'input=none');
         
         $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
         $this->FLD('docId', 'int', 'input=hidden,silent');

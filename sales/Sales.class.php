@@ -654,6 +654,18 @@ class sales_Sales extends deals_DealMaster
         $rec2->delay = 0;
         $rec2->timeLimit = 100;
         $res .= core_Cron::addOnce($rec2);
+        
+        // Проверка по крон дали продажбата е просрочена
+        $rec3 = new stdClass();
+        $rec3->systemId = "AllocateCashToInvoices";
+        $rec3->description = "Разпределя платеното в брой на фактурите";
+        $rec3->controller = "sales_Sales";
+        $rec3->action = "AllocateCashToInvoices";
+        $rec3->period = 60;
+        $rec3->offset = 0;
+        $rec3->delay = 0;
+        $rec3->timeLimit = 100;
+        $res .= core_Cron::addOnce($rec3);
     }
     
     
@@ -712,5 +724,115 @@ class sales_Sales extends deals_DealMaster
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Разпределя платеното в брой по фактурите към продажбата, започва от първата фактура
+     * и разпределя сумата последнователно на всички фактури, докато има какво да се разпределя
+     * 
+     * @param int $id - ид на продажба
+     * @return void
+     */
+    private static function allocateCash($id)
+    {
+    	// Намираме останалите документи в треда на продажбата
+    	$desc = self::getDescendants($id);
+    	
+    	// Ако няма такива не правим нищо
+    	if(!count($desc)) return;
+    	
+    	// Отделяме всички активни фактури/ди/ки към продажбата
+    	$invoices = array();
+    	foreach ($desc as $desc){
+    		if($desc->instance instanceof sales_Invoices){
+    			$recI = $desc->rec();
+    			if($recI->state == 'active'){
+    				$invoices[$desc->that] = $desc->rec();
+    			}
+    		}
+    	}
+    	
+    	// Ако няма фактури към продажбата не правим нищо
+    	if(!count($invoices)) return;
+    	
+    	// Колко е платеното в брой по продажбата (по сметка 501. Каси)
+    	$jRecs = acc_Journal::getEntries(array('sales_Sales', $id));
+    	$cashAmount = acc_Balances::getBlAmounts($jRecs, '501')->amount;
+    	
+    	// Третираме отрицателното платено (върнато) като 0
+    	$cashAmount = ($cashAmount <= 0) ? 0 : $cashAmount;
+    	$Invoices = cls::get('sales_Invoices');
+    	
+    	// За всяка фактура разпределяме платеното в брой според сумата на всяка фактура
+    	foreach ($invoices as &$invRec)
+    	{
+    		$total = round($invRec->dealValue + $invRec->vatAmount - $invRec->discountAmount, 2);
+    		
+    		// Ако има още платено в брой за разпределяне
+    		if($cashAmount != 0){
+    			
+    			// Ако платеното е по малко от сумата на ф-та взимаме него, иначе приемаме че цялата ф-ра е платена
+    			$amount = ($cashAmount < $total) ? $cashAmount : $total;
+    			$invRec->cashDown = $amount;
+    			
+    			// Приспадаме разпределената сума от общоо платено
+    			$cashAmount -= $amount;
+    		} else {
+    			
+    			// Ако няма останало платено в брой за разпределяме, то пишем 0
+    			$invRec->cashDown = 0;
+    		}
+    		
+    		// Обновяваме сумата на платеното в брой на фактурата
+    		$Invoices->save_($invRec, 'cashDown');
+    	}
+    }
+    
+    
+    /**
+     * Разпределя платеното в брой на всяка фактура
+     */
+    public function allocateCashToInvoices($oldBefore = NULL)
+    {
+    	core_Debug::$isLogging = FALSE;
+    	
+    	// Избираме всички активни/приключени продажби, по които има промяна в определен интервал
+    	$query = $this->getQuery();
+    	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
+    	$query->where("#amountInvoiced IS NOT NULL");
+    	$query->where("#state = 'active' || #state = 'closed'");
+    	
+    	// Ако не е зададен интервал правим го на всички продажби
+    	if(!is_null($oldBefore)){
+    		$query->where("#threadModifiedOn >= '{$oldBefore}'");
+    	}
+    	
+    	$query->show('id');
+    	
+    	while($rec = $query->fetch()){
+    	
+    		// Преразпределяме платеното в брой на всички фактури
+    		try{
+    			self::allocateCash($rec->id);
+    		} catch(Exception $e){
+    			$this->log("Проблем при разпределението на платеното в брой на фактурите; {$e->getMessage()}");
+    		}
+    	}
+    	
+    	core_Debug::$isLogging = TRUE;
+    }
+    
+    
+    /**
+     * Разпределя по разписание платеното в брой на всяка фактура
+     */
+    public function cron_AllocateCashToInvoices()
+    {
+    	$oldBefore = 60 * 60;
+    	$now = dt::mysql2timestamp(dt::now());
+    	$oldBefore = dt::timestamp2mysql($now - $oldBefore);
+    	
+    	$this->allocateCashToInvoices($oldBefore);
     }
 }
