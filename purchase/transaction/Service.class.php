@@ -78,8 +78,15 @@ class purchase_transaction_Service
     		foreach ($rec->details as $dRec) {
     			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
     			
-    			// Ако е "Материали" дебит 601, иначе 602
-    			$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
+    			if(isset($pInfo->meta['fixedAsset'])){
+    				
+    				// Ако е ДМА дебит 613
+    				$costsAccNumber = '613';
+    			} else {
+    				
+    				// Ако е Д"Материали" дебит 601, иначе 602
+    				$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
+    			}
     	
     			$amount = $dRec->amount;
     			$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;

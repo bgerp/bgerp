@@ -187,8 +187,15 @@ class purchase_transaction_Purchase
         	// Ако не е "Складируем" - значи е разход
 			if(empty($pInfo->meta['canStore'])){
 
-				// Ако е "Материали" дебит 601, иначе 602
-	        	$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
+				if(isset($pInfo->meta['fixedAsset'])){
+					
+					// Ако е 'ДМА' дебит 613
+					$costsAccNumber = '613';
+				} else {
+					
+					// Ако е "Материали" дебит 601, иначе 602
+					$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
+				}
 
     			$entries[] = array(
 	                'amount' => $amount * $rec->currencyRate, // В основна валута
