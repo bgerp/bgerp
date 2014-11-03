@@ -153,8 +153,14 @@ class callcenter_Talks extends core_Master
      */
     function on_CalcDuration($mvc, &$rec) 
     {
+        $dateTime = cls::get('type_Datetime');
+        
         // Ако е отговорено и затворено
-        if ($rec->answerTime && $rec->endTime) {
+        if ((int)$rec->answerTime && (int)$rec->endTime) {
+            
+            // Ако има лоши записи
+            $defVal = $dateTime->defVal();
+            if (($rec->answerTime == $defVal) || ($rec->endTime == $defVal)) return ;
             
             // Продължителност на разговора
             $duration = dt::secsBetween($rec->endTime, $rec->answerTime);
@@ -694,9 +700,13 @@ class callcenter_Talks extends core_Master
                 $errArr[] = 'Не е подаден статус на обаждането';
             }
             
-            // Добавяме в rec
-            $rec->answerTime = $answerTime;
-            $rec->endTime = $endTime;
+            if (trim($answerTime)) {
+                $rec->answerTime = $answerTime;
+            }
+            
+            if (trim($endTime)) {
+                $rec->endTime = $endTime;
+            }
             
             // Ако не е бил зададен отпреди
             if (!isset($rec->dialStatus)) {
