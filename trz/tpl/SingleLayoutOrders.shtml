@@ -10,7 +10,7 @@
     <p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
     <p class="centered">|Относно|*: |разрешение за ползване на|* <b>[#isPaid#]</b> |годишен отпуск|*</p>
     <br>
-    <p class="indent">|С настоящата заповед разрешавам на|* <b>[#personId#]</b> |да ползва|* <b>[#leaveDays#] |дни|*</b> [#isPaid#] |годишен отпуск|*<!--ET_BEGIN useDaysFromYear-->|за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, 
+    <p class="indent">|С настоящата заповед разрешавам на|* <b>[#personId#]</b> |да ползва|* <b>[#leaveDays#] |дни|*</b> [#isPaid#] |годишен отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, 
         |считано от|* <b>[#leaveFrom#]</b> |г|*. |до|* <b>[#leaveTo#]</b> |г|*.
     </p>
     <br>
