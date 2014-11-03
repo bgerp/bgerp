@@ -6,12 +6,11 @@
     <div class='header [#STATE_CLASS#]'>
         <div class='docBgIcon' style='[#iconStyle#]'>|Заповед|* <b>[#ident#]</b> ([#state#])</div>
     </div>
-    <!--ET_END header-->
     <h3 class="centered">|З А П О В Е Д|* </h3>
     <p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
     <p class="centered">|Относно|*: |разрешение за ползване на|* <b>[#isPaid#]</b> |годишен отпуск|*</p>
     <br>
-    <p class="indent">|С настоящата заповед разрешавам на|* <b>[#personId#]</b> |да ползва|* <b>[#leaveDays#] |дни|*</b> [#isPaid#] |годишен отпуск за|* [#useDaysFromYear#] |г|*., 
+    <p class="indent">|С настоящата заповед разрешавам на|* <b>[#personId#]</b> |да ползва|* <b>[#leaveDays#] |дни|*</b> [#isPaid#] |годишен отпуск|*<!--ET_BEGIN useDaysFromYear-->|за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, 
         |считано от|* <b>[#leaveFrom#]</b> |г|*. |до|* <b>[#leaveTo#]</b> |г|*.
     </p>
     <br>

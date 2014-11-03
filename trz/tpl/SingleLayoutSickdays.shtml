@@ -43,9 +43,11 @@
         <!--ET_END paidByHI-->
         <p><b>|По време на отсъствието|*:</b></p>
         <ul class='custom-ul'>
-            <li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
-            <li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
-            <li>|ще ме замества|*: <b>[#alternatePerson#]</b></li>
+	        <li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
+	        <li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
+	        <!--ET_BEGIN alternatePerson-->
+	        <li>|ще ме замества|*: <b>[#alternatePerson#]</b></li>
+	        <!--ET_END alternatePerson-->
         </ul>
     </div>
     <div style='clear: both;'></div>
