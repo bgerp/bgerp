@@ -146,7 +146,7 @@ class callcenter_SMS extends core_Master
      * @param string $sender
      * @param integer|string $service
      */
-    public static function send($number, $message, $sender=NULL, $service=NULL)
+    public static function send($number, $message, $sender = NULL, $service = NULL)
     {
         // Конфигурацията на пакета
         $conf = core_Packs::getConfig('callcenter');
@@ -178,7 +178,7 @@ class callcenter_SMS extends core_Master
         $messageStr = self::prepareMessage($message);
         
         // Очакваме да може да се изпрати съответния SMS
-        expect(self::canSend($service, $messageStr, $sender), 'Не може да се изпрати');
+        expect(self::canSend($messageStr, $sender, $service), 'Не може да се изпрати');
         
         // Изпращаме съобщението към услугата за изпращане на SMS
         $sendStatusArr = $serviceInst->sendSMS($number, $messageStr, $sender);
@@ -190,14 +190,29 @@ class callcenter_SMS extends core_Master
     /**
      * Проверява дали може да се изпрати даденото съобщение
      * 
-     * @param integer|string $service
      * @param string|array $message
      * @param string $sender
+     * @param integer|string $service
      * 
      * @return boolean
      */
-    public static function canSend($service, $message, $sender=NULL)
+    public static function canSend($message, $sender = NULL, $service = NULL)
     {
+        $message = self::prepareMessage($message);
+        
+        // Ако не е зададена услига
+        if (!isset($service)) {
+            
+            // Конфигурацията на пакета
+            $conf = core_Packs::getConfig('callcenter');
+            
+            // Използваме услугата от конфигурацията
+            $service = $conf->CALLCENTER_SMS_SERVICE;
+            
+            // Очакваме да има избрана някаква услуга
+            expect($service, 'Не е зададена услуга за изпращане');
+        }
+        
         $serviceInst = cls::get($service);
         
         // Вземаме масива с параметрите
@@ -451,7 +466,7 @@ class callcenter_SMS extends core_Master
         if ($form->isSubmitted()) {
             
             // Очакваме да може да се изпрати съответния SMS
-//            expect(self::canSend($rec->service, $rec->text, $rec->sender));
+//            expect(self::canSend($rec->text, $rec->sender, $rec->service));
             
             // Изпращаме SMS-a
             $sendStatusArr = self::send($rec->mobileNum, $rec->text, $rec->sender, $rec->service);
