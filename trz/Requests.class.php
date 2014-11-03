@@ -289,10 +289,10 @@ class trz_Requests extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
     	// Ако се опитваме да направим заповед за отпуска
-	    if($action == 'order'){
+	    if($action == 'order'){ 
 			if ($rec->id) {
 				    // и нямаме нужните права
-					if(!haveRole('ceo') || !haveRole('trz')) {
+					if(!Users::haveRole('ceo') || !Users::haveRole('trz') ) {
 				        // то не може да я направим
 						$requiredRoles = 'no_one';
 				}
@@ -465,7 +465,10 @@ class trz_Requests extends core_Master
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
-        if ('crm_Persons' != $coverClass) {
+        if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
+            return TRUE;
+        }
+        /*if ('crm_Persons' != $coverClass) {
         	return FALSE;
         }
         
@@ -474,8 +477,10 @@ class trz_Requests extends core_Master
         $personRec = crm_Persons::fetch($personId);
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         
-        return keylist::isIn($emplGroupId, $personRec->groupList);
+        return keylist::isIn($emplGroupId, $personRec->groupList);*/
     }
+    
+
 
     
     /**
