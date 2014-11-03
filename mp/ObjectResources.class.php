@@ -90,12 +90,62 @@ class mp_ObjectResources extends core_Manager
     {
     	$this->FLD('classId', 'class(interface=mp_ResourceSourceIntf)', 'input=hidden,silent');
     	$this->FLD('objectId', 'int', 'input=hidden,caption=Обект,silent');
-    	$this->FLD('resourceId', 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory');
+    	$this->FLD('resourceId', 'key(mvc=mp_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,mandatory');
     	
     	// Поставяне на уникални индекси
     	$this->setDbUnique('classId,objectId,resourceId');
     }
 
+    
+    /**
+     * Екшън създаващ нов ресурс и свързващ го с обекта
+     */
+    public function act_NewResource()
+    {
+    	mp_Resources::requireRightFor('add');
+    	
+    	expect($classId = Request::get('classId', 'int'));
+    	expect($objectId = Request::get('objectId', 'int'));
+    	
+    	$this->requireRightFor('add', (object)array('classId' => $classId, 'objectId' => $objectId));
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = tr("Създаване на ресурс към") . " |*<b>" . cls::get($classId)->getTitleById($objectId) . "</b>";
+    	$form->FNC('newResource', 'varchar', 'mandatory,caption=Нов ресурс,input');
+    	$form->FNC('classId', 'class(interface=mp_ResourceSourceIntf)', 'input=hidden');
+    	$form->FNC('objectId', 'int', 'input=hidden,caption=Обект');
+    	
+    	$form->setDefault('classId', $classId);
+    	$form->setDefault('objectId', $objectId);
+    	$form->input();
+    	
+    	// Ако формата е събмитната
+    	if($form->isSubmitted()){
+    		
+    		// Трябва ресурса да е уникален
+    		if(mp_Resources::fetch(array("#title = '[#1#]'", $form->rec->newResource))){
+    			$form->setError("newResource", "Има вече запис със същите данни");
+    		} else {
+    			
+    			// Създава нов запис и го свързва с обекта 
+    			$type = cls::get($form->rec->classId)->getResourceType($form->rec->objectId);
+    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $type));
+    			
+    			$nRec = (object)array('classId' => $classId, 'objectId' => $objectId, 'resourceId' => $resourceId);
+    			$this->save($nRec);
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			return followRetUrl(NULL, tr('Успешно е добавен ресурса'));
+    		}
+    	}
+    	
+    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
+        
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -144,7 +194,12 @@ class mp_ObjectResources extends core_Manager
     	 
     	if(!Mode::is('printing')) {
     		if(self::haveRightFor('add', (object)array('classId' => $classId, 'objectId' => $data->masterId))){
-    			$data->addUrl = array($this, 'add', 'classId' => $classId, 'objectId' => $data->masterId, 'ret_url' => TRUE);
+    			$type = $data->masterMvc->getResourceType($data->masterId);
+    			if(mp_Resources::fetch("#type = '{$type}'")){
+    				$data->addUrl = array($this, 'add', 'classId' => $classId, 'objectId' => $data->masterId, 'ret_url' => TRUE);
+    			}
+    			
+    			$data->addUrlNew = array($this, 'NewResource', 'classId' => $classId, 'objectId' => $data->masterId, 'ret_url' => TRUE);
     		}
     	}
     }
@@ -162,12 +217,15 @@ class mp_ObjectResources extends core_Manager
     	$table = cls::get('core_TableView', array('mvc' => $this));
     
     	$tpl->append($table->get($data->rows, 'resourceId=Ресурс,createdOn=Създадено->На,createdBy=Създадено->На,tools=Пулт'), 'content');
-    
-    	if($data->addUrl) {
-    		$img = "<img src=" . sbf('img/16/add.png') . " width='16' valign=absmiddle  height='16'>";
-    		$tpl->append(ht::createLink($img, $data->addUrl, FALSE, 'title=' . tr('Добавяне на нов ресурс')), 'title');
+    	
+    	if(isset($data->addUrl)){
+    		$tpl->append(ht::createBtn('Избор', $data->addUrl, NULL, NULL, 'ef_icon=img/16/star_2.png'), 'content');
     	}
-    
+    	
+    	if(isset($data->addUrlNew)){
+    		$tpl->append(ht::createBtn('Нов', $data->addUrlNew, NULL, NULL, 'ef_icon=img/16/star_2.png'), 'content');
+    	}
+    	
     	return $tpl;
     }
 
@@ -208,6 +266,8 @@ class mp_ObjectResources extends core_Manager
     {
     	$row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, TRUE);
     	$row->objectId = "<span style='float:left'>{$row->objectId}</span>";
+    	
+    	$row->resourceId = mp_Resources::getHyperlink($rec->resourceId);
     }
     
     

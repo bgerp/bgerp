@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Ресурси на предприятието
  */
-class mp_Resources extends core_Manager
+class mp_Resources extends core_Master
 {
     
     
@@ -76,6 +76,12 @@ class mp_Resources extends core_Manager
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'tools';
+    
+    
+    /**
+     * Поле за еденичен изглед
+     */
+    public $rowToolsSingleField = 'title';
     
     
     /**
