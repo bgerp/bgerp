@@ -1,9 +1,9 @@
 <div class="singleView">
     [#SingleToolbar#]
     <h2>
-        <div style="padding:5px;" class=" [#STATE_CLASS#]">Длъжност <b style="color:green;">[#name#]</b></div>
+        <div style="padding: 5px;" class="[#STATE_CLASS#]">Длъжност <b style="color:green;">[#name#]</b></div>
     </h2>
-    <table class="styled-table" width="100%">
+    <table class="styled-table" style="width: 100%">
         <tr>
             <td class="title-style"> №</td>
             <td>[#id#]</td>
@@ -12,14 +12,18 @@
             <td class="title-style">Наименование</td>
             <td>[#name#]</td>
         </tr>
+        <!--ET_BEGIN nkpd-->
         <tr>
             <td class="title-style">НКПД</td>
             <td>[#nkpd#]</td>
         </tr>
+        <!--ET_END nkpd-->
+        <!--ET_BEGIN descriptions-->
         <tr>
             <td class="title-style">Характеристика</td>
             <td>[#descriptions#]</td>
         </tr>
+        <!--ET_END descriptions-->
         <!--ET_BEGIN employersCnt-->
         <tr>
             <td class="title-style">Служители</td>

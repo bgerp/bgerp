@@ -1,7 +1,7 @@
 <div class="singleView">
     [#SingleToolbar#]
     <h2>
-        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Работен цикъл|* <b style="color:green;">[#name#]</b></div>
+        <div style="padding:5px;" class="[#STATE_CLASS#]">|Работен цикъл|* <b style="color:green;">[#name#]</b></div>
     </h2>
     <table class="styled-table">
         <tr>

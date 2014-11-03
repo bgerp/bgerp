@@ -12,14 +12,18 @@
             <td class="title-style">Наименование</td>
             <td>[#name#]</td>
         </tr>
+        <!--ET_BEGIN nkpd-->
         <tr>
             <td class="title-style">НКПД</td>
             <td>[#nkpd#]</td>
         </tr>
+        <!--ET_END nkpd-->
+        <!--ET_BEGIN descriptions-->
         <tr>
             <td class="title-style">Характеристика</td>
             <td>[#descriptions#]</td>
         </tr>
+        <!--ET_END descriptions-->
         <!--ET_BEGIN employersCnt-->
         <tr>
             <td class="title-style">Служители</td>
