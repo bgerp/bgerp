@@ -141,37 +141,9 @@ class callcenter_Talks extends core_Master
         $this->FLD('answerTime', 'datetime(format=smartTime)', 'allowEmpty, caption=Време->Отговор');
         $this->FLD('endTime', 'datetime(format=smartTime)', 'allowEmpty, caption=Време->Край');
         $this->FLD('callType', 'type_Enum(incoming=Входящ, outgoing=Изходящ)', 'allowEmpty, caption=Тип на разговора, hint=Тип на обаждането');
-        
-        $this->FNC('duration', 'time', 'caption=Време->Продължителност');
+        $this->FLD('duration', 'time', 'caption=Време->Продължителност');
         
         $this->setDbUnique('uniqId');
-    }
-    
-    
-    /**
-     * 
-     */
-    function on_CalcDuration($mvc, &$rec) 
-    {
-        $dateTime = cls::get('type_Datetime');
-        
-        // Ако е отговорено и затворено
-        if ((int)$rec->answerTime && (int)$rec->endTime) {
-            
-            // Ако има лоши записи
-            $defVal = $dateTime->defVal();
-            if (($rec->answerTime == $defVal) || ($rec->endTime == $defVal)) return ;
-            
-            // Продължителност на разговора
-            $duration = dt::secsBetween($rec->endTime, $rec->answerTime);
-            
-            // Ако има
-            if ($duration && $duration > 0) {
-                
-                // Добавяме към записа
-                $rec->duration = $duration;
-            }
-        }
     }
     
     
@@ -717,6 +689,9 @@ class callcenter_Talks extends core_Master
                 $rec->dialStatus = 'REDIRECTED';
             }
             
+            // Определяме продължителнността на разговоря
+            $rec->duration = self::getDuration($rec->answerTime, $rec->endTime);
+            
             // Обновяваме записа
             $savedId = static::save($rec, NULL, 'UPDATE');
             
@@ -735,6 +710,31 @@ class callcenter_Talks extends core_Master
         
         // Връщаме
         return TRUE;
+    }
+    
+    
+    /**
+     * Връща продълбителността на разговора
+     * 
+     * @param datetime $answerTime
+     * @param datetime $endTime
+     * 
+     * @return NULL|integer
+     */
+    public static function getDuration($answerTime, $endTime)
+    {
+        $duration = NULL;
+        if ($answerTime && $endTime) {
+                
+            $dateTime = cls::get('type_Datetime');
+            $defVal = $dateTime->defVal();
+            
+            if (($answerTime != $defVal) && ($endTime != $defVal)) {
+                $duration = dt::secsBetween($endTime, $answerTime);
+            }
+        }
+        
+        return $duration;
     }
     
     

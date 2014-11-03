@@ -126,6 +126,7 @@ class callcenter_Setup extends core_ProtoSetup
             'callcenter_SMS',
             'callcenter_Numbers',
             'migrate::nullWrongAnswerAndEndTime',
+            'migrate::fixDurationField',
         );
     
     
@@ -219,6 +220,21 @@ class callcenter_Setup extends core_ProtoSetup
         
         if ($cnt) {
             return "<li class='green'>Оправени записи за времена на разговорите на {$cnt} записа</li>";
+        }
+    }
+    
+    
+    /**
+     * Миграция за добавяне на продължителност на разговорите
+     */
+    static function fixDurationField()
+    {
+        $cQuery = callcenter_Talks::getQuery();
+        $cQuery->where("#duration IS NULL");
+        while ($rec = $cQuery->fetch()) {
+            $rec->duration = callcenter_Talks::getDuration($rec->answerTime, $rec->endTime);
+            if (!$rec->duration) continue;
+            callcenter_Talks::save($rec);
         }
     }
 }
