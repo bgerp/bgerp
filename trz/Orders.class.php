@@ -268,9 +268,9 @@ class trz_Orders extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if(doc_Threads::haveRightFor('add', $data->rec->threadId) == FALSE){
+        /*if(doc_Threads::haveRightFor('add', $data->rec->threadId) == FALSE){
 	    	$data->toolbar->removeBtn('Коментар');
-	    }
+	    }*/
         
     }
     
@@ -300,7 +300,10 @@ class trz_Orders extends core_Master
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
-        if ('crm_Persons' != $coverClass) {
+        if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
+            return TRUE;
+        }
+        /*if ('crm_Persons' != $coverClass) {
         	return FALSE;
         }
         
@@ -309,7 +312,7 @@ class trz_Orders extends core_Master
         $personRec = crm_Persons::fetch($personId);
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         
-        return keylist::isIn($emplGroupId, $personRec->groupList);
+        return keylist::isIn($emplGroupId, $personRec->groupList);*/
     }
     
     
