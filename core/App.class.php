@@ -677,7 +677,7 @@ class core_App
      * Създава URL от параметрите
      *
      * @param array $params
-     * @param string $type Може да бъде relative|absolute|internal
+     * @param string $type Може да бъде relative|absolute|internal|local
      * @param boolean $protect
      * @param array $preParamsArr - Масив с имената на параметрите, които да се добавят в pre, вместо като GET
      * 
