@@ -344,7 +344,7 @@ class hr_Departments extends core_Master
             $myCompanyName = trim($myCompany->company);
             $query->where("#name = '{$myCompanyName}' AND #type = 'organization'");
              
-            if ($query->fetch() == FALSE) { bp();
+            if ($query->fetch() == FALSE) {
                 $rec = new stdClass();
                 $rec->name = $myCompany->company;
                 $rec->type = 'organization';
@@ -367,7 +367,10 @@ class hr_Departments extends core_Master
             // Ако имаме родител 
             if ($parent = $rec->staff) {
                 if ($rec->name == $myCompany && $rec->staff == NULL) {
-                    $parent = $rec->id;
+                    $parentMyCompany = $rec->id;
+                }
+                if ($parent == NULL) {
+                    $parent = $parentMyCompany;
                 }
                 // взимаме чистото име на наследника
                 $name = self::fetchField($rec->id, 'name');
