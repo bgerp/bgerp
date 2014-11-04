@@ -85,7 +85,7 @@ class email_Sent
             'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
         );
         
-        $message->messageId = email_Router::createMessageIdFromMid($sentRec->mid);
+        $message->messageId = email_Router::createMessageIdFromMid($sentRec->mid, $sentRec->boxFrom);
         
         // Заместване на уникалния идентификатор на писмото с генерираната тук стойност
         $message->html = str_replace('[#mid#]', $sentRec->mid, $message->html);

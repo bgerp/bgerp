@@ -395,10 +395,70 @@ class email_Router extends core_Manager
 
     /**
      * Генерира MesasgeID за имейл от mid
+     * 
+     * @param integer $boxFrom
+     * 
+     * @return string
      */
-    static function createMessageIdFromMid($mid)
-    {        
-        return "<" . str::addHash($mid, 8, 'MID') . ">";
+    static function createMessageIdFromMid($mid, $boxFrom = NULL)
+    {   
+        $hash = str::addHash($mid, 8, 'MID');
+        $hostName = self::getServerHostName($boxFrom);
+        
+        $res = "<" . $hash . '@' . $hostName . ">";
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Определя името на домейна от който изпращаме
+     * 
+     * @param integer $boxFrom
+     * 
+     * @return string
+     */
+    public static function getServerHostName($boxFrom = NULL)
+    {
+        static $hostNameArr = array();
+        
+        // Да не се определя повторно
+        if ($hostNameArr[$boxFrom]) return $hostNameArr[$boxFrom];
+        
+        // Ако е подадена кутия, опитваме се да определим от акаунта
+        if ($boxFrom) {
+            $accId = email_Inboxes::fetchField($boxFrom, 'accountId');
+            if ($accId) {
+                $accEmail = email_Accounts::fetchField($accId, 'email');
+            }
+            
+            if ($accEmail) {
+                list(, $hostNameArr[$boxFrom]) = explode('@', $accEmail);
+            }
+            
+            if ($hostNameArr[$boxFrom]) return $hostNameArr[$boxFrom];
+        }
+        
+        // Ако не е определен опитваме се да определим от конфигуцията на BGERP_DEFAULT_EMAIL_DOMAIN
+        if (BGERP_DEFAULT_EMAIL_DOMAIN) {
+            $hostNameArr[$boxFrom] = BGERP_DEFAULT_EMAIL_DOMAIN;
+            
+            return $hostNameArr[$boxFrom];
+        }
+        
+        // Ако не е определен - от резултата от gethostname
+        if (function_exists('gethostname')) {
+            $hostName = gethostname();
+            if ($hostName !== FALSE) {
+                $hostNameArr[$boxFrom] = $hostName;
+                
+                return $hostNameArr[$boxFrom];
+            }
+        }
+        
+        $hostNameArr[$boxFrom] = 'localhost.localdomain';
+        
+        return $hostNameArr[$boxFrom];
     }
     
     
@@ -408,9 +468,11 @@ class email_Router extends core_Manager
     static function extractMidFromMessageId($messageId)
     {
         $messageId = trim($messageId, ' <>');
-
+        
+        list($messageId) = explode('@', $messageId);
+        
         $mid = str::checkHash($messageId, 8, 'MID');
-
+        
         // Deprecated, за съвмесимост със стария формат
         if(!$mid && defined(BGERP_DEFAULT_EMAIL_DOMAIN)) {
             $myDomain = preg_quote(BGERP_DEFAULT_EMAIL_DOMAIN, '/');
@@ -420,7 +482,7 @@ class email_Router extends core_Manager
                 $mid = $matches[1];
             }
         }
-
+        
         return $mid;
     }
      
