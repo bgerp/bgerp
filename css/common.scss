@@ -1969,12 +1969,11 @@ a.rtbutton {
 	text-align:center;
 }
 
-.richtext-holder-group a.rtbutton {
+.richtext-holder-group a.rtbutton{
 	background:#ddd;
     border: 1px solid #bba;
  	padding:4px;
 	border-radius:0px !important;
-	text-align: left;
 }
 
 .narrow a.rtbutton {
@@ -2005,6 +2004,9 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
     right: 0;
     bottom: 2.1em;
     display: none;
+    a.rtbutton {
+        text-align: left;
+	}
 }
 
 .richtext-emoticons5 {
