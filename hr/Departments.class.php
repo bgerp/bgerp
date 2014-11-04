@@ -341,9 +341,10 @@ class hr_Departments extends core_Master
             self::save($rec);
         } else {
             $query = self::getQuery();
-            $query->where("#name = '{$myCompany->company}' AND #type = 'organization'");
-                        
-            if (!$query->count()) {
+            $myCompanyName = trim($myCompany->company);
+            $query->where("#name = '{$myCompanyName}' AND #type = 'organization'");
+             
+            if ($query->fetch() == FALSE) { bp();
                 $rec = new stdClass();
                 $rec->name = $myCompany->company;
                 $rec->type = 'organization';
@@ -360,11 +361,13 @@ class hr_Departments extends core_Master
      */
     public static function getChart ($data)
     {
+        $myCompany = crm_Companies::fetchOwnCompany();
+        
         foreach((array)$data->recs as $rec){
             // Ако имаме родител 
             if ($parent = $rec->staff) {
-                if ($rec->staff == NULL) {
-                    $parent = 'organization';
+                if ($rec->name == $myCompany && $rec->staff == NULL) {
+                    $parent = $rec->id;
                 }
                 // взимаме чистото име на наследника
                 $name = self::fetchField($rec->id, 'name');
@@ -377,7 +380,7 @@ class hr_Departments extends core_Master
             $res[] = array(
                 'id' => $rec->id,
                 'title' => $name,
-                'parent_id' => $rec->staff === NULL ? 'organization': $rec->staff,
+                'parent_id' => $rec->staff === NULL ? "NULL": $parent,
             );
         }
         
