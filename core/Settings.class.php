@@ -461,7 +461,7 @@ class core_Settings extends core_Manager
      * 
      * @return array
      */   
-    protected function fetchKeyNoMerge($key, $userOrRole = NULL)
+    protected static function fetchKeyNoMerge($key, $userOrRole = NULL)
     {
         $dataVal = array();
         
@@ -488,7 +488,7 @@ class core_Settings extends core_Manager
      * 
      * @return integer
      */
-    function prepareUserOrRole($userOrRole)
+    protected static function prepareUserOrRole($userOrRole)
     {
         // Ако не е подаден, използваме текущия потребител
         if (!$userOrRole) {
@@ -502,6 +502,7 @@ class core_Settings extends core_Manager
         
         return $userOrRole;
     }
+    
 
     /**
      * Променяме wrapper' а да сочи към врапера на търсения клас
