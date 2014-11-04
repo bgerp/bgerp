@@ -686,7 +686,7 @@ class acc_BalanceDetails extends core_Detail
         if($mvc->isDetailed()){
             
             $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
-            $url = array('acc_HistoryReport', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
+            $url = array('acc_BalanceHistory', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
             $row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
             $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
             
