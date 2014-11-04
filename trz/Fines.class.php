@@ -96,7 +96,7 @@ class trz_Fines extends core_Manager
      * Екшън по подразбиране.
      * Извежда картинка, че страницата е в процес на разработка
      */
-    public static function act_Default()
+    public function act_Default()
     {
         requireRole('trz, admin');
         
