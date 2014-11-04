@@ -91,6 +91,12 @@ class mp_Resources extends core_Master
     
     
     /**
+     * Шаблон за еденичен изглед
+     */
+    public $singleLayoutFile = 'mp/tpl/SingleLayoutResource.shtml';
+    		
+    		
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -104,29 +110,23 @@ class mp_Resources extends core_Master
     
     
     /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if (!empty($data->toolbar->buttons['btnAdd'])) {
-    		$data->toolbar->removeBtn('btnAdd');
-    		
-    		$type = Request::get('type', 'enum(equipment=Оборудване,labor=Труд,material=Материал)');
-    		$data->toolbar->addBtn('Нов запис', array($mvc, 'add', "type" => $type, 'ret_url' => TRUE), "id=btnAdd,order=10", 'ef_icon = img/16/star_2.png');
-    	}
-    }
-    
-    
-    /**
      * Подготовка на филтър формата
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$type = Request::get('type', 'enum(equipment,labor,material)');
-    	$typeVerbal = $mvc->getFieldType('type')->toVerbal($type);
-    	$mvc->currentTab = "Ресурси->{$typeVerbal}";
+    	$data->listFilter->FNC('rType', 'enum(all=Всички,equipment=Оборудване,labor=Труд,material=Материал)', 'caption=Тип,placeholder=aa');
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->setDefault('rType', 'all');
+    	$data->listFilter->showFields = 'rType';
+    	$data->listFilter->view = 'horizontal';
     	
-    	$data->query->where("#type = '{$type}'");
+    	$data->listFilter->input();
+    	
+    	if($type = $data->listFilter->rec->rType){
+    		if($type != 'all'){
+    			$data->query->where("#type = '{$type}'");
+    		}
+    	}
     }
     
     
@@ -157,5 +157,51 @@ class mp_Resources extends core_Master
     public static function itemInUse($objectId)
     {
     	// @todo!
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на титлата в единичния изглед
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$dQuery = mp_ObjectResources::getQuery();
+    	$dQuery->where("#resourceId = {$data->rec->id}");
+    	
+    	$data->detailRows = $data->detailRecs = array();
+    	while($dRec = $dQuery->fetch()){
+    		$data->detailRecs[$dRec->id] = $dRec;
+    		$data->detailRows[$dRec->id] = mp_ObjectResources::recToVerbal($dRec);
+    	}
+    }
+    
+    
+    /**
+     * След рендиране на еденичния изглед
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	$table = cls::get('core_TableView');
+    	$detailTpl = $table->get($data->detailRows, 'tools=Пулт,objectId=Обект');
+    	$tpl->append($detailTpl, 'DETAILS');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'delete' || $action == 'reject') && isset($rec)){
+    		if(mp_ObjectResources::fetchField("#resourceId = '{$rec->id}'")){
+    			$res = 'no_one';
+    		}
+    	}
     }
 }
