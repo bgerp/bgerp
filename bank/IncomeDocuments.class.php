@@ -27,6 +27,7 @@ class bank_IncomeDocuments extends core_Master
      */
     var $title = "Приходни банкови документи";
     
+    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
