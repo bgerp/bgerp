@@ -354,6 +354,10 @@ class core_Setup extends core_ProtoSetup {
     {
         if (!cls::load('custom_Settings', TRUE)) return ;
         
+        $inst = cls::get('custom_Settings');
+        
+        if (!$inst->db->tableExists($inst->dbTableName)) return ;
+        
         // Взема всички записи и общите ги обядинява в един
         $cQuery = custom_Settings::getQuery();
         while ($cRec = $cQuery->fetch()) {
