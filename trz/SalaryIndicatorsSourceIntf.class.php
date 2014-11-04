@@ -18,7 +18,7 @@ class trz_SalaryIndicatorsSourceIntf
     /**
      * Метод за изпращане на факсове
      */
-    function getSalaryIndicators($date) 
+    public function getSalaryIndicators($date) 
     {
         return $this->class->getSalaryIndicators($date);
     }
