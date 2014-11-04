@@ -440,7 +440,7 @@ class email_Router extends core_Manager
         }
         
         // Ако не е определен опитваме се да определим от конфигуцията на BGERP_DEFAULT_EMAIL_DOMAIN
-        if (BGERP_DEFAULT_EMAIL_DOMAIN) {
+        if (defined('BGERP_DEFAULT_EMAIL_DOMAIN')) {
             $hostNameArr[$boxFrom] = BGERP_DEFAULT_EMAIL_DOMAIN;
             
             return $hostNameArr[$boxFrom];
