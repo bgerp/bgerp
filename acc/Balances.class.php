@@ -176,6 +176,34 @@ class acc_Balances extends core_Master
     }
     
     
+    /**
+     * След подготовка на туклбара на списъчния изглед
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата');
+    }
+    
+    
+    /**
+     * Изчиства записите в балансите
+     */
+    public function act_Truncate()
+    {
+    	requireRole('admin,debug');
+    	
+    	$Balances = cls::get('acc_Balances');
+    	$Balances->db->query("TRUNCATE TABLE `{$Balances->dbTableName}`");
+    	
+    	$BalanceDetails = cls::get('acc_BalanceDetails');
+    	$BalanceDetails->db->query("TRUNCATE TABLE `{$BalanceDetails->dbTableName}`");
+    	
+    	Redirect(array($this, 'list'), FALSE, 'Балансите са изчистени успешно');
+    }
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
