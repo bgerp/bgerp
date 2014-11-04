@@ -7,7 +7,7 @@
  *
  *
  * @category  bgerp
- * @package   acc
+ * @package   frame
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -66,6 +66,7 @@ abstract class frame_BaseDriver extends core_BaseClass
 	 */
 	public function prepareEmbeddedData_($innerForm, &$innerState)
 	{
+		// Ако има вътрешно състояние него връщаме
 		if(!empty($innerState)){
 			return $innerState;
 		}

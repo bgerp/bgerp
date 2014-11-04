@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   frame
- * @author    Milen Georgiev <milen@experta.bg>
+ * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -20,72 +20,72 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_RowTools, plg_State2, frame_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Search, plg_Printing';
+    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Search, plg_Printing';
                       
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Отчет';
+    public $singleTitle = 'Отчет';
     
 
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
    
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Отчети от източници в системата";
+    public $title = "Отчети";
 
     /**
      * Права за писане
      */
-    var $canWrite = 'ceo, report, admin';
+    public $canWrite = 'ceo, report, admin';
     
     
     /**
      * Права за запис
      */
-    var $canRead = 'ceo, report, admin';
+    public $canRead = 'ceo, report, admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo, report, admin';
+	public $canList = 'ceo, report, admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo, report, admin';
+	public $canSingle = 'ceo, report, admin';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Rep";
+    public $abbr = "Rep";
     
     
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/report.png';
+    public $singleIcon = 'img/16/report.png';
 
 
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "18.9|Други";
+    public $newBtnGroup = "18.9|Други";
 
 
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'frame/tpl/SingleLayoutReport.shtml';
+    public $singleLayoutFile = 'frame/tpl/SingleLayoutReport.shtml';
 
 
     /**
@@ -151,17 +151,6 @@ class frame_Reports extends core_Embedder
             	$filter = $rec->filter;
             	$rec->data = $Source->prepareInnerState($filter);
             }
-            /*$Source = cls::getInterface('frame_ReportSourceIntf', $rec->source);
-            
-            // Обновяваме данните, ако отчета е в състояние 'draft'
-            if($rec->state == 'draft') {
-            	
-            	// Източника подготвя данните
-                $rec->data = $Source->prepareReportData($rec->filter);
-            }
-                
-            // Източника рендира данните
-            $row->data = $Source->renderReportData($rec->data);*/
         }
     }
 
@@ -169,20 +158,11 @@ class frame_Reports extends core_Embedder
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
-    static function on_AfterPrepareEditToolbar($mvc, $data)
+    public static function on_AfterPrepareEditToolbar($mvc, $data)
     {
     	if (!empty($data->form->toolbar->buttons['activate'])) {
     		$data->form->toolbar->removeBtn('activate');
     	}
-    }
-    
-    
-    /**
-     * Дали да записва вътрешното състояние при инпут на формата
-     */
-    public function shouldSaveInnerState($id = NULL)
-    {
-    	return FALSE;
     }
     
     
@@ -252,7 +232,7 @@ class frame_Reports extends core_Embedder
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
