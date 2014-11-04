@@ -392,7 +392,7 @@ class trz_Sickdays extends core_Master
      * @param int $id
      * @return stdClass $row
      */
-    public static function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         

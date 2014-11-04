@@ -472,7 +472,7 @@ class trz_Requests extends core_Master
      * @param int $id
      * @return stdClass $row
      */
-    public static function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
