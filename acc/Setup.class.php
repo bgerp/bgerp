@@ -163,6 +163,7 @@ class acc_Setup extends core_ProtoSetup
     	),
     );
     
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
