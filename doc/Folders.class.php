@@ -25,14 +25,7 @@ class doc_Folders extends core_Master
     /**
      * Интерфейси
      */
-    var $interfaces = 'custom_SettingsIntf';
-    
-    
-    /**
-     * Кой може да модофицира
-     * @see custom_SettingsIntf
-     */
-    var $canModify = 'powerUser';
+    var $interfaces = 'core_SettingsIntf';
     
     
     /**
@@ -233,7 +226,7 @@ class doc_Folders extends core_Master
         }
         
         // Всеки има право на достъп до папката за която отговаря
-        if($rec->inCharge === $userId) return TRUE;
+        if ($rec->inCharge && ($rec->inCharge == $userId)) return TRUE;
         
         // Всеки има право на достъп до папките, които са му споделени
         if(strpos($rec->shared, '|' . $userId . '|') !== FALSE) return TRUE;
@@ -408,12 +401,6 @@ class doc_Folders extends core_Master
                 // ако имаме повече отворени теми от преди
                 if($exOpenThreadsCnt < $rec->openThreadsCnt) {
                     
-                    // id на класа
-                    $folderClassId = doc_Folders::getClassId();
-                    
-                    // Вземаме данните
-                    $noNotificationsUsersArr = custom_Settings::fetchUsers($folderClassId, $rec->id, 'folOpenings');
-                    
                     $userId = $rec->inCharge;
                     
                     $msg = '|Отворени теми в|*' . " \"$rec->title\"";
@@ -422,20 +409,30 @@ class doc_Folders extends core_Master
                         
                     $priority = 'normal';
                     
-                    // В зависимост от персонализацията избираме дали да покажим нотификацията
-                    if ($noNotificationsUsersArr[$userId] == 'yes' || ($noNotificationsUsersArr[$userId] != 'no' && (!$noNotificationsUsersArr[-1] || $noNotificationsUsersArr[-1] == 'yes'))) {                        
+                    // По подразбиране ще се нотифицира собствника и споделените в папката
+                    $notifyArr = array();
+                    $notifyArr[$userId] = $userId;
+                    $notifyArr += keylist::toArray($rec->shared);
+                    
+                    $key = doc_Folders::getSettingsKey($rec->id);
+                    $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
+                    
+                    // В зависимост от избраната персонална настройка добавяме/премахваме от масива
+                    foreach ((array)$folOpeningNotifications as $userId => $folOpening) {
                         
-                        bgerp_Notifications::add($msg, $url, $userId, $priority);
+                        if ($folOpening['folOpenings'] == 'no') {
+                            unset($notifyArr[$userId]);
+                        } else if ($folOpening['folOpenings'] == 'yes') {
+                            $notifyArr[$userId] = $userId;
+                        }
                     }
                     
-                    if($rec->shared) {
-                        foreach(keylist::toArray($rec->shared) as $userId) {
-                            
-                            // В зависимост от персонализацията избираме дали да покажим нотификацията
-                            if ($noNotificationsUsersArr[$userId] == 'yes' || ($noNotificationsUsersArr[$userId] != 'no' && (!$noNotificationsUsersArr[-1] || $noNotificationsUsersArr[-1] == 'yes'))) {
-                                bgerp_Notifications::add($msg, $url, $userId, $priority);
-                            }
-                        }
+                    // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
+                    foreach((array)$notifyArr as $nUserId) {
+                        
+                        if (!doc_Folders::haveRightFor('single', $id, $nUserId)) continue;
+                        
+                        bgerp_Notifications::add($msg, $url, $nUserId, $priority);
                     }
                 } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
                     // Изчистване на нотификации за отворени теми в тази папка
@@ -1034,26 +1031,6 @@ class doc_Folders extends core_Master
     
     
     /**
-     * Извиква се след изчисляване на ролите необходими за дадено действие
-     * 
-     * @param doc_Folders $mvc
-     * @param string $res
-     * @param string $action
-     * @param object $rec
-     * @param integer $userId
-     */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
-    {
-        // @see custom_Settings
-        if ($action == 'modify' && $rec) {
-            if (!$mvc->haveRightFor('single', $rec)) {
-                $res = 'no_one';
-            }
-        }
-    }
-    
-    
-    /**
      * Добавя типа на папката към полетата за търсене
      * 
      * @param doc_Folders $mvc
@@ -1070,21 +1047,72 @@ class doc_Folders extends core_Master
     
     
     /**
-     * Интерфейсен метод на custom_SettingsIntf
-     * Подготвяме формата за персонализиране на настройките за нишката
+     * Връща ключа за персонална настройка
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    static function getSettingsKey($id)
+    {
+        $key = 'doc_Folders::' . $id;
+        
+        return $key;
+    }
+    
+    
+    /**
+     * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
+     * 
+     * @param string $key
+     * @param integer $userOrRole
+     * @see core_SettingsIntf
+     */
+    static function canModifySettings($key, $userOrRole=NULL)
+    {
+        // За да може да промени трябва да има достъп до сингъла на папката
+        // Да променя собствените си настройки или да е admin|ceo
+        
+        list($className, $id) = explode('::', $key);
+        
+        if (!doc_Folders::haveRightFor('single', $id)) return FALSE;
+        
+        if (!$userOrRole) return TRUE;
+        
+        $currUser = core_Users::getCurrent();
+        if ($currUser == $userOrRole) {
+            
+            return TRUE;
+        }
+        
+        if (haveRole('admin, ceo', $currUser)) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    
+    /**
+     * Подготвя формата за настройки
      * 
      * @param core_Form $form
-     * @see custom_SettingsIntf
+     * @see core_SettingsIntf
      */
-    function prepareCustomizationForm(&$form)
+    function prepareForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
         Mode::set('pageSubMenu', 'Всички');
         $this->currentTab = 'Теми';
         
+        // Вземаме id на папката от ключа
+        list($className, $folderId) = explode('::', $form->rec->_key);
+        
         // Определяме заглавито
-        $rec = $this->fetch($form->rec->objectId);
+        $rec = $this->fetch($folderId);
         $row = $this->recToVerbal($rec, 'title');
         $form->title = 'Настройка на|*: ' . $row->title;
         
@@ -1092,6 +1120,10 @@ class doc_Folders extends core_Master
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени нишки->Известяване, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
         $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
+        
+        $form->setDefault('folOpenings', 'default');
+        $form->setDefault('perPage', 'default');
+        $form->setDefault('ordering', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
@@ -1107,13 +1139,12 @@ class doc_Folders extends core_Master
     
     
     /**
-     * Интерфейсен метод на custom_SettingsIntf
-     * Проверява въведените данни във формата
+     * Проверява формата за настройки
      * 
      * @param core_Form $form
-     * @see custom_SettingsIntf
+     * @see core_SettingsIntf
      */
-    function checkCustomizationForm(&$form)
+    function checkSettingsForm(&$form)
     {
         
         return ;

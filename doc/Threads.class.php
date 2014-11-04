@@ -32,7 +32,7 @@ class doc_Threads extends core_Manager
     /**
      * Интерфейси
      */
-    var $interfaces = 'custom_SettingsIntf';
+    var $interfaces = 'core_SettingsIntf';
     
     
     /**
@@ -45,13 +45,6 @@ class doc_Threads extends core_Manager
      * 
      */
     var $canWrite = 'no_one';
-    
-    
-    /**
-     * Кой може да модофицира
-     * @see custom_SettingsIntf
-     */
-    var $canModify = 'powerUser';
     
     
     /**
@@ -258,9 +251,6 @@ class doc_Threads extends core_Manager
         
         $data->listFilter->input(NULL, 'silent');
         
-        // id на класа
-        $folderClassId = doc_Folders::getClassId();
-        
         // id на папката
         $folderId = $data->listFilter->rec->folderId;
 
@@ -281,11 +271,9 @@ class doc_Threads extends core_Manager
         	$data->query->where("#state != 'rejected' OR #state IS NULL");
         }
         
-        // id на потребителя
-        $userId = core_Users::getCurrent();
-        
         // Вземаме данните
-        $vals = custom_Settings::fetchValues($folderClassId, $folderId, $userId);
+        $key = doc_Folders::getSettingsKey($folderId);
+        $vals = core_Settings::fetchKey($key);
         
         // Ако е зададено подреждане в персонализацията
         if ($vals['ordering']) {
@@ -1085,12 +1073,11 @@ class doc_Threads extends core_Manager
             }
         }
         
-        // Ако има права за модифициране на настройките за персоналзиране
-        if (doc_Folders::haveRightFor('modify', $data->folderId)) {
-            
-            // Добавяме бутон в тулбара
-            $folderClassId = core_Classes::fetchIdByName('doc_Folders');
-            custom_Settings::addBtn($data->toolbar, $folderClassId, $data->folderId, 'Настройки');
+        // Ако има права за настройка на папката, добавяме бутона
+        $key = doc_Folders::getSettingsKey($data->folderId);
+        $userOrRole = core_Users::getCurrent();
+        if (doc_Folders::canModifySettings($key, $userOrRole)) {
+            core_Settings::addBtn($data->toolbar, $key, 'doc_Folders', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2));
         }
     }
     
@@ -1192,13 +1179,6 @@ class doc_Threads extends core_Manager
             if($rec->state == 'opened' || $rec->state == 'closed') {
                 $res = $mvc->getRequiredRoles('single', $rec, $userId);
             } else {
-                $res = 'no_one';
-            }
-        }
-        
-        // @see custom_Settings
-        if ($action == 'modify' && $rec) {
-            if (!$mvc->haveRightFor('single', $rec)) {
                 $res = 'no_one';
             }
         }
@@ -1572,26 +1552,79 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Интерфейсен метод на custom_SettingsIntf
-     * Подготвяме формата за персонализиране на настройките за нишката
+     * Връща ключа за персонална настройка
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    static function getSettingsKey($id)
+    {
+        $key = 'doc_Threads::' . $id;
+        
+        return $key;
+    }
+    
+    
+    /**
+     * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
+     * 
+     * @param string $key
+     * @param integer $userOrRole
+     * @see core_SettingsIntf
+     */
+    static function canModifySettings($key, $userOrRole=NULL)
+    {
+        // За да може да промени трябва да има достъп до сингъла на нишката
+        // Да променя собствените си настройки или да е admin|ceo
+        
+        list($className, $id) = explode('::', $key);
+        
+        if (!doc_Threads::haveRightFor('single', $id)) return FALSE;
+        
+        if (!$userOrRole) return TRUE;
+        
+        $currUser = core_Users::getCurrent();
+        if ($currUser == $userOrRole) {
+            
+            return TRUE;
+        }
+        
+        if (haveRole('admin, ceo', $currUser)) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    
+    /**
+     * Подготвя формата за настройки
      * 
      * @param core_Form $form
-     * @see custom_SettingsIntf
+     * @see core_SettingsIntf
      */
-    function prepareCustomizationForm(&$form)
+    function prepareForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
         Mode::set('pageSubMenu', 'Всички');
-        $this->currentTab = 'Нишка';
+        $this->currentTab = 'Теми';
+        
+        // Вземаме id на папката от ключа
+        list($className, $threadId) = explode('::', $form->rec->_key);
         
         // Определяме заглавито
-        $rec = $this->fetch($form->rec->objectId);
+        $rec = $this->fetch($threadId);
         $row = $this->recToVerbal($rec, 'title');
-        $form->title .= ' на нишка|*: ' . $row->title;
+        $form->title = 'Настройка на|*: ' . $row->title;
         
         // Добавяме функционални полета
         $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Добавяне на документ->Известяване, input=input');
+        
+        $form->setDefault('notify', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
@@ -1599,19 +1632,18 @@ class doc_Threads extends core_Manager
         // Ако сме в мобилен режим, да не е хинт
         $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
         
-        // Подсказки за позразбиране
+        // Сетваме стойност по подразбиране
         $form->setParams('notify', array($paramType => $defaultStr . '|Винаги'));
     }
     
     
     /**
-     * Интерфейсен метод на custom_SettingsIntf
-     * Проверява въведените данни във формата
+     * Проверява формата за настройки
      * 
      * @param core_Form $form
-     * @see custom_SettingsIntf
+     * @see core_SettingsIntf
      */
-    function checkCustomizationForm(&$form)
+    function checkSettingsForm(&$form)
     {
         
         return ;
@@ -1627,17 +1659,11 @@ class doc_Threads extends core_Manager
      */
     function on_BeforePrepareListPager($mvc, &$res, &$data)
     {
-        // id на класа
-        $folderClassId = doc_Folders::getClassId();
-        
         // id на папката
         $folderId = Request::get('folderId');
         
-        // id на потребителя
-        $userId = core_Users::getCurrent();
-        
-        // Вземаме данните
-        $vals = custom_Settings::fetchValues($folderClassId, $folderId, $userId);
+        $key = doc_Folders::getSettingsKey($folderId);
+        $vals = core_Settings::fetchKey($key);
         
         // Ако е зададено да се страницира
         if ($vals['perPage']) {
