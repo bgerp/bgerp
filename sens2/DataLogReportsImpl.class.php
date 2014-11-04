@@ -7,7 +7,7 @@
  *
  * @category  bgerp
  * @package   sens2
- * @author    Ivelin Dimov <icelin_pdimov@abv.bg>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1

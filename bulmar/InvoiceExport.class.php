@@ -98,23 +98,20 @@ class bulmar_InvoiceExport extends core_Manager {
     	}
     	
     	$data = $this->prepareExportData($recs);
-    	
     	$content = $this->prepareFileContent($data);
-    	
     	$content = iconv('utf-8', 'CP1251', $content);
     	
-    	header('Content-Description: File Transfer');
-    	header('Content-Type: text/plain; charset=windows-1251');
-    	header("Content-Disposition: attachment; filename=invoices.txt");
-    	header('Expires: 0');
-    	header('Cache-Control: must-revalidate');
-    	header('Pragma: public');
+    	$timestamp = time();
+    	$name = "invoices{$timestamp}.txt";
     	
-    	// Аутпут на съдържанието
-    	echo $content;
+    	// Записваме файла в системата
+    	$fh = fileman::absorbStr($content, 'exportInvoices', $name);
     	
-    	// Сприраме изпълнението на скрипта
-    	shutdown();
+    	// Ще редиректваме към еденичния изглед на файла
+    	$retUrl = toUrl(array('fileman_Files', 'single', $fh), 'local');
+    	
+    	// Подменяме урл-то за връщане
+    	Request::push(array('ret_url' => $retUrl));
     }
     
     
