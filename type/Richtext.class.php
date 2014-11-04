@@ -230,6 +230,9 @@ class type_Richtext extends type_Blob
         // Намаляме стойността за да не гърми по-лош начин
         ini_set('pcre.recursion_limit', '16777');
         
+        // Заместваме й в края на изречението с ѝ
+        $html = preg_replace('/(\ )(й)([\.\,\?\!]){1}/u', '${1}ѝ${3}', $html);
+        
         // Обработваме [html] ... [/html] елементите, които могат да съдържат чист HTML код
         $html = preg_replace_callback("/\[html](.*?)\[\/html\]([\r\n]{0,2})/is", array($this, '_catchHtml'), $html);
         
