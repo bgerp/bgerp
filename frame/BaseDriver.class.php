@@ -64,7 +64,7 @@ abstract class frame_BaseDriver extends core_BaseClass
 	 * @param core_Form $innerForm
 	 * @param stdClass $innerState
 	 */
-	public function prepareEmbeddedData($innerForm, &$innerState)
+	public function prepareEmbeddedData_($innerForm, &$innerState)
 	{
 		if(!empty($innerState)){
 			return $innerState;
