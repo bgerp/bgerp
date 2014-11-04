@@ -269,9 +269,10 @@ class acc_Balances extends core_Master
     {
         // Ако записа на баланса не за записан, записваме го, за да имаме id
         $exRec = self::fetch("#fromDate = '{$rec->fromDate}' AND #toDate = '{$rec->toDate}'");
- 
+        
         if(!$exRec) {
-            self::save($rec);
+            $id = self::save($rec);
+           
         } else {
             $rec = $exRec;
         }
@@ -285,7 +286,9 @@ class acc_Balances extends core_Master
             // Ако изчисляваме текущия период, опитваме да преизчислим баланс за предишен работен ден
             if($rec->toDate == dt::getLastDayOfMonth()) {
                 if($prevWorkingDay = self::getPrevWorkingDay($today)) {
+                	
                     $prevRec = clone($rec);
+                    unset($prevRec->id);
                     $prevRec->toDate = $prevWorkingDay;
                     $prevRec->periodId = NULL;
                     self::forceCalc($prevRec);
