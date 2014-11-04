@@ -87,7 +87,7 @@ class core_Settings extends core_Manager
      * @param string $title
      * @param array $params
      */
-    public static function addBtn(core_Toolbar $toolbar, $key, $className, $userOrRole = NULL, $title = 'Персонализиране', $params)
+    public static function addBtn(core_Toolbar $toolbar, $key, $className, $userOrRole = NULL, $title = 'Персонализиране', $params = array())
     {
         $url = self::getModifyUrl($key, $className, $userOrRole);
         
