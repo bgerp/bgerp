@@ -214,6 +214,7 @@ class core_Setup extends core_ProtoSetup {
         'migrate::clearBrowserInfo',
         'core_Settings',
         'core_Forwards',
+        'migrate::settigsDataFromCustomToCore'
     );
     
     
@@ -343,5 +344,39 @@ class core_Setup extends core_ProtoSetup {
         $Browser = cls::get('core_Browser');
 
         $Browser->db->query("TRUNCATE TABLE `{$Browser->dbTableName}`");
+    }
+    
+    
+    /**
+     * Миграция за прехвъраляне на данните от `custom_Settings` в `core_Settings`
+     */
+    static function settigsDataFromCustomToCore()
+    {
+        if (!cls::load('custom_Settings', TRUE)) return ;
+        
+        // Взема всички записи и общите ги обядинява в един
+        $cQuery = custom_Settings::getQuery();
+        while ($cRec = $cQuery->fetch()) {
+            if (!cls::load($cRec->classId, TRUE)) continue;
+            $classInst = cls::get($cRec->classId);
+            if (!method_exists($classInst, 'getSettingsKey')) continue;
+            
+            $key = $classInst->getSettingsKey($cRec->objectId);
+            
+            $userId = $cRec->userId;
+            if ($userId == -1) {
+                $userId = type_UserOrRole::getAllSysTeamId();
+            }
+            
+            $dataArr[$key][$userId][$cRec->property] = $cRec->value;
+        }
+        
+        // Обикаля по получения резултат и добавя в новия модел
+        foreach ((array)$dataArr as $key => $dataUserArr) {
+            foreach ((array)$dataUserArr as $userId => $valArr) {
+                if (!$valArr) continue;
+                core_Settings::setValues($key, $valArr, $userId);
+            }
+        }
     }
 }
