@@ -288,9 +288,6 @@ class core_Settings extends core_Manager
         // Инстанция на класа, който е подаден кат
         $class = cls::get($className);
         
-        // Очакваме да има права за модифициране на записа за съответния потребител
-        expect($class->canModifySettings($key, $userOrRole));
-        
         // Създаваме празна форма
         $form = cls::get('core_Form');
         
@@ -309,6 +306,9 @@ class core_Settings extends core_Manager
         
         // Инпутваме silent полетата, за да се попълнята
         $form->input(NULL, 'silent');
+        
+        // Очакваме да има права за модифициране на записа за съответния потребител
+        expect($class->canModifySettings($key, $form->rec->_userOrRole));
         
         $form->title = 'Персонализиране';
         
@@ -348,7 +348,7 @@ class core_Settings extends core_Manager
         if ($form->isSubmitted()) {
             
             // Очакваме да има права за модифицирана на съответния запис
-            expect($class->canModifySettings($key, $form->rec->userOrRole));
+            expect($class->canModifySettings($key, $form->rec->_userOrRole));
             
             // Извикваме интерфейсната функция за проверка на формата
             $class->checkSettingsForm($form);
