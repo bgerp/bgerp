@@ -122,7 +122,7 @@ class hr_Departments extends core_Master
                                  shift=Смяна,
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД, hint=Номер по НКИД');
-        $this->FLD('staff', 'key(mvc=hr_Departments, select=name)', 'caption=В състава на,width=100%');
+        $this->FLD('staff', 'key(mvc=hr_Departments, select=name,allowEmpty)', 'caption=В състава на,width=100%');
         
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
@@ -154,7 +154,7 @@ class hr_Departments extends core_Master
         }
         
         $data->form->setOptions('staff', $opt);
-        $data->form->setDefault('staff', 'organization');
+        //$data->form->setDefault('staff', 'organization');
     }
     
     
@@ -322,71 +322,45 @@ class hr_Departments extends core_Master
             $mvc->currentTab = "Структура->Таблица";
         }
     }
-    
-    /**
-     * Създава на корен към графа за структурата. Той е "Моята фирма"
-     */
-    public function on_AfterSetUpMvc($mvc, &$res)
-    {
-        $myCompany = crm_Companies::fetchOwnCompany();
-            
-        if(!self::count()) {
-            
-            // Създаваме го
-            $rec = new stdClass();
-            $rec->name = $myCompany->company;
-            $rec->type = 'organization';
-            $rec->staff = NULL;
-            
-            self::save($rec);
-        } else {
-            $query = self::getQuery();
-            $myCompanyName = trim($myCompany->company);
-            $query->where("#name = '{$myCompanyName}' AND #type = 'organization'");
-             
-            if ($query->fetch() == FALSE) {
-                $rec = new stdClass();
-                $rec->name = $myCompany->company;
-                $rec->type = 'organization';
-                $rec->staff = NULL;
-                
-                self::save($rec); 
-            }
-        }
-    }
-    
+
     
     /**
      * Изчертаване на структурата с данни от базата
      */
     public static function getChart ($data)
     {
+        // взимаме "текущата фирма"
         $myCompany = crm_Companies::fetchOwnCompany();
         
-        foreach((array)$data->recs as $rec){
-            // Ако имаме родител 
-            if ($parent = $rec->staff) {
-                if ($rec->name == $myCompany && $rec->staff == NULL) {
-                    $parentMyCompany = $rec->id;
-                }
-                if ($parent == NULL) {
-                    $parent = $parentMyCompany;
-                }
-                // взимаме чистото име на наследника
-                $name = self::fetchField($rec->id, 'name');
-            } else {
-                // в противен случай, го взимаме
-                // както е
-                $name = $rec->name;
-            }
-            
-            $res[] = array(
-                'id' => $rec->id,
-                'title' => $name,
-                'parent_id' => $rec->staff === NULL ? "NULL": $parent,
-            );
-        }
+        // правим данните за нея
+        $myCompanyRec = new stdClass();
+        $myCompanyRec->id = 0;
+        $myCompanyRec->name = $myCompany->company;
+        $myCompanyRec->staff = NULL;
         
+        $arrData = (array)$data->recs;
+        array_push($arrData, $myCompanyRec);
+       
+        foreach($arrData as $rec){
+            // Ако имаме родител 
+             if($rec->staff == NULL && $rec->name !== $myCompany->company) {
+                 $parent = 0;
+                 // взимаме чистото име на наследника
+                 $name = self::fetchField($rec->id, 'name');
+             } else {
+             // в противен случай, го взимаме
+             // както е
+             $name = $rec->name;
+             $parent = 'NULL';
+             }
+            
+             $res[] = array(
+             'id' => $rec->id,
+             'title' => $name,
+             'parent_id' => $parent,
+             );
+        }
+
         $chart = orgchart_Adapter::render_($res);
         
         return $chart;
