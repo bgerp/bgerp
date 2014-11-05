@@ -102,7 +102,7 @@ class acc_Balances extends core_Master
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'id, periodId, lastCalculate';
+    var $listFields = 'id, periodId, fromDate, toDate, lastAlternation, lastCalculate';
     
     
     /**
@@ -119,7 +119,8 @@ class acc_Balances extends core_Master
         $this->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,mandatory,autoFilter');
         $this->FLD('fromDate', 'date', 'input=none,caption=Период->от,column=none');
         $this->FLD('toDate', 'date', 'input=none,caption=Период->до,column=none');
-        $this->FLD('lastCalculate', 'datetime', 'input=none,caption=Последно изчисляване');
+        $this->FLD('lastAlternation', 'datetime', 'input=none,caption=Последно->Изменение');
+        $this->FLD('lastCalculate', 'datetime', 'input=none,caption=Последно->Изчисляване');
     }
     
     
@@ -175,28 +176,6 @@ class acc_Balances extends core_Master
     }
     
     
-    /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    static function on_BeforeSave($mvc, &$id, $rec)
-    {
-        $Periods = &cls::get('acc_Periods');
-        $periodRec = $Periods->fetch($rec->periodId);
-        
-        $rec->baseBalanceId = $mvc->getBaseBalanceId($periodRec);
-        $rec->fromDate = $periodRec->start;
-        $rec->toDate = $periodRec->end;
-    }
-    
-    
-    /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    static function on_AfterSave($mvc, &$id, $rec)
-    {
-        $mvc->calc($rec);
-    }
-    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -205,50 +184,104 @@ class acc_Balances extends core_Master
     {
         $data->query->orderBy('#toDate', 'DESC');
     }
-    
-    
+
+
     /**
-     * Връща ид-то на базовия баланс
-     * @param $periodRec - запис на период
-     * @return int $id - ид на базовия баланс
-     */
-    private function getBaseBalanceId($periodRec)
-    {
-        $balanceId = NULL;
-        
-        $Periods = &cls::get('acc_Periods');
-        
-        if ($prevPeriodRec = $Periods->fetchPreviousPeriod($periodRec)) {
-            $balanceId = $this->fetchField("#periodId = {$prevPeriodRec->id}", 'id');
-        }
-        
-        return $balanceId;
-    }
-    
-    
-    /**
-     * Връща последния баланс, на който крайната дата е преди друга дата
+     * Връща последния баланс, на който крайната дата е преди друга дата и е валиден
      */
     public function getBalanceBefore($date)
     {
         $query = self::getQuery();
         $query->orderBy('#toDate', 'DESC');
-        $query->limit(1);
+        while($rec = $query->fetch("#toDate < '{$date}'")) {
+            if(self::isValid($rec)) {
+
+                return $rec;
+            }
+        }
+    }
+
+
+    /**
+     * Маркира балансите, които се засягат от документ с посочения вальор
+     *
+     * @param string $date дата, към която
+     * @return boolean
+     */
+    public static function alternate($date)
+    {
+        static $dateArr = array();
         
-        return $query->fetch("#toDate < '{$date}'");
+        if($dateArr[$date]) {
+
+            return;
+        }
+
+        $dateArr[$date] = TRUE;
+        
+        $now = dt::now();
+
+        $query = self::getQuery();
+        
+        // Инвалидираме баланса, ако датата е по-малка от края на периода
+        while($rec = $query->fetch("#toDate >= '{$date}'")) {
+            $rec->lastAlternation = $now;
+            self::save($rec, 'lastAlternation');
+        }
     }
     
+    
+    /**
+     * Ако е необходимо записва и изчислява баланса за посочения период
+     * 
+     * @param stdClass Запис на баланс, с попълнени $fromDate, $toDate и $periodId
+     * @return boolean Дали е правено преизчисляване
+     */
+    private function forceCalc($rec)
+    {
+        // Ако записа на баланса не за записан, записваме го, за да имаме id
+        $exRec = self::fetch("#fromDate = '{$rec->fromDate}' AND #toDate = '{$rec->toDate}'");
+ 
+        if(!$exRec) {
+            self::save($rec);
+        } else {
+            $rec = $exRec;
+        }
+
+        // Ако не е валиден го преизчисляваме
+        if(!self::isValid($rec)) {
+
+            // Днешна дата
+            $today = dt::today();
+            
+            // Ако изчисляваме текущия период, опитваме да преизчислим баланс за предишен работен ден
+            if($rec->toDate == dt::getLastDayOfMonth()) {
+                if($prevWorkingDay = self::getPrevWorkingDay($today)) {
+                    $prevRec = clone($rec);
+                    $prevRec->toDate = $prevWorkingDay;
+                    $prevRec->periodId = NULL;
+                    self::forceCalc($prevRec);
+                }
+            }
+
+            self::calc($rec);
+
+            return TRUE;
+        }
+    }
+
     
     /**
      * Изчисляване на баланс
      */
     function calc($rec)
     {
+
         // Вземаме инстанция на детайлите на баланса
         $bD = cls::get('acc_BalanceDetails');
         
         // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
-        $lastRec = $this->getBalanceBefore($rec->fromDate);
+        $lastRec = $this->getBalanceBefore($rec->toDate);
         
         if($lastRec) {
             $bD->loadBalance($lastRec->id);
@@ -265,6 +298,10 @@ class acc_Balances extends core_Master
         
         // Записваме баланса в таблицата
         $bD->saveBalance($rec->id);
+        
+        // Отбелязваме, кога за последно е калкулиран този баланс
+        $rec->lastCalculate = dt::now();
+        self::save($rec);
     }
     
     
@@ -273,46 +310,67 @@ class acc_Balances extends core_Master
      */
     function cron_Recalc()
     {
-        // Взема всички периоди (без closed и draft) от най-стария, към най-новия
-        // За всеки период, ако има стойност в lastEntry:
-        //  - взема съответстващия му баланс (мастера)
-        //  - ако няма такъв баланс, то той се изчислява
-        //  - ако има такъв баланс, то той се изчислява, само ако неговото поле lastCalc <= lastEntry
-        // след преизчисляване на баланс, полето lastCalc се попълва с времето, когато е започнало неговото изчисляване
-        // продължава се със слеващия баланс
+        // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
+        // Ако периода се нуждае от прекалкулиране - правим го
+        // Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
+        // до предходния работен ден и селд това до днес
         
         $pQuery = acc_Periods::getQuery();
         $pQuery->orderBy('#end', 'ASC');
         $pQuery->where("#state != 'closed'");
         $pQuery->where("#state != 'draft'");
-        $lastEntry = self::TIME_BEGIN;
         
         while($pRec = $pQuery->fetch()) {
             
-            $lastEntry = max($lastEntry, $pRec->lastEntry);
-            
-            if($lastEntry > '1970-01-01 10:00:00') {
-                
-                $rec = self::fetch("#periodId = {$pRec->id}");
-                
-                if(!$rec || ($rec->lastCalculate <= $lastEntry)) {
-                    
-                    if(!$rec) {
-                        $rec = new stdClass();
-                        $rec->periodId = $pRec->id;
-                    }
-                    
-                    $rec->lastCalculate = dt::verbal2mysql();
-                    
-                    self::save($rec);
-                }
-            }
+            $rec = new stdClass();
+
+            $rec->fromDate = $pRec->start;
+            $rec->toDate = $pRec->end;
+            $rec->periodId = $pRec->id;
+            self::forceCalc($rec);
         }
+        
+        // Ако сме в 0 часа, правим и преподреждане на id-тата
+        // SET @count = 0;
+        // UPDATE `acc_balance_details` SET `acc_balance_details`.`id` = @count:= @count + 1;
+        // ALTER TABLE `acc_balance_details` AUTO_INCREMENT = 1;
         
         // Пораждаме събитие, че баланса е бил преизчислен
         $data = new stdClass();
         $this->invoke('AfterRecalcBalances', array($data));
     }
+
+
+    /**
+     * Проверка, дали записът отговаря на валиден баланс
+     */
+    public static function isValid($rec)
+    {
+        if($rec->lastCalculate && ($rec->lastCalculate >= $rec->lastAlternation)) {
+
+            return TRUE;
+        }
+    }
+
+    
+    /**
+     * Намира предходния работен ден в месеца преди посочената дата
+     * @todo Да се сложи проверка от календара
+     */
+    private static function getPrevWorkingDay($date)
+    {
+        // И имаме по-малък предходен работен ден
+        list($y, $m, $d) = explode('-', $date);
+        $d = (int) $d;
+        for($day = $d - 1; $day > 0; $day--) {
+            $wDate = sprintf('%d-%02d-%02d',$y, $m, $day);
+            if(!dt::isHoliday($wDate)) {
+
+                return $wDate;
+            }
+        }
+    }
+
     
     
     /**

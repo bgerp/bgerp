@@ -203,8 +203,8 @@ class acc_Journal extends core_Master
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($rec->state != 'draft') {
-            // Нотифицираме съотв. период че има нови транзакции
-            acc_Periods::touch($rec->valior);
+            // Инвалидираме балансите, които се променят от този вальор
+            acc_Balances::alternate($rec->valior);
         }
         
         // След активиране, извличаме всички записи от журнала и запомняме кои пера са вкарани
@@ -434,7 +434,8 @@ class acc_Journal extends core_Master
         
         static::delete($rec->id);
         
-        acc_Periods::touch($rec->valior);
+        // Инвалидираме балансите, които се променят от този вальор
+        acc_Balances::alternate($rec->valior);
         
         return array($docClassId, $docId);
     }

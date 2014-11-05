@@ -44,7 +44,7 @@ class acc_Periods extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, lastEntry, close=Приключване";
+    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, close=Приключване";
     
     
     /**
@@ -98,7 +98,6 @@ class acc_Periods extends core_Manager
         $this->FLD('state', 'enum(draft=Бъдещ,active=Активен,closed=Приключен,pending=Чакащ)', 'caption=Състояние,input=none');
         $this->FNC('start', 'date(format=d.m.Y)', 'caption=Начало', 'dependFromFields=end');
         $this->FNC('title', 'varchar', 'caption=Заглавие,dependFromFields=start|end');
-        $this->FLD('lastEntry', 'datetime', 'caption=Последен запис,input=none');
         $this->FLD('vatRate', 'percent', 'caption=Параметри->ДДС,oldFieldName=vatPercent');
         $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Параметри->Валута,width=5em');
     }
@@ -210,23 +209,7 @@ class acc_Periods extends core_Manager
         return (object)array('year' => $yearItem->id, 'month' => $monthItem->id);
     }
     
-    
-    /**
-     * Връща записа за периода предхождащ зададения.
-     *
-     * @param stdClass $rec запис за периода, чийто предшественик търсим.
-     * @return stdClass запис за предходния период или NULL ако няма
-     */
-    static function fetchPreviousPeriod($rec)
-    {
-        $query = self::getQuery();
-        $query->where("#end < '{$rec->end}'");
-        $query->orderBy('end', 'DESC');
-        $recPrev = $query->fetch();
         
-        return $recPrev;
-    }
-    
     
     /**
      * Проверява датата в указаното поле на формата дали е в отворен период
@@ -396,24 +379,7 @@ class acc_Periods extends core_Manager
         
         return $rec;
     }
-    
-    
-    /**
-     * Маркира периода, съответстващ на зададена дата, като променен.
-     *
-     * Тази маркировка се използва при преизчисляването на баланса.
-     *
-     * @param string $date дата, към която
-     * @return boolean
-     */
-    public static function touch($date)
-    {
-        expect($periodRec = static::fetchByDate($date), "Липсва счетоводен период вкючващ {$date}");
         
-        $periodRec->lastEntry = dt::now(TRUE);  // дата и час
-        return static::save($periodRec);
-    }
-    
     
     /**
      * @param core_Mvc $mvc
@@ -462,9 +428,9 @@ class acc_Periods extends core_Manager
                 $requiredRoles = "no_one";
             }
             
+            // Никой не може да затваря невалиден баланс
             $balRec = acc_Balances::fetch("#periodId = {$rec->id}");
-            
-            if(($balRec->lastCalculate || $rec->lastEntry) && ($balRec->lastCalculate < $rec->lastEntry)) {
+            if(!acc_Balances::isValid($balRec)) {
                 $requiredRoles = "no_one";
             }
         }
