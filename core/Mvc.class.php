@@ -291,7 +291,7 @@ class core_Mvc extends core_FieldSet
             $mysqlField = str::phpToMysqlName($name);
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
         }
-
+		
         switch(strtolower($mode)) {
             case 'replace' :
                 $query = "REPLACE `{$table}` SET {$query}";
@@ -328,6 +328,93 @@ class core_Mvc extends core_FieldSet
     }
 
 
+    /**
+     * Записва няколко записа от модела с една заявка, ако има дуплицирани, обновява ги
+     */
+    public function saveArray($recs, $fields = NULL)
+    {
+    	if(!count($recs)) return;
+    	
+    	// Ако не са зададени полета, намираме ги от модела
+    	if(is_null($fields)){
+    		$fields = array();
+    		$fieldsMvc = $this->selectFields('FLD');
+    		foreach ($fieldsMvc as $name  => $fld){
+    			if($fld->kind == 'FLD'){
+    				$fields[$name] = $name;
+    			}
+    		}
+    	}
+    	
+    	// Обръщаме имената на полетата във вътрешното представяне
+    	$fields = arr::make($fields, TRUE);
+    	foreach ($fields as $key => &$valueF){
+    		$valueF = str::phpToMysqlName($valueF);
+    	}
+    	
+    	$fieldList = implode(",", $fields);
+    	
+    	// Подготвяме заявката да вкараме записи в таблицата в посочените колони
+    	$query = "INSERT INTO `{$this->dbTableName}`($fieldList) VALUES ";
+    	
+    	$recs = array_values($recs);
+    	$restRecs = array();
+    	
+    	// За всеки запис
+    	foreach ($recs as $id => $rec){
+    		
+    		// Намираме полетата от записа
+    		$vars = get_object_vars($rec);
+    		$valueArr = array();
+    		
+    		// Оставяме за вкарване само на посочените полета в модела 
+    		foreach ($vars as $key => $value){
+    			if(array_key_exists($key, $fields)){
+    				$field = $this->getField($key);
+    				$value = $field->type->toMysql($value, $this->db, $field->notNull, $field->value);
+    				$valueArr[$key] = $value;
+    			}
+    		}
+    		
+    		$string = "(" . implode(",", $valueArr) . "),";
+    		$query .= $string;
+    		
+    		// Ако заявката е твърде голяма, отделяме ззаписите които не са вкарани
+    		if(mb_strlen($query) >= '2000000'){
+    			$restRecs = array_slice($recs, $id + 1, NULL, TRUE);
+    			break;
+    		}
+    	}
+    	
+    	// Ако има дуплициране на запис, обновяваме същесъвуващия запис с новия
+    	$query = trim($query, ",");
+    	$query .= " ON DUPLICATE KEY UPDATE";
+    	foreach ($fields as $mysqlName){
+    		$query .= " {$mysqlName}=VALUES({$mysqlName}),";
+    	}
+    	$query = trim($query, ",");
+    	
+    	// Изпълняваме заявката
+    	if (!$this->db->query($query)) return FALSE;
+    	
+    	// За всеки от подадените записи, генерираме събитие в модела
+    	foreach ($recs as $rec){
+    		if($rec->id){
+    			$this->invoke('afterUpdate', array($rec, $fields));
+    		} else {
+    			$this->invoke('afterCreate', array($rec, $fields));
+    		}
+    		
+    		$this->invoke('AfterSave', array($rec->id, &$rec, $fields));
+    	}
+    	
+    	// Ако има останали записи, записваме и тях
+    	if(count($restRecs)){
+    		$this->saveArray($restRecs, $fields);
+    	}
+    }
+    
+    
     /**
      * Изчиства записите в модела
      */
