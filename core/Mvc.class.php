@@ -348,6 +348,7 @@ class core_Mvc extends core_FieldSet
     	
     	// Обръщаме имената на полетата във вътрешното представяне
     	$fields = arr::make($fields, TRUE);
+    	
     	foreach ($fields as $key => &$valueF){
     		$valueF = str::phpToMysqlName($valueF);
     	}
@@ -367,32 +368,29 @@ class core_Mvc extends core_FieldSet
     		$vars = get_object_vars($rec);
     		$valueArr = array();
     		
-    		// Оставяме за вкарване само на посочените полета в модела 
-    		foreach ($vars as $key => $value){
-    			if(array_key_exists($key, $fields)){
-    				$field = $this->getField($key);
-    				$value = $field->type->toMysql($value, $this->db, $field->notNull, $field->value);
-    				$valueArr[$key] = $value;
-    			}
+    		foreach ($fields as $key => $name){
+    			$field = $this->getField($key);
+    			$value = $field->type->toMysql($rec->{$key}, $this->db, $field->notNull, $field->value);
+    			$valueArr[$key] = $value;
     		}
     		
     		$string = "(" . implode(",", $valueArr) . "),";
     		$query .= $string;
     		
     		// Ако заявката е твърде голяма, отделяме ззаписите които не са вкарани
-    		if(mb_strlen($query) >= '2000000'){
+    		if(mb_strlen($query) >= '150000'){
     			$restRecs = array_slice($recs, $id + 1, NULL, TRUE);
     			break;
     		}
     	}
-    	
-    	// Ако има дуплициране на запис, обновяваме същесъвуващия запис с новия
     	$query = trim($query, ",");
+    	// Ако има дуплициране на запис, обновяваме същесъвуващия запис с новия
+    	/*$query = trim($query, ",");
     	$query .= " ON DUPLICATE KEY UPDATE";
     	foreach ($fields as $mysqlName){
     		$query .= " {$mysqlName}=VALUES({$mysqlName}),";
     	}
-    	$query = trim($query, ",");
+    	$query = trim($query, ",");*/
     	
     	// Изпълняваме заявката
     	if (!$this->db->query($query)) return FALSE;
