@@ -334,7 +334,7 @@ class hr_Departments extends core_Master
         
         // правим данните за нея
         $myCompanyRec = new stdClass();
-        $myCompanyRec->id = 0;
+        $myCompanyRec->id = '0';
         $myCompanyRec->name = $myCompany->company;
         $myCompanyRec->staff = NULL;
         
@@ -344,14 +344,19 @@ class hr_Departments extends core_Master
         foreach($arrData as $rec){
             // Ако имаме родител 
              if($rec->staff == NULL && $rec->name !== $myCompany->company) {
-                 $parent = 0;
+                 $parent = '0';
                  // взимаме чистото име на наследника
                  $name = self::fetchField($rec->id, 'name');
              } else {
-             // в противен случай, го взимаме
-             // както е
-             $name = $rec->name;
-             $parent = 'NULL';
+                 // в противен случай, го взимаме
+                 // както е
+                 if ($rec->name == $myCompany->company){
+                     $name = $rec->name;
+                     $parent = 'NULL';
+                 } else {
+                     $name = self::fetchField($rec->id, 'name');
+                     $parent = $rec->staff;
+                 }
              }
             
              $res[] = array(
