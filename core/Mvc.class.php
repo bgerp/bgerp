@@ -329,6 +329,16 @@ class core_Mvc extends core_FieldSet
 
 
     /**
+     * Изчиства записите в модела
+     */
+    public static function truncate()
+    {
+    	$self = cls::get(get_called_class());
+    	$self->db->query("TRUNCATE TABLE `{$self->dbTableName}`");
+    }
+    
+    
+    /**
      * Подготвя като масив полетата за записване
      */
     function prepareSaveFields($fields, $rec)

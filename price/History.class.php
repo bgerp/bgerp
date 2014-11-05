@@ -265,18 +265,9 @@ class price_History extends core_Manager
     {
     	requireRole('admin,debug');
     	
-    	$this->truncate();
+    	self::truncate();
+    	core_Statuses::newStatus(tr('Кешираните цени са изтрити'));
     	
     	followRetUrl();
-    }
-    
-    
-    /**
-     * Изпразване на таблицата
-     */
-    public function truncate()
-    {
-    	$this->db->query("TRUNCATE TABLE `{$this->dbTableName}`");
-    	core_Statuses::newStatus(tr('Кешираните цени са изтрити'));
     }
  }
