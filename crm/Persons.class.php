@@ -39,6 +39,8 @@ class crm_Persons extends core_Master
         
         // Интерфейс за входящ документ
         'incoming_CreateDocumentIntf',
+    		
+    	'mp_ResourceSourceIntf',
     );
 
 
@@ -195,7 +197,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards';
+                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards,Resources=mp_ObjectResources';
     
     
     /**
@@ -2332,5 +2334,37 @@ class crm_Persons extends core_Master
     	}
     	
     	return TRUE;
+    }
+    
+    
+    /**
+     * Можели обекта да се добави като ресурс?
+     *
+     * @param int $id - ид на обекта
+     * @return boolean - TRUE/FALSE
+     */
+    public function canHaveResource($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$groupId = crm_Groups::getIdFromSysId('employees');
+    	
+    	// Само ако е от група "Служители"
+    	if(keylist::isIn($groupId, $rec->groupList)){
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
+    }
+    
+     
+    /**
+     * Какъв е дефолтния тип ресурс на обекта
+     *
+     * @param int $id - ид на обекта
+     * @return enum(equipment=Оборудване,labor=Труд,material=Материал) - тип на ресурса
+     */
+    public function getResourceType($id)
+    {
+    	return 'labor';
     }
 }

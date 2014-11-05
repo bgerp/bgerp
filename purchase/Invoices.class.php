@@ -163,6 +163,8 @@ class purchase_Invoices extends deals_InvoiceMaster
     	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv,after=paymentMethodId');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
     	$this->FLD('type', 'enum(invoice=Входяща фактура, credit_note=Входящо кредитно известие, debit_note=Входящо дебитно известие)', 'caption=Вид, input=hidden');
+    	$this->setField('vatDate', 'input=none');
+    	$this->setField('vatReason', 'input=none');
     	
     	$this->setDbUnique('folderId,number');
     }
@@ -302,5 +304,28 @@ class purchase_Invoices extends deals_InvoiceMaster
         $res .= doc_TplManager::addOnce($this, $tplArr);
         
         return $res;
+    }
+    
+    
+    /**
+     *  Подготовка на филтър формата
+     */
+    public static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	if(!$data->listFilter->getField('invType', FALSE)){
+    		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
+    	}
+    	 
+    	$data->listFilter->showFields .= ',invType';
+    	 
+    	$data->listFilter->input(NULL, 'silent');
+    	 
+    	if($rec = $data->listFilter->rec){
+    		if($rec->invType){
+    			if($rec->invType == 'invoice' || $rec->invType == 'credit_note' || $rec->invType == 'debit_note'){
+    				$data->query->where("#type = '{$rec->invType}'");
+    			}
+    		}
+    	}
     }
 }

@@ -83,7 +83,7 @@ class core_Request
                         $prot = unserialize($prot);
                         
                         if (is_array($prot)) {
-                            self::push($prot);
+                            self::push($prot, 'protected', TRUE);
                         }
                     }
                 }
@@ -260,7 +260,7 @@ class core_Request
     /**
      * Вкарва в стека масив с входни параметри - "променливи => стойности"
      */
-    static function push($array, $name = NULL)
+    static function push($array, $name = NULL, $unShift = FALSE)
     {
         
         if ($name) {
@@ -269,7 +269,11 @@ class core_Request
             $element[] = $array;
         }
         
-        self::$vars = array_merge($element, self::$vars);
+        if ($unShift) {
+            self::$vars = array_merge(self::$vars, $element);
+        } else {
+            self::$vars = array_merge($element, self::$vars);
+        }
     }
     
     

@@ -140,6 +140,22 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    	'place'               => 'lastDocUser|lastDoc',
+    	'responsible'         => 'lastDocUser|lastDoc',
+    	'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
+    	'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
+    	'uicNo' 			  => 'lastDocUser|lastDoc|clientData',
+    	'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
+    	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
+    	'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
+    	'accountId' 		  => 'lastDocUser|lastDoc',
+    );
+    
+    
+    /**
      * Описание на модела
      */
     function description()

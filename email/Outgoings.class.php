@@ -1233,6 +1233,22 @@ class email_Outgoings extends core_Master
                 }
             }
             
+            $rec->folderId = $folderId;
+            
+            // Ако отговаряме на конкретен имейл
+            if ($emailTo) {
+                
+                // Попълваме полето Адресат->Имейл със съответния имейл
+                $rec->email = $emailTo;
+            }
+            
+            // Ако създаваме факс до конкретен номер
+            if ($faxTo) {
+                
+                // Попълваме полето Адресат->Факс със съответния факс
+                $rec->fax = $faxTo;
+            }
+            
             // Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
             if ($originId) {
                 //Добавяме в полето Относно отговор на съобщението
@@ -1315,18 +1331,22 @@ class email_Outgoings extends core_Master
                 
                 if (!$rec->tel) $rec->tel = $contragentData->pTel;
                 
-                //Факс. Прави опит да вземе факса на компанията. Ако няма тогава взема персоналния.
-                $rec->fax = $contragentData->fax ? $contragentData->fax : $contragentData->pFax;
+                if (!$faxTo) {
+                    //Факс. Прави опит да вземе факса на компанията. Ако няма тогава взема персоналния.
+                    $rec->fax = $contragentData->fax ? $contragentData->fax : $contragentData->pFax;
+                }
                 
                 //Адрес. Прави опит да вземе адреса на компанията. Ако няма тогава взема персоналния.
                 $rec->address = $contragentData->address ? $contragentData->address : $contragentData->pAddress;
                 
-                //Имейл. Прави опит да вземе имейл-а на компанията. Ако няма тогава взема персоналния.
-                $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
+                if (!$emailTo) {
+                    //Имейл. Прави опит да вземе имейл-а на компанията. Ако няма тогава взема персоналния.
+                    $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
+                }
             }
             
             // Ако отговаряме на конкретен е-имейл, винаги имейл адреса го вземаме от него
-            if($oContragentData->email && !$forward) {
+            if(!$emailTo && $oContragentData->email && !$forward) {
                 
                 // Ако има replyTo използваме него
                 if ($oContragentData->replyToEmail) {
@@ -1421,20 +1441,6 @@ class email_Outgoings extends core_Master
             
             // Разделяме стринга в масив
             $allEmailsArr = type_Emails::toArray($contrData->groupEmails);
-        }
-        
-        // Ако отговаряме на конкретен имейл
-        if ($emailTo) {
-            
-            // Попълваме полето Адресат->Имейл със съответния имейл
-            $rec->email = $emailTo;
-        }
-        
-        // Ако създаваме факс до конкретен номер
-        if ($faxTo) {
-            
-            // Попълваме полето Адресат->Факс със съответния факс
-            $rec->fax = $faxTo;
         }
         
         // Всички имейли от река

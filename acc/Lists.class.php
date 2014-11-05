@@ -509,8 +509,10 @@ class acc_Lists extends core_Manager {
      */
     private static function fetchItem($class, $objectId)
     {
-        expect($classId = core_Classes::getId($class));
-        $itemRec = acc_Items::fetch("#classId = {$classId} AND #objectId = {$objectId}");
+        expect($Class = cls::get($class));
+        $objectId = $Class->fetchRec($objectId)->id;
+        
+        $itemRec = acc_Items::fetch("#classId = {$Class->getClassId()} AND #objectId = {$objectId}");
         
         return $itemRec;
     }

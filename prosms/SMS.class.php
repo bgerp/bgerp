@@ -70,7 +70,7 @@ class prosms_SMS extends core_Manager
      * @param string $sender - От кого се изпраща съобщението
      * 
      * @return array $nRes - Mасив с информация, дали е получено
-     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, waiting
+     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
      * $nRes['uid'] string - Уникалното id на съобщението
      * $nRes['msg'] - Статуса
      */

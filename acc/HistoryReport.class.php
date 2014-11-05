@@ -374,7 +374,7 @@ class acc_HistoryReport extends core_Manager
         
         foreach(range(1, 3) as $i){
             if ($accountRec->{"groupId{$i}"} && $rec->{"ent{$i}Id"}) {
-                $row->{"ent{$i}Id"} = acc_Items::fetchField($rec->{"ent{$i}Id"}, 'titleLink');
+                $row->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'titleLink');
             }
         }
         

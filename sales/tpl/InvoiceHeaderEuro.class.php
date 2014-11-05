@@ -24,6 +24,8 @@ class sales_tpl_InvoiceHeaderEuro extends doc_TplScript {
 	 */
 	public function modifyMasterData(core_Mvc $mvc, &$data)
 	{
+		if($data->rec == 'EUR') return;
+		
 		$euroRate = round(currency_CurrencyRates::getRate($data->rec->date, 'EUR', NULL), 4);
 		$Double = cls::get('type_Double');
 		$data->row->euroRate = $Double->toVerbal($euroRate);
@@ -46,16 +48,18 @@ class sales_tpl_InvoiceHeaderEuro extends doc_TplScript {
 	{
 		if(!count($data->rows)) return;
 		
+		if($data->masterData->rec->currencyId == 'EUR') return;
+		
 		arr::placeInAssocArray($data->listFields, 'priceEuro=Ед. цена в EUR', 'packPrice');
 		$data->listFields['packPrice'] = "Ед. цена";
 		
-		$euroRate = round(currency_CurrencyRates::getRate($data->masterDEata->rec->date, 'EUR', NULL), 4);
+		$euroRate = round(currency_CurrencyRates::getRate($data->masterData->rec->date, 'EUR', NULL), 4);
 		$conf = core_Packs::getConfig('core');
 		$decPoint = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
 		
 		foreach ($data->rows as $id => $row){
 			$rec = $data->recs[$id];
-			$priceEuro = $rec->packPrice / $euroRate;
+			$priceEuro = ($rec->packPrice * $data->masterData->rec->currencyRate) / $euroRate;
 			
 			$Double = cls::get('type_Double');
 			$Double->params['decimals'] = 2;

@@ -25,6 +25,13 @@ class acc_plg_RejectContoDocuments extends core_Plugin
      */
     public static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
     {
+    	// Ако е мениджъра е казано че може да се контира/възстановява/оттегля ако има затворени права, премахваме изискването
+    	if($mvc->canUseClosedItems === TRUE){
+    		$res = array();
+    		
+    		return;
+    	}
+        
         // Ако няма пера
         if(!is_array($res)){
             
@@ -35,11 +42,6 @@ class acc_plg_RejectContoDocuments extends core_Plugin
                 $res = $transaction->getClosedItems();
             }
         }
-        
-        // Ако е мениджъра е казано че може да се контира/възстановява/оттегля ако има затворени права, премахваме изискването
-        if($mvc->canUseClosedItems === TRUE){
-            $res = array();
-        }
     }
     
     
@@ -49,7 +51,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
      */
     public static function on_AfterCanRejectOrRestore($mvc, &$res, $id, $ignoreArr = array())
     {
-        $closedItems = $mvc->getClosedItemsInTransaction($id);
+    	$closedItems = $mvc->getClosedItemsInTransaction($id);
         
         // Ако има пера за игнориране, игнорираме ги
         if(count($ignoreArr)){

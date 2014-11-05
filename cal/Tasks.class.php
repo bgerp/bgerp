@@ -502,6 +502,13 @@ class cal_Tasks extends core_Master
         }
     }
 
+	/**
+	 * Извиква се преди вкарване на запис в таблицата на модела
+	 */
+	 static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+	{
+		$mvc->updateTaskToCalendar($rec->id);
+	}
 
     /**
      * След изтриване на запис
@@ -560,21 +567,25 @@ class cal_Tasks extends core_Master
 	 */
     public static function on_BeforeActivation($mvc, $rec)
     {
-    	$now = dt::verbal2mysql();
-    	
+        $now = dt::verbal2mysql();
+         
     	// изчисляваме очакваните времена
     	self::calculateExpectationTime($rec);
 
     	// проверяваме дали може да стане задачата в активно състояние
     	$canActivate = self::canActivateTask($rec);
      
-    	if ($now >= $canActivate) { 
+    	if ($now >= $canActivate && $canActivate !== NULL) { //bp($now >= $canActivate && $canActivate !== NULL,$now >= $canActivate, $now , $canActivate);
     		
             $rec->timeCalc = $canActivate->calcTime;
     		
         // ако не може, задачата ставачакаща
     	} else {
     		$rec->state = 'pending';
+    	}
+    	
+    	if ($rec->id) {
+    		$mvc->updateTaskToCalendar($rec->id);
     	}
     }
     
@@ -816,17 +827,22 @@ class cal_Tasks extends core_Master
         
         // Префикс на клучовете за записите в календара от тази задача
         $prefix = "TSK-{$id}";
-
+        
         // Подготвяме запис за началната дата
-        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft')) {
+        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'pending') ||
+           $rec->timeCalc && $rec->timeCalc >= $fromDate && $rec->timeCalc <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'pending')) {
             
             $calRec = new stdClass();
                 
             // Ключ на събитието
             $calRec->key = $prefix . '-Start';
             
-            // Начало на задачата
-            $calRec->time = $rec->timeStart;
+            if ($rec->timeStart) {
+	            // Начало на задачата
+	            $calRec->time = $rec->timeStart;
+            } else {
+            	$calRec->time = $rec->timeCalc;
+            }
             
             // Дали е цял ден?
             $calRec->allDay = $rec->allDay;
@@ -853,7 +869,7 @@ class cal_Tasks extends core_Master
         }
         
         // Подготвяме запис за Крайния срок
-        if($rec->timeEnd && $rec->timeEnd >= $fromDate && $rec->timeEnd <= $toDate && ($rec->state == 'active' || $rec->state == 'closed') ) {
+        if($rec->timeEnd && $rec->timeEnd >= $fromDate && $rec->timeEnd <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending') ) {
             
             $calRec = new stdClass();
                 
@@ -979,6 +995,7 @@ class cal_Tasks extends core_Master
 
 	   	   // изчисляваме очакваните времена
 		   self::calculateExpectationTime($rec);
+		   self::updateTaskToCalendar($rec->id);
 		   // и проверяваме дали може да я активираме
 		   $canActivate = self::canActivateTask($rec);
            
@@ -1709,25 +1726,27 @@ class cal_Tasks extends core_Master
     	$calcTime = FALSE;
     	
         // Ако сме активирали през singleToolbar-а
-	    if ($rec->id) {
+	    if ($rec->id) { 
 	    	$query = cal_TaskConditions::getQuery();
 	    	$query->where("#baseId = '{$rec->id}'");
 
 	    	while($recCond = $query->fetch()) {
 				$arrCond[] = $recCond;
-	    	}
+	    	} 
 	    	// ако задачата е зависима
 	    	if (is_array($arrCond)) {
     			foreach ($arrCond as $cond) { 
     				// зависиама по прогрес
-		    		if ($cond->activationCond == "onProgress") { 
+		    		if ($cond->activationCond == "onProgress") {  
 		    			// процентите на завършване на бащината задача
 		    			$progress = self::fetchField($cond->dependId, "progress");
 		    			
 		    			// ако е равен или по голям на искания от потребутеля процент
-		    			if ($progress >= $cond->progress) {
+		    			if ($progress >= $cond->progress) { //bp($progress >= $cond->progress, $cond->progress, $progress);
 		    				// времето за стартирване на текущата задача е сега
 			    			$calcTime = $now;
+			    		} else {
+			    		   $calcTime = NULL;
 			    		}
 			    	// ако ще правим изчисления по времена
 		    		} else { 
@@ -1735,6 +1754,9 @@ class cal_Tasks extends core_Master
 		    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
 		    		} 		 
 		     	}
+		     	
+		     	return $calcTime;
+		     	
 		     	// взимаме и началното време на текущата задача,
 		     	// ако има такова
 		     	$timeStart = self::fetchField($rec->id, "timeStart");
@@ -1744,10 +1766,17 @@ class cal_Tasks extends core_Master
 			     	array_push($calcTimeS, $timeStart);
 			     	
 			     	// най-малкото време е времето за стартирване на текущата задача
-			     	$calcTime = min($calcTimeS);	
-		     	} else {
-		     	    $calcTime = min ($calcTimeS);
+			     	$calcTime = min($calcTimeS);
+                } else {
+		     	    if (is_array($calcTimeS)) {
+		     	        $calcTime = min ($calcTimeS);
+		     	        
+		     	    } else {
+		     	        $calcTime = NULL;
+		     	    }
 		     	}
+		     	
+		     	return $calcTime;
 		     	
 		    // задачата не е зависима от други задачи
     		} else { 
@@ -1758,8 +1787,10 @@ class cal_Tasks extends core_Master
     				// ако не е оказано време от потребителя - е сега
     				$calcTime = $rec->expectationTimeStart;
     			}
+    			
+    			return $calcTime;
     		}
-	    } elseif (!$rec->id && $rec->timeStart) { 
+	    } elseif (!$rec->id && $rec->timeStart) { //bp();
     		if (is_array($arrCond)) { 
     			foreach ($arrCond as $cond) { 
 		    		if ($cond->activationCond == "onProgress") { 
@@ -1772,6 +1803,8 @@ class cal_Tasks extends core_Master
 		    		} else { 
 		    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
 		    		}
+		    		
+		    		return $calcTime;
 		     	}
 		     	$timeStart = self::fetchField($rec->id, "timeStart");
 		     	
@@ -1780,8 +1813,8 @@ class cal_Tasks extends core_Master
 			     	array_push($calcTimeS, $timeStart);
 			     	
 			     	// най-малкото време е времето за стартирване на текущата задача
-			     	$calcTime = min($calcTimeS);	
-		     	} else {
+			     	$calcTime = min($calcTimeS);
+                } else {
 		     	    $calcTime = min ($calcTimeS);
 		     	}
     			
@@ -1789,8 +1822,8 @@ class cal_Tasks extends core_Master
     			$calcTime = $rec->timeStart;
     		}
     	} elseif (!$rec->timeStart && !$rec->id) { 
-    		$calcTime = $now; 
-    	}
+    		$calcTime = $now;
+        }
     	
     	// връщаме времето за активиране
     	return $calcTime;

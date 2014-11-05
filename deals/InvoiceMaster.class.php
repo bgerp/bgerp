@@ -62,14 +62,14 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
     	$mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
     	$mvc->FLD('contragentId', 'int', 'input=hidden');
-    	$mvc->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory, class=contactData, export=Csv');
-    	$mvc->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
-    	$mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
-    	$mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo, export=Csv');
-    	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №,contragentDataField=uicId, export=Csv');
-    	$mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode,contragentDataField=pCode');
-    	$mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData,contragentDataField=place');
-    	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
+    	$mvc->FLD('contragentName', 'varchar', 'caption=Контрагент->Име, mandatory, class=contactData, export=Csv');
+    	$mvc->FLD('responsible', 'varchar(255)', 'caption=Контрагент->Отговорник, class=contactData');
+    	$mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId');
+    	$mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Контрагент->VAT №,contragentDataField=vatNo, export=Csv');
+    	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId, export=Csv');
+    	$mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode');
+    	$mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place');
+    	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
     	$mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
     	$mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
     	$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Начин, export=Csv');
@@ -95,23 +95,11 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
     	
-    	if($mvc->getField('type', FALSE)){
-    		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
-    		$data->listFilter->showFields .= ',invType';
-    	}
-    	
     	$data->listFilter->showFields .= ',invState';
     	$data->listFilter->input();
     	$data->listFilter->setDefault('invState', 'all');
     	
     	if($rec = $data->listFilter->rec){
-    		
-    		// Филтър по тип на фактурата
-    		if($rec->invType){
-    			if($rec->invType != 'all'){
-    				$data->query->where("#type = '{$rec->invType}'");
-    			}
-    		}
     		
     		// Филтър по състояние
     		if($rec->invState){
@@ -120,7 +108,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
-    	
     }
     
     

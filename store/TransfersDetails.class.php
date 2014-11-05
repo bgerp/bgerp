@@ -149,9 +149,11 @@ class store_TransfersDetails extends doc_Detail
                 if (empty($rec->packagingId)) {
                     $row->packagingId = ($rec->uomId) ? $row->uomId : '???';
                 } else {
-                    $shortUomName = cat_UoM::getShortName($rec->uomId);
-                    $row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
-                    $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
+                	if(cat_Packagings::fetchField($rec->packagingId, 'showContents') == 'yes'){
+                		$shortUomName = cat_UoM::getShortName($rec->uomId);
+                		$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
+                		$row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
+                	}
                 }
             }
         }
@@ -171,7 +173,7 @@ class store_TransfersDetails extends doc_Detail
         	$form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
         	$products = store_Products::getProductsInStore($fromStore);
         	expect(count($products));
-        	$form->setOptions('productId', $products);
+        	$form->setOptions('productId', array('' => '') + $products);
         } else {
         	$form->setReadOnly('productId');
         }
@@ -185,12 +187,14 @@ class store_TransfersDetails extends doc_Detail
     { 
     	$rec = &$form->rec;
     	
-    	if($form->rec->productId){
+    	if($rec->productId){
     		$sProd = store_Products::fetch($rec->productId);
     		$ProductMan = cls::get($sProd->classId);
     		$packs = $ProductMan->getPacks($sProd->productId);
+    		
     		if(count($packs)){
     			$form->setOptions('packagingId', $packs);
+    			unset($form->getFieldType('packagingId')->params['allowEmpty']);
     		} else {
     			$form->setReadOnly('packagingId');
     		}

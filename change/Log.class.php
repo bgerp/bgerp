@@ -80,7 +80,7 @@ class change_Log extends core_Manager
         $this->FLD('value', 'blob(1000000,compress,serialize)', 'caption=Стойности');
         
         $this->FNC('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, input=none'); 
-        $this->FNC('createdBy', 'key(mvc=core_Users, select=nick)', 'caption=Създаване->От, input=none');
+        $this->FNC('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, input=none');
     }
     
     

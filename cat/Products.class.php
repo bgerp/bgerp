@@ -19,7 +19,7 @@ class cat_Products extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,techno_SpecificationFolderCoverIntf';
+    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,techno_SpecificationFolderCoverIntf,mp_ResourceSourceIntf,accda_DaFolderCoverIntf';
     
     
     /**
@@ -53,7 +53,7 @@ class cat_Products extends core_Master {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails,VatGroups=cat_products_VatGroups';
+    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails,VatGroups=cat_products_VatGroups,Resources=mp_ObjectResources';
     
     
     /**
@@ -194,8 +194,8 @@ class cat_Products extends core_Master {
 	 * @var string
 	 */
 	public $recTitleTpl = '[#name#] ( [#code#] )';
-	
-	
+    
+    
     /**
      * Описание на модела
      */
@@ -571,7 +571,8 @@ class cat_Products extends core_Master {
     public static function getProductInfo($productId, $packagingId = NULL)
     {
     	// Ако няма такъв продукт връщаме NULL
-    	if(!$productRec = static::fetch($productId)) {
+    	if(!$productRec = static::fetchRec($productId)) {
+    		
     		return NULL;
     	}
     	
@@ -1095,5 +1096,54 @@ class cat_Products extends core_Master {
     public function getPolicy()
     {
     	return cls::get('price_ListToCustomers');
+    }
+    
+    
+    /**
+     * Можели обекта да се добави като ресурс?
+     *
+     * @param int $id - ид на обекта
+     * @return boolean - TRUE/FALSE
+     */
+    public function canHaveResource($id)
+    {
+    	// Всеки артикул може да присъства само веднъж като ресурс
+    	if(!mp_ObjectResources::fetch("#classId = '{$this->getClassId()}' AND #objectId = {$id}")){
+    		$pInfo = $this->getProductInfo($id);
+    		
+    		// Може да се добавя ресурс само към Артикули, които са материали или ДА
+    		if(isset($pInfo->meta['materials']) || isset($pInfo->meta['fixedAsset'])){
+    			
+    			return TRUE;
+    		}
+    	} 
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Какъв е дефолтния тип ресурс на обекта
+     *
+     * @param int $id - ид на обекта
+     * @return enum(equipment=Оборудване,labor=Труд,material=Материал) - тип на ресурса
+     */
+    public function getResourceType($id)
+    {
+    	$pInfo = $this->getProductInfo($id);
+    	
+    	// Ако артикула е ДМА, ще може да се избират само ресурси - оборудване
+    	if(isset($pInfo->meta['fixedAsset'])){
+    		
+    		return 'equipment';
+    	}
+    	
+    	// Ако артикула е материал, ще може да се избират само ресурси - materiali
+    	if(isset($pInfo->meta['materials'])){
+    	
+    		return 'material';
+    	}
+    	
+    	return FALSE;
     }
 }

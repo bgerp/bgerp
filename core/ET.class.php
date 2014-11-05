@@ -790,7 +790,17 @@ class core_ET extends core_BaseClass
      */
     function placeObject($data, $holderBlock = NULL, $prefix = NULL)
     {
-        $this->placeArray((array)$data, $holderBlock, $prefix);
+		$arr = (array)$data;
+		
+		// WORKAROUND
+		$dataArr = array();
+		foreach ($arr as $key => $var){
+			if(is_scalar($var) || $var instanceof core_ET){
+				$dataArr[$key] = $var;
+			}
+		}
+		
+    	$this->placeArray($dataArr, $holderBlock, $prefix);
 
         return $this;
     }

@@ -73,6 +73,14 @@ class plg_Clone extends core_Plugin
             // Инвокваме фунцкцията, ако някой иска да променя нещо
             $mvc->invoke('BeforeSaveCloneRec', array($rec, &$nRec));
             
+            // Да няма дублиране на уникални полета
+            if(!$mvc->isUnique($nRec, $fields)) {
+                $data->form->setError($fields, "Вече съществува запис със същите данни");
+            }
+        }
+        
+        // Ако формата е изпратена без грешки
+        if($form->isSubmitted()) {
             // Ако няма проблем пи записа
             if ($mvc->save($nRec)) {
                 

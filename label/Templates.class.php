@@ -96,7 +96,7 @@ class label_Templates extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Search, plg_Rejected';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Search, plg_Rejected, plg_Clone, plg_Sorting';
     
     
     /**
@@ -406,6 +406,13 @@ class label_Templates extends core_Master
             }
         }
         
+        // Ако ще се клонира, трябва да има права за добавяне
+        if ($action == 'cloneuserdata') {
+            if (!$mvc->haveRightFor('add', $rec, $userId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
         // Ако ще добавяме нов етикет
         if ($action == 'createlabel') {
             
@@ -414,6 +421,52 @@ class label_Templates extends core_Master
                 
                 // Никой да не може да създава
                 $requiredRoles = 'no_one';
+            }
+        }
+    }
+    
+    
+    /**
+     * Премахваме някои полета преди да клонираме
+     * @see plg_Clone
+     * 
+     * @param label_Labels $mvc
+     * @param object $rec
+     * @param object $nRec
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+        unset($nRec->state);
+        unset($nRec->exState);
+        unset($nRec->lastUsedOn);
+        unset($nRec->searchKeywords);
+        unset($nRec->createdOn);
+        unset($nRec->createdBy);
+    }
+    
+    
+    /**
+     * Премахваме някои полета преди да клонираме
+     * @see plg_Clone
+     * @todo да се премахне след като се добави тази функционалността в плъгина
+     * 
+     * @param label_Labels $mvc
+     * @param object $rec
+     * @param object $nRec
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        // Клонира и детайлите след клониране на мастера
+        $detailsArr = arr::make($mvc->details);
+        foreach ($detailsArr as $detail) {
+            $detailInst = cls::get($detail);
+            $query = $detailInst->getQuery();
+            $masterKey = $mvc->{$detail}->masterKey;
+            $query->where("#{$masterKey} = {$rec->id}");
+            while($dRec = $query->fetch()) {
+                unset($dRec->id);
+                $dRec->{$masterKey} = $nRec->id;
+                $detailInst->save($dRec);
             }
         }
     }

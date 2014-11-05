@@ -178,6 +178,42 @@ class core_Users extends core_Manager
     
     
     /**
+     * Връща масив от масиви - роли и потребители, които имат съответните роли
+     * 
+     * @return array
+     */
+    public static function getRolesWithUsers()
+    {
+        $type = 'userRoles';
+        $handle = 'userRolesArr';
+        $keepMinute = 1440;
+        $depends = array('core_Roles', 'core_Users');
+        
+        // Проверяваме дали записа фигурира в кеша
+        $usersRolesArr = core_Cache::get($type, $handle, $keepMinute, $depends);
+        
+        if ($usersRolesArr !== FALSE) return $usersRolesArr;
+        
+        $uQuery = core_Users::getQuery();
+//        $uQuery->where("#state != 'blocked'");
+//        $uQuery->where("#state != 'rejected'");
+        
+        // За всяка роля добавяме потребители, които я имат
+        while ($uRec = $uQuery->fetch()) {
+            $rolesArr = type_Keylist::toArray($uRec->roles);
+            foreach ($rolesArr as $roleId) {
+                $usersRolesArr[$roleId][$uRec->id] = $uRec->id;
+            }
+        }
+        
+        // Записваме масива в кеша
+        core_Cache::set($type, $handle, $usersRolesArr, $keepMinute, $depends);
+        
+        return $usersRolesArr;
+    }
+    
+    
+    /**
      * Връща масив с потребители в системата Ник => Имена
      * 
      * @param array $rolesArr

@@ -140,7 +140,7 @@ class doc_DocumentPlg extends core_Plugin
                     'reject',
                     $data->rec->id
                 ),
-                'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=Оттегляне на документа');
+                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=Оттегляне на документа',  'ef_icon = img/16/reject.png');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {

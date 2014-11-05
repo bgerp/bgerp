@@ -130,6 +130,20 @@ class type_Email extends type_Varchar {
     {
         if(empty($email)) return NULL;
         
+        list($emailUser, $domain) = explode('@', $email);
+        
+        // Премахваме всичко след + или = в името на имейла
+        if(($plusPos = mb_strpos($emailUser, '+')) !== FALSE) {
+            
+            $emailUser = mb_substr($emailUser, 0, $plusPos);
+        }
+        if(($eqPos = mb_strpos($emailUser, '=')) !== FALSE) {
+            
+            $emailUser = mb_substr($emailUser, 0, $eqPos);
+        }
+        
+        $email = implode('@', array($emailUser, $domain));
+        
         if(!haveRole('user')) {
             $verbal = str_replace('@', " [аt] ", $email);
         } else {

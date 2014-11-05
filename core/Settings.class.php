@@ -67,14 +67,13 @@ class core_Settings extends core_Manager
     /**
      * Описание на модела
      */
-    protected function description()
+    public function description()
     {
-        $this->FLD('key', 'varchar(116)', 'caption=Ключ');
+        $this->FLD('key', 'varchar(16)', 'caption=Ключ');
         $this->FLD('userOrRole', 'userOrRole', 'caption=Потребител/и');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Потребител/и');
         
         $this->setDbUnique('key, userOrRole');
-//        $this->setDbIndex('');
     }
     
     
@@ -84,33 +83,190 @@ class core_Settings extends core_Manager
      * @param core_Toolbar $toolbar
      * @param string $key
      * @param string $className
-     * @param integer $userOrRole
+     * @param integer|NULL $userOrRole
      * @param string $title
+     * @param array $params
      */
-    public static function addBtn(core_Toolbar $toolbar, $key, $className, $userOrRole = NULL, $title = 'Персонализиране')
+    public static function addBtn(core_Toolbar $toolbar, $key, $className, $userOrRole = NULL, $title = 'Персонализиране', $params)
     {
         $url = self::getModifyUrl($key, $className, $userOrRole);
         
         // Добавяме бутона, който сочи към екшъна за персонализиране
-        $toolbar->addBtn($title, $url, 'ef_icon=img/16/customize.png,row=2');
+        $toolbar->addBtn($title, $url, 'ef_icon=img/16/customize.png', $params);
     }
     
     
     /**
-     * 
+     * Връща URL, което сочи към модифициране на записа
      * 
      * @param string $key
      * @param string $className
-     * @param integer $userOrRole
+     * @param integer|NULL $userOrRole
+     * 
+     * @return string
      */
     public static function getModifyUrl($key, $className, $userOrRole = NULL)
     {
-        // Защитаваме get параметрите
-        Request::setProtected(array('_key', '_className', '_userOrRoles'));
+        $userOrRole = self::prepareUserOrRole($userOrRole);
         
-        $url = toUrl(array('core_Settings', 'modify', '_key' => $key, '_className' => $className, '_userOrRoles' => $userOrRole, 'ret_url' => TRUE));
+        // Защитаваме get параметрите
+        Request::setProtected(array('_key', '_className', '_userOrRole'));
+        
+        $url = toUrl(array('core_Settings', 'modify', '_key' => $key, '_className' => $className, '_userOrRole' => $userOrRole, 'ret_url' => TRUE));
         
         return $url;
+    }
+    
+    
+    /**
+     * Връща всички данни отговарящи за ключа, като ги мърджва.
+     * С по-голям приоритет са данните въведени за текущия потребител
+     * 
+     * @param string $key
+     * @param integer|NULL $userOrRole
+     * 
+     * @return array
+     */
+    public static function fetchKey($key, $userOrRole = NULL)
+    {
+        // Подготвяме ключа и потребителя/групата
+        $userOrRole = self::prepareUserOrRole($userOrRole);
+        $key = self::prepareKey($key);
+        
+        static $allResArr = array();
+        
+        // Ако стойността е извличана преди, връщаме я
+        $keyHash = md5($key . '|' . $userOrRole);
+        if (isset($allResArr[$keyHash])) return $allResArr[$keyHash];
+        
+        $allResArr[$keyHash] = array();
+        
+        $rolesArr = array();
+        $rolesArrSysId = array();
+        $orToPrevious = FALSE;
+        
+        $query = self::getQuery();
+        
+        $query->where(array("#key = '[#1#]'", $key));
+        
+        // Ако е потребител
+        if ($userOrRole > 0) {
+            
+            // Всички групи, в които участва текущия потребител
+            $rolesList = core_Users::getRoles($userOrRole);
+            $rolesArr = type_Keylist::toArray($rolesList);
+            
+            // Също и текущия потребител
+            $query->where("#userOrRole = {$userOrRole}");
+            $orToPrevious = TRUE;
+            
+        } else if ($userOrRole < 0) {
+            
+            // Ако е група
+            
+            // Всички роли, които наследява групата
+            $roleId = type_UserOrRole::getRoleIdFromSys($userOrRole);
+            if ($roleId) {
+                $rolesArr = core_Roles::expand($roleId);
+            }
+        }
+        
+        // Добавяме всички групи в условието
+        if ($rolesArr) {
+            $rolesArrSysId = array_map(array('type_UserOrRole', 'getSysRoleId'), $rolesArr);
+            $query->orWhereArr('userOrRole', $rolesArrSysId, $orToPrevious);
+        }
+        
+        // С по-голям приоритет са данните въведени от потребителя
+        $query->orderBy('userOrRole', 'DESC');
+        
+        // Обхождаме всички записи и добавяме в масива
+        while($rec = $query->fetch()) {
+            if (!$rec->data) continue;
+            foreach ((array)$rec->data as $property => $val) {
+                if (isset($allResArr[$keyHash][$property])) continue;
+                $allResArr[$keyHash][$property] = $val;
+            }
+        }
+        
+        return $allResArr[$keyHash];
+    }
+    
+    
+    /**
+     * Връща данните за всички потребители, които имат някаква стойност
+     * 
+     * @param string $key
+     * @param string $property
+     * @param string $value
+     * 
+     * @return array
+     */
+    public static function fetchUsers($key, $property = NULL, $value = NULL)
+    {
+        // Подготвяме ключа
+        $key = self::prepareKey($key);
+        
+        // Ако данните са били извлечени, само ги връщаме
+        $hashStr = md5($key . '|' . $property . '|' . $value);
+        static $resArr = array();
+        if (isset($resArr[$hashStr])) return $resArr[$hashStr];
+        
+        // Вземаме всички роли и потребителите, които ги имат
+        $userRolesArr = core_Users::getRolesWithUsers();
+        
+        $fetched = array();
+        
+        $query = self::getQuery();
+        $query->where(array("#key = '[#1#]'", $key));
+        
+        // С по-голям приоритет са данните въведени от потребителя
+        $query->orderBy('userOrRole', 'DESC');
+        
+        while ($rec = $query->fetch()) {
+            if (!$rec->data) continue;
+            
+            // Определяме потребителите
+            if ($rec->userOrRole < 0) {
+                $roleId = type_UserOrRole::getRoleIdFromSys($rec->userOrRole);
+                $userArr = $userRolesArr[$roleId];
+            } else {
+                $userArr = arr::make($rec->userOrRole, TRUE);
+            }
+            
+            // Обхождаме резултатите
+            foreach ((array)$rec->data as $prop => $val) {
+                
+                // Ако е зададено точно определено свойство, извличаме само него
+                $use = TRUE;
+                if ($property) {
+                    if ($prop != $property) $use = FALSE;
+                }
+                
+                // Ако е зададено точно опретелена стойност, извличаме само него
+                if ($use && $value) {
+                    if ($val != $value) $use = FALSE;
+                }
+                
+                // Обхождаме всички потребители и добавяме стойности и свойства за тях
+                foreach ((array)$userArr as $userId) {
+                    
+                    // Ако има стойност, да не се добавя повторно
+                    if (isset($fetched[$userId][$prop])) continue;
+                    
+                    // Добавяме в масива с извлечените
+                    $fetched[$userId][$prop] = $val;
+                    
+                    // Ако не трябва да се добавя
+                    if (!$use) continue;
+                    
+                    // Добавяме към резултатния масив
+                    $resArr[$hashStr][$userId][$prop] = $val;
+                }
+            }
+        }
+        
+        return $resArr[$hashStr];
     }
     
     
@@ -119,16 +275,21 @@ class core_Settings extends core_Manager
      */
     protected function act_Modify()
     {
+        // Очакваме да е логнат потребител
+        requireRole('user');
+        
+        Request::setProtected(array('_key, _className, _userOrRole'));
+        
         // Необходими стойности от URL-то
         $key = Request::get('_key');
         $className = Request::get('_className');
-        $userOrRoles = Request::get('_userOrRoles');
+        $userOrRole = Request::get('_userOrRole');
         
         // Инстанция на класа, който е подаден кат
         $class = cls::get($className);
         
         // Очакваме да има права за модифициране на записа за съответния потребител
-        expect($class->canModifySettings($key, $userOrRoles));
+        expect($class->canModifySettings($key, $userOrRole));
         
         // Създаваме празна форма
         $form = cls::get('core_Form');
@@ -162,16 +323,32 @@ class core_Settings extends core_Manager
         // Извикваме интерфейсната функция
         $class->prepareForm($form);
         
+        // Ако формата е рефрешната
+        if (($form->cmd == 'refresh')) {
+            
+            // Вкарваме данните в рекуеста за да ги има в `$form->rec` след инпута
+            
+            // Вкарваме всички записи от стойностите на rec в рекуеста
+            $recsArr = (array)$form->rec;
+            unset($recsArr['_userOrRole']);            
+            unset($recsArr['_key']);            
+            unset($recsArr['_className']);            
+            Request::push((array)$recsArr);
+            
+            // Ако има записани стойности, вкарваме и тях
+            if ($valsArr) {
+                Request::push($valsArr);
+            }
+        }
+        
         // Инпутваме формата
         $form->input();
-        
-        // TODO ако формата е рефрешната, да се използват новите стойности
         
         // Ако няма грешки във формата
         if ($form->isSubmitted()) {
             
             // Очакваме да има права за модифицирана на съответния запис
-            expect($class->canModifySettings($key, $form->rec->userOrRoles));
+            expect($class->canModifySettings($key, $form->rec->userOrRole));
             
             // Извикваме интерфейсната функция за проверка на формата
             $class->checkSettingsForm($form);
@@ -193,19 +370,14 @@ class core_Settings extends core_Manager
             // Премахваме всички празни стойности или defaul от enum
             foreach ((array)$recArr as $valKey => $value) {
                 
-                // TODO само за enum да се проверява default
-                
-                if ((!$value) || $value == 'default') {
+                // Ако няма стойност или стойността е default за enum поле, да се премахне от масива
+                if ((!$value) || ($value == 'default' && ($form->fields[$valKey]->type instanceof type_Enum))) {
                     unset($recArr[$valKey]);
                 }
             }
             
-            // Ако има стойности
-            if ($recArr) {
-                
-                // Записваме данните
-                self::setValues($key, $recArr, $userOrRole);
-            }
+            // Записваме данните
+            self::setValues($key, (array)$recArr, $userOrRole);
             
             return new Redirect($retUrl);
         }
@@ -223,39 +395,58 @@ class core_Settings extends core_Manager
     
     
     /**
+     * Подготвяме ключа, като ограничаваме дължината до 16 символа
+     * 
+     * @param string $key
+     * 
+     * @return string
+     */
+    protected static function prepareKey($key)
+    {
+        $key = str::convertToFixedKey($key, 16, 4);
+        
+        return $key;
+    }
+    
+    
+    /**
      * Записва стойностите за ключа и потребителя/роля
      * 
      * @param string $key
      * @param array $valArr
-     * @param integer $userOrRole
+     * @param integer|NULL $userOrRole
      */
-    protected static function setValues($key, $valArr, $userOrRole = NULL)
+    public static function setValues($key, $valArr, $userOrRole = NULL)
     {
-        // Ако не е зададен потребител, ще е текущия
-        if (!$userOrRole) {
-            $userOrRole = core_Users::getCurrent();
-            // TODO да се предвиди -1
-        }
+        $userOrRole = self::prepareUserOrRole($userOrRole);
+        
+        // Ограничаваме дължината на ключа
+        $key = self::prepareKey($key);
         
         // Стария запис
         $oldRec = static::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
+        
+        // Ако няма стойности, изтриваме записа
+        if (!$valArr && $oldRec) {
+            self::delete($oldRec->id);
+            
+            return ;
+        }
         
         // Ако няма стар запис
         if (!$oldRec) {
             
             // Създаваме нов
             $nRec = new stdClass();
-            $nRec->data = $valArr;
             $nRec->key = $key;
             $nRec->userOrRole = $userOrRole;
         } else {
             
             // Използваме стария запис
             $nRec = $oldRec;
-            
-            // Обединяваме данните
-            $nRec->data = arr::combine($valArr, $nRec->data);
         }
+        
+        $nRec->data = $valArr;
         
         // Записваме новите данни
         self::save($nRec);
@@ -266,7 +457,7 @@ class core_Settings extends core_Manager
      * Взема записите само за зададения потребител/роля
      * 
      * @param string $key
-     * @param integer $userOrRole
+     * @param integer|NULL $userOrRole
      * 
      * @return array
      */   
@@ -274,14 +465,12 @@ class core_Settings extends core_Manager
     {
         $dataVal = array();
         
-        // Ако не е зададен потребител, ще е текущия
-        if (!$userOrRole) {
-            $userOrRole = core_Users::getCurrent();
-            // TODO да се предвиди -1
-        }
+        $key = self::prepareKey($key);
+        
+        $userOrRole = self::prepareUserOrRole($userOrRole);
         
         // Вземаме записа
-        $rec = static::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
+        $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
         
         // Ако има запис връщаме масива с данните
         if ($rec) {
@@ -291,6 +480,28 @@ class core_Settings extends core_Manager
         return $dataVal;
     }
     
+    
+    /**
+     * Подготвяме потребителя или ролята
+     * 
+     * @param integer|NULL $userOrRole
+     * 
+     * @return integer
+     */
+    function prepareUserOrRole($userOrRole)
+    {
+        // Ако не е подаден, използваме текущия потребител
+        if (!$userOrRole) {
+            $userOrRole = core_Users::getCurrent();
+        }
+        
+        // Ако е системата, използваме всички
+        if ($userOrRole == -1) {
+            $userOrRole = type_UserOrRole::getAllSysTeamId();
+        }
+        
+        return $userOrRole;
+    }
 
     /**
      * Променяме wrapper' а да сочи към врапера на търсения клас

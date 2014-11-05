@@ -732,7 +732,14 @@ class findeals_Deals extends deals_DealBase
     	}
     	$where .= ")";
     	
-    	return static::makeArray4Select('detailedName', $where);
+    	$options = array();
+    	$query = self::getQuery();
+    	while($rec = $query->fetch($where)){
+    		$handle = self::getHandle($rec->id);
+    		$options[$handle] = $handle;
+    	}
+    	
+    	return $options;
     }
     
     
