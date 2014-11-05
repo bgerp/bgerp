@@ -3074,4 +3074,16 @@ function addBugReportInput(form, nameInput, value)
 	}
 }
 
+
+/**
+ * Скролиране до определен
+ */
+$.fn.scrollView = function () {
+	return this.each(function () {
+						$('html, body').animate({
+                            scrollTop: $(this).offset().top - $(window).height() + $(this).height()
+                        }, 500);
+                    });
+}
+
 runOnLoad(showTooltip);
