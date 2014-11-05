@@ -638,7 +638,7 @@ class cal_Calendar extends core_Master
     /**
      * Функция извеждаща броя на работните, неработните и празничните дни в един месец
      */
-    static public function calculateDays($month, $year)
+    public static function calculateDays($month, $year)
     {
     
     	// Ако е въведен несъществуващ месец или година, взима текущите данни
@@ -678,7 +678,6 @@ class cal_Calendar extends core_Master
 	        	$nonWorking++;
 	        } elseif($rec->type == "workday"){
 	        	$workday++;
-	        		
 	        }
 	    }
 	  
@@ -704,17 +703,6 @@ class cal_Calendar extends core_Master
            
     }
 
-    function act_Test()
-    {
-    	
-    	$m = 9;
-    	$y = 2012;
-    
-    	$days = self::calculateDays($m, $y);
-    	
-    	expect ($days['working'] == 18 && $days['nonWorking'] == 12 && $days['holiday'] == 2, 'Greshka');
-    }
-    
     
     /**
      * Функция показваща събитията за даден ден
@@ -887,7 +875,6 @@ class cal_Calendar extends core_Master
         }
        
         return (object) array('monthArr'=>$monthArr, 'dateJs'=> $dateJs, 'tdCssClass'=>$tdCssClass);
-      
     }
     
     
@@ -949,7 +936,6 @@ class cal_Calendar extends core_Master
 	    $taskEndHour = $taskEndH . ":" . $taskEndM;
     	
 	    return $taskEndHour;
-    	
     }
     
     
@@ -958,7 +944,7 @@ class cal_Calendar extends core_Master
      * @param datetime $date - mySQL формат на дата (гггг-мм-дд чч:мм:сс)
      * Прави локален кеш на празниците. Връща масив с всички специални дни.
      */
-    static public function getDateType($date)
+    public static function getDateType($date)
     {
     	$year = dt::mysql2Verbal($date, 'Y');
     	
@@ -997,7 +983,7 @@ class cal_Calendar extends core_Master
      * тъмно зелено - събота
      * свето зелено - неделя
      */
-    static public function getColorOfDay($date)
+    public static function getColorOfDay($date)
     {
       	// Разбиваме подадената дата
     	$day = dt::mysql2Verbal($date, 'd');
@@ -1037,7 +1023,7 @@ class cal_Calendar extends core_Master
      * 
      * Връща масив с броя на почивните, работните дни в периода
      */
-    static public function calcLeaveDays($leaveFrom, $leaveTo)
+    public static function calcLeaveDays($leaveFrom, $leaveTo)
     {
     	
     	$nonWorking = $workDays = $allDays = 0;
@@ -1068,14 +1054,13 @@ class cal_Calendar extends core_Master
     	}
 
     	return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays);
- 
     }
 
     
     /**
      * Взима кой е селектирания потребител от филтъра
      */
-    static public function getSelectedUsers($data)
+    public static function getSelectedUsers($data)
     {        
         $selectUser = $data->listFilter->rec->selectedUsers;
        
@@ -1112,7 +1097,7 @@ class cal_Calendar extends core_Master
      * Избрания ден от филтъра се приема за текущ и 
      * седмицата се определя спрямо него 
      */
-    static public function getFromToWeek($data)
+    public static function getFromToWeek($data)
     {
     	$fromFilter = $data->listFilter->rec->from;
     	$fromFilter = explode("-", $fromFilter);
@@ -1178,7 +1163,7 @@ class cal_Calendar extends core_Master
      * Взима данните от филтъра
      * Датата и селектирания потребител
      */
-    static public function getFromFilter($data){
+    public static function getFromFilter($data){
     	    	
     	$state['from'] = $data->listFilter->rec->from;
     	$state['selectedUsers'] = self::getSelectedUsers($data);
@@ -1190,7 +1175,7 @@ class cal_Calendar extends core_Master
     /**
      * Намира каква е иконата според състоянието на задачата
      */
-    static public function getIconByType($type, $key)
+    public static function getIconByType($type, $key)
     {
     	// Картинката за задачите
 		if($type == 'task'){
@@ -1270,7 +1255,7 @@ class cal_Calendar extends core_Master
     /**
      * Подготвя записите от базата данни за екшън Ден
      */
-    static public function prepareRecDay($data)
+    public static function prepareRecDay($data)
     {
         $date = self::getFromFilter($data);
     	$selectedUsers = self::getSelectedUsers($data);
@@ -1335,7 +1320,7 @@ class cal_Calendar extends core_Master
     /**
      * Подготвя записите от базата данни за екшън Седмица
      */
-    static public function prepareRecWeek($data)
+    public static function prepareRecWeek($data)
     {
     	$date = self::getFromFilter($data);
     	$selectedUsers = self::getSelectedUsers($data);
@@ -1398,7 +1383,7 @@ class cal_Calendar extends core_Master
     /**
      * Подготвя записите от базата данни за екшън Месец
      */
-    static public function prepareRecMonth($data)
+    public static function prepareRecMonth($data)
     {
     	$date = self::getFromFilter($data);
     	$selectedUsers = self::getSelectedUsers($data);
@@ -1473,7 +1458,7 @@ class cal_Calendar extends core_Master
     /**
      * Подготвя записите от базата данни за екшън Година
      */
-    static public function prepareRecYear($data)
+    public static function prepareRecYear($data)
     {
     	$from = self::getFromToYear();
     	$yearDate = self::generateYear();
@@ -1598,7 +1583,7 @@ class cal_Calendar extends core_Master
      * ако избраната седмица в екшън Седмица обхваща дни
      * от две седмици) на седмицата
      */
-    static public function prepareWeekNumber($data)
+    public static function prepareWeekNumber($data)
     {
     	$fromFilter = $data->listFilter->rec->from;
     	$fromFilter = explode("-", $fromFilter);
@@ -1622,7 +1607,7 @@ class cal_Calendar extends core_Master
     /**
      * Замествания по шаблона на екшън Ден
      */
-    static public function renderLayoutDay($layout, $data)
+    public static function renderLayoutDay($layout, $data)
     {
     	$dayData = self::prepareRecDay($data);
     	$isToday = self::isToday($data);
@@ -1701,15 +1686,12 @@ class cal_Calendar extends core_Master
 			    	}
 			    }
     		   
-	    		
 	    		// За да сработи javaSkript–а за всяка картинак "+", която ще показваме
 			    // задаваме уникално ид
 			    for($j = 0; $j < 26; $j++){
-					    
 					// Линкове на картинката
 					$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
 			    } 
-			         
 			      
 			    // Заместваме всички масиви
 				$cTpl->placeArray($aHrefs);
@@ -1736,7 +1718,7 @@ class cal_Calendar extends core_Master
     /**
      * Замествания по шаблона на екшън Седмица
      */
-    static public function renderLayoutWeek($layout, $data)
+    public static function renderLayoutWeek($layout, $data)
     {
     	$weekData = self::prepareRecWeek($data);
     	
@@ -1862,7 +1844,7 @@ class cal_Calendar extends core_Master
     /**
      * Замествания по шаблона на екшън Месец
      */
-    static public function renderLayoutMonth($layout, $data)
+    public static function renderLayoutMonth($layout, $data)
     {
     	$monthData = self::prepareRecMonth($data);
     	$monthArr = self::generateMonth($data);
@@ -1920,7 +1902,7 @@ class cal_Calendar extends core_Master
     /**
      * Замествания по шаблона на екшън Година
      */
-    static public function renderLayoutYear($layout, $data)
+    public static function renderLayoutYear($layout, $data)
     {
     	
     	$yearData = self::prepareRecYear($data);
@@ -1976,7 +1958,7 @@ class cal_Calendar extends core_Master
     /**
      * Проверява дали избраната дата от филтъра е днешния ден
      */
-    static public function isToday($data)
+    public static function isToday($data)
     {
     	$from = self::getFromFilter($data);
     
