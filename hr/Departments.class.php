@@ -19,81 +19,81 @@ class hr_Departments extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Организационна структура";
+    public $title = "Организационна структура";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Звено";
+    public $singleTitle = "Звено";
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Персонал";
+    public $pageMenu = "Персонал";
     
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing,
+    public $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing,
                      plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hr';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,hr';
+    public $canList = 'ceo,hr';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hr';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'hr/tpl/SingleLayoutDepartment.shtml';
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutDepartment.shtml';
     
     
     /**
      * Единична икона
      */
-    var $singleIcon = 'img/16/user_group.png';
+    public $singleIcon = 'img/16/user_group.png';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name, type, nkid, staff, locationId, employmentTotal, employmentOccupied, schedule';
+    public $listFields = 'id, name, type, nkid, staff, locationId, employmentTotal, employmentOccupied, schedule';
     
     
     /**
      * Детайли на този мастер
      */
-    var $details = 'Grafic=hr_WorkingCycles,Positions=hr_Positions';
+    public $details = 'Grafic=hr_WorkingCycles,Positions=hr_Positions';
     
     // Подготвяме видовете графики 
     static $chartTypes = array(
@@ -105,7 +105,7 @@ class hr_Departments extends core_Master
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,width=100%');
         $this->FLD('type', 'enum(section=Поделение,
@@ -119,9 +119,10 @@ class hr_Departments extends core_Master
                                  workshop=Цех, 
                                  unit=Звено,
                                  brigade=Бригада,
-                                 shift=Смяна)', 'caption=Тип, mandatory,width=100%');
+                                 shift=Смяна,
+                                 organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД, hint=Номер по НКИД');
-        $this->FLD('staff', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=В състава на,width=100%');
+        $this->FLD('staff', 'key(mvc=hr_Departments, select=name)', 'caption=В състава на,width=100%');
         
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
@@ -135,7 +136,7 @@ class hr_Departments extends core_Master
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $data->form->setOptions('locationId', array('' => '&nbsp;') + crm_Locations::getOwnLocations());
         
@@ -153,13 +154,14 @@ class hr_Departments extends core_Master
         }
         
         $data->form->setOptions('staff', $opt);
+        $data->form->setDefault('staff', 'organization');
     }
     
     
     /**
      * Връща наследниците на даден запис
      */
-    static function getInheritors($id, $field, &$arr = array())
+    public static function getInheritors($id, $field, &$arr = array())
     {
         $arr[$id] = $id;
         $query = self::getQuery();
@@ -176,7 +178,7 @@ class hr_Departments extends core_Master
     /**
      * Добавя данните за записа, които зависят от неговите предшественици и от неговите детайли
      */
-    static function expandRec($rec)
+    public static function expandRec($rec)
     {
         $parent = $rec->staff;
         
@@ -192,7 +194,7 @@ class hr_Departments extends core_Master
     /**
      * Определя заглавието на записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
         self::expandRec($rec);
         
@@ -203,7 +205,7 @@ class hr_Departments extends core_Master
     /**
      * Изпънява се преди превръщането във вербални стойности на записа
      */
-    function on_BeforeRecToVerbal($mvc, &$row, &$rec)
+    public function on_BeforeRecToVerbal($mvc, &$row, &$rec)
     {
         self::expandRec($rec);
     }
@@ -212,7 +214,7 @@ class hr_Departments extends core_Master
     /**
      * Проверка за зацикляне след субмитване на формата. Разпъване на всички наследени роли
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
         
@@ -237,7 +239,7 @@ class hr_Departments extends core_Master
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy("#orderStr");
     }
@@ -246,7 +248,7 @@ class hr_Departments extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_BeforeSave($mvc, $id, $rec)
+    public static function on_BeforeSave($mvc, $id, $rec)
     {
         $rec->orderStr = '';
         
@@ -264,7 +266,7 @@ class hr_Departments extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_BeforePrepareListPager($mvc, &$res, $data) {
+    public static function on_BeforePrepareListPager($mvc, &$res, $data) {
         // Ако искаме да видим графиката на структурата
         // не ни е необходимо страницирване
         if(Request::get('Chart')  == 'Structure') {
@@ -307,7 +309,7 @@ class hr_Departments extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_AfterRenderListTable($mvc, &$tpl, $data)
+    public function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         $chartType = Request::get('Chart');
         
@@ -321,16 +323,55 @@ class hr_Departments extends core_Master
         }
     }
     
+    /**
+     * Създава на корен към графа за структурата. Той е "Моята фирма"
+     */
+    public function on_AfterSetUpMvc($mvc, &$res)
+    {
+        $myCompany = crm_Companies::fetchOwnCompany();
+            
+        if(!self::count()) {
+            
+            // Създаваме го
+            $rec = new stdClass();
+            $rec->name = $myCompany->company;
+            $rec->type = 'organization';
+            $rec->staff = NULL;
+            
+            self::save($rec);
+        } else {
+            $query = self::getQuery();
+            $myCompanyName = trim($myCompany->company);
+            $query->where("#name = '{$myCompanyName}' AND #type = 'organization'");
+             
+            if ($query->fetch() == FALSE) {
+                $rec = new stdClass();
+                $rec->name = $myCompany->company;
+                $rec->type = 'organization';
+                $rec->staff = NULL;
+                
+                self::save($rec); 
+            }
+        }
+    }
+    
     
     /**
      * Изчертаване на структурата с данни от базата
      */
-    static function getChart ($data)
+    public static function getChart ($data)
     {
+        $myCompany = crm_Companies::fetchOwnCompany();
         
         foreach((array)$data->recs as $rec){
             // Ако имаме родител 
-            if($parent = $rec->staff) {
+            if ($parent = $rec->staff) {
+                if ($rec->name == $myCompany && $rec->staff == NULL) {
+                    $parentMyCompany = $rec->id;
+                }
+                if ($parent == NULL) {
+                    $parent = $parentMyCompany;
+                }
                 // взимаме чистото име на наследника
                 $name = self::fetchField($rec->id, 'name');
             } else {
@@ -342,7 +383,7 @@ class hr_Departments extends core_Master
             $res[] = array(
                 'id' => $rec->id,
                 'title' => $name,
-                'parent_id' => $rec->staff === NULL ? "NULL" : $rec->staff,
+                'parent_id' => $rec->staff === NULL ? "NULL": $parent,
             );
         }
         

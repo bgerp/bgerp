@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Молби за отпуски
@@ -21,23 +21,23 @@ class trz_Requests extends core_Master
 	/**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     /**
      * Заглавие
      */
-    var $title = 'Молби';
+    public $title = 'Молби';
     
      /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Молба за отпуск";
+    public $singleTitle = "Молба за отпуск";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, trz_Wrapper, 
+    public $loadList = 'plg_RowTools, trz_Wrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
     				 plg_Printing, doc_plg_BusinessDoc,plg_AutoFilter,doc_SharablePlg,bgerp_plg_Blank';
     
@@ -45,75 +45,69 @@ class trz_Requests extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, paid';
+    public $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, paid';
     
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    //var $searchFields = 'description';
-
     
     /**
      * За плъгина acc_plg_DocumentSummary
      */
-    var $filterFieldDateFrom = 'leaveFrom';
-    var $filterFieldDateTo = 'leaveTo';
+    public $filterFieldDateFrom = 'leaveFrom';
+    public $filterFieldDateTo = 'leaveTo';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
-    var $rowToolsSingleField = 'personId';
+    public $rowToolsSingleField = 'personId';
     
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,trz';
+	public $canList = 'ceo,trz';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,trz';
+	public $canSingle = 'ceo,trz';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'powerUser';
+    public $canDelete = 'powerUser';
 
     
     /**
@@ -125,19 +119,19 @@ class trz_Requests extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'trz/tpl/SingleLayoutRequests.shtml';
+    public $singleLayoutFile = 'trz/tpl/SingleLayoutRequests.shtml';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Req";
+    public $abbr = "Req";
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "5.2|Човешки ресурси"; 
+    public $newBtnGroup = "5.2|Човешки ресурси"; 
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
@@ -148,7 +142,7 @@ class trz_Requests extends core_Master
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
@@ -169,7 +163,7 @@ class trz_Requests extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_BeforeSave($mvc, &$id, $rec)
+    public static function on_BeforeSave($mvc, &$id, $rec)
     {
         if($rec->leaveFrom &&  $rec->leaveTo){
         	
@@ -200,7 +194,7 @@ class trz_Requests extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	$mvc->updateRequestsToCalendar($rec->id);
     }
@@ -213,7 +207,7 @@ class trz_Requests extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->fields['paid']->caption = 'Вид'; 
     	
@@ -269,7 +263,7 @@ class trz_Requests extends core_Master
     /**
      * Проверява и допълва въведените данни от 'edit' формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {
 
     	$rec = $form->rec;
@@ -307,7 +301,7 @@ class trz_Requests extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
     	
     	// Ако имаме права да създадем заповед за отпуск
@@ -330,7 +324,7 @@ class trz_Requests extends core_Master
     /**
      * Извиква се след изпълняването на екшън
      */
-    function on_AfterAction(&$invoker, &$tpl, $act)
+    public static function on_AfterAction(&$invoker, &$tpl, $act)
     {
     	if (strtolower($act) == 'single' && haveRole('trz,ceo') && !Mode::is('printing')) {
     		
@@ -365,7 +359,7 @@ class trz_Requests extends core_Master
     /**
      * Тестова функция
      */
-    static public function act_Test()
+    public static function act_Test()
     {
     	$p = 1;
     	$a = '2013-05-02';
@@ -376,7 +370,7 @@ class trz_Requests extends core_Master
     /**
      * Обновява информацията за молбите в календара
      */
-    static function updateRequestsToCalendar($id)
+    public static function updateRequestsToCalendar($id)
     {
         $rec = static::fetch($id);
         
@@ -468,19 +462,8 @@ class trz_Requests extends core_Master
         if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
             return TRUE;
         }
-        /*if ('crm_Persons' != $coverClass) {
-        	return FALSE;
-        }
-        
-        $personId = doc_Folders::fetchCoverId($folderId);
-        
-        $personRec = crm_Persons::fetch($personId);
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
-        
-        return keylist::isIn($emplGroupId, $personRec->groupList);*/
     }
     
-
 
     
     /**
@@ -489,7 +472,7 @@ class trz_Requests extends core_Master
      * @param int $id
      * @return stdClass $row
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
@@ -526,7 +509,7 @@ class trz_Requests extends core_Master
     /**
      * Преди да се подготвят опциите на кориците, ако
      */
-    function getCoverOptions($coverClass)
+    public static function getCoverOptions($coverClass)
     {
     	$groups = array();
     	

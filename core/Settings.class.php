@@ -87,7 +87,7 @@ class core_Settings extends core_Manager
      * @param string $title
      * @param array $params
      */
-    public static function addBtn(core_Toolbar $toolbar, $key, $className, $userOrRole = NULL, $title = 'Персонализиране', $params)
+    public static function addBtn(core_Toolbar $toolbar, $key, $className, $userOrRole = NULL, $title = 'Персонализиране', $params = array())
     {
         $url = self::getModifyUrl($key, $className, $userOrRole);
         
@@ -288,9 +288,6 @@ class core_Settings extends core_Manager
         // Инстанция на класа, който е подаден кат
         $class = cls::get($className);
         
-        // Очакваме да има права за модифициране на записа за съответния потребител
-        expect($class->canModifySettings($key, $userOrRole));
-        
         // Създаваме празна форма
         $form = cls::get('core_Form');
         
@@ -309,6 +306,9 @@ class core_Settings extends core_Manager
         
         // Инпутваме silent полетата, за да се попълнята
         $form->input(NULL, 'silent');
+        
+        // Очакваме да има права за модифициране на записа за съответния потребител
+        expect($class->canModifySettings($key, $form->rec->_userOrRole));
         
         $form->title = 'Персонализиране';
         
@@ -348,7 +348,7 @@ class core_Settings extends core_Manager
         if ($form->isSubmitted()) {
             
             // Очакваме да има права за модифицирана на съответния запис
-            expect($class->canModifySettings($key, $form->rec->userOrRole));
+            expect($class->canModifySettings($key, $form->rec->_userOrRole));
             
             // Извикваме интерфейсната функция за проверка на формата
             $class->checkSettingsForm($form);
@@ -461,7 +461,7 @@ class core_Settings extends core_Manager
      * 
      * @return array
      */   
-    protected function fetchKeyNoMerge($key, $userOrRole = NULL)
+    protected static function fetchKeyNoMerge($key, $userOrRole = NULL)
     {
         $dataVal = array();
         
@@ -488,7 +488,7 @@ class core_Settings extends core_Manager
      * 
      * @return integer
      */
-    function prepareUserOrRole($userOrRole)
+    protected static function prepareUserOrRole($userOrRole)
     {
         // Ако не е подаден, използваме текущия потребител
         if (!$userOrRole) {
@@ -502,6 +502,7 @@ class core_Settings extends core_Manager
         
         return $userOrRole;
     }
+    
 
     /**
      * Променяме wrapper' а да сочи към врапера на търсения клас

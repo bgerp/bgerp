@@ -67,6 +67,12 @@ class sens2_Setup extends core_ProtoSetup
      */
     var $roles = 'sens';
     
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "sens2_DataLogReportsImpl";
+    
 
     /**
      * Връзки от менюто, сочещи към модула

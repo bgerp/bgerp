@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Командировки
@@ -21,19 +21,19 @@ class trz_Trips extends core_Master
     /**
      * Заглавие
      */
-    var $title = 'Командировки';
+    public $title = 'Командировки';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Командировка";
+    public $singleTitle = "Командировка";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, trz_Wrapper, doc_DocumentPlg, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools, trz_Wrapper, doc_DocumentPlg, acc_plg_DocumentSummary,
     				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,
     				 plg_AutoFilter,bgerp_plg_Blank';
     
@@ -41,101 +41,97 @@ class trz_Trips extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
-    /**
-     * Какви детайли има този мастер
-     */
-    //var $details = 'trz_TripDetails';
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,trz';
+    public $canRead = 'ceo,trz';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,trz';
+	public $canList = 'ceo,trz';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,trz';
+	public $canSingle = 'ceo,trz';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,trz';
+    public $canEdit = 'ceo,trz';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,trz';
+    public $canAdd = 'ceo,trz';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,trz';
+    public $canView = 'ceo,trz';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,trz';
+    public $canDelete = 'ceo,trz';
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "5.4|Човешки ресурси"; 
+    public $newBtnGroup = "5.4|Човешки ресурси"; 
  
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, personId, startDate, toDate, purpose, amountRoad, amountDaily, amountHouse';
+    public $listFields = 'id, personId, startDate, toDate, purpose, amountRoad, amountDaily, amountHouse';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
-    var $rowToolsSingleField = 'personId';
+    public $rowToolsSingleField = 'personId';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'trz/tpl/SingleLayoutTrips.shtml';
+    public $singleLayoutFile = 'trz/tpl/SingleLayoutTrips.shtml';
     
     
     /**
      * За плъгина acc_plg_DocumentSummary
      */
-    var $filterFieldDateFrom = 'startDate';
-    var $filterFieldDateTo = 'toDate';
+    public $filterFieldDateFrom = 'startDate';
+    public $filterFieldDateTo = 'toDate';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Trip";
+    public $abbr = "Trip";
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
     	$this->FLD('startDate', 'date',     'caption=Считано->От');
@@ -154,7 +150,7 @@ class trz_Trips extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	$mvc->updateTripsToCalendar($rec->id);
     }
@@ -167,7 +163,7 @@ class trz_Trips extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
     	
         // Показваме само това поле. Иначе и другите полета 
@@ -200,7 +196,7 @@ class trz_Trips extends core_Master
     /**
      * Обновява информацията за задачата в календара
      */
-    static function updateTripsToCalendar($id)
+    public static function updateTripsToCalendar($id)
     {
         $rec = static::fetch($id);
         
@@ -292,7 +288,7 @@ class trz_Trips extends core_Master
      * @param int $id
      * @return stdClass $row
      */
-    function getDocumentRow($id)
+    public static function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
@@ -367,7 +363,7 @@ class trz_Trips extends core_Master
 	/**
      * Преди да се подготвят опциите на кориците, ако
      */
-    function getCoverOptions($coverClass)
+    public static function getCoverOptions($coverClass)
     {
     	
     	if($coverClass instanceof crm_Persons){

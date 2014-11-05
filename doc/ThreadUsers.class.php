@@ -114,6 +114,8 @@ class doc_ThreadUsers extends core_Manager
      */
     static function getShared($threadId, $relation = 'shared')
     {
+        $res = array();
+        
         $query = self::getQuery();
         $query->show("userId");
         while($rec = $query->fetch(array("#threadId = [#1#] AND #relation = '[#2#]'", $threadId, $relation))) {

@@ -3,7 +3,7 @@
 
 
 /**
- * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
+ * Помощен мениджър за показване на хронологията
  *
  *
  * @category  bgerp
@@ -13,140 +13,32 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_HistoryReport extends core_Manager
+class acc_BalanceHistory extends core_Manager
 {
     
-    /**
-     * Кой може да избира драйвъра
-     */
-    public $canSelectSource = 'ceo, acc';
     
     /**
      * Заглавие
      */
     public $title = 'Хронологична счетоводна справка';
     
-    /**
-     * Кои интерфейси имплементира
-     */
-    public $interfaces = 'frame_ReportSourceIntf';
     
     /**
      * Работен кеш
      */
     protected static $cache = array();
     
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'Balance=acc_BalanceDetails, acc_Wrapper';
     
+    
     /**
      * Брой записи от историята на страница
      */
     public $listHistoryItemsPerPage = 40;
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
-     */
-    public function prepareReportForm(core_Form &$form)
-    {
-        $form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'input,caption=Сметка,silent,mandatory', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
-        $form->FLD('fromDate', 'date(allowEmpty)', 'caption=От,input,mandatory');
-        $form->FLD('toDate', 'date(allowEmpty)', 'caption=До,input,mandatory');
-        
-        $op = $this->getBalancePeriods();
-        
-        $form->setSuggestions('fromDate', array('' => '') + $op->fromOptions);
-        $form->setSuggestions('toDate', array('' => '') + $op->toOptions);
-        
-        if($form instanceof core_Form){
-            $form->input();
-        }
-        
-        if(isset($form->rec->accountId)){
-            if($form->rec->id){
-                if(frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->filter->accountId){
-                    unset($form->rec->ent1Id, $form->rec->ent2Id, $form->rec->ent3Id);
-                    Request::push(array('ent1Id' => NULL, 'ent2Id' => NULL, 'ent3Id' => NULL));
-                }
-            }
-            
-            $accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
-            
-            foreach (range(1, 3) as $i){
-                if(isset($accInfo->groups[$i])){
-                    $gr = $accInfo->groups[$i];
-                    $form->FNC("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty)", "caption=Избор на пера->{$gr->rec->name},input,mandatory");
-                } else {
-                    $form->FNC("ent{$i}Id", "int", "");
-                    $form->rec->{"ent{$i}Id"} = NULL;
-                }
-            }
-        }
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
-     */
-    public function checkReportForm(core_Form &$form)
-    {
-        if($form->isSubmitted()){
-            if($form->rec->toDate < $form->rec->fromDate){
-                $form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
-            }
-        }
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
-     */
-    public function prepareReportData($filter)
-    {
-        // Подготвяне на данните
-        $data = new stdClass();
-        $accNum = acc_Accounts::fetchField($filter->accountId, 'num');
-        
-        $data->rec = new stdClass();
-        $data->rec->accountId = $filter->accountId;
-        $data->rec->ent1Id = $filter->ent1Id;
-        $data->rec->ent2Id = $filter->ent2Id;
-        $data->rec->ent3Id = $filter->ent3Id;
-        $data->rec->accountNum = $accNum;
-        
-        acc_BalanceDetails::requireRightFor('history', $data->rec);
-        
-        $balanceRec = $this->getBalanceBetween($filter->fromDate, $filter->toDate);
-        
-        $data->balanceRec = $balanceRec;
-        $data->fromDate = $filter->fromDate;
-        $data->toDate = $filter->toDate;
-        
-        $this->prepareHistory($data);
-        
-        return $data;
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
-     */
-    public function renderReportData($data)
-    {
-        return $this->renderHistory($data);
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see frame_ReportSourceIntf)
-     */
-    public function canSelectSource($userId = NULL)
-    {
-        return core_Users::haveRole($this->canSelectSource, $userId);
-    }
     
     
     /**
@@ -209,6 +101,9 @@ class acc_HistoryReport extends core_Manager
         // Подготовка на историята
         $this->prepareHistory($data);
         
+        // Подготовка на странициране и вербалното представяне
+        $this->prepareRows($data);
+        
         // Рендиране на историята
         $tpl = $this->renderHistory($data);
         $tpl->removeBlock('toDate');
@@ -216,6 +111,65 @@ class acc_HistoryReport extends core_Manager
         
         // Връщаме шаблона
         return $tpl;
+    }
+    
+    
+    /**
+     * Подготвя страницирането
+     */
+    public function prepareRows(&$data)
+    {
+    	$data->allRecs = $data->recs;
+    	
+    	// Преизчисляваме пейджъра с новия брой на записите
+        $conf = core_Packs::getConfig('acc');
+        $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listHistoryItemsPerPage));
+        $Pager->itemsCount = count($data->recs);
+        $Pager->calc();
+        $data->pager = $Pager;
+        
+        $start = $data->pager->rangeStart;
+        $end = $data->pager->rangeEnd - 1;
+        
+        if(count($data->recs)){
+        	$data->recs = array_reverse($data->recs, TRUE);
+        }
+        
+        // Махаме тези записи които не са в диапазона на страницирането
+        $count = 0;
+        
+        if(count($data->recs)){
+        	foreach ($data->recs as $id => $dRec){
+        		if(!($count >= $start && $count <= $end)){
+        			unset($data->recs[$id]);
+        		}
+        		$count++;
+        	}
+        }
+        
+        if($data->pager->page == 1){
+        	// Добавяне на последния ред
+        	if(count($data->recs)){
+        		array_unshift($data->recs, $data->lastRec);
+        	} else {
+        		$data->recs = array($data->lastRec);
+        	}
+        }
+        
+        // Ако сме на единствената страница или последната, показваме началното салдо
+        if($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0){
+        	$data->recs[] = $data->zeroRec;
+        }
+        
+        // Подготвя средното салдо
+        $this->prepareMiddleBalance($data);
+        
+        // За всеки запис, обръщаме го във вербален вид
+        if(count($data->recs)){
+        	foreach ($data->recs as $jRec){
+        		$data->rows[] = $this->getVerbalHistoryRow($jRec, $Double, $Date);
+        	}
+        }
     }
     
     
@@ -253,7 +207,7 @@ class acc_HistoryReport extends core_Manager
     /**
      * Намира балансите между определени дати
      */
-    private function getBalanceBetween($from, $to)
+    public function getBalanceBetween($from, $to)
     {
         $bQuery = acc_Balances::getQuery();
         $bQuery->where("#fromDate >= '{$from}' && #toDate <= '{$to}'");
@@ -271,7 +225,7 @@ class acc_HistoryReport extends core_Manager
     /**
      * Взима балансовите периоди
      */
-    private function getBalancePeriods()
+    public function getBalancePeriods()
     {
         // За начална и крайна дата, слагаме по подразбиране, датите на периодите
         // за които има изчислени оборотни ведомости
@@ -356,7 +310,7 @@ class acc_HistoryReport extends core_Manager
      *
      * @param stdClass $data
      */
-    private function prepareHistory(&$data)
+    public function prepareHistory(&$data)
     {
         $rec = &$data->rec;
         
@@ -496,66 +450,22 @@ class acc_HistoryReport extends core_Manager
 			             'creditAmount'   => $creditAmount,
 			             'ROW_ATTR'       => array('style' => 'background-color:#eee;font-weight:bold'));
         
-        // Преизчисляваме пейджъра с новия брой на записите
-        $conf = core_Packs::getConfig('acc');
-        $Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS));
-        $Pager->itemsCount = count($data->recs);
-        $Pager->calc();
-        $data->pager = $Pager;
-        
-        $start = $data->pager->rangeStart;
-        $end = $data->pager->rangeEnd - 1;
-        
-        if(count($data->recs)){
-            $data->recs = array_reverse($data->recs, TRUE);
-        }
-        
-        // Махаме тези записи които не са в диапазона на страницирането
-        $count = 0;
-        
-        if(count($data->recs)){
-            foreach ($data->recs as $id => $dRec){
-                if(!($count >= $start && $count <= $end)){
-                    unset($data->recs[$id]);
-                }
-                $count++;
-            }
-        }
-        
-        if($data->pager->page == 1){
-            // Добавяне на последния ред
-            if(count($data->recs)){
-                array_unshift($data->recs, $lastRec);
-            } else {
-                $data->recs = array($lastRec);
-            }
-        }
-        
-        // Ако сме на единствената страница или последната, показваме началното салдо
-        if($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0){
-            $data->recs[] = $zeroRec;
-        }
-        
-        $data->allRecs = $data->recs;
-        
-        // Подготвя средното салдо
-        $this->prepareMiddleBalance($data);
-        
-        // За всеки запис, обръщаме го във вербален вид
-        if(count($data->recs)){
-            foreach ($data->recs as $jRec){
-                $data->rows[] = $this->getVerbalHistoryRow($jRec, $Double, $Date);
-            }
-        }
+        $data->zeroRec = $zeroRec;
+        $data->lastRec = $lastRec;
     }
     
     
     /**
      * Подготовка на вербалното представяне на един ред от историята
      */
-    private function getVerbalHistoryRow($rec, $Double, $Date)
+    private function getVerbalHistoryRow($rec)
     {
-        $arr = array();
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	
+    	$Date = cls::get('type_Date');
+    	
+    	$arr = array();
         $arr['valior'] = $Date->toVerbal($rec['valior']);
         
         // Ако има отрицателна сума показва се в червено
@@ -601,10 +511,10 @@ class acc_HistoryReport extends core_Manager
     {
         $recs = $data->allRecs;
         
-        if(empty($data->listFilter)) return;
-        
         // Ако в формата има грешки,
-        if($data->listFilter->gotErrors()) return;
+        if(!empty($data->listFilter)){
+        	if($data->listFilter->gotErrors()) return;
+        }
         
         $tmpArray = array();
         $quantity = $amount = 0;
@@ -674,7 +584,7 @@ class acc_HistoryReport extends core_Manager
      * @param stdClass $data
      * @return core_ET $tpl
      */
-    private function renderHistory(&$data)
+   	public function renderHistory(&$data)
     {
         // Взимаме шаблона за историята
         $tpl = getTplFromFile('acc/tpl/SingleLayoutBalanceHistory.shtml');

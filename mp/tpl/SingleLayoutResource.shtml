@@ -1,0 +1,14 @@
+<div class="singleView">
+	[#SingleToolbar#]
+	<table class='styled-table'>
+		<tr>
+			<td>|Наименование|*</td>
+			<td><b>[#title#]</b></td>
+		</tr>
+		<tr>
+			<td>|Вид|*</td>
+			<td>[#type#]</td>
+		</tr>
+	</table>
+	[#DETAILS#]
+</div>

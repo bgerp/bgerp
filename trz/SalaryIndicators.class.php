@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Заплати
@@ -21,74 +21,74 @@ class trz_SalaryIndicators extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Показатели';
+    public $title = 'Показатели';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected,  plg_SaveAndNew, 
+    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected,  plg_SaveAndNew, 
                     trz_Wrapper';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,trz';
+    public $canRead = 'ceo,trz';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,trz';
+    public $canEdit = 'ceo,trz';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,trz';
+    public $canAdd = 'ceo,trz';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,trz';
+    public $canView = 'ceo,trz';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,trz';
+	public $canList = 'ceo,trz';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,trz';
+	public $canSingle = 'ceo,trz';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,trz';
+    public $canDelete = 'ceo,trz';
 
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, date, doc=Документ, personId, departmentId, positionId, indicator, value';
+    public $listFields = 'id, date, doc=Документ, personId, departmentId, positionId, indicator, value';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
     	$this->FLD('date',    'date', 'caption=Дата,mandatory,width=100%');
     	$this->FLD('docId',    'int', 'caption=Документ->№,mandatory,width=100%');
@@ -111,7 +111,7 @@ class trz_SalaryIndicators extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	// Ако имаме права да видим визитката
     	if(crm_Persons::haveRightFor('single', $rec->personId)){
@@ -134,7 +134,7 @@ class trz_SalaryIndicators extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
     	
         // Добавяме поле във формата за търсене
@@ -192,7 +192,7 @@ class trz_SalaryIndicators extends core_Manager
     /**
      * Изпращане на данните към показателите
      */
-    function cron_Indicators()
+    public static function cron_Indicators()
     {
         $date = dt::now(FALSE);
        
@@ -201,7 +201,7 @@ class trz_SalaryIndicators extends core_Manager
     }
     
     
-    function act_Test()
+    public static function act_Test()
     {
     	$date = '2013-07-16';
     }
@@ -213,7 +213,7 @@ class trz_SalaryIndicators extends core_Manager
      * 
      * @param date $date
      */
-    static public function fetchIndicators($date)
+    public static function fetchIndicators($date)
     {
     	// Намираме всички класове съдържащи интерфейса
     	$docArr = core_Classes::getOptionsByInterface('trz_SalaryIndicatorsSourceIntf');
@@ -250,7 +250,7 @@ class trz_SalaryIndicators extends core_Manager
      * 
      * @param date $date
      */
-    static public function pushIndicators($date)
+    public static function pushIndicators($date)
     {
     	$indicators = self::fetchIndicators($date);
     	
@@ -283,7 +283,7 @@ class trz_SalaryIndicators extends core_Manager
     /**
      * Извличаме имената на идикаторите
      */
-    function getIndicatorNames()
+    public static function getIndicatorNames()
     {
     	$query = $this->getQuery();
     	$query->groupBy('indicator');
@@ -303,7 +303,7 @@ class trz_SalaryIndicators extends core_Manager
     /**
      * Изпълнява се след начално установяване
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
         $rec = new stdClass();
         $rec->systemId = "CollectIndicators";

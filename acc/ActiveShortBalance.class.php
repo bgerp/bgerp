@@ -62,6 +62,8 @@ class acc_ActiveShortBalance {
         $this->to = $params['to'];
         $strict = (isset($params['strict']) ? TRUE : FALSE);
         
+        set_time_limit(600);
+        
         // Подготвяме заявката към базата данни
         $jQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3'], $strict);
@@ -73,6 +75,7 @@ class acc_ActiveShortBalance {
         $this->calcBalance($this->recs, $this->balance);
         
         $this->acc_Balances = cls::get('acc_Balances');
+       // bp();
     }
     
     

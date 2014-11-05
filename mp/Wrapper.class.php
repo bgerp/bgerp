@@ -25,10 +25,7 @@ class mp_Wrapper extends plg_ProtoWrapper
         
         $this->TAB('mp_Jobs', 'Задания', 'ceo,mp');
         
-        $this->TAB(array('mp_Resources', 'list', 'type' => 'equipment'), 'Ресурси->Оборудване', 'ceo,mp');
-        $this->TAB(array('mp_Resources', 'list', 'type' => 'material'), 'Ресурси->Материал', 'ceo,mp');
-        $this->TAB(array('mp_Resources', 'list', 'type' => 'labor'), 'Ресурси->Труд', 'ceo,mp');
-        $this->TAB('mp_ObjectResources', 'Ресурси->Отношения', 'ceo,debug');
+        $this->TAB('mp_Resources', 'Ресурси', 'ceo,mp');
         
         $this->TAB('mp_Tasks', 'Задачи', 'ceo,mp');
          

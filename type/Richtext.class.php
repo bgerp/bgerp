@@ -230,6 +230,9 @@ class type_Richtext extends type_Blob
         // Намаляме стойността за да не гърми по-лош начин
         ini_set('pcre.recursion_limit', '16777');
         
+        // Заместваме й с ѝ
+        $html = preg_replace('/(\ )(й)([\ \.\,\?\!]){1}/u', '${1}ѝ${3}', $html);
+        
         // Обработваме [html] ... [/html] елементите, които могат да съдържат чист HTML код
         $html = preg_replace_callback("/\[html](.*?)\[\/html\]([\r\n]{0,2})/is", array($this, '_catchHtml'), $html);
         
@@ -540,12 +543,12 @@ class type_Richtext extends type_Blob
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         $from = array("\r\n", "\n\r", "\r", "\n", "\t", $nbspUtf8, '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', 
             
-        '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
+        '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[s]', '[/s]',); 
          
         $textMode = Mode::get('text');
         
         if($textMode != 'plain') { 
-            $to = array("\n", "\n", "\n", "<br>\n", "<nbsp><nbsp><nbsp><nbsp>", '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>' , '<div class="richtext-message richtext-tip">', '</div>' , '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>',);
+            $to = array("\n", "\n", "\n", "<br>\n", "<nbsp><nbsp><nbsp><nbsp>", '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>' , '<div class="richtext-message richtext-tip">', '</div>' , '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>', '<span style="color: #666; text-decoration: line-through">', '</span>');
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } elseif(Mode::is('ClearFormat')) {
            $to   = array("\n",   "\n",   "\n",  "\n", "    ", $nbspUtf8, '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
@@ -1252,10 +1255,11 @@ class type_Richtext extends type_Blob
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:red' title='" . tr('Червени букви') .  "' onclick=\"s('[color=red]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:green' title='" . tr('Зелени букви') .  "' onclick=\"s('[color=green]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:#888' title='" . tr('Сиви букви') .  "' onclick=\"s('[color=#888]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+    		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; text-decoration: line-through; color:#666' title='" . tr('Сиви задраскани букви ') .  "' onclick=\"s('[s]', '[/s]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
     		$toolbarArr->add("</span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             
-            $toolbarArr->add("<span class='richtext-relative-group' style='text-align:center;'>", 'TBL_GROUP2');
+            $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
             $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='" . tr('Цвят на фона') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group3', event)\"><span style=' background: yellow;'>A</span></a>", 'TBL_GROUP2');
             $emot3 = 'richtext-holder-group-after';
             $toolbarArr->add("<span id='{$attr['id']}-group3' class='richtext-emoticons3 richtext-holder-group {$emot3}'>", 'TBL_GROUP2');

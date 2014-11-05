@@ -303,12 +303,11 @@ class doc_Containers extends core_Manager
             $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png');
         }
         
-        // Ако има права за модифициране на настройките за персоналзиране
-        if (doc_Threads::haveRightFor('modify', $data->threadId)) {
-            
-            // Добавяме бутон в тулбара
-            $threadClassId = core_Classes::fetchIdByName('doc_Threads');
-            custom_Settings::addBtn($data->toolbar, $threadClassId, $data->threadId, 'Настройки');
+        // Ако има права за настройка на папката, добавяме бутона
+        $key = doc_Threads::getSettingsKey($data->threadId);
+        $userOrRole = core_Users::getCurrent();
+        if (doc_Threads::canModifySettings($key, $userOrRole)) {
+            core_Settings::addBtn($data->toolbar, $key, 'doc_Threads', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2));
         }
     }
     
@@ -419,11 +418,17 @@ class doc_Containers extends core_Manager
                 static::addNotifiactions($sharedArr, $docMvc, $rec, 'сподели', FALSE);
                 
                 // Всички абонирани потребилите
-                $subscribed = doc_ThreadUsers::getSubscribed($rec->threadId);
-                $subscribedArr = keylist::toArray($subscribed);
+                $subscribedArr = doc_ThreadUsers::getSubscribed($rec->threadId);
+                
+                // Всички споделени потребители в цялата нишка
+                $oldSharedArr = doc_ThreadUsers::getShared($rec->threadId);
+                
+                $subscribedArr += $oldSharedArr;
+                
+                $subscribedWithoutSharedArr = array_diff($subscribedArr, $sharedArr);
                 
                 // Нотифицираме абонираните потребители
-                static::addNotifiactions($subscribedArr, $docMvc, $rec, 'добави');
+                static::addNotifiactions($subscribedWithoutSharedArr, $docMvc, $rec, 'добави');
             }
         }
     }
@@ -441,6 +446,27 @@ class doc_Containers extends core_Manager
      */
     static function addNotifiactions($usersArr, $docMvc, $rec, $action='добави', $checkThreadRight=TRUE, $priority='normal')
     {
+        // Ако няма да се споделя, а ще се добавя
+        if ($action != 'сподели') {
+            
+            // id на класа
+            $key = doc_Threads::getSettingsKey($rec->threadId);
+            
+            $settingsNotifyArr = core_Settings::fetchUsers($key, 'notify');
+            
+            // В зависимост от настройкие добавяме или премахваме от списъка за нотифициране
+            foreach ((array)$settingsNotifyArr as $userSettingsId => $notifyArr) {
+                if ($notifyArr['notify'] == 'no') {
+                    unset($usersArr[$userSettingsId]);
+                } else if ($notifyArr['notify'] == 'yes') {
+                    // Ако има права за сингъла на нишката тогава може да се нотифицира
+                    if (doc_Threads::haveRightFor('single', $rec->threadId, $userSettingsId)) {
+                        $usersArr[$userSettingsId] = $userSettingsId;
+                    }
+                }
+            }
+        }
+        
         // Ако няма потребители за нотифирциране
         if (!$usersArr) return ;
         
@@ -478,16 +504,6 @@ class doc_Containers extends core_Manager
         // Къде да сочи линка при натискане на нотификацията
         $customUrl = array($docMvc, 'single', $rec->docId);
         
-        // Ако няма да се споделя, а ще се добавя
-        if ($action != 'сподели') {
-            
-            // id на класа
-            $threadClassId = doc_Threads::getClassId();
-            
-            // Вземаме данните
-            $noNotificationsUsersArr = custom_Settings::fetchUsers($threadClassId, $rec->threadId, 'notify');
-        }
-        
         // Обхождаме масива с всички потребители, които ще имат съответната нотификация
         foreach((array)$usersArr as $userId) {
             
@@ -496,18 +512,6 @@ class doc_Containers extends core_Manager
             
             // Ако потребителя, вече е бил нотифициран
             if ($notifiedUsersArr[$userId]) continue;
-            
-            // Ако има масив с потребители, които да не се нотифицират
-            if ($noNotificationsUsersArr) {
-                
-                // Ако текущия потребител не трябва да се нотифицира
-                if ($noNotificationsUsersArr[$userId] == 'no') continue;
-                
-                // Ако текущия потребител не трябва да се нотифицира, когато настройката е по-подразбиране
-                if ($noNotificationsUsersArr[$userId] != 'yes') {
-                    if ($noNotificationsUsersArr[-1] == 'no') continue;
-                }
-            }
             
             // Ако е зададено да се проверява и няма права до сингъла на нишката, да не се нотифицира
             if ($checkThreadRight && !doc_Threads::haveRightFor('single', $rec->threadId, $userId)) continue;

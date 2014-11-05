@@ -176,6 +176,34 @@ class acc_Balances extends core_Master
     }
     
     
+    /**
+     * След подготовка на туклбара на списъчния изглед
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата');
+    }
+    
+    
+    /**
+     * Изчиства записите в балансите
+     */
+    public function act_Truncate()
+    {
+    	requireRole('admin,debug');
+    	
+    	$Balances = cls::get('acc_Balances');
+    	$Balances->db->query("TRUNCATE TABLE `{$Balances->dbTableName}`");
+    	
+    	$BalanceDetails = cls::get('acc_BalanceDetails');
+    	$BalanceDetails->db->query("TRUNCATE TABLE `{$BalanceDetails->dbTableName}`");
+    	
+    	Redirect(array($this, 'list'), FALSE, 'Балансите са изчистени успешно');
+    }
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -241,9 +269,10 @@ class acc_Balances extends core_Master
     {
         // Ако записа на баланса не за записан, записваме го, за да имаме id
         $exRec = self::fetch("#fromDate = '{$rec->fromDate}' AND #toDate = '{$rec->toDate}'");
- 
+        
         if(!$exRec) {
-            self::save($rec);
+            $id = self::save($rec);
+           
         } else {
             $rec = $exRec;
         }
@@ -257,7 +286,9 @@ class acc_Balances extends core_Master
             // Ако изчисляваме текущия период, опитваме да преизчислим баланс за предишен работен ден
             if($rec->toDate == dt::getLastDayOfMonth()) {
                 if($prevWorkingDay = self::getPrevWorkingDay($today)) {
+                	
                     $prevRec = clone($rec);
+                    unset($prevRec->id);
                     $prevRec->toDate = $prevWorkingDay;
                     $prevRec->periodId = NULL;
                     self::forceCalc($prevRec);
@@ -543,7 +574,7 @@ class acc_Balances extends core_Master
                         $balImg = ($showIcon) ? array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/clock_history.png') . ');') : NULL;
                         
                         $title = ht::createLink($title,
-                            array('acc_HistoryReport', 'History', 'fromDate' => $rec->fromDate, 'toDate' => $rec->toDate, 'accNum' => $accountRec->num), NULL, $balImg);
+                            array('acc_BalanceHistory', 'History', 'fromDate' => $rec->fromDate, 'toDate' => $rec->toDate, 'accNum' => $accountRec->num), NULL, $balImg);
                     }
                 }
             }
