@@ -149,7 +149,7 @@ class core_Embedder extends core_Master
 		}
 		 
 		if($form->isSubmitted()) {
-			$form->rec->{$mvc->innerFormField} = $form->rec;
+			$form->rec->{$mvc->innerFormField} = clone $form->rec;
 		}
 	}
 	
