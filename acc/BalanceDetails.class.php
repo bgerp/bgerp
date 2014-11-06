@@ -720,7 +720,8 @@ class acc_BalanceDetails extends core_Detail
      */
     public function saveBalance($balanceId)
     {
-        if(count($this->balance)) {
+        $toSave = array();
+    	if(count($this->balance)) {
             foreach ($this->balance as $accId => $l0) {
                 foreach ($l0 as $ent1 => $l1) {
                     foreach ($l1 as $ent2 => $l2) {
@@ -743,14 +744,15 @@ class acc_BalanceDetails extends core_Detail
                             	}
                             }
                             
-                            $this->save((object)$rec);
+                            $toSave[] = (object)$rec;
                         }
                     }
                 }
             }
         }
         
-        unset($this->balance, $this->strategies);
+        // Записваме всички данни на веднъж
+        $this->saveArray($toSave);
     }
     
     
