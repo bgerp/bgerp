@@ -1212,19 +1212,16 @@ function setMinHeightExt() {
 
         var add = 16;
         if ($('body').hasClass('wide')) {
-            add = 30;
+            add = 28;
         }
    
         if ($('#maincontent').length) {
             var h = (clientHeight - ct - cb - cm - add);
             if(totalPadding) {
-            	h = h - totalPadding + 4;
+            	h = h - totalPadding + 2;
             }
-            if($(window).width() > 600){
+            if($(window).width() > 600 && $('body').hasClass('narrow')){
             	h -= 3;
-            	if($(window).width() > 1000){
-            		h -= 4;
-            	}
 	        }
             if (h > 60) {
             	$('#maincontent').css('minHeight', h);
