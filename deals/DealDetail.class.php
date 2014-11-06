@@ -218,7 +218,7 @@ abstract class deals_DealDetail extends doc_Detail
     		if($form->cmd == 'refresh'){
 	    		$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
 	    		
-	    		if($baseInfo->classId == 'cat_Packagings'){bp($baseInfo->classId, cat_Packagings::getClassId());
+	    		if($baseInfo->classId == 'cat_Packagings'){
 	    			$form->rec->packagingId = $baseInfo->id;
 	    		}
 	    	}
