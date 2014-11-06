@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'bgerp_ProtoWrapper' - Прототип на wrapper за модулите на bgERP
+ * Клас 'plg_ProtoWrapper' - Прототип на wrapper за модулите на bgERP
  * Показва няколко таба, свързани с различни пакети
  *
  *
@@ -60,10 +60,29 @@ class plg_ProtoWrapper extends core_Plugin
 
 
     /**
+     * Връща заглавието на HTML страницата
+     */
+    function getHtmlPageTitle($invoker, $data)
+    {
+        // Генерираме титлата на страницата
+        if(isset($data->pageTitle)) {
+            $title = $data->pageTitle;
+        } else {
+            $title = tr($invoker->title);
+            if($this->title) {
+                $title .= ' « ' . tr($this->title);
+            }
+        }
+
+        return $title;
+    }
+
+
+    /**
      * Извиква се след рендирането на 'опаковката' на мениджъра
      */
-    function on_AfterRenderWrapping($invoker, &$tpl)
-    { 
+    function on_AfterRenderWrapping($invoker, &$tpl, $blankTpl, $data = NULL)
+    {
         $tpl= new ET($tpl);
         
         $this->invoke('beforeDescription');
@@ -74,12 +93,8 @@ class plg_ProtoWrapper extends core_Plugin
             Mode::set('pageMenu', $this->pageMenu);
         }
         
-        // Генерираме титлата на страницата
-        if($this->title) {
-            $title = ' « ' . tr($this->title);
-        }
-
-        $tpl->prepend(tr($invoker->title) . $title . ' « ', 'PAGE_TITLE');
+        // Добавяме титлата на страницата
+        $tpl->prepend($this->getHtmlPageTitle($invoker, $data) . ' « ', 'PAGE_TITLE');
         
         // Проверяваме дали текущия таб не е изрично зададен
         if ($isCurrentTabSet = $invoker->currentTab  ) {
