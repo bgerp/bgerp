@@ -1201,22 +1201,33 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
-    var ch = document.documentElement.clientHeight;
-    if (document.getElementById('cmsTop')) {
-        var ct = document.getElementById('cmsTop').offsetHeight;
-        var cb = document.getElementById('cmsBottom').offsetHeight;
-        var cm = document.getElementById('cmsMenu').offsetHeight;
+    var clientHeight = document.documentElement.clientHeight;
+    if ($('#cmsTop').length) {
+    	var padding = $('.background-holder').css('padding-top');
+    	var totalPadding = 2 * parseInt(padding);
+    	
+        var ct = $('#cmsTop').height();
+        var cb = $('#cmsBottom').height();
+        var cm = $('#cmsMenu').height();
 
-        var add = 7;
-        if (document.body.className.match('wide')) {
-            add = 36;
+        var add = 16;
+        if ($('body').hasClass('wide')) {
+            add = 30;
         }
-
-        if (document.getElementById('maincontent')) {
-            var mc = document.getElementById('maincontent');
-            var h = (ch - ct - cb - cm - add);
+   
+        if ($('#maincontent').length) {
+            var h = (clientHeight - ct - cb - cm - add);
+            if(totalPadding) {
+            	h = h - totalPadding + 4;
+            }
+            if($(window).width() > 600){
+            	h -= 3;
+            	if($(window).width() > 1000){
+            		h -= 4;
+            	}
+	        }
             if (h > 60) {
-                mc.style.minHeight = h + 'px';
+            	$('#maincontent').css('minHeight', h);
             }
         }
     }
