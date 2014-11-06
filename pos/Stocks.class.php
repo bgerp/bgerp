@@ -122,7 +122,7 @@ class pos_Stocks extends core_Manager {
     		
     		// Променят се количествата само при нужда
     		$rec = (object)array('storeId'   => $storeId, 'productId' => $productId, 'quantity'  => $amount,);
-    		$exRec = static::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+    		$exRec = static::fetch("#productId = {$productId} AND #storeId = {$storeId}", '*', FALSE);
     		if($exRec){
     			if($exRec->quantity == $rec->quantity) continue;
     			$exRec->quantity = $rec->quantity;

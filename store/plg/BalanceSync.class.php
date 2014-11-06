@@ -30,11 +30,15 @@ class store_plg_BalanceSync extends core_Plugin
 		// Ако има данни за синхронизиране
 		if($all){
 			
+			core_Debug::$isLogging = FALSE;
+			
 			// Синхронизиране на складовите продукти с тези от баланса (@see store_Products)
 			store_Products::sync($all);
 			
 			// Синхронизиране на pos наличностите с тези от баланса (@see pos_Stocks)
 			pos_Stocks::sync($all);
+			
+			core_Debug::$isLogging = TRUE;
 		}
 	}
 	
@@ -66,10 +70,10 @@ class store_plg_BalanceSync extends core_Plugin
 			if($rec->ent1Id){
 				 
 				// Перо 'Склад'
-				$storeItem = acc_Items::fetch($rec->ent1Id);
+				$storeItem = acc_Items::fetch($rec->ent1Id, '*', FALSE);
 		   
 				// Перо 'Артикул'
-				$pItem = acc_Items::fetch($rec->ent2Id);
+				$pItem = acc_Items::fetch($rec->ent2Id, '*', FALSE);
 		   
 				// Съмаризиране на информацията за артикул / склад
 				$index = $storeItem->objectId . "|" . $pItem->classId . "|" . $pItem->objectId;
