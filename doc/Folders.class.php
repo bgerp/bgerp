@@ -1075,11 +1075,12 @@ class doc_Folders extends core_Master
         
         list($className, $id) = explode('::', $key);
         
-        if (!doc_Folders::haveRightFor('single', $id)) return FALSE;
+        $currUser = core_Users::getCurrent();
+        
+        if (!doc_Folders::haveRightFor('single', $id, $currUser)) return FALSE;
         
         if (!$userOrRole) return TRUE;
         
-        $currUser = core_Users::getCurrent();
         if ($currUser == $userOrRole) {
             
             return TRUE;

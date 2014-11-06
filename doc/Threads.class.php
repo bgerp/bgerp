@@ -1580,11 +1580,12 @@ class doc_Threads extends core_Manager
         
         list($className, $id) = explode('::', $key);
         
-        if (!doc_Threads::haveRightFor('single', $id)) return FALSE;
+        $currUser = core_Users::getCurrent();
+        
+        if (!doc_Threads::haveRightFor('single', $id, $currUser)) return FALSE;
         
         if (!$userOrRole) return TRUE;
         
-        $currUser = core_Users::getCurrent();
         if ($currUser == $userOrRole) {
             
             return TRUE;
