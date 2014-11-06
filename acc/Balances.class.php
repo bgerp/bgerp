@@ -313,7 +313,12 @@ class acc_Balances extends core_Master
         $lastRec = $this->getBalanceBefore($rec->toDate);
         
         if($lastRec) {
-            $bD->loadBalance($lastRec->id);
+        	
+        	// Ако има зададен период не е междинен баланса, иначе е
+        	$isMiddleBalance = (!empty($lastRec->periodId)) ? FALSE : TRUE;
+        	
+        	// Зареждаме баланса
+            $bD->loadBalance($lastRec->id, $isMiddleBalance);
             $firstDay = dt::addDays(1, $lastRec->toDate);
         } else {
             $firstDay = self::TIME_BEGIN;

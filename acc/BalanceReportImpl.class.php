@@ -16,10 +16,12 @@
 class acc_BalanceReportImpl extends frame_BaseDriver
 {
     
+	
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectSource = 'ceo, acc';
+    
     
     /**
      * Заглавие

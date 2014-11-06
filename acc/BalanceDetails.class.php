@@ -753,13 +753,16 @@ class acc_BalanceDetails extends core_Detail
         
         // Записваме всички данни на веднъж
         $this->saveArray($toSave);
+        
+        // Изтриваме запаметените изчислени данни
+        unset($this->balance, $this->strategies);
     }
     
     
     /**
      * Зарежда в сингълтона баланса с посоченото id
      */
-    public function loadBalance($balanceId, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
+    public function loadBalance($balanceId, $isMiddleBalance = FALSE, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
     {
         $query = $this->getQuery();
         
@@ -786,8 +789,25 @@ class acc_BalanceDetails extends core_Detail
             $b['ent1Id'] = $ent1Id;
             $b['ent2Id'] = $ent2Id;
             $b['ent3Id'] = $ent3Id;
-            $b['baseQuantity'] += $rec->blQuantity;
-            $b['baseAmount'] += $rec->blAmount;
+            
+            if($isMiddleBalance){
+            	
+            	// Ако зареждаме междинен баланс взимаме и неговия дебитен/кредитен оборот
+            	$this->inc($b['debitQuantity'], $rec->debitQuantity);
+            	$this->inc($b['debitAmount'], $rec->debitAmount);
+            	$this->inc($b['creditQuantity'], $rec->creditQuantity);
+            	$this->inc($b['creditAmount'], $rec->creditAmount);
+            	
+            	$b['baseQuantity'] += $rec->baseQuantity;
+            	$b['baseAmount']   += $rec->baseAmount;
+            	
+            } else {
+            	
+            	// Ако не зареждаме междинен баланс взимаме само  крайното му салдо като начално
+            	$b['baseQuantity'] += $rec->blQuantity;
+            	$b['baseAmount']   += $rec->blAmount;
+            }
+            
             $b['blQuantity'] += $rec->blQuantity;
             $b['blAmount'] += $rec->blAmount;
         }
@@ -1022,10 +1042,10 @@ class acc_BalanceDetails extends core_Detail
     {
         if (!empty($add)) {
             $v += $add;
+            
+            // Машинно закръгляне
+            $v = round($v, 5);
         }
-        
-        // Машинно закръгляне
-        $v = round($v, 5);
     }
     
     
