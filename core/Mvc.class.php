@@ -331,7 +331,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Записва няколко записа от модела с една заявка, ако има дуплицирани, обновява ги
      */
-    public function saveArray($recs, $fields = NULL)
+    public function saveArray_($recs, $fields = NULL)
     {
     	if(!count($recs)) return;
     	
@@ -378,33 +378,23 @@ class core_Mvc extends core_FieldSet
     		$query .= $string;
     		
     		// Ако заявката е твърде голяма, отделяме ззаписите които не са вкарани
-    		if(mb_strlen($query) >= '150000'){
+    		if(strlen($query) >= '1500000'){
     			$restRecs = array_slice($recs, $id + 1, NULL, TRUE);
     			break;
     		}
     	}
     	$query = trim($query, ",");
+    	
     	// Ако има дуплициране на запис, обновяваме същесъвуващия запис с новия
-    	/*$query = trim($query, ",");
+    	$query = trim($query, ",");
     	$query .= " ON DUPLICATE KEY UPDATE";
     	foreach ($fields as $mysqlName){
     		$query .= " {$mysqlName}=VALUES({$mysqlName}),";
     	}
-    	$query = trim($query, ",");*/
+    	$query = trim($query, ",");
     	
     	// Изпълняваме заявката
     	if (!$this->db->query($query)) return FALSE;
-    	
-    	// За всеки от подадените записи, генерираме събитие в модела
-    	foreach ($recs as $rec){
-    		if($rec->id){
-    			$this->invoke('afterUpdate', array($rec, $fields));
-    		} else {
-    			$this->invoke('afterCreate', array($rec, $fields));
-    		}
-    		
-    		$this->invoke('AfterSave', array($rec->id, &$rec, $fields));
-    	}
     	
     	// Ако има останали записи, записваме и тях
     	if(count($restRecs)){
