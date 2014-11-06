@@ -184,7 +184,7 @@ class acc_Balances extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата');
+    	$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
     }
     
     
@@ -195,11 +195,9 @@ class acc_Balances extends core_Master
     {
     	requireRole('admin,debug');
     	
-    	$Balances = cls::get('acc_Balances');
-    	$Balances->db->query("TRUNCATE TABLE `{$Balances->dbTableName}`");
-    	
-    	$BalanceDetails = cls::get('acc_BalanceDetails');
-    	$BalanceDetails->db->query("TRUNCATE TABLE `{$BalanceDetails->dbTableName}`");
+    	// Изчистваме записите от моделите
+    	acc_Balances::truncate();
+    	acc_BalanceDetails::truncate();
     	
     	Redirect(array($this, 'list'), FALSE, 'Балансите са изчистени успешно');
     }
@@ -315,7 +313,12 @@ class acc_Balances extends core_Master
         $lastRec = $this->getBalanceBefore($rec->toDate);
         
         if($lastRec) {
-            $bD->loadBalance($lastRec->id);
+        	
+        	// Ако има зададен период не е междинен баланса, иначе е
+        	$isMiddleBalance = (!empty($lastRec->periodId)) ? FALSE : TRUE;
+        	
+        	// Зареждаме баланса
+            $bD->loadBalance($lastRec->id, $isMiddleBalance);
             $firstDay = dt::addDays(1, $lastRec->toDate);
         } else {
             $firstDay = self::TIME_BEGIN;

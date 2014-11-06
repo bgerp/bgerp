@@ -273,7 +273,7 @@ class store_Products extends core_Manager
     		);
     		
     		// Ако има съществуващ запис се обновява количеството му
-	    	$exRec = static::fetch("#productId = {$productId} AND #classId = {$classId} AND #storeId = {$storeId}");
+	    	$exRec = static::fetch("#productId = {$productId} AND #classId = {$classId} AND #storeId = {$storeId}", '*', FALSE);
 	    	if($exRec){
 	    		// Ъпдейтваме количеството само ако има промяна
 	    		if($exRec->quantity == $rec->quantity) {

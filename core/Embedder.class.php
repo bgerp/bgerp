@@ -58,7 +58,7 @@ class core_Embedder extends core_Master
 		// Добавяме задължителните полета само ако не е дефинирано че вече съществуват
 		
 		if(!isset($mvc->fields[$mvc->innerClassField])){
-			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty)", "caption=Драйвър,mandatory");
+			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty, select=title)", "caption=Драйвър,mandatory,silent", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
 		}
 		
 		if(!isset($mvc->fields[$mvc->innerFormField])){
@@ -149,7 +149,7 @@ class core_Embedder extends core_Master
 		}
 		 
 		if($form->isSubmitted()) {
-			$form->rec->{$mvc->innerFormField} = $form->rec;
+			$form->rec->{$mvc->innerFormField} = clone $form->rec;
 		}
 	}
 	
@@ -180,6 +180,12 @@ class core_Embedder extends core_Master
 	public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
 	{
 		$innerClass = (!empty($rec->{$mvc->innerClassField})) ? $rec->{$mvc->innerClassField} : $mvc->fetchField($rec->id, $mvc->innerClassField);
+		
+		// Подсигуряваме се че няма попогрешка да забършим полетата за вътрешното състояние
+		if($rec->id){
+			$rec->{$mvc->innerStateField} = (!empty($rec->{$mvc->innerStateField})) ? $rec->{$mvc->innerStateField} : $mvc->fetchField($rec->id, $mvc->innerStateField);
+			$rec->{$mvc->innerFormField} = (!empty($rec->{$mvc->innerFormField})) ? $rec->{$mvc->innerFormField} : $mvc->fetchField($rec->id, $mvc->innerFormField);
+		}
 		
 		$innerDrv = cls::get($innerClass);
 		

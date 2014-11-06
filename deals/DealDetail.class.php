@@ -217,7 +217,8 @@ abstract class deals_DealDetail extends doc_Detail
     		// Само при рефреш слагаме основната опаковка за дефолт
     		if($form->cmd == 'refresh'){
 	    		$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-	    		if($baseInfo->classId == cat_Packagings::getClassId()){
+	    		
+	    		if($baseInfo->classId == 'cat_Packagings'){
 	    			$form->rec->packagingId = $baseInfo->id;
 	    		}
 	    	}
@@ -355,7 +356,7 @@ abstract class deals_DealDetail extends doc_Detail
             
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
-            	if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, 'canSell', 1))){
+            	if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, 1))){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
                 

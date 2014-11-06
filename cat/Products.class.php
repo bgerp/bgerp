@@ -1076,13 +1076,13 @@ class cat_Products extends core_Master {
     	if($basePack){
     		$arr['name'] = cat_Packagings::getTitleById($basePack->packagingId);
     		$arr['quantity'] = $basePack->quantity;
-    		$arr['classId'] = cat_Packagings::getClassId();
+    		$arr['classId'] = 'cat_Packagings';
     		$arr['id'] = $basePack->packagingId;
     	} else {
     		$measureId = $this->fetchField($id, 'measureId');
     		$arr['name'] = cat_UoM::getTitleById($measureId);
     		$arr['quantity'] = 1;
-    		$arr['classId'] = cat_UoM::getClassId();
+    		$arr['classId'] = 'cat_UoM';
     		$arr['id'] = $measureId;
     	}
     		

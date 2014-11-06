@@ -519,7 +519,7 @@ class techno_GeneralProducts extends core_Master {
      	
      	return (object)array('name'     => cat_UoM::getTitleById($measureId), 
      						 'quantity' => 1, 
-     						 'classId'  => cat_UoM::getClassId(), 
+     						 'classId'  => 'cat_UoM', 
      						 'id'       => $measureId);
      }
      

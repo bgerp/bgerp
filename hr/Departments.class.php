@@ -38,7 +38,7 @@ class hr_Departments extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing,
+    public $loadList = 'plg_RowTools, acc_RegisterIntf, hr_Wrapper, doc_FolderPlg, plg_Printing,
                      plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
     
     
@@ -122,14 +122,16 @@ class hr_Departments extends core_Master
                                  shift=Смяна,
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД, hint=Номер по НКИД');
-        $this->FLD('staff', 'key(mvc=hr_Departments, select=name)', 'caption=В състава на,width=100%');
-        
+        $this->FLD('staff', 'key(mvc=hr_Departments, select=name,allowEmpty)', 'caption=В състава на,width=100%');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
+        $this->FLD('activities', 'enum(yes=Да, no=Не)', "caption=Център на дейности,maxRadio=2,columns=2,notNull,value=yes");
+        
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
         $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работно време->График");
         $this->FLD('startingOn', 'datetime', "caption=Работно време->Начало");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
+        
     }
     
     
@@ -154,7 +156,7 @@ class hr_Departments extends core_Master
         }
         
         $data->form->setOptions('staff', $opt);
-        $data->form->setDefault('staff', 'organization');
+        //$data->form->setDefault('staff', 'organization');
     }
     
     
@@ -323,70 +325,97 @@ class hr_Departments extends core_Master
         }
     }
     
+    /*******************************************************************************************
+     * 
+     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
+     * 
+     ******************************************************************************************/
+    
+    
     /**
-     * Създава на корен към графа за структурата. Той е "Моята фирма"
+     * Връща заглавието и мярката на перото за продукта
+     *
+     * Част от интерфейса: intf_Register
      */
-    public function on_AfterSetUpMvc($mvc, &$res)
+    function getItemRec($objectId)
     {
-        $myCompany = crm_Companies::fetchOwnCompany();
-            
-        if(!self::count()) {
-            
-            // Създаваме го
-            $rec = new stdClass();
-            $rec->name = $myCompany->company;
-            $rec->type = 'organization';
-            $rec->staff = NULL;
-            
-            self::save($rec);
-        } else {
-            $query = self::getQuery();
-            $myCompanyName = trim($myCompany->company);
-            $query->where("#name = '{$myCompanyName}' AND #type = 'organization'");
-             
-            if ($query->fetch() == FALSE) {
-                $rec = new stdClass();
-                $rec->name = $myCompany->company;
-                $rec->type = 'organization';
-                $rec->staff = NULL;
-                
-                self::save($rec); 
-            }
+        $result = NULL;
+        
+        if ($rec = self::fetch($objectId)) {
+            $result = (object)array(
+                'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
+                'num' => "Ec" . $rec->id,
+                'features' => 'foobar' // @todo!
+            );
         }
+        
+        return $result;
     }
     
+    
+    /**
+     * @see crm_ContragentAccRegIntf::itemInUse
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
+        // @todo!
+    }
+    
+    
+    /**
+     * КРАЙ НА интерфейса @see acc_RegisterIntf
+     */
+    
+    /****************************************************************************************
+     *                                                                                      *
+     *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
+     *                                                                                      *
+     ****************************************************************************************/
+
     
     /**
      * Изчертаване на структурата с данни от базата
      */
     public static function getChart ($data)
     {
+        // взимаме "текущата фирма"
         $myCompany = crm_Companies::fetchOwnCompany();
         
-        foreach((array)$data->recs as $rec){
-            // Ако имаме родител 
-            if ($parent = $rec->staff) {
-                if ($rec->name == $myCompany && $rec->staff == NULL) {
-                    $parentMyCompany = $rec->id;
-                }
-                if ($parent == NULL) {
-                    $parent = $parentMyCompany;
-                }
-                // взимаме чистото име на наследника
-                $name = self::fetchField($rec->id, 'name');
-            } else {
-                // в противен случай, го взимаме
-                // както е
-                $name = $rec->name;
-            }
-            
-            $res[] = array(
-                'id' => $rec->id,
-                'title' => $name,
-                'parent_id' => $rec->staff === NULL ? "NULL": $parent,
-            );
-        }
+        // правим данните за нея
+        $myCompanyRec = new stdClass();
+        $myCompanyRec->id = '0';
+        $myCompanyRec->name = $myCompany->company;
+        $myCompanyRec->staff = NULL;
         
+        $arrData = (array)$data->recs;
+        array_push($arrData, $myCompanyRec);
+       
+        foreach($arrData as $rec){
+            // Ако имаме родител 
+             if($rec->staff == NULL && $rec->name !== $myCompany->company) {
+                 $parent = '0';
+                 // взимаме чистото име на наследника
+                 $name = self::fetchField($rec->id, 'name');
+             } else {
+                 // в противен случай, го взимаме
+                 // както е
+                 if ($rec->name == $myCompany->company){
+                     $name = $rec->name;
+                     $parent = 'NULL';
+                 } else {
+                     $name = self::fetchField($rec->id, 'name');
+                     $parent = $rec->staff;
+                 }
+             }
+            
+             $res[] = array(
+             'id' => $rec->id,
+             'title' => $name,
+             'parent_id' => $parent,
+             );
+        }
+
         $chart = orgchart_Adapter::render_($res);
         
         return $chart;
