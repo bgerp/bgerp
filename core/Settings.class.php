@@ -275,6 +275,34 @@ class core_Settings extends core_Manager
     
     
     /**
+     * Взема записите само за зададения потребител/роля
+     * 
+     * @param string $key
+     * @param integer|NULL $userOrRole
+     * 
+     * @return array
+     */   
+    public static function fetchKeyNoMerge($key, $userOrRole = NULL)
+    {
+        $dataVal = array();
+        
+        $key = self::prepareKey($key);
+        
+        $userOrRole = self::prepareUserOrRole($userOrRole);
+        
+        // Вземаме записа
+        $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
+        
+        // Ако има запис връщаме масива с данните
+        if ($rec) {
+            $dataVal = (array)$rec->data;
+        }
+        
+        return $dataVal;
+    }
+    
+    
+    /**
      * Екшън за модифициране на данни
      */
     protected function act_Modify()
@@ -294,6 +322,7 @@ class core_Settings extends core_Manager
         
         // Създаваме празна форма
         $form = cls::get('core_Form');
+        $form->title = 'Персонализиране';
         
         // Добавяме необходимите полета
         $form->FNC('_userOrRole', 'userOrRole', 'caption=Потребител, input=input, silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
@@ -314,8 +343,6 @@ class core_Settings extends core_Manager
         // Очакваме да има права за модифициране на записа за съответния потребител
         expect($class->canModifySettings($key, $form->rec->_userOrRole));
         
-        $form->title = 'Персонализиране';
-        
         // Вземаме стойностите за този потребител/роля
         $valsArr = self::fetchKeyNoMerge($key, $form->rec->_userOrRole);
         
@@ -326,6 +353,9 @@ class core_Settings extends core_Manager
         
         // Извикваме интерфейсната функция
         $class->prepareForm($form);
+        
+        // Ключа може да е променен в интерфейсния метод
+        $key = $form->rec->_key;
         
         // Ако е избран потребител, а не роля
         if ($form->rec->_userOrRole > 0) {
@@ -477,34 +507,6 @@ class core_Settings extends core_Manager
         
         // Записваме новите данни
         self::save($nRec);
-    }
-    
-    
-    /**
-     * Взема записите само за зададения потребител/роля
-     * 
-     * @param string $key
-     * @param integer|NULL $userOrRole
-     * 
-     * @return array
-     */   
-    protected static function fetchKeyNoMerge($key, $userOrRole = NULL)
-    {
-        $dataVal = array();
-        
-        $key = self::prepareKey($key);
-        
-        $userOrRole = self::prepareUserOrRole($userOrRole);
-        
-        // Вземаме записа
-        $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
-        
-        // Ако има запис връщаме масива с данните
-        if ($rec) {
-            $dataVal = (array)$rec->data;
-        }
-        
-        return $dataVal;
     }
     
     
