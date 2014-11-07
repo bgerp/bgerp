@@ -18,7 +18,7 @@ class crm_Profiles extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'crm_ProfileIntf';
+    var $interfaces = 'crm_ProfileIntf, core_SettingsIntf';
     
     
     /**
@@ -265,12 +265,11 @@ class crm_Profiles extends core_Master
             }
         }
         
-        // Ако има права за модифициране на настройките за персоналзиране
-        // @see custom_SettingsIntf
-        if (core_Users::haveRightFor('personalize', $data->rec->userId)) {
-            
-            // Добавяме бутона, който сочи към екшъна за персонализиране
-            $data->toolbar->addBtn('Персонализиране', array('core_Users', 'Personalize', $data->rec->userId, 'ret_url' => TRUE), 'ef_icon=img/16/customize.png,title=Персонализиране на настройките,row=2');
+        // Бутон за персонализиране
+        $key = self::getSettingsKey($data->rec->userId);
+        $currUser = core_Users::getCurrent();
+        if (self::canModifySettings($key, $currUser)) {
+            core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
         }
     }
     
@@ -864,6 +863,185 @@ class crm_Profiles extends core_Master
                 if (!haveRole('ceo, admin')) {
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+    }
+	
+	
+	/**
+     * Връща ключа за персонална настройка
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    static function getSettingsKey($userId)
+    {
+        $key = core_Users::getSettingsKey($userId);
+        
+        return $key;
+    }
+    
+    
+    /**
+     * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
+     * 
+     * @param string $key
+     * @param integer $userOrRole
+     * @see core_SettingsIntf
+     */
+    static function canModifySettings($key, $userOrRole=NULL)
+    {
+        // Всеки може да променя собствените си настройки
+        // admin|ceo могат да променят на всички
+        
+        $currUserId = core_Users::getCurrent();
+        
+        if ($currUserId == $userOrRole) return TRUE;
+        
+        if (haveRole('admin, ceo')) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Подготвя формата за настройки
+     * 
+     * @param core_Form $form
+     * @see core_SettingsIntf
+     */
+    function prepareForm(&$form)
+    {
+        // Променяме ключа, когато ще се настройва за друг потребител (без ролите)
+        if ($form->rec->_userOrRole > 0) {
+            
+            $newKey = self::getSettingsKey($form->rec->_userOrRole);
+            
+            // Ако ключа е променен, добавяме новите стойности за него
+            if ($newKey != $form->rec->_key) {
+                
+                $form->rec->_key = $newKey;
+                
+                expect(crm_Profiles::canModifySettings($newKey, $form->rec->_userOrRole));
+                
+                $valsArr = core_Settings::fetchKeyNoMerge($newKey, $form->rec->_userOrRole);
+                foreach ($valsArr as $valKey => $val) {
+                    $form->rec->$valKey = $val;
+                }
+            }
+        }
+        
+        // Задаваме таба на менюто да сочи към документите
+        Mode::set('pageMenu', 'Указател');
+        Mode::set('pageSubMenu', 'Визитник');
+        $this->currentTab = 'Профили';
+        
+        $userOrRoleId = $form->rec->_userOrRole;
+        
+        $currUserId = core_Users::getCurrent();
+        
+        // Определяме заглавието на формата
+        if ($userOrRoleId > 0) {
+            
+            $Users = cls::get('core_Users');
+            $rec = $Users->fetch($userOrRoleId);
+            $row = $Users->recToVerbal($rec, 'nick');
+            $title = "на|*: " . $row->nick;
+        } else {
+            $roleId = type_UserOrRole::getRoleIdFromSys($userOrRoleId);
+            
+            $title = "за роля";
+        }
+        
+        // Определяме заглавито
+        $form->title = "Персонализиране на настройките " . $title;
+        
+        $form->__defaultRec = new stdClass();
+        
+        $query = core_Packs::getQuery();
+        while ($rec = $query->fetch()) {
+            
+            // Зареждаме сетъп пакета
+            $clsName = $rec->name . "_Setup";
+            if (!cls::load($clsName, TRUE)) continue;
+            $clsInst = core_Cls::get($clsName);
+            
+            // Ако няма полета за конфигуриране
+            if (!($clsInst->getConfigDescription())) continue;
+            
+            // Флаг, който указва да не се вземат данните от настройките
+            // Да не се инвоква функцията от плъгините
+            Mode::push('stopInvoke', TRUE);
+            
+            $packConf = core_Packs::getConfig($rec->name);
+            
+            // Обхождаме всички полета за конфигуриране
+            foreach ((array)$clsInst->getConfigDescription() as $field => $arguments) {
+                
+                // Типа на полета
+                $type = $arguments[0];
+                
+                // Параметри на полето
+                $params = arr::combine($arguments[1], $arguments[2]);
+                
+                // Ако не е зададено, че може да се конфигурира или не може да се конфигурира за текущия потребител
+                if (!$params['customizeBy'] || !haveRole($params['customizeBy'], $currUserId)) continue;
+                
+                // Ако не е зададено, заглавието на полето е неговото име
+                setIfNot($params['caption'], '|*' . $field);
+                
+                $typeInst = core_Type::getByName($type);
+                
+                // Ако е enum поле, добавя в началото да може да се избира автоматично
+                if ($typeInst instanceof type_Enum) {
+                    $typeInst->options = array('default' => 'Автоматично') + (array)$typeInst->options;
+                }
+                
+                // Полето ще се въвежда
+                $params['input'] = 'input';
+                
+                // Добавяме функционално поле
+                $form->FNC($field, $typeInst, $params);
+                if (!isset($form->rec->$field)) {
+                    $form->setField($field, array('attr' => array('class' => 'const-default-value')));
+                }
+                
+                $form->setDefault($field, $packConf->$field);
+                
+                $form->__defaultRec->$field = $packConf->$field;
+                
+                // Сетваме стринг за подразбиране
+                $defaultStr = 'По подразбиране|*: ';
+                
+                // Ако сме в мобилен режим, да не е хинт
+                $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
+                
+                $defVal = $typeInst->toVerbal($packConf->$field);
+                
+                // Сетваме стойност по подразбиране
+                $form->setParams($field, array($paramType => $defaultStr . $defVal));
+            }
+            
+            Mode::pop('stopInvoke');
+        }
+    }
+    
+    
+    /**
+     * Проверява формата за настройки
+     * Премахва стойностите по-подразбиране
+     * 
+     * @param core_Form $form
+     * @see core_SettingsIntf
+     */
+    function checkSettingsForm(&$form)
+    {
+        // Премахва стойностите по-подразбиране
+        $defRecArr = (array)$form->__defaultRec;
+        foreach ($defRecArr as $field => $val) {
+            if ($form->rec->$field == $val) {
+                unset($form->rec->$field);
             }
         }
     }
