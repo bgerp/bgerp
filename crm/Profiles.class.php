@@ -1006,9 +1006,12 @@ class crm_Profiles extends core_Master
                 
                 $typeInst = core_Type::getByName($type);
                 
+                $isEnum = FALSE;
+                
                 // Ако е enum поле, добавя в началото да може да се избира автоматично
                 if ($typeInst instanceof type_Enum) {
                     $typeInst->options = array('default' => 'Автоматично') + (array)$typeInst->options;
+                    $isEnum = TRUE;
                 }
                 
                 // Полето ще се въвежда
@@ -1017,7 +1020,7 @@ class crm_Profiles extends core_Master
                 // Добавяме функционално поле
                 $form->FNC($field, $typeInst, $params);
                 
-                if (isset($form->rec->$field)) {
+                if (isset($form->rec->$field) || $isEnum) {
                     // Ако сме в мобилен режим, да не е хинт
                     $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
                     
@@ -1026,6 +1029,10 @@ class crm_Profiles extends core_Master
                     $form->setParams($field, array($paramType => $defaultStr . $defVal));
                 } else {
                     $form->setField($field, array('attr' => array('class' => 'const-default-value')));
+                }
+                
+                if ($isEnum) {
+                    $fieldVal = 'default';
                 }
                 
                 $form->setDefault($field, $fieldVal);
