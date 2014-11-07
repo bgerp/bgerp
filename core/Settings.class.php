@@ -109,6 +109,8 @@ class core_Settings extends core_Manager
     {
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
+        $userOrRole = type_UserOrRole::getOptVal($userOrRole);
+        
         // Защитаваме get параметрите
         Request::setProtected(array('_key', '_className', '_userOrRole'));
         
@@ -122,12 +124,13 @@ class core_Settings extends core_Manager
      * Връща всички данни отговарящи за ключа, като ги мърджва.
      * С по-голям приоритет са данните въведени за текущия потребител
      * 
-     * @param string $key
-     * @param integer|NULL $userOrRole
+     * @param string $key - Ключа
+     * @param integer|NULL $userOrRole - Роля или потребител
+     * @param boolean $fetchForUser - Дали да се фечва и за потребителия
      * 
      * @return array
      */
-    public static function fetchKey($key, $userOrRole = NULL)
+    public static function fetchKey($key, $userOrRole = NULL, $fetchForUser = TRUE)
     {
         // Подготвяме ключа и потребителя/групата
         $userOrRole = self::prepareUserOrRole($userOrRole);
@@ -156,10 +159,11 @@ class core_Settings extends core_Manager
             $rolesList = core_Users::getRoles($userOrRole);
             $rolesArr = type_Keylist::toArray($rolesList);
             
-            // Също и текущия потребител
-            $query->where("#userOrRole = {$userOrRole}");
-            $orToPrevious = TRUE;
-            
+            if ($fetchForUser) {
+                // Също и текущия потребител
+                $query->where("#userOrRole = {$userOrRole}");
+                $orToPrevious = TRUE;
+            }
         } else if ($userOrRole < 0) {
             
             // Ако е група
@@ -271,6 +275,34 @@ class core_Settings extends core_Manager
     
     
     /**
+     * Взема записите само за зададения потребител/роля
+     * 
+     * @param string $key
+     * @param integer|NULL $userOrRole
+     * 
+     * @return array
+     */   
+    public static function fetchKeyNoMerge($key, $userOrRole = NULL)
+    {
+        $dataVal = array();
+        
+        $key = self::prepareKey($key);
+        
+        $userOrRole = self::prepareUserOrRole($userOrRole);
+        
+        // Вземаме записа
+        $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
+        
+        // Ако има запис връщаме масива с данните
+        if ($rec) {
+            $dataVal = (array)$rec->data;
+        }
+        
+        return $dataVal;
+    }
+    
+    
+    /**
      * Екшън за модифициране на данни
      */
     protected function act_Modify()
@@ -290,6 +322,7 @@ class core_Settings extends core_Manager
         
         // Създаваме празна форма
         $form = cls::get('core_Form');
+        $form->title = 'Персонализиране';
         
         // Добавяме необходимите полета
         $form->FNC('_userOrRole', 'userOrRole', 'caption=Потребител, input=input, silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
@@ -310,8 +343,6 @@ class core_Settings extends core_Manager
         // Очакваме да има права за модифициране на записа за съответния потребител
         expect($class->canModifySettings($key, $form->rec->_userOrRole));
         
-        $form->title = 'Персонализиране';
-        
         // Вземаме стойностите за този потребител/роля
         $valsArr = self::fetchKeyNoMerge($key, $form->rec->_userOrRole);
         
@@ -322,6 +353,32 @@ class core_Settings extends core_Manager
         
         // Извикваме интерфейсната функция
         $class->prepareForm($form);
+        
+        // Ключа може да е променен в интерфейсния метод
+        $key = $form->rec->_key;
+        
+        // Ако е избран потребител, а не роля
+        if ($form->rec->_userOrRole > 0) {
+        
+            // Настройките по-подразбиране за потребителя, без неговите промени
+            $mergeValsArr = self::fetchKey($key, $form->rec->_userOrRole, FALSE);
+            
+            if ($mergeValsArr) {
+                
+                $defaultStr = 'По подразбиране|*: ';
+                
+                // Ако сме в мобилен режим, да не е хинт
+                $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
+                
+                foreach ((array)$mergeValsArr as $valKey => $val) {
+                    
+                    $defVal = $form->fields[$valKey]->type->toVerbal($val);
+                    
+                    // Сетваме стойност по подразбиране
+                    $form->setParams($valKey, array($paramType => $defaultStr . $defVal));
+                }
+            }
+        }
         
         // Ако формата е рефрешната
         if (($form->cmd == 'refresh')) {
@@ -450,34 +507,6 @@ class core_Settings extends core_Manager
         
         // Записваме новите данни
         self::save($nRec);
-    }
-    
-    
-    /**
-     * Взема записите само за зададения потребител/роля
-     * 
-     * @param string $key
-     * @param integer|NULL $userOrRole
-     * 
-     * @return array
-     */   
-    protected static function fetchKeyNoMerge($key, $userOrRole = NULL)
-    {
-        $dataVal = array();
-        
-        $key = self::prepareKey($key);
-        
-        $userOrRole = self::prepareUserOrRole($userOrRole);
-        
-        // Вземаме записа
-        $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
-        
-        // Ако има запис връщаме масива с данните
-        if ($rec) {
-            $dataVal = (array)$rec->data;
-        }
-        
-        return $dataVal;
     }
     
     

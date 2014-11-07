@@ -142,4 +142,28 @@ class type_UserOrRole extends type_User
         
         return $roleId;
     }
+    
+    
+    /**
+     * Връща ключа на опциията за тази стойност
+     * 
+     * @param string|integer $userOrRole
+     * 
+     * @return NULL|string
+     */
+    public static function getOptVal($userOrRole)
+    {
+        if (strpos($userOrRole, '_')) return $userOrRole;
+        
+        if (!$userOrRole) return ;
+        
+        $inst = cls::get(get_called_class());
+        $inst->prepareOptions();
+        foreach ((array)$inst->options as $optVal => $vals) {
+            if ($vals->value == $userOrRole) {
+                
+                return $optVal;
+            }
+        }
+    }
 }
