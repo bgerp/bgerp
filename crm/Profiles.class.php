@@ -959,6 +959,16 @@ class crm_Profiles extends core_Master
         
         $form->__defaultRec = new stdClass();
         
+        $settingsDefArr = array();
+        
+        if ($form->rec->_userOrRole > 0) {
+            // Настройките по-подразбиране за потребителя
+            $settingsDefArr = core_Settings::fetchKey($form->rec->_key, $form->rec->_userOrRole, FALSE);
+        }
+        
+        // Стринг за подразбиране
+        $defaultStr = 'По подразбиране|*: ';
+        
         $query = core_Packs::getQuery();
         while ($rec = $query->fetch()) {
             
@@ -978,6 +988,9 @@ class crm_Profiles extends core_Master
             
             // Обхождаме всички полета за конфигуриране
             foreach ((array)$clsInst->getConfigDescription() as $field => $arguments) {
+                
+                // Коя стойност да се използва за полето
+                $fieldVal = isset($settingsDefArr[$field]) ? $settingsDefArr[$field] : $packConf->$field;
                 
                 // Типа на полета
                 $type = $arguments[0];
@@ -1003,24 +1016,21 @@ class crm_Profiles extends core_Master
                 
                 // Добавяме функционално поле
                 $form->FNC($field, $typeInst, $params);
-                if (!isset($form->rec->$field)) {
+                
+                if (isset($form->rec->$field)) {
+                    // Ако сме в мобилен режим, да не е хинт
+                    $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
+                    
+                    $defVal = $typeInst->toVerbal($fieldVal);
+                    
+                    $form->setParams($field, array($paramType => $defaultStr . $defVal));
+                } else {
                     $form->setField($field, array('attr' => array('class' => 'const-default-value')));
                 }
                 
-                $form->setDefault($field, $packConf->$field);
+                $form->setDefault($field, $fieldVal);
                 
-                $form->__defaultRec->$field = $packConf->$field;
-                
-                // Сетваме стринг за подразбиране
-                $defaultStr = 'По подразбиране|*: ';
-                
-                // Ако сме в мобилен режим, да не е хинт
-                $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
-                
-                $defVal = $typeInst->toVerbal($packConf->$field);
-                
-                // Сетваме стойност по подразбиране
-                $form->setParams($field, array($paramType => $defaultStr . $defVal));
+                $form->__defaultRec->$field = $fieldVal;
             }
             
             Mode::pop('stopInvoke');
