@@ -76,7 +76,7 @@ try {
 
 } catch (core_exception_Expect $e) {
 
-    if (isDebug() && FALSE) {  
+    if (isDebug()) {  
         $e->showMessage();
     } elseif (isset($e->debug['mysqlErrCode']) && $e->debug['mysqlErrCode'] == 1049) {  
         // Създаваме и редиректваме
