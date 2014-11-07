@@ -470,11 +470,12 @@ class core_Lg extends core_Manager
      * 
      * @return array
      */
-    static function getLangOptions($type)
+    static function getLangOptions($type, $otherParams = array())
     {
+        $otherParams = arr::make($otherParams);
         $langArr = static::getLangs();
         
-        $langArr = array(''=>'') + $langArr;
+        $langArr = $otherParams + $langArr;
         
         return $langArr;
     }
