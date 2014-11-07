@@ -1031,7 +1031,7 @@ class crm_Profiles extends core_Master
                     $form->setField($field, array('attr' => array('class' => 'const-default-value')));
                 }
                 
-                if ($isEnum && !$params['optionsFunc']) {
+                if ($isEnum) {
                     
                     $fieldVal = 'default';
                 }
