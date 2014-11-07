@@ -268,7 +268,7 @@ class crm_Profiles extends core_Master
         // Бутон за персонализиране
         $key = self::getSettingsKey($data->rec->userId);
         $currUser = core_Users::getCurrent();
-        if (self::canModifySettings($key, $currUser)) {
+        if (self::canModifySettings($key, $data->rec->userId)) {
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
         }
     }
@@ -899,7 +899,7 @@ class crm_Profiles extends core_Master
         
         if ($currUserId == $userOrRole) return TRUE;
         
-        if (haveRole('admin, ceo')) return TRUE;
+        if (haveRole('admin, ceo', $currUserId)) return TRUE;
         
         return FALSE;
     }
