@@ -1004,7 +1004,7 @@ class core_Form extends core_FieldSet
     function setDefault($var, $value)
     {
         expect($var, '$var не може да бъде празно');
-        if(!$this->rec->{$var}) {
+        if(!isset($this->rec->{$var})) {
             $this->rec->{$var} = $value;
         }
     }
