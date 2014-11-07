@@ -121,13 +121,13 @@ class core_Embedder extends core_Master
 			// Източника добавя полета към формата
 			$Source->addEmbeddedFields($form);
 			
-			$form->input();
+			$form->input(NULL, 'silent');
 			
 			// Източника модифицира формата при нужда
 			$Source->prepareEmbeddedForm($form);
 		}
 	
-		$form->input();
+		$form->input(NULL, 'silent');
 	}
 	
 	
