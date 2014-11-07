@@ -139,7 +139,7 @@ class core_Settings extends core_Manager
         static $allResArr = array();
         
         // Ако стойността е извличана преди, връщаме я
-        $keyHash = md5($key . '|' . $userOrRole);
+        $keyHash = md5($key . '|' . $userOrRole . '|' . $fetchForUser);
         if (isset($allResArr[$keyHash])) return $allResArr[$keyHash];
         
         $allResArr[$keyHash] = array();
@@ -398,8 +398,18 @@ class core_Settings extends core_Manager
             }
         }
         
+        // Стойностите да се инпутват с правата на избрания потребител
+        $sudo = FALSE;
+        if (($form->rec->_userOrRole > 0) && ($form->rec->_userOrRole != core_Users::getCurrent())) {
+            $sudo = core_Users::sudo($form->rec->_userOrRole);
+        }
+        
         // Инпутваме формата
         $form->input();
+        
+        if ($sudo) {
+            core_Users::exitSudo();
+        }
         
         // Ако няма грешки във формата
         if ($form->isSubmitted()) {
@@ -427,8 +437,10 @@ class core_Settings extends core_Manager
             // Премахваме всички празни стойности или defaul от enum
             foreach ((array)$recArr as $valKey => $value) {
                 
+                $instanceOfEnum = (boolean)($form->fields[$valKey]->type instanceof type_Enum);
+                
                 // Ако няма стойност или стойността е default за enum поле, да се премахне от масива
-                if ((!$value) || ($value == 'default' && ($form->fields[$valKey]->type instanceof type_Enum))) {
+                if ((!$value && !$instanceOfEnum) || ($value == 'default' && $instanceOfEnum)) {
                     unset($recArr[$valKey]);
                 }
             }
