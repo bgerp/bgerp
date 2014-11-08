@@ -191,7 +191,7 @@ class core_FieldSet extends core_BaseClass
                 
                 // Ако са зададени да се вземат опциите от функция
                 if ($member == 'optionsFunc') {
-                    $this->fields[$name]->options = cls::callFunctArr($value, array($this->fields[$name]->type));
+                    $this->fields[$name]->optionsFunc = $value;
                     continue;
                 }
 

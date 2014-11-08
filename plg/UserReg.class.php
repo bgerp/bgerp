@@ -1,8 +1,6 @@
 <?php
 
 
-$conf = core_Packs::getConfig('core');
-
 /**
  * Типа на записите в кеша
  */
@@ -15,8 +13,8 @@ defIfNot('USERREG_CACHE_TYPE', 'UserReg');
 defIfNot('USERREG_THANK_FOR_REG_MSG',
     "Благодарим ви за регистрациятa|*!" .
     "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Access activation\"|*." .
-    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|* " .
-    $conf->EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
+    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|*
+    [#EF_APP_TITLE#] ." . "<br><br>|Поздрави от екипа!");
 
 
 /**
@@ -25,8 +23,8 @@ defIfNot('USERREG_THANK_FOR_REG_MSG',
 defIfNot('USERREG_THANK_FOR_RESET_PASS_MSG',
     "Заявката за смяната на паролата е приета|*!" .
     "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Reset Your password\"|*." .
-    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|* " .
-    $conf->EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
+    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|*
+    [#EF_APP_TITLE#] ." . "<br><br>|Поздрави от екипа!");
 
 
 /**
@@ -167,6 +165,9 @@ class plg_UserReg extends core_Plugin
                     // Редиректваме към страницата, която благодари за регистрацията
                     $msg = new ET(USERREG_THANK_FOR_REG_MSG);
                     $msg->placeObject($rec);
+                    
+                    $conf = core_Packs::getConfig('core');
+                    $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
                     
                     redirect(array('Index'), TRUE, $msg->getContent());
                 }
@@ -350,6 +351,9 @@ class plg_UserReg extends core_Plugin
                     // Редиректваме към страницата, която благодари за регистрацията
                     $msg = new ET(USERREG_THANK_FOR_RESET_PASS_MSG);
                     $msg->placeObject($rec);
+                    
+                    $conf = core_Packs::getConfig('core');
+                    $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
                     
                     // Редиректване с показване на съобщение
                     redirect(array('Index'), TRUE, $msg->getContent());

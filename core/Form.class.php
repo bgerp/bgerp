@@ -133,6 +133,15 @@ class core_Form extends core_FieldSet
             list($this->cmd) = explode('|', $cmd);
         }
         
+        // Ако има функции за викане за генериране на опции
+        $optionsFunc = $this->selectFields("#optionsFunc");
+        if ($optionsFunc) {
+            
+            foreach ($optionsFunc as $name => $field) {
+                $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
+            }
+        }
+        
         // Ако не е тихо въвеждане и нямаме тихо въвеждане, 
         // връщаме въведено към момента
         if((!$this->cmd) && !$silent) return $this->rec;
@@ -257,6 +266,15 @@ class core_Form extends core_FieldSet
             $fields = $this->selectFields("#silent == 'silent'");
         } else {
             $fields = $this->selectFields("#input != 'none'");
+        }
+        
+        // Ако има функции за викане за генериране на опции
+        $optionsFunc = $this->selectFields("#optionsFunc");
+        if ($optionsFunc) {
+            
+            foreach ($optionsFunc as $name => $field) {
+                $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
+            }
         }
         
         if (!count($fields)) return FALSE;
@@ -1004,7 +1022,7 @@ class core_Form extends core_FieldSet
     function setDefault($var, $value)
     {
         expect($var, '$var не може да бъде празно');
-        if(!$this->rec->{$var}) {
+        if(!isset($this->rec->{$var})) {
             $this->rec->{$var} = $value;
         }
     }

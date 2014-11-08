@@ -214,7 +214,8 @@ class core_Setup extends core_ProtoSetup {
         'migrate::clearBrowserInfo',
         'core_Settings',
         'core_Forwards',
-        'migrate::settigsDataFromCustomToCore'
+        'migrate::settigsDataFromCustomToCore',
+        'migrate::movePersonalizationData'
     );
     
     
@@ -381,6 +382,34 @@ class core_Setup extends core_ProtoSetup {
                 if (!$valArr) continue;
                 core_Settings::setValues($key, $valArr, $userId);
             }
+        }
+    }
+    
+    
+    /**
+     * Фунцкия за миграция
+     * Премества персонализационните данни за потребителя от core_Users в core_Settings
+     */
+    static function movePersonalizationData()
+    {
+        $userInst = cls::get('core_Users');
+        
+        $userInst->db->connect();
+        
+        $confData = str::phpToMysqlName('configData');
+        
+        // Ако в модела в MySQL липсва колоната, няма нужда от миграция
+        if (!$userInst->db->isFieldExists($userInst->dbTableName, $confData)) return ;
+        
+        $userInst->FLD('configData', 'blob(serialize,compress)', 'caption=Конфигурационни данни,input=none');
+        
+        // Преместваме всикчи данни от полето в core_Settings
+        $userQuery = core_Users::getQuery();
+        $userQuery->where("#configData IS NOT NULL");
+        while ($rec = $userQuery->fetch()) {
+            $key = core_Users::getSettingsKey($rec->id);
+            
+            core_Settings::setValues($key, $rec->configData, $rec->id);
         }
     }
 }

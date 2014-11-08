@@ -184,7 +184,9 @@ class acc_Balances extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+    	if(haveRole('admin,debug')){
+    		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+    	}
     }
     
     
