@@ -27,13 +27,13 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, codeName, term';
+    var $listFields = 'id, codeName, term, state';
     
     
     /**

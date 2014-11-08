@@ -25,19 +25,19 @@ class cond_PaymentMethods extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State';
+    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name, description';
+    var $listFields = 'id, name, description, state';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Начини на плащане';
+    var $title = 'Методи на плащане';
     
     
     /**

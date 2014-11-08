@@ -71,7 +71,7 @@ class cond_Setup  extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.9, 'Търговия', 'Терминология', 'cond_DeliveryTerms', 'default', "cond, ceo"),
+            array(1.9, 'Система', 'Дефиниции', 'cond_DeliveryTerms', 'default', "cond, ceo"),
         );
 
 

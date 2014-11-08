@@ -26,19 +26,19 @@ class cond_Parameters extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name, type';
+    public $listFields = 'tools=Пулт, name, type, state';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Търговски параметри';
+    var $title = 'Бизнес параметри';
     
     
     /**
