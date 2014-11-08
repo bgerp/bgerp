@@ -68,6 +68,12 @@ defIfNot('EF_HTTPS_PORT', 443);
 
 
 /**
+ * HTML който се показва като информация във формата за логин
+ */
+defIfNot('CORE_LOGIN_INFO', "<center><div style='font-size:0.8em;color:#666;'>(само за администраторите на сайта)</div></center><div class='clearfix21'></div>");
+
+
+/**
  * Клас 'core_Users' - Мениджър за потребителите на системата
  *
  * Необходимия набор от функции за регистриране, логране и
@@ -516,6 +522,8 @@ class core_Users extends core_Manager
         if(EF_HTTPS === 'OPTIONAL' && $connection === 'HTTP'){
         	$form->toolbar->addFnBtn('Вход с криптиране', "this.form.action=('{$httpsUrl}');this.form.submit();", array('style' => 'background-color: #9999FF'));
         }
+
+        $form->info = CORE_LOGIN_INFO;
 
         $this->invoke('PrepareLoginForm', array(&$form));
         
