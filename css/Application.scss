@@ -3129,8 +3129,11 @@ body.narrow {
 	.background-holder {
 	    padding: 10px 0;
 	}
-	#all, #cmsTop, #headerImg {
+	#all, #cmsTop {
 	   @include border-radius4(10px, 10px, 0, 0);
+	}
+    .wide #headerImg {
+	   @include border-radius4(10px, 0, 0, 0);
 	}
 }
 

@@ -1175,9 +1175,9 @@ td.formElement {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset ;
 }
 
-.formFields input:focus, textarea:focus, select:focus { 
+.formFields input:focus, textarea:focus, select:focus, input:focus[type=submit], input:focus[type=button] { 
     outline: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba( 153, 153, 255, 0.7);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba( 153, 153, 255, 0.7);
 }
 
 .simpleForm{
