@@ -467,7 +467,7 @@ class cms_Articles extends core_Master
         } else {
             
             // Ако не е подадено заглавиет, създаваме линк с иконата
-            $link = ht::createLink('<img src=' . $editSbf . ' width="12" height="12">', $changeUrl);
+            $link = ht::createLink('<img src=' . $editSbf . ' width="12" alt="edit" height="12">', $changeUrl);
         }
         
         return $link;

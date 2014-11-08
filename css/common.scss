@@ -1044,9 +1044,10 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 }
 
 .formInfo, .formWarning {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
+ 
 .warningMsg {
     background: yellow;
     padding: 5px;
@@ -1061,8 +1062,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     color: red;
 }
 
-.narrow .formInfo, .narrow .formFields, .narrow .formWarning {
-    margin-bottom: 3px;
+.narrow .formInfo,  .narrow .formWarning {
+    margin-bottom: 1px;
+    margin-top: 8px;
 }
 
 .narrow .formError ul {
