@@ -117,6 +117,12 @@ defIfNot('EF_USER_LANG', '');
 
 
 /**
+ * HTML който се показва като информация във формата за логин
+ */
+defIfNot('CORE_LOGIN_INFO', "|*(|само за администраторите на сайта|*)");
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -174,6 +180,8 @@ class core_Setup extends core_ProtoSetup {
     
            'EF_APP_TITLE'   => array ('varchar', 'caption=Наименование на приложението->Име'),
            
+           'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),
+      
            'EF_MAX_EXPORT_CNT' => array ('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
            
            'PLG_SEACH_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи за генериране на ключови думи->Брой символи'),
