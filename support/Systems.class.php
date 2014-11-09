@@ -180,6 +180,19 @@ class support_Systems extends core_Master
                              FALSE, 'ef_icon = img/16/folder_new.png');
         }
     }
+
+
+    /**
+     * Интерфейсен метод за определяне името на папката
+     */
+    function getFolderTitle($id)
+    { 
+        $rec = self::fetch($id);
+
+        $title = tr("Поддръжка на") . " \"" . self::getVerbal($rec, 'name') ."\"";
+
+        return $title;
+    }
     
     
     /**

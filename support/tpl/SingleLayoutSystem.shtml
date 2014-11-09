@@ -4,7 +4,7 @@
         <div class="folder-cover [#STATE_CLASS#]">
             <div class="inner-folder">
                 <div class="block_title [#STATE_CLASS#] special-title">
-                    [#SingleIcon#] |Поддръжка на|* "[#name#]"
+                    [#SingleIcon#]|* [#name#]
                 </div>
                 <!--ET_BEGIN prototype-->
                 <fieldset class="detail-info">
