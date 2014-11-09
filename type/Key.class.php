@@ -346,7 +346,7 @@ class type_Key extends type_Int {
             }
         } else {
             
-            expect(FALSE);
+            error(NULL, $this);
 
         }
         
