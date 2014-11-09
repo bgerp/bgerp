@@ -228,9 +228,9 @@ class support_Issues extends core_Master
         if(!haveRole('powerUser')) {
             $form->setField('email', 'input,silent');
             $form->setField('name', 'input,silent');
-            $form->setField('folderId', 'input,silent');
-            $form->setField('originId', 'input,silent');
-            $form->setField('id', 'input,silent');
+            $form->setField('folderId', 'input=hidden,silent');
+            $form->setField('originId', 'input=hidden,silent');
+            $form->setField('id', 'input=hidden,silent');
             $form->setField('sharedUsers', 'input=none');
         }
         
