@@ -2901,7 +2901,10 @@ only screen and (min-width: 1240px) {
   .wide #headerImg {
     -moz-border-radius: 10px 0 0 0;
     -webkit-border-radius: 10px 0 0 0;
-    border-radius: 10px 0 0 0; } }
+    border-radius: 10px 0 0 0; }
+
+  .wide .listBlock .listRows > table.listTable {
+    min-width: 760px; } }
 
 @media handheld,
 only screen and (min-width: 1550px) {
