@@ -122,6 +122,10 @@ class core_Detail extends core_Manager
      */
     function renderDetail_($data)
     { 
+        if(!isset($data->listClass)) {
+            $data->listClass = 'listRowsDetail';
+        }
+
         if (!isset($this->currentTab)) {
             $this->currentTab = $data->masterMvc->title;
         }
