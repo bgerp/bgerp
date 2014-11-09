@@ -15,6 +15,11 @@ defIfNot('EF_DB_TABLE_PREFIX', '');
 defIfNot('EF_ID_CHECKSUM_LEN', 3);
 
 
+/**
+ * Дължина на контролната сума, която се добавя към id-тата
+ */
+defIfNot('CORE_MAX_SQL_QUERY', 16000000);
+
 
 /**
  * Клас 'core_Mvc' - Манипулации на модела (таблица в db)
@@ -326,6 +331,70 @@ class core_Mvc extends core_FieldSet
 
         return $rec->id;
     }
+
+
+    /**
+     * Записва няколко записа от модела с една заявка, ако има дуплицирани, обновява ги
+     */
+    public function saveArray2_($recs, $fields = NULL)
+    {
+        // Ако нямаме какво да записваме - връщаме TRUE, в знак, че операцията е завършила успешно
+        if(!$recs || !count($recs)) return TRUE;
+        
+        // Гарантираме си, че $fields са масив
+    	$fields = arr::make($fields, TRUE);
+
+        // Определяме полетата, които ще записваме
+        $fieldsArr = array();
+        $fieldsMvc = $this->selectFields('FLD');
+        foreach ($fieldsMvc as $name  => $fld){
+            if($fld->kind == 'FLD' && (!count($fields) || $fields[$name])){
+    		    $fieldsArr[$name] = $fld;
+                $mysqlName = str::phpToMysqlName($name);
+                $insertFields .= "$mysqlName,";
+                $updateFields .= "{$mysqlName}=VALUES({$mysqlName}),";
+    	    }
+        }
+        
+        // Очакваме, че имаме поне едно поле, което да записваме
+        expect(count($fieldsArr));
+
+        // Композираме началото и края на заявката към db
+        $queryBegin = "INSERT INTO `{$this->dbTableName}` (" . rtrim($insertFields, ',') . ") VALUES ";
+        $queryEnd   = " ON DUPLICATE KEY UPDATE " . rtrim($updateFields, ',');
+
+        // Изчисляваме, колко байта не трябва да превишава стринга със стойностите
+        $maxLen = CORE_MAX_SQL_QUERY - strlen($queryBegin) - strlen($queryEnd);
+    	
+        // Конвертираме всеки запис към стойности в db заявката
+        $values = '';
+    	foreach($recs as $rec) {
+            $row = '(';
+            foreach($fieldsArr as $key => $field) {
+    			$value = $field->type->toMysql($rec->{$key}, $this->db, $field->notNull, $field->value);
+    			$row .= $value . ',';
+    		}
+            $row = rtrim($row, ',') . '),';
+
+            // Ако надвишаваме максималната заявка или сме изчерпали записите - записваме всичко до сега
+            if(strlen($row) + strlen($values) >= $maxLen) {
+                // Изпълняваме заявката
+                $query = $queryBegin . rtrim($values, ',') . $queryEnd;
+    	        if(!$this->db->query($query)) return FALSE;
+                $values = '';
+            }
+            $values .= $row;
+        }
+        
+        // Ако имаме някакви натрупани стойности - записваме ги и тях
+        if($values) {
+            $query = $queryBegin . rtrim($values, ',') . $queryEnd;
+    	    if(!$this->db->query($query)) return FALSE;
+        }
+
+        return TRUE;
+    }
+
 
 
     /**
