@@ -100,6 +100,18 @@ defIfNot('BACKUP_LOCAL_PATH', '/storage');
 
 
 /**
+ * Дали да се криптират съхранените файлове
+ */
+defIfNot('BACKUP_CRYPT', 'no');
+
+
+/**
+ * Парола за криптиране на съхранените файлове
+ */
+defIfNot('BACKUP_PASS', 'bgerp123');
+
+
+/**
  * Клас 'backup_Setup' - Начално установяване на пакета 'backup'
  *
  *
