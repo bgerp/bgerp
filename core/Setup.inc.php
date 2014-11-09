@@ -1226,11 +1226,11 @@ function gitRevertRepo($repoPath, &$log)
     
     $repoName = basename($repoPath);
     
-    $command = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard origin/" . BGERP_GIT_BRANCH ." 2>&1";
+    $command = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard 2>&1";
     
     if (!gitExec($command, $arrRes)) {
         foreach ($arrRes as $val) {
-            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при reset --hard origin/" . BGERP_GIT_BRANCH ." :" . $val):"";
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при reset --hard :" . $val):"";
         }
         
         return FALSE;
