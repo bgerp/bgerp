@@ -56,7 +56,6 @@ $orange: #f90; /*оранжево като при ховър на менюто*/
 }
 
 
-
  /*common elements*/
  dl {
 	margin: 0;
@@ -3135,6 +3134,10 @@ body.narrow {
     .wide #headerImg {
 	   @include border-radius4(10px, 0, 0, 0);
 	}
+    
+    .wide .listRows > table.listTable {
+        min-width:760px;
+    }
 }
 
 @media handheld , only screen and (min-width: 1550px) {
