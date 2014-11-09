@@ -1290,8 +1290,16 @@ class core_Users extends core_Manager
      * 
      * @return boolean - Ако са от един и същи екип връща TRUE
      */
-    static function isFromSameTeam($user1, $user2)
-    {
+    static function isFromSameTeam($user1, $user2 = NULL)
+    {   
+        // Ако $user2 не е зададен, вземаме текущия потребител
+        if(!$user2) {
+            $user2 = core_Users::getCurrent();
+        }
+        
+        // По-бърз отговор, ако двата потребителя съвпадат
+        if($user1 == $user2) return TRUE;
+
         // Вземаме съотборниците на първия потребител
         $teamMates = static::getTeammates($user1);
         
