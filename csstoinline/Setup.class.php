@@ -10,7 +10,7 @@ defIfNot('CSSTOINLINE_CONVERTER_CLASS', 'csstoinline_Emogrifier');
 /**
  * Версията на emogrifier
  */
-defIfNot('CSSTOINLINE_EMOGRIFIER_VERSION', '2011.10.26');
+defIfNot('CSSTOINLINE_EMOGRIFIER_VERSION', '2014.11.10');
 
 
 /**

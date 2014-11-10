@@ -41,13 +41,13 @@ class csstoinline_Emogrifier extends core_Manager
         $conf = core_Packs::getConfig('csstoinline');
         
         // Пътя до кода
-        $path = "csstoinline/emogrifier/". $conf->CSSTOINLINE_EMOGRIFIER_VERSION . "/emogrifier.php";
+        $path = "csstoinline/emogrifier/". $conf->CSSTOINLINE_EMOGRIFIER_VERSION . "/Emogrifier.php";
         
         // Вкарваме пакета
         require_once getFullPath($path);
         
         // Създаваме инстанция
-        $Emogrifier = new Emogrifier($html, $css);
+        $Emogrifier = new \Pelago\Emogrifier($html, $css);
         
         // Създава проблеми при енкодинга на някои файлове
         // Запазваме енкодинга
