@@ -42,6 +42,12 @@ class core_Embedder extends core_Master
 	
 	
 	/**
+	 * Кеш на инстанцираните вградени класове
+	 */
+	protected static $Drivers = array();
+	
+	
+	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc
