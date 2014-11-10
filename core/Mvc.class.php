@@ -336,7 +336,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Записва няколко записа от модела с една заявка, ако има дуплицирани, обновява ги
      */
-    public function saveArray2_($recs, $fields = NULL)
+    public function saveArray_($recs, $fields = NULL)
     {
         // Ако нямаме какво да записваме - връщаме TRUE, в знак, че операцията е завършила успешно
         if(!$recs || !count($recs)) return TRUE;
@@ -375,7 +375,7 @@ class core_Mvc extends core_FieldSet
     			$row .= $value . ',';
     		}
             $row = rtrim($row, ',') . '),';
-
+			
             // Ако надвишаваме максималната заявка или сме изчерпали записите - записваме всичко до сега
             if(strlen($row) + strlen($values) >= $maxLen) {
                 // Изпълняваме заявката
@@ -396,11 +396,10 @@ class core_Mvc extends core_FieldSet
     }
 
 
-
     /**
      * Записва няколко записа от модела с една заявка, ако има дуплицирани, обновява ги
      */
-    public function saveArray_($recs, $fields = NULL)
+    public function saveArray2_($recs, $fields = NULL)
     {
     	if(!count($recs)) return;
     	
