@@ -432,7 +432,7 @@ class core_Array
     			$vKey = self::makeUniqueIndex($oRec, $vFields);
     		
     			// Преобразуваме го в масив в индекси уникалните полета и информация за данните му
-    			if(empty(array_key_exists($oKey, $modOld))){
+    			if(!array_key_exists($oKey, $modOld)){
     				$modOld[$oKey] = array($vKey, $oRec->id);
     			}
     		}
