@@ -228,6 +228,7 @@ class acc_journal_EntrySide
         }
     }
     
+    
     /**
      * @see acc_journal_Item
      */

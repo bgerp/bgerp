@@ -186,6 +186,26 @@ class acc_journal_Entry
         return $this->credit->amount;
     }
     
+    
+    /**
+     * @todo Чака за документация...
+     */
+    public function getRec($transactionId)
+    {
+    	$this->debit->forceItems();
+    	$this->credit->forceItems();
+    
+    	$entryRec = $this->debit->getData()
+    	+ $this->credit->getData()
+    	+ array(
+    			'journalId' => $transactionId,
+    			'amount'    => $this->amount()
+    	);
+    
+    	return (object)$entryRec;
+    }
+    
+    
     /**
      * @todo Чака за документация...
      */

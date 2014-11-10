@@ -163,15 +163,20 @@ class acc_journal_Transaction
             return FALSE;
         }
         
-        try {
+       try {
             if(count($this->entries)){
+            	$recsToSave = array();
                 foreach ($this->entries as $entry) {
-                    if (!$entry->save($this->rec->id)) {
-                        // Проблем при записването на детайл-запис. Rollback!!!
-                        $this->rollback();
-                        
-                        return FALSE;
-                    }
+                	$recsToSave[] = $entry->getRec($this->rec->id);
+                }
+                
+                // Записваме всички детайли с една заявка
+                if(!$this->JournalDetails->saveArray($recsToSave)){
+                	
+                	// Проблем при записването на детайл-запис. Rollback!!!
+                	$this->rollback();
+                	
+                	return FALSE;
                 }
             }
             
