@@ -119,7 +119,6 @@ class acc_transaction_ClosePeriod
     	if($amount <= 0){
     		$entries[] = array('amount' => abs($amount), 'debit' => array('4532'), 'credit' => array('4539'));
     	} else {
-    		$am = $sumRec4532->debitAmount;
     		$entries[] = array('amount' => abs($amount), 'debit' => array('4538'), 'credit' => array('4532'));
     	}
     	 
