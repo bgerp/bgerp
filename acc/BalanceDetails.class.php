@@ -1094,7 +1094,9 @@ class acc_BalanceDetails extends core_Detail
         
         if(count($accounts) >= 1){
             foreach ($accounts as $sysId){
-                $query->orWhere("#accountNum = {$sysId}");
+            	$accId = acc_Accounts::fetchField("#systemId = '{$sysId}'", 'id');
+            	
+                $query->orWhere("#accountId = {$accId}");
             }
         }
         
