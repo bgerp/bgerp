@@ -661,12 +661,14 @@ class email_Inboxes extends core_Master
             core_Cache::set($cacheType, $cacheHandle, $emailForRemove, $keepMinutes, $depends);
         }
         
-        // Масив с всички общи и корпоративни домейни
-        $domainsArr = email_Accounts::getCommonAndCorporateDomain();
-        
         // Премахваме нашите имейли
         $allEmailsArr = array_diff($emailsArr, $emailForRemove);
-
+        
+        if (!$allEmailsArr) return $allEmailsArr;
+        
+        // Масив с всички корпоративни домейни
+        $domainsArr = email_Accounts::getCorporateDomainsArr();
+        
         // Обхождаме масива с останалите имейли
         foreach ($allEmailsArr as $key => $email) {
             

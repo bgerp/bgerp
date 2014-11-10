@@ -168,16 +168,26 @@ class email_Accounts extends core_Master
     
     /**
      * Връща всички активни корпоративни и общи домейни
+     * 
+     * @param string $type
+     * 
+     * @return array
      */
-    static function getCommonAndCorporateDomain()
+    static function getCommonAndCorporateDomain($type = NULL)
     {
         // Масива, който ще връщаме
         $arr = array();
         
         // Запитване за извличане на активните корпоративни и общи домейни
         $query = static::getQuery();
-        $query->where("#type = 'corporate'");
-        $query->orWhere("#type = 'common'");
+        
+        if (!$type) {
+            $query->where("#type = 'corporate'");
+            $query->orWhere("#type = 'common'");
+        } else {
+            $query->where(array("#type = '[#1#]'", $type));
+        }
+        
         $query->where("#state = 'active'");
         
         // Обхождаме записа
@@ -196,6 +206,19 @@ class email_Accounts extends core_Master
         }
         
         return $arr;
+    }
+    
+    
+    /**
+     * Връща масив с активните корпоратвини акауни
+     * 
+     * @return array
+     */
+    public static function getCorporateDomainsArr()
+    {
+        $resArr = self::getCommonAndCorporateDomain('corporate');
+        
+        return $resArr;
     }
     
     

@@ -685,10 +685,9 @@ class email_Incomings extends core_Master
             }
             
             static::calcAllToAndCc($rec);
-
-            $row->allTo = email_Mime::emailListToVerbal($rec->allTo);
-            $row->allCc = email_Mime::emailListToVerbal($rec->allCc);
-
+            
+            $row->allTo = self::getVerbalEmail($rec->allTo);
+            $row->allCc = self::getVerbalEmail($rec->allCc);
         }
         
         if(!$rec->toBox) {
@@ -706,6 +705,42 @@ class email_Incomings extends core_Master
         if($fields['-list']) {
            // $row->textPart = mb_Substr($row->textPart, 0, 100);
         }
+    }
+    
+    
+    /**
+     * Връща вербалното предствяна на имейла
+     * 
+     * @param array $emailArr
+     * 
+     * @return string
+     */
+    protected static function getVerbalEmail($emailsArr)
+    {
+        // Масив само с имейлите
+        $allEmailToArr = array();
+        foreach ((array)$emailsArr as $emailArr) {
+            $allEmailToArr[] = $emailArr['address'];
+        }
+        
+        // Премахваме нашите имейлите
+        $otherAllEmailToArr = email_Inboxes::removeOurEmails($allEmailToArr);
+        
+        // Отбелязваме, кои имейли са външни
+        if ($otherAllEmailToArr) {
+            foreach ((array)$emailsArr as $key => $emailArr) {
+                if (!$emailArr['address']) continue;
+                
+                if (array_search($emailArr['address'], $otherAllEmailToArr) !== FALSE) {
+                    $emailsArr[$key]['isExternal'] = TRUE;
+                }
+            }
+        }
+        
+        // Вземаме вербалното представяне на имейлите
+        $emailRow = email_Mime::emailListToVerbal($emailsArr);
+        
+        return $emailRow;
     }
     
     
