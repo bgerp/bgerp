@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Продукти
  *
@@ -204,25 +203,30 @@ class store_Products extends core_Manager
 	        foreach($rows as $id => &$row){
 	        	$rec = &$recs[$id];
 	        	
-	        	$ProductMan = cls::get($rec->classId);
+	        	if(cls::load($rec->classId, TRUE)){
+	        		$ProductMan = cls::get($rec->classId);
+	        		
+	        		$row->name = $ProductMan::getHyperLink($rec->productId, TRUE);
+	        	} else {
+	        		$row->name = tr("Проблем с показването");
+	        	}
+	        	
 	        	try{
 	        		$pInfo = $ProductMan->getProductInfo($rec->productId);
 	        		$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
 	        	} catch(Exception $e){
 	        		$measureShortName = tr("???");
 	        	}
+	        	 
+	        	if($rec->quantityNotOnPallets > 0){
+	        		$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
+	        	}
 	        	
-		        if($rec->quantityNotOnPallets > 0){
-		        	$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
-		        }
-		        
-		        $row->name = $ProductMan::getHyperLink($rec->productId, TRUE);
-		        
-		        $row->quantity .= ' ' . $measureShortName;
-		        if($rec->quantityOnPallets){
-		        	 $row->quantityOnPallets .= ' ' . $measureShortName;
-		        }
-	       
+	        	$row->quantity .= ' ' . $measureShortName;
+	        	if($rec->quantityOnPallets){
+	        		$row->quantityOnPallets .= ' ' . $measureShortName;
+	        	}
+	        	 
 	        	$row->quantityNotOnPallets .= ' ' . $measureShortName;
 	        	
 	        	$row->TR_CLASS = 'active';
@@ -231,7 +235,7 @@ class store_Products extends core_Manager
     
     
     /**
-     * Филтър
+     * След подготовка на филтъра
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
@@ -256,48 +260,17 @@ class store_Products extends core_Manager
      */
     public static function sync($all)
     {
-    	// Датата на синхронизацията
-    	$date = dt::now();
+    	$query = static::getQuery();
+    	$oldRecs = $query->fetchAll();
+    	$self = cls::get(get_called_class());
     	
-    	// За всеки запис извлечен от счетоводството
-    	foreach ($all as $index => $amount){
-    		
-    		// Задаване на стойности на записа
-    		list($storeId, $classId, $productId) = explode('|', $index);
-    		expect($storeId, $classId, $productId);
-    		
-    		$rec = (object)array('storeId'   => $storeId,
-    							 'classId'   => $classId,
-    							 'productId' => $productId,
-    							 'quantity'  => $amount,
-    		);
-    		
-    		// Ако има съществуващ запис се обновява количеството му
-	    	$exRec = static::fetch("#productId = {$productId} AND #classId = {$classId} AND #storeId = {$storeId}", '*', FALSE);
-	    	if($exRec){
-	    		// Ъпдейтваме количеството само ако има промяна
-	    		if($exRec->quantity == $rec->quantity) {
-	    			
-	    			// Записваме в кеша ид-то на съществуващия запис и продължаваме напред
-	    			static::$cache[$exRec->id] = $exRec->id;
-	    			continue;
-	    		}
-	    		$exRec->quantity = $rec->quantity;
-	    		$rec = $exRec;
-	    	}
-	    	
-	    	// Ако количеството е 0, състоянието е затворено
-	    	$rec->state = ($rec->quantity) ? 'active' : 'closed';
-	    	
-	    	// Обновяване на записа
-	    	static::save($rec);
-	    	
-	    	// Записваме в кеша ид-то добавения запис
-	    	static::$cache[$rec->id] = $rec->id;
-    	}
+    	$arrRes = arr::syncArrays($all, $oldRecs, "productId,classId,storeId", "quantity");
+    	
+    	$self->saveArray($arrRes['insert']);
+    	$self->saveArray($arrRes['update']);
     	
     	// Ъпдейт на к-та на продуктите, имащи запис но липсващи в счетоводството
-    	self::updateMissingProducts($date);
+    	self::updateMissingProducts($arrRes['delete']);
     }
     
     
@@ -307,22 +280,22 @@ class store_Products extends core_Manager
      * 
      * @param date $date - дата
      */
-    private static function updateMissingProducts($date)
+    private static function updateMissingProducts($array)
     {
     	// Всички записи, които са останали но не идват от баланса
     	$query = static::getQuery();
-    	
-    	// Изключваме продуктите, които са дошли от счетоводството, ако има такива
-    	if(count(static::$cache)){
-    		$query->notIn('id', static::$cache);
+    	if(count($array)){
+    		$query->in('id', $array);
     	}
+    	
+    	if(!count($array)) return;
     	
     	// За всеки запис
     	while($rec = $query->fetch()){
     		
     		// К-то им се занулява и състоянието се затваря
-    		$rec->state       = 'closed';
-    		$rec->quantity    = 0;
+    		$rec->state    = 'closed';
+    		$rec->quantity = 0;
     		
     		// Обновяване на записа
     		static::save($rec);
@@ -354,5 +327,36 @@ class store_Products extends core_Manager
 	    }
 	    
 	    return $products;
+    }
+    
+    
+
+
+
+    /**
+     * След подготовка на туклбара на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(haveRole('admin,debug')){
+    		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+    	}
+    }
+    
+    
+    /**
+     * Изчиства записите в балансите
+     */
+    public function act_Truncate()
+    {
+    	requireRole('admin,debug');
+    	 
+    	// Изчистваме записите от моделите
+    	store_Products::truncate();
+    	 
+    	Redirect(array($this, 'list'));
     }
 }

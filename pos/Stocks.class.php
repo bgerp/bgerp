@@ -91,52 +91,45 @@ class pos_Stocks extends core_Manager {
      */
     public static function sync($all)
     {
-    	// Датата на синхронизацията
-    	$date = dt::now();
-    	$productsClassId = cat_Products::getClassId();
-    	
-    	// Извличаме всички складове, които са свързани към точки
-    	$storesArr = array();
-    	$pointQuery = pos_Points::getQuery();
-    	$pointQuery->show('storeId');
-    	while($pointRec = $pointQuery->fetch()){
-    		$storesArr[$pointRec->storeId] = $pointRec->storeId;
+    	// Извличаме всичкис кладове групирани в ПОС-а
+    	$posStoresQuery = pos_Points::getQuery();
+    	$posStoresQuery->groupBy("storeId");
+    	$posStoresQuery->show("storeId");
+    	$usedStores = array();
+    	while($pRec = $posStoresQuery->fetch()){
+    		$usedStores[$pRec->storeId] = $pRec->storeId;
     	}
     	
-    	// Ако няма скалдове не правим нищо
-    	if(!$storesArr) return;
-    	
-    	// За всеки запис извлечен от счетоводството
-    	foreach ($all as $index => $amount){
-    		
-    		// Задаване на стойности на записа
-    		list($storeId, $classId, $productId) = explode('|', $index);
-    		
-    		expect($storeId, $classId, $productId);
-    		
-    		// Ако продукта е спецификация - пропускаме го
-    		if($classId != $productsClassId) continue;
-    		
-    		// Ако няма точка за склада - пропускаме записа
-    		if(!in_array($storeId, $storesArr)) continue;
-    		
-    		// Променят се количествата само при нужда
-    		$rec = (object)array('storeId'   => $storeId, 'productId' => $productId, 'quantity'  => $amount,);
-    		$exRec = static::fetch("#productId = {$productId} AND #storeId = {$storeId}", '*', FALSE);
-    		if($exRec){
-    			if($exRec->quantity == $rec->quantity) continue;
-    			$exRec->quantity = $rec->quantity;
-    			$rec = $exRec;
+    	// Махаме записите за складовете, които не участват в ПОС-а
+    	if(count($all)){
+    		foreach ($all as $index => $bRec){
+    			if(!in_array($bRec->storeId, $usedStores)){
+    				unset($all[$index]);
+    			}
     		}
+    	}
+    	
+    	$stockQuery = pos_Stocks::getQuery();
+    	$oldRecs = $stockQuery->fetchAll();
+    	
+    	$arrRes = arr::syncArrays($all, $oldRecs, "productId,classId,storeId", "quantity");
+    	 
+    	$self = cls::get(get_called_class());
+    	$self->saveArray($arrRes['insert']);
+    	$self->saveArray($arrRes['update']);
+    	
+    	$closeQuery = pos_Stocks::getQuery();
+    	if(count($arrRes['delete'])){
+    		$closeQuery->in('id', $arrRes['delete']);
+    	}
+    	
+    	if(!count($arrRes['delete'])) return;
+    	
+    	while($rec = $closeQuery->fetch()){
+    		$rec->state = 'closed';
+    		$rec->quantity = 0;
     		
-	    	// Обновяване на датата за ъпдейт
-	    	$rec->lastUpdated = $date;
-	    	
-	    	// Ако количеството е 0, състоянието е затворено
-	    	$rec->state = ($rec->quantity) ? 'active' : 'closed';
-	    	
-	    	// Обновяване на записа
-	    	static::save($rec);
+    		$self->save($rec);
     	}
     	
     	// Приспада количествата от не-отчетените бележки
