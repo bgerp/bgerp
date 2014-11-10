@@ -469,6 +469,8 @@ class core_Mvc extends core_FieldSet
     	if(count($restRecs)){
     		$this->saveArray($restRecs, $fields);
     	}
+    	
+    	return TRUE;
     }
     
     
