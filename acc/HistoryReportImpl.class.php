@@ -29,15 +29,26 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	
 	
 	/**
-	 * Плъгини за зареждане
-	 */
-	public $loadList = 'History=acc_BalanceHistory';
-	
-	
-	/**
 	 * Заглавие
 	 */
 	public $title = 'Хронологична справка на аналитична сметка';
+	
+	
+	/**
+	 * Мениджъра на хронологията 
+	 * 
+	 * @param acc_BalanceHistory $History
+	 */
+	private $History;
+	
+	
+	/**
+	 * Параметър по подразбиране
+	 */
+	function init($params = array())
+	{
+		$this->History = cls::get('acc_BalanceHistory');
+	}
 	
 	
 	/**
@@ -112,10 +123,11 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 *
 	 * @param core_Form $innerForm
 	 */
-	public function prepareInnerState(&$innerForm)
+	public function prepareInnerState()
 	{
 		// Подготвяне на данните
-		$filter = $innerForm;
+		$filter = $this->innerForm;
+		
 		$data = new stdClass();
 		$accNum = acc_Accounts::fetchField($filter->accountId, 'num');
 		 
@@ -143,7 +155,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	/**
 	 * След подготовката на показването на информацията
 	 */
-	public function on_AfterPrepareEmbeddedData($mvc, &$res, $innerForm, &$innerState)
+	public function on_AfterPrepareEmbeddedData($mvc, &$res)
 	{
 		$this->History->prepareRows($res);
 	}

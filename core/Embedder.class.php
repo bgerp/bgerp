@@ -78,6 +78,32 @@ class core_Embedder extends core_Master
 	
 	
 	/**
+	 * Взима избрания драйвър за записа
+	 * 
+	 * @param mixed $id - ид/запис
+	 */
+	public function getDriver($id)
+	{
+		$rec = $this->fetchRec($id);
+		
+		if($rec->id){
+			$innerForm = (isset($rec->{$this->innerFormField})) ? $rec->{$this->innerFormField} : $this->fetchField($rec->id, $this->innerFormField);
+			$innerState = (isset($rec->{$this->innerStateField})) ? $rec->{$this->innerStateField} : $this->fetchField($rec->id, $this->innerStateField);
+		}
+		
+		if(empty(self::$Drivers[$rec->id])){
+			$Driver = cls::get($rec->{$this->innerClassField});
+			self::$Drivers[$rec->id] = $Driver;
+		}
+		
+		self::$Drivers[$rec->id]->setInnerForm($innerForm);
+		self::$Drivers[$rec->id]->setInnerState($innerState);
+		
+		return self::$Drivers[$rec->id];
+	}
+	
+	
+	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
 	 * @param core_Manager $mvc
@@ -112,7 +138,7 @@ class core_Embedder extends core_Master
 		if($id = $rec->id) {
 			$form->setReadOnly($mvc->innerClassField);
 			
-			$filter = $rec->{$mvc->innerFormField};
+			$filter = (is_object($rec->{$mvc->innerFormField})) ? clone $rec->{$mvc->innerFormField} : $rec->{$mvc->innerFormField};
 			foreach ((array)$filter as $key => $value){
 				if(empty($rec->{$key})){
 					$rec->{$key} = $value;
@@ -122,15 +148,15 @@ class core_Embedder extends core_Master
 		
 		// Ако има източник инстанцираме го
 		if($rec->{$mvc->innerClassField}) {
-			$Source = cls::get($rec->{$mvc->innerClassField});
+			$Driver = $mvc->getDriver($rec);
 	
 			// Източника добавя полета към формата
-			$Source->addEmbeddedFields($form);
+			$Driver->addEmbeddedFields($form);
 			
 			$form->input(NULL, 'silent');
 			
 			// Източника модифицира формата при нужда
-			$Source->prepareEmbeddedForm($form);
+			$Driver->prepareEmbeddedForm($form);
 		}
 	
 		$form->input(NULL, 'silent');
@@ -145,7 +171,8 @@ class core_Embedder extends core_Master
 		if($form->rec->{$mvc->innerClassField}){
 			
 			// Инстанцираме източника
-			expect($Driver = cls::get($form->rec->{$mvc->innerClassField}));
+			$Driver = $mvc->getDriver($form->rec);
+			
 			if(!$Driver->canSelectInnerObject()){
 				$form->setError($mvc->innerClassField, 'Нямате права за избрания източник');
 			}
@@ -166,13 +193,9 @@ class core_Embedder extends core_Master
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if($fields['-single']) {
-	
-			$Driver = cls::getInterface($mvc->innerObjectInterface, $rec->{$mvc->innerClassField});
+			$Driver = $mvc->getDriver($rec);
 			
-			// Източника подготвя данните
-			$innerForm = $rec->{$mvc->innerFormField};
-			
-			$prepData = $Driver->prepareEmbeddedData($innerForm, $rec->{$mvc->innerStateField});
+			$prepData = $Driver->prepareEmbeddedData();
 			
 			// Източника рендира данните
 			$row->{$mvc->innerStateField} = $Driver->renderEmbeddedData($prepData);

@@ -146,10 +146,9 @@ class frame_Reports extends core_Embedder
             }
             
             // Обновяваме данните, ако отчета е в състояние 'draft'
-            if($rec->state == 'draft') {//bp($rec->data);
-            	$Source = cls::getInterface('frame_ReportSourceIntf', $rec->source);
-            	$filter = $rec->filter;
-            	$rec->data = $Source->prepareInnerState($filter);
+            if($rec->state == 'draft') {
+            	$Source = $mvc->getDriver($rec);
+            	$rec->data = $Source->prepareInnerState();
             }
         }
     }
@@ -171,9 +170,9 @@ class frame_Reports extends core_Embedder
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
-    	$Driver = cls::get($rec->source);
+    	$Driver = $mvc->getDriver($rec->id);
     	
-    	$Driver->invoke('AfterActivation', array(&$rec->data, $rec->filter, &$rec));
+    	$Driver->invoke('AfterActivation', array(&$rec->data, &$rec));
     }
     
     
@@ -182,9 +181,9 @@ class frame_Reports extends core_Embedder
      */
     public static function on_AfterReject($mvc, &$res, &$rec)
     {
-    	$Driver = cls::get($rec->source);
+    	$Driver = $mvc->getDriver($rec->id);
     	
-    	$Driver->invoke('AfterReject', array(&$rec->data, $rec->filter, &$rec));
+    	$Driver->invoke('AfterReject', array(&$rec->data, &$rec));
     }
     
     
@@ -193,9 +192,9 @@ class frame_Reports extends core_Embedder
      */
     public static function on_AfterRestore($mvc, &$res, &$rec)
     {
-    	$Driver = cls::get($rec->source);
+    	$Driver = $mvc->getDriver($rec->id);
     
-    	$Driver->invoke('AfterRestore', array(&$rec->data, $rec->filter, &$rec));
+    	$Driver->invoke('AfterRestore', array(&$rec->data, &$rec));
     }
     
     

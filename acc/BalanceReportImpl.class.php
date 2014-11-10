@@ -109,10 +109,10 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      *
      * @param core_Form $innerForm
      */
-    public function prepareInnerState(&$innerForm)
+    public function prepareInnerState()
     {
     	$data = new stdClass();
-        $data->rec = $innerForm;
+        $data->rec = $this->innerForm;
        
         $this->prepareListFields($data);
         
@@ -129,7 +129,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     /**
      * След подготовката на показването на информацията
      */
-    public function on_AfterPrepareEmbeddedData($mvc, &$res, $innerForm, &$innerState)
+    public function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
     	// Подготвяме страницирането
     	$data = $res;

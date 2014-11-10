@@ -18,11 +18,50 @@ abstract class frame_BaseDriver extends core_BaseClass
 	
 	
 	/**
+	 * Вътрешната форма
+	 * 
+	 * @param mixed $innerForm
+	 */
+	protected $innerForm;
+	
+	
+	/**
+	 * Вътрешното състояние
+	 *
+	 * @param mixed $innerState
+	 */
+	protected $innerState;
+	
+	
+	
+	/**
+	 * Задава вътрешната форма
+	 * 
+	 * @param mixed $innerForm
+	 */
+	public function setInnerForm($innerForm)
+	{
+		$this->innerForm = $innerForm;
+	}
+	
+	
+	/**
+	 * Задава вътрешното състояние
+	 * 
+	 * @param mixed $innerState
+	 */
+	public function setInnerState($innerState)
+	{
+		$this->innerState = $innerState;
+	}
+	
+	
+	/**
 	 * След активация на репорта
 	 */
-	public static function on_AfterActivation($mvc, &$is, $innerForm, &$rec)
+	public static function on_AfterActivation($mvc, &$is, &$rec)
 	{
-		$is = $mvc->prepareInnerState($innerForm);
+		$is = $mvc->prepareInnerState();
 		frame_Reports::save($rec);
 	}
 	
@@ -30,9 +69,9 @@ abstract class frame_BaseDriver extends core_BaseClass
 	/**
 	 * След оттегляне на репорта
 	 */
-	public static function on_AfterReject($mvc, &$is, $innerForm, &$rec)
+	public static function on_AfterReject($mvc, &$is, &$rec)
 	{
-		$is = $mvc->prepareInnerState($innerForm);
+		$is = $mvc->prepareInnerState();
 		frame_Reports::save($rec);
 	}
 	
@@ -40,7 +79,7 @@ abstract class frame_BaseDriver extends core_BaseClass
 	/**
 	 * След възстановяване на репорта
 	 */
-	public static function on_AfterRestore($mvc, &$is, $innerForm, &$rec)
+	public static function on_AfterRestore($mvc, &$is, &$rec)
 	{
 		if($rec->state == 'draft'){
 			unset($rec->data);
@@ -64,13 +103,13 @@ abstract class frame_BaseDriver extends core_BaseClass
 	 * @param core_Form $innerForm
 	 * @param stdClass $innerState
 	 */
-	public function prepareEmbeddedData_($innerForm, &$innerState)
+	public function prepareEmbeddedData_()
 	{
 		// Ако има вътрешно състояние него връщаме
-		if(!empty($innerState)){
-			return $innerState;
+		if(!empty($this->innerState)){
+			return $this->innerState;
 		}
 		 
-		return $this->prepareInnerState($innerForm);
+		return $this->prepareInnerState();
 	}
 }

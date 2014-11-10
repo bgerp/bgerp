@@ -61,13 +61,12 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
 
     /**
      * Подготвя вътрешното състояние, на база въведените данни
-	 * 
-	 * @param core_Form $innerForm
      */
-    public function prepareInnerState(&$filter)
+    public function prepareInnerState()
     {
     	$data = new stdClass();
-    	 
+    	$filter = $this->innerForm;
+    	
     	$DateTime = cls::get('type_Datetime');
     	$KeyList = cls::get('type_KeyList', array('params' => array('mvc' => 'sens2_Indicators', 'select' => 'title')));
     	 
@@ -75,6 +74,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     		$filter->to .= ' 23:59:59';
     	}
     	 
+    	
     	$data->row = new stdClass();
     	$data->row->from = $DateTime->toVerbal($filter->from);
     	$data->row->to = $DateTime->toVerbal($filter->to);

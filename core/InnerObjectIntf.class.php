@@ -59,9 +59,9 @@ class core_InnerObjectIntf
 	 * 
 	 * @param core_Form $innerForm
 	 */
-	public function prepareInnerState(&$innerForm)
+	public function prepareInnerState()
 	{
-		return $this->class->prepareInnerState($innerForm);
+		return $this->class->prepareInnerState();
 	}
 	
 	
@@ -71,9 +71,9 @@ class core_InnerObjectIntf
 	 * @param core_Form $innerForm
 	 * @param stdClass $innerState
 	 */
-	public function prepareEmbeddedData(&$innerForm, &$innerState)
+	public function prepareEmbeddedData()
 	{
-		return $this->class->prepareEmbeddedData($innerForm, $innerState);
+		return $this->class->prepareEmbeddedData();
 	}
 	
 	
