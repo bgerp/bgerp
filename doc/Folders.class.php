@@ -316,20 +316,24 @@ class doc_Folders extends core_Master
             $row->title = ht::createElement('span', $attr, $row->title);
         }
         
-        $typeMvc = cls::get($rec->coverClass);
-        
-        $attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
-
-        if($typeMvc->haveRightFor('single', $rec->coverId)) {
-            $row->type = ht::createLink(tr($typeMvc->singleTitle), array($typeMvc, 'single', $rec->coverId), NULL, $attr);
-        } else {
-            $attr['style'] .= 'color:#777;';
-            $row->type = ht::createElement('span', $attr, tr($typeMvc->singleTitle));
-        }
-
-        if($rec->inCharge){
-        	$row->inCharge = crm_Profiles::createLink($rec->inCharge);
-        }
+		if(cls::load($rec->coverClass, TRUE)){
+			$typeMvc = cls::get($rec->coverClass);
+			
+			$attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
+			
+			if($typeMvc->haveRightFor('single', $rec->coverId)) {
+				$row->type = ht::createLink(tr($typeMvc->singleTitle), array($typeMvc, 'single', $rec->coverId), NULL, $attr);
+			} else {
+				$attr['style'] .= 'color:#777;';
+				$row->type = ht::createElement('span', $attr, tr($typeMvc->singleTitle));
+			}
+			
+			if($rec->inCharge){
+				$row->inCharge = crm_Profiles::createLink($rec->inCharge);
+			}
+		} else {
+			$row->type = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+		}
     }
     
 
