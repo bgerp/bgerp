@@ -276,6 +276,21 @@ class status_Messages extends core_Manager
             // Ако няма нищо за показване
             if (!$statusesArr) return array();
             
+            // При възникване на статус от тип грешка, да се нотифицира в таба 
+            foreach ((array)$statusesArr as $statusDesc) {
+                if ($statusDesc->arg['type'] == 'error') {
+                    $errIcon = sbf('img/dialog_error-small.png', '');
+                    
+                    $resObj = new stdClass();
+                    $resObj->func = 'Notify';
+                    $resObj->arg =  array('title' => 'Грешка', 'blinkTimes' => 3,  'favicon' => $errIcon);
+                    
+                    $statusesArr[] = $resObj;
+                    
+                    break;
+                }
+            }
+            
             return $statusesArr;
         }
     }
