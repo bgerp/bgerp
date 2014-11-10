@@ -52,24 +52,22 @@ class acc_transaction_ClosePeriod
     	
     	// Извличане на мастър-записа
     	expect($rec = $this->class->fetchRec($id));
-    
+    	$this->periodRec = acc_Periods::fetch($rec->periodId);
+    	
     	$result = (object)array(
     			'reason' => "Приключване на период \"" . $this->class->getVerbal($rec, 'periodId') . "\"",
-    			'valior' => $rec->valior,
+    			'valior' => $this->periodRec->end, // Вальора е последния ден от периода
     			'totalAmount' => 0,
     			'entries' => array()
     	);
     	
     	$this->date = acc_Periods::forceYearAndMonthItems($rec->valior);
     	
-    	
     	$total = $incomeFromProducts = 0;
-    	$this->periodRec = acc_Periods::fetch($rec->periodId);
     	$this->balanceId =  acc_Balances::fetchField("#periodId = {$this->periodRec->id}");
-    	//bp($this->periodRec);
     	$incomeRes = array();
     	
-    	/*$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
+    	$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
     	if(count($entries1)){
     		$result->entries = array_merge($result->entries, $entries1);
     	}
@@ -77,7 +75,7 @@ class acc_transaction_ClosePeriod
     	$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
     	if(count($entries2)){
     		$result->entries = array_merge($result->entries, $entries2);
-    	}*/
+    	}
     	
     	$entries3 = $this->transferVat($result->totalAmount, $rec);
     	if(count($entries3)){
@@ -101,7 +99,8 @@ class acc_transaction_ClosePeriod
     	
     	$bQuery = acc_BalanceDetails::getQuery();
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4531');
-    	$bQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL && #ent3Id");
+    	
+    	$bQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
     	$amount4531 = $bQuery->fetch()->blAmount;
     	
     	$bQuery = acc_BalanceDetails::getQuery();
@@ -126,10 +125,6 @@ class acc_transaction_ClosePeriod
     	 
     	$total += abs($amount);
     	 
-    	return $entries;
-    	
-    	bp($amount4531, $amount4532);
-    	
     	return $entries;
     }
     
@@ -182,10 +177,13 @@ class acc_transaction_ClosePeriod
     	$balanceArr = $bQuery->fetchAll();
     	
     	$accIds = array();
+    	$dealPosition = array();
     	
     	foreach (arr::make('701,706,703') as $systemId){
     		$accId = acc_Accounts::getRecBySystemId($systemId)->id;
     		$accIds[$accId] = $systemId;
+    		$dealPosition[$accId] = acc_Lists::getPosition($systemId, 'deals_DealsAccRegIntf');
+    		$dealPosition[$accId] = "ent{$dealPosition[$accId]}Id";
     	}
     	
     	if(!count($balanceArr)) return $entries;
@@ -193,6 +191,9 @@ class acc_transaction_ClosePeriod
     	foreach ($balanceArr as $rec){
     		$arr1 = array('700', $rec->ent1Id, $rec->ent2Id);
     		$arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $rec->blQuantity);
+    		
+    		// Ако перото на продажбата не е затворено, пропускаме го ! 
+    		if(acc_Items::fetchField($rec->{$dealPosition[$rec->accountId]}, 'state') == 'active') continue;
     		
     		if($rec->blAmount > 0){
     			$debitArr = $arr1;

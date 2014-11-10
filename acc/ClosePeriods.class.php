@@ -137,7 +137,6 @@ class acc_ClosePeriods extends core_Master
     function description()
     {
     	$this->FLD("periodId", 'key(mvc=acc_Periods, select=title)', 'caption=Период,mandatory,silent');
-    	$this->FLD("valior", 'date', 'caption=Вальор,mandatory');
     	$this->FLD("amountVatGroup1", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->A');
     	$this->FLD("amountVatGroup2", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->Б');
     	$this->FLD("amountVatGroup3", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->В');
@@ -190,6 +189,12 @@ class acc_ClosePeriods extends core_Master
     			if(isset($row->{"amountVatGroup{$id}"})){
     				$row->{"amountVatGroup{$id}"} .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
     			}
+    		}
+    		
+    		if($rec->state == 'active'){
+    			$valior = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id)->valior;
+    			$Date = cls::get('type_Date');
+    			$row->valior = $Date->toVerbal($valior);
     		}
     	}
     	

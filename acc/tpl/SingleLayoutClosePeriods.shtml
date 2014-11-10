@@ -9,10 +9,12 @@
     </div>
     <!--ET_END header-->
     <table class='styled-table'>
+    	<!--ET_BEGIN valior-->
     	<tr>
             <td>|Вальор|*</td>
             <td>[#valior#]</td>
         </tr>
+        <!--ET_END valior-->
         <tr>
             <td>|Период|*</td>
             <td>[#periodId#]</td>
