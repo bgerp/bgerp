@@ -36,6 +36,12 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     
     
     /**
+     * Брой редове от сензорите на страница
+     */
+    public  $listDataRecPerPage = 50;
+    
+    
+    /**
      * Добавя полетата на вътрешния обект
 	 * 
 	 * @param core_Fieldset $fieldset
@@ -73,7 +79,6 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     	if(!strpos($filter->to, ' ')) {
     		$filter->to .= ' 23:59:59';
     	}
-    	 
     	
     	$data->row = new stdClass();
     	$data->row->from = $DateTime->toVerbal($filter->from);
@@ -86,6 +91,9 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     	 
     	$query->in("indicatorId", keylist::toArray($filter->indicators));
     	 
+    	$data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDataRecPerPage));
+    	$data->pager->setLimit($query);
+    	
     	while($rec = $query->fetch()) {
     		$data->recs[$rec->id] = $rec;
     	}
@@ -105,19 +113,23 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     
     	$layout->placeObject($data->row);
     
-    	if(is_array($data->recs)) {
+    	if(count($data->recs)) {
     		foreach($data->recs as $id => $rec) {
     			$data->rows[$id] = sens2_DataLogs::recToVerbal($rec);
     			$data->rows[$id]->time = str_replace(' ', '&nbsp;', $data->rows[$id]->time);
     		}
-    
+    		
     		$this->invoke('AfterPrepareListRows', array($data, $data));
-    
-    		$table = cls::get('core_TableView');
-    
-    		$layout->append($table->get($data->rows, 'time=Време,indicatorId=Индикатор,value=Стойност'), 'data');
     	}
+    		
+    	$table = cls::get('core_TableView');
     
+    	$layout->append($table->get($data->rows, 'time=Време,indicatorId=Индикатор,value=Стойност'), 'data');
+    		
+    	if($data->pager){
+    		$layout->append($data->pager->getHtml(), 'data');
+    	}
+    	
     	return $layout;
     }
 
