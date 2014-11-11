@@ -215,7 +215,7 @@ class cat_Products extends core_Master {
     /**
      * Изпълнява се след подготовка на Едит Формата
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             if ($newCode = str::increment($code)) {
@@ -268,7 +268,7 @@ class cat_Products extends core_Master {
     /**
      * Преди запис на продукт
      */
-    public static function on_BeforeSave($mvc, $res, $rec)
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
     	if(isset($rec->csv_measureId) && strlen($rec->csv_measureId) != 0){
     		$rec->measureId = cat_UoM::fetchField("#name = '{$rec->csv_measureId}'", "id");
@@ -323,7 +323,7 @@ class cat_Products extends core_Master {
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal ($mvc, $row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal ($mvc, &$row, $rec, $fields = array())
     {
         if($fields['-single']) {
         	
@@ -743,7 +743,7 @@ class cat_Products extends core_Master {
 	/**
      * След всеки запис
      */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
@@ -759,7 +759,7 @@ class cat_Products extends core_Master {
 	/**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    static function on_Shutdown($mvc)
+    public static function on_Shutdown($mvc)
     {
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
@@ -823,7 +823,7 @@ class cat_Products extends core_Master {
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function loadSetupData()
+    public function loadSetupData()
     {
     	$file = "cat/csv/Products.csv";
     	$fields = array( 
