@@ -3,7 +3,7 @@
 
 
 /**
- * Интерфейс за пера - трудови договори
+ * Интерфейс за пера - организационна структура
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Интерфейс за пера - трудови договори
+ * @title     Интерфейс за пера - организационна структура
  */
 class hr_DepartmentAccRegIntf extends acc_RegisterIntf
 {
