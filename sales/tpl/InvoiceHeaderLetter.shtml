@@ -62,7 +62,7 @@
                                         <!--ET_END rate-->  
                                         <div class='custom-bg-block'><b>|Плащане|* / <i>Payment</i></b></div>
                                         <!--ET_BEGIN paymentMethodId-->
-                                        <div><span class='quiet'>|Начин|* / <i>Method</i>:</span>  [#paymentMethodId#]</div>
+                                        <div><span class='quiet'>|Метод|* / <i>method</i>:</span>  [#paymentMethodId#]</div>
                                         <!--ET_END paymentMethodId-->
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
