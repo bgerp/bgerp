@@ -35,11 +35,27 @@ class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
 	 */
 	public function addEmbeddedFields(core_Fieldset &$form)
 	{
-		$form->FLD('description', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory,changable");
-		$form->FLD('measureId', 'key(mvc=cat_UoM, select=name)', "caption=Мярка,mandatory,changable");
-    	$form->FLD('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', "caption=Параметри->Изображение,changable");
-		$form->FLD('code', 'varchar(64)', "caption=Параметри->Код,remember=info,changable");
-        $form->FLD('eanCode', 'gs1_TypeEan', "input,caption=Параметри->EAN,changable");
+		// Добавя полетата само ако ги няма във формата
+		
+		if(!$form->getField('description', FALSE)){
+			$form->FLD('description', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory");
+		}
+		
+		if(!$form->getField('measureId', FALSE)){
+			$form->FLD('measureId', 'key(mvc=cat_UoM, select=name)', "caption=Мярка,mandatory");
+		}
+		
+		if(!$form->getField('image', FALSE)){
+			$form->FLD('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', "caption=Параметри->Изображение");
+		}
+    	
+		if(!$form->getField('code', FALSE)){
+			$form->FLD('code', 'varchar(64)', "caption=Параметри->Код,remember=info");
+		}
+		
+		if(!$form->getField('eanCode', FALSE)){
+			$form->FLD('eanCode', 'gs1_TypeEan', "input,caption=Параметри->EAN");
+		}
 	}
 	
 	
