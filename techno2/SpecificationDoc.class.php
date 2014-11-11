@@ -199,6 +199,12 @@ class techno2_SpecificationDoc extends core_Embedder
     	if($action == 'activate' && empty($rec)){
     		$res = 'no_one';
     	}
+    	
+    	if($action == 'edit' && isset($rec)){
+    		if($rec->state == 'active'){
+    			$res = $mvc->getRequiredRoles('edit');
+    		}
+    	}
     }
 
 
@@ -603,7 +609,7 @@ class techno2_SpecificationDoc extends core_Embedder
      * @param mixed $id - ид/запис 
      * @return boolean - дали е стандартен или не 
      */
-    public function isProductStandard($id)
+    public function isProductStandart($id)
     {
     	return FALSE;
     }
@@ -612,9 +618,9 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Кеширане на изгледа на спецификацията
      * 
-     * @param unknown $id
-     * @param unknown $time
-     * @return ET
+     * @param mixed $id - ид/запис
+     * @param datetime $time - време
+     * @return core_ET - кеширания шаблон
      */
     private static function cacheTpl($id, $time)
     {
