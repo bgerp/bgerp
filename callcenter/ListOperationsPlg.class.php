@@ -45,6 +45,11 @@ class callcenter_ListOperationsPlg extends core_Plugin
         // Добавяме бутон за избиране
         $data->callLink = ht::createBtn('Избиране', "tel: {$numberDial}", FALSE, FALSE, array('ef_icon' => '/img/16/call.png', 'class' => 'out-btn'));
         
+        // Преобразува номера в линк за търсене
+        $searchArr = self::getSearchLinkArr($numberArr);
+        $searchLink = self::getSearchLink($searchArr, 0);
+        $data->searchLink = ht::createBtn('Търсене', $searchLink, FALSE, '_blank', array('ef_icon' => '/img/16/find.png'));
+        
         // Ако има права за изпращане на факс
         if (email_FaxSent::haveRightFor('send')) {
             
@@ -85,10 +90,72 @@ class callcenter_ListOperationsPlg extends core_Plugin
         
         // Добавяме бутоните към заглавието
         $buttonTpl->append($data->callLink, 'listTitleParams');
+        $buttonTpl->append($data->searchLink, 'listTitleParams');
         $buttonTpl->append($data->faxLink, 'listTitleParams');
         $buttonTpl->append($data->smsLink, 'listTitleParams');
         
         // Добавяме към титлата
         $tpl->append($buttonTpl);
+    }
+    
+    
+    /**
+     * Връща масив с възможните комбинации на номера за търсене
+     * 
+     * @param array $numberArr - масив с номерата
+     * @param integer $limitWords - колко думу да има
+     * @param string $glue - лепило за различните варииации на номера
+     * 
+     * @return array
+     */
+    protected static function getSearchLinkArr($numberArr, $limitWords=32, $glue = " OR ")
+    {
+        $allVariationsArr = drdata_Phones::getVariationsNumberArr($numberArr);
+        $resArr = array();
+        $cnt = 0;
+        $key = 0;
+        
+        foreach ($allVariationsArr as $var) {
+            
+            // Ако има ограничение за думите при търсене
+            // Добавяме в друг масив при достигане на лимита
+            if ($limitWords) {
+                
+                $varArr = explode(" ", $var);
+                $arrCnt = count($varArr);
+                $cnt += $arrCnt;
+                
+                if ($cnt > $limitWords) {
+                    $cnt = $arrCnt;
+                    $key++;
+                }
+            }
+            
+            if (!$resArr[$key]) {
+                $resArr[$key] = '"';
+            } else {
+                $resArr[$key] .= $glue . '"';
+            }
+            
+            $resArr[$key] .= $var . '"';
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща линк за търсене в google
+     * 
+     * @param array $keyWordsArr
+     * @param integer $key
+     */
+    protected static function getSearchLink($keyWordsArr, $key=0)
+    {
+        $keyWordsStr = urlencode($keyWordsArr[0]);
+        
+        $urlStr = "https://www.google.bg/search?q={$keyWordsStr}";
+        
+        return $urlStr;
     }
 }

@@ -75,6 +75,48 @@ class drdata_Phones extends core_Manager {
     
     
     /**
+     * Връща масив с всички варииации на телофона, кода и града
+     * 
+     * @param array $numberArr
+     * 
+     * @return arrray
+     */
+    public static function getVariationsNumberArr($numbersArr)
+    {
+        $allArr = array();
+        $setArr = array();
+        
+        foreach ((array)$numbersArr as $key => $numberObj) {
+            
+            // Масив с варициите на частите на номера
+            $countryVarArr = self::getCountryCodeVariation($numberObj->countryCode);
+            $areaVarArr = self::getAreaCodeVariation($numberObj->areaCode);
+            $numberVarArr = self::getNumberVariation($numberObj->number);
+            
+            foreach ($countryVarArr as $countryCode) {
+                foreach ($areaVarArr as $areaCode) {
+                    foreach ($numberVarArr as $number) {
+                        
+                        // Ако кода на региона започва с 0, да не се добавя кода на държавата
+                        if ($areaCode{0} === '0') {
+                            $hash = $areaCode . '|' . $number;
+                            if (!$setArr[$hash]) {
+                                $setArr[$hash] = TRUE;
+                                $allArr[] = $areaCode . $number;
+                            }
+                        } else {
+                            $allArr[] = $countryCode . $areaCode . $number;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $allArr;
+    }
+    
+    
+    /**
      * @todo Чака за документация...
      */
     function parseTextAndCode($str)
@@ -93,6 +135,100 @@ class drdata_Phones extends core_Manager {
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща варииациите за държавата
+     * 
+     * @param integer $number
+     * 
+     * @return array
+     */
+    protected static function getCountryCodeVariation($code)
+    {
+        $resArr = self::getSymVariations($code, array('00'));
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща варииациите за региона
+     * 
+     * @param integer $number
+     * 
+     * @return array
+     */
+    protected static function getAreaCodeVariation($code)
+    {
+        $resArr = self::getSymVariations($code, array('0'));
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща комбинациите с кода и символите пред него
+     * 
+     * @param string $code
+     * @param array $symArr
+     */
+    protected static function getSymVariations($code, $symArr=array('0'))
+    {
+        $res = array();
+        $res[] = $code;
+        $res[] = $code . " ";
+        
+        foreach ((array)$symArr as $sym) {
+            $res[] = $sym . $code;
+            $res[] = $sym . $code . " ";
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Връща възможните варииации за номера
+     * 
+     * @param integer $number
+     * 
+     * @return array
+     */
+    protected static function getNumberVariation($number)
+    {
+        $resArr = array();
+        $resArr[] = $number;
+        
+        $numberLen = strlen($number);
+        
+        if (!$numberLen) return $resArr;
+        
+        $isOdd = (boolean)($numberLen % 2);
+        
+        $minGroup = 2;
+        $maxGroup = floor($numberLen / 2);
+        
+        if ($isOdd) {
+            $firstNumber = substr($number, 0, 1);
+            $otherNumber = substr($number, 1, $numberLen-1);
+        }
+        
+        // Групираме по брой символи и добавяме интервал между тях
+        for ($i = $minGroup; $i <= $maxGroup; $i++) {
+            $numberArr = str_split($number, $i);
+            $resArr[] = implode(' ', $numberArr);
+            
+            // Когато броя на цифрите е нечетен, първата цифра да е отделена
+            if ($isOdd) {
+                $otherNumberArr = str_split($otherNumber, $i);
+                
+                $resArr[] = $firstNumber . " " . implode(' ', $otherNumberArr);
+            }
+        }
+        
+        return $resArr;
     }
     
     
