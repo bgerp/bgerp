@@ -103,5 +103,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     public function description()
     {
         $this->FLD('requestId', 'key(mvc=purchase_Purchases)', 'column=none,notNull,silent,hidden,mandatory');
+        
+        parent::getDealDetailFields($this);
     }
 }

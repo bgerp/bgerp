@@ -130,5 +130,7 @@ class sales_SalesDetails extends deals_DealDetail
     public function description()
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
+        
+        parent::getDealDetailFields($this);
     }
 }

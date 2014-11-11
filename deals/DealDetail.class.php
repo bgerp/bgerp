@@ -80,7 +80,7 @@ abstract class deals_DealDetail extends doc_Detail
     /**
      * След описанието на полетата
      */
-    public static function on_AfterDescription(&$mvc)
+    public static function getDealDetailFields(&$mvc)
     {
     	$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
     	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
@@ -109,10 +109,17 @@ abstract class deals_DealDetail extends doc_Detail
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
     	$mvc->FLD('discount', 'percent(min=-1,max=1)', 'caption=Отстъпка');
-        
-        // Скриване на полетата за създаване
-        $mvc->setField('createdOn', 'column=none');
-        $mvc->setField('createdBy', 'column=none');
+    }
+    
+    
+    /**
+     * След описанието
+     */
+    public static function on_AfterDescription(&$mvc)
+    {
+    	// Скриване на полетата за създаване
+    	$mvc->setField('createdOn', 'column=none');
+    	$mvc->setField('createdBy', 'column=none');
     }
     
     
