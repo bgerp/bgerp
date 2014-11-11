@@ -194,6 +194,9 @@ class acc_transaction_ClosePeriod
     		// Ако перото на продажбата не е затворено, пропускаме го ! 
     		if(acc_Items::fetchField($rec->{$dealPosition[$rec->accountId]}, 'state') == 'active') continue;
     		
+    		// Пропускаме нулевите салда
+    		if(round($rec->blAmount, 2) == 0) continue;
+    		
     		if($rec->blAmount > 0){
     			$debitArr = $arr1;
     			$creditArr = $arr2;
