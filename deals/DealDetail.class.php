@@ -335,7 +335,8 @@ abstract class deals_DealDetail extends doc_Detail
         		$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));
         	}
         } else {
-        	$row->productId = $ProductManager->getProductDesc($rec->productId);
+        	$masterDate = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'valior');
+        	$row->productId = $ProductManager->getProductDesc($rec->productId, $masterDate);
         }
     }
     
