@@ -72,7 +72,7 @@ class techno2_SpecTplCache extends core_Master
 	/**
 	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
 	 */
-	public $rowToolsSingleField = 'title';
+	public $rowToolsSingleField = 'specId';
 	
 	
 	/**
@@ -81,7 +81,7 @@ class techno2_SpecTplCache extends core_Master
 	function description()
 	{
 		$this->FLD("specId", "key(mvc=techno2_SpecificationDoc,select=title)", "input=none,caption=Спецификация");
-		$this->FLD("cache", "html", "input=none");
+		$this->FLD("cache", "html", "input=none,caption=Html,column=none");
 		$this->FLD("time", "datetime", "input=none,caption=Дата");
 	}
 	
