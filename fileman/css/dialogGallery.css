@@ -20,7 +20,7 @@
 	width:1%;
 }
 
-.noicon.button{
+.dialog-window .noicon.button{
 	display: inline-block;
     float: left;
 }

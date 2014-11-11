@@ -89,6 +89,15 @@ tr.noHover td:hover {
   padding-left: 0.2em;
   padding-top: 0.2em; }
 
+.bugReport {
+  border: none;
+  background-color: transparent;
+  vertical-align: middle; }
+
+.narrow .bugReport {
+  position: relative;
+  top: -2px; }
+
 .narrow #framecontentBottom {
   padding: 2px 5px 0 5px; }
 
