@@ -159,4 +159,38 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->class->getPolicy();
     }
+
+
+    /**
+     * Заглавие на артикула
+     */
+    public function getProductTitle($id)
+    {
+    	return $this->class->getProductTitle($id);
+    }
+    
+    
+    /**
+     * Дали артикула е стандартен
+     *
+     * @param mixed $id - ид/запис
+     * @return boolean - дали е стандартен или не
+     */
+    public function isProductStandard($id)
+    {
+    	return $this->class->isProductStandard($id);
+    }
+    
+    
+    /**
+     * Връща подробното описанието на артикула
+     *
+     * @param mixed $id - ид/запис
+     * @param datetime $time - към кое време
+     * @return mixed - описанието на артикула
+     */
+    public function getProductDesc($id, $time = NULL)
+    {
+    	return $this->getProductDesc($id, $time);
+    }
 }
