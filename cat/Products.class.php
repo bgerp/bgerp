@@ -1146,4 +1146,43 @@ class cat_Products extends core_Master {
     	
     	return FALSE;
     }
+    
+    
+    /**
+     * Заглавие на артикула
+     */
+    public function getProductTitle($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	return $rec->name;
+    }
+    
+    
+    /**
+     * Дали артикула е стандартен
+     *
+     * @param mixed $id - ид/запис
+     * @return boolean - дали е стандартен или не
+     */
+    public function isProductStandart($id)
+    {
+    	return TRUE;
+    }
+    
+    
+    /**
+     * Връща подробното описанието на артикула
+     *
+     * @param mixed $id - ид/запис
+     * @param datetime $time - към кое време
+     * @return mixed - описанието на артикула
+     */
+    public function getProductDesc($id, $time = NULL)
+    {
+    	//@TODO временно докато се сложи новия интерфейс
+    	$rec = $this->fetchRec($id);
+    	
+    	return $rec->name;
+    }
 }

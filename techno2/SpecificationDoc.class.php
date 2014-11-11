@@ -110,7 +110,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, folderId, innerClass, meta=Свойства';
+    public $listFields = 'id, title, folderId, innerClass';
     
     
     /**
@@ -589,7 +589,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Заглавие на артикула
      */
-    public function getProductTitle($id, $time = NULL)
+    public function getProductTitle($id)
     {
     	$rec = self::fetchRec($id);
     	 

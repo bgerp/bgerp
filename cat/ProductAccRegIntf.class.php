@@ -176,9 +176,9 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @param mixed $id - ид/запис
      * @return boolean - дали е стандартен или не
      */
-    public function isProductStandard($id)
+    public function isProductStandart($id)
     {
-    	return $this->class->isProductStandard($id);
+    	return $this->class->isProductStandart($id);
     }
     
     
