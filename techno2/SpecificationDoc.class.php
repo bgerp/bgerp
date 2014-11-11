@@ -183,6 +183,20 @@ class techno2_SpecificationDoc extends core_Embedder
     {
     	return array('doc_ContragentDataIntf');
     }
+
+    
+    /**
+     * Може ли документа да се добави в посочената папка?
+     *
+     * @param $folderId int ид на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	$coverClass = doc_Folders::fetchCoverClassName($folderId);
+    
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
     
     
     /**
