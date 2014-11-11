@@ -465,11 +465,16 @@ class sales_QuotationsDetails extends doc_Detail {
     	
         $double = cls::get('type_Double');
         $double->params['decimals'] = 2;
-    	$row->productId = $ProductMan->getTitleById($rec->productId, TRUE, TRUE);
-    	
-    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && is_string($row->productId) && $ProductMan->haveRightFor('read', $rec->productId)){
-    		$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId), NULL, 'title=Към продукта');
-    	}
+        
+        if($ProductMan->isProductStandart($rec->productId)){
+        	$row->productId = $ProductMan->getProductTitle($rec->productId);
+        	 
+        	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+        		$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId));
+        	}
+        } else {
+        	$row->productId = $ProductMan->getProductDesc($rec->productId);
+        }
     	
     	if($rec->quantity){
     		$uomId = $pInfo->productRec->measureId;
