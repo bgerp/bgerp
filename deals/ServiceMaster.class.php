@@ -138,7 +138,8 @@ abstract class deals_ServiceMaster extends core_Master
 				$shipProduct->discount    = $product->discount;
 				$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
 				 
-				$mvc->purchase_ServicesDetails->save($shipProduct);
+				$Detail = $mvc->mainDetail;
+				$mvc->$Detail->save($shipProduct);
 			}
 		}
 	}
