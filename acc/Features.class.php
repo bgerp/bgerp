@@ -94,6 +94,7 @@ class acc_Features extends core_Manager
      */
     public $searchFields = 'itemId, feature, value';
     
+    
     /**
      * Брой записи на страница
      */

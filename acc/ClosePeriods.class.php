@@ -172,6 +172,23 @@ class acc_ClosePeriods extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}'")){
+    			$form->setError("periodId", "Има вече активиран/чернова документ за избрания период");
+    		}
+    	}
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
@@ -248,5 +265,24 @@ class acc_ClosePeriods extends core_Master
     	$self = cls::get(get_called_class());
     
     	return $self->singleTitle . " №{$rec->id}";
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'restore' || $action == 'conto') && isset($rec)){
+    		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}'")){
+    			$res = 'no_one';
+    		}
+    	}
     }
 }
