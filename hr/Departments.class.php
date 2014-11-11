@@ -15,6 +15,11 @@
 class hr_Departments extends core_Master
 {
     
+     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'acc_RegisterIntf,hr_DepartmentAccRegIntf, doc_DocumentIntf, bgerp_plg_Blank';
+    
     
     /**
      * Заглавие
@@ -38,9 +43,8 @@ class hr_Departments extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_RegisterIntf, hr_Wrapper, doc_FolderPlg, plg_Printing,
+    public $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing,
                      plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
-    
     
     /**
      * Кой има право да чете?
@@ -254,10 +258,27 @@ class hr_Departments extends core_Master
     {
         $rec->orderStr = '';
         
-        if($rec->staff) {
+        if ($rec->staff) {
             $rec->orderStr = self::fetchField($rec->staff, 'orderStr');
         }
         $rec->orderStr .= str_pad(mb_substr($rec->name, 0, 10), 10, ' ', STR_PAD_RIGHT);
+    }
+    
+    
+    /**
+     * След промяна на обект от регистър
+     */
+    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    {
+    	if($rec->activities == 'yes'){
+    	    // Добавя се като перо
+    		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'departments'), 'id'));
+    		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
+        } else {
+            // перото се изтрива ("изключва" ако вече е използвано)
+			$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'departments'), 'id'));
+    		acc_Lists::removeItem($mvc, $rec->id, $rec->lists);
+        }
     }
     
     

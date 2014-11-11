@@ -34,7 +34,9 @@
 	                <!--ET_END startingOn-->
 	            </div>
 	        </fieldset>
+	   <!--ET_BEGIN DETAILS-->
 	        [#DETAILS#]
+	   <!--ET_END DETAILS-->
 	    </div>
     </div>
 </div>
