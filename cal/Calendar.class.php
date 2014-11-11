@@ -638,71 +638,89 @@ class cal_Calendar extends core_Master
     /**
      * Функция извеждаща броя на работните, неработните и празничните дни в един месец
      */
-    public static function calculateDays($month, $year)
+    public static function getHoliday($curDate, $country)
     {
-    
-    	// Ако е въведен несъществуващ месец или година, взима текущите данни
-        if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
-            $year = date('Y');
-            $month = date('n');
-            
+        $dateTime = explode (" ", $curDate);
+        
+        if (is_array($dateTime)) {
+            $date = explode ("-", $dateTime[0]);
+        } else {
+            $date = explode ("-", $curDate);
         }
-        
-        // Таймстамп на първия ден в месеца
-        $timestamp = strtotime("$year-$month-01");
-        
-        // Броя на дните в месеца (= на последната дата в месеца);
-        $lastDay = date('t', $timestamp);
-    
-        for($i = 1; $i <= $lastDay; $i++) {
-            $t = mktime(0, 0, 0, $month, $i, $year);
-            $monthArr[date('W', $t)][date('N', $t)] = $i;
-            
-        }
-        
-        // Начална дата
-        $from = "{$year}-{$month}-01 00:00:00";
-        
-        // Крайна дата
-        $to = "{$year}-{$month}-{$lastDay} 00:00:00";
-      
-    	$query = self::getQuery();
-
-    	$holiday = $nonWorking = $workday = 0;
     	
-        while($rec = $query->fetch("#time >= '{$from}' AND #time <= '{$to}'")) {
-            
-	        if($rec->type == "holiday"){
-	        	$holiday++;
-	        } elseif ($rec->type == "non-working"){
-	        	$nonWorking++;
-	        } elseif($rec->type == "workday"){
-	        	$workday++;
-	        }
-	    }
-	  
-        $satSun = 0;
-               
-        foreach ($monthArr as $dayWeek){
-			foreach($dayWeek as $k=>$day){
-		    	if($k == 6 || $k == 7){
-		        	$satSun++;
-		        }
-		     }
-        }
-      
-        $allHolidays = $satSun - $workday + $nonWorking + $holiday;
-        $allWoking = $lastDay - $allHolidays;
-           
-        $statusArr = array();
-        $statusArr['working'] = $allWoking;
-        $statusArr['nonWorking'] = $allHolidays;
-        $statusArr['holiday'] = $holiday;
+    	if (is_array($date)) {
+    	    // проверяваме месеца
+    	    if ($date[1] >= 1 && $date[1] <= 12) {
+    	        $month = $date[1];
+    	    } else {
+                $month = date('n');
+            }
+            // проверяваме годината
+            if ($date[0] >= 1970 && $date[0] <= 2038) { 
+    	        $year = $date[0];
+    	    } else {
+    	        $year = date('Y');
+    	    }
+    	    // проверяваме деня
+    	    if ($date[2] >= 1 && $date[2] <= 31){
+    	        $day = $date[2]; 
+    	    } else {
+    	       $day = date('d'); 
+    	    }
+    	}
         
-        return $statusArr;
-           
+        $t = mktime(0, 0, 0, $month, $day, $year);
+        $dayOfWeek = date('N', $t);
+  
+        $time = "{$year}-{$month}-{$day} 00:00:00";
+    	$query = self::getQuery();
+    	$type = strtoupper($country);
+    	
+    	if ($country == 'bg') {
+            $query->where("#time = '{$time}' AND (#type = 'holiday' OR #type = 'non-working' OR #type = 'workday' OR #type = 'BG')");
+    	} else {
+    	    $query->where("#time = '{$time}' AND #type = '{$type}'");
+    	}
+    	
+        $rec = $query->fetch();
+        
+        if($rec->type == "holiday"){
+    	        
+            $specialDay = 'holiday';
+            $title = $rec->title;
+    	} elseif ($rec->type == "{$type}") {
+    	        
+    	    $specialDay = $country;
+    	    $title = $rec->title;
+        } elseif ($rec->type == "non-working"){
+    	        
+    	    $specialDay = 'non-working';
+    	    $title = $rec->title;
+    	} elseif($rec->type == "workday"){
+    	        
+    	    $specialDay = 'workday';
+    	    $title = $rec->title;
+    	} elseif ($dayOfWeek == 6 && ($rec->type !== "holiday" || $rec->type !== "{$type}")) {
+    	        
+    	    $specialDay =  'saturday';
+    	    $title = 'Събота';
+    	} elseif ($dayOfWeek == 7 && ($rec->type !== "holiday" || $rec->type !== "{$type}")) {
+    	        
+    	    $specialDay = 'sunday';
+    	    $title = 'Неделя';
+    	} else {
+    	    $specialDay = FALSE;
+    	    $title = FALSE;
+    	}
+    	
+    	return (object) array('type'=>$specialDay, 'title'=>$title);
+ 
     }
 
+    public function act_Test()
+    {
+        bp(self::calcLeaveDays("2014-01-01", "2014-12-31"));
+    }
     
     /**
      * Функция показваща събитията за даден ден
@@ -1028,32 +1046,25 @@ class cal_Calendar extends core_Master
     	
     	$nonWorking = $workDays = $allDays = 0;
     	
-    	$curDate = "{$leaveFrom} 00:00:00";
+    	$curDate = date("Y-m-d H:i:s", strtotime("{$leaveFrom} 00:00:00"));
     	
     	while($curDate < dt::addDays(1, $leaveTo)){
     		
-    		$dateType = static::getDateType($curDate);
-    		
-    		if(!$dateType) {
-    			if(dt::isHoliday($curDate)) {
-    				$dateType = 'non-working';
-    			} else {
-    				$dateType = 'workday';
-    			}
-    		}
-    		
-    		if($dateType == 'workday') {
+    		$dateType = self::getHoliday($curDate, 'ao');
+    		$testArray [$curDate] = $dateType;
+
+    		if($dateType->type == FALSE || $dateType->type == 'workday') {
     			$workDays++;
     		} else {
-    			$nonWorking++;
+    		    $nonWorking++;
     		}
-    		
+    		    		
     		$curDate = dt::addDays(1, $curDate); 
     		
     		$allDays++;
     	}
 
-    	return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays);
+    	return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays, 'testArray'=>$testArray);
     }
 
     
