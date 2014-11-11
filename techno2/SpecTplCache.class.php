@@ -81,7 +81,7 @@ class techno2_SpecTplCache extends core_Master
 	function description()
 	{
 		$this->FLD("specId", "key(mvc=techno2_SpecificationDoc,select=title)", "input=none,caption=Спецификация");
-		$this->FLD("cache", "html", "input=none,caption=Html,column=none");
+		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
 		$this->FLD("time", "datetime", "input=none,caption=Дата");
 	}
 	
@@ -100,5 +100,16 @@ class techno2_SpecTplCache extends core_Master
 		$cache = techno2_SpecTplCache::fetchField("#specId = {$rec->id} AND #time = '{$time}'", 'cache');
 		
 		return $cache;
+	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 */
+	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		if(isset($fields['-single'])){
+			$row->cache = new ET($rec->cache);
+		}
 	}
 }

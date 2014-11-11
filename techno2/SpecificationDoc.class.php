@@ -631,14 +631,14 @@ class techno2_SpecificationDoc extends core_Embedder
     		$cacheRec->specId = $id;
     		
     		$tpl = self::getTitleById($id, TRUE, TRUE);
-    		$cacheRec->cache = $tpl->getContent();
+    		$cacheRec->cache = $tpl;
     		
     		techno2_SpecTplCache::save($cacheRec);
     		
     		$cache = $cacheRec->cache;
     	}
     	
-    	return new ET($cache);
+    	return $cache;
     }
     
     
@@ -651,8 +651,6 @@ class techno2_SpecificationDoc extends core_Embedder
     public function getProductDesc($id, $time = NULL)
     {
     	$tpl = self::cacheTpl($id, $time);
-    	
-    	$tpl->push('techno2/tpl/GeneralProductsStyles.css', 'CSS');
     	
     	return $tpl;
     }
