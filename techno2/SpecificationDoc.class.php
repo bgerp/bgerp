@@ -273,46 +273,6 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
-     * Предефинираме метода getTitleById да връща вербалното
-     * представяне на продукта
-     *
-     * @param int $id - id на спецификацията
-     * @param boolean $full
-     * 	      		FALSE - връща само името на спецификацията
-     * 		        TRUE - връща целия шаблон на спецификацията
-     * @return core_ET - шаблон с представянето на спецификацията
-     */
-    public static function getTitleById($id, $escaped = TRUE, $full = FALSE, $lang = 'bg')
-    {
-    	$self = cls::get(get_called_class());
-    	
-    	if(!$Driver = $self->getDriver($id)){
-    		
-    		return "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
-    	}
-    	
-    	
-    	$title = $self->getProductTitle($id);
-    	 
-    	// Ако искаме кратко име връщаме го
-    	if($full !== TRUE) {
-    
-    		return $title;
-    	}
-    	
-    	// Иначе връщаме краткото рендиране на спецификацията
-    	$data = $Driver->prepareEmbeddedData();
-    	$data->params = $self->Params->prepareParams($id);
-    	 
-    	$tpl = $Driver->renderShortView($data);
-    	$title = ht::createLinkRef($title, array($self, 'single', $id));
-    	$tpl->replace($title, "TITLE");
-    	 
-    	return $tpl;
-    }
-    
-    
-    /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
@@ -644,7 +604,15 @@ class techno2_SpecificationDoc extends core_Embedder
     		$cacheRec->time = $time;
     		$cacheRec->specId = $id;
     		
-    		$tpl = self::getTitleById($id, TRUE, TRUE);
+    		$self = cls::get(get_called_class());
+    		$Driver = $self->getDriver($id);
+    		$data = $Driver->prepareEmbeddedData();
+    		$data->params = $self->Params->prepareParams($id);
+    		
+    		$tpl = $Driver->renderDescription($data);
+    		$title = ht::createLinkRef($self->getTitleById($id), array($self, 'single', $id));
+    		$tpl->replace($title, "TITLE");
+    		
     		$cacheRec->cache = $tpl;
     		
     		techno2_SpecTplCache::save($cacheRec);

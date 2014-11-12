@@ -325,28 +325,35 @@ abstract class deals_DealDetail extends doc_Detail
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * Преди подготовка на полетата за показване в списъчния изглед
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterPrepareListRows($mvc, $data)
     {
-        $ProductManager = cls::get($rec->classId);
-        
-        $row->productId = $ProductManager->getTitleById($rec->productId, TRUE, TRUE, $rec->tplLang);
-       
-        if($ProductManager->isProductStandart($rec->productId)){
-        	$row->productId = $ProductManager->getProductTitle($rec->productId);
-        	
-        	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-        		$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));
-        	}
-        } else {
-        	$masterDate = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'valior');
-        	$row->productId = $ProductManager->getProductDesc($rec->productId, $masterDate);
-        }
+    	if(!count($data->recs)) return;
+    	
+    	$recs = &$data->recs;
+    	$rows = &$data->rows;
+    	
+    	$modifiedOn = $data->masterData->rec->modifiedOn;
+    	
+    	foreach ($rows as $id => &$row){
+    		$rec = $recs[$id];
+    		
+    		$ProductManager = cls::get($rec->classId);
+    		
+    		$row->productId = $ProductManager->getTitleById($rec->productId, TRUE, TRUE, $rec->tplLang);
+    		 
+    		if($ProductManager->isProductStandart($rec->productId)){
+    			$row->productId = $ProductManager->getProductTitle($rec->productId);
+    			 
+    			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    				$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));
+    			}
+    		} else {
+    			$masterDate = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'valior');
+    			$row->productId = $ProductManager->getProductDesc($rec->productId, $masterDate);
+    		}
+    	}
     }
     
     

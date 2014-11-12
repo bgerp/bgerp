@@ -2,7 +2,7 @@
 <?php
 
 /**
- * Драйвър за нестандартна услуга
+ * Драйвър за универсална услуга
  *
  *
  * @category  bgerp
@@ -11,7 +11,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвър за нестандартна услуга
+ * @title     Драйвър за универсална услуга
  */
 class techno2_SpecificationBaseServiceDriver extends techno2_SpecificationBaseDriver
 {

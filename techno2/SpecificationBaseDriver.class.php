@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Драйвър за нестандартен артикул
+ * Драйвър за универсален артикул
  *
  *
  * @category  bgerp
@@ -10,7 +10,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвър за нестандартен артикул
+ * @title     Драйвър за универсален артикул
  */
 class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
 {
@@ -147,7 +147,7 @@ class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
 	 * @param stdClass $data - дата
 	 * @return core_ET $tpl - шаблон
 	 */
-	public function renderShortView($data)
+	public function renderDescription($data)
 	{
 		$tpl = $this->renderEmbeddedData($data);
 		$this->renderParams($data->params, $tpl, TRUE);
