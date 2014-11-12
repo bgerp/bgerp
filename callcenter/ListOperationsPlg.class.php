@@ -13,8 +13,6 @@
  */
 class callcenter_ListOperationsPlg extends core_Plugin
 {
-    
-    
     /**
      * След подготвяне на загалвието на листовия излглед
      * 
@@ -46,8 +44,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         $data->callLink = ht::createBtn('Избиране', "tel: {$numberDial}", FALSE, FALSE, array('ef_icon' => '/img/16/call.png', 'class' => 'out-btn'));
         
         // Преобразува номера в линк за търсене
-        $searchArr = self::getSearchLinkArr($numberArr);
-        $searchLink = self::getSearchLink($searchArr, 0);
+        $searchLink = self::getSearchQueryLink($numberArr);
         $data->searchLink = ht::createBtn('Търсене', $searchLink, FALSE, '_blank', array('ef_icon' => '/img/16/find.png'));
         
         // Ако има права за изпращане на факс
@@ -80,7 +77,6 @@ class callcenter_ListOperationsPlg extends core_Plugin
     {
         // Ако няма шаблон
         if (!$tpl) {
-            
             // Създаваме шаблон за титлата
             $tpl = new ET("<div class='listTitle'>[#1#]</div>", tr($data->title));
         }
@@ -98,64 +94,56 @@ class callcenter_ListOperationsPlg extends core_Plugin
         $tpl->append($buttonTpl);
     }
     
-    
+
     /**
-     * Връща масив с възможните комбинации на номера за търсене
-     * 
-     * @param array $numberArr - масив с номерата
-     * @param integer $limitWords - колко думу да има
-     * @param string $glue - лепило за различните варииации на номера
-     * 
-     * @return array
+     * Подготвя URL за търсене на телефонен номер
      */
-    protected static function getSearchLinkArr($numberArr, $limitWords=32, $glue = " OR ")
+    private static function getSearchQueryLink($numbersArr)
     {
-        $allVariationsArr = drdata_Phones::getVariationsNumberArr($numberArr);
-        $resArr = array();
-        $cnt = 0;
-        $key = 0;
-        
-        foreach ($allVariationsArr as $var) {
-            
-            // Ако има ограничение за думите при търсене
-            // Добавяме в друг масив при достигане на лимита
-            if ($limitWords) {
-                
-                $varArr = explode(" ", $var);
-                $arrCnt = count($varArr);
-                $cnt += $arrCnt;
-                
-                if ($cnt > $limitWords) {
-                    $cnt = $arrCnt;
-                    $key++;
-                }
-            }
-            
-            if (!$resArr[$key]) {
-                $resArr[$key] = '"';
-            } else {
-                $resArr[$key] .= $glue . '"';
-            }
-            
-            $resArr[$key] .= $var . '"';
+        $numberObj = $numbersArr[0];
+        $countryCode = $numberObj->countryCode;
+        $areaCode    = $numberObj->areaCode;
+        $n = $numberObj->number;
+
+        $nArr[] = $n;
+        $res = array();
+        switch(strlen($n)) {
+            case 4:
+                $nArr[] = $n{0} . $n{1} . '_' . $n{2} . $n{3};
+                break;
+            case 5:
+                $nArr[] = $n{0} . '_' . $n{1} . $n{2} . '_' . $n{3} . $n{4};
+                $nArr[] = $n{0} . $n{1} . $n{2} . '_' . $n{3} . $n{4};
+                break;
+            case 6:
+                $nArr[] = $n{0} . $n{1} . '_' . $n{2} . $n{3} . '_' . $n{4} . $n{5};
+                $nArr[] = $n{0} . $n{1} . $n{2} . '_' . $n{3} . $n{4} . $n{5};
+                break;
+            case 7:
+                $nArr[] = $n{0} . $n{1} . $n{2} . $n{3} . '_' . $n{4} . $n{5} . $n{6};
+                $nArr[] = $n{0} . $n{1} . $n{2} . '_' . $n{3} . $n{4} . '_' . $n{5} . $n{6};
+                break;
+            case 8:
+                $nArr[] = $n{0} . $n{1} . '_'.  $n{2} . $n{3} . '_' . $n{4} . $n{5} . '_' . $n{6} . $n{7};
+                $nArr[] = $n{0} . $n{1} . $n{2} .'_' .  $n{3} . $n{4} . $n{5} . '_' . $n{6} . $n{7};
+                break;
+        }
+
+        foreach($nArr as $number) {
+            $variants["00{$countryCode}_{$areaCode}_{$number}"] = TRUE;
+            $variants["{$countryCode}_{$areaCode}_{$number}"] = TRUE;
+            $variants["0{$areaCode}_{$number}"] = TRUE;
+            $variants["{$countryCode}_{$areaCode}_{$number}"] = TRUE;
         }
         
-        return $resArr;
-    }
-    
-    
-    /**
-     * Връща линк за търсене в google
-     * 
-     * @param array $keyWordsArr
-     * @param integer $key
-     */
-    protected static function getSearchLink($keyWordsArr, $key=0)
-    {
-        $keyWordsStr = urlencode($keyWordsArr[0]);
-        
-        $urlStr = "https://www.google.bg/search?q={$keyWordsStr}";
-        
-        return $urlStr;
+        $cnt = 1;
+        foreach($variants as $v => $true) {
+            $q .= ($q ? ' OR ' : '') . $v;
+            if($cnt++ > 32) break;
+        }
+
+        $url = "https://www.google.bg/search?q={$q}";
+
+        return $url;
     }
 }
