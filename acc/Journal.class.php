@@ -209,7 +209,7 @@ class acc_Journal extends core_Master
         
         // След активиране, извличаме всички записи от журнала и запомняме кои пера са вкарани
         if($rec->state == 'active'){
-            $dQuery = $mvc->acc_JournalDetails->getQuery();
+            $dQuery = acc_JournalDetails::getQuery();
             $dQuery->where("#journalId = {$rec->id}");
             
             while($dRec = $dQuery->fetch()){
@@ -250,8 +250,8 @@ class acc_Journal extends core_Master
             $row->docType .= "<ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>";
             
             foreach ($details as $decRec){
-                $dAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->debitAccId);
-                $cAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->creditAccId);
+                $dAcc = acc_Accounts::getNumById($decRec->debitAccId);
+                $cAcc = acc_Accounts::getNumById($decRec->creditAccId);
                 $row->docType .= "<li>" . tr('Дебит') . ": <b>{$dAcc}</b> <span style='margin-left:20px'>" . tr('Кредит') . ": <b>{$cAcc}</b></span></li>";
             }
             $row->docType .= "</ol>";
