@@ -211,8 +211,11 @@ class sales_ClosedDeals extends deals_ClosedDeals
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
     			$originRec = $origin->fetch();
-    			
-    			if($originRec->state == 'active' && $origin->instance instanceof sales_Sales){
+    	
+    			// Ако няма сч. движения по сделката не може да се приключи
+    			if(empty($originRec->amountBl)){
+    				$res = 'no_one';
+    			} elseif($originRec->state == 'active' && $origin->instance instanceof sales_Sales){
     				
     				// Ако разликата между доставеното/платеното е по голяма, се изисква
     				// потребителя да има по-големи права за да създаде документа
