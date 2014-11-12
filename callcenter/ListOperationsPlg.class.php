@@ -34,18 +34,18 @@ class callcenter_ListOperationsPlg extends core_Plugin
         // Вземаме стринга от номер
         $numberDial = drdata_PhoneType::getNumStrFromObj($numberArr[0], '00');
         $numberShow = drdata_PhoneType::getNumStrFromObj($numberArr[0], '+');
-        
-        $numberShow = drdata_PhoneType::escape($numberShow);
+
+        $numberShow = drdata_PhoneType::escape($numberShow) . " <small style='color:#666;'>({$numberArr[0]->country}/{$numberArr[0]->area})</small>";
         
         // Променяме полето за заглавеи
-        $data->title = 'Номер|*: ' . $numberShow;
+        $data->title = "|*<small style='color:#666;'>|Номер|*:</small> " . $numberShow;
                 
         // Добавяме бутон за избиране
-        $data->callLink = ht::createBtn('Избиране', "tel: {$numberDial}", FALSE, FALSE, array('ef_icon' => '/img/16/call.png', 'class' => 'out-btn'));
+        $data->callLink = ht::createBtn('Избиране', "tel: {$numberDial}", FALSE, FALSE, 'ef_icon=/img/16/call.png,class=out-btn,title=Набиране на този номер');
         
         // Преобразува номера в линк за търсене
         $searchLink = self::getSearchQueryLink($numberArr);
-        $data->searchLink = ht::createBtn('Търсене', $searchLink, FALSE, '_blank', array('ef_icon' => '/img/16/find.png'));
+        $data->searchLink = ht::createBtn('Кой е?', $searchLink, FALSE, '_blank', 'ef_icon=/img/16/google-search-icon.png,title=Търсене в Google за този номер');
         
         // Ако има права за изпращане на факс
         if (email_FaxSent::haveRightFor('send')) {
@@ -53,7 +53,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
             // URL, където да сочи бутона за нов факс
             $urlArr = email_FaxSent::getAddFaxUrl($numberDial);
             $urlArr['ret_url'] = TRUE;
-            $data->faxLink = ht::createBtn('Факс', $urlArr, FALSE, FALSE, array('ef_icon' => '/img/16/fax.png'));
+            $data->faxLink = ht::createBtn('Факс', $urlArr, FALSE, FALSE, 'ef_icon=/img/16/fax.png,title=Създаване на факс към този номер');
         }
         
         // Ако може да се създава SMS
