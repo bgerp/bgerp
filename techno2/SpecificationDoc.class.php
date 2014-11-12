@@ -263,6 +263,27 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	// Ако спецификацията е активирана подменяме бутона за редакция
+    	if($data->toolbar->hasBtn('btnEdit') && $data->rec->state == 'active'){
+    		
+    		$data->toolbar->removeBtn('btnEdit');
+    		
+    		// Добавяме бутона за промяна
+    		if($mvc->haveRightFor('edit', $data->rec)){
+    			$data->toolbar->addBtn('Промяна', array($mvc, 'edit', $data->rec->id), 'id=btnEdit,order=1', 'ef_icon = img/16/to_do_list.png,title=Редакция на активирана спецификация');
+    		}
+    	}
+    }
+    
+    
+    /**
      * След рендиране на данните върнати от драйвера
      *
      * @param core_ET $tpl
