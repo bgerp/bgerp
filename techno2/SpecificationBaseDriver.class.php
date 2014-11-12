@@ -121,7 +121,7 @@ class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
 		$res = new stdClass();
 		$res->productRec = new stdClass();
 		
-		$res->productRec->name = $innerState->title;
+		$res->productRec->name = ($innerState->title) ? $innerState->title : $innerState->name;
 		$res->productRec->code = $innerState->code;
 		$res->productRec->info = $innerState->description;
 		$res->productRec->measureId = $innerState->measureId;
