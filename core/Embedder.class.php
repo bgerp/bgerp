@@ -82,7 +82,7 @@ class core_Embedder extends core_Master
 	 * 
 	 * @param mixed $id - ид/запис
 	 */
-	public function getDriver($id)
+	public function getDriver_($id)
 	{
 		$rec = $this->fetchRec($id);
 		
