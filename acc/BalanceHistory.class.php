@@ -230,6 +230,7 @@ class acc_BalanceHistory extends core_Manager
         // За начална и крайна дата, слагаме по подразбиране, датите на периодите
         // за които има изчислени оборотни ведомости
         $balanceQuery = acc_Balances::getQuery();
+        $balanceQuery->where("#periodId IS NOT NULL");
         $balanceQuery->orderBy("#fromDate", "DESC");
         
         $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);

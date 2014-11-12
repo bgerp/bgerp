@@ -207,7 +207,7 @@ class techno2_GeneralProductsParameters extends core_Manager
     {
        if (isset($rec->generalProductId)){
        		$masterState = techno2_SpecificationDoc::fetchField($rec->generalProductId, 'state');
-       		if ($masterState != 'draft'){
+       		if ($masterState == 'rejected'){
        			$res = 'no_one';
        		}
        } elseif ($action == 'add'){
