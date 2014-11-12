@@ -52,7 +52,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount, type';
+    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount, type, paymentType';
     
     
     /**
@@ -168,7 +168,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=hidden');
-        $this->FLD('cashDown', 'double(decimals=2)', 'input=none,summary=amount,caption=В брой');
         
         $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
         $this->FLD('docId', 'int', 'input=hidden,silent');
@@ -490,20 +489,24 @@ class sales_Invoices extends deals_InvoiceMaster
    	public static function on_AfterPrepareListFilter($mvc, $data)
    	{
    		if(!$data->listFilter->getField('invType', FALSE)){
-   			$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие, inCash=Платено в брой)', 'caption=Вид,input,silent');
+   			$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
    		}
+   		$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка)', 'caption=Начин на плащане,input');
    		
-   		$data->listFilter->showFields .= ',invType';
+   		$data->listFilter->showFields .= ',payType,invType';
    		
    		$data->listFilter->input(NULL, 'silent');
    		
    		if($rec = $data->listFilter->rec){
    			if($rec->invType){
-   				if($rec->invType == 'inCash'){
-   					$data->query->where("#cashDown IS NOT NULL || #cashDown > 0");
-   					$data->listFields["cashDown"] = 'Платено в брой';
-   				} elseif($rec->invType == 'invoice' || $rec->invType == 'credit_note' || $rec->invType == 'debit_note'){
+   				if($rec->invType != 'all'){
    					$data->query->where("#type = '{$rec->invType}'");
+   				}
+   			}
+   			
+   			if($rec->payType){
+   				if($rec->payType != 'all'){
+   					$data->query->where("#paymentType = '{$rec->payType}'");
    				}
    			}
    		}
