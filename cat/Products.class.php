@@ -13,9 +13,15 @@
  * @license   GPL 3
  * @since     v 0.11
  */
-class cat_Products extends core_Master {
+class cat_Products extends core_Embedder {
     
     
+	/**
+	 * Свойство, което указва интерфейса на вътрешните обекти
+	 */
+	public $innerObjectInterface = 'techno2_SpecificationDriverIntf';
+	
+	
     /**
      * Интерфейси, поддържани от този мениджър
      */
