@@ -263,9 +263,12 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
-     * Вкарваме css файл за единичния изглед
+     * След рендиране на данните върнати от драйвера
+     *
+     * @param core_ET $tpl
+     * @param core_ET $embededDataTpl
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    public static function on_AfterrenderEmbeddedData($mvc, &$res, core_ET &$tpl, core_ET $embededDataTpl, &$data)
     {
     	$InnerClass = $mvc->getDriver($data->rec);
     	$InnerClass->renderParams($data->params, $tpl, FALSE);
