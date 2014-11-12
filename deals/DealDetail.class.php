@@ -13,6 +13,8 @@
  */
 abstract class deals_DealDetail extends doc_Detail
 {
+ 	
+ 	
  	/**
      * Изчисляване на сумата на реда
      * 

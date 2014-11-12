@@ -13,6 +13,8 @@
  */
 class purchase_PurchasesDetails extends deals_DealDetail
 {
+    
+    
     /**
      * Заглавие
      */
