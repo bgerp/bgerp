@@ -72,6 +72,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
     	$mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
     	$mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
+    	$mvc->FLD('paymentType', 'enum(cash=В брой,bank=По банка)', 'mandatory,caption=Плащане->Начин');
     	$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Метод, export=Csv');
     	$mvc->FLD('dueDate', 'date', 'caption=Плащане->Краен срок');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
@@ -85,6 +86,19 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount, export=Csv');
     	$mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
     	$mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$fType = $mvc->getFieldType('paymentType');
+    	$fType->options = array('' => '') + $fType->options;
     }
     
     

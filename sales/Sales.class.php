@@ -654,18 +654,6 @@ class sales_Sales extends deals_DealMaster
         $rec2->delay = 0;
         $rec2->timeLimit = 100;
         $res .= core_Cron::addOnce($rec2);
-        
-        // Проверка по крон дали продажбата е просрочена
-        $rec3 = new stdClass();
-        $rec3->systemId = "AllocateCashToInvoices";
-        $rec3->description = "Разпределя платеното в брой на фактурите";
-        $rec3->controller = "sales_Sales";
-        $rec3->action = "AllocateCashToInvoices";
-        $rec3->period = 60;
-        $rec3->offset = 0;
-        $rec3->delay = 0;
-        $rec3->timeLimit = 100;
-        $res .= core_Cron::addOnce($rec3);
     }
     
     
@@ -774,18 +762,20 @@ class sales_Sales extends deals_DealMaster
     			
     			// Ако платеното е по малко от сумата на ф-та взимаме него, иначе приемаме че цялата ф-ра е платена
     			$amount = ($cashAmount < $total) ? $cashAmount : $total;
-    			$invRec->cashDown = $amount;
+    			$invRec->paymentType = 'cash';
     			
     			// Приспадаме разпределената сума от общоо платено
     			$cashAmount -= $amount;
     		} else {
-    			
-    			// Ако няма останало платено в брой за разпределяме, то пишем 0
-    			$invRec->cashDown = 0;
+    			if(cond_PaymentMethods::isCOD($invRec->paymentMethodId)){
+    				$invRec->paymentType = 'cash';
+    			} else {
+    				$invRec->paymentType = 'bank';
+    			}
     		}
     		
     		// Обновяваме сумата на платеното в брой на фактурата
-    		$Invoices->save_($invRec, 'cashDown');
+    		$Invoices->save_($invRec, 'paymentType');
     	}
     }
     
@@ -821,18 +811,5 @@ class sales_Sales extends deals_DealMaster
     	}
     	
     	core_Debug::$isLogging = TRUE;
-    }
-    
-    
-    /**
-     * Разпределя по разписание платеното в брой на всяка фактура
-     */
-    public function cron_AllocateCashToInvoices()
-    {
-    	$oldBefore = 60 * 60;
-    	$now = dt::mysql2timestamp(dt::now());
-    	$oldBefore = dt::timestamp2mysql($now - $oldBefore);
-    	
-    	$this->allocateCashToInvoices($oldBefore);
     }
 }
