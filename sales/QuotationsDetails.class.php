@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -120,7 +120,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    static function on_AfterPrepareListRecs($mvc, $data)
+    public static function on_AfterPrepareListRecs($mvc, $data)
     {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
@@ -318,7 +318,7 @@ class sales_QuotationsDetails extends doc_Detail {
      * След подготовка на детайлите, изчислява се общата цена
      * и данните се групират
      */
-    static function on_AfterPrepareDetail($mvc, $res, $data)
+    public static function on_AfterPrepareDetail($mvc, $res, $data)
     {
 	    // Групираме резултатите по продукти и дали са опционални или не
     	$mvc->groupResultData($data);
@@ -456,6 +456,37 @@ class sales_QuotationsDetails extends doc_Detail {
     
     
     /**
+     * Преди подготовка на полетата за показване в списъчния изглед
+     */
+    public static function on_AfterPrepareListRows($mvc, $data)
+    {
+    	if(!count($data->recs)) return;
+    	 
+    	$recs = &$data->recs;
+    	$rows = &$data->rows;
+    	 
+    	$modifiedOn = $data->masterData->rec->modifiedOn;
+    	 
+    	foreach ($rows as $id => &$row){
+    		$rec = $recs[$id];
+    		
+    		$ProductMan = cls::get($rec->classId);
+    		
+    		if($ProductMan->isProductStandart($rec->productId)){
+    			$row->productId = $ProductMan->getProductTitle($rec->productId);
+    		
+    			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    				$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId));
+    			}
+    		} else {
+    			$masterDate = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'date');
+    			$row->productId = $ProductMan->getProductDesc($rec->productId, $masterDate);
+    		}
+    	}
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
@@ -465,17 +496,6 @@ class sales_QuotationsDetails extends doc_Detail {
     	
         $double = cls::get('type_Double');
         $double->params['decimals'] = 2;
-        
-        if($ProductMan->isProductStandart($rec->productId)){
-        	$row->productId = $ProductMan->getProductTitle($rec->productId);
-        	 
-        	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-        		$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId));
-        	}
-        } else {
-        	$masterDate = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'date');
-        	$row->productId = $ProductMan->getProductDesc($rec->productId, $masterDate);
-        }
     	
     	if($rec->quantity){
     		$uomId = $pInfo->productRec->measureId;
@@ -498,7 +518,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * След проверка на ролите
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
     	if(($action == 'add' || $action == 'delete') && isset($rec)){
     		$quoteState = $mvc->Master->fetchField($rec->quotationId, 'state');

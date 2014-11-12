@@ -284,33 +284,6 @@ class techno_Specifications extends core_Manager {
     
     
     /**
-     * Предефинираме метода getTitleById да връща вербалното
-     * представяне на продукта
-     * @param int $id - id на спецификацията
-     * @param boolean $full 
-     * 	      		FALSE - връща само името на спецификацията
-     * 		        TRUE - връща целия шаблон на спецификацията
-     * @return core_ET - шаблон с представянето на спецификацията
-     */
-     public static function getTitleById($id, $escaped = TRUE, $full = FALSE, $lang = 'bg')
-     {
-	    $TechnoClass = static::getDriver($id);
-     	
-	    if(empty($TechnoClass)){
-	    	return "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
-	    }
-	    
-     	if($full !== TRUE) {
-    		return $TechnoClass->getTitleById($escaped);
-    	}
-    	
-    	$data = $TechnoClass->prepareData();
-    	
-	    return $TechnoClass->renderShortView($data);
-     }
-    
-    
-    /**
      * Метод връщаш информация за продукта и неговите опаковки
      * @param int $id - ид на продукта
      * @param int $packagingId - ид на опаковката, по дефолт NULL
@@ -688,6 +661,10 @@ class techno_Specifications extends core_Manager {
      */
     public function getProductDesc($id, $time = NULL)
     {
-    	return $this->getTitleById($id, TRUE, TRUE);
+    	$TechnoClass = static::getDriver($id);
+    	 
+    	$data = $TechnoClass->prepareData();
+    	 
+    	return $TechnoClass->renderShortView($data);
     }
 }
