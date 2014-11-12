@@ -371,6 +371,10 @@ class sales_Sales extends deals_DealMaster
     {
     	$rec = &$data->rec;
     	
+    	if(empty($rec->threadId)){
+    		$rec->threadId = $mvc->fetchField($rec->id, 'threadId');
+    	}
+    	
     	if($rec->state == 'active'){
     		$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		
@@ -386,6 +390,7 @@ class sales_Sales extends deals_DealMaster
     		
     		// Ако протокол може да се добавя към треда и не се експедира на момента
     		if (sales_Services::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
+    			
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Пр. услуги', $serviceUrl, 'ef_icon = img/16/shipment.png,title=Продажба на услуги,order=9.22');
 	        }
