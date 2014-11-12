@@ -3,7 +3,8 @@
 
 
 /**
- * Мениджър на отчети от различни източници
+ * Мениджър за класове които използват вградени драйвери. При създаване се избира драйвер,
+ * който в последствие поема част от управлението на мастъра
  *
  *
  * @category  bgerp
@@ -96,6 +97,7 @@ class core_Embedder extends core_Master
 			self::$Drivers[$rec->id] = $Driver;
 		}
 		
+		// За всеки случай задава наново вътрешното състояние и форма
 		self::$Drivers[$rec->id]->setInnerForm($innerForm);
 		self::$Drivers[$rec->id]->setInnerState($innerState);
 		
@@ -146,6 +148,7 @@ class core_Embedder extends core_Master
 				}
 			}
 			
+			// Махаме от река полетата за вътрешната форма и състояние, защотот те ще се генерират в последствие
 			unset($rec->{$mvc->innerFormField}, $rec->{$mvc->innerStateField});
 		}
 		
@@ -173,9 +176,10 @@ class core_Embedder extends core_Master
 	{
 		if($form->rec->{$mvc->innerClassField}){
 			
-			// Инстанцираме източника
+			// Инстанцираме драйвера
 			$Driver = $mvc->getDriver($form->rec);
 			
+			// Проверяваме можели въпросния драйвер да бъде избран
 			if(!$Driver->canSelectInnerObject()){
 				$form->setError($mvc->innerClassField, 'Нямате права за избрания източник');
 			}
@@ -242,7 +246,7 @@ class core_Embedder extends core_Master
 	{
 		$innerClass = (!empty($rec->{$mvc->innerClassField})) ? $rec->{$mvc->innerClassField} : $mvc->fetchField($rec->id, $mvc->innerClassField);
 		
-		// Подсигуряваме се че няма попогрешка да забършим полетата за вътрешното състояние
+		// Подсигуряваме се че няма по погрешка да забършим полетата за вътрешното състояние
 		if($rec->id){
 			$rec->{$mvc->innerStateField} = (!empty($rec->{$mvc->innerStateField})) ? $rec->{$mvc->innerStateField} : $mvc->fetchField($rec->id, $mvc->innerStateField);
 			$rec->{$mvc->innerFormField} = (!empty($rec->{$mvc->innerFormField})) ? $rec->{$mvc->innerFormField} : $mvc->fetchField($rec->id, $mvc->innerFormField);
