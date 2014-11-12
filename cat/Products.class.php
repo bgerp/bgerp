@@ -799,7 +799,7 @@ class cat_Products extends core_Embedder {
     /**
      * Подготовка за рендиране на единичния изглед
      */
-    public static function on_AfterPrepareSingle($mvc, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         // Ако не е зададено файл
         if (!$fileHnd = $data->rec->photo) {
