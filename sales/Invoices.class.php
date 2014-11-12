@@ -198,7 +198,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * След подготовка на формата
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	parent::prepareInvoiceForm($mvc, $data);
     	$form = &$data->form;
