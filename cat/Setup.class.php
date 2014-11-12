@@ -57,6 +57,7 @@ class cat_Setup extends core_ProtoSetup
     		'cat_products_VatGroups',
             'cat_Params',
             'cat_Packagings',
+    		'migrate::productDrivers',
         );
 
         
@@ -98,5 +99,31 @@ class cat_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    function productDrivers()
+    {
+    	$cQuery = cat_Products::getQuery();
+    	
+    	$technoDriverId = techno2_SpecificationBaseDriver::getClassId();
+    	$technoDriverServiceId = techno2_SpecificationBaseServiceDriver::getClassId();
+    	
+    	while($pRec = $cQuery->fetch()){
+    		$pInfo = cat_Products::getProductInfo($pRec->id);
+    		if(isset($pInfo->meta['canStore'])){
+    			$pRec->innerClass = $technoDriverId;
+    		} else {
+    			$pRec->innerClass = $technoDriverServiceId;
+    		}
+    		
+    		$clone = clone $pRec;
+    		unset($clone->innerForm, $clone->innerState);
+    		
+    		$pRec->innerForm = $clone;
+    		$pRec->innerState = $clone;
+    		
+    		cat_Products::save($pRec, 'innerClass,innerForm,innerState');
+    	}
     }
 }
