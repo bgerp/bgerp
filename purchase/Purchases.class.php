@@ -245,7 +245,11 @@ class purchase_Purchases extends deals_DealMaster
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
-    	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
+    	
+    	if(empty($rec->threadId)){
+    		$rec->threadId = $mvc->fetchField($rec->id, 'threadId');
+    	}
+    	
     	if($rec->state == 'active'){
     		$closeArr = array('purchase_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		

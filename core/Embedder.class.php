@@ -3,7 +3,8 @@
 
 
 /**
- * Мениджър на отчети от различни източници
+ * Мениджър за класове които използват вградени драйвери. При създаване се избира драйвер,
+ * който в последствие поема част от управлението на мастъра
  *
  *
  * @category  bgerp
@@ -72,7 +73,7 @@ class core_Embedder extends core_Master
 		}
 		
 		if(!isset($mvc->fields[$mvc->innerStateField])){
-			$mvc->FLD($mvc->innerStateField, "blob(1000000, serialize, compress)", "caption=Данни,input=none,column=none");
+			$mvc->FLD($mvc->innerStateField, "blob(1000000, serialize, compress)", "caption=Данни,input=none,column=none,single=none");
 		}
 	}
 	
@@ -82,7 +83,7 @@ class core_Embedder extends core_Master
 	 * 
 	 * @param mixed $id - ид/запис
 	 */
-	public function getDriver($id)
+	public function getDriver_($id)
 	{
 		$rec = $this->fetchRec($id);
 		
@@ -96,6 +97,7 @@ class core_Embedder extends core_Master
 			self::$Drivers[$rec->id] = $Driver;
 		}
 		
+		// За всеки случай задава наново вътрешното състояние и форма
 		self::$Drivers[$rec->id]->setInnerForm($innerForm);
 		self::$Drivers[$rec->id]->setInnerState($innerState);
 		
@@ -139,11 +141,15 @@ class core_Embedder extends core_Master
 			$form->setReadOnly($mvc->innerClassField);
 			
 			$filter = (is_object($rec->{$mvc->innerFormField})) ? clone $rec->{$mvc->innerFormField} : $rec->{$mvc->innerFormField};
+			
 			foreach ((array)$filter as $key => $value){
 				if(empty($rec->{$key})){
 					$rec->{$key} = $value;
 				}
 			}
+			
+			// Махаме от река полетата за вътрешната форма и състояние, защотот те ще се генерират в последствие
+			unset($rec->{$mvc->innerFormField}, $rec->{$mvc->innerStateField});
 		}
 		
 		// Ако има източник инстанцираме го
@@ -170,9 +176,10 @@ class core_Embedder extends core_Master
 	{
 		if($form->rec->{$mvc->innerClassField}){
 			
-			// Инстанцираме източника
+			// Инстанцираме драйвера
 			$Driver = $mvc->getDriver($form->rec);
 			
+			// Проверяваме можели въпросния драйвер да бъде избран
 			if(!$Driver->canSelectInnerObject()){
 				$form->setError($mvc->innerClassField, 'Нямате права за избрания източник');
 			}
@@ -188,18 +195,47 @@ class core_Embedder extends core_Master
 	
 	
 	/**
-	 *  Обработки по вербалното представяне на данните
+	 * След подготовка на сингъла
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	public static function on_AfterPrepareSingle($mvc, &$res, $data)
 	{
-		if($fields['-single']) {
-			$Driver = $mvc->getDriver($rec);
-			
-			$prepData = $Driver->prepareEmbeddedData();
-			
-			// Източника рендира данните
-			$row->{$mvc->innerStateField} = $Driver->renderEmbeddedData($prepData);
-		}
+		$Driver = $mvc->getDriver($data->rec);
+		
+		// Драйвера подготвя данните
+		$embeddedData = $Driver->prepareEmbeddedData();
+		
+		// Предизвикваме ивент, ако мениджъра иска да обработи подготвените данни
+		$mvc->invoke('AfterPrepareEmbeddedData', array(&$data, &$embeddedData));
+		
+		$data->embeddedData = $embeddedData;
+	}
+	
+	
+	/**
+	 * Вкарваме css файл за единичния изглед
+	 */
+	public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+	{
+		$Driver = $mvc->getDriver($data->rec);
+		
+		// Драйвера рендира подготвените данни
+		$embededDataTpl = $Driver->renderEmbeddedData($data->embeddedData);
+		
+		// Мениджъра рендира рендираните данни от драйвера
+		$mvc->renderEmbeddedData($tpl, $embededDataTpl, $data);
+	}
+	
+	
+	/**
+	 * Рендира данните върнати от драйвера
+	 * 
+	 * @param core_ET $tpl
+	 * @param core_ET $embededDataTpl
+	 * @param stdClass $data
+	 */
+	public function renderEmbeddedData_(core_ET &$tpl, core_ET $embededDataTpl, &$data)
+	{
+		$tpl->replace($embededDataTpl, $this->innerStateField);
 	}
 	
 	
@@ -210,7 +246,7 @@ class core_Embedder extends core_Master
 	{
 		$innerClass = (!empty($rec->{$mvc->innerClassField})) ? $rec->{$mvc->innerClassField} : $mvc->fetchField($rec->id, $mvc->innerClassField);
 		
-		// Подсигуряваме се че няма попогрешка да забършим полетата за вътрешното състояние
+		// Подсигуряваме се че няма по погрешка да забършим полетата за вътрешното състояние
 		if($rec->id){
 			$rec->{$mvc->innerStateField} = (!empty($rec->{$mvc->innerStateField})) ? $rec->{$mvc->innerStateField} : $mvc->fetchField($rec->id, $mvc->innerStateField);
 			$rec->{$mvc->innerFormField} = (!empty($rec->{$mvc->innerFormField})) ? $rec->{$mvc->innerFormField} : $mvc->fetchField($rec->id, $mvc->innerFormField);

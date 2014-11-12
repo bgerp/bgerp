@@ -293,4 +293,16 @@ class core_Toolbar extends core_BaseClass
     	
     	return $layout;
     }
+    
+    
+    /**
+     * Проверява дали даден бутон го има в тулбара
+     * 
+     * @param int $id - ид на бутон
+     * @return boolean TRUE/FALSE - имали го бутона или не
+     */
+    public function hasBtn($id)
+    {
+    	return isset($this->buttons[$id]);
+    }
 }

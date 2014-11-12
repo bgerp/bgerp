@@ -480,7 +480,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			}
     		} else {
     			$masterDate = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'date');
-    			$row->productId = $ProductMan->getProductDesc($rec->productId, $masterDate);
+    			$row->productId = $ProductMan->getProductDesc($rec->productId, $modifiedOn);
     		}
     	}
     }

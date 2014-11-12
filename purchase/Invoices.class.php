@@ -139,12 +139,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     public static $defaultStrategies = array(
     		'place'               => 'lastDocUser|lastDoc',
     		'responsible'         => 'lastDocUser|lastDoc',
-    		'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
-    		'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
-    		'uicNo'     		  => 'lastDocUser|lastDoc|clientData',
-    		'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
-    		'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
-    		'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
+    		'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
+    		'contragentVatNo'     => 'clientData|lastDocUser|lastDoc',
+    		'uicNo'     		  => 'clientData|lastDocUser|lastDoc',
+    		'contragentPCode'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentPlace'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
     		'accountId'           => 'lastDocUser|lastDoc',
     		'template' 		      => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );

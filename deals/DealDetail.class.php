@@ -351,7 +351,7 @@ abstract class deals_DealDetail extends doc_Detail
     			}
     		} else {
     			$masterDate = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'valior');
-    			$row->productId = $ProductManager->getProductDesc($rec->productId, $masterDate);
+    			$row->productId = $ProductManager->getProductDesc($rec->productId, $modifiedOn);
     		}
     	}
     }
