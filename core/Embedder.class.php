@@ -138,12 +138,15 @@ class core_Embedder extends core_Master
 		if($id = $rec->id) {
 			$form->setReadOnly($mvc->innerClassField);
 			
-			$filter = (is_object($rec->{$mvc->innerFormField})) ? clone $rec->{$mvc->innerFormField} : $rec->{$mvc->innerFormField};
+			$filter = clone $rec->{$mvc->innerFormField};
+			
 			foreach ((array)$filter as $key => $value){
 				if(empty($rec->{$key})){
 					$rec->{$key} = $value;
 				}
 			}
+			
+			unset($rec->{$mvc->innerFormField}, $rec->{$mvc->innerStateField});
 		}
 		
 		// Ако има източник инстанцираме го
