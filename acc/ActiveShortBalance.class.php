@@ -75,7 +75,6 @@ class acc_ActiveShortBalance {
         $this->calcBalance($this->recs, $this->balance);
         
         $this->acc_Balances = cls::get('acc_Balances');
-       // bp();
     }
     
     
@@ -85,7 +84,8 @@ class acc_ActiveShortBalance {
     private function calcBalance($recs, &$balance = array(), $sumDC = TRUE)
     {
         if(count($recs)){
-            
+        	$sysIds = array();
+        	
             // За всеки запис
             foreach ($recs as $rec){
                 
@@ -102,8 +102,12 @@ class acc_ActiveShortBalance {
                     
                     $b = &$balance[$index];
                     
+                    if(!isset($sysIds[$accId])){
+                    	$sysIds[$accId] = acc_Accounts::fetchField($accId, 'systemId');
+                    }
+                    
                     $b['accountId'] = $accId;
-                    $b['accountSysId'] = acc_Accounts::fetchField($accId, 'systemId');
+                    $b['accountSysId'] = $sysIds[$accId];
                     $b['ent1Id'] = $item1;
                     $b['ent2Id'] = $item2;
                     $b['ent3Id'] = $item3;
