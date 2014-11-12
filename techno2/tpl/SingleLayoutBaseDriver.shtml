@@ -2,7 +2,7 @@
     <!--ET_BEGIN BODY-->
         <ul class='list-info'>
             <li class='list-title'>[#TITLE#]</li>
-            <li class='list-description'>[#description#]</li>
+            <li class='list-description'>[#info#]</li>
             <li class='fleft'>
                 
                 <!--ET_BEGIN INTERNAL-->

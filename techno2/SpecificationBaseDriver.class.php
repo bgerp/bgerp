@@ -37,8 +37,8 @@ class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
 	{
 		// Добавя полетата само ако ги няма във формата
 		
-		if(!$form->getField('description', FALSE)){
-			$form->FLD('description', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory");
+		if(!$form->getField('info', FALSE)){
+			$form->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory");
 		}
 		
 		if(!$form->getField('measureId', FALSE)){
@@ -123,7 +123,7 @@ class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
 		
 		$res->productRec->name = ($innerState->title) ? $innerState->title : $innerState->name;
 		$res->productRec->code = $innerState->code;
-		$res->productRec->info = $innerState->description;
+		$res->productRec->info = $innerState->info;
 		$res->productRec->measureId = $innerState->measureId;
 		 
 		(!$packagingId) ? $res->packagings = array() : $res = NULL;
