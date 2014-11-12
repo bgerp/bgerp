@@ -32,7 +32,7 @@ abstract class techno2_SpecificationDriver extends core_BaseClass
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectSource = 'ceo, techno';
+	public $canSelectSource = 'ceo, techno, cat';
 	
 	
 	/**
