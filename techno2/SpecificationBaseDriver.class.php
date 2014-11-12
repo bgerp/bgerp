@@ -147,7 +147,7 @@ class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
 	 * @param stdClass $data - дата
 	 * @return core_ET $tpl - шаблон
 	 */
-	public function renderShortView($data)
+	public function renderDescription($data)
 	{
 		$tpl = $this->renderEmbeddedData($data);
 		$this->renderParams($data->params, $tpl, TRUE);

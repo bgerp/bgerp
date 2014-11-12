@@ -62,47 +62,14 @@ class techno2_SpecificationDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Заглавие на артикула
-	 */
-	public function getProductTitle($id, $time = NULL)
-	{
-		return $this->class->getProductTitle($id, $time);
-	}
-	
-	
-	/**
-	 * Дали артикула е стандартен
-	 *
-	 * @param mixed $id - ид/запис
-	 * @return boolean - дали е стандартен или не
-	 */
-	public function isProductStandard($id)
-	{
-		return $this->class->isProductStandard($id);
-	}
-	
-	
-	/**
-	 * Връща описанието на артикула
-	 *
-	 * @param mixed $id - ид/запис
-	 * @return mixed - описанието на артикула
-	 */
-	public function getProductDesc($id, $time = NULL)
-	{
-		return $this->class->getProductDesc($id, $time);
-	}
-	
-	
-	/**
 	 * Как да се рендира изгледа в друг документ
 	 *
 	 * @param stdClass $data - дата
 	 * @return core_ET $tpl - шаблон
 	 */
-	public function renderShortView($data)
+	public function renderDescription($data)
 	{
-		return $this->class->renderShortView($data);
+		return $this->class->renderDescription($data);
 	}
 	
 	
