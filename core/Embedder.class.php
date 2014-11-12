@@ -72,7 +72,7 @@ class core_Embedder extends core_Master
 		}
 		
 		if(!isset($mvc->fields[$mvc->innerStateField])){
-			$mvc->FLD($mvc->innerStateField, "blob(1000000, serialize, compress)", "caption=Данни,input=none,column=none");
+			$mvc->FLD($mvc->innerStateField, "blob(1000000, serialize, compress)", "caption=Данни,input=none,column=none,single=none");
 		}
 	}
 	
@@ -191,18 +191,47 @@ class core_Embedder extends core_Master
 	
 	
 	/**
-	 *  Обработки по вербалното представяне на данните
+	 * След подготовка на сингъла
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	public static function on_AfterPrepareSingle($mvc, &$res, $data)
 	{
-		if($fields['-single']) {
-			$Driver = $mvc->getDriver($rec);
-			
-			$prepData = $Driver->prepareEmbeddedData();
-			
-			// Източника рендира данните
-			$row->{$mvc->innerStateField} = $Driver->renderEmbeddedData($prepData);
-		}
+		$Driver = $mvc->getDriver($data->rec);
+		
+		// Драйвера подготвя данните
+		$embeddedData = $Driver->prepareEmbeddedData();
+		
+		// Предизвикваме ивент, ако мениджъра иска да обработи подготвените данни
+		$mvc->invoke('AfterPrepareEmbeddedData', array(&$data, &$embeddedData));
+		
+		$data->embeddedData = $embeddedData;
+	}
+	
+	
+	/**
+	 * Вкарваме css файл за единичния изглед
+	 */
+	public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+	{
+		$Driver = $mvc->getDriver($data->rec);
+		
+		// Драйвера рендира подготвените данни
+		$embededDataTpl = $Driver->renderEmbeddedData($data->embeddedData);
+		
+		// Мениджъра рендира рендираните данни от драйвера
+		$mvc->renderEmbeddedData($tpl, $embededDataTpl, $data);
+	}
+	
+	
+	/**
+	 * Рендира данните върнати от драйвера
+	 * 
+	 * @param core_ET $tpl
+	 * @param core_ET $embededDataTpl
+	 * @param stdClass $data
+	 */
+	public function renderEmbeddedData_(core_ET &$tpl, core_ET $embededDataTpl, &$data)
+	{
+		$tpl->replace($embededDataTpl, $this->innerStateField);
 	}
 	
 	
