@@ -139,4 +139,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return array();
 	}
+	
+	
+	/**
+	 * Променя ключовите думи от мениджъра
+	 */
+	public function alterSearchKeywords(&$searchKeywords)
+	{
+		
+	}
 }

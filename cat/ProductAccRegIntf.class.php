@@ -193,4 +193,13 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->getProductDesc($id, $time);
     }
+    
+    
+    /**
+     * Променя ключовите думи от мениджъра
+     */
+    public function alterSearchKeywords(&$searchKeywords)
+    {
+    	return $this->alterSearchKeywords($searchKeywords);
+    }
 }
