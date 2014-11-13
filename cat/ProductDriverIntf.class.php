@@ -28,6 +28,30 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
+	 * Вътрешната форма
+	 *
+	 * @param mixed $innerForm
+	 */
+	protected $innerForm;
+	
+	
+	/**
+	 * Вътрешното състояние
+	 *
+	 * @param mixed $innerState
+	 */
+	protected $innerState;
+	
+	
+	/**
+	 * В кой документ е инстанциран драйвера
+	 *
+	 * @param core_ObjectReference
+	 */
+	public $ProductRec;
+	
+	
+	/**
 	 * Рендиране на параметрите
 	 *
 	 * @param данни за параметрите $paramData
