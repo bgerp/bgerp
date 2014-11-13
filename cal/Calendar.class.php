@@ -1001,10 +1001,10 @@ class cal_Calendar extends core_Master
     	
     	while($curDate < dt::addDays(1, $leaveTo)){
     		
-    		$dateType = self::getHoliday($curDate, 'ao');
+    		$dateType = self::getDayStatus($curDate, 'bg');
     		$testArray [$curDate] = $dateType;
 
-    		if($dateType->type == FALSE || $dateType->type == 'workday') {
+    		if($dateType->specialDay  == FALSE || $dateType->specialDay  == 'workday') {
     			$workDays++;
     		} else {
     		    $nonWorking++;
