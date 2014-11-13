@@ -5,21 +5,21 @@
  *
  *
  * @category  bgerp
- * @package   techno
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Драйвър за универсален артикул
  */
-class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
+class cat_GeneralProductDriver extends cat_ProductDriver
 {
 	
 	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $oldClassName = 'techno_SpecificationBaseDriver';
+	public $oldClassName = 'techno2_SpecificationBaseDriver';
 	
 	
 	/**
@@ -66,10 +66,10 @@ class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
 	 */
 	public function renderEmbeddedData($data)
 	{
-		$tpl = getTplFromFile('techno2/tpl/SingleLayoutBaseDriver.shtml');
+		$tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml');
 		
 		$tpl->placeObject($data->row);
-		$tpl->push('techno2/tpl/GeneralProductsStyles.css', 'CSS');
+		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
 		
 		return $tpl;
 	}
@@ -152,7 +152,7 @@ class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
 		$tpl = $this->renderEmbeddedData($data);
 		$this->renderParams($data->params, $tpl, TRUE);
 		$tpl->removeBlock('INTERNAL');
-		$tpl->push('techno2/tpl/GeneralProductsStyles.css', 'CSS');
+		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
 		
 		return $tpl;
 	}

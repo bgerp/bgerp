@@ -103,8 +103,10 @@ class blogm_Comments extends core_Detail {
      */       
     function prepareComments_($data)
     {
-        $query = $this->getQuery();
-        $fields = $this->selectFields("");
+        $query = self::getQuery();
+        
+        $me = cls::get(get_called_class());
+        $fields = $me->selectFields("");
         $fields['-article'] = TRUE;
         
         // Търсим browserId в сесията
@@ -123,7 +125,7 @@ class blogm_Comments extends core_Detail {
         
         while($rec = $query->fetch()) {
             $data->commentsRecs[$rec->id] = $rec;
-            $data->commentsRows[$rec->id] = $this->recToVerbal($rec, $fields);
+            $data->commentsRows[$rec->id] = self::recToVerbal($rec, $fields);
             
             if($data->commentsRecs[$rec->id]->state == 'pending') {
                 $data->commentsRows[$rec->id]->status = 'Чака одобрение';
@@ -148,8 +150,8 @@ class blogm_Comments extends core_Detail {
 
         // Към статията може ли да има форма за коментари?
         $cRec = (object) array('articleId' => $data->articleId); 
-        if($this->haveRightFor('add', $cRec)) {  
-        	$data->commentForm = $this->getForm();
+        if(self::haveRightFor('add', $cRec)) {  
+        	$data->commentForm = self::getForm();
             $data->commentForm->setField('state', 'input=none');
             $data->commentForm->setHidden('articleId', $data->articleId);
             
@@ -176,7 +178,7 @@ class blogm_Comments extends core_Detail {
 	 * Нова функция която се извиква blogm_Articles - act_Show
 	 * от и рендира коментарите в нов шаблон
 	 */
-	function renderComments_($data, $layout)
+	public static function renderComments_($data, $layout)
 	{
         if(count($data->commentsRows)) {
             foreach($data->commentsRows as $row) {

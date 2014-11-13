@@ -6,21 +6,21 @@
  *
  *
  * @category  bgerp
- * @package   techno
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Драйвър за универсална услуга
  */
-class techno2_SpecificationBaseServiceDriver extends techno2_SpecificationBaseDriver
+class cat_GeneralServiceDriver extends cat_GeneralProductDriver
 {
 	
 	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $oldClassName = 'techno_SpecificationBaseServiceDriver';
+	public $oldClassName = 'techno2_SpecificationBaseServiceDriver';
 	
 	
 	/**

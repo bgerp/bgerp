@@ -92,7 +92,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Свойство, което указва интерфейса на вътрешните обекти
      */
-    public $innerObjectInterface = 'techno2_SpecificationDriverIntf';
+    public $innerObjectInterface = 'cat_ProductDriverIntf';
     
     
     /**
@@ -303,7 +303,7 @@ class techno2_SpecificationDoc extends core_Embedder
     {
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-    	$data->listFilter->FNC('driver', 'class(interface=techno2_SpecificationDriverIntf, allowEmpty, select=title)', 'placeholder=Драйвър');
+    	$data->listFilter->FNC('driver', 'class(interface=cat_ProductDriverIntf, allowEmpty, select=title)', 'placeholder=Драйвър');
     	$data->listFilter->showFields = 'search,driver';
     	$data->listFilter->input();
     	
