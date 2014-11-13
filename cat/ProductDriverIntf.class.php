@@ -11,14 +11,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno2_SpecificationDriverIntf extends core_InnerObjectIntf
+class cat_ProductDriverIntf extends core_InnerObjectIntf
 {
 	
 	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $oldClassName = 'techno_SpecificationDriverIntf';
+	public $oldClassName = 'techno2_SpecificationDriverIntf';
 	
 	
 	/**

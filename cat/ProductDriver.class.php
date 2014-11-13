@@ -5,21 +5,21 @@
  *
  *
  * @category  bgerp
- * @package   techno
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Драйвър за нестандартен артикул
  */
-abstract class techno2_SpecificationDriver extends core_BaseClass
+abstract class cat_ProductDriver extends core_BaseClass
 {
 	
 	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $oldClassName = 'techno_SpecificationDriver';
+	public $oldClassName = 'techno2_SpecificationDriver';
 	
 	
 	/**
@@ -32,13 +32,13 @@ abstract class techno2_SpecificationDriver extends core_BaseClass
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectSource = 'ceo, techno, cat';
+	public $canSelectSource = 'ceo, cat';
 	
 	
 	/**
 	 * Интерфейси които имплементира
 	 */
-	public $interfaces = 'techno2_SpecificationDriverIntf';
+	public $interfaces = 'cat_ProductDriverIntf';
 	
 
 	/**

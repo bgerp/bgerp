@@ -63,12 +63,6 @@ class techno2_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(3.11, 'Производство', 'Технологии2', 'techno2_SpecificationDoc', 'default', "techno, ceo"),
         );
-
-
-    /**
-     * Дефинирани класове, които имат интерфейси
-     */
-    var $defClasses = "techno2_SpecificationBaseDriver, techno2_SpecificationBaseServiceDriver";
     
     
     

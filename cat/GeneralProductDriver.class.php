@@ -12,14 +12,14 @@
  * @since     v 0.1
  * @title     Драйвър за универсален артикул
  */
-class techno2_SpecificationBaseDriver extends techno2_SpecificationDriver
+class cat_GeneralProductDriver extends cat_ProductDriver
 {
 	
 	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $oldClassName = 'techno_SpecificationBaseDriver';
+	public $oldClassName = 'techno2_SpecificationBaseDriver';
 	
 	
 	/**
