@@ -101,7 +101,7 @@ class cat_Products extends core_Embedder {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name,code,groups,tools=Пулт,innerClass';
+    var $listFields = 'name,code,groups,innerClass,tools=Пулт';
     
     
     /**
