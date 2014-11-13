@@ -211,8 +211,8 @@ class cat_Products extends core_Embedder {
 		$this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info,width=15em,input=hidden');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Детайли,input=hidden');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting,input=hidden');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember,input=hidden');
-       	$this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото,input=hidden');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=hidden');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
         
         $this->setDbUnique('code');
     }
@@ -329,7 +329,7 @@ class cat_Products extends core_Embedder {
      * @param stdClass $row
      * @param stdClass $rec
      */
-    public static function on_AfterRecToVerbal ($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if($fields['-single']) {
         	

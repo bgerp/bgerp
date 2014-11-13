@@ -4,40 +4,7 @@
         <div class="folder-cover [#STATE_CLASS#]">
             <div class="inner-folder">
                 <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Артикул|* <b style="color:green;">[#name#]</b></div>
-                <!--ET_BEGIN image-->
-                <div class="productImage">
-                    <div>  
-                        [#image#]
-                    </div>
-                </div>
-                <!--ET_END image-->
-                <fieldset class="detail-info">
-                    <legend class="groupTitle">|Описание|*</legend>
-                    <div class="groupList">
-                        <table>
-                            <tr>
-                                <td class='dt'>|Код|*:</td>
-                                <td> [#code#]</td>
-                            </tr>
-                            <!--ET_BEGIN eanCode-->
-                            <tr>
-                                <td class='dt'>|EAN|*:</td>
-                                <td> [#eanCode#]</td>
-                            </tr>
-                            <!--ET_END eanCode-->
-                            <tr>
-                                <td class='dt'>|Мярка|*:</td>
-                                <td> [#measureId#]</td>
-                            </tr>
-                        </table>
-                    </div>
-                </fieldset>
-                <!--ET_BEGIN info-->
-                <fieldset class="detail-info">
-                    <legend class="groupTitle">|Детайли|*</legend>
-                    <div class="groupList">[#info#]</div>
-                </fieldset>
-                <!--ET_END info-->
+                [#innerState#]
                 <!--ET_BEGIN groups-->
                 <fieldset class="detail-info">
                     <legend class="groupTitle">|Групи|*</legend>

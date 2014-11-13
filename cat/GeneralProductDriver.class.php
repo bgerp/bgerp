@@ -50,7 +50,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		if(!$form->getField('image', FALSE)){
-			$form->FLD('image', 'fileman_FileType(bucket=pictures)', "caption=Параметри->Изображение");
+			$form->FLD('image', 'fileman_FileType(bucket=pictures)', "caption=Изображение");
 		} else {
 			$form->setField('image', 'input');
 		}

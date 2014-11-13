@@ -1,51 +1,34 @@
- <div class='general-product'>
-    <!--ET_BEGIN BODY-->
-        <ul class='list-info'>
-            <li class='list-title'>[#TITLE#]</li>
-            <li class='list-description'>[#info#]</li>
-            <li class='fleft'>
-                
-                <!--ET_BEGIN INTERNAL-->
-                <table class = 'styled-table base-info'>
-                    <tr>
-                        <!--ET_BEGIN code-->
-                    <tr>
-                        <td>|Вътр. код|*</td>
-                        <td><i>[#code#]</i></td>
-                    </tr>
-                    <!--ET_END code-->
-                    <tr>
-                        <td>|Мярка|*:</td>
-                        <td>[#measureId#]</td>
-                    </tr>
-                    <!--ET_BEGIN common-->
-                    <tr>
-                        <td>|Достъп|*</td>
-                        <td>[#common#]</td>
-                    </tr>
-                    <!--ET_END common-->
-                    <!--ET_BEGIN eanCode-->
-                    <tr>
-                        <td>|ЕАН|*</td>
-                        <td><i>[#eanCode#]</i></td>
-                    </tr>
-                    <!--ET_END eanCode-->
-                </table>
-                <!--ET_END INTERNAL-->
-                
-                <!--ET_BEGIN PARAMS-->
-                [#PARAMS#]
-                <!--ET_END PARAMS-->
-            </li>
-            <!-- ET_BEGIN image-->
-            <li class='specification-img'>[#image#]</li>
-            <!-- ET_END image-->
-            <li class='clearfix21'></li>
-            <li>
-                <!--ET_BEGIN DETAILS-->
-                [#DETAILS#]
-                <!--ET_BEGIN DETAILS-->
-            </li>
-        </ul>
-        <!--ET_END BODY-->
-    </div>
+ <!--ET_BEGIN image-->
+                <div class="productImage">
+                    <div>  
+                        [#image#]
+                    </div>
+                </div>
+                <!--ET_END image-->
+                <fieldset class="detail-info">
+                    <legend class="groupTitle">|Описание|*</legend>
+                    <div class="groupList">
+                        <table>
+                            <tr>
+                                <td class='dt'>|Код|*:</td>
+                                <td> [#code#]</td>
+                            </tr>
+                            <!--ET_BEGIN eanCode-->
+                            <tr>
+                                <td class='dt'>|EAN|*:</td>
+                                <td> [#eanCode#]</td>
+                            </tr>
+                            <!--ET_END eanCode-->
+                            <tr>
+                                <td class='dt'>|Мярка|*:</td>
+                                <td> [#measureId#]</td>
+                            </tr>
+                        </table>
+                    </div>
+                </fieldset>
+                <!--ET_BEGIN info-->
+                <fieldset class="detail-info">
+                    <legend class="groupTitle">|Детайли|*</legend>
+                    <div class="groupList">[#info#]</div>
+                </fieldset>
+                <!--ET_END info-->

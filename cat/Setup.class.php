@@ -57,7 +57,7 @@ class cat_Setup extends core_ProtoSetup
     		'cat_products_VatGroups',
             'cat_Params',
             'cat_Packagings',
-    		'migrate::productDrivers',
+    		'migrate::productDrivers1',
         );
 
         
@@ -102,12 +102,12 @@ class cat_Setup extends core_ProtoSetup
     }
     
     
-    function productDrivers()
+    function productDrivers1()
     {
     	$cQuery = cat_Products::getQuery();
     	
-    	$technoDriverId = techno2_SpecificationBaseDriver::getClassId();
-    	$technoDriverServiceId = techno2_SpecificationBaseServiceDriver::getClassId();
+    	$technoDriverId = cat_GeneralProductDriver::getClassId();
+    	$technoDriverServiceId = cat_GeneralServiceDriver::getClassId();
     	
     	while($pRec = $cQuery->fetch()){
     		$pInfo = cat_Products::getProductInfo($pRec->id);
