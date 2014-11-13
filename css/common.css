@@ -1794,7 +1794,7 @@ div.richEdit div.richedit-toolbar {
 div.richEdit {
   display: table; }
 
-.narrow d.richEdit {
+.narrow div.richEdit {
   display: block; }
 
 .narrow .richEdit textarea {
