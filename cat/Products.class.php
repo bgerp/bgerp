@@ -223,7 +223,9 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
+    	//@TODO рефакторинг
+    	
+    	if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             if ($newCode = str::increment($code)) {
             	
                 //Проверяваме дали има такъв запис в системата
@@ -245,6 +247,8 @@ class cat_Products extends core_Embedder {
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
+		//@TODO рефакторинг
+    	
         //Проверяваме за недопустими символи
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
@@ -333,11 +337,6 @@ class cat_Products extends core_Embedder {
     {
         if($fields['-single']) {
         	
-        	// Ако продукта няма основна опаковка, удебеляваме мярката му
-        	if(!$mvc->Packagings->fetch("#productId = '{$rec->id}' AND #isBase = 'yes'")){
-        		$row->measureId = "<b>{$row->measureId}</b>";
-        	}
-        	
         	// извличане на мета данните според групите
     		if($meta = $mvc->getMetaData($rec->groups)){
     			$Groups = cls::get(cat_Groups);
@@ -404,10 +403,13 @@ class cat_Products extends core_Embedder {
         $self = cls::get(__CLASS__);
         
         if ($rec = self::fetch($objectId)) {
-            $result = (object)array(
-                'num' => "A" . $rec->code,
-                'title' => $rec->name,
-                'uomId' => $rec->measureId,
+        	$Driver = $self->getDriver($rec);
+        	$pInfo = $Driver->getProductInfo();
+        	
+        	$result = (object)array(
+                'num'      => "A" . $pInfo->productRec->code,
+                'title'    => $pInfo->productRec->name,
+                'uomId'    => $pInfo->productRec->measureId,
                 'features' => array()
             );
             
@@ -415,8 +417,7 @@ class cat_Products extends core_Embedder {
             	$groups = strip_tags($self->getVerbal($rec, 'groups'));
             	$result->features = $result->features + arr::make($groups, TRUE);
             }
-            
-            $Driver = $self->getDriver($rec);
+           
             $result->features = array_merge($Driver->getFeatures(), $result->features);
         }
         
@@ -936,10 +937,8 @@ class cat_Products extends core_Embedder {
     {
     	$Driver = $this->getDriver($id);
     	$value = $Driver->getParamValue($sysId);
-    	bp($value);
-    	expect(static::fetch($id));
     	
-    	return cat_products_Params::fetchParamValue($id, $sysId);
+    	return $value;
     }
     
     
