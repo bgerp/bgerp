@@ -39,22 +39,26 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		if(!$form->getField('info', FALSE)){
 			$form->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory");
+		} else {
+			$form->setField('info', 'input');
 		}
 		
 		if(!$form->getField('measureId', FALSE)){
 			$form->FLD('measureId', 'key(mvc=cat_UoM, select=name)', "caption=Мярка,mandatory");
+		} else {
+			$form->setField('measureId', 'input');
 		}
 		
 		if(!$form->getField('image', FALSE)){
-			$form->FLD('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', "caption=Параметри->Изображение");
+			$form->FLD('image', 'fileman_FileType(bucket=pictures)', "caption=Параметри->Изображение");
+		} else {
+			$form->setField('image', 'input');
 		}
     	
 		if(!$form->getField('code', FALSE)){
 			$form->FLD('code', 'varchar(64)', "caption=Параметри->Код,remember=info");
-		}
-		
-		if(!$form->getField('eanCode', FALSE)){
-			$form->FLD('eanCode', 'gs1_TypeEan', "input,caption=Параметри->EAN");
+		} else {
+			$form->setField('code', 'input');
 		}
 	}
 	
