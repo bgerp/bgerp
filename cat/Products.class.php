@@ -942,9 +942,7 @@ class cat_Products extends core_Embedder {
     	return cat_products_Params::fetchParamValue($id, $sysId);
     }
     
-    function act_Test(){
-    	$this->getParam('3', 'color');
-    }
+    
     /**
      * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
      * 
