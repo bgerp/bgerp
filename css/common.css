@@ -1766,7 +1766,7 @@ div.alphabet div.tab-page {
 /*
  * Стилове за елемента 'RichEdit'
  */
-span.richEdit div.richedit-toolbar {
+div.richEdit div.richedit-toolbar {
   padding: 4px;
   font-size: 0.85em;
   text-align: left;
@@ -1774,10 +1774,10 @@ span.richEdit div.richedit-toolbar {
   font-size: 0.9em;
   margin-top: -4px; }
 
-.wide span.richEdit div.richedit-toolbar {
+.wide div.richEdit div.richedit-toolbar {
   min-width: 300px; }
 
-.narrow span.richEdit div.richedit-toolbar {
+.narrow div.richEdit div.richedit-toolbar {
   padding-top: 4px;
   font-size: 0.8em;
   padding-bottom: 4px;
@@ -1791,10 +1791,10 @@ span.richEdit div.richedit-toolbar {
   user-select: none;
   margin-top: -4px; }
 
-span.richEdit {
+div.richEdit {
   display: table; }
 
-.narrow span.richEdit {
+.narrow div.richEdit {
   display: block; }
 
 .narrow .richEdit textarea {
