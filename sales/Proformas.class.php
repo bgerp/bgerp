@@ -255,7 +255,7 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
-    	 
+    	 //bp($rec);
     	if($fields['-single']){
     
     		if($rec->accountId){
@@ -279,6 +279,8 @@ class sales_Proformas extends deals_InvoiceMaster
     		foreach ($agreed as $product){
     			
     			$diff = $product->quantity;
+    			$product->price *= 1 - $product->discount;
+    			unset($product->discount);
     			$mvc::saveProductFromOrigin($mvc, $rec, $product, $packs, $diff);
     		}
     	}

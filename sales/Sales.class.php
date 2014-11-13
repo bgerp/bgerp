@@ -566,23 +566,26 @@ class sales_Sales extends deals_DealMaster
             $p->uomId             = $dRec->uomId;
             
             $ProductMan = cls::get($p->classId);
+            $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);
             $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);
             $p->volume  = $ProductMan->getVolume($p->productId, $p->packagingId);
             
             $result->push('products', $p);
             
-            if (isset($actions['ship']) && !empty($dRec->packagingId)) {
+            if (!empty($p->packagingId)) {
             	$push = TRUE;
-            	$index = $dRec->classId . "|" . $dRec->productId;
+            	$index = $p->classId . "|" . $p->productId;
             	$shipped = $result->get('shippedPacks');
+            	
+            	$inPack = ($p->packagingId) ? $info->packagingRec->quantity : 1;
             	if($shipped && isset($shipped[$index])){
-            		if($shipped[$index]->inPack < $dRec->quantityInPack){
+            		if($shipped[$index]->inPack < $inPack){
             			$push = FALSE;
             		}
             	}
             	
             	if($push){
-            		$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
+            		$arr = (object)array('packagingId' => $p->packagingId, 'inPack' => $inPack);
             		$result->push('shippedPacks', $arr, $index);
             	}
             }

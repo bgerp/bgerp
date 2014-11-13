@@ -18,7 +18,7 @@ class hr_Departments extends core_Master
      /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,hr_DepartmentAccRegIntf, doc_DocumentIntf, bgerp_plg_Blank';
+    public $interfaces = 'acc_RegisterIntf,hr_DepartmentAccRegIntf,bgerp_plg_Blank';
     
     
     /**
