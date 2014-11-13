@@ -9,7 +9,7 @@
                 <fieldset class="detail-info">
                     <legend class="groupTitle">|Описание|*</legend>
                     <div class="groupList">
-                        <table border='0px'>
+                        <table>
                             <tr>
                                 <td class='dt'>|Код|*:</td>
                                 <td> [#code#]</td>
@@ -33,3 +33,4 @@
                     <div class="groupList">[#info#]</div>
                 </fieldset>
                 <!--ET_END info-->
+                [#PARAMS#]

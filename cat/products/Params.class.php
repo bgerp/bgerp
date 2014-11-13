@@ -13,7 +13,7 @@
  * @link
  */
 
-class cat_products_Params extends cat_products_Detail
+class cat_products_Params extends core_Manager
 {
     
     
@@ -93,7 +93,7 @@ class cat_products_Params extends cat_products_Detail
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name,maxSuggestions=10000)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
         
-        $this->setDbUnique('productId,paramId');
+        $this->setDbUnique('classId,productId,paramId');
     }
     
     
@@ -215,14 +215,26 @@ class cat_products_Params extends cat_products_Detail
     function renderDetail_($data)
     {
         $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
-        $tpl->append($data->changeBtn, 'TITLE');
+        if($data->noChange !== TRUE){
+        	$tpl->append($data->changeBtn, 'TITLE');
+        }
         
-        foreach((array)$data->rows as $row) {
+        foreach((array)$data->params as $row) {
+        	if($data->noChange === TRUE){
+        		unset($row->tools);
+        	}
+        	
             $block = $tpl->getBlock('param');
             $block->placeObject($row);
             $block->append2Master();
         }
-            
+        
+        $wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
+        $wrapTpl->append(tr('Параметри'), 'TITLE');
+        $wrapTpl->append($tpl, 'CONTENT');
+        
+        $tpl = $wrapTpl;
+       
         return $tpl;
     }
     
@@ -230,14 +242,15 @@ class cat_products_Params extends cat_products_Detail
     /**
      * Подготвя данните за екстеншъна с параметрите на продукта
      */
-    public function prepareParams($data)
+    public function prepareParams(&$data)
     {
         $query = $this->getQuery();
-        $query->where("#classId = {$data->masterId} AND #productId = {$data->masterClassId}");
+        $query->where("#classId = {$data->masterClassId} AND #productId = {$data->masterId}");
+    	
     	while($rec = $query->fetch()){
     		$data->params[$rec->id] = $this->recToVerbal($rec);
     	}
-        
+      	
         if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
             $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'ret_url' => TRUE);
         }

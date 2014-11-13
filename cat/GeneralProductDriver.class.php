@@ -75,6 +75,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$tpl->placeObject($data->row);
 		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
 		
+		$paramTpl = $this->Params->renderParams($data);
+		$tpl->append($paramTpl, 'PARAMS');
+		
 		return $tpl;
 	}
 	
@@ -109,10 +112,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		$data->row = $row;
-		bp($innerState);
-		$data->masterId = $innerState->id;
-		$data->masterId = $innerState->id;
 		
+		$data->masterId = $this->ProductRec->rec()->id;
+		$data->masterClassId = $this->ProductRec->getClassId();
 		$this->Params->prepareParams($data);
 		
 		return $data;
@@ -149,22 +151,5 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public function getPacks()
 	{
 		return $options = array('' => cat_UoM::getTitleById($this->innerState->measureId));
-	}
-	
-	
-	/**
-	 * Как да се рендира изгледа в друг документ
-	 * 
-	 * @param stdClass $data - дата
-	 * @return core_ET $tpl - шаблон
-	 */
-	public function renderDescription($data)
-	{
-		$tpl = $this->renderEmbeddedData($data);
-		$this->renderParams($data->params, $tpl, TRUE);
-		//$tpl->removeBlock('INTERNAL');
-		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
-		
-		return $tpl;
 	}
 }

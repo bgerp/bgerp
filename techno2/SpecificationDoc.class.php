@@ -26,7 +26,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, techno2_Wrapper, doc_DocumentPlg, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Search, plg_Printing, Params=techno2_GeneralProductsParameters, doc_SharablePlg';
+    public $loadList = 'plg_RowTools, techno2_Wrapper, doc_DocumentPlg, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Search, plg_Printing, doc_SharablePlg';
                       
     
     /**
@@ -258,7 +258,7 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$data->params = $mvc->Params->prepareParams($data->rec->id);
+    	
     }
     
     
@@ -291,8 +291,8 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function on_AfterrenderEmbeddedData($mvc, &$res, core_ET &$tpl, core_ET $embededDataTpl, &$data)
     {
-    	$InnerClass = $mvc->getDriver($data->rec);
-    	$InnerClass->renderParams($data->params, $tpl, FALSE);
+    	//$InnerClass = $mvc->getDriver($data->rec);
+    	//$InnerClass->renderParams($data->params, $tpl, FALSE);
     }
     
     
@@ -396,6 +396,7 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public function getParam($id, $sysId)
     {
+    	return;
     	expect($paramId = cat_Params::fetchIdBySysId($sysId));
     	 
     	$value = $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
@@ -631,9 +632,9 @@ class techno2_SpecificationDoc extends core_Embedder
     		$self = cls::get(get_called_class());
     		$Driver = $self->getDriver($id);
     		$data = $Driver->prepareEmbeddedData();
-    		$data->params = $self->Params->prepareParams($id);
+    		$data->noChange = TRUE;
     		
-    		$tpl = $Driver->renderDescription($data);
+    		$tpl = $Driver->renderEmbeddedData($data);
     		$title = ht::createLinkRef($self->getTitleById($id), array($self, 'single', $id));
     		$tpl->replace($title, "TITLE");
     		
