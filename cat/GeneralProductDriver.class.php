@@ -87,6 +87,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function prepareEmbeddedData()
 	{
+		$this->Params = cls::get('cat_products_Params');
+		
 		$data = new stdClass();
 		$innerForm = $this->innerForm;
 		$innerState = $this->innerState;
@@ -107,6 +109,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		$data->row = $row;
+		bp($innerState);
+		$data->masterId = $innerState->id;
+		$data->masterId = $innerState->id;
+		
+		$this->Params->prepareParams($data);
 		
 		return $data;
 	}
@@ -155,7 +162,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		$tpl = $this->renderEmbeddedData($data);
 		$this->renderParams($data->params, $tpl, TRUE);
-		$tpl->removeBlock('INTERNAL');
+		//$tpl->removeBlock('INTERNAL');
 		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
 		
 		return $tpl;

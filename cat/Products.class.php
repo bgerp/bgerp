@@ -59,7 +59,7 @@ class cat_Products extends core_Embedder {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails,VatGroups=cat_products_VatGroups,Resources=mp_ObjectResources';
+    var $details = 'Packagings=cat_products_Packagings,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails,VatGroups=cat_products_VatGroups,Resources=mp_ObjectResources';
     
     
     /**
@@ -343,27 +343,6 @@ class cat_Products extends core_Embedder {
     			$Groups = cls::get(cat_Groups);
         		$row->meta = $Groups->getFieldType('meta')->toVerbal($meta);
     		}
-    		
-            // fancybox ефект за картинките
-            $Fancybox = cls::get('fancybox_Fancybox');
-          
-            $tArr = array(200, 150);
-            $mArr = array(600, 450);
-           
-            $images_fields = array('image1',
-                'image2',
-                'image3',
-                'image4',
-                'image5');
-            
-            foreach ($images_fields as $image) {
-                if ($rec->{$image} == '') {
-                    $row->{$image} = NULL;
-                } else {
-                    $row->{$image} = $Fancybox->getImage($rec->{$image}, $tArr, $mArr);
-                }
-            }
-            // ENDOF fancybox ефект за картинките
         }
     }
     

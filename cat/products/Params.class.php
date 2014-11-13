@@ -88,11 +88,23 @@ class cat_products_Params extends cat_products_Detail
      */
     function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden');
+    	$this->FLD('classId', 'class(interface=cat_ProductAccRegIntf)', 'input=hidden,silent');
+    	$this->FLD('productId', 'int', 'input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name,maxSuggestions=10000)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
         
         $this->setDbUnique('productId,paramId');
+    }
+    
+    
+    /**
+     * Кой е мастър класа
+     */
+    public function getMasterMvc_($rec)
+    {
+    	$masterMvc = cls::get($rec->classId);
+    
+    	return $masterMvc;
     }
     
     
@@ -128,7 +140,7 @@ class cat_products_Params extends cat_products_Detail
     	if(!$form->rec->id){
     		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
 	    	expect($productId = $form->rec->productId);
-			$options = self::getRemainingOptions($productId, $form->rec->id);
+			$options = self::getRemainingOptions($productId, $form->rec->classId, $form->rec->id);
 			expect(count($options));
 	        
 	        if(!$data->form->rec->id){
@@ -153,7 +165,7 @@ class cat_products_Params extends cat_products_Detail
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
      */
-    static function getRemainingOptions($productId, $id = NULL)
+    static function getRemainingOptions($productId, $classId, $id = NULL)
     {
         $options = cat_Params::makeArray4Select();
         
@@ -163,8 +175,8 @@ class cat_products_Params extends cat_products_Detail
             if($id) {
                 $query->where("#id != {$id}");
             }
-
-            while($rec = $query->fetch("#productId = $productId")) {
+			
+            while($rec = $query->fetch("#productId = {$productId} AND #classId = {$classId}")) {
                unset($options[$rec->paramId]);
             }
         } else {
@@ -181,10 +193,10 @@ class cat_products_Params extends cat_products_Detail
      * @param int $sysId - sysId на параметъра
      * @return varchar $value - стойността на параметъра
      */
-    public static function fetchParamValue($productId, $sysId)
+    public static function fetchParamValue($productId, $classId, $sysId)
     {
      	if($paramId = cat_Params::fetchIdBySysId($sysId)){
-     		$paramValue = static::fetchField("#productId = {$productId} AND #paramId = {$paramId}", 'paramValue');
+     		$paramValue = static::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId= {$classId}", 'paramValue');
      		
      		// Ако има записана конкретна стойност за този продукт връщаме я
      		if($paramValue) return $paramValue;
@@ -220,10 +232,14 @@ class cat_products_Params extends cat_products_Detail
      */
     public function prepareParams($data)
     {
-        $this->prepareDetail($data);
+        $query = $this->getQuery();
+        $query->where("#classId = {$data->masterId} AND #productId = {$data->masterClassId}");
+    	while($rec = $query->fetch()){
+    		$data->params[$rec->id] = $this->recToVerbal($rec);
+    	}
         
-        if($this->haveRightFor('add', (object)array('productId' => $data->masterId)) && count(self::getRemainingOptions($data->masterId))) {
-            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
+        if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
+            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'ret_url' => TRUE);
         }
     }
     
@@ -234,8 +250,8 @@ class cat_products_Params extends cat_products_Detail
     {
         if($requiredRoles == 'no_one') return;
     	
-        if ($action == 'add' && isset($rec->productId)) {
-        	if (!count($mvc::getRemainingOptions($rec->productId))) {
+        if ($action == 'add' && isset($rec->productId) && isset($rec->classId)) {
+        	if (!count($mvc::getRemainingOptions($rec->productId, $rec->classId))) {
                 $requiredRoles = 'no_one';
             } 
         }
