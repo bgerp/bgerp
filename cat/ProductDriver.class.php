@@ -150,7 +150,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public function renderParams($paramData, &$tpl, $short = FALSE)
 	{
 		$blockName = ($short) ? "SHORT" : "LONG";
-		$paramTpl = getTplFromFile('techno2/tpl/Parameters.shtml')->getBlock($blockName);
+		$paramTpl = getTplFromFile('cat/tpl/Parameters.shtml')->getBlock($blockName);
 	
 		if(count($paramData->params)){
 			foreach ($paramData->params as $row){

@@ -5,7 +5,7 @@
  *
  *
  * @category  bgerp
- * @package   techno
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -66,10 +66,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderEmbeddedData($data)
 	{
-		$tpl = getTplFromFile('techno2/tpl/SingleLayoutBaseDriver.shtml');
+		$tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml');
 		
 		$tpl->placeObject($data->row);
-		$tpl->push('techno2/tpl/GeneralProductsStyles.css', 'CSS');
+		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
 		
 		return $tpl;
 	}
@@ -152,7 +152,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$tpl = $this->renderEmbeddedData($data);
 		$this->renderParams($data->params, $tpl, TRUE);
 		$tpl->removeBlock('INTERNAL');
-		$tpl->push('techno2/tpl/GeneralProductsStyles.css', 'CSS');
+		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
 		
 		return $tpl;
 	}
