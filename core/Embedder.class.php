@@ -315,4 +315,15 @@ class core_Embedder extends core_Master
 			$innerDrv->invoke('BeforeDelete', array(&$res, &$query, $cond));
 		}
 	}
+	
+	
+	/**
+	 * Добавя ключови думи за пълнотекстово търсене
+	 */
+	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+	{
+		$Driver = $mvc->getDriver($rec);
+	
+		//$res = $Driver->getSearchKeywords($res);
+	}
 }
