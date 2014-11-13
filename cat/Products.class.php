@@ -562,8 +562,10 @@ class cat_Products extends core_Embedder {
     		return NULL;
     	}
     	
-    	$res = new stdClass();
-    	$res->productRec = $productRec;
+    	$self = cls::get(get_called_class());
+    	$Driver = $self->getDriver($productId);
+    	$res = $Driver->getProductInfo($packagingId);
+    	
     	if($grRec = cat_products_VatGroups::getCurrentGroup($productId)){
     		$res->productRec->vatGroup = $grRec->title;
     	}
@@ -857,13 +859,16 @@ class cat_Products extends core_Embedder {
     public function getPacks($productId)
     {
     	expect($rec = $this->fetch($productId));
-    	$options = array('' => $this->getVerbal($rec, 'measureId'));
     	
-    	$query = cat_products_Packagings::getQuery();
-    	$query->where("#productId = {$productId}");
-    	$query->show("packagingId");
-    	while($rec = $query->fetch()){
-    		$options[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId);
+    	$pInfo = self::getProductInfo($productId);
+    	
+    	$options = array('' => cat_UoM::getTitleById($pInfo->productRec->measureId));
+    	
+    	$packs = $pInfo->packagings;
+    	if(count($packs)){
+    		foreach ($packs as $packRec){
+    			$options[$packRec->packagingId] = cat_Packagings::getTitleById($packRec->packagingId);
+    		}
     	}
     	
     	return $options;
@@ -929,12 +934,17 @@ class cat_Products extends core_Embedder {
      */
     public function getParam($id, $sysId)
     {
+    	$Driver = $this->getDriver($id);
+    	$value = $Driver->getParamValue($sysId);
+    	bp($value);
     	expect(static::fetch($id));
     	
     	return cat_products_Params::fetchParamValue($id, $sysId);
     }
     
-    
+    function act_Test(){
+    	$this->getParam('3', 'color');
+    }
     /**
      * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
      * 
@@ -1139,9 +1149,9 @@ class cat_Products extends core_Embedder {
      */
     public function getProductTitle($id)
     {
-    	$rec = $this->fetchRec($id);
+    	$pInfo = static::getProductInfo($id);
     	
-    	return $rec->name;
+    	return $pInfo->productRec->name;
     }
     
     

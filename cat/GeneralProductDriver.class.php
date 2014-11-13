@@ -151,10 +151,22 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$res->productRec->code = $innerState->code;
 		$res->productRec->info = $innerState->info;
 		$res->productRec->measureId = $innerState->measureId;
-		 
-		(!$packagingId) ? $res->packagings = array() : $res = NULL;
+		
+		(!$packagingId) ? $res->packagings = array() : $res->packagingRec = new stdClass();
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Връща стойността на продукта отговаряща на параметъра
+	 * 
+	 * @param string $sysId - систем ид на параметър (@see cat_Params)
+	 * @return mixed - стойността на параметъра за продукта
+	 */
+	public function getParamValue($sysId)
+	{
+		return cat_products_Params::fetchParamValue($this->ProductRec->rec()->id, $this->ProductRec->getClassId(), $sysId);
 	}
 	
 	

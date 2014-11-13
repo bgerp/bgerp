@@ -113,4 +113,16 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	{
 		return $this->class->getFeatures();
 	}
+	
+	
+	/**
+	 * Връща стойността на продукта отговаряща на параметъра
+	 *
+	 * @param string $sysId - систем ид на параметър (@see cat_Params)
+	 * @return mixed - стойността на параметъра за продукта
+	 */
+	public function getParamValue($sysId)
+	{
+		return $this->class->getParamValue($sysId);
+	}
 }

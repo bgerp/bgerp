@@ -208,7 +208,7 @@ class cat_products_Params extends core_Manager
      		return cat_Params::getDefault($paramId);
      	}
      	
-     	return NULL;
+     	return FALSE;
     }
     
     
