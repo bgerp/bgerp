@@ -2519,8 +2519,13 @@ function playSound(soundMp3, soundOgg){
 		    $(".soundBlock").append('<audio autoplay="autoplay" onended="removeParentTag(this);">' + 
 		    		'<source src=' + soundMp3 + ' type="audio/mpeg" />' + 
 		    		'<source src=' + soundOgg + ' type="audio/ogg" />' + 
-		    		'<embed hidden="true" autostart="true" loop="false" src=' + soundMp3 +' />' +
 		    	'</audio>');
+		    
+		   
+		    if (typeof Audio !== "function" && typeof Audio !== "object") {
+		    	$(".soundBlock").append('<embed hidden="true" autostart="true" loop="false" src=' + soundMp3 +' />');
+		    }
+		    	  
 		}, 500);
 	}
 }
