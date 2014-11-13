@@ -1004,7 +1004,8 @@ class cat_Products extends core_Embedder {
      		
     		// Проверяваме имали сетнат параметър "title<LG>" за името на продукта
      		$paramSysId = "title" . strtoupper($lang);
-     		$title = cat_products_Params::fetchParamValue($id, $paramSysId);
+     		$Driver = cls::get(get_called_class())->getDriver($id);
+     		$title = $Driver->getParamValue($paramSysId);
      		
      		// ако има се връща
      		if($title) return $title;
