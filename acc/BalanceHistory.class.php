@@ -162,6 +162,8 @@ class acc_BalanceHistory extends core_Manager
         }
         
         // Подготвя средното салдо
+        $data->allRecs =  array('zero' => $data->zeroRec) + $data->allRecs + array('last' => $data->lastRec);
+       
         $this->prepareMiddleBalance($data);
         
         // За всеки запис, обръщаме го във вербален вид
@@ -520,7 +522,7 @@ class acc_BalanceHistory extends core_Manager
         $tmpArray = array();
         $quantity = $amount = 0;
         
-        // Създаваме масив с ключ валйора на документа, така имаме списък с
+        // Създаваме масив с ключ вальора на документа, така имаме списък с
         // последните записи за всяка дата
         if(count($recs)){
             foreach ($recs as $rec){
@@ -540,8 +542,8 @@ class acc_BalanceHistory extends core_Manager
         }
         
         // Нулираме му ключовете за по-лесно обхождане
-        $tmpArray = array_values(array_reverse($tmpArray));
-        
+        $tmpArray = array_values($tmpArray);
+       
         if(count($tmpArray)){
             
             // За всеки запис
