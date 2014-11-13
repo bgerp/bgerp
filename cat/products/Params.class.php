@@ -136,8 +136,10 @@ class cat_products_Params extends core_Manager
     static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
+        $masterTitle = cls::get($form->rec->classId)->getProductTitle($form->rec->productId);
         
     	if(!$form->rec->id){
+    		$form->title = "Добавяне на параметър към|* <b>{$masterTitle}</b>";
     		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
 	    	expect($productId = $form->rec->productId);
 			$options = self::getRemainingOptions($productId, $form->rec->classId, $form->rec->id);
@@ -148,6 +150,7 @@ class cat_products_Params extends core_Manager
 	        }
 	        $form->setOptions('paramId', $options);
     	} else {
+    		$form->title = "Редактиране на параметър към|* <b>{$masterTitle}</b>";
     		$form->setReadOnly('paramId');
     	}
     	
