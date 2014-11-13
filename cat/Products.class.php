@@ -416,7 +416,8 @@ class cat_Products extends core_Embedder {
             	$result->features = $result->features + arr::make($groups, TRUE);
             }
             
-            $result->features = $self->Params->getFeatures($self, $objectId, $result->features);
+            $Driver = $self->getDriver($rec);
+            $result->features = array_merge($Driver->getFeatures(), $result->features);
         }
         
         return $result;

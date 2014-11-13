@@ -80,7 +80,7 @@ class cat_products_Params extends core_Manager
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id, productId, paramId';
+    var $fetchFieldsBeforeDelete = 'id, productId, paramId, classId';
     
     
     /**
@@ -103,7 +103,7 @@ class cat_products_Params extends core_Manager
     public function getMasterMvc_($rec)
     {
     	$masterMvc = cls::get($rec->classId);
-    
+    		
     	return $masterMvc;
     }
     
@@ -249,6 +249,10 @@ class cat_products_Params extends core_Manager
     	
     	while($rec = $query->fetch()){
     		$data->params[$rec->id] = $this->recToVerbal($rec);
+    		
+    		if(!$this->haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
+    			unset($data->params[$rec->id]->tools);
+    		}
     	}
       	
         if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
@@ -264,7 +268,8 @@ class cat_products_Params extends core_Manager
         if($requiredRoles == 'no_one') return;
     	
         if ($action == 'add' && isset($rec->productId) && isset($rec->classId)) {
-        	if (!count($mvc::getRemainingOptions($rec->productId, $rec->classId))) {
+        	$pState = cls::get($rec->classId)->fetchField($rec->productId, 'state');
+        	if (!count($mvc::getRemainingOptions($rec->productId, $rec->classId)) || $pState == 'rejected') {
                 $requiredRoles = 'no_one';
             } 
         }
@@ -287,11 +292,12 @@ class cat_products_Params extends core_Manager
 	/**
      * Добавяне на свойтвата към обекта
      */
-    public function getFeatures($class, $objectId, $features)
+    public function getFeatures($classId, $objectId)
     {
+    	$features = array();
     	$query = $this->getQuery();
     	
-    	$query->where("#productId = '{$objectId}'");
+    	$query->where("#productId = '{$objectId}' AND #classId = {$classId}");
     	$query->EXT('isFeature', 'cat_Params', 'externalName=isFeature,externalKey=paramId');
     	$query->where("#isFeature = 'yes'");
     	
@@ -310,7 +316,7 @@ class cat_products_Params extends core_Manager
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
-    		acc_Features::syncFeatures($mvc->Master->getClassId(), $rec->productId);
+    		acc_Features::syncFeatures($rec->classId, $rec->productId);
     	}
     }
     
@@ -321,8 +327,8 @@ class cat_products_Params extends core_Manager
     public static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
-        	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
-        		acc_Features::syncFeatures($mvc->Master->getClassId(), $rec->productId);
+        	if(cat_Params::fetchField("#id = '{$rec->paramId}'", 'isFeature') == 'yes'){
+        		acc_Features::syncFeatures($rec->classId, $rec->productId);
         	}
         }
     }

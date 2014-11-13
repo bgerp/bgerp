@@ -104,4 +104,13 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	{
 		return $this->class->getDefaultMetas($innerState);
 	}
+	
+	
+	/**
+	 * Връща счетоводните свойства на обекта
+	 */
+	public function getFeatures()
+	{
+		return $this->class->getFeatures();
+	}
 }

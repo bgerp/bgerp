@@ -139,39 +139,4 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return array();
 	}
-
-
-	/**
-	 * Рендиране на параметрите
-	 *
-	 * @param данни за параметрите $paramData
-	 * @param core_ET $tpl - шаблон
-	 */
-	public function renderParams($paramData, &$tpl, $short = FALSE)
-	{
-		$blockName = ($short) ? "SHORT" : "LONG";
-		$paramTpl = getTplFromFile('cat/tpl/Parameters.shtml')->getBlock($blockName);
-	
-		if(count($paramData->params)){
-			foreach ($paramData->params as $row){
-				$block = clone $paramTpl->getBlock('PARAMS');
-				$block->placeObject($row);
-				$block->removeBlocks();
-				$block->append2master();
-			}
-		} else{
-			$paramTpl = new ET("[#ADD#]");
-		}
-			
-		if($paramData->addParamUrl){
-			if(cat_Params::count()){
-				$btn = ht::createBtn('Нов параметър', $paramData->addParamUrl, NULL, NULL, 'ef_icon = img/16/star_2.png,title=Добавяне на нов параметър');
-			} else {
-				$btn = ht::createErrBtn('Нов параметър', 'Няма продуктови параметри');
-			}
-			$paramTpl->replace($btn, 'ADD');
-		}
-	
-		$tpl->replace($paramTpl, 'PARAMS');
-	}
 }

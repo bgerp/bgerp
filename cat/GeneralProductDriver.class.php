@@ -29,6 +29,21 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
+	 * Инстанция на 'cat_products_Params'
+	 */
+	protected $Params;
+	
+	
+	/**
+	 * Инициализиране на обекта
+	 */
+	function init($params = array())
+	{
+		$this->Params = $this->Params = cls::get('cat_products_Params');
+	}
+	
+	
+	/**
 	 * Добавя полетата на вътрешния обект
 	 *
 	 * @param core_Fieldset $fieldset
@@ -90,8 +105,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function prepareEmbeddedData()
 	{
-		$this->Params = cls::get('cat_products_Params');
-		
 		$data = new stdClass();
 		$innerForm = $this->innerForm;
 		$innerState = $this->innerState;
@@ -151,5 +164,14 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public function getPacks()
 	{
 		return $options = array('' => cat_UoM::getTitleById($this->innerState->measureId));
+	}
+	
+	
+	/**
+	 * Връща счетоводните свойства на обекта
+	 */
+	public function getFeatures()
+	{
+		return $this->Params->getFeatures($this->ProductRec->getClassId(), $this->ProductRec->rec()->id);
 	}
 }
