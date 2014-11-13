@@ -425,7 +425,7 @@ abstract class deals_DealBase extends core_Master
     	// Ако има записи където участва перото подготвяме ги за показване
     	if(count($entries)){
     		$count = 0;
-    		$l = cls::get('acc_JournalDetails');
+    		
     		foreach ($entries as $ent){
     			
     			if($count >= $start && $count <= $end){
