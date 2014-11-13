@@ -75,6 +75,10 @@ class core_Embedder extends core_Master
 		if(!isset($mvc->fields[$mvc->innerStateField])){
 			$mvc->FLD($mvc->innerStateField, "blob(1000000, serialize, compress)", "caption=Данни,input=none,column=none,single=none");
 		}
+		
+		// Кои полета да се помнят след изтриване
+		$fieldsBeforeDelete = "id, {$mvc->innerClassField}, {$mvc->innerFormField}, {$mvc->innerStateField}";
+		$mvc->fetchFieldsBeforeDelete = $fieldsBeforeDelete;
 	}
 	
 	
@@ -310,5 +314,16 @@ class core_Embedder extends core_Master
 			
 			$innerDrv->invoke('BeforeDelete', array(&$res, &$query, $cond));
 		}
+	}
+	
+	
+	/**
+	 * Добавя ключови думи за пълнотекстово търсене
+	 */
+	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+	{
+		$Driver = $mvc->getDriver($rec);
+	
+		//$res = $Driver->getSearchKeywords($res);
 	}
 }
