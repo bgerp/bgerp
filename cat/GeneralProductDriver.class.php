@@ -35,15 +35,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Инициализиране на обекта
-	 */
-	function init($params = array())
-	{
-		$this->Params = $this->Params = cls::get('cat_products_Params');
-	}
-	
-	
-	/**
 	 * Добавя полетата на вътрешния обект
 	 *
 	 * @param core_Fieldset $fieldset
@@ -90,7 +81,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$tpl->placeObject($data->row);
 		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
 		
-		$paramTpl = $this->Params->renderParams($data);
+		$paramTpl = cat_products_Params::renderParams($data);
 		$tpl->append($paramTpl, 'PARAMS');
 		
 		return $tpl;
@@ -128,7 +119,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		$data->masterId = $this->ProductRec->rec()->id;
 		$data->masterClassId = $this->ProductRec->getClassId();
-		$this->Params->prepareParams($data);
+		cat_products_Params::prepareParams($data);
 		
 		return $data;
 	}
@@ -184,6 +175,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function getFeatures()
 	{
-		return $this->Params->getFeatures($this->ProductRec->getClassId(), $this->ProductRec->rec()->id);
+		return cat_products_Params::getFeatures($this->ProductRec->getClassId(), $this->ProductRec->rec()->id);
 	}
 }

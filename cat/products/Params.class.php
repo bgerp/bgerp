@@ -133,7 +133,7 @@ class cat_products_Params extends core_Manager
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
         $masterTitle = cls::get($form->rec->classId)->getProductTitle($form->rec->productId);
@@ -168,7 +168,7 @@ class cat_products_Params extends core_Manager
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
      */
-    static function getRemainingOptions($productId, $classId, $id = NULL)
+    public static function getRemainingOptions($productId, $classId, $id = NULL)
     {
         $options = cat_Params::makeArray4Select();
         
@@ -215,7 +215,7 @@ class cat_products_Params extends core_Manager
     /**
      * Рендиране на общия изглед за 'List'
      */
-    function renderDetail_($data)
+    public static function renderDetail($data)
     {
         $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
         if($data->noChange !== TRUE){
@@ -245,23 +245,25 @@ class cat_products_Params extends core_Manager
     /**
      * Подготвя данните за екстеншъна с параметрите на продукта
      */
-    public function prepareParams(&$data)
+    public static function prepareParams(&$data)
     {
-        $query = $this->getQuery();
+        $query = self::getQuery();
         $query->where("#classId = {$data->masterClassId} AND #productId = {$data->masterId}");
-    	
+    	$Cls = cls::get(get_called_class());
+        
     	while($rec = $query->fetch()){
-    		$data->params[$rec->id] = $this->recToVerbal($rec);
+    		$data->params[$rec->id] = $Cls->recToVerbal($rec);
     		
-    		if(!$this->haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
+    		if(!self::haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
     			unset($data->params[$rec->id]->tools);
     		}
     	}
       	
-        if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
-            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'ret_url' => TRUE);
+        if(self::haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
+            $data->addUrl = array(__CLASS__, 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'ret_url' => TRUE);
         }
     }
+    
     
 	/**
      * След проверка на ролите
@@ -282,30 +284,30 @@ class cat_products_Params extends core_Manager
     /**
      * Рендира екстеншъна с параметри на продукт
      */
-    public function renderParams($data)
+    public static function renderParams($data)
     {
         if($data->addUrl) {
             $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
         }
 
-        return  $this->renderDetail($data);
+        return  self::renderDetail($data);
     }
     
     
 	/**
      * Добавяне на свойтвата към обекта
      */
-    public function getFeatures($classId, $objectId)
+    public static function getFeatures($classId, $objectId)
     {
     	$features = array();
-    	$query = $this->getQuery();
+    	$query = self::getQuery();
     	
     	$query->where("#productId = '{$objectId}' AND #classId = {$classId}");
     	$query->EXT('isFeature', 'cat_Params', 'externalName=isFeature,externalKey=paramId');
     	$query->where("#isFeature = 'yes'");
     	
     	while($rec = $query->fetch()){
-    		$row = $this->recToVerbal($rec, 'paramId,paramValue');
+    		$row = self::recToVerbal($rec, 'paramId,paramValue');
     		$features[$row->paramId] = $row->paramValue;
     	}
     	
