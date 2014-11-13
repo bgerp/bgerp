@@ -162,6 +162,9 @@ class acc_BalanceHistory extends core_Manager
         }
         
         // Подготвя средното салдо
+        if(!count($data->allRecs)){
+        	$data->allRecs = array();
+        }
         $data->allRecs =  array('zero' => $data->zeroRec) + $data->allRecs + array('last' => $data->lastRec);
        
         $this->prepareMiddleBalance($data);
