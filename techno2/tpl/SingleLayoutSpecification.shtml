@@ -10,13 +10,12 @@
     <!--ET_END header-->
     <b>[#title#]</b><br>
     [#innerState#]
+    
     <!--ET_BEGIN meta-->
-    <table class='styled-table'>
-          <tr>
-              <td>|Свойства|*</td>
-              <td><i>[#meta#]</i></td>
-         </tr>
-    </table>
+    <fieldset class="detail-info">
+        <legend class="groupTitle">|Свойства|*</legend>
+        <div class="groupList">[#meta#]</div>
+    </fieldset>
    <!--ET_END meta-->
    
     <!--ET_BEGIN shareLog-->
