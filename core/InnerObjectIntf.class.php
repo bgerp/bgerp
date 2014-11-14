@@ -95,4 +95,15 @@ class core_InnerObjectIntf
 	{
 		return $this->class->canSelectInnerObject($userId = NULL);
 	}
+	
+	
+	/**
+	 * Променя ключовите думи
+	 * 
+	 * @param string $searchKeywords
+	 */
+	public function alterSearchKeywords(&$searchKeywords)
+	{
+		return $this->class->alterSearchKeywords($searchKeywords);
+	}
 }

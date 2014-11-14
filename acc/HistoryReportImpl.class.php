@@ -82,7 +82,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		 
 		if(isset($form->rec->accountId)){
 			if($form->rec->id){
-				if(frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->filter->accountId){
+				if(frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->accountId){
 					unset($form->rec->ent1Id, $form->rec->ent2Id, $form->rec->ent3Id);
 					Request::push(array('ent1Id' => NULL, 'ent2Id' => NULL, 'ent3Id' => NULL));
 				}
@@ -96,7 +96,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 					$form->FNC("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty)", "caption=Избор на пера->{$gr->rec->name},input,mandatory");
 				} else {
 					$form->FNC("ent{$i}Id", "int", "");
-					$form->rec->{"ent{$i}Id"} = NULL;
+					//$form->rec->{"ent{$i}Id"} = NULL;
 				}
 			}
 		}
@@ -169,5 +169,27 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	public function renderEmbeddedData($data)
 	{
 		return $this->History->renderHistory($data);
+	}
+
+
+	/**
+	 * Добавяме полета за търсене
+	 *
+	 * @see frame_BaseDriver::alterSearchKeywords()
+	 */
+	public function alterSearchKeywords(&$searchKeywords)
+	{
+		if(!empty($this->innerForm)){
+			$newKeywords .= acc_Accounts::getVerbal($this->innerForm->accountId, 'title');
+			$newKeywords .= " " . acc_Accounts::getVerbal($this->innerForm->accountId, 'num');
+			
+			foreach (range(1, 3) as $i){
+				if(!empty($this->innerForm->{"ent{$i}Id"})){
+					$newKeywords .= " " . acc_Items::getVerbal($this->innerForm->{"ent{$i}Id"}, 'title');
+				}
+			}
+			
+			$searchKeywords .= " " . plg_Search::normalizeText($newKeywords);
+		}
 	}
 }
