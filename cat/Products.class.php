@@ -208,7 +208,7 @@ class cat_Products extends core_Embedder {
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
-		$this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info,width=15em,input=hidden');
+		$this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info,width=15em');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Детайли,input=hidden');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting,input=hidden');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=hidden');
@@ -234,11 +234,6 @@ class cat_Products extends core_Embedder {
                 }
             }
         }
-        
-    	// Не може да се променят номенклатурите от формата
-    	if($data->form->fields['lists']){
-        	$data->form->setField('lists', 'input=none');
-        }
     }
     
     
@@ -263,7 +258,7 @@ class cat_Products extends core_Embedder {
 	    		if($check && ($check->productId != $rec->id)
 	    			|| ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
 	    			$form->setError('code', 'Има вече артикул с такъв код!');
-			       }
+			    }
     		}
         }
                 
@@ -566,6 +561,7 @@ class cat_Products extends core_Embedder {
     	$self = cls::get(get_called_class());
     	$Driver = $self->getDriver($productId);
     	$res = $Driver->getProductInfo($packagingId);
+    	$res->productRec->code = $productRec->code;
     	
     	if($grRec = cat_products_VatGroups::getCurrentGroup($productId)){
     		$res->productRec->vatGroup = $grRec->title;

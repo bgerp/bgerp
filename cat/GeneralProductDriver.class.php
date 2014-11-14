@@ -60,12 +60,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		} else {
 			$form->setField('image', 'input');
 		}
-    	
-		if(!$form->getField('code', FALSE)){
-			$form->FLD('code', 'varchar(64)', "caption=Параметри->Код,remember=info");
-		} else {
-			$form->setField('code', 'input');
-		}
 	}
 	
 	
@@ -139,7 +133,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$res->productRec = new stdClass();
 		
 		$res->productRec->name = ($innerState->title) ? $innerState->title : $innerState->name;
-		$res->productRec->code = $innerState->code;
 		$res->productRec->info = $innerState->info;
 		$res->productRec->measureId = $innerState->measureId;
 		
