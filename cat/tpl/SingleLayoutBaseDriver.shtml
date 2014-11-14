@@ -7,19 +7,15 @@
                 </div>
                 <!--ET_END image-->
                 <fieldset class="detail-info">
-                    <legend class="groupTitle">|Описание|*</legend>
+                    <legend class="groupTitle">|Информация|*</legend>
                     <div class="groupList">
                         <table class='no-border'>
+                        	<!--ET_END code-->
                             <tr>
                                 <td class='dt'>|Код|*:</td>
                                 <td> [#code#]</td>
                             </tr>
-                            <!--ET_BEGIN eanCode-->
-                            <tr>
-                                <td class='dt'>|EAN|*:</td>
-                                <td> [#eanCode#]</td>
-                            </tr>
-                            <!--ET_END eanCode-->
+                            <!--ET_END code-->
                             <tr>
                                 <td class='dt'>|Мярка|*:</td>
                                 <td> [#measureId#]</td>
@@ -29,7 +25,7 @@
                 </fieldset>
                 <!--ET_BEGIN info-->
                 <fieldset class="detail-info">
-                    <legend class="groupTitle">|Детайли|*</legend>
+                    <legend class="groupTitle">|Описание|*</legend>
                     <div class="groupList">[#info#]</div>
                 </fieldset>
                 <!--ET_END info-->
