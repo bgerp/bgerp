@@ -572,10 +572,12 @@ class cat_Products extends core_Embedder {
     	}
     	
     	// Добавяне на мета данните за продукта
-    	if($meta = explode(',', self::getMetaData($productRec->groups))){
-	    	foreach($meta as $value){
-	    		$res->meta[$value] = TRUE;
-	    	}
+    	if($productRec->groups){
+    		if($meta = explode(',', self::getMetaData($productRec->groups))){
+    			foreach($meta as $value){
+    				$res->meta[$value] = TRUE;
+    			}
+    		}
     	} else {
     		$res->meta = FALSE;
     	}
