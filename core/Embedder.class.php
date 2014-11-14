@@ -161,12 +161,13 @@ class core_Embedder extends core_Master
 			
 			// Махаме от река полетата за вътрешната форма и състояние, защотот те ще се генерират в последствие
 			unset($rec->{$mvc->innerFormField}, $rec->{$mvc->innerStateField});
+			
 		}
 		
 		// Ако има източник инстанцираме го
 		if($rec->{$mvc->innerClassField}) {
 			$Driver = $mvc->getDriver($rec);
-	
+			
 			// Източника добавя полета към формата
 			$Driver->addEmbeddedFields($form);
 			
@@ -175,8 +176,9 @@ class core_Embedder extends core_Master
 			// Източника модифицира формата при нужда
 			$Driver->prepareEmbeddedForm($form);
 		}
-	
+		
 		$form->input(NULL, 'silent');
+		
 	}
 	
 	
