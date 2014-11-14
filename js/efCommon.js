@@ -2997,10 +2997,6 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 			if (l2 && timeInSec < l2) $(this).removeClass('cd-l1 cd-l3').addClass('cd-l2'); 
 			if (l3 && timeInSec < l3) $(this).removeClass('cd-l1 cd-l2').addClass('cd-l3'); 
 			
-			if(timeInSec == 0) {
-				$(this).removeClass('cd-l3');
-			}
-			
 			//добавяме водещи нули ако е необходимо
 			if(hour < 10){
 				hour = "0" +  hour;
