@@ -216,7 +216,10 @@ class label_Prints extends core_Master
         $data->copyCnt = $rec->copiesCnt;
         $data->allCnt = $data->cnt * $data->copyCnt;
         
+        $data->Media = new stdClass();
         $data->Media->rec = label_Media::fetch($rec->mediaId);
+        
+        $data->Label = new stdClass();
         $data->Label->rec = label_Labels::fetch($rec->labelId);
         
         // Подготвяме медията
