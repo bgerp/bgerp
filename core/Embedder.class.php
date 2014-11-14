@@ -51,7 +51,7 @@ class core_Embedder extends core_Master
 	/**
 	 * Кои полета от мениджъра преди запис да се обновяват със стойностти от драйвера
 	 */
-	public $fieldsToManage;
+	protected $fieldsToBeManagedByDriver;
 	
 	
 	/**
@@ -71,7 +71,7 @@ class core_Embedder extends core_Master
 		// Добавяме задължителните полета само ако не е дефинирано че вече съществуват
 		
 		if(!isset($mvc->fields[$mvc->innerClassField])){
-			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty, select=title)", "formOrder=2,caption=Драйвър,mandatory,silent", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty, select=title)", "caption=Драйвър,mandatory,silent", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
 		}
 		
 		if(!isset($mvc->fields[$mvc->innerFormField])){
@@ -267,10 +267,21 @@ class core_Embedder extends core_Master
 		
 		$innerDrv = cls::get($innerClass);
 		
+		// Извикваме на драйвера събитие, той да се грижи за вътрешното си състояние
+		if($res = $innerDrv->invoke('BeforeSave', array(&$rec->{$mvc->innerStateField}, &$rec->{$mvc->innerFormField}, &$rec, $fields, $mode))){
+			
+			// Ако има зададени полета за поддръжка
+			if(!empty($mvc->fieldsToBeManagedByDriver)){
+				$fieldsToManage = arr::make($mvc->fieldsToBeManagedByDriver, TRUE);
+				
+				// За всяко от тях присвояваме зададената стойност от вътрешното състояние на формата
+				foreach ($fieldsToManage as $fName){
+					$rec->$fName = $rec->{$mvc->innerFormField}->$fName;
+				}
+			}
+		}
 		
-		//@TODO $fieldsToManage
-		
-		return $innerDrv->invoke('BeforeSave', array(&$rec->{$mvc->innerStateField}, &$rec->{$mvc->innerFormField}, &$rec, $fields, $mode));
+		return $res;
 	}
 	
 	
