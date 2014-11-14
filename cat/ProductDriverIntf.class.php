@@ -125,4 +125,15 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	{
 		return $this->class->getParamValue($sysId);
 	}
+	
+	
+	/**
+	 * Връща описанието на артикула
+	 * 
+	 * @return core_ET
+	 */
+	public function getProductDescription()
+	{
+		return $this->class->getProductDescription;
+	}
 }

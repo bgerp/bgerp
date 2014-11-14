@@ -73,7 +73,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml');
 		
 		$tpl->placeObject($data->row);
-		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
 		
 		$paramTpl = cat_products_Params::renderParams($data);
 		$tpl->append($paramTpl, 'PARAMS');
@@ -169,5 +168,21 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public function getFeatures()
 	{
 		return cat_products_Params::getFeatures($this->ProductRec->getClassId(), $this->ProductRec->rec()->id);
+	}
+	
+	
+	/**
+	 * Връща описанието на артикула според драйвъра
+	 */
+	public function getProductDescription()
+	{
+		$data = $this->prepareEmbeddedData();
+		$data->noChange = TRUE;
+		
+		$tpl = $this->renderEmbeddedData($data);
+		$title = ht::createLinkRef($this->ProductRec->getTitleById(), array($this->ProductRec->instance, 'single', $id));
+		$tpl->replace($title, "TITLE");
+		
+		return $tpl;
 	}
 }
