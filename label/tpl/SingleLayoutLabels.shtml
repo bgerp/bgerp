@@ -5,9 +5,6 @@
             <b style="color:green;display:inline-block;word-break:break-all">[#title#]</b>
         </div>
     </h3>
-    <div class="print-label-form">
-        [#printForm#]
-    </div>
     <div class="preview-label">
         [#PreviewLabel#]
     </div>
@@ -20,45 +17,6 @@
             <tr>
                 <td class="title-style" style='width:150px'>|Шаблон|*</td>
                 <td> [#templateId#]</td>
-            </tr>
-        </table>
-        <table class="styled-table" style='width:99%'>
-            <tr>
-                <th colspan='2'>|Поле|* </th>
-            </tr>
-            <tr>
-                <td class="title-style" style='width:150px'>|Отгоре|*</td>
-                <td>[#fieldUp#] |mm|*</td>
-            </tr>
-            <tr>
-                <td class="title-style">|Отляво|*</td>
-                <td>[#fieldLeft#] |mm|*</td>
-            </tr>
-        </table>
-        <table class="styled-table" style='width:99%'>
-            <tr>
-                <th colspan='2'>|Колони в един лист|* </th>
-            </tr>
-            <tr>
-                <td class="title-style" style='width:150px'>|Брой|*</td>
-                <td> [#columnsCnt#]</td>
-            </tr>
-            <tr>
-                <td class="title-style">|Разстояние|*</td>
-                <td>[#columnsDist#] |mm|*</td>
-            </tr>
-        </table>
-        <table class="styled-table" style='width:99%'>
-            <tr>
-                <th colspan='2'>|Редове|*</th>
-            </tr>
-            <tr>
-                <td class="title-style" style='width:150px'>|Брой|*</td>
-                <td>[#linesCnt#]</td>
-            </tr>
-            <tr>
-                <td class="title-style">|Разстояние|*</td>
-                <td> [#linesDist#] |mm|*</td>
             </tr>
         </table>
         <table class="styled-table" style='width:99%'>

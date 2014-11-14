@@ -62,7 +62,7 @@ class cal_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, afterTask, afterTaskProgress, sharedUsers';
+    var $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, sharedUsers';
     
     
     /**
@@ -214,7 +214,7 @@ class cal_Tasks extends core_Master
         
         // Каква част от задачата е изпълнена?
         $this->FLD('progress', 'percent(min=0,max=1,decimals=0)',     'caption=Прогрес,input=none,notNull,value=0');
-        
+       
         // Колко време е отнело изпълнението?
         $this->FLD('workingTime', 'time',     'caption=Отработено време,input=none');
         
@@ -575,7 +575,7 @@ class cal_Tasks extends core_Master
     	// проверяваме дали може да стане задачата в активно състояние
     	$canActivate = self::canActivateTask($rec);
      
-    	if ($now >= $canActivate && $canActivate !== NULL) { //bp($now >= $canActivate && $canActivate !== NULL,$now >= $canActivate, $now , $canActivate);
+    	if ($now >= $canActivate && $canActivate !== NULL) { 
     		
             $rec->timeCalc = $canActivate->calcTime;
     		
@@ -624,7 +624,7 @@ class cal_Tasks extends core_Master
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('Chart')));
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('View')));
-        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,closed=Приключени)', 'caption=Състояние,input,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('stateTask')));
+        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,pending=Чакащи,closed=Приключени)', 'caption=Състояние,input,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('stateTask')));
           
         $data->listFilter->view = 'vertical';
         $data->listFilter->title = 'Задачи';
@@ -686,15 +686,6 @@ class cal_Tasks extends core_Master
 		        	$data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
 	        		              OR
 	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND  #timeStart >= '{$dateRange[0]}')
-	        		              ");
-            } else {
-            		$data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
-	        		              OR 
-	        		              (#timeStart IS NULL AND #timeDuration IS NULL AND #timeEnd IS NULL)
 	        		              OR
 	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND  #timeStart >= '{$dateRange[0]}')
 	        		              ");
@@ -990,9 +981,9 @@ class cal_Tasks extends core_Master
        
 	   $activatedTasks = array ();
 	   $now = dt::verbal2mysql();
-
+       
 	   while ($rec = $query->fetch()) { 
-
+ 
 	   	   // изчисляваме очакваните времена
 		   self::calculateExpectationTime($rec);
 		   self::updateTaskToCalendar($rec->id);
@@ -1742,7 +1733,7 @@ class cal_Tasks extends core_Master
 		    			$progress = self::fetchField($cond->dependId, "progress");
 		    			
 		    			// ако е равен или по голям на искания от потребутеля процент
-		    			if ($progress >= $cond->progress) { //bp($progress >= $cond->progress, $cond->progress, $progress);
+		    			if ($progress >= $cond->progress) { 
 		    				// времето за стартирване на текущата задача е сега
 			    			$calcTime = $now;
 			    		} else {
@@ -1779,18 +1770,18 @@ class cal_Tasks extends core_Master
 		     	return $calcTime;
 		     	
 		    // задачата не е зависима от други задачи
-    		} else { 
-    			if ($rec->timeStart) {
+    		} else {
+    			if ($rec->timeStart != NULL) {
     				// времето за стартиране е времето оказано от потребителя
     				$calcTime = $rec->timeStart;
-    			} else {
+    			} else { 
     				// ако не е оказано време от потребителя - е сега
     				$calcTime = $rec->expectationTimeStart;
     			}
     			
     			return $calcTime;
     		}
-	    } elseif (!$rec->id && $rec->timeStart) { //bp();
+	    } elseif (!$rec->id && $rec->timeStart) { 
     		if (is_array($arrCond)) { 
     			foreach ($arrCond as $cond) { 
 		    		if ($cond->activationCond == "onProgress") { 
@@ -1907,7 +1898,7 @@ class cal_Tasks extends core_Master
 		     // ако не е зависима от други взимаме нейните начало и край
 	    	} else {
 	    		$timeStart = self::fetchField($rec->id, "timeStart");
-    	    	$timeEnd = self::fetchField($rec->id, "timeEnd");
+    	    	$timeEnd = self::fetchField($rec->id, "timeStart");
 	    	}
 	    // ако няма id, то имаме директно началото и края й	
     	} else {
@@ -1917,7 +1908,7 @@ class cal_Tasks extends core_Master
 	    
     	// ако задачата няма начало и край
 	    if ($timeStart == NULL && $timeEnd == NULL && $rec->timeDuration == NULL) { 
-		    	
+//		    	/bp();
 			$expStart = $now;
 			$expEnd = $now;
 		    	
@@ -1948,7 +1939,7 @@ class cal_Tasks extends core_Master
 	    	$expStart = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) - $rec->timeDuration);
 	    	$expEnd = $timeEnd;
 	    }
-
+        
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
     	

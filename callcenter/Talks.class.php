@@ -1153,7 +1153,11 @@ class callcenter_Talks extends core_Master
             if($filter->usersSearch) {
                 
     			// Ако се търси по всички и има права admin или ceo
-    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo'))) {
+    			if (strpos($filter->usersSearch, '|-1|') !== FALSE) {
+    			    
+    			    if (!(haveRole('ceo'))) {
+                        $data->query->where("1=2");
+    			    }
     			    // Търсим всичко
                 } else {
                     
