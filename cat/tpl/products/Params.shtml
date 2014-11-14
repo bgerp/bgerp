@@ -2,8 +2,8 @@
     <!--ET_BEGIN param-->
     [#param#]
     <tr>
-        <td class="right-align" >[#paramId#]:</td>
-        <td style="padding-right:15px">[#paramValue#]</td>
+        <td >[#paramId#]:</td>
+        <td style="padding-right:10px">[#paramValue#]</td>
         <td> [#tools#]</td>
     </tr>
     <!--ET_END param-->
