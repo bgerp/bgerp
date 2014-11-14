@@ -49,6 +49,12 @@ class core_Embedder extends core_Master
 	
 	
 	/**
+	 * Кои полета от мениджъра преди запис да се обновяват със стойностти от драйвера
+	 */
+	public $fieldsToManage;
+	
+	
+	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -259,6 +265,9 @@ class core_Embedder extends core_Master
 		
 		$innerDrv = cls::get($innerClass);
 		
+		
+		//@TODO $fieldsToManage
+		
 		return $innerDrv->invoke('BeforeSave', array(&$rec->{$mvc->innerStateField}, &$rec->{$mvc->innerFormField}, &$rec, $fields, $mode));
 	}
 	
@@ -324,6 +333,6 @@ class core_Embedder extends core_Master
 	{
 		$Driver = $mvc->getDriver($rec);
 	
-		//$res = $Driver->getSearchKeywords($res);
+		$Driver->alterSearchKeywords($res);
 	}
 }

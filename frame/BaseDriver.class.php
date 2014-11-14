@@ -112,4 +112,15 @@ abstract class frame_BaseDriver extends core_BaseClass
 		 
 		return $this->prepareInnerState();
 	}
+	
+	
+	/**
+	 * Променя ключовите думи
+	 * 
+	 * @param string $searchKeywords
+	 */
+	public function alterSearchKeywords(&$searchKeywords)
+	{
+		
+	}
 }

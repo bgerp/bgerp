@@ -170,4 +170,26 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	{
 		return $this->History->renderHistory($data);
 	}
+
+
+	/**
+	 * Добавяме полета за търсене
+	 *
+	 * @see frame_BaseDriver::alterSearchKeywords()
+	 */
+	public function alterSearchKeywords(&$searchKeywords)
+	{
+		if(!empty($this->innerForm)){
+			$newKeywords .= acc_Accounts::getVerbal($this->innerForm->accountId, 'title');
+			$newKeywords .= " " . acc_Accounts::getVerbal($this->innerForm->accountId, 'num');
+			
+			foreach (range(1, 3) as $i){
+				if(!empty($this->innerForm->{"ent{$i}Id"})){
+					$newKeywords .= " " . acc_Items::getVerbal($this->innerForm->{"ent{$i}Id"}, 'title');
+				}
+			}
+			
+			$searchKeywords .= " " . plg_Search::normalizeText($newKeywords);
+		}
+	}
 }

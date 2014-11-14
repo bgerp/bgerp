@@ -417,4 +417,21 @@ class acc_BalanceReportImpl extends frame_BaseDriver
        
            return $row;
       }
+
+      
+	  /**
+	   * Добавяме полета за търсене
+	   * 
+	   * @see frame_BaseDriver::alterSearchKeywords()
+	   */
+      public function alterSearchKeywords(&$searchKeywords)
+      {
+      	  if(!empty($this->innerForm)){
+	      		$accVerbal = acc_Accounts::getVerbal($this->innerForm->accountId, 'title');
+	      		$num = acc_Accounts::getVerbal($this->innerForm->accountId, 'num');
+	      			
+	      		$str = $accVerbal . " " . $num;
+	      		$searchKeywords .= " " . plg_Search::normalizeText($str);
+      	  }
+      }
 }
