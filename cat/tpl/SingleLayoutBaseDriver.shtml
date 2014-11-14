@@ -10,7 +10,7 @@
                     <legend class="groupTitle">|Информация|*</legend>
                     <div class="groupList">
                         <table class='no-border'>
-                        	<!--ET_END code-->
+                        	<!--ET_BEGIN code-->
                             <tr>
                                 <td class='dt'>|Код|*:</td>
                                 <td> [#code#]</td>

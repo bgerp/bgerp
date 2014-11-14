@@ -202,6 +202,12 @@ class cat_Products extends core_Embedder {
 	public $recTitleTpl = '[#name#] ( [#code#] )';
     
     
+	/**
+	 * Кои полета от мениджъра преди запис да се обновяват със стойностти от драйвера
+	 */
+	public $fieldsToBeManagedByDriver = 'info, measureId, photo';
+	
+	
     /**
      * Описание на модела
      */
