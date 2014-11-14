@@ -855,9 +855,10 @@ div.acc-detail {
 	border: solid 1px #ccc;
 	@include border-radius(5px);
 	background-color: white;
+	position: relative;
 	.legend {
 		position: absolute;
-		margin-top: -35px;
+		top: -16px;
 		margin-left: 10px;
 		z-index: 100;
 		line-height: 20px;

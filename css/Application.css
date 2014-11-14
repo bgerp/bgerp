@@ -780,10 +780,11 @@ div.acc-detail {
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
   border-radius: 5px;
-  background-color: white; }
+  background-color: white;
+  position: relative; }
   .portal .legend {
     position: absolute;
-    margin-top: -35px;
+    top: -16px;
     margin-left: 10px;
     z-index: 100;
     line-height: 20px;
