@@ -251,8 +251,10 @@ class doc_Search extends core_Manager
                 	$url2['docClass'] = $filterRec->docClass;
                 }
                 $url2['state'] = $filterRec->state;
-                $url2['author'] = core_Users::getCurrent();
-                
+                if ($filterRec->author){
+                	$url2['author'] = Request::get('author');
+                }
+               
                 // Ако се филтрира по текущия автор
                 if ($filterRec->author && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
                     $url['author'] = core_Users::getCurrent();

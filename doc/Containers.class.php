@@ -1717,6 +1717,9 @@ class doc_Containers extends core_Manager
     	while($uRec = $userQuery->fetch()){
     		$notArr = array();
     		
+    		$authorTemasArr[$uRec->id] = type_Users::getUserFromTeams($uRec->id);
+    		$firstTeamAuthor = key($authorTemasArr[$uRec->id]);
+    		
     		// Проверяваме от всеки документ създаден от този потребител
     		foreach ($docs as $id => $name){
     		
@@ -1735,7 +1738,7 @@ class doc_Containers extends core_Manager
     		// Ако има неактивирани бизнес документи
     		if(count($notArr)){
     			foreach ($notArr as $clsId => $count){
-    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $uRec->id);
+    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor);
     				 
     				$name = ($count == 1) ? cls::get($clsId)->singleTitle : cls::get($clsId)->title;
     				$msg = "|Имате създадени, но неактивирани|* {$count} {$name}";
