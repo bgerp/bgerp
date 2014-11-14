@@ -45,7 +45,6 @@ class techno2_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-    		'techno2_GeneralProductsParameters',
     		'techno2_SpecificationDoc',
     		'techno2_SpecTplCache',
         );
