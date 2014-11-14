@@ -275,53 +275,6 @@ class label_Labels extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-//        // Масив с шаблоните
-//        static $fieldsArr=array();
-//        
-//        // Ако не е сетнат за този шаблон
-//        if(!$fieldsArr[$rec->templateId]) {
-//            
-//            // Форма за функционалните полета
-//            $fncForm = cls::get('core_Form');
-//            
-//            // Вземаме функционалните полета за тип
-//            label_TemplateFormats::addFieldForTemplate($fncForm, $rec->templateId);
-//            
-//            // Добавяме в масива
-//            $fieldsArr[$rec->templateId] = $fncForm->fields;
-//        }
-//        
-//        // Нулираме стойността
-//        $row->params = '';
-//        
-//        // Обхождаме масива с полетата
-//        foreach((array)$fieldsArr[$rec->templateId] as $name => $field) {
-//            
-//            // Името на полето
-//            $fieldName = $field->caption;
-//            
-//            // Ако е зададено няколко части от името
-//            if(($pos = mb_strrpos($fieldName, '->')) !== FALSE) {
-//                
-//                // Вземаме последната част от името
-//                $fieldName =  mb_substr($fieldName, $pos + 2);
-//            }
-//            
-//            // Ескейпваме
-//            $fieldName = type_Varchar::escape($fieldName);
-//            $fieldName = core_Type::escape($fieldName);
-//            
-//            // Ако е масив
-//            if (is_array($rec->params)) {
-//                
-//                // Вербалната стойност
-//                $verbalVal = $field->type->toVerbal($rec->params[$name]);
-//            }
-//            
-//            // Добавяме в полето
-//            $row->params .= '<div>' . $fieldName . ': ' . $verbalVal . '</div>';
-//        }
-        
         if (label_Templates::haveRightFor('single', $rec->templateId)) {
             $row->templateId = ht::createLink($row->templateId, array('label_Templates', 'single', $rec->templateId));
         }
