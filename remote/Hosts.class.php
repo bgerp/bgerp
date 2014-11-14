@@ -65,23 +65,38 @@ class remote_Hosts extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
-        $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,1input=none,single=none,1column=none');
+        $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Състояние,input=none');
-
+        $this->FNC('ip', 'ip()', 'caption=IP aдрес, input, mandatory');
+        $this->FNC('port', 'int(min=1,max=9999)', 'caption=Порт, input, mandatory');
+        $this->FNC('user', 'varchar(255)', 'caption=Потребител, input, mandatory');
+        $this->FNC('pass', 'password()', 'caption=Парола, input');
+        
         $this->setDbUnique('name');
     }
     
 
 
+    /**
+     * Извиква се преди изпълняването на екшън
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     */
+    public static function on_BeforeSave($mvc, &$res,&$rec)
+    {
 
+    }
     
     
     /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
+            $form->rec->config = array('name' => $form->rec->name, 'ip' => $form->rec->ip,
+                                      'port' => $form->rec->port, 'user' => $form->rec->user, 'pass' => $form->rec->pass);
          }
     }
 
@@ -95,7 +110,7 @@ class remote_Hosts extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     }
     
