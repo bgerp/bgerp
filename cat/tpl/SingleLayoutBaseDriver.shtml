@@ -29,4 +29,7 @@
                     <div class="groupList">[#info#]</div>
                 </fieldset>
                 <!--ET_END info-->
+                
+                <!--ET_BEGIN PARAMS-->
                 [#PARAMS#]
+                <!--ET_END PARAMS-->

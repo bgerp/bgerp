@@ -183,6 +183,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$title = ht::createLinkRef($this->ProductRec->getTitleById(), array($this->ProductRec->instance, 'single', $id));
 		$tpl->replace($title, "TITLE");
 		
+		// Ако няма параметри, премахваме блока им от шаблона
+		if(!count($data->params)){
+			$tpl->removeBlock('PARAMS');
+		}
+		
 		return $tpl;
 	}
 }

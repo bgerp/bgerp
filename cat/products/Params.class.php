@@ -237,7 +237,7 @@ class cat_products_Params extends core_Manager
         $wrapTpl->append($tpl, 'CONTENT');
         
         $tpl = $wrapTpl;
-       
+      
         return $tpl;
     }
     
