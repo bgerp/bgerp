@@ -223,8 +223,6 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	//@TODO рефакторинг
-    	
     	if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             if ($newCode = str::increment($code)) {
             	
