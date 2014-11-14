@@ -98,6 +98,15 @@ class acc_transaction_ClosePeriod
     	$total += $amountFromFiscPrinter;
     	
     	$bQuery = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4535');
+    	$amount4535 = $bQuery->fetch()->blAmount;
+    	
+    	$amount4535 += $amountFromFiscPrinter;
+    	
+    	$entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year, $this->date->month));
+    	$total += abs($amount4535);
+    	
+    	$bQuery = acc_BalanceDetails::getQuery();
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4531');
     	
     	$bQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
