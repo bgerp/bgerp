@@ -96,6 +96,7 @@ class core_Embedder extends core_Master
 	public function getDriver_($id)
 	{
 		$rec = $this->fetchRec($id);
+		$rec->{$this->innerClassField} = ($rec->{$this->innerClassField}) ? $rec->{$this->innerClassField} : $this->fetchField($rec->id, $this->innerClassField);
 		
 		if($rec->id){
 			$innerForm = (isset($rec->{$this->innerFormField})) ? $rec->{$this->innerFormField} : $this->fetchField($rec->id, $this->innerFormField);
@@ -344,8 +345,10 @@ class core_Embedder extends core_Master
 	 */
 	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
 	{
-		$Driver = $mvc->getDriver($rec);
-	
-		$Driver->alterSearchKeywords($res);
+		if(!empty($rec->{$mvc->innerClassField})){
+			
+			$Driver = $mvc->getDriver($rec);
+			$Driver->alterSearchKeywords($res);
+		}
 	}
 }
