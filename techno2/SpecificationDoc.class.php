@@ -134,8 +134,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
-    	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input=none');
-    	
+    	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
     	$this->setDbUnique('title');
     }
     
@@ -147,6 +146,8 @@ class techno2_SpecificationDoc extends core_Embedder
     {
     	if($form->rec->innerClass){
     		$form->setField('sharedUsers', 'input,formOrder=100000000');
+    	} else {
+    		$form->setField('sharedUsers', 'input=none,formOrder=100000000');
     	}
     }
     
