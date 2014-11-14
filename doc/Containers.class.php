@@ -1675,7 +1675,7 @@ class doc_Containers extends core_Manager
 	 */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        //Данни за работата на cron
+        // Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'notifyForIncompleteDoc';
         $rec->description = 'Нотифициране за незавършени действия с документите';
@@ -1686,5 +1686,64 @@ class doc_Containers extends core_Manager
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
+        
+        // Данни за работата на cron
+        $rec1 = new stdClass();
+        $rec1->systemId = 'notifyForDraftBusinessDoc';
+        $rec1->description = 'Нотифициране за неактивирани бизнес документи';
+        $rec1->controller = $mvc->className;
+        $rec1->action = 'notifyDraftBusinessDoc';
+        $rec1->period = 43200;
+        $rec1->offset = 4320;
+        $rec1->delay = 0;
+        $rec1->timeLimit = 200;
+        $res .= core_Cron::addOnce($rec1);
+    }
+    
+    
+    /**
+     * Изпращане на нотификации за всички чернови бизнес документи
+     */
+    public function cron_notifyDraftBusinessDoc()
+    {
+    	// Намираме бизнес документите
+    	$docs = core_Classes::getOptionsByInterface('bgerp_DealIntf');
+    	
+    	// Извличаме всички потребители в системата
+    	$userQuery = core_Users::getQuery();
+    	$userQuery->show('id');
+    	
+    	// За всеки потребител
+    	while($uRec = $userQuery->fetch()){
+    		$notArr = array();
+    		
+    		// Проверяваме от всеки документ създаден от този потребител
+    		foreach ($docs as $id => $name){
+    		
+    			// Преброяваме колко чернови има от всеки вид
+    			$docQuery = $name::getQuery();
+    			$docQuery->where("#state = 'draft'");
+    			$docQuery->where("#createdBy = {$uRec->id}");
+    			$count = $docQuery->count();
+    			
+    			// Ако бройката е по-голяма от 0, записваме в масива
+    			if($count != 0){
+    				$notArr[$id] = $count;
+    			}
+    		}
+    		
+    		// Ако има неактивирани бизнес документи
+    		if(count($notArr)){
+    			foreach ($notArr as $clsId => $count){
+    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $uRec->id);
+    				 
+    				$name = ($count == 1) ? cls::get($clsId)->singleTitle : cls::get($clsId)->title;
+    				$msg = "|Имате създадени, но неактивирани|* {$count} {$name}";
+    				 
+    				// Създаваме нотификация към потребителя с линк към филтрирани неговите документи
+    				bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);
+    			}
+    		}
+    	}
     }
 }
