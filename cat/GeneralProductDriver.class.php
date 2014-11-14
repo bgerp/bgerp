@@ -44,19 +44,19 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		// Добавя полетата само ако ги няма във формата
 		
 		if(!$form->getField('info', FALSE)){
-			$form->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory");
+			$form->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory,formOrder=4");
 		} else {
 			$form->setField('info', 'input');
 		}
 		
 		if(!$form->getField('measureId', FALSE)){
-			$form->FLD('measureId', 'key(mvc=cat_UoM, select=name)', "caption=Мярка,mandatory");
+			$form->FLD('measureId', 'key(mvc=cat_UoM, select=name)', "caption=Мярка,mandatory,formOrder=4");
 		} else {
 			$form->setField('measureId', 'input');
 		}
 		
 		if(!$form->getField('image', FALSE)){
-			$form->FLD('image', 'fileman_FileType(bucket=pictures)', "caption=Изображение");
+			$form->FLD('image', 'fileman_FileType(bucket=pictures)', "caption=Изображение,formOrder=4");
 		} else {
 			$form->setField('image', 'input');
 		}
