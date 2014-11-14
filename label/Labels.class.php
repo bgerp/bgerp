@@ -352,6 +352,7 @@ class label_Labels extends core_Master
     {
         // Данни
         $previewLabelData = new stdClass();
+        $previewLabelData->Label = new stdClass();
         $previewLabelData->Label->rec = $data->rec;
         $previewLabelData->Label->id = $data->rec->id;
         $previewLabelData->updateTempData = FALSE;
