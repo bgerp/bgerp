@@ -390,9 +390,8 @@ class crm_Companies extends core_Master
         
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
-            $Countries = cls::get('drdata_Countries');
-            $form->setDefault('country', $Countries->fetchField("#commonName = '" .
-                    $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
+            $myCompany = self::fetchOwnCompany();
+            $form->setDefault('country', $myCompany->country);
         }
         
         // Ако сме в тесен режим
