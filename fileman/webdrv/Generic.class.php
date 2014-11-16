@@ -356,7 +356,7 @@ class fileman_webdrv_Generic extends core_Manager
             $expireOnLink = ht::createLink($expireOn, $linkUrl);
             
             // Линка, който ще се показва
-            $linkText .= tr("|*<span id='selectable' onmouseUp='onmouseUpSelect();'>{$link}</span> <small>(|Изтича|*: {$expireOnLink})</small>");
+            $linkText .= tr("|*<span onmouseUp='selectInnerText(this);'>{$link}</span> <small>(|Изтича|*: {$expireOnLink})</small>");
             
         } else {
             
