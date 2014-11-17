@@ -391,7 +391,7 @@ class crm_Companies extends core_Master
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
             $myCompany = self::fetchOwnCompany();
-            $form->setDefault('country', $myCompany->country);
+            $form->setDefault('country', $myCompany->countryId);
         }
         
         // Ако сме в тесен режим

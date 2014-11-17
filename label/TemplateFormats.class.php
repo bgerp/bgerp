@@ -459,7 +459,7 @@ class label_TemplateFormats extends core_Detail
             $placeHolderField = static::getPlaceholderFieldName($placeHolder);
             
             // Заглавието на полета
-            $caption = "Шаблони->" . $placeHolder;
+            $caption = "Параметри->" . $placeHolder;
             
             // Ако е image
             if ($rec->type == 'image') {

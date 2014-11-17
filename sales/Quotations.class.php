@@ -304,12 +304,10 @@ class sales_Quotations extends core_Master
     		$origin = doc_Containers::getDocument($rec->originId);
     		
     		// Ориджина трябва да е спецификация
-    		expect(cls::haveInterface('techno_ProductsIntf', $origin->className));
     		$originRec = $origin->fetch();
     		
     		// В папка на контрагент
     		$coverClass = doc_Folders::fetchCoverClassName($originRec->folderId);
-    		expect(cls::haveInterface('doc_ContragentDataIntf', $coverClass));
     		
     		$dRows = array($rec->row1, $rec->row2, $rec->row3);
     		if(($dRows[0] || $dRows[1] || $dRows[2])){

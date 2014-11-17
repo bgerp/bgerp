@@ -1554,7 +1554,7 @@ function addLinkOnCopy(text) {
 
     window.setTimeout(function() {
         body_element.removeChild(htmlDiv);
-    }, 200);
+    }, 0);
 }
 
 
