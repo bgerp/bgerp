@@ -100,7 +100,18 @@ class remote_Hosts extends core_Master
          }
     }
 
-
+	/**
+	 * След подготвяне на формата добавяне/редкатиране
+	 */
+	public static function on_AfterPrepareEditForm($mvc, &$data)
+	{
+	    $form = &$data->form;
+	    $rec  = &$form->rec;
+	     
+        foreach ($rec->config as $name => $value) {
+            $form->setDefault($name, $value);
+        }
+    }
     
     
     /**
