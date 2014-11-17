@@ -160,7 +160,18 @@ class core_Roles extends core_Manager
         return self::$rolesArr[$role];
     }
     
-    
+
+    /**
+     * Връща id-то на ролята според името и
+     */
+    static function fetchById($roleId)
+    {
+        self::loadRoles();
+        
+        return self::$rolesArr[$roleId];
+    }
+  
+
     /**
      * Създава рекурсивно списък с всички роли, които наследява посочената роля
      *
@@ -198,7 +209,7 @@ class core_Roles extends core_Manager
     /**
      * Връща keylist с всички роли от посочения тип
      */
-    static function getRolesByType($type)
+    static function getRolesByType($type, $result = 'keylist')
     {
         $roleQuery = core_Roles::getQuery();
         
@@ -208,7 +219,11 @@ class core_Roles extends core_Manager
             $res[$roleRec->id] = $roleRec->id;
         }
         
-        return keylist::fromArray($res);
+        if($result == 'keylist') {
+            $res = keylist::fromArray($res);
+        }
+
+        return $res;
     }
 
 

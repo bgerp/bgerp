@@ -267,6 +267,9 @@ class acc_Balances extends core_Master
      */
     private function forceCalc($rec)
     {
+        // Очакваме начална и крайна дата
+        expect($rec->fromDate && $rec->toDate,  $rec);
+
         // Ако записа на баланса не за записан, записваме го, за да имаме id
         $exRec = self::fetch("#fromDate = '{$rec->fromDate}' AND #toDate = '{$rec->toDate}'");
         
@@ -292,6 +295,15 @@ class acc_Balances extends core_Master
                     $prevRec->toDate = $prevWorkingDay;
                     $prevRec->periodId = NULL;
                     self::forceCalc($prevRec);
+                    $fromDate = $prevRec->fromDate;
+                    $toDate   = $prevRec->toDate;
+
+                    // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
+                    $query = self::getQuery();
+                    while($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
+                        acc_BalanceDetails::delete("#balanceId = {$delRec->id}");
+                        self::delete($delRec->id);
+                    }
                 }
             }
 

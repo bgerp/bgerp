@@ -102,7 +102,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'title, template=Шаблон, createdOn, createdBy';
+    var $listFields = 'title, sizes, template=Шаблон, createdOn, createdBy';
     
     
     /**
@@ -135,6 +135,7 @@ class label_Templates extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
+        $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
         $this->FLD('template', 'html', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
     }
@@ -154,6 +155,20 @@ class label_Templates extends core_Master
         	// Добавяме бутон за нов етикет
             $data->toolbar->addBtn('Нов етикет', array('label_Labels', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png');
         }
+    }
+    
+    
+    /**
+     * Връща всички медии, които отговарят на размерите на медията на шаблона
+     * 
+     * @param unknown_type $id
+     */
+    public static function getMediaForTemplate($id)
+    {
+        $sizes = self::fetchField($id, 'sizes');
+        $mediaArr = label_Media::getMediaArrFromSizes($sizes);
+        
+        return $mediaArr;
     }
     
     
@@ -366,6 +381,21 @@ class label_Templates extends core_Master
             
             return $id;
         }
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Добавяме всички възжможни избори за медия
+        $sizesArr = label_Media::getAllSizes();
+        $sizesArr = array('' => '') + $sizesArr;
+        $data->form->setSuggestions('sizes', $sizesArr);
     }
     
     

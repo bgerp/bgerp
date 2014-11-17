@@ -230,14 +230,16 @@ class cal_TaskConditions extends core_Detail
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
+    	
     	if ($rec->id) {
     		if (!isset($rec->baseId)) {
     			$rec = cal_TaskConditions::fetch($rec->id);
     		}
     		$taskRec = cal_Tasks::fetch($rec->baseId);
     		
-    		if($action == 'edit' || $action == 'delete'){ 
-	    		if ($taskRec->state !== 'draft' || ($taskRec->state !== 'pending') ) { 
+    		 //echo "<li>" .$taskRec->state;
+	    		if ($taskRec->state !== 'draft' || ($taskRec->state !== 'pending') ) {
+	    			if($action == 'edit' || $action == 'delete'){
 	                $requiredRoles = 'no_one'; 
 	            }
     	    }

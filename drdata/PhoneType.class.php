@@ -26,11 +26,11 @@ class drdata_PhoneType extends type_Varchar
      * Връща подадения номер като стринг като пълен номер
      * 
      * @param string $number - Номера
+     * @param mixed $arrayKey - Ако трябва да връща само един от номерата
      * 
      * @return string $numStr - Номера в пълен формат
-     * @return mixed $arrayKey - Ако трябва дас е връща само един от номерата
      */
-    public static function getNumberStr($number, $arrayKey=FALSE)
+    public static function getNumberStr($number, $arrayKey = FALSE)
     {
         // Вземаме номера
         $numArr = drdata_PhoneType::toArray($number);
@@ -80,19 +80,19 @@ class drdata_PhoneType extends type_Varchar
     
     
     /**
-     * Връща пълния номер от подадени обект
+     * Връща пълния номер от подадения обект
      * 
      * @param object $numObj - Обект, генериран от drdata_PhoneType
      * 
      * @return string $callerNumStr - Стринг с пълния номер
      */
-    public static function getNumStrFromObj($numObj, $phoneCodeBefore='+')
+    public static function getNumStrFromObj($numObj, $phoneCodePrefix = '+')
     {
         // Ако не е обект, връщаме
         if (!is_object($numObj)) return $numObj;
         
         // Генерираме пълния номер
-        $callerNumStr = $phoneCodeBefore . $numObj->countryCode . $numObj->areaCode . $numObj->number;
+        $callerNumStr = $phoneCodePrefix . $numObj->countryCode . $numObj->areaCode . $numObj->number;
         
         return $callerNumStr;
     }

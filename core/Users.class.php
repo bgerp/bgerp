@@ -1230,7 +1230,7 @@ class core_Users extends core_Manager
     /**
      * Връща масив от роли, които са от посочения тип, за посочения потребител
      */
-    static function getUserRolesByType($userId = NULL, $type = NULL)
+    static function getUserRolesByType($userId = NULL, $type = NULL, $result = 'keylist')
     {
         $roles = core_Users::getRoles($userId);
         
@@ -1252,7 +1252,11 @@ class core_Users extends core_Manager
             }
         }
         
-        return keylist::fromArray($res);
+        if($result == 'keylist') {
+            $res = keylist::fromArray($res);
+        }
+
+        return $res;
     }
     
     

@@ -1324,18 +1324,20 @@ function scrollLongListTable() {
 /**
  * При натискане с мишката върху елемента, маркираме текста
  */
-function onmouseUpSelect() {
-    if (document.selection) {
-        var range = document.body.createTextRange();
-        range.moveToElementText(document.getElementById('selectable'));
+function selectInnerText(text) {
+    var doc = document, range, selection;
+    if (doc.body.createTextRange) {
+        range = document.body.createTextRange();
+        range.moveToElementText(text);
         range.select();
     } else if (window.getSelection) {
-        var range = document.createRange();
-        range.selectNode(document.getElementById('selectable'));
-        window.getSelection().addRange(range);
+        selection = window.getSelection();        
+        range = document.createRange();
+        range.selectNodeContents(text);
+        selection.removeAllRanges();
+        selection.addRange(range);
     }
 }
-
 
 /**
  * Записва избрания текст в сесията и текущото време
@@ -2998,7 +3000,7 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 			if (l3 && timeInSec < l3) $(this).removeClass('cd-l1 cd-l2').addClass('cd-l3'); 
 			
 			if(timeInSec == 0) {
-				$(this).removeClass('cd-l3');
+				$(this).removeClass('cd-l3').css('color', 'black');
 			}
 			
 			//добавяме водещи нули ако е необходимо
