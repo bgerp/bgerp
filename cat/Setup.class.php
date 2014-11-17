@@ -57,7 +57,7 @@ class cat_Setup extends core_ProtoSetup
     		'cat_products_VatGroups',
             'cat_Params',
             'cat_Packagings',
-    		'migrate::productDrivers2',
+    		'migrate::productDrivers',
         );
 
         
@@ -74,7 +74,13 @@ class cat_Setup extends core_ProtoSetup
             array(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "cat, ceo"),
         );
     
-        
+
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "cat_GeneralProductDriver, cat_GeneralServiceDriver";
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -102,23 +108,19 @@ class cat_Setup extends core_ProtoSetup
     }
     
     
-    function productDrivers2()
+    /**
+     * Миграция за продуктовите драйвъри
+     */
+    function productDrivers()
     {
-    	$pQuery = cat_products_Params::getQuery();
-    	$cId = cat_Products::getClassId();
-    	while($pRec = $pQuery->fetch()){
-    		$pRec->classId = $cId;
-    		cat_products_Params::save($pRec);
-    	}
-    	
     	$cQuery = cat_Products::getQuery();
     	
     	$technoDriverId = cat_GeneralProductDriver::getClassId();
     	$technoDriverServiceId = cat_GeneralServiceDriver::getClassId();
     	
     	while($pRec = $cQuery->fetch()){
-    		$pInfo = cat_Products::getProductInfo($pRec->id);
-    		if(isset($pInfo->meta['canStore'])){
+    		$meta = cat_Products::getMetaData($pRec->groups);
+    		if(isset($meta['canStore'])){
     			$pRec->innerClass = $technoDriverId;
     		} else {
     			$pRec->innerClass = $technoDriverServiceId;
@@ -131,6 +133,13 @@ class cat_Setup extends core_ProtoSetup
     		$pRec->innerState = $clone;
     		
     		cat_Products::save($pRec, 'innerClass,innerForm,innerState');
+    	}
+    	
+    	$pQuery = cat_products_Params::getQuery();
+    	$cId = cat_Products::getClassId();
+    	while($pRec = $pQuery->fetch()){
+    		$pRec->classId = $cId;
+    		cat_products_Params::save($pRec);
     	}
     }
 }

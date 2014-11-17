@@ -303,7 +303,7 @@ class cat_Products extends core_Embedder {
      * 
      * @param mixed $groups - групи в които участва
      */
-    private static function getMetaData($groups)
+    public static function getMetaData($groups)
     {
     	if($groups){
     		$meta = array();
