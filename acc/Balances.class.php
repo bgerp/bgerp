@@ -274,7 +274,7 @@ class acc_Balances extends core_Master
         $exRec = self::fetch("#fromDate = '{$rec->fromDate}' AND #toDate = '{$rec->toDate}'");
         
         if(!$exRec) {
-            $id = self::save($rec);
+            self::save($rec);
            
         } else {
             $rec = $exRec;
