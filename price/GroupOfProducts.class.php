@@ -465,19 +465,4 @@ class price_GroupOfProducts extends core_Detail
     {
         return self::renderDetail_($data);
     }
-    
-    
-	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	// Ако няма продаваеми продукти, слага се error на бутона
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$products = cat_Products::getByProperty('canSell');
-    		if(!count($products)){
-    			$data->toolbar->buttons['btnAdd']->error = 'Няма продаваеми продукти, които да се включат в групата';
-    		}
-    	}
-    }
 }
