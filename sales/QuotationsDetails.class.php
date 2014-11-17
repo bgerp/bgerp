@@ -479,7 +479,6 @@ class sales_QuotationsDetails extends doc_Detail {
     				$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId));
     			}
     		} else {
-    			$masterDate = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'date');
     			$row->productId = $ProductMan->getProductDesc($rec->productId, $modifiedOn);
     		}
     	}
