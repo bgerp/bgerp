@@ -67,9 +67,9 @@ class acc_transaction_ClosePeriod
     	$this->balanceId =  acc_Balances::fetchField("#periodId = {$this->periodRec->id}");
     	$incomeRes = array();
     	
-    	$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
+    	//$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
     	if(count($entries1)){
-    		$result->entries = array_merge($result->entries, $entries1);
+    		//$result->entries = array_merge($result->entries, $entries1);
     	}
     	
     	$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
@@ -80,6 +80,11 @@ class acc_transaction_ClosePeriod
     	$entries3 = $this->transferVat($result->totalAmount, $rec);
     	if(count($entries3)){
     		$result->entries = array_merge($result->entries, $entries3);
+    	}
+    	
+    	$entries4 = $this->transferCurrencyDiffs($result->totalAmount, $rec);
+    	if(count($entries4)){
+    		$result->entries = array_merge($result->entries, $entries4);
     	}
     	
     	return $result;
@@ -268,5 +273,54 @@ class acc_transaction_ClosePeriod
     	
     	
 	    return $entries;
+    }
+    
+    
+    /**
+     * Отчитане на резултата по сметка 481 - "Разчети по курсови разлики" и отнасянето му по сметките за финансови разходи / приходи
+     * 
+     * Ако с/ка 481 има дебитно салдо, отчитаме го като разход
+     * 		
+     * 		Dt: 624 - Разходи по валутни операции
+     * 		Ct: 481 - Разчети по курсови разлики		          (Валута)
+     * 
+     * 		с дебитното салдо по с/ка 481, отнасяме го като намаление на печалбата
+     * 
+     * 		Dt: 123 - Печалби и загуби от текущата година 	      (Година, Месец)
+     * 		Ct: 624 - Разходи по валутни операции
+     * 
+     * Ако с/ка 481 има кредитно салдо, отчитаме го като приход
+     * 
+     * 		Dt: 481 - Разчети по курсови разлики			      (Валута)
+     * 		Ct: 724 - Приходи от валутни операции
+     * 
+     * 		с дебитното салдо по с/ка 481, отнасяме го като увеличение на печалбата
+     * 
+     * 		Dt: 724 - Приходи от валутни операции
+     * 		123 - Печалби и загуби от текущата година		      (Година, Месец)
+     */
+    protected function transferCurrencyDiffs(&$total, $rec)
+    {
+    	$bQuery = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '481');
+    	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+    	
+    	$entries = array();
+    	
+    	while ($dRec = $bQuery->fetch()){
+    		if(round($dRec->blAmount, 2) == 0) return;
+    		
+    		if($dRec->blAmount > 0){
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('624'), 'credit' => array('481', $dRec->ent1Id, 'quantity' => $dRec->blQuantity));
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('123', $this->date->year, $this->date->month), 'credit' => array('624'));
+    		} else {
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('481', $dRec->ent1Id, 'quantity' => $dRec->blQuantity), 'credit' => array('724'));
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('724'), 'credit' => array('123', $this->date->year, $this->date->month));
+    		}
+    		
+    		$total += 2 * abs($dRec->blAmount);
+    	}
+    	
+    	return $entries;
     }
 }
