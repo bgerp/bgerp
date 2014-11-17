@@ -151,7 +151,7 @@ class plg_State2 extends core_Plugin
         
         expect($rec = $mvc->fetch($id));
         
-        $mvc->requireRightFor($action, $rec, NULL, $retUrl);
+        $mvc->requireRightFor($act, $rec, NULL, $retUrl);
         
         $this->getActiveAndClosedState($mvc);
 
