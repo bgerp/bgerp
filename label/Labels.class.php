@@ -196,7 +196,7 @@ class label_Labels extends core_Master
             expect($templateId);
         }
         
-        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на етикет с шаблон|* ';
+        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на етикет от шаблон|* ';
         $data->form->title .= '"' . label_Templates::getVerbal($data->form->rec->templateId, 'title') . '"';
         
         // Добавяме полетата от детайла на шаблона
