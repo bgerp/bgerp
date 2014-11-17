@@ -2568,7 +2568,8 @@ span.cng {
 .toast-item-wrapper p {
   max-height: 150px;
   overflow-y: auto;
-  padding-right: 10px; }
+  padding-right: 10px;
+  font-family: Arial, Verdana, Sans-serif !important; }
 
 .loginLog-first_login {
   background-color: #ffffdd !important; }
