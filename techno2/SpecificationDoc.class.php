@@ -281,19 +281,14 @@ class techno2_SpecificationDoc extends core_Embedder
     			$data->toolbar->addBtn('Промяна', array($mvc, 'edit', $data->rec->id), 'id=btnEdit,order=1', 'ef_icon = img/16/to_do_list.png,title=Редакция на активирана спецификация');
     		}
     	}
-    }
-    
-    
-    /**
-     * След рендиране на данните върнати от драйвера
-     *
-     * @param core_ET $tpl
-     * @param core_ET $embededDataTpl
-     */
-    public static function on_AfterrenderEmbeddedData($mvc, &$res, core_ET &$tpl, core_ET $embededDataTpl, &$data)
-    {
-    	//$InnerClass = $mvc->getDriver($data->rec);
-    	//$InnerClass->renderParams($data->params, $tpl, FALSE);
+    	
+    	if(sales_Quotations::haveRightFor('add')){
+    		if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId}")){
+    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id), 'ef_icon = img/16/document_quote.png,title=Редактиране на оферта');
+    		} else {
+    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
+    		}
+    	}
     }
     
     
