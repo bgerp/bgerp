@@ -135,6 +135,7 @@ class techno2_SpecificationDoc extends core_Embedder
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
     	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
+    	
     	$this->setDbUnique('title');
     }
     

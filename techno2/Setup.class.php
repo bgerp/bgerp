@@ -47,6 +47,7 @@ class techno2_Setup extends core_ProtoSetup
     var $managers = array(
     		'techno2_SpecificationDoc',
     		'techno2_SpecTplCache',
+    		'migrate::copyOldTechnoDocuments'
         );
     
 
@@ -96,5 +97,40 @@ class techno2_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    public function copyOldTechnoDocuments()
+    {
+    	$technoDriverId = cat_GeneralProductDriver::getClassId();
+    	$technoDriverServiceId = cat_GeneralServiceDriver::getClassId();
+    	$NewCls = cls::get('techno2_SpecificationDoc');
+    	
+    	$gpQuery = techno_GeneralProducts::getQuery();
+    	$gpQuery->where("#state = 'active'");
+    	while($oldRec = $gpQuery->fetch()){
+    		$meta = arr::make($oldRec->meta, TRUE);
+    		$newRec = new stdClass();
+    		foreach (array('state', 'folderId', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'searchKeywords', 'sharedUsers', 'sharedUsers', 'meta', 'title') as $fld){
+    			$newRec->$fld = $oldRec->$fld;
+    			unset($oldRec->$fld);
+    		}
+    		
+    		if(isset($meta['canStore'])){
+    			$newRec->innerClass = $technoDriverId;
+    		} else {
+    			$newRec->innerClass = $technoDriverServiceId;
+    		}
+    		
+    		$info = $oldRec->description;
+    		$clone = clone $oldRec;
+    		$clone->info = $info;
+    		
+    		$newRec->innerForm = $clone;
+    		$newRec->innerState = $clone;
+    		
+    		$NewCls->save($newRec);
+    	}
+    	//bp($newRec);
     }
 }

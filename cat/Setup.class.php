@@ -115,6 +115,9 @@ class cat_Setup extends core_ProtoSetup
     {
     	$cQuery = cat_Products::getQuery();
     	
+    	core_Classes::add('cat_GeneralProductDriver');
+    	core_Classes::add('cat_GeneralServiceDriver');
+    	
     	$technoDriverId = cat_GeneralProductDriver::getClassId();
     	$technoDriverServiceId = cat_GeneralServiceDriver::getClassId();
     	
