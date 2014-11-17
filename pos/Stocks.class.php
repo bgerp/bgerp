@@ -58,7 +58,7 @@ class pos_Stocks extends core_Manager {
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,storeId,quantity,lastUpdated,state';
+    public $listFields = 'id,productId,classId,storeId,quantity,lastUpdated,state';
     
 	
     /**
@@ -72,7 +72,8 @@ class pos_Stocks extends core_Manager {
      */
     function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име');
+        $this->FLD('productId', 'int', 'caption=Име,remember=info');
+        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
         $this->FLD('lastUpdated', 'datetime(format=smartTime)', 'caption=Последен ъпдейт,input=none');
@@ -100,10 +101,12 @@ class pos_Stocks extends core_Manager {
     		$usedStores[$pRec->storeId] = $pRec->storeId;
     	}
     	
+    	$productsClsId = cat_Products::getClassId();
+    	
     	// Махаме записите за складовете, които не участват в ПОС-а
     	if(count($all)){
     		foreach ($all as $index => $bRec){
-    			if(!in_array($bRec->storeId, $usedStores)){
+    			if(!in_array($bRec->storeId, $usedStores) || $bRec->classId != $productsClsId){
     				unset($all[$index]);
     			}
     		}
@@ -113,23 +116,20 @@ class pos_Stocks extends core_Manager {
     	$oldRecs = $stockQuery->fetchAll();
     	
     	$arrRes = arr::syncArrays($all, $oldRecs, "productId,classId,storeId", "quantity");
-    	 
     	$self = cls::get(get_called_class());
     	$self->saveArray($arrRes['insert']);
     	$self->saveArray($arrRes['update']);
     	
-    	$closeQuery = pos_Stocks::getQuery();
     	if(count($arrRes['delete'])){
+    		$closeQuery = pos_Stocks::getQuery();
     		$closeQuery->in('id', $arrRes['delete']);
-    	}
-    	
-    	if(!count($arrRes['delete'])) return;
-    	
-    	while($rec = $closeQuery->fetch()){
-    		$rec->state = 'closed';
-    		$rec->quantity = 0;
     		
-    		$self->save($rec);
+    		while($rec = $closeQuery->fetch()){
+    			$rec->state = 'closed';
+    			$rec->quantity = 0;
+    		
+    			$self->save($rec);
+    		}
     	}
     	
     	// Приспада количествата от не-отчетените бележки
@@ -220,7 +220,14 @@ class pos_Stocks extends core_Manager {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
-    	$row->productId = cat_Products::getHyperLink($rec->productId, TRUE);
+    	$row->productId = cls::get($rec->classId)->getHyperLink($rec->productId, TRUE);
+    	$row->productId = "<span style='float:left'>{$row->productId}</span>";
+    }
+    
+    
+    static function on_AfterPrepareListFields($mvc, $data)
+    {
+    	$data->query->orderBy('id', 'DESC');
     }
     
     
@@ -239,5 +246,33 @@ class pos_Stocks extends core_Manager {
     	$quantity = ($quantity) ? $quantity : 0;
     	
     	return $quantity;
+    }
+    
+    
+    /**
+     * След подготовка на туклбара на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(haveRole('admin,debug')){
+    		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+    	}
+    }
+    
+    
+    /**
+     * Изчиства записите в балансите
+     */
+    public function act_Truncate()
+    {
+    	requireRole('admin,debug');
+    	
+    	// Изчистваме записите от моделите
+    	self::truncate();
+    	 
+    	//Redirect(array($this, 'list'), FALSE, 'Балансите са изчистени успешно');
     }
 }
