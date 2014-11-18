@@ -650,4 +650,30 @@ class techno2_SpecificationDoc extends core_Embedder
     	
     	return $tpl;
     }
+    
+    
+    /**
+     * Връща масив от използваните документи в даден документ (като цитат или
+     * са включени в детайлите му)
+     * @param int $data - сериализираната дата от документа
+     * @return param $res - масив с използваните документи
+     * 					[class] - инстанция на документа
+     * 					[id] - ид на документа
+     */
+    function getUsedDocs_($productId)
+    {
+    	$res = array();
+    	 
+    	$Driver = $this->getDriver($productId);
+    	
+    	if($usedDocs = $Driver->getUsedDocs()) {
+    		if(count($usedDocs)){
+    			foreach ($usedDocs as $doc){
+    				$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+    			}
+    		}
+    	}
+    	 
+    	return $res;
+    }
 }
