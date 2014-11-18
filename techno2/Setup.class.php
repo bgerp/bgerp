@@ -100,8 +100,13 @@ class techno2_Setup extends core_ProtoSetup
     }
     
     
+    /**
+     * Миграция на старите универсални продукти към новите спецификации
+     */
     public function copyOldTechnoDocuments2()
     {
+    	core_Users::cancelSystemUser();
+    	
     	core_Classes::add('techno2_SpecificationDoc');
     	$technoDriverId = cat_GeneralProductDriver::getClassId();
     	$technoDriverServiceId = cat_GeneralServiceDriver::getClassId();
@@ -112,7 +117,9 @@ class techno2_Setup extends core_ProtoSetup
     	while($oldRec = $gpQuery->fetch()){
     		$meta = arr::make($oldRec->meta, TRUE);
     		$newRec = new stdClass();
-    		foreach (array('state', 'folderId', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'searchKeywords', 'sharedUsers', 'sharedUsers', 'meta', 'title') as $fld){
+    		
+    		core_Users::sudo($oldRec->createdBy);
+    		foreach (array('state', 'folderId', 'createdOn', 'modifiedOn', 'modifiedBy', 'searchKeywords', 'sharedUsers', 'sharedUsers', 'meta', 'title') as $fld){
     			$newRec->$fld = $oldRec->$fld;
     			unset($oldRec->$fld);
     		}
@@ -135,6 +142,10 @@ class techno2_Setup extends core_ProtoSetup
     		} catch(Exception $e){
     			techno2_SpecificationDoc::log("Проблем с трансфер на спецификация: {$e->getMessage()}");
     		}
+    		
+    		core_Users::exitSudo();
     	}
+    	
+    	core_Users::forceSystemUser();
     }
 }
