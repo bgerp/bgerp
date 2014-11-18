@@ -155,7 +155,7 @@ class jqplot_Plugin extends core_Plugin
         }
 
         $title = new ET('[#1#]', $title);
-        $title->append('<div style="margin-top:5px;margin-bottom:5px;font-size:0.80em;font-family:arial;" id="chartMenu">', 'ListSummary');
+        $title->append('<div style="margin-top:5px;margin-bottom:15px;font-size:0.80em;font-family:arial;" id="chartMenu">', 'ListSummary');
 
         $first = TRUE;
         foreach ($menu as $item) {
