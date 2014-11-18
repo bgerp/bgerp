@@ -161,7 +161,7 @@ class label_Templates extends core_Master
     /**
      * Връща всички медии, които отговарят на размерите на медията на шаблона
      * 
-     * @param unknown_type $id
+     * @param integer $id
      */
     public static function getMediaForTemplate($id)
     {

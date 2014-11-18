@@ -541,7 +541,7 @@ class label_TemplateFormats extends core_Detail
         $type = $rec->type;
         
         // В заивисимост от типа
-        if ($type == 'caption') {
+        if ($type == 'caption' || !$type) {
             
             // Стринга, който ще се използва в масива за ключ
             $valStr = $val . '|' . $updateTempData;
@@ -555,8 +555,6 @@ class label_TemplateFormats extends core_Detail
                 // Добавяме в масива
                 $verbalValArr[$valStr] = $Varchar->toVerbal($val);
             }
-            
-            
         } elseif ($type == 'image') {
             
             // Стринга, който ще се използва в масива за ключ
