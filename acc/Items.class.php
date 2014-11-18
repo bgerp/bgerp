@@ -81,7 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,state,tools=Пулт,createdBy';
+    var $listFields = 'id,num,titleLink=Наименование,uomId,lastUseOn,state,tools=Пулт,createdBy';
     
     
     /**
@@ -336,6 +336,12 @@ class acc_Items extends core_Manager
         if(!$form->rec->id) {
             $listId = $mvc->getCurrentListId();
             Mode::setPermanent('lastEnterItemNumIn' . $listId, $form->rec->num);
+        }
+        
+        if(!empty($form->rec->lists)){
+        	
+        	// Ако има избрани номенклатури: перото винаги става активно
+        	$form->rec->state = 'active';
         }
     }
     
