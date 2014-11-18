@@ -528,7 +528,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		
    		$amount = 0;
    		$query = static::getQuery();
-   		$query->where("#payType = 'cash'");
+   		$query->where("#paymentType = 'cash'");
    		$query->between("date", $from, $to);
    		
    		while($rec = $query->fetch()){
