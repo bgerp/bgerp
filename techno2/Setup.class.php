@@ -114,6 +114,8 @@ class techno2_Setup extends core_ProtoSetup
     	
     	$gpQuery = techno_GeneralProducts::getQuery();
     	$gpQuery->where("#state = 'active'");
+    	
+    	// За всеки универсален продукт, създаваме нова спецификация
     	while($oldRec = $gpQuery->fetch()){
     		$meta = arr::make($oldRec->meta, TRUE);
     		$newRec = new stdClass();
@@ -146,6 +148,46 @@ class techno2_Setup extends core_ProtoSetup
     		core_Users::exitSudo();
     	}
     	
+    	$this->updateExDocuments();
+    	
     	core_Users::forceSystemUser();
+    }
+    
+    
+    /**
+     * Прехвърля всички връзки в документите и счетоводството от старите спецификации към новите
+     */
+    private function updateExDocuments()
+    {
+    	$newClass = techno2_SpecificationDoc::getClassId();
+    	$oldClass = techno_Specifications::getClassId();
+    	$gpClass = techno_GeneralProducts::getClassId();
+    	
+    	$docsArr = array('sales_SalesDetails', 'sales_InvoiceDetails', 'store_ShipmentOrderDetails', 'store_ReceiptDetails', 'sales_ServicesDetails', 'purchase_InvoiceDetails', 'purchase_PurchasesDetails', 'purchase_ServicesDetails');
+    	
+    	$nQuery = techno2_SpecificationDoc::getQuery();
+    	$nQuery->where("#state = 'active'");
+    	while ($rec = $nQuery->fetch()){
+    		$oldId = $rec->innerForm->id;
+    		
+    		$specId = techno_Specifications::fetchByDoc($gpClass, $oldId)->id;
+    		
+    		if($itemRec = acc_Items::fetchItem($oldClass, $specId)){
+    			$itemRec->classId = $newClass;
+    			$itemRec->objectId = $rec->id;
+    			acc_Items::save($itemRec);
+    		}
+    		
+    		foreach ($docsArr as $manName){
+    			$dQuery = $manName::getQuery();
+    			$dQuery->where("#classId = {$oldClass} AND #productId = {$specId}");
+    			while($dRec = $dQuery->fetch()){
+    				
+    				$dRec->classId = $newClass;
+    				$dRec->productId = $rec->id;
+    				$manName::save($dRec);
+    			}
+    		}
+    	}
     }
 }
