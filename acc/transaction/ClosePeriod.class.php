@@ -95,18 +95,20 @@ class acc_transaction_ClosePeriod
     {
     	// Общата сума въведена в документа извлечена от касовия апарат
     	$amountFromFiscPrinter = $rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4;
+    	$invoicesCashAmount = sales_Invoices::getAmountInCash($this->periodRec->start, $this->periodRec->end);
+    	$diffAmount = $amountFromFiscPrinter - $invoicesCashAmount;
     	
     	$entries = array();
     	
     	// Начисляваме сумата от касовия апарат
-    	$entries[] = array('amount' => $amountFromFiscPrinter, 'debit' => array('4535'), 'credit' => array('4532'));
-    	$total += $amountFromFiscPrinter;
+    	$entries[] = array('amount' => $diffAmount, 'debit' => array('4535'), 'credit' => array('4532'));
+    	$total += $diffAmount;
     	
     	$bQuery = acc_BalanceDetails::getQuery();
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4535');
     	$amount4535 = $bQuery->fetch()->blAmount;
     	
-    	$amount4535 += $amountFromFiscPrinter;
+    	$amount4535 += $diffAmount;
     	
     	$entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year, $this->date->month));
     	$total += abs($amount4535);
@@ -127,7 +129,7 @@ class acc_transaction_ClosePeriod
     	$entries[] = array('amount' => abs($amount4531), 'debit' => array('4532'), 'credit' => array('4531'));
     	$total += abs($amount4531);
     	
-    	$amount = $amount4532 - $amountFromFiscPrinter + abs($amount4531);
+    	$amount = $amount4532 - $diffAmount + abs($amount4531);
     	
     	// Ако по 4532 накрая имаме кредитно или дебитно салдо
     	if($amount <= 0){

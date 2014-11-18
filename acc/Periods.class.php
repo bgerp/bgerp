@@ -151,7 +151,7 @@ class acc_Periods extends core_Manager
         $curPerEnd = static::getPeriodEnd();
         
         if($rec->end == $curPerEnd){
-            $row->id = ht::createElement('img', array('src' => sbf('img/16/control_play.png', ''), 'style' => 'display:inline-block;margin-right:5px')) . $row->id;
+            $row->id = ht::createElement('img', array('src' => sbf('img/16/control_play.png', ''), 'style' => 'display:inline-block; float: left; margin-right:5px')) . $row->id;
         }
     }
     

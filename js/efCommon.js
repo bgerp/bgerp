@@ -1893,6 +1893,9 @@ function efae() {
     // URL-то, което ще се вика по AJAX
     efae.prototype.url;
 
+    // Уникално ID на хита
+    efae.prototype.hitId;
+
     // Префикса, за рендиращата функция
     efae.prototype.renderPrefix = 'render_';
 
@@ -2059,6 +2062,10 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
             // Добавяме в масива
             dataObj['parentUrl'] = this.getParentUrl();
+        }
+        
+        if (typeof(this.getHitId()) != 'undefined') {
+            dataObj['hitId'] = this.getHitId();
         }
 
         // Добавяме флаг, който указва, че заявката е по AJAX
@@ -2229,6 +2236,27 @@ efae.prototype.setParentUrl = function(parentUrl) {
 efae.prototype.getParentUrl = function() {
 
     return this.parentUrl;
+};
+
+
+/**
+ * Задава стойност за hitId
+ * 
+ * @param string
+ */
+efae.prototype.setHitId = function(hitId) {
+    this.hitId = hitId;
+};
+
+
+/**
+ * Връща стойността на hitId
+ * 
+ * @return string
+ */
+efae.prototype.getHitId = function() {
+
+    return this.hitId;
 };
 
 /**
