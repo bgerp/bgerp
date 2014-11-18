@@ -209,7 +209,7 @@ class email_Incomings extends core_Master
         $accQuery->orderBy('#order');
 
         while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
-            self::fetchAccount($accRec, $maxFetchingTime);
+            self::fetchAccount($accRec, $deadline, $maxFetchingTime);
         }
     }
 
@@ -217,7 +217,7 @@ class email_Incomings extends core_Master
     /**
      * Извлича писмата от посочената сметка
      */
-    function fetchAccount($accRec, $maxFetchingTime)
+    function fetchAccount($accRec, $deadline, $maxFetchingTime)
     { 
         // Заключваме тегленето от тази пощенска кутия
         $lockKey = 'Inbox:' . $accRec->id;
@@ -251,9 +251,6 @@ class email_Incomings extends core_Master
         $startTime = time();
 
         if($firstUnreadMsgNo > 0) {
-            
-            // До коя секунда в бъдещето максимално да се теглят писма?
-            $deadline = time() + $maxFetchingTime;
             
             // Правим цикъл по всички съобщения в пощенската кутия
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
