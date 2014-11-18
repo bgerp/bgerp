@@ -245,20 +245,6 @@ class acc_plg_Contable extends core_Plugin
             }
             
             // Кой може да реконтира документа( изпълнява се след възстановяване на оттеглен документ)
-        } elseif($action == 'reconto' && isset($rec)){
-            
-            // Който може да възстановява, той може и да реконтира
-            $requiredRoles = $mvc->getRequiredRoles('restore', $rec);
-            
-            // Не може да се реконтират само активни и приключени документи
-            if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected')) {
-                $requiredRoles = 'no_one';
-            }
-            
-            // Не може да се контира, ако документа не генерира валидна транзакция
-            if ($rec->isContable == 'no'){
-                $requiredRoles = 'no_one';
-            }
         } elseif ($action == 'revert') {
             if ($rec->id) {
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
@@ -374,24 +360,6 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
-     * Ре-контиране на счетоводен документ
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int|object $id първичен ключ или запис на $mvc
-     */
-    public static function on_AfterReConto(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        
-        // Дали имаме права за контиране
-        if($mvc->haveRightFor('reconto', $rec)){
-            self::conto($mvc, $id);
-        }
-    }
-    
-    
-    /**
      * Реакция в счетоводния журнал при оттегляне на счетоводен документ
      *
      * @param core_Mvc $mvc
@@ -417,12 +385,7 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
-        $rec = $mvc->fetchRec($id);
-        
-        if($rec->state == 'active' || $rec->state == 'closed'){
-            // Ре-контиране на документа след възстановяването му
-            self::on_AfterReConto($mvc, $res, $id);
-        }
+        self::conto($mvc, $id);
     }
     
     
