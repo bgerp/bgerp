@@ -18,7 +18,7 @@ class label_Prints extends core_Master
     /**
      * Заглавие на модела
      */
-    public $title = 'Отпечатъци';
+    public $title = 'Серии за отпечатване';
     
     
     /**
