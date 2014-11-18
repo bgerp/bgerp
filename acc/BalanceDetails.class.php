@@ -144,15 +144,13 @@ class acc_BalanceDetails extends core_Detail
             // Махаме тези записи които не са в диапазона на страницирането
             $count = 0;
             
+            usort($data->recs, array($mvc, "sortRecs"));
+            
             foreach ($data->recs as $id => $rec){
             	if(!($count >= $start && $count <= $end)){
             		unset($data->recs[$id]);
             	}
             	$count++;
-            }
-            
-            if(count($data->recs)){
-                usort($data->recs, array($mvc, "sortRecs"));
             }
         }
     }
@@ -474,7 +472,7 @@ class acc_BalanceDetails extends core_Detail
                 self::$cache[$iRec->id] = $iRec->num;
             }
         }
-        
+       
         // Извличаме записите за номенклатурите, по които е разбита сметката
         $listRecs = array();
         
