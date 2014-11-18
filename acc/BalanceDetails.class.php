@@ -297,7 +297,11 @@ class acc_BalanceDetails extends core_Detail
             
             if($by["feat{$i}"]){
                 $groupedBy[$i] = $by["feat{$i}"];
-                $data->listFields["ent{$i}Id"] = $Varchar->toVerbal($groupedBy[$i]);
+                if($by["feat{$i}"] == '*'){
+                	$data->listFields["ent{$i}Id"] = tr("Наименование");
+                } else {
+                	$data->listFields["ent{$i}Id"] = $Varchar->toVerbal($groupedBy[$i]);
+                }
             }
         }
         
