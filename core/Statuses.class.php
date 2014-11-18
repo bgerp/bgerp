@@ -23,16 +23,17 @@ class core_Statuses extends core_BaseClass
      * @param enum $type - Типа на съобщението - success, notice, warning, error
      * @param integer $userId - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
      * @param integer $lifeTime - След колко време да е неактивно
+     * @param string $hitId - Уникално ID на хита
      * 
      * @return integer - При успешен запис връща id' то на записа
      */
-    static function newStatus($text, $type='notice', $userId=NULL, $lifeTime=60)
+    static function newStatus($text, $type='notice', $userId=NULL, $lifeTime=60, $hitId=NULL)
     {
         // Инстанция на самия клас
         $me = cls::get('core_Statuses');
 
         // Извикваме функцията
-        $addeded = $me->invoke('AfterNewStatus', array(&$res, $text, $type, $userId, $lifeTime));
+        $addeded = $me->invoke('AfterNewStatus', array(&$res, $text, $type, $userId, $lifeTime, $hitId));
         
         // Ако няма такава функция
         if ($addeded === -1) {

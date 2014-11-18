@@ -47,13 +47,14 @@ class toast_Toast extends core_Plugin
      * 
      * @param integer $hitTime - Timestamp на показване на страницата
      * @param integer $idleTime - Време на бездействие на съответния таб
+     * @param string $hitId - Уникално ID на хита
      * 
      * @return boolean - FALSE за да не се изпълняват другите
      */
-    static function on_BeforeGetStatusesData($mvc, &$resStatus, $hitTime, $idleTime)
+    static function on_BeforeGetStatusesData($mvc, &$resStatus, $hitTime, $idleTime, $hitId=NULL)
     {
         // Всички активни статуси за текущия потребител
-        $notifArr = status_Messages::getStatuses($hitTime, $idleTime);
+        $notifArr = status_Messages::getStatuses($hitTime, $idleTime, 4, TRUE, $hitId);
         
         // Броя на намерените статуси
         $countArr = count($notifArr);
