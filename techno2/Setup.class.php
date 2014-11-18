@@ -47,7 +47,7 @@ class techno2_Setup extends core_ProtoSetup
     var $managers = array(
     		'techno2_SpecificationDoc',
     		'techno2_SpecTplCache',
-    		'migrate::copyOldTechnoDocuments'
+    		'migrate::copyOldTechnoDocuments2'
         );
     
 
@@ -100,11 +100,12 @@ class techno2_Setup extends core_ProtoSetup
     }
     
     
-    public function copyOldTechnoDocuments()
+    public function copyOldTechnoDocuments2()
     {
+    	core_Classes::add('techno2_SpecificationDoc');
     	$technoDriverId = cat_GeneralProductDriver::getClassId();
     	$technoDriverServiceId = cat_GeneralServiceDriver::getClassId();
-    	$NewCls = cls::get('techno2_SpecificationDoc');
+    	$NewClass = cls::get('techno2_SpecificationDoc');
     	
     	$gpQuery = techno_GeneralProducts::getQuery();
     	$gpQuery->where("#state = 'active'");
@@ -129,8 +130,11 @@ class techno2_Setup extends core_ProtoSetup
     		$newRec->innerForm = $clone;
     		$newRec->innerState = $clone;
     		
-    		$NewCls->save($newRec);
+    		try{
+    			$NewClass->save($newRec);
+    		} catch(Exception $e){
+    			techno2_SpecificationDoc::log("Проблем с трансфер на спецификация: {$e->getMessage()}");
+    		}
     	}
-    	//bp($newRec);
     }
 }
