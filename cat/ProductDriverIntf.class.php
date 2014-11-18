@@ -134,6 +134,15 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 */
 	public function getProductDescription()
 	{
-		return $this->class->getProductDescription;
+		return $this->class->getProductDescription();
+	}
+	
+	
+	/**
+	 * Кои документи са използвани в полетата на драйвера
+	 */
+	public function getUsedDocs()
+	{
+		return $this->class->getUsedDocs();
 	}
 }

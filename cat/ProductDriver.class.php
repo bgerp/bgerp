@@ -148,4 +148,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		
 	}
+	
+	
+	/**
+	 * Кои документи са използвани в полетата на драйвера
+	 */
+	public function getUsedDocs()
+	{
+		return FALSE;
+	}
 }

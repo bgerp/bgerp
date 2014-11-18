@@ -190,4 +190,14 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		return $tpl;
 	}
+	
+	
+	/**
+	 * Кои документи са използвани в полетата на драйвера
+	 */
+	public function getUsedDocs()
+	{
+		// Мъчим се да извлечем използваните документи от описанието (ако има такива)
+		return doc_RichTextPlg::getAttachedDocs($this->innerState->info);
+	}
 }
