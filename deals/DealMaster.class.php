@@ -174,8 +174,9 @@ abstract class deals_DealMaster extends deals_DealBase
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$form->formAttr['id']}'].elements['currencyRate'].value ='';"));
         $form->setField('sharedUsers', 'input=none');
         
-        // Текущия потребител е търговеца, щом се е стигнало до тук значи има права
-        $form->setDefault('dealerId', core_Users::getCurrent());
+        // Търговеца по дефолт е отговорника на контрагента
+        $inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
+        $form->setDefault('dealerId', $inCharge);
 	}
 	
 	
@@ -669,6 +670,12 @@ abstract class deals_DealMaster extends deals_DealBase
      				'title' => $self::getRecTitle($objectId),
      				'features' => array('Контрагент' => $contragentName)
      		);
+     		
+     		if($rec->dealerId){
+     			$caption = $self->getField('dealerId')->caption;
+     			list(, $featName) = explode("->", $caption);
+     			$result->features[$featName] = $self->getVerbal($rec, 'dealerId');
+     		}
      		
      		if($rec->deliveryLocationId){
      			$result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId);

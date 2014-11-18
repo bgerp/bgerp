@@ -76,23 +76,10 @@ class remote_Hosts extends core_Master
     }
     
 
-
-    /**
-     * Извиква се преди изпълняването на екшън
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     */
-    public static function on_BeforeSave($mvc, &$res,&$rec)
-    {
-
-    }
-    
-    
     /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $form->rec->config = array('name' => $form->rec->name, 'ip' => $form->rec->ip,
@@ -101,7 +88,7 @@ class remote_Hosts extends core_Master
     }
 
 	/**
-	 * След подготвяне на формата добавяне/редкатиране
+	 * След подготвяне на формата добавяне/редакатиране
 	 */
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
@@ -121,9 +108,84 @@ class remote_Hosts extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     }
     
+    /**
+     * Извлича запис по име
+     */
+    private static function fetchByName($name)
+    {
+        return self::fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name));
+    }
+    
+    /**
+     * Изпълнява команда на отдалечен хост
+     *
+     * @param string $host
+     * @param string $command
+     * @param string $output [optionаl]
+     * @param string $errors [optionаl]
+     */
+    public static function exec($host, $command, &$output=NULL, &$errors=NULL)
+    {
+        // Извличаме данните за хоста
+        if (!$hostConfig = self::fetchByName($host)) {
+            throw new Exception("{$host}: не се съдържа в базата!");
+        }
+        // Проверяваме дали е достъпен
+        $timeoutInSeconds = 1;
+        if (!($fp = @fsockopen($hostConfig->ip,$hostConfig->port,$errCode,$errStr,$timeoutInSeconds))) {
+            throw new Exception("{$hostConfig->name}: не може да бъде достигнат ");
+        }
+        fclose($fp);        
+        
+        // Свързваме се по ssh
+        $connection = @ssh2_connect($hostConfig->ip, $hostConfig->port);
+        if (!$connection) {
+            throw new Exception("{$hostConfig->name}: няма ssh връзка");
+        }
+        
+        if (!@ssh2_auth_password($connection, $hostConfig->user, $hostConfig->pass)) {
+            throw new Exception("{$hostConfig->name}: грешен потребител или парола.");
+        }
+        
+        // Изпълняваме командата
+        $stream = ssh2_exec($connection, $command);
+        $errorStream = ssh2_fetch_stream($stream, SSH2_STREAM_STDERR);
+        
+        stream_set_blocking($stream, true);
+        stream_set_blocking($errorStream, true);
+        
+        // Връщаме резултат
+        $output = stream_get_contents($stream);
+        $errors = stream_get_contents($errorStream);
+        
+        fclose($stream);
+        fclose($errorStream);
+    }
 
+    /**
+     * Качва файл на отдалечен хост
+     *
+     * @param string $host
+     * @param string $file
+     */
+    public static function put($host, $file)
+    {
+        
+    }
+    
+    /**
+     * Смъква файл от отдалечен хост
+     *
+     * @param string $host
+     * @param string $file
+     */
+    public static function get($host, $file)
+    {
+    
+    }
+    
 }
