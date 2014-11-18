@@ -131,7 +131,7 @@ class techno2_Setup extends core_ProtoSetup
     		$newRec->innerState = $clone;
     		
     		try{
-    			$NewClass->save($newRec);
+    			$NewClass->save($newRec, NULL, 'IGNORE');
     		} catch(Exception $e){
     			techno2_SpecificationDoc::log("Проблем с трансфер на спецификация: {$e->getMessage()}");
     		}
