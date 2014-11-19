@@ -262,7 +262,7 @@ class techno2_SpecificationDoc extends core_Embedder
     {
     	$self = cls::get(__CLASS__);
     
-    	return $self->singleTitle . " №{$rec->id}";
+    	return "{$rec->title} №{$rec->id}";
     }
     
     
