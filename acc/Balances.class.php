@@ -268,7 +268,7 @@ class acc_Balances extends core_Master
     private function forceCalc($rec)
     {
         // Очакваме начална и крайна дата
-        expect($rec->fromDate && $rec->toDate,  $rec);
+        expect(strlen($rec->fromDate) == 9 && strlen($rec->toDate) == 9,  $rec);
 
         // Ако записа на баланса не за записан, записваме го, за да имаме id
         $exRec = self::fetch("#fromDate = '{$rec->fromDate}' AND #toDate = '{$rec->toDate}'");
