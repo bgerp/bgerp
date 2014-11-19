@@ -325,7 +325,7 @@ class label_Prints extends core_Master
             
             // Ако съсотоянието е затворено показваме предупреждение
             if ($rec->state == 'closed') {
-                $modifiedDate = dt::mysql2verbal($rec->modifiedOn, "d.m.y");
+                $modifiedDate = dt::mysql2verbal($rec->modifiedOn, "d.m.Y");
                 $warning = "Този етикет е бил отпечатван нa|* $modifiedDate. |Искате ли да го отпечатате още веднъж|*?";
             }
             
