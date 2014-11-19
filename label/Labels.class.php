@@ -377,10 +377,8 @@ class label_Labels extends core_Master
      */
     static function on_BeforeRenderSingle($mvc, &$res, $data)
     {
-        $labelLayout = new ET();
-        
         // Рендираме етикетите
-        $data->row->PreviewLabel = $mvc->renderLabel($data->PreviewLabel, $labelLayout);
+        $data->row->PreviewLabel = $mvc->renderLabel($data->PreviewLabel);
     }
     
     
@@ -419,7 +417,7 @@ class label_Labels extends core_Master
         $data->row->Template = label_Templates::getTemplate($rec->templateId);
         
         // Вземема плейсхолдерите в шаблона
-        $placesArr = $data->row->Template->getPlaceholders();
+        $placesArr = label_Templates::getPlaceholders($data->row->Template);
         
         // Параметрите
         $params = $rec->params;
@@ -445,13 +443,6 @@ class label_Labels extends core_Master
                 $params[$currPrintCntField]++;
             }
             
-            // Ако не е сетнат
-            if (!isset($data->rows[$rowId])) {
-                
-                // Задаваме масива
-                $data->rows[$rowId] = new stdClass();
-            }
-            
             // Обхождаме масива с шаблоните
             foreach ((array)$placesArr as $place) {
                 
@@ -459,7 +450,7 @@ class label_Labels extends core_Master
                 $fPlace = label_TemplateFormats::getPlaceholderFieldName($place);
                 
                 // Вземаме вербалната стойност
-                $data->rows[$rowId]->$place = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace], $rec->id, $data->updateTempData);
+                $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace], $rec->id, $data->updateTempData);
             }
             
             // За всяко копие добавяме по едно копие
@@ -497,15 +488,16 @@ class label_Labels extends core_Master
             // Ако е първа или нямам шаблон
             if ($n === 0 || !$tpl) {
                 
-                // Рендираме изгледа за една страница
-                $tpl = clone $labelLayout;
+                if (is_object($labelLayout)) {
+                    // Рендираме изгледа за една страница
+                    $tpl = clone $labelLayout;
+                } else {
+                    $tpl = new ET($labelLayout);
+                }
             }
             
-            // Вземаме шаблона
-            $template = clone($data->row->Template);
-            
             // Заместваме в шаблона всички данни
-            $template->placeArray($row);
+            $template = label_Templates::placeArray($data->row->Template, $row);
             
             // Вкарваме CSS-a, като инлайн
             $template = label_Templates::addCssToTemplate($data->Label->rec->templateId, $template);
