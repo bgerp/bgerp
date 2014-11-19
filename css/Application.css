@@ -3792,6 +3792,9 @@ only screen and (max-width: 320px) {
   height: auto !important;
   _overflow: auto !important; }
 
+.preview-label {
+  margin-bottom: 10px; }
+
 .cd-l1 {
   color: green; }
 

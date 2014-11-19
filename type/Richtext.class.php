@@ -469,35 +469,40 @@ class type_Richtext extends type_Blob
         
         $state = array();
         
-        for($i = 0; $i < count($lines); $i++) {
+        $linesCnt = count($lines);
+        
+        for($i = 0; $i < $linesCnt; $i++) {
 
             $l = $lines[$i];
 
             $type = '';
             $level = 0;
-            if(preg_match("/^( *)(\[li\]|\* |%\.)(.+)/i", $l, $matches) ) {
+            if($matches = self::getListMatches($l)) {
 
-                $indent = mb_strlen($l, 'UTF8') - mb_strlen(ltrim($matches[3]), 'UTF8');  
+                $indent = mb_strlen($l, 'UTF8') - mb_strlen(ltrim($matches['text']), 'UTF8');  
                  while(isset($lines[$i+1]) && (($indent == (mb_strlen($lines[$i+1]) - mb_strlen(ltrim($lines[$i+1], ' ')))) || (trim($lines[$i+1]) == '<br>'))) {
-
+                    
                     if(trim($lines[$i+1]) == '<br>') {
-                        $matches[3] .= "<br>" . "<span style='height:5px; display:block;'></span>";
+                        $matches['text'] .= "<br>" . "<span style='height:5px; display:block;'></span>";
                     } else {
-                        $matches[3] .= ltrim($lines[$i+1]);
+                        
+                        // Ако следващият ред е друго 'li'
+                        if (self::getListMatches($lines[$i+1])) break;
+                        $matches['text'] .= ltrim($lines[$i+1]);
                     }
                     $i++;
                  }
 
-                $level = round((strlen($matches[1]))/2);
+                $level = round((strlen($matches['begin']))/2);
                 $level = max($level, 1);
                                 // 1,2,3,4,
-                if (trim($matches[2]{0} == '%')) {
+                if ($matches['list']{0} == '%') {
                     $type = 'ol';
                 } else {
                     $type = 'ul';
                 }
 
-                $l = "<li> " . $matches[3] . "</li>";            
+                $l = "<li> " . $matches['text'] . "</li>";
             }
 
             while(($oldLevel = count($state)) < $level) {
@@ -533,8 +538,38 @@ class type_Richtext extends type_Blob
         
         return $res;
     }
-
-
+    
+    
+    /**
+     * Връща резултата от регулярния израз
+     * 
+     * @param string $line
+     * 
+     * @return array
+     */
+    protected static function getListMatches($line)
+    {
+        static $matchedLinesArr = array();
+        
+        $hash = md5($line);
+        
+        if (isset($matchedLinesArr[$hash])) return $matchedLinesArr[$hash];
+        
+        $pattern = "/^(?'begin'\ *)(?'list'\[li\]|\*\ |%\.)(?'text'.+)/i";
+        
+        preg_match($pattern, $line, $matches);
+            
+        $matchedLinesArr[$hash] = $matches;
+        
+        return $matchedLinesArr[$hash];
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $html
+     */
     function replaceTags($html)
     {
         // Уникод UTF-8 символ за неприкъсваем интервал

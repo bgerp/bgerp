@@ -7,9 +7,11 @@
     </h3>
     <div class='scrolling-holder'>
         <b>|Преглед|*:</b>
+        <div class="preview-label">
         [#template#]
-        <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+        </div>
         <div><span class="quiet">|Размери|*: </span> [#sizes#]</div>
+        <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
     </div>
     <br>
     [#DETAILS#]
