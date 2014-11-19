@@ -126,45 +126,12 @@ class bulmar_InvoiceExport extends core_Manager {
     	$data = new stdClass();
     	
     	$data->static = $this->getStaticData();
-    	$grouped = $data->recs = array();
-    	
-    	// Изчисляваме колко е платено в брой на всяка продажба участваща в ф-та
-    	foreach ($recs as $rec){
-    		$origin = doc_Threads::getFirstDocument($rec->threadId);
-    		$rec->saleOriginId = $origin->that;
-    		if(empty($this->sales[$origin->that])){
-    			$originRec = $origin->fetch();
-    			$jRecs = acc_Journal::getEntries(array('sales_Sales', $originRec->id));
-				$balance = acc_Balances::getBlAmounts($jRecs, '501');
-    			$this->sales[$origin->that] = round($balance->amount, 2);
-    		}
-    		$grouped[$origin->that][$rec->id] = $rec->id;
-    	}
+    	$data->recs = array();
     	
     	$count = 0;
     	foreach ($recs as $rec){
     		$count++;
     		$data->recs[$rec->id] = $this->prepareRec($rec, $count);
-    	}
-    	
-    	// Групираните ф-ри по продажби, разпределяме им платеното по продажбата
-    	foreach ($grouped as $saleId => $invArr){
-    		$total = $this->sales[$saleId];
-    		$invCount = count($invArr);
-    		foreach ($invArr as $id => $inv){
-    			$rec = &$data->recs[$id];
-    			
-    			if($total > 0){
-    				$amount = ($total < $rec->amount) ? $total : $rec->amount;
-    				$rec->amountPaid = $amount;
-    				$total-= $amount;
-    			}
-    		}
-    		
-    		if($total > 0){
-    			$data->recs[$id]->amountPaid += $total;
-    			$total = 0;
-    		}
     	}
     	
     	return $data;
@@ -239,6 +206,10 @@ class bulmar_InvoiceExport extends core_Manager {
     	$nRec->contragentEik = ($rec->contragentVatNo) ? $rec->contragentVatNo : $rec->uicNo;
     	$Vats = cls::get('drdata_Vats');
     	$nRec->contragentEik = $Vats->canonize($nRec->contragentEik);
+    	
+    	if($rec->paymentType == 'cash'){
+    		$nRec->amountPaid = $nRec->amount;
+    	}
     	
     	return $nRec;
     }
