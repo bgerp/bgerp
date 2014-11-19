@@ -26,12 +26,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * Инстанция на класа имплементиращ интерфейса
 	 */
 	public $class;
-	
-	
-	/**
-	 * Инстанция на 'cat_products_Params'
-	 */
-	protected $Params;
 
 
 	/**

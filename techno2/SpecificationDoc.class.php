@@ -390,7 +390,7 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
-     * Връща стойноства на даден параметър на продукта, ако я има
+     * Връща стойноста на даден параметър на продукта, ако я има
      * 
      * @param int $id - ид на продукт
      * @param string $sysId - sysId на параметър
@@ -404,7 +404,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	 
     	if($value) return $value;
     	 
-    	// Връщаме дефолт стойността за параметъра
+    	// Връщаме дефолт стойноста за параметъра
     	return cat_Params::getDefault($paramId);
     }
     
@@ -550,7 +550,6 @@ class techno2_SpecificationDoc extends core_Embedder
     			'features' => array("{$self->title}" => $self->title,)
     	);
     	
-    	
     	return $itemRec;
     }
     
@@ -660,6 +659,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Връща масив от използваните документи в даден документ (като цитат или
      * са включени в детайлите му)
+     * 
      * @param int $data - сериализираната дата от документа
      * @return param $res - масив с използваните документи
      * 					[class] - инстанция на документа

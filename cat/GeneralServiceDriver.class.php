@@ -24,12 +24,6 @@ class cat_GeneralServiceDriver extends cat_GeneralProductDriver
 	
 	
 	/**
-	 * Инстанция на класа имплементиращ интерфейса
-	 */
-	public $class;
-	
-	
-	/**
 	 * Дефолт мета данни за всички продукти
 	 */
 	protected $defaultMetaData = 'canSell,canBuy';
