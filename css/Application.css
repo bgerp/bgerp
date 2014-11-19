@@ -3786,6 +3786,12 @@ only screen and (max-width: 320px) {
   top: 3px;
   margin-right: 10px; }
 
+.listTable .label-holder {
+  width: 95% !important;
+  overflow-x: auto !important;
+  height: auto !important;
+  _overflow: auto !important; }
+
 .cd-l1 {
   color: green; }
 

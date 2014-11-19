@@ -18,7 +18,7 @@ class label_Prints extends core_Master
     /**
      * Заглавие на модела
      */
-    public $title = 'Отпечатъци';
+    public $title = 'Серии за отпечатване';
     
     
     /**
@@ -97,7 +97,7 @@ class label_Prints extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=✍, labelId=Данни->Етикет, mediaId=Данни->Медия, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, createdOn, createdBy, modifiedOn, modifiedBy';
+    public $listFields = 'labelId=Данни->Етикет, mediaId=Данни->Медия, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, tools=Отпечатване, createdOn, createdBy, modifiedOn, modifiedBy';
     
 
     /**

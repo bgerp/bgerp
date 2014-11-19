@@ -77,7 +77,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Работен кеш
      */
-    private static $cache = array();
+    private $cache = array();
     
     
     /**
@@ -163,7 +163,7 @@ class acc_BalanceDetails extends core_Detail
      */
     private function sortRecs($a, $b)
     {
-        $cache = self::$cache;
+        $cache = $this->cache;
         
         foreach (range(1, 3) as $i){
             if(isset($a->{"grouping{$i}"})){
@@ -371,6 +371,9 @@ class acc_BalanceDetails extends core_Detail
             foreach (range(1, 3) as $i){
                 if(empty($show[$i]) && empty($groupedBy[$i])){
                     unset($data->listFields["ent{$i}Id"]);
+                    foreach ($data->recs as $id => &$rec){
+                    	unset($rec->{"ent{$i}Id"});
+                    }
                 }
             }
             
@@ -467,13 +470,13 @@ class acc_BalanceDetails extends core_Detail
         
         $data->groupingForm = $this->getGroupingForm($data->masterId, $data->query);
         
-        if(count(self::$cache)){
+        if(count($this->cache)){
             $iQuery = acc_Items::getQuery();
             $iQuery->show("num");
-            $iQuery->in('id', self::$cache);
+            $iQuery->in('id', $this->cache);
             
             while($iRec = $iQuery->fetch()){
-                self::$cache[$iRec->id] = $iRec->num;
+                $this->cache[$iRec->id] = $iRec->num;
             }
         }
        
@@ -610,7 +613,7 @@ class acc_BalanceDetails extends core_Detail
         while ($rec = $cQuery->fetch()) {
             foreach (range(1, 3) as $i){
                 if(!empty($rec->{"ent{$i}Id"})){
-                    self::$cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
+                    $this->cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
                     $items[$i][$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
                 }
             }

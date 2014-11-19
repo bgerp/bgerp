@@ -274,7 +274,7 @@ class acc_Balances extends core_Master
         $exRec = self::fetch("#fromDate = '{$rec->fromDate}' AND #toDate = '{$rec->toDate}'");
         
         if(!$exRec) {
-            $id = self::save($rec);
+            self::save($rec);
            
         } else {
             $rec = $exRec;
@@ -361,7 +361,7 @@ class acc_Balances extends core_Master
     	$lockKey = "RecalcBalances";
     	
     	// Ако изчисляването е заключено не го изпълняваме
-    	if(!core_Locks::get($lockKey, 10, 1)) {
+    	if(!core_Locks::get($lockKey, 600, 1)) {
     		$this->log("Изчисляването на баланса е заключено от друг процес");
     	
     		return;
