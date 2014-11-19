@@ -25,7 +25,12 @@ class core_Redirect extends core_ET
     {
         if ($msg) {
             $hitId = str::getRand();
-            $url['hit_id'] = $hitId;
+            if (is_array($url)) {
+                $url['hit_id'] = $hitId;
+            } else if ($url) {
+                $url = core_Url::addParams($url, array('hit_id' => $hitId));
+            }
+            
             core_Statuses::newStatus($msg, $type, NULL, 60, $hitId);
         }
         
