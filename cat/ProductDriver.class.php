@@ -28,7 +28,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public $class;
 	
 	
-	
 	/**
 	 * Кой може да избира драйвъра
 	 */
@@ -40,7 +39,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public $interfaces = 'cat_ProductDriverIntf';
 	
-
+	
 	/**
 	 * Вътрешната форма
 	 *

@@ -209,4 +209,15 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		// Мъчим се да извлечем използваните документи от описанието (ако има такива)
 		return doc_RichTextPlg::getAttachedDocs($this->innerState->info);
 	}
+	
+	
+	/**
+	 * Променя ключовите думи от мениджъра
+	 */
+	public function alterSearchKeywords(&$searchKeywords)
+	{
+		$RichText = cls::get('type_RichText');
+		$info = strip_tags($RichText->toVerbal($this->innerForm->info));
+		$searchKeywords .= " " . plg_Search::normalizeText($info);
+	}
 }
