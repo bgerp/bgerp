@@ -236,7 +236,11 @@ class acc_Journal extends core_Master
             $doc = new core_ObjectReference($rec->docType, $rec->docId);
             
             if($doc) {
-                $row->docType = $doc->getLink();
+                try {
+                    $row->docType = $doc->getLink();
+                } catch(core_exception_Expect $e) {
+                    $row->docType = "{$rec->docType}:{$rec->docId}";
+                }
             }
         }
         
