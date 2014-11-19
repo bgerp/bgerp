@@ -424,12 +424,26 @@ class label_Labels extends core_Master
         // Параметрите
         $params = $rec->params;
         
+        // Плейсхолдери за брой отпечатване и текуща страница от съответния брой
+        $printCntField = label_TemplateFormats::getPlaceholderFieldName('printCnt');
+        $currPrintCntField = label_TemplateFormats::getPlaceholderFieldName('currPrintCnt');
+        setIfNot($params[$printCntField], $data->printCnt, $data->cnt, 1);
+        
+        $updatePrintCnt = FALSE;
+        if (!$params[$currPrintCntField]) {
+            $updatePrintCnt = TRUE;
+        }
+        
         $rowId = 0;
         
         // Докато достигнем броя на принтиранията
         for ($i = 0; $i < $data->cnt; $i++) {
             
             $copyId = 1;
+            
+            if ($updatePrintCnt) {
+                $params[$currPrintCntField]++;
+            }
             
             // Ако не е сетнат
             if (!isset($data->rows[$rowId])) {

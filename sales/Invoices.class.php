@@ -511,4 +511,31 @@ class sales_Invoices extends deals_InvoiceMaster
    			}
    		}
    	}
+   	
+   	
+   	/**
+   	 * Връща сумата на платените в брой фактури, в основната валута
+   	 * 
+   	 * @param date $from - от
+   	 * @param date $to - до
+   	 * @return double $amount - сумата на платените в брой фактури
+   	 */
+   	public static function getAmountInCash($from, $to = NULL)
+   	{
+   		if(empty($to)){
+   			$to = dt::today();
+   		}
+   		
+   		$amount = 0;
+   		$query = static::getQuery();
+   		$query->where("#paymentType = 'cash'");
+   		$query->between("date", $from, $to);
+   		
+   		while($rec = $query->fetch()){
+   			$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
+   			$amount += $total;
+   		}
+   		
+   		return round($amount, 2);
+   	}
 }

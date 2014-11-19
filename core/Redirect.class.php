@@ -23,8 +23,10 @@ class core_Redirect extends core_ET
      */
     function core_Redirect($url, $msg = NULL, $type = 'notice')
     {
-        if($msg) {
-            core_Statuses::newStatus($msg, $type);
+        if ($msg) {
+            $hitId = str::getRand();
+            $url['hit_id'] = $hitId;
+            core_Statuses::newStatus($msg, $type, NULL, 60, $hitId);
         }
         
         $this->push(toUrl($url), '_REDIRECT_');

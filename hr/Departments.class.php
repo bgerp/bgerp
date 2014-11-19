@@ -271,7 +271,8 @@ class hr_Departments extends core_Master
     function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
     	if($rec->activities == 'yes'){
-    	    // Добавя се като перо
+    	    // Добавя се като перо 
+    	    //bp($mvc);
     		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'departments'), 'id'));
     		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
         } else {
@@ -364,8 +365,8 @@ class hr_Departments extends core_Master
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
-                'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
-                'num' => "Ec" . $rec->id,
+                'title' => $this->getVerbal($rec, 'name') . " [" . $this->getVerbal($rec, 'createdOn') . ']',
+                'num' => "Dep" . $rec->id,
                 'features' => 'foobar' // @todo!
             );
         }

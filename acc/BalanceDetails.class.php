@@ -144,15 +144,13 @@ class acc_BalanceDetails extends core_Detail
             // Махаме тези записи които не са в диапазона на страницирането
             $count = 0;
             
+            usort($data->recs, array($mvc, "sortRecs"));
+            
             foreach ($data->recs as $id => $rec){
             	if(!($count >= $start && $count <= $end)){
             		unset($data->recs[$id]);
             	}
             	$count++;
-            }
-            
-            if(count($data->recs)){
-                usort($data->recs, array($mvc, "sortRecs"));
             }
         }
     }
@@ -299,7 +297,11 @@ class acc_BalanceDetails extends core_Detail
             
             if($by["feat{$i}"]){
                 $groupedBy[$i] = $by["feat{$i}"];
-                $data->listFields["ent{$i}Id"] = $Varchar->toVerbal($groupedBy[$i]);
+                if($by["feat{$i}"] == '*'){
+                	$data->listFields["ent{$i}Id"] = tr("Наименование");
+                } else {
+                	$data->listFields["ent{$i}Id"] = $Varchar->toVerbal($groupedBy[$i]);
+                }
             }
         }
         
@@ -331,9 +333,9 @@ class acc_BalanceDetails extends core_Detail
             foreach ($data->recs as $id => $rec){
                 foreach (range(1, 3) as $i){
                     
-                    // Ако групираме по свойство, и перото на тази позиция няма това свойство, премахваме реда
+                    // Ако групираме по свойство (и то не е '*'), и перото на тази позиция няма това свойство, премахваме реда
                     if(isset($groupedBy[$i])){
-                        if(empty($featuresArr[$rec->{"ent{$i}Id"}][$groupedBy[$i]])){
+                    	if($groupedBy[$i] != '*' && empty($featuresArr[$rec->{"ent{$i}Id"}][$groupedBy[$i]])){
                             unset($data->recs[$id]);
                             break;
                         }
@@ -345,12 +347,20 @@ class acc_BalanceDetails extends core_Detail
             // Ако групираме
             foreach ($data->recs as $id => $rec){
                 foreach (range(1, 3) as $i){
-                    
+                	
                     // Намираме с-та на избраното свойство ако има такова
                     if(isset($groupedBy[$i])){
-                        if(isset($featuresArr[$rec->{"ent{$i}Id"}][$groupedBy[$i]])){
+                    	if($groupedBy[$i] == '*'){
+                    		
+                    		// Ако групираме със специалния символ '*', с-та на свойството е името на перото
+                    		$rec->{"grouping{$i}"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
+                    	}elseif(isset($featuresArr[$rec->{"ent{$i}Id"}][$groupedBy[$i]])){
+                    		
+                    		// Ако има свойство за това перо, взимаме стойността му
                             $rec->{"grouping{$i}"} = $featuresArr[$rec->{"ent{$i}Id"}][$groupedBy[$i]];
                         } else {
+                        	
+                        	// Ако няма отива към "Други"
                             $rec->{"grouping{$i}"} = 'others';
                         }
                     }
@@ -466,7 +476,7 @@ class acc_BalanceDetails extends core_Detail
                 self::$cache[$iRec->id] = $iRec->num;
             }
         }
-        
+       
         // Извличаме записите за номенклатурите, по които е разбита сметката
         $listRecs = array();
         
@@ -651,7 +661,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $features = acc_Features::getFeatureOptions(array_keys($options));
-        $features = array('' => '') + $features;
+        $features = array('' => '') + $features + array('*' => 'Наименование');
         
         $listName = acc_Lists::getVerbal($listRec, 'name');
         $form->fieldsLayout->replace($listName, "caption{$i}");
@@ -665,10 +675,7 @@ class acc_BalanceDetails extends core_Detail
         
         $form->setOptions("feat{$i}", $features);
         $form->showFields .= "grouping{$i},";
-        
-        if(count($features) > 1){
-            $form->showFields .= "feat{$i}," ;
-        }
+        $form->showFields .= "feat{$i}," ;
     }
     
     

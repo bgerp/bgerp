@@ -358,6 +358,15 @@ class acc_Balances extends core_Master
      */
     function cron_Recalc()
     {
+    	$lockKey = "RecalcBalances";
+    	
+    	// Ако изчисляването е заключено не го изпълняваме
+    	if(!core_Locks::get($lockKey, 10, 1)) {
+    		$this->log("Изчисляването на баланса е заключено от друг процес");
+    	
+    		return;
+    	}
+        
         // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
         // Ако периода се нуждае от прекалкулиране - правим го
         // Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
@@ -382,6 +391,10 @@ class acc_Balances extends core_Master
         // SET @count = 0;
         // UPDATE `acc_balance_details` SET `acc_balance_details`.`id` = @count:= @count + 1;
         // ALTER TABLE `acc_balance_details` AUTO_INCREMENT = 1;
+        
+        
+        // Освобождаваме заключването на процеса
+        core_Locks::release($lockKey);
         
         // Пораждаме събитие, че баланса е бил преизчислен
         $data = new stdClass();

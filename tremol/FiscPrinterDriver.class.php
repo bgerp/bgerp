@@ -30,7 +30,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
     /**
      * Шаблон за продукта в кратката бележка
      */
-    private $shortRowTpl = "Сума *[#group#]";
+    private $shortRowTpl = "Продажби *[#group#]";
     
     
     /**

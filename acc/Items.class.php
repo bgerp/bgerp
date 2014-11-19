@@ -337,6 +337,12 @@ class acc_Items extends core_Manager
             $listId = $mvc->getCurrentListId();
             Mode::setPermanent('lastEnterItemNumIn' . $listId, $form->rec->num);
         }
+        
+        if(!empty($form->rec->lists)){
+        	
+        	// Ако има избрани номенклатури: перото винаги става активно
+        	$form->rec->state = 'active';
+        }
     }
     
     

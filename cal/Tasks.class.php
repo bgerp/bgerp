@@ -690,6 +690,15 @@ class cal_Tasks extends core_Master
 	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND  #timeStart >= '{$dateRange[0]}')
 	        		              ");
             }
+            
+            $data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
+                                OR
+                                (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
+                                OR
+                                (#timeStart IS NULL AND #timeDuration IS NULL AND #timeEnd IS NULL)
+                                OR
+                                (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeStart >= '{$dateRange[0]}')
+                                ");
         }
     }
 

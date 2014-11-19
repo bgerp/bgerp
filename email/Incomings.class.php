@@ -209,7 +209,7 @@ class email_Incomings extends core_Master
         $accQuery->orderBy('#order');
 
         while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
-            self::fetchAccount($accRec, $deadline);
+            self::fetchAccount($accRec, $deadline, $maxFetchingTime);
         }
     }
 
@@ -217,7 +217,7 @@ class email_Incomings extends core_Master
     /**
      * Извлича писмата от посочената сметка
      */
-    function fetchAccount($accRec, $deadline)
+    function fetchAccount($accRec, $deadline, $maxFetchingTime)
     { 
         // Заключваме тегленето от тази пощенска кутия
         $lockKey = 'Inbox:' . $accRec->id;
@@ -262,7 +262,7 @@ class email_Incomings extends core_Master
                     $status = 'fetching error';
                 }
 
-                if(($i % 100) == 1 || ( ($i - $firstUnreadMsg) < 100)) {
+                if(($i % 100) == 1 || ( ($i - $firstUnreadMsgNo) < 100)) {
                     $logMsg = "Fetching message {$i} from {$accRec->email}: {$status}";
                     $this->log($logMsg, NULL, 7);
                 }
