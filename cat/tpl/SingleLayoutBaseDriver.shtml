@@ -6,6 +6,9 @@
                     </div>
                 </div>
                 <!--ET_END image-->
+                
+                <!--ET_BEGIN INFORMATION-->
+                [#INFORMATION#]
                 <fieldset class="detail-info">
                     <legend class="groupTitle">|Информация|*</legend>
                     <div class="groupList">
@@ -23,6 +26,8 @@
                         </table>
                     </div>
                 </fieldset>
+                <!--ET_END INFORMATION-->
+                
                 <!--ET_BEGIN info-->
                 <fieldset class="detail-info">
                     <legend class="groupTitle">|Описание|*</legend>

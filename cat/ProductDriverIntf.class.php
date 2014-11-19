@@ -128,7 +128,7 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Връща описанието на артикула
+	 * Връща описанието на артикула според драйвъра
 	 * 
 	 * @return core_ET
 	 */

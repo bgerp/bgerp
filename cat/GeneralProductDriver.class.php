@@ -173,6 +173,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	/**
 	 * Връща описанието на артикула според драйвъра
+	 * 
+	 * @return core_ET
 	 */
 	public function getProductDescription()
 	{
@@ -180,7 +182,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$data->noChange = TRUE;
 		
 		$tpl = $this->renderEmbeddedData($data);
-		$title = ht::createLinkRef($this->ProductRec->getTitleById(), array($this->ProductRec->instance, 'single', $id));
+		
+		$title = ht::createLinkRef($this->ProductRec->getTitleById(), array($this->ProductRec->instance, 'single', $this->ProductRec->that));
+		$tpl->removeBlock('INFORMATION');
 		$tpl->replace($title, "TITLE");
 		
 		// Ако няма параметри, премахваме блока им от шаблона
@@ -188,7 +192,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$tpl->removeBlock('PARAMS');
 		}
 		
-		return $tpl;
+		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
+		
+		$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
+		$wrapTpl->append($tpl, 'paramBody');
+		
+		return $wrapTpl;
 	}
 	
 	

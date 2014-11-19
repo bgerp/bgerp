@@ -621,7 +621,7 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     private static function cacheTpl($id, $time)
     {
-    	if(!$cache = techno2_SpecTplCache::getTpl($id, $time)){
+    	//if(!$cache = techno2_SpecTplCache::getTpl($id, $time)){
     		
     		$cacheRec = new stdClass();
     		$cacheRec->time = $time;
@@ -630,10 +630,10 @@ class techno2_SpecificationDoc extends core_Embedder
     		$Driver = cls::get(get_called_class())->getDriver($id);
     		$cacheRec->cache = $Driver->getProductDescription();
     		
-    		techno2_SpecTplCache::save($cacheRec);
+    		//techno2_SpecTplCache::save($cacheRec);
     		
     		$cache = $cacheRec->cache;
-    	}
+    	//}
     	
     	return $cache;
     }

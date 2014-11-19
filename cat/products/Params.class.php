@@ -218,6 +218,7 @@ class cat_products_Params extends core_Manager
     public static function renderDetail($data)
     {
         $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
+        $tpl->append(tr('Параметри'), 'TITLE');
         if($data->noChange !== TRUE){
         	$tpl->append($data->changeBtn, 'TITLE');
         }
@@ -227,16 +228,10 @@ class cat_products_Params extends core_Manager
         		unset($row->tools);
         	}
         	
-            $block = $tpl->getBlock('param');
+            $block = clone $tpl->getBlock('param');
             $block->placeObject($row);
             $block->append2Master();
         }
-        
-        $wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
-        $wrapTpl->append(tr('Параметри'), 'TITLE');
-        $wrapTpl->append($tpl, 'CONTENT');
-        
-        $tpl = $wrapTpl;
       
         return $tpl;
     }

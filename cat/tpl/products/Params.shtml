@@ -1,10 +1,15 @@
-<table class='no-border'>
-    <!--ET_BEGIN param-->
-    [#param#]
-    <tr>
-        <td >[#paramId#]:</td>
-        <td style="padding-right:10px">[#paramValue#]</td>
-        <td> [#tools#]</td>
-    </tr>
-    <!--ET_END param-->
-</table>
+<fieldset class='detail-info' style='margin-bottom:10px;' id="[#DetailName#]">
+    <legend class='groupTitle'>[#TITLE#]</legend>
+    <div class='groupList'>
+        <table class='no-border'>
+		    <!--ET_BEGIN param-->
+		    [#param#]
+		    <tr>
+		        <td>[#paramId#]:</td>
+		        <td style="padding-right:10px">[#paramValue#]</td>
+		        <td> [#tools#]</td>
+		    </tr>
+		    <!--ET_END param-->
+		</table>
+    </div>
+</fieldset>
