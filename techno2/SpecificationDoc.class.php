@@ -245,7 +245,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$rec = $this->fetch($id);
     	
     	$row = new stdClass();
-    	$row->title = $this->singleTitle . "№{$rec->id}";
+    	$row->title = $this->getRecTitle($rec);
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
@@ -256,11 +256,13 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
-     * След подготовка на сингъла
+     * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	
+    	$self = cls::get(__CLASS__);
+    
+    	return $self->singleTitle . " №{$rec->id}";
     }
     
     
@@ -311,6 +313,8 @@ class techno2_SpecificationDoc extends core_Embedder
     			$data->query->where("#innerClass = {$rec->driver}");
     		}
     	}
+    	
+    	$data->query->orderBy('id', 'DESC');
     }
     
     
