@@ -337,7 +337,7 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Добавяне в таблицата на линк към детайли на продукта. Обр. на данните
+     * След преобразуване на записа в четим вид
      *
      * @param core_Mvc $mvc
      * @param stdClass $row
@@ -407,7 +407,7 @@ class cat_Products extends core_Embedder {
      *
      * Част от интерфейса: acc_RegisterIntf
      */
-    static function getItemRec($objectId)
+    public static function getItemRec($objectId)
     {
         $result = NULL;
         $self = cls::get(__CLASS__);
@@ -798,36 +798,6 @@ class cat_Products extends core_Embedder {
         while($grRec = $groupQuery->fetch()){
         	$grRec->productCnt = (int)$groupsCnt[$grRec->id];
         	cat_Groups::save($grRec);
-        }
-    }
-    
-    
-    /**
-     * Подготовка за рендиране на единичния изглед
-     */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
-    {
-        // Ако не е зададено файл
-        if (!$fileHnd = $data->rec->photo) {
-            
-            // Вземаме файла от прикачените файлове на детайла
-            $fileHnd = cat_products_Files::getImgFh($data->rec->id);
-        }
-        
-        // Ако има манипулатор на файл
-        if ($fileHnd) {
-            
-            // Fancy ефект за картинката
-            $Fancybox = cls::get('fancybox_Fancybox');
-            
-            // Размер на thumbnail' а
-            $tArr = array(200, 150);
-            
-            // Максималния размер на изображението
-            $mArr = array(600, 450);
-            
-            // Вземаме тумбнаил на файла
-            $data->row->image = $Fancybox->getImage($fileHnd, $tArr, $mArr);
         }
     }
     
