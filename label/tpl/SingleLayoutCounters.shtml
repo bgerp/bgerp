@@ -6,18 +6,18 @@
         </div>
     </h3>
     <div class='scrolling-holder'>
-        <table class="styled-table" style='width:99%'>
+        <table class="styled-table">
             <tr>
                 <td class="title-style" style='width:1px'>|Минимално|*</td>
-                <td> [#min#]</td>
+                <td class='aright'> [#min#]</td>
             </tr>
             <tr>
                 <td class="title-style">|Максимално|*</td>
-                <td> [#max#]</td>
+                <td class='aright'> [#max#]</td>
             </tr>
             <tr>
                 <td class="title-style">|Стъпка|*</td>
-                <td>[#step#]</td>
+                <td class='aright'>[#step#]</td>
             </tr>
         </table>
     </div>
