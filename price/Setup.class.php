@@ -51,9 +51,6 @@ class price_Setup extends core_ProtoSetup
             'price_ListRules',
             'migrate::priceHistoryTruncate',
             'price_History',
-        	'price_ConsumptionNorms',
-        	'price_ConsumptionNormDetails',
-        	'price_ConsumptionNormGroups',
         	'price_ListDocs',
         );
     
