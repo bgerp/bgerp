@@ -47,7 +47,7 @@ class techno2_Setup extends core_ProtoSetup
     var $managers = array(
     		'techno2_SpecificationDoc',
     		'techno2_SpecTplCache',
-    		'migrate::copyOldTechnoDocuments2'
+    		'migrate::copyOldTechnoDocuments3'
         );
     
 
@@ -103,7 +103,7 @@ class techno2_Setup extends core_ProtoSetup
     /**
      * Миграция на старите универсални продукти към новите спецификации
      */
-    public function copyOldTechnoDocuments2()
+    public function copyOldTechnoDocuments3()
     {
     	core_Users::cancelSystemUser();
     	
@@ -136,11 +136,12 @@ class techno2_Setup extends core_ProtoSetup
     		$clone = clone $oldRec;
     		$clone->info = $info;
     		
+    		
     		$newRec->innerForm = $clone;
     		$newRec->innerState = $clone;
     		
     		try{
-    			$NewClass->save($newRec, NULL, 'IGNORE');
+    			$NewClass->save($newRec, NULL, 'REPLACE');
     		} catch(Exception $e){
     			techno2_SpecificationDoc::log("Проблем с трансфер на спецификация: {$e->getMessage()}");
     		}
@@ -170,7 +171,12 @@ class techno2_Setup extends core_ProtoSetup
     	while ($rec = $nQuery->fetch()){
     		$oldId = $rec->innerForm->id;
     		
-    		$specId = techno_Specifications::fetchByDoc($gpClass, $oldId)->id;
+    		try{
+    			$specId = techno_Specifications::fetchByDoc($gpClass, $oldId)->id;
+    		} catch(Exception $e){
+    			bp($rec);
+    		}
+    		
     		
     		if($itemRec = acc_Items::fetchItem($oldClass, $specId)){
     			$itemRec->classId = $newClass;
