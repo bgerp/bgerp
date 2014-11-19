@@ -32,14 +32,5 @@ class cat_GeneralServiceDriver extends cat_GeneralProductDriver
 	/**
 	 * Дефолт мета данни за всички продукти
 	 */
-	public static $defaultMetaData = 'canSell,canBuy';
-	
-	
-	/**
-	 * Кои опаковки поддържа продукта
-	 */
-	public function getDefaultMetas()
-	{
-		return arr::make(self::$defaultMetaData, TRUE);
-	}
+	protected $defaultMetaData = 'canSell,canBuy';
 }

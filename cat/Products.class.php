@@ -244,11 +244,9 @@ class cat_Products extends core_Embedder {
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {
-		//@TODO рефакторинг
-    	
-        //Проверяваме за недопустими символи
+		//Проверяваме за недопустими символи
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
             if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
@@ -263,6 +261,19 @@ class cat_Products extends core_Embedder {
 	    			|| ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
 	    			$form->setError('code', 'Има вече артикул с такъв код!');
 			    }
+    		}
+    		
+    		// Проверяваме дали избраните групи са в противоречие с драйвера
+    		$Driver = $mvc->getDriver($rec);
+    		$defMetas = $Driver->getDefaultMetas();
+    		if(count($defMetas)){
+    			$defMetas = arr::make($defMetas, TRUE);
+    			$grMetas = arr::make($mvc->getMetaData($rec->groups), TRUE);
+    			if(isset($grMetas['canStore']) && !isset($defMetas['canStore'])){
+    				$form->setError('groups', "Не може избрания драйвер да е за услуга, а артикула да е складируем");
+    			} elseif(isset($defMetas['canStore']) && !isset($grMetas['canStore'])){
+    				$form->setError('groups', "Не може избрания драйвер да е за стока, а артикула да не е складируем");
+    			}
     		}
         }
                 

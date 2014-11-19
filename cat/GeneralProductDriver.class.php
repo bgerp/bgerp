@@ -32,6 +32,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * Инстанция на 'cat_products_Params'
 	 */
 	protected $Params;
+
+
+	/**
+	 * Дефолт мета данни за всички продукти
+	 */
+	protected $defaultMetaData = 'canSell,canBuy,canStore';
 	
 	
 	/**

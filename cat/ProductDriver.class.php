@@ -54,6 +54,14 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param mixed $innerState
 	 */
 	protected $innerState;
+
+	
+	/**
+	 * Мета данни по подразбиране
+	 * 
+	 * @param strint $defaultMetaData
+	 */
+	protected $defaultMetaData;
 	
 	
 	/**
@@ -129,15 +137,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 			$is = clone $filter;
 		}
 	}
-
-
-	/**
-	 * Връща масив с мета данните които ще се форсират на продукта
-	 */
-	public function getDefaultMetas()
-	{
-		return array();
-	}
 	
 	
 	/**
@@ -155,5 +154,14 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public function getUsedDocs()
 	{
 		return FALSE;
+	}
+
+
+	/**
+	 * Кои опаковки поддържа продукта
+	 */
+	public function getDefaultMetas()
+	{
+		return !empty($this->defaultMetaData) ? arr::make($this->defaultMetaData, TRUE) : array();
 	}
 }
