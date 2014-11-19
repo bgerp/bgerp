@@ -469,7 +469,9 @@ class type_Richtext extends type_Blob
         
         $state = array();
         
-        for($i = 0; $i < count($lines); $i++) {
+        $linesCnt = count($lines);
+        
+        for($i = 0; $i < $linesCnt; $i++) {
 
             $l = $lines[$i];
 
@@ -497,7 +499,7 @@ class type_Richtext extends type_Blob
                     $type = 'ul';
                 }
 
-                $l = "<li> " . $matches[3] . "</li>";            
+                $l = "<li> " . $matches[3] . "</li>";
             }
 
             while(($oldLevel = count($state)) < $level) {
