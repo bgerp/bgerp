@@ -57,7 +57,7 @@ class cat_Setup extends core_ProtoSetup
     		'cat_products_VatGroups',
             'cat_Params',
             'cat_Packagings',
-    		'migrate::productDrivers',
+    		'migrate::updateProducts',
         );
 
         
@@ -111,7 +111,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Миграция за продуктовите драйвъри
      */
-    function productDrivers()
+    function updateProducts()
     {
     	$cQuery = cat_Products::getQuery();
     	
@@ -123,6 +123,8 @@ class cat_Setup extends core_ProtoSetup
     	
     	while($pRec = $cQuery->fetch()){
     		$meta = cat_Products::getMetaData($pRec->groups);
+    		$meta = arr::make($meta, TRUE);
+    		
     		if(isset($meta['canStore'])){
     			$pRec->innerClass = $technoDriverId;
     		} else {
