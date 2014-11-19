@@ -191,9 +191,26 @@ class label_Templates extends core_Master
         $rec = self::fetch($id);
         
         // Вкарваме CSS-а, като инлай в шаблона
-        $tplArr[$id] = new ET($rec->template);
+        $tplArr[$id] = $rec->template;
         
         return $tplArr[$id];
+    }
+    
+    
+    /**
+     * Връща плейсхолдерите на стринга
+     * 
+     * @param string $content
+     * 
+     * @return array
+     */
+    public static function getPlaceholders($content)
+    {
+        preg_match_all('/\[#([\wа-я]{1,})#\]/ui', $content, $matches);
+        
+        $placesArr = arr::make($matches[1], TRUE);
+        
+        return $placesArr;
     }
     
     
@@ -206,7 +223,7 @@ class label_Templates extends core_Master
     public static function addCssToTemplate($id, $template=NULL)
     {
         // Масив с шаблоните
-        static $tplArrCss = array();
+        static $templateArrCss = array();
         
         if (!$template) {
             $template = self::getTemplate($id);
@@ -216,24 +233,15 @@ class label_Templates extends core_Master
         $hash = md5($template);
         
         // Ако преди е бил извлечен
-        if ($tplArrCss[$hash]) return $tplArrCss[$hash];
+        if ($templateArrCss[$hash]) return $templateArrCss[$hash];
         
         // Вземаме записа
         $rec = self::fetch($id);
         
-        // Вземаме съдържанието
-        $content = $template->getContent();
-        
         // Вкарваме CSS-а, като инлайн
-        $contentWithCss = self::templateWithInlineCSS($content, $rec->css);
+        $templateArrCss[$hash] = self::templateWithInlineCSS($template, $rec->css);
         
-        // Задаваме новото съдържание
-        $template->setContent($contentWithCss);
-        
-        // Вкарваме CSS-а, като инлай в шаблона
-        $tplArrCss[$hash] = $template;
-        
-        return $tplArrCss[$hash];
+        return $templateArrCss[$hash];
     }
     
     
@@ -248,7 +256,7 @@ class label_Templates extends core_Master
     static function isPlaceExistInTemplate($id, $placeHolder)
     {
         // Вземаме шаблона
-        $tpl = self::getTemplate($id);
+        $template = self::getTemplate($id);
         
         // Масив с шаблоните
         static $placesArr = array();
@@ -257,7 +265,7 @@ class label_Templates extends core_Master
         if (!$placesArr[$id]) {
             
             // Масив с плейсхолдерите
-            $placesArrAll = $tpl->getPlaceHolders();
+            $placesArrAll = self::getPlaceHolders($template);
             
             // Ключовете и стойностите да са равни
             $placesArr[$id] = arr::make($placesArrAll, TRUE);
@@ -396,6 +404,45 @@ class label_Templates extends core_Master
         $sizesArr = label_Media::getAllSizes();
         $sizesArr = array('' => '') + $sizesArr;
         $data->form->setSuggestions('sizes', $sizesArr);
+    }
+    
+    
+    /**
+     * Замества плейсхолдерите с тяхната стойност
+     * 
+     * @param string $string
+     * @param array $placeArr
+     * 
+     * @return string
+     */
+    public static function placeArray($string, $placeArr)
+    {
+        if (!$string || !$placeArr) return $string;
+        
+        $nArr = array();
+        
+        foreach ((array)$placeArr as $key => $val) {
+            $key = self::toPlaceholder($key);
+            $nArr[$key] = $val;
+        }
+        
+        $replacedStr = strtr($string, $nArr);
+        
+        return $replacedStr;
+    }
+    
+    
+    /**
+     * Връща плейсхолдера от стринга
+     * 
+     * @param string $str
+     * 
+     * @return string
+     */
+    public static function toPlaceholder($str)
+    {
+        
+        return "[#{$str}#]";
     }
     
     

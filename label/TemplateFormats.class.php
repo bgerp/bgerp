@@ -238,10 +238,10 @@ class label_TemplateFormats extends core_Detail
         if ($Master && $masterKey && $masterId) {
             
             // Вземаме шаблона
-            $tpl = $Master->getTemplate($masterId);
+            $template = $Master->getTemplate($masterId);
             
             // Масив с плейсхолдерите
-            $placesArr = $tpl->getPlaceHolders();
+            $placesArr = $Master->getPlaceHolders($template);
             
             // Ключовете и стойностите да са равни
             $placesArr = arr::make($placesArr, TRUE);
@@ -498,7 +498,7 @@ class label_TemplateFormats extends core_Detail
      * 
      * @param string - Новото име на плейсхолдера
      */
-    static function getPlaceholderFieldName($placeHolder)
+    public static function getPlaceholderFieldName($placeHolder)
     {
         
         return ucfirst($placeHolder);
@@ -516,7 +516,7 @@ class label_TemplateFormats extends core_Detail
      * 
      * @return string - Вербалното представяне на стойността
      */
-    static function getVerbalTemplate($templateId, $place, $val, $labelId = NULL, $updateTempData=TRUE)
+    public static function getVerbalTemplate($templateId, $place, $val, $labelId = NULL, $updateTempData=TRUE)
     {
         // Масив със записите
         static $recArr = array();
@@ -724,10 +724,10 @@ class label_TemplateFormats extends core_Detail
         if ($Master && $masterKey && $masterId) {
             
             // Вземаме шаблона
-            $tpl = $Master->getTemplate($masterId);
+            $template = $Master->getTemplate($masterId);
             
             // Масив с плейсхолдерите
-            $placesArr = $tpl->getPlaceHolders();
+            $placesArr = $Master->getPlaceHolders($template);
             
             // Ключовете и стойностите да са равни
             $placesArr = arr::make($placesArr, TRUE);
