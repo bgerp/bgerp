@@ -6,8 +6,8 @@
 		    [#param#]
 		    <tr>
 		        <td>[#paramId#]:</td>
-		        <td style="padding-right:10px">[#paramValue#]</td>
-		        <td> [#tools#]</td>
+		        <td style = "text-indent: 10px">[#paramValue#]</td>
+		        <td style = "text-indent: 3px"> [#tools#]</td>
 		    </tr>
 		    <!--ET_END param-->
 		</table>

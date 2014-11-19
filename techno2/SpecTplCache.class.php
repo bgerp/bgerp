@@ -25,18 +25,12 @@ class techno2_SpecTplCache extends core_Master
 	 * Необходими плъгини
 	 */
 	public $loadList = 'plg_RowTools, techno2_Wrapper';
-	
-	
-	/**
-	 * Заглавие
-	 */
-	public $singleTitle = 'История на изгледа на спецификацията';
 	 
 	
 	/**
 	 * Заглавие на мениджъра
 	 */
-	public $title = "Нестандартни артикули";
+	public $title = "Кеш на изгледа на нестандартните артикули";
 	
 	
 	/**
