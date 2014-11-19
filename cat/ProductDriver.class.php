@@ -23,15 +23,9 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Инстанция на класа имплементиращ интерфейса
-	 */
-	public $class;
-	
-	
-	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectSource = 'ceo, cat';
+	public $canSelectSource = 'ceo, cat, techno';
 	
 	
 	/**

@@ -20,12 +20,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
 	public $oldClassName = 'techno2_SpecificationBaseDriver';
-	
-	
-	/**
-	 * Инстанция на класа имплементиращ интерфейса
-	 */
-	public $class;
 
 
 	/**

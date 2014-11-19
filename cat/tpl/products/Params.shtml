@@ -1,6 +1,7 @@
 <fieldset class='detail-info' style='margin-bottom:10px;' id="[#DetailName#]">
     <legend class='groupTitle'>[#TITLE#]</legend>
     <div class='groupList'>
+    	[#NO_ROWS#]
         <table class='no-border'>
 		    <!--ET_BEGIN param-->
 		    [#param#]
