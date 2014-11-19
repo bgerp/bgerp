@@ -87,6 +87,13 @@ class label_Prints extends core_Master
     
     
     /**
+     * Стойност по подразбиране на състоянието
+     * @see plg_State
+     */
+    public $defaultState = 'active';
+    
+    
+    /**
      * 
      * 
      * @see plg_RefreshRowss
@@ -119,7 +126,7 @@ class label_Prints extends core_Master
         $this->FLD('labelsCnt', 'int(min=1, max=200)', 'caption=Брой етикети, mandatory');
         $this->FLD('copiesCnt', 'int(min=1, max=50)', 'caption=Брой копия, value=1, mandatory');
         
-        $this->FLD('state', 'enum(draft=Чернова, closed=Спрян)', 'caption=Състояние, input=none, notNull');
+        $this->FLD('state', 'enum(active=Активно, closed=Спрян)', 'caption=Състояние, input=none, notNull');
     }
     
     
@@ -253,31 +260,6 @@ class label_Prints extends core_Master
     
     
     /**
-     * Активира записа за да може да се принтира наново
-     */
-    function act_Activate()
-    {
-        // Очакваме да има права за съответното действие
-        $this->requireRightFor('single');
-        $id = Request::get('id', 'int');
-        $rec = self::fetch($id);
-        $this->requireRightFor('single', $rec);
-        
-        $rec->state = 'draft';
-        
-        $this->save($rec);
-        
-        $retUrl = getRetUrl();
-        
-        if (!$retUrl) {
-            $retUrl = array($this, 'list');
-        }
-        
-        return new Redirect($retUrl);
-    }
-    
-    
-    /**
      * Подготовка на филтър формата
      * 
      * @param label_Prints $mvc
@@ -339,11 +321,15 @@ class label_Prints extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if ($mvc->haveRightFor('single', $rec)) {
-            if ($rec->state == 'draft') {
-                $row->tools = ht::createBtn('Печат', array($mvc, 'single', $rec->id), FALSE, '_blank', 'ef_icon=img/16/printer.png, title=Отпечатване');
-            } else {
-                $row->tools = ht::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/lightning.png, title=Отпечатване');
+            $warning = FALSE;
+            
+            // Ако съсотоянието е затворено показваме предупреждение
+            if ($rec->state == 'closed') {
+                $modifiedDate = dt::mysql2verbal($rec->modifiedOn, "d.m.y");
+                $warning = "Този етикет е бил отпечатван нa|* $modifiedDate. |Искате ли да го отпечатате още веднъж|*?";
             }
+            
+            $row->tools = ht::createBtn('Печат', array($mvc, 'single', $rec->id), $warning, '_blank', 'ef_icon=img/16/printer.png, title=Отпечатване');
         }
         
         if (label_Labels::haveRightFor('single', $rec->labelId)) {
