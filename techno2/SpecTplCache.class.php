@@ -96,7 +96,6 @@ class techno2_SpecTplCache extends core_Master
 	public static function getTpl($id, $time)
 	{
 		$rec = techno2_SpecificationDoc::fetchRec($id);
-		
 		$cache = techno2_SpecTplCache::fetchField("#specId = {$rec->id} AND #time = '{$time}'", 'cache');
 		
 		return $cache;

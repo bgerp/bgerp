@@ -546,6 +546,7 @@ class techno2_SpecificationDoc extends core_Embedder
     			'features' => array("{$self->title}" => $self->title,)
     	);
     	
+    	
     	return $itemRec;
     }
     

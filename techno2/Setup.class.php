@@ -47,7 +47,7 @@ class techno2_Setup extends core_ProtoSetup
     var $managers = array(
     		'techno2_SpecificationDoc',
     		'techno2_SpecTplCache',
-    		'migrate::copyOldTechnoDocuments3'
+    		'migrate::copyOldTechnoDocuments4'
         );
     
 
@@ -103,7 +103,7 @@ class techno2_Setup extends core_ProtoSetup
     /**
      * Миграция на старите универсални продукти към новите спецификации
      */
-    public function copyOldTechnoDocuments3()
+    public function copyOldTechnoDocuments4()
     {
     	core_Users::cancelSystemUser();
     	
@@ -123,7 +123,6 @@ class techno2_Setup extends core_ProtoSetup
     		core_Users::sudo($oldRec->createdBy);
     		foreach (array('state', 'folderId', 'createdOn', 'modifiedOn', 'modifiedBy', 'searchKeywords', 'sharedUsers', 'sharedUsers', 'meta', 'title') as $fld){
     			$newRec->$fld = $oldRec->$fld;
-    			unset($oldRec->$fld);
     		}
     		
     		if(isset($meta['canStore'])){
