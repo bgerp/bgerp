@@ -446,7 +446,7 @@ class label_Labels extends core_Master
             $params[$currPageCntField] = 0;
         }
         $rowId = 0;
-        $allCnt = 0;
+        $perPageCnt = 0;
         
         // Докато достигнем броя на принтиранията
         for ($i = 0; $i < $data->cnt; $i++) {
@@ -458,11 +458,11 @@ class label_Labels extends core_Master
             }
             
             // Ако сме минали на нова страница увеличаваме брояча за страници
-            if (($updatePageCnt) && ($allCnt % $itemsPerPage == 0)) {
+            if (($updatePageCnt) && ($perPageCnt % $itemsPerPage == 0)) {
                 
                 $params[$currPageCntField]++;
             }
-            $allCnt++;
+            $perPageCnt++;
             
             // Обхождаме масива с шаблоните
             foreach ((array)$placesArr as $place) {
@@ -482,7 +482,7 @@ class label_Labels extends core_Master
                 $data->rows[$copyField] = $data->rows[$rowId];
                 
                 // При копиятата, ако сме минали на нова страница, да се увеличи брояча за всички следващи копия
-                if (($updatePageCnt) && ($allCnt % $itemsPerPage == 0)) {
+                if (($updatePageCnt) && ($perPageCnt % $itemsPerPage == 0)) {
                     
                     $params[$currPageCntField]++;
                     $newCurrPage = label_TemplateFormats::getVerbalTemplate($rec->templateId, $currPageCntField, $params[$currPageCntField], $rec->id, $data->updateTempData);
@@ -492,7 +492,7 @@ class label_Labels extends core_Master
                     $data->rows[$copyField][$currPageCntField] = $newCurrPage;
                 }
                 
-                $allCnt++;
+                $perPageCnt++;
             }
             
             $rowId += $copyId;
