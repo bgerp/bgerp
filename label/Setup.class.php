@@ -109,6 +109,8 @@ class label_Setup extends core_ProtoSetup
         // Добавяме размера към всички шаблони, които нямат размери
         $tQuery = label_Templates::getQuery();
         $tQuery->where("#sizes IS NULL");
+        $tQuery->orWhere("#sizes = ''");
+        
         while ($tRec = $tQuery->fetch()) {
             $tRec->sizes = $sizes;
             label_Templates::save($tRec, 'sizes');
