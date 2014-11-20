@@ -3799,8 +3799,7 @@ only screen and (max-width: 320px) {
   border-radius: 5px;
   box-shadow: 0 0 1px #aaaaaa;
   display: inline-block;
-  position: relative;
-  padding-top: 10px; }
+  position: relative; }
   .preview-label .legend {
     position: absolute;
     left: 20px;

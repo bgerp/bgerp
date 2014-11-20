@@ -6,13 +6,13 @@
         </div>
     </h3>
     <div class='scrolling-holder'>
-        <div class="preview-label">
+        <div class="preview-label" style='padding-top: 10px;'>
             <span class='legend'>|Преглед|*</span>
             [#template#]
         </div>
-        <div><span class="quiet">|Размери|*: </span> [#sizes#]</div>
-        <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
     </div>
+    <div><span class="quiet">|Размери|*: </span> [#sizes#]</div>
+    <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
     <br>
     [#DETAILS#]
 </div>
