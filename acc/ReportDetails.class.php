@@ -89,7 +89,7 @@ class acc_ReportDetails extends core_Manager
         
         // Добаяне на информацията за номенклатурите в шаблона
         $tpl->append($itemsTpl);
-        
+       
         // Връщане на шаблона
         return $tpl;
     }
