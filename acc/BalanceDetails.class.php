@@ -775,7 +775,7 @@ class acc_BalanceDetails extends core_Detail
     public function loadBalance($balanceId, $isMiddleBalance = FALSE, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
     {
         $query = $this->getQuery();
-        
+        echo "<li>LOAD : {$balanceId}";
         static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
         $query->where('#blQuantity != 0 OR #blAmount != 0');
         
@@ -833,7 +833,7 @@ class acc_BalanceDetails extends core_Detail
     public function calcBalanceForPeriod($from, $to)
     {
         $JournalDetails = &cls::get('acc_JournalDetails');
-        
+        echo "<li>CALC FOR : '{$from}' - '{$to}'";
         $query = $JournalDetails->getQuery();
         acc_JournalDetails::filterQuery($query, $from, $to);
         $query->orderBy('valior,id', 'ASC');
@@ -854,7 +854,7 @@ class acc_BalanceDetails extends core_Detail
                 
                 // След като се изчисли сумата, презаписваме цените в журнала, само ако сметките са размерни
                 if($rec->debitQuantity){
-                    $debitPrice = round($rec->amount / $rec->debitQuantity, 4);
+                    @$debitPrice = round($rec->amount / $rec->debitQuantity, 4);
                     
                     if(trim($rec->debitPrice) != trim($debitPrice)){
                         $rec->debitPrice = $debitPrice;
@@ -863,7 +863,7 @@ class acc_BalanceDetails extends core_Detail
                 }
                 
                 if($rec->creditQuantity){
-                    $creditPrice = round($rec->amount / $rec->creditQuantity, 4);
+                    @$creditPrice = round($rec->amount / $rec->creditQuantity, 4);
                     
                     if(trim($rec->creditPrice) != trim($creditPrice)){
                         $rec->creditPrice = $creditPrice;
