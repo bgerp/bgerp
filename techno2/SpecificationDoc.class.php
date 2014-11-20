@@ -126,6 +126,38 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
+     * Детайли на този мастър обект
+     *
+     * @var string|array
+     */
+    public $details = 'AccReports=acc_ReportDetails';
+
+    
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '301,302,304,305,306,309,321';
+    
+    
+    /**
+     * Да се показват ли в репортите нулевите редове
+     */
+    public $balanceRefShowZeroRows = TRUE;
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките
+     */
+    public $balanceRefGroupBy = 'cat_ProductAccRegIntf';
+    
+    
+    /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    public $canReports = 'ceo,sales,purchase,store,acc,cat';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
