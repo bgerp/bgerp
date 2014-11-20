@@ -4065,7 +4065,29 @@ body.narrow {
 }
 
 .preview-label{
+	margin-top: 5px;
 	margin-bottom: 10px;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	box-shadow: 0 0 1px #aaa;
+	display: inline-block;
+	position: relative;
+	padding-top: 10px;
+	.legend {
+	   position: absolute;
+	   left: 20px;
+	   top: -15px;
+	   display: inline-block;
+	   border: 1px solid #ddd;
+	   box-shadow: 0 0 1px #bbb;
+	   background-color: #fff;
+	   @include border-radius(5px);
+	   padding: 5px 10px;
+	}
+	> div{
+	   width: auto !important;
+	   height: auto !important;
+	}
 }
 
 .cd-l1{
