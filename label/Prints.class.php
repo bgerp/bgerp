@@ -104,7 +104,7 @@ class label_Prints extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'labelId=Данни->Етикет, mediaId=Данни->Медия, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, tools=Отпечатване, createdOn, createdBy, modifiedOn, modifiedBy';
+    public $listFields = 'labelId=Данни->Етикет, mediaId=Данни->Медия, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, createdOn, createdBy, modifiedOn, modifiedBy';
     
 
     /**
@@ -325,11 +325,10 @@ class label_Prints extends core_Master
             
             // Ако съсотоянието е затворено показваме предупреждение
             if ($rec->state == 'closed') {
-                $modifiedDate = dt::mysql2verbal($rec->modifiedOn, "d.m.Y");
+                $modifiedDate = dt::mysql2verbal($rec->modifiedOn, "d.m.Y H:i");
                 $warning = "Този етикет е бил отпечатван нa|* $modifiedDate. |Искате ли да го отпечатате още веднъж|*?";
             }
-            
-            $row->tools = ht::createBtn('Печат', array($mvc, 'single', $rec->id), $warning, '_blank', 'ef_icon=img/16/printer.png, title=Отпечатване');
+            $row->printedCnt = ht::createBtn('Печат', array($mvc, 'single', $rec->id), $warning, '_blank', 'ef_icon=img/16/printer.png, title=Отпечатване, class=fleft') . $row->printedCnt;
         }
         
         if (label_Labels::haveRightFor('single', $rec->labelId)) {

@@ -201,7 +201,7 @@ class label_Media extends core_Manager
         }
         
         // Колко етикети ще има на страница
-        $data->pageLayout->itemsPerPage = $rec->columnsCnt * $rec->linesCnt;
+        $data->pageLayout->itemsPerPage = self::getCountInPage($rec->id);
         
         // Брой страници
         $data->pageLayout->pageCnt = (int)ceil($data->cnt / $data->pageLayout->itemsPerPage);

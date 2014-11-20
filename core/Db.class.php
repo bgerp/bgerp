@@ -641,12 +641,6 @@ class core_Db extends core_BaseClass
     {
         global $_GET, $setupFlag;
         
-        // Ако има грешка при извикване от крон-а - игнорираме.
-        if (($_GET['Ctr'] == 'core_Cron' && !$_GET['forced'])) {
-        	
-        	return;
-        }
-        
         if (mysql_errno($this->link) > 0) {
                 $errno = mysql_errno($this->link);
                 $error = mysql_error($this->link);
