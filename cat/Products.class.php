@@ -225,6 +225,8 @@ class cat_Products extends core_Embedder {
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting,input=hidden,formOrder=4');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=hidden,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember,formOrder=100');
+        $this->FLD('accessibleTo', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Избор в документи->Роли,input,formOrder=101');
+        $this->FLD('contragentFolders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Избор в документи->Контрагенти,input,formOrder=102');
         
         $this->setDbUnique('code');
     }
@@ -244,6 +246,17 @@ class cat_Products extends core_Embedder {
                 }
             }
         }
+        
+        // Оставяме за избор на папки само тези на контрагенти
+        $arrs = array();
+        $fQuery = doc_Folders::getQuery();
+        $fQuery->show('coverClass,title');
+        while($fRec = $fQuery->fetch()){
+        	if(cls::haveInterface('doc_ContragentDataIntf', $fRec->coverClass)){
+        		$arrs[$fRec->id] = $fRec->title;
+        	}
+        }
+        $data->form->setSuggestions('contragentFolders', $arrs);
     }
     
     
