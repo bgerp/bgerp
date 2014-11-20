@@ -422,17 +422,31 @@ class label_Labels extends core_Master
         // Параметрите
         $params = $rec->params;
         
-        // Плейсхолдери за брой отпечатване и текуща страница от съответния брой
-        $printCntField = label_TemplateFormats::getPlaceholderFieldName('printCnt');
-        $currPrintCntField = label_TemplateFormats::getPlaceholderFieldName('currPrintCnt');
+        // Плейсхолдери за брой отпечатване и текущ етикет
+        $printCntField = label_TemplateFormats::getPlaceholderFieldName('Общо_етикети');
+        $currPrintCntField = label_TemplateFormats::getPlaceholderFieldName('Текущ_етикет');
+        $currPageCntField = label_TemplateFormats::getPlaceholderFieldName('Страница');
+        
+        setIfNot($itemsPerPage, $data->pageLayout->itemsPerPage, 1);
+        
+        // Ако не е зададена стойност за брой отпечатвания
         setIfNot($params[$printCntField], $data->printCnt, $data->cnt, 1);
         
+        // Ако не е зададена стойност за текущия отпечатван етикет
         $updatePrintCnt = FALSE;
         if (!$params[$currPrintCntField]) {
             $updatePrintCnt = TRUE;
+            $params[$currPrintCntField] = 0;
         }
         
+        // Ако не е зададена стойност за текущата страница
+        $updatePageCnt = FALSE;
+        if (!$params[$currPageCntField]) {
+            $updatePageCnt = TRUE;
+            $params[$currPageCntField] = 0;
+        }
         $rowId = 0;
+        $allCnt = 0;
         
         // Докато достигнем броя на принтиранията
         for ($i = 0; $i < $data->cnt; $i++) {
@@ -442,6 +456,13 @@ class label_Labels extends core_Master
             if ($updatePrintCnt) {
                 $params[$currPrintCntField]++;
             }
+            
+            // Ако сме минали на нова страница увеличаваме брояча за страници
+            if (($updatePageCnt) && ($allCnt % $itemsPerPage == 0)) {
+                
+                $params[$currPageCntField]++;
+            }
+            $allCnt++;
             
             // Обхождаме масива с шаблоните
             foreach ((array)$placesArr as $place) {
@@ -453,10 +474,25 @@ class label_Labels extends core_Master
                 $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace], $rec->id, $data->updateTempData);
             }
             
+            $newCurrPage = FALSE;
+            
             // За всяко копие добавяме по едно копие
             for ($copyId; $copyId < $data->copyCnt; $copyId++) {
                 $copyField = $rowId + $copyId;
                 $data->rows[$copyField] = $data->rows[$rowId];
+                
+                // При копиятата, ако сме минали на нова страница, да се увеличи брояча за всички следващи копия
+                if (($updatePageCnt) && ($allCnt % $itemsPerPage == 0)) {
+                    
+                    $params[$currPageCntField]++;
+                    $newCurrPage = label_TemplateFormats::getVerbalTemplate($rec->templateId, $currPageCntField, $params[$currPageCntField], $rec->id, $data->updateTempData);
+                }
+                
+                if ($newCurrPage) {
+                    $data->rows[$copyField][$currPageCntField] = $newCurrPage;
+                }
+                
+                $allCnt++;
             }
             
             $rowId += $copyId;
