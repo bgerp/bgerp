@@ -195,6 +195,12 @@ class cat_Products extends core_Embedder {
 	
 	
 	/**
+	 * Дефолт достъп до новите корици
+	 */
+	public $defaultAccess = 'public';
+	
+	
+	/**
 	 * Шаблон (ET) за заглавие на продукт
 	 * 
 	 * @var string
