@@ -172,7 +172,7 @@ class core_Setup extends core_ProtoSetup {
            
            'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=Интервал,\'=Апостроф,`=Обратен апостроф)', 'caption=Форматиране на числа->Разделител, customizeBy=powerUser'),
             
-           'EF_NUMBER_DEC_POINT' => array( 'enum(.=|Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=powerUser'),
+           'EF_NUMBER_DEC_POINT' => array( 'enum(.=Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=powerUser'),
             
            'EF_USER_LANG' => array( "enum()", 'caption=Език на интерфейса след логване->Език, customizeBy=powerUser, optionsFunc=core_Lg::getLangOptions'),
             
