@@ -5,7 +5,6 @@
 Обем,volume,,volume,,
 Плътност,density,,density,,
 Цвят,varchar,,color,,
-ДДС,percent,%,vat,,
 Н. такси,double,лв,bTax,,
 Транспортно Тегло,weight,,transportWeight,,
 Транспортен Обем,volume,,transportVolume,,
