@@ -287,6 +287,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	
     	$row = new stdClass();
     	$row->title = $this->getRecTitle($rec);
+    	$row->subTitle = $this->getVerbal($rec, 'title');
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
@@ -303,7 +304,7 @@ class techno2_SpecificationDoc extends core_Embedder
     {
     	$self = cls::get(__CLASS__);
     
-    	return "{$rec->title} №{$rec->id}";
+    	return "{$self->singleTitle} №{$rec->id}";
     }
     
     
