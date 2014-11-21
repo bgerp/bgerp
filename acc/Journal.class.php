@@ -393,18 +393,31 @@ class acc_Journal extends core_Master
      */
     public static function rejectTransaction($docClassId, $docId)
     {
-        if (!($rec = self::fetchByDoc($docClassId, $docId))) {
+        // Ако няма запис в журнала, не правим нищо
+    	if (!($rec = self::fetchByDoc($docClassId, $docId))) {
             return FALSE;
         }
         
+        // Ако няма съществуващ период, не правим нищо
         if (!($periodRec = acc_Periods::fetchByDate($rec->valior))) {
             return FALSE;
         }
         
-        if ($periodRec->state == 'closed') {
-            return acc_Articles::createReverseArticle($rec);
-        } else {
-            return static::deleteTransaction($rec);
+        // Намираме всички записи за този документ
+        // Попринцип един документ може да има само един запис за едно състояние, но поради грешка е възможно
+        // да има повече записи, и тогава трябва да изтрием всичките !
+        $jQuery = self::getQuery();
+        $jQuery->where("#docType = {$docClassId} AND #docId = {$docId}");
+        while($jRec = $jQuery->fetch()){
+        	if ($periodRec->state == 'closed') {
+        		
+        		// Ако периода е затворен се създава обратен МО
+        		return acc_Articles::createReverseArticle($jRec);
+        	} else {
+        		
+        		// Ако периода не е затворен, директно изтриваме записа
+        		return static::deleteTransaction($jRec);
+        	}
         }
     }
     
