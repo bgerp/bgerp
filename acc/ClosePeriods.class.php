@@ -181,7 +181,7 @@ class acc_ClosePeriods extends core_Master
     {
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
-    		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}' AND #id != {$rec->id}")){
+    		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}' AND #id != '{$rec->id}'")){
     			$form->setError("periodId", "Има вече активиран/чернова документ за избрания период");
     		}
     	}
@@ -280,7 +280,7 @@ class acc_ClosePeriods extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'restore' || $action == 'conto') && isset($rec)){
-    		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}' AND #id != {$rec->id}")){
+    		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}' AND #id != '{$rec->id}'")){
     			$res = 'no_one';
     		}
     	}
