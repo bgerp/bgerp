@@ -183,7 +183,7 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
-    	if($form->rec->innerClass){
+    	if($form->rec->innerClass && (empty($form->rec->state) || $form->rec->state === 'draft')){
     		$form->setField('sharedUsers', 'input,formOrder=100000000');
     	} else {
     		$form->setField('sharedUsers', 'input=none,formOrder=100000000');
