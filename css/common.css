@@ -1805,7 +1805,6 @@ div.richEdit {
   margin-bottom: 0;
   overflow: auto;
   border-bottom: 1px solid transparent;
-  min-width: 310px;
   width: 32em; }
 
 .richedit-toolbar {
