@@ -67,14 +67,14 @@ class acc_transaction_ClosePeriod
     	$this->balanceId =  acc_Balances::fetchField("#periodId = {$this->periodRec->id}");
     	$incomeRes = array();
     	
-    	$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
+    	//$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
     	if(count($entries1)){
-    		$result->entries = array_merge($result->entries, $entries1);
+    		//$result->entries = array_merge($result->entries, $entries1);
     	}
     	
-    	$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
+    	//$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
     	if(count($entries2)){
-    		$result->entries = array_merge($result->entries, $entries2);
+    		//$result->entries = array_merge($result->entries, $entries2);
     	}
     	
     	$entries3 = $this->transferVat($result->totalAmount, $rec);
@@ -127,11 +127,8 @@ class acc_transaction_ClosePeriod
     	// Общата сума въведена в документа извлечена от касовия апарат
     	$amountFromFiscPrinter = $rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4;
     	
-    	// Обща сума на фактурите с касови бележки
-    	$invoicesCashAmount = sales_Invoices::getAmountInCash($this->periodRec->start, $this->periodRec->end);
-    	
     	// Колко е сумата по фактури без касови бележки
-    	$diffAmount = $amountFromFiscPrinter - $invoicesCashAmount;
+    	$diffAmount = $amountFromFiscPrinter - $rec->amountFromInvoices;
     	
     	$entries = array();
     	
