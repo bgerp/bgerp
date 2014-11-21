@@ -158,6 +158,12 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    public $onlyFirstInThread = TRUE;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
