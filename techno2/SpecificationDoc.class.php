@@ -183,6 +183,15 @@ class techno2_SpecificationDoc extends core_Embedder
     		$form->setField('sharedUsers', 'input=none,formOrder=100000000');
     	}
     }
+
+
+    /**
+     * След рендиране на единичния изглед
+     */
+    public function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	$tpl->push(('techno2/tpl/css/SpecificationStyles.css'), 'CSS');
+    }
     
     
     /**
@@ -656,8 +665,10 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     private static function cacheTpl($id, $time)
     {
+    	//Ако има кеширан изглед за тази дата връщаме го
     	if(!$cache = techno2_SpecTplCache::getTpl($id, $time)){
     		
+    		// Ако няма генерираме наново и го кешираме
     		$cacheRec = new stdClass();
     		$cacheRec->time = $time;
     		$cacheRec->specId = $id;
@@ -670,6 +681,7 @@ class techno2_SpecificationDoc extends core_Embedder
     		$cache = $cacheRec->cache;
     	}
     	
+    	// Връщаме намерения изглед
     	return $cache;
     }
     
