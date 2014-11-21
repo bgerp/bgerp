@@ -731,11 +731,11 @@ class cal_Tasks extends core_Master
 		    }
 		    
             if ($data->listFilter->rec->order == 'onStart') {
-    		    $data->title = 'Търсене на задачи по начало на задачата в периода|*<span class="green">"' .
+    		    $data->title = 'Търсене на задачи по начало на задачата в периода |*<span class="green">"' .
     			$data->listFilter->getFieldType('from')->toVerbal($data->listFilter->rec->from) . ' - 
     			' .$data->listFilter->getFieldType('to')->toVerbal($data->listFilter->rec->to) . '"</span>';
     		} elseif ($data->listFilter->rec->order == 'onEnd') {
-    		    $data->title = 'Търсене на задачи по края на задачата в периода|*<span class="green">"' .
+    		    $data->title = 'Търсене на задачи по края на задачата в периода |*<span class="green">"' .
     			$data->listFilter->getFieldType('from')->toVerbal($data->listFilter->rec->from) . ' - 
     			' .$data->listFilter->getFieldType('to')->toVerbal($data->listFilter->rec->to) . '"</span>';
     		} elseif ($data->listFilter->rec->order == 'noStartEnd') {
