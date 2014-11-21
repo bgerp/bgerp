@@ -4,13 +4,25 @@
 /**
  * Начален номер на фактурите
  */
-defIfNot('SALE_INV_MIN_NUMBER', '0');
+defIfNot('SALE_INV_MIN_NUMBER1', '0');
 
 
 /**
  * Краен номер на фактурите
  */
-defIfNot('SALE_INV_MAX_NUMBER', '10000000');
+defIfNot('SALE_INV_MAX_NUMBER1', '2000000');
+
+
+/**
+ * Начален номер на фактурите
+ */
+defIfNot('SALE_INV_MIN_NUMBER2', '2000000');
+
+
+/**
+ * Краен номер на фактурите
+*/
+defIfNot('SALE_INV_MAX_NUMBER2', '3000000');
 
 
 /**
@@ -98,8 +110,10 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
 			'SALE_CLOSE_OLDER_NUM'     => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
 			'SALE_FISC_PRINTER_DRIVER' => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
-			'SALE_INV_MIN_NUMBER'      => array('int', 'caption=Номер на фактура->Долна граница'),
-			'SALE_INV_MAX_NUMBER'      => array('int', 'caption=Номер на фактура->Горна граница'),
+			'SALE_INV_MIN_NUMBER1'      => array('int', 'caption=Първи диапазон за номериране на фактури->Долна граница'),
+			'SALE_INV_MAX_NUMBER1'      => array('int', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
+			'SALE_INV_MIN_NUMBER2'      => array('int', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
+			'SALE_INV_MAX_NUMBER2'      => array('int', 'caption=Втори диапазон за номериране на фактури->Горна граница'),
 	);
 	
 	

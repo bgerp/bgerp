@@ -140,6 +140,12 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Дефолт диапазон за номерацията на фактурите от настройките на пакета
+     */
+    public $defaultNumRange = 1;
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -153,6 +159,7 @@ class sales_Invoices extends deals_InvoiceMaster
     		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
     		'accountId'           => 'lastDocUser|lastDoc',
     		'template' 		      => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    		'numlimit'			  => 'lastDocUser|lastDoc',
     );
     
     
@@ -165,8 +172,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId,export=Csv');
     	
-    	$this->FLD('numLowLimit', 'int', 'caption=Номер->Долна граница, export=Csv, after=place,input=hidden');
-    	$this->FLD('numHighLimit', 'int', 'caption=Номер->Горна граница, export=Csv, after=numLowLimit,input=hidden');
+    	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, export=Csv, after=place,input=hidden,notNull,default=1');
     	
     	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
@@ -206,12 +212,14 @@ class sales_Invoices extends deals_InvoiceMaster
     	$form = &$data->form;
     	
     	$conf = core_Packs::getConfig('sales');
-    	$form->setDefault('numLowLimit', $conf->SALE_INV_MIN_NUMBER);
-    	$form->setDefault('numHighLimit', $conf->SALE_INV_MAX_NUMBER);
+    	$options = array();
+    	$options[1] = "{$conf->SALE_INV_MIN_NUMBER1} - {$conf->SALE_INV_MAX_NUMBER1}";
+    	$options[2] = "{$conf->SALE_INV_MIN_NUMBER2} - {$conf->SALE_INV_MAX_NUMBER2}";
+    	$form->setOptions('numlimit', $options);
+    	$form->setDefault('numlimit', $mvc->defaultNumRange);
     	
-    	if(haveRole('ceo, accMaster')){
-    		$form->setField('numLowLimit', 'input');
-    		$form->setField('numHighLimit', 'input');
+    	if(haveRole('ceo,accMaster')){
+    		$form->setField('numlimit', 'input');
     	}
     	
     	if($data->aggregateInfo){
@@ -234,14 +242,6 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	parent::inputInvoiceForm($mvc, $form);
-    	
-    	if ($form->isSubmitted()) {
-        	$rec = &$form->rec;
-        	
-	        if($rec->numLowLimit > $rec->numHighLimit){
-		        $form->setError('numLowLimit, numHighLimit', "Не може долната рганциа да е по-голяма от горната");
-	        }
-        }
 	}
     
     
@@ -409,17 +409,24 @@ class sales_Invoices extends deals_InvoiceMaster
     protected static function getNexNumber($rec)
     {
     	$conf = core_Packs::getConfig('sales');
+    	if($rec->numlimit == 2){
+    		$min = $conf->SALE_INV_MIN_NUMBER2;
+    		$max = $conf->SALE_INV_MAX_NUMBER2;
+    	} else {
+    		$min = $conf->SALE_INV_MIN_NUMBER1;
+    		$max = $conf->SALE_INV_MAX_NUMBER1;
+    	}
     	
     	$query = static::getQuery();
     	$query->XPR('maxNum', 'int', 'MAX(#number)');
-    	$query->between("number", $rec->numLowLimit, $rec->numHighLimit);
+    	$query->between("number", $min, $max);
     	
     	if(!$maxNum = $query->fetch()->maxNum){
-    		$maxNum = $rec->numLowLimit;
+    		$maxNum = $min;
     	}
     	$nextNum = $maxNum + 1;
     	
-    	if($nextNum > $rec->numHighLimit) return NULL;
+    	if($nextNum > $max) return NULL;
     	
     	return $nextNum;
     }
