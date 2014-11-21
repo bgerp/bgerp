@@ -333,11 +333,13 @@ class techno2_SpecificationDoc extends core_Embedder
     		}
     	}
     	
-    	if(sales_Quotations::haveRightFor('add')){
-    		if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId}")){
-    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id), 'ef_icon = img/16/document_quote.png,title=Редактиране на оферта');
-    		} else {
-    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
+    	if($data->rec->state != 'rejected'){
+    		if(sales_Quotations::haveRightFor('add')){
+    			if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId}")){
+    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id), 'ef_icon = img/16/document_quote.png,title=Редактиране на оферта');
+    			} else {
+    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
+    			}
     		}
     	}
     	
