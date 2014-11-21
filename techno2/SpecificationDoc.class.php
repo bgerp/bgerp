@@ -336,7 +336,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	}
     	
     	if(techno2_SpecTplCache::haveRightFor('read')){
-    		$data->toolbar->addBtn("История", array('techno2_SpecTplCache', 'list', 'docId' => $data->rec->id), 'target=_blank,ef_icon = img/16/view.png,title=Минали изгледи на спецификации');
+    		$data->toolbar->addBtn("История", array('techno2_SpecTplCache', 'list', 'docId' => $data->rec->id), 'ef_icon = img/16/view.png,title=Минали изгледи на спецификации');
     	}
     }
     
