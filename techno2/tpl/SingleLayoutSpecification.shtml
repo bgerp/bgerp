@@ -17,19 +17,18 @@
         <div class="groupList">[#meta#]</div>
     </fieldset>
    <!--ET_END meta-->
-   
-    <!--ET_BEGIN shareLog-->
-    <div class='sharing-history clearfix21'>
-        <span class='groupTitle'>|Споделяне|*</span>
-        [#shareLog#]
-    </div>
-    <!--ET_END shareLog-->
     
     <!--ET_BEGIN AccReports-->
     <div class = 'specReport'>
     [#AccReports#]
     </div>
     <!--ET_END AccReports-->
+    <!--ET_BEGIN shareLog-->
+    <div class='sharing-history clearfix21'>
+        <span class='groupTitle'>|Споделяне|*</span>
+        [#shareLog#]
+    </div>
+    <!--ET_END shareLog-->
     
     [#DETAILS#]
 </div>
