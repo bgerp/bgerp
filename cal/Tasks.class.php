@@ -745,7 +745,7 @@ class cal_Tasks extends core_Master
     			$data->title = 'Търсене на задачи отговарящи на |*<span class="green">"' .
     			$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
     		} else {
-    		    $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #sharedUsers, '|%')");
+    		    //$data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #sharedUsers, '|%')");
     			$data->title = 'Задачите на |*<span class="green">' .
     			$data->listFilter->getFieldType('selectedUsers')->toVerbal($data->listFilter->rec->selectedUsers) . '</span>';
     		}
