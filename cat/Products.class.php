@@ -488,6 +488,9 @@ class cat_Products extends core_Embedder {
     		}
     	}
     	
+    	//@TODO да подавам като параметър данните на контрагента
+    	//$folderId = doc_Folders::fetchField("#coverClass = '{$Cclass}' AND #coverId = '{$Cid}'", 'id');
+    	
     	// Премахват се тези продукти до които потребителя няма достъп
     	self::unsetUnavailableProducts($products);
     	
@@ -503,67 +506,49 @@ class cat_Products extends core_Embedder {
     /**
      * Помощна ф-я премахваща от списъка с продукти отговарящи на
      * някакви мета данни тези до които потребителя няма достъп.
-     * Връща се подможество състоящо се от тези продукти от подадените,
-     * до които има достъп потребителя и има достъп до поне една тяхна група
+     * Ако полето има посочени 'accessibleTo' и 'contragentFolders', то
+     * потребителя трябва да има посочените роли и/или папката за която ще извличаме продуктите
+     * присъства в разрешените, ако продуктите нямат посочените полета то те ще могат да се показват в бизнес
+     * документите във всяка папка за всеки потребител
      * 
      * @param array $products - продукти отговарящи на някакви критерии
      */
-    private static function unsetUnavailableProducts(&$products)
+    private static function unsetUnavailableProducts(&$products, $folderId = NULL)
     {
     	// Ако няма продукти 
     	if(!count($products)) return;
+    	$nProducts = array();
     	
-    	// Извличане на групите до които текущия потребител има достъп
-    	$allowedGroups = array();
-    	$groupQuery = cat_Groups::getQuery();
-    	cat_Groups::restrictAccess($groupQuery);
-    	
-    	// Запомнят се в един масив
-    	while($gRec = $groupQuery->fetch()){
-	    	$allowedGroups[$gRec->id] = $gRec->id;
-    	}
-    	
-    	// Подготвяне във стринг на ид-та на продуктите
-    	$productIds = implode(", ", array_keys($products));
-    	
-    	// Извличане на продукти
-    	$accessibleProducts = array();
-    	$query = static::getQuery();
-    	
-    	// До които потребителя има достъп
-    	static::restrictAccess($query);
-    	
-    	// И ид-та им присъстват в $products
-    	$query->in('id', $productIds);
-    	
-    	// За всякя заявка
-    	while($rec = $query->fetch()){
+    	// За всеки продукт проверяваме имаме ли достъп до него
+    	foreach ($products as $id => $rec){
     		
-    		// Натрупват се всички достъпни продукти
-    		$accessibleProducts[$rec->id] = $rec->id;
-    		
-    		// Флаг дали потребителя има достъп до поне една група на продукта
-    		$flag = FALSE;
-    		
-    		// Ако има достъп до поне една група флага се сетва на TRUE
-    		$groups = keylist::toArray($rec->groups);
-    		foreach ($groups as $gr){
-    			if(isset($allowedGroups[$gr])){
-    				$flag = TRUE;
-    				break;
+    		// Ако продукта има ограничение по роли и потребителя не е 'ceo'
+    		if(!empty($rec->accessibleTo) && !haveRole('ceo')){
+    			
+    			// и ако потребителя няма въпросната роля, не добавяме продукта
+    			if(!haveRole($rec->accessibleTo)){
+    				continue;
     			}
     		}
     		
-    		// Ако никоя от групите на продукта не е достъпна и продукта не
-    		// е шернат до потребителя, той се премахва
-    		if(!$flag && !keylist::isIn(core_Users::getCurrent(), $rec->shared)){
-    			unset($products[$rec->id]);
+    		// Ако няма папка не филтрираме по папка
+    		if(is_null($folderId)) continue;
+    		
+    		// Ако продукта е ограничен в кои папки да се появява
+    		if(!empty($rec->contragentFolders)){
+    			
+    			// и текущата папка не е от тях пропускаме го
+    			if(!keylist::isIn($folderId, $rec->contragentFolders)){
+    				continue;
+    			}
     		}
+    		
+    		// Ако сме стигнали до тук то имаме достъп до продукта
+    		$nProducts[$id] = $rec->title;
     	}
     	
-    	// Накрая се връща общата част от всички продукти и тези
-    	// до които има достъп потребителя
-    	$products = array_intersect_key($products, $accessibleProducts);
+    	// Връщаме филтрираните по достъп продукти
+    	return $nProducts;
     }
     
     
@@ -925,7 +910,12 @@ class cat_Products extends core_Embedder {
 	    	
 	    	while($rec = $query->fetch()){
 	    		if(!array_key_exists($rec->id, $tmp)){
-	    			$tmp[$rec->id] = static::getTitleById($rec->id, FALSE);
+	    			$obj = new stdClass();
+	    			$obj->title = static::getTitleById($rec->id, FALSE);
+	    			$obj->accessibleTo = $rec->accessibleTo;
+	    			$obj->contragentFolders = $rec->contragentFolders;
+	    			
+	    			$tmp[$rec->id] = $obj;
 	    		}
 	    		
 	    		$products[$rec->id] = $tmp[$rec->id];
