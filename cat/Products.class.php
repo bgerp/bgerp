@@ -321,6 +321,8 @@ class cat_Products extends core_Embedder {
     		$oldRec = $mvc->fetch($rec->id);
     		
     		// Старите мета данни
+    		$rec->oldAccessibleTo = $oldRec->accessibleTo;
+    		$rec->oldContragentFolders = $oldRec->contragentFolders;
     		$rec->oldGroups = $oldRec->groups;
     		$rec->oldName = $oldRec->name;
     		$rec->oldCode = $oldRec->code;
@@ -766,8 +768,8 @@ class cat_Products extends core_Embedder {
         }
         
         // Ако има промяна в групите, името или кода инвалидираме кеша
-    	if($rec->oldGroups != $rec->groups || $rec->oldName != $rec->name || $rec->oldCode != $rec->code) {
-            core_Cache::remove('cat_Products', "productsMeta");
+    	if($rec->oldGroups != $rec->groups || $rec->oldAccessibleTo != $rec->accessibleTo || $rec->oldContragentFolders != $rec->contragentFolders || $rec->oldName != $rec->name || $rec->oldCode != $rec->code) {
+			core_Cache::remove('cat_Products', "productsMeta");
         }
     }
     
