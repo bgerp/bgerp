@@ -163,7 +163,7 @@ class techno2_Setup extends core_ProtoSetup
     	$oldClass = techno_Specifications::getClassId();
     	$gpClass = techno_GeneralProducts::getClassId();
     	
-    	$docsArr = array('sales_SalesDetails', 'sales_InvoiceDetails', 'store_ShipmentOrderDetails', 'store_ReceiptDetails', 'sales_ServicesDetails', 'purchase_InvoiceDetails', 'purchase_PurchasesDetails', 'purchase_ServicesDetails');
+    	$docsArr = array('sales_SalesDetails', 'sales_InvoiceDetails', 'store_ShipmentOrderDetails', 'store_ReceiptDetails', 'sales_ServicesDetails', 'purchase_InvoiceDetails', 'purchase_PurchasesDetails', 'purchase_ServicesDetails', 'sales_QuotationsDetails');
     	
     	$nQuery = techno2_SpecificationDoc::getQuery();
     	$nQuery->where("#state = 'active'");
