@@ -101,6 +101,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
 			if($form->getField('packagingId', FALSE)){
 				$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
+				unset($form->getFieldType('packagingId')->params['allowEmpty']);
 			}
 	
 			// Само при рефреш слагаме основната опаковка за дефолт
