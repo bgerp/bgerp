@@ -108,6 +108,24 @@ class techno2_SpecTplCache extends core_Master
 
 
 	/**
+	 * Подготовка на филтър формата
+	 */
+	public static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		$data->listFilter->FLD("docId", "key(mvc=techno2_SpecificationDoc,select=title,allowEmpty)", "input,caption=Спецификация");
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->showFields = 'docId';
+		
+		$data->listFilter->input(NULL, 'silent');
+		
+		if(isset($data->listFilter->rec->docId)){
+			$data->query->where("#specId = '{$data->listFilter->rec->docId}'");
+		}
+	}
+	
+	
+	/**
 	 * След подготовка на туклбара на списъчния изглед
 	 *
 	 * @param core_Mvc $mvc
