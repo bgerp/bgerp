@@ -177,7 +177,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		$tpl = $this->renderEmbeddedData($data);
 		
-		$title = ht::createLinkRef($this->ProductRec->getTitleById(), array($this->ProductRec->instance, 'single', $this->ProductRec->that));
+		$title = ht::createLinkRef($this->ProductRec->getProductTitle(), array($this->ProductRec->instance, 'single', $this->ProductRec->that));
 		$tpl->removeBlock('INFORMATION');
 		$tpl->replace($title, "TITLE");
 		
