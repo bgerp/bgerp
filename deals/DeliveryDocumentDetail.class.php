@@ -232,7 +232,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				$rec = &$data->recs[$i];
 				$ProductManager = cls::get($rec->classId);
 		
-				$row->productId = $ProductManager->getTitleById($rec->productId);
+				$row->productId = $ProductManager->getProductTitle($rec->productId);
 				$haveDiscount = $haveDiscount || !empty($rec->discount);
 					 
 				if (empty($rec->packagingId)) {
