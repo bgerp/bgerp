@@ -3,7 +3,7 @@
 /**
  * URL за подаване на сигнал за поддръжка на bgERP
  */
-defIfNot('BGERP_SUPPORT_URL', '//experta.bg/support_Issues/new/?systemId=1');
+defIfNot('BGERP_SUPPORT_URL', 'https://experta.bg/support_Issues/new/?systemId=1');
 
 /**
  * Клас 'page_InternalFooter' - Долния завършек на страницата

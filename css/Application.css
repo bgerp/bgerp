@@ -3793,7 +3793,29 @@ only screen and (max-width: 320px) {
   _overflow: auto !important; }
 
 .preview-label {
-  margin-bottom: 10px; }
+  margin-top: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #dddddd;
+  border-radius: 5px;
+  box-shadow: 0 0 1px #aaaaaa;
+  display: inline-block;
+  position: relative; }
+  .preview-label .legend {
+    position: absolute;
+    left: 20px;
+    top: -15px;
+    display: inline-block;
+    border: 1px solid #dddddd;
+    box-shadow: 0 0 1px #bbbbbb;
+    background-color: white;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -ms-border-radius: 5px;
+    border-radius: 5px;
+    padding: 5px 10px; }
+  .preview-label > div {
+    width: auto !important;
+    height: auto !important; }
 
 .cd-l1 {
   color: green; }

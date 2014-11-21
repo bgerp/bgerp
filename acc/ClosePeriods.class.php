@@ -136,11 +136,12 @@ class acc_ClosePeriods extends core_Master
      */
     function description()
     {
-    	$this->FLD("periodId", 'key(mvc=acc_Periods, select=title)', 'caption=Период,mandatory,silent');
-    	$this->FLD("amountVatGroup1", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->A');
-    	$this->FLD("amountVatGroup2", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->Б');
-    	$this->FLD("amountVatGroup3", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->В');
-    	$this->FLD("amountVatGroup4", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->Г');
+    	$this->FLD("periodId", 'key(mvc=acc_Periods, select=title, allowEmpty)', 'caption=Период,mandatory,silent');
+    	$this->FLD("amountFromInvoices", 'double(decimals=2)', 'input=none,caption=Сума от фактури с касови бележки');
+    	$this->FLD("amountVatGroup1", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->A,notNull,default=0');
+    	$this->FLD("amountVatGroup2", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->Б,notNull,default=0');
+    	$this->FLD("amountVatGroup3", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->В,notNull,default=0');
+    	$this->FLD("amountVatGroup4", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->Г,notNull,default=0');
     	
     	$this->FLD('state',
     			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)',
@@ -160,6 +161,8 @@ class acc_ClosePeriods extends core_Master
     	$pQuery = acc_Periods::getQuery();
     	$pQuery->where("#state = 'pending'");
     	
+    	$data->form->addAttr('periodId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
+    	
     	$options = acc_Periods::makeArray4Select($select, array("#state = 'active' || #state = 'pending'", $root));
     	$data->form->setOptions('periodId', $options);
     	
@@ -168,6 +171,14 @@ class acc_ClosePeriods extends core_Master
     	}
     	
     	$data->form->setDefault('valior', dt::today());
+    	
+    	if(isset($data->form->rec->periodId)){
+    		$pTo = acc_Periods::fetchField($data->form->rec->periodId, 'end');
+    		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($pTo);
+    		foreach (range(1, 4) as $i){
+    			$data->form->setField("amountVatGroup{$i}", "unit={$baseCurrencyCode}");
+    		}
+    	}
     }
     
     
@@ -181,9 +192,13 @@ class acc_ClosePeriods extends core_Master
     {
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
-    		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}' AND #id != {$rec->id}")){
+    		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}' AND #id != '{$rec->id}'")){
     			$form->setError("periodId", "Има вече активиран/чернова документ за избрания период");
     		}
+    		
+    		// От избрания период извличаме сумата на фактурите с касова бележка
+    		$periodRec = acc_Periods::fetch($rec->periodId);
+    		$rec->amountFromInvoices = sales_Invoices::getAmountInCash($periodRec->start, $periodRec->end);
     	}
     }
     
@@ -213,6 +228,12 @@ class acc_ClosePeriods extends core_Master
     			$Date = cls::get('type_Date');
     			$row->valior = $Date->toVerbal($valior);
     		}
+    		
+    		$Double = cls::get('type_Double');
+    		$Double->params['decimals'] = 2;
+    		
+    		$rec->amountWithoutInvoice = ($rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4) - $rec->amountFromInvoices;
+    		$row->amountWithoutInvoice = $Double->toVerbal($rec->amountWithoutInvoice);
     	}
     	
     	$balanceid = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
@@ -246,8 +267,8 @@ class acc_ClosePeriods extends core_Master
     
     	$row = new stdClass();
     
-    	$row->title = tr("Приключване на период");
-    
+    	$row->title = $this->getRecTitle($rec);
+    	$row->subTitle = $this->getVerbal($rec, 'periodId');
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->recTitle = $row->title;
@@ -280,7 +301,7 @@ class acc_ClosePeriods extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'restore' || $action == 'conto') && isset($rec)){
-    		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}' AND #id != {$rec->id}")){
+    		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}' AND #id != '{$rec->id}'")){
     			$res = 'no_one';
     		}
     	}

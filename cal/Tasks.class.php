@@ -19,152 +19,152 @@ class cal_Tasks extends core_Master
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
-    var $defaultFolder = FALSE;
+    public $defaultFolder = FALSE;
   
 
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf';
+    public $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, 
+    public $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, 
     				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin';
     
 
     /**
      * Името на полито, по което плъгина GroupByDate ще групира редовете
      */
-    var $groupByDateField = 'timeStart';
+    public $groupByDateField = 'timeStart';
     
 
     /**
      * Какви детайли има този мастер
      */
-    var $details = 'cal_TaskProgresses, cal_TaskConditions';
+    public $details = 'cal_TaskProgresses, cal_TaskConditions';
 
     
     /**
      * Заглавие
      */
-    var $title = "Задачи";
+    public $title = "Задачи";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Задача";
+    public $singleTitle = "Задача";
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, sharedUsers';
+    public $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, sharedUsers';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, description';
+    public $searchFields = 'title, description';
 	
 	
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Кои полета да се извличат при изтриване
      */
-    var $fetchFieldsBeforeDelete = 'id';
+    public $fetchFieldsBeforeDelete = 'id';
     
     
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    public $canList = 'powerUser';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
 
 
     /**
      * 
      */
-    var $canSingle = 'powerUser';
+    public $canSingle = 'powerUser';
     
     
     /**
      * Кой има право да приключва?
      */
-    var $canChangeTaskState = 'powerUser';
+    public $canChangeTaskState = 'powerUser';
     
     
     /**
      * Кой има право да затваря задачите?
      */
-    var $canClose = 'powerUser';
+    public $canClose = 'powerUser';
     
     
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'powerUser, admin, ceo';
+    public $canChangerec = 'powerUser, admin, ceo';
     
     
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/task-normal.png';
+    public $singleIcon = 'img/16/task-normal.png';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'cal/tpl/SingleLayoutTasks.shtml';
+    public $singleLayoutFile = 'cal/tpl/SingleLayoutTasks.shtml';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Tsk";
+    public $abbr = "Tsk";
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "1.3|Общи"; 
+    public $newBtnGroup = "1.3|Общи"; 
     
     static $view = array(
 						    'WeekHour' => 1,
@@ -176,8 +176,18 @@ class cal_Tasks extends core_Master
     			            'Years'=> 7,
     				);
     				
-     var $filterFieldDateFrom = 'timeStart';
-     var $filterFieldDateTo = 'timeEnd';
+     public $filterFieldDateFrom = 'timeStart';
+     public $filterFieldDateTo = 'timeEnd';
+     
+     /**
+     * Предефинирани подредби на листовия изглед
+     */
+    public $listOrderBy = array(
+        'all'    => array('Всички','all=По началото'),
+        'onStart'    => array('По началото','timeStart=По началото'),
+        'onEnd'          => array('По края', 'timeEnd=По края'),
+        'noStartEnd'      => array('Без начало и край', 'noStartEnd=Без начало и край'),
+        );
     
      
     /**
@@ -619,13 +629,24 @@ class cal_Tasks extends core_Master
     	$cu = core_Users::getCurrent();
    
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('from', 'date', 'caption=От,input,silent');
-        $data->listFilter->FNC('to', 'date', 'caption=До,input,silent');
+        $data->listFilter->FNC('from', 'date', 'caption=От,input=none');
+        $data->listFilter->FNC('to', 'date', 'caption=До,input=none');
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('Chart')));
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('View')));
         $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,pending=Чакащи,closed=Приключени)', 'caption=Състояние,input,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('stateTask')));
-          
+        
+        // Подготовка на полето за подредба
+        foreach($mvc->listOrderBy as $key => $attr) {
+            $options[$key] = $attr[0];
+        }
+        $orderType = cls::get('type_Enum');
+        
+        $orderType->options = $options;
+        //bp(key($orderType->options));
+        //$orderType->defVal();
+        $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit();")));
+
         $data->listFilter->view = 'vertical';
         $data->listFilter->title = 'Задачи';
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
@@ -638,6 +659,10 @@ class cal_Tasks extends core_Master
             $data->listFilter->rec->stateTask = 'all';
 	  	}
 	  	
+	  	if(!$data->listFilter->rec->order) {
+	  	   $data->listFilter->rec->order = 'all'; 
+	  	}
+	  	
 	  	$data->listFilter->setDefault('from', date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
 		$data->listFilter->setDefault('to', date("Y-m-t",strtotime("+1 months", dt::mysql2timestamp(dt::now()))));
 	  	
@@ -647,16 +672,22 @@ class cal_Tasks extends core_Master
         // на модела ще се появят
         if ($data->action === "list") {
         	
-        	$data->listFilter->showFields .= 'search, from, to, selectedUsers, stateTask';
+        	$data->listFilter->showFields .= 'search,selectedUsers,order, stateTask';
         } else {
         	$data->listFilter->showFields .= 'selectedUsers';
         }
-        $data->listFilter->input('from, to, selectedUsers, Chart, View, stateTask', 'silent');
+        $data->listFilter->input('selectedUsers, Chart, View, stateTask, order', 'silent');
         
     	$data->query->orderBy("#timeStart=ASC,#state=DESC");
 
         if ($data->action === 'list') { 
         	$chart = Request::get('Chart');
+        	
+            if ($data->listFilter->rec->order == 'onStart' || $data->listFilter->rec->order == 'onEnd') {
+                $data->listFilter->showFields = 'search,selectedUsers,order, from, to,stateTask';
+            	$data->listFilter->input('from, to', 'silent');
+            }
+
         	
             if ($data->listFilter->rec->selectedUsers != 'all_users') {  
 	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
@@ -681,6 +712,43 @@ class cal_Tasks extends core_Master
 		    if (count($dateRange) == 2) {
 		            sort($dateRange);
 		    }
+		    
+		    if ($data->listFilter->rec->order == 'onStart') {
+		        
+		        $data->query->where("(#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeStart >= '{$dateRange[0]}')");
+		    }
+		    
+		    if ($data->listFilter->rec->order == 'noStartEnd') {
+		        
+		        $data->query->where("(#timeStart IS NULL AND #timeDuration IS NULL AND #timeEnd IS NULL)");
+		    }
+		    
+		    if ($data->listFilter->rec->order == 'onEnd') {
+		        $data->query->where("(#timeEnd IS NOT NULL AND #timeEnd <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
+	        		              OR
+	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
+	        		              ");
+		    }
+		    
+            if ($data->listFilter->rec->order == 'onStart') {
+    		    $data->title = 'Търсене на задачи по начало на задачата в периода |*<span class="green">"' .
+    			$data->listFilter->getFieldType('from')->toVerbal($data->listFilter->rec->from) . ' - 
+    			' .$data->listFilter->getFieldType('to')->toVerbal($data->listFilter->rec->to) . '"</span>';
+    		} elseif ($data->listFilter->rec->order == 'onEnd') {
+    		    $data->title = 'Търсене на задачи по края на задачата в периода |*<span class="green">"' .
+    			$data->listFilter->getFieldType('from')->toVerbal($data->listFilter->rec->from) . ' - 
+    			' .$data->listFilter->getFieldType('to')->toVerbal($data->listFilter->rec->to) . '"</span>';
+    		} elseif ($data->listFilter->rec->order == 'noStartEnd') {
+    		    $data->title = 'Търсене на задачи |*<span class="green">"' .
+    		    'без начало и край"</span>';
+    		} elseif ($data->listFilter->rec->search) {
+    			$data->title = 'Търсене на задачи отговарящи на |*<span class="green">"' .
+    			$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
+    		} else {
+    		    //$data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #sharedUsers, '|%')");
+    			$data->title = 'Задачите на |*<span class="green">' .
+    			$data->listFilter->getFieldType('selectedUsers')->toVerbal($data->listFilter->rec->selectedUsers) . '</span>';
+    		}
 		        
 		    if ($chart == 'Gantt') {   
 		        	$data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
@@ -690,15 +758,6 @@ class cal_Tasks extends core_Master
 	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND  #timeStart >= '{$dateRange[0]}')
 	        		              ");
             }
-            
-            $data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
-                                OR
-                                (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
-                                OR
-                                (#timeStart IS NULL AND #timeDuration IS NULL AND #timeEnd IS NULL)
-                                OR
-                                (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeStart >= '{$dateRange[0]}')
-                                ");
         }
     }
 

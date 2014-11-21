@@ -334,6 +334,7 @@ class acc_Balances extends core_Master
         	// Зареждаме баланса
             $bD->loadBalance($lastRec->id, $isMiddleBalance);
             $firstDay = dt::addDays(1, $lastRec->toDate);
+            $firstDay = dt::verbal2mysql($firstDay, FALSE);
         } else {
             $firstDay = self::TIME_BEGIN;
         }

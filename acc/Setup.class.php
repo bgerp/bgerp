@@ -93,6 +93,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_JournalDetails',
         'acc_Features',
     	'acc_VatGroups',
+    	'acc_ClosePeriods',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemNums2',
     );

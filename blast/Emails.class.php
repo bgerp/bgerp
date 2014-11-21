@@ -238,6 +238,8 @@ class blast_Emails extends core_Master
         $rec->subject = $subject;
         $rec->state = 'draft';
         
+        expect($rec->perSrcClassId && $rec->perSrcObjectId, $rec);
+        
         // Задаваме стойности за останалите полета
         foreach ((array)$otherParams as $fieldName => $value) {
             if ($rec->$fieldName) continue;
@@ -248,6 +250,8 @@ class blast_Emails extends core_Master
         if (!$rec->from) {
             $rec->from = email_Outgoings::getDefaultInboxId();
         }
+        
+        expect($rec->from, 'Не може да се определи имейл по подразбиране за изпращача');
         
         // Записваме
         $id = self::save($rec);
@@ -266,6 +270,8 @@ class blast_Emails extends core_Master
     {
         // Записа
         $rec = self::getRec($id);
+        
+        expect($rec, 'Няма такъв запис');
         
         // Обновяваме списъка с имейлите
         $updateCnt = self::updateEmailList($id);
@@ -292,6 +298,8 @@ class blast_Emails extends core_Master
         // Записа
         $rec = self::getRec($id);
         
+        expect($rec, 'Няма такъв запис');
+        
         // Инстанция на класа за персонализация
         $srcClsInst = cls::get($rec->perSrcClassId);
         
@@ -303,6 +311,8 @@ class blast_Emails extends core_Master
         
         // Масив с всички имейл полета
         $emailFieldsArr = self::getEmailFields($descArr);
+        
+        expect($emailFieldsArr, 'Трябва да има поне едно поле за имейли');
         
         // Обновяваме листа и връщаме броя на обновленията
         $updateCnt = blast_EmailSend::updateList($rec->id, $personalizationArr, $emailFieldsArr);
@@ -824,7 +834,8 @@ class blast_Emails extends core_Master
         
         // Обхождаме всички подадени полета и проверяваме дали не са инстанции на type_Email или type_Emails
         foreach ((array)$descArr as $name => $type) {
-            if (($type instanceof type_Email) || ($type instanceof type_Emails)) {
+            $lName = strtolower($name);
+            if (($lName == 'email') || ($lName == 'emails') || ($type instanceof type_Email) || ($type instanceof type_Emails)) {
                 $fieldsArr[$name] = $type;
             }
         }

@@ -1714,7 +1714,7 @@ class crm_Persons extends core_Master
 		    $form->setField('buzLocationId', 'input=none');
         }
 
-        if(!$form->rec->id && $form->rec->buzCompanyId) {  
+        if(!$form->rec->id && $form->rec->buzCompanyId && isset($_GET['buzCompanyId'])) {  
             $form->setReadOnly('buzCompanyId');
         } else {
             $form->addAttr('buzCompanyId', array('onchange' => "addCmdRefresh(this.form); if(document.forms['{$form->formAttr['id']}'].elements['buzLocationId'] != undefined) document.forms['{$form->formAttr['id']}'].elements['buzLocationId'].value ='';this.form.submit();"));
