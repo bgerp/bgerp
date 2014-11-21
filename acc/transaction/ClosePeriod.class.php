@@ -67,14 +67,14 @@ class acc_transaction_ClosePeriod
     	$this->balanceId =  acc_Balances::fetchField("#periodId = {$this->periodRec->id}");
     	$incomeRes = array();
     	
-    	$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
+    	//$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
     	if(count($entries1)){
-    		$result->entries = array_merge($result->entries, $entries1);
+    		//$result->entries = array_merge($result->entries, $entries1);
     	}
     	
-    	$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
+    	//$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
     	if(count($entries2)){
-    		$result->entries = array_merge($result->entries, $entries2);
+    		//$result->entries = array_merge($result->entries, $entries2);
     	}
     	
     	$entries3 = $this->transferVat($result->totalAmount, $rec);
@@ -91,12 +91,44 @@ class acc_transaction_ClosePeriod
     }
     
     
+    /**
+     * Прехвърляне на част от начисленото по сметка 4535 - "ДДС по касови бележки" ДДС по сметка 4532 - "Начислен ДДС за продажбите"
+     * 
+     * 		Dt: 4535 - ДДС по касови бележки
+     *  	Ct: 4532 - Начислен ДДС за продажбите
+     *  
+     * Приспадане на платеното ("Начислен ДДС за покупките") от полученото (Начислен ДДС за продажбите) ДДС
+     *  
+     *  	Dt: 4532 - Начислен ДДС за продажбите
+     *  	Ct: 4531 - Начислен ДДС за покупките
+     *  
+     * Ако с/ка 4532 има кредитно (или нулево) салдо - това означава, че имаме ДДС за внасяне
+     *  
+     *  	Dt: 4532 - Начислен ДДС за продажбите
+     *  	Ct: 4539 - ДДС за внасяне
+     *  
+     * Ако с/ка 4532 има дебитно салдо - това означава, че имаме ДДС за възстановяване
+     * 
+     * 		Dt: 4538 - ДДС за възстановяване
+     * 		Ct: 4532 - Начислен ДДС за продажбите
+     * 
+     * Приспадане на евентуално налично салдо по с/ка 4538 - "ДДС за възстановяване" от евентуално начисленото в настоящия период "ДДС за внасяне" по с/ка 4539
+     * 
+     * 		Dt: 4539 - ДДС за внасяне
+     * 		Ct: 4538 - ДДС за възстановяване
+     * 
+     * Прехвърляне на останалото кредитно салдо в с/ка 4535 - "ДДС по касови бележки" като извънреден приход -
+     * 
+     * 		Dt: 4535 - ДДС по касови бележки
+     * 		Ct: 123 - Печалби и загуби от текущата година
+     */
     private function transferVat(&$total, $rec)
     {
     	// Общата сума въведена в документа извлечена от касовия апарат
     	$amountFromFiscPrinter = $rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4;
-    	$invoicesCashAmount = sales_Invoices::getAmountInCash($this->periodRec->start, $this->periodRec->end);
-    	$diffAmount = $amountFromFiscPrinter - $invoicesCashAmount;
+    	
+    	// Колко е сумата по фактури без касови бележки
+    	$diffAmount = $amountFromFiscPrinter - $rec->amountFromInvoices;
     	
     	$entries = array();
     	
@@ -140,6 +172,19 @@ class acc_transaction_ClosePeriod
     	 
     	$total += abs($amount);
     	 
+    	if($amount <= 0){
+    		$bQuery = acc_BalanceDetails::getQuery();
+    		acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4538');
+    		$bQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
+    		$amount4538 = $bQuery->fetch()->blAmount;
+    		
+    		if($amount4538){
+    			$rAmount = ($amount4538 > abs($amount)) ? abs($amount) : $amount4538;
+    			$entries[] = array('amount' => $rAmount, 'debit' => array('4539'), 'credit' => array('4538'));
+    			$total += $rAmount;
+    		}
+    	}
+    	
     	return $entries;
     }
     
