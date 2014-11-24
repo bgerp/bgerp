@@ -1151,9 +1151,7 @@ class cat_Products extends core_Embedder {
      */
     public function getProductTitle($id)
     {
-    	$rec = $this->fetchRec($id);
-    	 
-    	return $rec->name;
+    	return $this->getTitleById($id);
     }
     
     
