@@ -177,7 +177,7 @@ class acc_Periods extends core_Manager
     public static function on_AfterCreate($mvc, $rec)
     {
         // Форсираме перо за месеца и годината на периода
-        static::forceYearAndMonthItems($rec->end);
+        static::forceYearItem($rec->end);
     }
     
     
@@ -186,27 +186,17 @@ class acc_Periods extends core_Manager
      *
      * @param datetime $date - дата
      * @return stdClass -> year - ид на перото на годината
-     * -> month - ид на перото на месеца
      */
-    public static function forceYearAndMonthItems($date)
+    public static function forceYearItem($date)
     {
-        // Взимаме пълното наименование на месеца
-        $month = dt::mysql2verbal($date, 'F');
-        
         // Коя е годината
         $year = dt::mysql2verbal($date, 'Y');
-        
-        // Кода на месеца
-        $monthNum = dt::mysql2verbal($date, 'm');
-        
-        // Ако има перо за този месец го връщаме, ако няма създаваме ново
-        $monthItem = acc_Items::forceSystemItem($month, $monthNum, 'month');
         
         // Ако има перо за тази година го връщаме, ако няма създаваме ново
         $yearItem = acc_Items::forceSystemItem($year, $year, 'year');
         
         // Връщаме ид-то на перата на годината и месеца
-        return (object)array('year' => $yearItem->id, 'month' => $monthItem->id);
+        return (object)array('year' => $yearItem->id);
     }
     
         

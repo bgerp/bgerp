@@ -61,7 +61,7 @@ class acc_transaction_ClosePeriod
     			'entries' => array()
     	);
     	
-    	$this->date = acc_Periods::forceYearAndMonthItems($rec->valior);
+    	$this->date = acc_Periods::forceYearItem($rec->valior);
     	
     	$total = $incomeFromProducts = 0;
     	$this->balanceId =  acc_Balances::fetchField("#periodId = {$this->periodRec->id}");
@@ -142,7 +142,7 @@ class acc_transaction_ClosePeriod
     	
     	$amount4535 += $diffAmount;
     	
-    	$entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year, $this->date->month));
+    	$entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year));
     	$total += abs($amount4535);
     	
     	$bQuery = acc_BalanceDetails::getQuery();
@@ -306,7 +306,7 @@ class acc_transaction_ClosePeriod
 		foreach ($incomeRes as $ctrItem => $arr){
     		foreach ($arr as $dealItem => $sum){
     			$arr1 = array('700', $ctrItem, $dealItem);
-    			$arr2 = array('123', $this->date->year, $this->date->month);
+    			$arr2 = array('123', $this->date->year);
     			$total += abs($sum);
     				 
     			// Дебитно салдо
@@ -365,10 +365,10 @@ class acc_transaction_ClosePeriod
     		
     		if($dRec->blAmount > 0){
     			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('624'), 'credit' => array('481', $dRec->ent1Id, 'quantity' => $dRec->blQuantity));
-    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('123', $this->date->year, $this->date->month), 'credit' => array('624'));
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('123', $this->date->year), 'credit' => array('624'));
     		} else {
     			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('481', $dRec->ent1Id, 'quantity' => $dRec->blQuantity), 'credit' => array('724'));
-    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('724'), 'credit' => array('123', $this->date->year, $this->date->month));
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('724'), 'credit' => array('123', $this->date->year));
     		}
     		
     		$total += 2 * abs($dRec->blAmount);
