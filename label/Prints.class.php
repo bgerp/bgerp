@@ -185,6 +185,36 @@ class label_Prints extends core_Master
             return new Redirect(array($this, 'list', 'saveId' => $id));
         }
         
+        $currUserId = (int) core_Users::getCurrent();
+        
+        $mediaKeys = array_keys($mediaArr);
+        if (!trim($mediaKeys[0])) {
+            unset($mediaKeys[0]);
+        }
+        
+        $mediaId = NULL;
+        
+        if (count((array)$mediaKeys) > 1) {
+            // По подразбиране да е избрана медията, на която е отпечатвано последно от потребителя
+            $query = $this->getQuery();
+            $query->orWhereArr('mediaId', $mediaKeys);
+            $query->where("#modifiedBy = '{$currUserId}'");
+            $query->orderBy("modifiedOn", 'DESC');
+            $rec = $query->fetch();
+            
+            if ($rec) {
+                $mediaId = $rec->mediaId;
+            }
+        } else {
+            
+            // Ако има само една медия, той да е избран по-подразбиране
+            $mediaId = reset($mediaKeys);
+        }
+        
+        if ($mediaId) {
+            $form->setDefault('mediaId', $mediaId);
+        }
+        
         $form->setReadOnly('labelId');
         $form->setDefault('copiesCnt', 1);
         
