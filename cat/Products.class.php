@@ -327,6 +327,18 @@ class cat_Products extends core_Embedder {
     		$rec->oldName = $oldRec->name;
     		$rec->oldCode = $oldRec->code;
     	}
+    	
+    	if(isset($rec->csv_name)){
+    		$rec->name = $rec->csv_name;
+    		$metas = $mvc->getMetaData($rec->groups);
+    		
+    		$rec->innerForm = (object)array('measureId' => $rec->measureId);
+    		if(isset($metas['canStore'])){
+    			$rec->innerClass = cat_GeneralProductDriver::getClassId();
+    		} else {
+    			$rec->innerClass = cat_GeneralServiceDriver::getClassId();
+    		}
+    	}
     }
     
     
@@ -815,7 +827,7 @@ class cat_Products extends core_Embedder {
     {
     	$file = "cat/csv/Products.csv";
     	$fields = array( 
-	    	0 => "name", 
+	    	0 => "csv_name", 
 	    	1 => "code", 
 	    	2 => "csv_measureId", 
 	    	3 => "csv_groups",
