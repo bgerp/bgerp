@@ -41,6 +41,12 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Метод на плащане";
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'ceo, cond, admin';
