@@ -118,7 +118,7 @@ class label_Prints extends core_Master
      */
     function description()
     {
-        $this->FLD('labelId', 'key(mvc=label_Labels, select=title)', 'caption=Етикет, mandatory, width=100%, silent');
+        $this->FLD('labelId', 'key(mvc=label_Labels, select=title)', 'caption=Етикет, mandatory, silent');
         $this->FLD('mediaId', 'key(mvc=label_Media, select=title)', 'caption=Медия, silent, mandatory, notNull');
         
         $this->FLD('printedCnt', 'int', 'caption=Брой отпечатвания, mandatory, notNull, input=none');
@@ -358,7 +358,7 @@ class label_Prints extends core_Master
                 $modifiedDate = dt::mysql2verbal($rec->modifiedOn, "d.m.Y H:i");
                 $warning = "Този етикет е бил отпечатван нa|* $modifiedDate. |Искате ли да го отпечатате още веднъж|*?";
             }
-            $row->printedCnt = ht::createBtn('Печат', array($mvc, 'single', $rec->id), $warning, '_blank', 'ef_icon=img/16/printer.png, title=Отпечатване, class=fleft') . $row->printedCnt;
+            $row->printedCnt = ht::createBtn('Печат', array($mvc, 'single', $rec->id), $warning, '_blank', 'ef_icon=img/16/printer.png, title=Отпечатване, class=fleft') . "<span class='fright' style='display: inline-block; margin-top: 4px;'>" . $row->printedCnt . "</span>";
         }
         
         if (label_Labels::haveRightFor('single', $rec->labelId)) {
