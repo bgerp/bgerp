@@ -1153,9 +1153,7 @@ class cat_Products extends core_Master {
      */
     public function getProductTitle($id)
     {
-    	$rec = $this->fetchRec($id);
-    	
-    	return $rec->name;
+    	return $this->getTitleById($id);
     }
     
     
