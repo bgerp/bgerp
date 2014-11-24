@@ -1,5 +1,5 @@
 [#SingleToolbar#]
-<div class='document'>
+<div class='document closePeriod'>
     <!--ET_BEGIN blank-->
     [#blank#]
     <!--ET_END blank-->
@@ -24,7 +24,7 @@
         	<td class='aright'>[#amountFromInvoices#]</td>
         </tr>
         <tr>
-        	<td colspan='2'>|Суми от касов апарат|*</td>
+        	<td colspan='2' class='centered'>|Суми от касов апарат|*</td>
         </tr>
         <!--ET_BEGIN amountVatGroup1-->
         <tr>

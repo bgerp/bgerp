@@ -2426,6 +2426,9 @@ div.location.public {
 /*
  * шаблон за журнал
  */
+.closePeriod .listTable tr > th:first-child {
+  width: auto; }
+
 .btn-group .button {
   display: inline-block;
   width: auto !important; }
