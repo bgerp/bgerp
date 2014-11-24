@@ -18,12 +18,14 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_ExchangeDocument';
+    
     
     /**
      * Заглавие на мениджъра
      */
     public $title = "Банкови обмени на валути";
+    
     
     /**
      * Неща, подлежащи на начално зареждане
@@ -31,75 +33,90 @@ class bank_ExchangeDocument extends core_Master
     public $loadList = 'plg_RowTools, bank_Wrapper, plg_Printing, acc_plg_Contable,
          plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, doc_SharablePlg';
     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = "tools=Пулт, number=Номер, valior, reason, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
+    
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'tools';
     
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'reason';
+    
     
     /**
      * Заглавие на единичен документ
      */
     public $singleTitle = 'Банкова обмяна на валута';
     
+    
     /**
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/money_exchange.png';
+    
     
     /**
      * Абревиатура
      */
     public $abbr = "Sv";
     
+    
     /**
      * Кой има право да чете?
      */
     public $canRead = 'bank, ceo';
+    
     
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'bank,ceo';
     
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'bank,ceo';
+    
     
     /**
      * Кой може да пише?
      */
     public $canWrite = 'bank, ceo';
     
+    
     /**
      * Кой може да го контира?
      */
     public $canConto = 'acc, bank, ceo';
+    
     
     /**
      * Кой може да сторнира
      */
     public $canRevert = 'bank, ceo';
     
+    
     /**
      * Файл с шаблон за единичен изглед на статия
      */
     public $singleLayoutFile = 'bank/tpl/SingleExchangeDocument.shtml';
     
+    
     /**
      * Групиране на документите
      */
     public $newBtnGroup = "4.7|Финанси";
+    
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
@@ -248,82 +265,6 @@ class bank_ExchangeDocument extends core_Master
             $row->peroTo = bank_OwnAccounts::getHyperLink($rec->peroTo, TRUE);
             $row->peroFrom = bank_OwnAccounts::getHyperLink($rec->peroFrom, TRUE);
         }
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-     * Създава транзакция която се записва в Журнала, при контирането
-     *
-     * Ако избраната валута е в основна валута
-     *
-     * Dt: 503. Разплащателни сметки             (Банкова сметка, Валута)
-     * Ct: 503. Разплащателни сметки             (Банкова сметка, Валута)
-     *
-     * Ако е в друга валута различна от основната
-     *
-     * Dt: 503. Разплащателни сметки             (Банкова сметка, Валута)
-     * Ct: 481. Разчети по курсови разлики         (Валута)
-     *
-     * Dt: 481. Разчети по курсови разлики         (Валута)
-     * Ct: 503. Разплащателни сметки             (Банкова сметка, Валута)
-     */
-    public static function getTransaction($id)
-    {
-        // Извличаме записа
-        expect($rec = self::fetchRec($id));
-        
-        $cOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom, 'currencyId');
-        $dOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
-        
-        $toBank = array('503',
-            array('bank_OwnAccounts', $rec->peroTo),
-            array('currency_Currencies', $dOwnAcc->currencyId),
-            'quantity' => $rec->debitQuantity);
-        
-        $fromBank = array('503',
-            array('bank_OwnAccounts', $rec->peroFrom),
-            array('currency_Currencies', $cOwnAcc->currencyId),
-            'quantity' => $rec->creditQuantity);
-        
-        if($cOwnAcc->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
-            $entry = array('amount' => $rec->debitQuantity * $rec->debitPrice, 'debit' => $toBank, 'credit' => $fromBank);
-            $entry = array($entry);
-        } else {
-            $entry = array();
-            $entry[] = array('amount' => $rec->debitQuantity,
-                'debit' => $toBank,
-                'credit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity));
-            $entry[] = array('amount' => $rec->debitQuantity,
-                'debit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity),
-                'credit' => $fromBank);
-        }
-        
-        // Подготвяме информацията която ще записваме в Журнала
-        $result = (object)array(
-            'reason' => $rec->reason,   // основанието за ордера
-            'valior' => $rec->valior,   // датата на ордера
-            'entries' => $entry
-        );
-        
-        return $result;
-    }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        
-        expect($rec->id);
-        
-        $rec->state = 'closed';
-        
-        return self::save($rec);
     }
     
     
