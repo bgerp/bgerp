@@ -26,7 +26,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Приключвания на периоди";
+    public $title = "Приключване на периоди";
     
     
     /**
@@ -116,7 +116,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'acc/tpl/SingleLayoutClosePeriods.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleLayoutClosePeriods.shtml';
     
     
     /**
@@ -227,14 +227,16 @@ class acc_ClosePeriods extends core_Master
     		$Double->params['decimals'] = 2;
     		
     		$rec->amountWithoutInvoice = ($rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4) - $rec->amountFromInvoices;
-    		$row->amountWithoutInvoice = $Double->toVerbal($rec->amountWithoutInvoice);
+    		$row->amountWithoutInvoice = $Double->toVerbal($rec->amountWithoutInvoice). " <span class='cCode'>{$row->baseCurrencyId}</span>";
+    	
+    		$row->amountFromInvoices .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
     	}
     	
     	$row->title = $mvc->getHyperLink($rec->id, TRUE);
     	$balanceId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
     	
     	if(acc_Balances::haveRightFor('single', $balanceId)){
-    		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId));
+    		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId), NULL, 'ef_icon=img/16/table_sum.png');
     	}
     }
     
@@ -314,7 +316,7 @@ class acc_ClosePeriods extends core_Master
     {
     	$rec = &$data->rec;
     	
-    	if($rec->state == 'active'){
+    	if(acc_Balances::haveRightFor('single')){
     		$data->info = $mvc->prepareInfo($data->rec);
     	}
     }
@@ -332,6 +334,7 @@ class acc_ClosePeriods extends core_Master
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	
+    	// Намираме кои сметки са засегнати от документа
     	$accounts = array();
     	$jRec = acc_Journal::fetchByDoc($this->getClassId(), $rec->id);
     	$jQuery = acc_JournalDetails::getQuery();
@@ -342,27 +345,30 @@ class acc_ClosePeriods extends core_Master
     		$accounts[$dRec->creditAccId] = $dRec->creditAccId;
     	}
     	
-    	if(count($accounts)){
-    		$bId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
-    		$dQuery = acc_BalanceDetails::getQuery();
-    		$dQuery->where("#balanceId = {$bId}");
-    		$dQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
-    		$dQuery->in("accountId", $accounts);
+    	if(!count($accounts)) return NULL;
+    	
+    	// За всяка от тях, намираме състоянието им след контирането на документа
+    	$bId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
+    	$dQuery = acc_BalanceDetails::getQuery();
+    	$dQuery->where("#balanceId = {$bId}");
+    	$dQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
+    	$dQuery->in("accountId", $accounts);
     		 
-    		while ($dRec = $dQuery->fetch()){
-    			$nRow = new stdClass();
-    			$nRow->accountId = acc_Balances::getAccountLink($dRec->accountId, NULL, TRUE, TRUE);
-    			foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-    				$nRow->$fld = $Double->toVerbal($dRec->$fld);
-    				if($dRec->$fld < 0){
-    					$nRow->$fld = "<span class='red'>{$nRow->$fld}</span>";
-    				}
+    	// Подготвяме какво е променено по всяка сметка
+    	while ($dRec = $dQuery->fetch()){
+    		$nRow = new stdClass();
+    		$nRow->accountId = acc_Balances::getAccountLink($dRec->accountId, NULL, TRUE, TRUE);
+    		foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    			$nRow->$fld = $Double->toVerbal($dRec->$fld);
+    			if($dRec->$fld < 0){
+    				$nRow->$fld = "<span class='red'>{$nRow->$fld}</span>";
     			}
-    		
-    			$info[$dRec->accountId] = $nRow;
     		}
+    		
+    		$info[$dRec->accountId] = $nRow;
     	}
     	
+    	// Връщаме историята на направените операции
     	return $info;
     }
     
@@ -373,6 +379,8 @@ class acc_ClosePeriods extends core_Master
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	if($data->info){
+    		
+    		// Показваме таблица със състоянието на сметките
     		$table = cls::get('core_TableView', array('mvc' => cls::get('acc_BalanceDetails')));
     		$fields = array();
     		$fields['accountId']      = 'Сметка';

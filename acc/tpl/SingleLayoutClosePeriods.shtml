@@ -8,51 +8,56 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
     </div>
     <!--ET_END header-->
-    <table class='styled-table'>
+    <table class='no-border-table fleft' style='margin-top: 0;'>
     	<!--ET_BEGIN valior-->
     	<tr>
-            <td>|Вальор|*</td>
+            <td>|Вальор|*: </td>
             <td>[#valior#]</td>
         </tr>
         <!--ET_END valior-->
         <tr>
-            <td>|Период|*</td>
+            <td>|Период|*: </td>
             <td>[#periodId#]</td>
         </tr>
+    </table>
+    <table class='styled-table fright'>
         <tr>
         	<td>|Суми от фактури с касови бележки|*</td>
         	<td class='aright'>[#amountFromInvoices#]</td>
         </tr>
         <tr>
-        	<td colspan='2' class='centered'>|Суми от касов апарат|*</td>
+        	<td colspan='2'>|Суми от касов апарат|*</td>
         </tr>
         <!--ET_BEGIN amountVatGroup1-->
         <tr>
-            <td>|Група|* "А"</td>
+            <td> - |Група|* "А"</td>
             <td class='aright'>[#amountVatGroup1#]</td>
         </tr>
         <!--ET_END amountVatGroup1-->
         
         <!--ET_BEGIN amountVatGroup2-->
         <tr>
-            <td>|Група|* "Б"</td>
+            <td> - |Група|* "Б"</td>
             <td class='aright'>[#amountVatGroup2#]</td>
         </tr>
         <!--ET_END amountVatGroup2-->
         
         <!--ET_BEGIN amountVatGroup3-->
         <tr>
-            <td>|Група|* "В"</td>
+            <td> - |Група|* "В"</td>
             <td class='aright'>[#amountVatGroup3#]</td>
         </tr>
         <!--ET_END amountVatGroup3-->
         
         <!--ET_BEGIN amountVatGroup4-->
         <tr>
-            <td>|Група|* "Г"</td>
+            <td> - |Група|* "Г"</td>
             <td class='aright'>[#amountVatGroup4#]</td>
         </tr>
         <!--ET_END amountVatGroup4-->
+        <tr>
+            <td colspan="2"></td>
+        </tr>
         <tr>
         	<td>|Сума на продажбите без Фактури|*</td>
         	<td class='aright'>[#amountWithoutInvoice#]</td>
