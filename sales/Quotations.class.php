@@ -716,9 +716,4 @@ class sales_Quotations extends core_Master
     {
     	
     }
-    
-    function act_Test()
-    {
-    	
-    }
 }
