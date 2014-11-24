@@ -227,14 +227,16 @@ class acc_ClosePeriods extends core_Master
     		$Double->params['decimals'] = 2;
     		
     		$rec->amountWithoutInvoice = ($rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4) - $rec->amountFromInvoices;
-    		$row->amountWithoutInvoice = $Double->toVerbal($rec->amountWithoutInvoice);
+    		$row->amountWithoutInvoice = $Double->toVerbal($rec->amountWithoutInvoice). " <span class='cCode'>{$row->baseCurrencyId}</span>";
+    	
+    		$row->amountFromInvoices .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
     	}
     	
     	$row->title = $mvc->getHyperLink($rec->id, TRUE);
     	$balanceId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
     	
     	if(acc_Balances::haveRightFor('single', $balanceId)){
-    		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId));
+    		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId), NULL, 'ef_icon=img/16/table_sum.png');
     	}
     }
     
