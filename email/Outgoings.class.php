@@ -689,6 +689,13 @@ class email_Outgoings extends core_Master
         // Всички групови имейли
         $groupEmailsArr = type_Emails::toArray($contrData->groupEmails);
         
+        // Добавяме и имейлите до които е изпратено в същата нишка
+        $sendedToEmails = self::getSendedToEmails(NULL, $data->rec->threadId);
+        if ($sendedToEmails) {
+            $sendedToEmailsArr = type_Emails::toArray($sendedToEmails);
+            $groupEmailsArr = array_merge($groupEmailsArr, $sendedToEmailsArr);
+        }
+        
         // Премахваме нашите имейли
         $groupEmailsArr = email_Inboxes::removeOurEmails($groupEmailsArr);
         
@@ -1443,6 +1450,13 @@ class email_Outgoings extends core_Master
             $allEmailsArr = type_Emails::toArray($contrData->groupEmails);
         }
         
+        // Добавяме и имейлите до които е изпратено в същата нишка
+        $sendedToEmails = self::getSendedToEmails(NULL, $rec->threadId);
+        if ($sendedToEmails) {
+            $sendedToEmailsArr = type_Emails::toArray($sendedToEmails);
+            $allEmailsArr = array_merge($allEmailsArr, $sendedToEmailsArr);
+        }
+        
         // Всички имейли от река
         $recEmails = type_Emails::toArray($rec->email);
         
@@ -2061,7 +2075,45 @@ class email_Outgoings extends core_Master
             }
         }
         
+        // Добавяме към груповите имейли и имейлите до които им е пращано
+        if ($posting->containerId) {
+                
+            $sendedGroupEmails = self::getSendedToEmails($posting->containerId);
+            
+            if ($sendedGroupEmails) {
+                $contrData->groupEmails .= ($contrData->groupEmails) ? ", " . $sendedGroupEmails : $sendedGroupEmails;
+            }
+        }
+        
         return $contrData;
+    }
+    
+    
+    /**
+     * Връща всички имейли до които им е изпратен имейл от съответната нишка или контейнер
+     * 
+     * @param integer $containerId
+     * @param integer $threadId
+     * 
+     * @return string
+     */
+    protected static function getSendedToEmails($containerId = NULL, $threadId = NULL)
+    {
+        $sendedTo = '';
+        if (!$containerId && !$threadId) return $sendedTo;
+        $lRecsArr = log_Documents::getRecs($containerId, log_Documents::ACTION_SEND, $threadId);
+        
+        if ($lRecsArr) {
+            
+            foreach ($lRecsArr as $lRec) {
+                if (!$lRec->data->to) continue;
+            
+            
+                $sendedTo .= ($sendedTo) ? ", " . $lRec->data->to : $lRec->data->to;
+            }
+        }
+        
+        return $sendedTo;
     }
     
     
