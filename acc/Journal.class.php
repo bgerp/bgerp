@@ -421,7 +421,7 @@ class acc_Journal extends core_Master
     /**
      * Изтриване на транзакция
      */
-    public static function deleteTransaction($docClassId, $docId = NULL)
+    public static function deleteTransaction($docClassId, $docId)
     {
         $query = static::getQuery();
         $query->where("#docType = {$docClassId} AND #docId = {$docId}");
