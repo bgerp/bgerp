@@ -85,7 +85,7 @@ class purchase_transaction_CloseDeal
     		 
     		// Кеширане на перото на текущата година
     		$date = ($dealInfo->get('invoicedValior')) ? $dealInfo->get('invoicedValior') : $dealInfo->get('agreedValior');
-    		$this->date = acc_Periods::forceYearAndMonthItems($date);
+    		$this->date = acc_Periods::forceYearItem($date);
     		
     		// Създаване на запис за прехвърляне на всеки аванс
     		$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downpaymentAmounts, $firstDoc);
@@ -227,7 +227,7 @@ class purchase_transaction_CloseDeal
     						'quantity' => $blAmount));
     		
     		$entries2 = array('amount' => $blAmount,
-    							'debit' => array('123', $this->date->year, $this->date->month),
+    							'debit' => array('123', $this->date->year),
     							'credit' => array('6912',
     							array($docRec->contragentClassId, $docRec->contragentId),
     							array($firstDoc->className, $firstDoc->that)),
@@ -298,7 +298,7 @@ class purchase_transaction_CloseDeal
     
     		$entry2 = array(
     				'amount' => $amount,
-    				'debit' => array('123', $this->date->year, $this->date->month),
+    				'debit' => array('123', $this->date->year),
     				'credit' => array('6912',
     					array($docRec->contragentClassId, $docRec->contragentId),
     					array($firstDoc->className, $firstDoc->that)),
@@ -324,7 +324,7 @@ class purchase_transaction_CloseDeal
     				'debit' => array('7912',
     					array($docRec->contragentClassId, $docRec->contragentId),
     					array($firstDoc->className, $firstDoc->that)),
-    				'credit' => array('123', $this->date->year, $this->date->month));
+    				'credit' => array('123', $this->date->year));
     		
     		$totalAmount += -2 * $amount;
     	}
