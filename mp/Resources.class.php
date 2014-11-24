@@ -69,7 +69,7 @@ class mp_Resources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,title,type,createdOn,createdBy';
     
     
     /**
@@ -106,6 +106,30 @@ class mp_Resources extends core_Master
     	
     	// Поставяме уникален индекс
     	$this->setDbUnique('title');
+    }
+    
+    
+    /**
+     * Изпълнява се след създаването на модела
+     */
+    public static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$file = "mp/csv/Resources.csv";
+        $fields = array(0 => "title", 1 => 'type');
+        
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+        $res .= $cntObj->html;
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+    	$rec->createdBy = '-1';
     }
     
     
@@ -200,6 +224,12 @@ class mp_Resources extends core_Master
     {
     	if(($action == 'delete' || $action == 'reject') && isset($rec)){
     		if(mp_ObjectResources::fetchField("#resourceId = '{$rec->id}'")){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	if(($action == 'edit' || $action == 'delete') && isset($rec)){
+    		if($rec->createdBy == '-1'){
     			$res = 'no_one';
     		}
     	}
