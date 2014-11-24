@@ -58,4 +58,8 @@
         	<td class='aright'>[#amountWithoutInvoice#]</td>
         </tr>
     </table>
+    
+    <div class='overflow-scroll'>
+    [#INFO#]
+    </div>
 </div>
