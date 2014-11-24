@@ -3,7 +3,7 @@
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа accda_Da
  *
  * @category  bgerp
- * @package   findeals
+ * @package   accda
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3

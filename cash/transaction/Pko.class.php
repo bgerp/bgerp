@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа cash_Pko
  *
@@ -14,6 +16,8 @@
  */
 class cash_transaction_Pko
 {
+	
+	
     /**
      * 
      * @var cash_Pko
