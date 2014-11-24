@@ -26,7 +26,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Приключвания на периоди";
+    public $title = "Приключване на периоди";
     
     
     /**
@@ -116,7 +116,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'acc/tpl/SingleLayoutClosePeriods.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleLayoutClosePeriods.shtml';
     
     
     /**
@@ -334,6 +334,7 @@ class acc_ClosePeriods extends core_Master
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	
+    	// Намираме кои сметки са засегнати от документа
     	$accounts = array();
     	$jRec = acc_Journal::fetchByDoc($this->getClassId(), $rec->id);
     	$jQuery = acc_JournalDetails::getQuery();
@@ -346,12 +347,14 @@ class acc_ClosePeriods extends core_Master
     	
     	if(!count($accounts)) return NULL;
     	
+    	// За всяка от тях, намираме състоянието им след контирането на документа
     	$bId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
     	$dQuery = acc_BalanceDetails::getQuery();
     	$dQuery->where("#balanceId = {$bId}");
     	$dQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
     	$dQuery->in("accountId", $accounts);
     		 
+    	// Подготвяме какво е променено по всяка сметка
     	while ($dRec = $dQuery->fetch()){
     		$nRow = new stdClass();
     		$nRow->accountId = acc_Balances::getAccountLink($dRec->accountId, NULL, TRUE, TRUE);
@@ -365,6 +368,7 @@ class acc_ClosePeriods extends core_Master
     		$info[$dRec->accountId] = $nRow;
     	}
     	
+    	// Връщаме историята на направените операции
     	return $info;
     }
     
@@ -375,6 +379,8 @@ class acc_ClosePeriods extends core_Master
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	if($data->info){
+    		
+    		// Показваме таблица със състоянието на сметките
     		$table = cls::get('core_TableView', array('mvc' => cls::get('acc_BalanceDetails')));
     		$fields = array();
     		$fields['accountId']      = 'Сметка';
