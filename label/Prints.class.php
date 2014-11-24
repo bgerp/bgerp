@@ -123,7 +123,7 @@ class label_Prints extends core_Master
         
         $this->FLD('printedCnt', 'int', 'caption=Брой отпечатвания, mandatory, notNull, input=none');
         
-        $this->FLD('labelsCnt', 'int(min=1, max=200)', 'caption=Брой етикети, mandatory');
+        $this->FLD('labelsCnt', 'int(min=1, max=500)', 'caption=Брой етикети, mandatory');
         $this->FLD('copiesCnt', 'int(min=1, max=50)', 'caption=Брой копия, value=1, mandatory');
         
         $this->FLD('state', 'enum(active=Активно, closed=Спрян)', 'caption=Състояние, input=none, notNull');
