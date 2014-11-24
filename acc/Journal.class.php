@@ -404,7 +404,7 @@ class acc_Journal extends core_Master
         if ($periodRec->state == 'closed') {
             return acc_Articles::createReverseArticle($rec);
         } else {
-            return static::deleteTransaction($rec);
+            return static::deleteTransaction($docClassId, $docId);
         }
     }
     
@@ -423,25 +423,21 @@ class acc_Journal extends core_Master
      */
     public static function deleteTransaction($docClassId, $docId = NULL)
     {
-        if (is_object($docClassId)) {
-            $rec = $docClassId;
-            $docId = $rec->docId;
-        } else {
-            $rec = self::fetchByDoc($docClassId, $docId);
-        }
-        
-        if (!$rec) {
-            return FALSE;
-        }
-        
-        acc_JournalDetails::delete("#journalId = $rec->id");
-        
-        static::delete($rec->id);
-        
-        // Инвалидираме балансите, които се променят от този вальор
-        acc_Balances::alternate($rec->valior);
-        
-        return array($docClassId, $docId);
+        $query = static::getQuery();
+        $query->where("#docType = {$docClassId} AND #docId = {$docId}");
+    	
+        // Изтриваме всички записи направени в журнала от документа
+    	while($rec = $query->fetch()){
+    		
+    		acc_JournalDetails::delete("#journalId = {$rec->id}");
+    		
+    		static::delete($rec->id);
+    		
+    		// Инвалидираме балансите, които се променят от този вальор
+    		acc_Balances::alternate($rec->valior);
+    	}
+    	
+    	return array($docClassId, $docId);
     }
     
     
