@@ -29,9 +29,11 @@ class purchase_transaction_Invoice
     	$rec = $this->class->fetchRec($id);
     	$rec->state = 'active';
     
-    	if ($this->class->save($rec)) {
-    		$this->class->invoke('AfterActivation', array($rec));
-    	}
+    	if($id = $this->class->save($rec)) {
+            $this->class->invoke('AfterActivation', array($rec));
+        }
+        
+        return $id;
     }
     
     

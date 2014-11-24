@@ -97,6 +97,10 @@ class bank_transaction_ExchangeDocument
     
     	$rec->state = 'closed';
     
-    	return $this->class->save($rec);
+    	if($id = $this->class->save($rec)) {
+            $this->class->invoke('AfterActivation', array($rec));
+        }
+        
+        return $id;
     }
 }
