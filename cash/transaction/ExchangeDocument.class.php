@@ -91,6 +91,10 @@ class cash_transaction_ExchangeDocument
     	$rec = $this->class->fetchRec($id);
     	$rec->state = 'closed';
     
-    	return $this->class->save($rec);
+    	if($id = $this->class->save($rec)) {
+            $this->class->invoke('AfterActivation', array($rec));
+        }
+        
+        return $id;
     }
 }

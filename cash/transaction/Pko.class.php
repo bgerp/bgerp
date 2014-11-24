@@ -35,9 +35,11 @@ class cash_transaction_Pko
     	$rec = $this->class->fetchRec($id);
     	$rec->state = 'closed';
     
-    	if($this->class->save($rec)) {
-    		$this->class->invoke('AfterActivation', array($rec));
-    	}
+    	if($id = $this->class->save($rec)) {
+            $this->class->invoke('AfterActivation', array($rec));
+        }
+        
+        return $id;
     }
     
     

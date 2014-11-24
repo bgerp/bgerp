@@ -128,9 +128,11 @@ class sales_transaction_Sale
         // Активиране и запис
         $rec->state = 'active';
         
-        if ($this->class->save($rec)) {
+        if($id = $this->class->save($rec)) {
             $this->class->invoke('AfterActivation', array($rec));
         }
+        
+        return $id;
     }
     
     
