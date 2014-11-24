@@ -314,7 +314,7 @@ class acc_ClosePeriods extends core_Master
     {
     	$rec = &$data->rec;
     	
-    	if($rec->state == 'active'){
+    	if(acc_Balances::haveRightFor('single')){
     		$data->info = $mvc->prepareInfo($data->rec);
     	}
     }
@@ -342,25 +342,25 @@ class acc_ClosePeriods extends core_Master
     		$accounts[$dRec->creditAccId] = $dRec->creditAccId;
     	}
     	
-    	if(count($accounts)){
-    		$bId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
-    		$dQuery = acc_BalanceDetails::getQuery();
-    		$dQuery->where("#balanceId = {$bId}");
-    		$dQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
-    		$dQuery->in("accountId", $accounts);
+    	if(!count($accounts)) return NULL;
+    	
+    	$bId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
+    	$dQuery = acc_BalanceDetails::getQuery();
+    	$dQuery->where("#balanceId = {$bId}");
+    	$dQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
+    	$dQuery->in("accountId", $accounts);
     		 
-    		while ($dRec = $dQuery->fetch()){
-    			$nRow = new stdClass();
-    			$nRow->accountId = acc_Balances::getAccountLink($dRec->accountId, NULL, TRUE, TRUE);
-    			foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-    				$nRow->$fld = $Double->toVerbal($dRec->$fld);
-    				if($dRec->$fld < 0){
-    					$nRow->$fld = "<span class='red'>{$nRow->$fld}</span>";
-    				}
+    	while ($dRec = $dQuery->fetch()){
+    		$nRow = new stdClass();
+    		$nRow->accountId = acc_Balances::getAccountLink($dRec->accountId, NULL, TRUE, TRUE);
+    		foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    			$nRow->$fld = $Double->toVerbal($dRec->$fld);
+    			if($dRec->$fld < 0){
+    				$nRow->$fld = "<span class='red'>{$nRow->$fld}</span>";
     			}
-    		
-    			$info[$dRec->accountId] = $nRow;
     		}
+    		
+    		$info[$dRec->accountId] = $nRow;
     	}
     	
     	return $info;
