@@ -113,7 +113,8 @@ class blast_Setup extends core_ProtoSetup
         'blast_LetterDetails',
         'blast_EmailSend',
         'migrate::fixListId',
-        'migrate::fixEmails'
+        'migrate::fixEmails',
+        'migrate::addEmailSendHash'
     );
     
     
@@ -263,6 +264,30 @@ class blast_Setup extends core_ProtoSetup
             $nRec->perSrcObjectId = $rec->listId;
             
             $blsInst->save($nRec, 'perSrcClassId, perSrcObjectId', 'UPDATE');
+        }
+    }
+    
+    
+    /**
+     * Добавя хеш на имейлите
+     */
+    static function addEmailSendHash()
+    {
+        $query = blast_EmailSend::getQuery();
+        $query->where("#hash IS NULL");
+        while ($rec = $query->fetch()) {
+            if (is_null($rec->email)) continue;
+            $emailH = $rec->email;
+            $hash = NULL;
+            
+            do {
+                $hash = blast_EmailSend::getHash($emailH);
+                $emailH = $hash;
+            } while (blast_EmailSend::fetch("#hash = '{$hash}' AND #emailId = '{$rec->emailId}'"));
+            
+            $rec->hash = $hash;
+            
+            blast_EmailSend::save($rec, 'hash', 'UPDATE');
         }
     }
 }

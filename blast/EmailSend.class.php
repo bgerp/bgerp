@@ -81,13 +81,16 @@ class blast_EmailSend extends core_Detail
     protected function description()
     {
         $this->FLD('emailId', 'key(mvc=blast_Emails, select=subject)', 'caption=Списък');
-        $this->FLD('dataId', 'int', 'caption=Списък данни');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
         $this->FLD('state', 'enum(pending=Чакащо, sended=Изпратено)', 'caption=Състояние, input=none');
         $this->FLD('sentOn', 'datetime(format=smartTime)', 'caption=Изпратено->На, input=none');
         $this->FLD('email', 'emails', 'caption=Изпратено->До, input=none');
+        $this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
         
-        $this->setDbUnique('emailId, dataId');
+        // @deprecated
+        $this->FLD('dataId', 'int', 'caption=Списък данни');
+        
+        $this->setDbUnique('hash, emailId');
     }
     
     
@@ -100,17 +103,16 @@ class blast_EmailSend extends core_Detail
      *
      * @return integer - Броя на добавените записи
      */
-    public static function updateList($emailId, $dataArr, $emailFieldsArr = array())
+    public static function updateList($emailId, $dataArr, $emailFieldsArr)
     {
         $cnt = 0;
         
         // Обхождаме масива с данните
-        foreach ((array)$dataArr as $dataId => $data) {
+        foreach ((array)$dataArr as $data) {
             $emailStr = '';
             
             $nRec = new stdClass();
             $nRec->emailId = $emailId;
-            $nRec->dataId = $dataId;
             $nRec->data = $data;
             $nRec->state = 'pending';
             
@@ -123,10 +125,29 @@ class blast_EmailSend extends core_Detail
                         $emailStr .= $emailStr ? ', ' . $data[$name] : $data[$name];
                     }
                 }
-                
-                // Добаваме стринга с имейлите
-                $nRec->email = $emailStr;
             }
+            
+            if (!$emailStr) continue;
+            
+            // Масив с всички възможни имейли
+            $emailsArr = type_Emails::toArray($emailStr);
+            $toEmail = '';
+            
+            // Добавяме първия имейл, който не е списъка с блокирани
+            foreach ((array)$emailsArr as $email) {
+                if (blast_BlockedEmails::isBlocked($email)) continue;
+                $toEmail = $email;
+                break;
+            }
+            
+            // Ако няма имейл за добавяне
+            if (!$toEmail) continue;
+            
+            // Добаваме стринга с имейлите
+            $nRec->email = $toEmail;
+            
+            // Хеша на имейла
+            $nRec->hash = self::getHash($toEmail);
             
             // За всеки нов запис увеличаваме брояча
             $id = self::save($nRec, NULL, 'IGNORE');
@@ -222,6 +243,21 @@ class blast_EmailSend extends core_Detail
             
             self::save($nRec, NULL, 'UPDATE');
         }
+    }
+    
+    
+    /**
+     * Връща хеша за имейал
+     * 
+     * @param string $email
+     * 
+     * @return string
+     */
+    public static function getHash($email)
+    {
+        $hash = md5($email);
+        
+        return $hash;
     }
     
     

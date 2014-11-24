@@ -123,7 +123,7 @@ class label_Prints extends core_Master
         
         $this->FLD('printedCnt', 'int', 'caption=Брой отпечатвания, mandatory, notNull, input=none');
         
-        $this->FLD('labelsCnt', 'int(min=1, max=200)', 'caption=Брой етикети, mandatory');
+        $this->FLD('labelsCnt', 'int(min=1, max=500)', 'caption=Брой етикети, mandatory');
         $this->FLD('copiesCnt', 'int(min=1, max=50)', 'caption=Брой копия, value=1, mandatory');
         
         $this->FLD('state', 'enum(active=Активно, closed=Спрян)', 'caption=Състояние, input=none, notNull');
@@ -183,6 +183,36 @@ class label_Prints extends core_Master
             $id = $this->save($form->rec);
             
             return new Redirect(array($this, 'list', 'saveId' => $id));
+        }
+        
+        $currUserId = (int) core_Users::getCurrent();
+        
+        $mediaKeys = array_keys($mediaArr);
+        if (!trim($mediaKeys[0])) {
+            unset($mediaKeys[0]);
+        }
+        
+        $mediaId = NULL;
+        
+        if (count((array)$mediaKeys) > 1) {
+            // По подразбиране да е избрана медията, на която е отпечатвано последно от потребителя
+            $query = $this->getQuery();
+            $query->orWhereArr('mediaId', $mediaKeys);
+            $query->where("#modifiedBy = '{$currUserId}'");
+            $query->orderBy("modifiedOn", 'DESC');
+            $rec = $query->fetch();
+            
+            if ($rec) {
+                $mediaId = $rec->mediaId;
+            }
+        } else {
+            
+            // Ако има само една медия, той да е избран по-подразбиране
+            $mediaId = reset($mediaKeys);
+        }
+        
+        if ($mediaId) {
+            $form->setDefault('mediaId', $mediaId);
         }
         
         $form->setReadOnly('labelId');

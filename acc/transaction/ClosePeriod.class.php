@@ -232,14 +232,14 @@ class acc_transaction_ClosePeriod
     	if(!count($this->balanceId)) return $entries;
     	
     	$bQuery = acc_BalanceDetails::getQuery();
-    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '701,706,703');
+    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '701,706,703,700');
     	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
     	$balanceArr = $bQuery->fetchAll();
     	
     	$accIds = array();
     	$dealPosition = array();
     	
-    	foreach (arr::make('701,706,703') as $systemId){
+    	foreach (arr::make('701,706,703,700') as $systemId){
     		$accId = acc_Accounts::getRecBySystemId($systemId)->id;
     		$accIds[$accId] = $systemId;
     		$dealPosition[$accId] = acc_Lists::getPosition($systemId, 'deals_DealsAccRegIntf');
@@ -249,27 +249,33 @@ class acc_transaction_ClosePeriod
     	if(!count($balanceArr)) return $entries;
     	 
     	foreach ($balanceArr as $rec){
-    		$arr1 = array('700', $rec->ent1Id, $rec->ent2Id);
-    		$arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $rec->blQuantity);
-    		
-    		// Ако перото на продажбата не е затворено, пропускаме го ! 
-    		if(acc_Items::fetchField($rec->{$dealPosition[$rec->accountId]}, 'state') == 'active') continue;
-    		
-    		// Пропускаме нулевите салда
-    		if(round($rec->blAmount, 2) == 0) continue;
-    		
-    		if($rec->blAmount > 0){
-    			$debitArr = $arr1;
-    			$creditArr = $arr2;
+    		if($accIds[$rec->accountId] != '700'){
+    			$arr1 = array('700', $rec->ent1Id, $rec->ent2Id);
+    			$arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $rec->blQuantity);
+    			
+    			// Ако перото на продажбата не е затворено, пропускаме го !
+    			if(acc_Items::fetchField($rec->{$dealPosition[$rec->accountId]}, 'state') == 'active') continue;
+    			
+    			// Пропускаме нулевите салда
+    			if(round($rec->blAmount, 2) == 0) continue;
+    			
+    			if($rec->blAmount > 0){
+    				$debitArr = $arr1;
+    				$creditArr = $arr2;
+    			} else {
+    				$debitArr = $arr2;
+    				$creditArr = $arr1;
+    			}
+    			
+    			$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
+    			$total += abs($rec->blAmount);
+    			
+    			$entries[] = array('amount' => abs($rec->blAmount), 'debit' => $debitArr, 'credit' => $creditArr);
     		} else {
-    			$debitArr = $arr2;
-    			$creditArr = $arr1;
+    			
+    			// Ако имаме крайно салдо по 700, само го добавяме към натрупването
+    			$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
     		}
-    
-    		$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
-    		
-    		$total += abs($rec->blAmount);
-    		$entries[] = array('amount' => abs($rec->blAmount), 'debit' => $debitArr, 'credit' => $creditArr);
     	}
     	
     	return $entries;
@@ -313,7 +319,7 @@ class acc_transaction_ClosePeriod
     				$debitArr = $arr1;
     				$creditArr = $arr2;
     			}
-    		
+    			
     			$entries[] = array('amount' => abs($sum), 'debit' => $debitArr, 'credit' => $creditArr);
     		}
     	}

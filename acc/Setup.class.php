@@ -19,7 +19,7 @@ defIfNot('BASE_CURRENCY_CODE', 'BGN');
 /**
  * Толеранс за допустимо разминаване на суми
  */
-defIfNot('ACC_MONEY_TOLERANCE', '0.01');
+defIfNot('ACC_MONEY_TOLERANCE', '0.05');
 
 
 /**

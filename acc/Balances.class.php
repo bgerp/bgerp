@@ -151,6 +151,27 @@ class acc_Balances extends core_Master
     
     
     /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(empty($rec->periodId)){
+    		$row->periodId = dt::mysql2verbal($rec->fromDate, 'd') . "-" . dt::mysql2verbal($rec->toDate, 'd F Y');
+    			
+    		if($fields['-list']){
+    			if($mvc->haveRightFor('single', $rec)){
+    				$row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), NULL, 'ef_icon=img/16/table_sum.png');
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
     static function on_AfterPrepareSingleTitle($mvc, $data)
