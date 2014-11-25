@@ -128,7 +128,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public static function on_BeforeSave($mvc, &$is, $filter, $rec)
 	{
 		if(isset($filter)){
-			$is = clone $filter;
+			$is = is_object($filter) ? clone $filter : $filter;
 		}
 	}
 	

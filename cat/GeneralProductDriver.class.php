@@ -210,7 +210,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function alterSearchKeywords(&$searchKeywords)
 	{
-		$RichText = cls::get('type_RichText');
+		$RichText = cls::get('type_Richtext');
 		$info = strip_tags($RichText->toVerbal($this->innerForm->info));
 		$searchKeywords .= " " . plg_Search::normalizeText($info);
 	}
