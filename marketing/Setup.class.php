@@ -97,4 +97,10 @@ class marketing_Setup extends core_ProtoSetup
         
         return $html;
     }
+    
+    
+    public function migrateInquiries()
+    {
+    	
+    }
 }

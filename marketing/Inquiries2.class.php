@@ -184,6 +184,7 @@ class marketing_Inquiries2 extends core_Embedder
         $this->FLD('place', 'varchar(64)', 'caption=Контактни дани->Град,class=contactData,hint=Населено място: град или село и община,formOrder=50');
         $this->FLD('address', 'varchar(255)', 'caption=Контактни дани->Адрес,class=contactData,hint=Вашият адрес,formOrder=50');
     
+        $this->FLD('params', 'blob(serialize,compress)', 'input=none,silent');
     	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
     	$this->FLD('browser', 'varchar(80)', 'caption=Браузър,input=none');
     }
@@ -583,10 +584,13 @@ class marketing_Inquiries2 extends core_Embedder
     		}
     	}
     	
+    	$Driver = $this->getDriver($form->rec);
     	$form->input();
+    	$Driver->checkEmbeddedForm($form);
     	
     	// След събмит на формата
     	if($form->isSubmitted()){
+    		
     		$rec = &$form->rec;
     		$rec->state = 'active';
     		$rec->ip = core_Users::getRealIpAddr();
@@ -595,13 +599,12 @@ class marketing_Inquiries2 extends core_Embedder
     		if(empty($rec->folderId)){
     			$rec->folderId = $this->Router->route($rec);
     		}
-    	
-    		parent::on_AfterInputEditForm($this, $form);
+    		
+    		$form->rec->innerForm = clone $form->rec;
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){
     			$id = $this->save($rec);
-    			 
     			$cu = core_Users::getCurrent('id', FALSE);
     			 
     			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
