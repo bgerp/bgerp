@@ -436,6 +436,16 @@ class email_Outgoings extends core_Master
             // Ако е изпратен успешно
             if ($status) {
                 
+                // Добавяме кутията от която се изпраща, като имейл по подразбиране за папката
+                if ($rec->folderId) {
+                    $currUserId = core_Users::getCurrent();
+                    if ($currUserId > 0) {
+                        $valArr['defaultEmail'] = $options->boxFrom;
+                        $key = doc_Folders::getSettingsKey($rec->folderId);
+                        core_Settings::setValues($key, $valArr, core_Users::getCurrent(), TRUE);
+                    } 
+                }
+                
                 // Правим запис в лога
                 static::log('Send to ' . $allEmailsToStr, $rec->id);
                 
@@ -688,6 +698,13 @@ class email_Outgoings extends core_Master
         
         // Всички групови имейли
         $groupEmailsArr = type_Emails::toArray($contrData->groupEmails);
+        
+        // Добавяме и имейлите до които е изпратено в същата нишка
+        $sendedToEmails = self::getSendedToEmails(NULL, $data->rec->threadId);
+        if ($sendedToEmails) {
+            $sendedToEmailsArr = type_Emails::toArray($sendedToEmails);
+            $groupEmailsArr = array_merge($groupEmailsArr, $sendedToEmailsArr);
+        }
         
         // Премахваме нашите имейли
         $groupEmailsArr = email_Inboxes::removeOurEmails($groupEmailsArr);
@@ -1172,11 +1189,11 @@ class email_Outgoings extends core_Master
             $mvc->singleTitle = "Факс";
             
             // Добавяме бутона изпрати
-            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', array('order'=>'10'), 'ef_icon = img/16/fax2.png');
+            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', array('order'=>'10.000091'), 'ef_icon = img/16/fax2.png');
         } else {
             
             // Добавяме бутона изпрати
-            $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10'), 'ef_icon = img/16/move.png');
+            $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10.000091'), 'ef_icon = img/16/move.png');
         }
         
         // Ако не редактираме и не клонираме
@@ -1441,6 +1458,13 @@ class email_Outgoings extends core_Master
             
             // Разделяме стринга в масив
             $allEmailsArr = type_Emails::toArray($contrData->groupEmails);
+        }
+        
+        // Добавяме и имейлите до които е изпратено в същата нишка
+        $sendedToEmails = self::getSendedToEmails(NULL, $rec->threadId);
+        if ($sendedToEmails) {
+            $sendedToEmailsArr = type_Emails::toArray($sendedToEmails);
+            $allEmailsArr = array_merge($allEmailsArr, $sendedToEmailsArr);
         }
         
         // Всички имейли от река
@@ -2061,7 +2085,45 @@ class email_Outgoings extends core_Master
             }
         }
         
+        // Добавяме към груповите имейли и имейлите до които им е пращано
+        if ($posting->containerId) {
+                
+            $sendedGroupEmails = self::getSendedToEmails($posting->containerId);
+            
+            if ($sendedGroupEmails) {
+                $contrData->groupEmails .= ($contrData->groupEmails) ? ", " . $sendedGroupEmails : $sendedGroupEmails;
+            }
+        }
+        
         return $contrData;
+    }
+    
+    
+    /**
+     * Връща всички имейли до които им е изпратен имейл от съответната нишка или контейнер
+     * 
+     * @param integer $containerId
+     * @param integer $threadId
+     * 
+     * @return string
+     */
+    protected static function getSendedToEmails($containerId = NULL, $threadId = NULL)
+    {
+        $sendedTo = '';
+        if (!$containerId && !$threadId) return $sendedTo;
+        $lRecsArr = log_Documents::getRecs($containerId, log_Documents::ACTION_SEND, $threadId);
+        
+        if ($lRecsArr) {
+            
+            foreach ($lRecsArr as $lRec) {
+                if (!$lRec->data->to) continue;
+            
+            
+                $sendedTo .= ($sendedTo) ? ", " . $lRec->data->to : $lRec->data->to;
+            }
+        }
+        
+        return $sendedTo;
     }
     
     

@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа cash_Rko
  *
@@ -14,6 +16,7 @@
  */
 class cash_transaction_Rko
 {
+	
     /**
      * 
      * @var cash_Rko
@@ -31,9 +34,11 @@ class cash_transaction_Rko
     	$rec = $this->class->fetchRec($id);
     	$rec->state = 'closed';
     
-    	if($this->class->save($rec)) {
-    		$this->class->invoke('AfterActivation', array($rec));
-    	}
+    	if($id = $this->class->save($rec)) {
+            $this->class->invoke('AfterActivation', array($rec));
+        }
+        
+        return $id;
     }
     
     

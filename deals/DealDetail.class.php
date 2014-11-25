@@ -64,22 +64,6 @@ abstract class deals_DealDetail extends doc_Detail
     
     
     /**
-     * Изчисляване на доставеното количеството на реда в брой опаковки
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     */
-    public static function on_CalcPackQuantityDelivered(core_Mvc $mvc, $rec)
-    {
-        if (empty($rec->quantityDelivered) || empty($rec->quantityInPack)) {
-            return;
-        }
-        
-        $rec->packQuantityDelivered = $rec->quantityDelivered / $rec->quantityInPack;
-    }
-    
-    
-    /**
      * След описанието на полетата
      */
     public static function getDealDetailFields(&$mvc)
@@ -93,7 +77,6 @@ abstract class deals_DealDetail extends doc_Detail
     	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
     	
     	$mvc->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Експедирано количество (в основна мярка)
-    	$mvc->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=Дост.,input=none'); // Експедирано количество (в брой опаковки)
     	
     	$mvc->FLD('quantityInvoiced', 'double', 'caption=К-во->Фактурирано,input=none'); // Фактурирано количество (в основна мярка)
     	
@@ -419,11 +402,6 @@ abstract class deals_DealDetail extends doc_Detail
 		
         if(!$haveDiscount) {
             unset($data->listFields['discount']);
-        }
-        
-        // Ако няма записи, в режим xhtml или няма поне едно доставено к-во не показваме колонкта за доставено
-        if (empty($data->rows) || Mode::is('text', 'xhtml') || !$haveQuantityDelivered) {
-        	unset($data->listFields['packQuantityDelivered']);
         }
     }
 }

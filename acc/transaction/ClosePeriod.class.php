@@ -61,7 +61,7 @@ class acc_transaction_ClosePeriod
     			'entries' => array()
     	);
     	
-    	$this->date = acc_Periods::forceYearAndMonthItems($rec->valior);
+    	$this->date = acc_Periods::forceYearItem($rec->valior);
     	
     	$total = $incomeFromProducts = 0;
     	$this->balanceId =  acc_Balances::fetchField("#periodId = {$this->periodRec->id}");
@@ -142,7 +142,7 @@ class acc_transaction_ClosePeriod
     	
     	$amount4535 += $diffAmount;
     	
-    	$entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year, $this->date->month));
+    	$entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year));
     	$total += abs($amount4535);
     	
     	$bQuery = acc_BalanceDetails::getQuery();
@@ -232,14 +232,14 @@ class acc_transaction_ClosePeriod
     	if(!count($this->balanceId)) return $entries;
     	
     	$bQuery = acc_BalanceDetails::getQuery();
-    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '701,706,703');
+    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '701,706,703,700');
     	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
     	$balanceArr = $bQuery->fetchAll();
     	
     	$accIds = array();
     	$dealPosition = array();
     	
-    	foreach (arr::make('701,706,703') as $systemId){
+    	foreach (arr::make('701,706,703,700') as $systemId){
     		$accId = acc_Accounts::getRecBySystemId($systemId)->id;
     		$accIds[$accId] = $systemId;
     		$dealPosition[$accId] = acc_Lists::getPosition($systemId, 'deals_DealsAccRegIntf');
@@ -249,27 +249,33 @@ class acc_transaction_ClosePeriod
     	if(!count($balanceArr)) return $entries;
     	 
     	foreach ($balanceArr as $rec){
-    		$arr1 = array('700', $rec->ent1Id, $rec->ent2Id);
-    		$arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $rec->blQuantity);
-    		
-    		// Ако перото на продажбата не е затворено, пропускаме го ! 
-    		if(acc_Items::fetchField($rec->{$dealPosition[$rec->accountId]}, 'state') == 'active') continue;
-    		
-    		// Пропускаме нулевите салда
-    		if(round($rec->blAmount, 2) == 0) continue;
-    		
-    		if($rec->blAmount > 0){
-    			$debitArr = $arr1;
-    			$creditArr = $arr2;
+    		if($accIds[$rec->accountId] != '700'){
+    			$arr1 = array('700', $rec->ent1Id, $rec->ent2Id);
+    			$arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $rec->blQuantity);
+    			
+    			// Ако перото на продажбата не е затворено, пропускаме го !
+    			if(acc_Items::fetchField($rec->{$dealPosition[$rec->accountId]}, 'state') == 'active') continue;
+    			
+    			// Пропускаме нулевите салда
+    			if(round($rec->blAmount, 2) == 0) continue;
+    			
+    			if($rec->blAmount > 0){
+    				$debitArr = $arr1;
+    				$creditArr = $arr2;
+    			} else {
+    				$debitArr = $arr2;
+    				$creditArr = $arr1;
+    			}
+    			
+    			$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
+    			$total += abs($rec->blAmount);
+    			
+    			$entries[] = array('amount' => abs($rec->blAmount), 'debit' => $debitArr, 'credit' => $creditArr);
     		} else {
-    			$debitArr = $arr2;
-    			$creditArr = $arr1;
+    			
+    			// Ако имаме крайно салдо по 700, само го добавяме към натрупването
+    			$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
     		}
-    
-    		$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
-    		
-    		$total += abs($rec->blAmount);
-    		$entries[] = array('amount' => abs($rec->blAmount), 'debit' => $debitArr, 'credit' => $creditArr);
     	}
     	
     	return $entries;
@@ -300,7 +306,7 @@ class acc_transaction_ClosePeriod
 		foreach ($incomeRes as $ctrItem => $arr){
     		foreach ($arr as $dealItem => $sum){
     			$arr1 = array('700', $ctrItem, $dealItem);
-    			$arr2 = array('123', $this->date->year, $this->date->month);
+    			$arr2 = array('123', $this->date->year);
     			$total += abs($sum);
     				 
     			// Дебитно салдо
@@ -313,7 +319,7 @@ class acc_transaction_ClosePeriod
     				$debitArr = $arr1;
     				$creditArr = $arr2;
     			}
-    		
+    			
     			$entries[] = array('amount' => abs($sum), 'debit' => $debitArr, 'credit' => $creditArr);
     		}
     	}
@@ -359,10 +365,10 @@ class acc_transaction_ClosePeriod
     		
     		if($dRec->blAmount > 0){
     			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('624'), 'credit' => array('481', $dRec->ent1Id, 'quantity' => $dRec->blQuantity));
-    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('123', $this->date->year, $this->date->month), 'credit' => array('624'));
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('123', $this->date->year), 'credit' => array('624'));
     		} else {
     			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('481', $dRec->ent1Id, 'quantity' => $dRec->blQuantity), 'credit' => array('724'));
-    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('724'), 'credit' => array('123', $this->date->year, $this->date->month));
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('724'), 'credit' => array('123', $this->date->year));
     		}
     		
     		$total += 2 * abs($dRec->blAmount);

@@ -493,6 +493,7 @@ class email_Inboxes extends core_Master
     /**
      *  Един документ ги изпращаме от:
      *
+     *  1.0 Имейла, от който последно е изпращал имейл съответния потребитле
      *  1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
      *  2. Корпоративния общ имейл, ако корпоративната сметка може да изпраща писма
      *  3. Корпоративния имейл на потребителя, ако корпоративната сметка може да изпраща писма
@@ -530,6 +531,17 @@ class email_Inboxes extends core_Master
         
         // Ако е подадена папка и не е зададено да се показват само персоналните
         if ($folderId && !$personalOnly) {
+            
+            // 1.0 Първи да е имейла от който се е изпращал имейл последно от съответната папка от потребителя
+            $key = doc_Folders::getSettingsKey($folderId);
+            if ($userId > 0) {
+                $settings = core_Settings::fetchKey($key, $userId);
+                $defEmailId = (int)$settings['defaultEmail'];
+                if ($defEmailId > 0) {
+                    $options[$defEmailId] = self::fetchField("#id = '{$defEmailId}' && #state = 'active'", 'email');
+                }
+            }
+            
             // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
             $rec = self::fetch("#folderId = {$folderId} && #state = 'active'");
             if($rec && email_Accounts::canSendEmail($rec->accountId)) {

@@ -25,6 +25,12 @@ class price_Lists extends core_Master
     
     
     /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Ценова политика";
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, price_Wrapper, plg_NoChange';

@@ -105,9 +105,11 @@ class store_transaction_ShipmentOrder
         
         $rec->state = 'active';
         
-        if ($this->class->save($rec)) {
+        if($id = $this->class->save($rec)) {
             $this->class->invoke('AfterActivation', array($rec));
         }
+        
+        return $id;
     }
     
     

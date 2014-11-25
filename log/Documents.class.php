@@ -434,7 +434,7 @@ class log_Documents extends core_Manager
         $actionArr = array(static::ACTION_PRINT, static::ACTION_PDF);
         
         // Вземаме записите
-        $recs = static::getRecs($cid, $actionArr, $data->pager);
+        $recs = static::getRecs($cid, $actionArr, NULL, $data->pager);
         
         // Ако няма записи не се изпълнява
         if (empty($recs)) {
@@ -652,7 +652,7 @@ class log_Documents extends core_Manager
         $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_SEND));
         
         // Вземаме записите
-        $recs = static::getRecs($cid, $actionArr, $data->pager);
+        $recs = static::getRecs($cid, $actionArr, NULL, $data->pager);
 
         // Ако няма записи не се изпълнява
         if (empty($recs)) {
@@ -1028,14 +1028,18 @@ class log_Documents extends core_Manager
      * 
      * @return array $recsArr - Масив с намерените записи
      */
-    static function getRecs($cid, $action = NULL, &$pager = NULL)
+    static function getRecs($cid = NULL, $action = NULL, $threadId = NULL, &$pager = NULL)
     {
         // Очакваме да има $cid
-        expect($cid);
+        expect($cid || $threadId);
         
         // Вземаме всики със записис от съответния контейнер
         $query = static::getQuery();
-        $query->where("#containerId = '{$cid}'");
+        if ($cid) {
+            $query->where("#containerId = '{$cid}'");
+        } else if ($threadId) {
+            $query->where("#threadId = '{$threadId}'");
+        }
         
         // Ако има подаден action
         if ($action) {

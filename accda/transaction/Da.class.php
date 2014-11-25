@@ -3,7 +3,7 @@
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа accda_Da
  *
  * @category  bgerp
- * @package   findeals
+ * @package   accda
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -33,9 +33,11 @@ class accda_transaction_Da
     	$rec = $this->class->fetchRec($id);
     	$rec->state = 'active';
     
-    	if($this->class->save($rec)) {
-    		$this->class->invoke('AfterActivation', array($rec));
-    	}
+    	if($id = $this->class->save($rec)) {
+            $this->class->invoke('AfterActivation', array($rec));
+        }
+        
+        return $id;
     }
     
     

@@ -29,10 +29,12 @@ abstract class deals_ClosedDeals extends core_Master
      */
     protected $canRead = 'no_one';
     
+    
     /**
      * Кой има право да променя?
      */
     protected $canWrite = 'no_one';
+    
     
     /**
      * Кой има право да добавя?
@@ -44,35 +46,42 @@ abstract class deals_ClosedDeals extends core_Master
      */
     protected $canList = 'no_one';
     
+    
     /**
      * Икона за фактура
      */
     public $singleIcon = 'img/16/closeDeal.png';
+    
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     protected $listFields = 'id, docId=Документ, modifiedOn, modifiedBy, createdOn, createdBy';
     
+    
     /**
      * Файл за единичен изглед
      */
     protected $singleLayoutFile = 'acc/tpl/ClosedDealsSingleLayout.shtml';
+    
     
     /**
      * Работен кеш
      */
     protected static $cache = array();
     
+    
     /**
      * Още един работен кеш
      */
     protected static $incomeAmount;
     
+    
     /**
      * Още един работен кеш
      */
     protected $year;
+    
     
     /**
      * Кратък баланс на записите от журнала засегнали сделката

@@ -1,5 +1,5 @@
 [#SingleToolbar#]
-<div class='document'>
+<div class='document closePeriod'>
     <!--ET_BEGIN blank-->
     [#blank#]
     <!--ET_END blank-->
@@ -8,19 +8,21 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
     </div>
     <!--ET_END header-->
-    <table class='styled-table'>
+    <table class='no-border-table fleft' style='margin-top: 0;'>
     	<!--ET_BEGIN valior-->
     	<tr>
-            <td>|Вальор|*</td>
+            <td>|Вальор|*: </td>
             <td>[#valior#]</td>
         </tr>
         <!--ET_END valior-->
         <tr>
-            <td>|Период|*</td>
+            <td>|Период|*: </td>
             <td>[#periodId#]</td>
         </tr>
+    </table>
+    <table class='styled-table fright'>
         <tr>
-        	<td>|Суми от фактури с касови бележки|*</td>
+        	<td>|ДДС от фактури с касови бележки|*</td>
         	<td class='aright'>[#amountFromInvoices#]</td>
         </tr>
         <tr>
@@ -28,34 +30,41 @@
         </tr>
         <!--ET_BEGIN amountVatGroup1-->
         <tr>
-            <td>|Група|* "А"</td>
+            <td> - |ДДС група|* "А"</td>
             <td class='aright'>[#amountVatGroup1#]</td>
         </tr>
         <!--ET_END amountVatGroup1-->
         
         <!--ET_BEGIN amountVatGroup2-->
         <tr>
-            <td>|Група|* "Б"</td>
+            <td> - |ДДС група|* "Б"</td>
             <td class='aright'>[#amountVatGroup2#]</td>
         </tr>
         <!--ET_END amountVatGroup2-->
         
         <!--ET_BEGIN amountVatGroup3-->
         <tr>
-            <td>|Група|* "В"</td>
+            <td> - |ДДС група|* "В"</td>
             <td class='aright'>[#amountVatGroup3#]</td>
         </tr>
         <!--ET_END amountVatGroup3-->
         
         <!--ET_BEGIN amountVatGroup4-->
         <tr>
-            <td>|Група|* "Г"</td>
+            <td> - |ДДС група|* "Г"</td>
             <td class='aright'>[#amountVatGroup4#]</td>
         </tr>
         <!--ET_END amountVatGroup4-->
         <tr>
-        	<td>|Сума на продажбите без Фактури|*</td>
+            <td colspan="2"></td>
+        </tr>
+        <tr>
+        	<td>|ДДС на продажбите без фактури|*</td>
         	<td class='aright'>[#amountWithoutInvoice#]</td>
         </tr>
     </table>
+    
+    <div class='overflow-scroll'>
+    [#INFO#]
+    </div>
 </div>

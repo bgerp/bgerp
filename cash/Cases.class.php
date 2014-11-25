@@ -184,9 +184,18 @@ class cash_Cases extends core_Master {
         
         if(isset($fields['-list'])){
         	$caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-        	$Balance = new acc_ActiveShortBalance(array('itemsAll' => $caseItem->id));
-        	$rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $caseItem->id);
         	
+        	// Намираме всички записи от текущия баланс за това перо
+        	$balRec = acc_Balances::getLastBalance();
+        	$bQuery = acc_BalanceDetails::getQuery();
+        	acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $caseItem->id);
+        	
+        	// Събираме ги да намерим крайното салдо на перото
+        	while($bRec = $bQuery->fetch()){
+        		$rec->blAmount += $bRec->blAmount;
+        	}
+        	
+        	// Обръщаме го във четим за хората вид
         	$Double = cls::get('type_Double');
         	$Double->params['decimals'] = 2;
         	$row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "<span>";

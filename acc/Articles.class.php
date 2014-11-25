@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на мемориални ордери (преди "счетоводни статии")
  *
@@ -15,6 +14,12 @@
  */
 class acc_Articles extends core_Master
 {
+    
+	
+	/**
+	 * Над колко записа, при създаването на обратен МО, да не попълва детайлите
+	 */
+	protected static $maxDefaultEntriesForReverseArticle = 80;
     
     
     /**
@@ -479,35 +484,38 @@ class acc_Articles extends core_Master
             return FALSE;
         }
         
-        foreach ($entries as $entry) {
-            $articleDetailRec = array(
-                'articleId'      => $articleId,
-                'debitAccId'     => $entry->debitAccId,
-                'debitEnt1'      => $entry->debitItem1,
-                'debitEnt2'      => $entry->debitItem2,
-                'debitEnt3'      => $entry->debitItem3,
-                'debitQuantity'  => isset($entry->debitQuantity) ? -$entry->debitQuantity : $entry->debitQuantity,
-                'debitPrice'     => $entry->debitPrice,
-                'creditAccId'    => $entry->creditAccId,
-                'creditEnt1'     => $entry->creditItem1,
-                'creditEnt2'     => $entry->creditItem2,
-                'creditEnt3'     => $entry->creditItem3,
-                'creditQuantity' => isset($entry->creditQuantity) ? -$entry->creditQuantity : $entry->creditQuantity,
-                'creditPrice'    => $entry->creditPrice,
-                'amount'         => isset($entry->amount) ? -$entry->amount : $entry->amount,
-            );
-            
-            if (!$bSuccess = acc_ArticleDetails::save((object)$articleDetailRec)) {
-                break;
-            }
-        }
-        
-        if (!$bSuccess) {
-            // Възникнала е грешка - изтривасе всичко!
-            static::delete($articleId);
-            acc_ArticleDetails::delete("#articleId = {$articleId}");
-            
-            return FALSE;
+        // Попълваме детайлите само ако са под допустимата стойност 
+        if(count($entries) <= static::$maxDefaultEntriesForReverseArticle){
+        	foreach ($entries as $entry) {
+        		$articleDetailRec = array(
+        				'articleId'      => $articleId,
+        				'debitAccId'     => $entry->debitAccId,
+        				'debitEnt1'      => $entry->debitItem1,
+        				'debitEnt2'      => $entry->debitItem2,
+        				'debitEnt3'      => $entry->debitItem3,
+        				'debitQuantity'  => isset($entry->debitQuantity) ? -$entry->debitQuantity : $entry->debitQuantity,
+        				'debitPrice'     => $entry->debitPrice,
+        				'creditAccId'    => $entry->creditAccId,
+        				'creditEnt1'     => $entry->creditItem1,
+        				'creditEnt2'     => $entry->creditItem2,
+        				'creditEnt3'     => $entry->creditItem3,
+        				'creditQuantity' => isset($entry->creditQuantity) ? -$entry->creditQuantity : $entry->creditQuantity,
+        				'creditPrice'    => $entry->creditPrice,
+        				'amount'         => isset($entry->amount) ? -$entry->amount : $entry->amount,
+        		);
+        	
+        		if (!$bSuccess = acc_ArticleDetails::save((object)$articleDetailRec)) {
+        			break;
+        		}
+        	}
+        	
+        	if (!$bSuccess) {
+        		// Възникнала е грешка - изтрива се всичко!
+        		static::delete($articleId);
+        		acc_ArticleDetails::delete("#articleId = {$articleId}");
+        	
+        		return FALSE;
+        	}
         }
         
         return array('acc_Articles', $articleId);

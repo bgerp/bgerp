@@ -69,6 +69,10 @@ class store_transaction_Transfer
 		$rec = $this->class->fetchRec($id);
 		$rec->state = 'active';
 	
-		return $this->class->save($rec, 'state');
+		if($id = $this->class->save($rec)) {
+            $this->class->invoke('AfterActivation', array($rec));
+        }
+        
+        return $id;
 	}
 }

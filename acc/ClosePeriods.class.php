@@ -26,7 +26,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Приключвания на периоди";
+    public $title = "Приключване на периоди";
     
     
     /**
@@ -38,7 +38,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт,periodId,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "tools=Пулт,title=Заглавие,periodId,state,createdOn,createdBy";
     
     
     /**
@@ -56,19 +56,13 @@ class acc_ClosePeriods extends core_Master
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    //public $rowToolsSingleField = 'reason';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Заглавие на единичен документ
      */
     public $singleTitle = 'Приключване на период';
-    
-    
-    /**
-     * Икона на единичния изглед
-     */
-    //public $singleIcon = 'img/16/blog.png';
     
     
     /**
@@ -122,7 +116,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'acc/tpl/SingleLayoutClosePeriods.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleLayoutClosePeriods.shtml';
     
     
     /**
@@ -137,11 +131,11 @@ class acc_ClosePeriods extends core_Master
     function description()
     {
     	$this->FLD("periodId", 'key(mvc=acc_Periods, select=title, allowEmpty)', 'caption=Период,mandatory,silent');
-    	$this->FLD("amountFromInvoices", 'double(decimals=2)', 'input=none,caption=Сума от фактури с касови бележки');
-    	$this->FLD("amountVatGroup1", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->A,notNull,default=0');
-    	$this->FLD("amountVatGroup2", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->Б,notNull,default=0');
-    	$this->FLD("amountVatGroup3", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->В,notNull,default=0');
-    	$this->FLD("amountVatGroup4", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->Г,notNull,default=0');
+    	$this->FLD("amountFromInvoices", 'double(decimals=2)', 'input=none,caption=ДДС от фактури с касови бележки');
+    	$this->FLD("amountVatGroup1", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група A,notNull,default=0');
+    	$this->FLD("amountVatGroup2", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група Б,notNull,default=0');
+    	$this->FLD("amountVatGroup3", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група В,notNull,default=0');
+    	$this->FLD("amountVatGroup4", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група Г,notNull,default=0');
     	
     	$this->FLD('state',
     			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)',
@@ -198,7 +192,7 @@ class acc_ClosePeriods extends core_Master
     		
     		// От избрания период извличаме сумата на фактурите с касова бележка
     		$periodRec = acc_Periods::fetch($rec->periodId);
-    		$rec->amountFromInvoices = sales_Invoices::getAmountInCash($periodRec->start, $periodRec->end);
+    		$rec->amountFromInvoices = sales_Invoices::getVatAmountInCash($periodRec->start, $periodRec->end);
     	}
     }
     
@@ -233,13 +227,16 @@ class acc_ClosePeriods extends core_Master
     		$Double->params['decimals'] = 2;
     		
     		$rec->amountWithoutInvoice = ($rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4) - $rec->amountFromInvoices;
-    		$row->amountWithoutInvoice = $Double->toVerbal($rec->amountWithoutInvoice);
+    		$row->amountWithoutInvoice = $Double->toVerbal($rec->amountWithoutInvoice). " <span class='cCode'>{$row->baseCurrencyId}</span>";
+    	
+    		$row->amountFromInvoices .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
     	}
     	
-    	$balanceid = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
+    	$row->title = $mvc->getHyperLink($rec->id, TRUE);
+    	$balanceId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
     	
-    	if(acc_Balances::haveRightFor('single', $balanceid)){
-    		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceid));
+    	if(acc_Balances::haveRightFor('single', $balanceId)){
+    		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId), NULL, 'ef_icon=img/16/table_sum.png');
     	}
     }
     
@@ -252,9 +249,13 @@ class acc_ClosePeriods extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-    	$folderClass = doc_Folders::fetchCoverClassName($folderId);
+    	// Може да създаваме документ-а само в дефолт папката му
+    	if ($folderId == static::getDefaultFolder(NULL, FALSE)) {
+    		
+    		return TRUE;
+    	}
     
-    	return $folderClass == 'doc_UnsortedFolders';
+    	return FALSE;
     }
     
     
@@ -304,6 +305,97 @@ class acc_ClosePeriods extends core_Master
     		if($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}' AND #id != '{$rec->id}'")){
     			$res = 'no_one';
     		}
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$rec = &$data->rec;
+    	
+    	if(acc_Balances::haveRightFor('single')){
+    		$data->info = $mvc->prepareInfo($data->rec);
+    	}
+    }
+    
+    
+    /**
+     * Подготвя информацията за направените транзакции в журнала
+     * 
+     * @param stdClass $rec - запис на документа
+     * @return stdClass $info - подготвената информация
+     */
+    private function prepareInfo($rec)
+    {
+    	$info = array();
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	
+    	// Намираме кои сметки са засегнати от документа
+    	$accounts = array();
+    	$jRec = acc_Journal::fetchByDoc($this->getClassId(), $rec->id);
+    	$jQuery = acc_JournalDetails::getQuery();
+    	$jQuery->where("#journalId = '{$jRec->id}'");
+    	$jQuery->show('debitAccId,creditAccId');
+    	while($dRec = $jQuery->fetch()){
+    		$accounts[$dRec->debitAccId] = $dRec->debitAccId;
+    		$accounts[$dRec->creditAccId] = $dRec->creditAccId;
+    	}
+    	
+    	if(!count($accounts)) return NULL;
+    	
+    	// За всяка от тях, намираме състоянието им след контирането на документа
+    	$bId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
+    	$dQuery = acc_BalanceDetails::getQuery();
+    	$dQuery->where("#balanceId = {$bId}");
+    	$dQuery->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
+    	$dQuery->in("accountId", $accounts);
+    		 
+    	// Подготвяме какво е променено по всяка сметка
+    	while ($dRec = $dQuery->fetch()){
+    		$nRow = new stdClass();
+    		$nRow->accountId = acc_Balances::getAccountLink($dRec->accountId, NULL, TRUE, TRUE);
+    		foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    			$nRow->$fld = $Double->toVerbal($dRec->$fld);
+    			if($dRec->$fld < 0){
+    				$nRow->$fld = "<span class='red'>{$nRow->$fld}</span>";
+    			}
+    		}
+    		
+    		$info[$dRec->accountId] = $nRow;
+    	}
+    	
+    	// Връщаме историята на направените операции
+    	return $info;
+    }
+    
+    
+    /**
+     * След рендиране на еденичния изглед
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	if($data->info){
+    		
+    		// Показваме таблица със състоянието на сметките
+    		$table = cls::get('core_TableView', array('mvc' => cls::get('acc_BalanceDetails')));
+    		$fields = array();
+    		$fields['accountId']      = 'Сметка';
+    		$fields['baseQuantity']   = 'Начално салдо->К-во';
+    		$fields['baseAmount']     = 'Начално салдо->Сума';
+    		$fields['debitQuantity']  = 'Дебит->К-во';
+    		$fields['debitAmount']    = 'Дебит->Сума';
+    		$fields['creditQuantity'] = 'Кредит->К-во';
+    		$fields['creditAmount']   = 'Кредит->Сума';
+    		$fields['blQuantity']     = 'Крайно салдо->К-во';
+    		$fields['blAmount']       = 'Крайно салдо->Сума';
+    		
+    		$details = $table->get($data->info, $fields);
+    		
+    		$tpl->append($details, 'INFO');
     	}
     }
 }

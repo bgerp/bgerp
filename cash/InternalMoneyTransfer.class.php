@@ -19,7 +19,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_InternalMoneyTransfer';
    
     
     /**
@@ -365,78 +365,6 @@ class cash_InternalMoneyTransfer extends core_Master
     	if($data->rec->state == 'draft') {
 	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
     	}
-    }
-    
-    
-	/**
-   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-   	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 *  
-   	 *  Ако избраната валута е в основна валута
-   	 *  	
-   	 *  	Dt: 501. Каси 					(Каса, Валута)
-   	 *  		503. Разплащателни сметки	(Банкова сметка, Валута)
-   	 *  	
-   	 *  Ct: 501. Каси					(Каса, Валута)
-   	 *  
-   	 *  Ако е в друга валута различна от основната
-   	 *  
-   	 *  	Dt: 501. Каси 					         (Каса, Валута)
-   	 *  		503. Разплащателни сметки	         (Банкова сметка, Валута)
-   	 *  	
-   	 *  Ct: 481. Разчети по курсови разлики		 (Валута)
-   	 *  
-   	 *  	Dt: 481. Разчети по курсови разлики	     (Валута)
-   	 *  	Ct: 501. Каси 					         (Каса, Валута)
-   	 */
-    public static function getTransaction($id)
-    {
-        // Извличаме записа
-        expect($rec = self::fetchRec($id));
-        
-        ($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
-        $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-        $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
-        
-        $creditArr = array($rec->creditAccId, 
-        					 array('cash_Cases', $rec->creditCase),
-        					 array('currency_Currencies', $rec->currencyId),
-                		  'quantity' => $rec->amount);
-        
-        $toArr = array($rec->debitAccId,$debitArr,
-        				array('currency_Currencies', $rec->currencyId),
-        				'quantity' => $rec->amount);
-        
-        if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
-        	$entry = array('amount' => $amount, 'debit' => $toArr, 'credit' => $creditArr);
-        	$entry = array($entry);
-        } else {
-        	$entry = array();
-        	$entry[] = array('amount' => $amount, 'debit' => $toArr, 'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount));
-        	$entry[] = array('amount' => $amount, 'debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount), 'credit'  => $creditArr);
-        }
-      	
-      	// Подготвяме информацията която ще записваме в Журнала
-        $result = (object)array(
-            'reason' => $rec->reason,   // основанието за ордера
-            'valior' => $rec->valior,   // датата на ордера
-            'entries' => $entry);
-        
-        return $result;
-    }
-    
-    
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        $rec->state = 'closed';
-                
-        return self::save($rec);
     }
     
     
