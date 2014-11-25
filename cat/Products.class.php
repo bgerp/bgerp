@@ -252,7 +252,7 @@ class cat_Products extends core_Embedder {
         $fQuery = doc_Folders::getQuery();
         $fQuery->show('coverClass,title');
         while($fRec = $fQuery->fetch()){
-        	if(cls::haveInterface('doc_ContragentDataIntf', $fRec->coverClass)){
+        	if(!empty($fRec->coverClass) && cls::haveInterface('doc_ContragentDataIntf', $fRec->coverClass)){
         		$arrs[$fRec->id] = $fRec->title;
         	}
         }
