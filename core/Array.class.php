@@ -356,7 +356,8 @@ class core_Array
             } elseif(is_array($arr1)) {
                 $arr1[$fld] = $vars[$fld];
             } else {
-                error("500. Некоректен параметър $arr1");
+                // Некоректен параметър
+                bp($arr1);
             }
         }
     }

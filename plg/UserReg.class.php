@@ -200,23 +200,21 @@ class plg_UserReg extends core_Plugin
             return FALSE;
         } elseif ($act == 'activate' || $act == 'changepass') {
             
-            $id = Request::get('id', 'identifier');
-            
-            if (!$id) error('Грешка 0', $id);
+            expect($id = Request::get('id', 'identifier'));
             
             $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
             
             if (!$userId || (!$rec = $mvc->fetch($userId))) {
-                error("Този линк е невалиден. Вероятно е използван или е изтекъл.");
+                redirect(array('Index'), FALSE, 'Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
             }
             
             // Проверка дали състоянието съответства на действието
             if ($rec->state != 'draft' && $act == 'activate') {
-                error('This account was activated yet!');
+                redirect(array('Index'), FALSE, 'Този акаунт е вече активиран.', 'error');
             }
             
             if ($rec->state == 'draft' && $act == 'changePass') {
-                error('This account is not activated yet!');
+                redirect(array('Index'), FALSE, 'Този акаунт все още не е активиран.', 'error');
             }
             
             $form = cls::get('core_Form');

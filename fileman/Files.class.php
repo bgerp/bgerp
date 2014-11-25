@@ -133,7 +133,7 @@ class fileman_Files extends core_Master
         if(!$rec->fileHnd) {
             do {
                 
-                if(16 < $i++) error('Unable to generate random file handler', $rec);
+                if(16 < $i++) error('@Unable to generate random file handler', $rec);
                 
                 $rec->fileHnd = str::getRand(FILEMAN_HANDLER_PTR);
             } while($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));

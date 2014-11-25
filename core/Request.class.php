@@ -213,10 +213,7 @@ class core_Request
             $value = $inputType->fromVerbal($value);
             
             if ($inputType->error) {
-                error("Некоректна стойност за входен параметър", array(
-                        'input' => $name,
-                        'error' => $inputType->error
-                    ));
+                error("@Некоректна стойност за входен параметър", $name, $inputType->error);
             } else {
                 return $value;
             }
@@ -372,11 +369,7 @@ class core_Request
             $mvc = & cls::get($ctr);
             $content = $mvc->action(strtolower($act));
         } else {
-            error("404 Controller not found: {$ctr}", array(
-                    'controller' => $ctr,
-                    '$_GET' => $_GET,
-                    '$_POST' => $_POST
-                ));
+            error('404 @Липсваща страница', $ctr, $_GET, $_POST);
         }
         
         if ($mustPop) {

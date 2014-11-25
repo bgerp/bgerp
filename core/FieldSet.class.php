@@ -70,7 +70,7 @@ class core_FieldSet extends core_BaseClass
         
         $params = arr::make($params, TRUE);
         
-        $value = ($params['notNull'] && !isset($params['value'])) ? $fieldType->defVal() : NULL;
+        $value = (isset($params['notNull']) && !isset($params['value'])) ? $fieldType->defVal() : NULL;
         $this->setField($name, arr::combine(array(
                     'kind' => 'FLD',
                     'value' => $value,
@@ -172,9 +172,9 @@ class core_FieldSet extends core_BaseClass
         foreach ($names as $name => $caption) {
             
             if ($newField && isset($this->fields[$name])) {
-                error("Дублирано име на поле", "'{$name}'");
+                error("@Дублирано име на поле", "'{$name}'");
             } elseif (!$newField && !isset($this->fields[$name])) {
-                error("Несъществуващо поле", "'{$name}'", $this->fields);
+                error("@Несъществуващо поле", "'{$name}'", $this->fields);
             } elseif(!isset($this->fields[$name])) {
                 $this->fields[$name] = new stdClass();
             }
@@ -203,7 +203,7 @@ class core_FieldSet extends core_BaseClass
             $this->fields[$name]->caption = $this->fields[$name]->caption ? $this->fields[$name]->caption : $name;
             $this->fields[$name]->name = $name;
             
-            if($params['before'] || $params['after']) {
+            if(isset($params['before']) || isset($params['after'])) {
                 $newFields = array();
                 $isSet = FALSE;
                 foreach($this->fields as $exName => $exFld) {
@@ -236,7 +236,7 @@ class core_FieldSet extends core_BaseClass
     function newField($name, $params)
     {
         if (isset($this->fields[$name])) {
-            error("Дублирано име на поле", "'{$name}'");
+            error("@Дублирано име на поле", "'{$name}'");
         }
         $this->fields[$name]->name = $name;
         $this->setField($name, $params);
@@ -354,7 +354,7 @@ class core_FieldSet extends core_BaseClass
             return $this->fields[$name];
         } else {
             if ($strict) {
-                error("Липсващо поле", "'{$name}'" . ($strict ? ' (strict)' : ''));
+                error("@Липсващо поле", "'{$name}'" . ($strict ? ' (strict)' : ''));
             }
         }
     }
@@ -375,7 +375,7 @@ class core_FieldSet extends core_BaseClass
     		
     		// Ако го няма и $strict е TRUE, предизвикваме грешка
             if ($strict) {
-                error("Липсващо поле", "'{$name}'" . ($strict ? ' (strict)' : ''));
+                error("@Липсващо поле", "'{$name}'" . ($strict ? ' (strict)' : ''));
             }
         }
     }

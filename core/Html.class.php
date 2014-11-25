@@ -21,7 +21,9 @@ class core_Html
      * Композира xHTML елемент
      */
     static function createElement($name, $attributes, $body = "", $closeTag = FALSE)
-    {
+    {   
+        $attrStr = '';
+
         if ($name) {
 
             if (is_array($attributes)) {
@@ -58,7 +60,7 @@ class core_Html
             $element = $body;
         }
 
-        return new ET('[#1#]', $element);
+        return new core_ET('[#1#]', $element);
     }
 
 
@@ -89,7 +91,7 @@ class core_Html
 
         $attr['name'] = $name;
 
-        ht::setUniqId($attr);
+        self::setUniqId($attr);
  
         $attr['class'] .= ' combo';
         $attr['value'] = $value;
@@ -107,7 +109,7 @@ class core_Html
 
         unset($attr['onblur']);
         $attr['type'] = 'text';
-        $tpl->append(ht::createElement('input', $attr));
+        $tpl->append(self::createElement('input', $attr));
         
         unset($attr['autocomplete'], $attr['type']);
 
@@ -123,7 +125,7 @@ class core_Html
 
         unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
 
-        $tpl->prepend(ht::createSelect($name, $options, $value, $attr));
+        $tpl->prepend(self::createSelect($name, $options, $value, $attr));
 
         return $tpl;
     }
@@ -169,7 +171,7 @@ class core_Html
                         $element = 'optgroup';
                         $attr = $title->attr;
                         $attr['label'] = $title->title;
-                        $option = ht::createElement($element, $attr);
+                        $option = self::createElement($element, $attr);
                         $select->append($option, 'OPTIONS');
                         $openGroup = TRUE;
                         continue;
@@ -196,7 +198,7 @@ class core_Html
  
                 //$title = strip_tags($title); 
                 
-                $option = ht::createElement($element, $attr, $title);
+                $option = self::createElement($element, $attr, $title);
 
 
                 $select->append("\n", 'OPTIONS');
@@ -249,7 +251,7 @@ class core_Html
         $maxColumns = 4,
         $columns = NULL)
     {
-        $optionsCnt = ht::countOptions($options);
+        $optionsCnt = self::countOptions($options);
 
         if($optionsCnt <= 1) {
             // Когато имаме само една опция, правим readOnly <input>
@@ -279,13 +281,13 @@ class core_Html
                 $value = '&nbsp;';
             }
             
-            $input = ht::createElement('select', array(
+            $input = self::createElement('select', array(
                     'readonly' => 'readonly',
                     'class' => 'readonly ' .
                     $attr['class']
                 ), "<option>$value</option>", TRUE);
 
-            $input->append(ht::createElement('input', array(
+            $input->append(self::createElement('input', array(
                         'type' => 'hidden',
                         'name' => $name,
                         'value' => $id
@@ -324,7 +326,7 @@ class core_Html
 
                 if(is_object($opt) && $opt->group) {
 
-                    $input->append(ht::createElement('div', $opt->attr, $opt->title));
+                    $input->append(self::createElement('div', $opt->attr, $opt->title));
 
                     $indent = '&nbsp;&nbsp;&nbsp;';
                 } else {
@@ -332,7 +334,7 @@ class core_Html
                     $attrLabel = is_object($opt) ? $opt->attr : array();
                     $radioAttr = array('type' => 'radio', 'name' => $name, 'value' => $id);
 
-                    ht::setUniqId($radioAttr);
+                    self::setUniqId($radioAttr);
 
                     if($value == $id) {
                         $radioAttr['checked'] = 'checked';
@@ -344,11 +346,11 @@ class core_Html
 
                     $input->append($indent);
 
-                    $input->append(ht::createElement('input', $radioAttr));
+                    $input->append(self::createElement('input', $radioAttr));
 
                     $attrLabel['for'] = $radioAttr['id'];
 
-                    $input->append(ht::createElement('label', $attrLabel, $title));
+                    $input->append(self::createElement('label', $attrLabel, $title));
 
                     $input->append("<br>");
                 }
@@ -361,9 +363,9 @@ class core_Html
             // Добавка (временна) за да не се свиват радио бутоните от w25 - w75
             $attr['style'] .= 'width:100%';
 
-            $input = ht::createElement('div', $attr, $tpl);
+            $input = self::createElement('div', $attr, $tpl);
         } else {
-            $input = ht::createSelect($name, $options, $value, $attr);
+            $input = self::createSelect($name, $options, $value, $attr);
         }
 
         return $input;
@@ -389,7 +391,7 @@ class core_Html
                 $attr['name'] = $name;
                 $attr['value'] = $value;
                 $attr['type'] = 'hidden';
-                $tpl->append(ht::createElement('input', $attr));
+                $tpl->append(self::createElement('input', $attr));
             }
         }
 
@@ -412,7 +414,7 @@ class core_Html
             $attr['value'] = $value;
         }
 
-        $input = ht::createElement("input", $attr);
+        $input = self::createElement("input", $attr);
 
         return $input;
     }
@@ -429,7 +431,7 @@ class core_Html
     	
     	// Url-то се заменя с такова водещо към грешка
     	$url = core_Message::getErrorUrl($error, 'page_Error');
-    	return static::createBtn($title, $url, NULL, NULL, $attr);
+    	return self::createBtn($title, $url, NULL, NULL, $attr);
     }
     
     
@@ -490,7 +492,7 @@ class core_Html
 
             $attr['rel'] = 'nofollow';
 
-            return ht::createElement('a', $attr, "$title");
+            return self::createElement('a', $attr, "$title");
         }
 
         // Вкарваме предупреждението
@@ -528,7 +530,7 @@ class core_Html
             unset($attr['ef_icon']);
         }
 
-        return ht::createElement('input', $attr);
+        return self::createElement('input', $attr);
     }
 
 
@@ -578,7 +580,7 @@ class core_Html
             unset($attr['ef_icon']);
         }
 
-        $btn = ht::createElement('input', $attr);
+        $btn = self::createElement('input', $attr);
 
         $btn->appendOnce("<input type=\"hidden\" name=\"Cmd[default]\" value=1>",
             'FORM_HIDDEN');
@@ -622,7 +624,7 @@ class core_Html
             unset($attr['ef_icon']);
         }
 
-        $btn = ht::createElement('input', $attr);
+        $btn = self::createElement('input', $attr);
 
         return $btn;
     }
@@ -684,7 +686,7 @@ class core_Html
             unset($attr['ef_icon']);
         }
 
-        $tpl = ht::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
+        $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
         return $tpl;
     }
@@ -695,7 +697,7 @@ class core_Html
      */
 	static function createLinkRef($title, $url = FALSE, $warning = FALSE, $attr = array())
 	{
-		$link = static::createLink("<span class='anchor-arrow'></span>", $url, $warning, $attr);
+		$link = self::createLink("<span class='anchor-arrow'></span>", $url, $warning, $attr);
 		
 		return "{$title}&nbsp;{$link}";
 	}
@@ -707,7 +709,7 @@ class core_Html
     static function createSelectMenu($options, $selected, $maxRadio = 0, $attr = array())
     {
         if (count($options) < $maxRadio) {
-            ht::setUniqId($attr);
+            self::setUniqId($attr);
             $i = 0;
             $selectMenu = new ET('<div class="selectMenu">[#selectMenu#]</div>');
             foreach($options as $url => $title) {
@@ -725,7 +727,7 @@ class core_Html
             $attr['onfocus']  = "this.selectedIndex = -1;";
             $attr['class'] = ($attr['class'] ? $attr['class'] . ' ' : '') . "button";
             $attr['id'] = $name;
-            $selectMenu = ht::createSelect($name, $options, $selected, $attr);
+            $selectMenu = self::createSelect($name, $options, $selected, $attr);
 
             if ($button) {
                 $selectMenu->append("<input type=\"button\" " .
@@ -758,6 +760,7 @@ class core_Html
 
         return $layout;
     }
+
     
     /**
      * Прави html представяне на структурата на обекта, масива или променливата
@@ -915,17 +918,19 @@ class core_Html
             if (count($o)) {
                 foreach ($o as $name => $value) {
                     
-                    $attr = array();
-
-                    $attr['class'] = $scopeArr[$name];
-                    $attr['title'] = $scopeArr[$name];
+                    $attr = array('class' => '', 'title' => '', 'style' => '');
+                    
+                    if(isset($scopeArr[$name])) {
+                        $attr['class'] = $scopeArr[$name];
+                        $attr['title'] = $scopeArr[$name];
+                    }
 
                     if($name === 'dbPass') {
-                        $html .= "\n    <li>" . ht::createElement('span', $attr, "$name : ******")  . "</li>";
+                        $html .= "\n    <li>" . self::createElement('span', $attr, "$name : ******")  . "</li>";
                     } else {
                         if(is_scalar($value) || $value === NULL || (is_array($value) && count($value) ==0)) {
-                            $html .= "\n    <li>" . ht::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . " : " . 
-                                static::mixedToHtml($value, $hideLevel, $maxLevel) . "</li>";
+                            $html .= "\n    <li>" . self::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . " : " . 
+                                self::mixedToHtml($value, $hideLevel, $maxLevel) . "</li>";
                         } else {
 
                             $attr['style'] = $style;
@@ -933,8 +938,8 @@ class core_Html
                                 $attr['class'] .= ' trigger';
                             }
 
-                            $html .= "\n    <li>" . ht::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . " : " .
-                                static::mixedToHtml($value, $hideLevel, $maxLevel) . "</li>";
+                            $html .= "\n    <li>" . self::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . " : " .
+                                self::mixedToHtml($value, $hideLevel, $maxLevel) . "</li>";
                         }
                     }
                 }
@@ -959,15 +964,19 @@ class core_Html
 
 
     /**
-     *
+     * Прави dump на масив в html представяне
      */
     public static function arrayToHtml($arr)
     {
         $result = '';
 
         foreach ($arr as $item) {
-            $result .= "<hr><br><div>";
-            $result .= static::mixedToHtml($item);
+            if($result) {
+                $result .= "<div style='margin-top:5px;padding-top:5px;border-top:dotted 1px #999;'>";
+            } else {
+                $result .= "<div style='margin-top:5px;'>";
+            }
+            $result .= self::mixedToHtml($item);
             $result .= "</div>";
         }
 

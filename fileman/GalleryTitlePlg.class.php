@@ -89,7 +89,7 @@ class fileman_GalleryTitlePlg extends core_Plugin
             
             do {
                 // Ако достигнем максималния брой опити
-                if(16 < $i++) error('Unable to generate random file handler', $rec);
+                if(16 < $i++) error('@Unable to generate random file handler', $rec);
                 
                 // Генерирам псевдо-случаен стринг
                 $hash = str::getRand(FILEMAN_GALLERY_TITLE_HANDLER_PTR);

@@ -26,10 +26,7 @@ if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
 // Колко време е валидно заключването - в секунди
 DEFINE ('SETUP_LOCK_PERIOD', 240);
 
-defIfNot('BGERP_GIT_BRANCH', 'dev');
-
 defIfNot('BGERP_GIT_PATH', strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? '"C:/Program Files (x86)/Git/bin/git.exe"' : 'git');
-
 
 if (setupKeyValid() && !setupProcess()) {
     // Опит за стартиране на сетъп
@@ -553,7 +550,7 @@ if($step == 2) {
         }
         
     
-    $texts['body'] = linksToHtml($links);// bp($texts['body']);
+    $texts['body'] = linksToHtml($links);
             
     // Статистика за различните класове съобщения
     $stat = array();

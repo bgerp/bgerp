@@ -63,7 +63,7 @@ class plg_Sorting extends core_Plugin
                             $data->plg_Sorting->fields[$f] = 'down';
                             $data->query->orderBy("#{$dbField}", 'DESC');
                         } else {
-                            error('Неправилно сортиране', $field);
+                            error('@Неправилно сортиране', $field);
                         }
                     }
                 }

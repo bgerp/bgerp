@@ -8,7 +8,7 @@ class core_App
     {
         // Ако имаме заявка за статичен ресурс, веднага го сервираме и
         // приключване. Ако не - продъжаваме със зареждането на фреймуърка
-        if ($_GET[EF_SBF]) {
+        if (isset($_GET[EF_SBF]) && !empty($_GET[EF_SBF])) {
 
             core_Sbf::serveStaticFile($_GET[EF_SBF]);
 
@@ -86,17 +86,8 @@ class core_App
 
 
         // Разрешаваме грешките, ако инсталацията е Debug
-        ini_set("display_errors", EF_DEBUG);
-        ini_set("display_startup_errors", EF_DEBUG);
-
-
-        /**
-         * Времева зона
-         */
-        defIfNot('EF_TIMEZONE', 'Europe/Sofia');
-
-        // Сетваме времевата зона
-        date_default_timezone_set(EF_TIMEZONE);
+        //ini_set("display_errors", EF_DEBUG);
+        //ini_set("display_startup_errors", EF_DEBUG);
 
 
         // Вътрешно кодиране
@@ -173,7 +164,7 @@ class core_App
             foreach ($vUrl as $id => $prm) {
                 // Определяме случая, когато заявката е за браузърен ресурс
                 if ($id == 0 && $prm == EF_SBF) {
-                    if (!$q['App']) {
+                    if (!isset($q['App'])) {
                         $q['App'] = $vUrl[1];
                     }
                     unset($vUrl[0], $vUrl[1]);
@@ -182,13 +173,13 @@ class core_App
                 }
 
                 // Дали това не е името на приложението?
-                if (!$q['App'] && $id == 0) {
+                if (!isset($q['App']) && $id == 0) {
                     $q['App'] = strtolower($prm);
                     continue;
                 }
 
                 // Дали това не е име на контролер?
-                if (!$q['Ctr'] && $id < 2) {
+                if (!isset($q['Ctr']) && $id < 2) {
                     if (!preg_Match("/([A-Z])/", $prm)) {
                         $last = strrpos($prm, '_');
 
@@ -203,16 +194,16 @@ class core_App
                 }
 
                 // Дали това не е име на екшън?
-                if (!$q['Act'] && $id < 3) {
+                if (!isset($q['Act']) && $id < 3) {
                     $q['Act'] = $prm;
                     continue;
                 }
 
                 if ((count($vUrl) - $id) % 2) {
-                    if (!$q['id'] && !$name) {
+                    if (!isset($q['id']) && !$name) {
                         $q['id'] = decodeUrl($prm);
                     } else {
-                        if ($name) {
+                        if($name) {
                             $q[$name] = $prm;
                         }
                     }
@@ -224,10 +215,10 @@ class core_App
             // Вкарваме получените параметри от $_POST заявката
             // или от виртуалното URL в $_GET заявката
             foreach ($q as $var => $value) {
-                if (!$_GET[$var]) {
-                    if ($_POST[$var]) {
+                if (!isset($_GET[$var]) || !$_GET[$var]) {
+                    if (isset($_POST[$var]) && !empty($_POST[$var])) {
                         $_GET[$var] = $_POST[$var];
-                    } elseif ($q[$var]) {
+                    } elseif (isset($q[$var]) && !empty($q[$var])) {
                         $_GET[$var] = $q[$var];
                     }
                 }
@@ -306,8 +297,6 @@ class core_App
         */
         defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
         
-        
-        
         /**
          * Базова директория, където се намират под-директориите с качените файлове
          */
@@ -317,8 +306,20 @@ class core_App
         /**
          * Директорията с качените и генерираните файлове
          */
-        defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);        
+        defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME); 
+ 
         
+        /**
+         * Времева зона
+         */
+        defIfNot('EF_TIMEZONE', 'Europe/Sofia');
+
+
+        // Сетваме времевата зона
+        date_default_timezone_set(EF_TIMEZONE);
+        
+        // На кой бранч от репозиторито е кода?
+        defIfNot('BGERP_GIT_BRANCH', 'dev');
     }
 
 
@@ -585,7 +586,8 @@ class core_App
                 } elseif (count($key) == 2) {
                     $get[$key[0]][$key[1]] = $value;
                 } else {
-                    error('Повече от едномерен масив в URL-то не се поддържа', $key);
+                    // Повече от едномерен масив в URL-то не се поддържа
+                    bp($key);
                 }
             }
             
@@ -964,103 +966,6 @@ class core_App
     }
 
 
-    public static function bp()
-    {
-        echo core_App::_bp(core_Html::arrayToHtml(func_get_args()), debug_backtrace());
-        
-        header($_SERVER["SERVER_PROTOCOL"]." 500 Internal Server Error");
-         
-        header('Content-Type: text/html; charset=UTF-8');
-
-        die;
-    }
-
-
-    public static function _bp($html, $stack, $type = 'Прекъсване')
-    {
-        // Ако сме в работен, а не тестов режим, не показваме прекъсването
-        if (!static::isDebug()) {
-            error_log("Breakpoint on line $breakLine in $breakFile");
-            return;
-        }
-
-        $errHtml = static::getErrorHtml($html, $stack, $type);
-        
-        $errHtml .= core_Debug::getLog();
-        
-        if (!file_exists(EF_TEMP_PATH) && !is_dir(EF_TEMP_PATH)) {
-    		mkdir(EF_TEMP_PATH, 0777, TRUE);    
-		}
-        
-        // Поставяме обвивка - html документ
-        $page = ht::wrapMixedToHtml($errHtml, TRUE);
-        
-        // Записваме за всеки случай и като файл
-        file_put_contents(EF_TEMP_PATH . '/err.log.html', $page . "\n\n");
-
-        return  $page;
-    }
-
-    
-    /**
-     * Връща html-a на грешката
-     */
-	public static function getErrorHtml($html, $stack, $type = 'Прекъсване')
-	{
-		list($stack, $breakFile, $breakLine) = static::prepareStack($stack);
-
-        $errHtml .= "<h2>{$type} на линия <span style=\"color:red\">$breakLine</span> в " .
-        "<span style=\"color:red\">$breakFile</span></h2>";
-
-        $errHtml .= self::getCodeAround($breakFile, $breakLine);
-
-        $errHtml .= $html;
-
-        $errHtml .= "<h2>Стек</h2>";
-
-        $errHtml .= core_Exception_Expect::getTraceAsHtml($stack);
-		
-        $errHtml .= static::renderStack($stack);
-        
-        return $errHtml;
-	}
-
-
-
-
-    /**
-     * Връща кода от php файла, около посочената линия
-     * Прави базово форматиране
-     *
-     * @param string $file Името на файла, съдържащ PHP код
-     * @param int    $line Линията, около която търсим 
-     */
-    public static function getCodeAround($file, $line, $range = 4)
-    {
-        $source = file_get_contents($file);
-
-        $lines = explode("\n", $source);
-
-        $from = max($line - $range-1, 0);
-        $to   = min($line + $range, count($lines));
-        $code = "<pre>";
-        $padding = strlen($to);
-        for($i = $from; $i < $to; $i++) {
-            $l = str_pad($i+1, $padding, " ", STR_PAD_LEFT);
-            $style = '';
-            if($i+1 == $line) {
-                $style = " style='background-color:#ff9;'";
-            }
-            $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". str_replace('<', '&lt;', rtrim($lines[$i])) . "</span>\n";
-            $code .= $l;
-        }
-        $code .= "</pre>";
-        
-        return $code;
-    }
-
-	
-
     /**
      * Задава стойността(ите) от втория параметър на първия,
      * ако те не са установени
@@ -1095,50 +1000,6 @@ class core_App
     }
 
 
- 
-    private static function prepareStack($stack)
-    {
-        // Вътрешни функции, чрез които може да се генерира прекъсване
-        $intFunc = array(
-            'bp:debug',
-            'bp:',
-            'trigger:core_error',
-            'error:',
-            'expect:'
-        );
-
-        $breakpointPos = $breakFile = $breakLine = NULL;
-
-        foreach ($stack as $i => $f) {
-            if (in_array(strtolower($f['function'] . ':' . $f['class']), $intFunc)) {
-                $breakpointPos = $i;
-            }
-        }
-
-        if (isset($breakpointPos)) {
-            $breakLine = $stack[$breakpointPos]['line'];
-            $breakFile = $stack[$breakpointPos]['file'];
-            $stack = array_slice($stack, $breakpointPos+1);
-        }
-
-        return array($stack, $breakFile, $breakLine);
-    }
-
-    private static function renderStack($stack)
-    {
-        $result = '';
-
-        foreach ($stack as $f) {
-            $hash = md5($f['file']. ':' . $f['line']);
-            $result .= "<hr><br><div id=\"{$hash}\">";
-            $result .= core_Html::mixedToHtml($f);
-            $result .= "</div>";
-        }
-
-        return $result;
-    }
-
-
     /**
      * Осигурява автоматичното зареждане на класовете
      */
@@ -1161,7 +1022,7 @@ class core_App
             'fileman' => 'fileman_Files2',
         );
         
-        if($fullName = $aliases[strtolower($className)]) {
+        if(isset($aliases[strtolower($className)]) && $fullName = $aliases[strtolower($className)]) {
             if(core_Cls::load($fullName)) {
                 class_alias($fullName, $className);
                 

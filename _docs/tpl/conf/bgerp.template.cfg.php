@@ -237,7 +237,7 @@
 
 
 // 'Подправка' за кодиране на паролите
- # defIfNot('EF_USERS_PASS_SALT', hash('sha256',(EF_SALTH.'EF_USERS_PASS_SALT'));
+ # defIfNot('EF_USERS_PASS_SALT', hash('sha256',(EF_SALT . 'EF_USERS_PASS_SALT'));
 
 
 // Колко пъти по дължината на паролата, тя да се хешира?

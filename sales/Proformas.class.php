@@ -255,7 +255,7 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
-    	 //bp($rec);
+
     	if($fields['-single']){
     
     		if($rec->accountId){

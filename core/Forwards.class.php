@@ -93,7 +93,7 @@ class core_Forwards extends core_Manager
         $rec = self::fetch(array("#sysId = '[#1#]'", $sysId));
 
         if(!$rec) {
-            error('404. Изтекла или липсваща връзка');
+            redirect(array('Index'), FALSE, 'Изтекла или липсваща връзка', 'error');
         }
 
         $callback = array($rec->className, 'callback_' . $rec->methodName);

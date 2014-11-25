@@ -712,9 +712,6 @@ class drdata_Address extends core_MVC
 
         }
 
-   //  bp($res);
-
-
         // Отделяме блоковете с данни
         $blocks = array();
         $i = 1;
@@ -790,8 +787,6 @@ class drdata_Address extends core_MVC
         }
 
 
-       // bp($blocks);
-
         $points = array (
             'company' => 10,
             'name'    => 8,
@@ -820,8 +815,6 @@ class drdata_Address extends core_MVC
                 $maxTotal = $total;
             }
         }
-
-        // bp($maxBlock);
         
         $res = new stdClass();
 

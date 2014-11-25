@@ -272,7 +272,7 @@ class hr_Departments extends core_Master
     {
     	if($rec->activities == 'yes'){
     	    // Добавя се като перо 
-    	    //bp($mvc);
+
     		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'departments'), 'id'));
     		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
         } else {

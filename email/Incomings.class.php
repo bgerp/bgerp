@@ -374,10 +374,6 @@ class email_Incomings extends core_Master
                 
              } catch(core_exception_Expect $exp) {
                 // Не-парсируемо
-                if(Request::get('forced')) {
-                    echo $exp->getAsHtml();
-                    die;
-                }
                 email_Unparsable::add($rawEmail, $accId, $uid);
                 $status = 'misformatted';
             }
@@ -399,10 +395,6 @@ class email_Incomings extends core_Master
             }
         } catch (core_exception_Expect $exp) {
             // Обща грешка
-            if(Request::get('forced')) {
-                 echo $exp->getAsHtml();
-                die;
-            }
             $status = 'error';
         }
         

@@ -120,9 +120,6 @@ class plg_Chart extends core_Plugin
         );
         
         $data->chartTypes = $chartTypes;
-        
-        //bp($data->chartColumns);
-    
     }
     
     

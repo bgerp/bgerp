@@ -522,7 +522,8 @@ class cal_Holidays extends core_Master
         }
         
         $queryCompanies = crm_Companies::getQuery();
-    	
+    	$queryCompanies->show('id,country,inCharge,shared');
+
 	    while($recCompanies = $queryCompanies->fetch()){
 	    	
 	    	if($recCompanies->country) {

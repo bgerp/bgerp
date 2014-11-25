@@ -18,7 +18,7 @@ defIfNot('EF_USERS_SESS_TIMEOUT', 3600);
 /**
  * 'Подправка' за кодиране на паролите
  */
-defIfNot('EF_USERS_PASS_SALT', hash('sha256', (EF_SALTH . 'EF_USERS_PASS_SALT')));
+defIfNot('EF_USERS_PASS_SALT', hash('sha256', (EF_SALT . 'EF_USERS_PASS_SALT')));
 
 
 /**
@@ -1409,11 +1409,7 @@ class core_Users extends core_Manager
                 $errMsg = '401 Недостатъчни права за този ресурс';
             }
 
-            error($errMsg, array(
-                        'requiredRoles' => $requiredRoles,
-                        'action' => $action,
-                        'userRoles' => Users::getCurrent('roles')
-                    ));
+            error($errMsg,  $requiredRoles, $action,  Users::getCurrent('roles'));
         }
         
         return TRUE;
