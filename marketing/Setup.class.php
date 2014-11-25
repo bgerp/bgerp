@@ -113,12 +113,15 @@ class marketing_Setup extends core_ProtoSetup
     	$dId = cat_GeneralProductDriver::getClassId();
     	
     	$inqQuery = marketing_Inquiries::getQuery();
-    	$inqQuery->where("#state != 'rejected'");
+    	$inqQuery->where("#state = 'active'");
     	
     	while($oRec = $inqQuery->fetch()){
     		
     		if($oRec->createdBy){
     			core_Users::sudo($oRec->createdBy);
+    		} else {
+    			$cRec = Mode::get('currentUserRec');
+    			Request::push(array('currentUserRec' => NULL));
     		}
     		
     		$nRec = new stdClass();
@@ -159,6 +162,8 @@ class marketing_Setup extends core_ProtoSetup
     		
     		if($oRec->createdBy){
     			core_Users::exitSudo();
+    		} else {
+    			Request::push(array('currentUserRec' => $cRec));
     		}
     	}
     	
