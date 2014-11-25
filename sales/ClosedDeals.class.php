@@ -191,7 +191,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
      */
     public static function isSaleDiffAllowed($saleRec)
     {
-    	$diff = round($saleRec->amountDelivered - $saleRec->amountPaid, 2);
+    	$diff = round($saleRec->amountBl, 2);
     	$conf = core_Packs::getConfig('acc');
     	$res = ($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE);
     	
