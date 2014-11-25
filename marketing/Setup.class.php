@@ -120,8 +120,9 @@ class marketing_Setup extends core_ProtoSetup
     		if($oRec->createdBy){
     			core_Users::sudo($oRec->createdBy);
     		} else {
-    			$cRec = Mode::get('currentUserRec');
-    			Request::push(array('currentUserRec' => NULL));
+    			
+    			// Ако документа е създаден от анонимен, форсираме го
+    			core_Mode::push('currentUserRec', NULL);
     		}
     		
     		$nRec = new stdClass();
@@ -160,11 +161,7 @@ class marketing_Setup extends core_ProtoSetup
     			$Inq->log("Проблем при трансфера на запитване {$oRec->id}");
     		}
     		
-    		if($oRec->createdBy){
-    			core_Users::exitSudo();
-    		} else {
-    			Request::push(array('currentUserRec' => $cRec));
-    		}
+    		core_Users::exitSudo();
     	}
     	
     	core_Users::forceSystemUser();
