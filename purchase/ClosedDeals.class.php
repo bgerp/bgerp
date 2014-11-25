@@ -169,7 +169,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      */
     public static function isPurchaseDiffAllowed($purchaseRec)
     {
-    	$diff = round($purchaseRec->amountDelivered - $purchaseRec->amountPaid, 2);
+    	$diff = round($purchaseRec->amountBl, 2);
     	$conf = core_Packs::getConfig('acc');
     	$res = ($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE);
     	
