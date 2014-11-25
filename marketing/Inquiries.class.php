@@ -658,7 +658,9 @@ class marketing_Inquiries extends core_Master
     	
     	$subject = "{$name} / {$Driver->getProductTitle((object)$rec->data)}";
     	
-    	return $subject;
+    	$Varchar = cls::get('type_Varchar');
+    	
+    	return $Varchar->toVerbal($subject);
     }
     
     
