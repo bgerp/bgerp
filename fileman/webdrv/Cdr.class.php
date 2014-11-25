@@ -60,52 +60,48 @@ class fileman_webdrv_Cdr extends fileman_webdrv_Image
      */
     static function getThumbPrev($fRec) 
     {
-        // Опитваме се да вземем thumbnail на файла
         try {
             
-            // Инстанция на архива
-            $zip = static::getArchiveInst($fRec);
-            
-            // Вземаме съдържанието на thumbnail файла
-            $fileContent = $zip->getFromName('metadata/thumbnails/thumbnail.bmp');
-            
-            // Очакваме да има съдържание
-            expect($fileContent, 'Thumbnail файлът няма съдържание.');
-            
-            // Инстанция на fileman
-            $filesInst = cls::get('fileman_Files');
-        
-            // Вземаме името на файла
-            $nameArr = fileman_Files::getNameAndExt($fRec->name);
-            
-            // Създаваме новото име на файла
-            $name = $nameArr['name'] . '_thumb.bmp';
-            
-            // Добавяме файла в кофата
-            $fh = $filesInst->addNewFileFromString($fileContent, 'archive', $name);
+            // Опитваме се да вземем thumbnail на файла
+            try {
+                // Инстанция на архива
+                $zip = static::getArchiveInst($fRec);
                 
-            // Вземаме записа за новосъздадения файл
-            $nRec = fileman_Files::fetchByFh($fh);
-            
-            // Стартираме процеса на конвертиране към JPG формат
-            fileman_webdrv_Bmp::convertToJpg($nRec);
-            
-            // Показваме thumbnail'а
-            return fileman_webdrv_Bmp::getThumbPrev($nRec);
+                // Вземаме съдържанието на thumbnail файла
+                $fileContent = $zip->getFromName('metadata/thumbnails/thumbnail.bmp');
+                
+                // Очакваме да има съдържание
+                expect($fileContent, 'Thumbnail файлът няма съдържание.');
+                
+                // Инстанция на fileman
+                $filesInst = cls::get('fileman_Files');
+                
+                // Вземаме името на файла
+                $nameArr = fileman_Files::getNameAndExt($fRec->name);
+                
+                // Създаваме новото име на файла
+                $name = $nameArr['name'] . '_thumb.bmp';
+                
+                // Добавяме файла в кофата
+                $fh = $filesInst->addNewFileFromString($fileContent, 'archive', $name);
+                    
+                // Вземаме записа за новосъздадения файл
+                $nRec = fileman_Files::fetchByFh($fh);
+                
+                // Стартираме процеса на конвертиране към JPG формат
+                fileman_webdrv_Bmp::convertToJpg($nRec);
+                
+                // Показваме thumbnail'а
+                return fileman_webdrv_Bmp::getThumbPrev($nRec);
+            } catch (fileman_Exception $e) {
+                   
+                // Връщаме грешката
+                return $e->getMessage();    
+                
+            }
         } catch (Exception $e) {
             
-            // Ако възникне exception
-            $debug = $e->getDebug();
-            
-            // Ако сме задали да се показва съобщението от exception'а
-            if (!$debug[2]) {
-                
-                // Връщаме грешката
-                return $debug[1];    
-            } else {
-                
-                return "Не може да се покаже прегледа на файла.";
-            }
-        };
+            return "Не може да се покаже прегледа на файла.";
+        }
     }
 }

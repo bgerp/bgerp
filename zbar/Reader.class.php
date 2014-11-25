@@ -33,7 +33,8 @@ class zbar_Reader
         exec("zbarimg {$downloadUrl}", $allBarcodesArr, $errorCode);
         
         if (($errorCode != 0) && ($errorCode != 4)) {
-            expect(FALSE, "Възникна грешка при конвертиране.");    
+            
+            throw new fileman_Exception('Възникна грешка при обработка.');
         }
         
         // Масива с намерените баркодове
