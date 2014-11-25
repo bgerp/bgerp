@@ -145,4 +145,13 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	{
 		return $this->class->getUsedDocs();
 	}
+	
+	
+	/**
+	 * Коя е основната мярка на драйвера
+	 */
+	public function getDriverUom($params = array())
+	{
+		return $this->class->getDriverUom($params);
+	}
 }

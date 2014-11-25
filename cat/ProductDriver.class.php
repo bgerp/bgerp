@@ -158,4 +158,18 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return !empty($this->defaultMetaData) ? arr::make($this->defaultMetaData, TRUE) : array();
 	}
+	
+	
+	/**
+	 * Връща основната мярка, специфична за технолога
+	 */
+	public function getDriverUom($params)
+	{
+		if(empty($params['uom'])){
+			 
+			return cat_UoM::fetchBySysId('pcs')->id;
+		}
+	
+		return cat_UoM::fetchBySinonim($params['uom']);
+	}
 }
