@@ -1152,7 +1152,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             if ($open !== TRUE) {
                 
-                throw new fileman_Exception('Възникна грешка при отварянето на архива.');
+                throw new fileman_Exception('Възникна грешка при отварянето на файла.');
             }
             
             self::$archiveInst[$fRec->fileHnd] = $zip;
