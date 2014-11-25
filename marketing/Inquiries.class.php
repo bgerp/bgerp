@@ -26,7 +26,7 @@ class marketing_Inquiries extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Inq';
+    public $abbr = 'Inq2';
     
     
     /**

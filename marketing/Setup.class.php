@@ -66,6 +66,7 @@ class marketing_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'marketing_Inquiries',
+    		'marketing_Inquiries2'
         );
 
         
