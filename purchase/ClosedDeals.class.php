@@ -191,9 +191,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
 	    		$originRec = $origin->fetch();
     			
 	    		// Ако няма сч. движения по сделката не може да се приключи
-	    		if(empty($originRec->amountBl)){
-	    			$res = 'no_one';
-	    		}elseif($originRec->state == 'active' && $origin->instance instanceof purchase_Purchases){
+	    		if($originRec->state == 'active' && $origin->instance instanceof purchase_Purchases){
 	    			
 	    			// Ако разликата между доставеното/платеното е по голяма, се изисква
 	    			// потребителя да има по-големи права за да създаде документа
