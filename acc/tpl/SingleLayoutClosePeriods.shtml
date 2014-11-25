@@ -22,7 +22,7 @@
     </table>
     <table class='styled-table fright'>
         <tr>
-        	<td>|Суми от фактури с касови бележки|*</td>
+        	<td>|ДДС от фактури с касови бележки|*</td>
         	<td class='aright'>[#amountFromInvoices#]</td>
         </tr>
         <tr>
@@ -30,28 +30,28 @@
         </tr>
         <!--ET_BEGIN amountVatGroup1-->
         <tr>
-            <td> - |Група|* "А"</td>
+            <td> - |ДДС група|* "А"</td>
             <td class='aright'>[#amountVatGroup1#]</td>
         </tr>
         <!--ET_END amountVatGroup1-->
         
         <!--ET_BEGIN amountVatGroup2-->
         <tr>
-            <td> - |Група|* "Б"</td>
+            <td> - |ДДС група|* "Б"</td>
             <td class='aright'>[#amountVatGroup2#]</td>
         </tr>
         <!--ET_END amountVatGroup2-->
         
         <!--ET_BEGIN amountVatGroup3-->
         <tr>
-            <td> - |Група|* "В"</td>
+            <td> - |ДДС група|* "В"</td>
             <td class='aright'>[#amountVatGroup3#]</td>
         </tr>
         <!--ET_END amountVatGroup3-->
         
         <!--ET_BEGIN amountVatGroup4-->
         <tr>
-            <td> - |Група|* "Г"</td>
+            <td> - |ДДС група|* "Г"</td>
             <td class='aright'>[#amountVatGroup4#]</td>
         </tr>
         <!--ET_END amountVatGroup4-->
@@ -59,7 +59,7 @@
             <td colspan="2"></td>
         </tr>
         <tr>
-        	<td>|Сума на продажбите без Фактури|*</td>
+        	<td>|ДДС на продажбите без фактури|*</td>
         	<td class='aright'>[#amountWithoutInvoice#]</td>
         </tr>
     </table>
