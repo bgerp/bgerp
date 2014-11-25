@@ -1179,11 +1179,11 @@ class email_Outgoings extends core_Master
             $mvc->singleTitle = "Факс";
             
             // Добавяме бутона изпрати
-            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', array('order'=>'10'), 'ef_icon = img/16/fax2.png');
+            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', array('order'=>'10.000091'), 'ef_icon = img/16/fax2.png');
         } else {
             
             // Добавяме бутона изпрати
-            $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10'), 'ef_icon = img/16/move.png');
+            $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10.000091'), 'ef_icon = img/16/move.png');
         }
         
         // Ако не редактираме и не клонираме
