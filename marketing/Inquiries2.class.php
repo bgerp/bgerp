@@ -363,7 +363,7 @@ class marketing_Inquiries2 extends core_Embedder
     		// Име на фирма/лице/име на продукта
     		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
-    		$files = $this->getAttachedFiles((array)$rec->innerForm);
+    		$files = $this->getAttachedFiles($rec);
     		 
     		// Ако има прикачени файлове, добавяме ги
     		if($files){
@@ -392,14 +392,15 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Връща прикачените файлове
      */
-    public function getAttachedFiles($arr)
+    public function getAttachedFiles($rec)
     {
     	$res = array();
     	
-    	$Driver = $this->getDriver((object)$arr);
+    	$Driver = $this->getDriver($rec);
     	$form = $this->getForm();
     	$Driver->addEmbeddedFields($form);
     	
+    	$arr = (array)$rec->innerForm;
     	foreach ($arr as $name => $value){
     		if($form->getFieldType($name) instanceof type_Richtext){
     			$files = fileman_RichTextPlg::getFiles($value);
@@ -549,29 +550,6 @@ class marketing_Inquiries2 extends core_Embedder
     {
     	return 'opened';
     }
-
-
-    /**
-     * Връща прикачените файлове
-     *
-     * @param object $rec - Запис
-     */
-    function getLinkedFiles($rec)
-    {
-    	$fhArr = array();
-    
-    	// Ако е подадено id вместо запис
-    	if (is_numeric($rec)) {
-    
-    		// Вземаме записа
-    		$rec = static::fetch($rec);
-    	}
-    
-    	// Вземаме прикачените файлове
-    	$fhArr = fileman_RichTextPlg::getFiles($rec->data['description']);
-    
-    	return $fhArr;
-    }
     
     
     /**
@@ -593,6 +571,8 @@ class marketing_Inquiries2 extends core_Embedder
     	$params = $Source->getCustomizationParams();
     	
     	$form = $this->prepareForm($drvId);
+    	$form->rec->params = $params;
+    	$form->setDefault('country', $this->getDefaultCountry($form->rec));
     	$data = (object)array('form' => $form);
     	parent::on_AfterPrepareEditForm($this, $data);
     	
@@ -715,4 +695,19 @@ class marketing_Inquiries2 extends core_Embedder
     	}
     }
     
+    
+    /**
+     * Връща дефолт държавата на заданието
+     */
+    public static function getDefaultCountry($rec)
+    {
+    	if(cms_Content::getLang() == 'bg'){
+    		$countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+    	} else {
+    		$Drdata = cls::get('drdata_Countries');
+    		$countryId = $Drdata->getByIp();
+    	}
+    
+    	return $countryId;
+    }
 }
