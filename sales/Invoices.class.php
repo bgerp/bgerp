@@ -517,13 +517,13 @@ class sales_Invoices extends deals_InvoiceMaster
    	
    	
    	/**
-   	 * Връща сумата на платените в брой фактури, в основната валута
+   	 * Връща сумата на ддс-то на платените в брой фактури, в основната валута
    	 * 
    	 * @param date $from - от
    	 * @param date $to - до
-   	 * @return double $amount - сумата на платените в брой фактури
+   	 * @return double $amount - сумата на ддс-то на платените в брой фактури
    	 */
-   	public static function getAmountInCash($from, $to = NULL)
+   	public static function getVatAmountInCash($from, $to = NULL)
    	{
    		if(empty($to)){
    			$to = dt::today();
@@ -535,7 +535,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		$query->between("date", $from, $to);
    		
    		while($rec = $query->fetch()){
-   			$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
+   			$total = $rec->vatAmount;
    			$amount += $total;
    		}
    		
