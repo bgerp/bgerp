@@ -484,8 +484,9 @@ class core_Settings extends core_Manager
      * @param string $key
      * @param array $valArr
      * @param integer|NULL $userOrRole
+     * @param boolean $mergeVals
      */
-    public static function setValues($key, $valArr, $userOrRole = NULL)
+    public static function setValues($key, $valArr, $userOrRole = NULL, $mergeVals = FALSE)
     {
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
@@ -494,6 +495,10 @@ class core_Settings extends core_Manager
         
         // Стария запис
         $oldRec = static::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
+        
+        if ($mergeVals && $oldRec) {
+            $valArr = array_merge((array)$oldRec->data, (array)$valArr);
+        }
         
         // Ако няма стойности, изтриваме записа
         if (!$valArr && $oldRec) {
