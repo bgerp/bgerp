@@ -47,7 +47,7 @@ class techno2_Setup extends core_ProtoSetup
     var $managers = array(
     		'techno2_SpecificationDoc',
     		'techno2_SpecTplCache',
-    		'migrate::copyOldTechnoDocuments4'
+    		'migrate::copyOldTechnoDocuments5'
         );
     
 
@@ -103,7 +103,7 @@ class techno2_Setup extends core_ProtoSetup
     /**
      * Миграция на старите универсални продукти към новите спецификации
      */
-    public function copyOldTechnoDocuments4()
+    public function copyOldTechnoDocuments5()
     {
     	core_Users::cancelSystemUser();
     	
@@ -157,7 +157,7 @@ class techno2_Setup extends core_ProtoSetup
     /**
      * Прехвърля всички връзки в документите и счетоводството от старите спецификации към новите
      */
-    private function updateExDocuments()
+    public function updateExDocuments()
     {
     	$newClass = techno2_SpecificationDoc::getClassId();
     	$oldClass = techno_Specifications::getClassId();
@@ -173,9 +173,10 @@ class techno2_Setup extends core_ProtoSetup
     		try{
     			$specId = techno_Specifications::fetchByDoc($gpClass, $oldId)->id;
     		} catch(Exception $e){
-    			bp($rec);
+    			continue;
     		}
     		
+    		if(is_null($specId)) continue;
     		
     		if($itemRec = acc_Items::fetchItem($oldClass, $specId)){
     			$itemRec->classId = $newClass;
