@@ -436,6 +436,16 @@ class email_Outgoings extends core_Master
             // Ако е изпратен успешно
             if ($status) {
                 
+                // Добавяме кутията от която се изпраща, като имейл по подразбиране за папката
+                if ($rec->folderId) {
+                    $currUserId = core_Users::getCurrent();
+                    if ($currUserId > 0) {
+                        $valArr['defaultEmail'] = $options->boxFrom;
+                        $key = doc_Folders::getSettingsKey($rec->folderId);
+                        core_Settings::setValues($key, $valArr, core_Users::getCurrent(), TRUE);
+                    } 
+                }
+                
                 // Правим запис в лога
                 static::log('Send to ' . $allEmailsToStr, $rec->id);
                 
