@@ -135,7 +135,6 @@ class techno2_Setup extends core_ProtoSetup
     		$clone = clone $oldRec;
     		$clone->info = $info;
     		
-    		
     		$newRec->innerForm = $clone;
     		$newRec->innerState = $clone;
     		

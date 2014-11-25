@@ -170,19 +170,19 @@ class marketing_Inquiries2 extends core_Embedder
      */
     function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Заглавие');
+    	$this->FLD('title', 'varchar', 'caption=Заглавие,formOrder=48');
     	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,formOrder=49');
     	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,formOrder=49');
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,formOrder=49');
     	
     	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Лице за връзка,contragentDataField=person,formOrder=50');
-    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=50');
-    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл,formOrder=50');
-    	$this->FLD('company', 'varchar(255)', 'caption=Контактни дани->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
-    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни дани->Телефони,class=contactData,hint=Вашият телефон,formOrder=50');
-    	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни дани->П. код,class=contactData,hint=Вашият пощенски код,formOrder=50');
-        $this->FLD('place', 'varchar(64)', 'caption=Контактни дани->Град,class=contactData,hint=Населено място: град или село и община,formOrder=50');
-        $this->FLD('address', 'varchar(255)', 'caption=Контактни дани->Адрес,class=contactData,hint=Вашият адрес,formOrder=50');
+    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=51');
+    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл,formOrder=52');
+    	$this->FLD('company', 'varchar(255)', 'caption=Контактни дани->Фирма,class=contactData,hint=Вашата фирма,formOrder=53');
+    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни дани->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
+    	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни дани->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
+        $this->FLD('place', 'varchar(64)', 'caption=Контактни дани->Град,class=contactData,hint=Населено място: град или село и община,formOrder=56');
+        $this->FLD('address', 'varchar(255)', 'caption=Контактни дани->Адрес,class=contactData,hint=Вашият адрес,formOrder=57');
     
         $this->FLD('params', 'blob(serialize,compress)', 'input=none,silent');
     	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
@@ -244,12 +244,11 @@ class marketing_Inquiries2 extends core_Embedder
     	 
     	if($fields['-single']){
     		$row->header = $mvc->singleTitle . "&nbsp;#<b>{$mvc->abbr}{$row->id}</b>" . " ({$row->state})";
-    		 
+    		
     		// До всяко количество се слага unit с мярката на продукта
     		$Driver = $mvc->getDriver($rec);
-    		$pInfo = $Driver->getProductInfo();
     		
-    		$uomId = cat_UoM::getShortName($pInfo->productRec->measureId);
+    		$uomId = $Driver->getDriverUom($rec->params);
     		foreach (range(1, 3) as $i){
     			if($rec->{"quantity{$i}"}){
     				$row->{"quantity{$i}"} .= " {$uomId}";
@@ -268,7 +267,9 @@ class marketing_Inquiries2 extends core_Embedder
     {
     	// Нотифициращ имейл се изпраща само след първоначално активиране
     	if($rec->state == 'active' && empty($rec->brState)){
-    		$mvc->isSended = $mvc->sendNotificationEmail($rec);
+    		if(empty($rec->migrate)){
+    			$mvc->isSended = $mvc->sendNotificationEmail($rec);
+    		}
     	}
     }
     

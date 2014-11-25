@@ -66,7 +66,8 @@ class marketing_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'marketing_Inquiries',
-    		'marketing_Inquiries2'
+    		'marketing_Inquiries2',
+    		'migrate::migrateInquiries2'
         );
 
         
@@ -99,8 +100,68 @@ class marketing_Setup extends core_ProtoSetup
     }
     
     
-    public function migrateInquiries()
+    /**
+     * Миграция на старите запитвания към новите
+     */
+    public function migrateInquiries2()
     {
+    	core_Classes::add('marketing_Inquiries2');
     	
+    	core_Users::cancelSystemUser();
+    	$Inq = cls::get('marketing_Inquiries2');
+    	
+    	$dId = cat_GeneralProductDriver::getClassId();
+    	
+    	$inqQuery = marketing_Inquiries::getQuery();
+    	$inqQuery->where("#state != 'rejected'");
+    	
+    	while($oRec = $inqQuery->fetch()){
+    		
+    		if($oRec->createdBy){
+    			core_Users::sudo($oRec->createdBy);
+    		}
+    		
+    		$nRec = new stdClass();
+    		$nRec->innerClass = $dId;
+    		
+    		if(count($oRec->data)){
+    			foreach ($oRec->data as $key => $value){
+    				$oRec->$key = $value;
+    			}
+    		}
+    		
+    		foreach (array('description', 'state', 'folderId', 'modifiedOn', 'modifiedBy', 'searchKeywords', 'quantity1', 'quantity2', 'quantity3', 'name', 'country', 'email', 'company', 'tel', 'pCode', 'place', 'params', 'ip', 'browser', 'address', 'title') as $fld){
+    			$nRec->$fld = $oRec->$fld;
+    		}
+    		
+    		$oRec->info = $oRec->description;
+    		unset($oRec->description, $oRec->innerForm, $oRec->innerState);
+    		
+    		if(empty($clone->params['uom'])){
+    			$nRec->measureId = cat_UoM::fetchBySysId('pcs')->id;
+    		} else {
+    			$nRec->measureId = cat_UoM::fetchBySysId('pcs')->id;
+    		}
+    		
+    		$oRec->measureId = $nRec->measureId;
+    		$clone = clone $oRec;
+    		
+    		$nRec->innerForm = $clone;
+    		$nRec->innerState = $clone;
+    		
+    		$nRec->migrate = TRUE;
+    		
+    		try{
+    			$Inq->save($nRec);
+    		} catch(Exception $e){
+    			$Inq->log("Проблем при трансфера на запитване {$oRec->id}");
+    		}
+    		
+    		if($oRec->createdBy){
+    			core_Users::exitSudo();
+    		}
+    	}
+    	
+    	core_Users::forceSystemUser();
     }
 }
