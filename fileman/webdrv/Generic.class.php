@@ -508,14 +508,11 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Вземаме баркодовете
             $barcodesArr = static::findBarcodes($fileHndArr, $params['dataId']); 
-        } catch (core_exception_Expect $e) {
-            
-            // Съобщението въведено в expect
-            $debug = $e->getDebug();
+        } catch (fileman_Exception $e) {
             
             // Добавяме съобщението за грешка
             $barcodesArr = new stdClass();
-            $barcodesArr->errorProc = $debug[1];
+            $barcodesArr->errorProc = $e->getMessage();
             
             // Записваме грешката
             fileman_Indexes::createErrorLog($params['dataId'], $params['type']);
@@ -751,13 +748,10 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Инстанция на архива
             $zip = self::getArchiveInst($fRec);
-        } catch (Exception $e) {
-            
-            // Ако възникне exception
-            $debug = $e->getDebug();
+        } catch (fileman_Exception $e) {
             
             // Връщаме грешката
-            return $debug[1];
+            return $e->getMessage();
         }
         
         // Резултата, който ще върнем
@@ -846,13 +840,9 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Опитваме се да вземем манипулатора на файла
             $fileHnd = static::uploadFileFromArchive($fRec, $index);
-        } catch (Exception $e) {
+        } catch (fileman_Exception $e) {
             
-            // Ако възникне exception
-            $debug = $e->getDebug();
-
-            // Връщаме грешката
-            return $debug[1];
+            return $e->getMessage();
         }
         
         // Редиреткваме към single'а на качения файл
@@ -1092,7 +1082,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Ако размера след разархивиране е под допустимия
             if ($sizeContentArr[$index] < $conf->FILEINFO_MAX_ARCHIVE_LEN) {
-                $url = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fileHnd, 'index' => $index);
+                $url = array(get_called_class(), 'absorbFileInArchive', $fileHnd, 'index' => $index);
             } else {
                 $url = FALSE;
             }
@@ -1159,9 +1149,11 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Отваряме архива да четем от него
             $open = $zip->open($filePath, ZIPARCHIVE::CHECKCONS);
-    
-            // Очакваме да няма грешки при отварянето
-            expect(($open === TRUE), 'Възникна грешка при отварянето на файла.', TRUE);
+            
+            if ($open !== TRUE) {
+                
+                throw new fileman_Exception('Възникна грешка при отварянето на файла.');
+            }
             
             self::$archiveInst[$fRec->fileHnd] = $zip;
         } else {
@@ -1199,7 +1191,7 @@ class fileman_webdrv_Generic extends core_Manager
             $text .= "\n" . tr("Допустимият размер е|*: ") . $fileSizeInst->toVerbal($conf->FILEINFO_MIN_FILE_LEN_BARCODE);
             
             // Очакваме да не сме влезли тука
-            expect(FALSE, $text);
+            throw new fileman_Exception($text);
         }
     }
     

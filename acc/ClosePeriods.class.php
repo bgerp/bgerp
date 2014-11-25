@@ -131,11 +131,11 @@ class acc_ClosePeriods extends core_Master
     function description()
     {
     	$this->FLD("periodId", 'key(mvc=acc_Periods, select=title, allowEmpty)', 'caption=Период,mandatory,silent');
-    	$this->FLD("amountFromInvoices", 'double(decimals=2)', 'input=none,caption=Сума от фактури с касови бележки');
-    	$this->FLD("amountVatGroup1", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->A,notNull,default=0');
-    	$this->FLD("amountVatGroup2", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->Б,notNull,default=0');
-    	$this->FLD("amountVatGroup3", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->В,notNull,default=0');
-    	$this->FLD("amountVatGroup4", 'double(decimals=2)', 'caption=Суми от ДДС групите на касовия апарат->Г,notNull,default=0');
+    	$this->FLD("amountFromInvoices", 'double(decimals=2)', 'input=none,caption=ДДС от фактури с касови бележки');
+    	$this->FLD("amountVatGroup1", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група A,notNull,default=0');
+    	$this->FLD("amountVatGroup2", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група Б,notNull,default=0');
+    	$this->FLD("amountVatGroup3", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група В,notNull,default=0');
+    	$this->FLD("amountVatGroup4", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група Г,notNull,default=0');
     	
     	$this->FLD('state',
     			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)',
@@ -192,7 +192,7 @@ class acc_ClosePeriods extends core_Master
     		
     		// От избрания период извличаме сумата на фактурите с касова бележка
     		$periodRec = acc_Periods::fetch($rec->periodId);
-    		$rec->amountFromInvoices = sales_Invoices::getAmountInCash($periodRec->start, $periodRec->end);
+    		$rec->amountFromInvoices = sales_Invoices::getVatAmountInCash($periodRec->start, $periodRec->end);
     	}
     }
     

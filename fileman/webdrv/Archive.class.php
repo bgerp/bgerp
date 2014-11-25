@@ -82,13 +82,9 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         try {
             // Инстанция на класа
             $inst = static::getArchiveInst($fRec);
-        } catch (Exception $e) {
+        } catch (fileman_Exception $e) {
             
-            // Ако възникне exception
-            $debug = $e->getDebug();
-            
-            // Връщаме грешката
-            return $debug[1];
+            return $e->getMessage();
         }
         
         // URL' то където да сочат файловете
@@ -118,13 +114,9 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         try {
             // Инстанция на класа
             $inst = static::getArchiveInst($fRec);
-        } catch (Exception $e) {
+        } catch (fileman_Exception $e) {
             
-            // Ако възникне exception
-            $debug = $e->getDebug();
-            
-            // Връщаме грешката
-            return $debug[1];
+            return $e->getMessage();
         }
         
         // Качваме съответния файл
