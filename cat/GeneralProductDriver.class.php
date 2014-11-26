@@ -10,7 +10,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвър за универсален артикул
+ * @title     Универсален артикул
  */
 class cat_GeneralProductDriver extends cat_ProductDriver
 {

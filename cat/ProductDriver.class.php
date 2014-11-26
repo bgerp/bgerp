@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Драйвър за нестандартен артикул
+ * Базов драйвер за драйвер на артикул
  *
  *
  * @category  bgerp
@@ -10,7 +10,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвър за нестандартен артикул
+ * @title     Базов драйвер за драйвер на артикул
  */
 abstract class cat_ProductDriver extends core_BaseClass
 {

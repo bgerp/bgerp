@@ -11,7 +11,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвър за универсална услуга
+ * @title     Универсална услуга
  */
 class cat_GeneralServiceDriver extends cat_GeneralProductDriver
 {
