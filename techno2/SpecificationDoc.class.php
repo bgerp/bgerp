@@ -56,6 +56,12 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Права за запис
      */
+    public $canAdd = 'ceo, techno';
+    
+    
+    /**
+     * Права за запис
+     */
     public $canRead = 'ceo, techno';
     
     
@@ -158,12 +164,6 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
-     * Дали може да бъде само в началото на нишка
-     */
-    public $onlyFirstInThread = TRUE;
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -243,7 +243,7 @@ class techno2_SpecificationDoc extends core_Embedder
     public static function canAddToFolder($folderId)
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
-    
+    	
     	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     }
     
