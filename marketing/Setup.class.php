@@ -144,7 +144,7 @@ class marketing_Setup extends core_ProtoSetup
     		if(empty($clone->params['uom'])){
     			$nRec->measureId = cat_UoM::fetchBySysId('pcs')->id;
     		} else {
-    			$nRec->measureId = cat_UoM::fetchBySysId('pcs')->id;
+    			$nRec->measureId = cat_UoM::fetchBySinonim($clone->params['uom'])->id;
     		}
     		
     		$oRec->measureId = $nRec->measureId;

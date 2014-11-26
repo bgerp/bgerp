@@ -10,11 +10,7 @@
     <!--ET_END header-->
     <div class='scrolling-holder'>
     
-    <!--ET_BEGIN title-->
-    <div>[#title#]</div>
-    <!--ET_END title-->
-     
-    <div>[#innerClass#]</div>
+    <div><b>[#innerClass#]</b>: [#title#]</div>
      
     [#innerState#]
     </div>

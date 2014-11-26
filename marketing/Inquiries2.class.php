@@ -117,7 +117,7 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId, name, company, email, place';
+    public $searchFields = 'folderId, name, title, company, email, place';
     
     
     /**
@@ -260,9 +260,10 @@ class marketing_Inquiries2 extends core_Embedder
     		$Driver = $mvc->getDriver($rec);
     		
     		$uomId = $Driver->getDriverUom($rec->params);
+    		$shortName = cat_UoM::getShortName($uomId);
     		foreach (range(1, 3) as $i){
     			if($rec->{"quantity{$i}"}){
-    				$row->{"quantity{$i}"} .= " {$uomId}";
+    				$row->{"quantity{$i}"} .= " {$shortName}";
     			}
     		}
     	}
