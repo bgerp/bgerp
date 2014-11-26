@@ -60,7 +60,7 @@ class eshop_Setup extends core_ProtoSetup
     var $managers = array(
             'eshop_Groups',
             'eshop_Products',
-    		'migrate::migrateDrivers'
+    		'migrate::migrateDrivers1'
         );
 
         
@@ -115,7 +115,7 @@ class eshop_Setup extends core_ProtoSetup
     /**
      * Миграция от старите към новите драйвери
      */
-    private function migrateDrivers()
+    public function migrateDrivers1()
     {
     	$dId = cat_GeneralProductDriver::getClassId();
     	 
