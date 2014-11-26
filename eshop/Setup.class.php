@@ -60,6 +60,7 @@ class eshop_Setup extends core_ProtoSetup
     var $managers = array(
             'eshop_Groups',
             'eshop_Products',
+    		'migrate::migrateDrivers'
         );
 
         
@@ -108,5 +109,21 @@ class eshop_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция от старите към новите драйвери
+     */
+    private function migrateDrivers()
+    {
+    	$dId = cat_GeneralProductDriver::getClassId();
+    	 
+    	$pQuery = eshop_Products::getQuery();
+    	$pQuery->where("#coDriver IS NOT NULL");
+    	while($pRec = $pQuery->fetch()){
+    		$pRec->coDriver = $dId;
+    		eshop_Products::save($pRec, 'coDriver');
+    	}
     }
 }
