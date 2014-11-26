@@ -224,7 +224,7 @@ class marketing_Inquiries2 extends core_Embedder
     {
     	// Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
     	$cover = doc_Folders::getCover($folderId);
-   // bp();
+  
     	return $cover->haveInterface('doc_ContragentDataIntf');
     }
     
@@ -731,5 +731,24 @@ class marketing_Inquiries2 extends core_Embedder
     	}
     
     	return $countryId;
+    }
+    
+    
+    /**
+     * Намира кои полета са дошли от драйвера
+     */
+    public function getFieldsFromDriver($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$Driver = $this->getDriver($rec);
+    	
+    	$form = $this->getForm();
+    	$fieldsBefore = arr::make(array_keys($form->selectFields()), TRUE);
+    	$Driver->addEmbeddedFields($form);
+    	$fieldsAfter = arr::make(array_keys($form->selectFields()), TRUE);
+    	
+    	$params = array_diff_assoc($fieldsAfter, $fieldsBefore);
+    	
+    	return $params;
     }
 }

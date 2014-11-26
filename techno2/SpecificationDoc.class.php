@@ -183,6 +183,22 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
+    	if(isset($form->rec->innerClass)){
+    		if(isset($form->rec->originId)){
+    			$form->setReadOnly('innerClass');
+    			
+    			$origin = doc_Containers::getDocument($form->rec->originId);
+    			expect($origin->instance instanceof marketing_Inquiries2);
+    			
+    			$fields = array('title' => 'title') + $origin->getFieldsFromDriver();
+    			$originRec = $origin->rec()->innerForm;
+    			
+    			foreach ($fields as $fld){
+    				$form->setDefault($fld, $originRec->$fld);
+    			}
+    		}
+    	}
+    	
     	if($form->rec->innerClass && (empty($form->rec->state) || $form->rec->state === 'draft')){
     		$form->setField('sharedUsers', 'input,formOrder=100000000');
     	} else {
