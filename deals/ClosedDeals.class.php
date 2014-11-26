@@ -437,7 +437,7 @@ abstract class deals_ClosedDeals extends core_Master
         if(($action == 'add' || $action == 'conto' || $action == 'restore') && isset($rec)){
             $origin = $mvc->getOrigin($rec);
             
-            $item = acc_Items::fetchItem($origin->instance, $originRec->id);
+            $item = acc_Items::fetchItem($origin->instance, $origin->that);
             if(is_null($item->lastUseOn)){
             	 
             	// Ако перото на сделката не е използвано, не може да се приключи
