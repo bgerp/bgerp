@@ -191,6 +191,17 @@ class marketing_Inquiries2 extends core_Embedder
 
 
     /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	if(!$data->form->rec->innerClass){
+    		$data->form->setField('title', 'input=hidden');
+    	}
+    }
+    
+    
+    /**
      * Проверка и валидиране на формата
      */
     public static function on_AfterInputEditForm($mvc, $form)
@@ -404,7 +415,7 @@ class marketing_Inquiries2 extends core_Embedder
     	
     	$arr = (array)$rec->innerForm;
     	foreach ($arr as $name => $value){
-    		if($form->getFieldType($name) instanceof type_Richtext){
+    		if($form->getFieldType($name, FALSE) instanceof type_Richtext){
     			$files = fileman_RichTextPlg::getFiles($value);
     			$res = array_merge($res, $files);
     		}

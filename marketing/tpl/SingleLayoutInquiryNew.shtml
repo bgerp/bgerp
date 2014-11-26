@@ -9,7 +9,13 @@
     </div>
     <!--ET_END header-->
     <div class='scrolling-holder'>
+    
+    <!--ET_BEGIN title-->
+    <div>[#title#]</div>
+    <!--ET_END title-->
+     
     <div>[#innerClass#]</div>
+     
     [#innerState#]
     </div>
     <div class='scrolling-holder'>
