@@ -70,8 +70,7 @@ class sales_transaction_CloseDeal
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	$docRec = cls::get($rec->docClassId)->fetch($rec->docId);
     	
-    	$dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
-    	$this->shortBalance = new acc_ActiveShortBalance(array('itemsAll' => $dealItem->id));
+    	$dealItem = acc_Items::fetchItem('sales_Sales', $firstDoc->that);
     	
     	// Създаване на обекта за транзакция
     	$result = (object)array(
@@ -82,10 +81,14 @@ class sales_transaction_CloseDeal
     	);
     	
     	if($rec->closeWith){
-    		$closeDealItem = acc_Items::fetchItem('sales_Sales', $rec->closeWith);
-    		$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
-    		$result->entries = array_merge($result->entries, $closeEntries);
+    		if($dealItem){
+    			$closeDealItem = acc_Items::fetchItem('sales_Sales', $rec->closeWith);
+    			$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
+    			$result->entries = array_merge($result->entries, $closeEntries);
+    		}
     	} else {
+    		$this->shortBalance = new acc_ActiveShortBalance(array('itemsAll' => $dealItem->id));
+    		
     		$dealInfo = $this->class->getDealInfo($rec->threadId);
     	
     		$this->blAmount = $this->shortBalance->getAmount('411');
