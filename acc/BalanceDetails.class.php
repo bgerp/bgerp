@@ -298,7 +298,7 @@ class acc_BalanceDetails extends core_Detail
             if($by["feat{$i}"]){
                 $groupedBy[$i] = $by["feat{$i}"];
                 if($by["feat{$i}"] == '*'){
-                	$data->listFields["ent{$i}Id"] = tr("По пера");
+                	$data->listFields["ent{$i}Id"] = tr("{По пера}");
                 } else {
                 	$data->listFields["ent{$i}Id"] = $Varchar->toVerbal($groupedBy[$i]);
                 }
@@ -672,7 +672,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $features = acc_Features::getFeatureOptions(array_keys($options));
-        $features = array('' => '') + $features + array('*' => 'По пера');
+        $features = array('' => '') + $features + array('*' => '{По пера}');
         
         $listName = acc_Lists::getVerbal($listRec, 'name');
         $form->fieldsLayout->replace($listName, "caption{$i}");
