@@ -107,25 +107,28 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listFilter->showFields .= 'from, to';
         
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
-            $data->listFilter->FNC('users', 'users', 'caption=Потребители');
+            $data->listFilter->FNC('users', 'users(rolesForAll=support|ceo|admin)', 'caption=Потребители,silent', array('attr' => array('onchange' => 'this.form.submit();')));
             $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
             $data->listFilter->showFields .= ',users';
         }
         
         // Активиране на филтъра
-        $data->listFilter->input(NULL, 'silent');
+        $data->listFilter->input($data->listFilter->showFields, 'silent');
         
         // Ако формата за търсене е изпратена
         if($filter = $data->listFilter->rec) {
             
             // Филтрираме по потребители
             if($filter->users && $isDocument){
-                $userIds = keylist::toArray($filter->users);
-                $userIds = array_values($userIds);
                 
-                foreach ($userIds as $index => $userId){
-                    $or = ($index == 0) ? FALSE : TRUE;
-                    $data->query->where("#{$mvc->filterFieldUsers} = {$userId}", $or);
+                if(Request::get('users') != 'all_users'){
+                	$userIds = keylist::toArray($filter->users);
+                	$userIds = array_values($userIds);
+                	
+                	foreach ($userIds as $index => $userId){
+                		$or = ($index == 0) ? FALSE : TRUE;
+                		$data->query->where("#{$mvc->filterFieldUsers} = {$userId}", $or);
+                	}
                 }
             }
             
