@@ -437,14 +437,14 @@ abstract class deals_ClosedDeals extends core_Master
         if(($action == 'add' || $action == 'conto' || $action == 'restore') && isset($rec)){
             $origin = $mvc->getOrigin($rec);
             
-            $item = acc_Items::fetchItem($origin->instance, $origin->that);
-            if(is_null($item->lastUseOn)){
-            	 
-            	// Ако перото на сделката не е използвано, не може да се приключи
-            	$res = 'no_one';
-            }
-            
             if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
+            	$item = acc_Items::fetchItem($origin->instance, $origin->that);
+            	if(is_null($item->lastUseOn)){
+            	
+            		// Ако перото на сделката не е използвано, не може да се приключи
+            		$res = 'no_one';
+            	}
+            	
                 $originState = $origin->fetchField('state');
                 
                 if($originState === 'closed'){
