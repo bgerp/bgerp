@@ -224,7 +224,7 @@ class marketing_Inquiries2 extends core_Embedder
     {
     	// Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
     	$cover = doc_Folders::getCover($folderId);
-    
+   // bp();
     	return $cover->haveInterface('doc_ContragentDataIntf');
     }
     
@@ -483,7 +483,7 @@ class marketing_Inquiries2 extends core_Embedder
     		if(core_Packs::fetch("#name = 'techno2'")){
     			if(techno2_SpecificationDoc::haveRightFor('add')){
     				
-    				$data->toolbar->addBtn($data->row->innerClass, array('techno2_SpecificationDoc', 'add', 'originId' => $rec->containerId), "ef_icon=img/16/specification.png,title=Създаване на нов " . mb_strtolower($data->row->innerClass));
+    				$data->toolbar->addBtn($data->row->innerClass, array('techno2_SpecificationDoc', 'add', 'originId' => $rec->containerId, 'innerClass' => $rec->innerClass), "ef_icon=img/16/specification.png,title=Създаване на нов " . mb_strtolower($data->row->innerClass));
     			}
     		}
     		// Бутон за генериране на продукт от посочения драйвер
