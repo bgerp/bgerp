@@ -280,7 +280,7 @@ class marketing_Inquiries2 extends core_Embedder
     	// Нотифициращ имейл се изпраща само след първоначално активиране
     	if($rec->state == 'active' && empty($rec->brState)){
     		if(empty($rec->migrate)){
-    			$mvc->isSended = $mvc->sendNotificationEmail($rec);
+    			//$mvc->isSended = $mvc->sendNotificationEmail($rec);
     		}
     	}
     }
@@ -480,6 +480,12 @@ class marketing_Inquiries2 extends core_Embedder
     	 
     	if($rec->state == 'active'){
     
+    		if(core_Packs::fetch("#name = 'techno2'")){
+    			if(techno2_SpecificationDoc::haveRightFor('add')){
+    				
+    				$data->toolbar->addBtn($data->row->innerClass, array('techno2_SpecificationDoc', 'add', 'originId' => $rec->containerId), "ef_icon=img/16/specification.png,title=Създаване на нов " . mb_strtolower($data->row->innerClass));
+    			}
+    		}
     		// Бутон за генериране на продукт от посочения драйвер
     		/*$Driver = cls::get($rec->drvId);
     		if($Driver->haveRightFor('add')){
