@@ -184,13 +184,12 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     {
     	if($res == 'no_one') return;
     	
-    	if(($action == 'add' || $action == 'conto') && isset($rec)){
+    	if(($action == 'add' || $action == 'conto' || $action == 'restore') && isset($rec)){
     		
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
 	    		$originRec = $origin->fetch();
     			
-	    		// Ако няма сч. движения по сделката не може да се приключи
 	    		if($originRec->state == 'active' && $origin->instance instanceof purchase_Purchases){
 	    			
 	    			// Ако разликата между доставеното/платеното е по голяма, се изисква
