@@ -105,6 +105,7 @@ class marketing_Setup extends core_ProtoSetup
      */
     public function migrateInquiries2()
     {
+    	set_time_limit(600);
     	core_Classes::add('marketing_Inquiries2');
     	
     	core_Users::cancelSystemUser();
@@ -134,7 +135,7 @@ class marketing_Setup extends core_ProtoSetup
     			}
     		}
     		
-    		foreach (array('description', 'state', 'folderId', 'modifiedOn', 'modifiedBy', 'searchKeywords', 'quantity1', 'quantity2', 'quantity3', 'name', 'country', 'email', 'company', 'tel', 'pCode', 'place', 'params', 'ip', 'browser', 'address', 'title') as $fld){
+    		foreach (array('description', 'state', 'folderId', 'modifiedOn', 'modifiedBy', 'searchKeywords', 'quantity1', 'quantity2', 'quantity3', 'name', 'country', 'email', 'company', 'tel', 'pCode', 'place', 'params', 'ip', 'browser', 'address', 'title', 'createdOn') as $fld){
     			$nRec->$fld = $oRec->$fld;
     		}
     		
