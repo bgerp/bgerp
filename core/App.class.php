@@ -456,15 +456,28 @@ class core_App
      * Добавя сесийния идентификатор, ако е необходимо
      */
     public static function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'notice')
-    { 
+    {
         // Очакваме най-много три символа (BOM) в буфера
     	expect(ob_get_length() <= 3, array(ob_get_length(), ob_get_contents()));
-
-    	$url = toUrl($url, $absolute ? 'absolute' : 'relative');
-    	
+        
+        $hitId = Request::get('hit_id');
         if (isset($msg)) {
-    	    core_Statuses::newStatus($msg, $type);
-    	}
+            if (!$hitId) {
+                $hitId = str::getRand();
+            }
+            
+            core_Statuses::newStatus($msg, $type, NULL, 60, $hitId);
+        }
+        
+        if ($hitId) {
+            if (is_array($url)) {
+                $url['hit_id'] = $hitId;
+            } else if ($url) {
+                $url = core_Url::addParams($url, array('hit_id' => $hitId));
+            }
+        }
+        
+    	$url = toUrl($url, $absolute ? 'absolute' : 'relative');
     	
     	if(Request::get('ajax_mode')){
     		

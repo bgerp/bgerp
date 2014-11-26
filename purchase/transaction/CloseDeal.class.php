@@ -65,8 +65,6 @@ class purchase_transaction_CloseDeal
     	$docRec = cls::get($rec->docClassId)->fetch($rec->docId);
     	
     	$dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
-    	$this->shortBalance = new acc_ActiveShortBalance(array('itemsAll' => $dealItem->id));
-    	$this->blAmount = $this->shortBalance->getAmount('401');
     	
     	// Създаване на обекта за транзакция
     	$result = (object)array(
@@ -77,10 +75,15 @@ class purchase_transaction_CloseDeal
     	);
     	
     	if($rec->closeWith){
-    		$closeDealItem = acc_Items::fetchItem('purchase_Purchases', $rec->closeWith);
-    		$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
-    		$result->entries = array_merge($result->entries, $closeEntries);
+    		if($dealItem){
+    			$closeDealItem = acc_Items::fetchItem('purchase_Purchases', $rec->closeWith);
+    			$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
+    			$result->entries = array_merge($result->entries, $closeEntries);
+    		}
     	} else {
+    		$this->shortBalance = new acc_ActiveShortBalance(array('itemsAll' => $dealItem->id));
+    		$this->blAmount = $this->shortBalance->getAmount('401');
+    		
     		$dealInfo = $this->class->getDealInfo($rec->threadId);
     		 
     		// Кеширане на перото на текущата година

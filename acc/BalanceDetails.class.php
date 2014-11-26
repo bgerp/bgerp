@@ -655,8 +655,16 @@ class acc_BalanceDetails extends core_Detail
         $form->formAttr['id'] = 'groupForm';
         
         if(count($options)){
-            $options = implode(',', $options);
-            $options = acc_Items::makeArray4Select(NULL, "#id IN ({$options})");
+        	$nOptions = array();
+        	$iQuery = acc_Items::getQuery();
+        	$iQuery->in('id', $options);
+        	$iQuery->show('id,title');
+        	
+        	while($iRec = $iQuery->fetch()){
+        		$nOptions[$iRec->id] = acc_Items::getVerbal($iRec, 'title');
+        	}
+        	
+        	$options = $nOptions;
         }
         
         if(!count($options)){

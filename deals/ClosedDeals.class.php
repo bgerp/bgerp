@@ -434,8 +434,15 @@ abstract class deals_ClosedDeals extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
         // Документа не може да се контира, ако ориджина му е в състояние 'closed'
-        if($action == 'conto' && isset($rec)){
+        if(($action == 'add' || $action == 'conto' || $action == 'restore') && isset($rec)){
             $origin = $mvc->getOrigin($rec);
+            
+            $item = acc_Items::fetchItem($origin->instance, $origin->that);
+            if(is_null($item->lastUseOn)){
+            	 
+            	// Ако перото на сделката не е използвано, не може да се приключи
+            	$res = 'no_one';
+            }
             
             if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
                 $originState = $origin->fetchField('state');
