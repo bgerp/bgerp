@@ -263,7 +263,7 @@ class acc_plg_Contable extends core_Plugin
             }
         } elseif ($action == 'revert') {
             if ($rec->id) {
-                $periodRec = acc_Periods::fetchByDate($rec->valior);
+                $periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
                 
                 if ($rec->state != 'active' || ($periodRec->state != 'closed')) {
                     $requiredRoles = 'no_one';
@@ -272,7 +272,7 @@ class acc_plg_Contable extends core_Plugin
         } elseif ($action == 'reject') {
             if ($rec->id) {
                 
-                $periodRec = acc_Periods::fetchByDate($rec->valior);
+                $periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
                 
                 if ($periodRec->state == 'closed') {
                     $requiredRoles = 'no_one';
