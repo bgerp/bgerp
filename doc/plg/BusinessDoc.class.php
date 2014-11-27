@@ -83,7 +83,8 @@ class doc_plg_BusinessDoc extends core_Plugin
         
         // Ако няма поне едно поле key във формата
         if(!count($form->selectFields("#key"))){ 
-        	error(tr('Не може да се добави документ в папка, защото възможните списъци за избор са празни'));
+        	
+        	return Redirect(array($mvc, 'list'), FALSE, 'Не може да се добави документ в папка, защото възможните списъци за избор са празни');
         }
         
         $form->title = 'Избор на папка';
