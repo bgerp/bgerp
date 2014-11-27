@@ -316,7 +316,9 @@ class acc_ClosePeriods extends core_Master
     {
     	$rec = &$data->rec;
     	
-    	if(acc_Balances::haveRightFor('single')){
+    	$bRec = acc_Balances::fetch("#periodId = {$rec->periodId}");
+    	
+    	if($rec->state == 'active' && acc_Balances::haveRightFor('single', $bRec)){
     		$data->info = $mvc->prepareInfo($data->rec);
     	}
     }
