@@ -68,6 +68,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		$tpl->placeObject($data->row);
 		
+		if(!cls::haveInterface('cat_ProductAccRegIntf', $this->ProductRec)){
+			$data->noChange = TRUE;
+		}
+		
 		$paramTpl = cat_products_Params::renderParams($data);
 		$tpl->append($paramTpl, 'PARAMS');
 		
@@ -106,6 +110,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		$data->masterId = $this->ProductRec->rec()->id;
 		$data->masterClassId = $this->ProductRec->getClassId();
+		
 		cat_products_Params::prepareParams($data);
 		
 		return $data;
