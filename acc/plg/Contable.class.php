@@ -285,11 +285,21 @@ class acc_plg_Contable extends core_Plugin
                 }
             }
         } elseif ($action == 'restore') {
-            
-            // Ако потрбеителя не може да контира документа, не може и да го възстановява
+        	
+            // Ако потрбителя не може да контира документа, не може и да го възстановява
             if(!haveRole($mvc->getRequiredRoles('conto'))){
                 $requiredRoles = 'no_one';
             }
+            
+            if(isset($rec)){
+            	
+            	// Ако сч. период на записа е затворен, документа не може да се възстановява
+            	$periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
+            	if ($periodRec->state == 'closed') {
+            		$requiredRoles = 'no_one';
+            	}
+            }
+            
         } elseif ($action == 'correction') {
             
             // Кой може да създава коригиращ документ
