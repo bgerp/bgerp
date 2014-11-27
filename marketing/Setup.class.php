@@ -155,6 +155,7 @@ class marketing_Setup extends core_ProtoSetup
     		$nRec->innerState = $clone;
     		
     		$nRec->migrate = TRUE;
+    		$nRec->oldCreatedOn = $nRec->createdOn;
     		
     		try{
     			$Inq->save($nRec);

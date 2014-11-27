@@ -48,6 +48,12 @@ class marketing_Inquiries2 extends core_Embedder
     
     
     /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'title';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
@@ -57,7 +63,7 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Заглавие, name, company, email, folderId, createdOn, createdBy';
+    public $listFields = 'id,title=Заглавие, name, company, email, folderId, createdOn, createdBy';
     
     
     /**
@@ -280,7 +286,7 @@ class marketing_Inquiries2 extends core_Embedder
     	// Нотифициращ имейл се изпраща само след първоначално активиране
     	if($rec->state == 'active' && empty($rec->brState)){
     		if(empty($rec->migrate)){
-    			//$mvc->isSended = $mvc->sendNotificationEmail($rec);
+    			$mvc->isSended = $mvc->sendNotificationEmail($rec);
     		}
     	}
     }
@@ -750,5 +756,17 @@ class marketing_Inquiries2 extends core_Embedder
     	$params = array_diff_assoc($fieldsAfter, $fieldsBefore);
     	
     	return $params;
+    }
+    
+    
+    /**
+     * Изпълнява се преди запис
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+    	// Ако има оригинална дата на създаване, подменяме нея с текущата
+    	if(isset($rec->oldCreatedOn)){
+    		$rec->createdOn = $rec->oldCreatedOn;
+    	}
     }
 }
