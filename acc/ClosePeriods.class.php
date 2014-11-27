@@ -400,4 +400,15 @@ class acc_ClosePeriods extends core_Master
     		$tpl->append($details, 'INFO');
     	}
     }
+    
+    
+    /**
+     * Връща счетоводното основание за документа
+     */
+    public function getContoReason($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	 
+    	return $this->getVerbal($rec, 'periodId');
+    }
 }
