@@ -783,7 +783,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		$amountType = $mvc->getField('amountDeal')->type;
-		if($rec->state == 'active' || $rec->state == 'closed'){
+		if($rec->state == 'active'){
 			$rec->amountToDeliver = round($rec->amountDeal - $rec->amountDelivered, 2);
 			$rec->amountToPay = round($rec->amountDelivered - $rec->amountPaid, 2);
 			$rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
