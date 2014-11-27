@@ -578,7 +578,7 @@ class doc_DocumentPlg extends core_Plugin
             $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             
-            if ($rec->state == 'rejected' && $mvc->haveRightFor('reject', $rec)) {
+            if ($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec)) {
                 // Възстановяваме документа + нишката, ако се налага
                 if ($mvc->restore($rec)) {
                     $tRec = doc_Threads::fetch($rec->threadId);
@@ -588,15 +588,14 @@ class doc_DocumentPlg extends core_Plugin
                         doc_Threads::restoreThread($rec->threadId);
                     }
                 }
-                    
-                // Пренасочваме контрола
-                if (!$res = getRetUrl()) {
-                    $res = array($mvc, 'single', $id);
-                }
-                
-                $res = new Redirect($res); //'OK';
-                
             }             
+            
+            // Пренасочваме контрола
+            if (!$res = getRetUrl()) {
+            	$res = array($mvc, 'single', $id);
+            }
+            
+            $res = new Redirect($res); //'OK';
             
             return FALSE;
         }
