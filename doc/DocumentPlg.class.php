@@ -588,15 +588,14 @@ class doc_DocumentPlg extends core_Plugin
                         doc_Threads::restoreThread($rec->threadId);
                     }
                 }
-                    
-                // Пренасочваме контрола
-                if (!$res = getRetUrl()) {
-                    $res = array($mvc, 'single', $id);
-                }
-                
-                $res = new Redirect($res); //'OK';
-                
             }             
+            
+            // Пренасочваме контрола
+            if (!$res = getRetUrl()) {
+            	$res = array($mvc, 'single', $id);
+            }
+            
+            $res = new Redirect($res); //'OK';
             
             return FALSE;
         }
