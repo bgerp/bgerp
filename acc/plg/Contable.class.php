@@ -122,8 +122,9 @@ class acc_plg_Contable extends core_Plugin
         
         if ($mvc->haveRightFor('conto', $rec)) {
             
+        	unset($error);
             // Проверка на счетоводния период, ако има грешка я показваме
-            if(!self::checkPeriod($rec->valior, $error)){
+            if(!self::checkPeriod($rec->{$mvc->valiorFld}, $error)){
                 $error = ",error={$error}";
             }
             
@@ -143,18 +144,19 @@ class acc_plg_Contable extends core_Plugin
                 'ret_url' => TRUE
             );
             $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа');
-        }
-        
-        // Ако потребителя може да създава коригиращ документ, слагаме бутон
-        if ($mvc->haveRightFor('correction', $rec)) {
-            $correctionUrl = array(
-                'acc_Articles',
-                'RevertArticle',
-                'docType' => $mvc->getClassId(),
-                'docId' => $rec->id,
-                'ret_url' => TRUE
-            );
-            $data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?,title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
+        } else {
+        	
+        	// Ако потребителя може да създава коригиращ документ, слагаме бутон
+        	if ($mvc->haveRightFor('correction', $rec)) {
+        		$correctionUrl = array(
+        				'acc_Articles',
+        				'RevertArticle',
+        				'docType' => $mvc->getClassId(),
+        				'docId' => $rec->id,
+        				'ret_url' => TRUE
+        		);
+        		$data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?,title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
+        	}
         }
         
         // Ако има запис в журнала и потребителя има права за него, слагаме бутон
