@@ -285,7 +285,7 @@ class trz_SalaryIndicators extends core_Manager
      */
     public static function getIndicatorNames()
     {
-    	$query = $this->getQuery();
+    	$query = static::getQuery();
     	$query->groupBy('indicator');
     	
     	$indicatorsName = array();
