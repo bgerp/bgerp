@@ -265,7 +265,7 @@ class acc_plg_Contable extends core_Plugin
             if ($rec->id) {
                 $periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
                 
-                if ($rec->state != 'active' || ($periodRec->state != 'closed')) {
+                if (($rec->state != 'active' && $rec->state != 'closed') || ($periodRec->state != 'closed')) {
                     $requiredRoles = 'no_one';
                 }
             }
