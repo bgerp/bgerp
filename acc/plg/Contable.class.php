@@ -394,14 +394,7 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterReConto(core_Mvc $mvc, &$res, $id)
     {
-        $rec = $mvc->fetchRec($id);
-        
-        // Дали имаме права за контиране
-        // При възстановяване на документ, тази ф-я се вика два пъти,
-        // и за да се предпазим второ контиране проверяваме имаме ли право
-        if($mvc->haveRightFor('reconto', $rec)){
-            self::conto($mvc, $id);
-        }
+        self::conto($mvc, $id); 
     }
     
     
