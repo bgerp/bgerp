@@ -68,7 +68,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		$tpl->placeObject($data->row);
 		
-		if(!cls::haveInterface('cat_ProductAccRegIntf', $this->ProductRec)){
+		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
+		if(!$this->ProductRec->haveInterface('cat_ProductAccRegIntf')){
 			$data->noChange = TRUE;
 		}
 		
