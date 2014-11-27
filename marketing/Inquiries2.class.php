@@ -79,12 +79,6 @@ class marketing_Inquiries2 extends core_Embedder
     
     
     /**
-     * Кой има право да променя?
-     */
-    public $canEdit = 'powerUser';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,sales,marketing';
@@ -105,7 +99,7 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'powerUser';
+    public $canAdd = 'ceo,sales,marketing';
     
     
     /**
