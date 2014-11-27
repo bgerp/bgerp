@@ -196,6 +196,7 @@ class bank_OwnAccounts extends core_Master {
             acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $bankItem->id);
              
             // Събираме ги да намерим крайното салдо на перото
+            $rec->blAmount = 0;
             while($bRec = $bQuery->fetch()){
             	$rec->blAmount += $bRec->blAmount;
             }

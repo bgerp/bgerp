@@ -286,7 +286,7 @@ class acc_plg_Contable extends core_Plugin
             }
         } elseif ($action == 'restore') {
         	
-            // Ако потрбителя не може да контира документа, не може и да го възстановява
+            // Ако потребителя не може да контира документа, не може и да го възстановява
             if(!haveRole($mvc->getRequiredRoles('conto'))){
                 $requiredRoles = 'no_one';
             }

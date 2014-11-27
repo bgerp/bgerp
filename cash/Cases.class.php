@@ -191,6 +191,7 @@ class cash_Cases extends core_Master {
         	acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $caseItem->id);
         	
         	// Събираме ги да намерим крайното салдо на перото
+        	$rec->blAmount = 0;
         	while($bRec = $bQuery->fetch()){
         		$rec->blAmount += $bRec->blAmount;
         	}
