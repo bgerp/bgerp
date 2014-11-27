@@ -34,6 +34,18 @@ class purchase_transaction_CloseDeal
     
     
     /**
+     * Кеш на извънредния разход
+     */
+    private $bl6912 = 0;
+    
+    
+    /**
+     * Кеш на извънредния приход
+     */
+    private $bl7912 = 0;
+    
+    
+    /**
      * Финализиране на транзакцията, изпълнява се ако всичко е ок
      * 
      * @param int $id
@@ -103,11 +115,7 @@ class purchase_transaction_CloseDeal
     		 
     		// Ако тотала не е нула добавяме ентритата
     		if(count($entry3)){
-    			if(count($entry3) == 2){
-    				$result->entries = array_merge($result->entries, $entry3);
-    			} else {
-    				$result->entries[] = $entry3;
-    			}
+    			$result->entries[] = $entry3;
     		}
     		
     		// Ако има сума различна от нула значи има приход/разход
@@ -116,7 +124,19 @@ class purchase_transaction_CloseDeal
     		$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $firstDoc);
     		
     		if(count($entry)){
-    			$result->entries = array_merge($result->entries, $entry);
+    			$result->entries[] = $entry;
+    		}
+    		
+    		$entry4 = $this->getCompensateEntry($amount, $result->totalAmount, $docRec, $firstDoc);
+    		
+    		if(count($entry4)){
+    			$result->entries[] = $entry4;
+    		}
+    		
+    		$entry5 = $this->transferIncomeToYear($amount, $result->totalAmount, $docRec, $firstDoc);
+    		
+    		if(count($entry5)){
+    			$result->entries[] = $entry5;
     		}
     	}
     	 
@@ -125,6 +145,84 @@ class purchase_transaction_CloseDeal
     }
 
 
+    /**
+     * Отнасяне на извънредния приход ИЛИ разход от с/ки 7912 или 6912 по с/ка 123 - Печалби и загуби от текущата година
+     * 
+     * 		Отнасяме натрупаните отписани задължения (извънредния приход) по сделката като печалба по сметка 123 - Печалби и загуби от текущата година
+     * 
+     * 		Dt: 7912 - Отписани задължения по Покупки
+     * 		Ct: 123 - Печалби и загуби от текущата година
+     * 
+     * 		ИЛИ
+     * 
+     * 		Отнасяме натрупаните извънредните разходи по сделката като загуба по сметка 123 - Печалби и загуби от текущата година
+     * 
+     * 		Dt: 123 - Печалби и загуби от текущата година
+     * 		Ct: 6912 - Извънредни разходи по Покупки
+     */
+    private function transferIncomeToYear($amount, &$totalAmount, $docRec, $firstDoc)
+    {
+    	$entry = array();
+    	
+    	if($this->bl6912 != 0){
+    		$entry = array('amount' => $this->bl6912,
+    				'debit' => array('123', $this->date->year),
+    				'credit' => array('6912',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),
+    		);
+    		
+    		$totalAmount += $this->bl6912;
+    	}
+    	
+    	if($this->bl7912 != 0){
+    		$entry = array('amount' => $this->bl7912,
+    				'debit' => array('7912', 
+    							array($docRec->contragentClassId, $docRec->contragentId),
+    							array($firstDoc->className, $firstDoc->that)),
+    				'credit' => array('123', $this->date->year),
+    		);
+    		
+    		$totalAmount += $this->bl7912;
+    	}
+    	
+    	return $entry;
+    }
+    
+    
+    /**
+     * САМО ако за сделката има обороти и салда И по двете с/ки: 7912 и 6912 за извънредни приходи / разходи по Покупки, 
+     * съставяме статията:
+     * 
+     * 		Dt: 7912 - Отписани задължения по Покупки
+     * 		Ct: 6912 - Извънредни разходи по Покупки
+     * 
+     * 		със сума - по-малката измежду: кредитното салдо на с/ка 7912, и дебитното салдо на с/ка 6912 по сделката
+     */
+    private function getCompensateEntry($amount, &$totalAmount, $docRec, $firstDoc)
+    {
+    	$entry = array();
+    	
+    	if(empty($this->bl6912) || empty($this->bl7912)) return $entry;
+    	
+    	$minAmount = min(array($this->bl6912, $this->bl7912));
+    	
+    	$entry = array('amount' => $minAmount,
+    			'debit' => array('7912',
+    					array($docRec->contragentClassId, $docRec->contragentId),
+    					array($firstDoc->className, $firstDoc->that)),
+    			'credit'  => array('6912',
+    					array($docRec->contragentClassId, $docRec->contragentId),
+    					array($firstDoc->className, $firstDoc->that)));
+    	
+    	$this->bl6912 -= $minAmount;
+    	$this->bl7912 -= $minAmount;
+    	$totalAmount += $minAmount;
+    	
+    	return $entry;
+    }
+    
+    
     /**
      * Ако в текущата сделка салдото по сметка 402 е различно от "0"
      *
@@ -191,11 +289,6 @@ class purchase_transaction_CloseDeal
      *
      * 			Dt: 6912 - Извънредни разходи по Покупки
      * 			Ct: 4530 - ДДС за начисляване
-     * 
-     * 		и го приключваме като намаление на финансовия резултат за годината със същата сума
-     * 			
-     * 			Dt: 123 - Печалби и загуби от текущата година
-     * 			Ct: 6912 - Извънредни разходи по Покупки
      */
     private function transferVatNotCharged($dealInfo, $docRec, &$total, $firstDoc)
     {
@@ -229,15 +322,8 @@ class purchase_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that),
     						'quantity' => $blAmount));
     		
-    		$entries2 = array('amount' => $blAmount,
-    							'debit' => array('123', $this->date->year),
-    							'credit' => array('6912',
-    							array($docRec->contragentClassId, $docRec->contragentId),
-    							array($firstDoc->className, $firstDoc->that)),
-    						);
-    		
-    		$total += $blAmount;
-    		$entries = array($entries1, $entries2);
+    		$this->bl6912 += $blAmount;
+    		$entries = $entries1;
     
     	}
     	 
@@ -258,12 +344,6 @@ class purchase_transaction_CloseDeal
      * 			Dt: 401 - Задължения към доставчици
      * 			Ct: 7912 - Отписани задължения по Покупки
      *
-     * 		Отнасяме отписаните задължения (извънредния приход) по сделката като печалба по сметка 123 - Печалби и загуби от текущата година
-     * 		със сумата на кредитното салдо на с/ка 401
-     *
-     * 			Dt: 7912 - Отписани задължения по Покупки
-     * 			Ct: 123 - Печалби и загуби от текущата година
-     *
      * Сметка 401 има Дебитно (Dt) салдо
      *
      * 		Намаляваме плащанията към Доставчика с надплатената сума с обратна (revers) операция, със сумата
@@ -271,12 +351,6 @@ class purchase_transaction_CloseDeal
      *
      * 			Dt: 6912 - Извънредни разходи по Покупки
      * 			Ct: 401 - Задължения към доставчици
-     * 			
-     *
-     * 		Отнасяме извънредните разходи по сделката като загуба по сметка 123 - Печалби и загуби от текущата година, със сумата на дебитното салдо на с/ка 401
-     *
-     * 			Dt: 123 - Печалби и загуби от текущата година
-     * 			Ct: 6912 - Извънредни разходи по Покупки
      *
      */
     private function getCloseEntry($amount, &$totalAmount, $docRec, $firstDoc)
@@ -298,16 +372,9 @@ class purchase_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
     		);
-    
-    		$entry2 = array(
-    				'amount' => $amount,
-    				'debit' => array('123', $this->date->year),
-    				'credit' => array('6912',
-    					array($docRec->contragentClassId, $docRec->contragentId),
-    					array($firstDoc->className, $firstDoc->that)),
-    				);
     		
-    		$totalAmount += 2 * $amount;
+    		$this->bl6912 += $amount;
+    		$totalAmount +=  $amount;
     		
     		// Сметка 401 има Кредитно (Ct) салдо
     	} elseif($amount < 0){
@@ -322,17 +389,11 @@ class purchase_transaction_CloseDeal
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
     						'quantity' => -1 * $amount / $docRec->currencyRate));
     		
-    		$entry2 = array(
-    				'amount' => abs($amount),
-    				'debit' => array('7912',
-    					array($docRec->contragentClassId, $docRec->contragentId),
-    					array($firstDoc->className, $firstDoc->that)),
-    				'credit' => array('123', $this->date->year));
-    		
-    		$totalAmount += -2 * $amount;
+    		$this->bl7912 += abs($amount);
+    		$totalAmount += -1 * $amount;
     	}
     	 
     	// Връщане на записа
-    	return array($entry1, $entry2);
+    	return $entry1;
     }
 }
