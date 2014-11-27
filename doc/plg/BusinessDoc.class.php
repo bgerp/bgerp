@@ -165,46 +165,44 @@ class doc_plg_BusinessDoc extends core_Plugin
     		
     		// Подадената корица, трябва да е съществуващ 
     		// клас и да може да бъде корица на папка
-    		if(cls::load($coverId, TRUE)){
-    			if(cls::haveInterface('doc_FolderIntf', $coverId)){
-    				 
-    				// Създаване на поле за избор от дадения клас
-    				$Class = cls::get($coverId);
-    				list($pName, $coverName) = explode('_', $coverId);
-    				$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
-    				 
-    				$options = $mvc->getCoverOptions($Class);
-    				$newOptions = array();
-    				if(count($options)){
+    		if(cls::haveInterface('doc_FolderIntf', $coverId)){
     			
-    					$optionList = implode(", ", array_keys($options));
+    			// Създаване на поле за избор от дадения клас
+    			$Class = cls::get($coverId);
+    			list($pName, $coverName) = explode('_', $coverId);
+		    	$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
     			
-    					// Показват се само обектите до които има достъп потребителя
-    					$query = $Class::getQuery();
-    			
-    					$query->where("#id IN ({$optionList})");
-    					$query->show('inCharge,access,shared');
-    					while($rec = $query->fetch()){
-    						if(doc_Folders::haveRightToObject($rec)){
-    							$newOptions[$rec->id] = $options[$rec->id];
-    						}
-    					}
-    			
-    					if ($newOptions) {
-    						 
-    						// Ако има достъпни корици, слагат се като опции
-    						$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
-    						$form->setOptions($coverName, $newOptions);
-    					}
-    				}
-    				 
-    				if(!count($newOptions)){
-    					// Ако няма нито една достъпна корица, полето става readOnly
-    					$form->FNC($coverName, "varchar", "input,caption={$Class->singleTitle},width=100%");
-    					$form->setReadOnly($coverName);
-    					continue;
-    				}
+    			$options = $mvc->getCoverOptions($Class);
+    			$newOptions = array();
+    			if(count($options)){
+    				
+    				$optionList = implode(", ", array_keys($options));
+	    			
+		    		// Показват се само обектите до които има достъп потребителя
+		    		$query = $Class::getQuery();
+		    		
+		    		$query->where("#id IN ({$optionList})");
+		    		$query->show('inCharge,access,shared');
+		    		while($rec = $query->fetch()){
+		    			if(doc_Folders::haveRightToObject($rec)){
+		    				$newOptions[$rec->id] = $options[$rec->id];
+		    			}
+		    		}
+		    		
+		    		if ($newOptions) {
+		    			
+		    			// Ако има достъпни корици, слагат се като опции
+		    			$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
+		    			$form->setOptions($coverName, $newOptions);
+		    		} 
     			}
+	    		
+	    		if(!count($newOptions)){
+	    			// Ако няма нито една достъпна корица, полето става readOnly
+		    		$form->FNC($coverName, "varchar", "input,caption={$Class->singleTitle},width=100%");
+		    		$form->setReadOnly($coverName);
+		    		continue;
+	    		}
     		}
     	}
     	
