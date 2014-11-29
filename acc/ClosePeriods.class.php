@@ -48,7 +48,7 @@ class acc_ClosePeriods extends core_Master
     
     
     /**
-     * Можели да се контира въпреки че има приключени пера
+     * Можели да се контира въпреки че има приключени пера в транзакцията
      */
     public $canUseClosedItems = TRUE;
     
@@ -138,7 +138,7 @@ class acc_ClosePeriods extends core_Master
     	$this->FLD("amountVatGroup4", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група Г,notNull,default=0');
     	
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)',
+    			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)',
     			'caption=Статус, input=none'
     	);
     }
@@ -157,7 +157,7 @@ class acc_ClosePeriods extends core_Master
     	
     	$data->form->addAttr('periodId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
     	
-    	$options = acc_Periods::makeArray4Select($select, array("#state = 'active' || #state = 'pending'", $root));
+    	$options = acc_Periods::makeArray4Select(NULL, array("#state = 'active' || #state = 'pending'", $root));
     	$data->form->setOptions('periodId', $options);
     	
     	if(empty($data->form->rec->id)){
@@ -316,7 +316,9 @@ class acc_ClosePeriods extends core_Master
     {
     	$rec = &$data->rec;
     	
-    	if(acc_Balances::haveRightFor('single')){
+    	$bRec = acc_Balances::fetch("#periodId = {$rec->periodId}");
+    	
+    	if($rec->state == 'active' && acc_Balances::haveRightFor('single', $bRec)){
     		$data->info = $mvc->prepareInfo($data->rec);
     	}
     }
@@ -397,5 +399,16 @@ class acc_ClosePeriods extends core_Master
     		
     		$tpl->append($details, 'INFO');
     	}
+    }
+    
+    
+    /**
+     * Връща счетоводното основание за документа
+     */
+    public function getContoReason($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	 
+    	return $this->getVerbal($rec, 'periodId');
     }
 }

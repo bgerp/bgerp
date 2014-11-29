@@ -157,7 +157,7 @@
                                                     <td class='centered'>Created by:</td>
                                                 </tr>
                                                 <tr>
-                                                    <td style='height:40px;border-right:1px solid #999'>&nbsp;</td>
+                                                    <td style='height:40px;border-right:1px solid #999'></td>
                                                     <td></td>
                                                 </tr>
                                                 <tr>

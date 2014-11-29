@@ -680,7 +680,10 @@ class core_ET extends core_BaseClass
         $redirectArr = $this->getArray('_REDIRECT_');
         
         if ($redirectArr[0]) {
-            redirect($redirectArr[0]);
+            
+            $msgArr = Mode::get('redirectMsg');
+            
+            redirect($redirectArr[0], FALSE, $msgArr['msg'], $msgArr['type']);
         }
         
         if (is_array($this->places)) {

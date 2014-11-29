@@ -331,9 +331,9 @@ class acc_ArticleDetails extends doc_Detail
                      * @TODO За размерни сметки: проверка дали са въведени поне два от трите оборота.
                      * Изчисление на (евентуално) липсващия оборот.
                      */
-                    $nEmpty = (int)empty($rec->{"{$type}Quantity"}) +
-                    (int)empty($rec->{"{$type}Price"}) +
-                    (int)empty($rec->amount);
+                    $nEmpty = (int)!isset($rec->{"{$type}Quantity"}) +
+                    (int)!isset($rec->{"{$type}Price"}) +
+                    (int)!isset($rec->amount);
                     
                     if ($nEmpty > 1) {
                         $form->setError("{$type}Quantity, {$type}Price, amount", 'Поне два от оборотите трябва да бъдат попълнени');
@@ -348,22 +348,24 @@ class acc_ArticleDetails extends doc_Detail
                          */
                         switch (true) {
                             case empty($rec->{"{$type}Quantity"}) :
-                            $rec->{"{$type}Quantity"} = $rec->amount / $rec->{"{$type}Price"};
+                            @$rec->{"{$type}Quantity"} = $rec->amount / $rec->{"{$type}Price"};
                             break;
                             case empty($rec->{"{$type}Price"}) :
-                            $rec->{"{$type}Price"} = $rec->amount / $rec->{"{$type}Quantity"};
+                            @$rec->{"{$type}Price"} = $rec->amount / $rec->{"{$type}Quantity"};
                             break;
                             case empty($rec->amount) :
-                            $rec->amount = $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"};
+                            @$rec->amount = $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"};
                             break;
                         }
                         
                         $rec->{"{$type}Amount"} = $rec->amount;
                     }
                     
-                    if ($rec->amount != $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"}) {
+                    if (!empty($rec->{"{$type}Price"}) && !empty($rec->{"{$type}Quantity"}) && $rec->amount != $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"}) {
                         $form->setError("{$type}Quantity, {$type}Price, amount", 'Невъзможни стойности на оборотите');
                     }
+                    
+                    
                 } else {
                     $rec->{"{$type}Amount"} = $rec->amount;
                 }

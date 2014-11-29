@@ -298,7 +298,7 @@ class acc_BalanceDetails extends core_Detail
             if($by["feat{$i}"]){
                 $groupedBy[$i] = $by["feat{$i}"];
                 if($by["feat{$i}"] == '*'){
-                	$data->listFields["ent{$i}Id"] = tr("Наименование");
+                	$data->listFields["ent{$i}Id"] = tr("[По пера]");
                 } else {
                 	$data->listFields["ent{$i}Id"] = $Varchar->toVerbal($groupedBy[$i]);
                 }
@@ -655,8 +655,16 @@ class acc_BalanceDetails extends core_Detail
         $form->formAttr['id'] = 'groupForm';
         
         if(count($options)){
-            $options = implode(',', $options);
-            $options = acc_Items::makeArray4Select(NULL, "#id IN ({$options})");
+        	$nOptions = array();
+        	$iQuery = acc_Items::getQuery();
+        	$iQuery->in('id', $options);
+        	$iQuery->show('id,title');
+        	
+        	while($iRec = $iQuery->fetch()){
+        		$nOptions[$iRec->id] = acc_Items::getVerbal($iRec, 'title');
+        	}
+        	
+        	$options = $nOptions;
         }
         
         if(!count($options)){
@@ -664,7 +672,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $features = acc_Features::getFeatureOptions(array_keys($options));
-        $features = array('' => '') + $features + array('*' => 'Наименование');
+        $features = array('' => '') + $features + array('*' => '[По пера]');
         
         $listName = acc_Lists::getVerbal($listRec, 'name');
         $form->fieldsLayout->replace($listName, "caption{$i}");

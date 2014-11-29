@@ -99,7 +99,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('amountBl', 'double(decimals=2)', 'caption=Стойности->Крайно салдо,input=none,summary=amount');
 		$mvc->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
 		$mvc->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
-		$mvc->FLD('amountToInvoice', 'double(decimals=2)', 'input=none'); // Сумата която е платена
 		
 		$mvc->FLD('amountVat', 'double(decimals=2)', 'input=none');
 		$mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
@@ -717,8 +716,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		  $nRec->amountDelivered, 
     		  $nRec->amountBl,  
     		  $nRec->amountPaid, 
-    		  $nRec->amountInvoiced, 
-    		  $nRec->amountToInvoice);
+    		  $nRec->amountInvoiced);
     	
     	$nRec->paymentState = 'pending';
     }
@@ -897,7 +895,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				}
 			}
 			
-			if($rec->makeInvoice == 'no' && isset($rec->amountToInvoice)){
+			if($rec->makeInvoice == 'no'){
 				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
 			}
 	    }

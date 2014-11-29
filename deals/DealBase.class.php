@@ -194,7 +194,12 @@ abstract class deals_DealBase extends core_Master
     	$dealQuery->where("#closedDocuments = ''");
     	
     	while($dealRec = $dealQuery->fetch()){
-    		$docs[$dealRec->id] = $this->getRecTitle($dealRec);
+    		
+    		// Оставяме само сделките, по чието перо е имало движение
+    		$item = acc_Items::fetchItem($this, $dealRec->id);
+    		if(isset($item->lastUseOn)){
+    			$docs[$dealRec->id] = $this->getRecTitle($dealRec);
+    		}
     	}
     	 
     	return $docs;
