@@ -5,13 +5,13 @@ class core_exception_Expect extends Exception
     /**
      * Вербален тип на изключението
      */
-    private $type;
+    public $type;
     
     
     /**
      * Променливи, които да се дъмпват
      */
-    private $dump;
+    public $dump;
     
 
     /**

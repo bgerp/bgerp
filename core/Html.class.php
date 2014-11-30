@@ -823,7 +823,7 @@ class core_Html
     /**
      * Прави html представяне на структурата на обекта, масива или променливата
      */
-    static function mixedToHtml($o, $hideLevel = 3, $maxLevel = 5)
+    static function mixedToHtml($o, $hideLevel = 3, $maxLevel = 5, $prefix = '')
     {
         static $i = 0;
 
@@ -956,7 +956,7 @@ class core_Html
         
 
         if($i == 0) {
-            $html = "<div class='dump'>{$html}</div>";
+            $html = "<div class='dump'>{$prefix}{$html}</div>";
         }
 
         return $html;
@@ -970,13 +970,19 @@ class core_Html
     {
         $result = '';
 
-        foreach ($arr as $item) {
+        foreach ($arr as $id => $item) {
             if($result) {
                 $result .= "<div style='margin-top:5px;padding-top:5px;border-top:dotted 1px #999;'>";
             } else {
                 $result .= "<div style='margin-top:5px;'>";
             }
-            $result .= self::mixedToHtml($item);
+
+            if($id && !is_int($id)) {
+                $prefix = "{$id}: ";
+            } else {
+                $prefix = '';
+            }
+            $result .= self::mixedToHtml($item, 3, 5, $prefix);
             $result .= "</div>";
         }
 

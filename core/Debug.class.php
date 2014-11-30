@@ -495,6 +495,11 @@ class core_Debug
             }
         }
 
+        if(!empty($state['update'])) {
+            $data['update'] = ht::createLink('Обновяване на системата', $state['update']);
+        }
+
+
         $tpl = new core_NT(getFileContent('core/tpl/Debug.shtml'));
 
         $res = $tpl->render($data);
@@ -512,6 +517,12 @@ class core_Debug
         if(isset($state['errTitle']) && $state['errTitle'][0] == '@') {
             $state['errTitle'] = $state['httpStatusMsgBg'];
         }
+
+        if(!empty($state['update'])) {
+            $state['update'] = ht::createLink('Обновяване', $state['update']);
+        }
+
+        $state['forward'] = ht::createLink('Към сайта', array('Index'));
 
         $page = $tpl->render($state); 
  
@@ -532,7 +543,7 @@ class core_Debug
      * @param $breakFile string Файл, където е възникнало прекъсването
      * @param $breakLine int    Линия на която е възникнало прекъсването
      */
-    public static  function displayState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine)
+    public static  function displayState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update)
     {
         $state = array( 'errType'   => $errType, 
                         'errTitle'  => $errTitle, 
@@ -541,8 +552,11 @@ class core_Debug
                         'stack'     => $stack, 
                         'contex'    => $contex, 
                         'breakFile' => $breakFile, 
-                        'breakLine' => $breakLine
+                        'breakLine' => $breakLine,
+                        'update'    => $update,
+                        
             );
+
 
         // Изваждаме от титлата httpStatusCode, ако е наличен
         if($state['httpStatusCode'] = (int) $errTitle) {

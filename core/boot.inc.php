@@ -77,18 +77,32 @@ try {
 
 } catch (Exception  $e) {
     
-    if($e instanceOf core_exception_Db) {
-        if(!isDebug() && $e->isNotExistsDB()) {  
+    if($e instanceOf core_exception_Db) { 
+
+
+
+        if(!isDebug() && $e->isNotExistsDB()) {   
 
             // Опитваме се да създадем базата и редиректваме към сетъп-а
             try { mysql_query("CREATE DATABASE " . EF_DB_NAME); } catch(Exeption $e) {}
             redirect(array('Index', 'SetupKey' => setupKey()));
 
         } elseif(!isDebug() && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
-
+ 
             // При празна база или грешка в базата редиректваме безусловно към сетъп-а
             redirect(array('Index', 'SetupKey' => setupKey()));
         }
+        
+        // Дали да поставим връзка за обновяване
+        $update = NULL;
+        if($e->isNotInitializedDB() || $e->isNotInitializedDB()) {
+            try {
+                if(isDebug() || haveRole('admin')) {
+                    $update =  array('Index', 'SetupKey' => setupKey(), 'step' => 2);
+                }
+            } catch(Exeption $e) {}
+            
+        } 
     }
     
     $errType   = 'PHP EXCEPTION';
@@ -105,7 +119,7 @@ try {
         $errType = $e->getType();
     }
     
-    core_Debug::displayState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine);
+    core_Debug::displayState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update);
 }
 
 

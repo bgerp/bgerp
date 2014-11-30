@@ -20,6 +20,11 @@
             border:solid 1px black;
             min-width:150px;
          }
+
+         .error a {
+            color: white;
+            font-weight:bold;
+         }
     </style>
 </head>
 
@@ -35,9 +40,9 @@
             <td colspan='3'><h2>[#errTitle#]</h2></td>
         </tr>
         <tr>
-            <td onclick="history.back(-1)" style='cursor:pointer;'><b>Назад</b></td>
-            <td></td>
-            <td><b>Към сайта</b></td>
+            <td><a href="javascript:onclick=history.back(-1)">Назад</a></td>
+            <td>[#update#]</td>
+            <td>[#forward#]</td>
         </tr>
     </table>
 </div>

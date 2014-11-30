@@ -63,6 +63,10 @@
             color:#ffffcc;
         }
 
+        .update a {
+            color:white;
+        }
+
 /**
  * @version		1.3
  * @package		SimpleTabs
@@ -86,6 +90,7 @@ div.simpleTabsContent.currentTab { display:block; background-color:#fff;}
     <!header><h2 class='errorMsg' style='background-color:[#background#]'>[#header#]</h2></!header>
     <!errTitle><h3 style='padding:10px;margin:0;background-color:#eee;'>[#errTitle#]</h3></!errTitle>
     <!code><pre style='background-color:#eee !important;margin:0;padding:10px;'>[#code#]</pre></!code>
+    <!update><h3 class='update' style='padding:10px;margin:0;background-color:#00f;'>[#update#]</h3></!update>
     <!details>
 		    <div class="simpleTabs">
 		        <ul class="simpleTabsNavigation">

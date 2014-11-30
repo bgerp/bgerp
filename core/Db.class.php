@@ -144,7 +144,8 @@ class core_Db extends core_BaseClass
             // Избираме указаната база от данни на сървъра
             if (!mysql_select_db("{$this->dbName}", $this->link)) {
                 // Грешка при избиране на база
-                throw new core_exception_Db(array('mysqlErrCode' => mysql_errno($this->link), 'mysqlErrMsg' => mysql_error($this->link), 'dbName' => $this->dbName));
+                $dump = array('mysqlErrCode' => mysql_errno($this->link), 'mysqlErrMsg' => mysql_error($this->link), 'dbName' => $this->dbName);
+                throw new core_exception_Db('500 @Грешка при избиране на база', 'DB Грешка', $dump);
             }
         }
         
@@ -646,13 +647,8 @@ class core_Db extends core_BaseClass
                 $error = mysql_error($this->link);
                 
                 // Грешка в базата данни
-                throw new core_exception_Db(
-                                array("Грешка при {$action}",
-                                'query' => $this->query, 
-                                'mysqlErrCode' => $errno, 
-                                'mysqlErrMsg' => $error
-                           )
-                     );
+                $dump =  array('query' => $this->query, 'mysqlErrCode' => $errno, 'mysqlErrMsg' => $error);
+                throw new core_exception_Db("500 @Грешка при {$action}", 'DB Грешка', $dump);
         }
 
         return mysql_errno();
