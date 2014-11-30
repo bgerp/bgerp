@@ -87,7 +87,7 @@ class core_Mvc extends core_FieldSet
         $this->db = & cls::get('core_Db');
 
         // Ако имаме описание на модел (т.е. метода $this->description() )
-        if (method_exists($this, 'description')) {
+        if(cls::existsMethod($this, 'description')) {
 
             $class = $this->className;
 
