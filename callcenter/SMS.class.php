@@ -145,6 +145,11 @@ class callcenter_SMS extends core_Master
      * @param string|array $message
      * @param string $sender
      * @param integer|string $service
+     * 
+     * @return array $res - Mасив с информация, дали е получено
+     *  o $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
+     *  o $res['uid'] string - Уникалното id на съобщението
+     *  o $res['msg'] - Статуса
      */
     public static function send($number, $message, $sender = NULL, $service = NULL)
     {
