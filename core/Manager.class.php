@@ -147,7 +147,13 @@ class core_Manager extends core_Mvc
      */
     function act_Default()
     {
-        return $this->act_List();
+        if(!isset($this->dbTableName)) {
+            $res = $this->renderWrapping("<h2>Този модел няма таблица</h2>");
+        } else {
+            $res = $this->act_List();
+        }
+
+        return $res;
     }
     
     
