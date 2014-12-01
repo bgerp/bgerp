@@ -111,7 +111,7 @@ class smssync_SMS extends core_Manager
         
         // Опитваме се да генерираме уникално id за SMS-a
         do {
-            if(16 < $i++) error('Unable to generate random uid', $nRec);
+            if(16 < $i++) error('@Unable to generate random uid', $nRec);
             
             $nRec->uid = self::getUid();
         } while(self::fetch("#uid = '{$nRec->uid}'"));

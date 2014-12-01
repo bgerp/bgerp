@@ -28,7 +28,7 @@ class thumb_Img
     /**
      * Сол за генериране на ключ за криптиране
      */
-    const KEY_SALTH = 'IMAGE THUMBNAILS';
+    const KEY_SALT = 'IMAGE THUMBNAILS';
 
 
     /**
@@ -466,7 +466,7 @@ class thumb_Img
      */
     public static function getCryptKey()
     {
-        $key = sha1(EF_SALTH . self::KEY_SALTH);
+        $key = sha1(EF_SALT . self::KEY_SALT);
     }
 
 

@@ -139,46 +139,6 @@ class fileman_Get extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function isValidUrl($url, &$result)
-    {
-        cls::load('core_URL');
-        $pArr = URL::parseUrl($url);
-        
-        // Ако парсирането дава грешка - връщаме я
-        if($pArr['error']) {
-            $result['error'] = $pArr['error'];
-            
-            return;
-        }
-        
-        // Ако нямаме разширение на домейна - връщаме грешка
-        // от localhost например не можем да теглим
-        if(!$pArr['tld']) {
-            $result['error'] = 'Липсва разширение на домейна';
-            
-            return;
-        }
-        
-        // Дали протоколът е от позволените?
-        $allowedProtocols = array('http', 'https', 'ftp', 'ftps');
-        
-        if(!in_array($pArr['scheme'], $allowedProtocols)) {
-            $result['error'] = 'Неподдържан протокол:|* <b>' . $pArr['scheme'] . '</b>';
-            
-            return;
-        }
-        
-        $Curl = cls::get('curl_Curl');
-        
-        $headersArr = $Curl->getHeadersArr($url);
-        
-        bp($mvc->extractFileName($headersArr, $url));
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
     function act_Dialog()
     {
         set_time_limit(300);
@@ -360,7 +320,7 @@ class fileman_Get extends core_Manager {
         
         $html = $this->renderDialog($html);
 
-        return $html;bp($name);
+        return $html;
     }
     
     

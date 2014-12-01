@@ -384,7 +384,7 @@ class core_Type extends core_BaseClass
                     }
                 }
             } else {
-                error("Грешка в описанието на типа", array('name' => $name));
+                error("Грешка в описанието на типа", $name);
             }
         }
         
@@ -475,7 +475,9 @@ class core_Type extends core_BaseClass
         return $r;
     }
 
-
+    /**
+     * Определя и задава широчината на полето
+     */
     function setFieldWidth(&$attr, $size = NULL)
     {
         
@@ -513,7 +515,6 @@ class core_Type extends core_BaseClass
         } else {
             $wClass = 'w100';
         }
-        //    if(cls::getClassName($this) == 'type_Key' && count($this->options) == 1) bp($this);
 
         $attr['class'] .= ($attr['class'] ? ' ' : '') . $wClass;
     }

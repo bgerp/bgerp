@@ -41,7 +41,7 @@ class barcode_Generator extends core_Manager
     /**
      * Сол за генериране на ключ за криптиране
      */
-    const KEY_SALTH = 'BARCODE IMAGE';
+    const KEY_SALT = 'BARCODE IMAGE';
     
     /**
      * Масив с поддържаните баркодове и вербалните им стойности
@@ -404,7 +404,7 @@ class barcode_Generator extends core_Manager
      */
     static function getCryptKey()
     {
-        $key = sha1(EF_SALTH . self::KEY_SALTH);
+        $key = sha1(EF_SALTH . self::KEY_SALT);
         
         return $key;
     }

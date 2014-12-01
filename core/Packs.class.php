@@ -102,7 +102,7 @@ class core_Packs extends core_Manager
         
         $pack = Request::get('pack', 'identifier');
         
-        if (!$pack) error('Missing pack name.');
+        if (!$pack) error('@Missing pack name.');
         
         $res = $this->setupPack($pack, 0, TRUE, TRUE);
         
@@ -119,10 +119,10 @@ class core_Packs extends core_Manager
         
         $pack = Request::get('pack', 'identifier');
         
-        if (!$pack) error('Липсващ пакет', $pack);
+        if (!$pack) error('@Липсващ пакет', $pack);
         
         if (!$this->fetch("#name = '{$pack}'")) {
-            error('Този пакет не е инсталиран', $pack);
+            error('@Този пакет не е инсталиран', $pack);
         }
         
         if ($this->fetch("(#name = '{$pack}') AND (#deinstall = 'yes')")) {
@@ -268,7 +268,8 @@ class core_Packs extends core_Manager
                     }
                 }
             } else {
-                bp("Can't open dir", $dir, $dh);
+                // Не може да се отвори директорията
+                bp($dir, $dh);
             }
         }
         
@@ -754,11 +755,11 @@ class core_Packs extends core_Manager
         if (cls::load($cls, TRUE)) {
             $setup = cls::get($cls);
         } else {
-            error("Липсваш клас $cls");
+            error("@Липсваш клас", $cls);
         }
         
         if (!($description = $setup->getConfigDescription())) {
-            error("Пакета $pack няма нищо за конфигуриране");
+            error("@Пакета няма нищо за конфигуриране", $pack);
         }
         
         if ($rec->configData) {

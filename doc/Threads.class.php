@@ -135,6 +135,84 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Поправка на структурата на нишките
+     * 
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     * 
+     * @return array
+     */
+    public static function repair($from = NULL, $to = NULL, $delay = 10)
+    {
+        // Изкючваме логването
+        $isLoging = core_Debug::$isLogging;
+        core_Debug::$isLogging = FALSE;
+        
+        $resArr = array();
+        
+        // id на папката за несортирани
+        $unsortedCoverClassId = core_Classes::fetchIdByName('doc_UnsortedFolders');
+        
+        // id на папката за несортирани
+        $currUser = core_Users::getCurrent();
+        if ($currUser > 0) {
+            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}' AND #inCharge = '{$currUser}'", 'id', FALSE);
+        }
+        if (!isset($defaultFolderId)) {
+            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}'", 'id', FALSE);
+        }
+        
+        $query = self::getQuery();
+        
+        // Подготвяме данните за търсене
+        doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
+        
+        $query->where("#firstContainerId IS NULL");
+        $query->orWhere("#folderId IS NULL");
+        
+        while ($rec = $query->fetch()) {
+            
+            // Ако има нишка без firstContainerId
+            if (!isset($rec->firstContainerId)) {
+            
+                // Първия документ от нишката
+                $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', FALSE);
+                
+                // Ако не може да се определи първия документ в нишката, изтриваме нишката
+                if (!$firstCid) {
+                    if ($rec->id) {
+                        self::delete($rec->id);
+                        $resArr['del_cnt']++;
+                        continue;
+                    }
+                }
+                
+                $rec->firstContainerId = $firstCid;
+                
+                if (self::save($rec)) {
+                    $resArr['firstContainerId']++;
+                }
+            }
+            
+            // Ако няма папка използваме папката за несортирани
+            if (!isset($rec->folderId) && isset($defaultFolderId)) {
+                $rec->folderId = $defaultFolderId;
+                
+                if (self::save($rec)) {
+                    $resArr['folderId']++;
+                }
+            }
+        }
+        
+        // Връщаме старото състояние за ловговането в дебъг
+        core_Debug::$isLogging = $isLoging;
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Екшън за оттегляне на тредове
      */
     function act_Reject()

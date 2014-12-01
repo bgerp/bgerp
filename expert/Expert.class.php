@@ -774,7 +774,6 @@ class expert_Expert extends core_FieldSet {
                 $res->msg = $res->msg->getContent();
             }
             
-            //bp($res);
             $res = json_encode($res);
             
             header('Content-type: text/json');
@@ -812,8 +811,9 @@ class expert_Expert extends core_FieldSet {
             
             return $tpl;
         }
-        
-        bp('Няма междинен резултат ...', $this);
+
+        // Няма междинен резултат ...
+        bp($this);
     }
     
     
@@ -1254,8 +1254,8 @@ class expert_Expert extends core_FieldSet {
             
             $opt = 'Array';
         } else {
-            
-            bp('Wrong expert', $kRec);
+            // Wrong expert
+            bp($kRec);
         }
         
         $res = arr::make($res);
@@ -1395,7 +1395,11 @@ class expert_Expert extends core_FieldSet {
                 $value = substr($value, 1);
                 $res   = NULL;
                 
-                if(!$this->calcExpr($value, $res)) bp("Не може да се сметне: $msg");
+                if(!$this->calcExpr($value, $res)) {
+                    // Не може да се сметне
+                    bp($value);
+                }
+
                 $value = $res;
             }
             $rec->{$key} = $value;
@@ -1415,7 +1419,10 @@ class expert_Expert extends core_FieldSet {
         if($msg{0} == '=') {
             $msg = substr($msg, 1);
             
-            if(!$this->calcExpr($msg, $res)) bp("Не може да се сметне: $msg");
+            if(!$this->calcExpr($msg, $res)) {
+                // Не може да се калкулира
+                bp($msg);
+            }
             
             return $res;
         }
@@ -1500,7 +1507,10 @@ class expert_Expert extends core_FieldSet {
      */
     function trimPrefix(&$name)
     {
-        if(!strlen($name)) bp("Липсващо име на променлива", $this->knowledge);
+        if(!strlen($name)) {
+            // Липсващо име на променлива
+            bp($name);
+        }
         
         $prefix = $name{0};
         
@@ -1530,7 +1540,7 @@ class expert_Expert extends core_FieldSet {
         
         $expr1 = $this->expr2php($expr, $usedVars);
         
-        if($expr1 === FALSE) error("Некоректен израз1", $expr);
+        if($expr1 === FALSE) error("Некоректен израз", $expr);
         
         if($usedVars && !$this->areTrusty($usedVars)) return FALSE;
         
@@ -1538,10 +1548,10 @@ class expert_Expert extends core_FieldSet {
         
         if(!@eval('return TRUE;' . $expr1)) {
             $this->log[] = 'Syntax error: ' . $expr1 ;
-            
-            error("Некоректен израз2 " . $expr1);
+            // Некоректен израз
+            bp($expr1);
         }
-        //bp($expr1);
+
         $result = eval($expr1);
         
         return TRUE;
@@ -1588,16 +1598,15 @@ class expert_Expert extends core_FieldSet {
                     // отваряща скоба - правим проверка
                     if($c > ' ' && $bc) {
                         if($bc == 'expect' && $c != '(') {
+                            // Липсва отваряща скоба
                             bp($c);
-                            
-                            return FALSE;
                         }
                         
                         if($bc == 'noExpect' && $c == '(') {
-                            bp(2, $expr, $res);
-                            
-                            return FALSE;
+                            // Неочаквана отваряща скоба
+                            bp(500, $expr, $res);
                         }
+
                         $bc = FALSE;
                     }
                     

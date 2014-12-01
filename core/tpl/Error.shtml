@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>[#httpStatusCode#] [#httpStatusMessage#]</title>
+    <style>
+        .error {
+            padding:10px;
+            border:solid black 1 px;
+            background-color:red;
+            margin-top:100px;
+            color:white;
+            display:inline-block;
+            
+         }
+
+         .error td {
+            padding:20px;
+            border:solid 1px black;
+            min-width:150px;
+         }
+
+         .error a {
+            color: white;
+            font-weight:bold;
+         }
+    </style>
+</head>
+
+<body>
+
+
+<center><div class='error'>
+    <table >
+        <tr>
+            <td colspan='3'><h3>[#httpStatusCode#] [#httpStatusMsg#]</h3></td>
+        </tr>
+        <tr>
+            <td colspan='3'><h2>[#errTitle#]</h2></td>
+        </tr>
+        <tr>
+            <td><a href="javascript:onclick=history.back(-1)">Назад</a></td>
+            <td>[#update#]</td>
+            <td>[#forward#]</td>
+        </tr>
+    </table>
+</div>
+</center>
+</body>
+
+</html>

@@ -434,8 +434,10 @@ class core_ET extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function getArray($place, $mode='push')
+    function getArray($place, $mode = 'push')
     {
+        $res = NULL;
+
         if (count($this->pending)) {
             foreach ($this->pending as $sub) {
                 if ($sub->place == $place && (!$mode || $sub->mode == $mode)) {

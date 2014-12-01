@@ -125,8 +125,8 @@ class core_Db extends core_BaseClass
         if (!isset($this->link)) {
             $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass);
             if (!$link) {
-
-	            error("Грешка при свързване с MySQL сървър <b>{$this->dbHost}</b>", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+                // Грешка при свързване с MySQL сървър
+	            error(500, $this->dbHost, mysql_error());
             }
             
             // След успешно осъществяване на връзката изтриваме паролата
@@ -143,8 +143,9 @@ class core_Db extends core_BaseClass
             
             // Избираме указаната база от данни на сървъра
             if (!mysql_select_db("{$this->dbName}", $this->link)) {
-
-                error("Грешка при избиране на база \"{$this->dbName}\"", array('mysqlErrCode' => mysql_errno($this->link), 'mysqlErrMsg' => mysql_error($this->link)));
+                // Грешка при избиране на база
+                $dump = array('mysqlErrCode' => mysql_errno($this->link), 'mysqlErrMsg' => mysql_error($this->link), 'dbName' => $this->dbName);
+                throw new core_exception_Db('500 @Грешка при избиране на база', 'DB Грешка', $dump);
             }
         }
         
@@ -645,12 +646,9 @@ class core_Db extends core_BaseClass
                 $errno = mysql_errno($this->link);
                 $error = mysql_error($this->link);
                 
-                error("500. Грешка {$errno} в БД при " . $action . ": {$error}", 
-                          array('query' => $this->query, 
-                                'mysqlErrCode' => mysql_errno($this->link), 
-                                'mysqlErrMsg' => mysql_error($this->link)
-                          )
-                     );
+                // Грешка в базата данни
+                $dump =  array('query' => $this->query, 'mysqlErrCode' => $errno, 'mysqlErrMsg' => $error);
+                throw new core_exception_Db("500 @Грешка при {$action}", 'DB Грешка', $dump);
         }
 
         return mysql_errno();

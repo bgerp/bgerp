@@ -763,7 +763,7 @@ class type_Richtext extends type_Blob
     {
         // Мястото
         $place = $this->getPlace();
-        //bp($match);
+
         // Цитата
         $quote = trim($match[3]);
         

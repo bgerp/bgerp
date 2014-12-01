@@ -103,7 +103,8 @@ class doc_Setup extends core_ProtoSetup
         'doc_PdfCreator',
         'doc_ThreadUsers',
         'doc_Files',
-    	'doc_TplManager'
+    	'doc_TplManager',
+        'migrate::repairBrokenRelationsT'
     );
     
         
@@ -211,6 +212,43 @@ class doc_Setup extends core_ProtoSetup
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Миграция за поправане на развалени връзки в папки, нишки и контейнери
+     * 
+     * @return string
+     */
+    static function repairBrokenRelationsT()
+    {
+        $res .= '';
+        $repArr['folder'] = doc_Folders::repair();
+        $repArr['thread'] = doc_Threads::repair();
+        $repArr['container'] = doc_Containers::repair();
+        
+        foreach ($repArr as $name => $repairedArr) {
+            if (!empty($repairedArr)) {
+                
+                if ($name == 'folder') {
+                    $res .= "<li class='green'>Поправки в папките: </li>\n";
+                } elseif ($name == 'thread') {
+                    $res .= "<li class='green'>Поправки в нишките: </li>\n";
+                } else {
+                    $res .= "<li class='green'>Поправки в контейнерите: </li>\n";
+                }
+                
+                foreach ((array)$repairedArr as $field => $cnt) {
+                    if ($field == 'del_cnt') {
+                        $res .= "\n<li class='green'>Изтирите са {$cnt} записа</li>";
+                    } else {
+                        $res .= "\n<li>Поправени развалени полета '{$field}' - {$cnt} записа</li>";
+                    }
+                }
+            }
+        }
         
         return $res;
     }

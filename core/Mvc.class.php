@@ -87,7 +87,7 @@ class core_Mvc extends core_FieldSet
         $this->db = & cls::get('core_Db');
 
         // Ако имаме описание на модел (т.е. метода $this->description() )
-        if (method_exists($this, 'description')) {
+        if(cls::existsMethod($this, 'description')) {
 
             $class = $this->className;
 
@@ -120,7 +120,7 @@ class core_Mvc extends core_FieldSet
      */
     function act_SetupMVC()
     {
-        if(!isDebug()) error('SETUP може да се прави само в DEBUG режим');
+        if(!isDebug()) error('@SETUP може да се прави само в DEBUG режим');
 
         // Форсираме системния потребител
         core_Users::forceSystemUser();
@@ -156,11 +156,8 @@ class core_Mvc extends core_FieldSet
             $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make($fieldsList))));
         }
 
-        if ($this->dbIndexes[$indexName]) {
-            error("Дублирано име за индекс в базата данни", array(
-                    $indexName,
-                    $this->dbIndexes
-                ));
+        if (isset($this->dbIndexes[$indexName])) {
+            error("@Дублирано име за индекс в базата данни",  $indexName, $this->dbIndexes);
         }
 
         $this->dbIndexes[$indexName] = $rec;
@@ -819,7 +816,7 @@ class core_Mvc extends core_FieldSet
 
                     // Не бива в модела, да има поле като старото
                     if ($this->fields[$fn] && ($fn != $name)) {
-                        error("Дублиране на старо име на поле и съществуващо поле", "'{$fn}'");
+                        error("@Дублиране на старо име на поле и съществуващо поле", "'{$fn}'");
                     }
 
                     $fn = str::phpToMysqlName($fn);
@@ -844,8 +841,6 @@ class core_Mvc extends core_FieldSet
                 $mfAttr->unsigned = ($mfAttr->unsigned || $field->unsigned) ? TRUE : FALSE;
 
                 $mfAttr->name = $name;
-
-                //bp($mfAttr, $dfAttr);
 
                 $green = " style='color:#007733;'";     // Стил за маркиране
                 $info = '';     // Тук ще записваме текущия ред с информация какво правим
@@ -927,7 +922,7 @@ class core_Mvc extends core_FieldSet
                 if($this->db->isType($mfAttr->type, 'have_collation')) {
                     setIfNot($mfAttr->collation, EF_DB_COLLATION);
                     $mfAttr->collation = strtolower($mfAttr->collation);
-                    $updateCollation = $mfAttr->collation != $dfAttr->collation;   //bp($mfAttr, $dfAttr);
+                    $updateCollation = $mfAttr->collation != $dfAttr->collation;
                     $style = $updateCollation ? $green : "";
                     $info .= ", <span{$style}>" .
                     ($mfAttr->collation) . "</span>";
@@ -997,8 +992,6 @@ class core_Mvc extends core_FieldSet
                         $cssClass = 'debug-new';
                     }
  
-                    // bp($indexes, $this->dbIndexes, $exFieldsList, $indRec->fields);
-
                     $this->db->forceIndex($this->dbTableName, $indRec->fields, $indRec->type, $name);
                     $html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
                 }

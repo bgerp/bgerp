@@ -83,9 +83,7 @@ class plg_Select extends core_Plugin
             $mvc->requireRightFor('list');
             
             $row = Request::get('R');
-            
-            // bp($row, count($row), !count($row));
-            
+                        
             if(!count($row)) {
                 $res = new Redirect(getRetUrl(), 'Моля, изберете поне един ред');
                 

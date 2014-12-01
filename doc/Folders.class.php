@@ -864,71 +864,125 @@ class doc_Folders extends core_Master
         return $cover;
     }
     
-
+    
+    /**
+     * Добавя ограничение за дати на създаване/модифициране в заявката
+     * 
+     * @param core_Query $query
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     */
+    public static function prepareRepairDateQuery(&$query, $from, $to, $delay, $dateField='modifiedOn')
+    {
+        if (isset($from)) {
+            
+            if (isset($delay)) {
+                $from = dt::subtractSecs($delay, $from);
+            }
+            
+            $query->where(array("#{$dateField} => '[#1#]'", $from));
+        }
+        
+        if (!isset($to)) {
+            $to = dt::now();
+        }
+        
+        if (isset($delay)) {
+            $to = dt::subtractSecs($delay, $to);
+        }
+        
+        $query->where(array("#{$dateField} <= '[#1#]'", $to));
+    }
+    
+    
     /**
      * Поправка на структурата на папките
+     * 
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     * 
+     * @return array
      */
-    function repair()
+    public static function repair($from = NULL, $to = NULL, $delay = 10)
     {
-        $query = $this->getQuery();
-
+        // Изкючваме логването
+        $isLoging = core_Debug::$isLogging;
+        core_Debug::$isLogging = FALSE;
+        
+        $resArr = array();
+        
+        $unsortedFolders = 'doc_UnsortedFolders';
+        $unsortedFolderId = core_Classes::fetchIdByName($unsortedFolders);
+        
+        $currUser = core_Users::getCurrent();
+        if ($currUser <= 0) {
+            $currUser = core_Users::getFirstAdmin();
+        }
+        $currUser = ($currUser) ? $currUser : 1;
+        
+        $query = self::getQuery();
+        
+        // Подготвяме данните за търсене
+        self::prepareRepairDateQuery($query, $from, $to, $delay, 'createdOn');
+        
+        // Търсим документи с развалени стойности
+        $query->where("#inCharge IS NULL");
+        $query->orWhere("#inCharge <= 0");
+        $query->orWhere("#coverClass IS NULL");
+        $query->orWhere("#coverId IS NULL");
+        $query->orWhere("#title IS NULL");
+        
         while($rec = $query->fetch()) {
             
-            if(!$rec->inCharge > 0) {
-                $err[$rec->id] .= 'Missing inCharge; ';
-                $rec->inCharge = core_Users::getCurrent();
+            // Ако има папка без собственик
+            if(!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
+                $resArr['inCharge']++;
+                $rec->inCharge = $currUser;
+                self::save($rec);
             }
             
-            $projectName = FALSE;
-
-            if(!$rec->coverClass) {
-                $err[$rec->id] .= 'Missing coverClass; ';
-                $projectName = "LaF " . $rec->title;
-            } else {
+            // Ако липсва coverClass, да е на несортираните
+            if (!isset($rec->coverClass)) {
+                $resArr['coverClass']++;
+                $rec->coverClass = $unsortedFolderId;
+                self::save($rec);
+            }
             
-                if(!($cls =  cls::load($rec->coverClass, TRUE))) {
-                    $err[$rec->id] .= 'Not exists coverClass; ';
-                    $projectName = "LaF " . $rec->title;
-                } else {
-                    if(!$rec->coverId) {
-                        $err[$rec->id] .= 'Not exists coverId; ';
-                        $projectName = "LaF " . $className . ' ' . $rec->title;
-                    } else {
-
-                        $cls = cls::get($rec->coverClass);
-
-                        if($rec->coverId && !$cls->fetch($rec->coverId)) {
-                            $err[$rec->id] .= 'Not exists cover; ';
-                            $projectName = "LaF " . $className . ' ' . $rec->title;
-                        }
-                    }
+            // Ако няма coverId
+            if (!isset($rec->coverId)) {
+                $resArr['coverId']++;
+                
+                // Ако не е несортирани
+                if ($rec->coverClass != $unsortedFolderId) {
+                    $resArr['coverClass']++;
+                    $rec->coverClass = $unsortedFolderId;
+                    self::save($rec);
                 }
-            }
-
-            if($projectName) {
-                $rec->coverClass = core_Classes::fetchIdByName('doc_UnsortedFolders');
-                $rec->coverId = 0;
-                $this->save($rec);
+                
+                // Създаваме документ и използваме id-то за coverId
                 $unRec = new stdClass();
-                $unRec->name = $projectName . ' ' . doc_UnsortedFolders::count();
-                $unRec->inCharge = core_Users::getCurrent();
+                $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
+                $unRec->inCharge = $currUser;
                 $unRec->folderId = $rec->id;
-                $rec->coverId = doc_UnsortedFolders::save($unRec);
-                $this->save($rec);
+                $rec->coverId = $unsortedFolders::save($unRec);
+                self::save($rec);
             }
             
-            if(!$rec->title) {
-                $err[$rec->id] .= 'Missing title; ';
+            // Ако няма заглвиет, използваме заглавието от документа
+            if (!isset($rec->title)) {
+                $resArr['title']++;
+                $coverMvc = cls::get($rec->coverClass);
+                $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
+                self::save($rec);
             }
         }
         
-        if(count($err)) {
-            foreach($err as $id => $msg) {
-                $res .= "<li> $id => $msg </li>";
-            }
-        }
-
-        return $res;
+        // Връщаме старото състояние за ловговането в дебъг
+        core_Debug::$isLogging = $isLoging;
+        
+        return $resArr;
     }
     
 

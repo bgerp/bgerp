@@ -116,12 +116,12 @@ class core_BaseClass
         $class = cls::getClassName($class);
         
         // Ако е подклас на core_Mvc, записваме го като член на този клас 
-        if (!($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
+        if (!isset($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
             $this->{$name} = &cls::get($class);
         }
         
         // Ако има интерфейс на плъгин, записваме го в масива на плъгините
-        if (!($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
+        if (!isset($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
             $this->_plugins[$name] = &cls::get($class);
         }
     }
@@ -279,7 +279,7 @@ class core_BaseClass
         $method = 'act_' . $act;
         
         if (!method_exists($this, $method)) {
-            error("404 Липсващ метод: {$method} на " . cls::getClassName($this));
+            error('404 Липсваща страница', array("Липсващ метод: {$method} на " . cls::getClassName($this)));
         }
         
         return $this->{$method}();

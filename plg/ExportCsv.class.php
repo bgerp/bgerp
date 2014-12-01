@@ -96,7 +96,7 @@ class plg_ExportCsv extends core_Plugin
             $conf = core_Packs::getConfig('core');
             
             if(count($data->recs) > $conf->EF_MAX_EXPORT_CNT) {
-                error("Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT);
+                redirect(array($mvc), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
             }
             
             /* за всеки ред */

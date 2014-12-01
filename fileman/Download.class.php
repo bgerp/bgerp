@@ -201,7 +201,7 @@ class fileman_Download extends core_Manager {
         
         // Създаваме хард-линк или копираме
         if(!@copy($originalPath, $downloadPath)) {
-            error("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$downloadPath}'");
+            error("@Не може да бъде копиран файла", $originalPath, $downloadPath);
         }
         
         // Задаваме id-то на файла

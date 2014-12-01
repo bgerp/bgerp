@@ -195,7 +195,7 @@ class core_Plugins extends core_Manager
             $cover = 'private';
             
             do {
-                if (count($arr = $this->attachedPlugins[$objClass][$cover])) {
+                if (isset($this->attachedPlugins[$objClass][$cover]) && count($arr = $this->attachedPlugins[$objClass][$cover])) {
                     foreach ($arr as $name => $plugin) {
                         if (cls::load($plugin, TRUE)) {
                             $obj->loadSingle($name, $plugin);
