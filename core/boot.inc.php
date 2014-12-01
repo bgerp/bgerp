@@ -22,6 +22,9 @@ if (version_compare(phpversion(), '5.3.0') < 0) {
 }
 
 // Зареждаме класовете за обработка на грешки
+require_once(EF_APP_PATH . '/core/exception/Break.class.php');
+
+// Зареждаме класовете за обработка на грешки
 require_once(EF_APP_PATH . '/core/exception/Expect.class.php');
 
 // Зареждаме дебъг класа
@@ -114,7 +117,7 @@ try {
     $breakLine = $e->getLine();
     $stack     = $e->getTrace();
 
-    if($e instanceOf core_exception_Expect) {
+    if($e instanceOf core_exception_Break) {
         $dump = $e->getDump();
         $errType = $e->getType();
     }
@@ -309,7 +312,7 @@ function bp()
 {   
     $dump = func_get_args();
     
-    throw new core_exception_Expect('500 Грешка в сървъра', 'Прекъсване', $dump);
+    throw new core_exception_Break('500 Грешка в сървъра', 'Прекъсване', $dump);
 }
 
 
