@@ -414,20 +414,17 @@ class acc_BalanceHistory extends core_Manager
                     
                     if($indexArr != $index) continue;
                     
+                    // Оставяме само записите за тази аналитична сметка
                     if(isset($calcedBalance[$index])){
                         if (!empty($jRec->{$quantityField})) {
                             $add = TRUE;
-                            $calcedBalance[$index]['blQuantity'] += $jRec->{$quantityField} * $sign;
                             $entry[$quantityField] = $jRec->{$quantityField};
-                            $entry['blQuantity'] = $calcedBalance[$index]['blQuantity'];
                             ${"{$type}Quantity"} += $entry[$quantityField];
                         }
                         
                         if (!empty($jRec->amount)) {
                             $add = TRUE;
-                            $calcedBalance[$index]['blAmount'] += $jRec->amount * $sign;
                             $entry["{$type}Amount"] = $jRec->amount;
-                            $entry['blAmount'] = $calcedBalance[$index]['blAmount'];
                             ${"{$type}Amount"} += $entry["{$type}Amount"];
                         }
                     }
@@ -436,6 +433,40 @@ class acc_BalanceHistory extends core_Manager
                 if($add){
                     $data->recs[$jRec->id] = $entry;
                 }
+            }
+           
+            // Правим групиране на записите
+            if(count($data->recs)){
+            	$groupedRecs = array();
+            	
+            	// Групираме всички записи от журнала по документи
+            	foreach ($data->recs as $dRec){
+            		$index = $dRec['docType'] . "|" . $dRec['docId'];
+            		if(!isset($groupedRecs[$index])){
+            			$groupedRecs[$index] = $dRec;
+            		} else {
+            			foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount') as $key){
+            				if (!empty($dRec[$key])) {
+            					$groupedRecs[$index][$key] += $dRec[$key];
+            				}
+        				}
+            		}
+            	}
+            	
+            	// За всеки от групираните записи, изчисляваме му крайното салдо
+            	foreach ($groupedRecs as &$dRec2){
+            		
+            		$blAmount = $dRec2['debitAmount'] - $dRec2['creditAmount'];
+            		$blQuantity = $dRec2['debitQuantity'] - $dRec2['creditQuantity'];
+            		
+            		$calcedBalance[$indexArr]['blAmount'] += $blAmount;
+            		$calcedBalance[$indexArr]['blQuantity'] += $blQuantity;
+            		
+            		$dRec2['blAmount'] = $calcedBalance[$indexArr]['blAmount'];
+            		$dRec2['blQuantity'] = $calcedBalance[$indexArr]['blQuantity'];
+            	}
+            	
+            	$data->recs = $groupedRecs;
             }
         }
         
