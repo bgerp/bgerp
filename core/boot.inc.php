@@ -87,7 +87,7 @@ try {
         if(!isDebug() && $e->isNotExistsDB()) {   
 
             // Опитваме се да създадем базата и редиректваме към сетъп-а
-            try { mysql_query("CREATE DATABASE " . EF_DB_NAME); } catch(Exeption $e) {}
+            try { mysql_query("CREATE DATABASE " . EF_DB_NAME); } catch(Exception $e) {}
             redirect(array('Index', 'SetupKey' => setupKey()));
 
         } elseif(!isDebug() && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
@@ -103,7 +103,7 @@ try {
                 if(isDebug() || haveRole('admin')) {
                     $update =  array('Index', 'SetupKey' => setupKey(), 'step' => 2);
                 }
-            } catch(Exeption $e) {}
+            } catch(Exception $e) {}
             
         } 
     }
