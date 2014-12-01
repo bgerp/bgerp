@@ -80,6 +80,7 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
         // Обща сума на транзакцията
+        $this->FLD('reasonCode', 'int', 'input=none');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
     }
     
