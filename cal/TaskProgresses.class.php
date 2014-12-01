@@ -8,9 +8,9 @@
  *
  *
  * @category  bgerp
- * @package   doc
+ * @package   cal
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,51 +20,51 @@ class cal_TaskProgresses extends core_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'taskId';
+    public $masterKey = 'taskId';
 
      
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools,plg_Created,cal_Wrapper';
+    public $loadList = 'plg_RowTools,plg_Created,cal_Wrapper';
 
 
     /**
      * Заглавие
      */
-    var $title = "Прогрес по задачите";
+    public $title = "Прогрес по задачите";
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'createdOn,createdBy,message,progress,workingTime,expectationTime';
+    public $listFields = 'createdOn,createdBy,message,progress,workingTime,expectationTime';
     
     
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/task.png';
+    public $singleIcon = 'img/16/task.png';
 
     
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
     
     /**
      * Активен таб на менюто
      */
-    var $currentTab = 'Задачи';
+    public $currentTab = 'Задачи';
    
          
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         // id на задачата
         $this->FLD('taskId', 'key(mvc=cal_Tasks,select=title)', 'caption=Задача,input=hidden,silent,column=none');
@@ -85,7 +85,10 @@ class cal_TaskProgresses extends core_Detail
 
 
     /**
-     * 
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {   
@@ -106,10 +109,33 @@ class cal_TaskProgresses extends core_Detail
         }
         $data->form->setSuggestions('progress', $progressArr);
     }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	expect($form->rec->taskId);
+    	
+    	$masterRec = cal_Tasks::fetch($form->rec->taskId);
+    	
+    	// ако формата е събмитната
+    	if ($form->isSubmitted()){
+        	if ($masterRec->progress >= $form->rec->progress) {
+        		$form->setWarning('progress', "|Въвели сте по-малък прогрес от предишния. Сигурни ли сте че искате да продължите?");
+        	}
+    	}
+    }
 
 
     /**
-     *
+     * Изпълнява се след опаковане на детайла от мениджъра
+     * 
+     * @param stdClass $data
      */
     function renderDetail($data)
     {
@@ -132,13 +158,13 @@ class cal_TaskProgresses extends core_Detail
     
     
     /**
-     * 
-     * Enter description here ...
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     * @param unknown_type $data
+     * Ако няма записи не вади таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
      */
-    function on_BeforeRenderListTable($mvc, &$res, $data)
+    static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	if (count($data->recs)) {
     		foreach ($data->rows as $row) {
@@ -151,14 +177,14 @@ class cal_TaskProgresses extends core_Detail
     
     
     /**
-     * 
-     * Enter description here ...
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     * @param unknown_type $data
+     * Добавя след таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
      */
-	function on_AfterRenderListTable($mvc, &$res, $data)
-    {
+    static function on_AfterRenderListTable($mvc, &$res, $data)
+	{
         if(!count($data->recs)) {
             return NULL;
         }
@@ -197,12 +223,11 @@ class cal_TaskProgresses extends core_Detail
 
     
     /**
-     * 
-     * Enter description here ...
-     * @param unknown_type $mvc
-     * @param unknown_type $id
-     * @param unknown_type $rec
-     * @param unknown_type $saveFileds
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
@@ -211,7 +236,7 @@ class cal_TaskProgresses extends core_Detail
         // Определяне на прогреса
         if(isset($rec->progress)) {
             $tRec->progress = $rec->progress;
-
+            
             if($rec->progress == 1) {
             	$message = tr("Приключена е задачата \"" . $tRec->title . "\"");
             	$url = array('doc_Containers', 'list', 'threadId' => $tRec->threadId);
@@ -235,5 +260,4 @@ class cal_TaskProgresses extends core_Detail
         
         cal_Tasks::save($tRec);
     }
-
 }
