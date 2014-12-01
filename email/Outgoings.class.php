@@ -1128,6 +1128,8 @@ class email_Outgoings extends core_Master
         // тялото на документа (изходящия имейл)
         $res = static::getDocumentBody($rec->id, 'xhtml', (object)array('rec' => $rec));
         
+        $content = $res->getContent();
+        
         // Правим инлайн css, само ако са зададени стилове $css
         // Причината е, че Emogrifier не работи правилно, като конвертира html entities към 
         // символи (страничен ефект).
@@ -1141,7 +1143,7 @@ class email_Outgoings extends core_Master
             $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
             "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . "\n" . $css ;
             
-            $res = '<div id="begin">' . $res->getContent() . '<div id="end">';
+            $content = '<div id="begin">' . $content . '<div id="end">';
             
             // Вземаме пакета
             $conf = core_Packs::getConfig('csstoinline');
@@ -1153,15 +1155,21 @@ class email_Outgoings extends core_Master
             $inst = cls::get($CssToInline);
             
             // Стартираме процеса
-            $res =  $inst->convert($res, $css);
+            $content =  $inst->convert($content, $css);
             
-            $res = str::cut($res, '<div id="begin">', '<div id="end">');
+            $content = str::cut($content, '<div id="begin">', '<div id="end">');
         }
         
         //Изчистваме HTML коментарите
-        $res = self::clearHtmlComments($res);
+        $content = self::clearHtmlComments($content);
         
         core_Lg::pop();
+        
+        if ($res instanceof core_ET) {
+            $res->setContent($content);
+        } else {
+            $res = $content;
+        }
         
         return $res;
     }
