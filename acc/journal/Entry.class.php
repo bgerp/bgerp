@@ -13,12 +13,15 @@
  */
 class acc_journal_Entry
 {
+	
+	
     /**
      * Дебитна част на ред от счетоводна транзакция
      *
      * @var acc_journal_EntrySide
      */
     public $debit;
+    
     
     /**
      * Кредитна част на ред от счетоводна транзакция
@@ -27,6 +30,7 @@ class acc_journal_Entry
      */
     public $credit;
     
+    
     /**
      * Стойност на реда в основна валута
      *
@@ -34,10 +38,17 @@ class acc_journal_Entry
      */
     public $amount;
     
+    
     /**
      * @var acc_JournalDetails
      */
     public $JournalDetails;
+    
+    
+    /**
+     * @var int
+     */
+    public $reasonCode = NULL;
     
     
     /**
@@ -65,6 +76,10 @@ class acc_journal_Entry
     {
         $this->debit->initFromTransactionSource($data);
         $this->credit->initFromTransactionSource($data);
+        if(isset($data['reason'])){
+        	$this->reasonCode = $data['reason'];
+        }
+        
         
         return $this;
     }
@@ -198,8 +213,9 @@ class acc_journal_Entry
     	$entryRec = $this->debit->getData()
     	+ $this->credit->getData()
     	+ array(
-    			'journalId' => $transactionId,
-    			'amount'    => $this->amount()
+    			'journalId'   => $transactionId,
+    			'amount'      => $this->amount(),
+    			'reasonCode'  => $this->reasonCode,
     	);
     
     	return (object)$entryRec;
@@ -218,7 +234,8 @@ class acc_journal_Entry
         + $this->credit->getData()
         + array(
             'journalId' => $transactionId,
-            'amount'    => $this->amount()
+            'amount'    => $this->amount(),
+        	'reasonCode'  => $this->reasonCode,
         );
         
         return $this->JournalDetails->save((object)$entryRec);
