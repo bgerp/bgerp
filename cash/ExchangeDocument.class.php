@@ -317,17 +317,6 @@ class cash_ExchangeDocument extends core_Master
     }
     
     
-	/**
-     * Връща счетоводното основание за документа
-     */
-    public function getContoReason($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	
-    	return $this->getVerbal($rec, 'reason');
-    }
-    
-    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */

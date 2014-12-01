@@ -405,7 +405,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Връща счетоводното основание за документа
      */
-    public function getContoReason($id)
+    public function getContoReason1($id)
     {
     	$rec = $this->fetchRec($id);
     	 
