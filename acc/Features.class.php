@@ -252,7 +252,7 @@ class acc_Features extends core_Manager
         $query->groupBy("feature");
         
         while($rec = $query->fetch()){
-            $options[$rec->feature] = static::getVerbal($rec, 'feature');
+            $options[$rec->feature] = $rec->feature;
         }
         
         return $options;
