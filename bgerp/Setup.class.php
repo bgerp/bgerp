@@ -67,7 +67,7 @@ class bgerp_Setup extends core_ProtoSetup {
      */
     var $systemActions = array(
         
-        'Поправка' => array ('doc_Folders', 'repair')
+        'Поправка' => array ('doc_Containers', 'repair', 'ret_url' => TRUE)
     
     );
     

@@ -104,7 +104,7 @@ class doc_Setup extends core_ProtoSetup
         'doc_ThreadUsers',
         'doc_Files',
     	'doc_TplManager',
-        'migrate::repairBrokenRelationsT'
+        'migrate::repairBrokenRelations'
     );
     
         
@@ -222,7 +222,7 @@ class doc_Setup extends core_ProtoSetup
      * 
      * @return string
      */
-    static function repairBrokenRelationsT()
+    static function repairBrokenRelations()
     {
         $res .= '';
         $repArr['folder'] = doc_Folders::repair();

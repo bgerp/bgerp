@@ -523,17 +523,6 @@ class acc_Articles extends core_Master
     
     
     /**
-     * Връща счетоводното основание за документа
-     */
-    public function getContoReason($id)
-    {
-        $rec = $this->fetchRec($id);
-        
-        return $this->getVerbal($rec, 'reason');
-    }
-    
-    
-    /**
      * Изпълнява се след обновяване на журнала
      */
     public static function on_AfterJournalUpdated($mvc, $id, $journalId)

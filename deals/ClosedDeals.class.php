@@ -526,17 +526,6 @@ abstract class deals_ClosedDeals extends core_Master
     
     
     /**
-     * Връща счетоводното основание за документа
-     */
-    public function getContoReason($id)
-    {
-        $rec = $this->fetchRec($id);
-        
-        return $this->getVerbal($rec, 'notes');
-    }
-    
-    
-    /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = TRUE)

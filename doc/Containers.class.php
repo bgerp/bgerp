@@ -79,6 +79,12 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * 
+     */
+    const REPAIR_SYSTEM_ID = 'repairDocuments';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -1733,6 +1739,19 @@ class doc_Containers extends core_Manager
         $rec1->delay = 0;
         $rec1->timeLimit = 200;
         $res .= core_Cron::addOnce($rec1);
+        
+        
+        // Данни за работата на cron за поправка на документи
+        $repRec = new stdClass();
+        $repRec->systemId = self::REPAIR_SYSTEM_ID;
+        $repRec->description = 'Поправка на папаки, нишки и контейнери';
+        $repRec->controller = $mvc->className;
+        $repRec->action = 'repair';
+        $repRec->period = 5;
+        $repRec->offset = 0;
+        $repRec->delay = 0;
+        $repRec->timeLimit = 200;
+        $res .= core_Cron::addOnce($repRec);
     }
     
     
@@ -1783,5 +1802,110 @@ class doc_Containers extends core_Manager
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Екшън за поправка на развалените папки, нишки или контейнери
+     */
+    function act_Repair()
+    {
+        requireRole('admin');
+        
+        $retUrl = getRetUrl();
+        
+        if (!isset($retUrl)) {
+            $retUrl = array();
+        }
+        
+        // Вземаме празна форма
+        $form = cls::get('core_Form');
+        
+        $form->FNC('repair', 'enum(all=Всички, folders=Папки, threads=Нишки, containers=Контейнери)', 'caption=На, input=input, mandatory');
+        $form->FNC('from', 'datetime', 'caption=От, input=input');
+        $form->FNC('to', 'datetime', 'caption=До, input=input');
+        
+        $form->input('repair, from, to', TRUE);
+        
+        if ($form->isSubmitted()) {
+            
+            // Ако са объркани датите
+            if (isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
+                $from = $form->rec->from;
+                $form->rec->from = $form->rec->to;
+                $form->rec->to = $from;
+            }
+            
+            // В зависимост от избраната стойност поправяме документите
+            if ($form->rec->repair == 'folders' || $form->rec->repair == 'all') {
+                $repArr['folders'] = doc_Folders::repair($form->rec->from, $form->rec->to);
+            }
+            
+            if ($form->rec->repair == 'threads' || $form->rec->repair == 'all') {
+                $repArr['threads'] = doc_Threads::repair($form->rec->from, $form->rec->to);
+            }
+            
+            if ($form->rec->repair == 'containers' || $form->rec->repair == 'all') {
+                $repArr['containers'] = doc_Containers::repair($form->rec->from, $form->rec->to);
+            }
+            
+            // Резултат след поправката
+            $res = '';
+            foreach ($repArr as $name => $repairedArr) {
+                if (!empty($repairedArr)) {
+                    
+                    if ($name == 'folders') {
+                        $res .= "<li class='green'>Поправки в папките: </li>\n";
+                    } elseif ($name == 'threads') {
+                        $res .= "<li class='green'>Поправки в нишките: </li>\n";
+                    } else {
+                        $res .= "<li class='green'>Поправки в контейнерите: </li>\n";
+                    }
+                    
+                    foreach ((array)$repairedArr as $field => $cnt) {
+                        if ($field == 'del_cnt') {
+                            $res .= "\n<li class='green'>Изтирите са {$cnt} записа</li>";
+                        } else {
+                            $res .= "\n<li>Поправени развалени полета '{$field}' - {$cnt} записа</li>";
+                        }
+                    }
+                }
+            }
+            
+            if (empty($res)) {
+                $res = 'Няма документи за поправяне';
+            }
+            
+            return new Redirect($retUrl, $res);
+        }
+        
+        $form->title = 'Поправка';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Поправи', 'repair', 'ef_icon = img/16/hammer_screwdriver.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast
+     */
+    function cron_Repair()
+    {
+        $systemId = self::REPAIR_SYSTEM_ID;
+        $cronPeriod = core_Cron::fetchField("#systemId = '{$systemId}'", 'period');
+        
+        $cronPeriod *= 60;
+        $from = dt::subtractSecs($cronPeriod);
+        $to = dt::now();
+        $delay = 10;
+        
+        $repArr['folders'] = doc_Folders::repair($from, $to, $delay);
+        $repArr['threads'] = doc_Threads::repair($from, $to, $delay);
+        $repArr['containers'] = doc_Containers::repair($from, $to, $delay);
+        
+        return $repArr;
     }
 }

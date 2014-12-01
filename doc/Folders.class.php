@@ -881,7 +881,7 @@ class doc_Folders extends core_Master
                 $from = dt::subtractSecs($delay, $from);
             }
             
-            $query->where(array("#{$dateField} => '[#1#]'", $from));
+            $query->where(array("#{$dateField} >= '[#1#]'", $from));
         }
         
         if (!isset($to)) {
