@@ -462,12 +462,16 @@ class core_App
     	expect(ob_get_length() <= 3, array(ob_get_length(), ob_get_contents()));
         
         $hitId = Request::get('hit_id');
+        
         if (isset($msg)) {
-            if (!$hitId) {
-                $hitId = str::getRand();
+            $msgTrim = trim($msg);
+            if (strlen($msgTrim)) {
+                if (!$hitId) {
+                    $hitId = str::getRand();
+                }
+                
+                core_Statuses::newStatus($msg, $type, NULL, 60, $hitId);
             }
-            
-            core_Statuses::newStatus($msg, $type, NULL, 60, $hitId);
         }
         
         if ($hitId) {
