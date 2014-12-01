@@ -692,6 +692,12 @@ class blast_Emails extends core_Master
         // Вземаме тялото на имейла
         $res = self::getDocumentBody($rec->id, 'xhtml', $options);
         
+        if ($res instanceof core_ET) {
+            $content = $res->getContent();
+        } else {
+            $content = $res;
+        }
+        
         // За да вземем mid'а който се предава на $options
         $rec->__mid = $options->rec->__mid;
         
@@ -704,7 +710,7 @@ class blast_Emails extends core_Master
             $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
             "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . "\n" . file_get_contents(sbf('css/email.css', "", TRUE));
             
-            $res = '<div id="begin">' . $res->getContent() . '<div id="end">';
+            $content = '<div id="begin">' . $content . '<div id="end">';
             
             // Вземаме пакета
             $conf = core_Packs::getConfig('csstoinline');
@@ -716,13 +722,19 @@ class blast_Emails extends core_Master
             $inst = cls::get($CssToInline);
             
             // Стартираме процеса
-            $res =  $inst->convert($res, $css);
+            $content =  $inst->convert($content, $css);
             
-            $res = str::cut($res, '<div id="begin">', '<div id="end">');
+            $content = str::cut($content, '<div id="begin">', '<div id="end">');
         }
         
         //Изчистваме HTMl коментарите
-        $res = email_Outgoings::clearHtmlComments($res);
+        $content = email_Outgoings::clearHtmlComments($content);
+    
+        if ($res instanceof core_ET) {
+            $res->setContent($content);
+        } else {
+            $res = $content;
+        }
         
         return $res;
     }
