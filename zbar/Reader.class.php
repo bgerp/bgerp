@@ -49,6 +49,10 @@ class zbar_Reader
                 // Разделяме типа на баркода от съдържанието му
                 $explodeBarcodeArr = explode(':', $barcode, 2);
                 
+                if (!is_object($barcodesArr[$key])) {
+                    $barcodesArr[$key] = new stdClass();
+                }
+                
                 // Записваме намерените резултатис
                 $barcodesArr[$key]->type = $explodeBarcodeArr[0];
                 $barcodesArr[$key]->code = $explodeBarcodeArr[1];
