@@ -85,7 +85,7 @@ class bulmar_InvoiceExport extends core_Manager {
 	 */
     public function export($filter)
     {
-    	$query = $this->Invoices->getQuery_();
+    	$query = $this->Invoices->getQuery();
     	$query->where("#state = 'active'");
     	$query->between('date', $filter->from, $filter->to);
     	$query->orderBy("#number", 'ASC');
@@ -204,8 +204,10 @@ class bulmar_InvoiceExport extends core_Manager {
     	}
     	
     	$nRec->contragentEik = ($rec->contragentVatNo) ? $rec->contragentVatNo : $rec->uicNo;
+    	
     	$Vats = cls::get('drdata_Vats');
     	$nRec->contragentEik = $Vats->canonize($nRec->contragentEik);
+    	
     	
     	if($rec->paymentType == 'cash'){
     		$nRec->amountPaid = $nRec->amount;
@@ -231,9 +233,15 @@ class bulmar_InvoiceExport extends core_Manager {
     			unset($rec->productsAmount);
     			$operationId = $static->advancePayment;
     		} elseif($rec->dpOperation == 'deducted'){
+    			
+    			// Ако ф-та има приспадане на аванс приспадаме го от общата сума и сумата на платеното
     			$rec->amount += $rec->dpAmount;
     			$operationId = $static->advancePayment;
     			$rec->baseAmount += $rec->dpAmount;
+    			
+    			if(isset($rec->amountPaid)){
+    				$rec->amountPaid += $rec->dpAmount;
+    			}
     		}
     		
     		$line = "{$rec->num}|{$rec->type}|{$rec->invNumber}|{$rec->date}|{$rec->contragentEik}|{$rec->date}|{$static->folder}|{$rec->contragent}|". "\r\n";
