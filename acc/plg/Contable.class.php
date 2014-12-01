@@ -493,8 +493,7 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
-     * Връща основанието за транзакцията, по подразбиране
-     * е името на контрагента, ако има такъв
+     * Връща основанието за транзакцията, по подразбиране е основанието на журнала
      */
     public static function on_AfterGetContoReason($mvc, &$res, $id, $reasonCode = NULL)
     {
