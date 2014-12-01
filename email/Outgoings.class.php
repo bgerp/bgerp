@@ -1128,7 +1128,11 @@ class email_Outgoings extends core_Master
         // тялото на документа (изходящия имейл)
         $res = static::getDocumentBody($rec->id, 'xhtml', (object)array('rec' => $rec));
         
-        $content = $res->getContent();
+        if ($res instanceof core_ET) {
+            $content = $res->getContent();
+        } else {
+            $content = $res;
+        }
         
         // Правим инлайн css, само ако са зададени стилове $css
         // Причината е, че Emogrifier не работи правилно, като конвертира html entities към 
