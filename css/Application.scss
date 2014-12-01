@@ -3890,6 +3890,9 @@ body.narrow {
     .footerDocBlock{
         display: block !important;
     }
+    .#fancybox-left, #fancybox-right{
+    background-color: transparent !important;
+}
 }
 
 .narrow .printing .document{

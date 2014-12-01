@@ -3639,6 +3639,9 @@ only screen and (max-width: 320px) {
     display: table-row !important; }
   .printing .footerDocBlock {
     display: block !important; }
+  .printing .#fancybox-left,
+  .printing #fancybox-right {
+    background-color: transparent !important; }
 
 .narrow .printing .document {
   width: 850px; }
