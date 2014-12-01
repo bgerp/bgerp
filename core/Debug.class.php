@@ -48,7 +48,7 @@ class core_Debug
     static function init()
     {
         if (!self::$startMicroTime) {
-            self::$startMicroTime = core_Datetime::getMicrotime();
+            self::$startMicroTime = core_DateTime::getMicrotime();
             self::$lastMicroTime = 0;
         	self::$debugTime[] = (object) array('start' => 0, 'name' => 'Начало');
         }
