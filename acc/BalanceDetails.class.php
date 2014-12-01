@@ -661,7 +661,7 @@ class acc_BalanceDetails extends core_Detail
         	$iQuery->show('id,title');
         	
         	while($iRec = $iQuery->fetch()){
-        		$nOptions[$iRec->id] = acc_Items::getVerbal($iRec, 'title');
+        		$nOptions[$iRec->id] = $iRec->title;
         	}
         	
         	$options = $nOptions;
