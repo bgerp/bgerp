@@ -543,7 +543,7 @@ class core_Debug
      * @param $breakFile string Файл, където е възникнало прекъсването
      * @param $breakLine int    Линия на която е възникнало прекъсването
      */
-    public static  function displayState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update)
+    public static  function displayState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update = NULL)
     {
         $state = array( 'errType'   => $errType, 
                         'errTitle'  => $errTitle, 
