@@ -126,6 +126,23 @@ class acc_ClosePeriods extends core_Master
     
     
     /**
+     * Карта на счетоводните основания
+     */
+    protected static $reasonsArr = array(
+    								'1'  => 'Начисляваме сумата от касовия апарат',
+						    		'2'  => 'ДДС - остатъци',
+						    		'3'  => 'Приспадане на ДДС по покупки',
+						    		'4'  => 'ДДС за внасяне',
+						    		'5'  => 'ДДС за възстановяване',
+						    		'6'  => 'Приспаднато ДДС за възстановяване',
+						    		'7'  => 'Приходи от продажби (по сделки)',
+    								'8'  => 'Курсови разлики',
+    								'9'  => 'Приходи от продажби (Стоки и Продукти)',
+    								'10' => 'Приходи от продажба (суровини/материали)', 
+    								'11' => 'Приходи от продажби (Услуги)');
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -405,10 +422,12 @@ class acc_ClosePeriods extends core_Master
     /**
      * Връща счетоводното основание за документа
      */
-    public function getContoReason1($id)
+    public function getContoReason($id, $reasonCode = NULL)
     {
-    	$rec = $this->fetchRec($id);
-    	 
-    	return $this->getVerbal($rec, 'periodId');
+    	$res = self::$reasonsArr[$reasonCode];
+    	
+    	$res = tr($res);
+    	
+    	return $res;
     }
 }

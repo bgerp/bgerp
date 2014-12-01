@@ -395,10 +395,11 @@ class acc_BalanceHistory extends core_Manager
         if(count($entriesInPeriod)){
             foreach ($entriesInPeriod as $jRec){
                 $entry = array('id' => $jRec->id,
-			                   'docType'  => $jRec->docType,
-			                   'docId'    => $jRec->docId,
-			                   'reason'   => $jRec->reason,
-			                   'valior'   => $jRec->valior);
+			                   'docType'    => $jRec->docType,
+			                   'docId'      => $jRec->docId,
+			                   'reason'     => $jRec->reason,
+			                   'valior'     => $jRec->valior,
+                			   'reasonCode' => $jRec->reasonCode);
                 
                 $add = FALSE;
                 
@@ -441,7 +442,7 @@ class acc_BalanceHistory extends core_Manager
             	
             	// Групираме всички записи от журнала по документи
             	foreach ($data->recs as $dRec){
-            		$index = $dRec['docType'] . "|" . $dRec['docId'];
+            		$index = $dRec['docType'] . "|" . $dRec['docId'] . "|" . $dRec['reasonCode'];
             		if(!isset($groupedRecs[$index])){
             			$groupedRecs[$index] = $dRec;
             		} else {
@@ -516,7 +517,7 @@ class acc_BalanceHistory extends core_Manager
         }
         
         try{
-            $Class = cls::get($rec['docType']);
+        	$Class = cls::get($rec['docType']);
             $title = $Class->getTitleById($rec['docId']);
             
             if($Class->haveRightFor('single', $rec['docId'])){
@@ -524,7 +525,7 @@ class acc_BalanceHistory extends core_Manager
             }
             
             $arr['docId'] = $title;
-            $arr['reason'] = $Class->getContoReason($rec['docId']);
+            $arr['reason'] = $Class->getContoReason($rec['docId'], $rec['reasonCode']);
         } catch(Exception $e){
             if(is_numeric($rec['docId'])){
                 $arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
