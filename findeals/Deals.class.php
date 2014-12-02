@@ -586,9 +586,6 @@ class findeals_Deals extends deals_DealBase
     	$result->set('currency', $rec->currencyId);
     	$result->set('rate', $rec->currencyRate);
     	$result->set('contoActions', FALSE);
-    	
-    	//@TODO Временно, докато се премахне от фактурите
-    	$result->setIfNot('vatType', 'yes');
     }
     
     

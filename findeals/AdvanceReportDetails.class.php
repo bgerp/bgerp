@@ -168,7 +168,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->productId = ht::createLinkRef(cat_Products::getTitleById($rec->productId), array('cat_Products', 'single', $rec->productId));
+    	$row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $rec->productId));
     	$row->measureId = cat_UoM::getTitleById(cat_Products::fetchField($rec->productId, 'measureId'));
     	
     	$masterRec = $mvc->Master->fetch($rec->reportId);
