@@ -210,7 +210,7 @@ class techno_Specifications extends core_Manager {
 	    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    	try{
 	    		$DocClass = cls::get($rec->docClassId);
-	    	} catch(Exception $e){
+	    	} catch(core_exception_Expect $e){
 	    		return;
 	    	}
 	    	
@@ -451,7 +451,7 @@ class techno_Specifications extends core_Manager {
     		$Driver->recTitleTpl = NULL;
     		
     		$link =  $Driver->getHyperlink($icon);
-    	} catch(Exception $e){
+    	} catch(core_exception_Expect $e){
     		$link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
     	}
     	
@@ -531,7 +531,7 @@ class techno_Specifications extends core_Manager {
     		if(isset($TechnoClass)){
     			$res = $TechnoClass->getBasePackInfo();
     		}
-    	} catch(Exception $e){
+    	} catch(core_exception_Expect $e){
     		
     	}
     	

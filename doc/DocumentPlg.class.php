@@ -341,7 +341,7 @@ class doc_DocumentPlg extends core_Plugin
             
             // Опитваме се да запишем файловете от документа в модела
             doc_Files::saveFile($mvc, $rec);    
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Ако възникне грешка при записването
             doc_Files::log("Грешка при записване на файла с id={$id}");
@@ -1052,7 +1052,7 @@ class doc_DocumentPlg extends core_Plugin
             $data->noToolbar = !$options->withToolbar;
             
             $res  = $mvc->renderDocument($id, $data);
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Ако сме в SUDO режим
             if ($bExitSudo) {
@@ -1113,7 +1113,7 @@ class doc_DocumentPlg extends core_Plugin
             // Подготвяме данните за единичния изглед
             $data = $mvc->prepareDocument($id, $options);
             $res  = $mvc->renderDocument($id, $data);
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Ако сме в SUDO режим
             if ($bExitSudo) {
@@ -2095,7 +2095,7 @@ class doc_DocumentPlg extends core_Plugin
 	    			try{
 	    				$mvc->save_($rec, 'searchKeywords');
 	    				$i++;
-	    			}catch(Exception $e) {
+	    			}catch(core_exception_Expect $e) {
             			continue;
             		}
 				}

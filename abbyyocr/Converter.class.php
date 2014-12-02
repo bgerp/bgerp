@@ -68,7 +68,7 @@ class abbyyocr_Converter extends core_Manager
             	'ef_icon = img/16/scanner.png', 
                 $btnParams
             ); 
-        } catch (Exception $e) {}
+        } catch (core_exception_Expect $e) {}
     }
     
 

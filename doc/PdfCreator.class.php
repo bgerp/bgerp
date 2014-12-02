@@ -129,7 +129,7 @@ class doc_PdfCreator extends core_Manager
                         
                         // Опитваме се да вземаме съдържанието на CSS
                         $css .= file_get_contents(sbf($cssPath, "", TRUE));
-                    } catch (Exception $e) {
+                    } catch (core_exception_Expect $e) {
                         
                         // Ако възникне грешка, добавяме в лога
                         static::log('Не може да се взема CSS файла: ' . $cssPath);

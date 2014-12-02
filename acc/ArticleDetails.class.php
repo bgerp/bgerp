@@ -107,6 +107,7 @@ class acc_ArticleDetails extends doc_Detail
     function description()
     {
         $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
+        $this->FLD('reason', 'varchar', 'caption=Операция');
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
             'silent,caption=Дебит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
@@ -295,6 +296,14 @@ class acc_ArticleDetails extends doc_Detail
         if (!$dimensional && !$quantityOnly) {
             $form->setField('amount', 'mandatory');
         }
+        
+        // Добавя списък с предложения за счетоводната операция
+        $reasonSuggestions = array('' => '');
+        $oQuery = acc_Operations::getQuery();
+        while($oRec = $oQuery->fetch()){
+        	$reasonSuggestions[$oRec->title] = $oRec->title;
+        }
+        $form->setSuggestions('reason', $reasonSuggestions);
     }
     
     

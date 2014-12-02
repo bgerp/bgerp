@@ -793,7 +793,7 @@ class core_Url
             
             // Използваме наша функция за конвертиране
             $decodedUrl = i18n_Charset::convertToUtf8($decodedUrl);
-        } catch (Exception $e) { }
+        } catch (core_exception_Expect $e) { }
         
         // Проверяваме дали е валиден UTF-8
         if (mb_check_encoding($decodedUrl, 'UTF-8')) {

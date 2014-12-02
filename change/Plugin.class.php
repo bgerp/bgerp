@@ -276,7 +276,7 @@ class change_Plugin extends core_Plugin
                     $form->title .= " на|*: <i>{$title}</i>";
                 }
             }
-        } catch (Exception $e) {}
+        } catch (core_exception_Expect $e) {}
         
         // Ако има избрана версия
         if ($versionKey) {

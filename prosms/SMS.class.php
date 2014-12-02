@@ -187,6 +187,6 @@ class prosms_SMS extends core_Manager
             
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status);
-        } catch (Exception $e) { }
+        } catch (core_exception_Expect $e) { }
     }
 }

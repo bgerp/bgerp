@@ -814,7 +814,7 @@ class sales_Sales extends deals_DealMaster
     		// Преразпределяме платеното в брой на всички фактури
     		try{
     			self::allocateCash($rec->id);
-    		} catch(Exception $e){
+    		} catch(core_exception_Expect $e){
     			$this->log("Проблем при разпределението на платеното в брой на фактурите; {$e->getMessage()}");
     		}
     	}

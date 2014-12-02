@@ -181,7 +181,7 @@ class acc_journal_Transaction
             }
             
             $this->commit();
-        } catch (Exception $ex) {
+        } catch (core_exception_Expect $ex) {
             $this->rollback();
             throw $ex;
         }

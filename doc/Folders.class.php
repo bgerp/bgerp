@@ -1192,7 +1192,7 @@ class doc_Folders extends core_Master
             
             // Личните имейли на текущия потребител
             $fromEmailOptions = email_Inboxes::getFromEmailOptions($folderId, $userId, FALSE);
-        } catch (Exception $e) { }
+        } catch (core_exception_Expect $e) { }
         $form->setOptions(defaultEmail, $fromEmailOptions);
         
         $form->setDefault('folOpenings', 'default');

@@ -789,7 +789,7 @@ class distro_Files extends core_Detail
                     
                     // Вземаме всички достъпни файлове в хранилището, само от основната директория
                     $reposFileArr = fileman_Repositories::retriveFiles($repoId, $subPath, FALSE, 0);
-                } catch (Exception $e) {
+                } catch (core_exception_Expect $e) {
                     
                     // Ако възникне грешка
                     // Записваме грешката
