@@ -663,7 +663,7 @@ abstract class deals_DealMaster extends deals_DealBase
      	$self = cls::get(get_called_class());
      
      	if ($rec = $self->fetch($objectId)) {
-     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, FALSE);
      		$result = (object)array(
      				'num' => $self->abbr . $objectId,
      				'title' => $self::getRecTitle($objectId),
@@ -677,7 +677,7 @@ abstract class deals_DealMaster extends deals_DealBase
      		}
      		
      		if($rec->deliveryLocationId){
-     			$result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId);
+     			$result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId, FALSE);
      		}
      	}
      
