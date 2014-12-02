@@ -44,7 +44,7 @@ class bglocal_EgnType extends type_Varchar
         
         try {
             $Egn = new bglocal_BulgarianEGN($value);
-        } catch(Exception $e) {
+        } catch(bglocal_exception_EGN $e) {
             $err = $e->getMessage();
         }
         
@@ -75,7 +75,7 @@ class bglocal_EgnType extends type_Varchar
         
         try {
             $Egn = new bglocal_BulgarianEGN($value);
-        } catch(Exception $e) {
+        } catch(bglocal_exception_EGN $e) {
             $err = $e->getMessage();
         }
         
