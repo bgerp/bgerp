@@ -493,15 +493,22 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
-     * Връща основанието за транзакцията, по подразбиране
-     * е името на контрагента, ако има такъв
+     * Връща основанието за транзакцията, по подразбиране е основанието на журнала
      */
     public static function on_AfterGetContoReason($mvc, &$res, $id, $reasonCode = NULL)
     {
         if(empty($res)){
-        	if($jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $id)){
-        		$Varchar = cls::get('type_Varchar');
-        		$res = $Varchar->toVerbal($jRec->reason);
+        	if(isset($reasonCode)){
+        		
+        		// Ако има основание, връщаме му вербалното представяне
+        		$res = acc_ContoReasons::getTitleById($id, FALSE);
+        	} else {
+        		
+        		// Aко няма основание, но журнала на документа има връщаме него
+        		if($jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $id)){
+        			$Varchar = cls::get('type_Varchar');
+        			$res = $Varchar->toVerbal($jRec->reason);
+        		}
         	}
         }
     }

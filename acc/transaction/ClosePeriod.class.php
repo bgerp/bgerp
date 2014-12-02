@@ -132,8 +132,8 @@ class acc_transaction_ClosePeriod
     	
     	$entries = array();
     	
-    	// Начисляваме сумата от касовия апарат
-    	$entries[] = array('amount' => $diffAmount, 'debit' => array('4535'), 'credit' => array('4532'));
+    	$entries[] = array('amount' => $diffAmount, 'debit' => array('4535'), 'credit' => array('4532'), 'reason' => 'Начисляваме сумата от касовия апарат');
+    	// ДДС по продажби без фактура
     	$total += $diffAmount;
     	
     	$bQuery = acc_BalanceDetails::getQuery();
@@ -142,7 +142,7 @@ class acc_transaction_ClosePeriod
     	
     	$amount4535 += $diffAmount;
     	
-    	$entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year));
+    	$entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year), 'reason' => 'ДДС - остатъци');
     	$total += abs($amount4535);
     	
     	$bQuery = acc_BalanceDetails::getQuery();
@@ -158,16 +158,22 @@ class acc_transaction_ClosePeriod
     	
     	// Местим дебитното салдо на '4531' в '4532'
     	$amount4531 = ($amount4531) ? $amount4531 : 0;
-    	$entries[] = array('amount' => abs($amount4531), 'debit' => array('4532'), 'credit' => array('4531'));
+    	
+    	// Приспадане на ДДС по покупки
+    	$entries[] = array('amount' => abs($amount4531), 'debit' => array('4532'), 'credit' => array('4531'), 'reason' => 'Приспадане на ДДС по покупки');
     	$total += abs($amount4531);
     	
     	$amount = $amount4532 - $diffAmount + abs($amount4531);
     	
     	// Ако по 4532 накрая имаме кредитно или дебитно салдо
     	if($amount <= 0){
-    		$entries[] = array('amount' => abs($amount), 'debit' => array('4532'), 'credit' => array('4539'));
+    		
+    		// ДДС за внасяне
+    		$entries[] = array('amount' => abs($amount), 'debit' => array('4532'), 'credit' => array('4539'), 'reason' => 'ДДС за внасяне');
     	} else {
-    		$entries[] = array('amount' => abs($amount), 'debit' => array('4538'), 'credit' => array('4532'));
+    		
+    		// ДДС за възстановяване
+    		$entries[] = array('amount' => abs($amount), 'debit' => array('4538'), 'credit' => array('4532'), 'reason' => 'ДДС за възстановяване');
     	}
     	 
     	$total += abs($amount);
@@ -180,7 +186,9 @@ class acc_transaction_ClosePeriod
     		
     		if($amount4538){
     			$rAmount = ($amount4538 > abs($amount)) ? abs($amount) : $amount4538;
-    			$entries[] = array('amount' => $rAmount, 'debit' => array('4539'), 'credit' => array('4538'));
+    			
+    			// Приспаднато ДДС за възстановяване
+    			$entries[] = array('amount' => $rAmount, 'debit' => array('4539'), 'credit' => array('4538'), 'reason' => 'Приспаднато ДДС за възстановяване');
     			$total += $rAmount;
     		}
     	}
@@ -228,7 +236,7 @@ class acc_transaction_ClosePeriod
     protected function transferIncome(&$total, &$incomeRes)
     {
     	$entries = array();
-    	
+    	// Приходи от продажби по артикули
     	if(!count($this->balanceId)) return $entries;
     	
     	$bQuery = acc_BalanceDetails::getQuery();
@@ -270,7 +278,19 @@ class acc_transaction_ClosePeriod
     			$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
     			$total += abs($rec->blAmount);
     			
-    			$entries[] = array('amount' => abs($rec->blAmount), 'debit' => $debitArr, 'credit' => $creditArr);
+    			switch($rec->accountId){
+    				case '706':
+    					$reason = 'Приходи от продажба (суровини/материали)';
+    					break;
+    				case '703':
+    					$reason = 'Приходи от продажби (Услуги)';
+    					break;
+    				default:
+    					$reason = 'Приходи от продажби (Стоки и Продукти)';
+    					break;
+    			}
+    			
+    			$entries[] = array('amount' => abs($rec->blAmount), 'debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
     		} else {
     			
     			// Ако имаме крайно салдо по 700, само го добавяме към натрупването
@@ -320,7 +340,7 @@ class acc_transaction_ClosePeriod
     				$creditArr = $arr2;
     			}
     			
-    			$entries[] = array('amount' => abs($sum), 'debit' => $debitArr, 'credit' => $creditArr);
+    			$entries[] = array('amount' => abs($sum), 'debit' => $debitArr, 'credit' => $creditArr, 'reason' => 'Приходи от продажби (по сделки)');
     		}
     	}
     	
@@ -364,11 +384,11 @@ class acc_transaction_ClosePeriod
     		if(round($dRec->blAmount, 2) == 0) return;
     		
     		if($dRec->blAmount > 0){
-    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('624'), 'credit' => array('481', $dRec->ent1Id, 'quantity' => $dRec->blQuantity));
-    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('123', $this->date->year), 'credit' => array('624'));
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('624'), 'credit' => array('481', $dRec->ent1Id, 'quantity' => $dRec->blQuantity, 'reason' => 'Курсови разлики'));
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('123', $this->date->year), 'credit' => array('624'), 'reason' => 'Курсови разлики');
     		} else {
-    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('481', $dRec->ent1Id, 'quantity' => $dRec->blQuantity), 'credit' => array('724'));
-    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('724'), 'credit' => array('123', $this->date->year));
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('481', $dRec->ent1Id, 'quantity' => $dRec->blQuantity), 'credit' => array('724'), 'reason' => 'Курсови разлики');
+    			$entries[] = array('amount' => abs($dRec->blAmount), 'debit' => array('724'), 'credit' => array('123', $this->date->year), 'reason' => 'Курсови разлики');
     		}
     		
     		$total += 2 * abs($dRec->blAmount);
