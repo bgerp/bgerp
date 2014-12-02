@@ -593,15 +593,8 @@ input[type=radio] {
   margin: 3px 3px 3px 4px;
   background-color: transparent;
   outline: none;
-  vertical-align: middle; }
+  vertical-align: -1px; }
 
-@-moz-document url-prefix() {
-    .checkbox,
-  .radiobutton,
-  input[type=checkbox],
-  input[type=radio] {
-    margin: 4px 3px 2px 4px; }
- }
 input[type=radio] + label,
 input[type=checkbox] + label {
   color: #888888;

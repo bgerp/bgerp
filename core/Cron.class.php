@@ -86,13 +86,51 @@ class core_Cron extends core_Manager
         $this->setDbUnique('systemId,offset,delay');
     }
     
-
+    
+    /**
+     * Връща времето на последно стартиране на процес
+     * 
+     * @param $systemId
+     * 
+     * @return NULL|datetime
+     */
+    public static function getLastStartTime($systemId = NULL)
+    {
+        $query = self::getQuery();
+        $query->limit(1);
+        
+        if ($systemId) {
+            $query->where(array("#systemId = '[#1#]'", $systemId));
+        } else {
+            $query->where("#lastStart IS NOT NULL");
+            $query->orderBy('lastStart', 'DESC');
+        }
+        
+        $rec = $query->fetch();
+        
+        if ($rec) {
+            
+            return $rec->lastStart;
+        }
+    }
+    
+    
     /**
      * Преди извличането на записите за листовия изглед
      */
     function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#period'); 
+    }
+    
+    
+    /**
+     * 
+     */
+    public static function on_AfterPrepareListRows($mvc, $data)
+    {
+        // Изчистваме нотификацията
+        bgerp_Notifications::clear(array('core_Cron'));  
     }
     
 
@@ -359,7 +397,7 @@ class core_Cron extends core_Manager
         $now = dt::mysql2timestamp(dt::verbal2mysql());
         
         if($rec->state == 'locked' ||
-            ($rec->state == 'free' && ($now - $mvc->refreshRowsTime / 1000-2) < dt::mysql2timestamp($rec->lastStart))) {
+            ($rec->lastStart && $rec->state == 'free' && (($now - $mvc->refreshRowsTime / 1000-2) < dt::mysql2timestamp($rec->lastStart)))) {
             
             $row->ROW_ATTR['style'] .= 'background-color:#ffa;';
         } elseif ($rec->state == 'free') {

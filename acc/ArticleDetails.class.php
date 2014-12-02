@@ -45,7 +45,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, debitAccId, debitQuantity=Дебит->К-во, debitPrice=Дебит->Цена, creditAccId, creditQuantity=Кредит->К-во, creditPrice=Кредит->Цена, amount=Сума';
+    var $listFields = 'tools=Пулт, debitAccId, debitQuantity=Дебит->К-во, debitPrice=Дебит->Цена, creditAccId, creditQuantity=Кредит->К-во, creditPrice=Кредит->Цена, amount=Сума, reason=Операция';
     
     
     /**
@@ -95,6 +95,7 @@ class acc_ArticleDetails extends doc_Detail
      */
     var $priceFields = 'debitQuantity, debitPrice, creditQuantity, creditPrice, amount';
     
+    
     /**
      * Работен кеш
      */
@@ -137,9 +138,13 @@ class acc_ArticleDetails extends doc_Detail
         $rows = &$res->rows;
         $recs = &$res->recs;
         
+        $hasReasonFld = FALSE;
+        
         if (count($recs)) {
             foreach ($recs as $id=>$rec) {
                 $row = &$rows[$id];
+                
+                $hasReasonFld = !empty($rec->reason) ? TRUE : $hasReasonFld;
                 
                 foreach (array('debit', 'credit') as $type) {
                     $ents = "";
@@ -160,6 +165,10 @@ class acc_ArticleDetails extends doc_Detail
                     }
                 }
             }
+        }
+       
+        if($hasReasonFld === FALSE){
+        	unset($res->listFields['reason']);
         }
     }
     
@@ -450,5 +459,9 @@ class acc_ArticleDetails extends doc_Detail
         // Линкове към сметките в баланса
         $row->debitAccId = static::$cache['accs'][$rec->debitAccId];
         $row->creditAccId = static::$cache['accs'][$rec->creditAccId];
+        
+        if($rec->reason) {
+        	$row->reason = "<span style='color:#444;font-size:0.9em;margin-left:5px'>{$row->reason}<span>";
+        }
     }
 }

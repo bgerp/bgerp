@@ -1645,7 +1645,7 @@ class core_Users extends core_Manager
         $Roles = cls::get('core_Roles');
         $adminId = $Roles->fetchByName('admin');
         
-        $id = self::fetchField("#roles LIKE '%|$adminId|%'", 'id');
+        $id = self::fetchField("#roles LIKE '%|$adminId|%' AND #state != 'rejected'", 'id');
         
         return $id;
     }
