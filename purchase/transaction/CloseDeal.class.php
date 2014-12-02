@@ -170,6 +170,7 @@ class purchase_transaction_CloseDeal
     				'credit' => array('6912',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
+    				'reason' => 'Извънредни разходи по покупка',
     		);
     		
     		$totalAmount += $this->bl6912;
@@ -181,6 +182,7 @@ class purchase_transaction_CloseDeal
     							array($docRec->contragentClassId, $docRec->contragentId),
     							array($firstDoc->className, $firstDoc->that)),
     				'credit' => array('123', $this->date->year),
+    				'reason' => 'Извънредни приходи по покупка'
     		);
     		
     		$totalAmount += $this->bl7912;
@@ -213,7 +215,8 @@ class purchase_transaction_CloseDeal
     					array($firstDoc->className, $firstDoc->that)),
     			'credit'  => array('6912',
     					array($docRec->contragentClassId, $docRec->contragentId),
-    					array($firstDoc->className, $firstDoc->that)));
+    					array($firstDoc->className, $firstDoc->that)),
+    			'reason' => 'Приспадане на извънредни приходи/разходи по покупка');
     	
     	$this->bl6912 -= $minAmount;
     	$this->bl7912 -= $minAmount;
@@ -263,6 +266,7 @@ class purchase_transaction_CloseDeal
     			array($firstDoc->className, $firstDoc->that),
     			array('currency_Currencies', $currencyId),
     			'quantity' => $amount);
+    	$entry['reason'] = 'Приспадане на авансово плащане';
     	 
     	$downpaymentAmounts += $entry['amount'];
     	 
@@ -309,7 +313,8 @@ class purchase_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
-    						'quantity' => abs($blAmount)));
+    						'quantity' => abs($blAmount)),
+    				'reason' => 'Доначисляване на ДДС');
     		$this->blAmount -= abs($blAmount);
     	} elseif($blAmount > 0){
     
@@ -320,7 +325,8 @@ class purchase_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that)),
     				'credit'  => array('4530',
     						array($firstDoc->className, $firstDoc->that),
-    						'quantity' => $blAmount));
+    						'quantity' => $blAmount),
+    				'reason' => 'Отделено, но невъзстановимо ДДС');
     		
     		$this->bl6912 += $blAmount;
     		$entries = $entries1;
@@ -371,6 +377,7 @@ class purchase_transaction_CloseDeal
     				'debit'  => array('6912',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
+    				'reason' => 'Извънредни разходи - надплатени'
     		);
     		
     		$this->bl6912 += $amount;
@@ -387,7 +394,8 @@ class purchase_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => -1 * $amount / $docRec->currencyRate));
+    						'quantity' => -1 * $amount / $docRec->currencyRate),
+    				'reason' => 'Извънредни приходи - недоплатени');
     		
     		$this->bl7912 += abs($amount);
     		$totalAmount += -1 * $amount;

@@ -175,6 +175,7 @@ class sales_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
     						'quantity' => abs($amount) / $docRec->currencyRate),
+    				'reason' => 'Извънредни приходи - надплатени',
     		);
     
     		$entry2 = array('amount' => abs($amount),
@@ -183,6 +184,7 @@ class sales_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that)),
     				'credit'  => array('700', array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
+    				'reason' => 'Извънредни приходи - надплатени',
     		);
     
     		// Добавяме към общия оборот удвоената сума
@@ -202,6 +204,7 @@ class sales_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
     						'quantity' => $amount / $docRec->currencyRate),
+    				'reason' => 'Извънредни разходи - недоплатени',
     		);
     
     		$entry2 = array('amount' => $amount,
@@ -209,7 +212,9 @@ class sales_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that)),
     				'credit'  => array('6911',
     						array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that)),);
+    						array($firstDoc->className, $firstDoc->that)),
+    				'reason' => 'Извънредни разходи - недоплатени',);
+    				
     		
     		// Добавяме към общия оборот удвоената сума
     		$totalAmount += 2 * $amount;
@@ -246,7 +251,8 @@ class sales_transaction_CloseDeal
     	if($blAmount < 0){
     		$entries = array('amount' => abs($blAmount),
     				'credit'  => array('4535'),
-    				'debit' => array('4530', array($firstDoc->className, $firstDoc->that)));
+    				'debit' => array('4530', array($firstDoc->className, $firstDoc->that)),
+    				'reason' => 'ДДС по касови бележки');
     	} elseif($blAmount > 0){
     		$entries = array('amount' => $blAmount,
     				'credit'  => array('4530', array($firstDoc->className, $firstDoc->that)),
@@ -254,7 +260,8 @@ class sales_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
-    						'quantity' => $blAmount));
+    						'quantity' => $blAmount),
+    				'reason' => 'Доначисляване на ДДС');
     
     		$this->blAmount  += $blAmount;
     	}
@@ -302,7 +309,8 @@ class sales_transaction_CloseDeal
     			array($firstDoc->className, $firstDoc->that),
     			array('currency_Currencies', $currencyId),
     			'quantity' => $amount);
-    
+    	$entry['reason'] = 'Приспадане на авансово плащане';
+    	
     	$downPaymentAmount += $entry['amount'];
     	$this->blAmount -= $entry['amount'];
     	
