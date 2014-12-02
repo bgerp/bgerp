@@ -1,6 +1,6 @@
 <?php
 /**
- * Клас 'acc_ContoReasons'
+ * Клас 'acc_Operations'
  *
  *
  * @category  bgerp
@@ -10,16 +10,22 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_ContoReasons extends core_Manager
+class acc_Operations extends core_Manager
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_ContoReasons';
     
+	
     /**
      * Заглавие в множествено число
      * 
      * @var string
      */
-    public $title = 'Основания за счетоводни транзакции';
+    public $title = 'Счетоводни операции';
     
     
     /**
