@@ -117,7 +117,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      *  Обработка на формата за редакция и добавяне
      */
-    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -148,7 +148,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Проверка и валидиране на формата
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = &$form->rec;
     	if ($form->isSubmitted()){
@@ -166,9 +166,9 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      *  Обработки по вербалното представяне на данните
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $rec->productId));
+    	$row->productId = cat_Products::getHyperLink($rec->productId, TRUE);
     	$row->measureId = cat_UoM::getTitleById(cat_Products::fetchField($rec->productId, 'measureId'));
     	
     	$masterRec = $mvc->Master->fetch($rec->reportId);
