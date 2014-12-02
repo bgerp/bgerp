@@ -487,7 +487,7 @@ class acc_Journal extends core_Master
         while($rec = $query->fetch()){
             try{
                 $document = new core_ObjectReference($rec->docType, $rec->docId);
-            } catch(Exception $e){
+            } catch(core_exception_Expect $e){
                 continue;
             }
             

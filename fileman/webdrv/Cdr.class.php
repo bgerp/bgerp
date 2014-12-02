@@ -99,7 +99,7 @@ class fileman_webdrv_Cdr extends fileman_webdrv_Image
                 return $e->getMessage();    
                 
             }
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             return "Не може да се покаже прегледа на файла.";
         }

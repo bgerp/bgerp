@@ -179,7 +179,7 @@ class cond_ConditionsToCustomers extends core_Manager
         	try{
         		$Type = cls::get("type_{$type}");
         		$row->value = $Type->toVerbal($rec->value);
-        	} catch(Exception $e){
+        	} catch(core_exception_Expect $e){
         		$row->value = "??????????????";
         	}
             

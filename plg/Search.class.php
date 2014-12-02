@@ -283,7 +283,7 @@ class plg_Search extends core_Plugin
                         $i++;
                     }
                     
-                } catch(Exception $e) {
+                } catch(core_exception_Expect $e) {
             		continue;
             	}
             }

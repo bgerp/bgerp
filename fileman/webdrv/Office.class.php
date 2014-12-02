@@ -394,7 +394,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
                 
                 // Качваме файла в кофата и му вземаме манипулатора
                 $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
-            } catch (Exception $e) {}
+            } catch (core_exception_Expect $e) {}
             
             // Ако се качи успешно записваме манипулатора в масив
             if ($fileHnd) {

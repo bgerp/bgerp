@@ -210,7 +210,7 @@ class core_Cls
         if (is_a($Plugins, 'core_Plugins')) {
             try {
             	$Plugins->attach($obj);
-            } catch ( Exception $e) {}
+            } catch (core_exception_Expect $e) {}
         }
         
         // Ако има допълнителни параметри - използва ги за инициализиране

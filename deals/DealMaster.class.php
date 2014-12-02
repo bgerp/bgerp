@@ -1280,7 +1280,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			$clId = $ClosedDeals->create($className, $rec);
     			$ClosedDeals->conto($clId);
     			 
-    		} catch(Exception $e){
+    		} catch(core_exception_Expect $e){
     			 
     			// Ако има проблем при обновяването
     			core_Logs::add($this->className, $rec->id, "Проблем при автоматичното приключване на сделка: '{$e->getMessage()}'");
@@ -1309,7 +1309,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		try{
     			// Намира се метода на плащане от интерфейса
     			$dealInfo = $Class->getAggregateDealInfo($rec->id);
-    		} catch(Exception $e){
+    		} catch(core_exception_Expect $e){
     
     			// Ако има проблем при извличането се продължава
     			core_Logs::add($Class, $rec->id, "Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'");
@@ -1334,7 +1334,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     			try{
     				$isOverdue = cond_PaymentMethods::isOverdue($plan, round($rec->amountDelivered, 2) - round($rec->amountPaid, 2));
-    			} catch(Exception $e){
+    			} catch(core_exception_Expect $e){
     					
     				// Ако има проблем при извличането се продължава
     				core_Logs::add($Class, $rec->id, "Несъществуващ платежен план': '{$e->getMessage()}'");
@@ -1355,7 +1355,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     		try{
     			$Class->save_($rec);
-    		} catch(Exception $e){
+    		} catch(core_exception_Expect $e){
     
     			// Ако има проблем при обновяването
     			core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");

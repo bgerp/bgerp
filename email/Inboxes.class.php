@@ -743,7 +743,7 @@ class email_Inboxes extends core_Master
             
             // Личните имейли на текущия потребител
             $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, NULL, TRUE);
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             $emailOptions[] = '';
         }
         
