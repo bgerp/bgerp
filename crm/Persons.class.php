@@ -2041,7 +2041,7 @@ class crm_Persons extends core_Master
         if(isset($rec->egn) && !($y>0 || $m>0 || $d>0)) {
             try {
                 $Egn = new bglocal_BulgarianEGN($rec->egn);
-            } catch(core_exception_Expect $e) {
+            } catch(bglocal_exception_EGN $e) {
                 $err = $e->getMessage();
             }
 
