@@ -144,7 +144,11 @@ abstract class deals_DealMaster extends deals_DealBase
 	{
 		$form = &$data->form;
 		
-		$form->setDefault('valior', dt::now());
+		if($data->action === 'clone'){
+			$form->rec->valior = dt::now();
+		} else {
+			$form->setDefault('valior', dt::now());
+		}
 		
 		$form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
 		$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
@@ -715,7 +719,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	unset($nRec->contoActions,
     		  $nRec->amountDelivered, 
     		  $nRec->amountBl,  
-    		  $nRec->amountPaid, 
+    		  $nRec->amountPaid,
     		  $nRec->amountInvoiced);
     	
     	$nRec->paymentState = 'pending';
