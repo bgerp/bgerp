@@ -296,6 +296,14 @@ class acc_ArticleDetails extends doc_Detail
         if (!$dimensional && !$quantityOnly) {
             $form->setField('amount', 'mandatory');
         }
+        
+        // Добавя списък с предложения за счетоводната операция
+        $reasonSuggestions = array('' => '');
+        $oQuery = acc_Operations::getQuery();
+        while($oRec = $oQuery->fetch()){
+        	$reasonSuggestions[$oRec->title] = $oRec->title;
+        }
+        $form->setSuggestions('reason', $reasonSuggestions);
     }
     
     
