@@ -354,13 +354,29 @@ class hr_Departments extends core_Master
     static function on_AfterSetupMvc($mvc, &$res)
     {
     	if(!self::count()) {
-            // Създаваме пътвият департамент да е моята организация
+            // Създаваме пътвият организационни структури да е "Моята организация"
             $rec = new stdClass();
             $rec->name = 'Моята Организация ООД';
             $rec->staff = NULL;
            
             self::save($rec);
-    	}
+    	
+    	// Ако имаме вече създадени организационни структури
+        } else {
+            
+            $query = self::getQuery();
+            
+            // Намираме тези, които са създадени от системата
+            $query->where("#createdBy = -1");
+            
+            if ($query->fetch() == FALSE) {
+            	
+            	$rec = new stdClass();
+            	$rec->name = 'Моята Организация ООД';
+            	$rec->staff = NULL;
+            	 
+            	self::save($rec);
+            }
     }
     
     /*******************************************************************************************
