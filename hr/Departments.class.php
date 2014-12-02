@@ -347,6 +347,22 @@ class hr_Departments extends core_Master
         }
     }
     
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	if(!self::count()) {
+            // Създаваме пътвият департамент да е моята организация
+            $rec = new stdClass();
+            $rec->name = 'Моята Организация ООД';
+            $rec->staff = NULL;
+           
+            self::save($rec);
+    	}
+    }
+    
     /*******************************************************************************************
      * 
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
@@ -401,36 +417,27 @@ class hr_Departments extends core_Master
      */
     public static function getChart ($data)
     {
-        // взимаме "текущата фирма"
-        $myCompany = crm_Companies::fetchOwnCompany();
-        
-        // правим данните за нея
-        $myCompanyRec = new stdClass();
-        $myCompanyRec->id = '0';
-        $myCompanyRec->name = $myCompany->company;
-        $myCompanyRec->staff = NULL;
-        
         $arrData = (array)$data->recs;
-        array_push($arrData, $myCompanyRec);
-       
-        foreach($arrData as $rec){
+        
+        foreach($arrData as $rec){ 
             // Ако имаме родител 
-             if($rec->staff == NULL && $rec->name !== $myCompany->company) {
-                 $parent = '0';
+             if($rec->staff == NULL && $rec->name !== 'Моята Организация ООД') {
+                 $parent = '1';
                  // взимаме чистото име на наследника
                  $name = self::fetchField($rec->id, 'name');
              } else {
                  // в противен случай, го взимаме
                  // както е
-                 if ($rec->name == $myCompany->company){
+                 if ($rec->name == 'Моята Организация ООД'){
                      $name = $rec->name;
+                     $rec->id = '0';
                      $parent = 'NULL';
                  } else {
                      $name = self::fetchField($rec->id, 'name');
                      $parent = $rec->staff;
                  }
              }
-            
+         
              $res[] = array(
              'id' => $rec->id,
              'title' => $name,
