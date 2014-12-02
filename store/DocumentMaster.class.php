@@ -114,13 +114,14 @@ abstract class store_DocumentMaster extends core_Master
     {
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
+    		
+    		// Ако има локация и тя е различна от договорената, слагаме предупреждение
+    		if(!empty($rec->locationId) && $rec->locationId != $form->dealInfo->get('deliveryLocation')){
+    			$agreedLocation = crm_Locations::getTitleById($form->dealInfo->get('deliveryLocation'));
+    			$form->setWarning('locationId', "Избраната локация е различна от договорената \"{$agreedLocation}\"");
+    		}
+    		
 			if($rec->lineId){
-				
-				// Ако има локация и тя е различна от договорената, слагаме предупреждение
-    			if($rec->locationId && $rec->locationId != $form->dealInfo->get('deliveryLocation')){
-    				$agreedLocation = crm_Locations::getTitleById($form->dealInfo->get('deliveryLocation'));
-    				$form->setWarning('locationId', "Избраната локация е различна от договорената \"{$agreedLocation}\"");
-    			}
 				
     			// Ако има избрана линия и метод на плащане, линията трябва да има подочетно лице
     			if($pMethods = $form->dealInfo->get('paymentMethodId')){
