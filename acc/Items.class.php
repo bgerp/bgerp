@@ -884,7 +884,7 @@ class acc_Items extends core_Manager
             // Ако е документ и е чернова, не може да стане перо
             if($isDoc && $cRec->state == 'draft') continue;
             
-            $options[$cRec->id] = $Class::getTitleById($cRec->id, FALSE);
+            $options[$cRec->id] = $Class->getTitleById($cRec->id, FALSE);
         }
         
         if(count($options)) {
