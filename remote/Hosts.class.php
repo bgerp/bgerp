@@ -132,23 +132,23 @@ class remote_Hosts extends core_Master
     {
         // Извличаме данните за хоста
         if (!$hostConfig = self::fetchByName($host)) {
-            throw new Exception("{$host}: не се съдържа в базата!");
+            throw new core_exception_Expect("{$host}: не се съдържа в базата!");
         }
         // Проверяваме дали е достъпен
         $timeoutInSeconds = 1;
         if (!($fp = @fsockopen($hostConfig->ip,$hostConfig->port,$errCode,$errStr,$timeoutInSeconds))) {
-            throw new Exception("{$hostConfig->name}: не може да бъде достигнат ");
+            throw new core_exception_Expect("{$hostConfig->name}: не може да бъде достигнат ");
         }
         fclose($fp);        
         
         // Свързваме се по ssh
         $connection = @ssh2_connect($hostConfig->ip, $hostConfig->port);
         if (!$connection) {
-            throw new Exception("{$hostConfig->name}: няма ssh връзка");
+            throw new core_exception_Expect("{$hostConfig->name}: няма ssh връзка");
         }
         
         if (!@ssh2_auth_password($connection, $hostConfig->user, $hostConfig->pass)) {
-            throw new Exception("{$hostConfig->name}: грешен потребител или парола.");
+            throw new core_exception_Expect("{$hostConfig->name}: грешен потребител или парола.");
         }
         
         // Изпълняваме командата
