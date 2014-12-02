@@ -123,6 +123,16 @@ class core_Cron extends core_Manager
         $data->query->orderBy('#period'); 
     }
     
+    
+    /**
+     * 
+     */
+    public static function on_AfterPrepareListRows($mvc, $data)
+    {
+        // Изчистваме нотификацията
+        bgerp_Notifications::clear(array('core_Cron'));  
+    }
+    
 
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед

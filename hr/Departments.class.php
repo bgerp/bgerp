@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -43,7 +43,7 @@ class hr_Departments extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing,
+    public $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing, plg_State, plg_Rejected,
                      plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
     
     /**
@@ -71,6 +71,18 @@ class hr_Departments extends core_Master
     
     
     /**
+     * Кой може да оттегля
+     */
+    public $canReject = 'ceo,hr';
+    
+    
+    /**
+     * Кой може да го възстанови?
+     */
+    public $canRestore = 'ceo,hr';
+    
+    
+    /**
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'hr/tpl/SingleLayoutDepartment.shtml';
@@ -87,6 +99,12 @@ class hr_Departments extends core_Master
      */
     public $rowToolsSingleField = 'name';
     
+    
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id,name';
+   
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -135,6 +153,8 @@ class hr_Departments extends core_Master
         $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работно време->График");
         $this->FLD('startingOn', 'datetime', "caption=Работно време->Начало");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
+        // Състояние
+        $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
         
     }
     
@@ -447,8 +467,12 @@ class hr_Departments extends core_Master
                  // както е
                  if ($rec->name == 'Моята Организация ООД'){
                      $name = $rec->name;
+                     $oldId = $rec->id;
                      $rec->id = '0';
                      $parent = 'NULL';
+                 } elseif ($rec->staff == $oldId) {
+                 	$name = self::fetchField($rec->id, 'name');
+                 	$parent = '0';
                  } else {
                      $name = self::fetchField($rec->id, 'name');
                      $parent = $rec->staff;
@@ -461,7 +485,7 @@ class hr_Departments extends core_Master
              'parent_id' => $parent,
              );
         }
-
+       
         $chart = orgchart_Adapter::render_($res);
         
         return $chart;
