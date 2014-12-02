@@ -501,7 +501,7 @@ class acc_plg_Contable extends core_Plugin
         	if(isset($reasonCode)){
         		
         		// Ако има основание, връщаме му вербалното представяне
-        		$res = acc_ContoReasons::getTitleById($id, FALSE);
+        		$res = acc_ContoReasons::getTitleById($reasonCode, FALSE);
         	} else {
         		
         		// Aко няма основание, но журнала на документа има връщаме него

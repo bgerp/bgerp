@@ -132,7 +132,7 @@ class acc_transaction_ClosePeriod
     	
     	$entries = array();
     	
-    	$entries[] = array('amount' => $diffAmount, 'debit' => array('4535'), 'credit' => array('4532'), 'reason' => 'Начисляваме сумата от касовия апарат');
+    	$entries[] = array('amount' => $diffAmount, 'debit' => array('4535'), 'credit' => array('4532'), 'reason' => 'Начисляване на сумата от касовия апарат');
     	// ДДС по продажби без фактура
     	$total += $diffAmount;
     	
