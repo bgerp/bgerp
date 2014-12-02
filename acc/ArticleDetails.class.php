@@ -107,6 +107,7 @@ class acc_ArticleDetails extends doc_Detail
     function description()
     {
         $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
+        $this->FLD('reason', 'varchar', 'caption=Операция');
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
             'silent,caption=Дебит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
