@@ -95,7 +95,7 @@ class acc_Operations extends core_Manager
      */
     function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Основание,mandatory');
+    	$this->FLD('title', 'varchar(255,ci)', 'caption=Основание,mandatory');
     	
     	$this->setDbUnique('title');
     }
