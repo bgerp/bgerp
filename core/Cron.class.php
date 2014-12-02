@@ -86,7 +86,35 @@ class core_Cron extends core_Manager
         $this->setDbUnique('systemId,offset,delay');
     }
     
-
+    
+    /**
+     * Връща времето на последно стартиране на процес
+     * 
+     * @param $systemId
+     * 
+     * @return NULL|datetime
+     */
+    public static function getLastStartTime($systemId = NULL)
+    {
+        $query = self::getQuery();
+        $query->limit(1);
+        
+        if ($systemId) {
+            $query->where(array("#systemId = '[#1#]'", $systemId));
+        } else {
+            $query->where("#lastStart IS NOT NULL");
+            $query->orderBy('lastStart', 'DESC');
+        }
+        
+        $rec = $query->fetch();
+        
+        if ($rec) {
+            
+            return $rec->lastStart;
+        }
+    }
+    
+    
     /**
      * Преди извличането на записите за листовия изглед
      */
