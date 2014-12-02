@@ -374,7 +374,7 @@ class fileman_webdrv_Generic extends core_Manager
 		    
 		    // Опитваме се да вземем, документите, в които се използва файла
 		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec, static::$metaInfoDocLimit);    
-		} catch (Exception $e) {}
+		} catch (core_exception_Expect $e) {}
 		
 		// Ако сме намерили някой файлове, където се използва
         if ($documentWithFile) {

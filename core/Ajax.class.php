@@ -108,7 +108,7 @@ class core_Ajax extends core_Mvc
                 // Извикваме URL-то
                 $resArr = Request::forward($urlArr);
                 
-            } catch (Exception $e) {
+            } catch (core_exception_Expect $e) {
                 
                 // Записваме в лога
                 core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url} - {$e->getMessage()}", self::$logKeepDays);

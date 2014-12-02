@@ -386,7 +386,7 @@ class type_Keylist extends core_Type {
         
         try {
             $res = self::fromArray($value);
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             $this->error = $e->getMessage();
             $res = FALSE;
         }

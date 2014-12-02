@@ -472,7 +472,7 @@ class findeals_Deals extends deals_DealBase
     	try{
     		$DocType = cls::get($jRec->docType);
     		$row->docId = $DocType->getHyperLink($jRec->docId, TRUE);
-    	} catch(Exception $e){
+    	} catch(core_exception_Expect $e){
     		$row->docId = "<span style='color:red'>" . tr('Проблем при показването') . "</span>";
     	}
     	

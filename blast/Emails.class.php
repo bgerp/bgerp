@@ -459,7 +459,7 @@ class blast_Emails extends core_Master
                             'no_thread_hnd' => TRUE
                         )
                     );
-                } catch (Exception $e) {
+                } catch (core_exception_Expect $e) {
                     $status = FALSE;
                 }
                 

@@ -890,7 +890,7 @@ class change_Log extends core_Manager
                 // Връщаме стринга на версията и подверсията
                 return static::getVersionStr($rec->version, $rec->subVersion);
             }
-        } catch (Exception $e) { }
+        } catch (core_exception_Expect $e) { }
         
         return static::LAST_VERSION_STRING;
     }

@@ -416,7 +416,7 @@ class email_Outgoings extends core_Master
                     ),
                     $emailsCc
                 );
-            } catch (Exception $e) {
+            } catch (core_exception_Expect $e) {
                 $status = FALSE;
             }
             
@@ -766,7 +766,7 @@ class email_Outgoings extends core_Master
         try {
             // Всички достъпни имейл кутии
             $emailOptions = email_Inboxes::getFromEmailOptions($folderId, $userId);
-        }  catch (Exception $e) {
+        }  catch (core_exception_Expect $e) {
             $emailOptions = array();
         }
         

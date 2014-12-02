@@ -910,7 +910,7 @@ class doc_Threads extends core_Manager
         try{
         	$containerId = static::getFirstContainerId($id);
         	$firstDoc = doc_Containers::getDocument($containerId);
-        } catch(Exception $e){
+        } catch(core_exception_Expect $e){
         	
         	// Ако няма първи документ, връща NULL
         	return NULL;

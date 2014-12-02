@@ -526,7 +526,7 @@ class acc_BalanceHistory extends core_Manager
             
             $arr['docId'] = $title;
             $arr['reason'] = $Class->getContoReason($rec['docId'], $rec['reasonCode']);
-        } catch(Exception $e){
+        } catch(core_exception_Expect $e){
             if(is_numeric($rec['docId'])){
                 $arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
             } else {
