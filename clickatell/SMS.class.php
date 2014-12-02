@@ -196,7 +196,7 @@ class clickatell_SMS extends core_Manager
             
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status, $timestamp);
-        } catch (Exception $e) { }
+        } catch (core_exception_Expect $e) { }
     }
     
     
@@ -227,7 +227,7 @@ class clickatell_SMS extends core_Manager
             
             // Изпращаме заявката
             $ret = @file($url);
-        } catch (Exception $e) { }
+        } catch (core_exception_Expect $e) { }
         
         // Вземаме резултата
         $sess = explode(":",$ret[0]);

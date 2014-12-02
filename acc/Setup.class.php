@@ -94,6 +94,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_Features',
     	'acc_VatGroups',
     	'acc_ClosePeriods',
+    	'acc_Operations',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemNums2',
     );

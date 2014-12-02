@@ -514,7 +514,7 @@ class fileman_Repositories extends core_Master
                     
                     // Добавяме в копирания
                     $resArr['copied'][$repoId] = $fileName;
-                } catch (Exception $e) {
+                } catch (core_exception_Expect $e) {
                     
                     // Ако възникне грешка, добавяме към грешките
                     $resArr['problem'][$repoId] = $fileName;
@@ -758,7 +758,7 @@ class fileman_Repositories extends core_Master
                         $resArr['isDir'][$repoId] = $fileName;
                     }
                     
-                } catch (Exception $e) {
+                } catch (core_exception_Expect $e) {
                     
                     // Ако възникне грешка, добавяме към грешките
                     $resArr['problem'][$repoId] = $fileName;

@@ -77,7 +77,7 @@ class acc_journal_Entry
         $this->debit->initFromTransactionSource($data);
         $this->credit->initFromTransactionSource($data);
         if(isset($data['reason'])){
-        	$this->reasonCode = $data['reason'];
+        	$this->reasonCode = acc_Operations::getIdByTitle($data['reason']);
         }
         
         

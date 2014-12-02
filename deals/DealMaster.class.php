@@ -144,7 +144,11 @@ abstract class deals_DealMaster extends deals_DealBase
 	{
 		$form = &$data->form;
 		
-		$form->setDefault('valior', dt::now());
+		if($data->action === 'clone'){
+			$form->rec->valior = dt::now();
+		} else {
+			$form->setDefault('valior', dt::now());
+		}
 		
 		$form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
 		$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
@@ -663,7 +667,7 @@ abstract class deals_DealMaster extends deals_DealBase
      	$self = cls::get(get_called_class());
      
      	if ($rec = $self->fetch($objectId)) {
-     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, FALSE);
      		$result = (object)array(
      				'num' => $self->abbr . $objectId,
      				'title' => $self::getRecTitle($objectId),
@@ -677,7 +681,7 @@ abstract class deals_DealMaster extends deals_DealBase
      		}
      		
      		if($rec->deliveryLocationId){
-     			$result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId);
+     			$result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId, FALSE);
      		}
      	}
      
@@ -715,7 +719,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	unset($nRec->contoActions,
     		  $nRec->amountDelivered, 
     		  $nRec->amountBl,  
-    		  $nRec->amountPaid, 
+    		  $nRec->amountPaid,
     		  $nRec->amountInvoiced);
     	
     	$nRec->paymentState = 'pending';
@@ -1280,7 +1284,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			$clId = $ClosedDeals->create($className, $rec);
     			$ClosedDeals->conto($clId);
     			 
-    		} catch(Exception $e){
+    		} catch(core_exception_Expect $e){
     			 
     			// Ако има проблем при обновяването
     			core_Logs::add($this->className, $rec->id, "Проблем при автоматичното приключване на сделка: '{$e->getMessage()}'");
@@ -1309,7 +1313,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		try{
     			// Намира се метода на плащане от интерфейса
     			$dealInfo = $Class->getAggregateDealInfo($rec->id);
-    		} catch(Exception $e){
+    		} catch(core_exception_Expect $e){
     
     			// Ако има проблем при извличането се продължава
     			core_Logs::add($Class, $rec->id, "Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'");
@@ -1334,7 +1338,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     			try{
     				$isOverdue = cond_PaymentMethods::isOverdue($plan, round($rec->amountDelivered, 2) - round($rec->amountPaid, 2));
-    			} catch(Exception $e){
+    			} catch(core_exception_Expect $e){
     					
     				// Ако има проблем при извличането се продължава
     				core_Logs::add($Class, $rec->id, "Несъществуващ платежен план': '{$e->getMessage()}'");
@@ -1355,7 +1359,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     		try{
     			$Class->save_($rec);
-    		} catch(Exception $e){
+    		} catch(core_exception_Expect $e){
     
     			// Ако има проблем при обновяването
     			core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");

@@ -32,7 +32,7 @@ class doc_UnsortedFolders extends core_Master
      * Да се създаде папка при създаване на нов запис
      */
     public $autoCreateFolder = 'instant';
-    
+   
     
     /**
      * Заглавие
@@ -47,9 +47,9 @@ class doc_UnsortedFolders extends core_Master
     
     
     /**
-     * полета от БД по които ще се търси
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name';
+    public $searchFields = 'name, description';
     
     
     /**
@@ -215,6 +215,47 @@ class doc_UnsortedFolders extends core_Master
         $this->setDbUnique('name');
     }
     
+   /** 
+    * Малко манипулации след подготвянето на формата за филтриране
+    *
+    * @param core_Mvc $mvc
+    * @param stdClass $data
+    */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	$cu = core_Users::getCurrent();
+    	
+    	$data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+    	
+    	// Задаваме стойността по подразбиране
+    	//$data->listFilter->setDefault('selectedUsers', $cu);
+    	
+    	$data->listFilter->view = 'horizontal';
+    	
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	// Показваме само това поле. Иначе и другите полета
+    	// на модела ще се появят
+    	$data->listFilter->showFields = 'search,selectedUsers';
+    	
+    	$rec = $data->listFilter->input('selectedUsers,search', 'silent');
+    	
+    	if(!$data->listFilter->rec->selectedUsers) {
+    		$data->listFilter->rec->selectedUsers = '|' . $cu . '|';
+    	}
+    	
+    	if(!$data->listFilter->rec->search) {
+    		$data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #inCharge, '|%')");
+    		$data->query->orLikeKeylist('shared', $data->listFilter->rec->selectedUsers);
+    		$data->title = 'Проектите на |*<span class="green">' .
+    				$data->listFilter->getFieldType('selectedUsers')->toVerbal($data->listFilter->rec->selectedUsers) . '</span>';
+    	} else {
+    		$data->title = 'Търсене на проект отговарящи на |*<span class="green">"' .
+    				$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
+    	}
+    	
+    	$data->query->orderBy('#createdOn=DESC');
+    }
     
     /**
      * След подготовка на тулбара на единичен изглед.

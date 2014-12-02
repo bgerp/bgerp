@@ -38,7 +38,7 @@ class acc_JournalDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'debitAccId, debitQuantity, debitPrice, creditAccId, creditQuantity, creditPrice, amount';
+    var $listFields = 'debitAccId, debitQuantity, debitPrice, creditAccId, creditQuantity, creditPrice, amount, reasonCode';
     
     
     /**
@@ -80,7 +80,7 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
         // Обща сума на транзакцията
-        $this->FLD('reasonCode', 'int', 'input=none');
+        $this->FLD('reasonCode', 'key(mvc=acc_Operations,select=title)', 'input=none,caption=Операция');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
     }
     
@@ -105,10 +105,13 @@ class acc_JournalDetails extends core_Detail
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
+        $hasReasonFld = FALSE;
         
         if (count($recs)) {
             foreach ($recs as $id => $rec) {
                 $row = &$rows[$id];
+                
+                $hasReasonFld = isset($row->reasonCode) ? TRUE : $hasReasonFld;
                 
                 foreach (array('debit', 'credit') as $type) {
                     $ents = "";
@@ -138,6 +141,10 @@ class acc_JournalDetails extends core_Detail
                     }
                 }
             }
+        }
+        
+        if($hasReasonFld === FALSE){
+        	unset($res->listFields['reasonCode']);
         }
     }
     
@@ -249,5 +256,9 @@ class acc_JournalDetails extends core_Detail
         // Линкове към сметките в баланса
         $row->debitAccId = acc_Balances::getAccountLink($rec->debitAccId, $balanceValior);
         $row->creditAccId = acc_Balances::getAccountLink($rec->creditAccId, $balanceValior);
+        
+        if($rec->reasonCode){
+        	$row->reasonCode = "<div style='color:#444;font-size:0.9em;margin-left:10px'>{$row->reasonCode}</div>";
+        }
     }
 }

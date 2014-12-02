@@ -14,6 +14,13 @@ defIfNot(BGERP_COMPANY_LOGO_EN, '');
 defIfNot(BGERP_COMPANY_LOGO, '');
 
 
+
+/**
+ * След колко време, ако не работи крона да бие нотификация
+ */
+defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
+
+
 /**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
@@ -59,6 +66,8 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_COMPANY_LOGO' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На български, customizeBy=powerUser'),
         
         'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
+        
+        'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', array('caption' => 'След колко време, ако не работи крона да бие нотификация->Време')),
     );
     
     
@@ -222,6 +231,9 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Инсталираме плъгина за прихващане на първото логване на потребител в системата
         $html .= $Plugins->installPlugin('First Login', 'bgerp_plg_FirstLogin', 'core_Users', 'private');
+        
+        // Инсталираме плъгина за проверка дали работи cron
+        $html .= $Plugins->installPlugin('Check cron', 'bgerp_plg_CheckCronOnLogin', 'core_Users', 'private');
         
         $Menu = cls::get('bgerp_Menu');
         

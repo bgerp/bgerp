@@ -581,28 +581,6 @@ class acc_Lists extends core_Manager {
     
     
     /**
-     * Връща списък с всички записи на даден мениджър,от дадена номенклатура
-     * @param mixed $class - име/ид/инстанция на класа
-     * @param varchar $sysId - систем ид на номенклатура
-     * @return array $res - списък с опции
-     */
-    public static function getItemsByList($class, $sysId)
-    {
-        $res = array();
-        expect($Class = cls::get($class));
-        expect($list = static::fetchBySystemId($sysId));
-        
-        if($items = acc_Items::getClassItems($Class, $list->id)){
-            foreach ($items as $id){
-                $res[$id] = $Class->getTitleById($id);
-            }
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public function loadSetupData()

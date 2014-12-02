@@ -1400,7 +1400,7 @@ class doc_Containers extends core_Manager
             try{
             	$doc = static::getDocument($rec);
             	$doc->reject();
-            } catch(Exception $e){
+            } catch(core_exception_Expect $e){
             	continue;
             }
             
@@ -1446,7 +1446,7 @@ class doc_Containers extends core_Manager
         		try{
         			$doc = static::getDocument($rec);
         			$doc->restore();
-        		} catch(Exception $e){
+        		} catch(core_exception_Expect $e){
         			continue;
         		}
         	}

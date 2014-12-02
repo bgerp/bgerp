@@ -696,7 +696,7 @@ class core_Packs extends core_Manager
                     // Ако няма данни за текущия език използваме на английски
                     $value = $key . '_EN';
                 }
-            } catch (Exception $e) {
+            } catch (core_exception_Expect $e) {
             }
         }
         

@@ -519,10 +519,12 @@ class core_Debug
         }
 
         if(!empty($state['update'])) {
-            $state['update'] = ht::createLink('Обновяване', $state['update']);
-        }
-
-        $state['forward'] = ht::createLink('Към сайта', array('Index'));
+            $state['update'] = ht::createLink('Инициализиране', $state['update'], NULL, 'ef_icon=img/16/refresh-img.png');
+       	}
+       	
+        $state['back'] =  ht::createLink('Назад', "javascript:onclick=history.back(-1)", NULL, 'ef_icon=img/16/back-img.png');
+        
+        $state['forward'] = ht::createLink('Към сайта', array('Index'), NULL, 'ef_icon=img/16/next-img.png');
 
         $page = $tpl->render($state); 
  

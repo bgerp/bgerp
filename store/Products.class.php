@@ -118,7 +118,7 @@ class store_Products extends core_Manager
     	
     	try{
     		$name = $rec->name = cls::get($rec->classId)->getTitleById($rec->productId);
-    	} catch(Exception $e){
+    	} catch(core_exception_Expect $e){
     		$name = tr('Проблем при показването');
     	}
     	
@@ -214,7 +214,7 @@ class store_Products extends core_Manager
 	        	try{
 	        		$pInfo = $ProductMan->getProductInfo($rec->productId);
 	        		$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
-	        	} catch(Exception $e){
+	        	} catch(core_exception_Expect $e){
 	        		$measureShortName = tr("???");
 	        	}
 	        	 

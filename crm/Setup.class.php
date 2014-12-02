@@ -213,7 +213,7 @@ class crm_Setup extends core_ProtoSetup
                     $nRec->configData = $nArr;
                     core_Users::save($nRec, 'configData');
                 }
-            } catch (Exception $e) { }
+            } catch (core_exception_Expect $e) { }
         }
     }
 }

@@ -225,7 +225,7 @@ class dec_Declarations extends core_Master
     {
     	try{
         	$row->doc = doc_Containers::getLinkForSingle($rec->doc);
-        } catch(Exception $e){
+        } catch(core_exception_Expect $e){
         	$row->doc = tr("Проблем при показването");
         }
     }

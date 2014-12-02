@@ -345,6 +345,10 @@ class acc_Articles extends core_Master
                     ),
                 );
                 
+                if(!empty($entry->reason)){
+                	$result->entries[count($result->entries) - 1]['reason'] = $entry->reason;
+                }
+                
                 // Проверка дали трябва да се сума на движението
                 $quantityOnly = ($debitRec->type == 'passive' && $debitRec->strategy) ||
                 ($creditRec->type == 'active' && $creditRec->strategy);

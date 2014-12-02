@@ -686,8 +686,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		 
     		$form->rec->deliveryId = $aggregateInfo->get('deliveryTerm');
     		if($aggregateInfo->get('deliveryLocation')){
-    			$form->rec->deliveryPlaceId = $aggregateInfo->get('deliveryLocation');
-    			$form->setField('deliveryPlaceId', 'input=hidden');
+    			$form->setDefault('deliveryPlaceId', $aggregateInfo->get('deliveryLocation'));
     		}
     		
     		// Извлича се платежния план

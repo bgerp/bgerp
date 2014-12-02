@@ -32,6 +32,7 @@ class acc_WrapperSettings extends plg_ProtoWrapper
         $this->TAB('acc_Features', 'Свойства', 'ceo,acc');
         $this->TAB('acc_Limits', 'Лимити', 'ceo,acc');
         $this->TAB('acc_VatGroups', 'ДДС групи', 'ceo,acc');
+        $this->TAB('acc_Operations', 'Операции', 'debug');
         
         $this->title = 'Настройки « Счетоводство';
         Mode::set('menuPage', 'Счетоводство:Настройки');

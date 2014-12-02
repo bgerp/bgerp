@@ -518,7 +518,7 @@ class distro_Group extends core_Master
                     // Прекъсваме
                     break;
                 }
-            } catch (Exception $e) {
+            } catch (core_exception_Expect $e) {
                 
                 continue;
             }
