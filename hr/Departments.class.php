@@ -439,7 +439,7 @@ class hr_Departments extends core_Master
         foreach($arrData as $rec){ 
             // Ако имаме родител 
              if($rec->staff == NULL && $rec->name !== 'Моята Организация ООД') {
-                 $parent = '1';
+                 $parent = '0';
                  // взимаме чистото име на наследника
                  $name = self::fetchField($rec->id, 'name');
              } else {
