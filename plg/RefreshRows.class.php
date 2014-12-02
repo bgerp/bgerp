@@ -104,7 +104,7 @@ class plg_RefreshRows extends core_Plugin
         
         // Ако заявката не е по ajax
         if (!$ajaxMode) return FALSE;
-        bp();
+        
         // URL-то за рефрешване
         $refreshUrlStr = Request::get('refreshUrl');
         
