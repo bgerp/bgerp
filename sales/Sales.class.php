@@ -742,7 +742,7 @@ class sales_Sales extends deals_DealMaster
     	// Отделяме всички активни фактури/ди/ки към продажбата
     	$invoices = array();
     	foreach ($desc as $desc){
-    		if($desc->instance instanceof sales_Invoices){
+    		if($desc->getInstance() instanceof sales_Invoices){
     			$recI = $desc->rec();
     			if($recI->state == 'active'){
     				$invoices[$desc->that] = $desc->rec();

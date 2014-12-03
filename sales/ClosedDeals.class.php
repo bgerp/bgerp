@@ -110,7 +110,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
     public static function getClosedDealAmount($threadId)
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$jRecs = acc_Journal::getEntries(array($firstDoc->instance, $firstDoc->that));
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
     	 
     	$cost = acc_Balances::getBlAmounts($jRecs, '6911', 'debit')->amount;
     	$inc = acc_Balances::getBlAmounts($jRecs, '7911', 'credit')->amount;
@@ -213,7 +213,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
     			$originRec = $origin->fetch();
     			
     			// Ако няма сч. движения по сделката не може да се приключи
-    			if($originRec->state == 'active' && $origin->instance instanceof sales_Sales){
+    			if($originRec->state == 'active' && $origin->getInstance() instanceof sales_Sales){
     				
     				// Ако разликата между доставеното/платеното е по голяма, се изисква
     				// потребителя да има по-големи права за да създаде документа
@@ -238,7 +238,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Може само към нишка, породена от продажба
-    	if(!($firstDoc->instance instanceof sales_Sales)) return FALSE;
+    	if(!($firstDoc->getInstance() instanceof sales_Sales)) return FALSE;
     	
     	return TRUE;
     }

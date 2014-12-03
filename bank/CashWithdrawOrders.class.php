@@ -293,7 +293,7 @@ class bank_CashWithdrawOrders extends core_Master
         $origin = doc_Containers::getDocument($originId);
         
         // Може да се добавя само към Разходен банков ордер
-        if(!($origin->instance instanceof bank_SpendingDocuments || $origin->instance instanceof bank_InternalMoneyTransfer)) return FALSE;
+        if(!($origin->getInstance() instanceof bank_SpendingDocuments || $origin->getInstance() instanceof bank_InternalMoneyTransfer)) return FALSE;
         
         return TRUE;
     }

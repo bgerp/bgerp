@@ -136,7 +136,7 @@ abstract class deals_DealBase extends core_Master
 			}
 	
 			if ($d->haveInterface('bgerp_DealIntf')) {
-				$d->instance->pushDealInfo($d->that, $aggregateInfo);
+				$d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
 			}
 		}
 	

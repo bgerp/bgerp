@@ -309,7 +309,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	if(!$firstDocument) return FALSE;
     	
     	// Може да се добавя само към активна продажба
-    	if($firstDocument->instance instanceof sales_Sales && $firstDocument->fetchField('state') == 'active'){
+    	if($firstDocument->getInstance() instanceof sales_Sales && $firstDocument->fetchField('state') == 'active'){
     		
     		return TRUE;
     	}
