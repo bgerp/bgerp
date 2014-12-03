@@ -333,8 +333,10 @@ class doc_UnsortedFolders extends core_Master
     {   
     	// сегашно време в секунди
     	$now = dt::mysql2timestamp(dt::now());
+    	
     	// заявка към текущата база
-    	$query = $this->getQuery();
+    	$query = static::getQuery();
+    	
     	// заявка към базата на "нишките"
     	$queryThread = doc_Threads::getQuery();
      	
