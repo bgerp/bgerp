@@ -176,4 +176,13 @@ class core_ObjectReference
         
         return $id;
     }
+    
+    
+    /**
+     * Пртоверка дали имаме право да изпълним дадено действие с обекта
+     */
+    public function haveRightFor($action)
+    {
+    	return $this->getInstance()->haveRightFor($action, $this->that);
+    }
 }
