@@ -84,7 +84,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,amount=Сума,productId,measureId=Мярка,quantity,description';
+    public $listFields = 'tools=Пулт,productId,measureId=Мярка,quantity,description,amount=Сума';
     
         
     /**
