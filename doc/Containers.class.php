@@ -1794,8 +1794,15 @@ class doc_Containers extends core_Manager
     			foreach ($notArr as $clsId => $count){
     				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor);
     				 
-    				$name = ($count == 1) ? cls::get($clsId)->singleTitle : cls::get($clsId)->title;
-    				$msg = "|Имате създадени, но неактивирани|* {$count} {$name}";
+    				if($count == 1){
+    					$name = cls::get($clsId)->singleTitle;
+    					$str = tr('Имате създаден, но неактивиран');
+    				} else {
+    					$name = cls::get($clsId)->title;
+    					$str = tr('Имате създадени, но неактивирани');
+    				}
+    				
+    				$msg = "{$str} {$count} {$name}";
     				 
     				// Създаваме нотификация към потребителя с линк към филтрирани неговите документи
     				bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);

@@ -196,7 +196,7 @@ class trz_SalaryIndicators extends core_Manager
     {
         $date = dt::now(FALSE);
        
-        $this->pushIndicators($date);
+        self::pushIndicators($date);
 
     }
     

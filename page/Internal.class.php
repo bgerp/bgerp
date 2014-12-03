@@ -51,9 +51,9 @@ class page_Internal extends page_Html {
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         
-        $this->push('Cache-Control: no-cache, must-revalidate', 'HTTP_HEADER');
-        $this->push('Pragma: no-cache', 'HTTP_HEADER');
-        $this->push('Expires: Mon, 26 Jul 1997 05:00:00 GMT', 'HTTP_HEADER');
+        $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
+        //$this->push('Pragma: no-cache', 'HTTP_HEADER');
+        $this->push('Expires: ' . gmdate("D, d M Y H:i:s", time() + 3600) . ' GMT', 'HTTP_HEADER');
 
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
          
