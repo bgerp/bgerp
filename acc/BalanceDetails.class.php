@@ -81,6 +81,12 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Еденично заглавие
+     */
+    public $title = 'Детайли на баланса';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -133,7 +139,7 @@ class acc_BalanceDetails extends core_Detail
             
             // Преизчисляваме пейджъра с новия брой на записите
             $conf = core_Packs::getConfig('acc');
-            $Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS));
+            $Pager = cls::get('core_Pager', array('itemsPerPage' => 500));
             $Pager->itemsCount = count($data->recs);
             $Pager->calc();
             $data->pager = $Pager;
@@ -265,7 +271,7 @@ class acc_BalanceDetails extends core_Detail
             if(empty($ent)) continue;
             
             $itemRec = acc_Items::fetch($ent, 'classId,objectId');
-            
+           
             if($itemRec->classId){
                 $AccRegMan = cls::get($itemRec->classId);
                 
@@ -623,14 +629,14 @@ class acc_BalanceDetails extends core_Detail
         $form->class = 'simpleForm';
         $form->fieldsLayout = getTplFromFile("acc/tpl/BalanceFilterFormFields.shtml");
         $form->FNC("accId", 'int', 'silent,input=hidden');
-        $form->input("accId", true);
+        $form->input("accId", TRUE);
         
         foreach ($listRecs as $i => $listRec) {
             $this->setGroupingForField($i, $listRec, $form, $items[$i]);
         }
         $form->showFields = trim($form->showFields, ',');
         
-        $form->input(null, true);
+        $form->input(NULL, TRUE);
         
         if($form->isSubmitted()){
             foreach (range(1, 3) as $i){
