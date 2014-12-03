@@ -306,6 +306,8 @@ class callcenter_SMS extends core_Master
      */
     public static function getServiceStatus($id)
     {
+        if (!$id) return ;
+        
         $rec = self::fetch($id);
         
         $status = $rec->serviceMsg;
@@ -323,6 +325,8 @@ class callcenter_SMS extends core_Master
      */
     public static function getUid($id)
     {
+        if (!$id) return ;
+        
         $rec = self::fetch($id);
         
         $uid = $rec->uid;
