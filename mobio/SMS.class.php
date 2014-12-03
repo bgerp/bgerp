@@ -153,6 +153,22 @@ class mobio_SMS extends core_Manager
     
     
     /**
+     * Инрерфейсен метод
+     * Връща статуса на съобщението от съоветната услуга
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $uid
+     * 
+     * @return 
+     */
+    public function getStatus($uid)
+    {
+        
+        return ;
+    }
+    
+    
+    /**
      * Отбелязване на статуса на съобщенито
      * Извиква се от външната програма след промяна на статуса на SMS'а
      */

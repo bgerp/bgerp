@@ -131,6 +131,22 @@ class smssync_SMS extends core_Manager
     
     
     /**
+     * Инрерфейсен метод
+     * Връща статуса на съобщението от съоветната услуга
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $uid
+     * 
+     * @return 
+     */
+    public function getStatus($uid)
+    {
+        
+        return ;
+    }
+    
+    
+    /**
      * Екшъна, който се вика от SMSSync.
      * Връща JSON данни за SMS-а за изпращане.
      * Може и да се вика при входящ SMS на телефона

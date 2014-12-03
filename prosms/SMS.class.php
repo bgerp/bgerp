@@ -135,6 +135,22 @@ class prosms_SMS extends core_Manager
     
     
     /**
+     * Инрерфейсен метод
+     * Връща статуса на съобщението от съоветната услуга
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $uid
+     * 
+     * @return 
+     */
+    public function getStatus($uid)
+    {
+        
+        return ;
+    }
+    
+    
+    /**
      * Интерфейсен метод, който връща масив с настройките за услугата
      * 
      * @return array $paramsArr

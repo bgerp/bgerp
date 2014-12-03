@@ -26,8 +26,9 @@ class callcenter_SentSMSIntf
      *  o $res['uid'] string - Уникалното id на съобщението
      *  o $res['msg'] - Статуса
      */
-    function sendSMS($number, $message, $sender)
+    public function sendSMS($number, $message, $sender)
     {
+        
         return $this->class->sendSMS($number, $message, $sender);
     }
     
@@ -40,8 +41,28 @@ class callcenter_SentSMSIntf
      *  o integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
      *  o string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
      */
-    function getParams()
+    public function getParams()
     {
+        
         return $this->class->getParams();
+    }
+    
+    
+    /**
+     * Връща статуса на съобщението от съоветната услуга
+     * 
+     * @param string $uid
+     * 
+     * @return NULL|string
+     *  o received - Получен
+     *  o sended - Изпратен
+     *  o receiveError - Грешка при получаване
+     *  o sendError - Грешка при изпращане
+     *  o pending - Чакащо
+     */
+    public function getStatus($uid)
+    {
+        
+        return $this->class->getStatus();
     }
 }

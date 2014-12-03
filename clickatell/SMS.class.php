@@ -69,6 +69,8 @@ class clickatell_SMS extends core_Manager
      * @param string $message - Текста на съобщението
      * @param string $sender - От кого се изпраща съобщението
      * 
+     * @see callcenter_SentSMSIntf
+     * 
      * @return array $nRes - Mасив с информация, дали е получено
      * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
      * $nRes['uid'] string - Уникалното id на съобщението
@@ -142,6 +144,8 @@ class clickatell_SMS extends core_Manager
     /**
      * Интерфейсен метод, който връща масив с настройките за услугата
      * 
+     * @see callcenter_SentSMSIntf
+     * 
      * @return array $paramsArr
      * enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
      * integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
@@ -156,6 +160,22 @@ class clickatell_SMS extends core_Manager
         $paramsArr['allowedUserNames'] = arr::make($conf->CLIKATELL_ALLOWED_USER_NAMES, TRUE);
         
         return $paramsArr;
+    }
+    
+    
+    /**
+     * Инрерфейсен метод
+     * Връща статуса на съобщението от съоветната услуга
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $uid
+     * 
+     * @return 
+     */
+    public function getStatus($uid)
+    {
+        
+        return ;
     }
     
     

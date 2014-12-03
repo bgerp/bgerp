@@ -78,7 +78,7 @@ class callcenter_SMS extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows,plg_AutoFilter, callcenter_ListOperationsPlg';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows,plg_AutoFilter, callcenter_ListOperationsPlg, plg_Modified';
     
     
     /**
@@ -115,6 +115,13 @@ class callcenter_SMS extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsField = 'singleLink';
+    
+    
+    /**
+     * 
+     */
+    static $cronSysId = 'checkSMSStatus';
+    
     
     
 	/**
@@ -819,5 +826,59 @@ class callcenter_SMS extends core_Master
             // Записваме
             self::save($rec);
         }
+    }
+    
+    
+    /**
+     * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast
+     */
+    function cron_checkStatus()
+    {
+        $period = core_Cron::getPeriod(self::$cronSysId);
+        
+        $dateFrom = dt::subtractSecs($period);
+        
+        // Всички съобщения, които не са получени от последното изпращане
+        $query = self::getQuery();
+        $query->where("#status != 'received'");
+        $query->where("#modifiedOn > '{$dateFrom}'");
+        
+        while ($rec = $query->fetch()) {
+            if (!$rec->service) continue;
+            
+            // Опитваме се да определим статуса на съобщението
+            try {
+                $inst = cls::get($rec->service);
+                $status = $inst->getStatus($rec->uid);
+            } catch (core_exception_Expect $e) {
+            }
+            
+            if (!isset($status)) continue;
+            
+            $rec->status = $status;
+            
+            self::save($rec);
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $conf = core_Packs::getConfig('blast');
+        
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = self::$cronSysId;
+        $rec->description = 'Проверява статуса на съобщенията';
+        $rec->controller = $mvc->className;
+        $rec->action = 'checkStatus';
+        $rec->period = 5;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 100;
+        $res .= core_Cron::addOnce($rec);
     }
 }
