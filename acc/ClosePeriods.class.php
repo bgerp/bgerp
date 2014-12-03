@@ -359,7 +359,7 @@ class acc_ClosePeriods extends core_Master
     	// Подготвяме какво е променено по всяка сметка
     	while ($dRec = $dQuery->fetch()){
     		$nRow = new stdClass();
-    		$nRow->accountId = acc_Balances::getAccountLink($dRec->accountId, acc_Balances::fetch($bId), TRUE, TRUE);
+    		$nRow->accountId = acc_Balances::getAccountLink($dRec->accountId, $bId, TRUE, TRUE);
     		foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
     			$nRow->$fld = $Double->toVerbal($dRec->$fld);
     			if($dRec->$fld < 0){
