@@ -95,7 +95,6 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption=Сметка->име,column=none');
         $this->EXT('accountNum', 'acc_Accounts', 'externalName=num,externalKey=accountId', 'caption=Сметка->№');
         $this->FLD('ent1Id', 'key(mvc=acc_Items,select=titleLink)', 'caption=Сметка->перо 1');
-        $this->FLD('ent2Id', 'key(mvc=acc_Items,select=titleLink)', 'caption=Сметка->перо 2');
         $this->FLD('ent3Id', 'key(mvc=acc_Items,select=titleLink)', 'caption=Сметка->перо 3');
         $this->FLD('baseQuantity', 'double(maxDecimals=3)', 'caption=База->Количество,tdClass=ballance-field');
         $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума,tdClass=ballance-field');
@@ -139,7 +138,7 @@ class acc_BalanceDetails extends core_Detail
             
             // Преизчисляваме пейджъра с новия брой на записите
             $conf = core_Packs::getConfig('acc');
-            $Pager = cls::get('core_Pager', array('itemsPerPage' => 500));
+            $Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS));
             $Pager->itemsCount = count($data->recs);
             $Pager->calc();
             $data->pager = $Pager;
