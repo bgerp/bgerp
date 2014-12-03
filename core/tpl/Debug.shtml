@@ -75,14 +75,64 @@
  * @license		GNU/GPL license: http://www.gnu.org/copyleft/gpl.html
  */
  
-div.simpleTabs { margin-top:15px; }
-ul.simpleTabsNavigation { margin:0 10px; padding:0; text-align:left; }
-ul.simpleTabsNavigation li { list-style:none; display:inline; margin:0; padding:0; }
-ul.simpleTabsNavigation li a { border:1px solid #bbb; padding:3px 6px; background:#ddd; font-size:16px; text-decoration:none; font-family:Arial, Georgia, "Times New Roman", Times, serif; }
-ul.simpleTabsNavigation li a:hover { background-color:#ffc; }
-ul.simpleTabsNavigation li a.current { background:#fff; color:#222; border-bottom:1px solid #fff; }
-div.simpleTabsContent { border:1px solid #bbb; padding:5px 15px 15px; margin-top:3px; display:none; }
-div.simpleTabsContent.currentTab { display:block; background-color:#fff;}
+div.simpleTabs { 
+    margin-top:15px; 
+}
+ul.simpleTabsNavigation { 
+    margin:0px; 
+    padding:0 10px; 
+    height: 1.25em;
+    text-align:left; 
+    border-bottom: 1px solid #bbb;
+    z-index: 2;
+    position: relative;
+}
+ul.simpleTabsNavigation li { 
+    list-style:none;
+    display: inline;
+    margin:0; 
+    padding:0;
+    top: -0.05em;
+    position: relative;
+}
+ul.simpleTabsNavigation li a { 
+    border-radius: 3px 3px 0 0; 
+    color: #333; 
+    border:1px solid #bbb; 
+    padding:3px 0.5em 3px; 
+    background:#c1c1c1; 
+    font-size:0.9em;
+    box-shadow: inset 0 10px 10px rgba(255,255,255,0.7);
+    text-decoration:none; 
+    font-family: Arial, "Times New Roman", Times, serif;
+    z-index: 1;
+}
+ul.simpleTabsNavigation li a:hover { 
+    background-color:#ffc; 
+    z-index: 3;
+    padding-bottom: 0.25em;
+    border-bottom:1px solid #fff; 
+    box-shadow: none;
+}
+ul.simpleTabsNavigation li a.current { 
+    background:#fff;
+    z-index: 3;
+    color:#222; 
+    padding-bottom: 0.25em;
+    border-bottom:1px solid #fff; 
+}
+div.simpleTabsContent { 
+    border:1px solid #bbb; 
+    border-top: none; 
+    padding:15px; 
+    display:none;
+    position: relative;
+    z-index: 4;
+}
+div.simpleTabsContent.currentTab { 
+    display:block; 
+    background-color:#fff;
+}
     </style>
 </head>
 

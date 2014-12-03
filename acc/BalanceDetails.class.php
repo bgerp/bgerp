@@ -81,6 +81,12 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Еденично заглавие
+     */
+    public $title = 'Детайли на баланса';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -89,7 +95,6 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption=Сметка->име,column=none');
         $this->EXT('accountNum', 'acc_Accounts', 'externalName=num,externalKey=accountId', 'caption=Сметка->№');
         $this->FLD('ent1Id', 'key(mvc=acc_Items,select=titleLink)', 'caption=Сметка->перо 1');
-        $this->FLD('ent2Id', 'key(mvc=acc_Items,select=titleLink)', 'caption=Сметка->перо 2');
         $this->FLD('ent3Id', 'key(mvc=acc_Items,select=titleLink)', 'caption=Сметка->перо 3');
         $this->FLD('baseQuantity', 'double(maxDecimals=3)', 'caption=База->Количество,tdClass=ballance-field');
         $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума,tdClass=ballance-field');
@@ -265,7 +270,7 @@ class acc_BalanceDetails extends core_Detail
             if(empty($ent)) continue;
             
             $itemRec = acc_Items::fetch($ent, 'classId,objectId');
-            
+           
             if($itemRec->classId){
                 $AccRegMan = cls::get($itemRec->classId);
                 
@@ -623,14 +628,14 @@ class acc_BalanceDetails extends core_Detail
         $form->class = 'simpleForm';
         $form->fieldsLayout = getTplFromFile("acc/tpl/BalanceFilterFormFields.shtml");
         $form->FNC("accId", 'int', 'silent,input=hidden');
-        $form->input("accId", true);
+        $form->input("accId", TRUE);
         
         foreach ($listRecs as $i => $listRec) {
             $this->setGroupingForField($i, $listRec, $form, $items[$i]);
         }
         $form->showFields = trim($form->showFields, ',');
         
-        $form->input(null, true);
+        $form->input(NULL, TRUE);
         
         if($form->isSubmitted()){
             foreach (range(1, 3) as $i){

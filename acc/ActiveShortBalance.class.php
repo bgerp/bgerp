@@ -44,13 +44,14 @@ class acc_ActiveShortBalance {
      * Конструктор на обекта
      *
      * Масив $params с атрибути
-     * ['itemsAll'] - списък от ид-та на пера, които може да са на всяка позиция
-     * ['accs']      - списък от систем ид-та на сметки
-     * ['item1']    - списък от ид-та на пера, поне едно от които може да е на първа позиция
-     * ['item2']    - списък от ид-та на пера, поне едно от които може да е на втора позиция
-     * ['item3']    - списък от ид-та на пера, поне едно от които може да е на трета позиция
-     * ['from']     - От дата
-     * ['to']       - До дата
+     * ['itemsAll']     - списък от ид-та на пера, които може да са на всяка позиция
+     * ['accs']         - списък от систем ид-та на сметки
+     * ['item1']        - списък от ид-та на пера, поне едно от които може да е на първа позиция
+     * ['item2']        - списък от ид-та на пера, поне едно от които може да е на втора позиция
+     * ['item3']        - списък от ид-та на пера, поне едно от които може да е на трета позиция
+     * ['from']         - От дата
+     * ['to']           - До дата
+     * ['cacheBalance'] - Да кеширали в обекта изчисления баланс 
      */
     function __construct($params = array())
     {
@@ -64,15 +65,19 @@ class acc_ActiveShortBalance {
         
         set_time_limit(600);
         
-        // Подготвяме заявката към базата данни
-        $jQuery = acc_JournalDetails::getQuery();
-        acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3'], $strict);
-        
-        // Изчисляваме мини баланса
-        $this->recs = $jQuery->fetchAll();
-        
-        // Изчисляваме и кешираме баланса
-        $this->calcBalance($this->recs, $this->balance);
+        // Изчисления баланс се кешира, само ако е указано
+        if($params['cacheBalance'] !== FALSE){
+        	
+        	// Подготвяме заявката към базата данни
+        	$jQuery = acc_JournalDetails::getQuery();
+        	acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3'], $strict);
+        	
+        	// Изчисляваме мини баланса
+        	$this->recs = $jQuery->fetchAll();
+        	
+        	// Изчисляваме и кешираме баланса
+        	$this->calcBalance($this->recs, $this->balance);
+        }
         
         $this->acc_Balances = cls::get('acc_Balances');
     }
@@ -163,30 +168,6 @@ class acc_ActiveShortBalance {
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Връща краткия баланс с посочените сметки
-     */
-    public function getShortBalance($accs)
-    {
-        $arr = arr::make($accs);
-        
-        if(!count($arr)) return $this->balance;
-        
-        $newArr = array();
-        
-        foreach ($arr as $accSysId){
-            
-            foreach ($this->balance as $index => $b){
-                if($b['accountSysId'] == $accSysId){
-                    $newArr[$index] = $b;
-                }
-            }
-        }
-        
-        return $newArr;
     }
     
     

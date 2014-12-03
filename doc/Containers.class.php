@@ -1796,13 +1796,13 @@ class doc_Containers extends core_Manager
     				 
     				if($count == 1){
     					$name = cls::get($clsId)->singleTitle;
-    					$str = tr('Имате създаден, но неактивиран');
+    					$str = 'Имате създаден, но неактивиран';
     				} else {
     					$name = cls::get($clsId)->title;
-    					$str = tr('Имате създадени, но неактивирани');
+    					$str = 'Имате създадени, но неактивирани';
     				}
     				
-    				$msg = "{$str} {$count} {$name}";
+    				$msg = "|{$str}|* {$count} {$name}";
     				 
     				// Създаваме нотификация към потребителя с линк към филтрирани неговите документи
     				bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);
