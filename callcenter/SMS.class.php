@@ -287,7 +287,6 @@ class callcenter_SMS extends core_Master
     
     /**
      * Обновява състоянието на SMS-ите в логовете
-     * callBack фунцкия - Викасе от act_Delivery в класовете, които имплементират callcenter_SentSMSIntf
      * Използва се от изпращачите за обновяване на състоянието
      * 
      * @param integer $service

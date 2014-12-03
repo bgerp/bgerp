@@ -390,16 +390,4 @@ class smssync_SMS extends core_Manager
         
         return $paramsArr;
     }
-    
-    
-    /**
-     * Интерфейсен метод
-     * @see callcenter_SentSMSIntf
-     * 
-     * Отбелязване на статуса на съобщенито
-     * Извиква се от външната програма след промяна на статуса на SMS'а
-     */
-    public function act_Delivery()
-    {
-    }
 }

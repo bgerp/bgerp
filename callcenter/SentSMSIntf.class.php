@@ -44,14 +44,4 @@ class callcenter_SentSMSIntf
     {
         return $this->class->getParams();
     }
-    
-    
-    /**
-     * Отбелязване на статуса на съобщенито
-     * Извиква се от външната програма след промяна на статуса на SMS'а
-     */
-    function act_Delivery()
-    {
-        return $this->class->act_Delivery();
-    }
 }
