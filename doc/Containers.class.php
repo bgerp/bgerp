@@ -1901,10 +1901,8 @@ class doc_Containers extends core_Manager
      */
     function cron_Repair()
     {
-        $systemId = self::REPAIR_SYSTEM_ID;
-        $cronPeriod = core_Cron::fetchField("#systemId = '{$systemId}'", 'period');
+        $cronPeriod = core_Cron::getPeriod(self::REPAIR_SYSTEM_ID);
         
-        $cronPeriod *= 60;
         $from = dt::subtractSecs($cronPeriod);
         $to = dt::now();
         $delay = 10;
