@@ -116,6 +116,39 @@ class core_Cron extends core_Manager
     
     
     /**
+     * Връща периода на стартиране на процеса в секунду
+     * 
+     * @param string $systemId
+     * 
+     * @return integer
+     */
+    public static function getPeriod($systemId)
+    {
+        $rec = self::getRecForSystemId($systemId);
+        
+        if ($rec === FALSE) return ;
+        
+        $period = ($rec->period * 60) + ($rec->offset * 60);
+        
+        return $period;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $systemId
+     * 
+     * @return FALSE|object
+     */
+    public static function getRecForSystemId($systemId)
+    {
+        $rec = self::fetch(array("#systemId = '[#1#]'", $systemId));
+        
+        return $rec;
+    }
+    
+    /**
      * Преди извличането на записите за листовия изглед
      */
     function on_AfterPrepareListFilter($mvc, &$data)

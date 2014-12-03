@@ -76,8 +76,22 @@ class remote_Setup extends core_ProtoSetup
      */
     function install()
     {
-        $html = parent::install();
-                                 
+        // Изисква libssh2-php модула на PHP
+        $requiredPhpModules = array('ssh2');
+        
+        $activePhpModules = get_loaded_extensions();
+        foreach ($requiredPhpModules as $module) {
+            if (in_array($module, $activePhpModules)){
+                $html .= "<li>Наличен PHP модул: <b>`$module`</b>";
+            } else {
+                $html .= "<li style='color: red;'>Липсващ PHP модул: <b>`$module`</b>
+                инсталирайте от командна линия с: apt-get install libssh2-php";
+                
+                return ($html);
+            }
+        }
+        $html .= parent::install();
+        
         return $html;
     }
     

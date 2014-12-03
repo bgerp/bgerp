@@ -94,7 +94,7 @@ class remote_Hosts extends core_Master
 	{
 	    $form = &$data->form;
 	    $rec  = &$form->rec;
-	     
+	    bp($form);
         foreach ($rec->config as $name => $value) {
             $form->setDefault($name, $value);
         }
@@ -170,7 +170,7 @@ class remote_Hosts extends core_Master
      * Качва файл на отдалечен хост
      *
      * @param string $host
-     * @param string $file
+     * @param string $file - път до файла
      */
     public static function put($host, $file)
     {
@@ -181,7 +181,7 @@ class remote_Hosts extends core_Master
      * Смъква файл от отдалечен хост
      *
      * @param string $host
-     * @param string $file
+     * @param string $file път до отдалечения файл
      */
     public static function get($host, $file)
     {
