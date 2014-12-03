@@ -131,6 +131,7 @@ class callcenter_SMS extends core_Master
     {
         $this->FLD('service', 'class(interface=callcenter_SentSMSIntf, select=title)', 'caption=Услуга, mandatory');
         $this->FLD('sender', 'varchar(255)', 'caption=Изпращач');
+        $this->FLD('serviceMsg', 'varchar(255)', 'caption=Съобщение от изпращача, input=none');
         $this->FLD('mobileNum', 'drdata_PhoneType', 'caption=Получател->Номер, mandatory, silent');
         $this->FLD('mobileNumData', 'key(mvc=callcenter_Numbers)', 'caption=Получател->Контакт, input=none');
         $this->FLD('text', 'text', 'caption=Текст, mandatory');
@@ -152,13 +153,12 @@ class callcenter_SMS extends core_Master
      * @param string|array $message
      * @param string $sender
      * @param integer|string $service
+     * @param string $encoding - auto, utf-8 или ascii
+     * @param string $msgForSave - текста, който ще се записва в `text` полето вместо $message
      * 
-     * @return array $res - Mасив с информация, дали е получено
-     *  o $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
-     *  o $res['uid'] string - Уникалното id на съобщението
-     *  o $res['msg'] - Статуса
+     * @return integer - id на записа
      */
-    public static function send($number, $message, $sender = NULL, $service = NULL)
+    public static function send($number, $message, $sender = NULL, $service = NULL, $encoding = 'auto', $msgForSave = NULL)
     {
         // Конфигурацията на пакета
         $conf = core_Packs::getConfig('callcenter');
@@ -189,13 +189,52 @@ class callcenter_SMS extends core_Master
         // Подготвяме текстовата част
         $messageStr = self::prepareMessage($message);
         
+        if ($encoding == 'ascii') {
+            $messageStr = str::utf2ascii($messageStr);
+        }
+        
         // Очакваме да може да се изпрати съответния SMS
         expect(self::canSend($messageStr, $sender, $service), 'Не може да се изпрати');
         
         // Изпращаме съобщението към услугата за изпращане на SMS
         $sendStatusArr = $serviceInst->sendSMS($number, $messageStr, $sender);
         
-        return $sendStatusArr;
+        $rec = new stdClass();
+        $rec->text = $message;
+        
+        if (isset($msgForSave)) {
+            $rec->text = $msgForSave;
+        } else if (is_array($message)) {
+            $rec->text = $message[0];
+        }
+
+        // Вземаме статуса
+        $rec->status = $sendStatusArr['sendStatus'];
+            
+        if ($sendStatusArr['uid']) {
+            
+            // Вземаме уникалния номер
+            $rec->uid = $sendStatusArr['uid'];
+        }
+            
+        // Вземаме последния запис за номера
+        $extRecArr = callcenter_Numbers::getRecForNum($number);
+        if ($extRecArr[0]) {
+            
+            // Вземаме класа и id' то на контрагента
+            $rec->mobileNumData = $extRecArr[0]->id;
+        }
+        
+        $rec->mobileNum = $number;
+        $rec->sender = $sender;
+        $rec->service = $service;
+        $rec->encoding = $encoding;
+        $rec->serviceMsg = $sendStatusArr['msg'];
+        
+        // Записваме
+        $savedId = self::save($rec);
+        
+        return $savedId;
     }
     
     
@@ -257,6 +296,39 @@ class callcenter_SMS extends core_Master
         return TRUE;
     }
     
+    
+    /**
+     * Връща статуса от услугата за записа
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    public static function getServiceStatus($id)
+    {
+        $rec = self::fetch($id);
+        
+        $status = $rec->serviceMsg;
+        
+        return $status;
+    }
+    
+    
+    /**
+     * Връща UID за записа
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    public static function getUid($id)
+    {
+        $rec = self::fetch($id);
+        
+        $uid = $rec->uid;
+        
+        return $uid;
+    }
     
     /**
      * Подготвя текстовата част
@@ -480,29 +552,11 @@ class callcenter_SMS extends core_Master
 //            expect(self::canSend($rec->text, $rec->sender, $rec->service));
             
             // Изпращаме SMS-a
-            $sendStatusArr = self::send($rec->mobileNum, $rec->text, $rec->sender, $rec->service);
+            $sendedId = self::send($rec->mobileNum, $rec->text, $rec->sender, $rec->service, $rec->encoding);
             
-            // Вземаме статуса
-            $rec->status = $sendStatusArr['sendStatus'];
+            $msg = self::getServiceStatus($sendedId);
             
-            if ($sendStatusArr['uid']) {
-                
-                // Вземаме уникалния номер
-                $rec->uid = $sendStatusArr['uid'];
-            }
-            
-            // Вземаме последния запис за номера
-            $extRecArr = callcenter_Numbers::getRecForNum($form->rec->mobileNum);
-            if ($extRecArr[0]) {
-                
-                // Вземаме класа и id' то на контрагента
-                $rec->mobileNumData = $extRecArr[0]->id;
-            }
-            
-            // Записваме
-            self::save($rec);
-            
-            return new Redirect($retUrl, $sendStatusArr['msg']);
+            return new Redirect($retUrl, $msg);
         }
         
         // Добавяме бутоните на формата
