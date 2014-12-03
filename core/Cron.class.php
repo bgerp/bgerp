@@ -124,13 +124,28 @@ class core_Cron extends core_Manager
      */
     public static function getPeriod($systemId)
     {
-        $period = self::fetchField(array("#systemId = '[#1#]'", $systemId), 'period');
+        $rec = self::getRecForSystemId($systemId);
         
-        if (!isset($period)) return ;
+        if ($rec === FALSE) return ;
         
-        $period *= 60;
+        $period = ($rec->period * 60) + ($rec->offset * 60);
         
         return $period;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $systemId
+     * 
+     * @return FALSE|object
+     */
+    public static function getRecForSystemId($systemId)
+    {
+        $rec = self::fetch(array("#systemId = '[#1#]'", $systemId));
+        
+        return $rec;
     }
     
     /**
