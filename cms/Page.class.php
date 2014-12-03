@@ -66,9 +66,9 @@ class cms_Page extends page_Html {
             $this->push('Expires: ' . gmdate("D, d M Y H:i:s", time() + $expires) . ' GMT', 'HTTP_HEADER');
             $this->push('-Pragma', 'HTTP_HEADER');
         } else {
-            $this->push('Cache-Control: no-cache, must-revalidate', 'HTTP_HEADER');
-            $this->push('Pragma: no-cache', 'HTTP_HEADER');
-            $this->push('Expires: Mon, 26 Jul 1997 05:00:00 GMT', 'HTTP_HEADER');
+            $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
+            //$this->push('Pragma: no-cache', 'HTTP_HEADER');
+            $this->push('Expires: -1', 'HTTP_HEADER');
         }
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
