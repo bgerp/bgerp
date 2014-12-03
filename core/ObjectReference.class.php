@@ -181,8 +181,8 @@ class core_ObjectReference
     /**
      * Пртоверка дали имаме право да изпълним дадено действие с обекта
      */
-    public function haveRightFor($action)
+    public function haveRightFor($action, $userId = NULL)
     {
-    	return $this->getInstance()->haveRightFor($action, $this->that);
+    	return $this->getInstance()->haveRightFor($action, $this->that, $userId);
     }
 }
