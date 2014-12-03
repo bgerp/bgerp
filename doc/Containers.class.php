@@ -1491,7 +1491,7 @@ class doc_Containers extends core_Manager
         $docRow = $doc->getDocumentRow();
         
         // Ако има права за сингъла на документа
-        if ($doc->instance->haveRightFor('single', $doc->that)) {
+        if ($doc->haveRightFor('single')) {
             
             // Да е линк към сингъла
             $url = array($doc, 'single', $doc->that);

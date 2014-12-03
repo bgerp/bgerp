@@ -510,7 +510,7 @@ class acc_plg_Contable extends core_Plugin
         			 $Cover = doc_Folders::getCover($rec->folderId);
         			 $title = $Cover->getTitleById();
         			
-        			 if($Cover->instance->haveRightFor('single', $Cover->that)){
+        			 if($Cover->haveRightFor('single')){
         				 $title = ht::createLinkRef($title, array($Cover->className, 'single', $Cover->that));
         			 }
         				
