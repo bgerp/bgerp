@@ -230,7 +230,7 @@ class acc_Articles extends core_Master
         
         if ($rec->originId) {
             $doc = doc_Containers::getDocument($rec->originId);
-            $row->reason = ht::createLink($row->reason, array($doc->instance, 'single', $doc->that));
+            $row->reason = ht::createLink($row->reason, array($doc->getInstance(), 'single', $doc->that));
         }
     }
     

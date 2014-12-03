@@ -755,7 +755,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Ако папката е на контрагент
     	if($Cover->haveInterface('doc_ContragentDataIntf')){
-    		$groupList = $Cover->fetchField($Cover->instance->groupsField);
+    		$groupList = $Cover->fetchField($Cover->getInstance()->groupsField);
     		$clientGroupId = crm_Groups::fetchField("#sysId = '{$this->crmDefGroup}'");
     		
     		// и той е в група 'клиенти'

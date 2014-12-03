@@ -124,7 +124,7 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     public static function getClosedDealAmount($threadId)
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$jRecs = acc_Journal::getEntries(array($firstDoc->instance, $firstDoc->that));
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
     
     	$cost = acc_Balances::getBlAmounts($jRecs, '6913', 'debit')->amount;
     	$inc = acc_Balances::getBlAmounts($jRecs, '7913', 'credit')->amount;
@@ -215,7 +215,7 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
-    	if(!($firstDoc->instance instanceof findeals_Deals)) return FALSE;
+    	if(!($firstDoc->getInstance() instanceof findeals_Deals)) return FALSE;
     	
     	return TRUE;
     }

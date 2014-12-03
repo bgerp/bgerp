@@ -356,7 +356,7 @@ class log_Documents extends core_Manager
                 $doc = doc_Containers::getDocument($forwardRec['containerId']);
 
                 // Ако имаме права за сингъл на документ
-                if ($doc->instance->haveRightFor('single', $doc->that)) {
+                if ($doc->haveRightFor('single')) {
                 
                     // Вербални данни на докуемент
                     $docRow = $doc->getDocumentRow();

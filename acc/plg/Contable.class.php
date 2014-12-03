@@ -504,10 +504,24 @@ class acc_plg_Contable extends core_Plugin
         		$res = acc_Operations::getTitleById($reasonCode, FALSE);
         	} else {
         		
-        		// Aко няма основание, но журнала на документа има връщаме него
-        		if($jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $id)){
-        			$Varchar = cls::get('type_Varchar');
-        			$res = $Varchar->toVerbal($jRec->reason);
+        		// Ако документа е в папка на контрагент връщаме му името за основание
+        		if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
+        			 $rec = $mvc->fetchRec($id);
+        			 $Cover = doc_Folders::getCover($rec->folderId);
+        			 $title = $Cover->getTitleById();
+        			
+        			 if($Cover->haveRightFor('single')){
+        				 $title = ht::createLinkRef($title, array($Cover->className, 'single', $Cover->that));
+        			 }
+        				
+        			 $res = $title;
+        		} else {
+        			
+        			// Aко няма основание, но журнала на документа има връщаме него
+        			if($jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $id)){
+        				$Varchar = cls::get('type_Varchar');
+        				$res = $Varchar->toVerbal($jRec->reason);
+        			}
         		}
         	}
         }

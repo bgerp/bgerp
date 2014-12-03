@@ -340,7 +340,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	// Трябва фактурата основание да не е ДИ или КИ
     	expect($invArr['type'] == 'invoice');
     	
-    	$number = $origin->instance->recToVerbal((object)$invArr)->number;
+    	$number = $origin->getInstance()->recToVerbal((object)$invArr)->number;
     	 
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
     	$invArr['reason'] = tr("|{$caption} към фактура|* №{$number} |издадена на|* {$invDate}");

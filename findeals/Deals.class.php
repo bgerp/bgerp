@@ -818,7 +818,7 @@ class findeals_Deals extends deals_DealBase
     
     	// Ако папката е на контрагент
     	if($Cover->haveInterface('doc_ContragentDataIntf')){
-    		$groupList = $Cover->fetchField($Cover->instance->groupsField);
+    		$groupList = $Cover->fetchField($Cover->getInstance()->groupsField);
     		$debitGroupId = crm_Groups::fetchField("#sysId = 'debitors'");
     		$creditGroupId = crm_Groups::fetchField("#sysId = 'creditors'");
     		

@@ -236,7 +236,7 @@ abstract class deals_ClosedDeals extends core_Master
         $rec = &$form->rec;
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $rec->docId = $firstDoc->that;
-        $rec->docClassId = $firstDoc->instance()->getClassId();
+        $rec->docClassId = $firstDoc->getInstance()->getClassId();
         $rec->classId = $mvc->getClassId();
     }
     
@@ -438,7 +438,7 @@ abstract class deals_ClosedDeals extends core_Master
             $origin = $mvc->getOrigin($rec);
             
             if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
-            	$item = acc_Items::fetchItem($origin->instance, $origin->that);
+            	$item = acc_Items::fetchItem($origin->getInstance(), $origin->that);
             	if(is_null($item->lastUseOn)){
             	
             		// Ако перото на сделката не е използвано, не може да се приключи
@@ -620,7 +620,7 @@ abstract class deals_ClosedDeals extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         
         if($firstDoc->haveInterface('acc_TransactionSourceIntf')){
-            $dates[] = $firstDoc->fetchField($firstDoc->instance->valiorFld);
+            $dates[] = $firstDoc->fetchField($firstDoc->getInstance()->valiorFld);
         }
         
         // Обхождаме всички документи в нишката и им извличаме вальорите
@@ -630,7 +630,7 @@ abstract class deals_ClosedDeals extends core_Master
             foreach ($desc as $doc){
                 if($doc->haveInterface('acc_TransactionSourceIntf') && ($doc->fetchField('state') == 'active' || $doc->fetchField('state') == 'closed')){
                     if($doc->that != $rec->id && $doc->getClassId() != $rec->classId){
-                        $dates[] = $doc->fetchField($doc->instance->valiorFld);
+                        $dates[] = $doc->fetchField($doc->getInstance()->valiorFld);
                     }
                 }
             }

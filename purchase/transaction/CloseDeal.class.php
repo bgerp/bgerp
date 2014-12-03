@@ -76,7 +76,7 @@ class purchase_transaction_CloseDeal
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	$docRec = cls::get($rec->docClassId)->fetch($rec->docId);
     	
-    	$dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
+    	$dealItem = acc_Items::fetch("#classId = {$firstDoc->getInstance()->getClassId()} AND #objectId = '$firstDoc->that' ");
     	
     	// Създаване на обекта за транзакция
     	$result = (object)array(

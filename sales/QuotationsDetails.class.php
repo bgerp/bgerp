@@ -537,11 +537,11 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public function insertFromSpecification($rec, $origin, $dRows = array())
     {
-    	$docClassId = $origin->instance->getClassId();
+    	$docClassId = $origin->getInstance()->getClassId();
     	$docId = $origin->that;
     
     	if(!$specRec = techno_Specifications::fetchByDoc($docClassId, $docId)){
-    		$specId  = techno_Specifications::forceRec($origin->instance, $origin->fetch());
+    		$specId  = techno_Specifications::forceRec($origin->getInstance(), $origin->fetch());
     		$specRec = techno_Specifications::fetch($specId);
     	}
     	
