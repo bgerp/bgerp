@@ -416,7 +416,7 @@ class core_Array
      * @param mixed $keyFields - Уникални полета
      * @param mixed $valueFields - стойностти които ще сравняваме
      * 
-     * @return array() ['update'] - масив със стойностти за обновяване
+     * @return array ['update'] - масив със стойностти за обновяване
      * 				   ['insert'] - масив със стойностти за добавяне
      * 				   ['delete'] - записи от съществуващите, несрещащи се в $new
      */

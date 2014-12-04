@@ -332,7 +332,7 @@ class bank_Accounts extends core_Master {
      * @param int $contragentId - контрагент
      * @param mixed $contragentClass - класа на контрагента
      * @param int $intKeys - дали ключовете да са инт
-     * @return array() $suggestions - Масив от сметките на клиента
+     * @return array $suggestions - Масив от сметките на клиента
      */
     static function getContragentIbans($contragentId, $contragentClass, $intKeys = FALSE)
     {

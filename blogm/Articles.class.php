@@ -874,7 +874,7 @@ class blogm_Articles extends core_Master {
      * Имплементиране на интерфейсния метод getItems от cms_FeedsSourceIntf
      * @param int $itemsCnt
      * @param enum $lg
-     * @return array()
+     * @return array
      */
     function getItems($itemsCnt, $lg, $like = NULL)
     {
