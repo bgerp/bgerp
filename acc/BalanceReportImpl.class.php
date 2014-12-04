@@ -156,6 +156,26 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         $accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
         $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to));
         $data->recs = $Balance->getBalance($accSysId);
+        if(count($data->recs)){
+        	foreach ($data->recs as $rec){
+        		foreach (range(1, 3) as $i){
+        			if(!empty($rec->{"ent{$i}Id"})){
+        				$this->cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
+        			}
+        		}
+        	}
+        	
+        	if(count($this->cache)){
+	        	$iQuery = acc_Items::getQuery();
+	            $iQuery->show("num");
+	            $iQuery->in('id', $this->cache);
+	            
+	            while($iRec = $iQuery->fetch()){
+	                $this->cache[$iRec->id] = $iRec->num;
+	            }
+        	}
+        }
+        
         
         $this->filterRecsByItems($data);
         
@@ -362,11 +382,11 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      	
      	 if(!empty($data->rec->action)){
          	$cmd = ($data->rec->action == 'filter') ? 'default' : 'group';
-         	
          	$Balance->doGrouping($data, (array)$data->rec, $cmd, $data->recs);
          }
          
-         $Balance->canonizeSortRecs($data);
+         
+         $Balance->canonizeSortRecs($data, $this->cache);
       }
        
        

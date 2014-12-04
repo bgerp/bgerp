@@ -144,7 +144,7 @@ class acc_BalanceDetails extends core_Detail
             
             $data->allRecs = $data->recs;
             
-            $mvc->canonizeSortRecs($data);
+            $mvc->canonizeSortRecs($data, $this->cache);
             
             // Преизчисляваме пейджъра с новия брой на записите
             $conf = core_Packs::getConfig('acc');
@@ -172,7 +172,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Канонизира и подрежда записите
      */
-    public function canonizeSortRecs(&$data)
+    public function canonizeSortRecs(&$data, $cache)
     {
     	// Обхождаме записите, създаваме уникално поле за сортиране
     	foreach ($data->recs as $id => &$rec){
@@ -184,7 +184,7 @@ class acc_BalanceDetails extends core_Detail
     			if(isset($rec->{"grouping{$i}"})){
     				$sortField .= $rec->{"grouping{$i}"};
     			} else {
-    				$sortField .= $mvc->cache[$rec->{"ent{$i}Id"}];
+    				$sortField .= $cache[$rec->{"ent{$i}Id"}];
     			}
     		}
     		 
@@ -620,9 +620,6 @@ class acc_BalanceDetails extends core_Detail
         $form = cls::get('core_Form');
         
         // Запомняме кои пера участват в баланса на тази сметка и показваме само тях в списъка
-        $items = array();
-        $cQuery = clone $query;
-        $cQuery->show('ent1Id,ent2Id,ent3Id');
         
         while ($rec = $cQuery->fetch()) {
             foreach (range(1, 3) as $i){
