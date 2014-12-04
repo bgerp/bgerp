@@ -53,6 +53,12 @@ class bulmar_InvoiceExport extends core_Manager {
     
     
     /**
+     * Кеш
+     */
+    private $cache = array();
+    
+    
+    /**
      * Подготвя формата за експорт
      * 
      * @param core_Form $form
