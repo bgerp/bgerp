@@ -189,10 +189,6 @@ class acc_BalanceReportImpl extends frame_BaseDriver
                 if($count >= $start && $count <= $end){
                     $rec->id = $count + 1;
                     $row = $this->getVerbalDetail($rec);
-                    
-                    if($row->blAmount != $row->blQuantity){
-                        //$data->hideQuantities = FALSE;
-                    }
                     $data->rows[$id] = $row;
                 }
                 
