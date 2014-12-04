@@ -1223,7 +1223,7 @@ class doc_DocumentPlg extends core_Plugin
                         $docMvc = doc_Containers::getDocument($oRec->containerId);
                         
                         // Ако може да е начало на нишка
-                        $haveRightForClone = ($docMvc->instance->canAddToFolder($oRec->folderId) === FALSE) ? FALSE : TRUE;
+                        $haveRightForClone = ($docMvc->getInstance()->canAddToFolder($oRec->folderId) === FALSE) ? FALSE : TRUE;
                     }
                 } else {
                     
@@ -1237,7 +1237,7 @@ class doc_DocumentPlg extends core_Plugin
                         $docMvc = doc_Containers::getDocument($oRec->containerId);
                         
                         // Ако може да се добавя в нишката
-                        $haveRightForClone = ($docMvc->instance->canAddToThread($oRec->threadId) === FALSE) ? FALSE : TRUE;
+                        $haveRightForClone = ($docMvc->getInstance()->canAddToThread($oRec->threadId) === FALSE) ? FALSE : TRUE;
                     }
                 }
                 

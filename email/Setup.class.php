@@ -360,7 +360,7 @@ class email_Setup extends core_ProtoSetup
             // От имейла извличаме стойността на полето имейл и обновяваме записа
             $doc = doc_Containers::getDocument($rec->containerId);
             if (($doc->instance instanceof email_Outgoings) && $doc->that) {
-                $emailRec = $doc->instance->fetch($doc->that);
+                $emailRec = $doc->getInstance()->fetch($doc->that);
                 
                 $rec->state = $emailRec->state;
                 
