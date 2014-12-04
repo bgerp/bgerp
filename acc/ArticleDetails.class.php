@@ -45,7 +45,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, debitAccId, debitQuantity=Дебит->К-во, debitPrice=Дебит->Цена, creditAccId, creditQuantity=Кредит->К-во, creditPrice=Кредит->Цена, amount=Сума, reason=Операция';
+    var $listFields = 'tools=Пулт, debitAccId, debitQuantity=Дебит->К-во, debitPrice=Дебит->Цена, creditAccId, creditQuantity=Кредит->К-во, creditPrice=Кредит->Цена, amount=Сума, reason=Информация';
     
     
     /**
@@ -108,7 +108,7 @@ class acc_ArticleDetails extends doc_Detail
     function description()
     {
         $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
-        $this->FLD('reason', 'varchar', 'caption=Операция');
+        $this->FLD('reason', 'varchar', 'caption=Информация');
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
             'silent,caption=Дебит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
