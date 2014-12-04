@@ -146,7 +146,9 @@ class acc_BalanceDetails extends core_Detail
             
             $mvc->canonizeSortRecs($data);
             
-            // Махаме тези записи които не са в диапазона на страницирането
+            // Преизчисляваме пейджъра с новия брой на записите
+            $conf = core_Packs::getConfig('acc');
+            
             $count = 0;
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS));
             $Pager->itemsCount = count($data->recs);
@@ -156,6 +158,7 @@ class acc_BalanceDetails extends core_Detail
             $start = $data->pager->rangeStart;
             $end = $data->pager->rangeEnd - 1;
            
+            // Махаме тези записи които не са в диапазона на страницирането
             foreach ($data->recs as $id => $rec1){
             	if(!($count >= $start && $count <= $end)){
             		unset($data->recs[$id]);
@@ -171,9 +174,6 @@ class acc_BalanceDetails extends core_Detail
      */
     public function canonizeSortRecs(&$data)
     {
-    	// Преизчисляваме пейджъра с новия брой на записите
-    	$conf = core_Packs::getConfig('acc');
-    	
     	// Обхождаме записите, създаваме уникално поле за сортиране
     	foreach ($data->recs as $id => &$rec){
     		$sortField = '';
