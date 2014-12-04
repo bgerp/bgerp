@@ -356,7 +356,7 @@ class bank_Accounts extends core_Master {
     /**
      * Добавя нова банкова сметка
      *
-     * @param iban_Type(64) $iban - iban
+     * @param iban_Type $iban - iban
      * @param int $currency - валута
      * @param int $contragentClsId - класа на контрагента
      * @param int $contragentId - ид на контрагента

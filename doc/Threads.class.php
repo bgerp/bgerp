@@ -784,7 +784,7 @@ class doc_Threads extends core_Manager
              *  премести съответстващия му контейнер.
              */
             expect($rec->docId, $rec);
-            $doc->instance->save(
+            $doc->getInstance()->save(
                 (object)array(
                     'id' => $rec->docId,
                     'folderId' => $destFolderId,
