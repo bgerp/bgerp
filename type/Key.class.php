@@ -26,6 +26,14 @@ class type_Key extends type_Int {
     
     
     /**
+     * Хендлър на класа
+     * 
+     * @var string
+     */
+    public $handler;
+    
+    
+    /**
      * Инициализиране на типа
      */
     function getSelectFld()
