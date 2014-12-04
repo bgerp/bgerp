@@ -14,28 +14,33 @@
  */
 class acc_ActiveShortBalance {
     
+	
     /**
      * Променлива в която ще се помни баланса
      */
     private $balance = array();
+    
     
     /**
      * Извлечените записи
      */
     private $recs;
     
+    
     /**
      * От дата
      */
     private $from;
+    
     
     /**
      * До дата
      */
     private $to;
     
+    
     /**
-     * acc_Balances
+     * @var acc_Balances
      */
     private $acc_Balances;
     
