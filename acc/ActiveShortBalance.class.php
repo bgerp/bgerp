@@ -205,6 +205,7 @@ class acc_ActiveShortBalance {
             $bQuery = acc_BalanceDetails::getQuery();
             $bQuery->where("#balanceId = {$balanceRec->id}");
             $bQuery->show('accountId,ent1Id,ent2Id,ent3Id,blAmount,blQuantity');
+            $bQuery->where('#blQuantity != 0 OR #blAmount != 0');
             
             while($bRec = $bQuery->fetch()){
                 

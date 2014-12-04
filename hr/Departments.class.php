@@ -127,7 +127,7 @@ class hr_Departments extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name, type, staff, locationId, employmentTotal, employmentOccupied, schedule';
+    public $listFields = 'id, name, type, staff, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
 
     
     // Подготвяме видовете графики 
@@ -177,7 +177,7 @@ class hr_Departments extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	//$data->form->setDefault('locationId',crm_Locations::getOwnLocations());
+    	//bp($data->form->setDefault('locationId',crm_Locations::getOwnLocations()));
         
         // Да не може да се слага в звена, които са в неговия състав
         if($id = $data->form->rec->id) {
@@ -272,6 +272,8 @@ class hr_Departments extends core_Master
                 }
             }
         }
+        
+        $mvc->currentTab = "Структура->Таблица";
     }
     
     
@@ -382,6 +384,15 @@ class hr_Departments extends core_Master
         } else {
             $mvc->currentTab = "Структура->Таблица";
         }
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$mvc->currentTab = "Структура->Таблица";
     }
     
     

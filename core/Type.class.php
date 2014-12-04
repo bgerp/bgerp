@@ -18,6 +18,30 @@ class core_Type extends core_BaseClass
 {
     
     
+	/**
+	 * Параметрите на типа
+	 *
+	 * @var array
+	 */
+	public $params;
+	
+	
+	/**
+	 * Опциите на типа
+	 *
+	 * @var array
+	 */
+	public $options;
+	
+	
+	/**
+	 * Предложенията с опции на типа
+	 *
+	 * @var array
+	 */
+	public $suggestions;
+	
+	
     /**
      * Конструктор. Дава възможност за инициализация
      */

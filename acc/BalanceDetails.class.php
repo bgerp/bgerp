@@ -144,9 +144,11 @@ class acc_BalanceDetails extends core_Detail
             
             $data->allRecs = $data->recs;
             
-            $mvc->canonizeSortRecs($data);
+            $mvc->canonizeSortRecs($data, $this->cache);
             
-            // Махаме тези записи които не са в диапазона на страницирането
+            // Преизчисляваме пейджъра с новия брой на записите
+            $conf = core_Packs::getConfig('acc');
+            
             $count = 0;
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS));
             $Pager->itemsCount = count($data->recs);
@@ -156,6 +158,7 @@ class acc_BalanceDetails extends core_Detail
             $start = $data->pager->rangeStart;
             $end = $data->pager->rangeEnd - 1;
            
+            // Махаме тези записи които не са в диапазона на страницирането
             foreach ($data->recs as $id => $rec1){
             	if(!($count >= $start && $count <= $end)){
             		unset($data->recs[$id]);
@@ -169,11 +172,8 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Канонизира и подрежда записите
      */
-    public function canonizeSortRecs(&$data)
+    public function canonizeSortRecs(&$data, $cache)
     {
-    	// Преизчисляваме пейджъра с новия брой на записите
-    	$conf = core_Packs::getConfig('acc');
-    	
     	// Обхождаме записите, създаваме уникално поле за сортиране
     	foreach ($data->recs as $id => &$rec){
     		$sortField = '';
@@ -184,7 +184,7 @@ class acc_BalanceDetails extends core_Detail
     			if(isset($rec->{"grouping{$i}"})){
     				$sortField .= $rec->{"grouping{$i}"};
     			} else {
-    				$sortField .= $mvc->cache[$rec->{"ent{$i}Id"}];
+    				$sortField .= $cache[$rec->{"ent{$i}Id"}];
     			}
     		}
     		 
@@ -620,9 +620,6 @@ class acc_BalanceDetails extends core_Detail
         $form = cls::get('core_Form');
         
         // Запомняме кои пера участват в баланса на тази сметка и показваме само тях в списъка
-        $items = array();
-        $cQuery = clone $query;
-        $cQuery->show('ent1Id,ent2Id,ent3Id');
         
         while ($rec = $cQuery->fetch()) {
             foreach (range(1, 3) as $i){
