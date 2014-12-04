@@ -211,7 +211,7 @@ class cal_TaskProgresses extends core_Detail
 			
 			foreach($data->recs as $rec){
 				
-				$row = $this->recToVerbal($rec);
+				$row = $mvc->recToVerbal($rec);
 				
 				$cTpl = $res->getBlock("COMMENT_LI");
 				$cTpl->placeObject($row);
