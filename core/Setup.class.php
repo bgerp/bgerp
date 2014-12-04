@@ -284,7 +284,7 @@ class core_Setup extends core_ProtoSetup {
         $rec->controller = 'core_Cache';
         $rec->action = 'DeleteExpiredData';
         $rec->period = 24 * 60;
-        $rec->offset = 2 * 60;
+        $rec->offset = rand(60, 180); // от 1h до 3h
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
