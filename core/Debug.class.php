@@ -758,7 +758,7 @@ class core_Debug
         }
         
         if($editUrl) {
-            $title = "<a href='edit:{$editUrl}'>{$title}</a>";
+            $title = "<a href='{$editUrl}'>{$title}</a>";
         }
 
         return $title;
