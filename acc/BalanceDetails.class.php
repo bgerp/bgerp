@@ -395,11 +395,6 @@ class acc_BalanceDetails extends core_Detail
                     }
                 }
             }
-           
-            // Ако групираме по с-во премахваме бутона за хронологична справка
-            if(count($groupedBy)){
-                unset($data->listFields['history']);
-            }
             
             unset($data->listFields['history'], $data->listFields['baseQuantity'], $data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
             
