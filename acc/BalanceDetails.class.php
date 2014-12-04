@@ -81,6 +81,12 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Работен кеш
+     */
+    private $buffer = array();
+    
+    
+    /**
      * Еденично заглавие
      */
     public $title = 'Детайли на баланса';
@@ -139,6 +145,29 @@ class acc_BalanceDetails extends core_Detail
             
             // Преизчисляваме пейджъра с новия брой на записите
             $conf = core_Packs::getConfig('acc');
+            
+            // Обхождаме записите, създаваме уникално поле за сортиране
+            foreach ($data->recs as $id => &$rec){
+            	$sortField = '';
+            	foreach (range(1, 3) as $i){
+            		
+            		if(empty($data->listFields["ent{$i}Id"])) continue;
+            		
+            		if(isset($rec->{"grouping{$i}"})){
+                		$sortField .= $rec->{"grouping{$i}"};
+            		} else {
+            			$sortField .= $mvc->cache[$rec->{"ent{$i}Id"}];
+            		}
+            	}
+            	
+            	$rec->sortField = strtolower(str::utf2ascii($sortField));
+            }
+            
+            // Сортираме записите според полето за сравнение
+            usort($data->recs, array($mvc, "sortRecs"));
+            
+            // Махаме тези записи които не са в диапазона на страницирането
+            $count = 0;
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS));
             $Pager->itemsCount = count($data->recs);
             $Pager->calc();
@@ -146,13 +175,8 @@ class acc_BalanceDetails extends core_Detail
             
             $start = $data->pager->rangeStart;
             $end = $data->pager->rangeEnd - 1;
-            
-            // Махаме тези записи които не са в диапазона на страницирането
-            $count = 0;
-            
-            usort($data->recs, array($mvc, "sortRecs"));
-            
-            foreach ($data->recs as $id => $rec){
+           
+            foreach ($data->recs as $id => $rec1){
             	if(!($count >= $start && $count <= $end)){
             		unset($data->recs[$id]);
             	}
@@ -169,28 +193,9 @@ class acc_BalanceDetails extends core_Detail
      */
     private function sortRecs($a, $b)
     {
-        $cache = $this->cache;
-        
-        foreach (range(1, 3) as $i){
-            if(isset($a->{"grouping{$i}"})){
-                ${"cmpA{$i}"} = $a->{"grouping{$i}"};
-                ${"cmpB{$i}"} = $b->{"grouping{$i}"};
-            } else {
-                ${"cmpA{$i}"} = $cache[$a->{"ent{$i}Id"}];
-                ${"cmpB{$i}"} = $cache[$b->{"ent{$i}Id"}];
-            }
-            
-            // Ако са равни продължаваме
-            if(${"cmpA{$i}"} == ${"cmpB{$i}"}) continue;
-            
-            ${"cmpA{$i}"} = mb_strtolower(${"cmpA{$i}"});
-            ${"cmpB{$i}"} = mb_strtolower(${"cmpB{$i}"});
-            
-            return (strnatcasecmp(${"cmpA{$i}"}, ${"cmpB{$i}"}) < 0) ? -1 : 1;
-        }
-        
-        // Ако всички са еднакви оставяме ги така
-        return 0;
+    	if($a->sortField == $b->sortField) return 0;
+    	 
+    	return (strnatcasecmp($a->sortField, $b->sortField) < 0) ? -1 : 1;
     }
     
     

@@ -608,6 +608,8 @@ class acc_Balances extends core_Master
         // Ако не е подаден баланс, взимаме последния
         if(!$rec){
             $rec = static::getLastBalance();
+        } else {
+        	$rec = static::fetchRec($rec);
         }
         
         if ($accountRec->id && strlen($num) >= 3) {

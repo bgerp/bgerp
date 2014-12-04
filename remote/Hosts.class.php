@@ -88,16 +88,18 @@ class remote_Hosts extends core_Master
     }
 
 	/**
-	 * След подготвяне на формата добавяне/редакатиране
+	 * След подготвяне на формата добавяне/редактиране
 	 */
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 	    $form = &$data->form;
 	    $rec  = &$form->rec;
-	    bp($form);
-        foreach ($rec->config as $name => $value) {
-            $form->setDefault($name, $value);
-        }
+
+	    if (is_array($rec->config)) {
+    	    foreach ($rec->config as $name => $value) {
+                $form->setDefault($name, $value);
+            }
+	    }
     }
     
     

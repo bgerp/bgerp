@@ -202,6 +202,9 @@ class core_Cron extends core_Manager
         
         // Коя е текущата минута?
         $timeStamp = time();
+        // Добавяме отместването във времето за timezone
+        $timeStamp += date('Z');
+        
         $currentMinute = round($timeStamp / 60);
         
         // Определяме всички процеси, които трябва да се стартират през тази минута
