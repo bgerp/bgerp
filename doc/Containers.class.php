@@ -1735,7 +1735,7 @@ class doc_Containers extends core_Manager
         $rec1->controller = $mvc->className;
         $rec1->action = 'notifyDraftBusinessDoc';
         $rec1->period = 43200;
-        $rec1->offset = rand(4260, 4380); // от 71h do 73h
+        $rec1->offset = rand(4260, 4380); // от 71h до 73h
         $rec1->delay = 0;
         $rec1->timeLimit = 200;
         $res .= core_Cron::addOnce($rec1);
