@@ -31,6 +31,12 @@ class accda_Groups extends core_Master
     
     
     /**
+     * Заглавие в единствено число
+     */
+    public $singleTitle = "ДА Група";
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_SaveAndNew, 
