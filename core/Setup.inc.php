@@ -924,7 +924,7 @@ if($step == start) {
             $res = $ef->install();
             file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'Start OK ...' . $res);
         } catch (core_exception_Expect $e) {
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getMessage());
+            file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getMessage() . "\nDump: " . core_Type::mixedToString($e->getDump()));
         }
     } catch (Exception $e) {
         file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
