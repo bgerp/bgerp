@@ -92,6 +92,7 @@ class acc_BalanceHistory extends core_Manager
         $data->balanceRec = $balanceRec;
         $data->fromDate = $from;
         $data->toDate = $to;
+        $data->isGrouped = 'yes';
         
         $this->prepareSingleToolbar($data);
         
@@ -275,8 +276,10 @@ class acc_BalanceHistory extends core_Manager
         $filter->FNC('ent1Id', 'int', 'input=hidden');
         $filter->FNC('ent2Id', 'int', 'input=hidden');
         $filter->FNC('ent3Id', 'int', 'input=hidden');
-        $filter->showFields = 'fromDate,toDate';
+        $filter->FNC('isGrouped', 'enum(yes=Да,no=Не)', 'input,caption=Групиране');
+        $filter->showFields = 'fromDate,toDate,isGrouped';
         
+        $filter->setDefault('isGrouped', 'yes');
         $filter->setDefault('accNum', $data->rec->accountNum);
         $filter->setDefault('ent1Id', $data->rec->ent1Id);
         $filter->setDefault('ent2Id', $data->rec->ent2Id);
@@ -300,6 +303,10 @@ class acc_BalanceHistory extends core_Manager
         
         // Ако има изпратени данни
         if($filter->rec){
+        	if($filter->rec->isGrouped){
+        		$data->isGrouped = $filter->rec->isGrouped;
+        	}
+        	
             if($filter->rec->from){
                 $data->fromDate = $filter->rec->from;
             }
@@ -421,12 +428,22 @@ class acc_BalanceHistory extends core_Manager
                             $add = TRUE;
                             $entry[$quantityField] = $jRec->{$quantityField};
                             ${"{$type}Quantity"} += $entry[$quantityField];
+                            
+                            if($data->isGrouped !== 'yes'){
+                            	$calcedBalance[$index]['blQuantity'] += $jRec->{$quantityField} * $sign;
+                            	$entry['blQuantity'] = $calcedBalance[$index]['blQuantity'];
+                            }
                         }
                         
                         if (!empty($jRec->amount)) {
                             $add = TRUE;
                             $entry["{$type}Amount"] = $jRec->amount;
                             ${"{$type}Amount"} += $entry["{$type}Amount"];
+                            
+                            if($data->isGrouped !== 'yes'){
+                            	$calcedBalance[$index]['blAmount'] += $jRec->amount * $sign;
+                            	$entry['blAmount'] = $calcedBalance[$index]['blAmount'];
+                            }
                         }
                     }
                 }
@@ -437,12 +454,13 @@ class acc_BalanceHistory extends core_Manager
             }
            
             // Правим групиране на записите
-            if(count($data->recs)){
+            if(count($data->recs) && $data->isGrouped === 'yes'){
             	$groupedRecs = array();
             	
             	// Групираме всички записи от журнала по документи
             	foreach ($data->recs as $dRec){
             		$index = $dRec['docType'] . "|" . $dRec['docId'] . "|" . $dRec['reasonCode'];
+            		
             		if(!isset($groupedRecs[$index])){
             			$groupedRecs[$index] = $dRec;
             		} else {
