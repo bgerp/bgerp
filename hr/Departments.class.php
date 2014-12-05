@@ -22,6 +22,12 @@ class hr_Departments extends core_Master
 
     
     /**
+     * Необходими пакети
+     */
+    public $depends = 'acc=0.1';
+    
+    
+    /**
      * Детайли на този мастер
      */
     public $details = 'AccReports=acc_ReportDetails,Grafic=hr_WorkingCycles,Positions=hr_Positions';
