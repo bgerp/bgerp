@@ -103,6 +103,7 @@ class mp_Resources extends core_Master
     {
     	$this->FLD('title', 'varchar', 'caption=Наименование,mandatory');
     	$this->FLD('type', 'enum(equipment=Оборудване,labor=Труд,material=Материал)', 'caption=Вид,mandatory,silent');
+    	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,mandatory');
     	$this->FLD('systemId', 'varchar', 'caption=Системен №,input=none');
     	
     	// Поставяме уникален индекс
