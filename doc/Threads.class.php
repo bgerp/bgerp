@@ -203,6 +203,9 @@ class doc_Threads extends core_Manager
                     $resArr['folderId']++;
                 }
             }
+            
+            // Обновяваме нишката
+            self::updateThread($rec->id);
         }
         
         // Връщаме старото състояние за ловговането в дебъг
