@@ -74,9 +74,10 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     		$form->setField('action', 'input');
     		
     		if($form->rec->id){
-    			if(frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->filter->accountId){
-    				//unset($form->rec->grouping1, $form->rec->grouping2, $form->rec->grouping3, $form->rec->feat1, $form->rec->feat2, $form->rec->feat3);
-    				//Request::push(array('grouping1' => NULL, 'grouping2' => NULL, 'grouping3' => NULL, 'feat1' => NULL, 'feat2' => NULL, 'feat3' => NULL));
+    			
+    			if(frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->accountId){
+    				unset($form->rec->grouping1, $form->rec->grouping2, $form->rec->grouping3, $form->rec->feat1, $form->rec->feat2, $form->rec->feat3);
+    				Request::push(array('grouping1' => NULL, 'grouping2' => NULL, 'grouping3' => NULL, 'feat1' => NULL, 'feat2' => NULL, 'feat3' => NULL));
     			}
     		}
     		
@@ -360,6 +361,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         		if(!empty($data->rec->{"grouping{$i}"})){
         			$data->row->groupBy .= acc_Items::getVerbal($data->rec->{"grouping{$i}"}, 'title') . ", ";
         		} elseif(!empty($data->rec->{"feat{$i}"})){
+        			
+        			$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? "[По пера]" : $data->rec->{"feat{$i}"};
         			$data->row->groupBy .= $Varchar->toVerbal($data->rec->{"feat{$i}"}) . ", ";
         		}
         	}
