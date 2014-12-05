@@ -152,7 +152,7 @@ class remote_Hosts extends core_Master
         $timeoutInSeconds = 1;
         if (!($fp = @fsockopen($hostConfig->ip, $hostConfig->port, $errCode, $errStr, $timeoutInSeconds))) {
             throw new core_exception_Expect("{$hostConfig->name}: не може да бъде достигнат");
-        }не може да бъде достигнат
+        }
         fclose($fp);
         
         // Свързваме се по ssh
