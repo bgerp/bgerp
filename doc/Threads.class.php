@@ -171,6 +171,14 @@ class doc_Threads extends core_Manager
         $query->where("#firstContainerId IS NULL");
         $query->orWhere("#folderId IS NULL");
         
+        // Не им се правят обработвки
+        // За да предизвикат стартиране за съответния запис в on_Shutdown
+        $query->orWhere("#allDocCnt IS NULL");
+        $query->orWhere("#pubDocCnt IS NULL");
+        $query->orWhere("#last IS NULL");
+        $query->orWhere("#lastAuthor IS NULL");
+        $query->orWhere("#lastState IS NULL");
+        
         while ($rec = $query->fetch()) {
             
             // Ако има нишка без firstContainerId
@@ -203,6 +211,9 @@ class doc_Threads extends core_Manager
                     $resArr['folderId']++;
                 }
             }
+            
+            // Обновяваме нишката
+            self::updateThread($rec->id);
         }
         
         // Връщаме старото състояние за ловговането в дебъг

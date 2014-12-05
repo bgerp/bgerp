@@ -22,6 +22,12 @@ class hr_Departments extends core_Master
 
     
     /**
+     * Необходими пакети
+     */
+    public $depends = 'acc=0.1';
+    
+    
+    /**
      * Детайли на този мастер
      */
     public $details = 'AccReports=acc_ReportDetails,Grafic=hr_WorkingCycles,Positions=hr_Positions';
@@ -396,40 +402,6 @@ class hr_Departments extends core_Master
     }
     
     
-    /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	if(!self::count()) {
-            // Създаваме пътвият организационни структури да е "Моята организация"
-            $rec = new stdClass();
-            $rec->name = 'Моята Организация ООД';
-            $rec->staff = NULL;
-            $rec->activities = 'yes';
-           
-            self::save($rec);
-    	
-    	// Ако имаме вече създадени организационни структури
-        } else {
-            
-            $query = self::getQuery();
-            
-            // Намираме тези, които са създадени от системата
-            $query->where("#createdBy = -1");
-            
-            if ($query->fetch() == FALSE) {
-            	
-            	$rec = new stdClass();
-            	$rec->name = 'Моята Организация ООД';
-            	$rec->staff = NULL;
-            	$rec->activities = 'yes';
-            	 
-            	self::save($rec);
-            }
-        }
-    }
-    
     /*******************************************************************************************
      * 
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
@@ -519,5 +491,40 @@ class hr_Departments extends core_Master
         $chart = orgchart_Adapter::render_($res);
         
         return $chart;
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    public function loadSetupData()
+    {
+    	if(!self::count()) {
+    		// Създаваме пътвият организационни структури да е "Моята организация"
+    		$rec = new stdClass();
+    		$rec->name = 'Моята Организация ООД';
+    		$rec->staff = NULL;
+    		$rec->activities = 'yes';
+    		 
+    		self::save($rec);
+    		 
+    		// Ако имаме вече създадени организационни структури
+    	} else {
+    	
+    		$query = self::getQuery();
+    	
+    		// Намираме тези, които са създадени от системата
+    		$query->where("#createdBy = -1");
+    	
+    		if ($query->fetch() == FALSE) {
+    			 
+    			$rec = new stdClass();
+    			$rec->name = 'Моята Организация ООД';
+    			$rec->staff = NULL;
+    			$rec->activities = 'yes';
+    	
+    			self::save($rec);
+    		}
+    	}
     }
 }

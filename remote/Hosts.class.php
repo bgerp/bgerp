@@ -151,7 +151,7 @@ class remote_Hosts extends core_Master
         // Проверяваме дали е достъпен
         $timeoutInSeconds = 1;
         if (!($fp = @fsockopen($hostConfig->ip, $hostConfig->port, $errCode, $errStr, $timeoutInSeconds))) {
-            throw new core_exception_Expect("{$hostConfig->name}: не може да бъде достигнат ");
+            throw new core_exception_Expect("{$hostConfig->name}: не може да бъде достигнат");
         }
         fclose($fp);
         
@@ -182,7 +182,6 @@ class remote_Hosts extends core_Master
 
         $connection = self::connect($host);
         
-        
         // Изпълняваме командата
         $stream = ssh2_exec($connection, $command);
         $errorStream = ssh2_fetch_stream($stream, SSH2_STREAM_STDERR);
@@ -202,10 +201,19 @@ class remote_Hosts extends core_Master
      * Качва файл на отдалечен хост
      *
      * @param string $host
-     * @param string $file - път до файла
+     * @param string $fileName - име на локалния файл
      */
-    public static function put($host, $file)
+    public static function put($host, $fileName)
     {
+        
+        $connection = self::connect($host);
+        $content = file_get_contents($fileName);
+        
+        if ($content === FALSE) {
+            throw new core_exception_Expect("Проблем с четенето на файла от локалната система");
+        }
+        
+        self::exec($host, "echo {$content} > $fileName");
         
     }
     
@@ -217,7 +225,8 @@ class remote_Hosts extends core_Master
      */
     public static function get($host, $file)
     {
-    
+        $connection = self::connect($host);
+        
     }
     
 }
