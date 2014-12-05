@@ -41,6 +41,12 @@ class fileman_GalleryImages extends core_Manager
     
     
     /**
+     * Заглавие в единствено число
+     */
+    public $singleTitle = "Картинка от галерията";
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = "plg_RowTools,fileman_Wrapper,plg_Created, fileman_GalleryTitlePlg, plg_Search, fileman_GalleryDialogWrapper";
