@@ -361,6 +361,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         		if(!empty($data->rec->{"grouping{$i}"})){
         			$data->row->groupBy .= acc_Items::getVerbal($data->rec->{"grouping{$i}"}, 'title') . ", ";
         		} elseif(!empty($data->rec->{"feat{$i}"})){
+        			
+        			$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? "[По пера]" : $data->rec->{"feat{$i}"};
         			$data->row->groupBy .= $Varchar->toVerbal($data->rec->{"feat{$i}"}) . ", ";
         		}
         	}
