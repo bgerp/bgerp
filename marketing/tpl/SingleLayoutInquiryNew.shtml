@@ -14,6 +14,9 @@
      
     [#innerState#]
     </div>
+    
+    <!--ET_BEGIN QUANTITY-->
+    [#QUANTITY#]
     <div class='scrolling-holder'>
         <table class='styled-table'>
             <tr>
@@ -39,6 +42,8 @@
             <!--ET_END quantity3-->
         </table>
     </div>
+    <!--ET_END QUANTITY-->
+    
     <div class='scrolling-holder'>
         <table class='styled-table'>
             <tr>

@@ -486,11 +486,6 @@ class marketing_Inquiries2 extends core_Embedder
     				$data->toolbar->addBtn($data->row->innerClass, array('techno2_SpecificationDoc', 'add', 'originId' => $rec->containerId, 'innerClass' => $rec->innerClass), "ef_icon=img/16/specification.png,title=Създаване на нов " . mb_strtolower($data->row->innerClass));
     			}
     		}
-    		// Бутон за генериране на продукт от посочения драйвер
-    		/*$Driver = cls::get($rec->drvId);
-    		if($Driver->haveRightFor('add')){
-    			$data->toolbar->addBtn($Driver->singleTitle, $url, "ef_icon=img/16/view.png,title=Създаване на нов {$Driver->singleTitle}");
-    		}*/
     
     		// Ако може да се създава лица от запитването се слага бутон
     		if($mvc->haveRightFor('makeperson', $rec)){
