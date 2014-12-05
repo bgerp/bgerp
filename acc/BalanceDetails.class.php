@@ -144,7 +144,7 @@ class acc_BalanceDetails extends core_Detail
             
             $data->allRecs = $data->recs;
             
-            $mvc->canonizeSortRecs($data, $this->cache);
+            $mvc->canonizeSortRecs($data, $mvc->cache);
             
             // Преизчисляваме пейджъра с новия брой на записите
             $conf = core_Packs::getConfig('acc');
@@ -621,6 +621,9 @@ class acc_BalanceDetails extends core_Detail
         
         // Запомняме кои пера участват в баланса на тази сметка и показваме само тях в списъка
         
+        $items = array();
+        $cQuery = clone $query;
+        $cQuery->show('ent1Id,ent2Id,ent3Id');
         while ($rec = $cQuery->fetch()) {
             foreach (range(1, 3) as $i){
                 if(!empty($rec->{"ent{$i}Id"})){
