@@ -118,7 +118,7 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,valior,num,title,serial,createdOn,createdBy,isContable';
+    public $listFields = 'tools=Пулт,valior,num,title,serial,createdOn,createdBy';
     
     
     /**
