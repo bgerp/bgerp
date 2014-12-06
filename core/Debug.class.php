@@ -6,6 +6,9 @@ defIfNot('CORE_ENABLE_SUPRESS_ERRORS', TRUE);
 // Кои грешки да се показват?
 defIfNot('CORE_ERROR_REPORTING_LEVEL', E_ERROR | E_PARSE | E_CORE_ERROR | E_STRICT | E_COMPILE_ERROR | E_WARNING);
 
+// Колко секунди да е валидно cookie за дебъг режим?
+defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
+
 
 /**
  * Клас 'core_Debug' ['Debug'] - Функции за дебъг и настройка на приложения
@@ -34,6 +37,12 @@ class core_Debug
      * Това е един начин, да се изключат логовете на дебъгера
      */
     static $isLogging = TRUE;
+    
+
+    /**
+     * Кеш - дали се намираме в DEBUG режим
+     */
+    static $isDebug;
 
 
     /**
@@ -764,5 +773,65 @@ class core_Debug
         return $title;
     }
 
+
+    /**
+     * Дали се намираме в DEBUG режим
+     * Намираме се в DEBUG режим, ако е изпълнено едно от следните неща:
+     * - Константата EF_DEBUG === TRUE
+     * - Текущото ни IP се съдържа в списъка от IP-та, който се намира в константата EF_DEBUG
+     * - Има куки със стойност = 1, чието име е хеш на конкатинираното ни IP, EF_SALT и 'DEBUG'
+     */
+    public static function isDebug()
+    {
+        
+        // Връщаме кеширания резултат ако има такъв
+        if(is_bool(self::$isDebug)) return self::$isDebug;
+        
+        // IP на потребителя
+        $realIpAdd = $_SERVER['REMOTE_ADDR'];
+
+        // Ако не е дефинирана константата или, ако e IP-то ни е от масива
+        if (defined('EF_DEBUG') && (EF_DEBUG === TRUE || strpos('' . EF_DEBUG, $realIpAdd) !== FALSE)) {
+            self::$isDebug = TRUE;
+
+            return TRUE;
+        }
+        
+        $cookieName = self::getDebugCookie();
+ 
+        if($_COOKIE[$cookieName]) {
+            self::$isDebug = TRUE;
+
+            return TRUE;
+        }
+
+        // Не се намираме в DEBUG режим
+        self::$isDebug = FALSE;
+
+        return FALSE;
+    }
+
+    
+    /**
+     * Връща масив с два елемента - име на куки и стойност на куки, които са флаг за дебъг режим
+     * Те за висят от IP адреса на потребителя и от EF_SALT
+     */
+    public static function getDebugCookie()
+    {        
+        $cookie = 'n' . md5(EF_SALT . $_SERVER['REMOTE_ADDR'] . 'DEBUG2');
+
+        return $cookie;
+    }
+
+
+    /**
+     * Задава куки за дебъг режим
+     */
+    public static function setDebugCookie()
+    { 
+        setcookie(self::getDebugCookie(), time(), time() + DEBUG_COOKIE_LIFETIME, '/');
+ 
+        self::$isDebug = TRUE;
+    }
 
 }

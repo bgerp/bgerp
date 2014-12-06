@@ -325,63 +325,6 @@ class core_App
 
 
     /**
-     * Дали се намираме в DEBUG режим
-     */
-    public static function isDebug()
-    {
-        // Ако не е дефинирана константата
-        if (!defined('EF_DEBUG')) return FALSE;
-        
-        // Ако e TRUE
-        if (EF_DEBUG === TRUE) return TRUE;
-        
-        // Дали трябва да се пусне дебъг
-        static $efDebug = FALSE;
-        
-        // Флаг, указващ дали сме търсили за хостове
-        static $hostsFlag = FALSE;
-        
-        // Ако за първи път флизаме във функцията
-        if (!$hostsFlag) {
-            
-            $debugArr = explode(':', EF_DEBUG);
-            
-            // Ако е зададен хоста
-            if (strtolower($debugArr[0]) == 'hosts') {
-                
-                // Масив с хостовете
-                $hostsArr = core_Array::make($debugArr[1]);
-                
-                // IP на потребителя
-                $realIpAdd = $_SERVER['REMOTE_ADDR'];
-                
-                // Обхождаме масива с хостовете
-                foreach ((array)$hostsArr as $host) {
-                    
-                    // Ако се съдържа в нашия списък
-                    if (stripos($realIpAdd, $host) === 0) {
-                        
-                        // Пускаме дебъг режима
-                        ini_set("display_errors", 1);
-                        ini_set("display_startup_errors", 1);
-                        $efDebug = TRUE;
-                        
-                        break;
-                    }
-                }
-            }
-            
-            // Вдигаме флага
-            $hostsFlag = TRUE;
-        }
-        
-        return $efDebug;
-    }
-
-
-
-
-    /**
      * Завършване на изпълнението на програмата
      *
      * @param bool $sendOutput
@@ -389,7 +332,7 @@ class core_App
     public static function shutdown($sendOutput = TRUE)
     {
         
-        if (!static::isDebug() && $sendOutput) {
+        if (!isDebug() && $sendOutput) {
             self::flushAndClose();
         }
 
@@ -440,7 +383,7 @@ class core_App
      */
     public static function halt($err)
     {
-        if (static::isDebug()) {
+        if (isDebug()) {
             echo "<li>" . $err . " | Halt on " . date('d.m.Y H:i:s');
         } else {
             echo "On " . date('d.m.Y H:i:s') . ' a System Error has occurred';

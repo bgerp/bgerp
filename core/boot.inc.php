@@ -290,7 +290,7 @@ function shutdown($sendOutput = TRUE)
  */
 function isDebug()
 {  
-    return core_App::isDebug();
+    return core_Debug::isDebug();
 }
 
 

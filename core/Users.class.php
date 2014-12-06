@@ -962,6 +962,10 @@ class core_Users extends core_Manager
         }
 
         $Users->invoke('afterLogin', array(&$userRec, $inputs, $refresh));
+
+        if(!isDebug() && haveRole('debug')) {
+            core_Debug::setDebugCookie();
+        }
         
         return $userRec;
     }
