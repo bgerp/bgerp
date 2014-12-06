@@ -81,6 +81,18 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Работен кеш
+     */
+    private $buffer = array();
+    
+    
+    /**
+     * Еденично заглавие
+     */
+    public $title = 'Детайли на баланса';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -124,15 +136,20 @@ class acc_BalanceDetails extends core_Detail
     {
         if ($mvc->isDetailed()) {
             if($data->groupingForm->isSubmitted()){
-                $mvc->doGrouping($data, (array)$data->groupingForm->rec, $data->groupingForm->cmd);
+            	$allRecs = $data->qCopy->fetchAll();
+            	$mvc->doGrouping($data, (array)$data->groupingForm->rec, $data->groupingForm->cmd, $allRecs);
             }
             
             if(!count($data->recs)) return;
             
             $data->allRecs = $data->recs;
             
+            $mvc->canonizeSortRecs($data, $mvc->cache);
+            
             // Преизчисляваме пейджъра с новия брой на записите
             $conf = core_Packs::getConfig('acc');
+            
+            $count = 0;
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS));
             $Pager->itemsCount = count($data->recs);
             $Pager->calc();
@@ -140,13 +157,9 @@ class acc_BalanceDetails extends core_Detail
             
             $start = $data->pager->rangeStart;
             $end = $data->pager->rangeEnd - 1;
-            
+           
             // Махаме тези записи които не са в диапазона на страницирането
-            $count = 0;
-            
-            usort($data->recs, array($mvc, "sortRecs"));
-            
-            foreach ($data->recs as $id => $rec){
+            foreach ($data->recs as $id => $rec1){
             	if(!($count >= $start && $count <= $end)){
             		unset($data->recs[$id]);
             	}
@@ -157,34 +170,42 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Канонизира и подрежда записите
+     */
+    public function canonizeSortRecs(&$data, $cache)
+    {
+    	// Обхождаме записите, създаваме уникално поле за сортиране
+    	foreach ($data->recs as $id => &$rec){
+    		$sortField = '';
+    		foreach (range(1, 3) as $i){
+    	
+    			if(empty($data->listFields["ent{$i}Id"])) continue;
+    	
+    			if(isset($rec->{"grouping{$i}"})){
+    				$sortField .= $rec->{"grouping{$i}"};
+    			} else {
+    				$sortField .= $cache[$rec->{"ent{$i}Id"}];
+    			}
+    		}
+    		 
+    		$rec->sortField = strtolower(str::utf2ascii($sortField));
+    	}
+    	
+    	// Сортираме записите според полето за сравнение
+    	usort($data->recs, array($this, "sortRecs"));
+    }
+    
+    
+    /**
      * Филтриране на записите по код
      * Подрежда кодовете или свойствата във възходящ ред.
      * Ако първата аналитичност са еднакви, сравнява по кодовете на втората ако и те по тези на третата
      */
     private function sortRecs($a, $b)
     {
-        $cache = $this->cache;
-        
-        foreach (range(1, 3) as $i){
-            if(isset($a->{"grouping{$i}"})){
-                ${"cmpA{$i}"} = $a->{"grouping{$i}"};
-                ${"cmpB{$i}"} = $b->{"grouping{$i}"};
-            } else {
-                ${"cmpA{$i}"} = $cache[$a->{"ent{$i}Id"}];
-                ${"cmpB{$i}"} = $cache[$b->{"ent{$i}Id"}];
-            }
-            
-            // Ако са равни продължаваме
-            if(${"cmpA{$i}"} == ${"cmpB{$i}"}) continue;
-            
-            ${"cmpA{$i}"} = mb_strtolower(${"cmpA{$i}"});
-            ${"cmpB{$i}"} = mb_strtolower(${"cmpB{$i}"});
-            
-            return (strnatcasecmp(${"cmpA{$i}"}, ${"cmpB{$i}"}) < 0) ? -1 : 1;
-        }
-        
-        // Ако всички са еднакви оставяме ги така
-        return 0;
+    	if($a->sortField == $b->sortField) return 0;
+    	 
+    	return (strnatcasecmp($a->sortField, $b->sortField) < 0) ? -1 : 1;
     }
     
     
@@ -265,7 +286,7 @@ class acc_BalanceDetails extends core_Detail
             if(empty($ent)) continue;
             
             $itemRec = acc_Items::fetch($ent, 'classId,objectId');
-            
+           
             if($itemRec->classId){
                 $AccRegMan = cls::get($itemRec->classId);
                 
@@ -284,7 +305,7 @@ class acc_BalanceDetails extends core_Detail
      *
      * @param stdClass $data
      */
-    private function doGrouping(&$data, $by, $cmd)
+    public function doGrouping(&$data, $by, $cmd, $allRecs)
     {
         $show = $groupedBy = array();
         $Varchar = cls::get('type_Varchar');
@@ -307,8 +328,6 @@ class acc_BalanceDetails extends core_Detail
         
         // Ако няма филтриране или групиране не правим нищо
         if(!count($show) && !count($groupedBy)) return;
-        
-        $allRecs = $data->qCopy->fetchAll();
         
         // Ако няма записи не правим нищо
         if(!count($allRecs)) return;
@@ -343,7 +362,7 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
         } else {
-            
+        	
             // Ако групираме
             foreach ($data->recs as $id => $rec){
                 foreach (range(1, 3) as $i){
@@ -377,11 +396,6 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
             
-            // Ако групираме по с-во премахваме бутона за хронологична справка
-            if(count($groupedBy)){
-                unset($data->listFields['history']);
-            }
-            
             unset($data->listFields['history'], $data->listFields['baseQuantity'], $data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
             
             $data->groupByFeature = TRUE;
@@ -390,15 +404,15 @@ class acc_BalanceDetails extends core_Detail
         // Сумиране на еднаквите редове
         $groupedRecs = $groupedIdx = array();
         
-        foreach ($data->recs as $rec) {
+        foreach ($data->recs as $rec1) {
             if($cmd == 'default'){
                 
                 // Ако филтрираме уникалноста са перата и избраните св-ва
-                $r = &$groupedIdx[$rec->ent1Id][$rec->ent2Id][$rec->ent3Id][$rec->grouping1][$rec->grouping2][$rec->grouping3];
+                $r = &$groupedIdx[$rec1->ent1Id][$rec1->ent2Id][$rec1->ent3Id][$rec1->grouping1][$rec1->grouping2][$rec1->grouping3];
             } else {
-                
+            	
                 // Ако групираме това са избраните свойства
-                $r = &$groupedIdx[$rec->grouping1][$rec->grouping2][$rec->grouping3];
+                $r = &$groupedIdx[$rec1->grouping1][$rec1->grouping2][$rec1->grouping3];
             }
             
             if (!isset($r)) {
@@ -408,19 +422,19 @@ class acc_BalanceDetails extends core_Detail
             
             // Групиране на данните
             foreach (array('ent1Id', 'ent2Id', 'ent3Id', 'accountNum', 'balanceId') as $fld){
-                $r->$fld = $rec->$fld;
+                $r->$fld = $rec1->$fld;
             }
-            
+           
             // Събираме числовите данни
             foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-                if (!is_null($rec->$fld)) {
-                    $r->$fld += $rec->$fld;
+                if (!is_null($rec1->$fld)) {
+                    $r->$fld += $rec1->$fld;
                 }
             }
             
             foreach (array('grouping1', 'grouping2', 'grouping3') as $gr){
-                if(isset($rec->$gr)){
-                    $r->$gr = $rec->$gr;
+                if(isset($rec1->$gr)){
+                    $r->$gr = $rec1->$gr;
                 }
             }
         }
@@ -606,10 +620,10 @@ class acc_BalanceDetails extends core_Detail
         $form = cls::get('core_Form');
         
         // Запомняме кои пера участват в баланса на тази сметка и показваме само тях в списъка
+        
         $items = array();
         $cQuery = clone $query;
         $cQuery->show('ent1Id,ent2Id,ent3Id');
-        
         while ($rec = $cQuery->fetch()) {
             foreach (range(1, 3) as $i){
                 if(!empty($rec->{"ent{$i}Id"})){
@@ -623,14 +637,14 @@ class acc_BalanceDetails extends core_Detail
         $form->class = 'simpleForm';
         $form->fieldsLayout = getTplFromFile("acc/tpl/BalanceFilterFormFields.shtml");
         $form->FNC("accId", 'int', 'silent,input=hidden');
-        $form->input("accId", true);
+        $form->input("accId", TRUE);
         
         foreach ($listRecs as $i => $listRec) {
             $this->setGroupingForField($i, $listRec, $form, $items[$i]);
         }
         $form->showFields = trim($form->showFields, ',');
         
-        $form->input(null, true);
+        $form->input(NULL, TRUE);
         
         if($form->isSubmitted()){
             foreach (range(1, 3) as $i){
@@ -676,8 +690,8 @@ class acc_BalanceDetails extends core_Detail
         
         $listName = acc_Lists::getVerbal($listRec, 'name');
         $form->fieldsLayout->replace($listName, "caption{$i}");
-        $form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title)', "silent,caption={$listName},width=330px,input,class=balance-grouping"); //, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
-        $form->FNC("feat{$i}", 'varchar', "silent,caption={$listName}->Свойства,width=330px,input,class=balance-feat"); //, array('attr' => array('onchange' => "document.forms['groupForm'].elements['grouping{$i}'].value ='';")));
+        $form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title)', "silent,caption={$listName},width=330px,input,class=balance-grouping");
+        $form->FNC("feat{$i}", 'varchar', "silent,caption={$listName}->Свойства,width=330px,input,class=balance-feat");
         if(count($options)){
             $form->setOptions("grouping{$i}", $options);
         } else {

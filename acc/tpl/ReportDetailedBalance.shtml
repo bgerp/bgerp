@@ -4,12 +4,12 @@
         <td class='aright quiet'>|Период|*:</td>
         <td> [#from#] - [#to#] </td>
     </tr>
-    <!--ET_BEGIN groupBy-->
+    <!--ET_BEGIN action-->
     <tr>
-        <td class='aright quiet'> |Групиране по|*:</td>
+        <td class='aright quiet'> [#action#]:</td>
         <td>[#groupBy#]</td>
     </tr>
-    <!--ET_END groupBy-->
+    <!--ET_END action-->
 </table>
 [#PAGER_TOP#]
 <div class='overflow-scroll'>

@@ -53,6 +53,12 @@ class bulmar_InvoiceExport extends core_Manager {
     
     
     /**
+     * Кеш
+     */
+    private $cache = array();
+    
+    
+    /**
      * Подготвя формата за експорт
      * 
      * @param core_Form $form
@@ -176,7 +182,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	if($rec->type != 'invoice'){
     		$origin = $this->Invoices->getOrigin($rec);
     		$oRec = $origin->rec();
-    		$number = $origin->instance->recToVerbal($oRec)->number;
+    		$number = $origin->getInstance()->recToVerbal($oRec)->number;
     		$nRec->reason = "Ф. №{$number}";
     	} else {
     		if($byServices != 0 && $byProducts == 0){

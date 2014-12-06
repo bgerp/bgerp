@@ -587,7 +587,7 @@ class distro_Group extends core_Master
             if (cls::haveInterface('distro_AddFilesIntf', $class->instance)) {
                 
                 // Вземаме всички файлове
-                $docAndFilesArr[$docId] = $class->instance->getFilesArr($class->that);
+                $docAndFilesArr[$docId] = $class->getInstance()->getFilesArr($class->that);
             }
         }
         

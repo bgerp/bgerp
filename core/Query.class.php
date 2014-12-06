@@ -665,7 +665,7 @@ class core_Query extends core_FieldSet
      * Във всеки запис са налични само "важните" полета, т.е. полетата, определени от
      * @link core_Query::getKeyFields().
      *
-     * @return array() масив от stdClass
+     * @return array масив от stdClass
      */
     function getDeletedRecs()
     {

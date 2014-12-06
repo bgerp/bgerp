@@ -118,7 +118,7 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,valior,num,title,serial,createdOn,createdBy,isContable';
+    public $listFields = 'tools=Пулт,valior,num,title,serial,createdOn,createdBy';
     
     
     /**
@@ -228,7 +228,7 @@ class accda_Da extends core_Master
     {
         $folderCover = doc_Folders::getCover($folderId);
       
-        if($folderCover->instance instanceof cat_Products){
+        if($folderCover->getInstance() instanceof cat_Products){
         	$pInfo = $folderCover->getProductInfo();
         	if(isset($pInfo->meta['fixedAsset'])){
         		

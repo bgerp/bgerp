@@ -69,7 +69,7 @@ class mp_Resources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title,type,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,title,type,createdOn,createdBy,systemId';
     
     
     /**
@@ -103,9 +103,12 @@ class mp_Resources extends core_Master
     {
     	$this->FLD('title', 'varchar', 'caption=Наименование,mandatory');
     	$this->FLD('type', 'enum(equipment=Оборудване,labor=Труд,material=Материал)', 'caption=Вид,mandatory,silent');
+    	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,mandatory');
+    	$this->FLD('systemId', 'varchar', 'caption=Системен №,input=none');
     	
     	// Поставяме уникален индекс
     	$this->setDbUnique('title');
+    	$this->setDbUnique('systemId');
     }
     
     
@@ -115,7 +118,7 @@ class mp_Resources extends core_Master
     public static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "mp/csv/Resources.csv";
-        $fields = array(0 => "title", 1 => 'type');
+        $fields = array(0 => "title", 1 => 'type', '2' => 'systemId');
         
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
         $res .= $cntObj->html;

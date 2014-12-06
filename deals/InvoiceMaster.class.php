@@ -319,9 +319,12 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	 
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
-    
-    		if($mvc->haveRightFor('add', (object)array('type' => 'debit_note')) && $mvc->canAddToThread($rec->threadId)){
+    		if($mvc->haveRightFor('add', (object)array('type' => 'debit_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
     			$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note', 'ret_url' => TRUE), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно известие');
+    			
+    		}
+    		
+    		if($mvc->haveRightFor('add', (object)array('type' => 'credit_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
     			$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note', 'ret_url' => TRUE), 'ef_icon=img/16/layout_split_vertical.png,title=Кредитно известие');
     		}
     	}
@@ -340,12 +343,12 @@ abstract class deals_InvoiceMaster extends core_Master
     	// Трябва фактурата основание да не е ДИ или КИ
     	expect($invArr['type'] == 'invoice');
     	
-    	$number = $origin->instance->recToVerbal((object)$invArr)->number;
+    	$number = $origin->getInstance()->recToVerbal((object)$invArr)->number;
     	 
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
     	$invArr['reason'] = tr("|{$caption} към фактура|* №{$number} |издадена на|* {$invDate}");
     
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate') as $key){
     		unset($invArr[$key]);
     	}
     

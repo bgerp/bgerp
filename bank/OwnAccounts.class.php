@@ -352,7 +352,7 @@ class bank_OwnAccounts extends core_Master {
     
     /**
      * Изчличане на цялата информация за сметката която е активна
-     * @return bank_Accounts $acc - записа отговарящ на текущата ни сметка
+     * @return stdClass $acc - записа отговарящ на текущата ни сметка
      */
     static function getOwnAccountInfo($id = NULL)
     {

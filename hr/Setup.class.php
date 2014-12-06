@@ -48,13 +48,13 @@ class hr_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
    var $managers = array(
+   		    'hr_Departments',
             'hr_WorkingCycles',
             'hr_WorkingCycleDetails',
             'hr_Shifts',
             'hr_ShiftDetails',
             'hr_Professions',
-            'hr_Departments',
-            'hr_Positions',
+			'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
         );

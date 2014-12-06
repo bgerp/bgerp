@@ -65,7 +65,7 @@ class findeals_transaction_CloseDeal
     	if($amount == 0) return $result;
     	
     	if($rec->closeWith){
-    		$dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
+    		$dealItem = acc_Items::fetch("#classId = {$firstDoc->getInstance()->getClassId()} AND #objectId = '$firstDoc->that' ");
     		$closeDealItem = acc_Items::fetchItem('findeals_Deals', $rec->closeWith);
     		$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
     		$result->entries = array_merge($result->entries, $closeEntries);

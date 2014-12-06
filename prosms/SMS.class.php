@@ -135,6 +135,22 @@ class prosms_SMS extends core_Manager
     
     
     /**
+     * Инрерфейсен метод
+     * Връща статуса на съобщението от съоветната услуга
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $uid
+     * 
+     * @return 
+     */
+    public function getStatus($uid)
+    {
+        
+        return ;
+    }
+    
+    
+    /**
      * Интерфейсен метод, който връща масив с настройките за услугата
      * 
      * @return array $paramsArr
@@ -164,7 +180,6 @@ class prosms_SMS extends core_Manager
     
     
     /**
-     * Интерфейсен метод
      * Отбелязване на статуса на съобщенито
      * Извиква се от външната програма след промяна на статуса на SMS'а
      */
@@ -187,6 +202,8 @@ class prosms_SMS extends core_Manager
             
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status);
-        } catch (core_exception_Expect $e) { }
+        } catch (core_exception_Expect $e) {
+            self::log("Възникна грешка при обновяване на състоянието с idd: " . $uid);
+        }
     }
 }

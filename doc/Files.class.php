@@ -345,7 +345,7 @@ class doc_Files extends core_Manager
             $docProxy = doc_Containers::getDocument($rec->containerId);
             
             // Ако няма права за сингъла на документа
-            if (!$docProxy->instance->haveRightFor('single', $docProxy->that)) {
+            if (!$docProxy->haveRightFor('single')) {
                 $requiredRoles = 'no_one';
             }
         } 

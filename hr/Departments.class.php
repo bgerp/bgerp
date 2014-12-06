@@ -18,7 +18,31 @@ class hr_Departments extends core_Master
      /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,hr_DepartmentAccRegIntf,bgerp_plg_Blank';
+    public $interfaces = 'acc_RegisterIntf,hr_DepartmentAccRegIntf,bgerp_plg_Blank, doc_FolderIntf';
+
+    
+    /**
+     * Необходими пакети
+     */
+    public $depends = 'acc=0.1';
+    
+    
+    /**
+     * Детайли на този мастер
+     */
+    public $details = 'AccReports=acc_ReportDetails,Grafic=hr_WorkingCycles,Positions=hr_Positions';
+    
+    
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '611';
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките
+     */
+    public $balanceRefGroupBy = 'crm_ContragentAccRegIntf';
     
     
     /**
@@ -39,12 +63,12 @@ class hr_Departments extends core_Master
     public $pageMenu = "Персонал";
     
     
-    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing, plg_State, plg_Rejected,
                      plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
+    
     
     /**
      * Кой има право да чете?
@@ -109,13 +133,8 @@ class hr_Departments extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name, type, nkid, staff, locationId, employmentTotal, employmentOccupied, schedule';
-    
-    
-    /**
-     * Детайли на този мастер
-     */
-    public $details = 'Grafic=hr_WorkingCycles,Positions=hr_Positions';
+    public $listFields = 'id, name, type, staff, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
+
     
     // Подготвяме видовете графики 
     static $chartTypes = array(
@@ -146,7 +165,7 @@ class hr_Departments extends core_Master
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД, hint=Номер по НКИД');
         $this->FLD('staff', 'key(mvc=hr_Departments, select=name,allowEmpty)', 'caption=В състава на,width=100%');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
-        $this->FLD('activities', 'enum(yes=Да, no=Не)', "caption=Център на дейности,maxRadio=2,columns=2,notNull,value=yes");
+        $this->FLD('activities', 'enum(yes=Да, no=Не)', "caption=Център на дейности,maxRadio=2,columns=2,notNull,value=no, input=none,");
         
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
@@ -164,7 +183,7 @@ class hr_Departments extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $data->form->setOptions('locationId', array('' => '&nbsp;') + crm_Locations::getOwnLocations());
+    	//bp($data->form->setDefault('locationId',crm_Locations::getOwnLocations()));
         
         // Да не може да се слага в звена, които са в неговия състав
         if($id = $data->form->rec->id) {
@@ -259,6 +278,8 @@ class hr_Departments extends core_Master
                 }
             }
         }
+        
+        $mvc->currentTab = "Структура->Таблица";
     }
     
     
@@ -282,6 +303,10 @@ class hr_Departments extends core_Master
             $rec->orderStr = self::fetchField($rec->staff, 'orderStr');
         }
         $rec->orderStr .= str_pad(mb_substr($rec->name, 0, 10), 10, ' ', STR_PAD_RIGHT);
+        
+        if(!$rec->id) {
+        	$rec->state = 'active';
+        }
     }
     
     
@@ -369,36 +394,13 @@ class hr_Departments extends core_Master
     
     
     /**
-     * Извиква се след SetUp-а на таблицата за модела
+     * След подготовка на сингъла
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	if(!self::count()) {
-            // Създаваме пътвият организационни структури да е "Моята организация"
-            $rec = new stdClass();
-            $rec->name = 'Моята Организация ООД';
-            $rec->staff = NULL;
-           
-            self::save($rec);
-    	
-    	// Ако имаме вече създадени организационни структури
-        } else {
-            
-            $query = self::getQuery();
-            
-            // Намираме тези, които са създадени от системата
-            $query->where("#createdBy = -1");
-            
-            if ($query->fetch() == FALSE) {
-            	
-            	$rec = new stdClass();
-            	$rec->name = 'Моята Организация ООД';
-            	$rec->staff = NULL;
-            	 
-            	self::save($rec);
-            }
-        }
+    	$mvc->currentTab = "Структура->Таблица";
     }
+    
     
     /*******************************************************************************************
      * 
@@ -418,9 +420,9 @@ class hr_Departments extends core_Master
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
-                'title' => $this->getVerbal($rec, 'name') . " [" . $this->getVerbal($rec, 'createdOn') . ']',
+                'title' => $rec->name,
                 'num' => "Dep" . $rec->id,
-                'features' => 'foobar' // @todo!
+                //'features' => 'foobar' // @todo!
             );
         }
         
@@ -489,5 +491,40 @@ class hr_Departments extends core_Master
         $chart = orgchart_Adapter::render_($res);
         
         return $chart;
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    public function loadSetupData()
+    {
+    	if(!self::count()) {
+    		// Създаваме пътвият организационни структури да е "Моята организация"
+    		$rec = new stdClass();
+    		$rec->name = 'Моята Организация ООД';
+    		$rec->staff = NULL;
+    		$rec->activities = 'yes';
+    		 
+    		self::save($rec);
+    		 
+    		// Ако имаме вече създадени организационни структури
+    	} else {
+    	
+    		$query = self::getQuery();
+    	
+    		// Намираме тези, които са създадени от системата
+    		$query->where("#createdBy = -1");
+    	
+    		if ($query->fetch() == FALSE) {
+    			 
+    			$rec = new stdClass();
+    			$rec->name = 'Моята Организация ООД';
+    			$rec->staff = NULL;
+    			$rec->activities = 'yes';
+    	
+    			self::save($rec);
+    		}
+    	}
     }
 }

@@ -1491,7 +1491,7 @@ class doc_Containers extends core_Manager
         $docRow = $doc->getDocumentRow();
         
         // Ако има права за сингъла на документа
-        if ($doc->instance->haveRightFor('single', $doc->that)) {
+        if ($doc->haveRightFor('single')) {
             
             // Да е линк към сингъла
             $url = array($doc, 'single', $doc->that);
@@ -1735,7 +1735,7 @@ class doc_Containers extends core_Manager
         $rec1->controller = $mvc->className;
         $rec1->action = 'notifyDraftBusinessDoc';
         $rec1->period = 43200;
-        $rec1->offset = 4320;
+        $rec1->offset = rand(4260, 4380); // от 71h до 73h
         $rec1->delay = 0;
         $rec1->timeLimit = 200;
         $res .= core_Cron::addOnce($rec1);
@@ -1794,8 +1794,15 @@ class doc_Containers extends core_Manager
     			foreach ($notArr as $clsId => $count){
     				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor);
     				 
-    				$name = ($count == 1) ? cls::get($clsId)->singleTitle : cls::get($clsId)->title;
-    				$msg = "|Имате създадени, но неактивирани|* {$count} {$name}";
+    				if($count == 1){
+    					$name = cls::get($clsId)->singleTitle;
+    					$str = 'Имате създаден, но неактивиран';
+    				} else {
+    					$name = cls::get($clsId)->title;
+    					$str = 'Имате създадени, но неактивирани';
+    				}
+    				
+    				$msg = "|{$str}|* {$count} {$name}";
     				 
     				// Създаваме нотификация към потребителя с линк към филтрирани неговите документи
     				bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);
@@ -1828,6 +1835,20 @@ class doc_Containers extends core_Manager
         $form->input('repair, from, to', TRUE);
         
         if ($form->isSubmitted()) {
+            
+            $Size = cls::get('fileman_FileSize');
+            
+            $memoryLimit = ini_get('memory_limit');
+            $memoryLimitB = $Size->fromVerbal($memoryLimit);
+            
+            $newMemLimit = "1024M";
+            $newMemLimitB = $Size->fromVerbal($newMemLimit);
+            
+            if ($newMemLimitB > $memoryLimitB) {
+                ini_set("memory_limit", $newMemLimit);
+            }
+            
+            set_time_limit(600);
             
             // Ако са объркани датите
             if (isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
@@ -1894,10 +1915,8 @@ class doc_Containers extends core_Manager
      */
     function cron_Repair()
     {
-        $systemId = self::REPAIR_SYSTEM_ID;
-        $cronPeriod = core_Cron::fetchField("#systemId = '{$systemId}'", 'period');
+        $cronPeriod = core_Cron::getPeriod(self::REPAIR_SYSTEM_ID);
         
-        $cronPeriod *= 60;
         $from = dt::subtractSecs($cronPeriod);
         $to = dt::now();
         $delay = 10;

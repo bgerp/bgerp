@@ -69,6 +69,8 @@ class clickatell_SMS extends core_Manager
      * @param string $message - Текста на съобщението
      * @param string $sender - От кого се изпраща съобщението
      * 
+     * @see callcenter_SentSMSIntf
+     * 
      * @return array $nRes - Mасив с информация, дали е получено
      * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
      * $nRes['uid'] string - Уникалното id на съобщението
@@ -142,6 +144,8 @@ class clickatell_SMS extends core_Manager
     /**
      * Интерфейсен метод, който връща масив с настройките за услугата
      * 
+     * @see callcenter_SentSMSIntf
+     * 
      * @return array $paramsArr
      * enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
      * integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
@@ -160,7 +164,22 @@ class clickatell_SMS extends core_Manager
     
     
     /**
-     * Интерфейсен метод
+     * Инрерфейсен метод
+     * Връща статуса на съобщението от съоветната услуга
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $uid
+     * 
+     * @return 
+     */
+    public function getStatus($uid)
+    {
+        
+        return ;
+    }
+    
+    
+    /**
      * Отбелязване на статуса на съобщенито
      * Извиква се от външната програма след промяна на статуса на SMS'а
      */
@@ -196,7 +215,9 @@ class clickatell_SMS extends core_Manager
             
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status, $timestamp);
-        } catch (core_exception_Expect $e) { }
+        } catch (core_exception_Expect $e) {
+            self::log("Възникна грешка при обновяване на състоянието с apiMsgId: " . $uid);
+        }
     }
     
     

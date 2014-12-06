@@ -67,7 +67,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
         
-        'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', array('caption' => 'След колко време, ако не работи крона да бие нотификация->Време')),
+        'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
     );
     
     

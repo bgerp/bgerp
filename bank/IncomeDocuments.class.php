@@ -285,7 +285,7 @@ class bank_IncomeDocuments extends core_Master
     /**
      * Връща платежните операции
      */
-    private static function getOperations($operations)
+    protected static function getOperations($operations)
     {
         $options = array();
         

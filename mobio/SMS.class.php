@@ -153,7 +153,22 @@ class mobio_SMS extends core_Manager
     
     
     /**
-     * Интерфейсен метод
+     * Инрерфейсен метод
+     * Връща статуса на съобщението от съоветната услуга
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $uid
+     * 
+     * @return 
+     */
+    public function getStatus($uid)
+    {
+        
+        return ;
+    }
+    
+    
+    /**
      * Отбелязване на статуса на съобщенито
      * Извиква се от външната програма след промяна на статуса на SMS'а
      */
@@ -177,6 +192,8 @@ class mobio_SMS extends core_Manager
             
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status);
-        } catch (core_exception_Expect $e) { }
+        } catch (core_exception_Expect $e) {
+            self::log("Възникна грешка при обновяване на състоянието с msgid: " . $uid);
+        }
     }
 }

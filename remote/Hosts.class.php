@@ -57,12 +57,22 @@ class remote_Hosts extends core_Master
 	 * Кой може да разглежда сингъла на машините?
 	 */
 	public $canSingle = 'ceo, remote, admin';
-    
+
+	/**
+	 * Полета, които ще се показват в листов изглед
+	 */
+	public $listFields = 'tools=Пулт,name=Име,state=Състояние,ip,port,user,createdBy';
+	
+	/**
+	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+	 */
+	public $rowToolsField = 'tools';
+	
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
         $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
@@ -79,7 +89,7 @@ class remote_Hosts extends core_Master
     /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $form->rec->config = array('name' => $form->rec->name, 'ip' => $form->rec->ip,
@@ -88,16 +98,18 @@ class remote_Hosts extends core_Master
     }
 
 	/**
-	 * След подготвяне на формата добавяне/редакатиране
+	 * След подготвяне на формата добавяне/редактиране
 	 */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 	    $form = &$data->form;
 	    $rec  = &$form->rec;
-	     
-        foreach ($rec->config as $name => $value) {
-            $form->setDefault($name, $value);
-        }
+
+	    if (is_array($rec->config)) {
+    	    foreach ($rec->config as $name => $value) {
+                $form->setDefault($name, $value);
+            }
+	    }
     }
     
     
@@ -108,8 +120,11 @@ class remote_Hosts extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $row->ip = $rec->config['ip'];
+        $row->port = $rec->config['port'];
+        $row->user = $rec->config['user'];
     }
     
     /**
@@ -119,6 +134,40 @@ class remote_Hosts extends core_Master
     {
         return self::fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name));
     }
+    
+    
+    /**
+     * Връща кънекшън ресурс
+     * 
+     * @param string $host
+     * @return resource
+     */
+    private static function connect ($host)
+    {
+        // Извличаме данните за хоста
+        if (!$hostConfig = self::fetchByName($host)) {
+            throw new core_exception_Expect("{$host}: не се съдържа в базата!");
+        }
+        // Проверяваме дали е достъпен
+        $timeoutInSeconds = 1;
+        if (!($fp = @fsockopen($hostConfig->ip, $hostConfig->port, $errCode, $errStr, $timeoutInSeconds))) {
+            throw new core_exception_Expect("{$hostConfig->name}: не може да бъде достигнат");
+        }
+        fclose($fp);
+        
+        // Свързваме се по ssh
+        $connection = @ssh2_connect($hostConfig->ip, $hostConfig->port);
+        if (!$connection) {
+            throw new core_exception_Expect("{$hostConfig->name}: няма ssh връзка");
+        }
+        
+        if (!@ssh2_auth_password($connection, $hostConfig->user, $hostConfig->pass)) {
+            throw new core_exception_Expect("{$hostConfig->name}: грешен потребител или парола.");
+        }
+        
+        return $connection;
+    }
+    
     
     /**
      * Изпълнява команда на отдалечен хост
@@ -130,26 +179,8 @@ class remote_Hosts extends core_Master
      */
     public static function exec($host, $command, &$output=NULL, &$errors=NULL)
     {
-        // Извличаме данните за хоста
-        if (!$hostConfig = self::fetchByName($host)) {
-            throw new core_exception_Expect("{$host}: не се съдържа в базата!");
-        }
-        // Проверяваме дали е достъпен
-        $timeoutInSeconds = 1;
-        if (!($fp = @fsockopen($hostConfig->ip,$hostConfig->port,$errCode,$errStr,$timeoutInSeconds))) {
-            throw new core_exception_Expect("{$hostConfig->name}: не може да бъде достигнат ");
-        }
-        fclose($fp);        
-        
-        // Свързваме се по ssh
-        $connection = @ssh2_connect($hostConfig->ip, $hostConfig->port);
-        if (!$connection) {
-            throw new core_exception_Expect("{$hostConfig->name}: няма ssh връзка");
-        }
-        
-        if (!@ssh2_auth_password($connection, $hostConfig->user, $hostConfig->pass)) {
-            throw new core_exception_Expect("{$hostConfig->name}: грешен потребител или парола.");
-        }
+
+        $connection = self::connect($host);
         
         // Изпълняваме командата
         $stream = ssh2_exec($connection, $command);
@@ -170,10 +201,19 @@ class remote_Hosts extends core_Master
      * Качва файл на отдалечен хост
      *
      * @param string $host
-     * @param string $file
+     * @param string $fileName - име на локалния файл
      */
-    public static function put($host, $file)
+    public static function put($host, $fileName)
     {
+        
+        $connection = self::connect($host);
+        $content = file_get_contents($fileName);
+        
+        if ($content === FALSE) {
+            throw new core_exception_Expect("Проблем с четенето на файла от локалната система");
+        }
+        
+        self::exec($host, "echo {$content} > $fileName");
         
     }
     
@@ -181,11 +221,12 @@ class remote_Hosts extends core_Master
      * Смъква файл от отдалечен хост
      *
      * @param string $host
-     * @param string $file
+     * @param string $file път до отдалечения файл
      */
     public static function get($host, $file)
     {
-    
+        $connection = self::connect($host);
+        
     }
     
 }

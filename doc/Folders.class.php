@@ -977,6 +977,9 @@ class doc_Folders extends core_Master
                 $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
                 self::save($rec);
             }
+            
+            // Обновяваме папката
+            self::updateFolderByContent($rec->id);
         }
         
         // Връщаме старото състояние за ловговането в дебъг

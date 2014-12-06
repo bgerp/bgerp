@@ -61,6 +61,8 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'input,caption=Сметка,silent,mandatory', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
 		$form->FLD('fromDate', 'date(allowEmpty)', 'caption=От,input,mandatory');
 		$form->FLD('toDate', 'date(allowEmpty)', 'caption=До,input,mandatory');
+		$form->FLD('isGrouped', 'varchar', 'caption=Групиране');
+		$form->setOptions('isGrouped', array('' => '', 'yes' => 'Да', 'no' => 'Не'));
 	}
 	
 	
@@ -81,6 +83,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		}
 		 
 		if(isset($form->rec->accountId)){
+			
 			if($form->rec->id){
 				if(frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->accountId){
 					unset($form->rec->ent1Id, $form->rec->ent2Id, $form->rec->ent3Id);
@@ -145,7 +148,8 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		$data->balanceRec = $balanceRec;
 		$data->fromDate = $filter->fromDate;
 		$data->toDate = $filter->toDate;
-		 
+		$data->isGrouped = ($filter->isGrouped != 'no') ? 'yes' : 'no';
+		
 		$this->History->prepareHistory($data);
 		 
 		return $data;

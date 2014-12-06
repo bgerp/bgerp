@@ -332,7 +332,7 @@ class bank_Accounts extends core_Master {
      * @param int $contragentId - контрагент
      * @param mixed $contragentClass - класа на контрагента
      * @param int $intKeys - дали ключовете да са инт
-     * @return array() $suggestions - Масив от сметките на клиента
+     * @return array $suggestions - Масив от сметките на клиента
      */
     static function getContragentIbans($contragentId, $contragentClass, $intKeys = FALSE)
     {
@@ -356,7 +356,7 @@ class bank_Accounts extends core_Master {
     /**
      * Добавя нова банкова сметка
      *
-     * @param iban_Type(64) $iban - iban
+     * @param iban_Type $iban - iban
      * @param int $currency - валута
      * @param int $contragentClsId - класа на контрагента
      * @param int $contragentId - ид на контрагента

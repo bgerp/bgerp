@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   lab
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,13 +20,13 @@ class lab_Parameters extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Параметри за лабораторни тестове";
+    public $title = "Параметри за лабораторни тестове";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2,
+    public $loadList = 'plg_Created, plg_State2,
                              plg_RowTools, plg_Printing, lab_Wrapper,
                              plg_Sorting, fileman_Files';
     
@@ -34,55 +34,63 @@ class lab_Parameters extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,state';
+    public $listFields = 'id,name,state';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'lab,ceo';
+    public $canWrite = 'lab,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'lab,ceo';
+	public $canList = 'lab,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'lab,ceo';
+	public $canSingle = 'lab,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'lab,ceo';
+    public $canRead = 'lab,ceo';
+    
     
     /**
      * Полетата, които ще се показват в единичния изглед
      */
-    var $singleFields = 'id,name,type,dimension,
+    public $singleFields = 'id,name,type,dimension,
                              precision,description,state';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Параметър";
+    public $singleTitle = "Параметър";
     
          
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/pipette.png';
+    public $singleIcon = 'img/16/pipette.png';
+    
     
     /**
      * Файл с шаблон за единичен изглед на статия
@@ -93,7 +101,7 @@ class lab_Parameters extends core_Master
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Параметър');
         $this->FLD('type', 'enum(number=Числов,bool=Да/Не,text=Текстов)', 'caption=Тип');
