@@ -4,7 +4,11 @@
 defIfNot('CORE_ENABLE_SUPRESS_ERRORS', TRUE);
 
 // Кои грешки да се показват?
-defIfNot('CORE_ERROR_REPORTING_LEVEL', E_ERROR | E_PARSE | E_CORE_ERROR | E_STRICT | E_COMPILE_ERROR | E_WARNING);
+if(defined('BGERP_GIT_BRANCH') && (BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH == 'test')) {
+    defIfNot('CORE_ERROR_REPORTING_LEVEL', E_ERROR | E_PARSE | E_CORE_ERROR | E_STRICT | E_COMPILE_ERROR | E_WARNING);
+} else {
+    defIfNot('CORE_ERROR_REPORTING_LEVEL', E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR);
+}
 
 // Колко секунди да е валидно cookie за дебъг режим?
 defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
