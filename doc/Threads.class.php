@@ -175,7 +175,6 @@ class doc_Threads extends core_Manager
         // За да предизвикат стартиране за съответния запис в on_Shutdown
         $query->orWhere("#allDocCnt IS NULL");
         $query->orWhere("#pubDocCnt IS NULL");
-        $query->orWhere("#last IS NULL");
         $query->orWhere("#lastAuthor IS NULL");
         $query->orWhere("#lastState IS NULL");
         
