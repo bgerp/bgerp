@@ -20,4 +20,15 @@ class frame_ReportSourceIntf extends core_InnerObjectIntf
 	 * Инстанция на класа имплементиращ интерфейса
 	 */
 	public $class;
+	
+	
+	/**
+	 * Скрива полетата, които потребител с ниски права не може да вижда
+	 * 
+	 * @param stdClass $data
+	 */
+	public function hidePriceFields(&$data)
+	{
+		return $this->class->hidePriceFields($data);
+	}
 }

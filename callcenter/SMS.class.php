@@ -182,7 +182,7 @@ class callcenter_SMS extends core_Master
         }
         
         // Вземаме пълния номер на получателя
-        $number = drdata_PhoneType::getNumberStr($number, 0);
+        $number = $serviceInst->prepareNumberStr($number);
         
         expect($number, 'Липсва номер на получателя');
         

@@ -30,7 +30,7 @@ class drdata_PhoneType extends type_Varchar
      * 
      * @return string $numStr - Номера в пълен формат
      */
-    public static function getNumberStr($number, $arrayKey = FALSE)
+    public static function getNumberStr($number, $arrayKey = FALSE, $prefix = '+')
     {
         // Вземаме номера
         $numArr = drdata_PhoneType::toArray($number);
@@ -51,7 +51,7 @@ class drdata_PhoneType extends type_Varchar
                 $resNumStr .= ($resNumStr) ? ', ' . $numStr : $numStr;
             }
         } else {
-            $resNumStr = static::getNumStrFromObj($numArr[$arrayKey]);
+            $resNumStr = static::getNumStrFromObj($numArr[$arrayKey], $prefix);
         }
         
         return $resNumStr;

@@ -53,7 +53,15 @@ class mobio_SMS extends core_Manager
 	/**
 	 * Интерфейсния клас за изпращане на SMS
 	 */
-	var $interfaces = 'callcenter_SentSMSIntf'; 
+	var $interfaces = 'callcenter_SentSMSIntf';
+    
+    
+    /**
+     * Плъгини за зареждане
+     * 
+     * var string|array
+     */
+    public $loadList = 'callcenter_SMSPlg';
 	
 	
 	/**
@@ -98,23 +106,29 @@ class mobio_SMS extends core_Manager
             $ctx = stream_context_create(array('http' => array('timeout' => 5)));
             
             // Вземаме резултата
-            $res = file_get_contents($url, 0, $ctx);
+            $resStr = file_get_contents($url, 0, $ctx);
             
             // Ако има грешка - веднага маркираме в SMS Мениджъра
-            $res = explode(':', $res);
+            $resArr = explode(':', $resStr);
             
             // Ако няма грешки
-            if ($res[0] == 'OK') {
+            if ($resArr[0] == 'OK') {
                 
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sended';
-                $nRes['uid'] = $res[1];
+                $nRes['uid'] = $resArr[1];
                 $nRes['msg'] = "|Успешно изпратен SMS";
             } else {
                 
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sendError';
                 $nRes['msg'] = "|Не може да се изпрати";
+                
+                if (isDebug()) {
+                    $nRes['msg'] .= "|*\n" . $resStr;
+                }
+                
+                self::log("Грешка при изпращане на SMS: " . $resStr);
             }
         } else {
             
@@ -149,6 +163,23 @@ class mobio_SMS extends core_Manager
         $paramsArr['allowedUserNames'] = arr::make($conf->MOBIO_ALLOWED_USER_NAMES, TRUE);
         
         return $paramsArr;
+    }
+    
+    
+    /**
+     * Инрерфейсен метод
+     * Подготвя номера на получателя
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $number
+     * 
+     * @return string
+     */
+    public function prepareNumberStr($number)
+    {
+        $number = drdata_PhoneType::getNumberStr($number, 0, '');
+        
+        return $number;
     }
     
     

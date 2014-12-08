@@ -446,4 +446,17 @@ class acc_BalanceReportImpl extends frame_BaseDriver
 	      		$searchKeywords .= " " . plg_Search::normalizeText($str);
       	  }
       }
+      
+      
+      /**
+       * Скрива полетата, които потребител с ниски права не може да вижда
+       *
+       * @param stdClass $data
+       */
+      public function hidePriceFields()
+      {
+      		$innerState = &$this->innerState;
+      		
+      		unset($innerState->recs);
+      }
 }
