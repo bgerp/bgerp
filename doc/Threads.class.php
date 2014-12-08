@@ -1165,7 +1165,7 @@ class doc_Threads extends core_Manager
         $key = doc_Folders::getSettingsKey($data->folderId);
         $userOrRole = core_Users::getCurrent();
         if (doc_Folders::canModifySettings($key, $userOrRole)) {
-            core_Settings::addBtn($data->toolbar, $key, 'doc_Folders', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2));
+            core_Settings::addBtn($data->toolbar, $key, 'doc_Folders', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2, 'title'=>'Персонални настройки на папката'));
         }
     }
     
