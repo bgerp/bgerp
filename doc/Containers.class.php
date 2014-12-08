@@ -1744,7 +1744,7 @@ class doc_Containers extends core_Manager
         // Данни за работата на cron за поправка на документи
         $repRec = new stdClass();
         $repRec->systemId = self::REPAIR_SYSTEM_ID;
-        $repRec->description = 'Поправка на папаки, нишки и контейнери';
+        $repRec->description = 'Поправка на папки, нишки и контейнери';
         $repRec->controller = $mvc->className;
         $repRec->action = 'repair';
         $repRec->period = 5;
@@ -1836,6 +1836,8 @@ class doc_Containers extends core_Manager
         
         if ($form->isSubmitted()) {
             
+            $conf = core_Packs::getConfig('doc');
+            
             $Size = cls::get('fileman_FileSize');
             
             $memoryLimit = ini_get('memory_limit');
@@ -1859,15 +1861,15 @@ class doc_Containers extends core_Manager
             
             // В зависимост от избраната стойност поправяме документите
             if ($form->rec->repair == 'folders' || $form->rec->repair == 'all') {
-                $repArr['folders'] = doc_Folders::repair($form->rec->from, $form->rec->to);
+                $repArr['folders'] = doc_Folders::repair($form->rec->from, $form->rec->to, $conf->DOC_REPAIR_DELAY);
             }
             
             if ($form->rec->repair == 'threads' || $form->rec->repair == 'all') {
-                $repArr['threads'] = doc_Threads::repair($form->rec->from, $form->rec->to);
+                $repArr['threads'] = doc_Threads::repair($form->rec->from, $form->rec->to, $conf->DOC_REPAIR_DELAY);
             }
             
             if ($form->rec->repair == 'containers' || $form->rec->repair == 'all') {
-                $repArr['containers'] = doc_Containers::repair($form->rec->from, $form->rec->to);
+                $repArr['containers'] = doc_Containers::repair($form->rec->from, $form->rec->to, $conf->DOC_REPAIR_DELAY);
             }
             
             // Резултат след поправката
@@ -1919,11 +1921,12 @@ class doc_Containers extends core_Manager
         
         $from = dt::subtractSecs($cronPeriod);
         $to = dt::now();
-        $delay = 10;
         
-        $repArr['folders'] = doc_Folders::repair($from, $to, $delay);
-        $repArr['threads'] = doc_Threads::repair($from, $to, $delay);
-        $repArr['containers'] = doc_Containers::repair($from, $to, $delay);
+        $conf = core_Packs::getConfig('doc');
+        
+        $repArr['folders'] = doc_Folders::repair($from, $to, $conf->DOC_REPAIR_DELAY);
+        $repArr['threads'] = doc_Threads::repair($from, $to, $conf->DOC_REPAIR_DELAY);
+        $repArr['containers'] = doc_Containers::repair($from, $to, $conf->DOC_REPAIR_DELAY);
         
         return $repArr;
     }
