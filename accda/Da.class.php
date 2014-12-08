@@ -260,7 +260,8 @@ class accda_Da extends core_Master
         $rec = $this->fetch($id);
         
         $row = new stdClass();
-        $row->title = $rec->title;
+        $row->title = $this->singleTitle . " №{$rec->id}";
+        $row->subTitle = $this->getVerbal($rec, 'title');;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         $row->authorId = $rec->createdBy;

@@ -113,17 +113,16 @@ class mp_Resources extends core_Master
     
     
     /**
-     * Изпълнява се след създаването на модела
+     * Извиква се след SetUp-а на таблицата за модела
      */
-    public static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$file = "mp/csv/Resources.csv";
-        $fields = array(0 => "title", 1 => 'type', '2' => 'systemId');
-        
-        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-        $res .= $cntObj->html;
-        
-        return $res;
+    	$fields = array(0 => "title", 1 => 'type', '2' => 'systemId');
+    	
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields);
+    	
+    	return $cntObj->html;
     }
     
     
