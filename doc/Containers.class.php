@@ -313,7 +313,7 @@ class doc_Containers extends core_Manager
         $key = doc_Threads::getSettingsKey($data->threadId);
         $userOrRole = core_Users::getCurrent();
         if (doc_Threads::canModifySettings($key, $userOrRole)) {
-            core_Settings::addBtn($data->toolbar, $key, 'doc_Threads', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2));
+            core_Settings::addBtn($data->toolbar, $key, 'doc_Threads', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2,'title'=>'Персонални настройки на нишката'));
         }
     }
     
