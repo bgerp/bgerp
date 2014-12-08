@@ -41,7 +41,7 @@ class page_InternalFooter extends core_ET {
                         
             if($isGet) {
                 $this->append("&nbsp;|&nbsp;");
-                $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE)));
+                $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), FALSE, array('title' => " Превключване на системата в десктоп режим")));
             
                 // Добавяме превключване между езиците
                 $this->addLgChange();
@@ -51,7 +51,7 @@ class page_InternalFooter extends core_ET {
             $this->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), NULL, array('title' => tr('Страницата е заредена на') . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
         } else {
             if($nick) {
-                $this->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout')));
+                $this->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout'), FALSE, array('title' => "Прекъсване на сесията")));
                 $this->append('&nbsp;|');
             }
             
@@ -60,7 +60,7 @@ class page_InternalFooter extends core_ET {
             
             if($isGet) {
                 $this->append(" | ");
-                $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE)));
+                $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => "Превключване на системата в мобилен режим")));
             
             
                 // Добавяме превключване между езиците
