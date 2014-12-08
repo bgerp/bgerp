@@ -399,9 +399,9 @@ class crm_Persons extends core_Master
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             if($groupId = $data->listFilter->rec->groupId) {
-                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова визитка на лице'));
             } else {
-                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова визитка на лице'));
             }
         }
     }
