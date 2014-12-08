@@ -362,7 +362,7 @@ class jqplot_Chart
      */
     public static function resource($name)
     {
-        if (core_App::isDebug() && ($dot = strrpos($name, '.')) !== FALSE) {
+        if (isDebug() && ($dot = strrpos($name, '.')) !== FALSE) {
             $name = substr($name, 0, $dot) . '.min' . substr($name, $dot);
         }
 
