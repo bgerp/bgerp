@@ -53,7 +53,15 @@ class mobio_SMS extends core_Manager
 	/**
 	 * Интерфейсния клас за изпращане на SMS
 	 */
-	var $interfaces = 'callcenter_SentSMSIntf'; 
+	var $interfaces = 'callcenter_SentSMSIntf';
+    
+    
+    /**
+     * Плъгини за зареждане
+     * 
+     * var string|array
+     */
+    public $loadList = 'callcenter_SMSPlg';
 	
 	
 	/**
@@ -149,6 +157,23 @@ class mobio_SMS extends core_Manager
         $paramsArr['allowedUserNames'] = arr::make($conf->MOBIO_ALLOWED_USER_NAMES, TRUE);
         
         return $paramsArr;
+    }
+    
+    
+    /**
+     * Инрерфейсен метод
+     * Подготвя номера на получателя
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $number
+     * 
+     * @return string
+     */
+    public function prepareNumberStr($number)
+    {
+        $number = drdata_PhoneType::getNumberStr($number, 0, '');
+        
+        return $number;
     }
     
     
