@@ -343,7 +343,7 @@ class marketing_Inquiries2 extends core_Embedder
     		$tpl->placeObject($row);
     		
     		$res = $tpl;
-    
+    		
     		//Създаваме HTML частта на документа и превръщаме всички стилове в inline
     		//Вземаме всичките css стилове
     
@@ -444,6 +444,7 @@ class marketing_Inquiries2 extends core_Embedder
     	$dataRow = $tpl->getBlock('DATA_ROW');
     	 
     	foreach ($params as $name){
+    		if(empty($recs[$name])) continue;
     		$value = $form->getFieldType($name)->toVerbal($recs[$name]);
     		$dataRow->replace(tr($form->getField($name)->caption), 'CAPTION');
     		$dataRow->replace($value, 'VALUE');
