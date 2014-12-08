@@ -196,4 +196,21 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 			$searchKeywords .= " " . plg_Search::normalizeText($newKeywords);
 		}
 	}
+	
+	
+	/**
+	 * Скрива полетата, които потребител с ниски права не може да вижда
+	 *
+	 * @param stdClass $data
+	 */
+	public function hidePriceFields()
+	{
+		$innerState = &$this->innerState;
+		
+		foreach (array('baseAmount', 'baseQuantity', 'blQuantity', 'blAmount') as $fld){
+			unset($innerState->row->$fld);
+		}
+		
+		unset($innerState->recs);
+	}
 }

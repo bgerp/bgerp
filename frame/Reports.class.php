@@ -20,7 +20,7 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Search, plg_Printing';
+    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Search, plg_Printing, doc_plg_HidePrices';
                       
     
     /**
@@ -242,5 +242,17 @@ class frame_Reports extends core_Embedder
 		$row->recTitle = $rec->reason;
 		
         return $row;
+    }
+    
+    
+    /**
+	 * Скрива полетата, които потребител с ниски права не може да вижда
+	 * 
+	 * @param stdClass $data
+	 */
+    public function hidePriceFields($data)
+    {
+    	$Driver = $this->getDriver($data->rec);
+    	$Driver->hidePriceFields();
     }
 }
