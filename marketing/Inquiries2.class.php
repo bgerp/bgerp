@@ -493,7 +493,28 @@ class marketing_Inquiries2 extends core_Embedder
     			$companyId = doc_Folders::fetchCoverId($rec->folderId);
     			$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId, 'country' => $rec->country), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
     		}
+    		
+    		$conf = core_Packs::getConfig('marketing');
+    		if($mvc->haveRightFor('add') && $conf->MARKETING_INQUIRE_TO_EMAIL && $conf->MARKETING_INQUIRE_FROM_EMAIL){
+    			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), "ef_icon=img/16/email_forward.png,warning=Сигурни ли сте че искате да препратите имейла на '{$conf->MARKETING_INQUIRE_TO_EMAIL}',title=Препращане на имейла с запитването на '{$conf->MARKETING_INQUIRE_TO_EMAIL}'");
+    		}
     	}
+    }
+    
+    
+    /**
+     * Препраща имейл-а генериран от създаването на запитването отново
+     */
+    public function act_Send()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	
+    	$this->requireRightFor('add');
+    	
+    	$this->sendNotificationEmail($rec);
+    	
+    	redirect(array($this, 'single', $rec->id), 'Успешно препращане');
     }
     
     
