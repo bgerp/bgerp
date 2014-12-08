@@ -106,23 +106,29 @@ class mobio_SMS extends core_Manager
             $ctx = stream_context_create(array('http' => array('timeout' => 5)));
             
             // Вземаме резултата
-            $res = file_get_contents($url, 0, $ctx);
+            $resStr = file_get_contents($url, 0, $ctx);
             
             // Ако има грешка - веднага маркираме в SMS Мениджъра
-            $res = explode(':', $res);
+            $resArr = explode(':', $resStr);
             
             // Ако няма грешки
-            if ($res[0] == 'OK') {
+            if ($resArr[0] == 'OK') {
                 
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sended';
-                $nRes['uid'] = $res[1];
+                $nRes['uid'] = $resArr[1];
                 $nRes['msg'] = "|Успешно изпратен SMS";
             } else {
                 
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sendError';
                 $nRes['msg'] = "|Не може да се изпрати";
+                
+                if (isDebug()) {
+                    $nRes['msg'] .= "|*\n" . $resStr;
+                }
+                
+                self::log("Грешка при изпращане на SMS: " . $resStr);
             }
         } else {
             
