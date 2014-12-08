@@ -299,7 +299,7 @@ class doc_Containers extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if($data->threadRec->state != 'rejected') {
-            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png','title'=>'Създаване на нов документ в нишката'));
             
             if($data->threadRec->state == 'opened') {
                 $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'ef_icon = img/16/close.png');
