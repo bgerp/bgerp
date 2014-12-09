@@ -77,12 +77,17 @@ class acc_transaction_ClosePeriod
     		$result->entries = array_merge($result->entries, $entries4);
     	}
     	
-    	$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
+    	$entries5 = $this->transferCosts($result->totalAmount, $rec);
+    	if(count($entries5)){
+    		$result->entries = array_merge($result->entries, $entries5);
+    	}
+    	
+    	//$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
     	if(count($entries1)){
     		$result->entries = array_merge($result->entries, $entries1);
     	}
     	 
-    	$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
+    	//$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
     	if(count($entries2)){
     		$result->entries = array_merge($result->entries, $entries2);
     	}
@@ -346,6 +351,128 @@ class acc_transaction_ClosePeriod
     	
     	
 	    return $entries;
+    }
+    
+    
+    /**
+     * Приключване на сметките за Разходи по икономически елементи (от гр. 60)
+     * 
+     * Разходи за материали
+     * 
+     * 		Dt: 611. Разходи за основна дейност
+     * 		Ct: 601. Разходи за материали
+     * 
+     *  Разходи за Разходи за външни услуги
+     *  
+     * 		Dt: 611. Разходи за основна дейност
+     * 		Ct: 602. Разходи за външни услуги
+     * 
+     * Разходи за материали
+     * 
+     * 		Dt: 611. Разходи за основна дейност
+     * 		Ct: 603. Разходи за амортизация
+     * 
+     * Приключваме разхода като намаление на финансовия резултат за периода
+     * 
+     * 		Dt: 123. Печалби и загуби от текущата година
+     * 		Ct: 611. Разходи за основна дейност
+     * 
+     * Разходи за труд
+     * 
+     * 		Dt: 611. Разходи за основна дейност
+     * 		Ct: 604. Разходи за заплати (възнаграждения)
+     * 
+     * 		Dt: 611. Разходи за основна дейност
+     * 		Ct: 605. Разходи за осигуровки
+     * 
+     * Приключваме разхода като намаление на финансовия резултат за периода
+     * 
+     * 		Dt: 123. Печалби и загуби от текущата година
+     * 		Ct: 611. Разходи за основна дейност
+     * 
+     */
+    protected function transferCosts(&$total, $rec)
+    {
+    	$bQuery = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '601,602,603');
+    	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+    	$entries = array();
+    	 
+    	// Подготвяме предварително нужните ни данни
+    	$baseDepartment = hr_Departments::fetchField("#systemId = 'myOrganisation'", 'id');
+    	$resource604 = $resource605  = mp_Resources::fetchField("#systemId = 'commonLabor'", 'id');
+    	$resource603    = mp_Resources::fetchField("#systemId = 'commonEquipment'", 'id');
+    	$resource602    = mp_Resources::fetchField("#systemId = 'commonService'", 'id');
+    	$resource601    = mp_Resources::fetchField("#systemId = 'commonMaterial'", 'id');
+    	$reason601 = 'Разходи за материали (неразпределени)';
+    	$reason602 = 'Разходи за външни услуги (неразпределени)';
+    	$reason603 = 'Разходи за амортизация (неразпределени)';
+    	$reason604 = $reason605 = 'Разходи за Труд (неразпределени)';
+    	
+    	$accs = array();
+    	foreach(array('601', '602', '603') as $sysId){
+    		$id = acc_Accounts::getRecBySystemId($sysId)->id;
+    		$accs[$id] = $sysId;
+    	}
+    	
+    	$amount601 = $amount602 = $amount603 = 0;
+    	$quantity601 = $quantity602 = $quantity603 = 0;
+    	while ($dRec = $bQuery->fetch()){
+    		$amount = &${"amount{$accs[$dRec->accountId]}"};
+    		$quantity = &${"quantity{$accs[$dRec->accountId]}"};
+    		
+    		$entries[] = array('amount'  => abs($dRec->blAmount), 
+    							'debit'  => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', ${"resource{$accs[$dRec->accountId]}"}), 'quantity' => $dRec->blQuantity), 
+    							'credit' => array($accs[$dRec->accountId], $dRec->ent1Id, 'quantity' => $dRec->blQuantity),
+    							'reason' => ${"reason{$accs[$dRec->accountId]}"});
+    		$total += abs($dRec->blAmount);
+    		$amount += abs($dRec->blAmount);
+    		$quantity += $dRec->blQuantity;
+    	}
+    	
+    	foreach (array('601', '602', '603') as $sysId){
+    		if(${"amount{$sysId}"} == 0) continue;
+    		
+    		$entries[] = array('amount'  => abs(${"amount{$sysId}"}),
+    				'debit'  => array('123', $this->date->year),
+    				'credit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', ${"resource{$sysId}"}), 'quantity' => ${"quantity{$sysId}"}),
+    				'reason' => ${"reason{$sysId}"});
+    		 
+    		$total += abs(${"amount{$sysId}"});
+    	}
+    	
+    	// Колко е крайното салдо по 604
+    	$bQuery = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '604');
+    	$rec604 = $bQuery->fetch();
+    	
+    	// Крайното салдо по 605
+    	$bQuery = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '605');
+    	$rec605 = $bQuery->fetch();
+    	$rec604->blQuantity = (is_null($rec604->blQuantity)) ? 0 : $rec604->blQuantity;
+    	$rec605->blQuantity = (is_null($rec605->blQuantity)) ? 0 : $rec605->blQuantity;
+    	
+    	$entries[] = array('amount' => abs($rec604->blAmount),
+    						'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => $rec604->blQuantity),
+    						'credit' => array('604'), 'reason' => $reason604);
+    	
+    	$entries[] = array('amount' => abs($rec605->blAmount),
+    			'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource605), 'quantity' => $rec605->blQuantity),
+    			'credit' => array('605'), 'reason' => $reason605);
+    	
+    	$total += abs($rec604->blAmount);
+    	$total += abs($rec605->blAmount);
+    	
+    	$tAmount = abs($rec604->blAmount) + abs($rec605->blAmount);
+    	$entries[] = array('amount' => $tAmount,
+    						'debit' => array('123', $this->date->year),
+    						'credit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)), 
+    						'reason' => $reason604);
+    	
+    	$total += $tAmount;
+    	
+    	return $entries;
     }
     
     
