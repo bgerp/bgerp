@@ -272,7 +272,7 @@ class core_Toolbar extends core_BaseClass
     function appendSecondRow_($toolbar, $rowId)
     {
     	
-        $toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, 'class=more-btn'), "ROW0");
+        $toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, array('class'=>'more-btn', 'title'=>'Други действия с този документ')), "ROW0");
     }
     
     
