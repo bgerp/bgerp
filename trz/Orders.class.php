@@ -296,11 +296,11 @@ class trz_Orders extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
-            return TRUE;
-        }
+       // Името на класа
+    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
+    	
+    	// Ако не е папка проект или контрагент, не може да се добави
+    	if ($coverClassName != 'crm_persons') return FALSE;
     }
     
     
