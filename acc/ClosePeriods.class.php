@@ -409,4 +409,70 @@ class acc_ClosePeriods extends core_Master
     		$tpl->append($details, 'INFO');
     	}
     }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+    	// Ако баланса се преизчислява в момента, забраняваме контирането
+    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
+    		core_Statuses::newStatus(tr("Баланса се преизчислява в момента, опитайте след малко"));
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	// Ако баланса се преизчислява в момента, забраняваме възстановяването
+    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
+    		core_Statuses::newStatus(tr("Баланса се преизчислява в момента, опитайте след малко"));
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+    	// Ако баланса се преизчислява в момента, забраняваме оттеглянето
+    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
+    		core_Statuses::newStatus(tr("Баланса се преизчислява в момента, опитайте след малко"));
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Оттегляне на документа
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	core_Locks::release('RecalcBalances');
+    }
+    
+    
+    /**
+     * Контиране на счетоводен документ
+     */
+    public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
+    {
+    	core_Locks::release('RecalcBalances');
+    }
+    
+    
+    /**
+     * Възстановяване на документа
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	core_Locks::release('RecalcBalances');
+    }
 }
