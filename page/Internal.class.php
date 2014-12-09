@@ -50,6 +50,7 @@ class page_Internal extends page_Html {
         
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
+        $this->push('js/overthrow-detect.js', 'JS');
         
         $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
         //$this->push('Pragma: no-cache', 'HTTP_HEADER');
