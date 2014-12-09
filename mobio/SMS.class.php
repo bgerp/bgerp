@@ -206,10 +206,11 @@ class mobio_SMS extends core_Manager
     function act_Delivery()
     {
         // Вземаме променливите
-        $uid = request::get('msgid', 'varchar');
-        $oldStatus = request::get('oldstats', 'varchar');
-        $number = request::get('tonum', 'varchar');
-        $code = request::get('newstatus', 'varchar');
+        $uid = Request::get('msgID', 'varchar');
+        $number = Request::get('tonum', 'varchar');
+        $code = Request::get('newstatus', 'varchar');
+        $time = Request::get('timestamp', 'varchar');
+        $timestamp = NULL;
         
         // Ако не е получен успешно
         if ((int)$code !== 1) {
@@ -221,8 +222,12 @@ class mobio_SMS extends core_Manager
         try {
             $classId = $this->getClassId();
             
+            if ($time) {
+                $timestamp = dt::mysql2timestamp($time);
+            }
+            
             // Обновяваме статуса на съобщението
-            callcenter_SMS::update($classId, $uid, $status);
+            callcenter_SMS::update($classId, $uid, $status, $timestamp);
         } catch (core_exception_Expect $e) {
             self::log("Възникна грешка при обновяване на състоянието с msgid: " . $uid);
         }

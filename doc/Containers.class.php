@@ -299,21 +299,21 @@ class doc_Containers extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if($data->threadRec->state != 'rejected') {
-            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png','title'=>'Създаване на нов документ в нишката'));
             
             if($data->threadRec->state == 'opened') {
-                $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'ef_icon = img/16/close.png');
+                $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'ef_icon = img/16/close.png', 'title=Затваряне на нишката');
             } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
-                $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'ef_icon = img/16/open.png');
+                $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'ef_icon = img/16/open.png', 'title=Отваряне на нишката');
             }
-            $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png');
+            $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png', 'title=Преместване на нишката в нова папка');
         }
         
         // Ако има права за настройка на папката, добавяме бутона
         $key = doc_Threads::getSettingsKey($data->threadId);
         $userOrRole = core_Users::getCurrent();
         if (doc_Threads::canModifySettings($key, $userOrRole)) {
-            core_Settings::addBtn($data->toolbar, $key, 'doc_Threads', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2));
+            core_Settings::addBtn($data->toolbar, $key, 'doc_Threads', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2,'title'=>'Персонални настройки на нишката'));
         }
     }
     
@@ -1744,7 +1744,7 @@ class doc_Containers extends core_Manager
         // Данни за работата на cron за поправка на документи
         $repRec = new stdClass();
         $repRec->systemId = self::REPAIR_SYSTEM_ID;
-        $repRec->description = 'Поправка на папаки, нишки и контейнери';
+        $repRec->description = 'Поправка на папки, нишки и контейнери';
         $repRec->controller = $mvc->className;
         $repRec->action = 'repair';
         $repRec->period = 5;
@@ -1836,6 +1836,8 @@ class doc_Containers extends core_Manager
         
         if ($form->isSubmitted()) {
             
+            $conf = core_Packs::getConfig('doc');
+            
             $Size = cls::get('fileman_FileSize');
             
             $memoryLimit = ini_get('memory_limit');
@@ -1859,15 +1861,15 @@ class doc_Containers extends core_Manager
             
             // В зависимост от избраната стойност поправяме документите
             if ($form->rec->repair == 'folders' || $form->rec->repair == 'all') {
-                $repArr['folders'] = doc_Folders::repair($form->rec->from, $form->rec->to);
+                $repArr['folders'] = doc_Folders::repair($form->rec->from, $form->rec->to, $conf->DOC_REPAIR_DELAY);
             }
             
             if ($form->rec->repair == 'threads' || $form->rec->repair == 'all') {
-                $repArr['threads'] = doc_Threads::repair($form->rec->from, $form->rec->to);
+                $repArr['threads'] = doc_Threads::repair($form->rec->from, $form->rec->to, $conf->DOC_REPAIR_DELAY);
             }
             
             if ($form->rec->repair == 'containers' || $form->rec->repair == 'all') {
-                $repArr['containers'] = doc_Containers::repair($form->rec->from, $form->rec->to);
+                $repArr['containers'] = doc_Containers::repair($form->rec->from, $form->rec->to, $conf->DOC_REPAIR_DELAY);
             }
             
             // Резултат след поправката
@@ -1919,11 +1921,12 @@ class doc_Containers extends core_Manager
         
         $from = dt::subtractSecs($cronPeriod);
         $to = dt::now();
-        $delay = 10;
         
-        $repArr['folders'] = doc_Folders::repair($from, $to, $delay);
-        $repArr['threads'] = doc_Threads::repair($from, $to, $delay);
-        $repArr['containers'] = doc_Containers::repair($from, $to, $delay);
+        $conf = core_Packs::getConfig('doc');
+        
+        $repArr['folders'] = doc_Folders::repair($from, $to, $conf->DOC_REPAIR_DELAY);
+        $repArr['threads'] = doc_Threads::repair($from, $to, $conf->DOC_REPAIR_DELAY);
+        $repArr['containers'] = doc_Containers::repair($from, $to, $conf->DOC_REPAIR_DELAY);
         
         return $repArr;
     }

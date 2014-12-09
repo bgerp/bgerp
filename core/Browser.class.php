@@ -418,7 +418,6 @@ class core_Browser extends core_Manager
         Mode::setPermanent('screenHeight', Request::get('h', 'int'));
         Mode::setPermanent('windowWidth', $w = Request::get('winW', 'int'));
         Mode::setPermanent('windowHeight', Request::get('winH', 'int'));
-        Mode::setPermanent('checkNativeSupport', Request::get('scroll', 'int'));
         Mode::setPermanent('getUserAgent', Request::get('browserCheck'));
    
            
@@ -502,13 +501,13 @@ class core_Browser extends core_Manager
                         'js',
                         rand(1, 1000000000)
                     ));
-                $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1"></span><script src=' . sbf("js/overthrow-detect.js") . ' type="text/javascript"></script><script type="text/javascript"><!-- 
+                $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1"></span><script type="text/javascript"><!-- 
                 var winW = 630, winH = 460; if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
                 winH = document.body.offsetHeight; } if (document.compatMode=="CSS1Compat" && document.documentElement && 
                 document.documentElement.offsetWidth ) { winW = document.documentElement.offsetWidth;
                 winH = document.documentElement.offsetHeight; } if (window.innerWidth && window.innerHeight) {
                 winW = window.innerWidth; winH = window.innerHeight;}  var brdet=document.getElementById("brdet"); 
-                brdet.src="' . $url . '?w=" + screen.width + "&h=" + screen.height + "&winH=" + winH + "&winW=" + winW + "&scroll=" + checkNativeSupport() + "&browserCheck=" + getUserAgent();
+                brdet.src="' . $url . '?w=" + screen.width + "&h=" + screen.height + "&winH=" + winH + "&winW=" + winW + "&browserCheck=" + getUserAgent();
                 //--> </script>';
             }
         }

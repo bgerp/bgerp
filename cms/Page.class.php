@@ -59,6 +59,7 @@ class cms_Page extends page_Html {
         $this->push('cms/css/Wide.css', 'CSS');
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
+        $this->push('js/overthrow-detect.js', 'JS');
         
         // Евентуално се кешират страници за не PowerUsers
         if(($expires = Mode::get('BrowserCacheExpires')) && !haveRole('powerUser')) {

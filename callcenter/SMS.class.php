@@ -389,7 +389,7 @@ class callcenter_SMS extends core_Master
         $rec->status = $status;
         
         // Ако няма време на получаване или е подадено време преди създаването му
-        if (!$receivedTimestamp || $rec->createdOn < $receivedTimestamp) {
+        if (!$receivedTimestamp || ($rec->createdOn > $receivedTimestamp)) {
             
             // Вземаме текущото време
             $rec->receivedTime = dt::verbal2mysql();
@@ -624,7 +624,7 @@ class callcenter_SMS extends core_Master
         }
         
         // Ако има потребител
-        if ($rec->createdBy) {
+        if ($rec->createdBy > 0) {
             
             // Създаваме линк към профила му
             $row->createdBy = crm_Profiles::createLink($rec->createdBy);

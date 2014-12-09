@@ -48,7 +48,8 @@ class mp_Setup extends core_ProtoSetup
             'mp_Jobs',
             'mp_Tasks',
     		'mp_Resources',
-    		'mp_ObjectResources'
+    		'mp_ObjectResources',
+    		'migrate::removeOldDefResource2'
         );
 
         
@@ -80,5 +81,14 @@ class mp_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Премахване на стария ресурс
+     */
+    public function removeOldDefResource2()
+    {
+    	mp_Resources::delete("#systemId = 'common'");
     }
 }

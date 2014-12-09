@@ -1,1 +1,4 @@
-Общ,labor,common
+Материал (общ),material,commonMaterial,pcs
+Външни услуги (общ),material,commonService,pcs
+Оборудване (общ),equipment,commonEquipment,pcs
+Труд (общ),labor,commonLabor,hour

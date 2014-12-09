@@ -884,11 +884,11 @@ class acc_Items extends core_Manager
             // Ако е документ и е чернова, не може да стане перо
             if($isDoc && $cRec->state == 'draft') continue;
             
-            $options[$cRec->id] = $Class->getTitleById($cRec->id, FALSE);
+            $options[$cRec->id] = $Class->getTitleById($cRec->id);
         }
         
         if(count($options)) {
-            $form->FNC($className, "keylist(mvc={$className})", "caption={$Class->title},input,columns=1");
+            $form->FNC($className, "keylist(mvc={$className},maxSuggestions=1)", "caption={$Class->title},input,columns=1");
             $form->setSuggestions($className, $options);
         }
         
