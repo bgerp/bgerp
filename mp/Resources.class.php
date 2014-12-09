@@ -21,7 +21,7 @@ class mp_Resources extends core_Master
 	/**
 	 * Интерфейси, поддържани от този мениджър
 	 */
-	public $interfaces = 'mp_ResourceAccRegIntf';
+	public $interfaces = 'mp_ResourceAccRegIntf,acc_RegisterIntf';
 	
 	
     /**
