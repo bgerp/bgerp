@@ -82,12 +82,12 @@ class acc_transaction_ClosePeriod
     		$result->entries = array_merge($result->entries, $entries5);
     	}
     	
-    	//$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
+    	$entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
     	if(count($entries1)){
     		$result->entries = array_merge($result->entries, $entries1);
     	}
     	 
-    	//$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
+    	$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
     	if(count($entries2)){
     		$result->entries = array_merge($result->entries, $entries2);
     	}
