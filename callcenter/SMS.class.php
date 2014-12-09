@@ -389,7 +389,7 @@ class callcenter_SMS extends core_Master
         $rec->status = $status;
         
         // Ако няма време на получаване или е подадено време преди създаването му
-        if (!$receivedTimestamp || $rec->createdOn < $receivedTimestamp) {
+        if (!$receivedTimestamp || ($rec->createdOn > $receivedTimestamp)) {
             
             // Вземаме текущото време
             $rec->receivedTime = dt::verbal2mysql();
