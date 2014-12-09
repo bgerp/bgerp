@@ -174,7 +174,9 @@ class hr_Departments extends core_Master
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
+        $this->FLD('systemId', 'varchar', 'input=none');
         
+        $this->setDbUnique('systemId');
     }
     
     
@@ -505,7 +507,8 @@ class hr_Departments extends core_Master
     		$rec->name = 'Моята Организация ООД';
     		$rec->staff = NULL;
     		$rec->activities = 'yes';
-    		 
+    		$rec->systemId = 'myOrganisation';
+    		
     		self::save($rec);
     		 
     		// Ако имаме вече създадени организационни структури
@@ -517,12 +520,13 @@ class hr_Departments extends core_Master
     		$query->where("#createdBy = -1");
     	
     		if ($query->fetch() == FALSE) {
-    			 
+    			
     			$rec = new stdClass();
     			$rec->name = 'Моята Организация ООД';
     			$rec->staff = NULL;
     			$rec->activities = 'yes';
-    	
+    			$rec->systemId = 'myOrganisation';
+    			
     			self::save($rec);
     		}
     	}

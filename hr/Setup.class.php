@@ -57,6 +57,7 @@ class hr_Setup extends core_ProtoSetup
 			'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
+   			'migrate::updateMyOrganisation'
         );
 
         
@@ -105,4 +106,14 @@ class hr_Setup extends core_ProtoSetup
         return $res;
     }
 
+    
+    /**
+     * Добавяме систем ид на департамента моята организация
+     */
+    protected function updateMyOrganisation()
+    {
+    	$rec = hr_Departments::fetch("#name = 'Моята Организация ООД'");
+    	$rec->systemId = 'myOrganisation';
+    	hr_Departments::save($rec);
+    }
 }
