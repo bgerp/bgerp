@@ -127,7 +127,7 @@ class cal_TaskProgresses extends core_Detail
     	if ($form->isSubmitted()){
         	if ($masterRec->progress > $form->rec->progress) {
         		$form->setWarning('progress', "|Въвели сте по-малък прогрес от предишния. Сигурни ли сте че искате да продължите?");
-        	} elseif ($masterRec->progress = $form->rec->progress) {
+        	} elseif ($masterRec->progress == $form->rec->progress) {
         		$form->setWarning('progress', "|Въвели сте прогрес равен на предишния. Сигурни ли сте че искате да продължите?");
         	}
     	}
