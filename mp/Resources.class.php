@@ -69,7 +69,7 @@ class mp_Resources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title,type,createdOn,createdBy,systemId';
+    public $listFields = 'tools=Пулт,title,type,createdOn,createdBy';
     
     
     /**
@@ -118,7 +118,7 @@ class mp_Resources extends core_Master
     function loadSetupData()
     {
     	$file = "mp/csv/Resources.csv";
-    	$fields = array(0 => "title", 1 => 'type', '2' => 'systemId');
+    	$fields = array(0 => "title", 1 => 'type', '2' => 'systemId', '3' => 'measureId');
     	
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	
@@ -132,6 +132,7 @@ class mp_Resources extends core_Master
     public static function on_BeforeImportRec($mvc, &$rec)
     {
     	$rec->createdBy = '-1';
+    	$rec->measureId = cat_UoM::fetchBySinonim($rec->measureId)->id;
     }
     
     
