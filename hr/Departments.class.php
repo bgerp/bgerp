@@ -509,7 +509,7 @@ class hr_Departments extends core_Master
     	$fields = array(
     			0 => "name",
     			1 => "activities",
-    			2 => "myOrganisation",
+    			2 => "systemId",
     	);
     	
     	// Импортираме данните от CSV файла.
