@@ -2412,6 +2412,12 @@ class email_Outgoings extends core_Master
             }
         }
         
+        // URL' то където ще се редиректва
+        $retUrl = getRetUrl();
+        
+        // Ако няма ret_url, създаваме го
+        $retUrl = ($retUrl) ? $retUrl : toUrl(array($class, 'single', $id));
+        
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
             
@@ -2453,11 +2459,11 @@ class email_Outgoings extends core_Master
             redirect(toUrl(array(
                         'email_Outgoings',
                         'add',
-                        'originId'=>$rec->containerId,
+                        'originId' => $rec->containerId,
                         'folderId' => $folderId,
                         'emailto' => $form->rec->userEmail,
-                        'forward'=>'forward',
-                        'ret_url'=>TRUE,
+                        'forward' => 'forward',
+                        'ret_url' => $retUrl,
                     )));
         }
         
@@ -2508,12 +2514,6 @@ class email_Outgoings extends core_Master
             // Добавяме празен стринг, за да не се покажат всичките записи
             $form->setOptions('companyId', array('' => ''));
         }
-        
-        // URL' то където ще се редиректва
-        $retUrl = getRetUrl();
-        
-        // Ако няма ret_url, създаваме го
-        $retUrl = ($retUrl) ? $retUrl : toUrl(array($class, 'single', $id));
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Избор', 'default', 'ef_icon = img/16/disk.png');
