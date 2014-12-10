@@ -1043,7 +1043,7 @@ class acc_Items extends core_Manager
     	$cache = new stdClass();
     	if(!count($this->cache)){
     		$query = $this->getQuery();
-    		$query->show('lists,title,num,classId,objectId,lists,state');
+    		$query->show('title,num,classId,objectId,lists,state');
     		while($rec = $query->fetch()){
     			$this->cache['items'][$rec->id] = $rec;
     			$this->cache['indexedItems'][$rec->classId . "|" . $rec->objectId] = $rec;
