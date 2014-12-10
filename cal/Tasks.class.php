@@ -292,16 +292,16 @@ class cal_Tasks extends core_Master
         // Ако имаме само начална дата на задачата
         if($rec->timeStart && !$rec->timeEnd){
         	// я парвим хипервръзка към календара- дневен изглед
-        	$row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, "ef_icon=img/16/calendar5.png");
+        	$row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
           // Ако имаме само крайна дата на задачата 
         } elseif ($rec->timeEnd && !$rec->timeStart) {
         	// я правим хипервръзка към календара - дневен изглед
-        	$row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, "ef_icon=img/16/calendar5.png");
+        	$row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
           // Ако задачата е с начало и край едновременно
         } elseif($rec->timeStart && $rec->timeEnd) {
         	// и двете ги правим хипервръзка към календара - дневен изглед 
-        	$row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, "ef_icon=img/16/calendar5.png");
-        	$row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, "ef_icon=img/16/calendar5.png");
+        	$row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
+        	$row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
         }
         
         if ($rec->timeDuration || $rec->timeEnd) {
@@ -472,13 +472,13 @@ class cal_Tasks extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if($data->rec->state == 'active' || $data->rec->state == 'pending') {
-            $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png');
-            $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2');
+            $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата');
+            $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2', 'title=Създаване на ново напомняне');
         	$data->toolbar->removeBtn('btnActivate');
         }
         
         if($data->rec->state == 'draft' || $data->rec->state == 'pending') {
-        	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/task-option.png, row=2');
+        	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
         
         // ако имаме зададена продължителност

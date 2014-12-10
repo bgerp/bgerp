@@ -367,9 +367,9 @@ class crm_Companies extends core_Master
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             if($groupId = $data->listFilter->rec->groupId) {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова визитка на фирма'));
             } else {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd', array('title'=>'Създаване на нова визитка на фирма', 'ef_icon'=>'img/16/star_2.png'));
             }
         }
     }

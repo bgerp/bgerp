@@ -123,4 +123,13 @@ abstract class frame_BaseDriver extends core_BaseClass
 	{
 		
 	}
+	
+	
+	/**
+	 * Скрива полетата, които потребител с ниски права не може да вижда
+	 */
+	public function hidePriceFields()
+	{
+		
+	}
 }

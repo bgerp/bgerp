@@ -21,7 +21,7 @@ class mp_Resources extends core_Master
 	/**
 	 * Интерфейси, поддържани от този мениджър
 	 */
-	public $interfaces = 'mp_ResourceAccRegIntf';
+	public $interfaces = 'mp_ResourceAccRegIntf,acc_RegisterIntf';
 	
 	
     /**
@@ -33,7 +33,7 @@ class mp_Resources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected, mp_Wrapper';
+    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected, mp_Wrapper, acc_plg_Registry';
     
     
     /**
@@ -69,7 +69,7 @@ class mp_Resources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title,type,createdOn,createdBy,systemId';
+    public $listFields = 'tools=Пулт,title,type,createdOn,createdBy';
     
     
     /**
@@ -104,6 +104,7 @@ class mp_Resources extends core_Master
     	$this->FLD('title', 'varchar', 'caption=Наименование,mandatory');
     	$this->FLD('type', 'enum(equipment=Оборудване,labor=Труд,material=Материал)', 'caption=Вид,mandatory,silent');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,mandatory');
+    	$this->FLD('selfValue', 'double', 'caption=Себестойност');
     	$this->FLD('systemId', 'varchar', 'caption=Системен №,input=none');
     	
     	// Поставяме уникален индекс
@@ -113,17 +114,16 @@ class mp_Resources extends core_Master
     
     
     /**
-     * Изпълнява се след създаването на модела
+     * Извиква се след SetUp-а на таблицата за модела
      */
-    public static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$file = "mp/csv/Resources.csv";
-        $fields = array(0 => "title", 1 => 'type', '2' => 'systemId');
-        
-        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-        $res .= $cntObj->html;
-        
-        return $res;
+    	$fields = array(0 => "title", 1 => 'type', '2' => 'systemId', '3' => 'measureId');
+    	
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields);
+    	
+    	return $cntObj->html;
     }
     
     
@@ -133,6 +133,7 @@ class mp_Resources extends core_Master
     public static function on_BeforeImportRec($mvc, &$rec)
     {
     	$rec->createdBy = '-1';
+    	$rec->measureId = cat_UoM::fetchBySinonim($rec->measureId)->id;
     }
     
     
@@ -215,6 +216,42 @@ class mp_Resources extends core_Master
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	if($form->rec->createdBy == '-1'){
+    		foreach(array('title', 'type', 'measureId') as $fld){
+    			$form->setReadOnly($fld);
+    		}
+    	}
+    	
+    	$cCode = acc_Periods::getBaseCurrencyCode();
+    	$form->setField('selfValue', "unit={$cCode}");
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		if(!empty($form->rec->selfValue)){
+    			$form->rec->selfValue = currency_CurrencyRates::convertAmount($form->rec->selfValue);
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
@@ -231,10 +268,22 @@ class mp_Resources extends core_Master
     		}
     	}
     	
-    	if(($action == 'edit' || $action == 'delete') && isset($rec)){
-    		if($rec->createdBy == '-1'){
-    			$res = 'no_one';
-    		}
+    	if(($action == 'edit') && isset($rec)){
+    		$res = $mvc->getRequiredRoles('edit');
     	}
+    }
+    
+    
+    /**
+     * Връща себестойността на ресурса
+     * 
+     * @param int $id - ид на ресурса
+     * @return double - себестойността му
+     */
+    public static function getSelfValue($id)
+    {
+    	expect($rec = static::fetch($id));
+    	
+    	return $rec->selfValue;
     }
 }

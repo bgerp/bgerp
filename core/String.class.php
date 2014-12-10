@@ -298,7 +298,8 @@ class core_String
         $lastC = '';
         $mysqlName = '';
 
-        for ($i = 0; $i < strlen($name); $i++) {
+        $strLen = strlen($name);
+        for ($i = 0; $i < $strLen; $i++) {
             $c = $name{$i};
             
             if ((($lastC >= "a" && $lastC <= "z") || ($lastC >= "0" && $lastC <= "9")) && ($c >= "A" && $c <= "Z")) {

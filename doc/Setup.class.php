@@ -26,6 +26,12 @@ defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_TO', '3600');
 
 
 /**
+ * Време на отклонения за поправка на документ
+ */
+defIfNot('DOC_REPAIR_DELAY', 120);
+
+
+/**
  * class dma_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -75,6 +81,7 @@ class doc_Setup extends core_ProtoSetup
         'BGERP_PDF_GENERATOR' => array ('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да се използва за генериране на PDF?->Пакет'),
         'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Начало,unit=преди проверката'),
         'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Край,unit=преди проверката'),
+        'DOC_REPAIR_DELAY' => array ('time(suggestions=10 сек.|30 сек.|60 сек.|120 сек.)', 'caption=Отклонение при поправка на документи->Време'),
     );
     
     
@@ -224,10 +231,11 @@ class doc_Setup extends core_ProtoSetup
      */
     static function repairAllBrokenRelations()
     {
+        $conf = core_Packs::getConfig('doc');
         $res .= '';
-        $repArr['folder'] = doc_Folders::repair();
-        $repArr['thread'] = doc_Threads::repair();
-        $repArr['container'] = doc_Containers::repair();
+        $repArr['folder'] = doc_Folders::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
+        $repArr['thread'] = doc_Threads::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
+        $repArr['container'] = doc_Containers::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
         
         foreach ($repArr as $name => $repairedArr) {
             if (!empty($repairedArr)) {

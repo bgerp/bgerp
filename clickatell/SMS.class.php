@@ -53,7 +53,15 @@ class clickatell_SMS extends core_Manager
 	/**
 	 * Интерфейсния клас за изпращане на SMS
 	 */
-	var $interfaces = 'callcenter_SentSMSIntf'; 
+	var $interfaces = 'callcenter_SentSMSIntf';
+    
+    
+    /**
+     * Плъгини за зареждане
+     * 
+     * var string|array
+     */
+    public $loadList = 'callcenter_SMSPlg';
 	
 	
 	/**

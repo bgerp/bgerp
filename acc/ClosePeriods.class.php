@@ -32,7 +32,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg';
+    public $loadList = 'plg_RowTools, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg, doc_plg_HidePrices';
     
     
     /**
@@ -126,16 +126,22 @@ class acc_ClosePeriods extends core_Master
     
     
     /**
+     * Полета с цени, които не трябва да се показват ако потребителя няма права да ги вижда
+     */
+    public $priceFields = 'amountFromInvoices, amountVatGroup1, amountVatGroup2, amountVatGroup3, amountVatGroup4, amountWithoutInvoice';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
     	$this->FLD("periodId", 'key(mvc=acc_Periods, select=title, allowEmpty)', 'caption=Период,mandatory,silent');
     	$this->FLD("amountFromInvoices", 'double(decimals=2)', 'input=none,caption=ДДС от фактури с касови бележки');
-    	$this->FLD("amountVatGroup1", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група A,notNull,default=0');
-    	$this->FLD("amountVatGroup2", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група Б,notNull,default=0');
-    	$this->FLD("amountVatGroup3", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група В,notNull,default=0');
-    	$this->FLD("amountVatGroup4", 'double(decimals=2)', 'caption=ДДС от касов апарат->Група Г,notNull,default=0');
+    	$this->FLD("amountVatGroup1", 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група A,notNull,default=0');
+    	$this->FLD("amountVatGroup2", 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група Б,notNull,default=0');
+    	$this->FLD("amountVatGroup3", 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група В,notNull,default=0');
+    	$this->FLD("amountVatGroup4", 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група Г,notNull,default=0');
     	
     	$this->FLD('state',
     			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)',
@@ -228,7 +234,10 @@ class acc_ClosePeriods extends core_Master
     		
     		$rec->amountWithoutInvoice = ($rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4) - $rec->amountFromInvoices;
     		$row->amountWithoutInvoice = $Double->toVerbal($rec->amountWithoutInvoice). " <span class='cCode'>{$row->baseCurrencyId}</span>";
-    	
+    		if($rec->amountWithoutInvoice < 0){
+    			$row->amountWithoutInvoice = "<span class='red'>{$row->amountWithoutInvoice}</span>";
+    		}
+    		
     		$row->amountFromInvoices .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
     	}
     	
@@ -399,5 +408,71 @@ class acc_ClosePeriods extends core_Master
     		
     		$tpl->append($details, 'INFO');
     	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+    	// Ако баланса се преизчислява в момента, забраняваме контирането
+    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
+    		core_Statuses::newStatus(tr("Баланса се преизчислява в момента, опитайте след малко"));
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	// Ако баланса се преизчислява в момента, забраняваме възстановяването
+    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
+    		core_Statuses::newStatus(tr("Баланса се преизчислява в момента, опитайте след малко"));
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+    	// Ако баланса се преизчислява в момента, забраняваме оттеглянето
+    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
+    		core_Statuses::newStatus(tr("Баланса се преизчислява в момента, опитайте след малко"));
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Оттегляне на документа
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	core_Locks::release('RecalcBalances');
+    }
+    
+    
+    /**
+     * Контиране на счетоводен документ
+     */
+    public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
+    {
+    	core_Locks::release('RecalcBalances');
+    }
+    
+    
+    /**
+     * Възстановяване на документа
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	core_Locks::release('RecalcBalances');
     }
 }

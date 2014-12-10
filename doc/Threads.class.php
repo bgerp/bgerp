@@ -175,7 +175,6 @@ class doc_Threads extends core_Manager
         // За да предизвикат стартиране за съответния запис в on_Shutdown
         $query->orWhere("#allDocCnt IS NULL");
         $query->orWhere("#pubDocCnt IS NULL");
-        $query->orWhere("#last IS NULL");
         $query->orWhere("#lastAuthor IS NULL");
         $query->orWhere("#lastState IS NULL");
         
@@ -1144,7 +1143,7 @@ class doc_Threads extends core_Manager
             $data->toolbar->removeBtn('*', 'with_selected');
             $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
-            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
 
             $data->rejectedCnt = $mvc->count("#folderId = {$data->folderId} AND #state = 'rejected'");
             
@@ -1166,7 +1165,7 @@ class doc_Threads extends core_Manager
         $key = doc_Folders::getSettingsKey($data->folderId);
         $userOrRole = core_Users::getCurrent();
         if (doc_Folders::canModifySettings($key, $userOrRole)) {
-            core_Settings::addBtn($data->toolbar, $key, 'doc_Folders', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2));
+            core_Settings::addBtn($data->toolbar, $key, 'doc_Folders', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2, 'title'=>'Персонални настройки на папката'));
         }
     }
     

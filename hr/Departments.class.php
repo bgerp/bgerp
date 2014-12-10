@@ -174,7 +174,10 @@ class hr_Departments extends core_Master
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
+        $this->FLD('systemId', 'varchar', 'input=none');
         
+        $this->setDbUnique('systemId');
+        $this->setDbUnique('name');
     }
     
     
@@ -499,32 +502,23 @@ class hr_Departments extends core_Master
      */
     public function loadSetupData()
     {
-    	if(!self::count()) {
-    		// Създаваме пътвият организационни структури да е "Моята организация"
-    		$rec = new stdClass();
-    		$rec->name = 'Моята Организация ООД';
-    		$rec->staff = NULL;
-    		$rec->activities = 'yes';
-    		 
-    		self::save($rec);
-    		 
-    		// Ако имаме вече създадени организационни структури
-    	} else {
+    	// Подготвяме пътя до файла с данните
+    	$file = "hr/csv/Departments.csv";
     	
-    		$query = self::getQuery();
+    	// Кои колонки ще вкарваме
+    	$fields = array(
+    			0 => "name",
+    			1 => "activities",
+    			2 => "systemId",
+    	);
     	
-    		// Намираме тези, които са създадени от системата
-    		$query->where("#createdBy = -1");
+    	// Импортираме данните от CSV файла.
+    	// Ако той не е променян - няма да се импортират повторно
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL);
     	
-    		if ($query->fetch() == FALSE) {
-    			 
-    			$rec = new stdClass();
-    			$rec->name = 'Моята Организация ООД';
-    			$rec->staff = NULL;
-    			$rec->activities = 'yes';
+    	// Записваме в лога вербалното представяне на резултата от импортирането
+    	$res .= $cntObj->html;
     	
-    			self::save($rec);
-    		}
-    	}
+    	return $res;
     }
 }

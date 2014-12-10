@@ -182,9 +182,9 @@ class callcenter_SMS extends core_Master
         }
         
         // Вземаме пълния номер на получателя
-        $number = drdata_PhoneType::getNumberStr($number, 0);
+        $receiverNumber = $serviceInst->prepareNumberStr($number);
         
-        expect($number, 'Липсва номер на получателя');
+        expect($receiverNumber, 'Липсва номер на получателя');
         
         // Подготвяме текстовата част
         $messageStr = self::prepareMessage($message);
@@ -197,7 +197,7 @@ class callcenter_SMS extends core_Master
         expect(self::canSend($messageStr, $sender, $service), 'Не може да се изпрати');
         
         // Изпращаме съобщението към услугата за изпращане на SMS
-        $sendStatusArr = $serviceInst->sendSMS($number, $messageStr, $sender);
+        $sendStatusArr = $serviceInst->sendSMS($receiverNumber, $messageStr, $sender);
         
         $rec = new stdClass();
         $rec->text = $message;
@@ -225,7 +225,7 @@ class callcenter_SMS extends core_Master
             $rec->mobileNumData = $extRecArr[0]->id;
         }
         
-        $rec->mobileNum = $number;
+        $rec->mobileNum = drdata_PhoneType::getNumberStr($number, 0);
         $rec->sender = $sender;
         $rec->service = $service;
         $rec->encoding = $encoding;
@@ -389,7 +389,7 @@ class callcenter_SMS extends core_Master
         $rec->status = $status;
         
         // Ако няма време на получаване или е подадено време преди създаването му
-        if (!$receivedTimestamp || $rec->createdOn < $receivedTimestamp) {
+        if (!$receivedTimestamp || ($rec->createdOn > $receivedTimestamp)) {
             
             // Вземаме текущото време
             $rec->receivedTime = dt::verbal2mysql();
@@ -624,7 +624,7 @@ class callcenter_SMS extends core_Master
         }
         
         // Ако има потребител
-        if ($rec->createdBy) {
+        if ($rec->createdBy > 0) {
             
             // Създаваме линк към профила му
             $row->createdBy = crm_Profiles::createLink($rec->createdBy);
