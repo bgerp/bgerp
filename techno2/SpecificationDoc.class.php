@@ -198,14 +198,15 @@ class techno2_SpecificationDoc extends core_Embedder
     				$form->setDefault($fld, $originRec->$fld);
     			}
     		}
+    		
+    		$form->setField('isPublic', 'input');
     	}
     	
     	if($form->rec->innerClass && (empty($form->rec->state) || $form->rec->state === 'draft')){
     		$form->setField('sharedUsers', 'input,formOrder=100000000');
-    		$form->setField('isPublic', 'input,formOrder=100000000');
+    		
     	} else {
     		$form->setField('sharedUsers', 'input=none,formOrder=100000000');
-    		$form->setField('isPublic', 'input=none,formOrder=100000000');
     	}
     }
 
