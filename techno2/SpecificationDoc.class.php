@@ -116,7 +116,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, folderId, innerClass';
+    public $listFields = 'id, title, folderId, innerClass,isPublic';
     
     
     /**
@@ -173,6 +173,7 @@ class techno2_SpecificationDoc extends core_Embedder
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
     	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
+    	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'caption=Достъп,notNull,default=no,input=none,formOrder=100000000');
     	
     	$this->setDbUnique('title');
     }
@@ -201,8 +202,10 @@ class techno2_SpecificationDoc extends core_Embedder
     	
     	if($form->rec->innerClass && (empty($form->rec->state) || $form->rec->state === 'draft')){
     		$form->setField('sharedUsers', 'input,formOrder=100000000');
+    		$form->setField('isPublic', 'input,formOrder=100000000');
     	} else {
     		$form->setField('sharedUsers', 'input=none,formOrder=100000000');
+    		$form->setField('isPublic', 'input=none,formOrder=100000000');
     	}
     }
 

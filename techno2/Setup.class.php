@@ -47,7 +47,7 @@ class techno2_Setup extends core_ProtoSetup
     var $managers = array(
     		'techno2_SpecificationDoc',
     		'techno2_SpecTplCache',
-    		'migrate::copyOldTechnoDocuments5'
+    		'migrate::copyOldTechnoDocuments6'
         );
     
 
@@ -103,7 +103,7 @@ class techno2_Setup extends core_ProtoSetup
     /**
      * Миграция на старите универсални продукти към новите спецификации
      */
-    public function copyOldTechnoDocuments5()
+    public function copyOldTechnoDocuments6()
     {
     	core_Users::cancelSystemUser();
     	
@@ -137,6 +137,12 @@ class techno2_Setup extends core_ProtoSetup
     		
     		$newRec->innerForm = $clone;
     		$newRec->innerState = $clone;
+    		
+    		if(doc_Folders::fetchCoverClassName($newRec->folderId) == 'doc_UnsortedFolders'){
+    			$newRec->isPublic = 'yes';
+    		} else {
+    			$newRec->isPublic = 'no';
+    		}
     		
     		try{
     			$NewClass->save($newRec, NULL, 'REPLACE');
