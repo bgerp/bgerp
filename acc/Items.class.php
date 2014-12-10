@@ -100,6 +100,12 @@ class acc_Items extends core_Manager
     
     
     /**
+     * Работен кеш
+     */
+    protected $cache = array();
+    
+    
+    /**
      * Шаблон (ET) за заглавие на перо
      *
      * @var string
@@ -584,12 +590,21 @@ class acc_Items extends core_Manager
      * @param int $class
      * @param int $objectId
      * @param mixed $fields списък от полета на acc_Items, които да бъдат извлечени
+     * @param boolean $useCachedItems - дали да се използва кеширане на информацията за перата
      */
-    public static function fetchItem($class, $objectId, $fields = NULL)
+    public static function fetchItem($class, $objectId, $fields = NULL, $useCachedItems = FALSE)
     {
         $Class = cls::get($class);
+        $self = cls::get(get_called_class());
         
-        return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'", $fields);
+        if($useCachedItems === TRUE){
+        	$index = $Class->getClassId() . "|" . $objectId;
+        	$cache = $self->getCachedItems();
+        	
+        	return $cache['indexedItems'][$index];
+        } else {
+        	return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'", $fields);
+        }
     }
     
     
@@ -672,9 +687,9 @@ class acc_Items extends core_Manager
      * @param int $listId
      * @return int ИД на перото
      */
-    public static function force($classId, $objectId, $listId)
+    public static function force($classId, $objectId, $listId, $useCachedItems = FALSE)
     {
-        $rec = self::fetchItem($classId, $objectId);
+        $rec = self::fetchItem($classId, $objectId, NULL, $useCachedItems);
         
         if (empty($rec)) {
             // Няма такова перо - създаваме ново и го добавяме в номенклатурата $listId
@@ -1012,5 +1027,29 @@ class acc_Items extends core_Manager
         } else {
             return $tpl;
         }
+    }
+    
+    
+    /**
+     * Кешира всички пера в модела в два масива, единия е с индекс ид-то на перото другия е с индекс класа и ид-то на обекта
+     * 
+     * @return array - масив с кешираните пера
+     * 
+     * 		['items'] - масив с записите на перата с индекс ид-то им
+     * 		['indexedItems'] - масив с записите на перата с индекс classId им и objectId
+     */
+    public function getCachedItems()
+    {
+    	$cache = new stdClass();
+    	if(!count($this->cache)){
+    		$query = $this->getQuery();
+    		$query->show('lists,title,num,classId,objectId,lists,state');
+    		while($rec = $query->fetch()){
+    			$this->cache['items'][$rec->id] = $rec;
+    			$this->cache['indexedItems'][$rec->classId . "|" . $rec->objectId] = $rec;
+    		}
+    	}
+    	
+    	return $this->cache;
     }
 }

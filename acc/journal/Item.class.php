@@ -46,7 +46,7 @@ class acc_journal_Item
             $this->id = $classId;
             
             if ($this->id) {
-                expect($this->itemRec = acc_Items::fetch($this->id), func_get_args(), $classId, $objectId);
+                expect($this->itemRec = $this->fetchItemRecById($this->id), func_get_args(), $classId, $objectId);
                 $this->classId  = $this->itemRec->classId;
                 $this->objectId = $this->itemRec->objectId;
             }
@@ -88,7 +88,7 @@ class acc_journal_Item
     public function force($listId)
     {
         if($this->classId && $this->objectId){
-            $itemId = acc_Items::force($this->classId, $this->objectId, $listId);
+            $itemId = acc_Items::force($this->classId, $this->objectId, $listId, TRUE);
         } elseif(isset($this->id)) {
             $itemId = $this->id;
         }
@@ -130,5 +130,17 @@ class acc_journal_Item
         }
         
         return ($state == 'closed') ? TRUE : FALSE;
+    }
+    
+    
+    /**
+     * Връща записа отговарящ на това ид
+     */
+    public function fetchItemRecById($id)
+    {
+    	$Items = cls::get('acc_Items');
+    	$cache = $Items->getCachedItems();
+    	
+    	return $cache['items'][$id];
     }
 }
