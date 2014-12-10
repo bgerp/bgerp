@@ -72,8 +72,37 @@ class vislog_IpNames extends core_Manager {
     {
         
         $this->FLD('ip', 'varchar(15)', 'caption=IP');
-        $this->FLD('name', 'varchar(15)', 'caption=Име');
+        $this->FLD('name', 'varchar(255)', 'caption=Име');
         
         $this->setDbUnique('ip');
+    }
+
+
+    /**
+     * Добавя име на IP-adresa
+     */
+    static public function add($name, $ip = NULL)
+    {
+        if(!$ip) {
+            $ip = core_Users::getRealIpAddr();
+        }
+
+        $rec = self::fetch(array("#ip = '[#1#]'", $ip));
+        $mustSave = TRUE;
+
+        if(!$rec) {
+            $rec = (object) array('ip' => $ip, 'name' => $name);
+        } else {
+            if(!strpos($rec->name, $name)) {
+                $rec->name = $name . ', ' . $rec->name;
+            } else {
+                $mustSave = FALSE;
+            }
+        }
+        
+        if($mustSave) {
+            $rec->name = str::truncate($rec->name, 255);
+            self::save($rec);
+        }
     }
 }

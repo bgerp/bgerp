@@ -740,9 +740,12 @@ class core_String
     /**
      * Оцветява текст по относително уникален начин, в зависимост от съдържанието му
      */
-    static function coloring($text)
+    static function coloring($text, $colorFactor = NULL)
     {
-        $txColor = str_pad(dechex(hexdec(substr($hash = md5($text), 0, 6)) & 0x7F7F7F), 6, '0', STR_PAD_LEFT);
+        if(!$colorFactor) {
+            $colorFactor = $text;
+        }
+        $txColor = str_pad(dechex(hexdec(substr($hash = md5($colorFactor), 0, 6)) & 0x7F7F7F), 6, '0', STR_PAD_LEFT);
         
         $bgColor = str_pad(dechex(hexdec(substr($hash, 6, 6)) | 0x808080), 6, '0', STR_PAD_LEFT);
 
