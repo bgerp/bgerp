@@ -116,7 +116,7 @@ class sales_transaction_CloseDeal
     		$entry = $this->getCloseEntry($this->blAmount, $result->totalAmount, $docRec, $firstDoc, $incomeFromClosure);
     		
     		if(count($entry)){
-    			$result->entries[] = $entry;
+    			$result->entries = array_merge($result->entries, $entry);
     		}
     	}
     	
@@ -136,6 +136,12 @@ class sales_transaction_CloseDeal
      * 			Dt: 6911 - Отписани вземания по Продажби
      * 			Ct: 411 - Вземания от клиенти
      *
+     * 		Отнасяме отписаните вземания (извънредния разход) по сделката като разход по дебита на обобщаващата сметка 700,
+     * 		със сумата на дебитното салдо на с/ка 411
+     *
+     * 			Dt: 700 - Приходи от продажби (по сделки)
+     * 			Ct: 6911 - Отписани вземания по Продажби
+     *
      * Сметка 411 има Кредитно (Ct) салдо
      *
      * 		Намаляваме прихода от Клиента с надвнесената сума с обратна (revers) операция,
@@ -143,6 +149,12 @@ class sales_transaction_CloseDeal
     
      * 			Dt: 411 - Вземания от клиенти
      * 			Ct: 7911 - Извънредни приходи по Продажби
+     *
+     * 		Отнасяме извънредния приход по сделката като приход по кредита на обобщаващата сметка 700,
+     * 		със сумата на кредитното салдо на с/ка 411
+     *
+     * 			Dt: 7911 - Извънредни приходи по Продажби
+     * 			Ct: 700 - Приходи от продажби (по сделки)
      */
     private function getCloseEntry($amount, &$totalAmount, $docRec, $firstDoc, &$incomeFromClosure)
     {
@@ -166,8 +178,17 @@ class sales_transaction_CloseDeal
     				'reason' => 'Извънредни приходи - надплатени',
     		);
     
+    		$entry2 = array('amount' => abs($amount),
+    				'debit'  => array('7911',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),
+    				'credit'  => array('700', array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),
+    				'reason' => 'Извънредни приходи - надплатени',
+    		);
+    
     		// Добавяме към общия оборот удвоената сума
-    		$totalAmount += -1 * $amount;
+    		$totalAmount += -2 * $amount;
     		$incomeFromClosure -= -1 * $amount;
     
     	} elseif($amount > 0){
@@ -184,15 +205,24 @@ class sales_transaction_CloseDeal
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
     						'quantity' => $amount / $docRec->currencyRate),
     				'reason' => 'Извънредни разходи - недоплатени',
-    		);	
+    		);
+    
+    		$entry2 = array('amount' => $amount,
+    				'debit'  => array('700', array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),
+    				'credit'  => array('6911',
+    						array($docRec->contragentClassId, $docRec->contragentId),
+    						array($firstDoc->className, $firstDoc->that)),
+    				'reason' => 'Извънредни разходи - недоплатени',);
+    				
     		
     		// Добавяме към общия оборот удвоената сума
-    		$totalAmount += $amount;
+    		$totalAmount += 2 * $amount;
     		$incomeFromClosure += $amount;
     	}
     	
     	// Връщане на записа
-    	return $entry1;
+    	return array($entry1, $entry2);
     }
     
     
