@@ -229,6 +229,25 @@ class mp_Resources extends core_Master
     			$form->setReadOnly($fld);
     		}
     	}
+    	
+    	$cCode = acc_Periods::getBaseCurrencyCode();
+    	$form->setField('selfValue', "unit={$cCode}");
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		if(!empty($form->rec->selfValue)){
+    			$form->rec->selfValue = currency_CurrencyRates::convertAmount($form->rec->selfValue);
+    		}
+    	}
     }
     
     
