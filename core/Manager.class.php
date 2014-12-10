@@ -534,8 +534,8 @@ class core_Manager extends core_Mvc
      */
     function prepareEditToolbar_($data)
     {
-        $data->form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png');
-        $data->form->toolbar->addBtn('Отказ', $data->retUrl,  'id=cancel, ef_icon = img/16/close16.png');
+        $data->form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис на документа');
+        $data->form->toolbar->addBtn('Отказ', $data->retUrl,  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
         
         return $data;
     }
