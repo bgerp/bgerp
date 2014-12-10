@@ -411,6 +411,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$products = array();
     	$query = $this->getQuery();
     	$query->where("#folderId = {$folderId}");
+    	$query->orWhere("#isPublic = 'yes'");
     	$query->where("#state = 'active'");
     	
     	while($rec = $query->fetch()){
