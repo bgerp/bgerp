@@ -104,6 +104,7 @@ class mp_Resources extends core_Master
     	$this->FLD('title', 'varchar', 'caption=Наименование,mandatory');
     	$this->FLD('type', 'enum(equipment=Оборудване,labor=Труд,material=Материал)', 'caption=Вид,mandatory,silent');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,mandatory');
+    	$this->FLD('selfValue', 'double', 'caption=Себестойност');
     	$this->FLD('systemId', 'varchar', 'caption=Системен №,input=none');
     	
     	// Поставяме уникален индекс
@@ -215,6 +216,23 @@ class mp_Resources extends core_Master
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	if($form->rec->createdBy == '-1'){
+    		foreach(array('title', 'type', 'measureId') as $fld){
+    			$form->setReadOnly($fld);
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
@@ -231,10 +249,22 @@ class mp_Resources extends core_Master
     		}
     	}
     	
-    	if(($action == 'edit' || $action == 'delete') && isset($rec)){
-    		if($rec->createdBy == '-1'){
-    			$res = 'no_one';
-    		}
+    	if(($action == 'edit') && isset($rec)){
+    		$res = $mvc->getRequiredRoles('edit');
     	}
+    }
+    
+    
+    /**
+     * Връща себестойността на ресурса
+     * 
+     * @param int $id - ид на ресурса
+     * @return double - себестойността му
+     */
+    public static function getSelfValue($id)
+    {
+    	expect($rec = static::fetch($id));
+    	
+    	return $rec->selfValue;
     }
 }

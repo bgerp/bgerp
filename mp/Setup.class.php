@@ -49,7 +49,7 @@ class mp_Setup extends core_ProtoSetup
             'mp_Tasks',
     		'mp_Resources',
     		'mp_ObjectResources',
-    		'migrate::removeOldDefResource2'
+    		'migrate::removeOldDefResource5'
         );
 
         
@@ -87,8 +87,8 @@ class mp_Setup extends core_ProtoSetup
     /**
      * Премахване на стария ресурс
      */
-    public function removeOldDefResource2()
+    public function removeOldDefResource5()
     {
-    	mp_Resources::delete("#systemId = 'common'");
+    	mp_Resources::delete("#title = 'Общ'");
     }
 }
