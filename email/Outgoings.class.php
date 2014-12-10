@@ -602,7 +602,7 @@ class email_Outgoings extends core_Master
         }
         
         // Добавяме бутона отказ
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png', 'title=Спиране на изпращането');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), NULL, array('ef_icon'=>'img/16/close16.png', 'title'=>'Спиране на изпращането'));
         
         // Вкарваме silent полетата
         $form->input(NULL, 'silent');
@@ -1201,11 +1201,11 @@ class email_Outgoings extends core_Master
             $mvc->singleTitle = "Факс";
             
             // Добавяме бутона изпрати
-            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', array('order'=>'10.000091'), 'ef_icon = img/16/fax2.png', 'title=Изпращане на имейла');
+            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', NULL, array('order'=>'10.000091', 'ef_icon'=>'img/16/fax2.png', 'title'=>'Изпращане на имейла'));
         } else {
             
             // Добавяме бутона изпрати
-            $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10.000091'), 'ef_icon = img/16/move.png', 'title=Изпращане на имейла');
+            $form->toolbar->addSbBtn('Изпрати', 'sending', NULL, array('order'=>'10.000091','ef_icon'=>'img/16/move.png', 'title'=>'Изпращане на имейла'));
         }
         
         // Ако не редактираме и не клонираме
