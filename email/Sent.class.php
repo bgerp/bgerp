@@ -186,7 +186,16 @@ class email_Sent
             $PML->AddReplyTo($message->inReplyTo);
         }
         
-        return $PML->Send();
+        $isSended = $PML->Send();
+        
+        if (!$isSended) {
+            $error = trim($PML->ErrorInfo);
+            if (isset($error)) {
+                core_Manager::log("PML error: " . $error);
+            }
+        }
+        
+        return $isSended;
     }
 
 
