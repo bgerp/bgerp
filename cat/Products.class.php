@@ -770,6 +770,34 @@ class cat_Products extends core_Embedder {
     }
     
     
+    /**
+     * Изпълнява се след оттегляне
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	// Инвалидираме кешираните артикули
+    	core_Cache::remove('cat_Products', "productsMeta");
+    }
+    
+    
+    /**
+     * Изпълнява се след възстановяване
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	// Инвалидираме кешираните артикули
+    	core_Cache::remove('cat_Products', "productsMeta");
+    }
+    
+    
 	/**
      * След всеки запис
      */
