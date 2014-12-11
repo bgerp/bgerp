@@ -400,7 +400,7 @@ class acc_transaction_ClosePeriod
     	 
     	// Подготвяме предварително нужните ни данни
     	$baseDepartment = hr_Departments::fetchField("#systemId = 'myOrganisation'", 'id');
-    	$resource604 = $resource605  = mp_Resources::fetchField("#systemId = 'commonLabor'", 'id');
+    	$resource604 = $resource605 = mp_Resources::fetchField("#systemId = 'commonLabor'", 'id');
     	$resource603    = mp_Resources::fetchField("#systemId = 'commonEquipment'", 'id');
     	$resource602    = mp_Resources::fetchField("#systemId = 'commonService'", 'id');
     	$resource601    = mp_Resources::fetchField("#systemId = 'commonMaterial'", 'id');
@@ -450,8 +450,11 @@ class acc_transaction_ClosePeriod
     	$bQuery = acc_BalanceDetails::getQuery();
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '605');
     	$rec605 = $bQuery->fetch();
-    	$rec604->blQuantity = (is_null($rec604->blQuantity)) ? 0 : $rec604->blQuantity;
-    	$rec605->blQuantity = (is_null($rec605->blQuantity)) ? 0 : $rec605->blQuantity;
+    	
+    	$selfValueLabor = mp_Resources::getSelfValue($resource604);
+    	
+    	@$rec604->blQuantity = $rec604->blAmount / $selfValueLabor;
+    	@$rec605->blQuantity = $rec605->blAmount / $selfValueLabor;
     	
     	$entries[] = array('amount' => abs($rec604->blAmount),
     						'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => $rec604->blQuantity),

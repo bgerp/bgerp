@@ -104,6 +104,7 @@ class mp_Resources extends core_Master
     	$this->FLD('title', 'varchar', 'caption=Наименование,mandatory');
     	$this->FLD('type', 'enum(equipment=Оборудване,labor=Труд,material=Материал)', 'caption=Вид,mandatory,silent');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,mandatory');
+    	$this->FLD('selfValue', 'double', 'caption=Себестойност');
     	$this->FLD('systemId', 'varchar', 'caption=Системен №,input=none');
     	
     	// Поставяме уникален индекс
@@ -121,6 +122,17 @@ class mp_Resources extends core_Master
     	$fields = array(0 => "title", 1 => 'type', '2' => 'systemId', '3' => 'measureId');
     	
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
+    	
+    	$query = $this->getQuery();
+    	$query->where("#systemId IS NOT NULL");
+    	
+    	// Добавяме автоматично дефолтните ресурси като пера от номенклатура 'ресурси'
+    	while($rec = $query->fetch()){
+    		if(!acc_Items::fetchItem($this, $rec->id)){
+    			$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'resources'), 'id'));
+    			acc_Lists::updateItem($this, $rec->id, $rec->lists);
+    		}
+    	}
     	
     	return $cntObj->html;
     }
@@ -215,6 +227,42 @@ class mp_Resources extends core_Master
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	if($form->rec->createdBy == '-1'){
+    		foreach(array('title', 'type', 'measureId') as $fld){
+    			$form->setReadOnly($fld);
+    		}
+    	}
+    	
+    	$cCode = acc_Periods::getBaseCurrencyCode();
+    	$form->setField('selfValue', "unit={$cCode}");
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		if(!empty($form->rec->selfValue)){
+    			$form->rec->selfValue = currency_CurrencyRates::convertAmount($form->rec->selfValue);
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
@@ -231,10 +279,22 @@ class mp_Resources extends core_Master
     		}
     	}
     	
-    	if(($action == 'edit' || $action == 'delete') && isset($rec)){
-    		if($rec->createdBy == '-1'){
-    			$res = 'no_one';
-    		}
+    	if(($action == 'edit') && isset($rec)){
+    		$res = $mvc->getRequiredRoles('edit');
     	}
+    }
+    
+    
+    /**
+     * Връща себестойността на ресурса
+     * 
+     * @param int $id - ид на ресурса
+     * @return double - себестойността му
+     */
+    public static function getSelfValue($id)
+    {
+    	expect($rec = static::fetch($id));
+    	
+    	return $rec->selfValue;
     }
 }

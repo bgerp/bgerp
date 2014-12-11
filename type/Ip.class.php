@@ -74,13 +74,13 @@ class type_IP extends type_Varchar {
      * @param time $time
      * @param array $attr
      */
-    static function decorateIp($ip, $time = NULL, $coloring = FALSE)
+    static function decorateIp($ip, $time = NULL, $coloring = FALSE, $showNames = FALSE)
     {
         $res = $ip;
         
         $me = cls::get(get_called_class());
         
-        $me->invoke('AfterDecorateIp', array(&$res, $ip, $time, $coloring));
+        $me->invoke('AfterDecorateIp', array(&$res, $ip, $time, $coloring, $showNames));
         
         return $res;
     }

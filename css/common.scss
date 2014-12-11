@@ -617,6 +617,17 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
     white-space:nowrap;
 }
 
+.narrow .selectMenuItem input[type=radio] + label {
+	vertical-align: middle;
+	position: relative;
+}
+
+@-moz-document url-prefix() {
+	.narrow .selectMenuItem input[type=radio] + label {
+	    vertical-align: -1px;
+	}
+}
+
 .top-table {
 	border-collapse: separate;
 	border-spacing: 2px;

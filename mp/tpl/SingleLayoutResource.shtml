@@ -13,6 +13,14 @@
 			<td>|Мярка|*</td>
 			<td>[#measureId#]</td>
 		</tr>
+		
+		<!--ET_BEGIN selfValue-->
+		<tr>
+			<td>|Себестойност|*</td>
+			<td>[#selfValue#]</td>
+		</tr>
+		<!--ET_END selfValue-->
+		
 		<!--ET_BEGIN systemId-->
 		<tr>
 			<td>|Системен №|*</td>

@@ -88,7 +88,7 @@ class acc_journal_Item
     public function force($listId)
     {
         if($this->classId && $this->objectId){
-            $itemId = acc_Items::force($this->classId, $this->objectId, $listId, TRUE);
+            $itemId = acc_Items::force($this->classId, $this->objectId, $listId);
         } elseif(isset($this->id)) {
             $itemId = $this->id;
         }

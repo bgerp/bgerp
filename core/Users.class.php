@@ -648,7 +648,11 @@ class core_Users extends core_Manager
      */
     function logLogin_($inputs, $msg)
     {
-        $this->log($msg . ' [' . ($inputs->nick ? $inputs->nick : $inputs->email) . '] from IP: ' . $this->getRealIpAddr());
+        $nick = $inputs->nick ? $inputs->nick : $inputs->email;
+
+        $this->log($msg . ' [' . $nick . '] from IP: ' . $this->getRealIpAddr());
+        
+        vislog_IpNames::add($nick);
     }
     
 
