@@ -456,24 +456,34 @@ class acc_transaction_ClosePeriod
     	@$rec604->blQuantity = $rec604->blAmount / $selfValueLabor;
     	@$rec605->blQuantity = $rec605->blAmount / $selfValueLabor;
     	
-    	$entries[] = array('amount' => abs($rec604->blAmount),
-    						'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => $rec604->blQuantity),
-    						'credit' => array('604'), 'reason' => $reason604);
+    	if(round($rec604->blAmount, 2) != 0){
+    		$entries[] = array('amount' => abs($rec604->blAmount),
+    				'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => $rec604->blQuantity),
+    				'credit' => array('604'), 'reason' => $reason604);
+    		 
+    		$total += abs($rec604->blAmount);
+    	}
     	
-    	$entries[] = array('amount' => abs($rec605->blAmount),
-    			'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource605), 'quantity' => $rec605->blQuantity),
-    			'credit' => array('605'), 'reason' => $reason605);
+    	if(round($rec605->blAmount, 2) != 0){
+    		$entries[] = array('amount' => abs($rec605->blAmount),
+    				'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource605), 'quantity' => $rec605->blQuantity),
+    				'credit' => array('605'), 'reason' => $reason605);
+    		 
+    		 
+    		$total += abs($rec605->blAmount);
+    	}
     	
-    	$total += abs($rec604->blAmount);
-    	$total += abs($rec605->blAmount);
     	
     	$tAmount = abs($rec604->blAmount) + abs($rec605->blAmount);
-    	$entries[] = array('amount' => $tAmount,
-    						'debit' => array('123', $this->date->year),
-    						'credit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)), 
-    						'reason' => $reason604);
     	
-    	$total += $tAmount;
+    	if(round($tAmount, 2) != 0){
+    		$entries[] = array('amount' => $tAmount,
+    				'debit' => array('123', $this->date->year),
+    				'credit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)),
+    				'reason' => $reason604);
+    		 
+    		$total += $tAmount;
+    	}
     	
     	return $entries;
     }
