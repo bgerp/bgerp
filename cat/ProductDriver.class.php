@@ -59,6 +59,25 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
+	 * Параметри
+	 *
+	 * @param array $params
+	 */
+	protected $params;
+	
+	
+	/**
+	 * Задава параметрите на обекта
+	 *
+	 * @param mixed $innerForm
+	 */
+	public function setParams($params)
+	{
+		$this->params = $params;
+	}
+	
+	
+	/**
 	 * Задава вътрешната форма
 	 *
 	 * @param mixed $innerForm
