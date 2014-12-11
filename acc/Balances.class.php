@@ -376,51 +376,59 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Рекалкулира баланса
+     */
+    public function recalc()
+    {
+    	$lockKey = "RecalcBalances";
+    	 
+    	// Ако изчисляването е заключено не го изпълняваме
+    	if(!core_Locks::get($lockKey, 600, 1)) {
+    		$this->log("Изчисляването на баланса е заключено от друг процес");
+    		 
+    		return;
+    	}
+    	
+    	// Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
+    	// Ако периода се нуждае от прекалкулиране - правим го
+    	// Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
+    	// до предходния работен ден и селд това до днес
+    	
+    	$pQuery = acc_Periods::getQuery();
+    	$pQuery->orderBy('#end', 'ASC');
+    	$pQuery->where("#state != 'closed'");
+    	$pQuery->where("#state != 'draft'");
+    	
+    	while($pRec = $pQuery->fetch()) {
+    	
+    	$rec = new stdClass();
+    	
+    	$rec->fromDate = $pRec->start;
+    		$rec->toDate = $pRec->end;
+    		$rec->periodId = $pRec->id;
+    		self::forceCalc($rec);
+    	}
+    	
+    	// Ако сме в 0 часа, правим и преподреждане на id-тата
+    	// SET @count = 0;
+    	// UPDATE `acc_balance_details` SET `acc_balance_details`.`id` = @count:= @count + 1;
+    	// ALTER TABLE `acc_balance_details` AUTO_INCREMENT = 1;
+    	
+    	// Освобождаваме заключването на процеса
+    	core_Locks::release($lockKey);
+    	
+    	// Пораждаме събитие, че баланса е бил преизчислен
+    	$data = new stdClass();
+    	$this->invoke('AfterRecalcBalances', array($data));
+    }
+    
+    
+    /**
      * Презичислява балансите за периодите, в които има промяна ежеминутно
      */
     function cron_Recalc()
     {
-    	$lockKey = "RecalcBalances";
-    	
-    	// Ако изчисляването е заключено не го изпълняваме
-    	if(!core_Locks::get($lockKey, 600, 1)) {
-    		$this->log("Изчисляването на баланса е заключено от друг процес");
-    	
-    		return;
-    	}
-        
-        // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
-        // Ако периода се нуждае от прекалкулиране - правим го
-        // Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
-        // до предходния работен ден и селд това до днес
-        
-        $pQuery = acc_Periods::getQuery();
-        $pQuery->orderBy('#end', 'ASC');
-        $pQuery->where("#state != 'closed'");
-        $pQuery->where("#state != 'draft'");
-        
-        while($pRec = $pQuery->fetch()) {
-            
-            $rec = new stdClass();
-
-            $rec->fromDate = $pRec->start;
-            $rec->toDate = $pRec->end;
-            $rec->periodId = $pRec->id;
-            self::forceCalc($rec);
-        }
-        
-        // Ако сме в 0 часа, правим и преподреждане на id-тата
-        // SET @count = 0;
-        // UPDATE `acc_balance_details` SET `acc_balance_details`.`id` = @count:= @count + 1;
-        // ALTER TABLE `acc_balance_details` AUTO_INCREMENT = 1;
-        
-        
-        // Освобождаваме заключването на процеса
-        core_Locks::release($lockKey);
-        
-        // Пораждаме събитие, че баланса е бил преизчислен
-        $data = new stdClass();
-        $this->invoke('AfterRecalcBalances', array($data));
+    	$this->recalc();
     }
 
 

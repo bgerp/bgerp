@@ -417,6 +417,7 @@ class email_Outgoings extends core_Master
                     $emailsCc
                 );
             } catch (core_exception_Expect $e) {
+                self::log("Грешка при изпращане на имейл: " . $e->getMessage());
                 $status = FALSE;
             }
             
