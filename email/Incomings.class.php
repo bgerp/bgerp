@@ -1453,7 +1453,7 @@ class email_Incomings extends core_Master
                         'single',
                         'id' => fileman_Files::fetchField($data->rec->emlFile, 'fileHnd'),
                     ),NULL,
-                array('order'=>'21', 'ef_icon'=>'img/16/file_extension_eml.png', 'title'=>'Преглед на различните части на имйела'));    
+                array('order'=>'21', 'ef_icon'=>'img/16/file_extension_eml.png', 'title'=>'Преглед на различните части на имейла'));    
             }
             
             // Ако е оттеглен, да не се препраща
