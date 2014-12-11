@@ -93,7 +93,7 @@ class vislog_IpNames extends core_Manager {
         if(!$rec) {
             $rec = (object) array('ip' => $ip, 'name' => $name);
         } else {
-            if(!strpos($rec->name, $name)) {
+            if(strpos($rec->name, $name) === FALSE) {
                 $rec->name = $name . ', ' . $rec->name;
             } else {
                 $mustSave = FALSE;
