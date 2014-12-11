@@ -132,63 +132,10 @@ class purchase_transaction_CloseDeal
     		if(count($entry4)){
     			$result->entries[] = $entry4;
     		}
-    		
-    		$entry5 = $this->transferIncomeToYear($amount, $result->totalAmount, $docRec, $firstDoc);
-    		
-    		if(count($entry5)){
-    			$result->entries[] = $entry5;
-    		}
     	}
     	 
     	// Връщане на резултата
     	return $result;
-    }
-
-
-    /**
-     * Отнасяне на извънредния приход ИЛИ разход от с/ки 7912 или 6912 по с/ка 123 - Печалби и загуби от текущата година
-     * 
-     * 		Отнасяме натрупаните отписани задължения (извънредния приход) по сделката като печалба по сметка 123 - Печалби и загуби от текущата година
-     * 
-     * 		Dt: 7912 - Отписани задължения по Покупки
-     * 		Ct: 123 - Печалби и загуби от текущата година
-     * 
-     * 		ИЛИ
-     * 
-     * 		Отнасяме натрупаните извънредните разходи по сделката като загуба по сметка 123 - Печалби и загуби от текущата година
-     * 
-     * 		Dt: 123 - Печалби и загуби от текущата година
-     * 		Ct: 6912 - Извънредни разходи по Покупки
-     */
-    private function transferIncomeToYear($amount, &$totalAmount, $docRec, $firstDoc)
-    {
-    	$entry = array();
-    	
-    	if($this->bl6912 != 0){
-    		$entry = array('amount' => $this->bl6912,
-    				'debit' => array('123', $this->date->year),
-    				'credit' => array('6912',
-    						array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that)),
-    				'reason' => 'Извънредни разходи по покупка',
-    		);
-    		
-    		$totalAmount += $this->bl6912;
-    	}
-    	
-    	if($this->bl7912 != 0){
-    		$entry = array('amount' => $this->bl7912,
-    				'debit' => array('7912', 
-    							array($docRec->contragentClassId, $docRec->contragentId),
-    							array($firstDoc->className, $firstDoc->that)),
-    				'credit' => array('123', $this->date->year),
-    				'reason' => 'Извънредни приходи по покупка'
-    		);
-    		
-    		$totalAmount += $this->bl7912;
-    	}
-    	
-    	return $entry;
     }
     
     
