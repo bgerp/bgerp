@@ -456,6 +456,7 @@ class acc_ClosePeriods extends core_Master
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
     	core_Locks::release('RecalcBalances');
+    	cls::get('acc_Balances')->recalc();
     }
     
     
@@ -465,6 +466,7 @@ class acc_ClosePeriods extends core_Master
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
     	core_Locks::release('RecalcBalances');
+    	cls::get('acc_Balances')->recalc();
     }
     
     
@@ -474,5 +476,6 @@ class acc_ClosePeriods extends core_Master
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
     	core_Locks::release('RecalcBalances');
+    	cls::get('acc_Balances')->recalc();
     }
 }
