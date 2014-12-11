@@ -237,6 +237,17 @@ class acc_transaction_ClosePeriod
      * 				Dt: 706 - Приходи от продажба на суровини/материали
      * 				Dt: 703 - Приходи от продажби на Услуги
      * 			Ct: 700 - Приходи от продажби (по сделки)
+     * 
+     * Отнасяме отписаните вземания (извънредния разход) по сделката като разход по дебита на обобщаващата сметка 700, със сумата на дебитното салдо на с/ка 411
+     * 
+     * 		Dt: 700 - Приходи от продажби (по сделки)
+     * 		Ct: 6911 - Отписани вземания по Продажби
+     * 
+     * Отнасяме извънредния приход по сделката като приход по кредита на обобщаващата сметка 700, със сумата на кредитното салдо на с/ка 411
+     * 
+     * 		Dt: 7911 - Извънредни приходи по Продажби
+     * 		Ct: 700 - Приходи от продажби (по сделки)
+     * 
      */
     protected function transferIncome(&$total, &$incomeRes)
     {
@@ -252,7 +263,7 @@ class acc_transaction_ClosePeriod
     	$accIds = array();
     	$dealPosition = array();
     	
-    	foreach (arr::make('701,706,703,700,6911,7911') as $systemId){
+    	foreach (arr::make('701,706,703,700') as $systemId){
     		$accId = acc_Accounts::getRecBySystemId($systemId)->id;
     		$accIds[$accId] = $systemId;
     		$dealPosition[$accId] = acc_Lists::getPosition($systemId, 'deals_DealsAccRegIntf');
@@ -350,6 +361,16 @@ class acc_transaction_ClosePeriod
      *
      * 			Dt: 700 - Приходи от продажби (по сделки)  (вече на ниво "Сделка")
      * 			Ct: 123 - Печалби и загуби от текущата година
+     * 
+     * Отнасяме натрупаните отписани задължения (извънредния приход) по сделката като печалба по сметка 123
+     * 
+     * 			Dt: 7912 - Отписани задължения по Покупки
+     * 			Ct: 123 - Печалби и загуби от текущата година
+     * 
+     * Отнасяме натрупаните извънредните разходи по сделката като загуба по сметка 123 - Печалби и загуби от текущата година
+     * 
+     * 			Dt: 123 - Печалби и загуби от текущата година
+     * 			Ct: 6912 - Извънредни разходи по Покупки
      */
     protected function transferIncomeToYear(&$total, $incomeRes)
     {
@@ -376,6 +397,28 @@ class acc_transaction_ClosePeriod
     		}
     	}
     	
+    	// Прехвърляме извънредните приходи/разходи по покупки към сметка 123
+    	$bQuery1 = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery1, $this->balanceId, '6912,7912');
+    	$bQuery1->XPR('roundBlAmount', 'double', 'ROUND(#blAmount, 2)');
+    	$bQuery1->where("#roundBlAmount != 0");
+    	$bQuery1->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+    	
+    	$id6912 = acc_Accounts::getRecBySystemId('6912')->id;
+    	while($dRec1 = $bQuery1->fetch()){
+    		if($dRec1->accountId == $id6912){
+    			$debitArr = array('123', $this->date->year);
+    			$creditArr = array('6912', $dRec1->ent1Id, $dRec1->ent2Id);
+    			$reason = 'Извънредни разходи по покупка';
+    		} else {
+    			$debitArr = array('7912', $dRec1->ent1Id, $dRec1->ent2Id);
+    			$creditArr = array('123', $this->date->year);
+    			$reason = 'Извънредни приходи по покупка';
+    		}
+    		
+    		$entries[] = array('amount' => abs($dRec1->blAmount), 'debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
+    		$total += abs($dRec1->blAmount);
+    	}
     	
 	    return $entries;
     }
