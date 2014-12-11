@@ -252,55 +252,82 @@ class acc_transaction_ClosePeriod
     	$accIds = array();
     	$dealPosition = array();
     	
-    	foreach (arr::make('701,706,703,700') as $systemId){
+    	foreach (arr::make('701,706,703,700,6911,7911') as $systemId){
     		$accId = acc_Accounts::getRecBySystemId($systemId)->id;
     		$accIds[$accId] = $systemId;
     		$dealPosition[$accId] = acc_Lists::getPosition($systemId, 'deals_DealsAccRegIntf');
     		$dealPosition[$accId] = "ent{$dealPosition[$accId]}Id";
     	}
-    	
-    	if(!count($balanceArr)) return $entries;
     	 
-    	foreach ($balanceArr as $rec){
-    		if($accIds[$rec->accountId] != '700'){
-    			$arr1 = array('700', $rec->ent1Id, $rec->ent2Id);
-    			$arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $rec->blQuantity);
-    			
-    			// Ако перото на продажбата не е затворено, пропускаме го !
-    			if(acc_Items::fetchField($rec->{$dealPosition[$rec->accountId]}, 'state') == 'active') continue;
-    			
-    			// Пропускаме нулевите салда
-    			if(round($rec->blAmount, 2) == 0) continue;
-    			
-    			if($rec->blAmount > 0){
-    				$debitArr = $arr1;
-    				$creditArr = $arr2;
+    	if(count($balanceArr)){
+    		foreach ($balanceArr as $rec){
+    			if($accIds[$rec->accountId] != '700'){
+    				$arr1 = array('700', $rec->ent1Id, $rec->ent2Id);
+    				$arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $rec->blQuantity);
+    				 
+    				// Ако перото на продажбата не е затворено, пропускаме го !
+    				if(acc_Items::fetchField($rec->{$dealPosition[$rec->accountId]}, 'state') == 'active') continue;
+    				 
+    				// Пропускаме нулевите салда
+    				if(round($rec->blAmount, 2) == 0) continue;
+    				 
+    				if($rec->blAmount > 0){
+    					$debitArr = $arr1;
+    					$creditArr = $arr2;
+    				} else {
+    					$debitArr = $arr2;
+    					$creditArr = $arr1;
+    				}
+    				 
+    				$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
+    				$total += abs($rec->blAmount);
+    				 
+    				switch($rec->accountId){
+    					case '706':
+    						$reason = 'Приходи от продажба (суровини/материали)';
+    						break;
+    					case '703':
+    						$reason = 'Приходи от продажби (Услуги)';
+    						break;
+    					default:
+    						$reason = 'Приходи от продажби (Стоки и Продукти)';
+    						break;
+    				}
+    				 
+    				$entries[] = array('amount' => abs($rec->blAmount), 'debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
     			} else {
-    				$debitArr = $arr2;
-    				$creditArr = $arr1;
+    				 
+    				// Ако имаме крайно салдо по 700, само го добавяме към натрупването
+    				$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
     			}
-    			
-    			$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
-    			$total += abs($rec->blAmount);
-    			
-    			switch($rec->accountId){
-    				case '706':
-    					$reason = 'Приходи от продажба (суровини/материали)';
-    					break;
-    				case '703':
-    					$reason = 'Приходи от продажби (Услуги)';
-    					break;
-    				default:
-    					$reason = 'Приходи от продажби (Стоки и Продукти)';
-    					break;
-    			}
-    			
-    			$entries[] = array('amount' => abs($rec->blAmount), 'debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
-    		} else {
-    			
-    			// Ако имаме крайно салдо по 700, само го добавяме към натрупването
-    			$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
     		}
+    	}
+    	
+    	// Прехвърляме извънредните приходи/разходи в сметка 700
+    	$bQuery1 = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery1, $this->balanceId, '7911,6911');
+    	$bQuery1->XPR('roundBlAmount', 'double', 'ROUND(#blAmount, 2)');
+    	$bQuery1->where("#roundBlAmount != 0");
+    	$bQuery1->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+    	
+    	while($bRec1 = $bQuery1->fetch()){
+    		$arr1 = array('700', $bRec1->ent1Id, $bRec1->ent2Id);
+    		$arr2 = array($accIds[$bRec1->accountId], $bRec1->ent1Id, $bRec1->ent2Id);
+    		
+    		if($accIds[$bRec1->accountId] == '7911'){
+    			$debitArr = $arr2;
+    			$creditArr = $arr1;
+    			$reason = 'Извънредни приходи - надплатени';
+    			$incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] -= abs($bRec1->blAmount);
+    		} else {
+    			$debitArr = $arr1;
+    			$creditArr = $arr2;
+    			$reason = 'Извънредни разходи - недоплатени';
+    			$incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] += abs($bRec1->blAmount);
+    		}
+    		
+    		$entries[] = array('amount' => abs($bRec1->blAmount), 'debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
+    		$total += abs($bRec1->blAmount);
     	}
     	
     	return $entries;
