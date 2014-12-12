@@ -154,4 +154,15 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	{
 		return $this->class->getDriverUom($params);
 	}
+	
+	
+	/**
+	 * Задава параметрите на обекта
+	 *
+	 * @param mixed $params
+	 */
+	public function setParams($params)
+	{
+		return $this->class->setParams($params);
+	}
 }

@@ -73,7 +73,10 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function setParams($params)
 	{
-		$this->driverParams = $params;
+		$params = arr::make($params, TRUE);
+		if(count($params)){
+			$this->driverParams = arr::make($params, TRUE);
+		}
 	}
 	
 	
@@ -106,7 +109,15 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function prepareEmbeddedForm(core_Form &$form)
 	{
-	
+		if(count($this->driverParams)){
+			
+			// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
+			foreach ($form->fields as $name => $fld){
+				if(isset($this->driverParams[$name])){
+					$form->setDefault($name, $this->driverParams[$name]);
+				}
+			}
+		}
 	}
 	
 	

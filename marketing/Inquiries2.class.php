@@ -611,14 +611,10 @@ class marketing_Inquiries2 extends core_Embedder
     	$form->rec->params = $params;
     	$form->setDefault('country', $this->getDefaultCountry($form->rec));
     	$data = (object)array('form' => $form);
-    	parent::on_AfterPrepareEditForm($this, $data);
+    	$Driver = $this->getDriver($form->rec);
+    	$Driver->setParams($params);
     	
-    	// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
-    	foreach ($form->fields as $name => $fld){
-    		if(isset($params[$name])){
-    			$form->setDefault($name, $params[$name]);
-    		}
-    	}
+    	parent::on_AfterPrepareEditForm($this, $data);
     	
     	$Driver = $this->getDriver($form->rec);
     	$form->input();
