@@ -873,7 +873,7 @@ class acc_BalanceDetails extends core_Detail
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
                 $update = FALSE;
-                echo "<li>$rec->amount";
+               
                 // След като се изчисли сумата, презаписваме цените в журнала, само ако сметките са размерни
                 if($rec->debitQuantity){
                     @$debitPrice = round($rec->amount / $rec->debitQuantity, 4);
