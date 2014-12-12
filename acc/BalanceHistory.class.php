@@ -397,7 +397,7 @@ class acc_BalanceHistory extends core_Manager
             'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
         
         $debitQuantity = $debitAmount = $creditQuantity = $creditAmount = 0;
-       
+      // bp($entriesInPeriod);
         // Обхождаме всички записи и натрупваме сумите им към крайното салдо
         if(count($entriesInPeriod)){
             foreach ($entriesInPeriod as $jRec){
@@ -424,7 +424,7 @@ class acc_BalanceHistory extends core_Manager
                     
                     // Оставяме само записите за тази аналитична сметка
                     if(isset($calcedBalance[$index])){
-                        if (!empty($jRec->{$quantityField})) {
+                        if (!is_null($jRec->{$quantityField})) {
                             $add = TRUE;
                             $entry[$quantityField] = $jRec->{$quantityField};
                             ${"{$type}Quantity"} += $entry[$quantityField];
@@ -435,7 +435,7 @@ class acc_BalanceHistory extends core_Manager
                             }
                         }
                         
-                        if (!empty($jRec->amount)) {
+                        if (!is_null($jRec->amount)) {
                             $add = TRUE;
                             $entry["{$type}Amount"] = $jRec->amount;
                             ${"{$type}Amount"} += $entry["{$type}Amount"];

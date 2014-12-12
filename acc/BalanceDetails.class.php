@@ -873,7 +873,7 @@ class acc_BalanceDetails extends core_Detail
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
                 $update = FALSE;
-                
+               
                 // След като се изчисли сумата, презаписваме цените в журнала, само ако сметките са размерни
                 if($rec->debitQuantity){
                     @$debitPrice = round($rec->amount / $rec->debitQuantity, 4);
@@ -951,7 +951,8 @@ class acc_BalanceDetails extends core_Detail
             $creditType = $this->Accounts->getType($rec->creditAccId);
             
             if($creditType == 'active'){
-                if ($amount = $creditStrategy->consume($rec->creditQuantity)) {
+            	$amount = $creditStrategy->consume($rec->creditQuantity);
+            	if (!is_null($amount)) {
                     $rec->amount = $amount;
                 }
             }
@@ -962,7 +963,8 @@ class acc_BalanceDetails extends core_Detail
             $debitType = $this->Accounts->getType($rec->debitAccId);
             
             if($debitType == 'passive'){
-                if ($amount = $debitStrategy->consume($rec->debitQuantity)) {
+            	$amount = $debitStrategy->consume($rec->debitQuantity);
+            	if (!is_null($amount)) {
                     $rec->amount = $amount;
                 }
             }
@@ -1072,7 +1074,8 @@ class acc_BalanceDetails extends core_Detail
      */
     private function inc(&$v, $add)
     {
-        if (!empty($add)) {
+        // Добавяме стойността, само ако не е NULL
+    	if (!is_null($add)) {
             $v += $add;
             
             // Машинно закръгляне
