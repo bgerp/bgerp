@@ -63,15 +63,18 @@ class store_plg_BalanceSync extends core_Plugin
 		 
 		$dQuery->where("#balanceId = {$balanceRec->id}");
 		 
+		$Items = cls::get('acc_Items');
+		$itemArr = $Items->getCachedItems();
+		
 		while($rec = $dQuery->fetch()){
 			if($rec->ent1Id){
 				 
 				// Перо 'Склад'
-				$storeItem = acc_Items::fetch($rec->ent1Id, '*', FALSE);
+				$storeItem = $itemArr['items'][$rec->ent1Id];
 		   
 				// Перо 'Артикул'
-				$pItem = acc_Items::fetch($rec->ent2Id, '*', FALSE);
-		   
+				$pItem = $itemArr['items'][$rec->ent2Id];
+		   		
 				// Съмаризиране на информацията за артикул / склад
 				$index = $storeItem->objectId . "|" . $pItem->classId . "|" . $pItem->objectId;
 				if(empty($all[$index])){
