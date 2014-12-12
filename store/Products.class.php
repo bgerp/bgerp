@@ -110,7 +110,7 @@ class store_Products extends core_Manager
     /**
      * Изчисляване на заглавието спрямо продуктовия мениджър
      */
-    public function on_CalcName(core_Mvc $mvc, $rec)
+    public static function on_CalcName(core_Mvc $mvc, $rec)
     {
     	if(empty($rec->productId) || empty($rec->classId)){
     		return;
@@ -129,7 +129,7 @@ class store_Products extends core_Manager
 	/**
      * Изчисляване на заглавието спрямо продуктовия мениджър
      */
-    public function on_CalcQuantityNotOnPallets(core_Mvc $mvc, $rec)
+    public static function on_CalcQuantityNotOnPallets(core_Mvc $mvc, $rec)
     {
     	if(empty($rec->quantity)){
     		return;
@@ -145,7 +145,7 @@ class store_Products extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListTitle($mvc, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
         $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
@@ -157,7 +157,7 @@ class store_Products extends core_Manager
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */
-    function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
 	{
 		$res = " " . plg_Search::normalizeText($rec->name);
 	}
@@ -170,7 +170,7 @@ class store_Products extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = &$data->form;
         $rec = &$form->rec;
@@ -261,6 +261,7 @@ class store_Products extends core_Manager
     public static function sync($all)
     {
     	$query = static::getQuery();
+    	$query->show('productId,classId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
     	$oldRecs = $query->fetchAll();
     	$self = cls::get(get_called_class());
     	
@@ -284,8 +285,15 @@ class store_Products extends core_Manager
     {
     	// Всички записи, които са останали но не идват от баланса
     	$query = static::getQuery();
+    	$query->show('productId,classId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
+    	
+    	// Зануляваме к-та само на тези продукти, които още не са занулени
+    	$query->where("#state = 'active'");
     	if(count($array)){
+    		
+    		// Маркираме като затворени, всички които не са дошли от баланса или имат количества 0
     		$query->in('id', $array);
+    		$query->orWhere("#quantity = 0");
     	}
     	
     	if(!count($array)) return;
