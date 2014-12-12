@@ -61,9 +61,9 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Параметри
 	 *
-	 * @param array $params
+	 * @param array $driverParams
 	 */
-	protected $params;
+	protected $driverParams;
 	
 	
 	/**
@@ -73,7 +73,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function setParams($params)
 	{
-		$this->params = $params;
+		$this->driverParams = $params;
 	}
 	
 	
