@@ -76,8 +76,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 		}
 			
-		// Ако крайното салдо е 0 я водим за издължена
-		if(round($amountBl, 2) == 0 && $state == 'overdue'){
+		// Ако крайното салдо е 0, я водим за издължена
+		if(round($amountBl, 2) == 0 && ($state == 'overdue' || $state == 'pending')){
 			
 			return 'repaid';
 		}
