@@ -121,15 +121,13 @@ class acc_plg_DocumentSummary extends core_Plugin
             // Филтрираме по потребители
             if($filter->users && $isDocument){
                 
-                if(Request::get('users') != 'all_users'){
-                	$userIds = keylist::toArray($filter->users);
-                	$userIds = array_values($userIds);
-                	
-                	foreach ($userIds as $index => $userId){
-                		$or = ($index == 0) ? FALSE : TRUE;
-                		$data->query->where("#{$mvc->filterFieldUsers} = {$userId}", $or);
-                	}
-                }
+            	$userIds = keylist::toArray($filter->users);
+            	$userIds = array_values($userIds);
+            	 
+            	foreach ($userIds as $index => $userId){
+            		$or = ($index == 0) ? FALSE : TRUE;
+            		$data->query->where("#{$mvc->filterFieldUsers} = {$userId}", $or);
+            	}
             }
             
             if($filter->search){
