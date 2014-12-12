@@ -447,6 +447,8 @@ class acc_Balances extends core_Master
 
             return TRUE;
         }
+        
+        return FALSE;
     }
 
     
