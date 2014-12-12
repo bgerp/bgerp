@@ -261,6 +261,7 @@ class store_Products extends core_Manager
     public static function sync($all)
     {
     	$query = static::getQuery();
+    	$query->show('productId,classId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
     	$oldRecs = $query->fetchAll();
     	$self = cls::get(get_called_class());
     	
@@ -273,7 +274,6 @@ class store_Products extends core_Manager
     	self::updateMissingProducts($arrRes['delete']);
     }
     
-    
     /**
      * Ф-я която ъпдейтва всички записи, които присъстват в модела, 
      * но липсват в баланса
@@ -284,6 +284,7 @@ class store_Products extends core_Manager
     {
     	// Всички записи, които са останали но не идват от баланса
     	$query = static::getQuery();
+    	$query->show('productId,classId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
     	if(count($array)){
     		$query->in('id', $array);
     	}
