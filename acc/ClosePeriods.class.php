@@ -412,13 +412,40 @@ class acc_ClosePeriods extends core_Master
     
     
     /**
+     * Помощна ф-я проверяваща дали действието с документа може да стане
+     * 
+     * @param mixed $id - ид/запис на обекта
+     * @return Ambigous <FALSE, string> - съобщението за грешка, или FALSE ако може да се продължи
+     */
+    private function stopAction($id)
+    {
+    	$msg = FALSE;
+    	
+    	// Ако баланса се преизчислява в момента, забраняваме действието
+    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
+    		$msg = "Баланса се преизчислява в момента, опитайте след малко";
+    	} else {
+    		
+    		// Ако баланса трябва да се преизчисли също, забраняваме действието
+    		$rec = $this->fetchRec($id);
+    		$bRec = acc_Balances::fetch("#periodId = {$rec->periodId}");
+    		if(acc_Balances::isValid($bRec) === FALSE){
+    			$msg = "Преди да продължите, баланса трябва да се преизчисли";
+    		}
+    	}
+    	
+    	return $msg;
+    }
+    
+    
+    /**
      * Изпълнява се преди контиране на документа
      */
     public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
-    	// Ако баланса се преизчислява в момента, забраняваме контирането
-    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
-    		core_Statuses::newStatus(tr("Баланса се преизчислява в момента, опитайте след малко"));
+    	if($msg = $mvc->stopAction($id)){
+    		core_Statuses::newStatus(tr($msg));
+    
     		return FALSE;
     	}
     }
@@ -429,9 +456,9 @@ class acc_ClosePeriods extends core_Master
      */
     public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
     {
-    	// Ако баланса се преизчислява в момента, забраняваме възстановяването
-    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
-    		core_Statuses::newStatus(tr("Баланса се преизчислява в момента, опитайте след малко"));
+    	if($msg = $mvc->stopAction($id)){
+    		core_Statuses::newStatus(tr($msg));
+    		
     		return FALSE;
     	}
     }
@@ -442,9 +469,9 @@ class acc_ClosePeriods extends core_Master
      */
     public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
-    	// Ако баланса се преизчислява в момента, забраняваме оттеглянето
-    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
-    		core_Statuses::newStatus(tr("Баланса се преизчислява в момента, опитайте след малко"));
+    	if($msg = $mvc->stopAction($id)){
+    		core_Statuses::newStatus(tr($msg));
+    		
     		return FALSE;
     	}
     }
