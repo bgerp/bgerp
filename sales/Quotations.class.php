@@ -225,7 +225,7 @@ class sales_Quotations extends core_Master
        		$data->form->setField('row1,row2,row3', 'input');
        		$origin = doc_Containers::getDocument($rec->originId);
        		
-       		if($origin->haveInterface('techno_ProductsIntf')){
+       		if($origin->haveInterface('cat_ProductAccRegIntf')){
        			$price = $origin->getPriceInfo()->price;
 	       		
        			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
