@@ -222,11 +222,14 @@ class doc_DocumentPlg extends core_Plugin
             $data->toolbar->removeBtn('*');
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
-
-            $data->rejectedCnt = $data->rejQuery->count();
-            
-            if($data->rejectedCnt) {
-                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin fright,order=50,row=2', 'ef_icon = img/16/bin_closed.png' );
+            if(isset($data->rejQuery)) {
+                $data->rejectedCnt = $data->rejQuery->count();
+                
+                if($data->rejectedCnt) {
+                    $curUrl = getCurrentUrl();
+                    $curUrl['Rejected'] = 1;
+                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, 'id=binBtn,class=btn-bin fright,order=50,row=2', 'ef_icon = img/16/bin_closed.png' );
+                }
             }
         }
     }
@@ -278,7 +281,7 @@ class doc_DocumentPlg extends core_Plugin
      * Преди подготовка на данните за табличния изглед правим филтриране
      * на записите, които са (или не са) оттеглени и сортираме от нови към стари
      */
-    function on_AfterPrepareListFilter($mvc, &$data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         if($data->query) {
             if(Request::get('Rejected')) {
@@ -288,9 +291,10 @@ class doc_DocumentPlg extends core_Plugin
                 $data->query->where("#state != 'rejected' || #state IS NULL");
                 $data->rejQuery->where("#state = 'rejected'");
             }
-        }
+           
+            $data->query->orderBy('#createdOn', 'DESC');
+       }
         
-        $data->query->orderBy('#createdOn', 'DESC');
     }
     
     
