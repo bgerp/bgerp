@@ -282,7 +282,7 @@ class doc_Threads extends core_Manager
         // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
         $folderRow = doc_Folders::recToVerbal($folderRec);
-        $title->replace($folderRow->title, 'folder');
+        $title->append($folderRow->title, 'folder');
         $title->replace($folderRow->type, 'folderCover');
         
         // Потребител
@@ -292,9 +292,9 @@ class doc_Threads extends core_Manager
             $user = '@system';
         }
         $title->replace($user, 'user');
-        
+      
         if(Request::get('Rejected')) {
-            $title->append("&nbsp;<span class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</span>", 'folder');
+            $title->append("&nbsp;<span class='state-rejected stateIndicator'>&nbsp;" . tr('оттеглени') . "&nbsp;</span>", 'folder');
         }
         
         $title->replace($user, 'user');
@@ -352,12 +352,6 @@ class doc_Threads extends core_Manager
         	$data->listFilter->setReadOnly('documentClassId');
         }
         
-        // Показваме или само оттеглените или всички останали нишки
-        if($rejected) {
-        	$data->query->where("#state = 'rejected'");
-        } else {
-        	$data->query->where("#state != 'rejected' OR #state IS NULL");
-        }
         
         // Вземаме данните
         $key = doc_Folders::getSettingsKey($folderId);
@@ -1133,6 +1127,28 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        if($data->query) {
+            if(Request::get('Rejected')) {
+                $data->query->where("#state = 'rejected'");
+            } else {
+                $data->rejQuery = clone($data->query);
+                $data->rejQuery->where("#state = 'rejected'");
+                // Показваме или само оттеглените или всички останали нишки
+         	    $data->query->where("#state != 'rejected' OR #state IS NULL");
+            }
+        }
+    }
+
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
@@ -1144,12 +1160,14 @@ class doc_Threads extends core_Manager
             $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
             $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
-
-            $data->rejectedCnt = $mvc->count("#folderId = {$data->folderId} AND #state = 'rejected'");
+ 
+            $data->rejectedCnt = $data->rejQuery->count("#folderId = {$data->folderId}");;
             
             if($data->rejectedCnt) {
+                $curUrl = getCurrentUrl();
+                $curUrl['Rejected'] = 1;
                 $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", 
-                    array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
+                    $curUrl, 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
             }
             
             // Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
