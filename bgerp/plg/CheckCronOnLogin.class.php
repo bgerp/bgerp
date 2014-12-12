@@ -45,7 +45,7 @@ class bgerp_plg_CheckCronOnLogin extends core_Plugin
             
             if (!isset($lastClosedTime) || ($cTime > $lastClosedTime)) {
                 
-                $msg = "|Внимание! Процесите на крон последно са били пуснати на|* " . dt::mysql2verbal($lastStart, 'd.m.Y H:i');
+                $msg = "|Внимание! Периодичните процеси не са стартирани скоро.|*";
                 
                 // Форсираме системния потребител за да може да се нотифицира текущия потребител
                 core_Users::forceSystemUser();

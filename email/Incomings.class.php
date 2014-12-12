@@ -1452,8 +1452,8 @@ class email_Incomings extends core_Master
                         'fileman_Files',
                         'single',
                         'id' => fileman_Files::fetchField($data->rec->emlFile, 'fileHnd'),
-                    ),
-                'order=21', 'ef_icon = img/16/file_extension_eml.png');    
+                    ),NULL,
+                array('order'=>'21', 'ef_icon'=>'img/16/file_extension_eml.png', 'title'=>'Преглед на различните части на имейла'));    
             }
             
             // Ако е оттеглен, да не се препраща
@@ -1465,7 +1465,7 @@ class email_Incomings extends core_Master
                         'forward',
                         $data->rec->containerId,
                         'ret_url' => TRUE,
-                    ), 'order=20, row=2', 'ef_icon = img/16/email_forward.png'
+                    ), NULL, array('order'=>'20', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
                 );
             }
         }

@@ -123,6 +123,17 @@ class mp_Resources extends core_Master
     	
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	
+    	$query = $this->getQuery();
+    	$query->where("#systemId IS NOT NULL");
+    	
+    	// Добавяме автоматично дефолтните ресурси като пера от номенклатура 'ресурси'
+    	while($rec = $query->fetch()){
+    		if(!acc_Items::fetchItem($this, $rec->id)){
+    			$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'resources'), 'id'));
+    			acc_Lists::updateItem($this, $rec->id, $rec->lists);
+    		}
+    	}
+    	
     	return $cntObj->html;
     }
     

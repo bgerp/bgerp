@@ -88,6 +88,21 @@ class core_Cron extends core_Manager
     
     
     /**
+     * Връща максималното време за изпълнение
+     *
+     * @param $systemId
+     *
+     * @return int - време в секунди
+     */
+    public static function getTimeLimit($systemId = NULL)
+    {
+    	$rec = self::getRecForSystemId($systemId);
+    	
+    	return $rec->timeLimit;
+    }
+    
+    
+    /**
      * Връща времето на последно стартиране на процес
      * 
      * @param $systemId

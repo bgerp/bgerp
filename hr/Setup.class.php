@@ -57,7 +57,7 @@ class hr_Setup extends core_ProtoSetup
 			'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
-   			'migrate::updateMyOrganisation2'
+   			'migrate::updateMyOrganisation3'
         );
 
         
@@ -110,7 +110,7 @@ class hr_Setup extends core_ProtoSetup
     /**
      * Добавяме систем ид на департамента моята организация
      */
-    protected function updateMyOrganisation2()
+    protected function updateMyOrganisation3()
     {
     	$rec = hr_Departments::fetch("#name = 'Моята Организация ООД'");
     	if($rec){
@@ -118,9 +118,9 @@ class hr_Setup extends core_ProtoSetup
     		hr_Departments::save($rec, 'name');
     	}
     	
-    	if($rec2 = hr_Departments::fetch("#name = 'Моята Организация'")){
-    		$rec->systemId = 'myOrganisation';
-    		hr_Departments::save($rec, 'systemId');
+    	if($rec2 = hr_Departments::fetch("#name = 'Моята Организация' || #name = 'Моята Организация ООД'")){
+    		$rec2->systemId = 'myOrganisation';
+    		hr_Departments::save($rec2, 'systemId');
     	}
     }
 }
