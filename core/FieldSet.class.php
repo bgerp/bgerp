@@ -422,12 +422,28 @@ class core_FieldSet extends core_BaseClass
     
     
     /**
+     * Връща параметър на полето
+     * 
+     * @param string $name - име на полето
+     * @param string $paramName - име на параметъра
+     * 
+     * @return mixed - стойността на параметъра ако е зададена
+     */
+    function getFieldParam($name, $paramName)
+    {
+    	$field = $this->getField($name);
+    	
+    	return $field->$paramName;
+    }
+    
+    
+    /**
      * Задава подадените параметри към полето
      * 
      * @param string $name
      * @param array $params
      */
-    function setParams($name, $params=array())
+    function setParams($name, $params = array())
     {
         $params = arr::make($params, TRUE);
         
