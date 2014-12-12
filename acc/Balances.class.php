@@ -440,6 +440,9 @@ class acc_Balances extends core_Master
 
     /**
      * Проверка, дали записът отговаря на валиден баланс
+     * 
+     * @param stdClass $rec - запис на баланса
+     * @return boolean - дали е валиден или не
      */
     public static function isValid($rec)
     {
