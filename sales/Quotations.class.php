@@ -497,11 +497,14 @@ class sales_Quotations extends core_Master
     {
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
-	    	if($origin->haveInterface('techno_ProductsIntf')){
+	    	if($origin->haveInterface('cat_ProductAccRegIntf')){
 	    		$originRec = $origin->fetch();
 	    		if($originRec->state == 'draft'){
 	    			$originRec->state = 'active';
 	    			$origin->getInstance()->save($originRec);
+	    			
+	    			$msg = "|Активиран е документ|* #{$origin->abbr}{$origin->that}";
+	    			core_Statuses::newStatus(tr($msg));
 	    		}		
 	    	}
     	}
