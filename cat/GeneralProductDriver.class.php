@@ -44,9 +44,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		if(!$form->getField('measureId', FALSE)){
-			$form->FLD('measureId', 'key(mvc=cat_UoM, select=name)', "caption=Мярка,mandatory,formOrder=4");
+			$form->FLD('measureId', 'key(mvc=cat_UoM, select=name)', "caption=Мярка,mandatory,formOrder=4, display=hidden");
 		} else {
-			$form->setField('measureId', 'input');
+			$form->setField('measureId', 'input, display=hidden');
 		}
 		
 		if(!$form->getField('image', FALSE)){

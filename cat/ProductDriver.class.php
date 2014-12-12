@@ -109,12 +109,39 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function prepareEmbeddedForm(core_Form &$form)
 	{
+		// Намираме полетата на формата
+		$fields = $form->selectFields();
+		
 		if(count($this->driverParams)){
 			
 			// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
-			foreach ($form->fields as $name => $fld){
+			foreach ($fields as $name => $fld){
 				if(isset($this->driverParams[$name])){
 					$form->setDefault($name, $this->driverParams[$name]);
+				}
+			}
+		}
+		
+		// Ако има полета
+		if(count($fields)){
+			
+			// За всички полета
+			foreach ($fields as $name => $fld){
+					
+				// Ако има атрибут display
+				$display = $form->getFieldParam($name, 'display');
+					
+				// Ако е 'hidden' и има зададена стойност, правим полето скрито
+				if($display === 'hidden'){
+					if(!is_null($form->rec->$name)){
+						$form->setField($name, 'input=hidden');
+					}
+				} elseif($display === 'readOnly'){
+			
+					// Ако е 'readOnly' и има зададена стойност, правим го 'само за четене'
+					if(!is_null($form->rec->$name)){
+						$form->setReadOnly($name);
+					}
 				}
 			}
 		}
