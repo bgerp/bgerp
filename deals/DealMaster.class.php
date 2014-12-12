@@ -77,7 +77,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		}
 			
 		// Ако крайното салдо е 0, я водим за издължена
-		if(round($amountBl, 2) == 0 && ($state == 'overdue' || $state == 'pending')){
+		if(round($amountBl, 2) == 0 && (($state == 'overdue' || $state == 'pending') || ($state == 'paid' && round($amountPaid, 2) == 0))){
 			
 			return 'repaid';
 		}
