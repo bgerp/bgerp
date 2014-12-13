@@ -1023,7 +1023,7 @@ class core_App
      */
     public static function setTimeLimit($time)
     {
-    	expect(is_int($time));
+    	expect(is_numeric($time));
     	
     	// Увеличава времето за изпълнение
     	set_time_limit($time);
