@@ -184,7 +184,7 @@ class blast_Emails extends core_Master
     protected function description()
     {
         $this->FLD('perSrcClassId', 'class(interface=bgerp_PersonalizationSourceIntf)', 'caption=Източник на данни->Клас, silent, input=hidden');
-        $this->FLD('perSrcObjectId', 'int', 'caption=Списък, mandatory, silent');
+        $this->FLD('perSrcObjectId', 'varchar(16)', 'caption=Списък, mandatory, silent');
         
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
@@ -320,6 +320,7 @@ class blast_Emails extends core_Master
         return $updateCnt;
     }
     
+    
     /**
      * Връща записа
      *
@@ -333,6 +334,9 @@ class blast_Emails extends core_Master
         if (is_object($id)) {
             $rec = $id;
         } else {
+            
+            expect($id > 0);
+            
             // Ако е id, фечваме записа
             $rec = self::fetch($id);
         }
@@ -1201,9 +1205,26 @@ class blast_Emails extends core_Master
     {
         $form = $data->form;
         
+        $defPerSrcClassId = NULL;
+        $currUserId = core_Users::getCurrent();
         // Ако не е подаден клас да е blast_List
         $listClassId = blast_Lists::getClassId();
-        $data->form->setDefault('perSrcClassId', $listClassId);
+        
+        if (isset($form->rec->folderId)) {
+            $cover = doc_Folders::getCover($form->rec->folderId);
+            
+            $coverClassName = strtolower($cover->className);
+        
+            if ($coverClassName != 'doc_unsortedfolders') {
+                $defPerSrcClassId = $cover->getInstance()->getClassId();
+            }
+        }
+        
+        if (!isset($defPerSrcClassId)) {
+            $defPerSrcClassId = $listClassId;
+        }
+        
+        $data->form->setDefault('perSrcClassId', $defPerSrcClassId);
         
         // Инстанция на източника за персонализация
         $perClsInst = cls::get($data->form->rec->perSrcClassId);
@@ -1213,9 +1234,7 @@ class blast_Emails extends core_Master
         
         $perOptArr = array();
         
-        // Ако е подаден такъв обект за персонализация
-        if ($perSrcObjId) {
-            
+        if (isset($perSrcObjId)) {
             // Очакваме да може да персонализира
             expect($perClsInst->canUsePersonalization($perSrcObjId));
             
@@ -1225,40 +1244,32 @@ class blast_Emails extends core_Master
             // Да може да се избере само подадения обект
             $perOptArr[$perSrcObjId] = $perTitle;
             $form->setOptions('perSrcObjectId', $perOptArr);
-        }
-        
-        // Ако създаваме от blast_List и не е подаден обект
-        // За съвместимост със старите системи
-        if ($listClassId == $data->form->rec->perSrcClassId) {
-            if (!$data->form->rec->perSrcObjectId) {
+        } else {
+            $perOptArr = $perClsInst->getPersonalizationOptionsForId($cover->that);
+            
+            // Обхождаме всички опции
+            foreach ((array)$perOptArr as $id => $name) {
                 
-                // Взеамем всички възбможни опции за персонализация
-                $perOptArr = $perClsInst->getPersonalizationOptions();
+                // Проверяваме дали може да се персонализира
+                // Тряба да се проверява в getPersonalizationOptions()
+                //                    if (!$perClsInst->canUsePersonalization($id)) continue;
                 
-                // Обхождаме всички опции
-                foreach ((array)$perOptArr as $id => $name) {
+                // Описание на полетата
+                $descArr = $perClsInst->getPersonalizationDescr($id);
+                
+                // Ако няма полета за имейл
+                if (!self::getEmailFields($descArr)) {
                     
-                    // Проверяваме дали може да се персонализира
-                    // Тряба да се проверява в getPersonalizationOptions()
-                    //                    if (!$perClsInst->canUsePersonalization($id)) continue;
-                    
-                    // Описание на полетата
-                    $descArr = $perClsInst->getPersonalizationDescr($id);
-                    
-                    // Ако няма полета за имейл
-                    if (!self::getEmailFields($descArr)) {
-                        
-                        // Премахваме от опциите
-                        unset($perOptArr[$id]);
-                    }
+                    // Премахваме от опциите
+                    unset($perOptArr[$id]);
                 }
-                
-                // Очакваме да има поне една останала опция
-                expect($perOptArr, 'Няма източник за персонализация');
-                
-                // Задаваме опциите
-                $form->setOptions('perSrcObjectId', $perOptArr);
             }
+            
+            // Очакваме да има поне една останала опция
+            expect($perOptArr, 'Няма източник за персонализация');
+            
+            // Задаваме опциите
+            $form->setOptions('perSrcObjectId', $perOptArr);
         }
         
         // Само имейлите достъпни до потребителя да се показват
@@ -1806,10 +1817,8 @@ class blast_Emails extends core_Master
         // Името на класа
         $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
         
-        // TODO
         // Може да се добавя само в проекти и в групи
-        //        if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) return FALSE;
-        if (($coverClassName != 'doc_unsortedfolders')) return FALSE;
+        if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) return FALSE;
         
         return TRUE;
     }
