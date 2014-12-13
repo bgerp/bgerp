@@ -23,12 +23,6 @@
     [#AccReports#]
     </div>
     <!--ET_END AccReports-->
-    <!--ET_BEGIN shareLog-->
-    <div class='sharing-history clearfix21'>
-        <span class='groupTitle'>|Споделяне|*</span>
-        [#shareLog#]
-    </div>
-    <!--ET_END shareLog-->
     
     [#DETAILS#]
 </div>
