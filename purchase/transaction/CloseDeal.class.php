@@ -126,50 +126,10 @@ class purchase_transaction_CloseDeal
     		if(count($entry)){
     			$result->entries[] = $entry;
     		}
-    		
-    		$entry4 = $this->getCompensateEntry($amount, $result->totalAmount, $docRec, $firstDoc);
-    		
-    		if(count($entry4)){
-    			$result->entries[] = $entry4;
-    		}
     	}
     	 
     	// Връщане на резултата
     	return $result;
-    }
-    
-    
-    /**
-     * САМО ако за сделката има обороти и салда И по двете с/ки: 7912 и 6912 за извънредни приходи / разходи по Покупки, 
-     * съставяме статията:
-     * 
-     * 		Dt: 7912 - Отписани задължения по Покупки
-     * 		Ct: 6912 - Извънредни разходи по Покупки
-     * 
-     * 		със сума - по-малката измежду: кредитното салдо на с/ка 7912, и дебитното салдо на с/ка 6912 по сделката
-     */
-    private function getCompensateEntry($amount, &$totalAmount, $docRec, $firstDoc)
-    {
-    	$entry = array();
-    	
-    	if(empty($this->bl6912) || empty($this->bl7912)) return $entry;
-    	
-    	$minAmount = min(array($this->bl6912, $this->bl7912));
-    	
-    	$entry = array('amount' => $minAmount,
-    			'debit' => array('7912',
-    					array($docRec->contragentClassId, $docRec->contragentId),
-    					array($firstDoc->className, $firstDoc->that)),
-    			'credit'  => array('6912',
-    					array($docRec->contragentClassId, $docRec->contragentId),
-    					array($firstDoc->className, $firstDoc->that)),
-    			'reason' => 'Приспадане на извънредни приходи/разходи по покупка');
-    	
-    	$this->bl6912 -= $minAmount;
-    	$this->bl7912 -= $minAmount;
-    	$totalAmount += $minAmount;
-    	
-    	return $entry;
     }
     
     
@@ -275,7 +235,6 @@ class purchase_transaction_CloseDeal
     						'quantity' => $blAmount),
     				'reason' => 'Отделено, но невъзстановимо ДДС');
     		
-    		$this->bl6912 += $blAmount;
     		$entries = $entries1;
     
     	}
@@ -327,7 +286,6 @@ class purchase_transaction_CloseDeal
     				'reason' => 'Извънредни разходи - надплатени'
     		);
     		
-    		$this->bl6912 += $amount;
     		$totalAmount +=  $amount;
     		
     		// Сметка 401 има Кредитно (Ct) салдо
@@ -344,7 +302,6 @@ class purchase_transaction_CloseDeal
     						'quantity' => -1 * $amount / $docRec->currencyRate),
     				'reason' => 'Извънредни приходи - недоплатени');
     		
-    		$this->bl7912 += abs($amount);
     		$totalAmount += -1 * $amount;
     	}
     	 
