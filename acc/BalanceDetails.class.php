@@ -861,6 +861,13 @@ class acc_BalanceDetails extends core_Detail
         $query->orderBy('valior,id', 'ASC');
         $recs = $query->fetchAll();
         
+        // Дигаме времето за изпълнение на скрипта пропорционално на извлечените записи
+        $timeLimit = ceil(count($recs) / 10000) * 10;
+        if($timeLimit != 0){
+        	set_time_limit($timeLimit);
+        	core_Debug::log("SET TIME LIMIT '{$timeLimit}'");
+        }
+        
         if(count($recs)){
             
             // Захранваме стратегиите при нужда
