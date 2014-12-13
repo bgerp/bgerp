@@ -263,7 +263,7 @@ class acc_transaction_ClosePeriod
     	$accIds = array();
     	$dealPosition = array();
     	
-    	foreach (arr::make('701,706,703,700') as $systemId){
+    	foreach (arr::make('701,706,703,700,7911,6911') as $systemId){
     		$accId = acc_Accounts::getRecBySystemId($systemId)->id;
     		$accIds[$accId] = $systemId;
     		$dealPosition[$accId] = acc_Lists::getPosition($systemId, 'deals_DealsAccRegIntf');
