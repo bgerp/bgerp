@@ -142,7 +142,7 @@ class pos_Cards extends core_Manager {
     	if($Contragent->haveRightFor('edit', $data->masterId) && $this->haveRightFor('add')){
         	$img = sbf('img/16/add.png');
 		    $addUrl = array($this, 'add', 'contragentClassId' => $Contragent->getClassId(), 'contragentId' => $data->masterId, 'ret_url' => TRUE);
-		    $data->addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond', 'title' => 'Добавяне на нова клиентска карта')); 
+		    $data->addBtn = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond', 'title' => 'Добавяне на нова клиентска карта')); 
         }
     }
     

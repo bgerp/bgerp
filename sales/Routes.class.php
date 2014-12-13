@@ -354,7 +354,7 @@ class sales_Routes extends core_Manager {
     	
     	if ($data->addUrl) {
 	    	$img = sbf('img/16/add.png');
-	    	$title .= ht::createLink(' ', $data->addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute')); 
+	    	$title .= ht::createLink('', $data->addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute')); 
 	    }
 
     	$tpl->replace($title, 'title');

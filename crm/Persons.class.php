@@ -1012,7 +1012,7 @@ class crm_Persons extends core_Master
         if(crm_Persons::haveRightFor('add') && crm_Companies::haveRightFor('edit', $data->masterId)){
         	$img = sbf('img/16/add.png');
 		    $addUrl = array('crm_Persons', 'add', 'buzCompanyId' => $data->masterId, 'ret_url' => TRUE);
-		    $data->addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond', 'title' => 'Добавяне на представител')); 
+		    $data->addBtn = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond', 'title' => 'Добавяне на представител')); 
         }
     }
 

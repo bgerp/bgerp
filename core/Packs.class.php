@@ -333,7 +333,7 @@ class core_Packs extends core_Manager
         
         
         if ($rec->deinstall == 'yes') {
-        	$row->deinstall = ht::createLink(' ', array($mvc, 'deinstall', 'pack' => $rec->name), 'Наистина ли искате да деинсталирате пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/cancel.png'));
+        	$row->deinstall = ht::createLink('', array($mvc, 'deinstall', 'pack' => $rec->name), 'Наистина ли искате да деинсталирате пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/cancel.png'));
         } else {
         	$row->deinstall = "";
         }
