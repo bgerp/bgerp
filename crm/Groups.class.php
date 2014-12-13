@@ -37,6 +37,12 @@ class crm_Groups extends core_Master
     
     
     /**
+     * Какви интерфейси поддържа този мениджър
+     */
+    public $interfaces = 'bgerp_PersonalizationSourceIntf';
+    
+    
+    /**
      * Кои полета да се листват
      */
     var $listFields = 'id,name=Заглавие,content=Съдържание';
@@ -112,6 +118,24 @@ class crm_Groups extends core_Master
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'crm/tpl/SingleGroup.shtml';
+    
+    
+    /**
+     * Ключ за персонализиране на данните на фирмите от групата
+     */
+    protected static $pCompanies = 'c';
+    
+    
+    /**
+     * Ключ за пероснализиране на данните на лицата от групата
+     */
+    protected static $pPersons = 'p';
+    
+    
+    /**
+     * Ключ за персонализиране на фирмените данн на лицата от групата
+     */
+    protected static $pPersonsBiz = 'pb';
     
     
     /**
@@ -420,5 +444,326 @@ class crm_Groups extends core_Master
     {
         
         return static::fetchField("#sysId = '{$sysId}'");
+    }
+    
+    
+    /**
+     * Връща имената на всички полета и аналога от модела в който се използват
+     * 
+     * @param string $p
+     * 
+     * @return array
+     */
+    protected function getFielsFor($p)
+    {
+        $arr = array();
+        
+        switch ($p) {
+            case self::$pCompanies:
+                $arr['company'] = 'crm_Companies::name';
+                $arr['country'] = 'crm_Companies::country';
+                $arr['pCode'] = 'crm_Companies::pCode';
+                $arr['place'] = 'crm_Companies::place';
+                $arr['address'] = 'crm_Companies::address';
+                $arr['email'] = 'crm_Companies::email';
+                $arr['tel'] = 'crm_Companies::tel';
+                $arr['fax'] = 'crm_Companies::fax';
+            break;
+            
+            case self::$pPersons:
+                
+                $arr['salutation'] = 'crm_Persons::salutation';
+                $arr['person'] = 'crm_Persons::name';
+                $arr['country'] = 'crm_Persons::country';
+                $arr['pCode'] = 'crm_Persons::pCode';
+                $arr['place'] = 'crm_Persons::place';
+                $arr['address'] = 'crm_Persons::address';
+                $arr['email'] = 'crm_Persons::email';
+                $arr['tel'] = 'crm_Persons::tel';
+                $arr['mobile'] = 'crm_Persons::mobile';
+                $arr['fax'] = 'crm_Persons::fax';
+                
+            break;
+            
+            case self::$pPersonsBiz:
+                $arr['salutation'] = 'crm_Persons::salutation';
+                $arr['person'] = 'crm_Persons::name';
+                $arr['company'] = 'crm_Persons::buzCompanyId';
+                $arr['position'] = 'crm_Persons::buzPosition';
+                $arr['email'] = 'crm_Persons::buzEmail';
+                $arr['tel'] = 'crm_Persons::buzTel';
+                $arr['fax'] = 'crm_Persons::buzFax';
+                $arr['country'] = 'crm_Companies::country';
+                $arr['pCode'] = 'crm_Companies::pCode';
+                $arr['place'] = 'crm_Companies::place';
+                $arr['address'] = 'crm_Companies::address';
+            break;
+            
+            default:
+                
+            break;
+        }
+        
+        return $arr;
+    }
+    
+    
+    /**
+     * Връща масив с възможните избори за персонализиране на групата
+     * 
+     * @param integer $id
+     * @param boolean $escaped
+     * @param boolean $useTitle
+     * 
+     * @return array
+     */
+    protected function getGroupsChoise($id, $escaped = TRUE, $useTitle = TRUE)
+    {
+        $resArr = array();
+        
+        if (!isset($id) || ($id <= 0)) return $resArr;
+        
+        $rec = $this->fetch($id);
+        
+        if (!$rec) return $resArr;
+        
+        $title = '';
+        
+        if ($useTitle) {
+            $title = $this->getPersonalizationTitle($id, $escaped) . ': ';
+        }
+        
+        // Ако има фирми
+        if (isset($rec->companiesCnt) && ($rec->companiesCnt > 0)) {
+            $keyC = $id . '_' . self::$pCompanies;
+            $resArr[$keyC] = $title . tr('фирми');
+        }
+        
+        // Ако има лица
+        if (isset($rec->personsCnt) && ($rec->personsCnt > 0)) {
+            $keyP = $id . '_' . self::$pPersons;
+            $keyPb = $id . '_' . self::$pPersonsBiz;
+            
+            $resArr[$keyP] = $title . tr('лица|* - |*лични данни');
+            $resArr[$keyPb] = $title . tr('лица|* - |*бизнес данни');
+        }
+        
+        return $resArr;
+    }
+    
+
+    /**
+     * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     *
+     * @return array
+     */
+    public function getPersonalizationDescr($id)
+    {
+        list(, $p) = explode('_', $id);
+        
+        $filedsArr = (array)$this->getFielsFor($p);
+        $keysArr = array_keys($filedsArr);
+        $nArr = array_combine($keysArr, $keysArr);
+        
+        return $nArr;
+    }
+    
+    
+    /**
+     * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     * @param integer $limit
+     *
+     * @return array
+     */
+    public function getPresonalizationArr($id, $limit = 0)
+    {
+        $resArr = array();
+        
+        list($id, $p) = explode('_', $id);
+        
+        // Вземаме всички полета
+        $fieldsArr = (array)$this->getFielsFor($p);
+        
+        $allClass = array();
+        
+        // Вземаме всички класове
+        foreach ($fieldsArr as $field => $val) {
+            list($class, $f) = explode('::', $val);
+            $allClass[$class][$field] = $f;
+        }
+        
+        // Вземаме всички записи за класовете и ги добавяме в съответните полета
+        foreach ($allClass as $class => $fArr) {
+            
+            $query = $class::getQuery();
+            $query->likeKeylist('groupList', $id);
+            
+            if ($limit) {
+                $query->limit($limit);
+            }
+            
+            while ($rec = $query->fetch()) {
+                foreach ((array)$fArr as $name => $fieldName)
+                $resArr[$rec->id][$name] = $rec->$fieldName;
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string|object $id
+     * @param boolean $verbal
+     *
+     * @return string
+     */
+    public function getPersonalizationTitle($id, $verbal = TRUE)
+    {
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            list($id) = explode('_', $id);
+            $rec = $this->fetch($id);
+        }
+        
+        // Ако трябва да е вебална стойност
+        if ($verbal) {
+            $title = $this->getVerbal($rec, 'name');
+        } else {
+            $title = $rec->name;
+        }
+        
+        return $title;
+    }
+    
+    
+    /**
+     * Дали потребителя може да използва дадения източник на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     * @param integer $userId
+     *
+     * @return boolean
+     */
+    public function canUsePersonalization($id, $userId = NULL)
+    {
+        // Всеки който има права до сингъла на записа, може да го използва
+        if (isset($id)) {
+            list($id) = explode('_', $id);
+            if ($this->haveRightFor('single', $id, $userId)) {
+                return TRUE;
+            }
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас, които са достъпни за посочения потребител
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param integer $userId
+     * @param integer $folderId
+     *
+     * @return array
+     */
+    public function getPersonalizationOptions($userId = NULL)
+    {
+        $resArr = array();
+        
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $query = $this->getQuery();
+        $query->orderBy("createdOn", 'DESC');
+        
+        $query->where("#state != 'rejected'");
+        
+        $query->where("#companiesCnt IS NOT NULL");
+        $query->orWhere("#companiesCnt != 0");
+        $query->orWhere("#personsCnt IS NOT NULL");
+        $query->orWhere("#personsCnt != 0");
+        
+        // Обхождаме откритите резултати
+        while ($rec = $query->fetch()) {
+            
+            // Вземаме всички възможни избори за съответния запис
+            $allGroupChoise = $this->getGroupsChoise($rec->id, FALSE, TRUE);
+            
+            $continue = TRUE;
+            
+            if (!$allGroupChoise) continue;
+            
+            // Ако има права за използване на поне един от изборите
+            foreach ($allGroupChoise as $key => $dummy) {
+                if ($this->canUsePersonalization($key, $userId)) {
+                    $continue = FALSE;
+                    continue;
+                }
+            }
+            
+            if ($continue) continue;
+            
+            $resArr += $allGroupChoise;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
+     * за съответния запис,
+     * които са достъпни за посочения потребител
+     * @see bgerp_PersonalizationSourceIntf
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public function getPersonalizationOptionsForId($id)
+    {
+        $resArr = $this->getGroupsChoise($id, FALSE, FALSE);
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща линк, който сочи към източника за персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     *
+     * @return core_ET
+     */
+    public function getPersonalizationSrcLink($id)
+    {
+        list($id, $p) = explode('_', $id);
+        
+        if ($p == self::$pCompanies) {
+            $url = array('crm_Companies', 'groupId' => $id);
+        } else {
+            $url = array('crm_Persons', 'groupId' => $id);
+        }
+        
+        // Създаваме линк към сингъла листа
+        $title = $this->getPersonalizationTitle($id, TRUE);
+        $link = ht::createLink($title, $url);
+        
+        return $link;
     }
 }
