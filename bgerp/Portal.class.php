@@ -103,19 +103,19 @@ class bgerp_Portal extends core_Manager
         // Бутон за добавяне на задачи
         $img = sbf('img/16/task-add.png');
         $addUrl = array('cal_Tasks', 'add', 'ret_url' => TRUE);
-        $addBtn = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => tr('Добавяне на нова Задача')));
+        $addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => tr('Добавяне на нова Задача')));
         $tasksTpl->append($addBtn, 'ADD_BTN');
         
         // Бутон за смяна от <-> към
         $img = sbf('img/16/arrow-switch-270.png');
         $addUrl = array('cal_Tasks', 'SwitchByTo');
-        $addBtn = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => $switchTitle, 'id' => 'switchTasks'));
+        $addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => $switchTitle, 'id' => 'switchTasks'));
         $tasksTpl->append($addBtn, 'SWITCH_BTN');
         
         // Бутон за смяна от <-> към
         $img = sbf('img/16/rem-plus.png');
         $addUrl = array('cal_Reminders', 'add', 'ret_url' => TRUE);
-        $addBtn = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => tr('Добавяне на ново Напомняне')));
+        $addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => tr('Добавяне на ново Напомняне')));
         $tasksTpl->append($addBtn, 'RЕМ_BTN');
         
         $tasksTpl->append(cal_Tasks::renderPortal(), 'TASKS');
