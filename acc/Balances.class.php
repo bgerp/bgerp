@@ -428,12 +428,6 @@ class acc_Balances extends core_Master
      */
     function cron_Recalc()
     {
-    	// Ако няма баланси, удвояваме timeLimit-а
-    	if(acc_Balances::count() == 0){
-    		$tLimit = core_Cron::getTimeLimit('RecalcBalances');
-    		set_time_limit($tLimit * 2);
-    	}
-    	
     	$this->recalc();
     }
 
