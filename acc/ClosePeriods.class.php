@@ -474,6 +474,17 @@ class acc_ClosePeriods extends core_Master
     		
     		return FALSE;
     	}
+    	
+    	$rec = $mvc->fetchRec($id);
+    	
+    	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
+    	if($jRec){
+    		$jCount = acc_JournalDetails::count("#journalId = {$jRec->id}");
+    		
+    		// При оттегляне вдигаме времето за изпълнение спрямо записите в журнала
+    		$timeLimit = ceil(count($recs) / 3000) * 20;
+    		set_time_limit($timeLimit);
+    	}
     }
     
     
