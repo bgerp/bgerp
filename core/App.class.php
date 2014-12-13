@@ -7,7 +7,7 @@ class core_App
 	/**
 	 * Последното ръчно зададено максимално време за изпълнение на скрипта
 	 * 
-	 * @var time
+	 * @var int
 	 */
 	protected static $runningTimeLimit;
     
@@ -1018,11 +1018,13 @@ class core_App
     /**
      * Увеличава времето за изпълнение на скрипта
      * 
-     * @param time $time - времето за увеличение в секунди
+     * @param int $time - времето за увеличение в секунди
      * @return void
      */
     public static function setTimeLimit($time)
     {
+    	expect(is_int($time));
+    	
     	// Увеличава времето за изпълнение
     	set_time_limit($time);
     	
