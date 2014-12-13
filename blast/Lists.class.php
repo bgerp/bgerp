@@ -571,7 +571,25 @@ class blast_Lists extends core_Master
     
     
     /**
+     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
+     * за съответния запис,
+     * които са достъпни за посочения потребител
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public function getPersonalizationOptionsForId($id)
+    {
+        $resArr = $this->getPersonalizationOptions();
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Връща линк, който сочи към източника за персонализация
+     * @see bgerp_PersonalizationSourceIntf
      *
      * @param integer $id
      *
