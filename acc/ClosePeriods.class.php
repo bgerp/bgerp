@@ -483,7 +483,9 @@ class acc_ClosePeriods extends core_Master
     		
     		// При оттегляне вдигаме времето за изпълнение спрямо записите в журнала
     		$timeLimit = ceil(count($recs) / 3000) * 30;
-    		core_App::setTimeLimit($timeLimit);
+    		if($timeLimit != 0){
+    			core_App::setTimeLimit($timeLimit);
+    		}
     	}
     }
     

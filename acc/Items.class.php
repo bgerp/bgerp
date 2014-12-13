@@ -755,6 +755,9 @@ class acc_Items extends core_Manager
     public function flushTouched()
     {
         if(count($this->touched)){
+        	$timeLimit = count($this->touched) * 2;
+        	core_App::setTimeLimit($timeLimit);
+        	
             foreach ($this->touched as $rec) {
                 $this->save($rec, 'lastUseOn');
             }
