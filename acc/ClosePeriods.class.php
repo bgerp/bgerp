@@ -482,8 +482,8 @@ class acc_ClosePeriods extends core_Master
     		$jCount = acc_JournalDetails::count("#journalId = {$jRec->id}");
     		
     		// При оттегляне вдигаме времето за изпълнение спрямо записите в журнала
-    		$timeLimit = ceil(count($recs) / 3000) * 20;
-    		set_time_limit($timeLimit);
+    		$timeLimit = ceil(count($recs) / 3000) * 30;
+    		core_App::setTimeLimit($timeLimit);
     	}
     }
     
