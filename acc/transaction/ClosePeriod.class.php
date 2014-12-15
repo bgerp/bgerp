@@ -273,8 +273,10 @@ class acc_transaction_ClosePeriod
     	if(count($balanceArr)){
     		foreach ($balanceArr as $rec){
     			if($accIds[$rec->accountId] != '700'){
+    				$quantity = ($accIds[$rec->accountId] == 703) ? abs($rec->blQuantity) : $rec->blQuantity;
+    				
     				$arr1 = array('700', $rec->ent1Id, $rec->ent2Id);
-    				$arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $rec->blQuantity);
+    				$arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $quantity);
     				 
     				// Ако перото на продажбата не е затворено, пропускаме го !
     				if(acc_Items::fetchField($rec->{$dealPosition[$rec->accountId]}, 'state') == 'active') continue;
@@ -293,7 +295,7 @@ class acc_transaction_ClosePeriod
     				$incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
     				$total += abs($rec->blAmount);
     				 
-    				switch($rec->accountId){
+    				switch($accIds[$rec->accountId]){
     					case '706':
     						$reason = 'Приходи от продажба (суровини/материали)';
     						break;
