@@ -74,7 +74,8 @@ class bgerp_PersonalizationSourceIntf
     
     
     /**
-     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас, които са достъпни за посочения потребител
+     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
+     * които са достъпни за посочения потребител
      *
      * @param integer $userId
      *
@@ -84,6 +85,22 @@ class bgerp_PersonalizationSourceIntf
     {
         
         return $this->class->getPersonalizationOptions($userId);
+    }
+    
+    
+    /**
+     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
+     * за съответния запис,
+     * които са достъпни за посочения потребител
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    function getPersonalizationOptionsForId($srcId)
+    {
+        
+        return $this->class->getPersonalizationOptionsForId($srcId);
     }
     
     

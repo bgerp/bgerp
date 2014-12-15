@@ -4,6 +4,25 @@ class core_App
 {
     
 
+	/**
+	 * Последното ръчно зададено максимално време за изпълнение на скрипта
+	 * 
+	 * @var int
+	 */
+	protected static $runningTimeLimit;
+    
+    
+	/**
+	 * Кога е зададено последно увеличение на времето за изпълнение на скрипта
+	 * 
+	 * @var time
+	 */
+	protected static $timeSetTimeLimit;
+	
+	
+	/**
+	 * 
+	 */
     public static function run()
     {
         // Ако имаме заявка за статичен ресурс, веднага го сервираме и
@@ -994,4 +1013,25 @@ class core_App
         }
     }
 
+    
+    
+    /**
+     * Увеличава времето за изпълнение на скрипта
+     * 
+     * @param int $time - времето за увеличение в секунди
+     * @return void
+     */
+    public static function setTimeLimit($time)
+    {
+    	expect(is_numeric($time));
+    	
+    	// Увеличава времето за изпълнение
+    	set_time_limit($time);
+    	
+    	// Записваме последното зададено време за изпълнение;
+    	self::$runningTimeLimit = $time;
+    	
+    	// Записваме времето на последното увеличаване на времето за изпълнение на скрипта
+    	self::$timeSetTimeLimit = time();
+    }
 }

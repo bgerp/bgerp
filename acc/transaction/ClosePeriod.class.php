@@ -263,7 +263,7 @@ class acc_transaction_ClosePeriod
     	$accIds = array();
     	$dealPosition = array();
     	
-    	foreach (arr::make('701,706,703,700') as $systemId){
+    	foreach (arr::make('701,706,703,700,7911,6911') as $systemId){
     		$accId = acc_Accounts::getRecBySystemId($systemId)->id;
     		$accIds[$accId] = $systemId;
     		$dealPosition[$accId] = acc_Lists::getPosition($systemId, 'deals_DealsAccRegIntf');
@@ -397,27 +397,79 @@ class acc_transaction_ClosePeriod
     		}
     	}
     	
-    	// Прехвърляме извънредните приходи/разходи по покупки към сметка 123
+    	$arr6912 = $arr7912 = array();
+    	
+    	// Намираме извънредните разходки/приходи по покупки
     	$bQuery1 = acc_BalanceDetails::getQuery();
     	acc_BalanceDetails::filterQuery($bQuery1, $this->balanceId, '6912,7912');
     	$bQuery1->XPR('roundBlAmount', 'double', 'ROUND(#blAmount, 2)');
     	$bQuery1->where("#roundBlAmount != 0");
     	$bQuery1->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
     	
+    	// Разпределяме ги в два масива според сметката им
     	$id6912 = acc_Accounts::getRecBySystemId('6912')->id;
     	while($dRec1 = $bQuery1->fetch()){
+    		$index = "{$dRec1->ent1Id}|{$dRec1->ent2Id}";
     		if($dRec1->accountId == $id6912){
-    			$debitArr = array('123', $this->date->year);
-    			$creditArr = array('6912', $dRec1->ent1Id, $dRec1->ent2Id);
-    			$reason = 'Извънредни разходи по покупка';
+    			$arr6912[$index] = $dRec1;
     		} else {
-    			$debitArr = array('7912', $dRec1->ent1Id, $dRec1->ent2Id);
-    			$creditArr = array('123', $this->date->year);
-    			$reason = 'Извънредни приходи по покупка';
+    			$arr7912[$index] = $dRec1;
     		}
+    	}
+    	
+    	// Ако има записи в масива с извънредни разходи
+    	if(count($arr6912)){
     		
-    		$entries[] = array('amount' => abs($dRec1->blAmount), 'debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
-    		$total += abs($dRec1->blAmount);
+    		// За всеки запис
+    		foreach ($arr6912 as $index => &$dRec2){
+    			
+    			// Ако също така, има и извънреден приход за същата сделка
+    			if(isset($arr7912[$index])){
+    				
+    				// Правим рписпадане на изнвънредните приходи/разходи по покупка
+    				$min = min(array(abs($dRec2->blAmount), abs($arr7912[$index]->blAmount)));
+    				$entries[] = array('amount' => abs($min), 
+    								   'debit'  => array('7912', $dRec2->ent1Id, $dRec2->ent2Id),
+    								   'credit' => array('6912', $dRec2->ent1Id, $dRec2->ent2Id), 
+    						           'reason' => 'Приспадане на извънредни приходи/разходи по покупка');
+    				
+    				// Приспадаме сумата от оригиналните записи
+    				
+    				$dRec2->blAmount           -= $min;
+    				$arr7912[$index]->blAmount += $min;
+    				$total += abs($min);
+    			}
+    		}
+    	}
+    	
+    	// Отнасяме извънредните разходи по покупки към сметка 123
+    	if(count($arr6912)){
+    		foreach ($arr6912 as $index1 => $dRec3){
+    			
+    			if($dRec3->blAmount == 0) continue;
+    			
+    			$entries[] = array('amount' => abs($dRec3->blAmount), 
+    							   'debit'  => array('123', $this->date->year), 
+    							   'credit' => array('6912', $dRec3->ent1Id, $dRec3->ent2Id), 
+    							   'reason' => 'Извънредни разходи по покупка');
+    			
+    			$total += abs($dRec3->blAmount);
+    		}
+    	}
+    	
+    	// Отнасяме извънредните приходи по покупки към сметка 123
+    	if(count($arr7912)){
+    		foreach ($arr7912 as $index2 => $dRec4){
+    			
+    			if($dRec4->blAmount == 0) continue;
+    			
+    			$entries[] = array('amount' => abs($dRec4->blAmount), 
+    							   'debit'  => array('7912', $dRec4->ent1Id, $dRec4->ent2Id), 
+    							   'credit' => array('123', $this->date->year), 
+    							   'reason' => 'Извънредни приходи по покупка');
+    			
+    			$total += abs($dRec4->blAmount);
+    		}
     	}
     	
 	    return $entries;

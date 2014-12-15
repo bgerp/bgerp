@@ -184,7 +184,8 @@ class type_Key extends type_Int {
             if(!count($options)) {
                 
                 if (!is_array($this->options)) {
-                    foreach($mvc->makeArray4select($field, $where) as $id => $v) {
+                    $arrForSelect = (array) $mvc->makeArray4select($field, $where);
+                    foreach($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
                     $this->handler = md5($field . $where . $this->params['mvc']);
@@ -199,6 +200,9 @@ class type_Key extends type_Int {
             // Правим титлите на опциите да са уникални и изчисляваме най-дългото заглавие
             $this->maxFieldSize = 0;
             if(is_array($options)) {
+                
+                $titles = array();
+                
                 foreach($options as $id => &$title) {
                     if(is_object($title)) continue;
                     if($titles[$title]) {

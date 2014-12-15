@@ -651,8 +651,6 @@ class core_Users extends core_Manager
         $nick = $inputs->nick ? $inputs->nick : $inputs->email;
 
         $this->log($msg . ' [' . $nick . '] from IP: ' . $this->getRealIpAddr());
-        
-        vislog_IpNames::add($nick);
     }
     
 
@@ -986,6 +984,10 @@ class core_Users extends core_Manager
     {
         // Ако не се логва, а се рефрешва потребителя
         if ($refresh) return ;
+        
+        $nick = $inputs->nick ? $inputs->nick : $inputs->email;
+        
+        vislog_IpNames::add($nick);
         
         // Обновяваме времето на BRID кукито
         core_Browser::updateBridCookieLifetime();

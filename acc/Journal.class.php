@@ -571,6 +571,11 @@ class acc_Journal extends core_Master
     {
         // Всяко афектирано перо, задейства ивент в мениджъра си
         if(count($mvc->affectedItems)){
+        	
+        	// Увеличаваме времето за изпълнение според броя афектирани пера
+        	$timeLimit = count($mvc->affectedItems) * 10;
+        	core_App::setTimeLimit($timeLimit);
+        	
             foreach ($mvc->affectedItems as $rec) {
                 acc_Items::notifyObject($rec);
             }
@@ -578,6 +583,11 @@ class acc_Journal extends core_Master
         
         // Ъпдейтваме информацията за журнала, ако е отбелязан че са му променени детайлите
         if(count($mvc->updated)){
+        	
+        	// Увеличаваме времето за изпълнение спрямо броя променените записи
+        	$timeLimit = count($mvc->updated) * 15;
+        	core_App::setTimeLimit($timeLimit);
+        	
             foreach ($mvc->updated as $journalId){
                 $rec = $mvc->fetchRec($journalId);
                 $mvc->updateMaster($rec);
