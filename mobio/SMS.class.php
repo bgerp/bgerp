@@ -93,6 +93,8 @@ class mobio_SMS extends core_Manager
         // Ако константата за УРЛ-то е зададена
         if ($conf->MOBIO_URL != '') {
             
+            $number = self::prepareNumberStr($number);
+            
             // Вземаме шаблона
             $tpl = new ET($conf->MOBIO_URL);
             
@@ -169,13 +171,12 @@ class mobio_SMS extends core_Manager
     /**
      * Инрерфейсен метод
      * Подготвя номера на получателя
-     * @see callcenter_SentSMSIntf
      * 
      * @param string $number
      * 
      * @return string
      */
-    public function prepareNumberStr($number)
+    protected static function prepareNumberStr($number)
     {
         $number = drdata_PhoneType::getNumberStr($number, 0, '');
         
