@@ -225,11 +225,11 @@ class blast_ListDetails extends doc_Detail
         if ($rec->state != 'stopped') {
             
             // Бутон за спиране
-            $row->state = HT::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE));
+            $row->state = ht::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE), FALSE, FALSE,'title=Прекратяване на изпращане към този имейл');
         } else {
             
             // Бутон за активиране
-            $row->state = HT::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => TRUE));
+            $row->state = ht::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => TRUE), FALSE, FALSE,'title=Започване на изпращане към този имейл');
         }
     }
     
@@ -348,7 +348,7 @@ class blast_ListDetails extends doc_Detail
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/table-import-icon.png');
+        $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => TRUE), NULL, array('ef_icon'=>'img/16/table-import-icon.png', 'title'=>'Внасяне на допълнителни данни'));
     }
     
     
