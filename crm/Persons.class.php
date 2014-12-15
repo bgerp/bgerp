@@ -1035,6 +1035,7 @@ class crm_Persons extends core_Master
         }
         
         if(count($data->rows)){
+            $i = 0;
         	foreach($data->rows as $id => $row) {
         		$tpl->append("<div style='margin-bottom:10px'>", 'persons');
         	
