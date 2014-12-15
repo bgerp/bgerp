@@ -65,18 +65,4 @@ class callcenter_SentSMSIntf
         
         return $this->class->getStatus();
     }
-    
-    
-    /**
-     * Подготвя номера на получатяля
-     * 
-     * @param string $number
-     * 
-     * @return string
-     */
-    public function prepareNumberStr($number)
-    {
-        
-        return $this->class->prepareNumberStr($number);
-    }
 }

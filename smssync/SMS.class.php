@@ -69,7 +69,7 @@ class smssync_SMS extends core_Manager
      * 
      * var string|array
      */
-    public $loadList = 'plg_Created, callcenter_SMSPlg';
+    public $loadList = 'plg_Created';
 	
 	
 	/**
