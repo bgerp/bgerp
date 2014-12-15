@@ -48,6 +48,12 @@ class core_Locks extends core_Manager
     
     
     /**
+     * Кой може да добавя, редактира и изтрива?
+     */
+    var $canEdit = 'no_one';
+    
+    
+    /**
      * Плъгини и MVC класове за предварително зареждане
      */
     var $loadList = 'plg_SystemWrapper, plg_RowTools';
@@ -66,7 +72,7 @@ class core_Locks extends core_Manager
     {
         $this->FLD('objectId', 'varchar(64)', 'caption=Обект');
         $this->FLD('lockExpire', 'int', 'caption=Срок');
-        $this->FLD('user', 'key(mvc=core_Users)', 'caption=Потребител');
+        $this->FLD('user', 'key(mvc=core_Users,select=nick)', 'caption=Потребител');
         
         $this->setDbUnique('objectId');
         
