@@ -998,7 +998,7 @@ class crm_Persons extends core_Master
 
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
-            $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel,buzLocationId');
+            $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel,buzLocationId,buzPosition');
             $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
             if($rec->buzLocationId){
             	$row->name .= " - {$row->buzLocationId}";
@@ -1037,15 +1037,22 @@ class crm_Persons extends core_Master
         if(count($data->rows)){
             $i = 0;
         	foreach($data->rows as $id => $row) {
+        	    
         		$tpl->append("<div style='margin-bottom:10px'>", 'persons');
-        	
+        	    
         		if(crm_Persons::haveRightFor('edit', $id)){
         			$editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
         			$editLink = ht::createLink($editImg, array($this, 'edit', $id, 'ret_url' => TRUE), NULL, "id=edt{$id},title=Редактиране на " . mb_strtolower($this->singleTitle));
         			$row->name .= " {$editLink}";
         		}
         		
-        		$tpl->append("<div style='font-weight:bold;'>{$row->name}</div>", 'persons');
+        		$positionsStr = '';
+        		
+        	    if ($row->buzPosition && $row->name) {
+        		    $positionsStr = "<i style='font-size:0.9em;'> ({$row->buzPosition})</i>";
+        		}
+        		
+        		$tpl->append("<div> <span style='font-weight:bold;'>{$row->name}</span>{$positionsStr}</div>", 'persons');
         		
         		if($row->mobile) {
         			$tpl->append("<div class='crm-icon mobile'>{$row->mobile}</div>", 'persons');
