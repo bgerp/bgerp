@@ -61,6 +61,12 @@
                         <!--ET_BEGIN isDelivered-->
                         <div style='color:red'>[#isDelivered#]</div>
                         <!--ET_END isDelivered-->
+                        
+                        <!--ET_BEGIN activityCenterId-->
+                        <div>
+                            <span style='font-weight:normal'>|Център на дейност|*</span>: <b>[#activityCenterId#]</b>
+                        </div>
+                        <!--ET_END activityCenterId-->
                     </td>
                 </tr>
                 <tr>

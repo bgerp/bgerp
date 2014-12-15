@@ -152,6 +152,7 @@ class purchase_Purchases extends deals_DealMaster
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc',
     	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'activityCenterId'   => 'lastDocUser|lastDoc',
     );
     
     
@@ -219,6 +220,7 @@ class purchase_Purchases extends deals_DealMaster
     {
     	parent::setDealFields($this);
     	$this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
+    	$this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Доставка->Център на дейност,mandatory,after=shipmentStoreId');
     	$this->setField('dealerId', 'caption=Наш персонал->Закупчик');
     	$this->setField('shipmentStoreId', 'caption=Доставка->В склад');
     }
@@ -237,6 +239,8 @@ class purchase_Purchases extends deals_DealMaster
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
         $form->setSuggestions('bankAccountId', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
         $form->setDefault('makeInvoice', 'yes');
+        
+        $form->setDefault('activityCenterId', hr_Departments::fetchField("#systemId = 'myOrganisation'", 'id'));
     }
     
     
@@ -385,6 +389,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->bankAccountId), 'id'));
+        $result->setIfNot('activityCenterId', $rec->activityCenterId);
         
         purchase_transaction_Purchase::clearCache();
         $result->set('agreedDownpayment', $downPayment);
