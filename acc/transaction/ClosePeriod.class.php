@@ -427,14 +427,15 @@ class acc_transaction_ClosePeriod
     			if(isset($arr7912[$index])){
     				
     				// Правим рписпадане на изнвънредните приходи/разходи по покупка
-    				$min = min(array($dRec2->blAmount, $arr7912[$index]->blAmount));
+    				$min = min(array(abs($dRec2->blAmount), abs($arr7912[$index]->blAmount)));
     				$entries[] = array('amount' => abs($min), 
     								   'debit'  => array('7912', $dRec2->ent1Id, $dRec2->ent2Id),
     								   'credit' => array('6912', $dRec2->ent1Id, $dRec2->ent2Id), 
     						           'reason' => 'Приспадане на извънредни приходи/разходи по покупка');
     				
     				// Приспадаме сумата от оригиналните записи
-    				$dRec2->blAmount           += $min;
+    				
+    				$dRec2->blAmount           -= $min;
     				$arr7912[$index]->blAmount += $min;
     				$total += abs($min);
     			}
