@@ -444,6 +444,9 @@ class acc_transaction_ClosePeriod
     	// Отнасяме извънредните разходи по покупки към сметка 123
     	if(count($arr6912)){
     		foreach ($arr6912 as $index1 => $dRec3){
+    			
+    			if($dRec3->blAmount == 0) continue;
+    			
     			$entries[] = array('amount' => abs($dRec3->blAmount), 
     							   'debit'  => array('123', $this->date->year), 
     							   'credit' => array('6912', $dRec3->ent1Id, $dRec3->ent2Id), 
@@ -456,6 +459,9 @@ class acc_transaction_ClosePeriod
     	// Отнасяме извънредните приходи по покупки към сметка 123
     	if(count($arr7912)){
     		foreach ($arr7912 as $index2 => $dRec4){
+    			
+    			if($dRec4->blAmount == 0) continue;
+    			
     			$entries[] = array('amount' => abs($dRec4->blAmount), 
     							   'debit'  => array('7912', $dRec4->ent1Id, $dRec4->ent2Id), 
     							   'credit' => array('123', $this->date->year), 
