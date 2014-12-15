@@ -199,6 +199,11 @@ class acc_ClosePeriods extends core_Master
     		// От избрания период извличаме сумата на фактурите с касова бележка
     		$periodRec = acc_Periods::fetch($rec->periodId);
     		$rec->amountFromInvoices = sales_Invoices::getVatAmountInCash($periodRec->start, $periodRec->end);
+    		
+    		$total = $rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4;
+    		if($total < $rec->amountFromInvoices){
+    			$form->setWarning('amountVatGroup1,amountVatGroup2,amountVatGroup3,amountVatGroup4', "|ДДС по ф-ри в брой|* '{$rec->amountFromInvoices}', |е по-голямо от ДДС по касов апарат|*");
+    		}
     	}
     }
     
