@@ -436,7 +436,7 @@ class acc_transaction_ClosePeriod
     				// Приспадаме сумата от оригиналните записи
     				$dRec2->blAmount           += $min;
     				$arr7912[$index]->blAmount += $min;
-    				$total += $min;
+    				$total += abs($min);
     			}
     		}
     	}
