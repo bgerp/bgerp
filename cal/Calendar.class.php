@@ -1337,7 +1337,7 @@ class cal_Calendar extends core_Master
 	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
 	        }
         }
-        
+       
         return $weekData;
     }
     
@@ -1652,7 +1652,7 @@ class cal_Calendar extends core_Master
 			    // задаваме уникално ид
 			    for($j = 0; $j < 26; $j++){
 					// Линкове на картинката
-					$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
+					$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png')." title='Създаване на нова задача'>";
 			    } 
 			      
 			    // Заместваме всички масиви
@@ -1776,7 +1776,7 @@ class cal_Calendar extends core_Master
 		    	}*/
 		    	
 				// Линкове на картинката
-				$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
+				$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png')." title ='Създаване на нова задача'>";
 		     }
 
              // Заместваме всички масиви в шаблона
