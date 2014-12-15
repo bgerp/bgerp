@@ -72,7 +72,7 @@ class core_Locks extends core_Manager
     {
         $this->FLD('objectId', 'varchar(64)', 'caption=Обект');
         $this->FLD('lockExpire', 'int', 'caption=Срок');
-        $this->FLD('user', 'key(mvc=core_Users,select=nick)', 'caption=Потребител');
+        $this->FLD('user', 'key(mvc=core_Users)', 'caption=Потребител');
         
         $this->setDbUnique('objectId');
         
