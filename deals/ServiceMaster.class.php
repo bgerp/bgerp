@@ -305,7 +305,7 @@ abstract class deals_ServiceMaster extends core_Master
     	$res = array();
     	$Detail = $this->mainDetail;
     	$dQuery = $this->$Detail->getQuery();
-    	$dQuery->EXT('state', 'purchase_Services', 'externalKey=shipmentId');
+    	$dQuery->EXT('state', $this->className, 'externalKey=shipmentId');
     	$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
     	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){
