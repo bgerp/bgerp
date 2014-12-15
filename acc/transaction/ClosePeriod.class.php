@@ -36,6 +36,18 @@ class acc_transaction_ClosePeriod
     
     
     /**
+     * Ид на баланса
+     */
+    private $balanceId;
+    
+    
+    /**
+     * Сч. период
+     */
+    private $periodRec;
+    
+    
+    /**
      * Дата
      */
     private $date;
