@@ -427,10 +427,10 @@ class price_ListRules extends core_Detail
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->removeBtn('*'); 
-        $data->toolbar->addBtn('Стойност', array($mvc, 'add', 'type' => 'value', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
+        $data->toolbar->addBtn('Стойност', array($mvc, 'add', 'type' => 'value', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE), NULL, 'title=Продуктова цена');
         if($data->masterData->rec->parent) {
-            $data->toolbar->addBtn('Марж', array($mvc, 'add', 'type' => 'discount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
-            $data->toolbar->addBtn('Групов марж', array($mvc, 'add', 'type' => 'groupDiscount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
+            $data->toolbar->addBtn('Марж', array($mvc, 'add', 'type' => 'discount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE), NULL, 'title=Задаване на правило с %');
+            $data->toolbar->addBtn('Групов марж', array($mvc, 'add', 'type' => 'groupDiscount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE), NULL, 'title=Задаване на групово правило с %');
         }
     }
 
