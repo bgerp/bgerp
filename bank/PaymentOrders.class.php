@@ -68,7 +68,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Pn";
+    var $abbr = "Bpо";
     
     
     /**
