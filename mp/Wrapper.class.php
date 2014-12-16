@@ -27,7 +27,8 @@ class mp_Wrapper extends plg_ProtoWrapper
     	$this->TAB('mp_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,mp');
     	$this->TAB('mp_ProductionNotes', 'Протоколи->Производство', 'ceo,mp');
         $this->TAB('mp_Tasks', 'Задачи', 'ceo,mp');
-         
+        $this->TAB('mp_Stages', 'Етапи', 'ceo,mp');
+        
         $this->title = 'Планиране';
     }
 }

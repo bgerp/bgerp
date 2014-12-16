@@ -48,6 +48,7 @@ class mp_Setup extends core_ProtoSetup
             'mp_Jobs',
             'mp_Tasks',
     		'mp_Resources',
+    		'mp_Stages',
     		'mp_ObjectResources',
     		'mp_ConsumptionNotes',
     		'mp_ConsumptionNoteDetails',
