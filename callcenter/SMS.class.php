@@ -458,6 +458,8 @@ class callcenter_SMS extends core_Master
         // Инпутваме формата
         $form->input(NULL, 'silent');
         
+        $form->input();
+        
         $rec = $form->rec;
         
         // Ако е инпутната формата без грешки
