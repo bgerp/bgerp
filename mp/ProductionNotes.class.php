@@ -27,7 +27,7 @@ class mp_ProductionNotes extends deals_ManifactureMaster
 	/**
 	 * Абревиатура
 	 */
-	public $abbr = 'Pn';
+	public $abbr = 'Mpn';
 	
 	
 	/**
