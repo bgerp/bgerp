@@ -285,7 +285,13 @@ class acc_transaction_ClosePeriod
     	if(count($balanceArr)){
     		foreach ($balanceArr as $rec){
     			if($accIds[$rec->accountId] != '700'){
-    				$quantity = ($accIds[$rec->accountId] == 703) ? abs($rec->blQuantity) : $rec->blQuantity;
+    				if($rec->blQuantity < 0){
+    					
+    					// Ако имаме кредитно салдо, правим такова к-во че да го занулим
+    					$quantity = abs($rec->blQuantity);
+    				} else {
+    					$quantity = $rec->blQuantity;
+    				}
     				
     				$arr1 = array('700', $rec->ent1Id, $rec->ent2Id);
     				$arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $quantity);
