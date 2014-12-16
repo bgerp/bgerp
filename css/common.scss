@@ -1940,6 +1940,9 @@ div.richEdit {
 	width: 32em;
 }
 
+.wide .richEdit textarea {
+	min-width: 310px;
+}
 
 .richedit-toolbar {
 	position: relative;

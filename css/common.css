@@ -1807,6 +1807,9 @@ div.richEdit {
   border-bottom: 1px solid transparent;
   width: 32em; }
 
+.wide .richEdit textarea {
+  min-width: 310px; }
+
 .richedit-toolbar {
   position: relative;
   _height: 1%; }
