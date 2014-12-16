@@ -203,30 +203,31 @@ class remote_Hosts extends core_Master
      * @param string $host
      * @param string $fileName - име на локалния файл
      */
-    public static function put($host, $fileName)
+    public static function put($host, $localFileName)
     {
         
         $connection = self::connect($host);
-        $content = file_get_contents($fileName);
+        $remoteFileName = $localFileName;
         
-        if ($content === FALSE) {
-            throw new core_exception_Expect("Проблем с четенето на файла от локалната система");
+        if (ssh2_scp_send($connection, $localFileName, $remoteFileName)) {
+            throw new core_exception_Expect("Грешка при качване на файл от отдалечен хост");
         }
-        
-        self::exec($host, "echo {$content} > $fileName");
-        
     }
     
     /**
      * Смъква файл от отдалечен хост
      *
      * @param string $host
-     * @param string $file път до отдалечения файл
+     * @param string $fileName име на отдалечения файл
      */
-    public static function get($host, $file)
+    public static function get($host, $remoteFileName)
     {
         $connection = self::connect($host);
+        $localFileName = $remoteFileName;
         
+        if (!ssh2_scp_recv($connection, $remoteFileName, $localFileName)) {
+            throw core_exception_Expect("Грешка при сваляне на файл от отдалечен хост");
+        }        
     }
     
 }
