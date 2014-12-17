@@ -75,23 +75,6 @@ class acc_transaction_BalanceRepair
 			}
 		}
 		
-		// Ако има крайно салдо в 799, прехвърляме го в 123
-		if($this->amount488 != 0){
-			$entry = array('amount' => abs($this->amount488));
-			
-			if($this->amount488 < 0){
-				$entry['debit'] = array('488');
-				$entry['credit'] = array('123', $this->date->year);
-			} else {
-				$entry['debit'] = array('123', $this->date->year);
-				$entry['credit'] = array('488');
-			}
-			
-			$result->entries[] = $entry;
-		
-			$result->totalAmount += abs($this->amount488);
-		}
-		
 		return $result;
 	}
 	
@@ -129,7 +112,9 @@ class acc_transaction_BalanceRepair
 			if($continue) continue;
 			
 			// Ако к-то и сумата са зададени и са равни пропускаме ги
-			if($bRec->blQuantity && $bRec->blAmount && round($bRec->blQuantity, 6) == round($bRec->blAmount, 6)) continue;
+			//if($bRec->blQuantity && $bRec->blAmount && round($bRec->blQuantity, 6) == round($bRec->blAmount, 6)) continue;
+			
+			//@TODO И трите да са отворени перата
 			
 			$ourSideArr = array($sysId, $bRec->ent1Id, $bRec->ent2Id, $bRec->ent3Id);
 			
