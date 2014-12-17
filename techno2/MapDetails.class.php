@@ -38,7 +38,13 @@ class techno2_MapDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, techno2_Wrapper, plg_Sorting, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals';
+    var $loadList = 'plg_Created, plg_RowTools, techno2_Wrapper, plg_LastUsedKeys, plg_Sorting, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals';
+    
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    var $lastUsedKeys = 'stageId,resourceId';
     
     
     /**
