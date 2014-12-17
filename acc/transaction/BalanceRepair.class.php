@@ -102,7 +102,7 @@ class acc_transaction_BalanceRepair
 					$var = &${"bl{$fld}"};
 					$var = $bRec->{"debit{$fld}"} - $bRec->{"credit{$fld}"};
 						
-					if($var != 0 && $var >= -1 * $dRec->{"bl{$fld}"} && $var <= $dRec->{"bl{$fld}"}){
+					if($var != 0 && $var > -1 * $dRec->{"bl{$fld}"} && $var < $dRec->{"bl{$fld}"}){
 						$continue = FALSE;
 					}
 				}
