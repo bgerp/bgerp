@@ -358,6 +358,16 @@ class techno2_SpecificationDoc extends core_Embedder
     	if(techno2_SpecTplCache::haveRightFor('read')){
     		$data->toolbar->addBtn("История", array('techno2_SpecTplCache', 'list', 'docId' => $data->rec->id), 'ef_icon = img/16/view.png,title=Минали изгледи на спецификации');
     	}
+    	
+    	if($data->rec->state == 'active'){
+    		if(techno2_Maps::haveRightFor('write', (object)array('originId' => $data->rec->containerId)) && $mvc->canAddToThread($data->rec->threadId)){
+    			if($qRec = techno2_Maps::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Т. карта", array('techno2_Maps', 'edit', $qRec->id), 'ef_icon = img/16/legend.png,title=Редактиране на технологична карта');
+    			} else {
+    				$data->toolbar->addBtn("Т. карта", array('techno2_Maps', 'add', 'originId' => $data->rec->containerId), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична карта');
+    			}
+    		}
+    	}
     }
     
     

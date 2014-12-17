@@ -47,7 +47,8 @@ class techno2_Setup extends core_ProtoSetup
     var $managers = array(
     		'techno2_SpecificationDoc',
     		'techno2_SpecTplCache',
-    		'migrate::copyOldTechnoDocuments6'
+    		//'techno2_Maps',
+    		'migrate::copyOldTechnoDocuments8'
         );
     
 
@@ -103,7 +104,7 @@ class techno2_Setup extends core_ProtoSetup
     /**
      * Миграция на старите универсални продукти към новите спецификации
      */
-    public function copyOldTechnoDocuments6()
+    public function copyOldTechnoDocuments8()
     {
     	core_Users::cancelSystemUser();
     	
