@@ -38,13 +38,13 @@ class techno2_MapDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, techno2_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals';
+    var $loadList = 'plg_Created, plg_RowTools, techno2_Wrapper, plg_Sorting, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'rowNumb=Пулт, stageId, resourceId, hardQuantity,propQuantity,minQuantity,maxQuantity';
+    var $listFields = 'rowNumb=Пулт, stageId, resourceId, measureId=Мярка, hardQuantity,propQuantity,minQuantity,maxQuantity';
     
     
     /**
@@ -101,9 +101,9 @@ class techno2_MapDetails extends doc_Detail
     	
     	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit();')));
     	$this->FLD("hardQuantity", 'double', 'caption=Количество->Твърдо,mandatory');
-    	$this->FLD("propQuantity", 'double', 'caption=Количество->Пропорционално');
-    	$this->FLD("minQuantity", 'double', 'caption=Количество->Минимално');
-    	$this->FLD("maxQuantity", 'double', 'caption=Количество->Максимално');
+    	$this->FLD("propQuantity", 'double', 'caption=Количество->Проп.');
+    	$this->FLD("minQuantity", 'double', 'caption=Количество->Мин.');
+    	$this->FLD("maxQuantity", 'double', 'caption=Количество->Макс.');
     }
     
     
@@ -154,5 +154,40 @@ class techno2_MapDetails extends doc_Detail
     			$requiredRoles = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * След обръщане на записа във вербален вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	$row->resourceId = mp_Resources::getHyperlink($rec->resourceId, TRUE);
+    	$row->stageId = mp_Stages::getHyperlink($rec->stageId, TRUE);
+    	
+    	$uomId = mp_Resources::fetchField($rec->resourceId, 'measureId');
+    	$row->measureId = cat_UoM::getShortName($uomId);
+    }
+    
+    
+    /**
+     * След извличане на записите от базата данни
+     */
+    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    {
+    	if(!count($data->recs)) return;
+    	
+    	$recs = &$data->recs;
+    	
+    	foreach ($recs as &$rec){
+    		if($rec->stageId){
+    			$rec->order = mp_Stages::fetchField($rec->stageId, 'order');
+    		}
+    	}
+    	
+    	// Сортираме по подредбата на производствения етап
+    	usort($recs, function($a, $b) {
+    		return ($a > $b) ? -1 : 1;
+    	});
     }
 }
