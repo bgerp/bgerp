@@ -29,6 +29,12 @@ class acc_BalanceRepairs extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn';
+    
+    
+    /**
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, plg_Printing,acc_Wrapper, plg_Sorting, acc_plg_Contable,
@@ -144,7 +150,6 @@ class acc_BalanceRepairs extends core_Master
      */
     function description()
     {
-    	$this->FLD('valior', 'date', 'caption=Вальор,mandatory');
     	$this->FLD('balanceId', 'key(mvc=acc_Balances,select=periodId)', 'caption=Баланс,mandatory');
     }
     
