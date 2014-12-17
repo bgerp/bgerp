@@ -168,6 +168,8 @@ class acc_BalanceRepairs extends core_Master
     {
     	if(count($mvc->updated)){
     		foreach ($mvc->updated as $rec) {
+    			
+    			// Обновяваме променените записи, за да се преизчисли дали може да се контира
     			$mvc->save($rec);
     		}
     	}
