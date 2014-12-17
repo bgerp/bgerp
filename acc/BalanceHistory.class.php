@@ -397,7 +397,7 @@ class acc_BalanceHistory extends core_Manager
             'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
         
         $debitQuantity = $debitAmount = $creditQuantity = $creditAmount = 0;
-      // bp($entriesInPeriod);
+      
         // Обхождаме всички записи и натрупваме сумите им към крайното салдо
         if(count($entriesInPeriod)){
             foreach ($entriesInPeriod as $jRec){
