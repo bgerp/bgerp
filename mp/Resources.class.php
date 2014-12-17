@@ -106,6 +106,7 @@ class mp_Resources extends core_Master
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,mandatory');
     	$this->FLD('selfValue', 'double', 'caption=Себестойност');
     	$this->FLD('systemId', 'varchar', 'caption=Системен №,input=none');
+    	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	
     	// Поставяме уникален индекс
     	$this->setDbUnique('title');
@@ -275,6 +276,12 @@ class mp_Resources extends core_Master
     {
     	if(($action == 'delete' || $action == 'reject') && isset($rec)){
     		if(mp_ObjectResources::fetchField("#resourceId = '{$rec->id}'")){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	if(($action == 'delete') && isset($rec)){
+    		if(isset($rec->lastUsedOn)){
     			$res = 'no_one';
     		}
     	}

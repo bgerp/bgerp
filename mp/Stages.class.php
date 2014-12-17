@@ -74,6 +74,7 @@ class mp_Stages extends core_Manager
 		$this->FLD('name', 'varchar', 'caption=Заглавие,mandatory');
 		$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Център на дейност,mandatory');
 		$this->FLD('order', 'int', 'caption=Подредба');
+		$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
 		
 		$this->setDbUnique('name,departmentId');
 		$this->setDbUnique('order');
@@ -154,6 +155,25 @@ class mp_Stages extends core_Manager
 			foreach ($optArr as $id => &$title){
 				$departmentVerbal = hr_Departments::getTitleById($mvc->fetchField($id, 'departmentId'), FALSE);
 				$title .= " ({$departmentVerbal})";
+			}
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param string $res
+	 * @param string $action
+	 * @param stdClass $rec
+	 * @param int $userId
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{
+		if(($action == 'delete') && isset($rec)){
+			if(isset($rec->lastUsedOn)){
+				$res = 'no_one';
 			}
 		}
 	}
