@@ -96,6 +96,13 @@ class acc_BalanceRepairDetails extends doc_Detail
     
     
     /**
+     * Сметките от кои групи да могат да се показват за избор от сметкоплана
+     * @var unknown
+     */
+    public $selectAccountsFromByNum = '4,5,6,7';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -154,5 +161,29 @@ class acc_BalanceRepairDetails extends doc_Detail
     			$requiredRoles = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	$Accounts = cls::get('acc_Accounts');
+    	
+    	// Извличаме само сметките с посочените номера
+    	$nums = arr::make($mvc->selectAccountsFromByNum);
+    	$options = array();
+    	foreach ($nums as $num){
+    		$options += $Accounts->makeArray4Select('title', array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $num));
+    	}
+    	
+    	// Задаваме ги за опции на полето
+    	$form->setOptions('accountId', $options);
     }
 }
