@@ -128,6 +128,9 @@ class acc_transaction_BalanceRepair
 			// Ако не са продължаваме
 			if($continue) continue;
 			
+			// Ако к-то и сумата са зададени и са равни пропускаме ги
+			if($dRec->blQuantity && $dRec->blAmount && round($dRec->blQuantity, 6) == round($dRec->blQAmount, 6)) continue;
+			
 			$ourSideArr = array($sysId, $bRec->ent1Id, $bRec->ent2Id, $bRec->ent3Id);
 			
 			$entry = array('amount' => abs($blAmount));
