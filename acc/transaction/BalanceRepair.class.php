@@ -106,7 +106,7 @@ class acc_transaction_BalanceRepair
 		$bQuery = acc_BalanceDetails::getQuery();
 		acc_BalanceDetails::filterQuery($bQuery, $this->balanceRec->id, $sysId);
 		$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
-		
+		//bp($bQuery->fetchAll());
 		// За всеки запис
 		while($bRec = $bQuery->fetch()){
 			$continue = TRUE;
@@ -124,12 +124,12 @@ class acc_transaction_BalanceRepair
 					}
 				}
 			}
-				
+			
 			// Ако не са продължаваме
 			if($continue) continue;
 			
 			// Ако к-то и сумата са зададени и са равни пропускаме ги
-			if($dRec->blQuantity && $dRec->blAmount && round($dRec->blQuantity, 6) == round($dRec->blQAmount, 6)) continue;
+			if($bRec->blQuantity && $bRec->blAmount && round($bRec->blQuantity, 6) == round($bRec->blAmount, 6)) continue;
 			
 			$ourSideArr = array($sysId, $bRec->ent1Id, $bRec->ent2Id, $bRec->ent3Id);
 			
