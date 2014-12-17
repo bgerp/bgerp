@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Групи
@@ -22,6 +22,12 @@ class price_Groups extends core_Master
      * Заглавие
      */
     var $title = 'Ценови групи';
+    
+    
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Ценова група";
     
     
     /**
@@ -95,12 +101,14 @@ class price_Groups extends core_Master
      */
     var $singleLayoutFile = 'price/tpl/SingleLayoutGroups.shtml';
     
+    
     var $details = 'ProductInGroup=price_GroupOfProducts';
+    
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Група');
         $this->FLD('description', 'text', 'caption=Описание');

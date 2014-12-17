@@ -3116,9 +3116,9 @@ function addBugReportInput(form, nameInput, value)
 	    }).appendTo(form);
 	}
 }
-function addNarrowScroll() {
-	if($('body').hasClass('narrow') && checkNativeSupport()){
-		$('body').addClass('narrow-scroll');
+function removeNarrowScroll() {
+	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
+		$('body').removeClass('narrow-scroll');
 	}
 }
 
@@ -3136,4 +3136,4 @@ $.fn.scrollView = function () {
 }
 
 runOnLoad(showTooltip);
-runOnLoad(addNarrowScroll);
+runOnLoad(removeNarrowScroll);

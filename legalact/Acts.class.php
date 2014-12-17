@@ -218,7 +218,7 @@ class legalact_Acts extends core_Master
     function on_AfterPrepareListToolbar($mvc, $data)
     {   
         if(haveRole('admin')) {
-            $data->toolbar->addBtn('Импортирай файловете', array($mvc, 'Import'), 'ef_icon = img/16/table-import-icon.png');
+            $data->toolbar->addBtn('Импортирай файловете', array($mvc, 'Import'), 'ef_icon = img/16/table-import-icon.png,title=Внедри файловете');
         }
     }
 

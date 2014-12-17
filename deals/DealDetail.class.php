@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Клас 'deals_DealDetail'
  *

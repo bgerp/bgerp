@@ -26,7 +26,7 @@ class mp_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'mp_Jobs';
+    var $startCtr = 'mp_Resources';
     
     
     /**
@@ -48,7 +48,12 @@ class mp_Setup extends core_ProtoSetup
             'mp_Jobs',
             'mp_Tasks',
     		'mp_Resources',
+    		'mp_Stages',
     		'mp_ObjectResources',
+    		'mp_ConsumptionNotes',
+    		'mp_ConsumptionNoteDetails',
+    		'mp_ProductionNotes',
+    		'mp_ProductionNoteDetails',
     		'migrate::removeOldDefResource5'
         );
 
@@ -58,6 +63,7 @@ class mp_Setup extends core_ProtoSetup
      */
     var $roles = 'mp';
 
+    
     /**
      * Връзки от менюто, сочещи към модула
      */

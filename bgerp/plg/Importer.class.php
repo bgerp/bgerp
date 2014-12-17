@@ -165,7 +165,7 @@ class bgerp_plg_Importer extends core_Plugin
         $data->form->title = 'Импорт';
         
         $data->form->toolbar = new core_Toolbar();
-        $data->form->toolbar->addSbBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport', 'ef_icon = img/16/table-import-icon.png');
+        $data->form->toolbar->addSbBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport', 'ef_icon = img/16/table-import-icon.png,title=Импортиране на ' . mb_strtolower($mvc->title), array('order' => 19));
     }
     
     
