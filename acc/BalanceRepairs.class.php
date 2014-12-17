@@ -124,7 +124,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    //var $singleLayoutFile = 'acc/tpl/SingleArticle.shtml';
+    var $singleLayoutFile = 'acc/tpl/SingleLayoutBalanceRepair.shtml';
     
     
     /**
@@ -276,5 +276,7 @@ class acc_BalanceRepairs extends core_Master
     	if(acc_Balances::haveRightFor('single', $rec->balanceId)){
     		$row->balanceId = ht::createLink($row->balanceId, array('acc_Balances', 'single', $rec->balanceId), NULL, 'ef_icon=img/16/table_sum.png');
     	}
+    	
+    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
     }
 }
