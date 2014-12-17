@@ -20,7 +20,7 @@ class acc_BalanceRepairDetails extends doc_Detail
     /**
      * Заглавие
      */
-    var $title = "Детайл на счетоводни разлики";
+    var $title = "Детайл на документа за корекция на закръглянията";
     
     
     /**
@@ -90,6 +90,12 @@ class acc_BalanceRepairDetails extends doc_Detail
     
     
     /**
+     * Над каква сума да показва предупреждение
+     */
+    public $allowedLimit = 1;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -101,6 +107,26 @@ class acc_BalanceRepairDetails extends doc_Detail
         $this->FLD('blAmount', 'double', 'caption=Занули крайното салдо под->Сума');
         
         $this->setDbUnique('repairId,accountId');
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		if($form->rec->blQuantity > $mvc->allowedLimit){
+    			$form->setWarning('blQuantity', "Въведеното к-ва е над '{$mvc->allowedLimit}'");
+    		}
+    		
+    		if($form->rec->blAmount > $mvc->allowedLimit){
+    			$form->setWarning('blAmount', "Въведената сума е над '{$mvc->allowedLimit}'");
+    		}
+    	}
     }
     
     
