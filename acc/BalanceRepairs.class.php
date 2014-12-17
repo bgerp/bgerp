@@ -124,7 +124,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    //var $singleLayoutFile = 'acc/tpl/SingleArticle.shtml';
+    var $singleLayoutFile = 'acc/tpl/SingleLayoutBalanceRepair.shtml';
     
     
     /**
