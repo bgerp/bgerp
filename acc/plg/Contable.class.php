@@ -36,9 +36,17 @@ class acc_plg_Contable extends core_Plugin
         
         setIfNot($mvc->canCorrection, 'ceo, accMaster');
         setIfNot($mvc->valiorFld, 'valior');
+        setIfNot($mvc->lockBalances, FALSE);
         
         // Зареждаме плъгина, който проверява можели да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
+       
+        // Ако е оказано че при контиране/възстановяване/оттегляне да се заключва баланса зареждаме плъгина 'acc_plg_LockBalances'
+        if($mvc->lockBalances === TRUE){
+        	
+        	// Зареждаме плъгина, така се подсигуряваме че ивентите му ще се изпълняват винаги след тези на 'acc_plg_Contable'
+        	$mvc->load('acc_plg_LockBalanceRecalc');
+        }
     }
     
     

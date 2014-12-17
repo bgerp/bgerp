@@ -33,13 +33,7 @@ class acc_transaction_BalanceRepair
 	/**
 	 * Сума
 	 */
-	private $amount699 = 0;
-	
-	
-	/**
-	 * Сума
-	 */
-	private $amount799 = 0;
+	private $amount488 = 0;
 	
 	
 	/**
@@ -80,38 +74,22 @@ class acc_transaction_BalanceRepair
 				}
 			}
 		}
-
-		// Ако има суми в 699 и в 799, приспадаме по-малката за да има само едно прехвърляне в 123
-		if($this->amount699 != 0 && $this->amount799 != 0){
-			$min = min(array(abs($this->amount699), abs($this->amount799)));
-				
-			$result->entries[] = array('amount' => abs($min), 'debit'  => array('799'), 'credit' => array('699'), 'reason' => 'Приспадане на грешките от закръгляния');
-				
-			$this->amount799 += abs($min);
-			$this->amount699 -= abs($min);
-				
-			$result->totalAmount += abs($min);
-		}
-		
-		// Ако има крайно салдо по 699, прехвърляме го в 123
-		if($this->amount699 != 0){
-			$result->entries[] = array('amount' => abs($this->amount699),
-					'debit'  => array('123', $this->date->year),
-					'credit' => array('699'),
-					'reason' => 'Извънредни разходи от закръгляния');
-		
-			$result->totalAmount += abs($this->amount699);
-		}
 		
 		// Ако има крайно салдо в 799, прехвърляме го в 123
-		if($this->amount799 != 0){
-			$result->entries[] = array('amount' => abs($this->amount799),
-					'debit' => array('799'),
-					'credit'  => array('123', $this->date->year),
-						
-					'reason' => 'Извънредни приходи от закръгляния');
+		if($this->amount488 != 0){
+			$entry = array('amount' => abs($this->amount488));
+			
+			if($this->amount488 < 0){
+				$entry['debit'] = array('488');
+				$entry['credit'] = array('123', $this->date->year);
+			} else {
+				$entry['debit'] = array('123', $this->date->year);
+				$entry['credit'] = array('488');
+			}
+			
+			$result->entries[] = $entry;
 		
-			$result->totalAmount += abs($this->amount799);
+			$result->totalAmount += abs($this->amount488);
 		}
 		
 		return $result;
@@ -162,16 +140,16 @@ class acc_transaction_BalanceRepair
 			// Ако салдото е отрицателно отива като приход
 			if($blAmount < 0){
 				$entry['debit'] = $ourSideArr;
-				$entry['credit'] = array('799');
+				$entry['credit'] = array('488');
 				
-				$this->amount799 += $entry['amount'];
+				$this->amount488 -= $entry['amount'];
 			} else {
 				
 				// Ако салдото е положително отива като разход
-				$entry['debit'] = array('699');
+				$entry['debit'] = array('488');
 				$entry['credit'] = $ourSideArr;
 				
-				$this->amount699 += $entry['amount'];
+				$this->amount488 += $entry['amount'];
 			}
 			
 			$entry['reason'] = 'Разлики от закръгляния';

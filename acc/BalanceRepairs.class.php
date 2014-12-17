@@ -114,6 +114,14 @@ class acc_BalanceRepairs extends core_Master
     
     
     /**
+     * Дали при възстановяване/контиране/оттегляне да се заключва баланса
+     *
+     * @var boolean TRUE/FALSE
+     */
+    public $lockBalances = TRUE;
+    
+    
+    /**
      * Файл с шаблон за единичен изглед на статия
      */
     //var $singleLayoutFile = 'acc/tpl/SingleArticle.shtml';
