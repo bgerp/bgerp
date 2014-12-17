@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър за технологични карти
+ * Мениджър за технологични карти (Рецепти)
  *
  *
  * @category  bgerp
@@ -19,7 +19,7 @@ class techno2_Maps extends core_Master
    /**
      * Какви интерфейси поддържа този мениджър
      */
-    //var $interfaces = '';
+    var $interfaces = 'doc_DocumentIntf';
     
     
     /**
@@ -67,7 +67,7 @@ class techno2_Maps extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Tmp";
+    var $abbr = "Map";
     
     
     /**
@@ -145,14 +145,24 @@ class techno2_Maps extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'add' && isset($rec)){
+    	if($action == 'write' && isset($rec)){
     		
     		// Може да се добавя само ако има ориджин
     		if(empty($rec->originId)){
     			$res = 'no_one';
+    		} else {
+    			
+    			// Какво е състоянието на ориджина
+    			$originState = doc_Containers::getDocument($rec->originId)->fetchField('state');
+    			
+    			// Трябва да е активиран
+    			if($originState != 'active'){
+    				$res = 'no_one';
+    			}
     		}
     	}
     	
+    	// Ако няма ид, не може да се активира
     	if($action == 'activate' && empty($rec->id)){
     		$res = 'no_one';
     	}
@@ -167,13 +177,18 @@ class techno2_Maps extends core_Master
      */
     public static function canAddToThread($threadId)
     {
+    	// Ако има ориджин в рекуеста
     	if($originId = Request::get('originId', 'int')){
+    		
+    		// Очакваме той да е 'techno2_Specification' - спецификация
     		$origin = doc_Containers::getDocument($originId);
     		expect($origin->getInstance() instanceof techno2_SpecificationDoc);
+    		expect($origin->fetchField('state') == 'active');
     		
+    		// Ако е спецификация, документа може да се добави към нишката
     		return TRUE;
     	}
-    		
+    	
     	return FALSE;
     }
     
@@ -216,5 +231,16 @@ class techno2_Maps extends core_Master
     	 
     	$origin = doc_Containers::getDocument($rec->originId);
     	$row->originId = $origin->getHyperLink(TRUE);
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$data->toolbar->removeBtn('btnAdd');
+    	}
     }
 }
