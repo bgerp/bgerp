@@ -152,6 +152,10 @@ class techno2_Maps extends core_Master
     			$res = 'no_one';
     		}
     	}
+    	
+    	if($action == 'activate' && empty($rec->id)){
+    		$res = 'no_one';
+    	}
     }
     
     

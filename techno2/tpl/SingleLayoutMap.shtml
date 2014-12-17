@@ -5,12 +5,13 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
     </div>
     <!--ET_END header-->
-    <div>|Спецификация|*: [#originId#]</div>
+    <div>|Към|*: [#originId#]</div>
+    <br>
+    [#DETAILS#]
     
     <!--ET_BEGIN notes-->
-    <div>|Забележки|*</div>
+    <br>
+    <div>|Забележки|*:</div>
     <div>[#notes#]</div>
     <!--ET_END notes-->
-    
-    [#DETAILS#]
 </div>

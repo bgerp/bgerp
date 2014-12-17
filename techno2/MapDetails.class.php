@@ -44,7 +44,7 @@ class techno2_MapDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'rowNumb=Пулт, stageId, resourceId, measureId=Мярка, hardQuantity,propQuantity,minQuantity,maxQuantity';
+    var $listFields = 'rowNumb=Пулт, stageId, resourceId, baseQuantity, propQuantity, measureId=Мярка';
     
     
     /**
@@ -100,10 +100,8 @@ class techno2_MapDetails extends doc_Detail
     	$this->FLD("stageId", 'key(mvc=mp_Stages,select=name,allowEmpty)', 'caption=Етап');
     	
     	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit();')));
-    	$this->FLD("hardQuantity", 'double', 'caption=Количество->Твърдо,mandatory');
-    	$this->FLD("propQuantity", 'double', 'caption=Количество->Проп.');
-    	$this->FLD("minQuantity", 'double', 'caption=Количество->Мин.');
-    	$this->FLD("maxQuantity", 'double', 'caption=Количество->Макс.');
+    	$this->FLD("baseQuantity", 'double', 'caption=Количество->Твърдо');
+    	$this->FLD("propQuantity", 'double', 'caption=Количество->Пропорционално');
     }
     
     
@@ -117,28 +115,17 @@ class techno2_MapDetails extends doc_Detail
     {
     	$rec = &$form->rec;
     	
-    	if($form->cmd == 'refresh'){
-    		if(isset($rec->resourceId)){
-    			$uomId = mp_Resources::fetchField($rec->resourceId, 'measureId');
-    			$uomName = cat_UoM::getShortName($uomId);
+    	if(isset($rec->resourceId)){
+    		$uomId = mp_Resources::fetchField($rec->resourceId, 'measureId');
+    		$uomName = cat_UoM::getShortName($uomId);
     			
-    			$form->setField('minQuantity', "unit={$uomName}");
-    			$form->setField('maxQuantity', "unit={$uomName}");
-    			$form->setField('hardQuantity', "unit={$uomName}");
-    			$form->setField('propQuantity', "unit={$uomName}");
-    		}
+    		$form->setField('baseQuantity', "unit={$uomName}");
+    		$form->setField('propQuantity', "unit={$uomName}");
     	}
     	
     	if($form->isSubmitted()){
-    		if(!empty($rec->minQuantity) && !empty($rec->maxQuantity) && !empty($rec->hardQuantity)){
-    			
-    			if($rec->hardQuantity < $rec->minQuantity){
-    				$form->setError('hardQuantity,minQuantity', 'Твърдото к-во е под минималното');
-    			}
-    			
-    			if($rec->hardQuantity > $rec->maxQuantity){
-    				$form->setError('hardQuantity,maxQuantity', 'Твърдото к-во е над максималното');
-    			}
+    		if(empty($rec->baseQuantity) && empty($rec->propQuantity)){
+    			$form->setError('baseQuantity,propQuantity', 'Трябва да е въведено поне едно количество');
     		}
     	}
     }
@@ -163,7 +150,6 @@ class techno2_MapDetails extends doc_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->resourceId = mp_Resources::getHyperlink($rec->resourceId, TRUE);
-    	$row->stageId = mp_Stages::getHyperlink($rec->stageId, TRUE);
     	
     	$uomId = mp_Resources::fetchField($rec->resourceId, 'measureId');
     	$row->measureId = cat_UoM::getShortName($uomId);
@@ -187,7 +173,9 @@ class techno2_MapDetails extends doc_Detail
     	
     	// Сортираме по подредбата на производствения етап
     	usort($recs, function($a, $b) {
-    		return ($a > $b) ? -1 : 1;
+    		if($a->order == $b->order)  return 0;
+    		
+    		return ($a->order > $b->order) ? -1 : 1;
     	});
     }
 }
