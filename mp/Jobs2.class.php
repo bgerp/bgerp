@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Задания за производство
  */
-class mp_Jobs extends core_Master
+class mp_Jobs2 extends core_Master
 {
     
     

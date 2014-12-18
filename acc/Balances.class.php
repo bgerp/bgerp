@@ -161,10 +161,10 @@ class acc_Balances extends core_Master
     {
     	if(empty($rec->periodId)){
     		$row->periodId = dt::mysql2verbal($rec->fromDate, 'd') . "-" . dt::mysql2verbal($rec->toDate, 'd F Y');
-    			
+    		
     		if($fields['-list']){
     			if($mvc->haveRightFor('single', $rec)){
-    				$row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), NULL, 'ef_icon=img/16/table_sum.png');
+    				$row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост {$row->periodId}");
     			}
     		}
     	}
@@ -192,7 +192,7 @@ class acc_Balances extends core_Master
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if (!empty($mvc->accountRec)) {
-            $data->toolbar->addBtn('Назад', array($mvc, 'single', $data->rec->id), 'ef_icon=img/16/back16.png');
+            $data->toolbar->addBtn('Назад', array($mvc, 'single', $data->rec->id), 'ef_icon=img/16/back16.png, title = Върни се обратно');
         }
     }
     
@@ -206,7 +206,7 @@ class acc_Balances extends core_Master
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(haveRole('admin,debug')){
-    		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+    		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title = Изтриване на таблицата с оборотни ведомости');
     	}
     }
     

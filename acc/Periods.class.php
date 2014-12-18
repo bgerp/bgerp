@@ -165,13 +165,13 @@ class acc_Periods extends core_Manager
         }
         
         if($repId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
-            $row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), NULL, 'ef_icon=img/16/table_sum.png');
+            $row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост {$row->title}");
         }
         
         $curPerEnd = static::getPeriodEnd();
         
         if($rec->end == $curPerEnd){
-            $row->id = ht::createElement('img', array('src' => sbf('img/16/control_play.png', ''), 'style' => 'display:inline-block; float: left; margin-right:5px')) . $row->id;
+            $row->id = ht::createElement('img', array('src' => sbf('img/16/control_play.png', ''), 'style' => 'display:inline-block; float: left; margin-right:5px', 'title' => 'Текущ период')) . $row->id;
         }
     }
     
