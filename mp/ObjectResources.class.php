@@ -278,4 +278,25 @@ class mp_ObjectResources extends core_Manager
     {
     	$data->toolbar->removeBtn('btnAdd');
     }
+    
+    
+    /**
+     * Дали обекта е добавен като ресурс
+     * 
+     * @param mixed $class - клас
+     * @param int $objectId - ид
+     * @return boolean - Дали е добавен като ресурс или не
+     */
+    public static function isResource($class, $objectId)
+    {
+    	$Class = cls::get($class);
+    	
+    	// Проверяваме имали такъв запис
+    	if(self::fetchField("#classId = {$Class->getClassId()} AND #objectId = {$objectId}")){
+    		
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
+    }
 }
