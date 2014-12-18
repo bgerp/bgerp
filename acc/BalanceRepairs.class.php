@@ -37,7 +37,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Printing,acc_Wrapper, plg_Sorting, acc_plg_Contable,
+    var $loadList = 'plg_RowTools, plg_Clone, plg_Printing,acc_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, acc_plg_DocumentSummary';
     
     
@@ -283,5 +283,20 @@ class acc_BalanceRepairs extends core_Master
     	}
     	
     	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+    }
+    
+    
+    /**
+     * След клониране на модела
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	$query = acc_BalanceRepairDetails::getQuery();
+    	$query->where("#repairId = {$rec->id}");
+    	while($dRec = $query->fetch()){
+    		$dRec->repairId = $nRec->id;
+    		unset($dRec->id);
+    		acc_BalanceRepairDetails::save($dRec);
+    	}
     }
 }
