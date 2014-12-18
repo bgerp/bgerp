@@ -692,8 +692,9 @@ class techno2_SpecificationDoc extends core_Embedder
     	
     	// Ако продукта няма цена, връщаме цената от последно продадената спецификация на този клиент (ако има)
     	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
-    	 
-    	return $LastPricePolicy->getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+    	$lastPrice = $LastPricePolicy->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVatd);
+    	
+    	return $lastPrice;
     }
 
 
