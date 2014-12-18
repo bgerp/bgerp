@@ -56,7 +56,7 @@ class techno2_MapDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'rowNumb=Пулт, stageId, resourceId, baseQuantity, propQuantity, measureId=Мярка';
+    var $listFields = 'rowNumb=Пулт, stageId, resourceId, baseQuantity, propQuantity';
     
     
     /**
@@ -112,7 +112,7 @@ class techno2_MapDetails extends doc_Detail
     	$this->FLD("stageId", 'key(mvc=mp_Stages,select=name,allowEmpty)', 'caption=Етап');
     	
     	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit();')));
-    	$this->FLD("baseQuantity", 'double', 'caption=Количество->Твърдо,hint=Твърдо количество');
+    	$this->FLD("baseQuantity", 'double', 'caption=Количество->Начално,hint=Начално количество');
     	$this->FLD("propQuantity", 'double', 'caption=Количество->Пропорционално,hint=Пропорционално количество');
     
     	// Уникални индекси
@@ -164,14 +164,12 @@ class techno2_MapDetails extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	//$row->resourceId = mp_Resources::getHyperlink($rec->resourceId, TRUE);
+    	$uomId = mp_Resources::fetchField($rec->resourceId, 'measureId');
+    	$row->resourceId .= " (" . cat_UoM::getShortName($uomId) . ")";
     	
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     		$row->resourceId = ht::createLinkRef($row->resourceId, array('mp_Resources', 'single', $rec->resourceId));
     	}
-    	
-    	$uomId = mp_Resources::fetchField($rec->resourceId, 'measureId');
-    	$row->measureId = cat_UoM::getShortName($uomId);
     }
     
     
