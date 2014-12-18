@@ -45,7 +45,6 @@ class mp_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'mp_Jobs',
             'mp_Tasks',
     		'mp_Resources',
     		'mp_Stages',
