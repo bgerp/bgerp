@@ -350,7 +350,7 @@ class store_Products extends core_Manager
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(haveRole('admin,debug')){
-    		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+    		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title=Изтриване на таблицата с продукти');
     	}
     }
     
