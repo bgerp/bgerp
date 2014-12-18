@@ -665,7 +665,35 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
-    	return (object)array('price' => NULL);
+    	$rec = $this->fetchRec($productId);
+    	$price = (object)array('price' => NULL);
+    	
+    	//@TODO да го взима от заданието
+    	$quantity = 1;
+    	
+    	// Опитваме се да намерим цена според технологичната карта
+    	if($amounts = techno2_Maps::getTotalByOrigin($rec->containerId)){
+    		
+    		// Минималната надценка за контрагента
+    		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    		
+    		// Каква е максималната надценка за контрагента
+    		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    		
+    		// Връщаме цената спрямо минималната и максималната отстъпка, началното и пропорционалното количество
+    		$price->price = ($amounts->base * (1 + $maxCharge) + $quantity * $amounts->prop * (1 + $minCharge)) / $quantity;
+    		
+    		// Обръщаме цената в посочената валута
+    		$vat = $this->getVat($id);
+    		$price->price = deals_Helper::getDisplayPrice($price->price, $vat, $rate, $chargeVat, 2);
+    		
+    		return $price;
+    	}
+    	
+    	// Ако продукта няма цена, връщаме цената от последно продадената спецификация на този клиент (ако има)
+    	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
+    	 
+    	return $LastPricePolicy->getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
     }
 
 

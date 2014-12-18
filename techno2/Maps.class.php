@@ -255,4 +255,42 @@ class techno2_Maps extends core_Master
     		$data->toolbar->removeBtn('btnAdd');
     	}
     }
+    
+    
+    /**
+     * Връща сумата на спецификацията според подадения ориджин
+     * 
+     * @param int $containerId - ид на контейнера, който е генерирал картата
+     * @return stdClass $total - обект съдържащ сумарната пропорционална и начална цена
+     * 		 o $total->base - началната сума (в основната валута за периода)
+     * 		 o $total->prop - пропорционалната сума (в основната валута за периода)
+     */
+    public static function getTotalByOrigin($containerId)
+    {
+    	// Намираме активната карта за обекта
+    	$rec = self::fetch("#originId = {$containerId} AND #state = 'active'");
+    	
+    	// Ако няма, връщаме нулеви цени
+    	if(empty($rec)) return FALSE;
+    	
+    	$amounts = (object)array('base' => 0, 'prop' => 0);
+    	
+    	// Намираме всички детайли на картата
+    	$query = techno2_MapDetails::getQuery();
+    	$query->where("#mapId = {$rec->id}");
+    	
+    	// За всеки запис
+    	while ($dRec = $query->fetch()){
+    		
+    		// Себестойността на ресурса (ако има)
+    		$selfValue = mp_Resources::fetchField($dRec->resourceId, 'selfValue');
+    		
+    		// Добавяме към началната сума и пропорционалната
+    		$amounts->base += $dRec->baseQuantity * $selfValue;
+    		$amounts->prop += $dRec->propQuantity * $selfValue;
+    	}
+    	
+    	// Връщаме началната и пропорционалната сума
+    	return $amounts;
+    }
 }
