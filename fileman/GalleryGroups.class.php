@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -17,7 +17,7 @@ class fileman_GalleryGroups extends core_Manager
     
     
     /**
-     * 
+     * Кой има право да чете
      */
     var $canRead = 'user';
     
@@ -32,6 +32,13 @@ class fileman_GalleryGroups extends core_Manager
      * Заглавие
      */
     var $title = 'Групи от картинки';
+    
+    
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = 'Група от картинки';
+    
     
     
     /**
