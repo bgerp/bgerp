@@ -151,20 +151,32 @@ class techno2_Maps extends core_Master
     		if(empty($rec->originId)){
     			$res = 'no_one';
     		} else {
-    			
-    			// Какво е състоянието на ориджина
-    			$originState = doc_Containers::getDocument($rec->originId)->fetchField('state');
+    			$origin = doc_Containers::getDocument($rec->originId);
     			
     			// Трябва да е активиран
-    			if($originState != 'active'){
+    			if($origin->fetchField('state') != 'active'){
     				$res = 'no_one';
     			}
+    		}
+    	}
+    	
+    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->originId) && $res != 'no_one'){
+    		
+    		// Ако има активна карта, да не може друга да се възстановява,контира,създава или активира
+    		if($mvc->fetch("#originId = {$rec->originId} AND #state = 'active'")){
+    			$res = 'no_one';
     		}
     	}
     	
     	// Ако няма ид, не може да се активира
     	if($action == 'activate' && empty($rec->id)){
     		$res = 'no_one';
+    	}
+    	
+    	if($action == 'activate' && isset($rec->id)){
+    		if(!techno2_MapDetails::fetchField("#mapId = {$rec->id}")){
+    			$res = 'no_one';
+    		}
     	}
     }
     
