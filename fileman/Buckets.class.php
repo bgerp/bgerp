@@ -6,10 +6,10 @@
  * Клас 'fileman_Buckets' - Определя еднородни по права за достъп хранилища за файлове
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,6 +20,12 @@ class fileman_Buckets extends core_Manager {
      * Заглавие на модула
      */
     var $title = 'Кофи за файлове';
+    
+    
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = 'Кофа за файлове';
 	
 	
 	/**
