@@ -151,7 +151,7 @@ class sales_SaleRequests extends core_Master
         $form = $this->getFilterForm($origin->that, $id);
         
  		if ($this->haveRightFor('activate')) {
-            $form->toolbar->addSbBtn('Активиране', 'active', 'id=activate, order=9.9999', 'ef_icon = img/16/lightning.png');
+            $form->toolbar->addSbBtn('Активиране', 'active', 'id=activate, order=9.9999', 'ef_icon = img/16/lightning.png, title = Активиране на документа');
         }
         
         $fRec = $form->input();
@@ -326,8 +326,8 @@ class sales_SaleRequests extends core_Master
     		$form->title = "|Заявка към|*&nbsp;<b>" . sales_Quotations::getRecTitle($quotationId) . "</b>";
     	}
     	
-    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
+    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title = Прекратяване на действията');
     	
     	return $form;
     }

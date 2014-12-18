@@ -12,10 +12,10 @@ defIfNot('EF_ROLES_DEFAULT', 'user');
  * Клас 'core_Roles' - Мениджър за ролите на потребителите
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -27,6 +27,12 @@ class core_Roles extends core_Manager
      * Заглавие на модела
      */
     var $title = 'Роли';
+    
+    
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Роля";
     
 
     /**

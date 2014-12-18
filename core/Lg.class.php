@@ -11,10 +11,10 @@ defIfNot('EF_LANGUAGES', 'bg=Български,en=Английски');
  * Клас 'core_Lg' - Мениджър за многоезичен превод на интерфейса
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -33,6 +33,12 @@ class core_Lg extends core_Manager
      * Заглавие на мениджъра
      */
     var $title = 'Превод на интерфейса';
+    
+    
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Превод на интерфейса";
     
     
     /**
