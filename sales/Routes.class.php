@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -354,7 +354,7 @@ class sales_Routes extends core_Manager {
     	
     	if ($data->addUrl) {
 	    	$img = sbf('img/16/add.png');
-	    	$title .= ht::createLink('', $data->addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute')); 
+	    	$title .= ht::createLink('', $data->addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute', 'title'=>'Създаване на нов търговски маршрут')); 
 	    }
 
     	$tpl->replace($title, 'title');
