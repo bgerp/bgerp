@@ -360,11 +360,19 @@ class techno2_SpecificationDoc extends core_Embedder
     	}
     	
     	if($data->rec->state == 'active'){
-    		if(techno2_Maps::haveRightFor('write', (object)array('originId' => $data->rec->containerId)) && $mvc->canAddToThread($data->rec->threadId)){
+    		if(techno2_Maps::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
     			if($qRec = techno2_Maps::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
     				$data->toolbar->addBtn("Техн. карта", array('techno2_Maps', 'edit', $qRec->id), 'ef_icon = img/16/legend.png,title=Редактиране на технологична карта');
     			} else {
     				$data->toolbar->addBtn("Техн. карта", array('techno2_Maps', 'add', 'originId' => $data->rec->containerId), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична карта');
+    			}
+    		}
+    		
+    		if(mp_Jobs::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
+    			if($qRec = mp_Jobs::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'edit', $qRec->id), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
+    			} else {
+    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'originId' => $data->rec->containerId), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
     			}
     		}
     	}
@@ -668,16 +676,17 @@ class techno2_SpecificationDoc extends core_Embedder
     	$rec = $this->fetchRec($productId);
     	$price = (object)array('price' => NULL);
     	
-    	//@TODO да го взима от заданието
-    	$quantity = 1;
+    	// Ако има к-во в активно задание за спецификацията, да се вземе
+    	$quantityJob = $this->getQuantityFromLastActiveJob($rec);
+    	if(isset($quantityJob)){
+    		$quantity = $quantityJob;
+    	}
     	
     	// Опитваме се да намерим цена според технологичната карта
     	if($amounts = techno2_Maps::getTotalByOrigin($rec->containerId)){
     		
-    		// Минималната надценка за контрагента
+    		// Какви са максималната и минималната надценка за контрагента
     		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
-    		
-    		// Каква е максималната надценка за контрагента
     		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
     		
     		// Връщаме цената спрямо минималната и максималната отстъпка, началното и пропорционалното количество
@@ -694,6 +703,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
     	$lastPrice = $LastPricePolicy->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVatd);
     	
+    	// Връщаме последната цена
     	return $lastPrice;
     }
 
@@ -789,5 +799,37 @@ class techno2_SpecificationDoc extends core_Embedder
     	}
     	 
     	return $res;
+    }
+    
+    
+    /**
+     * Връща количеството от последното активно задание за спецификацията
+     * 
+     * @param mixed $id - ид или запис
+     * @return double|NULL $quantity - количеството
+     */
+    public static function getQuantityFromLastActiveJob($id)
+    {
+    	$rec = self::fetchRec($id);
+    	
+    	// Какво е к-то от последното активно задание
+    	$quantity = mp_Jobs::fetchField("#originId = {$rec->containerId} AND #state = 'active1'", 'quantity');
+    	
+    	// Връщаме количеството
+    	return $quantity;
+    }
+    
+    
+    /**
+     * Рендира изглед за задание
+     * 
+     * @param mixed $id
+     * @param string $time
+     * @return mixed
+     */
+    public function renderJobView($id, $time = NULL)
+    {
+    	//@TODO дали е удачнода се кешира изгледа
+    	return $this->getProductDesc($id, $time);
     }
 }

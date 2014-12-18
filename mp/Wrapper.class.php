@@ -22,6 +22,7 @@ class mp_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
+    	$this->TAB('mp_Jobs', 'Задания', 'ceo,mp');
     	$this->TAB('mp_Resources', 'Ресурси', 'ceo,mp');
     	$this->TAB('mp_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,mp');
     	$this->TAB('mp_ProductionNotes', 'Протоколи->Производство', 'ceo,mp');

@@ -145,13 +145,16 @@ class techno2_Maps extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'write' && isset($rec)){
+    	if(($action == 'write' || $action == 'add') && isset($rec)){
     		
     		// Може да се добавя само ако има ориджин
     		if(empty($rec->originId)){
     			$res = 'no_one';
     		} else {
     			$origin = doc_Containers::getDocument($rec->originId);
+    			if(!($origin->getInstance() instanceof techno2_SpecificationDoc)){
+    				$res = 'no_one';
+    			}
     			
     			// Трябва да е активиран
     			if($origin->fetchField('state') != 'active'){
@@ -192,7 +195,7 @@ class techno2_Maps extends core_Master
     	// Ако има ориджин в рекуеста
     	if($originId = Request::get('originId', 'int')){
     		
-    		// Очакваме той да е 'techno2_Specification' - спецификация
+    		// Очакваме той да е 'techno2_SpecificationDoc' - спецификация
     		$origin = doc_Containers::getDocument($originId);
     		expect($origin->getInstance() instanceof techno2_SpecificationDoc);
     		expect($origin->fetchField('state') == 'active');
