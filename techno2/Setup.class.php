@@ -47,7 +47,8 @@ class techno2_Setup extends core_ProtoSetup
     var $managers = array(
     		'techno2_SpecificationDoc',
     		'techno2_SpecTplCache',
-    		//'techno2_Maps',
+    		'techno2_Maps',
+    		'techno2_MapDetails',
     		'migrate::copyOldTechnoDocuments8'
         );
     

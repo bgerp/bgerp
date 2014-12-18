@@ -114,6 +114,9 @@ class techno2_MapDetails extends doc_Detail
     	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit();')));
     	$this->FLD("baseQuantity", 'double', 'caption=Количество->Твърдо,hint=Твърдо количество');
     	$this->FLD("propQuantity", 'double', 'caption=Количество->Пропорционално,hint=Пропорционално количество');
+    
+    	// Уникални индекси
+    	$this->setDbUnique('mapId,stageId,resourceId');
     }
     
     
