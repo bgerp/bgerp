@@ -38,7 +38,13 @@ class techno2_MapDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, techno2_Wrapper, plg_LastUsedKeys, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals';
+    var $loadList = 'plg_Created, plg_GroupByField, plg_RowTools, techno2_Wrapper, plg_LastUsedKeys, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals';
+    
+    
+    /**
+     * По кое поле да се групират записите
+     */
+    var $groupByField = 'stageId';
     
     
     /**
@@ -178,6 +184,8 @@ class techno2_MapDetails extends doc_Detail
     	foreach ($recs as &$rec){
     		if($rec->stageId){
     			$rec->order = mp_Stages::fetchField($rec->stageId, 'order');
+    		} else {
+    			$rec->order = 0;
     		}
     	}
     	
@@ -185,7 +193,7 @@ class techno2_MapDetails extends doc_Detail
     	usort($recs, function($a, $b) {
     		if($a->order == $b->order)  return 0;
     		
-    		return ($a->order > $b->order) ? -1 : 1;
+    		return ($a->order > $b->order) ? 1 : -1;
     	});
     }
 }
