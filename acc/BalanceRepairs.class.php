@@ -44,7 +44,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт,valior,balanceId";
+    var $listFields = "tools=Пулт,balanceId";
     
     
     /**
