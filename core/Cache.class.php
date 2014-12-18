@@ -25,10 +25,10 @@ defIfNot('EF_CACHE_HANDLER_SIZE', 32);
  * Клас 'core_Cache' - Кеширане на обекти, променливи или масиви за определено време
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -41,6 +41,12 @@ class core_Cache extends core_Manager
      * Заглавие
      */
     var $title = 'Кеширани обекти';
+    
+    
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Кеширан обект";
     
     
     /**
