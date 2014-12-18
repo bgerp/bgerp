@@ -279,7 +279,7 @@ class acc_BalanceRepairs extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(acc_Balances::haveRightFor('single', $rec->balanceId)){
-    		$row->balanceId = ht::createLink($row->balanceId, array('acc_Balances', 'single', $rec->balanceId), NULL, 'ef_icon=img/16/table_sum.png');
+    		$row->balanceId = ht::createLink($row->balanceId, array('acc_Balances', 'single', $rec->balanceId), NULL, "ef_icon=img/16/table_sum.png, title=Оборотна ведомост {$row->balanceId}");
     	}
     	
     	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";

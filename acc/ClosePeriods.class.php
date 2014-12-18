@@ -259,7 +259,7 @@ class acc_ClosePeriods extends core_Master
     	$balanceId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
     	
     	if(acc_Balances::haveRightFor('single', $balanceId)){
-    		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId), NULL, 'ef_icon=img/16/table_sum.png');
+    		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост {$row->periodId}");
     	}
     }
     

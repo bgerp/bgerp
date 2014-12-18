@@ -311,6 +311,8 @@ class core_Manager extends core_Mvc
     {
         $tpl = new ET(parent::setupMVC());
         
+        $tpl->append(core_Classes::add($this));
+        
         $tpl = $this->renderWrapping($tpl);
         
         return $tpl;
