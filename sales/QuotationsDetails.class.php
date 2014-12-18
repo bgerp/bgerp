@@ -303,9 +303,9 @@ class sales_QuotationsDetails extends doc_Detail {
             	if(!count($products)){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
-                
+                $productKind = mb_strtolower($productMan->singleTitle);
             	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
-                    "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+                    "id=btnAdd-{$manId},{$error},order=10", "ef_icon = img/16/shopping.png, title=Добавяне на {$productKind} към офертата");
             	unset($error);
             }
             
