@@ -404,7 +404,7 @@ class barcode_Generator extends core_Manager
      */
     static function getCryptKey()
     {
-        $key = sha1(EF_SALTH . self::KEY_SALT);
+        $key = sha1(EF_SALT . self::KEY_SALT);
         
         return $key;
     }
