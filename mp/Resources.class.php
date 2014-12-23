@@ -304,4 +304,22 @@ class mp_Resources extends core_Master
     	
     	return $rec->selfValue;
     }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(empty($rec->measureId)){
+    		if($rec->type != 'labor'){
+    			$rec->measureId = cat_UoM::fetchBySinonim('pcs')->id;
+    		} else {
+    			$rec->measureId = cat_UoM::fetchBySinonim('h')->id;
+    		}
+    	}
+    }
 }
