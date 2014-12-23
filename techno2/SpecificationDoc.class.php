@@ -172,7 +172,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
-    	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'caption=Показване за избор в документи->Достъп,notNull,default=no,input=none,formOrder=100000000');
+    	$this->FLD("isPublic", 'varchar', 'caption=Показване за избор в документи->Достъп,notNull,default=no,formOrder=100000000');
     	
     	$this->setDbUnique('title');
     }
@@ -199,6 +199,10 @@ class techno2_SpecificationDoc extends core_Embedder
     		}
     		
     		$form->setField('isPublic', 'input');
+    		$options = arr::make('no=Частен,yes=Публичен');
+    		$form->setOptions('isPublic', $options);
+    	} else {
+    		$form->setField('isPublic', 'input=none');
     	}
     }
 
