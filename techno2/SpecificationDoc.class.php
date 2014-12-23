@@ -814,10 +814,49 @@ class techno2_SpecificationDoc extends core_Embedder
     	$rec = self::fetchRec($id);
     	
     	// Какво е к-то от последното активно задание
-    	$quantity = mp_Jobs::fetchField("#originId = {$rec->containerId} AND #state = 'active1'", 'quantity');
+    	$quantity = mp_Jobs::fetchField("#originId = {$rec->containerId} AND #state = 'active'", 'quantity');
     	
     	// Връщаме количеството
     	return $quantity;
+    }
+    
+    
+    /**
+     * Връща ресурсите от последната активна технологична карта на спецификацията, 
+     * с информация за количествата, с които участват и в кой център на дейност
+     *
+     * @param mixed $id - ид или запис
+     * @return array $res - масив с записи на участващите ресурси
+     * 			o $res->resourceId       - ид на ресурса
+     * 			o $res->activityCenterId - ид на центъра на дейност от производствения етап
+     * 			o $res->baseQuantity     - начално количество на ресурса
+     * 			o $res->propQuantity     - пропорционално количество на ресурса
+     */
+    public static function getResourcesFromMap($id)
+    {
+    	$rec = self::fetchRec($id);
+    	
+    	$res = array();
+    	
+    	// Има ли активна карта за този ресурс
+    	if($mapId = techno2_Maps::fetchField("#originId = {$rec->containerId} AND #state = 'active'", 'id')){
+    		
+    		// Намираме детайлите на картата
+    		$mQuery = techno2_MapDetails::getQuery();
+    		$mQuery->where("#mapId = {$mapId}");
+    		while($mRec = $mQuery->fetch()){
+    			$arr = array();
+    			$arr['resourceId'] = $mRec->resourceId;
+    			$arr['activityCenterId'] = mp_Stages::fetchField($mRec->stageId, 'departmentId');
+    			$arr['baseQuantity'] = $mRec->baseQuantity;
+    			$arr['propQuantity'] = $mRec->propQuantity;
+    			
+    			$res[] = (object)$arr;
+    		}
+    	}
+    	
+    	// Връщаме наличната информация
+    	return $res;
     }
     
     
