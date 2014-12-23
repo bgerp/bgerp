@@ -284,7 +284,7 @@ class cat_Products extends core_Embedder {
     		
     		// Проверяваме дали избраните групи са в противоречие с драйвера
     		$Driver = $mvc->getDriver($rec);
-    		$defMetas = $Driver->getDefaultMetas();
+    		$defMetas = $Driver->getDefaultMetas($mvc->defMetas);
     		if(count($defMetas)){
     			$defMetas = arr::make($defMetas, TRUE);
     			$grMetas = arr::make($mvc->getMetaData($rec->groups), TRUE);

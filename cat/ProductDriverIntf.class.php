@@ -98,11 +98,14 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Връща масив с мета данните които ще се форсират на продукта
+	 * Кои опаковки поддържа продукта
+	 * 
+	 * @param array $metas - кои са дефолтните мета данни от ембедъра
+	 * @return array $metas - кои са дефолтните мета данни
 	 */
-	public function getDefaultMetas($innerState)
+	public function getDefaultMetas($metas)
 	{
-		return $this->class->getDefaultMetas($innerState);
+		return $this->class->getDefaultMetas($metas);
 	}
 	
 	

@@ -128,7 +128,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Дефолт мета данни за всички продукти
      */
-    public static $defaultMetaData = 'canSell,canBuy,canConvert,canManifacture,canStore';
+    public static $defaultMetaData = 'canSell,canBuy,canConvert,canManifacture';
     
     
     /**
@@ -227,13 +227,8 @@ class techno2_SpecificationDoc extends core_Embedder
     	if(isset($rec->innerClass)){
     		
     		$Driver = $mvc->getDriver($rec);
-    		 
-    		$meta = $Driver->getDefaultMetas();
-    		 
-    		if(!count($meta)){
-    			$meta = arr::make(self::$defaultMetaData, TRUE);
-    		}
-    		 
+    		$meta = $Driver->getDefaultMetas(self::$defaultMetaData);
+    		
     		$Set = cls::get('type_Set');
     		$rec->meta = $Set->fromVerbal($meta);
     	}

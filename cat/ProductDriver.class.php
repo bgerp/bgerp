@@ -210,10 +210,21 @@ abstract class cat_ProductDriver extends core_BaseClass
 
 	/**
 	 * Кои опаковки поддържа продукта
+	 * 
+	 * @param array $metas - кои са дефолтните мета данни от ембедъра
+	 * @return array $metas - кои са дефолтните мета данни
 	 */
-	public function getDefaultMetas()
+	public function getDefaultMetas($metas)
 	{
-		return !empty($this->defaultMetaData) ? arr::make($this->defaultMetaData, TRUE) : array();
+		// Взимаме дефолтните мета данни от ембедъра
+		$metas = arr::make($metas, TRUE);
+		
+		// Ако за драйвера има дефолтни мета данни, добавяме ги към тези от ембедъра
+		if(!empty($this->defaultMetaData)){
+			$metas = $metas + arr::make($this->defaultMetaData, TRUE);
+		}
+		
+		return $metas;
 	}
 	
 	
