@@ -308,8 +308,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$rec = $this->fetch($id);
     	
     	$row = new stdClass();
-    	$row->title = $this->getRecTitle($rec);
-    	$row->subTitle = $this->getVerbal($rec, 'title');
+    	$row->title = $this->getVerbal($rec, 'title');
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
@@ -324,9 +323,7 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$self = cls::get(__CLASS__);
-    
-    	return "{$self->singleTitle} №{$rec->id}";
+    	return $rec->title;
     }
     
     
