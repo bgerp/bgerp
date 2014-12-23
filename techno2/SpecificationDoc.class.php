@@ -554,7 +554,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	// Всички активни спецификации
     	$query = static::getQuery();
     	$query->where("#state = 'active'");
-    //bp($query->fetchAll());
+    
     	while($rec = $query->fetch()){
     		$meta = type_Set::toArray($rec->meta);
     		
