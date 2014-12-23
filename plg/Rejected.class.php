@@ -58,7 +58,7 @@ class plg_Rejected extends core_Plugin
                     $data->rec->id,
                     'ret_url' => TRUE
                 ),
-                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?,order=32', 'ef_icon = img/16/reject.png');
+                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?,order=32', 'ef_icon = img/16/reject.png, title=Оттегляне на документа');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec)) {
