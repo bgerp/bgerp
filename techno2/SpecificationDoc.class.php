@@ -546,7 +546,7 @@ class techno2_SpecificationDoc extends core_Embedder
     public static function getByProperty($properties, $limit = NULL)
     {
     	$products = array();
-    	$properties = arr::make($properties);
+    	$properties = arr::make($properties, TRUE);
     	expect(count($properties));
     	 
     	$count = 0;
@@ -554,8 +554,10 @@ class techno2_SpecificationDoc extends core_Embedder
     	// Всички активни спецификации
     	$query = static::getQuery();
     	$query->where("#state = 'active'");
+    //bp($query->fetchAll());
     	while($rec = $query->fetch()){
     		$meta = type_Set::toArray($rec->meta);
+    		
     		if(count($meta)){
     			
     			// Оставяме само тези спецификации, отговарящи поне на едно условие
@@ -569,7 +571,9 @@ class techno2_SpecificationDoc extends core_Embedder
     		}
     		
     		// Ако сме достигнали лимита не продължаваме
-    		if($count == $limit) break;
+    		if(isset($limit)){
+    			if($count === $limit) break;
+    		}
     	}
     	
     	// Връщаме намерените продукти
