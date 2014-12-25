@@ -201,7 +201,7 @@ class cms_Articles extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     { 
-        if(trim($rec->body) && $fields['-list']) {
+        if(trim($rec->body) && $fields['-list'] && $mvc->haveRightFor('show', $rec)) {
             $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), NULL, 'ef_icon=img/16/monitor.png');
         }
         
@@ -254,7 +254,10 @@ class cms_Articles extends core_Master
             // Ако има, намира записа на страницата
             $rec = self::fetch($id);
         }
-
+       
+        if($rec->state != 'active') { 
+            error("404 Липсваща страница");
+        }
 
         if($rec) { 
             $rec->body = trim($rec->body);
@@ -518,11 +521,15 @@ class cms_Articles extends core_Master
 
 
     /**
-     *
+     * Какви са необходимите роли за съотвентото действие?
      */
     static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         if($rec->state == 'active' && $action == 'delete') {
+            $roles = 'no_one';
+        }
+ 
+        if($action == 'show' && is_object($rec) && $rec->state != 'active') {
             $roles = 'no_one';
         }
     }
