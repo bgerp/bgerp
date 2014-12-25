@@ -255,7 +255,7 @@ class cms_Articles extends core_Master
             $rec = self::fetch($id);
         }
        
-        if($rec->state != 'active') { 
+        if(is_object($rec) && $rec->state != 'active') { 
             error("404 Липсваща страница");
         }
 
