@@ -297,7 +297,7 @@ class cms_Articles extends core_Master
         
         $cnt = 0;
 
-        while($rec1 = $query->fetch()) {
+        while($rec1 = $query->fetch("#state = 'active'")) {
             
             // Ако статуса е затворен, да не се показва
             if ($rec1->state == 'closed') continue;
@@ -542,10 +542,9 @@ class cms_Articles extends core_Master
     function getUrlByMenuId($menuId)
     {
         $query = self::getQuery();
-        $query->where("#menuId = {$menuId}");
         $query->orderBy("#level");
 
-        $rec = $query->fetch("#menuId = {$menuId} AND #body != ''");
+        $rec = $query->fetch("#menuId = {$menuId} AND #body != '' AND #state = 'active'");
 
         if($rec) {
 
