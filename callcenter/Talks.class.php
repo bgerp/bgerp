@@ -22,7 +22,7 @@ class callcenter_Talks extends core_Master
     
     
     /**
-     * 
+     * Наименование на единичния обект
      */
     var $singleTitle = 'Разговор';
     

@@ -106,6 +106,7 @@ class mp_Resources extends core_Master
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,mandatory');
     	$this->FLD('selfValue', 'double', 'caption=Себестойност');
     	$this->FLD('systemId', 'varchar', 'caption=Системен №,input=none');
+    	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	
     	// Поставяме уникален индекс
     	$this->setDbUnique('title');
@@ -279,6 +280,12 @@ class mp_Resources extends core_Master
     		}
     	}
     	
+    	if(($action == 'delete') && isset($rec)){
+    		if(isset($rec->lastUsedOn)){
+    			$res = 'no_one';
+    		}
+    	}
+    	
     	if(($action == 'edit') && isset($rec)){
     		$res = $mvc->getRequiredRoles('edit');
     	}
@@ -296,5 +303,23 @@ class mp_Resources extends core_Master
     	expect($rec = static::fetch($id));
     	
     	return $rec->selfValue;
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(empty($rec->measureId)){
+    		if($rec->type != 'labor'){
+    			$rec->measureId = cat_UoM::fetchBySinonim('pcs')->id;
+    		} else {
+    			$rec->measureId = cat_UoM::fetchBySinonim('h')->id;
+    		}
+    	}
     }
 }

@@ -181,10 +181,9 @@ class callcenter_SMS extends core_Master
             $sender = $conf->CALLCENTER_SMS_SENDER;
         }
         
-        // Вземаме пълния номер на получателя
-        $receiverNumber = $serviceInst->prepareNumberStr($number);
+        $mobileNum = drdata_PhoneType::getNumberStr($number, 0);
         
-        expect($receiverNumber, 'Липсва номер на получателя');
+        expect($mobileNum, 'Липсва номер на получателя');
         
         // Подготвяме текстовата част
         $messageStr = self::prepareMessage($message);
@@ -197,7 +196,7 @@ class callcenter_SMS extends core_Master
         expect(self::canSend($messageStr, $sender, $service), 'Не може да се изпрати');
         
         // Изпращаме съобщението към услугата за изпращане на SMS
-        $sendStatusArr = $serviceInst->sendSMS($receiverNumber, $messageStr, $sender);
+        $sendStatusArr = $serviceInst->sendSMS($mobileNum, $messageStr, $sender);
         
         $rec = new stdClass();
         $rec->text = $message;
@@ -218,14 +217,14 @@ class callcenter_SMS extends core_Master
         }
             
         // Вземаме последния запис за номера
-        $extRecArr = callcenter_Numbers::getRecForNum($number);
+        $extRecArr = callcenter_Numbers::getRecForNum($mobileNum);
         if ($extRecArr[0]) {
             
             // Вземаме класа и id' то на контрагента
             $rec->mobileNumData = $extRecArr[0]->id;
         }
         
-        $rec->mobileNum = drdata_PhoneType::getNumberStr($number, 0);
+        $rec->mobileNum = $mobileNum;
         $rec->sender = $sender;
         $rec->service = $service;
         $rec->encoding = $encoding;
@@ -458,6 +457,8 @@ class callcenter_SMS extends core_Master
         
         // Инпутваме формата
         $form->input(NULL, 'silent');
+        
+        $form->input();
         
         $rec = $form->rec;
         

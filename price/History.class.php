@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     История с кеширани цени
@@ -22,6 +22,12 @@ class price_History extends core_Manager
      * Заглавие
      */
     var $title = 'Кеширани цени';
+    
+    
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Кеширана цена";
     
     
     /**
@@ -253,7 +259,7 @@ class price_History extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
     	if(haveRole('admin,debug')){
-    		$data->toolbar->addBtn('Изтриване', array($mvc, 'Truncate', 'ret_url' => TRUE), 'ef_icon=img/16/sport_shuttlecock.png');
+    		$data->toolbar->addBtn('Изтриване', array($mvc, 'Truncate', 'ret_url' => TRUE), 'ef_icon=img/16/sport_shuttlecock.png, title=Премахване на кешираните записи');
     	}
     }
     

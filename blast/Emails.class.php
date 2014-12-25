@@ -985,8 +985,8 @@ class blast_Emails extends core_Master
         $form->showFields = 'sendPerCall, startOn';
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addSbBtn('Запис', 'save', NULL, 'ef_icon = img/16/disk.png, title=Запис на документа');
+        $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         // Добавяме титлата на формата
         $form->title = "Стартиране на масово разпращане";
@@ -1544,21 +1544,21 @@ class blast_Emails extends core_Master
             // Добавяме бутона Активирай, ако състоянието е чернова или спряно
             
             if ($mvc->haveRightFor('activate', $rec->rec)) {
-                $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $rec->id), 'ef_icon = img/16/lightning.png');
+                $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $rec->id), 'ef_icon = img/16/lightning.png, title=Активирай документа');
             }
         } else {
             
             // Добавяме бутона Спри, ако състоянието е активно или изчакване
             if (($state == 'pending') || ($state == 'active')) {
                 if ($mvc->haveRightFor('stop', $rec->rec)) {
-                    $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png');
+                    $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png, title=Прекратяване на действието');
                 }
             }
             
             // Добавяме бутон за обновяване в, ако състоянието е активно, изчакване или затворено
             if (($state == 'pending') || ($state == 'active') || ($state == 'closed')) {
                 if ($mvc->haveRightFor('update', $rec->rec)) {
-                    $data->toolbar->addBtn('Обновяване', array($mvc, 'Update', $rec->id), 'ef_icon = img/16/update-icon.png, row=1');
+                    $data->toolbar->addBtn('Обновяване', array($mvc, 'Update', $rec->id), NULL, array('ef_icon'=>'img/16/update-icon.png', 'row'=>'1', 'title'=>'Добави новите имейли към списъка'));
                 }
             }
         }

@@ -54,6 +54,15 @@ class acc_ClosePeriods extends core_Master
     
     
     /**
+     * Дали при възстановяване/контиране/оттегляне да се заключва баланса
+     *
+     * @var boolean TRUE/FALSE
+     */
+    public $lockBalances = TRUE;
+    
+    
+    
+    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
@@ -199,6 +208,11 @@ class acc_ClosePeriods extends core_Master
     		// От избрания период извличаме сумата на фактурите с касова бележка
     		$periodRec = acc_Periods::fetch($rec->periodId);
     		$rec->amountFromInvoices = sales_Invoices::getVatAmountInCash($periodRec->start, $periodRec->end);
+    		
+    		$total = $rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4;
+    		if($total < $rec->amountFromInvoices){
+    			$form->setWarning('amountVatGroup1,amountVatGroup2,amountVatGroup3,amountVatGroup4', "|ДДС по ф-ри в брой|* '{$rec->amountFromInvoices}', |е по-голямо от ДДС по касов апарат|*");
+    		}
     	}
     }
     
@@ -245,7 +259,7 @@ class acc_ClosePeriods extends core_Master
     	$balanceId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
     	
     	if(acc_Balances::haveRightFor('single', $balanceId)){
-    		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId), NULL, 'ef_icon=img/16/table_sum.png');
+    		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост {$row->periodId}");
     	}
     }
     
@@ -408,111 +422,5 @@ class acc_ClosePeriods extends core_Master
     		
     		$tpl->append($details, 'INFO');
     	}
-    }
-    
-    
-    /**
-     * Помощна ф-я проверяваща дали действието с документа може да стане
-     * 
-     * @param mixed $id - ид/запис на обекта
-     * @return Ambigous <FALSE, string> - съобщението за грешка, или FALSE ако може да се продължи
-     */
-    private function stopAction($id)
-    {
-    	$msg = FALSE;
-    	
-    	// Ако баланса се преизчислява в момента, забраняваме действието
-    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
-    		$msg = "Баланса се преизчислява в момента, опитайте след малко";
-    	} else {
-    		
-    		// Ако баланса трябва да се преизчисли също, забраняваме действието
-    		$rec = $this->fetchRec($id);
-    		$bRec = acc_Balances::fetch("#periodId = {$rec->periodId}");
-    		if(acc_Balances::isValid($bRec) === FALSE){
-    			$msg = "Преди да продължите, баланса трябва да се преизчисли";
-    		}
-    	}
-    	
-    	return $msg;
-    }
-    
-    
-    /**
-     * Изпълнява се преди контиране на документа
-     */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-    {
-    	if($msg = $mvc->stopAction($id)){
-    		core_Statuses::newStatus(tr($msg));
-    
-    		return FALSE;
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се преди възстановяването на документа
-     */
-    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
-    {
-    	if($msg = $mvc->stopAction($id)){
-    		core_Statuses::newStatus(tr($msg));
-    		
-    		return FALSE;
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се преди оттеглянето на документа
-     */
-    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
-    {
-    	if($msg = $mvc->stopAction($id)){
-    		core_Statuses::newStatus(tr($msg));
-    		
-    		return FALSE;
-    	}
-    	
-    	$rec = $mvc->fetchRec($id);
-    	
-    	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
-    	if($jRec){
-    		$jCount = acc_JournalDetails::count("#journalId = {$jRec->id}");
-    		
-    		// При оттегляне вдигаме времето за изпълнение спрямо записите в журнала
-    		$timeLimit = ceil(count($recs) / 3000) * 30;
-    		if($timeLimit != 0){
-    			core_App::setTimeLimit($timeLimit);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Оттегляне на документа
-     */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-    	core_Locks::release('RecalcBalances');
-    }
-    
-    
-    /**
-     * Контиране на счетоводен документ
-     */
-    public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
-    {
-    	core_Locks::release('RecalcBalances');
-    }
-    
-    
-    /**
-     * Възстановяване на документа
-     */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
-    {
-    	core_Locks::release('RecalcBalances');
     }
 }

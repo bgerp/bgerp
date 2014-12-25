@@ -57,6 +57,7 @@
                             <table class="innerTable footer-notes" border="0" cellpadding="5" style='width:100%'>
                                 <tbody>
                                     <tr>
+                                        
                                         <!--ET_BEGIN deliveryInfo-->
                                         [#deliveryInfo#]
                                         <td class="topCell first vtop" style='width:50%'>
@@ -73,6 +74,12 @@
                                                     <td>[#locationId#]</td>
                                                 </tr>
                                                 <!--ET_END locationId-->
+                                                <!--ET_BEGIN activityCenterId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%'>|Център на дейност|*:</td>
+                                                    <td>[#activityCenterId#]</td>
+                                                </tr>
+                                                <!--ET_END activityCenterId-->
                                             </table>
                                             <!--ET_BEGIN note-->      
                                             <hr>

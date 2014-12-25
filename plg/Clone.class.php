@@ -124,8 +124,8 @@ class plg_Clone extends core_Plugin
         }
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title=Запис на документа');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         // Добавяме титлата на формата
         $form->title = 'Клониране на запис в|* "' . $mvc->getTitle() . '"';
@@ -250,7 +250,7 @@ class plg_Clone extends core_Plugin
         $cloneSbf = sbf("img/16/clone.png");
         
         // Ако не е подадено заглавиет, създаваме линк с иконата
-        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl);
+        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, NULL, 'title=Копиране');
     }
     
     
