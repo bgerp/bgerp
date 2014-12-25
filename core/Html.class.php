@@ -802,7 +802,7 @@ class core_Html
                     "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">\n" .
                     "<meta name=\"robots\" content=\"noindex,nofollow\">\n" .
                     "<title>BP on " . date("Y-m-d H:i:s") . "</title>\n" .
-                    "<script src=\"//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js\"></script>\n" .
+                    "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js\"></script>\n" .
                     "<style>\n" .
                     $styles .
                     "</style>\n" .

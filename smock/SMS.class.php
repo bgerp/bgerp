@@ -120,5 +120,20 @@ class smock_SMS extends core_Manager
         return $paramsArr;
     }
     
-    
+        /**
+     * Инрерфейсен метод
+     * Подготвя номера на получателя
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $number
+     * 
+     * @return string
+     */
+    public function prepareNumberStr($number)
+    {
+        $number = drdata_PhoneType::getNumberStr($number, 0, '');
+        
+        return $number;
+    }
+
 }
