@@ -611,13 +611,9 @@ class core_Debug
         
 
         // Определяме заглавието на грешката в лога
-        //$title = $_SERVER['SERVER_NAME'];
-        $title = EF_DB_NAME;
-        if($_GET['Ctr']) {
-            $title .= '_' . $_GET['Ctr'];
-            $title .= '_' . ($_GET['Act'] ? $_GET['Act'] : 'default');
-        }
-        $title .= '_' . $state['httpStatusCode'];
+        $ctr = $_GET['Ctr'] ? $_GET['Ctr'] : 'Index';
+        $act = $_GET['Act'] ? $_GET['Act'] : 'default';
+        $title = EF_DB_NAME . '_' . $ctr . '_' . $act . '_' . $state['httpStatusCode'];
         $title = preg_replace("/[^A-Za-z0-9_?!]/", '_', $title);
 
         // Ако е необходимо записваме дебъг информацията
@@ -631,7 +627,11 @@ class core_Debug
         // Логваме на отдалечен сървър
         if(defined('EF_REMOTE_ERROR_REPORT_URL')) {
             $url = EF_REMOTE_ERROR_REPORT_URL;
-            $data = array('debugPage' => gzcompress($debugPage), 'key2' => 'value2');
+            $data = array(  'debugPage' => gzcompress($debugPage), 
+                            'domain' => $_SERVER['SERVER_NAME'], 
+                            'errCtr' => $ctr, 
+                            'errAct' => $act, 
+                          );
 
             // use key 'http' even if you send the request to https://...
             $options = array(
