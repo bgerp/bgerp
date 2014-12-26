@@ -579,15 +579,31 @@ class core_Form extends core_FieldSet
             }
             
             uasort($fields, array($this, 'cmpFormOrder'));
+
+            $vars = $this->prepareVars($this->renderVars);
+
+            if(Mode::is('staticFormView')) {
+                foreach($fields as $name => $field) {
+                    if(!isset($vars[$name])) {
+                        unset($fields[$name]);
+                    }
+                }
+            }
             
             $fieldsLayout = $this->renderFieldsLayout($fields);
             
-            $vars = $this->prepareVars($this->renderVars);
             
             // Създаваме input - елементите
-            foreach ($fields as $name => $field) {
+            foreach($fields as $name => $field) {
                 
                 expect($field->kind, $name, 'Липсващо поле');
+
+                if(Mode::is('staticFormView')) {
+                    $value = $field->type->toVerbal($vars[$name]);
+                    $attr = array('class' => 'formFieldValue');
+                    $value = ht::createelement('div', $attr, $value);
+                    $fieldsLayout->replace($value, $name);
+                }
 
                 if(strtolower($field->autocomplete) == 'off') {
                     $this->formAttr['autocomplete'] = 'off';
@@ -693,10 +709,15 @@ class core_Form extends core_FieldSet
                 
                 $fieldsLayout->replace($input, $name);
             }
-        }
+        } 
         
-        if ($idForFocus) {
-          	$fieldsLayout->appendOnce("\n runOnLoad(function(){document.getElementById('{$idForFocus}').focus();});", 'JQRUN');
+        if(Mode::is('staticFormView')) {
+            $fieldsLayout->prepend("<div class='staticFormView'>");
+            $fieldsLayout->append("</div>");        
+        } else {
+            if ($idForFocus) {
+                $fieldsLayout->appendOnce("\n runOnLoad(function(){document.getElementById('{$idForFocus}').focus();});", 'JQRUN');
+            }
         }
         
         return $fieldsLayout;
@@ -789,7 +810,7 @@ class core_Form extends core_FieldSet
     
     
     /**
-     * @todo Чака за документация...
+     * Подготвя масива със стойностите на полетата
      */
     function prepareVars($params)
     {
