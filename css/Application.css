@@ -3687,7 +3687,7 @@ only screen and (max-width: 320px) {
   border-collapse: separate; }
 
 .summary-block b {
-  color: #004488; }
+  color: #333333; }
 
 .summary-block b#count {
   margin-left: 5px; }
