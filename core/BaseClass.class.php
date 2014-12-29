@@ -55,12 +55,16 @@ class core_BaseClass
     
     
     /**
-     * 
+     * Параметри за инициализиране на обекта
      */
     public $params = array();
     
 
+    /**
+     * Кеш с обработвачите на събития в обекта
+     */
     private $_listenerCache = array();
+
 
     /**
      * Конструктор. Дава възможност за инициализация
@@ -125,6 +129,7 @@ class core_BaseClass
         // Ако има интерфейс на плъгин, записваме го в масива на плъгините
         if (!isset($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
             $this->_plugins[$name] = &cls::get($class);
+            $this->_listenerCache = array();
         }
     }
 
@@ -138,6 +143,7 @@ class core_BaseClass
     {
         if(isset($this->_plugins[$name])) {
             unset($this->_plugins[$name]);
+            $this->_listenerCache = array();
         }
     }
     
