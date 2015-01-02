@@ -113,8 +113,9 @@ class page_InternalFooter extends core_ET {
         if(count($langArr)) {
             foreach($langArr as $lg => $title) {
                 $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => TRUE));
+                $attr = array('href' => $url, 'title' => $title);
                 $lg{0} = strtoupper($lg{0});
-                $this->append("&nbsp;|&nbsp;<a href='{$url}' title='{$title}'>{$lg}</a>");
+                $this->append("&nbsp;|&nbsp;" . ht::createElement('a', $attr, $lg));
             }
         }
     }
