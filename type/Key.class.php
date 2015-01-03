@@ -105,12 +105,12 @@ class type_Key extends type_Int {
         if(($field = $this->getSelectFld()) && (!count($options))) {
             $options = $this->prepareOptions();
         }
-        
         if(!is_numeric($value) && count($options)) {
             foreach($options as $id => $v) {
                 if (!is_string($v)) {
                     if(!$v->group) {
                         $optionsR[trim($v->title)] = $id;
+                        $optionsR[trim($v->title) . " ({$id})"] = $id;
                     }
                 } else {
                     
@@ -130,6 +130,7 @@ class type_Key extends type_Int {
                      */
                     //$v = html_entity_decode($v, ENT_NOQUOTES, 'UTF-8');
                     $optionsR[trim($v)] = $id;
+                    $optionsR[trim($v) . " ({$id})"] = $id;
                 }
             }
             
