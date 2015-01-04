@@ -54,7 +54,7 @@ class type_Key extends type_Int {
     function toVerbal_($value)
     {
         
-        if(empty($value)) return NULL;
+        if($value === NULL || $value === '') return NULL;
 
         
         if($this->params['mvc']) {
@@ -72,12 +72,12 @@ class type_Key extends type_Int {
             } else {
                 if($this->params['title']) {
                     $field = $this->params['title'];
-                    $value = $mvc->fetchField($value, $field);
+                    $value = $mvc->fetch($value)->{$field};
                     
                     if(!$value) return '??????????????';
                     
                     $value = $mvc->fields[$field]->type->toVerbal($value);
-                } else { 
+                } else {
                     $value = $mvc->getTitleById($value);
                 }
             }
