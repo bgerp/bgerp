@@ -19,7 +19,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Заглавие
      */
-    public $title = 'Продажби';
+    public $title = 'Договори за продажба';
 
 
     /**

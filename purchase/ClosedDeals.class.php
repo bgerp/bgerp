@@ -17,7 +17,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     /**
      * Заглавие
      */
-    public $title = 'Приключване на покупка';
+    public $title = 'Документи за приключване на покупка';
 
 
     /**

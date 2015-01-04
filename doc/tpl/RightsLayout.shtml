@@ -20,12 +20,12 @@
             <tr>
                 [#mod#]
                 <td class='dt'>|Модифициране|*: </td>
-                <td>|от|* <b>[#modifiedBy#]</b> |на|* <b>[#modifiedOn#]</b></td>
+                <td><b>[#modifiedBy#]</b>, <b>[#modifiedOn#]</b></td>
             </tr>
             <!--ET_END mod-->
             <tr>
                 <td class='dt'>|Създаване|*: </td>
-                <td>|от|* <b>[#createdBy#]</b> |на|* <b>[#createdOn#]</b></td>
+                <td><b>[#createdBy#]</b>, <b>[#createdOn#]</b></td>
             </tr>
         </table>
     </div>

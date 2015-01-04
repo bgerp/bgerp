@@ -17,7 +17,7 @@ class sales_Quotations extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Оферти';
+    public $title = 'Изходящи оферти';
 
 
     /**
