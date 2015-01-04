@@ -95,9 +95,12 @@ try {
         
         // Дали да поставим връзка за обновяване
         $update = NULL;
-        if($e->isNotInitializedDB() || $e->isNotInitializedDB()) {
+        if($e->isNotInitializedDB() || $e->isNotExistsDB()) {
             try {
                 if(isDebug() || haveRole('admin')) {
+                    if($e->isNotExistsDB()) {
+                        try { mysql_query("CREATE DATABASE " . EF_DB_NAME); } catch(Exception $e) {}
+                    }
                     $update =  array('Index', 'SetupKey' => setupKey(), 'step' => 2);
                 }
             } catch(Exception $e) {}
