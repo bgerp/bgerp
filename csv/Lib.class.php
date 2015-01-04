@@ -145,6 +145,8 @@ class csv_Lib
             
             // Записваме в конфигурацията хеша на последния приложен csv файл
             core_Packs::setConfig($pack, array($param => $hash));
+        } else {
+            $cntObj = (object) array('created' => 0, 'updated' => 0, 'skipped' =>0, 'html' => "\n<li>Пропуснато импортиране в {$mvc->className}, защото няма промяна в CSV файла</li>");
         }
 
         return $cntObj;
