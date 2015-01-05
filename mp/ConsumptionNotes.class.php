@@ -115,32 +115,26 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-	 *
-	 * @param core_Mvc $mvc
-	 * @param string $requiredRoles
-	 * @param string $action
-	 * @param stdClass $rec
-	 * @param int $userId
+	 * Дали документа може да се активира
 	 */
-	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	public static function canActivate($rec)
 	{
-		if($requiredRoles == 'no_one') return;
+		// Намираме му детайлите
+		$dQuery = mp_ConsumptionNoteDetails::getQuery();
+		$dQuery->where("#noteId = {$rec->id}");
 		
-		if(($action == 'conto' || $action == 'activate') && isset($rec)){
-			$dQuery = mp_ConsumptionNoteDetails::getQuery();
-			$dQuery->where("#noteId = {$rec->id}");
-			
-			if(!$dQuery->count()) {
-				$requiredRoles = 'no_one';
-			} else {
-				while($dRec = $dQuery->fetch()){
-					if(!mp_ObjectResources::getResource($dRec->classId, $dRec->productId)){
-						$requiredRoles = 'no_one';
-						break;
-					}
-				}
+		// Ако няма не може да се активира
+		if(!$dQuery->count()) return FALSE;
+		
+		// Ако поне един артикул не е ресурс не може
+		while($dRec = $dQuery->fetch()){
+			if(!mp_ObjectResources::getResource($dRec->classId, $dRec->productId)){
+				
+				return FALSE;
 			}
 		}
+		
+		// Стигнем ли до тук значи има детайли, и всичките са ресурси
+		return TRUE;
 	}
 }

@@ -3154,7 +3154,7 @@ body.narrow {
 	   @include border-radius4(10px, 0, 0, 0);
 	}
     
-    .wide .listBlock .listRows > table.listTable, .wide .listRowsDetail > table.listTable {
+    .wide .listBlock .listRows > table.listTable{
         min-width:760px;
     }
 }
