@@ -33,14 +33,14 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=mp_transaction_ProductionNote';
+	public $interfaces = 'acc_TransactionSourceIntf=mp_transaction_ConsumptionNote';
 	
 	
 	/**
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools, mp_Wrapper, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, doc_plg_BusinessDoc, plg_Search, doc_ActivatePlg';
+                    doc_DocumentPlg, doc_plg_BusinessDoc, plg_Search';
 	
 	
 	/**
@@ -111,5 +111,36 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param string $requiredRoles
+	 * @param string $action
+	 * @param stdClass $rec
+	 * @param int $userId
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($requiredRoles == 'no_one') return;
+		
+		if(($action == 'conto' || $action == 'activate') && isset($rec)){
+			$dQuery = mp_ConsumptionNoteDetails::getQuery();
+			$dQuery->where("#noteId = {$rec->id}");
+			
+			if(!$dQuery->count()) {
+				$requiredRoles = 'no_one';
+			} else {
+				while($dRec = $dQuery->fetch()){
+					if(!mp_ObjectResources::getResource($dRec->classId, $dRec->productId)){
+						$requiredRoles = 'no_one';
+						break;
+					}
+				}
+			}
+		}
 	}
 }
