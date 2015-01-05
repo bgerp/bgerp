@@ -152,7 +152,7 @@ class frame_Reports extends core_Embedder
     /**
      *  Обработки по вербалното представяне на данните
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		if($fields['-single']) {
 	    	
@@ -168,20 +168,6 @@ class frame_Reports extends core_Embedder
             }
         }
     }
-
-
-    /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $rec
-     */
-    public static function on_BeforeSave1(core_Manager $mvc, $res, $rec)
-    {
-    	if(isset($rec->state) && $rec->state == 'pending'){
-    		$rec->state = 'draft';
-    	}
-    }
     
     
     /**
@@ -194,7 +180,7 @@ class frame_Reports extends core_Embedder
     		// Обновяваме датата на кога най-рано може да се активира
     		$Source = $mvc->getDriver($rec);
     		$rec->earlyActivationOn = $Source->getEarlyActivation();
-    		$rec->state = 'draft';
+    		//$rec->state = 'draft';
     		$mvc->save($rec, 'earlyActivationOn,state');
     	}
     }
@@ -299,9 +285,14 @@ class frame_Reports extends core_Embedder
     public function cron_ActivateEarlyOn()
     {
     	$now = dt::now();
+    	
+    	// Намираме всички отчети които са чакащи и им е пресрочена датата на активация
     	$query = $this->getQuery();
     	$query->where("#state = 'pending'");
-    	$query->where("#earlyActivationOn >= '{$now}'");
+    	$query->where("#earlyActivationOn <= '{$now}'");
+    	$query->orWhere("#earlyActivationOn IS NULL");
+    	
+    	// Активираме ги
     	while($rec = $query->fetch()){
     		$this->activate($rec, $now);
     	}
