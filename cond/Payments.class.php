@@ -88,8 +88,8 @@ class cond_Payments extends core_Manager {
     function description()
     {
     	$this->FLD('title', 'varchar(255)', 'caption=Наименование');
-    	$this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Ресто?,value=no');
-    	$this->FLD('code', 'int', 'caption=Код,mandatory');
+    	$this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Ресто?,value=no,tdClass=centerCol');
+    	$this->FLD('code', 'int', 'caption=Код,mandatory,tdClass=centerCol');
     	
     	$this->setDbUnique('title');
     }

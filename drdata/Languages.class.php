@@ -43,7 +43,7 @@ class drdata_Languages extends core_Manager {
     {
         $this->FLD('languageName', 'varchar', 'caption=Име->Език');
         $this->FLD('nativeName', 'varchar', 'caption=Име->Собствено');
-        $this->FLD('code', 'varchar(2)', 'caption=ISO 639-1->2 буквен код,rem=ISO 639-1 2 буквен код');
+        $this->FLD('code', 'varchar(2)', 'caption=ISO 639-1->2 буквен код,rem=ISO 639-1 2 буквен код,tdClass=centerCol');
       
         $this->load('plg_RowTools');
         
