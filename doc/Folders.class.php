@@ -31,7 +31,7 @@ class doc_Folders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf';
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting';
     
     
     /**

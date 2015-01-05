@@ -34,10 +34,50 @@ class mp_transaction_ConsumptionNote
 				'totalAmount' => NULL,
 				'entries' => array()
 		);
-	
-		//@TODO да се реализира контировката
+		
+		if(isset($rec->id)){
+			$entries = $this->getEntries($rec, $result->totalAmount);
+			
+			if(count($entries)){
+				$result->entries = array_merge($result->entries, $entries);
+			}
+		}
 		
 		return $result;
+	}
+	
+	
+	/**
+	 * Връща записите на транзакцията
+	 */
+	private static function getEntries($rec, &$total)
+	{
+		$entries = array();
+		
+		$dQuery = mp_ConsumptionNoteDetails::getQuery();
+		$dQuery->where("#noteId = {$rec->id}");
+		while($dRec = $dQuery->fetch()){
+			$resourceRec = mp_ObjectResources::getResource($dRec->classId, $dRec->productId);
+			
+			acc_journal_Exception::expect($resourceRec, 'Трябва да е ресурс');
+			
+			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+			 
+			// Вложимите кредит 706, другите 701
+			$creditAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
+			
+			$entries[] = array('debit' => array('611', 
+											array('hr_Departments', $rec->activityCenterId), 
+											array('mp_Resources', $resourceRec->resourceId),
+											'quantity' => $dRec->quantity),
+							   'credit' => array($creditAccId,
+												array('store_Stores', $rec->storeId),
+							   					array($dRec->classId, $dRec->productId),
+							   				'quantity' => $dRec->quantity));
+		}
+		
+		// Връщаме ентритата
+		return $entries;
 	}
 	
 	

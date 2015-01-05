@@ -33,9 +33,78 @@ class mp_transaction_ProductionNote
 				'entries' => array()
 		);
 	
-		//@TODO да се реализира контировката
+		if(isset($rec->id)){
+			$entries = $this->getEntries($rec, $result->totalAmount);
+			if(count($entries)){
+				$result->entries = $entries;
+			}
+		}
 		
 		return $result;
+	}
+	
+	
+	/**
+	 * Връща записите на транзакцията
+	 */
+	private static function getEntries($rec, &$total)
+	{
+		$entries = array();
+		
+		$dQuery = mp_ProductionNoteDetails::getQuery();
+		$dQuery->where("#noteId = {$rec->id}");
+		while($dRec = $dQuery->fetch()){
+	
+			// Референция към артикула
+			$productRef = new core_ObjectReference($dRec->classId, $dRec->productId);
+	
+			//@TODO да се използва интерфейсен метод а не тази проверка
+	
+			// Взимаме к-то от последното активно задание за артикула, ако има
+			$quantityJob = ($productRef->getInstance() instanceof techno2_SpecificationDoc) ? $productRef->getQuantityFromLastActiveJob() : NULL;
+			
+			$usesResources = FALSE;
+	
+			// Ако има к-во от задание
+			if(isset($quantityJob)){
+
+				// Проверяваме имали активна технологична карта, и извличаме ресурсите от нея
+				if($mapArr = ($productRef->getInstance() instanceof techno2_SpecificationDoc) ? $productRef->getResourcesFromMap() : NULL){
+					$usesResources = TRUE;
+					
+					foreach ($mapArr as $resInfo){
+					
+					   /*
+						* За всеки ресурс началното количество се разделя на количеството от заданието и се събира
+						* с пропорционалното количество. След това се умножава по количеството посочено в протокола за 
+						* от производството и това количество се изписва от ресурсите.
+						*/
+						$resQuantity = $dRec->quantity * ($resInfo->baseQuantity / $quantityJob + $resInfo->propQuantity);
+						$amount = $resQuantity * mp_Resources::fetchField($resInfo->resourceId, "selfValue");
+						$total += $amount;
+						
+						$entry = array(
+							'amount' => $amount,
+							'debit' => array('321', array('store_Stores', $rec->storeId), 
+													array($dRec->classId, $dRec->productId),
+											 'quantity' => $resQuantity),
+							'credit' => array('611', array('hr_Departments', $resInfo->activityCenterId)
+												   , array('mp_Resources', $resInfo->resourceId),
+											  'quantity' => $resQuantity),
+						);
+						
+						$entries[] = $entry;
+					}
+				}
+			}
+	
+			if($usesResources === FALSE){
+				//@TODO ако няма използвани ресурси за влагането, дебитираме сметката, която не е разбита по ресурси
+			}
+		}
+		//bp($entries);
+		// Връщаме ентритата
+		return $entries;
 	}
 	
 	

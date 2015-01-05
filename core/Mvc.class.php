@@ -633,6 +633,7 @@ class core_Mvc extends core_FieldSet
                 'caption',
                 'name',
                 'number',
+                'nick',
                 'id'
             );
 
@@ -675,12 +676,9 @@ class core_Mvc extends core_FieldSet
 
         $rec = new stdClass();
 
-        if ($id > 0) {
-            $rec = $me->fetch($id);
-            if(!$rec) return '??????????????';
-        } else {
-            $rec->id = $id;
-        }
+        try {$rec = $me->fetch($id);} catch (Exception $e) {}
+        
+        if(!$rec) return '??????????????';
 		
         return $me->getRecTitle($rec, $escaped);
     }

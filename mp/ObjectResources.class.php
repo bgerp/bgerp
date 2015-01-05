@@ -281,20 +281,20 @@ class mp_ObjectResources extends core_Manager
     
     
     /**
-     * Дали обекта е добавен като ресурс
+     * Връща ресурса на обекта
      * 
      * @param mixed $class - клас
      * @param int $objectId - ид
-     * @return boolean - Дали е добавен като ресурс или не
+     * @return mixed - записа на ресурса или FALSE ако няма
      */
-    public static function isResource($class, $objectId)
+    public static function getResource($class, $objectId)
     {
     	$Class = cls::get($class);
     	
     	// Проверяваме имали такъв запис
-    	if(self::fetchField("#classId = {$Class->getClassId()} AND #objectId = {$objectId}")){
+    	if($rec = self::fetch("#classId = {$Class->getClassId()} AND #objectId = {$objectId}")){
     		
-    		return TRUE;
+    		return $rec;
     	}
     	
     	return FALSE;

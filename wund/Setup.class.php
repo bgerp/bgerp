@@ -6,6 +6,11 @@
 defIfNot('WUND_DEFAULT_LOCATION', 'Bulgaria/Sofia');
 
 
+/**
+ * Апи ключ
+ */
+defIfNot('WUND_API_KEY', '');
+
 
 /**
  * class currency_Setup

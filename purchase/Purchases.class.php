@@ -24,7 +24,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Заглавие
      */
-    public $title = 'Покупки';
+    public $title = 'Договори за покупка';
 
 
     /**

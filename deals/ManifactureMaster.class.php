@@ -170,10 +170,11 @@ abstract class deals_ManifactureMaster extends core_Master
 		$firstDoc = doc_Threads::getFirstDocument($threadId);
 		
 		// Може да се добавя само към нишка с начало документ 'Задание'
-		if($firstDoc->getInstance() instanceof mp_Jobs){
+		//@TODO да го откоментирам след мърдж
+		/*if($firstDoc->getInstance() instanceof mp_Jobs){
 			
 			return TRUE;
-		}
+		}*/
 		
 		return FALSE;
 	}

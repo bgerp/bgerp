@@ -275,7 +275,7 @@ a.menuItem:focus {
 div.folder-cover {
   background-image: url('../img/cover-bg.png');
   display: inline-block;
-  max-width: 750px;
+  max-width: 720px;
   margin-top: 10px;
   line-height: 1.2em;
   position: relative;
@@ -365,7 +365,7 @@ div.folder-cover {
   line-height: 1.3em;
   margin-left: 0;
   margin-top: 8px;
-  max-width: 750px;
+  max-width: 720px;
   font-size: 0.9em;
   padding: 10px 10px 12px 10px; }
   .narrow .folder-cover .block_title img {
@@ -398,7 +398,7 @@ div.folder-cover {
  * потребителски профил
  */
 .user-profile {
-  max-width: 860px;
+  max-width: 760px;
   border: 1px solid #cccccc;
   border-radius: 5px;
   background: #eeeeee;
@@ -1021,6 +1021,9 @@ td.portal-date {
 
 .wide .document table.listTable {
   margin-bottom: 0; }
+
+.wide .singleView .listTable {
+  width: 100%; }
 
 pre.document {
   white-space: pre-line; }
@@ -2307,7 +2310,7 @@ table.styled-table tr:hover td {
  * стилове за локации
  */
 div.location {
-  max-width: 750px;
+  max-width: 720px;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
@@ -2921,7 +2924,8 @@ only screen and (min-width: 1240px) {
     -webkit-border-radius: 10px 0 0 0;
     border-radius: 10px 0 0 0; }
 
-  .wide .listBlock .listRows > table.listTable {
+  .wide .listBlock .listRows > table.listTable,
+  .wide .listRowsDetail > table.listTable {
     min-width: 760px; } }
 
 @media handheld,
@@ -3677,8 +3681,8 @@ only screen and (max-width: 320px) {
   float: right;
   padding: 7px;
   background: #eeeeee;
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  margin-bottom: 20px; }
+  margin-bottom: 20px;
+  color: #333333; }
 
 .narrow .summary-block {
   margin-top: 10px;
@@ -3698,7 +3702,11 @@ only screen and (max-width: 320px) {
   padding: 3px; }
 
 .summary-block td.summary-cell {
-  padding-left: 15px; }
+  padding-left: 15px;
+  font-weight: bold; }
+
+.summary-block .border-top td {
+  border-top: 1px solid #cccccc; }
 
 .narrow .summary-block b#count {
   margin-left: 3px; }

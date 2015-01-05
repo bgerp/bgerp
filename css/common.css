@@ -2593,10 +2593,6 @@ span.cng {
   display: inline-block;
   text-align: left; }
 
-td.centerCol {
-  white-space: nowrap;
-  text-align: center; }
-
 td.rightCol {
   white-space: nowrap;
   text-align: right; }
@@ -2604,4 +2600,8 @@ td.rightCol {
 td.leftCol {
   white-space: nowrap;
   text-align: left; }
+
+td.centerCol {
+  white-space: nowrap;
+  text-align: center; }
 

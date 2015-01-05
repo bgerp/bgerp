@@ -1336,9 +1336,6 @@ class callcenter_Talks extends core_Master
     	// Премахваме празните блокове
 		$tpl->removeBlocks();
 		$tpl->append2master();
-    	
-		// Добавяме CSS
-		$tpl->push('callcenter/css/callSummary.css', 'CSS');
     }
     
     

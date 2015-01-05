@@ -51,7 +51,7 @@ class crm_Groups extends core_Master
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Група->указател";
+    var $singleTitle = "Група";
     
     
     /**

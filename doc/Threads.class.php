@@ -1729,7 +1729,7 @@ class doc_Threads extends core_Manager
         $form->title = 'Настройка на|*: ' . $row->title;
         
         // Добавяме функционални полета
-        $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Добавяне на документ->Известяване, input=input');
+        $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известие при добавяне на документ->Известяване, input=input');
         
         $form->setDefault('notify', 'default');
         

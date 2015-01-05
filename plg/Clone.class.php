@@ -153,7 +153,7 @@ class plg_Clone extends core_Plugin
         
             // Това също се проверява и в plg_Created, но там се изисква canEditsysdata и canDeletesysdata
             // Ако записа е на системен потребител
-            if ($rec->createdBy == plg_Created::EF_SYS_USER_ID) {
+            if ($rec->createdBy == core_Users::SYSTEM_USER) {
                 
                 // Ако ще изтриваме или редактираме група
                 if ($action == 'delete' || $action == 'edit') {
@@ -167,7 +167,7 @@ class plg_Clone extends core_Plugin
             if ($action == 'clonerec') {
                 
                 // Ако е създаден от системния потребител
-                if ($rec->createdBy == plg_Created::EF_SYS_USER_ID) {
+                if ($rec->createdBy == core_Users::SYSTEM_USER) {
                     
                     // Проверява се дали има права да клонира системните данни
                     if (!$mvc->haveRightFor('clonesysdata', $rec)) {

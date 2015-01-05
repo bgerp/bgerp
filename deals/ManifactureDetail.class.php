@@ -70,7 +70,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 			$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 		} else {
-			$data->form->setOptions('productId', array($rec->productId => $products[$form->rec->productId]));
+			$data->form->setOptions('productId', array($form->rec->productId => $products[$form->rec->productId]));
 		}
 	}
 	

@@ -478,7 +478,7 @@ class core_String
         }
         if(mb_strlen($str) > $maxLen) {
             if($maxLen >= $showEndFrom) {
-                $remain = (int) ($maxLen - 5) / 2;
+                $remain = (int) ($maxLen - 3) / 2;
                 $str = mb_substr($str, 0, $remain) . $dots . mb_substr($str, -$remain);
             } else {
                 $remain = (int) ($maxLen - 3);

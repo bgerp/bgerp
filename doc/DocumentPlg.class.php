@@ -156,7 +156,7 @@ class doc_DocumentPlg extends core_Plugin
         //Бутон за добавяне на коментар 
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
             
-            if (TRUE) {
+            if (isset($data->rec->threadId) && doc_Threads::haveRightFor('single', $data->rec->threadId)) {
                 
                 $retUrl = array($mvc, 'single', $data->rec->id);
                 

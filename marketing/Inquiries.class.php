@@ -32,7 +32,7 @@ class marketing_Inquiries extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Запитвания';
+    public $title = 'Входящи запитвания';
     
     
     /**

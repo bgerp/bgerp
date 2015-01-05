@@ -84,7 +84,17 @@ defIfNot('EF_HTTPS_PORT', 443);
  */
 class core_Users extends core_Manager
 {
+    /**
+     * Константа за id на системния потребител
+     */
+    const SYSTEM_USER = -1;
     
+    
+    /**
+     * Константа за id на анонимния потребител
+     */
+    const ANONYMOUS_USER = 0;
+
     
     /**
      * Заглавие на мениджъра
@@ -764,7 +774,31 @@ class core_Users extends core_Manager
             }
         }
     }
-    
+
+
+    /**
+     * Виртуално добавяне на двата служебни потребителя
+     */
+    static function fetch($cond, $fields = '*', $cache = TRUE)
+    { 
+        if($cond == self::SYSTEM_USER) {
+            $res = (object) array(
+                                'id' => self::SYSTEM_USER,
+                                'nick' => '@system',
+                                'state' => 'active'
+                            );
+        } elseif($cond == self::ANONYMOUS_USER) {
+            $res = (object) array(
+                                'id' => self::ANONYMOUS_USER,
+                                'nick' => '@anonym',
+                                'state' => 'active'
+                            );
+        } else {
+            $res = parent::fetch($cond, $fields, $cache);
+        }
+
+        return $res;
+    }
     
     /**
      * Връща id-то (или друга зададена част) от записа за текущия потребител
@@ -780,10 +814,11 @@ class core_Users extends core_Manager
             $rec->state = 'active';
             $res = $rec->{$part};
         } else {
-            $cRec = Mode::get('currentUserRec');
+            //$cRec = Mode::get('currentUserRec');
+        	$cRec = static::fetch(2);
             if ($escaped) {
                 $res = core_Users::getVerbal($cRec, $part);    
-            } else {
+            } elseif(is_object($cRec)) {
                 $res = $cRec->$part;    
             }
         }
@@ -842,20 +877,9 @@ class core_Users extends core_Manager
      */
     static function sudo($id)
     {
-        if (!$id) {
-            return FALSE;
-        }
+        $userRec = self::fetch($id);
         
-        $userRec = static::fetch($id);
-        
-        $bValid = !empty($userRec);
-        
-        /**
-         * @TODO Други проверки за допустимостта на sudo - напр. дали е активен потребителя и
-         * пр.
-         */ 
-        
-        if($bValid) {
+        if(is_object($userRec)) {
             core_Mode::push('currentUserRec', $userRec);
         }
         
@@ -1442,24 +1466,7 @@ class core_Users extends core_Manager
     }
 
     
-    /**
-     * Заглавието на потребителя в този запис
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        if($rec->id > 0) {
-            
-            return $rec->nick;
-        } elseif($rec->id == -1) {
-            
-            return "@system" ;
-        } else {
-            
-            return '@anonymous';
-        }
-    }
-    
-    
+     
     /**
      * Да изтрива не-логналите се потребители
      */

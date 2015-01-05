@@ -103,4 +103,21 @@ class mp_ConsumptionNoteDetails extends deals_ManifactureDetail
         // Само вложими продукти
         $this->setDbUnique('noteId,productId,classId');
     }
+    
+    
+    /**
+     * След извличане на записите от базата данни
+     */
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    {
+    	if(!count($data->recs)) return;
+    	
+    	foreach ($data->rows as $id => $row){
+    		$rec = $data->recs[$id];
+    		if(!mp_ObjectResources::getResource($rec->classId, $rec->productId)){
+    			$row->productId .= " " . ht::createLink('', array('mp_ObjectResources', 'add', 'classId' => $rec->classId, 'objectId' => $rec->productId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/find.png,title=Връзване към съществуващ ресурс');
+    			$row->productId .= " " . ht::createLink('', array('mp_ObjectResources', 'NewResource', 'classId' => $rec->classId, 'objectId' => $rec->productId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/star_1.png,title=Създаване като нов ресурс');
+    		}
+    	}
+    }
 }

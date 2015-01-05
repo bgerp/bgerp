@@ -879,7 +879,7 @@ class crm_Companies extends core_Master
             $Countries = cls::get('drdata_Countries');
             $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
             
-            if(static::save($rec, NULL, 'REPLACE')) {
+            if(self::save($rec, NULL, 'REPLACE')) {
                 
                 $html .= "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
                 crm_Setup::BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
@@ -900,7 +900,7 @@ class crm_Companies extends core_Master
             $eRec->tel = '062/611-539, 062/611-540';
             $eRec->vatId = 'BG104066415';
             $eRec->email = 'team@experta.bg';
-            $eRec->info = 'Разработчик и Консултант за внедряване на bgERP';
+            $eRec->info = 'Разработчик и консултант за внедряване на bgERP';
             
             if (self::save($eRec)) {
                 $html .= "<li style='color:green'>Добавена е фирмата '{$expertaName}'</li>";
@@ -1293,7 +1293,7 @@ class crm_Companies extends core_Master
     
     
     /**
-     * Премахва данните за нашата фирма - id на компанията, име на компанията, адрес, телефон, факс и имейли
+     * Филтрира данните за нашата фирма - id на компанията, име на компанията, адрес, телефон, факс и имейли
      * 
      * @param std_Object &$contrData - Обект от който ще се премахва
      */
