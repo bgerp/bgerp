@@ -485,8 +485,8 @@ class currency_FinIndexes extends core_Manager {
      */
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $data->toolbar->addBtn('Зареждане EURIBOR',           array($this, 'loadEuriborCsv'));
-        $data->toolbar->addBtn('Зареждане EONIA',             array($this, 'loadEoniaCsv'));
-        $data->toolbar->addBtn('Зареждане SOFIBID и SOFIBOR', array($this, 'loadSofibidSofiborCsv'));
+        $data->toolbar->addBtn('Зареждане EURIBOR',           array($this, 'loadEuriborCsv'), NULL, 'title= Зареждане на Euro Interbank Offered Rate');
+        $data->toolbar->addBtn('Зареждане EONIA',             array($this, 'loadEoniaCsv'), NULL, 'title= Зареждане на Euro OverNight Index Average');
+        $data->toolbar->addBtn('Зареждане SOFIBID и SOFIBOR', array($this, 'loadSofibidSofiborCsv'), NULL, 'title= Зареждане на Sofia Interbank Bid Rate и Sofia Interbank Offered Rate');
     }
 }
