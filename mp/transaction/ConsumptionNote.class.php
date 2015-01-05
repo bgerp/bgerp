@@ -63,7 +63,7 @@ class mp_transaction_ConsumptionNote
 			
 			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
 			 
-			// Вложимите кредит 706, другите 701
+			// Ако е материал кредит 302, другите 321
 			$creditAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
 			
 			$entries[] = array('debit' => array('611', 
