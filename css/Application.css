@@ -275,7 +275,7 @@ a.menuItem:focus {
 div.folder-cover {
   background-image: url('../img/cover-bg.png');
   display: inline-block;
-  max-width: 750px;
+  max-width: 720px;
   margin-top: 10px;
   line-height: 1.2em;
   position: relative;
@@ -365,7 +365,7 @@ div.folder-cover {
   line-height: 1.3em;
   margin-left: 0;
   margin-top: 8px;
-  max-width: 750px;
+  max-width: 720px;
   font-size: 0.9em;
   padding: 10px 10px 12px 10px; }
   .narrow .folder-cover .block_title img {
@@ -398,7 +398,7 @@ div.folder-cover {
  * потребителски профил
  */
 .user-profile {
-  max-width: 860px;
+  max-width: 760px;
   border: 1px solid #cccccc;
   border-radius: 5px;
   background: #eeeeee;
@@ -2305,7 +2305,7 @@ table.styled-table tr:hover td {
  * стилове за локации
  */
 div.location {
-  max-width: 750px;
+  max-width: 720px;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
