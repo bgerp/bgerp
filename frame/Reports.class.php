@@ -20,7 +20,7 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Search, plg_Printing, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices';
                       
     
     /**
@@ -40,10 +40,17 @@ class frame_Reports extends core_Embedder
      */
     public $title = "Отчети";
 
+    
     /**
      * Права за писане
      */
     public $canWrite = 'ceo, report, admin';
+    
+    
+    /**
+     * Права за писане
+     */
+    public $canEdit = 'ceo, report, admin';
     
     
     /**
@@ -64,6 +71,12 @@ class frame_Reports extends core_Embedder
 	public $canSingle = 'ceo, report, admin';
     
     
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canChangestate = 'ceo, report, admin';
+	
+	
     /**
      * Абревиатура
      */
@@ -129,6 +142,9 @@ class frame_Reports extends core_Embedder
         // Извлечените данни за отчета. "Снимка" на състоянието на източника.
         $this->FLD('data', 'blob(1000000, serialize, compress)', 'caption=Данни,input=none,single=none,column=none');
  
+        // Най-ранната дата когато отчета може да се активира
+        $this->FLD('earlyActivationOn', 'datetime', 'input=none');
+       
         $this->setDbUnique('name');
     }
 
@@ -155,12 +171,31 @@ class frame_Reports extends core_Embedder
 
 
     /**
-     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
      */
-    public static function on_AfterPrepareEditToolbar($mvc, $data)
+    public static function on_BeforeSave1(core_Manager $mvc, $res, $rec)
     {
-    	if (!empty($data->form->toolbar->buttons['activate'])) {
-    		$data->form->toolbar->removeBtn('activate');
+    	if(isset($rec->state) && $rec->state == 'pending'){
+    		$rec->state = 'draft';
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+    	if(is_null($fields) && ($rec->state == 'draft' || $rec->state == 'pending')){
+    		
+    		// Обновяваме датата на кога най-рано може да се активира
+    		$Source = $mvc->getDriver($rec);
+    		$rec->earlyActivationOn = $Source->getEarlyActivation();
+    		$rec->state = 'draft';
+    		$mvc->save($rec, 'earlyActivationOn,state');
     	}
     }
     
@@ -254,5 +289,118 @@ class frame_Reports extends core_Embedder
     {
     	$Driver = $this->getDriver($data->rec);
     	$Driver->hidePriceFields();
+    }
+    function act_Test()
+    {
+    	$this->cron_ActivateEarlyOn();
+    }
+    
+    
+    /**
+     * Активира всички чакащи отчети, на които текущата дата е след
+     * или по време на датата им за най-ранно активиране
+     */
+    public function cron_ActivateEarlyOn()
+    {
+    	$now = dt::now();
+    	$query = $this->getQuery();
+    	$query->where("#state = 'pending'");
+    	$query->where("#earlyActivationOn >= '{$now}'");
+    	while($rec = $query->fetch()){
+    		$this->activate($rec, $now);
+    	}
+    }
+    
+    
+    /**
+     * Екшън който активира отчета или го прави чакащ
+     */
+    function act_Activate()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	
+    	// Проверка за права
+    	$this->requireRightFor('changestate', $data->rec);
+    	
+    	// Променяме състоянието на документа
+    	$this->activate($rec);
+    	
+    	// Редирект
+    	redirect(array($this, 'single', $id), 'Документа е активиран успешно');
+    }
+    
+    
+    /**
+     * Метод активиращ документа или го прави чакащ
+     * 
+     * @param stdClass $rec
+     * @return void
+     */
+    private function activate($rec, $when = NULL)
+    {
+    	if(empty($when)){
+    		$when = dt::now();
+    	}
+    	
+    	// Ако няма стойност за най-ранно активиране - извличаме я наново
+    	if(empty($rec->earlyActivationOn)){
+    		$Driver = $this->getDriver($rec);
+    		$rec->earlyActivationOn = $Driver->getEarlyActivation();
+    	}
+    	
+    	// Ако сега сме преди датата за активиране, правим го 'чакащ' иначе директно се 'активира'
+    	$rec->state = ($when < $rec->earlyActivationOn) ? 'pending' : 'active';
+    	$this->save($rec, 'state');
+    	 
+    	// Ако сме го активирали, генерираме събитие че е бил активиран
+    	if($rec->state == 'active'){
+    		$this->invoke('AfterActivation', array($rec));
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if($mvc->haveRightFor('changestate', $data->rec)){
+    		$data->toolbar->addBtn('Активиране', array($mvc, 'activate', $data->rec->id), "id=btnActivate,warning=Наистина ли желаете документа да бъде активиран?", 'ef_icon = img/16/lightning.png,title=Активиране на отчета');
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	// Кой може да променя състоянието на отчета
+    	if($action == 'changestate' && isset($rec)){
+    		if($rec->state != 'draft'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'activate'){
+    		$requiredRoles = 'no_one';
+    	}
+    	
+    	// Ако отчета е чакащ, може да се редактира
+    	if($action == 'edit' && isset($rec)){
+    		if($rec->state == 'pending'){
+    			$requiredRoles = $mvc->getRequiredRoles('edit');
+    		}
+    	}
     }
 }
