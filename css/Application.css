@@ -297,6 +297,8 @@ div.folder-cover {
   div.folder-cover .groupList {
     font-size: 0.95em;
     max-width: 725px; }
+    div.folder-cover .groupList .listTopContainer {
+      min-width: 300px; }
     div.folder-cover .groupList div.rowtools {
       display: inline-block;
       width: auto;
