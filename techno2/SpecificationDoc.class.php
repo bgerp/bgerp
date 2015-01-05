@@ -846,7 +846,10 @@ class techno2_SpecificationDoc extends core_Embedder
     		while($mRec = $mQuery->fetch()){
     			$arr = array();
     			$arr['resourceId'] = $mRec->resourceId;
-    			$arr['activityCenterId'] = mp_Stages::fetchField($mRec->stageId, 'departmentId');
+    			if(isset($mRec->stageId)){
+    				$arr['activityCenterId'] = mp_Stages::fetchField($mRec->stageId, 'departmentId');
+    			}
+    			
     			$arr['baseQuantity'] = $mRec->baseQuantity;
     			$arr['propQuantity'] = $mRec->propQuantity;
     			
