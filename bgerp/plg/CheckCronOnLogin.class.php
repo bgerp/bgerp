@@ -48,9 +48,9 @@ class bgerp_plg_CheckCronOnLogin extends core_Plugin
                 $msg = "|Внимание! Периодичните процеси не са стартирани скоро.|*";
                 
                 // Форсираме системния потребител за да може да се нотифицира текущия потребител
-                core_Users::forceSystemUser();
+                core_Users::sudo(core_Users::SYSTEM_USER);
                 bgerp_Notifications::add($msg, $urlArr, $adminId, 'warning');
-                core_Users::cancelSystemUser();
+                core_Users::exitSudo();
             }
         }
     }
