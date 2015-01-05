@@ -90,12 +90,6 @@ class callcenter_Setup extends core_ProtoSetup
     
     
     /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'callcenter/css/callSummary.css';
-   
-    
-    /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
