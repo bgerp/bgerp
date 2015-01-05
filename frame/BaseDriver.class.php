@@ -134,8 +134,13 @@ abstract class frame_BaseDriver extends core_BaseClass
 	}
 	
 	
+	/**
+	 * Коя е най-ранната дата когато може да се активира отчета
+	 * 
+	 * @return datetime
+	 */
 	public function getEarlyActivation()
 	{
-		
+		return dt::now();
 	}
 }
