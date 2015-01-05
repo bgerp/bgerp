@@ -781,13 +781,13 @@ class core_Users extends core_Manager
      */
     static function fetch($cond, $fields = '*', $cache = TRUE)
     { 
-        if($cond == self::SYSTEM_USER) {
+        if(($cond == self::SYSTEM_USER) && is_numeric($cond)) {
             $res = (object) array(
                                 'id' => self::SYSTEM_USER,
                                 'nick' => '@system',
                                 'state' => 'active'
                             );
-        } elseif($cond == self::ANONYMOUS_USER) {
+        } elseif(($cond == self::ANONYMOUS_USER) && is_numeric($cond)) {
             $res = (object) array(
                                 'id' => self::ANONYMOUS_USER,
                                 'nick' => '@anonym',
