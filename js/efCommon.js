@@ -1314,6 +1314,7 @@ function scrollLongListTable() {
         var tableWidth = parseInt($('.listBlock .listTable').width());
         if (winWidth < tableWidth) {
             $('.listBlock .listRows').addClass('overflow-scroll');
+            $('.listBlock .listRowsDetail').addClass('overflow-scroll');
             $('.main-container').css('display', 'block');
             $('.listBlock').css('display', 'block');
         }

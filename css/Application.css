@@ -1022,6 +1022,9 @@ td.portal-date {
 .wide .document table.listTable {
   margin-bottom: 0; }
 
+.wide .singleView .listTable {
+  width: 100%; }
+
 pre.document {
   white-space: pre-line; }
 
@@ -2154,12 +2157,14 @@ span.sharing-history-title {
 .narrow-scroll div.alphabet  div.tab-row {
   width: 100%; }
 
-.narrow-scroll .listRows {
+.narrow-scroll .listRows,
+.narrow-scroll .listRowsDetail {
   width: 100% !important;
   overflow-y: auto !important;
   _overflow: auto !important; }
 
-.narrow-scroll .single-thread .listRows {
+.narrow-scroll .single-thread .listRows,
+.narrow-scroll .single-thread .listRowsDetail {
   overflow: visible !important;
   _overflow: visible !important;
   width: auto !important; }
@@ -2919,7 +2924,8 @@ only screen and (min-width: 1240px) {
     -webkit-border-radius: 10px 0 0 0;
     border-radius: 10px 0 0 0; }
 
-  .wide .listBlock .listRows > table.listTable {
+  .wide .listBlock .listRows > table.listTable,
+  .wide .listRowsDetail > table.listTable {
     min-width: 760px; } }
 
 @media handheld,
@@ -3675,8 +3681,8 @@ only screen and (max-width: 320px) {
   float: right;
   padding: 7px;
   background: #eeeeee;
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  margin-bottom: 20px; }
+  margin-bottom: 20px;
+  color: #333333; }
 
 .narrow .summary-block {
   margin-top: 10px;
@@ -3696,7 +3702,11 @@ only screen and (max-width: 320px) {
   padding: 3px; }
 
 .summary-block td.summary-cell {
-  padding-left: 15px; }
+  padding-left: 15px;
+  font-weight: bold; }
+
+.summary-block .border-top td {
+  border-top: 1px solid #cccccc; }
 
 .narrow .summary-block b#count {
   margin-left: 3px; }

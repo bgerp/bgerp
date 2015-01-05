@@ -459,4 +459,13 @@ class acc_BalanceReportImpl extends frame_BaseDriver
       		
       		unset($innerState->recs);
       }
+      
+      
+      /**
+       * Коя е най-ранната дата на която може да се активира документа
+       */
+      public function getEarlyActivation()
+      {
+      	  return $this->innerForm->to;
+      }
 }
