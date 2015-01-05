@@ -290,10 +290,6 @@ class frame_Reports extends core_Embedder
     	$Driver = $this->getDriver($data->rec);
     	$Driver->hidePriceFields();
     }
-    function act_Test()
-    {
-    	$this->cron_ActivateEarlyOn();
-    }
     
     
     /**
@@ -315,7 +311,7 @@ class frame_Reports extends core_Embedder
     /**
      * Екшън който активира отчета или го прави чакащ
      */
-    function act_Activate()
+    public function act_Activate()
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
