@@ -55,6 +55,15 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
 
 
     /**
+     * Коя е най-ранната дата на която може да се активира документа
+     */
+    public function getEarlyActivation()
+    {
+    	return $this->innerForm->to;
+    }
+    
+    
+    /**
      * Проверява въведените данни
 	 * 
 	 * @param core_Form $form
