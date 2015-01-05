@@ -81,7 +81,7 @@ abstract class frame_BaseDriver extends core_BaseClass
 	 */
 	public static function on_AfterRestore($mvc, &$is, &$rec)
 	{
-		if($rec->state == 'draft'){
+		if($rec->state == 'draft' || $rec->state == 'pending'){
 			unset($rec->data);
 			frame_Reports::save($rec);
 		}
@@ -129,6 +129,12 @@ abstract class frame_BaseDriver extends core_BaseClass
 	 * Скрива полетата, които потребител с ниски права не може да вижда
 	 */
 	public function hidePriceFields()
+	{
+		
+	}
+	
+	
+	public function getEarlyActivation()
 	{
 		
 	}
