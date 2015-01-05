@@ -2924,8 +2924,7 @@ only screen and (min-width: 1240px) {
     -webkit-border-radius: 10px 0 0 0;
     border-radius: 10px 0 0 0; }
 
-  .wide .listBlock .listRows > table.listTable,
-  .wide .listRowsDetail > table.listTable {
+  .wide .listBlock .listRows > table.listTable {
     min-width: 760px; } }
 
 @media handheld,
