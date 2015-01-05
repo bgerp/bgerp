@@ -338,8 +338,8 @@ class type_Richtext extends type_Blob
             // Заменяме обикновените интервали в началото на всеки ред, с непрекъсваеми такива
             $newLine = TRUE;
             $sp = "";
-          
-            for($i = 0; $i<strlen($html); $i++) {
+            $htmlLen = strlen($html);
+            for($i = 0; $i < $htmlLen; $i++) {
                 
                 $c = substr($html, $i, 1);
                 

@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <meta name="robots" content="noindex,nofollow">
     <title>[#httpStatusCode#] [#httpStatusMsg#]</title>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <style>
         .dump {
             font-family: Consolas, Courier New, monospace;

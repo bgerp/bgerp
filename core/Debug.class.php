@@ -4,11 +4,15 @@
 defIfNot('CORE_ENABLE_SUPRESS_ERRORS', TRUE);
 
 // Кои грешки да се показват?
-if(defined('BGERP_GIT_BRANCH') && (BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH == 'test')) {
-    defIfNot('CORE_ERROR_REPORTING_LEVEL', E_ERROR | E_PARSE | E_CORE_ERROR | E_STRICT | E_COMPILE_ERROR | E_WARNING);
+if(defined('BGERP_GIT_BRANCH') && (BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH == 'test')) { 
+    defIfNot('CORE_ERROR_REPORTING_LEVEL', E_ERROR | E_PARSE | E_CORE_ERROR | E_STRICT | E_COMPILE_ERROR | E_WARNING | E_NOTICE);
 } else {
     defIfNot('CORE_ERROR_REPORTING_LEVEL', E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR);
+    defIfNot('CORE_ERROR_LOGGING_LEVEL', E_ERROR | E_PARSE | E_CORE_ERROR | E_STRICT | E_COMPILE_ERROR | E_WARNING);
 }
+
+// Кои грешки да се логват
+defIfNot('CORE_ERROR_LOGGING_LEVEL', CORE_ERROR_REPORTING_LEVEL);
 
 // Колко секунди да е валидно cookie за дебъг режим?
 defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
@@ -558,7 +562,7 @@ class core_Debug
      * @param $breakFile string Файл, където е възникнало прекъсването
      * @param $breakLine int    Линия на която е възникнало прекъсването
      */
-    public static  function displayState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update = NULL)
+    public static function prepareErrorState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update = NULL)
     {
         $state = array( 'errType'   => $errType, 
                         'errTitle'  => $errTitle, 
@@ -583,21 +587,62 @@ class core_Debug
         }
 
         list($state['httpStatusMsg'], $state['httpStatusMsgBg'], $state['background']) = self::getHttpStatusMsg($state['httpStatusCode']);
-        
-        if(isDebug() || defined('EF_DEBUG_LOG_PATH')) {
+
+        return $state;        
+    }
+
+    
+    /**
+     * Показва състоянието за грешка или/и го записва в локална тем директория или на отдалечен сървър
+     */
+    public static function renderErrorState($state, $supressShowing = FALSE) 
+    {
+        if(isDebug() || defined('EF_DEBUG_LOG_PATH') || defined('EF_REMOTE_ERROR_REPORT_URL')) {
             $debugPage = core_Debug::getDebugPage($state);
         }
-
-        if(!headers_sent()) { 
+        
+        // Ако не трябва да подтиснем показването на глешката и хедърите все още не са изпратени, показваме
+        if(!$supressShowing && !headers_sent()) { 
             header($_SERVER["SERVER_PROTOCOL"]. " " . $state['httpStatusCode'] . " " . $state['httpStatusMsg']);
             header('Content-Type: text/html; charset=UTF-8');
 
             echo isDebug() ? $debugPage : self::getErrorPage($state); 
         }
         
+
+        // Определяме заглавието на грешката в лога
+        $ctr = $_GET['Ctr'] ? $_GET['Ctr'] : 'Index';
+        $act = $_GET['Act'] ? $_GET['Act'] : 'default';
+        $title = EF_DB_NAME . '_' . $ctr . '_' . $act . '_' . $state['httpStatusCode'];
+        $title = preg_replace("/[^A-Za-z0-9_?!]/", '_', $title);
+
         // Ако е необходимо записваме дебъг информацията
-        if(defined('EF_DEBUG_LOG_PATH')) {
-            @file_put_contents(EF_DEBUG_LOG_PATH . '/err.log',  $debugPage, FILE_APPEND);
+        if(defined('EF_DEBUG_LOG_PATH')) {  
+            if(!is_dir(EF_DEBUG_LOG_PATH)) {
+                @mkdir(EF_DEBUG_LOG_PATH, 0777, TRUE);
+            }
+            @file_put_contents(EF_DEBUG_LOG_PATH . "/{$title}.html",  $debugPage);
+        }
+        
+        // Логваме на отдалечен сървър
+        if(defined('EF_REMOTE_ERROR_REPORT_URL')) {
+            $url = EF_REMOTE_ERROR_REPORT_URL;
+            $data = array(  'debugPage' => gzcompress($debugPage), 
+                            'domain' => $_SERVER['SERVER_NAME'], 
+                            'errCtr' => $ctr, 
+                            'errAct' => $act, 
+                          );
+
+            // use key 'http' even if you send the request to https://...
+            $options = array(
+                'http' => array(
+                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'method'  => 'POST',
+                    'content' => http_build_query($data),
+                ),
+            );
+            $context  = stream_context_create($options);
+            $result = file_get_contents($url, false, $context);
         }
     }
 
@@ -622,15 +667,26 @@ class core_Debug
      */
     static function errorHandler($errno, $errstr, $breakFile, $breakLine, $errcontext)
     {   
-        if(!($errno & CORE_ERROR_REPORTING_LEVEL)) return;
-
-        if(CORE_ENABLE_SUPRESS_ERRORS && error_reporting() == 0) return;
-
+        // Ако грешката нито ще я показваме нито ще я логваме - връщаме управлението
+        if(!($errno & CORE_ERROR_REPORTING_LEVEL) && !($errno & CORE_ERROR_LOGGING_LEVEL)) {
+            return;
+        }
+        
+        // Когато сме в режим на маскиране на грешките (@) да не показваме съобщение
+        if(CORE_ENABLE_SUPRESS_ERRORS && error_reporting() == 0)  return;
+        
+        // Подготвяме състоянието, отговарящо на грешката
         $errType = self::getErrorLevel($errno);
+        $state = self::prepareErrorState($errType, '500 @' . $errstr, $errstr, NULL, debug_backtrace(), $errcontext, $breakFile, $breakLine);
 
-        self::displayState($errType, '500 @' . $errstr, $errstr, NULL, debug_backtrace(), $errcontext, $breakFile, $breakLine);
-
-        die;
+        // Ако грешката само ще я логваме, но няма да я показваме - поддтискаме показването
+        if(!($errno & CORE_ERROR_REPORTING_LEVEL) && ($errno & CORE_ERROR_LOGGING_LEVEL)) {
+            // Само логваме показването на грешката
+            self::renderErrorState($state, TRUE);
+        } else {
+            self::renderErrorState($state);
+            die;
+        }
     }
 
 
@@ -643,13 +699,12 @@ class core_Debug
         if ($error = error_get_last()) {
             
             if(!($error['type'] & CORE_ERROR_REPORTING_LEVEL) ) return;
-
-            if(CORE_ENABLE_SUPRESS_ERRORS && error_reporting() == 0)  return;
+            
 
             $errType = self::getErrorLevel($error['type']);
             
-            self::displayState($errType, '500 @' . $error['message'], $error['message'], NULL, NULL, $_SERVER, $error['file'], $error['line']);
-
+            $state = self::prepareErrorState($errType, '500 @' . $error['message'], $error['message'], NULL, NULL, $_SERVER, $error['file'], $error['line']);
+            self::renderErrorState($state);
             die;
         }
     }

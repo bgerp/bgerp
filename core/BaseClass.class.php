@@ -55,11 +55,17 @@ class core_BaseClass
     
     
     /**
-     * 
+     * Параметри за инициализиране на обекта
      */
     public $params = array();
     
-    
+
+    /**
+     * Кеш с обработвачите на събития в обекта
+     */
+    private $_listenerCache = array();
+
+
     /**
      * Конструктор. Дава възможност за инициализация
      */
@@ -123,6 +129,7 @@ class core_BaseClass
         // Ако има интерфейс на плъгин, записваме го в масива на плъгините
         if (!isset($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
             $this->_plugins[$name] = &cls::get($class);
+            $this->_listenerCache = array();
         }
     }
 
@@ -136,6 +143,7 @@ class core_BaseClass
     {
         if(isset($this->_plugins[$name])) {
             unset($this->_plugins[$name]);
+            $this->_listenerCache = array();
         }
     }
     
@@ -179,7 +187,18 @@ class core_BaseClass
         for ($i = 0; $i < count($args); $i++) {
             $args1[] = & $args[$i];
         }
-        
+
+        if(isset($this->_listenerCache[$method])) {
+            foreach($this->_listenerCache[$method] as $subject) {
+                if(call_user_func_array(array($subject, $method),  $args1) === FALSE) return FALSE;
+                $status = TRUE;
+            }
+
+            return $status;
+        }
+
+        $this->_listenerCache[$method] = array();
+
         // Проверяваме дали имаме плъгин(и), който да обработва това събитие
         if (count($this->_plugins)) {
             
@@ -190,7 +209,8 @@ class core_BaseClass
                 if (method_exists($plg, $method)) {
                     
                     $status = TRUE;
-                    
+                    $this->_listenerCache[$method][] = $plg;
+
                     // Извикваме метода, прехванал обработката на това събитие
                     if (call_user_func_array(array($plg, $method),  $args1) === FALSE) return FALSE;
                 }
@@ -209,8 +229,7 @@ class core_BaseClass
                 $RM = new ReflectionMethod($className, $method);
                 
                 if($className == $RM->class) {
-                    
-                    if (call_user_func_array($first ? array($this, $method) : array($className, $method),  $args1) === FALSE) {
+                    if (call_user_func_array(array($this->_listenerCache[$method][] = $first ? $this : $className, $method),  $args1) === FALSE) {
                         
                         return FALSE;
                     }
@@ -222,7 +241,7 @@ class core_BaseClass
         
         return $status;
     }
-    
+
     
     /**
      * Рутинна процедура, която се задейства, ако извиквания метод липсва

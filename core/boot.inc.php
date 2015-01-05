@@ -70,7 +70,6 @@ try {
     // Стартира записа в буфера, като по възможност компресира съдържанието
     ob_start();
 
-
     // Стартира приложението
     core_App::run();
 
@@ -81,8 +80,6 @@ try {
 } catch (Exception  $e) {
     
     if($e instanceOf core_exception_Db) { 
-
-
 
         if(!isDebug() && $e->isNotExistsDB()) {   
 
@@ -122,7 +119,9 @@ try {
         $errType = $e->getType();
     }
     
-    core_Debug::displayState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update);
+    $state = core_Debug::prepareErrorState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update);
+
+    core_Debug::renderErrorState($state);
 }
 
 

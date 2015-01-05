@@ -26,7 +26,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Репорт за оборотните ведомости';
+    public $title = 'Справка за оборотните ведомости';
     
     
     /**

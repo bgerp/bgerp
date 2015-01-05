@@ -2154,12 +2154,14 @@ span.sharing-history-title {
 .narrow-scroll div.alphabet  div.tab-row {
   width: 100%; }
 
-.narrow-scroll .listRows {
+.narrow-scroll .listRows,
+.narrow-scroll .listRowsDetail {
   width: 100% !important;
   overflow-y: auto !important;
   _overflow: auto !important; }
 
-.narrow-scroll .single-thread .listRows {
+.narrow-scroll .single-thread .listRows,
+.narrow-scroll .single-thread .listRowsDetail {
   overflow: visible !important;
   _overflow: visible !important;
   width: auto !important; }
@@ -3687,7 +3689,7 @@ only screen and (max-width: 320px) {
   border-collapse: separate; }
 
 .summary-block b {
-  color: #004488; }
+  color: #333333; }
 
 .summary-block b#count {
   margin-left: 5px; }

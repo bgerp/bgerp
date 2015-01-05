@@ -402,8 +402,10 @@ class blast_ListDetails extends doc_Detail
         $exp->WARNING(tr("Възможен е проблем с формата на CSV данните, защото е открита само една колона"), '#csvColumnsCnt == 2');
         $exp->ERROR(tr("Има проблем с формата на CSV данните") . ". <br>" . tr("Моля проверете дали правилно сте въвели данните и разделителя"), '#csvColumnsCnt < 2');
         
-        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', array('value' => ','), 'mandatory');
+        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', 'mandatory');
         $exp->SUGGESTIONS("#delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
+        $exp->ASSUME('#delimiter', '"|"');
+
         $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=1)', array('value' => '"'), 'mandatory');
         $exp->SUGGESTIONS("#enclosure", array('"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
@@ -423,7 +425,7 @@ class blast_ListDetails extends doc_Detail
         foreach($fieldsArr as $name => $caption) {
             $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
             $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure, NULL, FALSE)");
-            $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,'{$caption}')");
+            $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,'{$caption}', TRUE, '{$name}')");
             
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
@@ -483,6 +485,7 @@ class blast_ListDetails extends doc_Detail
                     
                     $rec->key = str::convertToFixedKey($key);
                     $rec->listId = $listId;
+                    $rec->state = 'active';
                     
                     if($exRec = $this->fetch(array("#listId = {$listId} AND #key = '[#1#]'", $rec->key))) {
                         // Ако имаме съществуващ $exRec със същия ключ, имаме две възможности
@@ -491,6 +494,7 @@ class blast_ListDetails extends doc_Detail
                         if($exp->getValue('#priority') == 'update') {
                             $rec->id = $exRec->id;
                             $updateCnt++;
+                            $rec->state = $exRec->state;
                         } else {
                             $skipCnt++;
                             continue;
@@ -507,7 +511,6 @@ class blast_ListDetails extends doc_Detail
                     }
                     
                     $rec->data = serialize($data);
-                    
                     $this->save($rec);
                 }
                 $exp->message = tr("Добавени са") . " {$newCnt} " . tr("нови записа") . ", " . tr("обновени") . " - {$updateCnt}, " . tr("пропуснати") . " - {$skipCnt}";
@@ -602,7 +605,7 @@ class blast_ListDetails extends doc_Detail
     /**
      * Връща масив с опции - заглавията на колоните
      */
-    static function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL, $escape = TRUE)
+    static function getCsvColNames($csvData, $delimiter, $enclosure, $caption = NULL, $escape = TRUE, $name = NULL)
     {
         if(is_array($csvData)) {
             $rowsOrig = $csvData;
@@ -639,10 +642,16 @@ class blast_ListDetails extends doc_Detail
         
         if(!count($rowArr)) return array();
         
-        if($name) {
+        if($caption) {
+            $captionC = trim(mb_strtolower($caption));
+            $nameC = trim(mb_strtolower($name));
             foreach($rowArr as $id => $val) {
-                if(trim(mb_strtolower($val)) == trim(mb_strtolower($name))) {
-                    return $id;
+                $valC = trim(mb_strtolower($val));
+                if(strpos($captionC, $valC) !== FALSE || strpos($valC, $captionC)) {
+                    return $id + 1;
+                }
+                if(strpos($nameC, $valC) !== FALSE || strpos($valC, $nameC)) {
+                    return $id + 1;
                 }
             }
         } else {

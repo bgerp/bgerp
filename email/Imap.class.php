@@ -116,7 +116,7 @@ class email_Imap extends core_BaseClass
      */
     public function connect()
     {
-        $this->connection = imap_open($this->getServerString(), $this->accRec->user, $this->accRec->password);
+        $this->connection = @imap_open($this->getServerString(), $this->accRec->user, $this->accRec->password);
         
         return $this->connection;
     }
