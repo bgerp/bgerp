@@ -40,7 +40,7 @@ class mp_ProductionNotes extends deals_ManifactureMaster
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools, mp_Wrapper, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, doc_plg_BusinessDoc, plg_Search, doc_ActivatePlg';
+                    doc_DocumentPlg, doc_plg_BusinessDoc, plg_Search';
 	
 	
 	/**

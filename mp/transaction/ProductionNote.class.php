@@ -72,8 +72,14 @@ class mp_transaction_ProductionNote
 				if($mapArr = ($productRef->getInstance() instanceof techno2_SpecificationDoc) ? $productRef->getResourcesFromMap() : NULL){
 					$usesResources = TRUE;
 					
-					foreach ($mapArr as $resInfo){
-					
+					foreach ($mapArr as $index => $resInfo){
+						
+						// Центъра на дейност е този от картата или по дефолт е избрания център от документа
+						$activityCenterId = (isset($resInfo->activityCenterId)) ? $resInfo->activityCenterId : $rec->activityCenterId;
+						
+						$pInfo = $productRef->getProductInfo($dRec->productId);
+						$creditAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
+						
 					   /*
 						* За всеки ресурс началното количество се разделя на количеството от заданието и се събира
 						* с пропорционалното количество. След това се умножава по количеството посочено в протокола за 
@@ -83,12 +89,14 @@ class mp_transaction_ProductionNote
 						$amount = $resQuantity * mp_Resources::fetchField($resInfo->resourceId, "selfValue");
 						$total += $amount;
 						
+						// Първото дебитиране на артикула става с цялото к-ва, а последващите с нулево
+						$pQuantity = ($index == 0) ? $dRec->quantity : 0;
 						$entry = array(
 							'amount' => $amount,
-							'debit' => array('321', array('store_Stores', $rec->storeId), 
+							'debit' => array($creditAccId, array('store_Stores', $rec->storeId), 
 													array($dRec->classId, $dRec->productId),
-											 'quantity' => $resQuantity),
-							'credit' => array('611', array('hr_Departments', $resInfo->activityCenterId)
+											 'quantity' => $pQuantity),
+							'credit' => array('611', array('hr_Departments', $activityCenterId)
 												   , array('mp_Resources', $resInfo->resourceId),
 											  'quantity' => $resQuantity),
 						);
@@ -102,7 +110,7 @@ class mp_transaction_ProductionNote
 				//@TODO ако няма използвани ресурси за влагането, дебитираме сметката, която не е разбита по ресурси
 			}
 		}
-		//bp($entries);
+		
 		// Връщаме ентритата
 		return $entries;
 	}
