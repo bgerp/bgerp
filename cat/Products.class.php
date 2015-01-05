@@ -225,8 +225,6 @@ class cat_Products extends core_Embedder {
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting,input=hidden,formOrder=4');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=hidden,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember,formOrder=100');
-        $this->FLD('accessibleTo', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Избор в документи->Роли,input,formOrder=101');
-        $this->FLD('contragentFolders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Избор в документи->Контрагенти,input,formOrder=102');
         
         $this->setDbUnique('code');
     }
@@ -321,8 +319,6 @@ class cat_Products extends core_Embedder {
     		$oldRec = $mvc->fetch($rec->id);
     		
     		// Старите мета данни
-    		$rec->oldAccessibleTo = $oldRec->accessibleTo;
-    		$rec->oldContragentFolders = $oldRec->contragentFolders;
     		$rec->oldGroups = $oldRec->groups;
     		$rec->oldName = $oldRec->name;
     		$rec->oldCode = $oldRec->code;
@@ -502,11 +498,8 @@ class cat_Products extends core_Embedder {
     		}
     	}
     	
-    	//@TODO да подавам като параметър данните на контрагента
-    	//$folderId = doc_Folders::fetchField("#coverClass = '{$Cclass}' AND #coverId = '{$Cid}'", 'id');
-    	
     	// Премахват се тези продукти до които потребителя няма достъп
-    	self::unsetUnavailableProducts($products);
+    	//self::unsetUnavailableProducts($products);
     	
     	// Ако е посочен лимит, връщаме първите $limit продукти
     	if(isset($limit)){
@@ -514,55 +507,6 @@ class cat_Products extends core_Embedder {
     	}
     	
     	return $products;
-    }
-    
-    
-    /**
-     * Помощна ф-я премахваща от списъка с продукти отговарящи на
-     * някакви мета данни тези до които потребителя няма достъп.
-     * Ако полето има посочени 'accessibleTo' и 'contragentFolders', то
-     * потребителя трябва да има посочените роли и/или папката за която ще извличаме продуктите
-     * присъства в разрешените, ако продуктите нямат посочените полета то те ще могат да се показват в бизнес
-     * документите във всяка папка за всеки потребител
-     * 
-     * @param array $products - продукти отговарящи на някакви критерии
-     */
-    private static function unsetUnavailableProducts(&$products, $folderId = NULL)
-    {
-    	// Ако няма продукти 
-    	if(!count($products)) return;
-    	$nProducts = array();
-    	
-    	// За всеки продукт проверяваме имаме ли достъп до него
-    	foreach ($products as $id => $rec){
-    		
-    		// Ако продукта има ограничение по роли и потребителя не е 'ceo'
-    		if(!empty($rec->accessibleTo) && !haveRole('ceo')){
-    			
-    			// и ако потребителя няма въпросната роля, не добавяме продукта
-    			if(!haveRole($rec->accessibleTo)){
-    				continue;
-    			}
-    		}
-    		
-    		// Ако няма папка не филтрираме по папка
-    		if(is_null($folderId)) continue;
-    		
-    		// Ако продукта е ограничен в кои папки да се появява
-    		if(!empty($rec->contragentFolders)){
-    			
-    			// и текущата папка не е от тях пропускаме го
-    			if(!keylist::isIn($folderId, $rec->contragentFolders)){
-    				continue;
-    			}
-    		}
-    		
-    		// Ако сме стигнали до тук то имаме достъп до продукта
-    		$nProducts[$id] = $rec->title;
-    	}
-    	
-    	// Връщаме филтрираните по достъп продукти
-    	return $nProducts;
     }
     
     
@@ -808,7 +752,7 @@ class cat_Products extends core_Embedder {
         }
         
         // Ако има промяна в групите, името или кода инвалидираме кеша
-    	if($rec->oldGroups != $rec->groups || $rec->oldAccessibleTo != $rec->accessibleTo || $rec->oldContragentFolders != $rec->contragentFolders || $rec->oldName != $rec->name || $rec->oldCode != $rec->code) {
+    	if($rec->oldGroups != $rec->groups || $rec->oldName != $rec->name || $rec->oldCode != $rec->code) {
 			core_Cache::remove('cat_Products', "productsMeta");
         }
     }
