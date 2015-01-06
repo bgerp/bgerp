@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа pos_eports
  *
@@ -12,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class pos_TransactionSourceImpl
+class pos_TransactionSourceImpl extends acc_DocumentTransactionSource
 {
     /**
      * @var pos_Reports
@@ -250,20 +252,5 @@ class pos_TransactionSourceImpl
         }
             
         return $entries;
-    }
-    
-    
-	/**
-     * Финализиране на транзакцията
-     */
-    public function finalizeTransaction($id)
-    {
-        $rec = $this->class->fetchRec($id);
-        $rec->state = 'active';
-        
-        $id = $this->class->save($rec);
-        $this->class->invoke('AfterActivation', array($rec));
-        
-        return $id;
     }
 }

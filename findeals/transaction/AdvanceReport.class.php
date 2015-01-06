@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа findeals_AdvanceReports
  *
@@ -12,31 +14,13 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class findeals_transaction_AdvanceReport
+class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
 {
     /**
      * 
      * @var findeals_AdvanceReports
      */
     public $class;
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'active';
-    
-    	if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
-    }
     
     
     /**

@@ -1,18 +1,20 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа acc_ClosePeriods
  *
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class acc_transaction_ClosePeriod
+class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
 {
 	
 	
@@ -211,20 +213,6 @@ class acc_transaction_ClosePeriod
     	}
     	
     	return $entries;
-    }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'active';
-    
-    	return $this->class->save($rec, 'state');
     }
     
     

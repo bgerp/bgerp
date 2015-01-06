@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа sales_Services
  *
@@ -12,30 +14,13 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class sales_transaction_Service
+class sales_transaction_Service extends acc_DocumentTransactionSource
 {
     /**
      * 
      * @var sales_Services
      */
     public $class;
-    
-    
-    /**
-     * Финализиране на транзакцията
-     * @param int $id
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'active';
-    
-    	if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
-    }
 
 
     /**

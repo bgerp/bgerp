@@ -14,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class bank_transaction_InternalMoneyTransfer
+class bank_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSource
 {
     
     
@@ -25,6 +25,14 @@ class bank_transaction_InternalMoneyTransfer
     public $class;
 
 
+    /**
+     * В какво състояние да е документа след финализирането на транзакцията
+     *
+     * @var string
+     */
+    public $finalizedState = 'closed';
+    
+    
     /**
      * Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      * Създава транзакция която се записва в Журнала, при контирането
@@ -82,23 +90,5 @@ class bank_transaction_InternalMoneyTransfer
     	);
     
     	return $result;
-    }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'closed';
-    
-    	if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
     }
 }

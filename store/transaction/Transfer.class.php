@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_Transfers
  *
@@ -12,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class store_transaction_Transfer
+class store_transaction_Transfer extends acc_DocumentTransactionSource
 {
 	
 	
@@ -56,23 +58,5 @@ class store_transaction_Transfer
 		}
 	
 		return $result;
-	}
-	
-	
-	/**
-	 * @param int $id
-	 * @return stdClass
-	 * @see acc_TransactionSourceIntf::getTransaction
-	 */
-	public function finalizeTransaction($id)
-	{
-		$rec = $this->class->fetchRec($id);
-		$rec->state = 'active';
-	
-		if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
 	}
 }

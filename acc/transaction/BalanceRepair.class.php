@@ -7,14 +7,14 @@
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class acc_transaction_BalanceRepair
+class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 {
 	
 	
@@ -164,23 +164,5 @@ class acc_transaction_BalanceRepair
 		
 		// Връщаме ентритата
 		return $entries;
-	}
-	
-	
-	/**
-	 * @param int $id
-	 * @return stdClass
-	 * @see acc_TransactionSourceIntf::getTransaction
-	 */
-	public function finalizeTransaction($id)
-	{
-		$rec = $this->class->fetchRec($id);
-		$rec->state = 'active';
-	
-		if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
 	}
 }

@@ -12,7 +12,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class store_transaction_Receipt
+class store_transaction_Receipt extends acc_DocumentTransactionSource
 {
     /**
      * 
@@ -65,23 +65,6 @@ class store_transaction_Receipt
         );
         
         return $transaction;
-    }
-    
-    
-    /**
-     * Финализиране на транзакцията
-     */
-    public function finalizeTransaction($id)
-    {
-        $rec = $this->class->fetchRec($id);
-        
-        $rec->state = 'active';
-        
-        if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
     }
     
     
