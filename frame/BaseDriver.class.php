@@ -168,8 +168,6 @@ abstract class frame_BaseDriver extends core_BaseClass
 		$form->rec = $this->innerForm;
 		$form->class = 'simpleForm';
 		 
-		Mode::push('staticFormView', TRUE);
-		$tpl->prepend($form->renderHtml(), $placeholder);
-		Mode::pop();
+		$tpl->prepend($form->renderStaticHtml(), $placeholder);
 	}
 }

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Базов клас за наследяване документис вързани със сделките
  *
@@ -9,7 +8,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -118,12 +117,15 @@ abstract class deals_Document extends core_Master
 				if(!$doc){
 					$form->setError('dealHandler', 'Няма документ с такъв хендлър');
 				} else {
-					$rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
+					// Трябва намерената сделка да е активна
+					if($doc->fetchField('state') != 'active'){
+						$form->setError('dealHandler', 'Сделката трябва да е активна');
+					} else {
+						$rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
+					}
 				}
 			}
 		}
-		
-
 
 		$mvc->invoke('AfterInputDocumentEditForm', array($form));
 	}

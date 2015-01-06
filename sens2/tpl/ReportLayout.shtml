@@ -1,15 +1,2 @@
-<table>
-    <tr>
-        <td>От:</td>
-        <td>[#from#]</td>
-    </tr>
-    <tr>
-        <td>До:</td>
-        <td>[#to#]</td>
-    </tr>
-    <tr>
-        <td>Сензори:</td>
-        <td>[#indicators#]</td>
-    </tr>
-</table>
+[#FORM#]
 [#data#]

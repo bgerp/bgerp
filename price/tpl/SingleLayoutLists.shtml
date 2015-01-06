@@ -76,7 +76,7 @@
         <!--ET_END roundingOffset-->
     <!--ET_END roundingPrecisionTable-->
     </table>
-    <div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+    <div><span class="title-style">|Създаване|*: </span>[#createdBy#], [#createdOn#]</div>
     <br>
     <div class='scrolling-holder'>
         [#DETAILS#]

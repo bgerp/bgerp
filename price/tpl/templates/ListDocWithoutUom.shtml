@@ -42,8 +42,8 @@
         <!--ET_END currencyId-->
         <!--ET_BEGIN createdOn-->
         <tr>
-            <td>|Създадено на|* </td>
-            <td>[#createdOn#] |от|* [#createdBy#]</td>
+            <td>|Създаване|* </td>
+            <td>[#createdBy#], [#createdOn#]</td>
         </tr>
         <!--ET_END createdOn-->
         <!--ET_BEGIN printHeader-->
