@@ -33,6 +33,7 @@ class mp_transaction_ProductionNote
 				'entries' => array()
 		);
 	
+		// Ако има ид, добавяме записите
 		if(isset($rec->id)){
 			$entries = $this->getEntries($rec, $result->totalAmount);
 			if(count($entries)){
@@ -46,6 +47,23 @@ class mp_transaction_ProductionNote
 	
 	/**
 	 * Връща записите на транзакцията
+	 * 
+	 * Ако артикула има активно задание за производство и активна технологична карта.
+	 * 		
+	 * 		За всеки ресурс от картата:
+	 * 
+	 * 		Dt: 321. Стоки и продукти                  (Складове, Артикули)
+	 * 			Dt: 302. Суровини и материали          (Складове, Артикули)
+	 * 
+	 * 		Ct: 6111. Разходи по Центрове и Ресурси		(Център на дейност, Ресурс)
+	 * 
+	 * В противен случай
+	 * 
+	 * 		Dt: 321. Стоки и продукти                  (Складове, Артикули)
+	 * 			Dt: 302. Суровини и материали          (Складове, Артикули)
+	 * 
+	 * 		Ct: 6112. Разходи по Центрове на дейност   (Център на дейност)
+	 * 
 	 */
 	private static function getEntries($rec, &$total)
 	{
@@ -58,6 +76,10 @@ class mp_transaction_ProductionNote
 			// Референция към артикула
 			$productRef = new core_ObjectReference($dRec->classId, $dRec->productId);
 	
+			// Коя сметка от трета група да кредитираме, взависимост от свойствата на артикула
+			$pInfo = $productRef->getProductInfo($dRec->productId);
+			$creditAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
+			
 			//@TODO да се използва интерфейсен метод а не тази проверка
 	
 			// Взимаме к-то от последното активно задание за артикула, ако има
@@ -72,13 +94,11 @@ class mp_transaction_ProductionNote
 				if($mapArr = ($productRef->getInstance() instanceof techno2_SpecificationDoc) ? $productRef->getResourcesFromMap() : NULL){
 					$usesResources = TRUE;
 					
+					// За всеки ресурс от картата
 					foreach ($mapArr as $index => $resInfo){
 						
 						// Центъра на дейност е този от картата или по дефолт е избрания център от документа
 						$activityCenterId = (isset($resInfo->activityCenterId)) ? $resInfo->activityCenterId : $rec->activityCenterId;
-						
-						$pInfo = $productRef->getProductInfo($dRec->productId);
-						$creditAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
 						
 					   /*
 						* За всеки ресурс началното количество се разделя на количеството от заданието и се събира
@@ -89,7 +109,7 @@ class mp_transaction_ProductionNote
 						$amount = $resQuantity * mp_Resources::fetchField($resInfo->resourceId, "selfValue");
 						$total += $amount;
 						
-						//@TODO а себестойността, ако е въведена
+						//@TODO а себестойността, ако е въведена ?
 						
 						// Първото дебитиране на артикула става с цялото к-ва, а последващите с нулево
 						$pQuantity = ($index == 0) ? $dRec->quantity : 0;
@@ -108,8 +128,19 @@ class mp_transaction_ProductionNote
 				}
 			}
 	
+			// Ако няма технологична карта и/или количество от заданието
 			if($usesResources === FALSE){
-				//@TODO ако няма използвани ресурси за влагането, дебитираме сметката, която не е разбита по ресурси
+				
+				// Тогава кредитираме сметка 6112
+				$entries[] = array('amount' => $dRec->selfValue,
+								   'debit' => array($creditAccId, 
+								   				array('store_Stores', $rec->storeId), 
+								   				array($dRec->classId, $dRec->productId),
+												'quantity' => $dRec->quantity),
+								   'credit' => array('6112', array('hr_Departments', $rec->activityCenterId))
+							);
+				
+				$total += $dRec->selfValue;
 			}
 		}
 		
