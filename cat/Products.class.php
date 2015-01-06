@@ -244,17 +244,6 @@ class cat_Products extends core_Embedder {
                 }
             }
         }
-        
-        // Оставяме за избор на папки само тези на контрагенти
-        $arrs = array();
-        $fQuery = doc_Folders::getQuery();
-        $fQuery->show('coverClass,title');
-        while($fRec = $fQuery->fetch()){
-        	if(!empty($fRec->coverClass) && cls::haveInterface('doc_ContragentDataIntf', $fRec->coverClass)){
-        		$arrs[$fRec->id] = $fRec->title;
-        	}
-        }
-        $data->form->setSuggestions('contragentFolders', $arrs);
     }
     
     
@@ -896,12 +885,7 @@ class cat_Products extends core_Embedder {
 	    	
 	    	while($rec = $query->fetch()){
 	    		if(!array_key_exists($rec->id, $tmp)){
-	    			$obj = new stdClass();
-	    			$obj->title = static::getTitleById($rec->id, FALSE);
-	    			$obj->accessibleTo = $rec->accessibleTo;
-	    			$obj->contragentFolders = $rec->contragentFolders;
-	    			
-	    			$tmp[$rec->id] = $obj;
+	    			$tmp[$rec->id] = static::getTitleById($rec->id, FALSE);
 	    		}
 	    		
 	    		$products[$rec->id] = $tmp[$rec->id];
