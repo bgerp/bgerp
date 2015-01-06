@@ -55,7 +55,7 @@ class mp_transaction_ProductionNote
 	 * 		Dt: 321. Стоки и продукти                  (Складове, Артикули)
 	 * 			Dt: 302. Суровини и материали          (Складове, Артикули)
 	 * 
-	 * 		Ct: 6111. Разходи по Центрове и Ресурси		(Център на дейност, Ресурс)
+	 * 		Ct: 611. Разходи по Центрове и Ресурси		(Център на дейност, Ресурс)
 	 * 
 	 * В противен случай
 	 * 
@@ -118,7 +118,7 @@ class mp_transaction_ProductionNote
 							'debit' => array($creditAccId, array('store_Stores', $rec->storeId), 
 													array($dRec->classId, $dRec->productId),
 											 'quantity' => $pQuantity),
-							'credit' => array('6111', array('hr_Departments', $activityCenterId)
+							'credit' => array('611', array('hr_Departments', $activityCenterId)
 												   , array('mp_Resources', $resInfo->resourceId),
 											  'quantity' => $resQuantity),
 						);

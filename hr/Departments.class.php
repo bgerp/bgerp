@@ -36,7 +36,7 @@ class hr_Departments extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '6111,6112';
+    public $balanceRefAccounts = '611,6112';
     
     
     /**
