@@ -88,6 +88,11 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     	if(!strpos($filter->to, ' ')) {
     		$filter->to .= ' 23:59:59';
     	}
+    	
+    	$data->row = new stdClass();
+    	$data->row->from = $DateTime->toVerbal($filter->from);
+    	$data->row->to = $DateTime->toVerbal($filter->to);
+    	$data->row->indicators = $KeyList->toVerbal($filter->indicators);
     	 
     	$query = sens2_DataLogs::getQuery();
     	 
@@ -115,7 +120,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     {
     	$layout = new ET(getFileContent('sens2/tpl/ReportLayout.shtml'));
     
-    	$this->prependStaticForm($layout, 'FORM');
+    	$layout->placeObject($data->row);
     
     	if(count($data->recs)) {
     		foreach($data->recs as $id => $rec) {
