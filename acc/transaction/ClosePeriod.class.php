@@ -501,36 +501,36 @@ class acc_transaction_ClosePeriod
      * 
      * Разходи за материали
      * 
-     * 		Dt: 611. Разходи за основна дейност
+     * 		Dt: 6111. Разходи по Центрове и Ресурси
      * 		Ct: 601. Разходи за материали
      * 
      *  Разходи за Разходи за външни услуги
      *  
-     * 		Dt: 611. Разходи за основна дейност
+     * 		Dt: 6111. Разходи по Центрове и Ресурси
      * 		Ct: 602. Разходи за външни услуги
      * 
      * Разходи за материали
      * 
-     * 		Dt: 611. Разходи за основна дейност
+     * 		Dt: 6111. Разходи по Центрове и Ресурси
      * 		Ct: 603. Разходи за амортизация
      * 
      * Приключваме разхода като намаление на финансовия резултат за периода
      * 
      * 		Dt: 123. Печалби и загуби от текущата година
-     * 		Ct: 611. Разходи за основна дейност
+     * 		Ct: 6111. Разходи по Центрове и Ресурси
      * 
      * Разходи за труд
      * 
-     * 		Dt: 611. Разходи за основна дейност
+     * 		Dt: 6111. Разходи по Центрове и Ресурси
      * 		Ct: 604. Разходи за заплати (възнаграждения)
      * 
-     * 		Dt: 611. Разходи за основна дейност
+     * 		Dt: 6111. Разходи по Центрове и Ресурси
      * 		Ct: 605. Разходи за осигуровки
      * 
      * Приключваме разхода като намаление на финансовия резултат за периода
      * 
      * 		Dt: 123. Печалби и загуби от текущата година
-     * 		Ct: 611. Разходи за основна дейност
+     * 		Ct: 6111. Разходи за основна дейност
      * 
      */
     protected function transferCosts(&$total, $rec)
@@ -564,7 +564,7 @@ class acc_transaction_ClosePeriod
     		$quantity = &${"quantity{$accs[$dRec->accountId]}"};
     		
     		$entries[] = array('amount'  => abs($dRec->blAmount), 
-    							'debit'  => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', ${"resource{$accs[$dRec->accountId]}"}), 'quantity' => $dRec->blQuantity), 
+    							'debit'  => array('6111', array('hr_Departments', $baseDepartment), array('mp_Resources', ${"resource{$accs[$dRec->accountId]}"}), 'quantity' => $dRec->blQuantity), 
     							'credit' => array($accs[$dRec->accountId], $dRec->ent1Id, 'quantity' => $dRec->blQuantity),
     							'reason' => ${"reason{$accs[$dRec->accountId]}"});
     		$total += abs($dRec->blAmount);
@@ -577,7 +577,7 @@ class acc_transaction_ClosePeriod
     		
     		$entries[] = array('amount'  => abs(${"amount{$sysId}"}),
     				'debit'  => array('123', $this->date->year),
-    				'credit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', ${"resource{$sysId}"}), 'quantity' => ${"quantity{$sysId}"}),
+    				'credit' => array('6111', array('hr_Departments', $baseDepartment), array('mp_Resources', ${"resource{$sysId}"}), 'quantity' => ${"quantity{$sysId}"}),
     				'reason' => ${"reason{$sysId}"});
     		 
     		$total += abs(${"amount{$sysId}"});
@@ -600,7 +600,7 @@ class acc_transaction_ClosePeriod
     	
     	if(round($rec604->blAmount, 2) != 0){
     		$entries[] = array('amount' => abs($rec604->blAmount),
-    				'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => $rec604->blQuantity),
+    				'debit' => array('6111', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => $rec604->blQuantity),
     				'credit' => array('604'), 'reason' => $reason604);
     		 
     		$total += abs($rec604->blAmount);
@@ -608,7 +608,7 @@ class acc_transaction_ClosePeriod
     	
     	if(round($rec605->blAmount, 2) != 0){
     		$entries[] = array('amount' => abs($rec605->blAmount),
-    				'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource605), 'quantity' => $rec605->blQuantity),
+    				'debit' => array('6111', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource605), 'quantity' => $rec605->blQuantity),
     				'credit' => array('605'), 'reason' => $reason605);
     		 
     		 
@@ -621,7 +621,7 @@ class acc_transaction_ClosePeriod
     	if(round($tAmount, 2) != 0){
     		$entries[] = array('amount' => $tAmount,
     				'debit' => array('123', $this->date->year),
-    				'credit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)),
+    				'credit' => array('6111', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)),
     				'reason' => $reason604);
     		 
     		$total += $tAmount;

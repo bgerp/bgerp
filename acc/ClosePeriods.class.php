@@ -393,6 +393,8 @@ class acc_ClosePeriods extends core_Master
     		$info[$dRec->accountId] = $nRow;
     	}
     	
+    	ksort($info);
+    	
     	// Връщаме историята на направените операции
     	return $info;
     }
