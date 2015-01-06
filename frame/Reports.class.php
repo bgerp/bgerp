@@ -175,7 +175,7 @@ class frame_Reports extends core_Embedder
     		// Обновяваме датата на кога най-рано може да се активира
     		$Source = $mvc->getDriver($rec);
     		$rec->earlyActivationOn = $Source->getEarlyActivation();
-    		//$rec->state = 'draft';
+    		$rec->state = 'draft';
     		$mvc->save($rec, 'earlyActivationOn,state');
     	}
     }
@@ -383,7 +383,8 @@ class frame_Reports extends core_Embedder
     	
     	// Ако отчета е чакащ, може да се редактира
     	if($action == 'edit' && isset($rec)){
-    		if($rec->state == 'pending'){
+    		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
+    		if($state == 'pending'){
     			$requiredRoles = $mvc->getRequiredRoles('edit');
     		}
     	}
