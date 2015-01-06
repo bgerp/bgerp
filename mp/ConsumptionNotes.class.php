@@ -119,6 +119,8 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	 */
 	public static function canActivate($rec)
 	{
+		if(empty($rec->id)) return FALSE;
+		
 		// Намираме му детайлите
 		$dQuery = mp_ConsumptionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
