@@ -89,6 +89,8 @@ class mp_transaction_ProductionNote
 						$amount = $resQuantity * mp_Resources::fetchField($resInfo->resourceId, "selfValue");
 						$total += $amount;
 						
+						//@TODO а себестойността, ако е въведена
+						
 						// Първото дебитиране на артикула става с цялото к-ва, а последващите с нулево
 						$pQuantity = ($index == 0) ? $dRec->quantity : 0;
 						$entry = array(
@@ -96,7 +98,7 @@ class mp_transaction_ProductionNote
 							'debit' => array($creditAccId, array('store_Stores', $rec->storeId), 
 													array($dRec->classId, $dRec->productId),
 											 'quantity' => $pQuantity),
-							'credit' => array('611', array('hr_Departments', $activityCenterId)
+							'credit' => array('6111', array('hr_Departments', $activityCenterId)
 												   , array('mp_Resources', $resInfo->resourceId),
 											  'quantity' => $resQuantity),
 						);
