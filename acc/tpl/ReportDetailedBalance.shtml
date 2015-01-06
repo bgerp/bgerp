@@ -1,17 +1,7 @@
-<b>[#accountId#]</b><br>
-<table class='top-table'  style='margin-bottom: 10px;'>
-    <tr>
-        <td class='aright quiet'>|Период|*:</td>
-        <td> [#from#] - [#to#] </td>
-    </tr>
-    <!--ET_BEGIN action-->
-    <tr>
-        <td class='aright quiet'> [#action#]:</td>
-        <td>[#groupBy#]</td>
-    </tr>
-    <!--ET_END action-->
-</table>
-[#PAGER_TOP#]
+[#FORM#]
+<!--ET_BEGIN action-->
+<div><span class='quiet'>[#action#]</span>: [#groupBy#]</div><br>
+<!--ET_END action-->
 <div class='overflow-scroll'>
     [#DETAILS#]
 </div>

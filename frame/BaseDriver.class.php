@@ -152,4 +152,22 @@ abstract class frame_BaseDriver extends core_BaseClass
 	{
 		return dt::now();
 	}
+	
+	
+	/**
+	 * Рендира вътрешната форма като статична форма в подадения шаблон
+	 * 
+	 * @param core_ET $tpl - шаблон
+	 * @param string $placeholder - плейсхолдър
+	 */
+	protected function prependStaticForm(core_ET &$tpl, $placeholder = NULL)
+	{
+		$form = cls::get('core_Form');
+		
+		$this->addEmbeddedFields($form);
+		$form->rec = $this->innerForm;
+		$form->class = 'simpleForm';
+		 
+		$tpl->prepend($form->renderStaticHtml(), $placeholder);
+	}
 }

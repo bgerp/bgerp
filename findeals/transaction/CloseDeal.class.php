@@ -98,6 +98,8 @@ class findeals_transaction_CloseDeal extends acc_DocumentTransactionSource
     							array($firstDoc->className, $firstDoc->that))
     			);
     		}
+    		
+    		$result->totalAmount += abs($amount);
     	}
     	
     	return $result;
