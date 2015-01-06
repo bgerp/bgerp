@@ -115,6 +115,15 @@ abstract class frame_BaseDriver extends core_BaseClass
 	
 	
 	/**
+	 * Връща дефолт заглавието на репорта
+	 */
+	public function getReportTitle()
+	{
+		return $this->title;
+	}
+	
+	
+	/**
 	 * Променя ключовите думи
 	 * 
 	 * @param string $searchKeywords

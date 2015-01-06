@@ -83,6 +83,16 @@ class acc_type_Account extends type_Key
         return parent::fromVerbal_($value);
     }
     
+    /**
+     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
+     */
+    function toVerbal_($value)
+    {
+    	$row = acc_Accounts::recToVerbal($value, 'title,num');
+    	
+    	return $row->num . "." . $row->title;
+    }
+    
     
     /**
      * Помощна ф-я филтрираща опциите на модела, така че аналитичностите на
