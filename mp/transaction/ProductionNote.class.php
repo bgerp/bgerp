@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа mp_ProductionNotes
  *
@@ -12,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class mp_transaction_ProductionNote
+class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 {
 	
 	
@@ -146,23 +148,5 @@ class mp_transaction_ProductionNote
 		
 		// Връщаме ентритата
 		return $entries;
-	}
-	
-	
-	/**
-	 * @param int $id
-	 * @return stdClass
-	 * @see acc_TransactionSourceIntf::getTransaction
-	 */
-	public function finalizeTransaction($id)
-	{
-		$rec = $this->class->fetchRec($id);
-		$rec->state = 'active';
-	
-		if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
 	}
 }

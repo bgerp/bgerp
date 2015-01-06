@@ -14,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class mp_transaction_ConsumptionNote
+class mp_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 {
 	
 	
@@ -78,23 +78,5 @@ class mp_transaction_ConsumptionNote
 		
 		// Връщаме ентритата
 		return $entries;
-	}
-	
-	
-	/**
-	 * @param int $id
-	 * @return stdClass
-	 * @see acc_TransactionSourceIntf::getTransaction
-	 */
-	public function finalizeTransaction($id)
-	{
-		$rec = $this->class->fetchRec($id);
-		$rec->state = 'active';
-	
-		if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
 	}
 }

@@ -14,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class cash_transaction_Rko
+class cash_transaction_Rko extends acc_DocumentTransactionSource
 {
 	
     /**
@@ -25,21 +25,11 @@ class cash_transaction_Rko
     
     
     /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
+     * В какво състояние да е документа след финализирането на транзакцията
+     *
+     * @var string
      */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'closed';
-    
-    	if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
-    }
+    public $finalizedState = 'closed';
     
     
     /**
