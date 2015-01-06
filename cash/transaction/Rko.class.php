@@ -29,7 +29,7 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
      *
      * @var string
      */
-    public $finalizedState = 'closed';
+    protected $finalizedState = 'closed';
     
     
     /**

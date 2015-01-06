@@ -30,7 +30,7 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
      *
      * @var string
      */
-    public $finalizedState = 'closed';
+    protected $finalizedState = 'closed';
     
     
     /**

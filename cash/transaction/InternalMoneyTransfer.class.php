@@ -30,7 +30,7 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
      *
      * @var string
      */
-    public $finalizedState = 'closed';
+    protected $finalizedState = 'closed';
     
     
     /**

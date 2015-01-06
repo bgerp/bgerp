@@ -30,7 +30,7 @@ abstract class acc_DocumentTransactionSource
      *
      * @var string
      */
-    public $finalizedState = 'active';
+    protected $finalizedState = 'active';
     
     
     /**

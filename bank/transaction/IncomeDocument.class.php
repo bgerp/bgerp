@@ -26,7 +26,7 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
      *
      * @var string
      */
-    public $finalizedState = 'closed';
+    protected $finalizedState = 'closed';
     
     
     /**
