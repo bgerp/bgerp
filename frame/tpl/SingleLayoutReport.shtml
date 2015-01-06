@@ -5,7 +5,6 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
     </div>
     <!--ET_END header-->
-    <div class='listTitle'>[#name#]</div>
     <div class='clear_l f_left'>
         <div>[#data#]</div>
     </div>

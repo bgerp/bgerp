@@ -130,9 +130,6 @@ class frame_Reports extends core_Embedder
      */
     function description()
     {
-        // Име на отчета
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование, width=100%, notFilter, mandatory');
-
         // Singleton клас - източник на данните
         $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Източник,silent,mandatory,notFilter', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
 
@@ -144,8 +141,6 @@ class frame_Reports extends core_Embedder
  
         // Най-ранната дата когато отчета може да се активира
         $this->FLD('earlyActivationOn', 'datetime', 'input=none');
-       
-        $this->setDbUnique('name');
     }
 
     
@@ -255,8 +250,11 @@ class frame_Reports extends core_Embedder
     public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
+    	
+    	$Driver = $this->getDriver($rec);
+    	
         $row = new stdClass();
-        $row->title = $this->singleTitle . " №{$id} {$rec->name}";
+        $row->title = $this->singleTitle . " №{$id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
