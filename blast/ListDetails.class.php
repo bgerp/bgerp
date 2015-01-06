@@ -425,7 +425,11 @@ class blast_ListDetails extends doc_Detail
         foreach($fieldsArr as $name => $caption) {
             $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
             $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure, NULL, FALSE)");
-            $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,'{$caption}', TRUE, '{$name}')");
+            
+            $caption = str_replace(array('"', "'"), array('\\"', "\\'"), $caption);
+            $nameEsc = str_replace(array('"', "'"), array('\\"', "\\'"), $name);
+            
+            $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,'{$caption}', TRUE, '{$nameEsc}')");
             
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
