@@ -2366,6 +2366,17 @@ class crm_Persons extends core_Master
     
      
     /**
+     * Какъв е дефолтната мярка на  ресурса
+     *
+     * @param int $id - ид на обекта
+     */
+    public function getResourceMeasureId($id)
+    {
+    	return cat_UoM::fetchBySinonim('h')->id;
+    }
+    
+    
+    /**
      * Какъв е дефолтния тип ресурс на обекта
      *
      * @param int $id - ид на обекта

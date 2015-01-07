@@ -1089,6 +1089,19 @@ class cat_Products extends core_Embedder {
     
     
     /**
+     * Какъв е дефолтната мярка на  ресурса
+     *
+     * @param int $id - ид на обекта
+     */
+    public function getResourceMeasureId($id)
+    {
+    	$pInfo = $this->getProductInfo($id);
+    	
+    	return $pInfo->productRec->measureId;
+    }
+    
+    
+    /**
      * Какъв е дефолтния тип ресурс на обекта
      *
      * @param int $id - ид на обекта

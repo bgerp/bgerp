@@ -37,6 +37,17 @@ class mp_ResourceSourceIntf
 	
 	
 	/**
+	 * Какъв е дефолтната мярка на  ресурса
+	 *
+	 * @param int $id - ид на обекта
+	 */
+	public function getResourceMeasureId($id)
+	{
+		$this->class->getResourceMeasureId($id);
+	}
+	
+	
+	/**
 	 * Какъв е дефолтния тип ресурс на обекта
 	 *
 	 * @param int $id - ид на обекта

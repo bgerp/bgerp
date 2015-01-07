@@ -129,9 +129,12 @@ class mp_ObjectResources extends core_Manager
     			
     			// Създава нов запис и го свързва с обекта 
     			$type = cls::get($form->rec->classId)->getResourceType($form->rec->objectId);
-    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $type));
+    			$measureId = cls::get($form->rec->classId)->getResourceMeasureId($form->rec->objectId);
+    			
+    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $type, 'measureId' => $measureId));
     			
     			$nRec = (object)array('classId' => $classId, 'objectId' => $objectId, 'resourceId' => $resourceId);
+    			
     			$this->save($nRec);
     		}
     		
