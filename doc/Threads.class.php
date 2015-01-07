@@ -346,7 +346,11 @@ class doc_Threads extends core_Manager
         
         $docQuery = clone $data->query;
         $documentsInThreadOptions = self::getDocumentsInThread($folderId, $docQuery, $rejected);
+        
         if(count($documentsInThreadOptions)) {
+            
+            $documentsInThreadOptions = array_map('tr', $documentsInThreadOptions);
+            
         	$data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
         } else {
         	$data->listFilter->setReadOnly('documentClassId');
@@ -403,7 +407,7 @@ class doc_Threads extends core_Manager
     		}
     		
     		core_Cache::set("doc_Folders", "folder{$folderId}", $documentsInThreadOptions, 1440);
-    	} 
+    	}
     	
     	if(is_null($rejected)){
     		return $documentsInThreadOptions['notrejected'];
