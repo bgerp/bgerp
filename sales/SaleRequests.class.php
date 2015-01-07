@@ -41,7 +41,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, plg_Printing, doc_DocumentPlg, doc_ActivatePlg,
+    public $loadList = 'sales_Wrapper, doc_DocumentPlg, plg_Printing, doc_ActivatePlg,
     					bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Sorting, doc_plg_HidePrices';
     
     
