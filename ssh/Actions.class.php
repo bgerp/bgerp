@@ -29,6 +29,20 @@ class ssh_Actions
     
     
     /**
+     * Конструктор
+     */
+    public function __construct($host, $port, $user, $pass)
+    {
+        $this->host = $host;
+        $this->port = $port;
+        $this->user = $user;
+        $this->pass = $pass;
+        
+        $this->connect();
+    }
+    
+    
+    /**
      * Връща кънекшън ресурс
      * 
      * @param string $host
@@ -64,8 +78,6 @@ class ssh_Actions
         if (!@ssh2_auth_password($this->connection, $this->user, $this->pass)) {
             throw new core_exception_Expect("{$this->host}: грешен потребител или парола.");
         }
-        
-        return $connection;
     }
     
     
@@ -76,7 +88,7 @@ class ssh_Actions
      * @param string $output [optionаl]
      * @param string $errors [optionаl]
      */
-    public static function exec($command, &$output=NULL, &$errors=NULL)
+    public function exec($command, &$output=NULL, &$errors=NULL)
     {
 
         // Изпълняваме командата
@@ -100,7 +112,7 @@ class ssh_Actions
      * @param string $host
      * @param string $fileName - име на локалния файл
      */
-    public static function put($host, $localFileName)
+    public function put($localFileName)
     {
         
         $remoteFileName = $localFileName;
@@ -116,7 +128,7 @@ class ssh_Actions
      * @param string $host
      * @param string $fileName име на отдалечения файл
      */
-    public static function get($host, $remoteFileName)
+    public function get($remoteFileName)
     {
         $localFileName = $remoteFileName;
         
