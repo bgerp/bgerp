@@ -105,7 +105,7 @@ class core_Embedder extends core_Master
 		
 		if(empty(self::$Drivers[$rec->id])){
 			$Driver = cls::get($rec->{$this->innerClassField});
-			$Driver->ProductRec = new core_ObjectReference($this, $rec->id);
+			$Driver->EmbedderRec = new core_ObjectReference($this, $rec->id);
 			self::$Drivers[$rec->id] = $Driver;
 		}
 		

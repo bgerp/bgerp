@@ -48,7 +48,7 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 *
 	 * @param core_ObjectReference
 	 */
-	public $ProductRec;
+	public $EmbedderRec;
 	
 	
 	/**

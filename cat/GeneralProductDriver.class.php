@@ -69,7 +69,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$tpl->placeObject($data->row);
 		
 		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
-		if(!$this->ProductRec->haveInterface('cat_ProductAccRegIntf')){
+		if(!$this->EmbedderRec->haveInterface('cat_ProductAccRegIntf')){
 			$data->noChange = TRUE;
 		}
 		
@@ -109,8 +109,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		$data->row = $row;
 		
-		$data->masterId = $this->ProductRec->rec()->id;
-		$data->masterClassId = $this->ProductRec->getClassId();
+		$data->masterId = $this->EmbedderRec->rec()->id;
+		$data->masterClassId = $this->EmbedderRec->getClassId();
 		
 		cat_products_Params::prepareParams($data);
 		
@@ -149,7 +149,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function getParamValue($sysId)
 	{
-		return cat_products_Params::fetchParamValue($this->ProductRec->rec()->id, $this->ProductRec->getClassId(), $sysId);
+		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), $sysId);
 	}
 	
 	
@@ -167,7 +167,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function getFeatures()
 	{
-		return cat_products_Params::getFeatures($this->ProductRec->getClassId(), $this->ProductRec->rec()->id);
+		return cat_products_Params::getFeatures($this->EmbedderRec->getClassId(), $this->EmbedderRec->rec()->id);
 	}
 	
 	
@@ -183,7 +183,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		$tpl = $this->renderEmbeddedData($data);
 		
-		$title = ht::createLinkRef($this->ProductRec->getProductTitle(), array($this->ProductRec->instance, 'single', $this->ProductRec->that));
+		$title = ht::createLinkRef($this->EmbedderRec->getProductTitle(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
 		$tpl->removeBlock('INFORMATION');
 		$tpl->replace($title, "TITLE");
 		
