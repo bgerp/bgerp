@@ -412,6 +412,15 @@ class acc_Items extends core_Manager
                 
                 if(!$Class->haveRightFor('edit', (object)array('id' => $rec->objectId))){
                     $res = 'no_one';
+                } else {
+                	
+                	// Ако перото е документ, то то не трябва да е чернова
+                	if(cls::haveInterface('doc_DocumentIntf', $rec->classId)){
+                		$state = cls::get($rec->classId)->fetchField($rec->objectId, 'state');
+                		if($state == 'draft'){
+                			$res = 'no_one';
+                		}
+                	}
                 }
             }
         }
