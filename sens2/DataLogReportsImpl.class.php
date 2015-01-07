@@ -126,7 +126,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     		$this->invoke('AfterPrepareListRows', array($data, $data));
     	}
     		
-    	$table = cls::get('core_TableView');
+    	$table = cls::get('core_TableView', array('mvc' => cls::get('sens2_DataLogs')));
     
     	$layout->append($table->get($data->rows, 'time=Време,indicatorId=Индикатор,value=Стойност'), 'data');
     		
