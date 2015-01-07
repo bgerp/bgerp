@@ -339,7 +339,7 @@ class techno2_SpecificationDoc extends core_Embedder
     		
     		// Добавяме бутона за промяна
     		if($mvc->haveRightFor('edit', $data->rec)){
-    			$data->toolbar->addBtn('Промяна', array($mvc, 'edit', $data->rec->id), 'id=btnEdit,order=1', 'ef_icon = img/16/to_do_list.png,title=Редакция на активирана спецификация');
+    			$data->toolbar->addBtn('Промяна', array($mvc, 'edit', $data->rec->id, 'ret_url' => TRUE), 'id=btnEdit,order=1', 'ef_icon = img/16/to_do_list.png,title=Редакция на активирана спецификация');
     		}
     	}
     	
@@ -348,9 +348,9 @@ class techno2_SpecificationDoc extends core_Embedder
     		
     		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $tId))){
     			if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id), 'ef_icon = img/16/document_quote.png,title=Редактиране на оферта');
+    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Редактиране на оферта');
     			} else {
-    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
+    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
     			}
     		}
     	}
@@ -362,17 +362,17 @@ class techno2_SpecificationDoc extends core_Embedder
     	if($data->rec->state == 'active'){
     		if(techno2_Maps::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
     			if($qRec = techno2_Maps::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Техн. карта", array('techno2_Maps', 'edit', $qRec->id), 'ef_icon = img/16/legend.png,title=Редактиране на технологична карта');
+    				$data->toolbar->addBtn("Техн. карта", array('techno2_Maps', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична карта');
     			} else {
-    				$data->toolbar->addBtn("Техн. карта", array('techno2_Maps', 'add', 'originId' => $data->rec->containerId), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична карта');
+    				$data->toolbar->addBtn("Техн. карта", array('techno2_Maps', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична карта');
     			}
     		}
     		
     		if(mp_Jobs::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
     			if($qRec = mp_Jobs::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'edit', $qRec->id), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
+    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
     			} else {
-    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'originId' => $data->rec->containerId), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
+    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
     			}
     		}
     	}
