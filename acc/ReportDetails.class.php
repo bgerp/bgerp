@@ -152,7 +152,7 @@ class acc_ReportDetails extends core_Manager
         foreach ($data->recs as $dRec){
             
             // На коя позиция се намира, перото на мастъра
-            $gPos = acc_Lists::getPosition($dRec->accountNum, $groupBy);
+            $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);
             
             // Обхождане на останалите пера
             $row = array();
