@@ -881,7 +881,24 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public function renderJobView($id, $time = NULL)
     {
-    	//@TODO дали е удачнода се кешира изгледа
+    	//@TODO дали е удачно да се кешира изгледа
     	return $this->getProductDesc($id, $time);
+    }
+    
+    
+    /**
+     * Изпълнява се след клониране на запис
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	// Клонираме и параметрите
+    	$pQuery = cat_products_Params::getQuery();
+    	$pQuery->where("#classId = {$mvc->getClassId()} AND #productId = {$rec->id}");
+    	
+    	while($dRec = $pQuery->fetch()){
+    		$dRec->productId = $nRec->id;
+    		unset($dRec->id);
+    		cat_products_Params::save($dRec);
+    	}
     }
 }
