@@ -515,7 +515,6 @@ class hr_Departments extends core_Master
     			1 => "activities",
     			2 => "systemId",
     			3 => "type",
-    			4 => "access",
     	);
     	
     	// Импортираме данните от CSV файла.
