@@ -56,7 +56,7 @@ class techno2_MapDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'rowNumb=Пулт, stageId, resourceId, baseQuantity, propQuantity';
+    var $listFields = 'rowNumb=Пулт, stageId, resourceId, baseQuantity, propQuantity=Количество->Пропорц.';
     
     
     /**
