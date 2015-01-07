@@ -210,7 +210,7 @@ class mp_Jobs extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		//$data->toolbar->removeBtn('btnAdd');
+    		$data->toolbar->removeBtn('btnAdd');
     	}
     }
     
