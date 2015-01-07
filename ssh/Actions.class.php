@@ -29,6 +29,20 @@ class ssh_Actions
     
     
     /**
+     * Конструктор
+     */
+    public function __construct($host, $port, $user, $pass)
+    {
+        $this->host = $host;
+        $this->port = $port;
+        $this->user = $user;
+        $this->pass = $pass;
+        
+        $this->connect();
+    }
+    
+    
+    /**
      * Връща кънекшън ресурс
      * 
      * @param string $host
@@ -64,8 +78,6 @@ class ssh_Actions
         if (!@ssh2_auth_password($this->connection, $this->user, $this->pass)) {
             throw new core_exception_Expect("{$this->host}: грешен потребител или парола.");
         }
-        
-        return $connection;
     }
     
     
