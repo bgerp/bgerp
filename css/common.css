@@ -1045,6 +1045,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   padding: 3px;
   background-color: white; }
 
+.wide #main-container .formTable .staticFormView .formElement {
+  min-width: 200px; }
+
 .formFields > table {
   width: 100%; }
 
