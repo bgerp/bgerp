@@ -226,7 +226,7 @@ class sales_Quotations extends core_Master
        		$origin = doc_Containers::getDocument($rec->originId);
        		
        		if($origin->haveInterface('cat_ProductAccRegIntf')){
-       			$price = $origin->getPriceInfo()->price;
+       			$price = $origin->getInstance()->getPriceInfo($rec->contragentClassId, $rec->contragentId, $origin->that, $origin->getInstance()->getClassId())->price;
 	       		
        			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
 	       		if(!$price){
