@@ -202,7 +202,6 @@ class hr_Departments extends core_Master
         }
         
         $data->form->setOptions('staff', $opt);
-        //$data->form->setDefault('staff', 'organization');
     }
     
     
@@ -510,6 +509,7 @@ class hr_Departments extends core_Master
     			0 => "name",
     			1 => "activities",
     			2 => "systemId",
+    			3 => "type",
     	);
     	
     	// Импортираме данните от CSV файла.
