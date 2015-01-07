@@ -31,7 +31,7 @@ class techno2_Maps extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Printing, techno2_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg';
+    var $loadList = 'plg_RowTools, techno2_Wrapper, plg_Sorting, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg';
     
     
     /**
