@@ -116,7 +116,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, folderId, innerClass,isPublic';
+    public $listFields = 'id, title, folderId, innerClass,isPublic=Достъп';
     
     
     /**
@@ -291,6 +291,8 @@ class techno2_SpecificationDoc extends core_Embedder
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$options = arr::make('no=Частен,yes=Публичен');
+    		$row->isPublic = $options[$rec->isPublic];
     	}
     }
     
