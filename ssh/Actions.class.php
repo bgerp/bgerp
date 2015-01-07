@@ -88,7 +88,7 @@ class ssh_Actions
      * @param string $output [optionаl]
      * @param string $errors [optionаl]
      */
-    public static function exec($command, &$output=NULL, &$errors=NULL)
+    public function exec($command, &$output=NULL, &$errors=NULL)
     {
 
         // Изпълняваме командата
@@ -112,7 +112,7 @@ class ssh_Actions
      * @param string $host
      * @param string $fileName - име на локалния файл
      */
-    public static function put($host, $localFileName)
+    public function put($localFileName)
     {
         
         $remoteFileName = $localFileName;
@@ -128,7 +128,7 @@ class ssh_Actions
      * @param string $host
      * @param string $fileName име на отдалечения файл
      */
-    public static function get($host, $remoteFileName)
+    public function get($remoteFileName)
     {
         $localFileName = $remoteFileName;
         
