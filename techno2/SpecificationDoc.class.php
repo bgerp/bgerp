@@ -342,7 +342,9 @@ class techno2_SpecificationDoc extends core_Embedder
     	}
     	
     	if($data->rec->state != 'rejected'){
-    		if(sales_Quotations::haveRightFor('add')){
+    		$tId = $mvc->fetchField($data->rec->id, 'threadId');
+    		
+    		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $tId))){
     			if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
     				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id), 'ef_icon = img/16/document_quote.png,title=Редактиране на оферта');
     			} else {
