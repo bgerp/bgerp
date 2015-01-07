@@ -136,6 +136,12 @@ class hr_Departments extends core_Master
     public $listFields = 'id, name, type, staff, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
 
     
+    /**
+     * Дефолт достъп до новите корици
+     */
+    public $defaultAccess = 'public';
+    
+    
     // Подготвяме видовете графики 
     static $chartTypes = array(
         'List' => 'Tаблица',
@@ -509,6 +515,7 @@ class hr_Departments extends core_Master
     			1 => "activities",
     			2 => "systemId",
     			3 => "type",
+    			4 => "access",
     	);
     	
     	// Импортираме данните от CSV файла.
