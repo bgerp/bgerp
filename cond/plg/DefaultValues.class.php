@@ -244,6 +244,9 @@ class cond_plg_DefaultValues extends core_Plugin
     		$cId = doc_Folders::fetchCoverId($rec->folderId);
     		$Class = doc_Folders::fetchCoverClassId($rec->folderId);
 
+    		// Ако е контрагент само
+    		if(!cls::haveInterface('doc_ContragentDataIntf', $Class)) return FALSE;
+    		
     		return cond_Parameters::getParameter($Class, $cId, $fld->salecondSysId);
     	}
     }
