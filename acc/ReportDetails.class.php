@@ -43,7 +43,7 @@ class acc_ReportDetails extends core_Manager
     public function prepareAccReports(&$data)
     {
         // Роли по подразбиране
-        setIfNot($data->masterMvc->canReports, 'ceo,reports');
+        setIfNot($data->masterMvc->canReports, 'ceo');
         setIfNot($data->masterMvc->balanceRefShowZeroRows, FALSE);
         
         // Ако потребителя има достъп до репортите
