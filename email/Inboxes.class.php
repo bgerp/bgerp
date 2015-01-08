@@ -505,8 +505,12 @@ class email_Inboxes extends core_Master
     {
         $folderId = $type->params['folderId'];
         
+        $options = array();
+        
         if ($folderId) {
-            $options = $mvc->getFromEmailOptions($folderId);
+            try {
+                $options = $mvc->getFromEmailOptions($folderId);
+            } catch (Exception $e) {}
             
             // Ако може да има празен запис
             if ($type->params['allowEmpty']) {
@@ -516,7 +520,33 @@ class email_Inboxes extends core_Master
     }
 
     
-
+    /**
+     * Редиректва към добавяне на кутия
+     * @redirect
+     */
+    public static function redirect()
+    {
+        // Ако има права за добавяне редиректва към добавана на кутия
+        if (self::haveRightFor('add')) {
+            redirect(array('email_Inboxes', 'add', 'ret_url' => TRUE), FALSE, '|Трябва да добавите кутия за изпращане на имейл');
+        } else {
+            
+            $msg = '|Трябва да имате поне една кутия за изпращане на имейл';
+            if (self::haveRightFor('list')) {
+                redirect(array('email_Inboxes', 'list', 'ret_url' => TRUE), FALSE, $msg);
+            }else {
+                $retUrl = getRetUrl();
+                if ($retUrl) {
+                    redirect($retUrl, FALSE, $msg);
+                }
+            }
+            
+            // Не би трябвало да се стигне до тук
+            status_Messages::newStatus($msg);
+        }
+    }
+    
+    
     /**
      * Връща списък с [id на кутия] => имейл от които текущия потребител може да изпраща писма от папката
      * Първия имейл е най-предпочитания
