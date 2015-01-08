@@ -184,6 +184,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	public function alterSearchKeywords(&$searchKeywords)
 	{
 		if(!empty($this->innerForm)){
+			$newKeywords = '';
 			$newKeywords .= acc_Accounts::getVerbal($this->innerForm->accountId, 'title');
 			$newKeywords .= " " . acc_Accounts::getVerbal($this->innerForm->accountId, 'num');
 			
