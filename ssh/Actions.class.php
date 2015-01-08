@@ -25,7 +25,7 @@ class ssh_Actions
     
     private $pass;
     
-    private $connection
+    private $connection;
     
     
     /**
