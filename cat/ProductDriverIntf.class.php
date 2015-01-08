@@ -52,18 +52,6 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Рендиране на параметрите
-	 *
-	 * @param данни за параметрите $paramData
-	 * @param core_ET $tpl - шаблон
-	 */
-	public function renderParams($paramData, &$tpl, $short = FALSE)
-	{
-		return $this->class->renderParams($paramData, $tpl, $short);
-	}
-	
-	
-	/**
 	 * Връща информацията за продукта от драйвера
 	 *
 	 * @param stdClass $innerState
@@ -82,18 +70,6 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	public function getPacks($innerState)
 	{
 		return $this->class->getPacks($innerState);
-	}
-	
-	
-	/**
-	 * Как да се рендира изгледа в друг документ
-	 *
-	 * @param stdClass $data - дата
-	 * @return core_ET $tpl - шаблон
-	 */
-	public function renderDescription($data)
-	{
-		return $this->class->renderDescription($data);
 	}
 	
 	
