@@ -464,6 +464,10 @@ class label_Labels extends core_Master
             }
             $perPageCnt++;
             
+            if (!isset($data->rows[$rowId])) {
+                $data->rows[$rowId] = array();
+            }
+            
             // Обхождаме масива с шаблоните
             foreach ((array)$placesArr as $place) {
                 
