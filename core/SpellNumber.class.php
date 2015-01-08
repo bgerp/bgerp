@@ -378,9 +378,9 @@ class core_SpellNumber
             	$text .= " <span class='cCode'>{$showCurrencyCode}</span>";
             }
             if ($cents > 0){
-            	$text .= " и " . ($cents) . " " . $centBgn;
+            	$text .= " и 0." . ($cents) . " " . $centBgn;
             } elseif($cents == 0){
-            	$text .= ", 00" . $centBgn;
+            	$text .= ", 0.00" . $centBgn;
             }
             	
             $text = str_replace(" и и ", " и ", $text);
@@ -396,7 +396,7 @@ class core_SpellNumber
             }
             
             if ($cents > 0){
-            	$text .= " and " . $cents. " " . $centEuro;
+            	$text .= " and 0." . $cents. " " . $centEuro;
             }
             
             return $text;
