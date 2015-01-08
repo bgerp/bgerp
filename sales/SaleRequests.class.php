@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Документ "Заявка за продажба"
  *
@@ -8,12 +10,14 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class sales_SaleRequests extends core_Master
 {
+	
+	
     /**
      * Заглавие
      */
@@ -24,6 +28,14 @@ class sales_SaleRequests extends core_Master
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'sales_SaleRequest';
+    
+    
+    /**
+     * Към коя група документи спада класа
+     *
+     * (@see deals_DocumentTypes)
+     */
+    public $documentType = deals_DocumentTypes::CONTRACT;
     
     
     /**

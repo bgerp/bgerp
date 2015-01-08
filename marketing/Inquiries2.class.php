@@ -36,6 +36,14 @@ class marketing_Inquiries2 extends core_Embedder
     
     
     /**
+     * Към коя група документи спада класа
+     *
+     * (@see deals_DocumentTypes)
+     */
+    public $documentType = deals_DocumentTypes::INQUIRY;
+    
+    
+    /**
      * Заглавие
      */
     public $title = 'Запитвания';

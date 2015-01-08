@@ -21,6 +21,14 @@ class sales_Quotations extends core_Master
 
 
     /**
+     * Към коя група документи спада класа
+     *
+     * (@see deals_DocumentTypes)
+     */
+    public $documentType = deals_DocumentTypes::CONTRACT;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Q';
