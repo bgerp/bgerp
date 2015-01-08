@@ -2,20 +2,22 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа pos_eports
+ * Помощен клас-имплементация на интерфейса pos_transaction_Report за класа pos_Reports
  *
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class pos_TransactionSourceImpl extends acc_DocumentTransactionSource
+class pos_transaction_Report extends acc_DocumentTransactionSource
 {
+	
+	
     /**
      * @var pos_Reports
      */
