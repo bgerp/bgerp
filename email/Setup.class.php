@@ -112,27 +112,13 @@ defIfNot('EMAIL_OUTGOING_HEADER_TEXT_EN', "[#hello#] [#salutation#] [#name#]");
 /**
  * Футъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл
  */
-defIfNot('EMAIL_OUTGOING_FOOTER_TEXT', "Сърдечни поздрави,\r
-[#name#]\r
-[#company#]\r
-[#position#]\r
-Тел.: [#tel#]\r
-Факс: [#fax#]\r
-[#email#]\r
-[#website#]");
+defIfNot('EMAIL_OUTGOING_FOOTER_TEXT', "Сърдечни поздрави,\n[#name#]\n[#company#]\n[#position#]\nТел.: [#tel#]\nФакс: [#fax#]\n[#email#]\n[#website#]");
 
 
 /**
  * Футъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл - на английски
  */
-defIfNot('EMAIL_OUTGOING_FOOTER_TEXT_EN', "Best regards,\r
-[#name#]\r
-[#company#]\r
-[#position#]\r
-Tel.: [#tel#]\r
-Fax: [#fax#]\r
-[#email#]\r
-[#website#]");
+defIfNot('EMAIL_OUTGOING_FOOTER_TEXT_EN', "Best regards,\n[#name#]\n[#company#]\n[#position#]\nTel.: [#tel#]\nFax: [#fax#]\n[#email#]\n[#website#]");
 
 
 /**
