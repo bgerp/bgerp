@@ -298,4 +298,27 @@ class cat_products_Packagings extends cat_products_Detail
     {
         return static::renderDetail($data);
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$res)
+    {
+    	$recs = &$res->recs;
+    
+    	$hasReasonFld = FALSE;
+    	
+    	if (count($recs)) {
+    		foreach ($recs as $id => $rec) {
+    			$row = &$res->rows[$id];
+    
+    			$hasReasonFld = !empty($rec->eanCode) ? TRUE : $hasReasonFld;
+    		}
+    		 
+    		if($hasReasonFld === FALSE){
+    			unset($res->listFields['code']);
+    		}
+    	}
+    }
 }
