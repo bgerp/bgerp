@@ -36,5 +36,5 @@ class deals_DocumentTypes
 	/**
 	 * Стандартен документ
 	 */
-	const STANDART = 'standart';
+	const STANDARD = 'standard';
 }
