@@ -124,7 +124,7 @@ class cat_products_Packagings extends cat_products_Detail
         	if (!count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
             } else {
-            	$productInfo = cat_Products::getProductInfo($rec->productId);
+            	$productInfo = $mvc->Master->getProductInfo($rec->productId);
             	if(empty($productInfo->meta['canStore'])){
             		$requiredRoles = 'no_one';
             	}
@@ -288,14 +288,32 @@ class cat_products_Packagings extends cat_products_Detail
     }
     
     
+    /**
+     * Подготвя опаковките на артикула
+     * 
+     * @param stdClass $data
+     */
     public static function preparePackagings($data)
     {
-        static::prepareDetail($data);
+    	// Ако мастъра не е складируем, няма смисъл да показваме опаковките му
+    	$productInfo = $data->masterMvc->getProductInfo($data->masterId);
+    	if(empty($productInfo->meta['canStore'])){
+    		$data->hide = TRUE;
+    		return;
+    	}
+    	
+    	static::prepareDetail($data);
     }
     
     
+    /**
+     * Подготвя опаковките на артикула
+     * 
+     * @param stdClass $data
+     */
     public function renderPackagings($data)
     {
+    	if($data->hide === TRUE) return;
         return static::renderDetail($data);
     }
     
