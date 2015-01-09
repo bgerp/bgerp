@@ -925,6 +925,8 @@ td.portal-date {
     .document div.richtext-holder .richtext {
       display: inline;
       color: black; }
+  .document .listTable {
+    width: 100%; }
   .document .custom-ul {
     margin: 0 0 0 20px; }
   .document .header {
