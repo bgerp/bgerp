@@ -67,6 +67,12 @@ class mp_Jobs extends core_Master
     
     
     /**
+     * Кой има право да пише?
+     */
+    public $canWrite = 'ceo, mp';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, mp';
