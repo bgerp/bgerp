@@ -40,12 +40,42 @@ class core_TableView extends core_BaseClass
     
     
     /**
+     * Връща масив с всички полета които имат плесйхолдър `COL_CLASS`
+     * 
+     * @param array $rows
+     * 
+     * @return array
+     */
+    protected static function getColWithClass($rows)
+    {
+        $res = array();
+        
+        if (!$rows) return $res;
+        
+        $rows = (array)$rows;
+        
+        $row = reset($rows);
+        
+        if (!$row) return $res;
+        
+        foreach ((array)$row as $name => $val) {
+            if ($val instanceof core_ET) {
+                if (!$val->places['COL_CLASS']) continue;
+                $res[$name] = 'COL_CLASS';
+            }
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
      * Връща шаблон за таблицата
      */
     function get($rows, $fields)
     {
         $fields = arr::make($fields, TRUE);
-        
+        $header = array();
         $row = "\n<!--ET_BEGIN ROW--><tr [#ROW_ATTR#]>";
         $addRows = "";
         $colspan = 0;
@@ -88,6 +118,8 @@ class core_TableView extends core_BaseClass
                 $fields[$place] = $colHeaders;
             }
             
+            $colWithClass = self::getColWithClass($rows);
+            
             foreach ($fieldList as $place => $dummy) {
                 
                 $colHeaders = $fields[$place];
@@ -104,7 +136,11 @@ class core_TableView extends core_BaseClass
                     if($this->mvc->fields[$place]->tdClass) {
                         $class .= ' ' . $this->mvc->fields[$place]->tdClass;
                     }
-
+                    
+                    if ($colWithClass[$place]) {
+                        $class .= " [#{$colWithClass[$place]}#]";
+                    }
+                    
                     if($class = trim($class)) {
                         $attr = " class=\"{$class}\"";
                     } else {
