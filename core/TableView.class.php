@@ -75,7 +75,7 @@ class core_TableView extends core_BaseClass
     function get($rows, $fields)
     {
         $fields = arr::make($fields, TRUE);
-        
+        $header = array();
         $row = "\n<!--ET_BEGIN ROW--><tr [#ROW_ATTR#]>";
         $addRows = "";
         $colspan = 0;
