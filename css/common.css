@@ -804,17 +804,24 @@ table .linkWithIcon {
   .linkWithIcon.nameday {
     background-image: url('../img/16/orthodox.png'); }
 
-.more-btn {
+input.more-btn {
   float: left;
   margin-top: 0;
   margin-bottom: 0;
   background-position: center center;
   background-image: url(../img/16/toggle-expand.png) !important;
-  background-repeat: no-repeat !important;
   padding-left: 0.3em !important;
   padding-right: 0.3em !important;
   width: 1.9em;
   height: 2em \9; }
+
+.more-btn {
+  background-image: url(../img/16/toggle-expand.png) !important;
+  background-repeat: no-repeat !important; }
+
+a.more-btn {
+  padding-left: 17px !important;
+  height: 16px; }
 
 .narrow .more-btn {
   float: none; }
