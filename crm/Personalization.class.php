@@ -192,7 +192,7 @@ class crm_Personalization extends core_Detail
             // Имейлите за този профил
             $emailOptions = email_Inboxes::getFromEmailOptions(FALSE, $userId, TRUE);
             
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             $emailOptions[] = '';
         }
         

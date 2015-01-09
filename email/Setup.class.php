@@ -58,6 +58,13 @@ defIfNot('EMAIL_MAX_TEXT_LEN', '1000000');
 defIfNot('EMAIL_THREAD_HANDLE_POS', 'BEFORE_SUBJECT');
 
 
+
+/**
+ * След колко време да не се използват обръщеният по имейл за нова нишка
+ */
+defIfNot('EMAIL_SALUTATION_EMAIL_TIME_LIMIT', 7776000); // 60*60*24*90 - 90 дни
+
+
 /**
  * Какъв тип да е генерирания манипулатор за събджект на имейл
  * t0 - <123456>
@@ -226,6 +233,8 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_OUTGOING_FOOTER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Подпис, customizeBy=powerUser'),
     
             'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Подпис EN, customizeBy=powerUser'),
+    
+            'EMAIL_SALUTATION_EMAIL_TIME_LIMIT' => array ('time(suggestions=30 дни|90 дни|180 дни)', 'caption=След колко време да не се използват обръщеният по имейл за нова нишка->Време'),
         );
         
         
@@ -351,7 +360,7 @@ class email_Setup extends core_ProtoSetup
             // От имейла извличаме стойността на полето имейл и обновяваме записа
             $doc = doc_Containers::getDocument($rec->containerId);
             if (($doc->instance instanceof email_Outgoings) && $doc->that) {
-                $emailRec = $doc->instance->fetch($doc->that);
+                $emailRec = $doc->getInstance()->fetch($doc->that);
                 
                 $rec->state = $emailRec->state;
                 

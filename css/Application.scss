@@ -56,7 +56,6 @@ $orange: #f90; /*оранжево като при ховър на менюто*/
 }
 
 
-
  /*common elements*/
  dl {
 	margin: 0;
@@ -126,6 +125,20 @@ tr.noHover td:hover {
 	border-top: solid 2px $blue;
 	padding-left: 0.2em;
 	padding-top: 0.2em;
+}
+
+.bugReport{
+	border:none; 
+	background-color:transparent; 
+	vertical-align: middle;
+}
+
+.narrow .bugReport {
+	position: relative;
+	top: -2px;
+	width: 16px;
+	height: 16px;
+	padding: 0;
 }
 
 .narrow #framecontentBottom {
@@ -306,7 +319,7 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus {
 div.folder-cover {
 	background-image: url('../img/cover-bg.png');
 	display: inline-block;
-	max-width: 750px;
+	max-width: 720px;
 	margin-top: 10px;
 	line-height: 1.2em;
 	position: relative;
@@ -330,6 +343,9 @@ div.folder-cover {
 	.groupList {
 		font-size: 0.95em;
 		max-width: 725px;
+		.listTopContainer {
+		    min-width: 300px;
+		}
 		div.rowtools {
 		  display: inline-block;
 		  width: auto;
@@ -410,7 +426,7 @@ div.folder-cover {
 	line-height: 1.3em;
 	margin-left: 0;
 	margin-top: 8px;
-	max-width: 750px;
+	max-width: 720px;
 	font-size: 0.9em;
 	padding: 10px 10px 12px 10px;
 	.block_title img {
@@ -445,7 +461,7 @@ div.folder-cover {
 
 /*потребителски профил*/
 .user-profile {
-	max-width: 860px;
+	max-width: 760px;
 	border: 1px solid #ccc;
 	border-radius: 5px;
 	background: $gray1;	
@@ -845,9 +861,10 @@ div.acc-detail {
 	border: solid 1px #ccc;
 	@include border-radius(5px);
 	background-color: white;
+	position: relative;
 	.legend {
 		position: absolute;
-		margin-top: -35px;
+		top: -16px;
 		margin-left: 10px;
 		z-index: 100;
 		line-height: 20px;
@@ -1125,7 +1142,9 @@ td.portal-date {
 .wide .document table.listTable {
 	margin-bottom: 0;
 }
-
+.wide .singleView .listTable {
+	width: 100%;
+}
 pre.document {
 	white-space: pre-line;
 }
@@ -1786,7 +1805,6 @@ fieldset.sharing-history {
 }
 
 .narrow .background-holder {
-	padding: 10px 0 0;
 	background-color: black;
 }
 
@@ -2339,13 +2357,13 @@ fieldset.sharing-history {
 	width: 100%;
 }
 
-.narrow-scroll .listRows {
+.narrow-scroll .listRows, .narrow-scroll .listRowsDetail {
 	width: 100% !important;
 	overflow-y: auto !important;
 	_overflow: auto !important;
 }
 
-.narrow-scroll .single-thread .listRows {
+.narrow-scroll .single-thread .listRows, .narrow-scroll .single-thread .listRowsDetail {
 	overflow:visible !important;
 	_overflow: visible !important;
 	width:auto !important;
@@ -2500,7 +2518,7 @@ table.styled-table tr:hover td {
 
 /*стилове за локации*/
 div.location {
-	max-width: 750px;
+	max-width: 720px;
 	@include border-radius(5px);
 	border: 1px solid #ccc;
 	padding: 10px 20px 20px;
@@ -2643,7 +2661,9 @@ div.location.public {
 
 /*шаблон за журнал*/
 
-
+.closePeriod .listTable tr > th:first-child {
+	width: auto;
+}
 
 .btn-group .button {
 	display: inline-block;
@@ -3130,9 +3150,16 @@ body.narrow {
 	.background-holder {
 	    padding: 10px 0;
 	}
-	#all, #cmsTop, #headerImg {
+	#all, #cmsTop {
 	   @include border-radius4(10px, 10px, 0, 0);
 	}
+    .wide #headerImg {
+	   @include border-radius4(10px, 0, 0, 0);
+	}
+    
+    .wide .listBlock .listRows > table.listTable{
+        min-width:760px;
+    }
 }
 
 @media handheld , only screen and (min-width: 1550px) {
@@ -3359,13 +3386,13 @@ body.narrow {
     #all .formGroup {
         font-size: 0.85em;
     }
-    .narrow .chzn-container, .narrow .formFields input, .narrow .formFields .richEdit, .narrow .formFields select, .narrow .formTitle {
+    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
 		max-width: 558px;
 	}
-	.narrow .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop {
 		max-width: 548px;
 	}
-	.narrow .chzn-container-single .chzn-search input {
+	.narrow .main-container .chzn-container-single .chzn-search input {
 		max-width: 538px;
 	}
     #all h2{
@@ -3389,13 +3416,13 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .chzn-container, .narrow .formFields input, .narrow .formFields .richEdit, .narrow .formFields select, .narrow .formTitle {
+    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
 		max-width: 483px;
 	}
-	.narrow .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop {
 		max-width: 481px;
 	}
-	.narrow .chzn-container-single .chzn-search input {
+	.narrow .main-container .chzn-container-single .chzn-search input {
 		max-width: 471px;
 	}
     #all h2{
@@ -3416,13 +3443,13 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .chzn-container, .narrow .formFields input, .narrow .formFields .richEdit, .narrow .formFields select, .narrow .formTitle {
+    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
 		max-width: 458px;
 	}
-	.narrow .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop {
 		max-width: 448px;
 	}
-	.narrow .chzn-container-single .chzn-search input {
+	.narrow .main-container .chzn-container-single .chzn-search input {
 		max-width: 438px;
 	}
     #all h2{
@@ -3446,13 +3473,13 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .chzn-container, .narrow .formFields input, .narrow .formFields .richEdit, .narrow .formFields select, .narrow .formTitle {
-		max-width: 438px;
+    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
+    	max-width: 438px;
 	}
-	.narrow .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop {
 		max-width: 428px;
 	}
-	.narrow .chzn-container-single .chzn-search input {
+	.narrow .main-container .chzn-container-single .chzn-search input {
 		max-width: 418px;
 	}
     #all h2{
@@ -3482,16 +3509,16 @@ body.narrow {
     #all .formGroup {
         font-size: 0.75em;
     }
-    .narrow .chzn-container, .narrow .formFields input, .narrow .formFields .richEdit, .narrow .formFields select, .narrow .formTitle {
-		max-width: 318px;
+    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
+    	max-width: 318px;
 	}
-	.narrow .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop {
 		max-width: 308px;
 	}
-	.narrow .chzn-container-single .chzn-search input {
+	.narrow .main-container .chzn-container-single .chzn-search input {
 		max-width: 298px;
 	}
-	.narrow .formTable .keylist label{
+	.narrow .main-container .formTable .keylist label{
        max-width: 159px;
     }
     #all h2{
@@ -3520,18 +3547,18 @@ body.narrow {
        margin-left: 0%;
        font-size: 0.9em;
     }
-    .narrow .chzn-container, .narrow .formFields input, .narrow .formFields .richEdit, .narrow .formFields select, .narrow .formTitle {
-		max-width: 278px;
+    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
+    	max-width: 278px;
 	}
 
-	.formFields textarea {
+	.formFields .main-container textarea {
 		min-width: 278px;
 	}
 
-	.narrow .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop {
 		max-width: 268px;
 	}
-	.narrow .chzn-container-single .chzn-search input {
+	.narrow .main-container .chzn-container-single .chzn-search input {
 		max-width: 258px;
 	}
     #all h2{
@@ -3871,6 +3898,9 @@ body.narrow {
     .footerDocBlock{
         display: block !important;
     }
+    .#fancybox-left, #fancybox-right{
+    background-color: transparent !important;
+}
 }
 
 .narrow .printing .document{
@@ -3901,8 +3931,8 @@ body.narrow {
     float:right;
     padding:7px;
     background:#eee;
-    border:1px solid rgba(0,0,0,0.3);
     margin-bottom:20px;
+    color: #333;
 }
 
 .narrow .summary-block{
@@ -3916,7 +3946,7 @@ body.narrow {
 }
 
 .summary-block b {
-    color:rgb(0, 68, 136);
+    color:#333;
 }
 
 .summary-block b#count {
@@ -3929,6 +3959,11 @@ body.narrow {
 
 .summary-block td.summary-cell{
 	padding-left: 15px;
+	font-weight: bold;
+}
+
+.summary-block .border-top td{
+    border-top:1px solid #ccc;
 }
 
 .narrow .summary-block b#count {
@@ -4038,6 +4073,38 @@ body.narrow {
 	position:relative;
 	top:3px;
 	margin-right:10px;
+}
+
+.listTable .label-holder {
+	width: 95% !important;
+    overflow-x: auto !important;
+    height: auto !important;
+    _overflow: auto !important;
+}
+
+.preview-label{
+	margin-top: 5px;
+	margin-bottom: 10px;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	box-shadow: 0 0 1px #aaa;
+	display: inline-block;
+	position: relative;
+	.legend {
+	   position: absolute;
+	   left: 20px;
+	   top: -15px;
+	   display: inline-block;
+	   border: 1px solid #ddd;
+	   box-shadow: 0 0 1px #bbb;
+	   background-color: #fff;
+	   @include border-radius(5px);
+	   padding: 5px 10px;
+	}
+	> div{
+	   width: auto !important;
+	   height: auto !important;
+	}
 }
 
 .cd-l1{

@@ -84,7 +84,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,amount=Сума,productId,measureId=Мярка,quantity,description';
+    public $listFields = 'tools=Пулт,productId,measureId=Мярка,quantity,description,amount=Сума';
     
         
     /**
@@ -166,9 +166,9 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      *  Обработки по вербалното представяне на данните
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->productId = cat_Products::getHyperLink($rec->productId, TRUE);
+    	$row->productId = ht::createLinkRef(cat_Products::getTitleById($rec->productId), array('cat_Products', 'single', $rec->productId));
     	$row->measureId = cat_UoM::getTitleById(cat_Products::fetchField($rec->productId, 'measureId'));
     	
     	$masterRec = $mvc->Master->fetch($rec->reportId);

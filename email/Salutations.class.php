@@ -137,7 +137,7 @@ class email_Salutations extends core_Manager
     public static function get($folderId, $threadId=NULL, $email=NULL, $userId=NULL)
     {
         // Ако не трябва да извлечем запис
-        if (!self::isGoodRec($folderId, $threadId)) return ;
+        if (!self::isGoodRec($folderId, $threadId, $email)) return ;
         
         // Вземаме всички обръщения от папката
         $query = self::getQuery();
@@ -169,7 +169,7 @@ class email_Salutations extends core_Manager
         // Ако е подадена нишка, но не сме открили обръщението в нишката
         if ($threadId) {
             // Проверяваме дали може да се използва записа за папката
-            if (!self::isGoodRec($folderId, NULL)) return ;
+            if (!self::isGoodRec($folderId, NULL, $email)) return ;
         }
         
         // Намираме последното обръщение в поздрава
@@ -223,10 +223,11 @@ class email_Salutations extends core_Manager
      * 
      * @param doc_Folders $folderId - id на папка
      * @param doc_Threads $threadId - id на нишка
+     * @param string $email - имейл
      * 
      * @return boolean - Дали можем да извлечем запис
      */
-    protected static function isGoodRec($folderId = NULL, $threadId = NULL) 
+    protected static function isGoodRec($folderId=NULL, $threadId=NULL, $email=NULL) 
     {
         // Ако няма папка и нишка
         if (!$folderId && !$threadId) return FALSE;
@@ -243,6 +244,27 @@ class email_Salutations extends core_Manager
         
         // Ако няма нишка
         if (!$threadId) {
+            
+            // Ако има имейл
+            if ($email) {
+                
+                // Намираме последното обръщение от папката към съответния имейл от текущия потребител
+                $userId = core_Users::getCurrent();
+                $query = self::getQuery();
+                $query->where("#folderId = '{$folderId}'");
+                $query->where(array("#toEmail = '[#1#]'", $email));
+                $query->where("#createdBy = '{$userId}'");
+                $query->orderBy('createdOn', 'DESC');
+                $query->limit(1);
+                
+                // Ако има обръщение, проверяваме дали не е много старо
+                if ($rec = $query->fetch()) {
+                    $conf = core_Packs::getConfig('email');
+                    $now = dt::now();
+                    $secsDiff = dt::secsBetween($now, $rec->createdOn);
+                    if ($conf->EMAIL_SALUTATION_EMAIL_TIME_LIMIT > $secsDiff) return TRUE;
+                }
+            }
             
             // Вземаме корицата на папката
             $coverClass = strtolower(doc_Folders::fetchCoverClassName($folderId));
@@ -344,7 +366,7 @@ class email_Salutations extends core_Manager
             
             // Документа да е линк към single' а на документа
             $row->threadId = ht::createLink(str::limitLen($docRow->title, 35), array($doc, 'single', $doc->that), NULL);
-        } catch(Exception $e) {
+        } catch(core_exception_Expect $e) {
             $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
         }
 
@@ -354,7 +376,7 @@ class email_Salutations extends core_Manager
             
             // Вземаме линка към папката
             $row->folderId = doc_Folders::recToVerbal($folderRec)->title;
-        } catch(Exception $e) {
+        } catch(core_exception_Expect $e) {
             $row->folderId = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
         }
     }

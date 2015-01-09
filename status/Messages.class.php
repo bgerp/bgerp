@@ -73,6 +73,7 @@ class status_Messages extends core_Manager
         $this->FLD('userId', 'user', 'caption=Потребител');
         $this->FLD('sid', 'varchar(32)', 'caption=Идентификатор');
         $this->FLD('lifeTime', 'time', 'caption=Живот');
+        $this->FLD('hitId', 'varchar(16)', 'caption=ID на хита');
     }
     
     
@@ -83,10 +84,11 @@ class status_Messages extends core_Manager
      * @param enum $type - Типа на съобщението - success, notice, warning, error
      * @param integer $userId - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
      * @param integer $lifeTime - След колко време да е неактивно
+     * @param string $hitId - Уникално ID на хита
      * 
      * @return integer - При успешен запис връща id' то на записа
      */
-    static function newStatus($text, $type='notice', $userId=NULL, $lifeTime=60)
+    static function newStatus($text, $type='notice', $userId=NULL, $lifeTime=60, $hitId=NULL)
     {
         // Ако не е бил сетнат преди
         if (!Mode::get('hitTime')) {
@@ -101,14 +103,15 @@ class status_Messages extends core_Manager
         // Стойности за записа
         $rec = new stdClass();
         if (!$userId) {
-            $rec->sid = static::getSid();
+            $rec->sid = self::getSid();
         }
         $rec->text = $text;
         $rec->type = $type;
         $rec->userId = $userId;
         $rec->lifeTime = $lifeTime;
+        $rec->hitId = $hitId;
         
-        $id = static::save($rec);
+        $id = self::save($rec);
         
         return $id;
     }
@@ -142,10 +145,11 @@ class status_Messages extends core_Manager
      * @param integer $idleTime - Време на бездействие на съответния таб
      * @param integer $maxLimit - Максимален брой на статусите, които да се връщат при едно извикване
      * @param boolean $once - Еднакви (стринг и тип) статус съобщения да се показват само веднъж
+     * @param string $hitId - Уникално ID на хита
      * 
      * @return array $resArr - Масив със съобщението и типа на статуса
      */
-    static function getStatuses($hitTime, $idleTime, $maxLimit=4, $once=TRUE)
+    static function getStatuses($hitTime, $idleTime, $maxLimit=4, $once=TRUE, $hitId=NULL)
     {
         $resArr = array();
         
@@ -166,7 +170,7 @@ class status_Messages extends core_Manager
         
         // Вземаме всички записи за текущия потребител
         // Създадени преди съответното време
-        $query = static::getQuery();
+        $query = self::getQuery();
         $query->where(array("#createdOn >= '[#1#]'", $hitTimeB));
         
         // Ако потребителя е логнат
@@ -176,11 +180,17 @@ class status_Messages extends core_Manager
             $query->where(array("#userId = '[#1#]'", $userId));
         } else {
             // Статусите за съответния SID
-            $sid = static::getSid();
+            $sid = self::getSid();
             $query->where(array("#sid = '[#1#]'", $sid));
         }
         
         $query->orderBy('createdOn', 'ASC');
+        
+        // Записите със зададено hitId да се връщат, се връщат само за съответното hitId
+        $query->where("#hitId IS NULL");
+        if ($hitId) {
+            $query->orWhere(array("#hitId = '[#1#]'", $hitId));
+        }
         
         $checkedArr = array();
         
@@ -270,11 +280,28 @@ class status_Messages extends core_Manager
             // Време на бездействие
             $idleTime = Request::get('idleTime', 'int');
             
+            $hitId = Request::get('hitId');
+            
             // Вземаме непоказаните статус съобщения
-            $statusesArr = static::getStatusesData($hitTime, $idleTime);
+            $statusesArr = self::getStatusesData($hitTime, $idleTime, $hitId);
             
             // Ако няма нищо за показване
             if (!$statusesArr) return array();
+            
+            // При възникване на статус от тип грешка, да се нотифицира в таба 
+            foreach ((array)$statusesArr as $statusDesc) {
+                if ($statusDesc->arg['type'] == 'error') {
+                    $errIcon = sbf('img/dialog_error-small.png', '');
+                    
+                    $resObj = new stdClass();
+                    $resObj->func = 'Notify';
+                    $resObj->arg =  array('title' => 'Грешка', 'blinkTimes' => 3,  'favicon' => $errIcon);
+                    
+                    $statusesArr[] = $resObj;
+                    
+                    break;
+                }
+            }
             
             return $statusesArr;
         }
@@ -286,13 +313,14 @@ class status_Messages extends core_Manager
      * 
      * @param integer $hitTime - Timestamp на показване на страницата
      * @param integer $idleTime - Време на бездействие на съответния таб
+     * @param string $hitId - Уникално ID на хита
      * 
      * @return string - 'div' със статус съобщенията
      */
-    static function getStatusesData_($hitTime, $idleTime)
+    static function getStatusesData_($hitTime, $idleTime, $hitId=NULL)
     {
         // Всички статуси за текущия потребител преди времето на извикване на страницата
-        $statusArr = static::getStatuses($hitTime, $idleTime);
+        $statusArr = self::getStatuses($hitTime, $idleTime, 4, TRUE, $hitId);
         
         $resStatus = array();
         
@@ -324,7 +352,7 @@ class status_Messages extends core_Manager
         $now = dt::verbal2mysql();
         
         // Вземаме всички статус съобщения, на които име е свършил lifeTime
-        $query = static::getQuery();
+        $query = self::getQuery();
         $query->where("ADDTIME(#createdOn, SEC_TO_TIME(#lifeTime)) < '{$now}'");
         
         while ($rec = $query->fetch()) {
@@ -333,7 +361,7 @@ class status_Messages extends core_Manager
             status_Retrieving::removeRetrieving($rec->id);
             
             // Изтриваме записа
-            static::delete($rec->id);
+            self::delete($rec->id);
         }
     }
     

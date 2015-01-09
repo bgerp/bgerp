@@ -71,7 +71,8 @@ class core_Cls
             if ($last !== FALSE && $last < strlen($className)) {
                 $className{$last + 1} = strtoupper($className{$last + 1});
             } else {
-                error('Incorrect class name', $className);
+                // Некоректно има на клас
+                bp($className);
             }
         }
         
@@ -97,7 +98,8 @@ class core_Cls
         if($fullClassName === FALSE) {
             
             if (!$silent) {
-                error("Няма такъв клас", "'{$className}'");
+                // Няма такъв клас
+                bp($className);
             }
             
             return FALSE;
@@ -113,7 +115,7 @@ class core_Cls
         if (!preg_match("/^[a-z0-9_]+$/i", $fullClassName)) {
             
             if (!$silent) {
-                error("Некоректно име на клас", "'{$className}'");
+                error("@Некоректно име на клас", "'{$className}'");
             }
             
             return FALSE;
@@ -129,7 +131,7 @@ class core_Cls
         if (!$filePath) {
             
             if (!$silent) {
-                error("Файлът с кода на класа не съществува или не е четим", $fileName);
+                error("@Файлът с кода на класа не съществува или не е четим", "'{$fileName}'");
             }
             
             return FALSE;
@@ -137,14 +139,14 @@ class core_Cls
         
         // Включваме файла
         if(!include_once($filePath)) {
-            error("Не може да бъде парсиран файла", "'{$className}'  in '{$fileName}'");
+            error("@Не може да бъде парсиран файла", "'{$className}'", "'{$fileName}'");
         }
         
         // Проверяваме дали включения файл съдържа търсения клас
         if (!class_exists($fullClassName, FALSE)) {
             
             if (!$silent) {
-                error("Не може да се намери класа в посочения файл", "'{$className}'  in '{$fileName}'");
+                error("@Не може да се намери класа в посочения файл", "'{$className}'", "'{$fileName}'");
             }
             
             return FALSE;
@@ -208,7 +210,7 @@ class core_Cls
         if (is_a($Plugins, 'core_Plugins')) {
             try {
             	$Plugins->attach($obj);
-            } catch ( Exception $e) {}
+            } catch (core_exception_Expect $e) {}
         }
         
         // Ако има допълнителни параметри - използва ги за инициализиране
@@ -348,11 +350,7 @@ class core_Cls
     static function getTitle($class)
     {
         
-        try {
-            $rfl = new ReflectionClass($class);
-        } catch(ReflectionException $e) {
-            bp($e->getMessage());
-        }
+        $rfl = new ReflectionClass($class);
         
         $comment = $rfl->getDocComment();
         

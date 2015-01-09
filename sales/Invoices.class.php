@@ -52,7 +52,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount, type';
+    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount, type, paymentType';
     
     
     /**
@@ -140,19 +140,26 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Дефолт диапазон за номерацията на фактурите от настройките на пакета
+     */
+    public $defaultNumRange = 1;
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
     		'place'               => 'lastDocUser|lastDoc',
     		'responsible'         => 'lastDocUser|lastDoc',
-    		'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
-    		'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
-    		'uicNo'     		  => 'lastDocUser|lastDoc|clientData',
-    		'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
-    		'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
-    		'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
+    		'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
+    		'contragentVatNo'     => 'clientData|lastDocUser|lastDoc',
+    		'uicNo'     		  => 'clientData|lastDocUser|lastDoc',
+    		'contragentPCode'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentPlace'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
     		'accountId'           => 'lastDocUser|lastDoc',
     		'template' 		      => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    		'numlimit'			  => 'lastDocUser|lastDoc',
     );
     
     
@@ -165,7 +172,9 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId,export=Csv');
     	
-    	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
+    	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, export=Csv, after=place,input=hidden,notNull,default=1');
+    	
+    	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=hidden');
         
@@ -197,13 +206,20 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * След подготовка на формата
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	parent::prepareInvoiceForm($mvc, $data);
     	$form = &$data->form;
     	
-    	if(!haveRole('ceo,acc')){
-    		$form->setField('number', 'input=none');
+    	$conf = core_Packs::getConfig('sales');
+    	$options = array();
+    	$options[1] = "{$conf->SALE_INV_MIN_NUMBER1} - {$conf->SALE_INV_MAX_NUMBER1}";
+    	$options[2] = "{$conf->SALE_INV_MIN_NUMBER2} - {$conf->SALE_INV_MAX_NUMBER2}";
+    	$form->setOptions('numlimit', $options);
+    	$form->setDefault('numlimit', $mvc->defaultNumRange);
+    	
+    	if(haveRole('ceo,accMaster')){
+    		$form->setField('numlimit', 'input');
     	}
     	
     	if($data->aggregateInfo){
@@ -226,16 +242,6 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	parent::inputInvoiceForm($mvc, $form);
-    	
-    	if ($form->isSubmitted()) {
-        	$rec = &$form->rec;
-	        
-	        if($rec->number){
-		        if(!$mvc->isNumberInRange($rec->number)){
-					$form->setError('number', "Номер '{$rec->number}' е извън позволения интервал");
-				}
-	        }
-        }
 	}
     
     
@@ -288,10 +294,10 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_BeforeSave($mvc, $id, $rec)
     {
         parent::beforeInvoiceSave($rec);
-    	
+        
         if($rec->state == 'active'){
         	if(empty($rec->number)){
-        		$rec->number = self::getNexNumber();
+        		$rec->number = self::getNexNumber($rec);
         		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->number);
         	}
         }
@@ -320,7 +326,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dpOperation != 'accrued'){
     		
     		if(dec_Declarations::haveRightFor('add')){
-    			$data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/declarations.png, row=2');
+    			$data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/declarations.png, row=2, title=Създаване на декларация за съответсвие');
     		}
     	}
     }
@@ -396,34 +402,31 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Дали подадения номер е в позволения диапазон за номера на фактури
-     * @param $number - номера на фактурата
-     */
-    private function isNumberInRange($number)
-    {
-    	expect($number);
-    	$conf = core_Packs::getConfig('sales');
-    	
-    	return ($conf->SALE_INV_MIN_NUMBER <= $number && $number <= $conf->SALE_INV_MAX_NUMBER);
-    }
-    
-    
-    /**
      * Ф-я връщаща следващия номер на фактурата, ако той е в границите
+     * 
      * @return int - следващия номер на фактура
      */
-    protected static function getNexNumber()
+    protected static function getNexNumber($rec)
     {
     	$conf = core_Packs::getConfig('sales');
+    	if($rec->numlimit == 2){
+    		$min = $conf->SALE_INV_MIN_NUMBER2;
+    		$max = $conf->SALE_INV_MAX_NUMBER2;
+    	} else {
+    		$min = $conf->SALE_INV_MIN_NUMBER1;
+    		$max = $conf->SALE_INV_MAX_NUMBER1;
+    	}
     	
     	$query = static::getQuery();
     	$query->XPR('maxNum', 'int', 'MAX(#number)');
+    	$query->between("number", $min, $max);
+    	
     	if(!$maxNum = $query->fetch()->maxNum){
-    		$maxNum = $conf->SALE_INV_MIN_NUMBER;
+    		$maxNum = $min;
     	}
     	$nextNum = $maxNum + 1;
     	
-    	if($nextNum > $conf->SALE_INV_MAX_NUMBER) return NULL;
+    	if($nextNum > $max) return NULL;
     	
     	return $nextNum;
     }
@@ -440,7 +443,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($action == 'add' && isset($rec->threadId)){
     		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     		 $docState = $firstDoc->fetchField('state');
-    		 if(!($firstDoc->instance instanceof sales_Sales && $docState == 'active')){
+    		 if(!($firstDoc->getInstance() instanceof sales_Sales && $docState == 'active')){
     			$res = 'no_one';
     		}
     	}
@@ -480,5 +483,62 @@ class sales_Invoices extends deals_InvoiceMaster
    	{
    		$query->orWhere("#state = 'rejected' AND #brState = 'active'");
    		$query->where("#state != 'draft'");
+   	}
+   	
+   	
+   	/**
+   	 *  Подготовка на филтър формата
+   	 */
+   	public static function on_AfterPrepareListFilter($mvc, $data)
+   	{
+   		if(!$data->listFilter->getField('invType', FALSE)){
+   			$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
+   		}
+   		$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка)', 'caption=Начин на плащане,input');
+   		
+   		$data->listFilter->showFields .= ',payType,invType';
+   		
+   		$data->listFilter->input(NULL, 'silent');
+   		
+   		if($rec = $data->listFilter->rec){
+   			if($rec->invType){
+   				if($rec->invType != 'all'){
+   					$data->query->where("#type = '{$rec->invType}'");
+   				}
+   			}
+   			
+   			if($rec->payType){
+   				if($rec->payType != 'all'){
+   					$data->query->where("#paymentType = '{$rec->payType}'");
+   				}
+   			}
+   		}
+   	}
+   	
+   	
+   	/**
+   	 * Връща сумата на ддс-то на платените в брой фактури, в основната валута
+   	 * 
+   	 * @param date $from - от
+   	 * @param date $to - до
+   	 * @return double $amount - сумата на ддс-то на платените в брой фактури
+   	 */
+   	public static function getVatAmountInCash($from, $to = NULL)
+   	{
+   		if(empty($to)){
+   			$to = dt::today();
+   		}
+   		
+   		$amount = 0;
+   		$query = static::getQuery();
+   		$query->where("#paymentType = 'cash'");
+   		$query->between("date", $from, $to);
+   		
+   		while($rec = $query->fetch()){
+   			$total = $rec->vatAmount;
+   			$amount += $total;
+   		}
+   		
+   		return round($amount, 2);
    	}
 }

@@ -270,7 +270,7 @@ class cash_Pko extends core_Master
     /**
      * Връща платежните операции
      */
-    private static function getOperations($operations)
+    protected static function getOperations($operations)
     {
     	$options = array();
     	

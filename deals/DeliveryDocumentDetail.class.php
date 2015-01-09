@@ -101,12 +101,13 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
 			if($form->getField('packagingId', FALSE)){
 				$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
+				unset($form->getFieldType('packagingId')->params['allowEmpty']);
 			}
 	
 			// Само при рефреш слагаме основната опаковка за дефолт
 			if($form->cmd == 'refresh'){
 				$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-				if($baseInfo->classId == cat_Packagings::getClassId()){
+				if($baseInfo->classId == 'cat_Packagings'){
 					$form->rec->packagingId = $baseInfo->id;
 				}
 			}
@@ -232,7 +233,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				$rec = &$data->recs[$i];
 				$ProductManager = cls::get($rec->classId);
 		
-				$row->productId = $ProductManager->getTitleById($rec->productId);
+				$row->productId = $ProductManager->getProductTitle($rec->productId);
 				$haveDiscount = $haveDiscount || !empty($rec->discount);
 					 
 				if (empty($rec->packagingId)) {

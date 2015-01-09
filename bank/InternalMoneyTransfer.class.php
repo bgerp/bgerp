@@ -19,7 +19,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_InternalMoneyTransfer';
     
     
     /**
@@ -395,80 +395,6 @@ class bank_InternalMoneyTransfer extends core_Master
     
     
     /**
-     * Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-     * Създава транзакция която се записва в Журнала, при контирането
-     *
-     * Ако избраната валута е в основна валута
-     *
-     * Dt: 501. Каси                     (Каса, Валута)
-     * 503. Разплащателни сметки    (Банкова сметка, Валута)
-     *
-     * Ct: 503. Разплащателни сметки    (Банкова сметка, Валута)
-     *
-     * Ако е в друга валута различна от основната
-     *
-     * Dt: 501. Каси                              (Каса, Валута)
-     * 503. Разплащателни сметки             (Банкова сметка, Валута)
-     *
-     * Ct: 481. Разчети по курсови разлики         (Валута)
-     *
-     * Dt: 481. Разчети по курсови разлики         (Валута)
-     * Ct: 503. Разплащателни сметки    (Банкова сметка, Валута)
-     */
-    public static function getTransaction($id)
-    {
-        // Извличаме записа
-        expect($rec = self::fetchRec($id));
-        
-        ($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
-        $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-        $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
-        
-        $fromBank = array($rec->creditAccId,
-            array('bank_OwnAccounts', $rec->creditBank),
-            array('currency_Currencies', $rec->currencyId),
-            'quantity' => $rec->amount);
-        
-        $toArr = array($rec->debitAccId,
-            $debitArr,
-            array('currency_Currencies', $rec->currencyId),
-            'quantity' => $rec->amount);
-        
-        if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
-            $entry = array('amount' => $amount, 'debit' => $toArr, 'credit' => $fromBank);
-            $entry = array($entry);
-        } else {
-            $entry = array();
-            $entry[] = array('amount' => $amount, 'debit' => $toArr, 'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount));
-            $entry[] = array('amount' => $amount, 'debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount), 'credit' => $fromBank);
-        }
-        
-        // Подготвяме информацията която ще записваме в Журнала
-        $result = (object)array(
-            'reason' => $rec->reason,   // основанието за ордера
-            'valior' => $rec->valior,   // датата на ордера
-            'entries' => $entry,
-        );
-        
-        return $result;
-    }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        $rec->state = 'closed';
-        
-        return self::save($rec);
-    }
-    
-    
-    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -500,17 +426,6 @@ class bank_InternalMoneyTransfer extends core_Master
         $row->recTitle = $rec->reason;
         
         return $row;
-    }
-    
-    
-    /**
-     * Връща счетоводното основание за документа
-     */
-    public function getContoReason($id)
-    {
-        $rec = $this->fetchRec($id);
-        
-        return $this->getVerbal($rec, 'reason');
     }
     
     

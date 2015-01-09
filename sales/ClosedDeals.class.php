@@ -12,12 +12,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_ClosedDeals extends acc_ClosedDeals
+class sales_ClosedDeals extends deals_ClosedDeals
 {
+    
+    
     /**
      * Заглавие
      */
-    public $title = 'Приключване на продажба';
+    public $title = 'Документи за приключване на продажба';
 
 
     /**
@@ -108,7 +110,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     public static function getClosedDealAmount($threadId)
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$jRecs = acc_Journal::getEntries(array($firstDoc->instance, $firstDoc->that));
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
     	 
     	$cost = acc_Balances::getBlAmounts($jRecs, '6911', 'debit')->amount;
     	$inc = acc_Balances::getBlAmounts($jRecs, '7911', 'credit')->amount;
@@ -130,7 +132,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     
     /**
      * Имплементиране на интерфейсен метод
-     * @see acc_ClosedDeals::getDocumentRow()
+     * @see deals_ClosedDeals::getDocumentRow()
      */
     public function getDocumentRow($id)
     {
@@ -189,7 +191,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
      */
     public static function isSaleDiffAllowed($saleRec)
     {
-    	$diff = round($saleRec->amountDelivered - $saleRec->amountPaid, 2);
+    	$diff = round($saleRec->amountBl, 2);
     	$conf = core_Packs::getConfig('acc');
     	$res = ($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE);
     	
@@ -204,13 +206,14 @@ class sales_ClosedDeals extends acc_ClosedDeals
     {
     	if($res == 'no_one') return;
     	
-    	if(($action == 'add' || $action == 'conto') && isset($rec)){
+    	if(($action == 'add' || $action == 'conto' || $action == 'restore') && isset($rec)){
     		
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
     			$originRec = $origin->fetch();
     			
-    			if($originRec->state == 'active' && $origin->instance instanceof sales_Sales){
+    			// Ако няма сч. движения по сделката не може да се приключи
+    			if($originRec->state == 'active' && $origin->getInstance() instanceof sales_Sales){
     				
     				// Ако разликата между доставеното/платеното е по голяма, се изисква
     				// потребителя да има по-големи права за да създаде документа
@@ -235,7 +238,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Може само към нишка, породена от продажба
-    	if(!($firstDoc->instance instanceof sales_Sales)) return FALSE;
+    	if(!($firstDoc->getInstance() instanceof sales_Sales)) return FALSE;
     	
     	return TRUE;
     }

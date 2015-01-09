@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа sales_ClosedDeals
  *
@@ -12,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class sales_transaction_CloseDeal
+class sales_transaction_CloseDeal extends acc_DocumentTransactionSource
 {
     /**
      * 
@@ -40,26 +42,6 @@ class sales_transaction_CloseDeal
     
     
     /**
-     * Финализиране на транзакцията, изпълнява се ако всичко е ок
-     * 
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-        $rec = $this->class->fetchRec($id);
-        $rec->state = 'active';
-        
-    	if ($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
-    }
-    
-    
-    /**
      *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      *  Създава транзакция която се записва в Журнала, при контирането
      */
@@ -70,8 +52,7 @@ class sales_transaction_CloseDeal
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	$docRec = cls::get($rec->docClassId)->fetch($rec->docId);
     	
-    	$dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
-    	$this->shortBalance = new acc_ActiveShortBalance(array('itemsAll' => $dealItem->id));
+    	$dealItem = acc_Items::fetchItem('sales_Sales', $firstDoc->that);
     	
     	// Създаване на обекта за транзакция
     	$result = (object)array(
@@ -82,10 +63,14 @@ class sales_transaction_CloseDeal
     	);
     	
     	if($rec->closeWith){
-    		$closeDealItem = acc_Items::fetchItem('sales_Sales', $rec->closeWith);
-    		$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
-    		$result->entries = array_merge($result->entries, $closeEntries);
+    		if($dealItem){
+    			$closeDealItem = acc_Items::fetchItem('sales_Sales', $rec->closeWith);
+    			$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
+    			$result->entries = array_merge($result->entries, $closeEntries);
+    		}
     	} else {
+    		$this->shortBalance = new acc_ActiveShortBalance(array('itemsAll' => $dealItem->id));
+    		
     		$dealInfo = $this->class->getDealInfo($rec->threadId);
     	
     		$this->blAmount = $this->shortBalance->getAmount('411');
@@ -113,7 +98,7 @@ class sales_transaction_CloseDeal
     		$entry = $this->getCloseEntry($this->blAmount, $result->totalAmount, $docRec, $firstDoc, $incomeFromClosure);
     		
     		if(count($entry)){
-    			$result->entries = array_merge($result->entries, $entry);
+    			$result->entries[] = $entry;
     		}
     	}
     	
@@ -133,12 +118,6 @@ class sales_transaction_CloseDeal
      * 			Dt: 6911 - Отписани вземания по Продажби
      * 			Ct: 411 - Вземания от клиенти
      *
-     * 		Отнасяме отписаните вземания (извънредния разход) по сделката като разход по дебита на обобщаващата сметка 700,
-     * 		със сумата на дебитното салдо на с/ка 411
-     *
-     * 			Dt: 700 - Приходи от продажби (по сделки)
-     * 			Ct: 6911 - Отписани вземания по Продажби
-     *
      * Сметка 411 има Кредитно (Ct) салдо
      *
      * 		Намаляваме прихода от Клиента с надвнесената сума с обратна (revers) операция,
@@ -146,12 +125,6 @@ class sales_transaction_CloseDeal
     
      * 			Dt: 411 - Вземания от клиенти
      * 			Ct: 7911 - Извънредни приходи по Продажби
-     *
-     * 		Отнасяме извънредния приход по сделката като приход по кредита на обобщаващата сметка 700,
-     * 		със сумата на кредитното салдо на с/ка 411
-     *
-     * 			Dt: 7911 - Извънредни приходи по Продажби
-     * 			Ct: 700 - Приходи от продажби (по сделки)
      */
     private function getCloseEntry($amount, &$totalAmount, $docRec, $firstDoc, &$incomeFromClosure)
     {
@@ -172,18 +145,11 @@ class sales_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
     						'quantity' => abs($amount) / $docRec->currencyRate),
-    		);
-    
-    		$entry2 = array('amount' => abs($amount),
-    				'debit'  => array('7911',
-    						array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that)),
-    				'credit'  => array('700', array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that)),
+    				'reason' => 'Извънредни приходи - надплатени',
     		);
     
     		// Добавяме към общия оборот удвоената сума
-    		$totalAmount += -2 * $amount;
+    		$totalAmount += -1 * $amount;
     		$incomeFromClosure -= -1 * $amount;
     
     	} elseif($amount > 0){
@@ -199,114 +165,17 @@ class sales_transaction_CloseDeal
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
     						'quantity' => $amount / $docRec->currencyRate),
-    		);
-    
-    		$entry2 = array('amount' => $amount,
-    				'debit'  => array('700', array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that)),
-    				'credit'  => array('6911',
-    						array($docRec->contragentClassId, $docRec->contragentId),
-    						array($firstDoc->className, $firstDoc->that)),);
+    				'reason' => 'Извънредни разходи - недоплатени',
+    		);	
     		
     		// Добавяме към общия оборот удвоената сума
-    		$totalAmount += 2 * $amount;
+    		$totalAmount += $amount;
     		$incomeFromClosure += $amount;
     	}
     	
     	// Връщане на записа
-    	return array($entry1, $entry2);
+    	return $entry1;
     }
-    
-    
-    /**
-     * Отчитане на финансовия резултат от сделката по сметка 123 - Печалби и загуби от текущата година
-     *
-     * Сметка 700 има Дебитно (Dt) салдо
-     *
-     * 		Отнасяме резултата от сделката като загуба по сметка 123, със сумата на дебитното салдо на с/ка 700 по сделката
-     *
-     *			Dt: 123 - Печалби и загуби от текущата година
-     *			Ct: 700 - Приходи от продажби (по сделки)  (вече на ниво "Сделка")
-     *
-     * Сметка 700 има Кредитно (Ct) или нулево "0" салдо
-     *
-     * 		Отнасяме резултата от сделката като печалба по сметка 123, със сумата на кредитното салдо на с/ка 700 по сделката
-     *
-     * 			Dt: 700 - Приходи от продажби (по сделки)  (вече на ниво "Сделка")
-     * 			Ct: 123 - Печалби и загуби от текущата година
-     */
-    /*protected function transferIncomeToYear($docRec, &$total, $firstDoc, $incomeFromClosure)
-    {
-    	$arr1 = array('700', array($docRec->contragentClassId, $docRec->contragentId), array($firstDoc->className, $firstDoc->that));
-    	$arr2 = array('123', $this->date->year, $this->date->month);
-    	$total += abs($incomeFromClosure);
-    	
-    	// Дебитно салдо
-    	if($incomeFromClosure > 0){
-    		$debitArr = $arr2;
-    		$creditArr = $arr1;
-    	} else {
-    
-    		// Кредитно салдо
-    		$debitArr = $arr1;
-    		$creditArr = $arr2;
-    	}
-    	 
-    	$entry = array('amount' => abs($incomeFromClosure), 'debit' => $debitArr, 'credit' => $creditArr);
-    	
-    	return $entry;
-    }*/
-    
-    
-    /**
-     * Отчитане на финансовия резултат от сделката по сметка 123 - Печалби и загуби от текущата година
-     * Обобщаване на резултата от "Продажба"-та на ниво Сделка в с/ка 700 - Приходи от продажби (по сделки)
-     *
-     * Записа за конкретния артикул по сметка 701 (сметка от гр. 70) има Дебитно (Dt) салдо - т.е.
-     *
-     * 		Отнасяме резултата за артикула като разход по сметка 700 - Приходи от продажби (по сделки)
-     *
-     * 			Dt: 700 - Приходи от продажби (по сделки)
-     * 				Ct: 701 - Приходи от продажби на Стоки и Продукти
-     * 				Ct: 706 - Приходи от продажба на суровини/материали
-     * 				Ct: 703 - Приходи от продажби на Услуги
-     *
-     * Записа за конкретния артикул по сметка 701 (сметка от гр. 70) има Кредитно (Ct) или нулево "0" салдо
-     *
-     * 		Отнасяме резултата за артикула като приход по сметка 700 - Приходи от продажби (по сделки)
-     *
-     * 				Dt: 701 - Приходи от продажби на Стоки и Продукти
-     * 				Dt: 706 - Приходи от продажба на суровини/материали
-     * 				Dt: 703 - Приходи от продажби на Услуги
-     * 			Ct: 700 - Приходи от продажби (по сделки)
-     */
-    /*protected function transferIncome($dealInfo, $docRec, &$total, $firstDoc, &$incomeFromProducts)
-    {
-    	$entries = array();
-    	$balanceArr = $this->shortBalance->getShortBalance('701,706,703');
-    	
-    	if(!count($balanceArr)) return $entries;
-    	
-    	foreach ($balanceArr as $rec){
-    		$arr1 = array('700', array($docRec->contragentClassId, $docRec->contragentId),
-    				array($firstDoc->className, $firstDoc->that));
-    		$arr2 = array($rec['accountSysId'], $rec['ent1Id'], $rec['ent2Id'], $rec['ent3Id'], 'quantity' => $rec['blQuantity']);
-    
-    		if($rec['blAmount'] > 0){
-    			$debitArr = $arr1;
-    			$creditArr = $arr2;
-    		} else {
-    			$debitArr = $arr2;
-    			$creditArr = $arr1;
-    		}
-    
-    		$incomeFromProducts += $rec['blAmount'];
-    		$total += abs($rec['blAmount']);
-    		$entries[] = array('amount' => abs($rec['blAmount']), 'debit' => $debitArr, 'credit' => $creditArr);
-    	}
-    	
-    	return $entries;
-    }*/
     
     
     /**
@@ -334,7 +203,8 @@ class sales_transaction_CloseDeal
     	if($blAmount < 0){
     		$entries = array('amount' => abs($blAmount),
     				'credit'  => array('4535'),
-    				'debit' => array('4530', array($firstDoc->className, $firstDoc->that)));
+    				'debit' => array('4530', array($firstDoc->className, $firstDoc->that)),
+    				'reason' => 'ДДС по касови бележки');
     	} elseif($blAmount > 0){
     		$entries = array('amount' => $blAmount,
     				'credit'  => array('4530', array($firstDoc->className, $firstDoc->that)),
@@ -342,7 +212,8 @@ class sales_transaction_CloseDeal
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
-    						'quantity' => $blAmount));
+    						'quantity' => $blAmount),
+    				'reason' => 'Доначисляване на ДДС');
     
     		$this->blAmount  += $blAmount;
     	}
@@ -390,7 +261,8 @@ class sales_transaction_CloseDeal
     			array($firstDoc->className, $firstDoc->that),
     			array('currency_Currencies', $currencyId),
     			'quantity' => $amount);
-    
+    	$entry['reason'] = 'Приспадане на авансово плащане';
+    	
     	$downPaymentAmount += $entry['amount'];
     	$this->blAmount -= $entry['amount'];
     	

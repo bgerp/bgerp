@@ -26,6 +26,14 @@ class type_Key extends type_Int {
     
     
     /**
+     * Хендлър на класа
+     * 
+     * @var string
+     */
+    public $handler;
+    
+    
+    /**
      * Инициализиране на типа
      */
     function getSelectFld()
@@ -46,7 +54,7 @@ class type_Key extends type_Int {
     function toVerbal_($value)
     {
         
-        if(empty($value)) return NULL;
+        if($value === NULL || $value === '') return NULL;
 
         
         if($this->params['mvc']) {
@@ -64,12 +72,12 @@ class type_Key extends type_Int {
             } else {
                 if($this->params['title']) {
                     $field = $this->params['title'];
-                    $value = $mvc->fetchField($value, $field);
+                    $value = $mvc->fetch($value)->{$field};
                     
                     if(!$value) return '??????????????';
                     
                     $value = $mvc->fields[$field]->type->toVerbal($value);
-                } else { 
+                } else {
                     $value = $mvc->getTitleById($value);
                 }
             }
@@ -97,12 +105,12 @@ class type_Key extends type_Int {
         if(($field = $this->getSelectFld()) && (!count($options))) {
             $options = $this->prepareOptions();
         }
-        
         if(!is_numeric($value) && count($options)) {
             foreach($options as $id => $v) {
                 if (!is_string($v)) {
                     if(!$v->group) {
                         $optionsR[trim($v->title)] = $id;
+                        $optionsR[trim($v->title) . " ({$id})"] = $id;
                     }
                 } else {
                     
@@ -122,6 +130,7 @@ class type_Key extends type_Int {
                      */
                     //$v = html_entity_decode($v, ENT_NOQUOTES, 'UTF-8');
                     $optionsR[trim($v)] = $id;
+                    $optionsR[trim($v) . " ({$id})"] = $id;
                 }
             }
             
@@ -176,7 +185,8 @@ class type_Key extends type_Int {
             if(!count($options)) {
                 
                 if (!is_array($this->options)) {
-                    foreach($mvc->makeArray4select($field, $where) as $id => $v) {
+                    $arrForSelect = (array) $mvc->makeArray4select($field, $where);
+                    foreach($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
                     $this->handler = md5($field . $where . $this->params['mvc']);
@@ -191,6 +201,9 @@ class type_Key extends type_Int {
             // Правим титлите на опциите да са уникални и изчисляваме най-дългото заглавие
             $this->maxFieldSize = 0;
             if(is_array($options)) {
+                
+                $titles = array();
+                
                 foreach($options as $id => &$title) {
                     if(is_object($title)) continue;
                     if($titles[$title]) {
@@ -269,14 +282,11 @@ class type_Key extends type_Int {
                         
                         $title = self::getOptionTitle($v);
                         
-                        $vNorm = strtolower(str::utf2ascii(trim($title)));
-                        
-                        if($cacheOpt[$vNorm]) {
-                            
+                        if ($title && $key) {
                             $title = "{$title} ({$key})";
+                        } 
                             
-                            $vNorm = strtolower(str::utf2ascii(trim("{$title} {$key}")));
-                        }
+                        $vNorm = strtolower(str::utf2ascii(trim($title)));
                         
                         if(is_object($v)) {
                             $v->title = $title;
@@ -346,7 +356,7 @@ class type_Key extends type_Int {
             }
         } else {
             
-            expect(FALSE);
+            error(NULL, $this);
 
         }
         

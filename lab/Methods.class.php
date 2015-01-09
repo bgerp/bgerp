@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   lab
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,7 +20,13 @@ class lab_Methods extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Методи за лабораторни тестове";
+    public $title = "Методи за лабораторни тестове";
+    
+    
+    /**
+     * Заглавие в единствено число
+     */
+    public $singleTitle = "Метод за лабораторен тест";
     
     
     /**
@@ -34,26 +40,32 @@ class lab_Methods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,tools=Пулт,name,equipment,paramId,
+    public $listFields = 'id,name,equipment,paramId,
                              minVal,maxVal';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'id';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'lab,ceo';
+    public $canWrite = 'lab,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'lab,ceo';
+    public $canRead = 'lab,ceo';
     
     
     /**
@@ -65,19 +77,19 @@ class lab_Methods extends core_Master
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'lab,ceo';
+	public $canSingle = 'lab,ceo';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'lab/tpl/SingleLayoutMethods.shtml';
+    public $singleLayoutFile = 'lab/tpl/SingleLayoutMethods.shtml';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование');
         $this->FLD('equipment', 'varchar(255)', 'caption=Оборудване,notSorting');

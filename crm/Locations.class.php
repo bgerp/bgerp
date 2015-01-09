@@ -9,17 +9,17 @@
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class crm_Locations extends core_Master {
     
+	
     /**
      * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = 'cms_ObjectSourceIntf';
-    
     
     
     /**
@@ -31,7 +31,7 @@ class crm_Locations extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected, plg_RowNumbering, plg_Sorting';
+    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected, plg_RowNumbering, plg_Sorting, plg_Search';
     
     
     /**
@@ -98,6 +98,12 @@ class crm_Locations extends core_Master {
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'crm/tpl/SingleLayoutLocation.shtml';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'title, countryId, place, address, email, tel';
     
     
     /**
@@ -268,7 +274,7 @@ class crm_Locations extends core_Master {
     		$cRec = $contragentCls->fetch($rec->contragentId);
     		$url = array('sales_Sales', 'add','folderId' => $cRec->folderId, 'deliveryLocationId' => $rec->id);
     		$Sales = cls::get('sales_Sales');
-    		$data->toolbar->addBtn($Sales->singleTitle, $url,  'warning=Искатели да създадете нова продажба', 'ef_icon=img/16/view.png');
+    		$data->toolbar->addBtn($Sales->singleTitle, $url,  'warning=Наистина ли желаете да създадете нова продажба?', 'ef_icon=img/16/view.png, title=Създаване на нова продажба');
     	}
     	
     	if($rec->address && $rec->place && $rec->countryId){
@@ -413,5 +419,16 @@ class crm_Locations extends core_Master {
     	$string = trim($string, ",  ");
     	
     	return $string;
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->showFields = 'search';
     }
 }

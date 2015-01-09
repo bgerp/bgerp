@@ -25,20 +25,13 @@ class doc_Folders extends core_Master
     /**
      * Интерфейси
      */
-    var $interfaces = 'custom_SettingsIntf';
-    
-    
-    /**
-     * Кой може да модофицира
-     * @see custom_SettingsIntf
-     */
-    var $canModify = 'powerUser';
+    var $interfaces = 'core_SettingsIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf';
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting';
     
     
     /**
@@ -233,7 +226,7 @@ class doc_Folders extends core_Master
         }
         
         // Всеки има право на достъп до папката за която отговаря
-        if($rec->inCharge === $userId) return TRUE;
+        if ($rec->inCharge && ($rec->inCharge == $userId)) return TRUE;
         
         // Всеки има право на достъп до папките, които са му споделени
         if(strpos($rec->shared, '|' . $userId . '|') !== FALSE) return TRUE;
@@ -323,20 +316,24 @@ class doc_Folders extends core_Master
             $row->title = ht::createElement('span', $attr, $row->title);
         }
         
-        $typeMvc = cls::get($rec->coverClass);
-        
-        $attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
-
-        if($typeMvc->haveRightFor('single', $rec->coverId)) {
-            $row->type = ht::createLink(tr($typeMvc->singleTitle), array($typeMvc, 'single', $rec->coverId), NULL, $attr);
-        } else {
-            $attr['style'] .= 'color:#777;';
-            $row->type = ht::createElement('span', $attr, tr($typeMvc->singleTitle));
-        }
-
-        if($rec->inCharge){
-        	$row->inCharge = crm_Profiles::createLink($rec->inCharge);
-        }
+		if(cls::load($rec->coverClass, TRUE)){
+			$typeMvc = cls::get($rec->coverClass);
+			
+			$attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
+			
+			if($typeMvc->haveRightFor('single', $rec->coverId)) {
+				$row->type = ht::createLink(tr($typeMvc->singleTitle), array($typeMvc, 'single', $rec->coverId), NULL, $attr);
+			} else {
+				$attr['style'] .= 'color:#777;';
+				$row->type = ht::createElement('span', $attr, tr($typeMvc->singleTitle));
+			}
+			
+			if($rec->inCharge){
+				$row->inCharge = crm_Profiles::createLink($rec->inCharge);
+			}
+		} else {
+			$row->type = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+		}
     }
     
 
@@ -345,9 +342,9 @@ class doc_Folders extends core_Master
      */
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/group.png');
-        $data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard.png');
-        $data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/basket.png');
+        $data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/group.png', 'title=Създаване на нова визитка на фирма');
+        $data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard.png', 'title=Създаване на нова визитка на лице');
+        $data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/basket.png', 'title=Създаване на нов проект');
     }
     
     
@@ -408,12 +405,6 @@ class doc_Folders extends core_Master
                 // ако имаме повече отворени теми от преди
                 if($exOpenThreadsCnt < $rec->openThreadsCnt) {
                     
-                    // id на класа
-                    $folderClassId = doc_Folders::getClassId();
-                    
-                    // Вземаме данните
-                    $noNotificationsUsersArr = custom_Settings::fetchUsers($folderClassId, $rec->id, 'folOpenings');
-                    
                     $userId = $rec->inCharge;
                     
                     $msg = '|Отворени теми в|*' . " \"$rec->title\"";
@@ -422,20 +413,30 @@ class doc_Folders extends core_Master
                         
                     $priority = 'normal';
                     
-                    // В зависимост от персонализацията избираме дали да покажим нотификацията
-                    if ($noNotificationsUsersArr[$userId] == 'yes' || ($noNotificationsUsersArr[$userId] != 'no' && (!$noNotificationsUsersArr[-1] || $noNotificationsUsersArr[-1] == 'yes'))) {                        
+                    // По подразбиране ще се нотифицира собствника и споделените в папката
+                    $notifyArr = array();
+                    $notifyArr[$userId] = $userId;
+                    $notifyArr += keylist::toArray($rec->shared);
+                    
+                    $key = doc_Folders::getSettingsKey($rec->id);
+                    $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
+                    
+                    // В зависимост от избраната персонална настройка добавяме/премахваме от масива
+                    foreach ((array)$folOpeningNotifications as $userId => $folOpening) {
                         
-                        bgerp_Notifications::add($msg, $url, $userId, $priority);
+                        if ($folOpening['folOpenings'] == 'no') {
+                            unset($notifyArr[$userId]);
+                        } else if ($folOpening['folOpenings'] == 'yes') {
+                            $notifyArr[$userId] = $userId;
+                        }
                     }
                     
-                    if($rec->shared) {
-                        foreach(keylist::toArray($rec->shared) as $userId) {
-                            
-                            // В зависимост от персонализацията избираме дали да покажим нотификацията
-                            if ($noNotificationsUsersArr[$userId] == 'yes' || ($noNotificationsUsersArr[$userId] != 'no' && (!$noNotificationsUsersArr[-1] || $noNotificationsUsersArr[-1] == 'yes'))) {
-                                bgerp_Notifications::add($msg, $url, $userId, $priority);
-                            }
-                        }
+                    // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
+                    foreach((array)$notifyArr as $nUserId) {
+                        
+                        if (!doc_Folders::haveRightFor('single', $id, $nUserId)) continue;
+                        
+                        bgerp_Notifications::add($msg, $url, $nUserId, $priority);
                     }
                 } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
                     // Изчистване на нотификации за отворени теми в тази папка
@@ -863,71 +864,128 @@ class doc_Folders extends core_Master
         return $cover;
     }
     
-
+    
     /**
-     * Поправка на структурата на папките
+     * Добавя ограничение за дати на създаване/модифициране в заявката
+     * 
+     * @param core_Query $query
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
      */
-    function repair()
+    public static function prepareRepairDateQuery(&$query, $from, $to, $delay, $dateField='modifiedOn')
     {
-        $query = $this->getQuery();
-
-        while($rec = $query->fetch()) {
+        if (isset($from)) {
             
-            if(!$rec->inCharge > 0) {
-                $err[$rec->id] .= 'Missing inCharge; ';
-                $rec->inCharge = core_Users::getCurrent();
+            if (isset($delay)) {
+                $from = dt::subtractSecs($delay, $from);
             }
             
-            $projectName = FALSE;
-
-            if(!$rec->coverClass) {
-                $err[$rec->id] .= 'Missing coverClass; ';
-                $projectName = "LaF " . $rec->title;
-            } else {
-            
-                if(!($cls =  cls::load($rec->coverClass, TRUE))) {
-                    $err[$rec->id] .= 'Not exists coverClass; ';
-                    $projectName = "LaF " . $rec->title;
-                } else {
-                    if(!$rec->coverId) {
-                        $err[$rec->id] .= 'Not exists coverId; ';
-                        $projectName = "LaF " . $className . ' ' . $rec->title;
-                    } else {
-
-                        $cls = cls::get($rec->coverClass);
-
-                        if($rec->coverId && !$cls->fetch($rec->coverId)) {
-                            $err[$rec->id] .= 'Not exists cover; ';
-                            $projectName = "LaF " . $className . ' ' . $rec->title;
-                        }
-                    }
-                }
-            }
-
-            if($projectName) {
-                $rec->coverClass = core_Classes::fetchIdByName('doc_UnsortedFolders');
-                $rec->coverId = 0;
-                $this->save($rec);
-                $unRec = new stdClass();
-                $unRec->name = $projectName . ' ' . doc_UnsortedFolders::count();
-                $unRec->inCharge = core_Users::getCurrent();
-                $unRec->folderId = $rec->id;
-                $rec->coverId = doc_UnsortedFolders::save($unRec);
-                $this->save($rec);
-            }
-            
-            if(!$rec->title) {
-                $err[$rec->id] .= 'Missing title; ';
-            }
+            $query->where(array("#{$dateField} >= '[#1#]'", $from));
         }
         
-        if(count($err)) {
-            foreach($err as $id => $msg) {
-                $res .= "<li> $id => $msg </li>";
-            }
+        if (!isset($to)) {
+            $to = dt::now();
         }
-
-        return $res;
+        
+        if (isset($delay)) {
+            $to = dt::subtractSecs($delay, $to);
+        }
+        
+        $query->where(array("#{$dateField} <= '[#1#]'", $to));
+    }
+    
+    
+    /**
+     * Поправка на структурата на папките
+     * 
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     * 
+     * @return array
+     */
+    public static function repair($from = NULL, $to = NULL, $delay = 10)
+    {
+        // Изкючваме логването
+        $isLoging = core_Debug::$isLogging;
+        core_Debug::$isLogging = FALSE;
+        
+        $resArr = array();
+        
+        $unsortedFolders = 'doc_UnsortedFolders';
+        $unsortedFolderId = core_Classes::fetchIdByName($unsortedFolders);
+        
+        $currUser = core_Users::getCurrent();
+        if ($currUser <= 0) {
+            $currUser = core_Users::getFirstAdmin();
+        }
+        $currUser = ($currUser) ? $currUser : 1;
+        
+        $query = self::getQuery();
+        
+        // Подготвяме данните за търсене
+        self::prepareRepairDateQuery($query, $from, $to, $delay, 'createdOn');
+        
+        // Търсим документи с развалени стойности
+        $query->where("#inCharge IS NULL");
+        $query->orWhere("#inCharge <= 0");
+        $query->orWhere("#coverClass IS NULL");
+        $query->orWhere("#coverId IS NULL");
+        $query->orWhere("#title IS NULL");
+        
+        while($rec = $query->fetch()) {
+            
+            // Ако има папка без собственик
+            if(!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
+                $resArr['inCharge']++;
+                $rec->inCharge = $currUser;
+                self::save($rec);
+            }
+            
+            // Ако липсва coverClass, да е на несортираните
+            if (!isset($rec->coverClass)) {
+                $resArr['coverClass']++;
+                $rec->coverClass = $unsortedFolderId;
+                self::save($rec);
+            }
+            
+            // Ако няма coverId
+            if (!isset($rec->coverId)) {
+                $resArr['coverId']++;
+                
+                // Ако не е несортирани
+                if ($rec->coverClass != $unsortedFolderId) {
+                    $resArr['coverClass']++;
+                    $rec->coverClass = $unsortedFolderId;
+                    self::save($rec);
+                }
+                
+                // Създаваме документ и използваме id-то за coverId
+                $unRec = new stdClass();
+                $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
+                $unRec->inCharge = $currUser;
+                $unRec->folderId = $rec->id;
+                $rec->coverId = $unsortedFolders::save($unRec);
+                self::save($rec);
+            }
+            
+            // Ако няма заглвиет, използваме заглавието от документа
+            if (!isset($rec->title)) {
+                $resArr['title']++;
+                $coverMvc = cls::get($rec->coverClass);
+                $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
+                self::save($rec);
+            }
+            
+            // Обновяваме папката
+            self::updateFolderByContent($rec->id);
+        }
+        
+        // Връщаме старото състояние за ловговането в дебъг
+        core_Debug::$isLogging = $isLoging;
+        
+        return $resArr;
     }
     
 
@@ -1034,26 +1092,6 @@ class doc_Folders extends core_Master
     
     
     /**
-     * Извиква се след изчисляване на ролите необходими за дадено действие
-     * 
-     * @param doc_Folders $mvc
-     * @param string $res
-     * @param string $action
-     * @param object $rec
-     * @param integer $userId
-     */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
-    {
-        // @see custom_Settings
-        if ($action == 'modify' && $rec) {
-            if (!$mvc->haveRightFor('single', $rec)) {
-                $res = 'no_one';
-            }
-        }
-    }
-    
-    
-    /**
      * Добавя типа на папката към полетата за търсене
      * 
      * @param doc_Folders $mvc
@@ -1070,21 +1108,73 @@ class doc_Folders extends core_Master
     
     
     /**
-     * Интерфейсен метод на custom_SettingsIntf
-     * Подготвяме формата за персонализиране на настройките за нишката
+     * Връща ключа за персонална настройка
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    static function getSettingsKey($id)
+    {
+        $key = 'doc_Folders::' . $id;
+        
+        return $key;
+    }
+    
+    
+    /**
+     * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
+     * 
+     * @param string $key
+     * @param integer $userOrRole
+     * @see core_SettingsIntf
+     */
+    static function canModifySettings($key, $userOrRole=NULL)
+    {
+        // За да може да промени трябва да има достъп до сингъла на папката
+        // Да променя собствените си настройки или да е admin|ceo
+        
+        list($className, $id) = explode('::', $key);
+        
+        $currUser = core_Users::getCurrent();
+        
+        if (!doc_Folders::haveRightFor('single', $id, $currUser)) return FALSE;
+        
+        if (!$userOrRole) return TRUE;
+        
+        if ($currUser == $userOrRole) {
+            
+            return TRUE;
+        }
+        
+        if (haveRole('admin, ceo', $currUser)) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    
+    /**
+     * Подготвя формата за настройки
      * 
      * @param core_Form $form
-     * @see custom_SettingsIntf
+     * @see core_SettingsIntf
      */
-    function prepareCustomizationForm(&$form)
+    function prepareForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
         Mode::set('pageSubMenu', 'Всички');
         $this->currentTab = 'Теми';
         
+        // Вземаме id на папката от ключа
+        list($className, $folderId) = explode('::', $form->rec->_key);
+        
         // Определяме заглавито
-        $rec = $this->fetch($form->rec->objectId);
+        $rec = $this->fetch($folderId);
         $row = $this->recToVerbal($rec, 'title');
         $form->title = 'Настройка на|*: ' . $row->title;
         
@@ -1092,6 +1182,25 @@ class doc_Folders extends core_Master
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени нишки->Известяване, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
         $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
+        $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изходящ имейл->По подразбиране, input=input');
+        
+        $fromEmailOptions[] = '';
+        
+        // Изходящ имейл по-подразбиране за съответната папка
+        try {
+            $userId = NULL;
+            if ($form->rec->_userOrRole > 0) {
+                $userId = $form->rec->_userOrRole;
+            }
+            
+            // Личните имейли на текущия потребител
+            $fromEmailOptions = email_Inboxes::getFromEmailOptions($folderId, $userId, FALSE);
+        } catch (core_exception_Expect $e) { }
+        $form->setOptions(defaultEmail, $fromEmailOptions);
+        
+        $form->setDefault('folOpenings', 'default');
+        $form->setDefault('perPage', 'default');
+        $form->setDefault('ordering', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
@@ -1107,13 +1216,12 @@ class doc_Folders extends core_Master
     
     
     /**
-     * Интерфейсен метод на custom_SettingsIntf
-     * Проверява въведените данни във формата
+     * Проверява формата за настройки
      * 
      * @param core_Form $form
-     * @see custom_SettingsIntf
+     * @see core_SettingsIntf
      */
-    function checkCustomizationForm(&$form)
+    function checkSettingsForm(&$form)
     {
         
         return ;

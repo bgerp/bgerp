@@ -272,7 +272,7 @@ class core_Toolbar extends core_BaseClass
     function appendSecondRow_($toolbar, $rowId)
     {
     	
-        $toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, 'class=more-btn'), "ROW0");
+        $toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, array('class'=>'more-btn', 'title'=>'Други действия с този документ')), "ROW0");
     }
     
     
@@ -292,5 +292,17 @@ class core_Toolbar extends core_BaseClass
         }
     	
     	return $layout;
+    }
+    
+    
+    /**
+     * Проверява дали даден бутон го има в тулбара
+     * 
+     * @param int $id - ид на бутон
+     * @return boolean TRUE/FALSE - имали го бутона или не
+     */
+    public function hasBtn($id)
+    {
+    	return isset($this->buttons[$id]);
     }
 }

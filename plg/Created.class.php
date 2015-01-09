@@ -14,17 +14,6 @@
  */
 class plg_Created extends core_Plugin
 {
-    
-    /**
-     * Константа с id-то на системния потребител
-     */
-    const EF_SYS_USER_ID = -1;
-    
-    /**
-     * Константа с id-то на анинимния потребител
-     */
-    const EF_ANONYM_USER_ID = 0;
-    
 
     /**
      * Извиква се след описанието на модела
@@ -52,7 +41,7 @@ class plg_Created extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($requiredRoles != 'no_one' && $rec->id && $rec->createdBy == self::EF_SYS_USER_ID) {
+        if($requiredRoles != 'no_one' && $rec->id && $rec->createdBy == core_Users::SYSTEM_USER) {
             if($action == 'edit') { 
                 $requiredRoles = $mvc->getRequiredRoles('editsysdata', $rec, $userId);
             }
@@ -66,10 +55,10 @@ class plg_Created extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
+    function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL, &$mode = NULL)
     {
         // Записваме полетата, ако записът е нов и дали трябва да има createdOn и createdBy
-        if (!$rec->id) {
+        if (!$rec->id || strtolower($mode) == 'replace') {
             if($fields) {
                 $fieldsArr = arr::make($fields, TRUE);
                 $mustHaveCreatedBy = isset($fieldsArr['createdBy']);
@@ -83,9 +72,9 @@ class plg_Created extends core_Plugin
             if (!isset($rec->createdBy) && $mustHaveCreatedBy) {
                 
                 $rec->createdBy = Users::getCurrent();
-                
+
                 if (!$rec->createdBy) {
-                    $rec->createdBy = self::EF_ANONYM_USER_ID;
+                    $rec->createdBy = core_Users::ANONYMOUS_USER;
                 }
             }
             
@@ -102,7 +91,7 @@ class plg_Created extends core_Plugin
      */
     function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if($data->form->rec->createdBy == self::EF_SYS_USER_ID && $mvc->protectedSystemFields) {
+        if($data->form->rec->createdBy == core_Users::SYSTEM_USER && $mvc->protectedSystemFields) {
             $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, TRUE);
             
             foreach($data->form->fields as &$f) {
@@ -113,19 +102,4 @@ class plg_Created extends core_Plugin
         }
     }
     
-    
-    /**
-     * Добавя ново поле, което съдържа датата, в чист вид
-     */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {
-        if($rec->createdBy == self::EF_SYS_USER_ID) {
-            $row->createdBy = '@sys';
-        } elseif($rec->createdBy == self::EF_ANONYM_USER_ID) {
-            $row->createdBy = '@anonym';
-        } else {
-            $row->createdBy = core_Users::getVerbal($rec->createdBy, 'nick');
-        }
-        $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd-m-Y');
-    }
-}
+ }

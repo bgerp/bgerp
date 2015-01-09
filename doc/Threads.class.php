@@ -32,7 +32,7 @@ class doc_Threads extends core_Manager
     /**
      * Интерфейси
      */
-    var $interfaces = 'custom_SettingsIntf';
+    var $interfaces = 'core_SettingsIntf';
     
     
     /**
@@ -45,13 +45,6 @@ class doc_Threads extends core_Manager
      * 
      */
     var $canWrite = 'no_one';
-    
-    
-    /**
-     * Кой може да модофицира
-     * @see custom_SettingsIntf
-     */
-    var $canModify = 'powerUser';
     
     
     /**
@@ -142,6 +135,94 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Поправка на структурата на нишките
+     * 
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     * 
+     * @return array
+     */
+    public static function repair($from = NULL, $to = NULL, $delay = 10)
+    {
+        // Изкючваме логването
+        $isLoging = core_Debug::$isLogging;
+        core_Debug::$isLogging = FALSE;
+        
+        $resArr = array();
+        
+        // id на папката за несортирани
+        $unsortedCoverClassId = core_Classes::fetchIdByName('doc_UnsortedFolders');
+        
+        // id на папката за несортирани
+        $currUser = core_Users::getCurrent();
+        if ($currUser > 0) {
+            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}' AND #inCharge = '{$currUser}'", 'id', FALSE);
+        }
+        if (!isset($defaultFolderId)) {
+            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}'", 'id', FALSE);
+        }
+        
+        $query = self::getQuery();
+        
+        // Подготвяме данните за търсене
+        doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
+        
+        $query->where("#firstContainerId IS NULL");
+        $query->orWhere("#folderId IS NULL");
+        
+        // Не им се правят обработвки
+        // За да предизвикат стартиране за съответния запис в on_Shutdown
+        $query->orWhere("#allDocCnt IS NULL");
+        $query->orWhere("#pubDocCnt IS NULL");
+        $query->orWhere("#lastAuthor IS NULL");
+        $query->orWhere("#lastState IS NULL");
+        
+        while ($rec = $query->fetch()) {
+            
+            // Ако има нишка без firstContainerId
+            if (!isset($rec->firstContainerId)) {
+            
+                // Първия документ от нишката
+                $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', FALSE);
+                
+                // Ако не може да се определи първия документ в нишката, изтриваме нишката
+                if (!$firstCid) {
+                    if ($rec->id) {
+                        self::delete($rec->id);
+                        $resArr['del_cnt']++;
+                        continue;
+                    }
+                }
+                
+                $rec->firstContainerId = $firstCid;
+                
+                if (self::save($rec)) {
+                    $resArr['firstContainerId']++;
+                }
+            }
+            
+            // Ако няма папка използваме папката за несортирани
+            if (!isset($rec->folderId) && isset($defaultFolderId)) {
+                $rec->folderId = $defaultFolderId;
+                
+                if (self::save($rec)) {
+                    $resArr['folderId']++;
+                }
+            }
+            
+            // Обновяваме нишката
+            self::updateThread($rec->id);
+        }
+        
+        // Връщаме старото състояние за ловговането в дебъг
+        core_Debug::$isLogging = $isLoging;
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Екшън за оттегляне на тредове
      */
     function act_Reject()
@@ -201,7 +282,7 @@ class doc_Threads extends core_Manager
         // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
         $folderRow = doc_Folders::recToVerbal($folderRec);
-        $title->replace($folderRow->title, 'folder');
+        $title->append($folderRow->title, 'folder');
         $title->replace($folderRow->type, 'folderCover');
         
         // Потребител
@@ -211,9 +292,9 @@ class doc_Threads extends core_Manager
             $user = '@system';
         }
         $title->replace($user, 'user');
-        
+      
         if(Request::get('Rejected')) {
-            $title->append("&nbsp;<span class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</span>", 'folder');
+            $title->append("&nbsp;<span class='state-rejected stateIndicator'>&nbsp;" . tr('оттеглени') . "&nbsp;</span>", 'folder');
         }
         
         $title->replace($user, 'user');
@@ -258,9 +339,6 @@ class doc_Threads extends core_Manager
         
         $data->listFilter->input(NULL, 'silent');
         
-        // id на класа
-        $folderClassId = doc_Folders::getClassId();
-        
         // id на папката
         $folderId = $data->listFilter->rec->folderId;
 
@@ -274,18 +352,10 @@ class doc_Threads extends core_Manager
         	$data->listFilter->setReadOnly('documentClassId');
         }
         
-        // Показваме или само оттеглените или всички останали нишки
-        if($rejected) {
-        	$data->query->where("#state = 'rejected'");
-        } else {
-        	$data->query->where("#state != 'rejected' OR #state IS NULL");
-        }
-        
-        // id на потребителя
-        $userId = core_Users::getCurrent();
         
         // Вземаме данните
-        $vals = custom_Settings::fetchValues($folderClassId, $folderId, $userId);
+        $key = doc_Folders::getSettingsKey($folderId);
+        $vals = core_Settings::fetchKey($key);
         
         // Ако е зададено подреждане в персонализацията
         if ($vals['ordering']) {
@@ -718,7 +788,7 @@ class doc_Threads extends core_Manager
              *  премести съответстващия му контейнер.
              */
             expect($rec->docId, $rec);
-            $doc->instance->save(
+            $doc->getInstance()->save(
                 (object)array(
                     'id' => $rec->docId,
                     'folderId' => $destFolderId,
@@ -844,7 +914,7 @@ class doc_Threads extends core_Manager
         try{
         	$containerId = static::getFirstContainerId($id);
         	$firstDoc = doc_Containers::getDocument($containerId);
-        } catch(Exception $e){
+        } catch(core_exception_Expect $e){
         	
         	// Ако няма първи документ, връща NULL
         	return NULL;
@@ -1057,6 +1127,28 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        if($data->query) {
+            if(Request::get('Rejected')) {
+                $data->query->where("#state = 'rejected'");
+            } else {
+                $data->rejQuery = clone($data->query);
+                $data->rejQuery->where("#state = 'rejected'");
+                // Показваме или само оттеглените или всички останали нишки
+         	    $data->query->where("#state != 'rejected' OR #state IS NULL");
+            }
+        }
+    }
+
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
@@ -1067,13 +1159,15 @@ class doc_Threads extends core_Manager
             $data->toolbar->removeBtn('*', 'with_selected');
             $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
-            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
-
-            $data->rejectedCnt = $mvc->count("#folderId = {$data->folderId} AND #state = 'rejected'");
+            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
+ 
+            $data->rejectedCnt = $data->rejQuery->count("#folderId = {$data->folderId}");;
             
             if($data->rejectedCnt) {
+                $curUrl = getCurrentUrl();
+                $curUrl['Rejected'] = 1;
                 $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", 
-                    array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
+                    $curUrl, 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
             }
             
             // Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
@@ -1085,12 +1179,11 @@ class doc_Threads extends core_Manager
             }
         }
         
-        // Ако има права за модифициране на настройките за персоналзиране
-        if (doc_Folders::haveRightFor('modify', $data->folderId)) {
-            
-            // Добавяме бутон в тулбара
-            $folderClassId = core_Classes::fetchIdByName('doc_Folders');
-            custom_Settings::addBtn($data->toolbar, $folderClassId, $data->folderId, 'Настройки');
+        // Ако има права за настройка на папката, добавяме бутона
+        $key = doc_Folders::getSettingsKey($data->folderId);
+        $userOrRole = core_Users::getCurrent();
+        if (doc_Folders::canModifySettings($key, $userOrRole)) {
+            core_Settings::addBtn($data->toolbar, $key, 'doc_Folders', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2, 'title'=>'Персонални настройки на папката'));
         }
     }
     
@@ -1192,13 +1285,6 @@ class doc_Threads extends core_Manager
             if($rec->state == 'opened' || $rec->state == 'closed') {
                 $res = $mvc->getRequiredRoles('single', $rec, $userId);
             } else {
-                $res = 'no_one';
-            }
-        }
-        
-        // @see custom_Settings
-        if ($action == 'modify' && $rec) {
-            if (!$mvc->haveRightFor('single', $rec)) {
                 $res = 'no_one';
             }
         }
@@ -1572,26 +1658,80 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Интерфейсен метод на custom_SettingsIntf
-     * Подготвяме формата за персонализиране на настройките за нишката
+     * Връща ключа за персонална настройка
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    static function getSettingsKey($id)
+    {
+        $key = 'doc_Threads::' . $id;
+        
+        return $key;
+    }
+    
+    
+    /**
+     * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
+     * 
+     * @param string $key
+     * @param integer $userOrRole
+     * @see core_SettingsIntf
+     */
+    static function canModifySettings($key, $userOrRole=NULL)
+    {
+        // За да може да промени трябва да има достъп до сингъла на нишката
+        // Да променя собствените си настройки или да е admin|ceo
+        
+        list($className, $id) = explode('::', $key);
+        
+        $currUser = core_Users::getCurrent();
+        
+        if (!doc_Threads::haveRightFor('single', $id, $currUser)) return FALSE;
+        
+        if (!$userOrRole) return TRUE;
+        
+        if ($currUser == $userOrRole) {
+            
+            return TRUE;
+        }
+        
+        if (haveRole('admin, ceo', $currUser)) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    
+    /**
+     * Подготвя формата за настройки
      * 
      * @param core_Form $form
-     * @see custom_SettingsIntf
+     * @see core_SettingsIntf
      */
-    function prepareCustomizationForm(&$form)
+    function prepareForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
         Mode::set('pageSubMenu', 'Всички');
-        $this->currentTab = 'Нишка';
+        $this->currentTab = 'Теми';
+        
+        // Вземаме id на папката от ключа
+        list($className, $threadId) = explode('::', $form->rec->_key);
         
         // Определяме заглавито
-        $rec = $this->fetch($form->rec->objectId);
+        $rec = $this->fetch($threadId);
         $row = $this->recToVerbal($rec, 'title');
-        $form->title .= ' на нишка|*: ' . $row->title;
+        $form->title = 'Настройка на|*: ' . $row->title;
         
         // Добавяме функционални полета
-        $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Добавяне на документ->Известяване, input=input');
+        $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известие при добавяне на документ->Известяване, input=input');
+        
+        $form->setDefault('notify', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
@@ -1599,19 +1739,18 @@ class doc_Threads extends core_Manager
         // Ако сме в мобилен режим, да не е хинт
         $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
         
-        // Подсказки за позразбиране
+        // Сетваме стойност по подразбиране
         $form->setParams('notify', array($paramType => $defaultStr . '|Винаги'));
     }
     
     
     /**
-     * Интерфейсен метод на custom_SettingsIntf
-     * Проверява въведените данни във формата
+     * Проверява формата за настройки
      * 
      * @param core_Form $form
-     * @see custom_SettingsIntf
+     * @see core_SettingsIntf
      */
-    function checkCustomizationForm(&$form)
+    function checkSettingsForm(&$form)
     {
         
         return ;
@@ -1627,17 +1766,11 @@ class doc_Threads extends core_Manager
      */
     function on_BeforePrepareListPager($mvc, &$res, &$data)
     {
-        // id на класа
-        $folderClassId = doc_Folders::getClassId();
-        
         // id на папката
         $folderId = Request::get('folderId');
         
-        // id на потребителя
-        $userId = core_Users::getCurrent();
-        
-        // Вземаме данните
-        $vals = custom_Settings::fetchValues($folderClassId, $folderId, $userId);
+        $key = doc_Folders::getSettingsKey($folderId);
+        $vals = core_Settings::fetchKey($key);
         
         // Ако е зададено да се страницира
         if ($vals['perPage']) {

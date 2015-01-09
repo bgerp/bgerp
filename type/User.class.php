@@ -67,7 +67,9 @@ class type_User extends type_Key
         if(!haveRole($this->params['rolesForTeams'])) {
             if(haveRole($this->params['roles'])) {
                 $userId = core_Users::getCurrent();
-                
+                if (!$this->options[$userId]) {
+                    $this->options[$userId] = new stdClass();
+                }
                 $this->options[$userId]->title = core_Users::getCurrent($part);
                 $this->options[$userId]->value = $userId;
             }

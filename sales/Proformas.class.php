@@ -174,7 +174,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * След подготовка на формата
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	parent::prepareInvoiceForm($mvc, $data);
     	
@@ -255,7 +255,7 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
-    	 
+
     	if($fields['-single']){
     
     		if($rec->accountId){
@@ -279,6 +279,8 @@ class sales_Proformas extends deals_InvoiceMaster
     		foreach ($agreed as $product){
     			
     			$diff = $product->quantity;
+    			$product->price *= 1 - $product->discount;
+    			unset($product->discount);
     			$mvc::saveProductFromOrigin($mvc, $rec, $product, $packs, $diff);
     		}
     	}
@@ -307,7 +309,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	if(!$firstDocument) return FALSE;
     	
     	// Може да се добавя само към активна продажба
-    	if($firstDocument->instance instanceof sales_Sales && $firstDocument->fetchField('state') == 'active'){
+    	if($firstDocument->getInstance() instanceof sales_Sales && $firstDocument->fetchField('state') == 'active'){
     		
     		return TRUE;
     	}

@@ -190,7 +190,7 @@ class doc_Log extends core_Manager
                 
                 // Документа
                 $resArr[$docId]['document'] = $resArr[$docId]['handle'] . "\n<div class='addDocSubTitle'>{$resArr[$docId]['title']}</div>";
-            } catch (Exception $e) {
+            } catch (core_exception_Expect $e) {
                 continue;
             }
         }

@@ -75,125 +75,47 @@ class drdata_Phones extends core_Manager {
     
     
     /**
-     * @todo Чака за документация...
+     * Връща масив с всички варииации на телофона, кода и града
+     * 
+     * @param array $numberArr
+     * 
+     * @return arrray
      */
-    function parseTextAndCode($str)
+    public static function getVariationsNumberArr($numbersArr)
     {
-        $len = mb_strlen($str);
+        $allArr = array();
+        $setArr = array();
         
-        for($i = 0; $i<$len; $i++)
-        {
-            if(mb_substr($str, $i, 1) >= '0' && mb_substr($str, $i, 1) <= '9') {
-                
-                $text = trim(mb_substr($str, 0, $i-1));
-                $code = trim(mb_substr($str, $i));
-                
-                if(preg_replace('/[^0-9]+/', '', $code) == $code) {
-                    return array($text , $code);
-                }
-            }
-        }
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function act_Test()
-    {
-        
-        // Кратък тест
-        /*    $this->test = TRUE;
-        $t = "0820555850399";
-        $countryCode = "43";
-        $areaCode = '';
-        $tArr = $this->parseTel( $t, $countryCode, $areaCode );
-        $html .= "<li> " . $t . " ($countryCode) ($areaCode) => ";
-        foreach( $tArr as $t) {
-            $html .= "+" . $t->countryCode . " " . $t->areaCode . "/" . $t->number . " [{$t->country} - {$t->area}]; ";
-        }
-
-        return $html;  */
-        
-        set_time_limit(520);
-        $html = "<OL>";
-        
-        // Намираме директорията, където е текущия файл
-        $dir = dirname (__FILE__);
-        
-        // Вкарваме петия източник на данни
-        $file = file_get_contents($dir . "/../dialcodes/test.csv");
-        
-        // Парсираме CSV съдържанието
-        $arr = explode("\n", $file);
-        
-        foreach($arr as $r) {
-            $p = explode('|', $r);
+        foreach ((array)$numbersArr as $key => $numberObj) {
             
-            if(!trim($p[3])) continue;
+            // Масив с варициите на частите на номера
+            $countryVarArr = self::getCountryCodeVariation($numberObj->countryCode);
+            $areaVarArr = self::getAreaCodeVariation($numberObj->areaCode);
+            $numberVarArr = self::getNumberVariation($numberObj->number);
             
-            if($i++ > 3000) return $html;
-            
-            $country = addslashes(trim(strtolower(str::utf2ascii(str_replace('# ', '', $p[0])))));
-            
-            $defaultCountryCode = '';
-            $defaultAreaCode = '';
-            
-            if($country) {
-                
-                if($country == 'oesterreich') {
-                    $country = 'austria';
-                }
-                
-                if($country == 'espania') {
-                    $country = 'spain';
-                }
-                
-                $rec = $this->DialCodes->fetch("#country LIKE '{$country}' AND !#areaCode");
-                
-                if($rec) {
-                    $defaultCountryCode = $rec->countryCode;
-                } else {
-                    $rec = $this->DialCodes->fetch("#country LIKE '%{$country}%' AND !#areaCode");
-                    
-                    if($rec) {
-                        $defaultCountryCode = $rec->countryCode;
-                    } else {
-                        $rec = $this->DialCodes->fetch("'{$country}' LIKE CONCAT('%', #country, '%')   AND !#areaCode");
+            foreach ($countryVarArr as $countryCode) {
+                foreach ($areaVarArr as $areaCode) {
+                    foreach ($numberVarArr as $number) {
                         
-                        if($rec) {
-                            $defaultCountryCode = $rec->countryCode;
+                        // Ако кода на региона започва с 0, да не се добавя кода на държавата
+                        if ($areaCode{0} === '0') {
+                            $hash = $areaCode . '|' . $number;
+                            if (!$setArr[$hash]) {
+                                $setArr[$hash] = TRUE;
+                                $allArr[] = $areaCode . $number;
+                            }
+                        } else {
+                            $allArr[] = $countryCode . $areaCode . $number;
                         }
                     }
                 }
             }
-            
-            if(!$defaultCountryCode) {
-                $defaultCountryCode = '359';
-            }
-            
-            if($defaultCountryCode == '359') {
-                $defaultAreaCode = '2';
-            }
-            
-            $tArr = $this->parseTel($p[3], $defaultCountryCode, $defaultAreaCode);
-            $html .= "<li> " . $p[3] . " $country $defaultCountryCode => ";
-            
-            if(count($tArr)) {
-                foreach($tArr as $t) {
-                    $html .= "<A class=none href='callto:{$t->countryCode}{$t->areaCode}{$t->number}' title='{$t->country} - {$t->area}'>+" . $t->countryCode . " " . $t->areaCode . " " . $t->number . ";</A> ";
-                }
-            } else {
-                $html .= "<span class=\"red\">ERROR</span>";
-            }
         }
         
-        $html .= "</OL>";
-        
-        return $html;
+        return $allArr;
     }
-    
-    
+
+
     /**
      * Връща наличната информация в базата за този код
      */

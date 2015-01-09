@@ -201,7 +201,7 @@ class cms_Articles extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     { 
-        if(trim($rec->body) && $fields['-list']) {
+        if(trim($rec->body) && $fields['-list'] && $mvc->haveRightFor('show', $rec)) {
             $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), NULL, 'ef_icon=img/16/monitor.png');
         }
         
@@ -254,7 +254,10 @@ class cms_Articles extends core_Master
             // Ако има, намира записа на страницата
             $rec = self::fetch($id);
         }
-
+       
+        if(is_object($rec) && $rec->state != 'active') { 
+            error("404 Липсваща страница");
+        }
 
         if($rec) { 
             $rec->body = trim($rec->body);
@@ -297,7 +300,7 @@ class cms_Articles extends core_Master
         
         $cnt = 0;
 
-        while($rec1 = $query->fetch()) {
+        while($rec1 = $query->fetch("#state = 'active'")) {
             
             // Ако статуса е затворен, да не се показва
             if ($rec1->state == 'closed') continue;
@@ -467,7 +470,7 @@ class cms_Articles extends core_Master
         } else {
             
             // Ако не е подадено заглавиет, създаваме линк с иконата
-            $link = ht::createLink('<img src=' . $editSbf . ' width="12" height="12">', $changeUrl);
+            $link = ht::createLink('<img src=' . $editSbf . ' width="12" alt="edit" height="12">', $changeUrl);
         }
         
         return $link;
@@ -518,11 +521,15 @@ class cms_Articles extends core_Master
 
 
     /**
-     *
+     * Какви са необходимите роли за съотвентото действие?
      */
     static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         if($rec->state == 'active' && $action == 'delete') {
+            $roles = 'no_one';
+        }
+ 
+        if($action == 'show' && is_object($rec) && $rec->state != 'active') {
             $roles = 'no_one';
         }
     }
@@ -542,10 +549,9 @@ class cms_Articles extends core_Master
     function getUrlByMenuId($menuId)
     {
         $query = self::getQuery();
-        $query->where("#menuId = {$menuId}");
         $query->orderBy("#level");
 
-        $rec = $query->fetch("#menuId = {$menuId} AND #body != ''");
+        $rec = $query->fetch("#menuId = {$menuId} AND #body != '' AND #state = 'active'");
 
         if($rec) {
 

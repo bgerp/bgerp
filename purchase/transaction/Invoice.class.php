@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа purchase_Invoices
  *
@@ -12,27 +14,13 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class purchase_transaction_Invoice
+class purchase_transaction_Invoice extends acc_DocumentTransactionSource
 {
     /**
      * 
      * @var purchase_Invoices
      */
     public $class;
-    
-    
-    /**
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'active';
-    
-    	if ($this->class->save($rec)) {
-    		$this->class->invoke('AfterActivation', array($rec));
-    	}
-    }
     
     
     /**

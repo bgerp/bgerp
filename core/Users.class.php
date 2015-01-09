@@ -18,7 +18,7 @@ defIfNot('EF_USERS_SESS_TIMEOUT', 3600);
 /**
  * 'Подправка' за кодиране на паролите
  */
-defIfNot('EF_USERS_PASS_SALT', hash('sha256', (EF_SALTH . 'EF_USERS_PASS_SALT')));
+defIfNot('EF_USERS_PASS_SALT', hash('sha256', (EF_SALT . 'EF_USERS_PASS_SALT')));
 
 
 /**
@@ -84,7 +84,17 @@ defIfNot('EF_HTTPS_PORT', 443);
  */
 class core_Users extends core_Manager
 {
+    /**
+     * Константа за id на системния потребител
+     */
+    const SYSTEM_USER = -1;
     
+    
+    /**
+     * Константа за id на анонимния потребител
+     */
+    const ANONYMOUS_USER = 0;
+
     
     /**
      * Заглавие на мениджъра
@@ -170,10 +180,44 @@ class core_Users extends core_Manager
         $this->FLD('lastLoginIp', 'type_Ip', 'caption=Последно->IP,input=none');
         $this->FLD('lastActivityTime', 'datetime(format=smartTime)', 'caption=Последно->Активност,input=none');
         
-        $this->FLD('configData', 'blob(serialize,compress)', 'caption=Конфигурационни данни,input=none');
-
         $this->setDbUnique('nick');
         $this->setDbUnique('email');
+    }
+    
+    
+    /**
+     * Връща масив от масиви - роли и потребители, които имат съответните роли
+     * 
+     * @return array
+     */
+    public static function getRolesWithUsers()
+    {
+        $type = 'userRoles';
+        $handle = 'userRolesArr';
+        $keepMinute = 1440;
+        $depends = array('core_Roles', 'core_Users');
+        
+        // Проверяваме дали записа фигурира в кеша
+        $usersRolesArr = core_Cache::get($type, $handle, $keepMinute, $depends);
+        
+        if ($usersRolesArr !== FALSE) return $usersRolesArr;
+        
+        $uQuery = core_Users::getQuery();
+//        $uQuery->where("#state != 'blocked'");
+//        $uQuery->where("#state != 'rejected'");
+        
+        // За всяка роля добавяме потребители, които я имат
+        while ($uRec = $uQuery->fetch()) {
+            $rolesArr = type_Keylist::toArray($uRec->roles);
+            foreach ($rolesArr as $roleId) {
+                $usersRolesArr[$roleId][$uRec->id] = $uRec->id;
+            }
+        }
+        
+        // Записваме масива в кеша
+        core_Cache::set($type, $handle, $usersRolesArr, $keepMinute, $depends);
+        
+        return $usersRolesArr;
     }
     
     
@@ -480,6 +524,8 @@ class core_Users extends core_Manager
         if(EF_HTTPS === 'OPTIONAL' && $connection === 'HTTP'){
         	$form->toolbar->addFnBtn('Вход с криптиране', "this.form.action=('{$httpsUrl}');this.form.submit();", array('style' => 'background-color: #9999FF'));
         }
+        
+        $form->info = "<center style='font-size:0.8em;color:#666;'>" . tr($conf->CORE_LOGIN_INFO) . "</center>";
 
         $this->invoke('PrepareLoginForm', array(&$form));
         
@@ -612,7 +658,9 @@ class core_Users extends core_Manager
      */
     function logLogin_($inputs, $msg)
     {
-        $this->log($msg . ' [' . ($inputs->nick ? $inputs->nick : $inputs->email) . '] from IP: ' . $this->getRealIpAddr());
+        $nick = $inputs->nick ? $inputs->nick : $inputs->email;
+
+        $this->log($msg . ' [' . $nick . '] from IP: ' . $this->getRealIpAddr());
     }
     
 
@@ -726,7 +774,31 @@ class core_Users extends core_Manager
             }
         }
     }
-    
+
+
+    /**
+     * Виртуално добавяне на двата служебни потребителя
+     */
+    static function fetch($cond, $fields = '*', $cache = TRUE)
+    { 
+        if(($cond == self::SYSTEM_USER) && is_numeric($cond)) {
+            $res = (object) array(
+                                'id' => self::SYSTEM_USER,
+                                'nick' => '@system',
+                                'state' => 'active'
+                            );
+        } elseif(($cond == self::ANONYMOUS_USER) && is_numeric($cond)) {
+            $res = (object) array(
+                                'id' => self::ANONYMOUS_USER,
+                                'nick' => '@anonym',
+                                'state' => 'active'
+                            );
+        } else {
+            $res = parent::fetch($cond, $fields, $cache);
+        }
+
+        return $res;
+    }
     
     /**
      * Връща id-то (или друга зададена част) от записа за текущия потребител
@@ -745,7 +817,7 @@ class core_Users extends core_Manager
             $cRec = Mode::get('currentUserRec');
             if ($escaped) {
                 $res = core_Users::getVerbal($cRec, $part);    
-            } else {
+            } elseif(is_object($cRec)) {
                 $res = $cRec->$part;    
             }
         }
@@ -804,21 +876,12 @@ class core_Users extends core_Manager
      */
     static function sudo($id)
     {
-        if (!$id) {
-            return FALSE;
-        }
+        $userRec = self::fetch($id);
+        $bValid = FALSE;
         
-        $userRec = static::fetch($id);
-        
-        $bValid = !empty($userRec);
-        
-        /**
-         * @TODO Други проверки за допустимостта на sudo - напр. дали е активен потребителя и
-         * пр.
-         */ 
-        
-        if($bValid) {
+        if (is_object($userRec)) {
             core_Mode::push('currentUserRec', $userRec);
+            $bValid = TRUE;
         }
         
         return $bValid;
@@ -926,6 +989,10 @@ class core_Users extends core_Manager
         }
 
         $Users->invoke('afterLogin', array(&$userRec, $inputs, $refresh));
+
+        if(!isDebug() && haveRole('debug')) {
+            core_Debug::setDebugCookie();
+        }
         
         return $userRec;
     }
@@ -942,6 +1009,10 @@ class core_Users extends core_Manager
     {
         // Ако не се логва, а се рефрешва потребителя
         if ($refresh) return ;
+        
+        $nick = $inputs->nick ? $inputs->nick : $inputs->email;
+        
+        vislog_IpNames::add($nick);
         
         // Обновяваме времето на BRID кукито
         core_Browser::updateBridCookieLifetime();
@@ -1194,7 +1265,7 @@ class core_Users extends core_Manager
     /**
      * Връща масив от роли, които са от посочения тип, за посочения потребител
      */
-    static function getUserRolesByType($userId = NULL, $type = NULL)
+    static function getUserRolesByType($userId = NULL, $type = NULL, $result = 'keylist')
     {
         $roles = core_Users::getRoles($userId);
         
@@ -1216,7 +1287,11 @@ class core_Users extends core_Manager
             }
         }
         
-        return keylist::fromArray($res);
+        if($result == 'keylist') {
+            $res = keylist::fromArray($res);
+        }
+
+        return $res;
     }
     
     
@@ -1254,8 +1329,16 @@ class core_Users extends core_Manager
      * 
      * @return boolean - Ако са от един и същи екип връща TRUE
      */
-    static function isFromSameTeam($user1, $user2)
-    {
+    static function isFromSameTeam($user1, $user2 = NULL)
+    {   
+        // Ако $user2 не е зададен, вземаме текущия потребител
+        if(!$user2) {
+            $user2 = core_Users::getCurrent();
+        }
+        
+        // По-бърз отговор, ако двата потребителя съвпадат
+        if($user1 == $user2) return TRUE;
+
         // Вземаме съотборниците на първия потребител
         $teamMates = static::getTeammates($user1);
         
@@ -1361,11 +1444,7 @@ class core_Users extends core_Manager
                 $errMsg = '401 Недостатъчни права за този ресурс';
             }
 
-            error($errMsg, array(
-                        'requiredRoles' => $requiredRoles,
-                        'action' => $action,
-                        'userRoles' => Users::getCurrent('roles')
-                    ));
+            error($errMsg,  $requiredRoles, $action,  Users::getCurrent('roles'));
         }
         
         return TRUE;
@@ -1388,24 +1467,7 @@ class core_Users extends core_Manager
     }
 
     
-    /**
-     * Заглавието на потребителя в този запис
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        if($rec->id > 0) {
-            
-            return $rec->nick;
-        } elseif($rec->id == -1) {
-            
-            return "@system" ;
-        } else {
-            
-            return '@anonymous';
-        }
-    }
-    
-    
+     
     /**
      * Да изтрива не-логналите се потребители
      */
@@ -1601,7 +1663,7 @@ class core_Users extends core_Manager
         $Roles = cls::get('core_Roles');
         $adminId = $Roles->fetchByName('admin');
         
-        $id = self::fetchField("#roles LIKE '%|$adminId|%'", 'id');
+        $id = self::fetchField("#roles LIKE '%|$adminId|%' AND #state != 'rejected'", 'id');
         
         return $id;
     }
@@ -1737,144 +1799,16 @@ class core_Users extends core_Manager
     
     
     /**
-     * Екшън за персонализиране на конфигурационните данни
+     * Връща ключа за персонална настройка
+     * 
+     * @param integer $id
+     * 
+     * @return string
      */
-    function act_Personalize()
+    static function getSettingsKey($id)
     {
-        // Изиксваме да има права за персонализиране
-        $this->requireRightFor('personalize');
+        $key = 'core_Users::' . $id;
         
-        // id на потребителя
-        $userId = Request::get('id', 'int');
-        
-        // Очакваме да има такъв запис за потребител
-        $userRec = $this->fetch($userId);
-        expect($userRec);
-        
-        // Очакваме да има права за персонализиране на записа
-        $this->requireRightFor('personalize', $userRec);
-        
-        $retUrl = getRetUrl();
-        
-        // Вземаме формата към този модел
-        $form = $this->getForm();
-        
-        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
-        $form->input(NULL, 'silent');
-        
-        // Всички записани пакети
-        $query = core_Packs::getQuery();
-        while ($rec = $query->fetch()) {
-            
-            // Зареждаме сетъп пакета
-            $clsName = $rec->name . "_Setup";
-            if (!cls::load($clsName, TRUE)) continue;
-            $clsInst = core_Cls::get($clsName);
-            
-            // Ако няма полета за конфигуриране
-            if (!$clsInst->getConfigDescription()) continue;
-            
-            // Обхождаме всички полета за конфигуриране
-            foreach ((array)$clsInst->getConfigDescription() as $field => $arguments) {
-                
-                // Типа на полета
-                $type = $arguments[0];
-                
-                // Параметри на полето
-                $params = arr::combine($arguments[1], $arguments[2]);
-                
-                // Ако не е зададено, че може да се конфигурира или текущия потребител няма съответната роля
-                if (!$params['customizeBy'] || !haveRole($params['customizeBy'], $form->rec->userId)) continue;
-                
-                // Ако не е зададено, заглавието на полето е неговото име
-                setIfNot($params['caption'], '|*' . $field);
-                
-                $typeInst = core_Type::getByName($type);
-                
-                // Ако е enum поле, добавя в началото да може да се избира автоматично
-                if ($typeInst instanceof type_Enum) {
-                    $typeInst->options = array('default' => 'Автоматично') + (array)$typeInst->options;
-                }
-                
-                // Полето ще се въвежда
-                $params['input'] = 'input';
-                
-                // Добавяме функционално поле
-                $form->FNC($field, $typeInst, $params);
-                
-                // Масив с всички полета
-                $fieldsArr[$field] = $field;
-                
-                // Вземаме стойността от конфигурацията
-                $conf = core_Packs::getConfig($rec->name, $userId);
-                $valArr[$field] = $conf->$field;
-            }
-        }
-        
-        // Инпутваме всички полета
-        $form->input($fieldsArr);
-        
-        // Ако формата е изпратена без грешки
-        if($form->isSubmitted()) {
-            
-            // Обхождаме всички полета от конфигурацията
-            foreach ((array)$fieldsArr as $name) {
-                
-                // Ако няма промяна в стойностите от конфигурацията
-                if (($form->rec->$name == $valArr[$name]) && !($userRec->configData[$name])) continue;
-                
-                // Ако типа е enum, трябва стойността да не е default
-                if ($form->fields[$name]->type instanceof type_Enum) {
-                    if (($form->rec->$name != 'default') && $form->rec->$name) {
-                        $configDataArr[$name] = $form->rec->$name;
-                    }
-                } else if ($form->rec->$name) {
-                    // Ако има стойност добавяме в масива
-                    $configDataArr[$name] = $form->rec->$name;
-                }
-            }
-            
-            // Записваме новата стойност
-            $nRec = new stdClass();
-            $nRec->id = $form->rec->id;
-            $nRec->configData = $configDataArr;
-            $this->save($nRec, 'configData');
-            
-            return new Redirect($retUrl);
-        }
-        
-        // Обхождаме всички поелта
-        foreach ((array)$fieldsArr as $name) {
-            
-            // Ако има записана стойност
-            if ($userRec->configData && $userRec->configData[$name]) {
-                
-                // Задаваме стойността
-                $form->setDefault($name, $userRec->configData[$name]);
-                
-                // Показваме стойността по подразбиране
-                $form->setParams($name, array('hint' => tr("По подразбиране|*: ") . $valArr[$name]));
-            } else {
-                
-                // Сетваме default стойността от конфигурацията и променяме стила
-                $form->setDefault($name, $valArr[$name]);
-                $form->setField($name, array('attr' => array('class' => 'const-default-value')));
-            }
-        }
-        
-        // Показваме всички конфигурационни полета
-        $form->showFields = $fieldsArr;
-        
-        // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
-        
-        // Вербалние стойности
-        $userRow = $this->recToVerbal($userRec, 'nick');
-        
-        // Добавяме титлата на формата
-        $form->title = "Персонализиране на настройките на|* " . $userRow->nick;
-        
-        return $this->renderWrapping($form->renderHtml());
+        return $key;
     }
 }

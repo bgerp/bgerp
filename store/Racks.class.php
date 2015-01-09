@@ -686,7 +686,7 @@ class store_Racks extends core_Master
             $inst = cls::get($pRec->classId);
             $groupField = ($inst->groupField) ? $inst->groupField : 'groups';
             $productGroups = $inst->fetchField($pRec->productId, 'groups');
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             return FALSE;
         }
         

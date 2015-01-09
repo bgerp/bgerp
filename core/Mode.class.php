@@ -129,8 +129,13 @@ class core_Mode
                 self::$mode = array();
             }
         }
+
+        $res = NULL;
+        if(isset(self::$mode[$name])) {
+            $res = self::$mode[$name];
+        }
         
-        return self::$mode[$name];
+        return $res;
     }
     
     

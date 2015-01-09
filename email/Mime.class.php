@@ -1245,8 +1245,19 @@ class email_Mime extends core_BaseClass
     {
         if(count($list)) {
             foreach($list as $item) {
-                if($item['address']) {
-                    $res .= "<span>" . $item['address'];
+                
+                $address = $item['address'];
+                
+                if($address) {
+                    
+                    if ($item['isExternal']) {
+                        $inst = cls::get('type_Email');
+                        $address = $inst->toVerbal($address);
+                    } else {
+                        $address = type_Email::escape($address);
+                    }
+                    
+                    $res .= "<span>" . $address;
                     if($item['name']) {
                         $res .= ' (' . $item['name'] . ')';
                     }

@@ -58,7 +58,7 @@ class pos_Stocks extends core_Manager {
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,storeId,quantity,lastUpdated,state';
+    public $listFields = 'id,productId,classId,storeId,quantity,lastUpdated,state';
     
 	
     /**
@@ -72,7 +72,8 @@ class pos_Stocks extends core_Manager {
      */
     function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име');
+        $this->FLD('productId', 'int', 'caption=Име,remember=info');
+        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
         $this->FLD('lastUpdated', 'datetime(format=smartTime)', 'caption=Последен ъпдейт,input=none');
@@ -91,52 +92,44 @@ class pos_Stocks extends core_Manager {
      */
     public static function sync($all)
     {
-    	// Датата на синхронизацията
-    	$date = dt::now();
-    	$productsClassId = cat_Products::getClassId();
-    	
-    	// Извличаме всички складове, които са свързани към точки
-    	$storesArr = array();
-    	$pointQuery = pos_Points::getQuery();
-    	$pointQuery->show('storeId');
-    	while($pointRec = $pointQuery->fetch()){
-    		$storesArr[$pointRec->storeId] = $pointRec->storeId;
+    	// Извличаме всичкис кладове групирани в ПОС-а
+    	$posStoresQuery = pos_Points::getQuery();
+    	$posStoresQuery->groupBy("storeId");
+    	$posStoresQuery->show("storeId");
+    	$usedStores = array();
+    	while($pRec = $posStoresQuery->fetch()){
+    		$usedStores[$pRec->storeId] = $pRec->storeId;
     	}
     	
-    	// Ако няма скалдове не правим нищо
-    	if(!$storesArr) return;
+    	$productsClsId = cat_Products::getClassId();
     	
-    	// За всеки запис извлечен от счетоводството
-    	foreach ($all as $index => $amount){
-    		
-    		// Задаване на стойности на записа
-    		list($storeId, $classId, $productId) = explode('|', $index);
-    		
-    		expect($storeId, $classId, $productId);
-    		
-    		// Ако продукта е спецификация - пропускаме го
-    		if($classId != $productsClassId) continue;
-    		
-    		// Ако няма точка за склада - пропускаме записа
-    		if(!in_array($storeId, $storesArr)) continue;
-    		
-    		// Променят се количествата само при нужда
-    		$rec = (object)array('storeId'   => $storeId, 'productId' => $productId, 'quantity'  => $amount,);
-    		$exRec = static::fetch("#productId = {$productId} AND #storeId = {$storeId}");
-    		if($exRec){
-    			if($exRec->quantity == $rec->quantity) continue;
-    			$exRec->quantity = $rec->quantity;
-    			$rec = $exRec;
+    	// Махаме записите за складовете, които не участват в ПОС-а
+    	if(count($all)){
+    		foreach ($all as $index => $bRec){
+    			if(!in_array($bRec->storeId, $usedStores) || $bRec->classId != $productsClsId){
+    				unset($all[$index]);
+    			}
     		}
+    	}
+    	
+    	$stockQuery = pos_Stocks::getQuery();
+    	$oldRecs = $stockQuery->fetchAll();
+    	
+    	$arrRes = arr::syncArrays($all, $oldRecs, "productId,classId,storeId", "quantity");
+    	$self = cls::get(get_called_class());
+    	$self->saveArray($arrRes['insert']);
+    	$self->saveArray($arrRes['update']);
+    	
+    	if(count($arrRes['delete'])){
+    		$closeQuery = pos_Stocks::getQuery();
+    		$closeQuery->in('id', $arrRes['delete']);
     		
-	    	// Обновяване на датата за ъпдейт
-	    	$rec->lastUpdated = $date;
-	    	
-	    	// Ако количеството е 0, състоянието е затворено
-	    	$rec->state = ($rec->quantity) ? 'active' : 'closed';
-	    	
-	    	// Обновяване на записа
-	    	static::save($rec);
+    		while($rec = $closeQuery->fetch()){
+    			$rec->state = 'closed';
+    			$rec->quantity = 0;
+    		
+    			$self->save($rec);
+    		}
     	}
     	
     	// Приспада количествата от не-отчетените бележки
@@ -227,7 +220,14 @@ class pos_Stocks extends core_Manager {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
-    	$row->productId = cat_Products::getHyperLink($rec->productId, TRUE);
+    	$row->productId = cls::get($rec->classId)->getHyperLink($rec->productId, TRUE);
+    	$row->productId = "<span style='float:left'>{$row->productId}</span>";
+    }
+    
+    
+    static function on_AfterPrepareListFields($mvc, $data)
+    {
+    	$data->query->orderBy('id', 'DESC');
     }
     
     

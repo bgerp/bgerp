@@ -216,7 +216,7 @@ class currency_CurrencyRates extends core_Detail
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if($mvc->haveRightFor('retrieve')) {
-            $data->toolbar->addBtn('Зареди от ECB', array($mvc, 'RetrieveCurrencies'));
+            $data->toolbar->addBtn('Зареди от ECB', array($mvc, 'RetrieveCurrencies'), NULL, 'title=Зареждане от Европейската Централна Банка');
         }
     }
     

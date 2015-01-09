@@ -33,7 +33,7 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
 	/**
      * Връща продуктите, които могат да се купят от посочения клиент
      * 
-     * @return array() - масив с опции, подходящ за setOptions на форма
+     * @return array - масив с опции, подходящ за setOptions на форма
      */
     public function getProducts($customerClass, $customerId, $datetime = NULL, $limit = NULL)
     {

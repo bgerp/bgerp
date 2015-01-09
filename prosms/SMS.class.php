@@ -53,7 +53,7 @@ class prosms_SMS extends core_Manager
 	/**
 	 * Интерфейсния клас за изпращане на SMS
 	 */
-	var $interfaces = 'callcenter_SentSMSIntf'; 
+	var $interfaces = 'callcenter_SentSMSIntf';
 	
 	
 	/**
@@ -70,7 +70,7 @@ class prosms_SMS extends core_Manager
      * @param string $sender - От кого се изпраща съобщението
      * 
      * @return array $nRes - Mасив с информация, дали е получено
-     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, waiting
+     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
      * $nRes['uid'] string - Уникалното id на съобщението
      * $nRes['msg'] - Статуса
      */
@@ -135,6 +135,22 @@ class prosms_SMS extends core_Manager
     
     
     /**
+     * Инрерфейсен метод
+     * Връща статуса на съобщението от съоветната услуга
+     * @see callcenter_SentSMSIntf
+     * 
+     * @param string $uid
+     * 
+     * @return 
+     */
+    public function getStatus($uid)
+    {
+        
+        return ;
+    }
+    
+    
+    /**
      * Интерфейсен метод, който връща масив с настройките за услугата
      * 
      * @return array $paramsArr
@@ -164,7 +180,6 @@ class prosms_SMS extends core_Manager
     
     
     /**
-     * Интерфейсен метод
      * Отбелязване на статуса на съобщенито
      * Извиква се от външната програма след промяна на статуса на SMS'а
      */
@@ -187,6 +202,8 @@ class prosms_SMS extends core_Manager
             
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status);
-        } catch (Exception $e) { }
+        } catch (core_exception_Expect $e) {
+            self::log("Възникна грешка при обновяване на състоянието с idd: " . $uid);
+        }
     }
 }

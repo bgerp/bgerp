@@ -28,7 +28,7 @@ class plg_Search extends core_Plugin
     function on_AfterDescription(&$mvc)
     {
         // Добавя поле за ключовите думи към обекта
-        if (!$mvc->fields['searchKeywords']) {
+        if (!isset($mvc->fields['searchKeywords'])) {
             $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none, input=none');
         }
         
@@ -283,7 +283,7 @@ class plg_Search extends core_Plugin
                         $i++;
                     }
                     
-                } catch(Exception $e) {
+                } catch(core_exception_Expect $e) {
             		continue;
             	}
             }

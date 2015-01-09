@@ -1,8 +1,6 @@
 <?php
 
 
-$conf = core_Packs::getConfig('core');
-
 /**
  * Типа на записите в кеша
  */
@@ -15,8 +13,8 @@ defIfNot('USERREG_CACHE_TYPE', 'UserReg');
 defIfNot('USERREG_THANK_FOR_REG_MSG',
     "Благодарим ви за регистрациятa|*!" .
     "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Access activation\"|*." .
-    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|* " .
-    $conf->EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
+    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|*
+    [#EF_APP_TITLE#] ." . "<br><br>|Поздрави от екипа!");
 
 
 /**
@@ -25,8 +23,8 @@ defIfNot('USERREG_THANK_FOR_REG_MSG',
 defIfNot('USERREG_THANK_FOR_RESET_PASS_MSG',
     "Заявката за смяната на паролата е приета|*!" .
     "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Reset Your password\"|*." .
-    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|* " .
-    $conf->EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
+    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|*
+    [#EF_APP_TITLE#] ." . "<br><br>|Поздрави от екипа!");
 
 
 /**
@@ -168,6 +166,9 @@ class plg_UserReg extends core_Plugin
                     $msg = new ET(USERREG_THANK_FOR_REG_MSG);
                     $msg->placeObject($rec);
                     
+                    $conf = core_Packs::getConfig('core');
+                    $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
+                    
                     redirect(array('Index'), TRUE, $msg->getContent());
                 }
             }
@@ -199,23 +200,21 @@ class plg_UserReg extends core_Plugin
             return FALSE;
         } elseif ($act == 'activate' || $act == 'changepass') {
             
-            $id = Request::get('id', 'identifier');
-            
-            if (!$id) error('Грешка 0', $id);
+            expect($id = Request::get('id', 'identifier'));
             
             $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
             
             if (!$userId || (!$rec = $mvc->fetch($userId))) {
-                error("Този линк е невалиден. Вероятно е използван или е изтекъл.");
+                redirect(array('Index'), FALSE, 'Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
             }
             
             // Проверка дали състоянието съответства на действието
             if ($rec->state != 'draft' && $act == 'activate') {
-                error('This account was activated yet!');
+                redirect(array('Index'), FALSE, 'Този акаунт е вече активиран.', 'error');
             }
             
             if ($rec->state == 'draft' && $act == 'changePass') {
-                error('This account is not activated yet!');
+                redirect(array('Index'), FALSE, 'Този акаунт все още не е активиран.', 'error');
             }
             
             $form = cls::get('core_Form');
@@ -350,6 +349,9 @@ class plg_UserReg extends core_Plugin
                     // Редиректваме към страницата, която благодари за регистрацията
                     $msg = new ET(USERREG_THANK_FOR_RESET_PASS_MSG);
                     $msg->placeObject($rec);
+                    
+                    $conf = core_Packs::getConfig('core');
+                    $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
                     
                     // Редиректване с показване на съобщение
                     redirect(array('Index'), TRUE, $msg->getContent());

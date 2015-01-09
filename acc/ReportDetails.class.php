@@ -64,6 +64,11 @@ class acc_ReportDetails extends core_Manager
         
         // Име на таба
         $data->TabCaption = 'Счетоводство';
+        
+        // Махаме TabCaption, ако мастъра не е корица
+        if(!cls::haveInterface('doc_FolderIntf', $data->masterMvc)){
+        	unset($data->TabCaption);
+        }
     }
     
     
@@ -171,11 +176,11 @@ class acc_ReportDetails extends core_Manager
             }
             
             if(acc_BalanceDetails::haveRightFor('history', $dRec)){
-                $histUrl = array('acc_HistoryReport', 'History', 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate, 'accNum' => $dRec->accountNum);
+                $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate, 'accNum' => $dRec->accountNum);
                 $histUrl['ent1Id'] = $dRec->ent1Id;
                 $histUrl['ent2Id'] = $dRec->ent2Id;
                 $histUrl['ent3Id'] = $dRec->ent3Id;
-                $row['tools'] = ht::createLink(' ', $histUrl, NULL, $attr);
+                $row['tools'] = ht::createLink('', $histUrl, NULL, $attr);
             }
             
             // К-то и сумата се обръщат във вербален вид

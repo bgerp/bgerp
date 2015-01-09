@@ -27,6 +27,7 @@ class bank_IncomeDocuments extends core_Master
      */
     var $title = "Приходни банкови документи";
     
+    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -284,7 +285,7 @@ class bank_IncomeDocuments extends core_Master
     /**
      * Връща платежните операции
      */
-    private static function getOperations($operations)
+    protected static function getOperations($operations)
     {
         $options = array();
         

@@ -107,7 +107,7 @@ class cat_Params extends core_Manager
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последно използване,input=hidden');
         $this->FNC('typeExt', 'varchar', 'caption=Име');
         $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
-        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Да служили параметъра като признак за групиране');
+        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
         
         $this->setDbUnique('name, suffix');
         $this->setDbUnique("sysId");

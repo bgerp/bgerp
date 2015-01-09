@@ -139,12 +139,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     public static $defaultStrategies = array(
     		'place'               => 'lastDocUser|lastDoc',
     		'responsible'         => 'lastDocUser|lastDoc',
-    		'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
-    		'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
-    		'uicNo'     		  => 'lastDocUser|lastDoc|clientData',
-    		'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
-    		'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
-    		'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
+    		'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
+    		'contragentVatNo'     => 'clientData|lastDocUser|lastDoc',
+    		'uicNo'     		  => 'clientData|lastDocUser|lastDoc',
+    		'contragentPCode'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentPlace'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
     		'accountId'           => 'lastDocUser|lastDoc',
     		'template' 		      => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
@@ -157,12 +157,14 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('number', 'int', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата,after=place');
+    	$this->FLD('number', 'int(size=15)', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
     	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv,after=paymentMethodId');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
     	$this->FLD('type', 'enum(invoice=Входяща фактура, credit_note=Входящо кредитно известие, debit_note=Входящо дебитно известие)', 'caption=Вид, input=hidden');
+    	$this->setField('vatDate', 'input=none');
+    	$this->setField('vatReason', 'input=none');
     	
     	$this->setDbUnique('folderId,number');
     }
@@ -171,7 +173,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * След подготовка на формата
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	parent::prepareInvoiceForm($mvc, $data);
     	
@@ -282,7 +284,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     		 $docState = $firstDoc->fetchField('state');
     		 
-    		 if(!($firstDoc->instance instanceof purchase_Purchases && $docState == 'active')){
+    		 if(!(($firstDoc->getInstance() instanceof purchase_Purchases || $firstDoc->getInstance() instanceof findeals_AdvanceDeals) && $docState == 'active')){
     			$res = 'no_one';
     		}
     	}
@@ -302,5 +304,28 @@ class purchase_Invoices extends deals_InvoiceMaster
         $res .= doc_TplManager::addOnce($this, $tplArr);
         
         return $res;
+    }
+    
+    
+    /**
+     *  Подготовка на филтър формата
+     */
+    public static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	if(!$data->listFilter->getField('invType', FALSE)){
+    		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
+    	}
+    	 
+    	$data->listFilter->showFields .= ',invType';
+    	 
+    	$data->listFilter->input(NULL, 'silent');
+    	 
+    	if($rec = $data->listFilter->rec){
+    		if($rec->invType){
+    			if($rec->invType == 'invoice' || $rec->invType == 'credit_note' || $rec->invType == 'debit_note'){
+    				$data->query->where("#type = '{$rec->invType}'");
+    			}
+    		}
+    	}
     }
 }

@@ -271,7 +271,7 @@ class core_ProtoSetup
     /**
      * Връща конфигурацията на пакета в който се намира Setup-а
      *
-     * @return array()
+     * @return array
      */
     public function getConfig()
     {

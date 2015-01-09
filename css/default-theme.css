@@ -15,7 +15,7 @@ textarea {
   background: white;
   color: #222222; }
 
-span.richEdit div.richedit-toolbar {
+div.richEdit div.richedit-toolbar {
   background: #e0e0e0;
   border: solid 1px #9999ff;
   border-top: none; }

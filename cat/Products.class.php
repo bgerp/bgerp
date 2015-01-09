@@ -19,7 +19,7 @@ class cat_Products extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,techno_SpecificationFolderCoverIntf';
+    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,techno_SpecificationFolderCoverIntf,mp_ResourceSourceIntf,accda_DaFolderCoverIntf';
     
     
     /**
@@ -53,7 +53,7 @@ class cat_Products extends core_Master {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails,VatGroups=cat_products_VatGroups';
+    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails,VatGroups=cat_products_VatGroups,Resources=mp_ObjectResources';
     
     
     /**
@@ -194,8 +194,8 @@ class cat_Products extends core_Master {
 	 * @var string
 	 */
 	public $recTitleTpl = '[#name#] ( [#code#] )';
-	
-	
+    
+    
     /**
      * Описание на модела
      */
@@ -205,7 +205,7 @@ class cat_Products extends core_Master {
 		$this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info,width=15em');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Детайли');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Категории,maxColumns=2,remember');
        	$this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
         
         $this->setDbUnique('code');
@@ -215,7 +215,7 @@ class cat_Products extends core_Master {
     /**
      * Изпълнява се след подготовка на Едит Формата
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             if ($newCode = str::increment($code)) {
@@ -268,7 +268,7 @@ class cat_Products extends core_Master {
     /**
      * Преди запис на продукт
      */
-    public static function on_BeforeSave($mvc, $res, $rec)
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
     	if(isset($rec->csv_measureId) && strlen($rec->csv_measureId) != 0){
     		$rec->measureId = cat_UoM::fetchField("#name = '{$rec->csv_measureId}'", "id");
@@ -323,7 +323,7 @@ class cat_Products extends core_Master {
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal ($mvc, $row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal ($mvc, &$row, $rec, $fields = array())
     {
         if($fields['-single']) {
         	
@@ -571,7 +571,8 @@ class cat_Products extends core_Master {
     public static function getProductInfo($productId, $packagingId = NULL)
     {
     	// Ако няма такъв продукт връщаме NULL
-    	if(!$productRec = static::fetch($productId)) {
+    	if(!$productRec = static::fetchRec($productId)) {
+    		
     		return NULL;
     	}
     	
@@ -742,7 +743,7 @@ class cat_Products extends core_Master {
 	/**
      * След всеки запис
      */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
@@ -758,7 +759,7 @@ class cat_Products extends core_Master {
 	/**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    static function on_Shutdown($mvc)
+    public static function on_Shutdown($mvc)
     {
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
@@ -822,7 +823,7 @@ class cat_Products extends core_Master {
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function loadSetupData()
+    public function loadSetupData()
     {
     	$file = "cat/csv/Products.csv";
     	$fields = array( 
@@ -1075,13 +1076,13 @@ class cat_Products extends core_Master {
     	if($basePack){
     		$arr['name'] = cat_Packagings::getTitleById($basePack->packagingId);
     		$arr['quantity'] = $basePack->quantity;
-    		$arr['classId'] = cat_Packagings::getClassId();
+    		$arr['classId'] = 'cat_Packagings';
     		$arr['id'] = $basePack->packagingId;
     	} else {
     		$measureId = $this->fetchField($id, 'measureId');
     		$arr['name'] = cat_UoM::getTitleById($measureId);
     		$arr['quantity'] = 1;
-    		$arr['classId'] = cat_UoM::getClassId();
+    		$arr['classId'] = 'cat_UoM';
     		$arr['id'] = $measureId;
     	}
     		
@@ -1095,5 +1096,91 @@ class cat_Products extends core_Master {
     public function getPolicy()
     {
     	return cls::get('price_ListToCustomers');
+    }
+    
+    
+    /**
+     * Можели обекта да се добави като ресурс?
+     *
+     * @param int $id - ид на обекта
+     * @return boolean - TRUE/FALSE
+     */
+    public function canHaveResource($id)
+    {
+    	// Всеки артикул може да присъства само веднъж като ресурс
+    	if(!mp_ObjectResources::fetch("#classId = '{$this->getClassId()}' AND #objectId = {$id}")){
+    		$pInfo = $this->getProductInfo($id);
+    		
+    		// Може да се добавя ресурс само към Артикули, които са материали или ДА
+    		if(isset($pInfo->meta['materials']) || isset($pInfo->meta['fixedAsset'])){
+    			
+    			return TRUE;
+    		}
+    	} 
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Какъв е дефолтния тип ресурс на обекта
+     *
+     * @param int $id - ид на обекта
+     * @return enum(equipment=Оборудване,labor=Труд,material=Материал) - тип на ресурса
+     */
+    public function getResourceType($id)
+    {
+    	$pInfo = $this->getProductInfo($id);
+    	
+    	// Ако артикула е ДМА, ще може да се избират само ресурси - оборудване
+    	if(isset($pInfo->meta['fixedAsset'])){
+    		
+    		return 'equipment';
+    	}
+    	
+    	// Ако артикула е материал, ще може да се избират само ресурси - materiali
+    	if(isset($pInfo->meta['materials'])){
+    	
+    		return 'material';
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Заглавие на артикула
+     */
+    public function getProductTitle($id)
+    {
+    	return $this->getTitleById($id);
+    }
+    
+    
+    /**
+     * Дали артикула е стандартен
+     *
+     * @param mixed $id - ид/запис
+     * @return boolean - дали е стандартен или не
+     */
+    public function isProductStandart($id)
+    {
+    	return TRUE;
+    }
+    
+    
+    /**
+     * Връща подробното описанието на артикула
+     *
+     * @param mixed $id - ид/запис
+     * @param datetime $time - към кое време
+     * @return mixed - описанието на артикула
+     */
+    public function getProductDesc($id, $time = NULL)
+    {
+    	//@TODO временно докато се сложи новия интерфейс
+    	$rec = $this->fetchRec($id);
+    	
+    	return $rec->name;
     }
 }

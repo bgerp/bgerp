@@ -4,7 +4,7 @@
 /**
  * Броя на всички записи, над които групите ще са отворени по подразбиране
  */
-defIfNot(CORE_MAX_OPT_FOR_OPEN_GROUPS, 10);
+defIfNot('CORE_MAX_OPT_FOR_OPEN_GROUPS', 10);
 
 
 /**
@@ -386,7 +386,7 @@ class type_Keylist extends core_Type {
         
         try {
             $res = self::fromArray($value);
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             $this->error = $e->getMessage();
             $res = FALSE;
         }
@@ -411,7 +411,7 @@ class type_Keylist extends core_Type {
                 if(empty($id) && empty($val)) continue;
                 
                 if(!ctype_digit(trim($id))) {
-                    throw new Exception("Некоректен списък '{$id}' => '{$val}', '{$res}'");
+                    throw new core_exception_Expect("Некоректен списък '{$id}' => '{$val}', '{$res}'");
                 }
                 
                 $res .= "|" . $id;

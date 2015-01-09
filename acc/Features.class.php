@@ -94,6 +94,7 @@ class acc_Features extends core_Manager
      */
     public $searchFields = 'itemId, feature, value';
     
+    
     /**
      * Брой записи на страница
      */
@@ -251,7 +252,7 @@ class acc_Features extends core_Manager
         $query->groupBy("feature");
         
         while($rec = $query->fetch()){
-            $options[$rec->feature] = static::getVerbal($rec, 'feature');
+            $options[$rec->feature] = $rec->feature;
         }
         
         return $options;
@@ -311,9 +312,6 @@ class acc_Features extends core_Manager
     	$items = array();
     	 
     	core_Debug::$isLogging = FALSE;
-    	
-    	// Удължаваме времето за мак. изпълнение
-    	set_time_limit(1000);
     	
     	// Свойствата на кои пера са записани в таблицата
     	$query = $this->getQuery();

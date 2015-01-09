@@ -20,7 +20,7 @@ class cat_Groups extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Групи на артикулите";
+    var $title = "Категории на артикулите";
     
     
     /**
@@ -63,7 +63,7 @@ class cat_Groups extends core_Master
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Група->продукти";
+    var $singleTitle = "Категория";
     
     
     /**

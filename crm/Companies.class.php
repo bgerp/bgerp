@@ -367,9 +367,9 @@ class crm_Companies extends core_Master
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             if($groupId = $data->listFilter->rec->groupId) {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова визитка на фирма'));
             } else {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd', array('title'=>'Създаване на нова визитка на фирма', 'ef_icon'=>'img/16/star_2.png'));
             }
         }
     }
@@ -390,9 +390,8 @@ class crm_Companies extends core_Master
         
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
-            $Countries = cls::get('drdata_Countries');
-            $form->setDefault('country', $Countries->fetchField("#commonName = '" .
-                    $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
+            $myCompany = self::fetchOwnCompany();
+            $form->setDefault('country', $myCompany->countryId);
         }
         
         // Ако сме в тесен режим
@@ -880,7 +879,7 @@ class crm_Companies extends core_Master
             $Countries = cls::get('drdata_Countries');
             $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
             
-            if(static::save($rec, NULL, 'REPLACE')) {
+            if(self::save($rec, NULL, 'REPLACE')) {
                 
                 $html .= "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
                 crm_Setup::BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
@@ -895,13 +894,13 @@ class crm_Companies extends core_Master
             $eRec->groupList = "|". crm_Groups::fetchField("#name = 'Доставчици'", 'id') . "|";
             $eRec->country = drdata_Countries::fetchField("#commonNameBg = 'България'");
             $eRec->pCode = '5000';
-            $eRec->place = 'гр. В. Търново';
+            $eRec->place = 'В. Търново';
             $eRec->address = 'ул. П. Евтимий №7';
             $eRec->website = 'http://experta.bg';
             $eRec->tel = '062/611-539, 062/611-540';
             $eRec->vatId = 'BG104066415';
             $eRec->email = 'team@experta.bg';
-            $eRec->info = 'Разработчик и Консултант за внедряване на bgERP';
+            $eRec->info = 'Разработчик и консултант за внедряване на bgERP';
             
             if (self::save($eRec)) {
                 $html .= "<li style='color:green'>Добавена е фирмата '{$expertaName}'</li>";
@@ -1294,7 +1293,7 @@ class crm_Companies extends core_Master
     
     
     /**
-     * Премахва данните за нашата фирма - id на компанията, име на компанията, адрес, телефон, факс и имейли
+     * Филтрира данните за нашата фирма - id на компанията, име на компанията, адрес, телефон, факс и имейли
      * 
      * @param std_Object &$contrData - Обект от който ще се премахва
      */

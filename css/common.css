@@ -593,15 +593,8 @@ input[type=radio] {
   margin: 3px 3px 3px 4px;
   background-color: transparent;
   outline: none;
-  vertical-align: middle; }
+  vertical-align: -1px; }
 
-@-moz-document url-prefix() {
-    .checkbox,
-  .radiobutton,
-  input[type=checkbox],
-  input[type=radio] {
-    margin: 4px 3px 2px 4px; }
- }
 input[type=radio] + label,
 input[type=checkbox] + label {
   color: #888888;
@@ -618,9 +611,16 @@ input[type=checkbox]:checked + label {
   padding-top: 3px; }
 
 .selectMenuItem input[type=radio] + label {
-  vertical-align: middle;
   white-space: nowrap; }
 
+.narrow .selectMenuItem input[type=radio] + label {
+  vertical-align: middle;
+  position: relative; }
+
+@-moz-document url-prefix() {
+    .narrow .selectMenuItem input[type=radio] + label {
+    vertical-align: -1px; }
+ }
 .top-table {
   border-collapse: separate;
   border-spacing: 2px; }
@@ -763,13 +763,6 @@ a.header:hover {
 
 .btn-with-selected-disabled:hover {
   background-color: #dddddd !important; }
-
-.wide .btn-reject {
-  background-image: url('../img/16/reject.png');
-  padding-left: 22px !important;
-  background-repeat: no-repeat !important;
-  background-position: 3px center;
-  float: right; }
 
 .wide .btn-settings {
   background-image: url('../img/16/settings.png');
@@ -1016,7 +1009,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .formInfo,
 .formWarning {
-  margin-bottom: 10px; }
+  margin-bottom: 8px; }
 
 .warningMsg {
   background: yellow;
@@ -1031,9 +1024,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   color: red; }
 
 .narrow .formInfo,
-.narrow .formFields,
 .narrow .formWarning {
-  margin-bottom: 3px; }
+  margin-bottom: 1px;
+  margin-top: 8px; }
 
 .narrow .formError ul {
   padding-left: 1em; }
@@ -1046,6 +1039,11 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
  */
 .formFields {
   margin-bottom: 10px; }
+
+.staticFormView .formFieldValue {
+  border: solid 1px #9999ff;
+  padding: 3px;
+  background-color: white; }
 
 .formFields > table {
   width: 100%; }
@@ -1132,9 +1130,11 @@ select {
 
 .formFields input:focus,
 textarea:focus,
-select:focus {
+select:focus,
+input:focus[type=submit],
+input:focus[type=button] {
   outline: none;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba(153, 153, 255, 0.7); }
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba(153, 153, 255, 0.7); }
 
   .simpleForm .vertical .formSection,
   .simpleForm .vertical .formTable,
@@ -1771,7 +1771,7 @@ div.alphabet div.tab-page {
 /*
  * Стилове за елемента 'RichEdit'
  */
-span.richEdit div.richedit-toolbar {
+div.richEdit div.richedit-toolbar {
   padding: 4px;
   font-size: 0.85em;
   text-align: left;
@@ -1779,10 +1779,10 @@ span.richEdit div.richedit-toolbar {
   font-size: 0.9em;
   margin-top: -4px; }
 
-.wide span.richEdit div.richedit-toolbar {
+.wide div.richEdit div.richedit-toolbar {
   min-width: 300px; }
 
-.narrow span.richEdit div.richedit-toolbar {
+.narrow div.richEdit div.richedit-toolbar {
   padding-top: 4px;
   font-size: 0.8em;
   padding-bottom: 4px;
@@ -1796,10 +1796,10 @@ span.richEdit div.richedit-toolbar {
   user-select: none;
   margin-top: -4px; }
 
-span.richEdit {
+div.richEdit {
   display: table; }
 
-.narrow span.richEdit {
+.narrow div.richEdit {
   display: block; }
 
 .narrow .richEdit textarea {
@@ -1810,8 +1810,10 @@ span.richEdit {
   margin-bottom: 0;
   overflow: auto;
   border-bottom: 1px solid transparent;
-  min-width: 310px;
   width: 32em; }
+
+.wide .richEdit textarea {
+  min-width: 310px; }
 
 .richedit-toolbar {
   position: relative;
@@ -1836,7 +1838,6 @@ a.rtbutton {
   cursor: pointer;
   display: block;
   float: left;
-  min-width: 0.6em;
   height: 1.2em;
   min-width: 15px;
   text-align: center; }
@@ -1845,8 +1846,7 @@ a.rtbutton {
   background: #dddddd;
   border: 1px solid #bbbbaa;
   padding: 4px;
-  border-radius: 0px !important;
-  text-align: left; }
+  border-radius: 0px !important; }
 
 .narrow a.rtbutton {
   padding: 0.2em 0.3em 0.3em;
@@ -1880,6 +1880,8 @@ a.rtbutton:focus {
   right: 0;
   bottom: 2.1em;
   display: none; }
+  .richtext-emoticons6 a.rtbutton {
+    text-align: left; }
 
 .richtext-emoticons5 {
   left: -260%; }
@@ -2131,7 +2133,7 @@ div.richtext ol ol ol {
   background-image: url('../img/info_blue.png'); }
 
 .richtext-tip {
-  color: #c9841a;
+  color: #b05410;
   border-color: #f0c98c;
   background-color: #fefed8;
   background-image: url('../img/App-tip-icon2.png'); }
@@ -2572,7 +2574,8 @@ span.cng {
 .toast-item-wrapper p {
   max-height: 150px;
   overflow-y: auto;
-  padding-right: 10px; }
+  padding-right: 10px;
+  font-family: Arial, Verdana, Sans-serif !important; }
 
 .loginLog-first_login {
   background-color: #ffffdd !important; }
@@ -2590,10 +2593,6 @@ span.cng {
   display: inline-block;
   text-align: left; }
 
-td.centerCol {
-  white-space: nowrap;
-  text-align: center; }
-
 td.rightCol {
   white-space: nowrap;
   text-align: right; }
@@ -2601,4 +2600,8 @@ td.rightCol {
 td.leftCol {
   white-space: nowrap;
   text-align: left; }
+
+td.centerCol {
+  white-space: nowrap;
+  text-align: center; }
 

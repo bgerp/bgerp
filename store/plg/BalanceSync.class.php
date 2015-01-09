@@ -27,22 +27,23 @@ class store_plg_BalanceSync extends core_Plugin
 		// Извличане на данните за склада от баланса
 		$all = self::prepareStoreData();
 		
-		// Ако има данни за синхронизиране
-		if($all){
+		// Синхронизираме складовите наличностти
+		store_Products::sync($all);
+		
+		// Ако има дефинирани точки на продажба
+		if(pos_Points::count()){
 			
-			// Синхронизиране на складовите продукти с тези от баланса (@see store_Products)
-			store_Products::sync($all);
-			
-			// Синхронизиране на pos наличностите с тези от баланса (@see pos_Stocks)
+			// Синхронизираме скалдовите наличностти за POS-а
 			pos_Stocks::sync($all);
 		}
+		
 	}
 	
 	
 	/**
 	 * Извлича информацията нужна за ъпдейт на склада
 	 */
-	private static function prepareStoreData()
+	public static function prepareStoreData()
 	{
 		$all = array();
 		$balanceRec = acc_Balances::getLastBalance();
@@ -62,25 +63,33 @@ class store_plg_BalanceSync extends core_Plugin
 		 
 		$dQuery->where("#balanceId = {$balanceRec->id}");
 		 
+		$Items = cls::get('acc_Items');
+		$itemArr = $Items->getCachedItems();
+		
 		while($rec = $dQuery->fetch()){
 			if($rec->ent1Id){
 				 
 				// Перо 'Склад'
-				$storeItem = acc_Items::fetch($rec->ent1Id);
+				$storeItem = $itemArr['items'][$rec->ent1Id];
 		   
 				// Перо 'Артикул'
-				$pItem = acc_Items::fetch($rec->ent2Id);
-		   
+				$pItem = $itemArr['items'][$rec->ent2Id];
+		   		
 				// Съмаризиране на информацията за артикул / склад
 				$index = $storeItem->objectId . "|" . $pItem->classId . "|" . $pItem->objectId;
 				if(empty($all[$index])){
 	
 					// Ако няма такъв продукт в масива, се записва
-					$all[$index] = $rec->blQuantity;
+					$all[$index] = new stdClass();
+					$all[$index]->productId = $pItem->objectId;
+					$all[$index]->classId = $pItem->classId;
+					$all[$index]->storeId = $storeItem->objectId;
+					$all[$index]->quantity = $rec->blQuantity;
+					$all[$index]->state = 'active';
 				} else {
 	
 					// Ако го има добавяме количеството на записа
-					$all[$index] += $rec->blQuantity;
+					$all[$index]->quantity += $rec->blQuantity;
 				}
 			}
 		}

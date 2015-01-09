@@ -334,27 +334,8 @@ class price_GroupOfProducts extends core_Detail
             $data->rows[$currentGroupId]->ROW_ATTR['class'] = 'state-active';
         }
     }
-
-
-    /**
-     * Извиква се след рендиране на детайла
-     */
-    public static function on_AfterRenderDetail($mvc, &$tpl, $data)
-    {
-        $wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
-        $wrapTpl->append($mvc->singleTitle, 'TITLE');
-        $wrapTpl->append($tpl, 'CONTENT');
-        $wrapTpl->replace(get_class($mvc), 'DetailName');
     
-        $tpl = $wrapTpl;
-
-        if ($data->addUrl) {
-            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, NULL, 'title=Задаване на ценова група');
-            $tpl->append($addBtn, 'TITLE');
-        }
-    }
-
-
+    
     /**
      * Подготовка на данните за детайла
      */
@@ -363,10 +344,16 @@ class price_GroupOfProducts extends core_Detail
         $data->TabCaption = 'Ценова група';
         $data->Order = 5;
 
-        static::prepareDetail($data);
-
-        $data->toolbar->removeBtn('*');
-
+        $query = $this->getQuery();
+       	$query->where("#productId = {$data->masterId}");
+       	$query->orderBy("#validFrom", "DESC");
+       	$data->recs = $data->rows = array();
+       	while($rec = $query->fetch()){
+       		$data->recs[$rec->id] = $rec;
+       		$data->rows[$rec->id] = $this->recToVerbal($rec);
+       	}
+       	$this->invoke('AfterPrepareListRows', array($data));
+       	
         if(cat_Products::haveRightFor('edit', $data->masterId)){
         	 $pInfo = cat_Products::getProductInfo($data->masterId);
         	 if(isset($pInfo->meta['canSell'])){
@@ -384,7 +371,23 @@ class price_GroupOfProducts extends core_Detail
         // Премахваме продукта - в случая той е фиксиран и вече е показан 
         unset($data->listFields[$this->masterKey]);
         
-        return static::renderDetail($data);
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        $data->listFields = $this->listFields;
+        
+        $data->listFields = array("groupId" => "Група", 'validFrom' => 'В сила oт', 'createdBy' => 'Създаване->От', 'createdOn' => 'Създаване->На');
+        $details = $table->get($data->rows, $data->listFields);
+        
+        $tpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
+        $tpl->append($this->singleTitle, 'TITLE');
+        $tpl->append($details, 'CONTENT');
+        $tpl->replace(get_class($this), 'DetailName');
+        
+        if ($data->addUrl) {
+        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, NULL, 'title=Задаване на ценова група');
+        	$tpl->append($addBtn, 'TITLE');
+        }
+        
+        return $tpl;
     }
 
     
@@ -467,7 +470,7 @@ class price_GroupOfProducts extends core_Detail
     }
     
     
-	/**
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     static function on_AfterPrepareListToolbar($mvc, &$data)

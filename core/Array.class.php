@@ -356,7 +356,8 @@ class core_Array
             } elseif(is_array($arr1)) {
                 $arr1[$fld] = $vars[$fld];
             } else {
-                error("500. Некоректен параметър $arr1");
+                // Некоректен параметър
+                bp($arr1);
             }
         }
     }
@@ -404,5 +405,95 @@ class core_Array
     	} else {
     		$array = array_merge($array, $elementsArr);
     	}
+    }
+    
+    
+    /**
+     * Ф-я за синхронизиране на масиви от обекти
+     * 
+     * @param array $new - масив с нови данни
+     * @param array $old - масив със съществуващи данни
+     * @param mixed $keyFields - Уникални полета
+     * @param mixed $valueFields - стойностти които ще сравняваме
+     * 
+     * @return array ['update'] - масив със стойностти за обновяване
+     * 				   ['insert'] - масив със стойностти за добавяне
+     * 				   ['delete'] - записи от съществуващите, несрещащи се в $new
+     */
+    public static function syncArrays($new, $old, $keyFields, $valueFields)
+    {
+    	$modOld = $modNew = array();
+    	$keyFields = arr::make($keyFields, TRUE);
+    	$vFields = arr::make($valueFields, TRUE);
+    	
+    	// Нормализираме масива със същ. данни във вид лесен за обработка
+    	if(count($old)){
+    		foreach ($old as $oRec){
+    			$oKey = self::makeUniqueIndex($oRec, $keyFields);
+    			$vKey = self::makeUniqueIndex($oRec, $vFields);
+    		
+    			// Преобразуваме го в масив в индекси уникалните полета и информация за данните му
+    			if(!array_key_exists($oKey, $modOld)){
+    				$modOld[$oKey] = array($vKey, $oRec->id);
+    			}
+    		}
+    	}
+    	
+    	$insert = $upArr = array();
+    	
+    	// Обикаляме масива с нови данни
+    	if(count($new)){
+    		foreach ($new as $nRec){
+    			$nKey = self::makeUniqueIndex($nRec, $keyFields);
+    			$nValKey = self::makeUniqueIndex($nRec, $vFields);
+    			
+    			$uRec = clone $nRec;
+    		
+    			// Ако записа се среща с този индекс и с тази стойност на зададените полета в $modOld
+    			// то отбелязваме записа че е за обновяване
+    			if(array_key_exists($nKey, $modOld)){
+    				if($modOld[$nKey][0] != $nValKey){
+    					$uRec->id = $modOld[$nKey][1];
+    					$upArr[] = $uRec;
+    				}
+    			} else {
+    				$insert[] = $uRec;
+    			}
+    			
+    			// Премахваме записа от стария масив
+    			unset($modOld[$nKey]);
+    		}
+    	}
+    	
+    	// Обръщаме останалите елементи в масив само с ид-та
+    	$delete = array();
+    	if(count($modOld)){
+    		foreach ($modOld as $ar){
+    			$delete[$ar[1]] = $ar[1];
+    		}
+    	}
+    	
+    	// Връщаме масивите за обновяване и за изтриване
+    	return array('insert' => $insert, 'update' => $upArr, 'delete' => $delete);
+    }
+    
+    
+    /**
+     * Връща уникален индекс от полета в обект
+     * 
+     * @param stdClass $rec - запис
+     * @param mixed $keyFields - списък с полета за уникалния индекс
+     * @return string $nKey - уникалния индекс
+     */
+    public static function makeUniqueIndex($rec, $keyFields)
+    {
+    	$keyFields = arr::make($keyFields, TRUE);
+    	$nKey = '';
+    	
+    	foreach ($keyFields as $key){
+    		$nKey .= $rec->$key . "|";
+    	}
+    	
+    	return $nKey;
     }
 }

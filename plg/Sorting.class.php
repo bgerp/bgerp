@@ -63,7 +63,7 @@ class plg_Sorting extends core_Plugin
                             $data->plg_Sorting->fields[$f] = 'down';
                             $data->query->orderBy("#{$dbField}", 'DESC');
                         } else {
-                            error('Неправилно сортиране', $field);
+                            error('@Неправилно сортиране', $field);
                         }
                     }
                 }
@@ -113,7 +113,7 @@ class plg_Sorting extends core_Plugin
                 $currUrl["Sort"] = $sort;
                 
                 $lastF = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
-                toUrl($currUrl) .
+                ht::escapeAttr(toUrl($currUrl)) .
                 "' ><img  src=" . sbf($img) .
                 " width='16' height='16' alt='sort'></a></div>";
                 

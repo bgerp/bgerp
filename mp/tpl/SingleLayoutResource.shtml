@@ -1,0 +1,32 @@
+<div class="singleView">
+	[#SingleToolbar#]
+	<table class='styled-table'>
+		<tr>
+			<td>|Наименование|*</td>
+			<td><b>[#title#]</b></td>
+		</tr>
+		<tr>
+			<td>|Вид|*</td>
+			<td>[#type#]</td>
+		</tr>
+		<tr>
+			<td>|Мярка|*</td>
+			<td>[#measureId#]</td>
+		</tr>
+		
+		<!--ET_BEGIN selfValue-->
+		<tr>
+			<td>|Себестойност|*</td>
+			<td>[#selfValue#]</td>
+		</tr>
+		<!--ET_END selfValue-->
+		
+		<!--ET_BEGIN systemId-->
+		<tr>
+			<td>|Системен №|*</td>
+			<td>[#systemId#]</td>
+		</tr>
+		<!--ET_END systemId-->
+	</table>
+	[#DETAILS#]
+</div>

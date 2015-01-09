@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Клас 'deals_DealDetail'
  *
@@ -13,6 +15,8 @@
  */
 abstract class deals_DealDetail extends doc_Detail
 {
+ 	
+ 	
  	/**
      * Изчисляване на сумата на реда
      * 
@@ -62,25 +66,9 @@ abstract class deals_DealDetail extends doc_Detail
     
     
     /**
-     * Изчисляване на доставеното количеството на реда в брой опаковки
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     */
-    public static function on_CalcPackQuantityDelivered(core_Mvc $mvc, $rec)
-    {
-        if (empty($rec->quantityDelivered) || empty($rec->quantityInPack)) {
-            return;
-        }
-        
-        $rec->packQuantityDelivered = $rec->quantityDelivered / $rec->quantityInPack;
-    }
-    
-    
-    /**
      * След описанието на полетата
      */
-    public static function on_AfterDescription(&$mvc)
+    public static function getDealDetailFields(&$mvc)
     {
     	$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
     	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
@@ -91,7 +79,6 @@ abstract class deals_DealDetail extends doc_Detail
     	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
     	
     	$mvc->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Експедирано количество (в основна мярка)
-    	$mvc->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=Дост.,input=none'); // Експедирано количество (в брой опаковки)
     	
     	$mvc->FLD('quantityInvoiced', 'double', 'caption=К-во->Фактурирано,input=none'); // Фактурирано количество (в основна мярка)
     	
@@ -109,10 +96,17 @@ abstract class deals_DealDetail extends doc_Detail
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
     	$mvc->FLD('discount', 'percent(min=-1,max=1)', 'caption=Отстъпка');
-        
-        // Скриване на полетата за създаване
-        $mvc->setField('createdOn', 'column=none');
-        $mvc->setField('createdBy', 'column=none');
+    }
+    
+    
+    /**
+     * След описанието
+     */
+    public static function on_AfterDescription(&$mvc)
+    {
+    	// Скриване на полетата за създаване
+    	$mvc->setField('createdOn', 'column=none');
+    	$mvc->setField('createdBy', 'column=none');
     }
     
     
@@ -217,7 +211,8 @@ abstract class deals_DealDetail extends doc_Detail
     		// Само при рефреш слагаме основната опаковка за дефолт
     		if($form->cmd == 'refresh'){
 	    		$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-	    		if($baseInfo->classId == cat_Packagings::getClassId()){
+	    		
+	    		if($baseInfo->classId == 'cat_Packagings'){
 	    			$form->rec->packagingId = $baseInfo->id;
 	    		}
 	    	}
@@ -315,31 +310,33 @@ abstract class deals_DealDetail extends doc_Detail
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * Преди подготовка на полетата за показване в списъчния изглед
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterPrepareListRows($mvc, $data)
     {
-        $ProductManager = cls::get($rec->classId);
-        
-        $row->productId = $ProductManager->getTitleById($rec->productId, TRUE, TRUE, $rec->tplLang);
-       
-        if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !is_object($row->productId)){
-        	$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));
-        }
-        
-        if($ProductManager instanceof techno_Specifications){
-        	$masterState = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
-        	
-        	//@TODO да махна изискването да има дебъг
-        	if(haveRole('debug') && $masterState == 'active' && mp_Jobs::haveRightFor('add') && !Mode::is('printing') && !Mode::is('text', 'xhtml')){
-        		$img = ht::createElement('img', array('src' => sbf('img/16/clipboard_text.png', '')));
-        		$jobLink = "<span style='margin-left:5px'>" . ht::createLink($img, array('mp_Jobs', 'add', 'originClass' => $rec->classId, 'originDocId' => $rec->productId, 'quantity' => $rec->packQuantity), NULL, 'title=Ново задание') . "</span>";
-        		$row->productId->append($jobLink);
-        	}
+    	if(!count($data->recs)) return;
+    	
+    	$recs = &$data->recs;
+    	$rows = &$data->rows;
+    	
+    	$modifiedOn = $data->masterData->rec->modifiedOn;
+    	
+    	foreach ($rows as $id => &$row){
+    		$rec = $recs[$id];
+    		
+    		$ProductManager = cls::get($rec->classId);
+    		
+    		$row->productId = $ProductManager->getTitleById($rec->productId, TRUE, TRUE, $rec->tplLang);
+    		 
+    		if($ProductManager->isProductStandart($rec->productId)){
+    			$row->productId = $ProductManager->getProductTitle($rec->productId);
+    			 
+    			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    				$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));
+    			}
+    		} else {
+    			$row->productId = $ProductManager->getProductDesc($rec->productId, $modifiedOn);
+    		}
     	}
     }
     
@@ -355,7 +352,7 @@ abstract class deals_DealDetail extends doc_Detail
             
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
-            	if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, 'canSell', 1))){
+            	if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, 1))){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
                 
@@ -407,11 +404,6 @@ abstract class deals_DealDetail extends doc_Detail
 		
         if(!$haveDiscount) {
             unset($data->listFields['discount']);
-        }
-        
-        // Ако няма записи, в режим xhtml или няма поне едно доставено к-во не показваме колонкта за доставено
-        if (empty($data->rows) || Mode::is('text', 'xhtml') || !$haveQuantityDelivered) {
-        	unset($data->listFields['packQuantityDelivered']);
         }
     }
 }

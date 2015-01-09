@@ -191,9 +191,9 @@ class bgerp_L extends core_Manager
             // Ако потребителя има права до треда на документа, то той му се показва
             if($rec && $rec->threadId) {
                 
-                if($doc->instance->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
+                if($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
-                    return new Redirect(array($doc->instance, 'single', $rec->id));
+                    return new Redirect(array($doc->getInstance(), 'single', $rec->id));
                 }
             }
             
@@ -228,9 +228,9 @@ class bgerp_L extends core_Manager
             // Ако потребителя има права до треда на документа, то той му се показва
             if($doc) {
                 
-                if($doc->instance->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
+                if($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
-                    return new Redirect(array($doc->instance, 'single', $rec->id));
+                    return new Redirect(array($doc->getInstance(), 'single', $rec->id));
                 }
             }
             

@@ -147,7 +147,13 @@ class core_Manager extends core_Mvc
      */
     function act_Default()
     {
-        return $this->act_List();
+        if(!isset($this->dbTableName)) {
+            $res = $this->renderWrapping("<h2>Този модел няма таблица</h2>");
+        } else {
+            $res = $this->act_List();
+        }
+
+        return $res;
     }
     
     
@@ -304,6 +310,8 @@ class core_Manager extends core_Mvc
     function act_SetupMVC()
     {
         $tpl = new ET(parent::setupMVC());
+        
+        $tpl->append(core_Classes::add($this));
         
         $tpl = $this->renderWrapping($tpl);
         
@@ -528,8 +536,8 @@ class core_Manager extends core_Mvc
      */
     function prepareEditToolbar_($data)
     {
-        $data->form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png');
-        $data->form->toolbar->addBtn('Отказ', $data->retUrl,  'id=cancel, ef_icon = img/16/close16.png');
+        $data->form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис на документа');
+        $data->form->toolbar->addBtn('Отказ', $data->retUrl,  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
         
         return $data;
     }
@@ -679,8 +687,12 @@ class core_Manager extends core_Mvc
         $data->listFields = arr::make($data->listFields, TRUE);
         
         $tpl = $table->get($data->rows, $data->listFields);
+
+        if(!$class = $data->listClass) {
+            $class = 'listRows';
+        }
         
-        return new ET("<div class='listRows {$data->listTableClass}'>[#1#]</div>", $tpl);
+        return new ET("<div class='{$class} {$data->listTableClass}'>[#1#]</div>", $tpl);
     }
     
     

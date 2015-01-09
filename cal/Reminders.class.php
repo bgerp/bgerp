@@ -500,7 +500,9 @@ class cal_Reminders extends core_Master
 	                    'Stop',
 	                    $data->rec->id
 	                ),
-	                'ef_icon = img/16/gray-close.png');
+	                array('ef_icon'=>'img/16/gray-close.png',
+	                	'title'=>'Спиране на напомнянето'
+	                ));
 	                
 	                
 	     }

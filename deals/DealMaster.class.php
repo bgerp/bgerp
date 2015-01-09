@@ -76,8 +76,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 		}
 			
-		// Ако крайното салдо е 0 я водим за издължена
-		if(round($amountBl, 2) == 0 && $state == 'overdue'){
+		// Ако крайното салдо е 0, я водим за издължена
+		if(round($amountBl, 2) == 0 && (($state == 'overdue' || $state == 'pending') || ($state == 'paid' && round($amountPaid, 2) == 0))){
 			
 			return 'repaid';
 		}
@@ -99,7 +99,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('amountBl', 'double(decimals=2)', 'caption=Стойности->Крайно салдо,input=none,summary=amount');
 		$mvc->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
 		$mvc->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
-		$mvc->FLD('amountToInvoice', 'double(decimals=2)', 'input=none'); // Сумата която е платена
 		
 		$mvc->FLD('amountVat', 'double(decimals=2)', 'input=none');
 		$mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
@@ -115,7 +114,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
 		
 		// Плащане
-		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Начин,salecondSysId=paymentMethodSale');
+		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
 		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута');
 		$mvc->FLD('currencyRate', 'double(smartRound)', 'caption=Плащане->Курс');
 		$mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
@@ -145,7 +144,11 @@ abstract class deals_DealMaster extends deals_DealBase
 	{
 		$form = &$data->form;
 		
-		$form->setDefault('valior', dt::now());
+		if($data->action === 'clone'){
+			$form->rec->valior = dt::now();
+		} else {
+			$form->setDefault('valior', dt::now());
+		}
 		
 		$form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
 		$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
@@ -174,8 +177,9 @@ abstract class deals_DealMaster extends deals_DealBase
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$form->formAttr['id']}'].elements['currencyRate'].value ='';"));
         $form->setField('sharedUsers', 'input=none');
         
-        // Текущия потребител е търговеца, щом се е стигнало до тук значи има права
-        $form->setDefault('dealerId', core_Users::getCurrent());
+        // Търговеца по дефолт е отговорника на контрагента
+        $inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
+        $form->setDefault('dealerId', $inCharge);
 	}
 	
 	
@@ -663,15 +667,21 @@ abstract class deals_DealMaster extends deals_DealBase
      	$self = cls::get(get_called_class());
      
      	if ($rec = $self->fetch($objectId)) {
-     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, FALSE);
      		$result = (object)array(
      				'num' => $self->abbr . $objectId,
      				'title' => $self::getRecTitle($objectId),
      				'features' => array('Контрагент' => $contragentName)
      		);
      		
+     		if($rec->dealerId){
+     			$caption = $self->getField('dealerId')->caption;
+     			list(, $featName) = explode("->", $caption);
+     			$result->features[$featName] = $self->getVerbal($rec, 'dealerId');
+     		}
+     		
      		if($rec->deliveryLocationId){
-     			$result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId);
+     			$result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId, FALSE);
      		}
      	}
      
@@ -709,9 +719,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	unset($nRec->contoActions,
     		  $nRec->amountDelivered, 
     		  $nRec->amountBl,  
-    		  $nRec->amountPaid, 
-    		  $nRec->amountInvoiced, 
-    		  $nRec->amountToInvoice);
+    		  $nRec->amountPaid,
+    		  $nRec->amountInvoiced);
     	
     	$nRec->paymentState = 'pending';
     }
@@ -746,7 +755,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Ако папката е на контрагент
     	if($Cover->haveInterface('doc_ContragentDataIntf')){
-    		$groupList = $Cover->fetchField($Cover->instance->groupsField);
+    		$groupList = $Cover->fetchField($Cover->getInstance()->groupsField);
     		$clientGroupId = crm_Groups::fetchField("#sysId = '{$this->crmDefGroup}'");
     		
     		// и той е в група 'клиенти'
@@ -890,7 +899,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				}
 			}
 			
-			if($rec->makeInvoice == 'no' && isset($rec->amountToInvoice)){
+			if($rec->makeInvoice == 'no'){
 				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
 			}
 	    }
@@ -1275,7 +1284,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			$clId = $ClosedDeals->create($className, $rec);
     			$ClosedDeals->conto($clId);
     			 
-    		} catch(Exception $e){
+    		} catch(core_exception_Expect $e){
     			 
     			// Ако има проблем при обновяването
     			core_Logs::add($this->className, $rec->id, "Проблем при автоматичното приключване на сделка: '{$e->getMessage()}'");
@@ -1304,7 +1313,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		try{
     			// Намира се метода на плащане от интерфейса
     			$dealInfo = $Class->getAggregateDealInfo($rec->id);
-    		} catch(Exception $e){
+    		} catch(core_exception_Expect $e){
     
     			// Ако има проблем при извличането се продължава
     			core_Logs::add($Class, $rec->id, "Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'");
@@ -1329,7 +1338,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     			try{
     				$isOverdue = cond_PaymentMethods::isOverdue($plan, round($rec->amountDelivered, 2) - round($rec->amountPaid, 2));
-    			} catch(Exception $e){
+    			} catch(core_exception_Expect $e){
     					
     				// Ако има проблем при извличането се продължава
     				core_Logs::add($Class, $rec->id, "Несъществуващ платежен план': '{$e->getMessage()}'");
@@ -1350,7 +1359,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     		try{
     			$Class->save_($rec);
-    		} catch(Exception $e){
+    		} catch(core_exception_Expect $e){
     
     			// Ако има проблем при обновяването
     			core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");

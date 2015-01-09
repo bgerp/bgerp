@@ -47,28 +47,26 @@ class label_Setup extends core_ProtoSetup
             array(3.66, 'Производство', 'Етикиране', 'label_Labels', 'default', "label, admin, ceo"),
         );
     
+        
+    // Инсталиране на мениджърите
+    public $managers = array(
+        'label_Labels',
+        'label_Templates',
+        'label_TemplateFormats',
+        'label_Media',
+        'label_Counters',
+        'label_CounterItems',
+        'label_Prints',
+        'migrate::addDefaultMedia'
+    );
+    
+        
     /**
      * Инсталиране на пакета
      */
     function install()
     {   
         $html = parent::install();
-        
-        // Инсталиране на мениджърите
-        $managers = array(
-            'label_Labels',
-            'label_Templates',
-            'label_TemplateFormats',
-            'label_Counters',
-            'label_CounterItems',
-        );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
         
         // Добавяме роля
         $html .= core_Roles::addOnce('label');
@@ -90,5 +88,32 @@ class label_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за добавяне на медия към шаблоните
+     */
+    public static function addDefaultMedia()
+    {
+        // Вземаме размера на първата медия
+        $mQuery = label_Media::getQuery();
+        while ($mRec = $mQuery->fetch()) {
+            $sizes = label_Media::getSize($mRec->width, $mRec->height);
+            
+            if ($sizes) break;
+        }
+        
+        if (!$sizes) return ;
+        
+        // Добавяме размера към всички шаблони, които нямат размери
+        $tQuery = label_Templates::getQuery();
+        $tQuery->where("#sizes IS NULL");
+        $tQuery->orWhere("#sizes = ''");
+        
+        while ($tRec = $tQuery->fetch()) {
+            $tRec->sizes = $sizes;
+            label_Templates::save($tRec, 'sizes');
+        }
     }
 }

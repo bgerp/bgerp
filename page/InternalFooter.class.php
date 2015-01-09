@@ -3,7 +3,7 @@
 /**
  * URL за подаване на сигнал за поддръжка на bgERP
  */
-defIfNot('BGERP_SUPPORT_URL', 'http://experta.bg/support_Issues/new/?systemId=1');
+defIfNot('BGERP_SUPPORT_URL', 'https://experta.bg/support_Issues/new/?systemId=1');
 
 /**
  * Клас 'page_InternalFooter' - Долния завършек на страницата
@@ -41,7 +41,7 @@ class page_InternalFooter extends core_ET {
                         
             if($isGet) {
                 $this->append("&nbsp;|&nbsp;");
-                $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE)));
+                $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), FALSE, array('title' => " Превключване на системата в десктоп режим")));
             
                 // Добавяме превключване между езиците
                 $this->addLgChange();
@@ -51,7 +51,7 @@ class page_InternalFooter extends core_ET {
             $this->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), NULL, array('title' => tr('Страницата е заредена на') . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
         } else {
             if($nick) {
-                $this->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout')));
+                $this->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout'), FALSE, array('title' => "Прекъсване на сесията")));
                 $this->append('&nbsp;|');
             }
             
@@ -60,7 +60,7 @@ class page_InternalFooter extends core_ET {
             
             if($isGet) {
                 $this->append(" | ");
-                $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE)));
+                $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => "Превключване на системата в мобилен режим")));
             
             
                 // Добавяме превключване между езиците
@@ -92,7 +92,7 @@ class page_InternalFooter extends core_ET {
             list($user, $domain) = explode('@', $email);
             $name = core_Users::getCurrent('names');
             $img = sbf('img/16/bug.png', '');
-            $btn = "<input title='Сигнал за бъг, въпрос или предложение' style='border:none; background-color:transparent; vertical-align: middle' type=image src='{$img}' name='Cmd[refresh]' value=1>";
+            $btn = "<input title='Сигнал за бъг, въпрос или предложение' class='bugReport' type=image src='{$img}' name='Cmd[refresh]' value=1>";
             $form = new et("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
             $this->append('&nbsp;|&nbsp;');
             $this->append($form);
@@ -113,8 +113,9 @@ class page_InternalFooter extends core_ET {
         if(count($langArr)) {
             foreach($langArr as $lg => $title) {
                 $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => TRUE));
+                $attr = array('href' => $url, 'title' => $title);
                 $lg{0} = strtoupper($lg{0});
-                $this->append("&nbsp;|&nbsp;<a href='{$url}' title='{$title}'>{$lg}</a>");
+                $this->append("&nbsp;|&nbsp;" . ht::createElement('a', $attr, $lg));
             }
         }
     }

@@ -22,13 +22,14 @@ class callcenter_SentSMSIntf
      * @param string $sender - От кого се изпраща съобщението
      * 
      * @return array $res - Mасив с информация, дали е получено
-     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, waiting
-     * $res['uid'] string - Уникалното id на съобщението
-     * $res['msg'] - Статуса
+     *  o $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
+     *  o $res['uid'] string - Уникалното id на съобщението
+     *  o $res['msg'] - Статуса
      */
-    function sendSMS($number, $message, $sender)
+    public function sendSMS($number, $message, $sender)
     {
-        return $this->class->sendFax($number, $message, $sender);
+        
+        return $this->class->sendSMS($number, $message, $sender);
     }
     
     
@@ -36,22 +37,32 @@ class callcenter_SentSMSIntf
      * Интерфейсен метод, който връща масив с настройките за услугата
      * 
      * @return array $paramsArr
-     * enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
-     * integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
-     * string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
+     *  o enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
+     *  o integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
+     *  o string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
      */
-    function getParams()
+    public function getParams()
     {
+        
         return $this->class->getParams();
     }
     
     
     /**
-     * Отбелязване на статуса на съобщенито
-     * Извиква се от външната програма след промяна на статуса на SMS'а
+     * Връща статуса на съобщението от съоветната услуга
+     * 
+     * @param string $uid
+     * 
+     * @return NULL|string
+     *  o received - Получен
+     *  o sended - Изпратен
+     *  o receiveError - Грешка при получаване
+     *  o sendError - Грешка при изпращане
+     *  o pending - Чакащо
      */
-    function act_Delivery()
+    public function getStatus($uid)
     {
-        return $this->class->act_Delivery();
+        
+        return $this->class->getStatus();
     }
 }

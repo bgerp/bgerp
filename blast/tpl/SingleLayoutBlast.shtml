@@ -62,7 +62,6 @@
         <div>[#body#]</div>
     </div>
     <!--ET_END body--> 
-    <div style="clear: both;"></div>
-	<div class="clear_l f_left block_subtitle mt_50px"></div>
-    <div style="clear: both;"></div>
+    <div style="clear: both;"></div>    
 </div>
+<div style="clear: both"></div>

@@ -8,199 +8,146 @@
  *
  * @category  bgerp
  * @package   frame
- * @author    Milen Georgiev <milen@experta.bg>
+ * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class frame_Reports extends core_Master
+class frame_Reports extends core_Embedder
 {
     
     
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_RowTools, plg_State2, frame_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Search, plg_Printing';
+    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices';
                       
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Отчет';
+    public $singleTitle = 'Отчет';
     
 
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
    
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Отчети от източници в системата";
+    public $title = "Отчети";
 
+    
     /**
      * Права за писане
      */
-    var $canWrite = 'ceo, report, admin';
+    public $canWrite = 'ceo, report, admin';
+    
+    
+    /**
+     * Права за писане
+     */
+    public $canEdit = 'ceo, report, admin';
     
     
     /**
      * Права за запис
      */
-    var $canRead = 'ceo, report, admin';
+    public $canRead = 'ceo, report, admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo, report, admin';
+	public $canList = 'ceo, report, admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo, report, admin';
+	public $canSingle = 'ceo, report, admin';
     
     
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canChangestate = 'ceo, report, admin';
+	
+	
     /**
      * Абревиатура
      */
-    var $abbr = "Rep";
+    public $abbr = "Rep";
     
     
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/report.png';
+    public $singleIcon = 'img/16/report.png';
 
 
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "18.9|Други";
+    public $newBtnGroup = "18.9|Други";
 
 
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'frame/tpl/SingleLayoutReport.shtml';
+    public $singleLayoutFile = 'frame/tpl/SingleLayoutReport.shtml';
 
 
+    /**
+     * Свойство, което указва интерфейса на вътрешните обекти
+     */
+    public $innerObjectInterface = 'frame_ReportSourceIntf';
+    
+    
+    /**
+     * Как се казва полето за избор на вътрешния клас
+     */
+    public $innerClassField = 'source';
+    
+    
+    /**
+     * Как се казва полето за данните от формата на драйвъра
+     */
+    public $innerFormField = 'filter';
+    
+    
+    /**
+     * Как се казва полето за записване на вътрешните данни
+     */
+    public $innerStateField = 'data';
+    
+    
     /**
      * Описание на модела
      */
     function description()
     {
-        // Име на отчета
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование, width=100%, notFilter, mandatory');
-
         // Singleton клас - източник на данните
         $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Източник,silent,mandatory,notFilter', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
 
         // Поле за настройките за филтриране на данните, които потребителят е посочил във формата
-        $this->FLD('filter', 'blob(serialize, compress)', 'caption=Филтър,input=none,column=none');
+        $this->FLD('filter', 'blob(1000000, serialize, compress)', 'caption=Филтър,input=none,single=none,column=none');
 
         // Извлечените данни за отчета. "Снимка" на състоянието на източника.
-        $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни,input=none,column=none');
+        $this->FLD('data', 'blob(1000000, serialize, compress)', 'caption=Данни,input=none,single=none,column=none');
  
-        $this->setDbUnique('name');
-    }
-    
-
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = &$data->form;
-        $rec =  &$form->rec;
- 
-        // Извличаме класовете с посочения интерфейс
-        $interfaces = core_Classes::getOptionsByInterface('frame_ReportSourceIntf', 'title');
-        if(count($interfaces)){
-        	foreach ($interfaces as $id => $int){
-        		$Driver = cls::get($id);
-        		
-        		// Ако потребителя не може да го избира, махаме го от масива
-        		if(!$Driver->canSelectSource()){
-        			unset($interfaces[$id]);
-        		}
-        	}
-        }
-        
-        // Ако няма достъпни драйвери полето е readOnly иначе оставяме за избор само достъпните такива
-        if(!count($interfaces)) {
-        	$form->setReadOnly('source');
-        } else {
-        	$form->setOptions('source', $interfaces);
-        }
-        
-        // Ако има запис, не може да се сменя източника и попълваме данните на формата с тези, които са записани
-        if($rec->id) {
-            $form->setReadOnly('source');
-            $filter = (array) self::fetch($rec->id)->filter;
-            if(is_array($filter)) {  
-                foreach($filter as $key => $value) {
-                    $rec->{$key} = $value;
-                }
-            }
-        }
-
-        // Ако има източник инстанцираме го
-        if($rec->source) {
-            $Source = cls::get($rec->source);
-            
-            // Източника модифицира формата при нужда
-            $Source->prepareReportForm($form);
-        }
-        
-        $form->input();
-    }
- 
-
-    /**
-     * Изпълнява се след въвеждането на данните от заявката във формата
-     */
-    function on_AfterInputEditForm($mvc, $form)
-    {
-    	// Инстанцираме източника
-    	if($form->rec->source) {
-    		$Source = cls::get($form->rec->source);
-    		if(!$Source->canSelectSource()){
-    			$form->setError('source', 'Нямате права за избрания източник');
-    		}
-    		
-    		// Източника проверява подадената форма
-    		$Source->checkReportForm($form);
-    	}
-    	
-    	if($form->isSubmitted() && $form->rec->source) {
-        	
-        	$filterFields = array_keys($form->selectFields("(#input == 'input' || #input == '') && !#notFilter"));
-            
-            if(!$form->rec->filter) {
-                $form->rec->filter = new stdClass();
-            }
-
-            // Записва данните от формата в полето 'filter'
-            if(is_array($filterFields)) {
-                foreach($filterFields as $field) {
-                   	$form->rec->filter->{$field} = $form->rec->{$field};
-                }
-            }
-         }
+        // Най-ранната дата когато отчета може да се активира
+        $this->FLD('earlyActivationOn', 'datetime', 'input=none');
     }
 
     
     /**
      *  Обработки по вербалното представяне на данните
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		if($fields['-single']) {
 	    	
@@ -208,62 +155,62 @@ class frame_Reports extends core_Master
             if(!Mode::is('printing')){
                 $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " (" . $mvc->getVerbal($rec, 'state') . ")" ;
             }
-                
-            $Source = cls::getInterface('frame_ReportSourceIntf', $rec->source);
             
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {
-            	
-            	// Източника подготвя данните
-                $rec->data = $Source->prepareReportData($rec->filter);
+            	$Source = $mvc->getDriver($rec);
+            	$rec->data = $Source->prepareInnerState();
             }
-                
-            // Източника рендира данните
-            $row->data = $Source->renderReportData($rec->data);
         }
     }
-
-
+    
+    
     /**
-     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     * Извиква се след успешен запис в модела
      */
-    static function on_AfterPrepareEditToolbar($mvc, $data)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	if (!empty($data->form->toolbar->buttons['activate'])) {
-    		$data->form->toolbar->removeBtn('activate');
+    	if(is_null($fields) && ($rec->state == 'draft' || $rec->state == 'pending')){
+    		
+    		// Обновяваме датата на кога най-рано може да се активира
+    		$Source = $mvc->getDriver($rec);
+    		$rec->earlyActivationOn = $Source->getEarlyActivation();
+    		//$rec->state = 'draft';
+    		$mvc->save($rec, 'earlyActivationOn,state');
     	}
     }
     
     
     /**
-     * Преди запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * Функция, която се извиква след активирането на документа
      */
-    public static function on_AfterSave(core_Manager $mvc, $res, $rec)
+    public static function on_AfterActivation($mvc, &$rec)
     {
-    	// Ако оттегляме / активираме документа
-    	if($rec->state != 'draft'){
-    		
-    		// Ако няма $data я извличаме и записваме
-    		if(empty($rec->data)){
-    			$source = $mvc->fetchField($rec->id, 'source');
-    			$filter = $mvc->fetchField($rec->id, 'filter');
-    			$Source = cls::getInterface('frame_ReportSourceIntf', $source);
-    			$rec->data = $Source->prepareReportData($filter);
-    			
-    			$mvc->save($rec, 'data');
-    		}
-    	} else {
-    		
-    		// Ако документа е чернова и има $data, ънсетваме я (след възстановяване на оттеглена чернова)
-    		if(!empty($rec->data)){
-    			unset($rec->data);
-    			$mvc->save($rec, 'data');
-    		}
-    	}
+    	$Driver = $mvc->getDriver($rec->id);
+    	
+    	$Driver->invoke('AfterActivation', array(&$rec->data, &$rec));
+    }
+    
+    
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    public static function on_AfterReject($mvc, &$res, &$rec)
+    {
+    	$Driver = $mvc->getDriver($rec->id);
+    	
+    	$Driver->invoke('AfterReject', array(&$rec->data, &$rec));
+    }
+    
+    
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    public static function on_AfterRestore($mvc, &$res, &$rec)
+    {
+    	$Driver = $mvc->getDriver($rec->id);
+    
+    	$Driver->invoke('AfterRestore', array(&$rec->data, &$rec));
     }
     
     
@@ -300,16 +247,145 @@ class frame_Reports extends core_Master
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
+    	
+    	$Driver = $this->getDriver($rec);
+    	
         $row = new stdClass();
-        $row->title = $this->singleTitle . " №{$id} {$rec->name}";
+        $row->title = $this->singleTitle . " №{$id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
 		$row->recTitle = $rec->reason;
 		
         return $row;
+    }
+    
+    
+    /**
+	 * Скрива полетата, които потребител с ниски права не може да вижда
+	 * 
+	 * @param stdClass $data
+	 */
+    public function hidePriceFields($data)
+    {
+    	$Driver = $this->getDriver($data->rec);
+    	$Driver->hidePriceFields();
+    }
+    
+    
+    /**
+     * Активира всички чакащи отчети, на които текущата дата е след
+     * или по време на датата им за най-ранно активиране
+     */
+    public function cron_ActivateEarlyOn()
+    {
+    	$now = dt::now();
+    	
+    	// Намираме всички отчети които са чакащи и им е пресрочена датата на активация
+    	$query = $this->getQuery();
+    	$query->where("#state = 'pending'");
+    	$query->where("#earlyActivationOn <= '{$now}'");
+    	$query->orWhere("#earlyActivationOn IS NULL");
+    	
+    	// Активираме ги
+    	while($rec = $query->fetch()){
+    		$this->activate($rec, $now);
+    	}
+    }
+    
+    
+    /**
+     * Екшън който активира отчета или го прави чакащ
+     */
+    public function act_Activate()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	
+    	// Проверка за права
+    	$this->requireRightFor('changestate', $data->rec);
+    	
+    	// Променяме състоянието на документа
+    	$this->activate($rec);
+    	
+    	// Редирект
+    	redirect(array($this, 'single', $id), 'Документа е активиран успешно');
+    }
+    
+    
+    /**
+     * Метод активиращ документа или го прави чакащ
+     * 
+     * @param stdClass $rec
+     * @return void
+     */
+    private function activate($rec, $when = NULL)
+    {
+    	if(empty($when)){
+    		$when = dt::now();
+    	}
+    	
+    	// Ако няма стойност за най-ранно активиране - извличаме я наново
+    	if(empty($rec->earlyActivationOn)){
+    		$Driver = $this->getDriver($rec);
+    		$rec->earlyActivationOn = $Driver->getEarlyActivation();
+    	}
+    	
+    	// Ако сега сме преди датата за активиране, правим го 'чакащ' иначе директно се 'активира'
+    	$rec->state = ($when < $rec->earlyActivationOn) ? 'pending' : 'active';
+    	$this->save($rec, 'state');
+    	 
+    	// Ако сме го активирали, генерираме събитие че е бил активиран
+    	if($rec->state == 'active'){
+    		$this->invoke('AfterActivation', array($rec));
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if($mvc->haveRightFor('changestate', $data->rec)){
+    		$data->toolbar->addBtn('Активиране', array($mvc, 'activate', $data->rec->id), "id=btnActivate,warning=Наистина ли желаете документа да бъде активиран?", 'ef_icon = img/16/lightning.png,title=Активиране на отчета');
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	// Кой може да променя състоянието на отчета
+    	if($action == 'changestate' && isset($rec)){
+    		if($rec->state != 'draft'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'activate'){
+    		$requiredRoles = 'no_one';
+    	}
+    	
+    	// Ако отчета е чакащ, може да се редактира
+    	if($action == 'edit' && isset($rec)){
+    		if($rec->state == 'pending'){
+    			$requiredRoles = $mvc->getRequiredRoles('edit');
+    		}
+    	}
     }
 }

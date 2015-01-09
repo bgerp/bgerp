@@ -90,12 +90,6 @@ class callcenter_Setup extends core_ProtoSetup
     
     
     /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'callcenter/css/callSummary.css';
-   
-    
-    /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
@@ -118,27 +112,25 @@ class callcenter_Setup extends core_ProtoSetup
     
     
     /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+            'callcenter_Talks',
+            'callcenter_Fax',
+            'callcenter_SMS',
+            'callcenter_Numbers',
+            'migrate::nullWrongAnswerAndEndTime',
+            'migrate::fixDurationField',
+        );
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
     {
       	$html = parent::install();
       	
-        // Инсталиране на мениджърите
-        $managers = array(
-            'callcenter_Talks',
-            'callcenter_Fax',
-            'callcenter_SMS',
-            'callcenter_Numbers',
-        );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -193,6 +185,50 @@ class callcenter_Setup extends core_ProtoSetup
             $allowedUsers = implode(', ', $paramsArr['allowedUserNames']);
             
             return "Невалиден изпращач. Позволените са: {$allowedUsers}";
+        }
+    }
+    
+    
+    /**
+     * Миграция за премахване на записите с `0000-00-00 00:00:00`
+     */
+    static function nullWrongAnswerAndEndTime()
+    {
+        $cnt = 0;
+        $cQuery = callcenter_Talks::getQuery();
+        $zeroTime = '0000-00-00 00:00:00';
+        $cQuery->where("#answerTime = '{$zeroTime}'");
+        $cQuery->orWhere("#endTime = '{$zeroTime}'");
+        while ($rec = $cQuery->fetch()) {
+            if ($rec->answerTime == $zeroTime) {
+                $rec->answerTime = NULL;
+            }
+            
+            if ($rec->endTime == $zeroTime) {
+                $rec->endTime = NULL;
+            }
+            
+            callcenter_Talks::save($rec);
+            $cnt++;
+        }
+        
+        if ($cnt) {
+            return "<li class='green'>Оправени записи за времена на разговорите на {$cnt} записа</li>";
+        }
+    }
+    
+    
+    /**
+     * Миграция за добавяне на продължителност на разговорите
+     */
+    static function fixDurationField()
+    {
+        $cQuery = callcenter_Talks::getQuery();
+        $cQuery->where("#duration IS NULL");
+        while ($rec = $cQuery->fetch()) {
+            $rec->duration = callcenter_Talks::getDuration($rec->answerTime, $rec->endTime);
+            if (!$rec->duration) continue;
+            callcenter_Talks::save($rec);
         }
     }
 }

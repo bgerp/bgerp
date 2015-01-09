@@ -1,18 +1,20 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа findeals_ClosedDeals
  *
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class findeals_transaction_CloseDeal
+class findeals_transaction_CloseDeal extends acc_DocumentTransactionSource
 {
     /**
      * 
@@ -65,7 +67,7 @@ class findeals_transaction_CloseDeal
     	if($amount == 0) return $result;
     	
     	if($rec->closeWith){
-    		$dealItem = acc_Items::fetch("#classId = {$firstDoc->instance->getClassId()} AND #objectId = '$firstDoc->that' ");
+    		$dealItem = acc_Items::fetch("#classId = {$firstDoc->getInstance()->getClassId()} AND #objectId = '$firstDoc->that' ");
     		$closeDealItem = acc_Items::fetchItem('findeals_Deals', $rec->closeWith);
     		$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
     		$result->entries = array_merge($result->entries, $closeEntries);
@@ -96,28 +98,10 @@ class findeals_transaction_CloseDeal
     							array($firstDoc->className, $firstDoc->that))
     			);
     		}
+    		
+    		$result->totalAmount += abs($amount);
     	}
     	
     	return $result;
-    }
-    
-    
-    /**
-     * Финализиране на транзакцията, изпълнява се ако всичко е ок
-     *
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'active';
-    
-    	if ($id = $this->class->save($rec)) {
-    		$this->class->invoke('AfterActivation', array($rec));
-    	}
-    
-    	return $id;
     }
 }

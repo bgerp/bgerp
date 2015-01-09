@@ -422,7 +422,13 @@ class backup_Start extends core_Manager
     {
         self::initialize();
         
-        return @unlink(self::$lockFileName);
+        $res = FALSE;
+
+        if(file_exists(self::$lockFileName)) {
+            $res = @unlink(self::$lockFileName);
+        }
+
+        return $res;
     }
     
     

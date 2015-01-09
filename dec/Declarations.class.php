@@ -225,7 +225,7 @@ class dec_Declarations extends core_Master
     {
     	try{
         	$row->doc = doc_Containers::getLinkForSingle($rec->doc);
-        } catch(Exception $e){
+        } catch(core_exception_Expect $e){
         	$row->doc = tr("Проблем при показването");
         }
     }
@@ -414,50 +414,6 @@ class dec_Declarations extends core_Master
                 break;
     	}
     }
-    
-
-    /*******************************************************************************************
-     * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
-     ******************************************************************************************/
-    
-    
-    /**
-     * Връща заглавието и мярката на перото за продукта
-     *
-     * Част от интерфейса: intf_Register
-     */
-    function getItemRec($objectId)
-    {
-        $result = NULL;
-        
-        if ($rec = self::fetch($objectId)) {
-            $result = (object)array(
-                'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
-                'num' => $rec->id,
-                'features' => 'foobar' // @todo!
-            );
-        }
-        
-        return $result;
-    }
-
-	
-    /**
-     * @see crm_ContragentAccRegIntf::itemInUse
-     * @param int $objectId
-     */
-    static function itemInUse($objectId)
-    {
-        // @todo!
-    }
-        
-    
-    
-    /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */
     
     
     /****************************************************************************************

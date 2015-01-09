@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class findeals_ClosedDeals extends acc_ClosedDeals
+class findeals_ClosedDeals extends deals_ClosedDeals
 {
     /**
      * Заглавие
@@ -124,7 +124,7 @@ class findeals_ClosedDeals extends acc_ClosedDeals
     public static function getClosedDealAmount($threadId)
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$jRecs = acc_Journal::getEntries(array($firstDoc->instance, $firstDoc->that));
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
     
     	$cost = acc_Balances::getBlAmounts($jRecs, '6913', 'debit')->amount;
     	$inc = acc_Balances::getBlAmounts($jRecs, '7913', 'credit')->amount;
@@ -136,7 +136,7 @@ class findeals_ClosedDeals extends acc_ClosedDeals
     
     /**
      * Имплементиране на интерфейсен метод
-     * @see acc_ClosedDeals::getDocumentRow()
+     * @see deals_ClosedDeals::getDocumentRow()
      */
     public function getDocumentRow($id)
     {
@@ -215,7 +215,7 @@ class findeals_ClosedDeals extends acc_ClosedDeals
     
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
-    	if(!($firstDoc->instance instanceof findeals_Deals)) return FALSE;
+    	if(!($firstDoc->getInstance() instanceof findeals_Deals)) return FALSE;
     	
     	return TRUE;
     }

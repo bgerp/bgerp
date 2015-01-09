@@ -42,6 +42,17 @@ class type_Int extends core_Type {
     
     
     /**
+     * Инициализиране на типа
+     */
+    function init($params = array())
+    {
+        parent::init($params);
+        
+        $this->params['allowHex'] = 'allowHex';
+    }
+    
+    
+    /**
      * Конвертира от вербална стойност
      */
     function fromVerbal_($val)
@@ -53,6 +64,16 @@ class type_Int extends core_Type {
         $to = array('.', '', '', '');
         
         $val = str_replace($from, $to, trim($val));
+        
+        if ($this->params['allowOct'] != 'allowOct') {
+            if ($val{1} != 'x') {
+                $val = ltrim($val, 0);
+            }
+        }
+        
+        if ($this->params['allowHex'] != 'allowHex') {
+            $val = ltrim($val, '0x');
+        }
         
         if($val === '') return NULL;
         

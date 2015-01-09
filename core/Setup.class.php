@@ -117,6 +117,12 @@ defIfNot('EF_USER_LANG', '');
 
 
 /**
+ * HTML който се показва като информация във формата за логин
+ */
+defIfNot('CORE_LOGIN_INFO', "|*(|само за администраторите на сайта|*)");
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -166,7 +172,7 @@ class core_Setup extends core_ProtoSetup {
            
            'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=Интервал,\'=Апостроф,`=Обратен апостроф)', 'caption=Форматиране на числа->Разделител, customizeBy=powerUser'),
             
-           'EF_NUMBER_DEC_POINT' => array( 'enum(.=|Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=powerUser'),
+           'EF_NUMBER_DEC_POINT' => array( 'enum(.=Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=powerUser'),
             
            'EF_USER_LANG' => array( "enum()", 'caption=Език на интерфейса след логване->Език, customizeBy=powerUser, optionsFunc=core_Lg::getLangOptions'),
             
@@ -174,6 +180,8 @@ class core_Setup extends core_ProtoSetup {
     
            'EF_APP_TITLE'   => array ('varchar', 'caption=Наименование на приложението->Име'),
            
+           'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),
+      
            'EF_MAX_EXPORT_CNT' => array ('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
            
            'PLG_SEACH_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи за генериране на ключови думи->Брой символи'),
@@ -214,6 +222,8 @@ class core_Setup extends core_ProtoSetup {
         'migrate::clearBrowserInfo',
         'core_Settings',
         'core_Forwards',
+        'migrate::settigsDataFromCustomToCore',
+        'migrate::movePersonalizationData'
     );
     
     
@@ -274,7 +284,7 @@ class core_Setup extends core_ProtoSetup {
         $rec->controller = 'core_Cache';
         $rec->action = 'DeleteExpiredData';
         $rec->period = 24 * 60;
-        $rec->offset = 2 * 60;
+        $rec->offset = rand(60, 180); // от 1h до 3h
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
@@ -285,8 +295,8 @@ class core_Setup extends core_ProtoSetup {
         $rec->description = 'Почистване на callback връзките с изтекъл срок';
         $rec->controller = 'core_Forwards';
         $rec->action = 'DeleteExpiredLinks';
-        $rec->period = 24 * 60;
-        $rec->offset = 3 * 60;
+        $rec->period = 60;
+        $rec->offset = 3;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
@@ -343,5 +353,71 @@ class core_Setup extends core_ProtoSetup {
         $Browser = cls::get('core_Browser');
 
         $Browser->db->query("TRUNCATE TABLE `{$Browser->dbTableName}`");
+    }
+    
+    
+    /**
+     * Миграция за прехвъраляне на данните от `custom_Settings` в `core_Settings`
+     */
+    static function settigsDataFromCustomToCore()
+    {
+        if (!cls::load('custom_Settings', TRUE)) return ;
+        
+        $inst = cls::get('custom_Settings');
+        
+        if (!$inst->db->tableExists($inst->dbTableName)) return ;
+        
+        // Взема всички записи и общите ги обядинява в един
+        $cQuery = custom_Settings::getQuery();
+        while ($cRec = $cQuery->fetch()) {
+            if (!cls::load($cRec->classId, TRUE)) continue;
+            $classInst = cls::get($cRec->classId);
+            if (!method_exists($classInst, 'getSettingsKey')) continue;
+            
+            $key = $classInst->getSettingsKey($cRec->objectId);
+            
+            $userId = $cRec->userId;
+            if ($userId == -1) {
+                $userId = type_UserOrRole::getAllSysTeamId();
+            }
+            
+            $dataArr[$key][$userId][$cRec->property] = $cRec->value;
+        }
+        
+        // Обикаля по получения резултат и добавя в новия модел
+        foreach ((array)$dataArr as $key => $dataUserArr) {
+            foreach ((array)$dataUserArr as $userId => $valArr) {
+                if (!$valArr) continue;
+                core_Settings::setValues($key, $valArr, $userId);
+            }
+        }
+    }
+    
+    
+    /**
+     * Фунцкия за миграция
+     * Премества персонализационните данни за потребителя от core_Users в core_Settings
+     */
+    static function movePersonalizationData()
+    {
+        $userInst = cls::get('core_Users');
+        
+        $userInst->db->connect();
+        
+        $confData = str::phpToMysqlName('configData');
+        
+        // Ако в модела в MySQL липсва колоната, няма нужда от миграция
+        if (!$userInst->db->isFieldExists($userInst->dbTableName, $confData)) return ;
+        
+        $userInst->FLD('configData', 'blob(serialize,compress)', 'caption=Конфигурационни данни,input=none');
+        
+        // Преместваме всикчи данни от полето в core_Settings
+        $userQuery = core_Users::getQuery();
+        $userQuery->where("#configData IS NOT NULL");
+        while ($rec = $userQuery->fetch()) {
+            $key = core_Users::getSettingsKey($rec->id);
+            
+            core_Settings::setValues($key, $rec->configData, $rec->id);
+        }
     }
 }

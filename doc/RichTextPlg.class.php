@@ -60,7 +60,7 @@ class doc_RichTextPlg extends core_Plugin
         }
         
         // Абревиатурарата
-        $abbr = ($doc->instance->abbr) ? $doc->instance->abbr : $match['abbr'];
+        $abbr = ($doc->abbr) ? $doc->abbr : $match['abbr'];
         
         //Име на файла
         $docName = $match['dsSign'] . $abbr . $match['id'];

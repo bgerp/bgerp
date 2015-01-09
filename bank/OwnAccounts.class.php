@@ -189,9 +189,19 @@ class bank_OwnAccounts extends core_Master {
         
         if(isset($fields['-list'])){
             $bankItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-            $Balance = new acc_ActiveShortBalance(array('itemsAll' => $bankItem->id));
-            $rec->blAmount = $Balance->getAmount($mvc->balanceRefAccounts, $bankItem->id);
             
+            // Намираме всички записи от текущия баланс за това перо
+            $balRec = acc_Balances::getLastBalance();
+            $bQuery = acc_BalanceDetails::getQuery();
+            acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $bankItem->id);
+             
+            // Събираме ги да намерим крайното салдо на перото
+            $rec->blAmount = 0;
+            while($bRec = $bQuery->fetch()){
+            	$rec->blAmount += $bRec->blAmount;
+            }
+            
+            // Обръщаме го във четим за хората вид
             $Double = cls::get('type_Double');
             $Double->params['decimals'] = 2;
             $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "<span>";
@@ -342,7 +352,7 @@ class bank_OwnAccounts extends core_Master {
     
     /**
      * Изчличане на цялата информация за сметката която е активна
-     * @return bank_Accounts $acc - записа отговарящ на текущата ни сметка
+     * @return stdClass $acc - записа отговарящ на текущата ни сметка
      */
     static function getOwnAccountInfo($id = NULL)
     {

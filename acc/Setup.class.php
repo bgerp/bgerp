@@ -19,7 +19,7 @@ defIfNot('BASE_CURRENCY_CODE', 'BGN');
 /**
  * Толеранс за допустимо разминаване на суми
  */
-defIfNot('ACC_MONEY_TOLERANCE', '0.01');
+defIfNot('ACC_MONEY_TOLERANCE', '0.05');
 
 
 /**
@@ -93,6 +93,10 @@ class acc_Setup extends core_ProtoSetup
         'acc_JournalDetails',
         'acc_Features',
     	'acc_VatGroups',
+    	'acc_ClosePeriods',
+    	'acc_Operations',
+    	'acc_BalanceRepairs',
+    	'acc_BalanceRepairDetails',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemNums2',
     );
@@ -155,18 +159,20 @@ class acc_Setup extends core_ProtoSetup
         ),
     	array(
     		'systemId' => "SyncAccFeatures",
-    		'description' => "Синхронизация на счетоводните свойства",
+    		'description' => "Синхронизиране на счетоводните свойства",
     		'controller' => "acc_Features",
     		'action' => "SyncFeatures",
     		'period' => 1440,
     		'offset' => 60,
+    		'timeLimit' => 600,
     	),
     );
+    
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_HistoryReport";
+    var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_BalanceHistory, acc_HistoryReportImpl";
     
     
     /**

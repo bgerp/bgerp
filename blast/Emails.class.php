@@ -184,7 +184,7 @@ class blast_Emails extends core_Master
     protected function description()
     {
         $this->FLD('perSrcClassId', 'class(interface=bgerp_PersonalizationSourceIntf)', 'caption=Източник на данни->Клас, silent, input=hidden');
-        $this->FLD('perSrcObjectId', 'int', 'caption=Списък, mandatory, silent');
+        $this->FLD('perSrcObjectId', 'varchar(16)', 'caption=Списък, mandatory, silent');
         
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
@@ -238,6 +238,8 @@ class blast_Emails extends core_Master
         $rec->subject = $subject;
         $rec->state = 'draft';
         
+        expect($rec->perSrcClassId && $rec->perSrcObjectId, $rec);
+        
         // Задаваме стойности за останалите полета
         foreach ((array)$otherParams as $fieldName => $value) {
             if ($rec->$fieldName) continue;
@@ -248,6 +250,8 @@ class blast_Emails extends core_Master
         if (!$rec->from) {
             $rec->from = email_Outgoings::getDefaultInboxId();
         }
+        
+        expect($rec->from, 'Не може да се определи имейл по подразбиране за изпращача');
         
         // Записваме
         $id = self::save($rec);
@@ -266,6 +270,8 @@ class blast_Emails extends core_Master
     {
         // Записа
         $rec = self::getRec($id);
+        
+        expect($rec, 'Няма такъв запис');
         
         // Обновяваме списъка с имейлите
         $updateCnt = self::updateEmailList($id);
@@ -292,6 +298,8 @@ class blast_Emails extends core_Master
         // Записа
         $rec = self::getRec($id);
         
+        expect($rec, 'Няма такъв запис');
+        
         // Инстанция на класа за персонализация
         $srcClsInst = cls::get($rec->perSrcClassId);
         
@@ -304,11 +312,14 @@ class blast_Emails extends core_Master
         // Масив с всички имейл полета
         $emailFieldsArr = self::getEmailFields($descArr);
         
+        expect($emailFieldsArr, 'Трябва да има поне едно поле за имейли');
+        
         // Обновяваме листа и връщаме броя на обновленията
         $updateCnt = blast_EmailSend::updateList($rec->id, $personalizationArr, $emailFieldsArr);
         
         return $updateCnt;
     }
+    
     
     /**
      * Връща записа
@@ -323,6 +334,9 @@ class blast_Emails extends core_Master
         if (is_object($id)) {
             $rec = $id;
         } else {
+            
+            expect($id > 0);
+            
             // Ако е id, фечваме записа
             $rec = self::fetch($id);
         }
@@ -449,7 +463,7 @@ class blast_Emails extends core_Master
                             'no_thread_hnd' => TRUE
                         )
                     );
-                } catch (Exception $e) {
+                } catch (core_exception_Expect $e) {
                     $status = FALSE;
                 }
                 
@@ -682,6 +696,12 @@ class blast_Emails extends core_Master
         // Вземаме тялото на имейла
         $res = self::getDocumentBody($rec->id, 'xhtml', $options);
         
+        if ($res instanceof core_ET) {
+            $content = $res->getContent();
+        } else {
+            $content = $res;
+        }
+        
         // За да вземем mid'а който се предава на $options
         $rec->__mid = $options->rec->__mid;
         
@@ -694,7 +714,7 @@ class blast_Emails extends core_Master
             $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
             "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . "\n" . file_get_contents(sbf('css/email.css', "", TRUE));
             
-            $res = '<div id="begin">' . $res->getContent() . '<div id="end">';
+            $content = '<div id="begin">' . $content . '<div id="end">';
             
             // Вземаме пакета
             $conf = core_Packs::getConfig('csstoinline');
@@ -706,13 +726,19 @@ class blast_Emails extends core_Master
             $inst = cls::get($CssToInline);
             
             // Стартираме процеса
-            $res =  $inst->convert($res, $css);
+            $content =  $inst->convert($content, $css);
             
-            $res = str::cut($res, '<div id="begin">', '<div id="end">');
+            $content = str::cut($content, '<div id="begin">', '<div id="end">');
         }
         
         //Изчистваме HTMl коментарите
-        $res = email_Outgoings::clearHtmlComments($res);
+        $content = email_Outgoings::clearHtmlComments($content);
+    
+        if ($res instanceof core_ET) {
+            $res->setContent($content);
+        } else {
+            $res = $content;
+        }
         
         return $res;
     }
@@ -824,7 +850,8 @@ class blast_Emails extends core_Master
         
         // Обхождаме всички подадени полета и проверяваме дали не са инстанции на type_Email или type_Emails
         foreach ((array)$descArr as $name => $type) {
-            if (($type instanceof type_Email) || ($type instanceof type_Emails)) {
+            $lName = strtolower($name);
+            if (($lName == 'email') || ($lName == 'emails') || ($type instanceof type_Email) || ($type instanceof type_Emails)) {
                 $fieldsArr[$name] = $type;
             }
         }
@@ -958,8 +985,8 @@ class blast_Emails extends core_Master
         $form->showFields = 'sendPerCall, startOn';
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addSbBtn('Запис', 'save', NULL, 'ef_icon = img/16/disk.png, title=Запис на документа');
+        $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         // Добавяме титлата на формата
         $form->title = "Стартиране на масово разпращане";
@@ -1178,9 +1205,26 @@ class blast_Emails extends core_Master
     {
         $form = $data->form;
         
+        $defPerSrcClassId = NULL;
+        $currUserId = core_Users::getCurrent();
         // Ако не е подаден клас да е blast_List
         $listClassId = blast_Lists::getClassId();
-        $data->form->setDefault('perSrcClassId', $listClassId);
+        
+        if (isset($form->rec->folderId)) {
+            $cover = doc_Folders::getCover($form->rec->folderId);
+            
+            $coverClassName = strtolower($cover->className);
+        
+            if ($coverClassName != 'doc_unsortedfolders') {
+                $defPerSrcClassId = $cover->getInstance()->getClassId();
+            }
+        }
+        
+        if (!isset($defPerSrcClassId)) {
+            $defPerSrcClassId = $listClassId;
+        }
+        
+        $data->form->setDefault('perSrcClassId', $defPerSrcClassId);
         
         // Инстанция на източника за персонализация
         $perClsInst = cls::get($data->form->rec->perSrcClassId);
@@ -1190,9 +1234,7 @@ class blast_Emails extends core_Master
         
         $perOptArr = array();
         
-        // Ако е подаден такъв обект за персонализация
-        if ($perSrcObjId) {
-            
+        if (isset($perSrcObjId)) {
             // Очакваме да може да персонализира
             expect($perClsInst->canUsePersonalization($perSrcObjId));
             
@@ -1202,40 +1244,32 @@ class blast_Emails extends core_Master
             // Да може да се избере само подадения обект
             $perOptArr[$perSrcObjId] = $perTitle;
             $form->setOptions('perSrcObjectId', $perOptArr);
-        }
-        
-        // Ако създаваме от blast_List и не е подаден обект
-        // За съвместимост със старите системи
-        if ($listClassId == $data->form->rec->perSrcClassId) {
-            if (!$data->form->rec->perSrcObjectId) {
+        } else {
+            $perOptArr = $perClsInst->getPersonalizationOptionsForId($cover->that);
+            
+            // Обхождаме всички опции
+            foreach ((array)$perOptArr as $id => $name) {
                 
-                // Взеамем всички възбможни опции за персонализация
-                $perOptArr = $perClsInst->getPersonalizationOptions();
+                // Проверяваме дали може да се персонализира
+                // Тряба да се проверява в getPersonalizationOptions()
+                //                    if (!$perClsInst->canUsePersonalization($id)) continue;
                 
-                // Обхождаме всички опции
-                foreach ((array)$perOptArr as $id => $name) {
+                // Описание на полетата
+                $descArr = $perClsInst->getPersonalizationDescr($id);
+                
+                // Ако няма полета за имейл
+                if (!self::getEmailFields($descArr)) {
                     
-                    // Проверяваме дали може да се персонализира
-                    // Тряба да се проверява в getPersonalizationOptions()
-                    //                    if (!$perClsInst->canUsePersonalization($id)) continue;
-                    
-                    // Описание на полетата
-                    $descArr = $perClsInst->getPersonalizationDescr($id);
-                    
-                    // Ако няма полета за имейл
-                    if (!self::getEmailFields($descArr)) {
-                        
-                        // Премахваме от опциите
-                        unset($perOptArr[$id]);
-                    }
+                    // Премахваме от опциите
+                    unset($perOptArr[$id]);
                 }
-                
-                // Очакваме да има поне една останала опция
-                expect($perOptArr, 'Няма източник за персонализация');
-                
-                // Задаваме опциите
-                $form->setOptions('perSrcObjectId', $perOptArr);
             }
+            
+            // Очакваме да има поне една останала опция
+            expect($perOptArr, 'Няма източник за персонализация');
+            
+            // Задаваме опциите
+            $form->setOptions('perSrcObjectId', $perOptArr);
         }
         
         // Само имейлите достъпни до потребителя да се показват
@@ -1510,21 +1544,21 @@ class blast_Emails extends core_Master
             // Добавяме бутона Активирай, ако състоянието е чернова или спряно
             
             if ($mvc->haveRightFor('activate', $rec->rec)) {
-                $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $rec->id), 'ef_icon = img/16/lightning.png');
+                $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $rec->id), 'ef_icon = img/16/lightning.png, title=Активирай документа');
             }
         } else {
             
             // Добавяме бутона Спри, ако състоянието е активно или изчакване
             if (($state == 'pending') || ($state == 'active')) {
                 if ($mvc->haveRightFor('stop', $rec->rec)) {
-                    $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png');
+                    $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png, title=Прекратяване на действието');
                 }
             }
             
             // Добавяме бутон за обновяване в, ако състоянието е активно, изчакване или затворено
             if (($state == 'pending') || ($state == 'active') || ($state == 'closed')) {
                 if ($mvc->haveRightFor('update', $rec->rec)) {
-                    $data->toolbar->addBtn('Обновяване', array($mvc, 'Update', $rec->id), 'ef_icon = img/16/update-icon.png, row=1');
+                    $data->toolbar->addBtn('Обновяване', array($mvc, 'Update', $rec->id), NULL, array('ef_icon'=>'img/16/update-icon.png', 'row'=>'1', 'title'=>'Добави новите имейли към списъка'));
                 }
             }
         }
@@ -1783,10 +1817,8 @@ class blast_Emails extends core_Master
         // Името на класа
         $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
         
-        // TODO
         // Може да се добавя само в проекти и в групи
-        //        if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) return FALSE;
-        if (($coverClassName != 'doc_unsortedfolders')) return FALSE;
+        if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) return FALSE;
         
         return TRUE;
     }

@@ -209,7 +209,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$ProductMan = cls::get($rec->classId);
-		$row->productId = $ProductMan::getTitleById($rec->productId);
+		$row->productId = $ProductMan->getProductTitle($rec->productId);
 	
 		if($rec->note){
 			$varchar = cls::get('type_Varchar');
@@ -301,7 +301,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			// Само при рефреш слагаме основната опаковка за дефолт
 			if($form->cmd == 'refresh'){
 				$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-				if($baseInfo->classId == cat_Packagings::getClassId()){
+				if($baseInfo->classId == 'cat_Packagings'){
 					$form->rec->packagingId = $baseInfo->id;
 				}
 			}

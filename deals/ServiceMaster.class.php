@@ -138,7 +138,8 @@ abstract class deals_ServiceMaster extends core_Master
 				$shipProduct->discount    = $product->discount;
 				$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
 				 
-				$mvc->purchase_ServicesDetails->save($shipProduct);
+				$Detail = $mvc->mainDetail;
+				$mvc->$Detail->save($shipProduct);
 			}
 		}
 	}
@@ -304,7 +305,7 @@ abstract class deals_ServiceMaster extends core_Master
     	$res = array();
     	$Detail = $this->mainDetail;
     	$dQuery = $this->$Detail->getQuery();
-    	$dQuery->EXT('state', 'purchase_Services', 'externalKey=shipmentId');
+    	$dQuery->EXT('state', $this->className, 'externalKey=shipmentId');
     	$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
     	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){

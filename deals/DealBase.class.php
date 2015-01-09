@@ -136,7 +136,7 @@ abstract class deals_DealBase extends core_Master
 			}
 	
 			if ($d->haveInterface('bgerp_DealIntf')) {
-				$d->instance->pushDealInfo($d->that, $aggregateInfo);
+				$d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
 			}
 		}
 	
@@ -194,7 +194,12 @@ abstract class deals_DealBase extends core_Master
     	$dealQuery->where("#closedDocuments = ''");
     	
     	while($dealRec = $dealQuery->fetch()){
-    		$docs[$dealRec->id] = $this->getRecTitle($dealRec);
+    		
+    		// Оставяме само сделките, по чието перо е имало движение
+    		$item = acc_Items::fetchItem($this, $dealRec->id);
+    		if(isset($item->lastUseOn)){
+    			$docs[$dealRec->id] = $this->getRecTitle($dealRec);
+    		}
     	}
     	 
     	return $docs;
@@ -425,7 +430,7 @@ abstract class deals_DealBase extends core_Master
     	// Ако има записи където участва перото подготвяме ги за показване
     	if(count($entries)){
     		$count = 0;
-    		$l = cls::get('acc_JournalDetails');
+    		
     		foreach ($entries as $ent){
     			
     			if($count >= $start && $count <= $end){

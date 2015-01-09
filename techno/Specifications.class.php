@@ -210,7 +210,7 @@ class techno_Specifications extends core_Manager {
 	    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    	try{
 	    		$DocClass = cls::get($rec->docClassId);
-	    	} catch(Exception $e){
+	    	} catch(core_exception_Expect $e){
 	    		return;
 	    	}
 	    	
@@ -281,33 +281,6 @@ class techno_Specifications extends core_Manager {
     	
     	return NULL;
     }
-    
-    
-    /**
-     * Предефинираме метода getTitleById да връща вербалното
-     * представяне на продукта
-     * @param int $id - id на спецификацията
-     * @param boolean $full 
-     * 	      		FALSE - връща само името на спецификацията
-     * 		        TRUE - връща целия шаблон на спецификацията
-     * @return core_ET - шаблон с представянето на спецификацията
-     */
-     public static function getTitleById($id, $escaped = TRUE, $full = FALSE, $lang = 'bg')
-     {
-	    $TechnoClass = static::getDriver($id);
-     	
-	    if(empty($TechnoClass)){
-	    	return "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
-	    }
-	    
-     	if($full !== TRUE) {
-    		return $TechnoClass->getTitleById($escaped);
-    	}
-    	
-    	$data = $TechnoClass->prepareData();
-    	
-	    return $TechnoClass->renderShortView($data);
-     }
     
     
     /**
@@ -478,7 +451,7 @@ class techno_Specifications extends core_Manager {
     		$Driver->recTitleTpl = NULL;
     		
     		$link =  $Driver->getHyperlink($icon);
-    	} catch(Exception $e){
+    	} catch(core_exception_Expect $e){
     		$link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
     	}
     	
@@ -558,7 +531,7 @@ class techno_Specifications extends core_Manager {
     		if(isset($TechnoClass)){
     			$res = $TechnoClass->getBasePackInfo();
     		}
-    	} catch(Exception $e){
+    	} catch(core_exception_Expect $e){
     		
     	}
     	
@@ -653,5 +626,45 @@ class techno_Specifications extends core_Manager {
     	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
     			
     	return $LastPricePolicy->getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+    }
+    
+    
+    /**
+     * Заглавие на артикула
+     */
+    public function getProductTitle($id)
+    {
+    	$pInfo = $this->getProductInfo($id);
+    	
+    	return $pInfo->productRec->title;
+    }
+    
+    
+    /**
+     * Дали артикула е стандартен
+     *
+     * @param mixed $id - ид/запис
+     * @return boolean - дали е стандартен или не
+     */
+    public function isProductStandart($id)
+    {
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Връща подробното описанието на артикула
+     *
+     * @param mixed $id - ид/запис
+     * @param datetime $time - към кое време
+     * @return mixed - описанието на артикула
+     */
+    public function getProductDesc($id, $time = NULL)
+    {
+    	$TechnoClass = static::getDriver($id);
+    	 
+    	$data = $TechnoClass->prepareData();
+    	 
+    	return $TechnoClass->renderShortView($data);
     }
 }

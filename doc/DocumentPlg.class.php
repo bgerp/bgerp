@@ -140,7 +140,7 @@ class doc_DocumentPlg extends core_Plugin
                     'reject',
                     $data->rec->id
                 ),
-                'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=Оттегляне на документа');
+                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=Оттегляне на документа',  'ef_icon = img/16/reject.png');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {
@@ -156,7 +156,7 @@ class doc_DocumentPlg extends core_Plugin
         //Бутон за добавяне на коментар 
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
             
-            if (TRUE) {
+            if (isset($data->rec->threadId) && doc_Threads::haveRightFor('single', $data->rec->threadId)) {
                 
                 $retUrl = array($mvc, 'single', $data->rec->id);
                 
@@ -222,11 +222,14 @@ class doc_DocumentPlg extends core_Plugin
             $data->toolbar->removeBtn('*');
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
-
-            $data->rejectedCnt = $data->rejQuery->count();
-            
-            if($data->rejectedCnt) {
-                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin fright,order=50,row=2', 'ef_icon = img/16/bin_closed.png' );
+            if(isset($data->rejQuery)) {
+                $data->rejectedCnt = $data->rejQuery->count();
+                
+                if($data->rejectedCnt) {
+                    $curUrl = getCurrentUrl();
+                    $curUrl['Rejected'] = 1;
+                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, 'id=binBtn,class=btn-bin fright,order=50,row=2', 'ef_icon = img/16/bin_closed.png' );
+                }
             }
         }
     }
@@ -278,7 +281,7 @@ class doc_DocumentPlg extends core_Plugin
      * Преди подготовка на данните за табличния изглед правим филтриране
      * на записите, които са (или не са) оттеглени и сортираме от нови към стари
      */
-    function on_AfterPrepareListFilter($mvc, &$data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         if($data->query) {
             if(Request::get('Rejected')) {
@@ -288,9 +291,10 @@ class doc_DocumentPlg extends core_Plugin
                 $data->query->where("#state != 'rejected' || #state IS NULL");
                 $data->rejQuery->where("#state = 'rejected'");
             }
-        }
+           
+            $data->query->orderBy('#createdOn', 'DESC');
+       }
         
-        $data->query->orderBy('#createdOn', 'DESC');
     }
     
     
@@ -341,7 +345,7 @@ class doc_DocumentPlg extends core_Plugin
             
             // Опитваме се да запишем файловете от документа в модела
             doc_Files::saveFile($mvc, $rec);    
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Ако възникне грешка при записването
             doc_Files::log("Грешка при записване на файла с id={$id}");
@@ -578,7 +582,7 @@ class doc_DocumentPlg extends core_Plugin
             $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             
-            if ($rec->state == 'rejected' && $mvc->haveRightFor('reject', $rec)) {
+            if ($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec)) {
                 // Възстановяваме документа + нишката, ако се налага
                 if ($mvc->restore($rec)) {
                     $tRec = doc_Threads::fetch($rec->threadId);
@@ -588,15 +592,14 @@ class doc_DocumentPlg extends core_Plugin
                         doc_Threads::restoreThread($rec->threadId);
                     }
                 }
-                    
-                // Пренасочваме контрола
-                if (!$res = getRetUrl()) {
-                    $res = array($mvc, 'single', $id);
-                }
-                
-                $res = new Redirect($res); //'OK';
-                
             }             
+            
+            // Пренасочваме контрола
+            if (!$res = getRetUrl()) {
+            	$res = array($mvc, 'single', $id);
+            }
+            
+            $res = new Redirect($res); //'OK';
             
             return FALSE;
         }
@@ -1053,7 +1056,7 @@ class doc_DocumentPlg extends core_Plugin
             $data->noToolbar = !$options->withToolbar;
             
             $res  = $mvc->renderDocument($id, $data);
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Ако сме в SUDO режим
             if ($bExitSudo) {
@@ -1114,7 +1117,7 @@ class doc_DocumentPlg extends core_Plugin
             // Подготвяме данните за единичния изглед
             $data = $mvc->prepareDocument($id, $options);
             $res  = $mvc->renderDocument($id, $data);
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Ако сме в SUDO режим
             if ($bExitSudo) {
@@ -1224,7 +1227,7 @@ class doc_DocumentPlg extends core_Plugin
                         $docMvc = doc_Containers::getDocument($oRec->containerId);
                         
                         // Ако може да е начало на нишка
-                        $haveRightForClone = ($docMvc->instance->canAddToFolder($oRec->folderId) === FALSE) ? FALSE : TRUE;
+                        $haveRightForClone = ($docMvc->getInstance()->canAddToFolder($oRec->folderId) === FALSE) ? FALSE : TRUE;
                     }
                 } else {
                     
@@ -1238,7 +1241,7 @@ class doc_DocumentPlg extends core_Plugin
                         $docMvc = doc_Containers::getDocument($oRec->containerId);
                         
                         // Ако може да се добавя в нишката
-                        $haveRightForClone = ($docMvc->instance->canAddToThread($oRec->threadId) === FALSE) ? FALSE : TRUE;
+                        $haveRightForClone = ($docMvc->getInstance()->canAddToThread($oRec->threadId) === FALSE) ? FALSE : TRUE;
                     }
                 }
                 
@@ -2096,7 +2099,7 @@ class doc_DocumentPlg extends core_Plugin
 	    			try{
 	    				$mvc->save_($rec, 'searchKeywords');
 	    				$i++;
-	    			}catch(Exception $e) {
+	    			}catch(core_exception_Expect $e) {
             			continue;
             		}
 				}

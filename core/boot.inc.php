@@ -22,11 +22,13 @@ if (version_compare(phpversion(), '5.3.0') < 0) {
 }
 
 // Зареждаме класовете за обработка на грешки
+require_once(EF_APP_PATH . '/core/exception/Break.class.php');
+
+// Зареждаме класовете за обработка на грешки
 require_once(EF_APP_PATH . '/core/exception/Expect.class.php');
 
-
+// Зареждаме дебъг класа
 require_once(EF_APP_PATH . '/core/Debug.class.php');
-
 
 // Зареждаме 'CLS' класа за работа с класове
 require_once(EF_APP_PATH . "/core/Cls.class.php");
@@ -35,6 +37,8 @@ require_once(EF_APP_PATH . "/core/Cls.class.php");
 // Зареждаме 'APP' класа с помощни функции за приложението
 require_once(EF_APP_PATH . "/core/App.class.php");
 
+// Прихващаме грешките
+core_Debug::setErrorWaching();
 
 try {
     // Инициализиране на системата
@@ -66,7 +70,6 @@ try {
     // Стартира записа в буфера, като по възможност компресира съдържанието
     ob_start();
 
-
     // Стартира приложението
     core_App::run();
 
@@ -74,20 +77,54 @@ try {
     // Край на работата на скрипта
     core_App::shutdown();
 
-} catch (core_exception_Expect $e) {
+} catch (Exception  $e) {
+    
+    if($e instanceOf core_exception_Db) { 
+
+        if(!isDebug() && $e->isNotExistsDB()) {   
+
+            // Опитваме се да създадем базата и редиректваме към сетъп-а
+            try { mysql_query("CREATE DATABASE " . EF_DB_NAME); } catch(Exception $e) {}
+            redirect(array('Index', 'SetupKey' => setupKey()));
+
+        } elseif(!isDebug() && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
  
-    if (isDebug()) {
-        $e->showMessage();
-    } elseif (isset($e->debug['mysqlErrCode']) && ($e->debug['mysqlErrCode'] == 1146 || $e->debug['mysqlErrCode'] == 1054) || core_Db::databaseEmpty()) {
-        // При празна база или грешка в базата редиректваме безусловно към сетъп-а в не дебъг
-
-        redirect(array('Index', 'SetupKey' => setupKey()));
-    } elseif (isset($e->debug['mysqlErrCode']) && $e->debug['mysqlErrCode'] == 1049) {
-        // Създаваме и редиректваме
-        mysql_query("CREATE DATABASE " . EF_DB_NAME);
-
-        redirect(array('Index', 'SetupKey' => setupKey()));
+            // При празна база или грешка в базата редиректваме безусловно към сетъп-а
+            redirect(array('Index', 'SetupKey' => setupKey()));
+        }
+        
+        // Дали да поставим връзка за обновяване
+        $update = NULL;
+        if($e->isNotInitializedDB() || $e->isNotExistsDB()) {
+            try {
+                if(isDebug() || haveRole('admin')) {
+                    if($e->isNotExistsDB()) {
+                        try { mysql_query("CREATE DATABASE " . EF_DB_NAME); } catch(Exception $e) {}
+                    }
+                    $update =  array('Index', 'SetupKey' => setupKey(), 'step' => 2);
+                }
+            } catch(Exception $e) {}
+            
+        } 
     }
+    
+    $errType   = 'PHP EXCEPTION';
+    $contex    = $_SERVER;
+    $errTitle  = $e->getMessage();
+    $dump      = NULL;
+    $errDetail = NULL;
+    $breakFile = $e->getFile();
+    $breakLine = $e->getLine();
+    $stack     = $e->getTrace();
+
+    if($e instanceOf core_exception_Break) {
+        $dump = $e->getDump();
+        $errType = $e->getType();
+    }
+    
+    $state = core_Debug::prepareErrorState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update);
+
+    core_Debug::renderErrorState($state);
 }
 
 
@@ -255,7 +292,7 @@ function shutdown($sendOutput = TRUE)
  */
 function isDebug()
 {  
-    return core_App::isDebug();
+    return core_Debug::isDebug();
 }
 
 
@@ -269,22 +306,27 @@ function halt($err)
 
 
 /**
- * Точка на прекъсване. Има неограничен брой аргументи.
- * Показва съдържанието на аргументите си и текущия стек
- * Сработва само в режим на DEBUG
+ * Точка на прекъсване
+ * В продукционен режим предизвиква '500 Internal Server Error'
+ * В дебъг режим показва дъмп на аргументите си и всичката останала дебъд информация
  */
 function bp()
-{
-    call_user_func_array(array('core_App', 'bp'), func_get_args());
+{   
+    $dump = func_get_args();
+    
+    throw new core_exception_Break('500 Грешка в сървъра', 'Прекъсване', $dump);
 }
 
 
 /**
   * Показва грешка и спира изпълнението.
   */
-function error($error = NULL, $dump = NULL)
+function error($error = '500 Грешка в сървъра', $dump = NULL)
 {   
-    throw new core_exception_Expect($error, $dump, 'Грешка');
+    $dump =func_get_args(); 
+    array_shift($dump);
+
+    throw new core_exception_Expect($error, 'Грешка', $dump);
 }
 
 
@@ -295,21 +337,14 @@ function error($error = NULL, $dump = NULL)
  * @var mixed $inspect Обект, масив или скалар, който се подава за инспекция
  * @var boolean $condition
  */
-function expect($cond, $error = NULL, $dump = NULL)
+function expect($cond)
 {   
     if (!(boolean)$cond) {
 
-        $args = func_get_args();
-        unset($args[0]);
+        $dump = func_get_args();
+        array_shift($dump);
 
-        if(!is_string($error)) {
-            $msg = "Exception";
-        } else {
-            $msg = $error;
-            unset($args[1]);
-        }
-
-    	throw new core_exception_Expect($msg, $args, 'Несъответствие');
+        throw new core_exception_Expect('500 Грешка в сървъра', 'Несъответствие', $dump);
     }
 }
 

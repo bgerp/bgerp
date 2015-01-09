@@ -49,8 +49,7 @@ class sass_Plugin extends core_Plugin
                              
                             return FALSE;
                         }
-
-                        error('500');
+                        bp($cssPath, $cssCode);
                     }
                 }
             }

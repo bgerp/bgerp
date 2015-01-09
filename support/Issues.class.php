@@ -228,9 +228,9 @@ class support_Issues extends core_Master
         if(!haveRole('powerUser')) {
             $form->setField('email', 'input,silent');
             $form->setField('name', 'input,silent');
-            $form->setField('folderId', 'input,silent');
-            $form->setField('originId', 'input,silent');
-            $form->setField('id', 'input,silent');
+            $form->setField('folderId', 'input=hidden,silent');
+            $form->setField('originId', 'input=hidden,silent');
+            $form->setField('id', 'input=hidden,silent');
             $form->setField('sharedUsers', 'input=none');
         }
         
@@ -309,7 +309,7 @@ class support_Issues extends core_Master
     		}
     	}
     	
-    	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
+    	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
         if(count(getRetUrl())) {
             $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
         }
@@ -828,28 +828,28 @@ class support_Issues extends core_Master
     	    $Correction = cls::get('support_Corrections');
     	    $url['Ctr'] = $Correction;
     		if($Correction->haveRightFor('add')){
-    			$data->toolbar->addBtn('Корекция', $url, "ef_icon={$Correction->singleIcon}, row=2");
+    			$data->toolbar->addBtn('Корекция', $url, "ef_icon={$Correction->singleIcon}, row=2, title = Създаване на документ Коригиращи действия");
     		}
     		
     		// Добавя бутон за добавяне на превантивни действия
     	    $Prevention = cls::get('support_Preventions');
     	    $url['Ctr'] = $Prevention;
     	    if($Prevention->haveRightFor('add')){
-    			$data->toolbar->addBtn('Превенция', $url, "ef_icon={$Prevention->singleIcon}, row=2");
+    			$data->toolbar->addBtn('Превенция', $url, "ef_icon={$Prevention->singleIcon}, row=2, title = Създаване на документ Превантивни действия");
     		}
     		
     		// // Добавя бутон за добавяне на оценка на сигнала
     		$Rating = cls::get('support_Ratings');
     	    $url['Ctr'] = $Rating;
     	    if($Rating->haveRightFor('add')){
-    			$data->toolbar->addBtn('Оценка', $url, "ef_icon={$Rating->singleIcon}, row=2");
+    			$data->toolbar->addBtn('Оценка', $url, "ef_icon={$Rating->singleIcon}, row=2, title = Създаване на документ Оценка на сигнал");
     		}
             
     		// Добавя бутон за добавяне на резолюция на сигнала
     		$Resolution = cls::get('support_Resolutions');
     	    $url['Ctr'] = $Resolution;
     	    if($Resolution->haveRightFor('add')){
-    			$data->toolbar->addBtn('Резолюция', $url, "ef_icon={$Resolution->singleIcon}, row=2");
+    			$data->toolbar->addBtn('Резолюция', $url, "ef_icon={$Resolution->singleIcon}, row=2 , title = Създаване на документ Резолюция на сигнал");
     		}
     	}
     }

@@ -78,7 +78,7 @@ class callcenter_SMS extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows,plg_AutoFilter, callcenter_ListOperationsPlg';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows,plg_AutoFilter, callcenter_ListOperationsPlg, plg_Modified';
     
     
     /**
@@ -117,6 +117,13 @@ class callcenter_SMS extends core_Master
     var $rowToolsField = 'singleLink';
     
     
+    /**
+     * 
+     */
+    static $cronSysId = 'checkSMSStatus';
+    
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -124,12 +131,13 @@ class callcenter_SMS extends core_Master
     {
         $this->FLD('service', 'class(interface=callcenter_SentSMSIntf, select=title)', 'caption=Услуга, mandatory');
         $this->FLD('sender', 'varchar(255)', 'caption=Изпращач');
+        $this->FLD('serviceMsg', 'varchar(255)', 'caption=Съобщение от изпращача, input=none');
         $this->FLD('mobileNum', 'drdata_PhoneType', 'caption=Получател->Номер, mandatory, silent');
         $this->FLD('mobileNumData', 'key(mvc=callcenter_Numbers)', 'caption=Получател->Контакт, input=none');
         $this->FLD('text', 'text', 'caption=Текст, mandatory');
         
         $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
-        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане, waiting=Чакащо)', 'caption=Статус, input=none, hint=Статус на съобщението');
+        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане, pending=Чакащо)', 'caption=Статус, input=none, hint=Статус на съобщението');
         $this->FLD('receivedTime', 'datetime(format=smartTime)', 'caption=Получено на, input=none');
         
         $this->FLD('encoding', 'enum(auto=Автоматично, utf-8=Уникод|* (UTF-8), ascii=Латиница|* (ASCII))', 'caption=Знаци');
@@ -145,8 +153,12 @@ class callcenter_SMS extends core_Master
      * @param string|array $message
      * @param string $sender
      * @param integer|string $service
+     * @param string $encoding - auto, utf-8 или ascii
+     * @param string $msgForSave - текста, който ще се записва в `text` полето вместо $message
+     * 
+     * @return integer - id на записа
      */
-    public static function send($number, $message, $sender=NULL, $service=NULL)
+    public static function send($number, $message, $sender = NULL, $service = NULL, $encoding = 'auto', $msgForSave = NULL)
     {
         // Конфигурацията на пакета
         $conf = core_Packs::getConfig('callcenter');
@@ -169,32 +181,88 @@ class callcenter_SMS extends core_Master
             $sender = $conf->CALLCENTER_SMS_SENDER;
         }
         
-        // Вземаме пълния номер на получателя
-        $number = drdata_PhoneType::getNumberStr($number, 0);
+        $mobileNum = drdata_PhoneType::getNumberStr($number, 0);
         
-        expect($number, 'Липсва номер на получателя');
+        expect($mobileNum, 'Липсва номер на получателя');
         
         // Подготвяме текстовата част
         $messageStr = self::prepareMessage($message);
         
-        // Изпращаме съобщението към услугата за изпращане на SMS
-        $sendStatusArr = $serviceInst->sendSMS($number, $messageStr, $sender);
+        if ($encoding == 'ascii') {
+            $messageStr = str::utf2ascii($messageStr);
+        }
         
-        return $sendStatusArr;
+        // Очакваме да може да се изпрати съответния SMS
+        expect(self::canSend($messageStr, $sender, $service), 'Не може да се изпрати');
+        
+        // Изпращаме съобщението към услугата за изпращане на SMS
+        $sendStatusArr = $serviceInst->sendSMS($mobileNum, $messageStr, $sender);
+        
+        $rec = new stdClass();
+        $rec->text = $message;
+        
+        if (isset($msgForSave)) {
+            $rec->text = $msgForSave;
+        } else if (is_array($message)) {
+            $rec->text = $message[0];
+        }
+
+        // Вземаме статуса
+        $rec->status = $sendStatusArr['sendStatus'];
+            
+        if ($sendStatusArr['uid']) {
+            
+            // Вземаме уникалния номер
+            $rec->uid = $sendStatusArr['uid'];
+        }
+            
+        // Вземаме последния запис за номера
+        $extRecArr = callcenter_Numbers::getRecForNum($mobileNum);
+        if ($extRecArr[0]) {
+            
+            // Вземаме класа и id' то на контрагента
+            $rec->mobileNumData = $extRecArr[0]->id;
+        }
+        
+        $rec->mobileNum = $mobileNum;
+        $rec->sender = $sender;
+        $rec->service = $service;
+        $rec->encoding = $encoding;
+        $rec->serviceMsg = $sendStatusArr['msg'];
+        
+        // Записваме
+        $savedId = self::save($rec);
+        
+        return $savedId;
     }
     
     
     /**
-     * Проверява дали може да се изпрати съответния имейл
+     * Проверява дали може да се изпрати даденото съобщение
      * 
-     * @param integer|string $service
      * @param string|array $message
      * @param string $sender
+     * @param integer|string $service
      * 
      * @return boolean
      */
-    public static function canSend($service, $message, $sender=NULL)
+    public static function canSend($message, $sender = NULL, $service = NULL)
     {
+        $message = self::prepareMessage($message);
+        
+        // Ако не е зададена услига
+        if (!isset($service)) {
+            
+            // Конфигурацията на пакета
+            $conf = core_Packs::getConfig('callcenter');
+            
+            // Използваме услугата от конфигурацията
+            $service = $conf->CALLCENTER_SMS_SERVICE;
+            
+            // Очакваме да има избрана някаква услуга
+            expect($service, 'Не е зададена услуга за изпращане');
+        }
+        
         $serviceInst = cls::get($service);
         
         // Вземаме масива с параметрите
@@ -227,6 +295,43 @@ class callcenter_SMS extends core_Master
         return TRUE;
     }
     
+    
+    /**
+     * Връща статуса от услугата за записа
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    public static function getServiceStatus($id)
+    {
+        if (!$id) return ;
+        
+        $rec = self::fetch($id);
+        
+        $status = $rec->serviceMsg;
+        
+        return $status;
+    }
+    
+    
+    /**
+     * Връща UID за записа
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    public static function getUid($id)
+    {
+        if (!$id) return ;
+        
+        $rec = self::fetch($id);
+        
+        $uid = $rec->uid;
+        
+        return $uid;
+    }
     
     /**
      * Подготвя текстовата част
@@ -264,7 +369,6 @@ class callcenter_SMS extends core_Master
     
     /**
      * Обновява състоянието на SMS-ите в логовете
-     * callBack фунцкия - Викасе от act_Delivery в класовете, които имплементират callcenter_SentSMSIntf
      * Използва се от изпращачите за обновяване на състоянието
      * 
      * @param integer $service
@@ -272,16 +376,19 @@ class callcenter_SMS extends core_Master
      * @param string $status
      * @param integer $receivedTimestamp
      */
-    public static function update($service, $uid, $status, $receivedTimestamp=NULL)
+    public static function update_($service, $uid, $status, $receivedTimestamp=NULL)
     {
         // Вземаме записа
         $rec = self::fetch(array("#uid = '[#1#]' AND #service = '[#2#]'", $uid, $service));
+        
+        // Ако няма такъв запис
+        if (!$rec) return ;
         
         // Сменяме статуса и времето на получаване
         $rec->status = $status;
         
         // Ако няма време на получаване или е подадено време преди създаването му
-        if (!$receivedTimestamp || $rec->createdOn < $receivedTimestamp) {
+        if (!$receivedTimestamp || ($rec->createdOn > $receivedTimestamp)) {
             
             // Вземаме текущото време
             $rec->receivedTime = dt::verbal2mysql();
@@ -349,6 +456,8 @@ class callcenter_SMS extends core_Master
         }
         
         // Инпутваме формата
+        $form->input(NULL, 'silent');
+        
         $form->input();
         
         $rec = $form->rec;
@@ -444,33 +553,15 @@ class callcenter_SMS extends core_Master
         // Ако е инпутната формата без грешки
         if ($form->isSubmitted()) {
             
-            // Очакваме да може да се изпрати съответния имейл
-//            expect(self::canSend($rec->service, $rec->text, $rec->sender));
+            // Очакваме да може да се изпрати съответния SMS
+//            expect(self::canSend($rec->text, $rec->sender, $rec->service));
             
             // Изпращаме SMS-a
-            $sendStatusArr = self::send($rec->mobileNum, $rec->text, $rec->sender, $rec->service);
+            $sendedId = self::send($rec->mobileNum, $rec->text, $rec->sender, $rec->service, $rec->encoding);
             
-            // Вземаме статуса
-            $rec->status = $sendStatusArr['sendStatus'];
+            $msg = self::getServiceStatus($sendedId);
             
-            if ($sendStatusArr['uid']) {
-                
-                // Вземаме уникалния номер
-                $rec->uid = $sendStatusArr['uid'];
-            }
-            
-            // Вземаме последния запис за номера
-            $extRecArr = callcenter_Numbers::getRecForNum($form->rec->mobileNum);
-            if ($extRecArr[0]) {
-                
-                // Вземаме класа и id' то на контрагента
-                $rec->mobileNumData = $extRecArr[0]->id;
-            }
-            
-            // Записваме
-            self::save($rec);
-            
-            return new Redirect($retUrl, $sendStatusArr['msg']);
+            return new Redirect($retUrl, $msg);
         }
         
         // Добавяме бутоните на формата
@@ -534,7 +625,7 @@ class callcenter_SMS extends core_Master
         }
         
         // Ако има потребител
-        if ($rec->createdBy) {
+        if ($rec->createdBy > 0) {
             
             // Създаваме линк към профила му
             $row->createdBy = crm_Profiles::createLink($rec->createdBy);
@@ -564,8 +655,8 @@ class callcenter_SMS extends core_Master
             $row->SMSStatusClass .= ' sms-receiveError';
         } elseif ($rec->status == 'sendError') {
             $row->SMSStatusClass .= ' sms-sendError';
-        } elseif ($rec->status == 'waiting') {
-            $row->SMSStatusClass .= ' sms-waiting';
+        } elseif ($rec->status == 'pending') {
+            $row->SMSStatusClass .= ' sms-pending';
         } 
         
         // Добавяме класа
@@ -794,5 +885,59 @@ class callcenter_SMS extends core_Master
             // Записваме
             self::save($rec);
         }
+    }
+    
+    
+    /**
+     * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast
+     */
+    function cron_checkStatus()
+    {
+        $period = core_Cron::getPeriod(self::$cronSysId);
+        
+        $dateFrom = dt::subtractSecs($period);
+        
+        // Всички съобщения, които не са получени от последното изпращане
+        $query = self::getQuery();
+        $query->where("#status != 'received'");
+        $query->where("#modifiedOn > '{$dateFrom}'");
+        
+        while ($rec = $query->fetch()) {
+            if (!$rec->service) continue;
+            
+            // Опитваме се да определим статуса на съобщението
+            try {
+                $inst = cls::get($rec->service);
+                $status = $inst->getStatus($rec->uid);
+            } catch (core_exception_Expect $e) {
+            }
+            
+            if (!isset($status)) continue;
+            
+            $rec->status = $status;
+            
+            self::save($rec);
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $conf = core_Packs::getConfig('blast');
+        
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = self::$cronSysId;
+        $rec->description = 'Проверява статуса на съобщенията';
+        $rec->controller = $mvc->className;
+        $rec->action = 'checkStatus';
+        $rec->period = 5;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 100;
+        $res .= core_Cron::addOnce($rec);
     }
 }

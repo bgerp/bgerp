@@ -554,7 +554,7 @@ class pear_Vcard
         // parse a vCard file and store the data in $cardinfo
         try {
             $cardinfo = $parse->fromFile($fileName);
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             expect(FALSE, 'VCF файлът не може да бъде парсиран');
         }
 

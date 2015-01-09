@@ -45,7 +45,7 @@ class plg_State2 extends core_Plugin
      */
     function on_AfterDescription(&$mvc)
     {
-        if (!$mvc->fields['state']) {
+        if (!isset($mvc->fields['state'])) {
             $mvc->FLD('state',
                 'enum(active=Активен,closed=Затворен)',
                 'caption=Видимост,input=none,notSorting,notNull,value=active');
@@ -151,7 +151,7 @@ class plg_State2 extends core_Plugin
         
         expect($rec = $mvc->fetch($id));
         
-        $mvc->requireRightFor($action, $rec, NULL, $retUrl);
+        $mvc->requireRightFor($act, $rec, NULL, $retUrl);
         
         $this->getActiveAndClosedState($mvc);
 

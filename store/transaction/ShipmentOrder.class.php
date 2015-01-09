@@ -12,7 +12,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class store_transaction_ShipmentOrder
+class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
 {
     /**
      * 
@@ -93,21 +93,6 @@ class store_transaction_ShipmentOrder
     	$entries = array_merge($entries, $this->getDeliveryPart($rec, $origin, $reverse));
     	
     	return $entries;
-    }
-    
-    
-    /**
-     * Финализиране на транзакцията
-     */
-    public function finalizeTransaction($id)
-    {
-        $rec = $this->class->fetchRec($id);
-        
-        $rec->state = 'active';
-        
-        if ($this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
     }
     
     

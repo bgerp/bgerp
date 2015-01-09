@@ -109,7 +109,7 @@ class type_Users extends type_Keylist
                 while($uRec = $uQueryCopy->fetch()) {
                     $allUsers .= $allUsers ? '|' . $uRec->id : $uRec->id;
                 }
-                $all->keylist = "|{$allUsers}|-1|";
+                $all->keylist = "|{$allUsers}|-1|0";
                 $this->options['all_users'] = $all;
             } else {
                 // Показваме само екипите на потребителя

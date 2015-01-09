@@ -13,6 +13,8 @@
  */
 class sales_SalesDetails extends deals_DealDetail
 {
+    
+    
     /**
      * Заглавие
      * 
@@ -103,7 +105,7 @@ class sales_SalesDetails extends deals_DealDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, packQuantityDelivered, packQuantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, packQuantity, packPrice, discount, amount';
     
         
     /**
@@ -130,5 +132,7 @@ class sales_SalesDetails extends deals_DealDetail
     public function description()
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
+        
+        parent::getDealDetailFields($this);
     }
 }

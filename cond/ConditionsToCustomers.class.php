@@ -158,7 +158,7 @@ class cond_ConditionsToCustomers extends core_Manager
     	if($data->masterMvc->haveRightFor('edit', $data->masterId) && static::haveRightFor('add')){
         	$img = sbf('img/16/add.png');
 		    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
-		    $data->addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond')); 
+		    $data->addBtn = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond')); 
         }
         
         $data->TabCaption = 'Условия';
@@ -179,7 +179,7 @@ class cond_ConditionsToCustomers extends core_Manager
         	try{
         		$Type = cls::get("type_{$type}");
         		$row->value = $Type->toVerbal($rec->value);
-        	} catch(Exception $e){
+        	} catch(core_exception_Expect $e){
         		$row->value = "??????????????";
         	}
             

@@ -129,6 +129,8 @@ class crm_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('NickToLink', 'crm_ProfilesPlg', 'core_Manager', 'family');
         
         $html .= $Plugins->forcePlugin('Линкове в статусите след логване', 'crm_UsersLoginStatusPlg', 'core_Users', 'private');
+        
+        $html .= $Plugins->forcePlugin('Персонални настройки на системата', 'crm_PersonalConfigPlg', 'core_ObjectConfiguration', 'private');
 
         // Нагласяване на Cron        
         $rec = new stdClass();
@@ -211,7 +213,7 @@ class crm_Setup extends core_ProtoSetup
                     $nRec->configData = $nArr;
                     core_Users::save($nRec, 'configData');
                 }
-            } catch (Exception $e) { }
+            } catch (core_exception_Expect $e) { }
         }
     }
 }

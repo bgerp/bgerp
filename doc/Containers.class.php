@@ -79,6 +79,12 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * 
+     */
+    const REPAIR_SYSTEM_ID = 'repairDocuments';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -293,22 +299,21 @@ class doc_Containers extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if($data->threadRec->state != 'rejected') {
-            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png','title'=>'Създаване на нов документ в нишката'));
             
             if($data->threadRec->state == 'opened') {
-                $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'ef_icon = img/16/close.png');
+                $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'ef_icon = img/16/close.png', 'title=Затваряне на нишката');
             } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
-                $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'ef_icon = img/16/open.png');
+                $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'ef_icon = img/16/open.png', 'title=Отваряне на нишката');
             }
-            $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png');
+            $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png', 'title=Преместване на нишката в нова папка');
         }
         
-        // Ако има права за модифициране на настройките за персоналзиране
-        if (doc_Threads::haveRightFor('modify', $data->threadId)) {
-            
-            // Добавяме бутон в тулбара
-            $threadClassId = core_Classes::fetchIdByName('doc_Threads');
-            custom_Settings::addBtn($data->toolbar, $threadClassId, $data->threadId, 'Настройки');
+        // Ако има права за настройка на папката, добавяме бутона
+        $key = doc_Threads::getSettingsKey($data->threadId);
+        $userOrRole = core_Users::getCurrent();
+        if (doc_Threads::canModifySettings($key, $userOrRole)) {
+            core_Settings::addBtn($data->toolbar, $key, 'doc_Threads', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2,'title'=>'Персонални настройки на нишката'));
         }
     }
     
@@ -419,11 +424,17 @@ class doc_Containers extends core_Manager
                 static::addNotifiactions($sharedArr, $docMvc, $rec, 'сподели', FALSE);
                 
                 // Всички абонирани потребилите
-                $subscribed = doc_ThreadUsers::getSubscribed($rec->threadId);
-                $subscribedArr = keylist::toArray($subscribed);
+                $subscribedArr = doc_ThreadUsers::getSubscribed($rec->threadId);
+                
+                // Всички споделени потребители в цялата нишка
+                $oldSharedArr = doc_ThreadUsers::getShared($rec->threadId);
+                
+                $subscribedArr += $oldSharedArr;
+                
+                $subscribedWithoutSharedArr = array_diff($subscribedArr, $sharedArr);
                 
                 // Нотифицираме абонираните потребители
-                static::addNotifiactions($subscribedArr, $docMvc, $rec, 'добави');
+                static::addNotifiactions($subscribedWithoutSharedArr, $docMvc, $rec, 'добави');
             }
         }
     }
@@ -441,6 +452,27 @@ class doc_Containers extends core_Manager
      */
     static function addNotifiactions($usersArr, $docMvc, $rec, $action='добави', $checkThreadRight=TRUE, $priority='normal')
     {
+        // Ако няма да се споделя, а ще се добавя
+        if ($action != 'сподели') {
+            
+            // id на класа
+            $key = doc_Threads::getSettingsKey($rec->threadId);
+            
+            $settingsNotifyArr = core_Settings::fetchUsers($key, 'notify');
+            
+            // В зависимост от настройкие добавяме или премахваме от списъка за нотифициране
+            foreach ((array)$settingsNotifyArr as $userSettingsId => $notifyArr) {
+                if ($notifyArr['notify'] == 'no') {
+                    unset($usersArr[$userSettingsId]);
+                } else if ($notifyArr['notify'] == 'yes') {
+                    // Ако има права за сингъла на нишката тогава може да се нотифицира
+                    if (doc_Threads::haveRightFor('single', $rec->threadId, $userSettingsId)) {
+                        $usersArr[$userSettingsId] = $userSettingsId;
+                    }
+                }
+            }
+        }
+        
         // Ако няма потребители за нотифирциране
         if (!$usersArr) return ;
         
@@ -478,16 +510,6 @@ class doc_Containers extends core_Manager
         // Къде да сочи линка при натискане на нотификацията
         $customUrl = array($docMvc, 'single', $rec->docId);
         
-        // Ако няма да се споделя, а ще се добавя
-        if ($action != 'сподели') {
-            
-            // id на класа
-            $threadClassId = doc_Threads::getClassId();
-            
-            // Вземаме данните
-            $noNotificationsUsersArr = custom_Settings::fetchUsers($threadClassId, $rec->threadId, 'notify');
-        }
-        
         // Обхождаме масива с всички потребители, които ще имат съответната нотификация
         foreach((array)$usersArr as $userId) {
             
@@ -496,18 +518,6 @@ class doc_Containers extends core_Manager
             
             // Ако потребителя, вече е бил нотифициран
             if ($notifiedUsersArr[$userId]) continue;
-            
-            // Ако има масив с потребители, които да не се нотифицират
-            if ($noNotificationsUsersArr) {
-                
-                // Ако текущия потребител не трябва да се нотифицира
-                if ($noNotificationsUsersArr[$userId] == 'no') continue;
-                
-                // Ако текущия потребител не трябва да се нотифицира, когато настройката е по-подразбиране
-                if ($noNotificationsUsersArr[$userId] != 'yes') {
-                    if ($noNotificationsUsersArr[-1] == 'no') continue;
-                }
-            }
             
             // Ако е зададено да се проверява и няма права до сингъла на нишката, да не се нотифицира
             if ($checkThreadRight && !doc_Threads::haveRightFor('single', $rec->threadId, $userId)) continue;
@@ -1217,90 +1227,125 @@ class doc_Containers extends core_Manager
         
         return NULL;
     }
-
-
-    function repair()
+    
+    
+    /**
+     * Поправка на структурата на контейнерите
+     * 
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     * 
+     * @return array
+     */
+    public static function repair($from = NULL, $to = NULL, $delay = 10)
     {
-        $query = $this->getQuery();
+        // Данни за папката за несортирани
+        $unsortedCoverClassId = core_Classes::fetchIdByName('doc_UnsortedFolders');
+        $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}'", 'id');
+        
+        // id' то на интерфейса
+        $Interfaces = cls::get('core_Interfaces');
+        $documentIntfId = $Interfaces->fetchByName('doc_DocumentIntf');
+        
+        $query = self::getQuery();
+        
+        // Подготвяме данните за търсене
+        doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
+        
+        $query->where("#folderId IS NULL");
+        $query->orWhere("#threadId IS NULL");
+        $query->orWhere("#docClass IS NULL");
+        $query->orWhere("#docId IS NULL");
+        
+        $resArr = array();
         
         while($rec = $query->fetch()) {
-            if(!$rec->threadId) {
-                $err[$rec->id] .= 'Missing threadId; ';
-            }
-            if(!$rec->folderId) {
-                $err[$rec->id] .= 'Missing folderId; ';
-            }
-
-            if($rec->folderId && !doc_Folders::fetch($rec->folderId, 'id')) {
-                $err[$rec->id] .= 'Missing folder;';
-                $tRec = doc_Threads::fetch($rec->threadId);
-
-                $rec->folderId = 291;
-                $this->save($rec);
-
-                $tRec->folderId = 291;
-                doc_Threads::save($tRec);
-            }
-            if(!$rec->docClass) {
-                $err[$rec->id] .= 'Missing docClass; ';
-            }
-            if(!core_Classes::fetch("#id = {$rec->docClass} && #state = 'active'")) {
-                $err[$rec->id] .= 'Not exists docClass; ';
-            } else {
+            
+            $docId = FALSE;
+            
+            // Ако няма id на папката
+            if (!isset($rec->folderId)) {
                 
-                // Ако няма docId
-                if(!$rec->docId) {
-                    
-                    // Ако има клас
-                    if ($rec->docClass) {
+                // Опитваме се да определим от нишката
+                if ($rec->threadId) {
+                    $rec->folderId = doc_Threads::fetchField("#id = '{$rec->threadId}'", 'folderId', FALSE);
+                }
+                
+                // Ако не е определена използваме папката за несортирани
+                if (!isset($rec->folderId)) {
+                    $rec->folderId = $defaultFolderId;
+                }
+                
+                if (self::save($rec)) {
+                    $resArr['folderId']++;
+                }
+            }
+            
+            // Ако няма нишка
+            if (!isset($rec->threadId)) {
+                
+                // Опитваме се да намерим id-то на нишката от нишките
+                $rec->threadId = doc_Threads::fetchField("#firstContainerId = '{$rec->id}' && #folderId = '{$rec->folderId}'", 'id', FALSE);
+                
+                // Ако не може създаваме нова нишка
+                if (!isset($rec->threadId)) {
+                    $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn);
+                }
+            
+                if (self::save($rec)) {
+                    $resArr['threadId']++;
+                }
+            }
+            
+            // Ако няма id на класа на документа
+            if (!isset($rec->docClass)) {
+                
+                // Намираме всички докуемнти със съответния интерфейс
+                $cQuery = core_Classes::getQuery();
+                $cQuery->where("#state = 'active' AND #interfaces LIKE '%|{$documentIntfId}|%'");
+                while ($cRec = $cQuery->fetch()) {
+                    if (cls::load($cRec->name, TRUE)) {
+                        $clsInst = cls::get($cRec->name);
                         
-                        // Инстанция на класа
-                        $docClass = cls::get($rec->docClass);
-                        
-                        // Вземаме docId от документа със съответноя контейнер
-                        $rec->docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id');
-                        
-                        // Ако има docId
-                        if ($rec->docId) {
+                        // Ако има запис за съответния контейнер в мениджъра на докуемнта
+                        if ($docId = $clsInst->fetchField("#containerId = {$rec->id}", 'id', FALSE, 'id')) {
                             
-                            // Опитваме се да го запишем
-                            if (static::save($rec, 'docId')) {
-                                
-                                // Добавяме съобщение
-                                $err[$rec->id] .= "Repaired docId = '{$rec->docId}' from class '{$docClass->className}'; ";    
-                            } else {
-                                
-                                // Добавяме съобщение, ако евентуално не може да се запише
-                                $err[$rec->id] .= "Can' t save docId = '{$rec->docId}' from class '{$docClass->className}'; ";
+                            $rec->docClass = $cRec->id;
+                            
+                            if (self::save($rec)) {
+                                $resArr['docClass']++;
                             }
-                        } else {
                             
-                            // Ако не можем да определим docId
-                            $err[$rec->id] .= "Can' t repair docClass = '{$rec->docClass}'; ";
+                            break;
                         }
-                    } else {
-                        
-                        // Ако няма клас, няма как да се определи
-                        $err[$rec->id] .= 'Not exists docId; ';    
                     }
-                } else {
-
-                    $cls = cls::get($rec->docClass);
-
-                    if(!$cls->fetch($rec->docId)) {
-                        $err[$rec->id] .= 'Not exists document; ';
+                }
+            }
+            
+            // Ако няма id на документа
+            if (!isset($rec->docId) && isset($rec->docClass)) {
+                
+                $docClass = cls::get($rec->docClass);
+                
+                // Ако класа може да се използва за документ
+                if (($docClass instanceof core_Mvc) && cls::haveInterface('doc_DocumentIntf', $docClass)) {
+                    
+                    if (!$docId) {
+                        $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
+                    }
+                    
+                    if ($docId) {
+                        $rec->docId = $docId;
+                        if (self::save($rec)) {
+                            $resArr['docId']++;
+                        }
                     }
                 }
             }
         }
         
-        if(count($err)) {
-            foreach($err as $id => $msg) {
-                $res .= "<li> $id => $msg </li>";
-            }
-        }
-
-        return $res;
+        return $resArr;
     }
     
     
@@ -1355,7 +1400,7 @@ class doc_Containers extends core_Manager
             try{
             	$doc = static::getDocument($rec);
             	$doc->reject();
-            } catch(Exception $e){
+            } catch(core_exception_Expect $e){
             	continue;
             }
             
@@ -1401,7 +1446,7 @@ class doc_Containers extends core_Manager
         		try{
         			$doc = static::getDocument($rec);
         			$doc->restore();
-        		} catch(Exception $e){
+        		} catch(core_exception_Expect $e){
         			continue;
         		}
         	}
@@ -1446,7 +1491,7 @@ class doc_Containers extends core_Manager
         $docRow = $doc->getDocumentRow();
         
         // Ако има права за сингъла на документа
-        if ($doc->instance->haveRightFor('single', $doc->that)) {
+        if ($doc->haveRightFor('single')) {
             
             // Да е линк към сингъла
             $url = array($doc, 'single', $doc->that);
@@ -1671,7 +1716,7 @@ class doc_Containers extends core_Manager
 	 */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        //Данни за работата на cron
+        // Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'notifyForIncompleteDoc';
         $rec->description = 'Нотифициране за незавършени действия с документите';
@@ -1682,5 +1727,207 @@ class doc_Containers extends core_Manager
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
+        
+        // Данни за работата на cron
+        $rec1 = new stdClass();
+        $rec1->systemId = 'notifyForDraftBusinessDoc';
+        $rec1->description = 'Нотифициране за неактивирани бизнес документи';
+        $rec1->controller = $mvc->className;
+        $rec1->action = 'notifyDraftBusinessDoc';
+        $rec1->period = 43200;
+        $rec1->offset = rand(4260, 4380); // от 71h до 73h
+        $rec1->delay = 0;
+        $rec1->timeLimit = 200;
+        $res .= core_Cron::addOnce($rec1);
+        
+        
+        // Данни за работата на cron за поправка на документи
+        $repRec = new stdClass();
+        $repRec->systemId = self::REPAIR_SYSTEM_ID;
+        $repRec->description = 'Поправка на папки, нишки и контейнери';
+        $repRec->controller = $mvc->className;
+        $repRec->action = 'repair';
+        $repRec->period = 5;
+        $repRec->offset = 0;
+        $repRec->delay = 0;
+        $repRec->timeLimit = 200;
+        $res .= core_Cron::addOnce($repRec);
+    }
+    
+    
+    /**
+     * Изпращане на нотификации за всички чернови бизнес документи
+     */
+    public function cron_notifyDraftBusinessDoc()
+    {
+    	// Намираме бизнес документите
+    	$docs = core_Classes::getOptionsByInterface('bgerp_DealIntf');
+    	
+    	// Извличаме всички потребители в системата
+    	$userQuery = core_Users::getQuery();
+    	$userQuery->show('id');
+    	
+    	// За всеки потребител
+    	while($uRec = $userQuery->fetch()){
+    		$notArr = array();
+    		
+    		$authorTemasArr[$uRec->id] = type_Users::getUserFromTeams($uRec->id);
+    		$firstTeamAuthor = key($authorTemasArr[$uRec->id]);
+    		
+    		// Проверяваме от всеки документ създаден от този потребител
+    		foreach ($docs as $id => $name){
+    		
+    			// Преброяваме колко чернови има от всеки вид
+    			$docQuery = $name::getQuery();
+    			$docQuery->where("#state = 'draft'");
+    			$docQuery->where("#createdBy = {$uRec->id}");
+    			$count = $docQuery->count();
+    			
+    			// Ако бройката е по-голяма от 0, записваме в масива
+    			if($count != 0){
+    				$notArr[$id] = $count;
+    			}
+    		}
+    		
+    		// Ако има неактивирани бизнес документи
+    		if(count($notArr)){
+    			foreach ($notArr as $clsId => $count){
+    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor);
+    				 
+    				if($count == 1){
+    					$name = cls::get($clsId)->singleTitle;
+    					$str = 'Имате създаден, но неактивиран';
+    				} else {
+    					$name = cls::get($clsId)->title;
+    					$str = 'Имате създадени, но неактивирани';
+    				}
+    				
+    				$msg = "|{$str}|* {$count} {$name}";
+    				 
+    				// Създаваме нотификация към потребителя с линк към филтрирани неговите документи
+    				bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Екшън за поправка на развалените папки, нишки или контейнери
+     */
+    function act_Repair()
+    {
+        requireRole('admin');
+        
+        $retUrl = getRetUrl();
+        
+        if (!isset($retUrl)) {
+            $retUrl = array();
+        }
+        
+        // Вземаме празна форма
+        $form = cls::get('core_Form');
+        
+        $form->FNC('repair', 'enum(all=Всички, folders=Папки, threads=Нишки, containers=Контейнери)', 'caption=На, input=input, mandatory');
+        $form->FNC('from', 'datetime', 'caption=От, input=input');
+        $form->FNC('to', 'datetime', 'caption=До, input=input');
+        
+        $form->input('repair, from, to', TRUE);
+        
+        if ($form->isSubmitted()) {
+            
+            $conf = core_Packs::getConfig('doc');
+            
+            $Size = cls::get('fileman_FileSize');
+            
+            $memoryLimit = ini_get('memory_limit');
+            $memoryLimitB = $Size->fromVerbal($memoryLimit);
+            
+            $newMemLimit = "1024M";
+            $newMemLimitB = $Size->fromVerbal($newMemLimit);
+            
+            if ($newMemLimitB > $memoryLimitB) {
+                ini_set("memory_limit", $newMemLimit);
+            }
+            
+            set_time_limit(600);
+            
+            // Ако са объркани датите
+            if (isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
+                $from = $form->rec->from;
+                $form->rec->from = $form->rec->to;
+                $form->rec->to = $from;
+            }
+            
+            // В зависимост от избраната стойност поправяме документите
+            if ($form->rec->repair == 'folders' || $form->rec->repair == 'all') {
+                $repArr['folders'] = doc_Folders::repair($form->rec->from, $form->rec->to, $conf->DOC_REPAIR_DELAY);
+            }
+            
+            if ($form->rec->repair == 'threads' || $form->rec->repair == 'all') {
+                $repArr['threads'] = doc_Threads::repair($form->rec->from, $form->rec->to, $conf->DOC_REPAIR_DELAY);
+            }
+            
+            if ($form->rec->repair == 'containers' || $form->rec->repair == 'all') {
+                $repArr['containers'] = doc_Containers::repair($form->rec->from, $form->rec->to, $conf->DOC_REPAIR_DELAY);
+            }
+            
+            // Резултат след поправката
+            $res = '';
+            foreach ($repArr as $name => $repairedArr) {
+                if (!empty($repairedArr)) {
+                    
+                    if ($name == 'folders') {
+                        $res .= "<li class='green'>Поправки в папките: </li>\n";
+                    } elseif ($name == 'threads') {
+                        $res .= "<li class='green'>Поправки в нишките: </li>\n";
+                    } else {
+                        $res .= "<li class='green'>Поправки в контейнерите: </li>\n";
+                    }
+                    
+                    foreach ((array)$repairedArr as $field => $cnt) {
+                        if ($field == 'del_cnt') {
+                            $res .= "\n<li class='green'>Изтирите са {$cnt} записа</li>";
+                        } else {
+                            $res .= "\n<li>Поправени развалени полета '{$field}' - {$cnt} записа</li>";
+                        }
+                    }
+                }
+            }
+            
+            if (empty($res)) {
+                $res = 'Няма документи за поправяне';
+            }
+            
+            return new Redirect($retUrl, $res);
+        }
+        
+        $form->title = 'Поправка';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Поправи', 'repair', 'ef_icon = img/16/hammer_screwdriver.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast
+     */
+    function cron_Repair()
+    {
+        $cronPeriod = core_Cron::getPeriod(self::REPAIR_SYSTEM_ID);
+        
+        $from = dt::subtractSecs($cronPeriod);
+        $to = dt::now();
+        
+        $conf = core_Packs::getConfig('doc');
+        
+        $repArr['folders'] = doc_Folders::repair($from, $to, $conf->DOC_REPAIR_DELAY);
+        $repArr['threads'] = doc_Threads::repair($from, $to, $conf->DOC_REPAIR_DELAY);
+        $repArr['containers'] = doc_Containers::repair($from, $to, $conf->DOC_REPAIR_DELAY);
+        
+        return $repArr;
     }
 }

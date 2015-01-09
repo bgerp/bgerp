@@ -53,6 +53,12 @@ class bulmar_InvoiceExport extends core_Manager {
     
     
     /**
+     * Кеш
+     */
+    private $cache = array();
+    
+    
+    /**
      * Подготвя формата за експорт
      * 
      * @param core_Form $form
@@ -85,7 +91,7 @@ class bulmar_InvoiceExport extends core_Manager {
 	 */
     public function export($filter)
     {
-    	$query = $this->Invoices->getQuery_();
+    	$query = $this->Invoices->getQuery();
     	$query->where("#state = 'active'");
     	$query->between('date', $filter->from, $filter->to);
     	$query->orderBy("#number", 'ASC');
@@ -98,23 +104,20 @@ class bulmar_InvoiceExport extends core_Manager {
     	}
     	
     	$data = $this->prepareExportData($recs);
-    	
     	$content = $this->prepareFileContent($data);
-    	
     	$content = iconv('utf-8', 'CP1251', $content);
     	
-    	header('Content-Description: File Transfer');
-    	header('Content-Type: text/plain; charset=windows-1251');
-    	header("Content-Disposition: attachment; filename=invoices.txt");
-    	header('Expires: 0');
-    	header('Cache-Control: must-revalidate');
-    	header('Pragma: public');
+    	$timestamp = time();
+    	$name = "invoices{$timestamp}.txt";
     	
-    	// Аутпут на съдържанието
-    	echo $content;
+    	// Записваме файла в системата
+    	$fh = fileman::absorbStr($content, 'exportInvoices', $name);
     	
-    	// Сприраме изпълнението на скрипта
-    	shutdown();
+    	// Ще редиректваме към еденичния изглед на файла
+    	$retUrl = toUrl(array('fileman_Files', 'single', $fh), 'local');
+    	
+    	// Подменяме урл-то за връщане
+    	Request::push(array('ret_url' => $retUrl));
     }
     
     
@@ -129,45 +132,12 @@ class bulmar_InvoiceExport extends core_Manager {
     	$data = new stdClass();
     	
     	$data->static = $this->getStaticData();
-    	$grouped = $data->recs = array();
-    	
-    	// Изчисляваме колко е платено в брой на всяка продажба участваща в ф-та
-    	foreach ($recs as $rec){
-    		$origin = doc_Threads::getFirstDocument($rec->threadId);
-    		$rec->saleOriginId = $origin->that;
-    		if(empty($this->sales[$origin->that])){
-    			$originRec = $origin->fetch();
-    			$jRecs = acc_Journal::getEntries(array('sales_Sales', $originRec->id));
-				$balance = acc_Balances::getBlAmounts($jRecs, '501');
-    			$this->sales[$origin->that] = round($balance->amount, 2);
-    		}
-    		$grouped[$origin->that][$rec->id] = $rec->id;
-    	}
+    	$data->recs = array();
     	
     	$count = 0;
     	foreach ($recs as $rec){
     		$count++;
     		$data->recs[$rec->id] = $this->prepareRec($rec, $count);
-    	}
-    	
-    	// Групираните ф-ри по продажби, разпределяме им платеното по продажбата
-    	foreach ($grouped as $saleId => $invArr){
-    		$total = $this->sales[$saleId];
-    		$invCount = count($invArr);
-    		foreach ($invArr as $id => $inv){
-    			$rec = &$data->recs[$id];
-    			
-    			if($total > 0){
-    				$amount = ($total < $rec->amount) ? $total : $rec->amount;
-    				$rec->amountPaid = $amount;
-    				$total-= $amount;
-    			}
-    		}
-    		
-    		if($total > 0){
-    			$data->recs[$id]->amountPaid += $total;
-    			$total = 0;
-    		}
     	}
     	
     	return $data;
@@ -212,7 +182,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	if($rec->type != 'invoice'){
     		$origin = $this->Invoices->getOrigin($rec);
     		$oRec = $origin->rec();
-    		$number = $origin->instance->recToVerbal($oRec)->number;
+    		$number = $origin->getInstance()->recToVerbal($oRec)->number;
     		$nRec->reason = "Ф. №{$number}";
     	} else {
     		if($byServices != 0 && $byProducts == 0){
@@ -240,8 +210,14 @@ class bulmar_InvoiceExport extends core_Manager {
     	}
     	
     	$nRec->contragentEik = ($rec->contragentVatNo) ? $rec->contragentVatNo : $rec->uicNo;
+    	
     	$Vats = cls::get('drdata_Vats');
     	$nRec->contragentEik = $Vats->canonize($nRec->contragentEik);
+    	
+    	
+    	if($rec->paymentType == 'cash'){
+    		$nRec->amountPaid = $nRec->amount;
+    	}
     	
     	return $nRec;
     }
@@ -263,9 +239,15 @@ class bulmar_InvoiceExport extends core_Manager {
     			unset($rec->productsAmount);
     			$operationId = $static->advancePayment;
     		} elseif($rec->dpOperation == 'deducted'){
+    			
+    			// Ако ф-та има приспадане на аванс приспадаме го от общата сума и сумата на платеното
     			$rec->amount += $rec->dpAmount;
     			$operationId = $static->advancePayment;
     			$rec->baseAmount += $rec->dpAmount;
+    			
+    			if(isset($rec->amountPaid)){
+    				$rec->amountPaid += $rec->dpAmount;
+    			}
     		}
     		
     		$line = "{$rec->num}|{$rec->type}|{$rec->invNumber}|{$rec->date}|{$rec->contragentEik}|{$rec->date}|{$static->folder}|{$rec->contragent}|". "\r\n";

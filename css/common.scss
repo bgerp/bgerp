@@ -594,13 +594,7 @@ select.combo {
 	margin: 3px 3px 3px 4px;
 	background-color: transparent;
 	outline: none;
-	vertical-align: middle;
-}
-
-@-moz-document url-prefix() {
-	.checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
-	   margin: 4px 3px 2px 4px;
-    }
+	vertical-align: -1px;
 }
 
 input[type=radio] + label, input[type=checkbox] + label {
@@ -620,8 +614,18 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 }
 
 .selectMenuItem input[type=radio] + label {
-	vertical-align: middle;
     white-space:nowrap;
+}
+
+.narrow .selectMenuItem input[type=radio] + label {
+	vertical-align: middle;
+	position: relative;
+}
+
+@-moz-document url-prefix() {
+	.narrow .selectMenuItem input[type=radio] + label {
+	    vertical-align: -1px;
+	}
 }
 
 .top-table {
@@ -760,12 +764,6 @@ a.header:hover {
 
 .btn-with-selected-disabled:hover {
 	background-color: $gray3 !important;
-}
-
-.wide .btn-reject { 
-    background-image: url('../img/16/reject.png');
-    @include btn-style();
-	float: right;
 }
 
 .wide .btn-settings { 
@@ -1050,9 +1048,10 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 }
 
 .formInfo, .formWarning {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
+ 
 .warningMsg {
     background: yellow;
     padding: 5px;
@@ -1067,8 +1066,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     color: red;
 }
 
-.narrow .formInfo, .narrow .formFields, .narrow .formWarning {
-    margin-bottom: 3px;
+.narrow .formInfo,  .narrow .formWarning {
+    margin-bottom: 1px;
+    margin-top: 8px;
 }
 
 .narrow .formError ul {
@@ -1080,6 +1080,12 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .formFields {
 	margin-bottom: 10px;
 }
+
+.staticFormView .formFieldValue {
+    border:solid 1px #99f; 
+    padding:3px;
+    background-color:#fff;
+}   
 
 .formFields > table {
 	width: 100%;
@@ -1181,9 +1187,9 @@ td.formElement {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset ;
 }
 
-.formFields input:focus, textarea:focus, select:focus { 
+.formFields input:focus, textarea:focus, select:focus, input:focus[type=submit], input:focus[type=button] { 
     outline: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba( 153, 153, 255, 0.7);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba( 153, 153, 255, 0.7);
 }
 
 .simpleForm{
@@ -1892,7 +1898,7 @@ div.tab-control.deal-history-tab{
 }
 
 /* Стилове за елемента 'RichEdit' */
-span.richEdit div.richedit-toolbar {
+div.richEdit div.richedit-toolbar {
     padding: 4px; 
     font-size: 0.85em; 
     text-align: left;
@@ -1901,11 +1907,11 @@ span.richEdit div.richedit-toolbar {
     margin-top: -4px;
 }
 
-.wide span.richEdit div.richedit-toolbar{
+.wide div.richEdit div.richedit-toolbar{
 	min-width:300px;
 }
 
-.narrow span.richEdit div.richedit-toolbar {
+.narrow div.richEdit div.richedit-toolbar {
 	padding-top: 4px;
 	font-size: 0.8em;
     padding-bottom: 4px; 
@@ -1920,11 +1926,11 @@ span.richEdit div.richedit-toolbar {
 	margin-top:-4px;
 }
 
-span.richEdit {
+div.richEdit {
     display:table;
 }
 
-.narrow span.richEdit {
+.narrow div.richEdit {
     display:block;
 }
 
@@ -1936,11 +1942,13 @@ span.richEdit {
 .richEdit textarea {
 	margin-bottom: 0;
 	overflow: auto;
-	border-bottom: 1px solid transparent; 
-	min-width:310px;
+	border-bottom: 1px solid transparent;
 	width: 32em;
 }
 
+.wide .richEdit textarea {
+	min-width: 310px;
+}
 
 .richedit-toolbar {
 	position: relative;
@@ -1969,18 +1977,16 @@ a.rtbutton {
     cursor: pointer;
     display: block;
     float: left;
-    min-width: 0.6em;
     height: 1.2em;
 	min-width:15px;
 	text-align:center;
 }
 
-.richtext-holder-group a.rtbutton {
+.richtext-holder-group a.rtbutton{
 	background:#ddd;
     border: 1px solid #bba;
  	padding:4px;
 	border-radius:0px !important;
-	text-align: left;
 }
 
 .narrow a.rtbutton {
@@ -2011,6 +2017,9 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
     right: 0;
     bottom: 2.1em;
     display: none;
+    a.rtbutton {
+        text-align: left;
+	}
 }
 
 .richtext-emoticons5 {
@@ -2290,7 +2299,7 @@ div.richtext ol ol ol {
 }
 
 .richtext-tip {
-	color: #c9841a;
+	color: #b05410;
 	border-color: lighten(#c9841a, 30%);
     background-color: #FEFED8;
     background-image: url('../img/App-tip-icon2.png');
@@ -2766,6 +2775,7 @@ span.cng {
 	max-height: 150px;
 	overflow-y: auto;
 	padding-right: 10px;
+	font-family: Arial,Verdana,Sans-serif !important;
 }
 
 .loginLog-first_login{
@@ -2789,10 +2799,6 @@ span.cng {
 	text-align: left;
 }
 
-td.centerCol {
-	white-space:nowrap;
-	text-align:center;
-}
 
 td.rightCol {
 	white-space:nowrap;
@@ -2804,3 +2810,7 @@ td.leftCol {
 	text-align:left;
 }
 
+td.centerCol {
+	white-space:nowrap;
+	text-align:center;
+}

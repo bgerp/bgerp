@@ -408,7 +408,7 @@ class doc_TplManager extends core_Master
     		}
     	}
     	
-    	if(($action == 'edit'  || $action == 'changestate') && isset($rec)){
+    	if(($action == 'edit') && isset($rec)){
     		if($rec->createdBy == -1){
     			$res = 'no_one';
     		}

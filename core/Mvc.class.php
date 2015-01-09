@@ -15,6 +15,11 @@ defIfNot('EF_DB_TABLE_PREFIX', '');
 defIfNot('EF_ID_CHECKSUM_LEN', 3);
 
 
+/**
+ * Дължина на контролната сума, която се добавя към id-тата
+ */
+defIfNot('CORE_MAX_SQL_QUERY', 16000000);
+
 
 /**
  * Клас 'core_Mvc' - Манипулации на модела (таблица в db)
@@ -82,7 +87,7 @@ class core_Mvc extends core_FieldSet
         $this->db = & cls::get('core_Db');
 
         // Ако имаме описание на модел (т.е. метода $this->description() )
-        if (method_exists($this, 'description')) {
+        if(cls::existsMethod($this, 'description')) {
 
             $class = $this->className;
 
@@ -115,7 +120,7 @@ class core_Mvc extends core_FieldSet
      */
     function act_SetupMVC()
     {
-        if(!isDebug()) error('SETUP може да се прави само в DEBUG режим');
+        if(!isDebug()) error('@SETUP може да се прави само в DEBUG режим');
 
         // Форсираме системния потребител
         core_Users::forceSystemUser();
@@ -151,11 +156,8 @@ class core_Mvc extends core_FieldSet
             $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make($fieldsList))));
         }
 
-        if ($this->dbIndexes[$indexName]) {
-            error("Дублирано име за индекс в базата данни", array(
-                    $indexName,
-                    $this->dbIndexes
-                ));
+        if (isset($this->dbIndexes[$indexName])) {
+            error("@Дублирано име за индекс в базата данни",  $indexName, $this->dbIndexes);
         }
 
         $this->dbIndexes[$indexName] = $rec;
@@ -291,7 +293,7 @@ class core_Mvc extends core_FieldSet
             $mysqlField = str::phpToMysqlName($name);
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
         }
-
+		
         switch(strtolower($mode)) {
             case 'replace' :
                 $query = "REPLACE `{$table}` SET {$query}";
@@ -328,6 +330,79 @@ class core_Mvc extends core_FieldSet
     }
 
 
+    /**
+     * Записва няколко записа от модела с една заявка, ако има дуплицирани, обновява ги
+     */
+    public function saveArray_($recs, $fields = NULL)
+    {
+        // Ако нямаме какво да записваме - връщаме TRUE, в знак, че операцията е завършила успешно
+        if(!$recs || !count($recs)) return TRUE;
+        
+        // Гарантираме си, че $fields са масив
+    	$fields = arr::make($fields, TRUE);
+
+        // Определяме полетата, които ще записваме
+        $fieldsArr = array();
+        $fieldsMvc = $this->selectFields('FLD');
+        foreach ($fieldsMvc as $name  => $fld){
+            if($fld->kind == 'FLD' && (!count($fields) || $fields[$name])){
+    		    $fieldsArr[$name] = $fld;
+                $mysqlName = str::phpToMysqlName($name);
+                $insertFields .= "$mysqlName,";
+                $updateFields .= "{$mysqlName}=VALUES({$mysqlName}),";
+    	    }
+        }
+        
+        // Очакваме, че имаме поне едно поле, което да записваме
+        expect(count($fieldsArr));
+
+        // Композираме началото и края на заявката към db
+        $queryBegin = "INSERT INTO `{$this->dbTableName}` (" . rtrim($insertFields, ',') . ") VALUES ";
+        $queryEnd   = " ON DUPLICATE KEY UPDATE " . rtrim($updateFields, ',');
+
+        // Изчисляваме, колко байта не трябва да превишава стринга със стойностите
+        $maxLen = CORE_MAX_SQL_QUERY - strlen($queryBegin) - strlen($queryEnd);
+    	
+        // Конвертираме всеки запис към стойности в db заявката
+        $values = '';
+    	foreach($recs as $rec) {
+            $row = '(';
+            foreach($fieldsArr as $key => $field) {
+    			$value = $field->type->toMysql($rec->{$key}, $this->db, $field->notNull, $field->value);
+    			$row .= $value . ',';
+    		}
+            $row = rtrim($row, ',') . '),';
+			
+            // Ако надвишаваме максималната заявка или сме изчерпали записите - записваме всичко до сега
+            if(strlen($row) + strlen($values) >= $maxLen) {
+                // Изпълняваме заявката
+                $query = $queryBegin . rtrim($values, ',') . $queryEnd;
+    	        if(!$this->db->query($query)) return FALSE;
+                $values = '';
+            }
+            $values .= $row;
+        }
+        
+        // Ако имаме някакви натрупани стойности - записваме ги и тях
+        if($values) {
+            $query = $queryBegin . rtrim($values, ',') . $queryEnd;
+    	    if(!$this->db->query($query)) return FALSE;
+        }
+
+        return TRUE;
+    }
+    
+    
+    /**
+     * Изчиства записите в модела
+     */
+    public static function truncate()
+    {
+    	$self = cls::get(get_called_class());
+    	$self->db->query("TRUNCATE TABLE `{$self->dbTableName}`");
+    }
+    
+    
     /**
      * Подготвя като масив полетата за записване
      */
@@ -558,6 +633,7 @@ class core_Mvc extends core_FieldSet
                 'caption',
                 'name',
                 'number',
+                'nick',
                 'id'
             );
 
@@ -600,12 +676,9 @@ class core_Mvc extends core_FieldSet
 
         $rec = new stdClass();
 
-        if ($id > 0) {
-            $rec = $me->fetch($id);
-            if(!$rec) return '??????????????';
-        } else {
-            $rec->id = $id;
-        }
+        try {$rec = $me->fetch($id);} catch (Exception $e) {}
+        
+        if(!$rec) return '??????????????';
 		
         return $me->getRecTitle($rec, $escaped);
     }
@@ -741,7 +814,7 @@ class core_Mvc extends core_FieldSet
 
                     // Не бива в модела, да има поле като старото
                     if ($this->fields[$fn] && ($fn != $name)) {
-                        error("Дублиране на старо име на поле и съществуващо поле", "'{$fn}'");
+                        error("@Дублиране на старо име на поле и съществуващо поле", "'{$fn}'");
                     }
 
                     $fn = str::phpToMysqlName($fn);
@@ -766,8 +839,6 @@ class core_Mvc extends core_FieldSet
                 $mfAttr->unsigned = ($mfAttr->unsigned || $field->unsigned) ? TRUE : FALSE;
 
                 $mfAttr->name = $name;
-
-                //bp($mfAttr, $dfAttr);
 
                 $green = " style='color:#007733;'";     // Стил за маркиране
                 $info = '';     // Тук ще записваме текущия ред с информация какво правим
@@ -849,7 +920,7 @@ class core_Mvc extends core_FieldSet
                 if($this->db->isType($mfAttr->type, 'have_collation')) {
                     setIfNot($mfAttr->collation, EF_DB_COLLATION);
                     $mfAttr->collation = strtolower($mfAttr->collation);
-                    $updateCollation = $mfAttr->collation != $dfAttr->collation;   //bp($mfAttr, $dfAttr);
+                    $updateCollation = $mfAttr->collation != $dfAttr->collation;
                     $style = $updateCollation ? $green : "";
                     $info .= ", <span{$style}>" .
                     ($mfAttr->collation) . "</span>";
@@ -919,8 +990,6 @@ class core_Mvc extends core_FieldSet
                         $cssClass = 'debug-new';
                     }
  
-                    // bp($indexes, $this->dbIndexes, $exFieldsList, $indRec->fields);
-
                     $this->db->forceIndex($this->dbTableName, $indRec->fields, $indRec->type, $name);
                     $html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
                 }

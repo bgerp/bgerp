@@ -434,8 +434,10 @@ class core_ET extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function getArray($place, $mode='push')
+    function getArray($place, $mode = 'push')
     {
+        $res = NULL;
+
         if (count($this->pending)) {
             foreach ($this->pending as $sub) {
                 if ($sub->place == $place && (!$mode || $sub->mode == $mode)) {
@@ -678,7 +680,10 @@ class core_ET extends core_BaseClass
         $redirectArr = $this->getArray('_REDIRECT_');
         
         if ($redirectArr[0]) {
-            redirect($redirectArr[0]);
+            
+            $msgArr = Mode::get('redirectMsg');
+            
+            redirect($redirectArr[0], FALSE, $msgArr['msg'], $msgArr['type']);
         }
         
         if (is_array($this->places)) {
@@ -790,7 +795,17 @@ class core_ET extends core_BaseClass
      */
     function placeObject($data, $holderBlock = NULL, $prefix = NULL)
     {
-        $this->placeArray((array)$data, $holderBlock, $prefix);
+		$arr = (array)$data;
+		
+		// WORKAROUND
+		$dataArr = array();
+		foreach ($arr as $key => $var){
+			if(is_scalar($var) || $var instanceof core_ET){
+				$dataArr[$key] = $var;
+			}
+		}
+		
+    	$this->placeArray($dataArr, $holderBlock, $prefix);
 
         return $this;
     }

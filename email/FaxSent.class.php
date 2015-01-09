@@ -365,22 +365,22 @@ class email_FaxSent extends core_Manager
         $data->form->title = 'Изпращане на факс';
         
         $data->form->FNC('service', 'class(interface=email_SentFaxIntf, select=title)', 'input,caption=Услуга');
-        $data->form->FNC('faxTo', 'drdata_PhoneType', 'input,caption=До,mandatory,width=785px');
+        $data->form->FNC('faxTo', 'drdata_PhoneType', 'input,caption=До,mandatory,width=785px,hint=Номер на факс');
         
         // Добавяме поле за URL за връщане, за да работи бутона "Отказ"
         $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
         
         // Подготвяме лентата с инструменти на формата
-        $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save','ef_icon = img/16/move.png');
+        $data->form->toolbar->addSbBtn('Изпрати', 'send', NULL, array('id'=>'save', 'ef_icon'=>'img/16/move.png', 'title'=>'Изпращане на факса'));
         
         // Ако има права за ипзващане на имейл
         if (email_Outgoings::haveRightFor('send')) {
 
             // Показваме бутона за изпращане на имейл
-            $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url'=>getRetUrl()), 'ef_icon = img/16/email_go.png');    
+            $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url'=>getRetUrl()), 'ef_icon = img/16/email_go.png', 'title=Обратно към имейла');    
         }
         
-        $data->form->toolbar->addBtn('Отказ', getRetUrl(),  'ef_icon = img/16/close16.png');
+        $data->form->toolbar->addBtn('Отказ', getRetUrl(),  'ef_icon = img/16/close16.png', 'title=Прекратяване на изпращането');
 
         $data->form->input(NULL, 'silent');
 

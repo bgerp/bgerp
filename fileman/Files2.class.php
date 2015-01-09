@@ -406,7 +406,7 @@ class fileman_Files2 extends core_Master
                 
                 // Вземема id'то на файла
                 $id = static::fhToId($fh);
-            } catch (Exception $e) {
+            } catch (core_exception_Expect $e) {
                 
                 // Ако възникне грешка
                 continue;
@@ -468,7 +468,7 @@ class fileman_Files2 extends core_Master
                 
                 // Вземаме манипуалтора
                 $fh = static::idToFh($id);
-            } catch (Exception $e) {
+            } catch (core_exception_Expect $e) {
                 
                 // Ако няма такъв fh, тогава прескачаме
                 continue;

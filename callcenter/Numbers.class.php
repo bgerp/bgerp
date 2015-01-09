@@ -22,6 +22,12 @@ class callcenter_Numbers extends core_Manager
     
     
     /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Номер";
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'powerUser';

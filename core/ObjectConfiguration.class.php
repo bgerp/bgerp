@@ -32,7 +32,7 @@ class core_ObjectConfiguration extends core_BaseClass
      */
     public function init($params = array())
     {
-        list($description, $data, $userId) = $params;
+        list($description, $data) = $params;
         
         if (is_string($description)) {
             $description = unserialize($description);
@@ -49,19 +49,6 @@ class core_ObjectConfiguration extends core_BaseClass
         if(is_array($data)) {
             $this->_data = $data;
         }
-        
-        if (($userId < 1) || ($userId == core_Users::getCurrent())) {
-            // Данните от конфигурацията на текущия потребител
-            $configDataArr = (array)core_Users::getCurrent('configData');
-        } else {
-            // Данните от конфигурацията на съответния потребител
-            $configDataArr = (array)core_Users::fetchField($userId, 'configData');
-        }
-        
-        // Сетваме данните
-        foreach ($configDataArr as $name => $value) {
-            $this->_data[$name] = $value;
-        }
     }
 
 
@@ -69,9 +56,11 @@ class core_ObjectConfiguration extends core_BaseClass
      * 'Магически' метод, който връща стойността на константата
      */
     function __get($name)
-    { 
-        $this->invoke('BeforeGetConfConst', array(&$value, $name));
-
+    {
+        if (!Mode::get('stopInvoke')) {
+            $this->invoke('BeforeGetConfConst', array(&$value, $name));
+        }
+        
         // Търси константата в данните въведени през уеб-интерфейса
         if(!isset($value) && !empty($this->_data[$name])) {
 

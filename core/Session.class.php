@@ -167,7 +167,7 @@ class core_Session {
                         
                         return $var->{$part};
                     } else {
-                        error("Опит за прочитане на част от скаларна сесийна променлива", array('varName' => $varName, 'part' => $part));
+                        error("@Опит за прочитане на част от скаларна сесийна променлива", $varName, $part);
                     }
                 } else {
                     

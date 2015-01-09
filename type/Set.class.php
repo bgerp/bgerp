@@ -168,4 +168,22 @@ class type_Set extends core_Type {
         
         return $resArr;
     }
+    
+    
+
+
+
+    /**
+     * Дали подадения ключ присъства в списъка
+     *
+     * @param mixed $key - ключ
+     * @param string $setList - списък
+     * @return boolean TRUE/FALSE - дали присъства или не
+     */
+    public static function isIn($key, $setList)
+    {
+    	$arr = self::toArray($setList);
+    	 
+    	return array_key_exists($key, $arr);
+    }
 }

@@ -58,7 +58,7 @@ class plg_Rejected extends core_Plugin
                     $data->rec->id,
                     'ret_url' => TRUE
                 ),
-                'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32');
+                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?,order=32', 'ef_icon = img/16/reject.png, title=Оттегляне на документа');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec)) {
@@ -89,7 +89,9 @@ class plg_Rejected extends core_Plugin
             $rejCnt = $data->rejQuery->count();
 
             if($rejCnt) {
-                $data->toolbar->addBtn("Кош|* ({$rejCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=fright,order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  'ef_icon = img/16/bin_closed.png');
+                $curUrl = getCurrentUrl();
+                $curUrl['Rejected'] = 1;
+                $data->toolbar->addBtn("Кош|* ({$rejCnt})", $curUrl, 'id=binBtn,class=fright,row=2,order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  'ef_icon = img/16/bin_closed.png');
             }
         }
         if(Request::get('Rejected')) {
@@ -242,7 +244,19 @@ class plg_Rejected extends core_Plugin
             $data->listFilter->setDefault('Rejected', $rejectedId);
         }
         
-    	if($data->query) {
+    }
+
+
+    /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        if($data->query) {
             if(Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
             } else {
@@ -252,4 +266,5 @@ class plg_Rejected extends core_Plugin
             }
         }
     }
+
 }

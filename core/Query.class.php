@@ -76,7 +76,20 @@ class core_Query extends core_FieldSet
      * Число, което показва от кой резултат да започнем извличането
      */
     var $start;
+
+
+    /**
+     * Флаг дали заявката е изпълнена
+     */
+    private $executed = FALSE;
     
+
+    /**
+     * Масив за съхранение на виртуалните полета
+     */
+    private $virtualFields = array();
+
+
     /**
      * Данните на записите, които ще бъдат изтрити. Инициализира се преди всяко изтриване.
      *
@@ -652,7 +665,7 @@ class core_Query extends core_FieldSet
      * Във всеки запис са налични само "важните" полета, т.е. полетата, определени от
      * @link core_Query::getKeyFields().
      *
-     * @return array() масив от stdClass
+     * @return array масив от stdClass
      */
     function getDeletedRecs()
     {
@@ -783,7 +796,7 @@ class core_Query extends core_FieldSet
         $this->useHaving = FALSE;
         
         $clause = new stdClass();
-        $clause->w = $clause->h = '';
+        $clause->w = $clause->h = $where = $having = '';
         
         // Начало на добавка
         // Добавка за връзване по външен ключ
@@ -863,6 +876,8 @@ class core_Query extends core_FieldSet
                 $show[$name] = $name;
             }
         }
+ 
+        $fields = '';
         
         foreach ($show as $name => $dummy) {
             $f = $this->getField($name);
@@ -889,10 +904,7 @@ class core_Query extends core_FieldSet
                     $fields .= $this->expr2mysql($f->expression);
                     break;
                 default :
-                error("Непознат вид на полето", array(
-                        'kind' => $f->kind,
-                        'name' => $name
-                    ));
+                error("@Непознат вид на полето",  $f->kind, $name);
             }
             
             $fields .= " AS `{$name}` ";
@@ -948,7 +960,7 @@ class core_Query extends core_FieldSet
         }
         
         if ($field->kind === 'FNC') {
-            error("Функционалните полета не могат да се използват в SQL изрази", "'{$name}'");
+            error("@Функционалните полета не могат да се използват в SQL изрази", $name);
         }
         
         if ($field->kind == 'FLD') {
@@ -965,7 +977,8 @@ class core_Query extends core_FieldSet
             
             return "`" . $name . "`";
         } else {
-            bp($expr);
+            // Непознат тип поле ($field->kind)
+            bp($field);
         }
         
         return "`{$tableName}`.`{$mysqlName}`";

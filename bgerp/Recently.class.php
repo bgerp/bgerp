@@ -171,7 +171,7 @@ class bgerp_Recently extends core_Manager
                 
                 // Ако имамем права, тогава генерирам линк
                 if ($docProxy->haveRightFor('single') || doc_Threads::haveRightFor('single', $docRec->threadId)) {
-                    $linkUrl = array($docProxy->instance, 'single',
+                    $linkUrl = array($docProxy->getInstance(), 'single',
                         'id' => $docRec->id);
                 }
                 

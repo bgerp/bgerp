@@ -102,7 +102,7 @@ class core_Packs extends core_Manager
         
         $pack = Request::get('pack', 'identifier');
         
-        if (!$pack) error('Missing pack name.');
+        if (!$pack) error('@Missing pack name.');
         
         $res = $this->setupPack($pack, 0, TRUE, TRUE);
         
@@ -119,10 +119,10 @@ class core_Packs extends core_Manager
         
         $pack = Request::get('pack', 'identifier');
         
-        if (!$pack) error('Липсващ пакет', $pack);
+        if (!$pack) error('@Липсващ пакет', $pack);
         
         if (!$this->fetch("#name = '{$pack}'")) {
-            error('Този пакет не е инсталиран', $pack);
+            error('@Този пакет не е инсталиран', $pack);
         }
         
         if ($this->fetch("(#name = '{$pack}') AND (#deinstall = 'yes')")) {
@@ -242,8 +242,8 @@ class core_Packs extends core_Manager
         $form->setOptions('pack', $opt);
         $form->toolbar = cls::get('core_Toolbar');
         $form->setHidden(array('Act' => 'install'));
-        $form->toolbar->addSbBtn('Инсталирай', 'default', 'ef_icon = img/16/install.png');
-        $form->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/install.png');
+        $form->toolbar->addSbBtn('Инсталирай', 'default', 'ef_icon = img/16/install.png, title=Монтиране на пакета');
+        $form->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/install.png, title=Настройване на системата');
         
         return $form->renderHtml();
     }
@@ -268,7 +268,8 @@ class core_Packs extends core_Manager
                     }
                 }
             } else {
-                bp("Can't open dir", $dir, $dh);
+                // Не може да се отвори директорията
+                bp($dir, $dh);
             }
         }
         
@@ -332,7 +333,7 @@ class core_Packs extends core_Manager
         
         
         if ($rec->deinstall == 'yes') {
-        	$row->deinstall = ht::createLink(' ', array($mvc, 'deinstall', 'pack' => $rec->name), 'Наистина ли искате да деинсталирате пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/cancel.png'));
+        	$row->deinstall = ht::createLink('', array($mvc, 'deinstall', 'pack' => $rec->name), 'Наистина ли искате да деинсталирате пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/cancel.png', 'title'=>'Премахване на пакета'));
         } else {
         	$row->deinstall = "";
         }
@@ -340,7 +341,7 @@ class core_Packs extends core_Manager
         $row->name .= $row->deinstall;
         $row->name .= "<div class=\"pack-info\">{$rec->info}</div>";
        	
-        $row->install = ht::createLink(tr("Инициализиране"), array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
+        $row->install = ht::createLink(tr("Инициализиране"), array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install", 'title'=>'Обновяване на пакета'));
         
         try {
             $conf = self::getConfig($rec->name);
@@ -361,7 +362,7 @@ class core_Packs extends core_Manager
                 }
             } 
 
-            $row->config = ht::createLink($warn . tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config"));
+            $row->config = ht::createLink($warn . tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config", 'title'=>'Конфигуриране на пакета'));
         }
 
         if ($conf->haveErrors()) {
@@ -513,7 +514,7 @@ class core_Packs extends core_Manager
         try {
             $conf = self::getConfig($pack);
             if($conf->getConstCnt() && !$setupFlag) {  
-               $res .= ht::createBtn("Конфигуриране", array('core_Packs', 'config', 'pack' => $pack), NULL, NULL, 'class=btn-settings');
+               $res .= ht::createBtn("Конфигуриране", array('core_Packs', 'config', 'pack' => $pack), NULL, NULL, 'class=btn-settings,title=Настройки на пакета');
             }
         } catch (core_exception_Expect $e) {}
 
@@ -628,7 +629,7 @@ class core_Packs extends core_Manager
     /**
      * Връща конфигурационните данни за даден пакет
      */
-    static function getConfig($packName, $userId=NULL) 
+    static function getConfig($packName) 
     {
         $rec = static::fetch("#name = '{$packName}'");
         $setup = cls::get("{$packName}_Setup");
@@ -695,7 +696,7 @@ class core_Packs extends core_Manager
                     // Ако няма данни за текущия език използваме на английски
                     $value = $key . '_EN';
                 }
-            } catch (Exception $e) {
+            } catch (core_exception_Expect $e) {
             }
         }
         
@@ -754,11 +755,11 @@ class core_Packs extends core_Manager
         if (cls::load($cls, TRUE)) {
             $setup = cls::get($cls);
         } else {
-            error("Липсваш клас $cls");
+            error("@Липсваш клас", $cls);
         }
         
         if (!($description = $setup->getConfigDescription())) {
-            error("Пакета $pack няма нищо за конфигуриране");
+            error("@Пакета няма нищо за конфигуриране", $pack);
         }
         
         if ($rec->configData) {
@@ -832,7 +833,7 @@ class core_Packs extends core_Manager
             return new Redirect($retUrl);
         }
         
-        $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png, title=Съхраняване на настройките');
 
         // Добавяне на допълнителни системни действия
         if (count($setup->systemActions)) {
@@ -841,7 +842,7 @@ class core_Packs extends core_Manager
             }
         }
         
-        $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         if (method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
             $form->info = "<div style='padding:10px;border:dotted 1px red;background-color:#ffff66;color:red;'>{$errMsg}</div>";

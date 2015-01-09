@@ -6,10 +6,10 @@
  * Клас 'core_Plugins' - Мениджър на плъгини
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -22,6 +22,12 @@ class core_Plugins extends core_Manager
      * Заглавие на мениджъра
      */
     var $title = 'Регистър на плъгините';
+    
+    
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Регистър на плъгините";
     
     
     /**
@@ -195,7 +201,7 @@ class core_Plugins extends core_Manager
             $cover = 'private';
             
             do {
-                if (count($arr = $this->attachedPlugins[$objClass][$cover])) {
+                if (isset($this->attachedPlugins[$objClass][$cover]) && count($arr = $this->attachedPlugins[$objClass][$cover])) {
                     foreach ($arr as $name => $plugin) {
                         if (cls::load($plugin, TRUE)) {
                             $obj->loadSingle($name, $plugin);

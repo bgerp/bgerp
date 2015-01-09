@@ -36,9 +36,17 @@ class acc_plg_Contable extends core_Plugin
         
         setIfNot($mvc->canCorrection, 'ceo, accMaster');
         setIfNot($mvc->valiorFld, 'valior');
+        setIfNot($mvc->lockBalances, FALSE);
         
         // Зареждаме плъгина, който проверява можели да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
+       
+        // Ако е оказано че при контиране/възстановяване/оттегляне да се заключва баланса зареждаме плъгина 'acc_plg_LockBalances'
+        if($mvc->lockBalances === TRUE){
+        	
+        	// Зареждаме плъгина, така се подсигуряваме че ивентите му ще се изпълняват винаги след тези на 'acc_plg_Contable'
+        	$mvc->load('acc_plg_LockBalanceRecalc');
+        }
     }
     
     
@@ -122,8 +130,9 @@ class acc_plg_Contable extends core_Plugin
         
         if ($mvc->haveRightFor('conto', $rec)) {
             
+        	unset($error);
             // Проверка на счетоводния период, ако има грешка я показваме
-            if(!self::checkPeriod($rec->valior, $error)){
+            if(!self::checkPeriod($rec->{$mvc->valiorFld}, $error)){
                 $error = ",error={$error}";
             }
             
@@ -143,18 +152,19 @@ class acc_plg_Contable extends core_Plugin
                 'ret_url' => TRUE
             );
             $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа');
-        }
-        
-        // Ако потребителя може да създава коригиращ документ, слагаме бутон
-        if ($mvc->haveRightFor('correction', $rec)) {
-            $correctionUrl = array(
-                'acc_Articles',
-                'RevertArticle',
-                'docType' => $mvc->getClassId(),
-                'docId' => $rec->id,
-                'ret_url' => TRUE
-            );
-            $data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?,title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
+        } else {
+        	
+        	// Ако потребителя може да създава коригиращ документ, слагаме бутон
+        	if ($mvc->haveRightFor('correction', $rec)) {
+        		$correctionUrl = array(
+        				'acc_Articles',
+        				'RevertArticle',
+        				'docType' => $mvc->getClassId(),
+        				'docId' => $rec->id,
+        				'ret_url' => TRUE
+        		);
+        		$data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?,title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
+        	}
         }
         
         // Ако има запис в журнала и потребителя има права за него, слагаме бутон
@@ -261,16 +271,16 @@ class acc_plg_Contable extends core_Plugin
             }
         } elseif ($action == 'revert') {
             if ($rec->id) {
-                $periodRec = acc_Periods::fetchByDate($rec->valior);
+                $periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
                 
-                if ($rec->state != 'active' || ($periodRec->state != 'closed')) {
+                if (($rec->state != 'active' && $rec->state != 'closed') || ($periodRec->state != 'closed')) {
                     $requiredRoles = 'no_one';
                 }
             }
         } elseif ($action == 'reject') {
             if ($rec->id) {
                 
-                $periodRec = acc_Periods::fetchByDate($rec->valior);
+                $periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
                 
                 if ($periodRec->state == 'closed') {
                     $requiredRoles = 'no_one';
@@ -283,11 +293,21 @@ class acc_plg_Contable extends core_Plugin
                 }
             }
         } elseif ($action == 'restore') {
-            
-            // Ако потрбеителя не може да контира документа, не може и да го възстановява
+        	
+            // Ако потребителя не може да контира документа, не може и да го възстановява
             if(!haveRole($mvc->getRequiredRoles('conto'))){
                 $requiredRoles = 'no_one';
             }
+            
+            if(isset($rec)){
+            	
+            	// Ако сч. период на записа е затворен, документа не може да се възстановява
+            	$periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
+            	if ($periodRec->state == 'closed') {
+            		$requiredRoles = 'no_one';
+            	}
+            }
+            
         } elseif ($action == 'correction') {
             
             // Кой може да създава коригиращ документ
@@ -382,12 +402,7 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterReConto(core_Mvc $mvc, &$res, $id)
     {
-        $rec = $mvc->fetchRec($id);
-        
-        // Дали имаме права за контиране
-        if($mvc->haveRightFor('reconto', $rec)){
-            self::conto($mvc, $id);
-        }
+        self::conto($mvc, $id); 
     }
     
     
@@ -421,7 +436,7 @@ class acc_plg_Contable extends core_Plugin
         
         if($rec->state == 'active' || $rec->state == 'closed'){
             // Ре-контиране на документа след възстановяването му
-            self::on_AfterReConto($mvc, $res, $id);
+            $mvc->reConto($id);
         }
     }
     
@@ -486,23 +501,37 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
-     * Връща основанието за транзакцията, по подразбиране
-     * е името на контрагента, ако има такъв
+     * Връща основанието за транзакцията, по подразбиране е основанието на журнала
      */
-    public static function on_AfterGetContoReason($mvc, &$res, $id)
+    public static function on_AfterGetContoReason($mvc, &$res, $id, $reasonCode = NULL)
     {
         if(empty($res)){
-            if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
-                $rec = $mvc->fetchRec($id);
-                $Cover = doc_Folders::getCover($rec->folderId);
-                $title = $Cover->getTitleById();
-                
-                if($Cover->instance->haveRightFor('single', $Cover->that)){
-                    $title = ht::createLinkRef($title, array($Cover->className, 'single', $Cover->that));
-                }
-                
-                $res = $title;
-            }
+        	if(isset($reasonCode)){
+        		
+        		// Ако има основание, връщаме му вербалното представяне
+        		$res = acc_Operations::getTitleById($reasonCode, FALSE);
+        	} else {
+        		
+        		// Ако документа е в папка на контрагент връщаме му името за основание
+        		if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
+        			 $rec = $mvc->fetchRec($id);
+        			 $Cover = doc_Folders::getCover($rec->folderId);
+        			 $title = $Cover->getTitleById();
+        			
+        			 if($Cover->haveRightFor('single')){
+        				 $title = ht::createLinkRef($title, array($Cover->className, 'single', $Cover->that));
+        			 }
+        				
+        			 $res = $title;
+        		} else {
+        			
+        			// Aко няма основание, но журнала на документа има връщаме него
+        			if($jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $id)){
+        				$Varchar = cls::get('type_Varchar');
+        				$res = $Varchar->toVerbal($jRec->reason);
+        			}
+        		}
+        	}
         }
     }
 }

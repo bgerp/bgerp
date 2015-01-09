@@ -39,6 +39,8 @@ class crm_Persons extends core_Master
         
         // Интерфейс за входящ документ
         'incoming_CreateDocumentIntf',
+    		
+    	'mp_ResourceSourceIntf',
     );
 
 
@@ -195,7 +197,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards';
+                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards,Resources=mp_ObjectResources';
     
     
     /**
@@ -397,9 +399,9 @@ class crm_Persons extends core_Master
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             if($groupId = $data->listFilter->rec->groupId) {
-                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова визитка на лице'));
             } else {
-                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
+                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова визитка на лице'));
             }
         }
     }
@@ -996,7 +998,7 @@ class crm_Persons extends core_Master
 
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
-            $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel,buzLocationId');
+            $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel,buzLocationId,buzPosition');
             $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
             if($rec->buzLocationId){
             	$row->name .= " - {$row->buzLocationId}";
@@ -1010,7 +1012,7 @@ class crm_Persons extends core_Master
         if(crm_Persons::haveRightFor('add') && crm_Companies::haveRightFor('edit', $data->masterId)){
         	$img = sbf('img/16/add.png');
 		    $addUrl = array('crm_Persons', 'add', 'buzCompanyId' => $data->masterId, 'ret_url' => TRUE);
-		    $data->addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond', 'title' => 'Добавяне на представител')); 
+		    $data->addBtn = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond', 'title' => 'Добавяне на представител')); 
         }
     }
 
@@ -1033,16 +1035,24 @@ class crm_Persons extends core_Master
         }
         
         if(count($data->rows)){
+            $i = 0;
         	foreach($data->rows as $id => $row) {
+        	    
         		$tpl->append("<div style='margin-bottom:10px'>", 'persons');
-        	
+        	    
         		if(crm_Persons::haveRightFor('edit', $id)){
         			$editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
         			$editLink = ht::createLink($editImg, array($this, 'edit', $id, 'ret_url' => TRUE), NULL, "id=edt{$id},title=Редактиране на " . mb_strtolower($this->singleTitle));
         			$row->name .= " {$editLink}";
         		}
         		
-        		$tpl->append("<div style='font-weight:bold;'>{$row->name}</div>", 'persons');
+        		$positionsStr = '';
+        		
+        	    if ($row->buzPosition && $row->name) {
+        		    $positionsStr = "<i style='font-size:0.9em;'> ({$row->buzPosition})</i>";
+        		}
+        		
+        		$tpl->append("<div> <span style='font-weight:bold;'>{$row->name}</span>{$positionsStr}</div>", 'persons');
         		
         		if($row->mobile) {
         			$tpl->append("<div class='crm-icon mobile'>{$row->mobile}</div>", 'persons');
@@ -1712,7 +1722,7 @@ class crm_Persons extends core_Master
 		    $form->setField('buzLocationId', 'input=none');
         }
 
-        if(!$form->rec->id && $form->rec->buzCompanyId) {  
+        if(!$form->rec->id && $form->rec->buzCompanyId && isset($_GET['buzCompanyId'])) {  
             $form->setReadOnly('buzCompanyId');
         } else {
             $form->addAttr('buzCompanyId', array('onchange' => "addCmdRefresh(this.form); if(document.forms['{$form->formAttr['id']}'].elements['buzLocationId'] != undefined) document.forms['{$form->formAttr['id']}'].elements['buzLocationId'].value ='';this.form.submit();"));
@@ -1804,7 +1814,7 @@ class crm_Persons extends core_Master
                 
                 // Подготвяме данните
                 $data = $driver->prepareData($fRec);
-            } catch (Exception $e) { }
+            } catch (core_exception_Expect $e) { }
 
             // Събираме всички данни
             $allVcards = array_merge($allVcards, $data);
@@ -2039,7 +2049,7 @@ class crm_Persons extends core_Master
         if(isset($rec->egn) && !($y>0 || $m>0 || $d>0)) {
             try {
                 $Egn = new bglocal_BulgarianEGN($rec->egn);
-            } catch(Exception $e) {
+            } catch(bglocal_exception_EGN $e) {
                 $err = $e->getMessage();
             }
 
@@ -2332,5 +2342,37 @@ class crm_Persons extends core_Master
     	}
     	
     	return TRUE;
+    }
+    
+    
+    /**
+     * Можели обекта да се добави като ресурс?
+     *
+     * @param int $id - ид на обекта
+     * @return boolean - TRUE/FALSE
+     */
+    public function canHaveResource($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$groupId = crm_Groups::getIdFromSysId('employees');
+    	
+    	// Само ако е от група "Служители"
+    	if(keylist::isIn($groupId, $rec->groupList)){
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
+    }
+    
+     
+    /**
+     * Какъв е дефолтния тип ресурс на обекта
+     *
+     * @param int $id - ид на обекта
+     * @return enum(equipment=Оборудване,labor=Труд,material=Материал) - тип на ресурса
+     */
+    public function getResourceType($id)
+    {
+    	return 'labor';
     }
 }

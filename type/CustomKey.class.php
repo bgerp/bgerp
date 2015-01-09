@@ -329,14 +329,11 @@ class type_CustomKey extends type_Key
                             $title = $v;
                         }
                         
-                        $vNorm = strtolower(str::utf2ascii(trim($title)));
-                        
-                        if($cacheOpt[$vNorm]) {
-                            
+                        if ($title && $key) {
                             $title = "{$title} ({$key})";
+                        } 
                             
-                            $vNorm = strtolower(str::utf2ascii(trim("{$title} {$key}")));
-                        }
+                        $vNorm = strtolower(str::utf2ascii(trim($title)));
                         
                         if(is_object($v)) {
                             $v->title = $title;

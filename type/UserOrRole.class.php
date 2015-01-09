@@ -66,20 +66,21 @@ class type_UserOrRole extends type_User
             $group->group = TRUE;
             $this->options['roles'] = $group;
             
-            $allSysTeam = self::getAllSysTeamId();
-            
             // Вземаме всички роли
             $rQuery = core_Roles::getQuery();
             while($rec = $rQuery->fetch()) {
                 $roleObj = new stdClass();
                 $roleObj->title = $rec->role;
                 $roleObj->id = $rec->id;
-                $roleObj->value = $allSysTeam + $rec->id;
+                $roleObj->value = self::getSysRoleId($rec->id);
                 $this->options['r_' . $rec->id] = $roleObj;
             }
             
             // Ако има права за избор на цялата система, добавяме съответния избор
             if (haveRole($this->params['rolesForAllSysTeam'])) {
+                
+                $allSysTeam = self::getAllSysTeamId();
+                
                 $roleObj = new stdClass();
                 $roleObj->title = tr("Цялата система");
                 $roleObj->value = $allSysTeam;
@@ -92,11 +93,77 @@ class type_UserOrRole extends type_User
     
     /**
      * Връща ID-то за allSysTeam
+     * 
+     * @return integer
      */
     public static function getAllSysTeamId()
     {
-        $allSysTeams = 1-pow(2,31);
+        static $allSysTeams = 0;
+        
+        if (!$allSysTeams) {
+            $allSysTeams = 1-pow(2,31);
+        }
         
         return $allSysTeams;
+    }
+    
+    
+    /**
+     * Връща id за групата базирано на allSysTeam
+     * 
+     * @param integer $roleId
+     * 
+     * @return integer
+     */
+    public static function getSysRoleId($roleId)
+    {
+        $allSysTeam = self::getAllSysTeamId();
+        
+        $nRoleId = $allSysTeam + $roleId;
+        
+        return $nRoleId;
+    }
+    
+    
+    /**
+     * Връща id на запис от модел core_Roles от id-то определено от getSysRoleId()
+     * 
+     * @param integer $sysRoleId
+     * 
+     * @return int|NULL
+     */
+    public static function getRoleIdFromSys($sysRoleId)
+    {
+        if ($sysRoleId >= 0) return NULL;
+        
+        $allSysTeam = self::getAllSysTeamId();
+        
+        $roleId = (int)($sysRoleId - $allSysTeam);
+        
+        return $roleId;
+    }
+    
+    
+    /**
+     * Връща ключа на опциията за тази стойност
+     * 
+     * @param string|integer $userOrRole
+     * 
+     * @return NULL|string
+     */
+    public static function getOptVal($userOrRole)
+    {
+        if (strpos($userOrRole, '_')) return $userOrRole;
+        
+        if (!$userOrRole) return ;
+        
+        $inst = cls::get(get_called_class());
+        $inst->prepareOptions();
+        foreach ((array)$inst->options as $optVal => $vals) {
+            if ($vals->value == $userOrRole) {
+                
+                return $optVal;
+            }
+        }
     }
 }

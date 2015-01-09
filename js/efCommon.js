@@ -1201,22 +1201,30 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
-    var ch = document.documentElement.clientHeight;
-    if (document.getElementById('cmsTop')) {
-        var ct = document.getElementById('cmsTop').offsetHeight;
-        var cb = document.getElementById('cmsBottom').offsetHeight;
-        var cm = document.getElementById('cmsMenu').offsetHeight;
+    var clientHeight = document.documentElement.clientHeight;
+    if ($('#cmsTop').length) {
+    	var padding = $('.background-holder').css('padding-top');
+    	var totalPadding = 2 * parseInt(padding);
+    	
+        var ct = $('#cmsTop').height();
+        var cb = $('#cmsBottom').height();
+        var cm = $('#cmsMenu').height();
 
-        var add = 7;
-        if (document.body.className.match('wide')) {
-            add = 36;
+        var add = 16;
+        if ($('body').hasClass('wide')) {
+            add = 28;
         }
-
-        if (document.getElementById('maincontent')) {
-            var mc = document.getElementById('maincontent');
-            var h = (ch - ct - cb - cm - add);
+   
+        if ($('#maincontent').length) {
+            var h = (clientHeight - ct - cb - cm - add);
+            if(totalPadding) {
+            	h = h - totalPadding + 2;
+            }
+            if($(window).width() > 600 && $('body').hasClass('narrow')){
+            	h -= 3;
+	        }
             if (h > 60) {
-                mc.style.minHeight = h + 'px';
+            	$('#maincontent').css('minHeight', h);
             }
         }
     }
@@ -1306,6 +1314,7 @@ function scrollLongListTable() {
         var tableWidth = parseInt($('.listBlock .listTable').width());
         if (winWidth < tableWidth) {
             $('.listBlock .listRows').addClass('overflow-scroll');
+            $('.listBlock .listRowsDetail').addClass('overflow-scroll');
             $('.main-container').css('display', 'block');
             $('.listBlock').css('display', 'block');
         }
@@ -1316,18 +1325,20 @@ function scrollLongListTable() {
 /**
  * При натискане с мишката върху елемента, маркираме текста
  */
-function onmouseUpSelect() {
-    if (document.selection) {
-        var range = document.body.createTextRange();
-        range.moveToElementText(document.getElementById('selectable'));
+function selectInnerText(text) {
+    var doc = document, range, selection;
+    if (doc.body.createTextRange) {
+        range = document.body.createTextRange();
+        range.moveToElementText(text);
         range.select();
     } else if (window.getSelection) {
-        var range = document.createRange();
-        range.selectNode(document.getElementById('selectable'));
-        window.getSelection().addRange(range);
+        selection = window.getSelection();        
+        range = document.createRange();
+        range.selectNodeContents(text);
+        selection.removeAllRanges();
+        selection.addRange(range);
     }
 }
-
 
 /**
  * Записва избрания текст в сесията и текущото време
@@ -1544,7 +1555,7 @@ function addLinkOnCopy(text) {
 
     window.setTimeout(function() {
         body_element.removeChild(htmlDiv);
-    }, 200);
+    }, 0);
 }
 
 
@@ -1883,6 +1894,9 @@ function efae() {
     // URL-то, което ще се вика по AJAX
     efae.prototype.url;
 
+    // Уникално ID на хита
+    efae.prototype.hitId;
+
     // Префикса, за рендиращата функция
     efae.prototype.renderPrefix = 'render_';
 
@@ -2049,6 +2063,10 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
             // Добавяме в масива
             dataObj['parentUrl'] = this.getParentUrl();
+        }
+        
+        if (typeof(this.getHitId()) != 'undefined') {
+            dataObj['hitId'] = this.getHitId();
         }
 
         // Добавяме флаг, който указва, че заявката е по AJAX
@@ -2219,6 +2237,27 @@ efae.prototype.setParentUrl = function(parentUrl) {
 efae.prototype.getParentUrl = function() {
 
     return this.parentUrl;
+};
+
+
+/**
+ * Задава стойност за hitId
+ * 
+ * @param string
+ */
+efae.prototype.setHitId = function(hitId) {
+    this.hitId = hitId;
+};
+
+
+/**
+ * Връща стойността на hitId
+ * 
+ * @return string
+ */
+efae.prototype.getHitId = function() {
+
+    return this.hitId;
 };
 
 /**
@@ -2394,7 +2433,10 @@ function render_redirect(data) {
     document.location = url;
 }
 
+var oldTitle;
+var oldIconPath;
 var blinkerWorking = false;
+
 /**
  * Функция на нотифициране, чрез звук и премигане на текста и иконката в таба
  * използва с efae
@@ -2403,63 +2445,128 @@ var blinkerWorking = false;
  * data.title - заглавие, което ще се задава
  * data.favicon - път до фав иконата
  * data.blinkTimes - брой премигвания
- * data.blinkIntervalHide - милисекунди скриване
- * data.blinkIntervalDisplay - милисекунди показване
  * data.soundOgg - път до ogg файла
  * data.soundMp3 - път до mp3 файла
  */
-function render_Notify(data){
+function render_Notify(data) {
 	if(blinkerWorking) return;
 	
-	if(data.soundMp3 != undefined || data.soundOgg  != undefined){
-		// добавяме аудио таг и пускаме звука
-		setTimeout(function(){
-			$('body').append("<div class='soundBlock'></div>");
-		    $(".soundBlock").append('<audio autoplay="autoplay"><source src=' + data.soundMp3 + ' type="audio/mpeg" /><source src=' + data.soundOgg + ' type="audio/ogg" /><embed hidden="true" autostart="true" loop="false" src=' + data.soundMp3 +' /></audio>');
-		}, 500);
-		
-		//махаме аудио тага
-		setTimeout(function(){
-			$(".soundBlock").remove();
-		}, 2000);
-	}
-	
+	playSound(data.soundMp3, data.soundOgg);
 	blinkerWorking = true;
 	var counter = 1;
-	var blankTitle = "\u200E";
-    var title = data.title ? data.title : " ";
-	//генерираме новата фав икона
-	var newIcon = document.createElement('link');
-	newIcon.type = 'image/x-icon';
-	newIcon.rel = 'shortcut icon';
-	newIcon.href = data.favicon;
 	
+	// ако няма зададен текст, ще скриваме титлата
+    var title = data.title ? data.title : '\u200E';
+    
 	//запазваме старата фав икона
-	var oldIconPath = $('link[rel="shortcut icon"]')[0].href;
-	var oldIcon = document.createElement('link');
-	oldIcon.type = 'image/x-icon';
-	oldIcon.rel = 'shortcut icon';
-	oldIcon.href = oldIconPath;
+	oldIconPath = $('link[rel="shortcut icon"]')[0].href;
+	
+	// подготвяме фав иконките
+	var newIcon = prepareFavIcon(data.favicon);
+	var oldIcon = prepareFavIcon(oldIconPath);
 	
 	var interval = setInterval(function(){
-		// задамаваме новия текст и икона
-		document.title = title;
-		//document.getElementsByTagName('head')[0].appendChild(newIcon);
-		$('head').append(newIcon);
+		// Задаваме новия текст и икона
+		setTitle(title);
+		setFavIcon(newIcon);
 		
+		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
-			// задамаваме старите текст и икона
-			$('head').append(oldIcon);
-			document.title = blankTitle;
-		}, data.blinkIntervalDisplay);
+			restoreTitle(oldTitle);
+			restoreFavIcon(oldIcon);
+		}, 600);
 		
 		counter++;
+		
 		// дали са мигнали достатъчно пъти
 		if(counter > data.blinkTimes) {
 			blinkerWorking = false;
 			clearInterval(interval);
 		}
-	}, data.blinkIntervalHide + data.blinkIntervalDisplay);
+	}, 1000);
+}
+
+/**
+ * задава титла на страницата
+ * @param title
+ */
+function setTitle(title) {
+	oldTitle = document.title;
+	document.title = title;
+}
+
+
+/**
+ * задава старата титла
+ * @param oldTitle
+ */
+function restoreTitle(oldTitle) {
+	document.title = oldTitle;
+}
+
+/**
+ * връща необходимия за смяна на фав иконата таг
+ * @param iconPath - пътя до картинката
+ * @returns icon
+ */
+function prepareFavIcon(iconPath) {
+	var icon = document.createElement('link');
+	icon.type = 'image/x-icon';
+	icon.rel = 'shortcut icon';
+	icon.href = iconPath;
+	
+	return icon;
+}
+
+
+/**
+ * задава фав икона
+ * @param icon - иконата, която ще задаваме
+ */
+function setFavIcon(icon){
+	$('head').append(icon);
+}
+
+
+/**
+ * задава старата фав икона
+ * @param oldIcon - иконата, която ще задаваме
+ */
+function restoreFavIcon(oldIcon) {
+	$('head').append(oldIcon);
+}
+
+
+/**
+ * изпълнява аудио
+ * @param soundMp3 - път до mp3 файла
+ * @param soundOgg - път до ogg файла
+ */
+function playSound(soundMp3, soundOgg){
+	if(soundMp3 != undefined || soundOgg  != undefined){
+		// добавяме аудио таг и пускаме звука
+		setTimeout(function(){
+			$('body').append("<div class='soundBlock'></div>");
+		    $(".soundBlock").append('<audio autoplay="autoplay" onended="removeParentTag(this);">' + 
+		    		'<source src=' + soundMp3 + ' type="audio/mpeg" />' + 
+		    		'<source src=' + soundOgg + ' type="audio/ogg" />' + 
+		    	'</audio>');
+		    
+		   
+		    if (typeof Audio !== "function" && typeof Audio !== "object") {
+		    	$(".soundBlock").append('<embed hidden="true" autostart="true" loop="false" src=' + soundMp3 +' />');
+		    }
+		    	  
+		}, 500);
+	}
+}
+
+
+/**
+ * изтрива бащата на зададения елемент
+ */
+function removeParentTag(el) {
+	$(el).parent().remove();
 }
 
 
@@ -2922,7 +3029,7 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 			if (l3 && timeInSec < l3) $(this).removeClass('cd-l1 cd-l2').addClass('cd-l3'); 
 			
 			if(timeInSec == 0) {
-				$(this).removeClass('cd-l3');
+				$(this).removeClass('cd-l3').css('color', 'black');
 			}
 			
 			//добавяме водещи нули ако е необходимо
@@ -3010,5 +3117,24 @@ function addBugReportInput(form, nameInput, value)
 	    }).appendTo(form);
 	}
 }
+function removeNarrowScroll() {
+	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
+		$('body').removeClass('narrow-scroll');
+	}
+}
+
+
+
+/**
+ * Скролиране до определен
+ */
+$.fn.scrollView = function () {
+	return this.each(function () {
+						$('html, body').animate({
+                            scrollTop: $(this).offset().top - $(window).height() + $(this).height()
+                        }, 500);
+                    });
+}
 
 runOnLoad(showTooltip);
+runOnLoad(removeNarrowScroll);

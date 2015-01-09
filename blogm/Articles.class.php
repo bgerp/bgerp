@@ -381,7 +381,7 @@ class blogm_Articles extends core_Master {
 
         $data->row = $this->recToVerbal($data->rec, $fields);
 
-        $this->blogm_Comments->prepareComments($data);
+        blogm_Comments::prepareComments($data);
 		
         $data->selectedCategories = keylist::toArray($data->rec->categories);
 		
@@ -473,7 +473,7 @@ class blogm_Articles extends core_Master {
 	{
 		// Поставяме данните от реда
 		$layout->placeObject($data->row);
-		$layout = $this->blogm_Comments->renderComments($data, $layout);
+		$layout = blogm_Comments::renderComments($data, $layout);
         
         // Рендираме тулбара за споделяне
         $conf = core_Packs::getConfig('cms');
@@ -874,7 +874,7 @@ class blogm_Articles extends core_Master {
      * Имплементиране на интерфейсния метод getItems от cms_FeedsSourceIntf
      * @param int $itemsCnt
      * @param enum $lg
-     * @return array()
+     * @return array
      */
     function getItems($itemsCnt, $lg, $like = NULL)
     {

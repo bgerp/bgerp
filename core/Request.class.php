@@ -83,7 +83,7 @@ class core_Request
                         $prot = unserialize($prot);
                         
                         if (is_array($prot)) {
-                            self::push($prot);
+                            self::push($prot, 'protected', TRUE);
                         }
                     }
                 }
@@ -213,10 +213,7 @@ class core_Request
             $value = $inputType->fromVerbal($value);
             
             if ($inputType->error) {
-                error("Некоректна стойност за входен параметър", array(
-                        'input' => $name,
-                        'error' => $inputType->error
-                    ));
+                error("@Некоректна стойност за входен параметър", $name, $inputType->error);
             } else {
                 return $value;
             }
@@ -260,7 +257,7 @@ class core_Request
     /**
      * Вкарва в стека масив с входни параметри - "променливи => стойности"
      */
-    static function push($array, $name = NULL)
+    static function push($array, $name = NULL, $unShift = FALSE)
     {
         
         if ($name) {
@@ -269,7 +266,11 @@ class core_Request
             $element[] = $array;
         }
         
-        self::$vars = array_merge($element, self::$vars);
+        if ($unShift) {
+            self::$vars = array_merge(self::$vars, $element);
+        } else {
+            self::$vars = array_merge($element, self::$vars);
+        }
     }
     
     
@@ -368,11 +369,7 @@ class core_Request
             $mvc = & cls::get($ctr);
             $content = $mvc->action(strtolower($act));
         } else {
-            error("404 Controller not found: {$ctr}", array(
-                    'controller' => $ctr,
-                    '$_GET' => $_GET,
-                    '$_POST' => $_POST
-                ));
+            error('404 @Липсваща страница', $ctr, $_GET, $_POST);
         }
         
         if ($mustPop) {

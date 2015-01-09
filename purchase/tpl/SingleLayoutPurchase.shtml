@@ -44,6 +44,9 @@
                     <td class = 'nowrap'>[#amountPaid#]</td>
                     <td class = 'nowrap'>[#amountInvoiced#]</td>
                     <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;' rowspan='3'>
+                    	<!--ET_BEGIN paymentState-->
+                        <span style='font-weight:normal'>|Плащане|*</span>: [#paymentState#]<br>
+                        <!--ET_END paymentState-->
                     	<!--ET_BEGIN initiatorId-->
                         <span style='font-weight:normal'>|Инициатор|*</span>: [#initiatorId#]<br>
                         <!--ET_END initiatorId-->
@@ -58,6 +61,12 @@
                         <!--ET_BEGIN isDelivered-->
                         <div style='color:red'>[#isDelivered#]</div>
                         <!--ET_END isDelivered-->
+                        
+                        <!--ET_BEGIN activityCenterId-->
+                        <div>
+                            <span style='font-weight:normal'>|Център на дейност|*</span>: <b>[#activityCenterId#]</b>
+                        </div>
+                        <!--ET_END activityCenterId-->
                     </td>
                 </tr>
                 <tr>

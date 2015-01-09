@@ -160,11 +160,6 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	
     	if($rec->state == 'active'){
     		$specId = techno_Specifications::fetchByDoc($mvc->getClassId(), $rec->id);
-    		
-    		//@TODO да махна изискването да има дебъг
-    		if(haveRole('debug') && $hasPrice && !$contragentFolder){
-    			$data->toolbar->addBtn('Задание', array('mp_Jobs', 'add', 'originClass' => techno_Specifications::getClassId(), 'originDocId' => $rec->id), 'ef_icon=img/16/clipboard_text.png,title=Ново задание за производство');
-    		}
     	}
     }
     

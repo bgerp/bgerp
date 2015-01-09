@@ -246,6 +246,15 @@ class doc_Search extends core_Manager
                 
                 $url = array($mvc, 'state' => $filterRec->state);
                 
+                $url2 = array($mvc);
+                if($filterRec->docClass){
+                	$url2['docClass'] = $filterRec->docClass;
+                }
+                $url2['state'] = $filterRec->state;
+                if ($filterRec->author){
+                	$url2['author'] = Request::get('author');
+                }
+               
                 // Ако се филтрира по текущия автор
                 if ($filterRec->author && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
                     $url['author'] = core_Users::getCurrent();
@@ -253,6 +262,9 @@ class doc_Search extends core_Manager
                 
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние
                 bgerp_Notifications::clear($url);
+              
+                // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
+                bgerp_Notifications::clear($url2);
             }
         } else {
             // Няма условия за търсене - показваме само формата за търсене, без данни

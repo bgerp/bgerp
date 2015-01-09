@@ -14,28 +14,33 @@
  */
 class acc_ActiveShortBalance {
     
+	
     /**
      * Променлива в която ще се помни баланса
      */
     private $balance = array();
+    
     
     /**
      * Извлечените записи
      */
     private $recs;
     
+    
     /**
      * От дата
      */
     private $from;
+    
     
     /**
      * До дата
      */
     private $to;
     
+    
     /**
-     * acc_Balances
+     * @var acc_Balances
      */
     private $acc_Balances;
     
@@ -44,13 +49,14 @@ class acc_ActiveShortBalance {
      * Конструктор на обекта
      *
      * Масив $params с атрибути
-     * ['itemsAll'] - списък от ид-та на пера, които може да са на всяка позиция
-     * ['accs']      - списък от систем ид-та на сметки
-     * ['item1']    - списък от ид-та на пера, поне едно от които може да е на първа позиция
-     * ['item2']    - списък от ид-та на пера, поне едно от които може да е на втора позиция
-     * ['item3']    - списък от ид-та на пера, поне едно от които може да е на трета позиция
-     * ['from']     - От дата
-     * ['to']       - До дата
+     * ['itemsAll']     - списък от ид-та на пера, които може да са на всяка позиция
+     * ['accs']         - списък от систем ид-та на сметки
+     * ['item1']        - списък от ид-та на пера, поне едно от които може да е на първа позиция
+     * ['item2']        - списък от ид-та на пера, поне едно от които може да е на втора позиция
+     * ['item3']        - списък от ид-та на пера, поне едно от които може да е на трета позиция
+     * ['from']         - От дата
+     * ['to']           - До дата
+     * ['cacheBalance'] - Да кеширали в обекта изчисления баланс 
      */
     function __construct($params = array())
     {
@@ -62,15 +68,21 @@ class acc_ActiveShortBalance {
         $this->to = $params['to'];
         $strict = (isset($params['strict']) ? TRUE : FALSE);
         
-        // Подготвяме заявката към базата данни
-        $jQuery = acc_JournalDetails::getQuery();
-        acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3'], $strict);
+        set_time_limit(600);
         
-        // Изчисляваме мини баланса
-        $this->recs = $jQuery->fetchAll();
-        
-        // Изчисляваме и кешираме баланса
-        $this->calcBalance($this->recs, $this->balance);
+        // Изчисления баланс се кешира, само ако е указано
+        if($params['cacheBalance'] !== FALSE){
+        	
+        	// Подготвяме заявката към базата данни
+        	$jQuery = acc_JournalDetails::getQuery();
+        	acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3'], $strict);
+        	
+        	// Изчисляваме мини баланса
+        	$this->recs = $jQuery->fetchAll();
+        	
+        	// Изчисляваме и кешираме баланса
+        	$this->calcBalance($this->recs, $this->balance);
+        }
         
         $this->acc_Balances = cls::get('acc_Balances');
     }
@@ -82,7 +94,8 @@ class acc_ActiveShortBalance {
     private function calcBalance($recs, &$balance = array(), $sumDC = TRUE)
     {
         if(count($recs)){
-            
+        	$sysIds = array();
+        	
             // За всеки запис
             foreach ($recs as $rec){
                 
@@ -99,8 +112,12 @@ class acc_ActiveShortBalance {
                     
                     $b = &$balance[$index];
                     
+                    if(!isset($sysIds[$accId])){
+                    	$sysIds[$accId] = acc_Accounts::fetchField($accId, 'systemId');
+                    }
+                    
                     $b['accountId'] = $accId;
-                    $b['accountSysId'] = acc_Accounts::fetchField($accId, 'systemId');
+                    $b['accountSysId'] = $sysIds[$accId];
                     $b['ent1Id'] = $item1;
                     $b['ent2Id'] = $item2;
                     $b['ent3Id'] = $item3;
@@ -160,35 +177,12 @@ class acc_ActiveShortBalance {
     
     
     /**
-     * Връща краткия баланс с посочените сметки
-     */
-    public function getShortBalance($accs)
-    {
-        $arr = arr::make($accs);
-        
-        if(!count($arr)) return $this->balance;
-        
-        $newArr = array();
-        
-        foreach ($arr as $accSysId){
-            
-            foreach ($this->balance as $index => $b){
-                if($b['accountSysId'] == $accSysId){
-                    $newArr[$index] = $b;
-                }
-            }
-        }
-        
-        return $newArr;
-    }
-    
-    
-    /**
      * Изчислява баланса преди зададените дати в '$this->from' и '$this->to'
      */
     public function getBalanceBefore($accs, &$accArr = NULL)
     {
         $newBalance = array();
+        $accInfos = array();
         
         // Намираме последния изчислен баланс преди началната дата
         $balanceRec = $this->acc_Balances->getBalanceBefore($this->from);
@@ -206,16 +200,24 @@ class acc_ActiveShortBalance {
         
         // Ако има такъв баланс
         if($balanceRec){
-            
+        	
             // Извличаме неговите записи
             $bQuery = acc_BalanceDetails::getQuery();
             $bQuery->where("#balanceId = {$balanceRec->id}");
             $bQuery->show('accountId,ent1Id,ent2Id,ent3Id,blAmount,blQuantity');
+            $bQuery->where('#blQuantity != 0 OR #blAmount != 0');
             
             while($bRec = $bQuery->fetch()){
                 
-                // Ако е за синтетична сметка, пропускаме го
-                if(empty($bRec->ent1Id) && empty($bRec->ent2Id) && empty($bRec->ent3Id)) continue;
+            	if(!isset($accInfos[$bRec->accountId])){
+            		$accInfos[$bRec->accountId] = acc_Accounts::getAccountInfo($bRec->accountId);
+            	}
+            	
+            	if(count($accInfos[$bRec->accountId]->groups)){
+            		
+            		// Ако е за синтетична сметка, пропускаме го
+            		if(empty($bRec->ent1Id) && empty($bRec->ent2Id) && empty($bRec->ent3Id)) continue;
+            	}
                 
                 // Ако има подадени сметки и сметката на записа не е в масива пропускаме
                 if(count($accArr) && !in_array($bRec->accountId, $accArr)) continue;
@@ -226,7 +228,7 @@ class acc_ActiveShortBalance {
                 $bRec = (array)$bRec;
                 $newBalance[$index] = $bRec;
             }
-            
+          
             $newFrom = dt::addDays(1, $balanceRec->toDate);
             $newFrom = dt::verbal2mysql($newFrom, FALSE);
         }

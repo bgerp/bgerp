@@ -73,8 +73,6 @@ class type_Order extends type_Varchar {
         $l1 = substr($value, $len-6, 3);
         $l0 = substr($value, 0, $len-6);
         
-       // bp($value, $len, $l0, $l1, $l2);
-
         $res = $l0;
 
         if($l1 > 0) {

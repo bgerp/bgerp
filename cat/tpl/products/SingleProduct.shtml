@@ -40,7 +40,7 @@
                 <!--ET_END info-->
                 <!--ET_BEGIN groups-->
                 <fieldset class="detail-info">
-                    <legend class="groupTitle">|Групи|*</legend>
+                    <legend class="groupTitle">|Категории|*</legend>
                     <div class="groupList">
                         [#groups#]
                     </div>

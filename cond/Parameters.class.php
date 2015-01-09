@@ -26,19 +26,19 @@ class cond_Parameters extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name, type';
+    public $listFields = 'tools=Пулт, name, type, state';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Търговски параметри';
+    var $title = 'Бизнес параметри';
     
     
     /**
@@ -105,7 +105,7 @@ class cond_Parameters extends core_Master
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
         $this->FLD('sysId', 'varchar(32)', 'caption=Sys Id');
-        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Да служили параметъра като признак за групиране');
+        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
         
         $this->setDbUnique('name');
     }

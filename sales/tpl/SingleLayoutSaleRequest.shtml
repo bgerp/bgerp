@@ -60,7 +60,7 @@
                             <tbody>
                                 <tr>
                                     <td class="topCell first vtop" style='width:50%;'>
-                                        <table style='width:100%;'>
+                                        <table style='width:100%;' class='no-border'>
                                             <!--ET_BEGIN deliveryTermId-->
                                             <tr>
                                                 <td class='quiet nowrap aright' style='width:1%;'>|Условие|*: </td>

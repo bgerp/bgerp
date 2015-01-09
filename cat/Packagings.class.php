@@ -26,6 +26,9 @@ class cat_Packagings extends core_Manager
     var $title = "Опаковки";
     
     
+    var $singleTitle = "Опаковка"; 
+    
+    
     /**
      * Страница от менюто
      */

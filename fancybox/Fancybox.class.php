@@ -83,13 +83,16 @@ class fancybox_Fancybox extends core_Manager {
         setIfNot($aAttr['rel'], $maxSize[0] . "_" . $maxSize[1]);
         $aAttr['class'] .= 'fancybox';
         $tpl = ht::createElement('a', $aAttr, $imgTpl);
-
-        $conf = core_Packs::getConfig('fancybox');
         
-        $tpl->push($conf->FANCYBOX_PATH . '/jquery.fancybox.css', 'CSS');
-        $tpl->push($conf->FANCYBOX_PATH . '/jquery.fancybox.js', 'JS');
+        // Когато отпечатваме да не сработва плъгина
+        if (!Mode::is('printing')) {
+            $conf = core_Packs::getConfig('fancybox');
         
-        jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", TRUE);
+            $tpl->push($conf->FANCYBOX_PATH . '/jquery.fancybox.css', 'CSS');
+            $tpl->push($conf->FANCYBOX_PATH . '/jquery.fancybox.js', 'JS');
+            
+            jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", TRUE);
+        }
         
         return $tpl;
     }

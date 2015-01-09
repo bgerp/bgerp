@@ -1,17 +1,7 @@
-<b>[#accountId#]</b><br>
-<table class='top-table'  style='margin-bottom: 10px;'>
-    <tr>
-        <td class='aright quiet'>|Период|*:</td>
-        <td> [#from#] - [#to#] </td>
-    </tr>
-    <!--ET_BEGIN groupBy-->
-    <tr>
-        <td class='aright quiet'> |Групиране по|*:</td>
-        <td>[#groupBy#]</td>
-    </tr>
-    <!--ET_END groupBy-->
-</table>
-[#PAGER_TOP#]
+[#FORM#]
+<!--ET_BEGIN action-->
+<div><span class='quiet'>[#action#]</span>: [#groupBy#]</div><br>
+<!--ET_END action-->
 <div class='overflow-scroll'>
     [#DETAILS#]
 </div>

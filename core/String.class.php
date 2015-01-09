@@ -295,8 +295,11 @@ class core_String
     static function phpToMysqlName($name)
     {
         $name = trim($name);
-        
-        for ($i = 0; $i < strlen($name); $i++) {
+        $lastC = '';
+        $mysqlName = '';
+
+        $strLen = strlen($name);
+        for ($i = 0; $i < $strLen; $i++) {
             $c = $name{$i};
             
             if ((($lastC >= "a" && $lastC <= "z") || ($lastC >= "0" && $lastC <= "9")) && ($c >= "A" && $c <= "Z")) {
@@ -347,11 +350,8 @@ class core_String
         
         $strLen = $length - $md5Len - strlen($separator);
         
-        if ($strlen < 0)
-        error("Дължината на MD5 участъка и разделителя е по-голяма от зададената обща дължина", array(
-                'length' => $length,
-                'md5Len' => $md5Len
-            ));
+        // Дължината на MD5 участъка и разделителя е по-голяма от зададената обща дължина
+        expect($strlen >= 0, $length, $md5Len);
         
         if (ord(substr($str, $strLen - 1, 1)) >= 128 + 64) {
             $strLen--;
@@ -373,11 +373,16 @@ class core_String
         $esc = FALSE;
         $isName = FALSE;
         $lastChar = '';
+        $out = '';
         
         for ($i = 0; $i <= $len; $i++) {
             
-            $c = $expr{$i};
-            
+            if($i == $len) {
+                $c = '';
+            } else {
+                $c = $expr[$i];
+            }
+
             if($lastChar == "\\") {
                 $bckSl++;
             } else {
@@ -473,7 +478,7 @@ class core_String
         }
         if(mb_strlen($str) > $maxLen) {
             if($maxLen >= $showEndFrom) {
-                $remain = (int) ($maxLen - 5) / 2;
+                $remain = (int) ($maxLen - 3) / 2;
                 $str = mb_substr($str, 0, $remain) . $dots . mb_substr($str, -$remain);
             } else {
                 $remain = (int) ($maxLen - 3);
@@ -736,9 +741,12 @@ class core_String
     /**
      * Оцветява текст по относително уникален начин, в зависимост от съдържанието му
      */
-    static function coloring($text)
+    static function coloring($text, $colorFactor = NULL)
     {
-        $txColor = str_pad(dechex(hexdec(substr($hash = md5($text), 0, 6)) & 0x7F7F7F), 6, '0', STR_PAD_LEFT);
+        if(!$colorFactor) {
+            $colorFactor = $text;
+        }
+        $txColor = str_pad(dechex(hexdec(substr($hash = md5($colorFactor), 0, 6)) & 0x7F7F7F), 6, '0', STR_PAD_LEFT);
         
         $bgColor = str_pad(dechex(hexdec(substr($hash, 6, 6)) | 0x808080), 6, '0', STR_PAD_LEFT);
 

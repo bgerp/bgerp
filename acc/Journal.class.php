@@ -203,13 +203,13 @@ class acc_Journal extends core_Master
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($rec->state != 'draft') {
-            // Нотифицираме съотв. период че има нови транзакции
-            acc_Periods::touch($rec->valior);
+            // Инвалидираме балансите, които се променят от този вальор
+            acc_Balances::alternate($rec->valior);
         }
         
         // След активиране, извличаме всички записи от журнала и запомняме кои пера са вкарани
         if($rec->state == 'active'){
-            $dQuery = $mvc->acc_JournalDetails->getQuery();
+            $dQuery = acc_JournalDetails::getQuery();
             $dQuery->where("#journalId = {$rec->id}");
             
             while($dRec = $dQuery->fetch()){
@@ -236,7 +236,11 @@ class acc_Journal extends core_Master
             $doc = new core_ObjectReference($rec->docType, $rec->docId);
             
             if($doc) {
-                $row->docType = $doc->getLink();
+                try {
+                    $row->docType = $doc->getLink();
+                } catch(core_exception_Expect $e) {
+                    $row->docType = "{$rec->docType}:{$rec->docId}";
+                }
             }
         }
         
@@ -250,8 +254,8 @@ class acc_Journal extends core_Master
             $row->docType .= "<ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>";
             
             foreach ($details as $decRec){
-                $dAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->debitAccId);
-                $cAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->creditAccId);
+                $dAcc = acc_Accounts::getNumById($decRec->debitAccId);
+                $cAcc = acc_Accounts::getNumById($decRec->creditAccId);
                 $row->docType .= "<li>" . tr('Дебит') . ": <b>{$dAcc}</b> <span style='margin-left:20px'>" . tr('Кредит') . ": <b>{$cAcc}</b></span></li>";
             }
             $row->docType .= "</ol>";
@@ -400,7 +404,7 @@ class acc_Journal extends core_Master
         if ($periodRec->state == 'closed') {
             return acc_Articles::createReverseArticle($rec);
         } else {
-            return static::deleteTransaction($rec);
+            return static::deleteTransaction($docClassId, $docId);
         }
     }
     
@@ -417,26 +421,23 @@ class acc_Journal extends core_Master
     /**
      * Изтриване на транзакция
      */
-    public static function deleteTransaction($docClassId, $docId = NULL)
+    public static function deleteTransaction($docClassId, $docId)
     {
-        if (is_object($docClassId)) {
-            $rec = $docClassId;
-            $docId = $rec->docId;
-        } else {
-            $rec = self::fetchByDoc($docClassId, $docId);
-        }
-        
-        if (!$rec) {
-            return FALSE;
-        }
-        
-        acc_JournalDetails::delete("#journalId = $rec->id");
-        
-        static::delete($rec->id);
-        
-        acc_Periods::touch($rec->valior);
-        
-        return array($docClassId, $docId);
+        $query = static::getQuery();
+        $query->where("#docType = {$docClassId} AND #docId = {$docId}");
+    	
+        // Изтриваме всички записи направени в журнала от документа
+    	while($rec = $query->fetch()){
+    		
+    		acc_JournalDetails::delete("#journalId = {$rec->id}");
+    		
+    		static::delete($rec->id);
+    		
+    		// Инвалидираме балансите, които се променят от този вальор
+    		acc_Balances::alternate($rec->valior);
+    	}
+    	
+    	return array($docClassId, $docId);
     }
     
     
@@ -486,7 +487,7 @@ class acc_Journal extends core_Master
         while($rec = $query->fetch()){
             try{
                 $document = new core_ObjectReference($rec->docType, $rec->docId);
-            } catch(Exception $e){
+            } catch(core_exception_Expect $e){
                 continue;
             }
             
@@ -570,6 +571,11 @@ class acc_Journal extends core_Master
     {
         // Всяко афектирано перо, задейства ивент в мениджъра си
         if(count($mvc->affectedItems)){
+        	
+        	// Увеличаваме времето за изпълнение според броя афектирани пера
+        	$timeLimit = count($mvc->affectedItems) * 10;
+        	core_App::setTimeLimit($timeLimit);
+        	
             foreach ($mvc->affectedItems as $rec) {
                 acc_Items::notifyObject($rec);
             }
@@ -577,6 +583,11 @@ class acc_Journal extends core_Master
         
         // Ъпдейтваме информацията за журнала, ако е отбелязан че са му променени детайлите
         if(count($mvc->updated)){
+        	
+        	// Увеличаваме времето за изпълнение спрямо броя променените записи
+        	$timeLimit = count($mvc->updated) * 15;
+        	core_App::setTimeLimit($timeLimit);
+        	
             foreach ($mvc->updated as $journalId){
                 $rec = $mvc->fetchRec($journalId);
                 $mvc->updateMaster($rec);

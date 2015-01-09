@@ -308,7 +308,8 @@ class pos_Reports extends core_Master {
     	if($detail->rows){
     		 $start = $Pager->rangeStart;
     		 $end = $Pager->rangeEnd - 1;
-    		 for($i = 0; $i < count($detail->rows); $i++){
+             $rowsCnt = count($detail->rows);
+    		 for($i = 0; $i < $rowsCnt; $i++){
     		 	if($i >= $start && $i <= $end){
     		 		$keys = array_keys($detail->rows);
     		 		$newRows[] = $this->getVerbalDetail($detail->rows[$keys[$i]]);

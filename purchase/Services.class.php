@@ -143,6 +143,7 @@ class purchase_Services extends deals_ServiceMaster
     public function description()
     {
         parent::setServiceFields($this);
+        $this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Център на дейност,mandatory,after=locationId');
     }
      
      
@@ -172,13 +173,24 @@ class purchase_Services extends deals_ServiceMaster
     
     
     /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$dealInfo = static::getOrigin($data->form->rec)->getAggregateDealInfo();
+    	$data->form->dealInfo = $dealInfo;
+    	$data->form->setDefault('activityCenterId', $dealInfo->get('activityCenterId'));
+    }
+    
+    
+    /**
      * След изпращане на формата
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
-    		$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
+    		$dealInfo = $form->dealInfo;
     		$operations = $dealInfo->get('allowedShipmentOperations');
     		$operation = $operations[$mvc::$defOperationSysId];
     		

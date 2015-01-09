@@ -13,3 +13,5 @@
 400,"Сделки","deals_DealsAccRegIntf","deals","no"
 501,"Каси","cash_CaseAccRegIntf","case","no"
 503,"Банкови сметки","bank_OwnAccRegIntf","bankAcc","no"
+610,"Центрове на дейност","hr_DepartmentAccRegIntf","departments","no"
+611,"Ресурси","mp_ResourceAccRegIntf","resources","yes"

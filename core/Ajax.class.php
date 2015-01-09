@@ -42,6 +42,9 @@ class core_Ajax extends core_Mvc
         // Времето на извикване на страницата
         $hitTime = Request::get('hitTime', 'int');
         
+        // Уникално ID на хита
+        $hitId = Request::get('hitId');
+        
         // Времето на извикване на страницата
         $idleTime = Request::get('idleTime', 'int');
         
@@ -68,7 +71,8 @@ class core_Ajax extends core_Mvc
                 					'hitTime' => TRUE,
                 					'ajax_mode' => TRUE,
                 					'refreshUrl' => TRUE,
-                					'divId' => TRUE));
+                					'divId' => TRUE,
+                					'hitId' => TRUE));
         
         // Обхождаме всички подадедени локални URL-та
         foreach ((array)$subscribedArr as $name=>$url) {
@@ -89,6 +93,11 @@ class core_Ajax extends core_Mvc
                 $urlArr['hitTime'] = $hitTime;
             }
             
+            // Добавяме уникалното ID на хита
+            if ($hitId) {
+                $urlArr['hitId'] = $hitId;
+            }
+            
             // Да се добави в URL-то
             $urlArr['idleTime'] = $idleTime;
             
@@ -99,7 +108,7 @@ class core_Ajax extends core_Mvc
                 // Извикваме URL-то
                 $resArr = Request::forward($urlArr);
                 
-            } catch (Exception $e) {
+            } catch (core_exception_Expect $e) {
                 
                 // Записваме в лога
                 core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url} - {$e->getMessage()}", self::$logKeepDays);
@@ -219,7 +228,12 @@ class core_Ajax extends core_Mvc
         
         // Задаваме УРЛ-то
         $tpl->appendOnce("\n runOnLoad(function(){getEfae().setParentUrl('{$parentUrl}');});", 'SCRIPTS');
-            
+        
+        // Ако има hitId сетваме стойността на променливата
+        if ($hitId = Request::get('hit_id')) {
+            $tpl->appendOnce("\n runOnLoad(function(){getEfae().setHitId('{$hitId}');});", 'SCRIPTS');
+        }
+        
         // Стартираме извикването на `run` фунцкцията на efae
         jquery_Jquery::run($tpl, "\n getEfae().run();", TRUE);
         jquery_Jquery::run($tpl, "\n getEO().runIdleTimer();", TRUE);

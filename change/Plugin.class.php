@@ -56,7 +56,7 @@ class change_Plugin extends core_Plugin
             );
             
             // Добавяме бутона за промяна
-            $data->toolbar->addBtn('Промяна', $changeUrl, 'id=conto,order=20', 'ef_icon = img/16/to_do_list.png');    
+            $data->toolbar->addBtn('Промяна', $changeUrl, array('id'=>'conto','order'=>'20', 'ef_icon'=>'img/16/to_do_list.png', 'title'=>'Промяна на документа'));    
         }
     }
     
@@ -276,7 +276,7 @@ class change_Plugin extends core_Plugin
                     $form->title .= " на|*: <i>{$title}</i>";
                 }
             }
-        } catch (Exception $e) {}
+        } catch (core_exception_Expect $e) {}
         
         // Ако има избрана версия
         if ($versionKey) {

@@ -120,9 +120,6 @@ class plg_Chart extends core_Plugin
         );
         
         $data->chartTypes = $chartTypes;
-        
-        //bp($data->chartColumns);
-    
     }
     
     
@@ -263,7 +260,7 @@ class plg_Chart extends core_Plugin
             // $title->prepend("<div style='float:left;'>");
             // $title->append("</div>");
             
-            $title->append('<div style="margin-top:5px;margin-bottom:5px;font-size:0.80em;font-family:arial;" id="chartMenu">', 'ListSummary');
+            $title->append('<div style="margin-top:5px;margin-bottom:15px;font-size:0.80em;font-family:arial;" id="chartMenu">', 'ListSummary');
             
             $chartType = Request::get('Chart');
             

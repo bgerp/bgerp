@@ -16,25 +16,25 @@ defIfNot('TREMOL_BASE_GROUP_WITH_VAT', 'B');
 /**
  * Дефолт група за артикули с ддс
  */
-defIfNot('TREMOL_GROUP_A', 1);
+defIfNot('TREMOL_GROUP_A', 0);
 
 
 /**
  * Дефолт група за артикули с ддс
  */
-defIfNot('TREMOL_GROUP_B', 2);
+defIfNot('TREMOL_GROUP_B', 1);
 
 
 /**
  * Дефолт група за артикули с ддс
  */
-defIfNot('TREMOL_GROUP_V', 3);
+defIfNot('TREMOL_GROUP_V', 2);
 
 
 /**
  * Дефолт група за артикули с ддс
  */
-defIfNot('TREMOL_GROUP_G', 4);
+defIfNot('TREMOL_GROUP_G', 3);
 
 
 /**

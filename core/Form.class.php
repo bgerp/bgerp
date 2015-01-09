@@ -133,6 +133,15 @@ class core_Form extends core_FieldSet
             list($this->cmd) = explode('|', $cmd);
         }
         
+        // Ако има функции за викане за генериране на опции
+        $optionsFunc = $this->selectFields("#optionsFunc");
+        if ($optionsFunc) {
+            
+            foreach ($optionsFunc as $name => $field) {
+                $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
+            }
+        }
+        
         // Ако не е тихо въвеждане и нямаме тихо въвеждане, 
         // връщаме въведено към момента
         if((!$this->cmd) && !$silent) return $this->rec;
@@ -257,6 +266,15 @@ class core_Form extends core_FieldSet
             $fields = $this->selectFields("#silent == 'silent'");
         } else {
             $fields = $this->selectFields("#input != 'none'");
+        }
+        
+        // Ако има функции за викане за генериране на опции
+        $optionsFunc = $this->selectFields("#optionsFunc");
+        if ($optionsFunc) {
+            
+            foreach ($optionsFunc as $name => $field) {
+                $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
+            }
         }
         
         if (!count($fields)) return FALSE;
@@ -561,15 +579,31 @@ class core_Form extends core_FieldSet
             }
             
             uasort($fields, array($this, 'cmpFormOrder'));
+
+            $vars = $this->prepareVars($this->renderVars);
+
+            if(Mode::is('staticFormView')) {
+                foreach($fields as $name => $field) {
+                    if(!isset($vars[$name])) {
+                        unset($fields[$name]);
+                    }
+                }
+            }
             
             $fieldsLayout = $this->renderFieldsLayout($fields);
             
-            $vars = $this->prepareVars($this->renderVars);
             
             // Създаваме input - елементите
-            foreach ($fields as $name => $field) {
+            foreach($fields as $name => $field) {
                 
                 expect($field->kind, $name, 'Липсващо поле');
+
+                if(Mode::is('staticFormView')) {
+                    $value = $field->type->toVerbal($vars[$name]);
+                    $attr = array('class' => 'formFieldValue');
+                    $value = ht::createelement('div', $attr, $value);
+                    $fieldsLayout->replace($value, $name);
+                }
 
                 if(strtolower($field->autocomplete) == 'off') {
                     $this->formAttr['autocomplete'] = 'off';
@@ -675,10 +709,15 @@ class core_Form extends core_FieldSet
                 
                 $fieldsLayout->replace($input, $name);
             }
-        }
+        } 
         
-        if ($idForFocus) {
-          	$fieldsLayout->appendOnce("\n runOnLoad(function(){document.getElementById('{$idForFocus}').focus();});", 'JQRUN');
+        if(Mode::is('staticFormView')) {
+            $fieldsLayout->prepend("<div class='staticFormView'>");
+            $fieldsLayout->append("</div>");        
+        } else {
+            if ($idForFocus) {
+                $fieldsLayout->appendOnce("\n runOnLoad(function(){document.getElementById('{$idForFocus}').focus();});", 'JQRUN');
+            }
         }
         
         return $fieldsLayout;
@@ -771,7 +810,7 @@ class core_Form extends core_FieldSet
     
     
     /**
-     * @todo Чака за документация...
+     * Подготвя масива със стойностите на полетата
      */
     function prepareVars($params)
     {
@@ -894,6 +933,19 @@ class core_Form extends core_FieldSet
     
     
     /**
+     * Рендира формата като статичен html
+     */
+    public function renderStaticHtml($fields = NULL, $vars = NULL)
+    {
+    	Mode::push('staticFormView', TRUE);
+    	$html = $this->renderHtml($fields, $vars);
+    	Mode::pop();
+    	
+    	return $html;
+    }
+    
+    
+    /**
      * Рендира формата
      */
     function renderHtml_($fields = NULL, $vars = NULL)
@@ -1004,7 +1056,7 @@ class core_Form extends core_FieldSet
     function setDefault($var, $value)
     {
         expect($var, '$var не може да бъде празно');
-        if(!$this->rec->{$var}) {
+        if(!isset($this->rec->{$var})) {
             $this->rec->{$var} = $value;
         }
     }

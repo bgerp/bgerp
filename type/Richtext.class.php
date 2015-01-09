@@ -99,7 +99,7 @@ class type_Richtext extends type_Blob
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $tpl = new ET("<span class='richEdit'>[#TEXTAREA#]<div class='richedit-toolbar {$attr['errorClass']}'>[#TBL_GROUP1#][#TBL_GROUP2#][#TBL_GROUP3#]</div></span>");
+        $tpl = new ET("<div class='richEdit'>[#TEXTAREA#]<div class='richedit-toolbar {$attr['errorClass']}'>[#TBL_GROUP1#][#TBL_GROUP2#][#TBL_GROUP3#]</div></div>");
         
         if(Mode::is('screenMode', 'narrow')) {
             setIfNot($attr['rows'], $this->params['rows'], 7);
@@ -230,6 +230,9 @@ class type_Richtext extends type_Blob
         // Намаляме стойността за да не гърми по-лош начин
         ini_set('pcre.recursion_limit', '16777');
         
+        // Заместваме й с ѝ
+        $html = preg_replace('/(\ )(й)([\ \.\,\?\!]){1}/u', '${1}ѝ${3}', $html);
+        
         // Обработваме [html] ... [/html] елементите, които могат да съдържат чист HTML код
         $html = preg_replace_callback("/\[html](.*?)\[\/html\]([\r\n]{0,2})/is", array($this, '_catchHtml'), $html);
         
@@ -335,8 +338,8 @@ class type_Richtext extends type_Blob
             // Заменяме обикновените интервали в началото на всеки ред, с непрекъсваеми такива
             $newLine = TRUE;
             $sp = "";
-          
-            for($i = 0; $i<strlen($html); $i++) {
+            $htmlLen = strlen($html);
+            for($i = 0; $i < $htmlLen; $i++) {
                 
                 $c = substr($html, $i, 1);
                 
@@ -460,41 +463,46 @@ class type_Richtext extends type_Blob
      * Функция за заместване на [li] елементите
      */
     static function replaceList($text)
-    { 
+    {
         $lines = explode("\n", $text);
         $lines[] = '';
         
         $state = array();
         
-        for($i = 0; $i < count($lines); $i++) {
+        $linesCnt = count($lines);
+        
+        for($i = 0; $i < $linesCnt; $i++) {
 
             $l = $lines[$i];
 
             $type = '';
             $level = 0;
-            if(preg_match("/^( *)(\[li\]|\* |[1-9][0-9]*[\.]{1})(.+)/i", $l, $matches) ) {
+            if($matches = self::getListMatches($l)) {
 
-                $indent = mb_strlen($l, 'UTF8') - mb_strlen(ltrim($matches[3]), 'UTF8');  
+                $indent = mb_strlen($l, 'UTF8') - mb_strlen(ltrim($matches['text']), 'UTF8');  
                  while(isset($lines[$i+1]) && (($indent == (mb_strlen($lines[$i+1]) - mb_strlen(ltrim($lines[$i+1], ' ')))) || (trim($lines[$i+1]) == '<br>'))) {
-
+                    
                     if(trim($lines[$i+1]) == '<br>') {
-                        $matches[3] .= "<br>" . "<span style='height:5px; display:block;'></span>";
+                        $matches['text'] .= "<br>" . "<span style='height:5px; display:block;'></span>";
                     } else {
-                        $matches[3] .= ltrim($lines[$i+1]);
+                        
+                        // Ако следващият ред е друго 'li'
+                        if (self::getListMatches($lines[$i+1])) break;
+                        $matches['text'] .= ltrim($lines[$i+1]);
                     }
                     $i++;
                  }
 
-                $level = round((strlen($matches[1]))/2);
+                $level = round((strlen($matches['begin']))/2);
                 $level = max($level, 1);
                                 // 1,2,3,4,
-                if(is_numeric($matches[2]{0})) {
+                if ($matches['list']{0} == '%') {
                     $type = 'ol';
                 } else {
                     $type = 'ul';
                 }
 
-                $l = "<li> " . $matches[3] . "</li>";            
+                $l = "<li> " . $matches['text'] . "</li>";
             }
 
             while(($oldLevel = count($state)) < $level) {
@@ -527,11 +535,41 @@ class type_Richtext extends type_Blob
 
             $debug[] = array($l, $state, $level, $oldLevel);
         }
-
+        
         return $res;
     }
-
-
+    
+    
+    /**
+     * Връща резултата от регулярния израз
+     * 
+     * @param string $line
+     * 
+     * @return array
+     */
+    protected static function getListMatches($line)
+    {
+        static $matchedLinesArr = array();
+        
+        $hash = md5($line);
+        
+        if (isset($matchedLinesArr[$hash])) return $matchedLinesArr[$hash];
+        
+        $pattern = "/^(?'begin'\ *)(?'list'\[li\]|\*\ |%\.)(?'text'.+)/i";
+        
+        preg_match($pattern, $line, $matches);
+            
+        $matchedLinesArr[$hash] = $matches;
+        
+        return $matchedLinesArr[$hash];
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $html
+     */
     function replaceTags($html)
     {
         // Уникод UTF-8 символ за неприкъсваем интервал
@@ -540,12 +578,12 @@ class type_Richtext extends type_Blob
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         $from = array("\r\n", "\n\r", "\r", "\n", "\t", $nbspUtf8, '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', 
             
-        '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
+        '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[s]', '[/s]',); 
          
         $textMode = Mode::get('text');
         
         if($textMode != 'plain') { 
-            $to = array("\n", "\n", "\n", "<br>\n", "<nbsp><nbsp><nbsp><nbsp>", '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>' , '<div class="richtext-message richtext-tip">', '</div>' , '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>',);
+            $to = array("\n", "\n", "\n", "<br>\n", "<nbsp><nbsp><nbsp><nbsp>", '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>' , '<div class="richtext-message richtext-tip">', '</div>' , '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>', '<span style="color: #666; text-decoration: line-through">', '</span>');
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } elseif(Mode::is('ClearFormat')) {
            $to   = array("\n",   "\n",   "\n",  "\n", "    ", $nbspUtf8, '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
@@ -725,7 +763,7 @@ class type_Richtext extends type_Blob
     {
         // Мястото
         $place = $this->getPlace();
-        //bp($match);
+
         // Цитата
         $quote = trim($match[3]);
         
@@ -1252,10 +1290,11 @@ class type_Richtext extends type_Blob
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:red' title='" . tr('Червени букви') .  "' onclick=\"s('[color=red]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:green' title='" . tr('Зелени букви') .  "' onclick=\"s('[color=green]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:#888' title='" . tr('Сиви букви') .  "' onclick=\"s('[color=#888]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+    		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; text-decoration: line-through; color:#666' title='" . tr('Сиви задраскани букви ') .  "' onclick=\"s('[s]', '[/s]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
     		$toolbarArr->add("</span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             
-            $toolbarArr->add("<span class='richtext-relative-group' style='text-align:center;'>", 'TBL_GROUP2');
+            $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
             $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='" . tr('Цвят на фона') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group3', event)\"><span style=' background: yellow;'>A</span></a>", 'TBL_GROUP2');
             $emot3 = 'richtext-holder-group-after';
             $toolbarArr->add("<span id='{$attr['id']}-group3' class='richtext-emoticons3 richtext-holder-group {$emot3}'>", 'TBL_GROUP2');

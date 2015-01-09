@@ -197,7 +197,7 @@ class webkittopdf_Converter extends core_Manager
             
             // Качваме файла в кофата и му вземаме манипулатора
             $fh = $Fileman->addNewFile($pdfPath, $bucketName, $fileName); 
-        } catch (Exception $e) {}
+        } catch (core_exception_Expect $e) {}
         
         //Изтриваме временната директория заедно с всички създадени папки
         core_Os::deleteDir($tempPath);

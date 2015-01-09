@@ -22,7 +22,7 @@ class bgerp_BaseImporter extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Стандартен импорт";
+    var $title = "CSV импорт";
     
     /*
      * Имплементация на bgerp_ImportIntf

@@ -62,17 +62,18 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
     	$mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
     	$mvc->FLD('contragentId', 'int', 'input=hidden');
-    	$mvc->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory, class=contactData, export=Csv');
-    	$mvc->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
-    	$mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
-    	$mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo, export=Csv');
-    	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Получател->Национален №,contragentDataField=uicId, export=Csv');
-    	$mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode,contragentDataField=pCode');
-    	$mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData,contragentDataField=place');
-    	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
+    	$mvc->FLD('contragentName', 'varchar', 'caption=Контрагент->Име, mandatory, class=contactData, export=Csv');
+    	$mvc->FLD('responsible', 'varchar(255)', 'caption=Контрагент->Отговорник, class=contactData');
+    	$mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId');
+    	$mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Контрагент->VAT №,contragentDataField=vatNo, export=Csv');
+    	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId, export=Csv');
+    	$mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode');
+    	$mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place');
+    	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
     	$mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
     	$mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
-    	$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Начин, export=Csv');
+    	$mvc->FLD('paymentType', 'enum(cash=В брой,bank=По банка)', 'mandatory,caption=Плащане->Начин');
+    	$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Метод, export=Csv');
     	$mvc->FLD('dueDate', 'date', 'caption=Плащане->Краен срок');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden');
@@ -89,29 +90,30 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$fType = $mvc->getFieldType('paymentType');
+    	$fType->options = array('' => '') + $fType->options;
+    }
+    
+    
+    /**
      *  Подготовка на филтър формата
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
     	
-    	if($mvc->getField('type', FALSE)){
-    		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
-    		$data->listFilter->showFields .= ',invType';
-    	}
-    	
     	$data->listFilter->showFields .= ',invState';
     	$data->listFilter->input();
     	$data->listFilter->setDefault('invState', 'all');
     	
     	if($rec = $data->listFilter->rec){
-    		
-    		// Филтър по тип на фактурата
-    		if($rec->invType){
-    			if($rec->invType != 'all'){
-    				$data->query->where("#type = '{$rec->invType}'");
-    			}
-    		}
     		
     		// Филтър по състояние
     		if($rec->invState){
@@ -120,7 +122,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
-    	
     }
     
     
@@ -318,9 +319,12 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	 
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
-    
-    		if($mvc->haveRightFor('add', (object)array('type' => 'debit_note')) && $mvc->canAddToThread($rec->threadId)){
+    		if($mvc->haveRightFor('add', (object)array('type' => 'debit_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
     			$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note', 'ret_url' => TRUE), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно известие');
+    			
+    		}
+    		
+    		if($mvc->haveRightFor('add', (object)array('type' => 'credit_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
     			$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note', 'ret_url' => TRUE), 'ef_icon=img/16/layout_split_vertical.png,title=Кредитно известие');
     		}
     	}
@@ -339,12 +343,12 @@ abstract class deals_InvoiceMaster extends core_Master
     	// Трябва фактурата основание да не е ДИ или КИ
     	expect($invArr['type'] == 'invoice');
     	
-    	$number = $origin->instance->recToVerbal((object)$invArr)->number;
+    	$number = $origin->getInstance()->recToVerbal((object)$invArr)->number;
     	 
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
     	$invArr['reason'] = tr("|{$caption} към фактура|* №{$number} |издадена на|* {$invDate}");
     
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate') as $key){
     		unset($invArr[$key]);
     	}
     
@@ -657,7 +661,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$className = doc_Folders::fetchCoverClassName($form->rec->folderId);
     	if($className == 'crm_Persons'){
     		$numType = 'bglocal_EgnType';
-    		$form->setField('uicNo', 'caption=Получател->ЕГН');
+    		$form->setField('uicNo', 'caption=Контрагент->ЕГН');
     		$form->getField('uicNo')->type = cls::get($numType);
     	}
     
@@ -685,8 +689,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		 
     		$form->rec->deliveryId = $aggregateInfo->get('deliveryTerm');
     		if($aggregateInfo->get('deliveryLocation')){
-    			$form->rec->deliveryPlaceId = $aggregateInfo->get('deliveryLocation');
-    			$form->setField('deliveryPlaceId', 'input=hidden');
+    			$form->setDefault('deliveryPlaceId', $aggregateInfo->get('deliveryLocation'));
     		}
     		
     		// Извлича се платежния план

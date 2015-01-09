@@ -545,11 +545,11 @@ class acc_Accounts extends core_Manager
     /**
      * Извлича масив с индекс ид на сметка и стойност - номер на съответната сметка, както и обратния му
      */
-    private function fetchIdToNumMap()
+    private static function fetchIdToNumMap()
     {
         self::$idToNumMap = array();
         
-        $query = $this->getQuery();
+        $query = self::getQuery();
         
         while ($r = $query->fetch()) {
             self::$idToNumMap[$r->id] = $r->num;
@@ -565,14 +565,15 @@ class acc_Accounts extends core_Manager
      * @param int $id ид на сметка
      * @return string номер на сметка
      */
-    function getNumById($id)
+    public static function getNumById($id)
     {
         if (!isset(self::$idToNumMap)) {
-            $this->fetchIdToNumMap();
+            self::fetchIdToNumMap();
         }
         
         if (!isset(self::$idToNumMap[$id])) {
-            return false;
+
+            return FALSE;
         }
         
         return self::$idToNumMap[$id];

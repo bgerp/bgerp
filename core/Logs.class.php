@@ -221,7 +221,7 @@ class core_Logs extends core_Manager
         $rec->controller = "{$mvc->className}";
         $rec->action = 'DeleteOldRecords';
         $rec->period = 24 * 60;
-        $rec->offset = 12 * 60;
+        $rec->offset = rand(1320, 1439); // ot 22h до 24h
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);

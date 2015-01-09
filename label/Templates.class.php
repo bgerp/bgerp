@@ -96,13 +96,13 @@ class label_Templates extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Search, plg_Rejected';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Search, plg_Rejected, plg_Clone, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'title, template=Шаблон, createdOn, createdBy';
+    var $listFields = 'title, sizes, template=Шаблон, createdOn, createdBy';
     
     
     /**
@@ -135,6 +135,7 @@ class label_Templates extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
+        $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
         $this->FLD('template', 'html', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
     }
@@ -158,6 +159,20 @@ class label_Templates extends core_Master
     
     
     /**
+     * Връща всички медии, които отговарят на размерите на медията на шаблона
+     * 
+     * @param integer $id
+     */
+    public static function getMediaForTemplate($id)
+    {
+        $sizes = self::fetchField($id, 'sizes');
+        $mediaArr = label_Media::getMediaArrFromSizes($sizes);
+        
+        return $mediaArr;
+    }
+    
+    
+    /**
      * Връща шаблона
      * 
      * @param integer $id - id на записа
@@ -176,9 +191,26 @@ class label_Templates extends core_Master
         $rec = self::fetch($id);
         
         // Вкарваме CSS-а, като инлай в шаблона
-        $tplArr[$id] = new ET($rec->template);
+        $tplArr[$id] = $rec->template;
         
         return $tplArr[$id];
+    }
+    
+    
+    /**
+     * Връща плейсхолдерите на стринга
+     * 
+     * @param string $content
+     * 
+     * @return array
+     */
+    public static function getPlaceholders($content)
+    {
+        preg_match_all('/\[#([\wа-я]{1,})#\]/ui', $content, $matches);
+        
+        $placesArr = arr::make($matches[1], TRUE);
+        
+        return $placesArr;
     }
     
     
@@ -191,7 +223,7 @@ class label_Templates extends core_Master
     public static function addCssToTemplate($id, $template=NULL)
     {
         // Масив с шаблоните
-        static $tplArrCss = array();
+        static $templateArrCss = array();
         
         if (!$template) {
             $template = self::getTemplate($id);
@@ -201,24 +233,15 @@ class label_Templates extends core_Master
         $hash = md5($template);
         
         // Ако преди е бил извлечен
-        if ($tplArrCss[$hash]) return $tplArrCss[$hash];
+        if ($templateArrCss[$hash]) return $templateArrCss[$hash];
         
         // Вземаме записа
         $rec = self::fetch($id);
         
-        // Вземаме съдържанието
-        $content = $template->getContent();
-        
         // Вкарваме CSS-а, като инлайн
-        $contentWithCss = self::templateWithInlineCSS($content, $rec->css);
+        $templateArrCss[$hash] = self::templateWithInlineCSS($template, $rec->css);
         
-        // Задаваме новото съдържание
-        $template->setContent($contentWithCss);
-        
-        // Вкарваме CSS-а, като инлай в шаблона
-        $tplArrCss[$hash] = $template;
-        
-        return $tplArrCss[$hash];
+        return $templateArrCss[$hash];
     }
     
     
@@ -233,7 +256,7 @@ class label_Templates extends core_Master
     static function isPlaceExistInTemplate($id, $placeHolder)
     {
         // Вземаме шаблона
-        $tpl = self::getTemplate($id);
+        $template = self::getTemplate($id);
         
         // Масив с шаблоните
         static $placesArr = array();
@@ -242,7 +265,7 @@ class label_Templates extends core_Master
         if (!$placesArr[$id]) {
             
             // Масив с плейсхолдерите
-            $placesArrAll = $tpl->getPlaceHolders();
+            $placesArrAll = self::getPlaceHolders($template);
             
             // Ключовете и стойностите да са равни
             $placesArr[$id] = arr::make($placesArrAll, TRUE);
@@ -370,6 +393,60 @@ class label_Templates extends core_Master
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Добавяме всички възжможни избори за медия
+        $sizesArr = label_Media::getAllSizes();
+        $sizesArr = array('' => '') + $sizesArr;
+        $data->form->setSuggestions('sizes', $sizesArr);
+    }
+    
+    
+    /**
+     * Замества плейсхолдерите с тяхната стойност
+     * 
+     * @param string $string
+     * @param array $placeArr
+     * 
+     * @return string
+     */
+    public static function placeArray($string, $placeArr)
+    {
+        if (!$string || !$placeArr) return $string;
+        
+        $nArr = array();
+        
+        foreach ((array)$placeArr as $key => $val) {
+            $key = self::toPlaceholder($key);
+            $nArr[$key] = $val;
+        }
+        
+        $replacedStr = strtr($string, $nArr);
+        
+        return $replacedStr;
+    }
+    
+    
+    /**
+     * Връща плейсхолдера от стринга
+     * 
+     * @param string $str
+     * 
+     * @return string
+     */
+    public static function toPlaceholder($str)
+    {
+        
+        return "[#{$str}#]";
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param label_Labels $mvc
@@ -406,6 +483,13 @@ class label_Templates extends core_Master
             }
         }
         
+        // Ако ще се клонира, трябва да има права за добавяне
+        if ($action == 'cloneuserdata') {
+            if (!$mvc->haveRightFor('add', $rec, $userId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
         // Ако ще добавяме нов етикет
         if ($action == 'createlabel') {
             
@@ -414,6 +498,52 @@ class label_Templates extends core_Master
                 
                 // Никой да не може да създава
                 $requiredRoles = 'no_one';
+            }
+        }
+    }
+    
+    
+    /**
+     * Премахваме някои полета преди да клонираме
+     * @see plg_Clone
+     * 
+     * @param label_Labels $mvc
+     * @param object $rec
+     * @param object $nRec
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+        unset($nRec->state);
+        unset($nRec->exState);
+        unset($nRec->lastUsedOn);
+        unset($nRec->searchKeywords);
+        unset($nRec->createdOn);
+        unset($nRec->createdBy);
+    }
+    
+    
+    /**
+     * Премахваме някои полета преди да клонираме
+     * @see plg_Clone
+     * @todo да се премахне след като се добави тази функционалността в плъгина
+     * 
+     * @param label_Labels $mvc
+     * @param object $rec
+     * @param object $nRec
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        // Клонира и детайлите след клониране на мастера
+        $detailsArr = arr::make($mvc->details);
+        foreach ($detailsArr as $detail) {
+            $detailInst = cls::get($detail);
+            $query = $detailInst->getQuery();
+            $masterKey = $mvc->{$detail}->masterKey;
+            $query->where("#{$masterKey} = {$rec->id}");
+            while($dRec = $query->fetch()) {
+                unset($dRec->id);
+                $dRec->{$masterKey} = $nRec->id;
+                $detailInst->save($dRec);
             }
         }
     }

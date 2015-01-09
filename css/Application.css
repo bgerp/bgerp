@@ -89,6 +89,18 @@ tr.noHover td:hover {
   padding-left: 0.2em;
   padding-top: 0.2em; }
 
+.bugReport {
+  border: none;
+  background-color: transparent;
+  vertical-align: middle; }
+
+.narrow .bugReport {
+  position: relative;
+  top: -2px;
+  width: 16px;
+  height: 16px;
+  padding: 0; }
+
 .narrow #framecontentBottom {
   padding: 2px 5px 0 5px; }
 
@@ -263,7 +275,7 @@ a.menuItem:focus {
 div.folder-cover {
   background-image: url('../img/cover-bg.png');
   display: inline-block;
-  max-width: 750px;
+  max-width: 720px;
   margin-top: 10px;
   line-height: 1.2em;
   position: relative;
@@ -285,6 +297,8 @@ div.folder-cover {
   div.folder-cover .groupList {
     font-size: 0.95em;
     max-width: 725px; }
+    div.folder-cover .groupList .listTopContainer {
+      min-width: 300px; }
     div.folder-cover .groupList div.rowtools {
       display: inline-block;
       width: auto;
@@ -353,7 +367,7 @@ div.folder-cover {
   line-height: 1.3em;
   margin-left: 0;
   margin-top: 8px;
-  max-width: 750px;
+  max-width: 720px;
   font-size: 0.9em;
   padding: 10px 10px 12px 10px; }
   .narrow .folder-cover .block_title img {
@@ -386,7 +400,7 @@ div.folder-cover {
  * потребителски профил
  */
 .user-profile {
-  max-width: 860px;
+  max-width: 760px;
   border: 1px solid #cccccc;
   border-radius: 5px;
   background: #eeeeee;
@@ -771,10 +785,11 @@ div.acc-detail {
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
   border-radius: 5px;
-  background-color: white; }
+  background-color: white;
+  position: relative; }
   .portal .legend {
     position: absolute;
-    margin-top: -35px;
+    top: -16px;
     margin-left: 10px;
     z-index: 100;
     line-height: 20px;
@@ -1008,6 +1023,9 @@ td.portal-date {
 
 .wide .document table.listTable {
   margin-bottom: 0; }
+
+.wide .singleView .listTable {
+  width: 100%; }
 
 pre.document {
   white-space: pre-line; }
@@ -1584,7 +1602,6 @@ span.sharing-history-title {
   padding: 0; }
 
 .narrow .background-holder {
-  padding: 10px 0 0;
   background-color: black; }
 
 #cmsTop {
@@ -2142,12 +2159,14 @@ span.sharing-history-title {
 .narrow-scroll div.alphabet  div.tab-row {
   width: 100%; }
 
-.narrow-scroll .listRows {
+.narrow-scroll .listRows,
+.narrow-scroll .listRowsDetail {
   width: 100% !important;
   overflow-y: auto !important;
   _overflow: auto !important; }
 
-.narrow-scroll .single-thread .listRows {
+.narrow-scroll .single-thread .listRows,
+.narrow-scroll .single-thread .listRowsDetail {
   overflow: visible !important;
   _overflow: visible !important;
   width: auto !important; }
@@ -2293,7 +2312,7 @@ table.styled-table tr:hover td {
  * стилове за локации
  */
 div.location {
-  max-width: 750px;
+  max-width: 720px;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
@@ -2417,6 +2436,9 @@ div.location.public {
 /*
  * шаблон за журнал
  */
+.closePeriod .listTable tr > th:first-child {
+  width: auto; }
+
 .btn-group .button {
   display: inline-block;
   width: auto !important; }
@@ -2894,11 +2916,18 @@ only screen and (min-width: 1240px) {
     padding: 10px 0; }
 
   #all,
-  #cmsTop,
-  #headerImg {
+  #cmsTop {
     -moz-border-radius: 10px 10px 0 0;
     -webkit-border-radius: 10px 10px 0 0;
-    border-radius: 10px 10px 0 0; } }
+    border-radius: 10px 10px 0 0; }
+
+  .wide #headerImg {
+    -moz-border-radius: 10px 0 0 0;
+    -webkit-border-radius: 10px 0 0 0;
+    border-radius: 10px 0 0 0; }
+
+  .wide .listBlock .listRows > table.listTable {
+    min-width: 760px; } }
 
 @media handheld,
 only screen and (min-width: 1550px) {
@@ -3124,17 +3153,17 @@ only screen and (max-width: 600px) {
   #all .formGroup {
     font-size: 0.85em; }
 
-  .narrow .chzn-container,
-  .narrow .formFields input,
-  .narrow .formFields .richEdit,
-  .narrow .formFields select,
-  .narrow .formTitle {
+  .narrow .main-container .chzn-container,
+  .narrow .main-container .formFields input,
+  .narrow .main-container .formFields .richEdit,
+  .narrow .main-container .formFields select,
+  .narrow .main-container .formTitle {
     max-width: 558px; }
 
-  .narrow .chzn-container .chzn-drop {
+  .narrow .main-container .chzn-container .chzn-drop {
     max-width: 548px; }
 
-  .narrow .chzn-container-single .chzn-search input {
+  .narrow .main-container .chzn-container-single .chzn-search input {
     max-width: 538px; }
 
   #all h2 {
@@ -3157,17 +3186,17 @@ only screen and (max-width: 533px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  .narrow .chzn-container,
-  .narrow .formFields input,
-  .narrow .formFields .richEdit,
-  .narrow .formFields select,
-  .narrow .formTitle {
+  .narrow .main-container .chzn-container,
+  .narrow .main-container .formFields input,
+  .narrow .main-container .formFields .richEdit,
+  .narrow .main-container .formFields select,
+  .narrow .main-container .formTitle {
     max-width: 483px; }
 
-  .narrow .chzn-container .chzn-drop {
+  .narrow .main-container .chzn-container .chzn-drop {
     max-width: 481px; }
 
-  .narrow .chzn-container-single .chzn-search input {
+  .narrow .main-container .chzn-container-single .chzn-search input {
     max-width: 471px; }
 
   #all h2 {
@@ -3187,17 +3216,17 @@ only screen and (max-width: 500px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  .narrow .chzn-container,
-  .narrow .formFields input,
-  .narrow .formFields .richEdit,
-  .narrow .formFields select,
-  .narrow .formTitle {
+  .narrow .main-container .chzn-container,
+  .narrow .main-container .formFields input,
+  .narrow .main-container .formFields .richEdit,
+  .narrow .main-container .formFields select,
+  .narrow .main-container .formTitle {
     max-width: 458px; }
 
-  .narrow .chzn-container .chzn-drop {
+  .narrow .main-container .chzn-container .chzn-drop {
     max-width: 448px; }
 
-  .narrow .chzn-container-single .chzn-search input {
+  .narrow .main-container .chzn-container-single .chzn-search input {
     max-width: 438px; }
 
   #all h2 {
@@ -3220,17 +3249,17 @@ only screen and (max-width: 480px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  .narrow .chzn-container,
-  .narrow .formFields input,
-  .narrow .formFields .richEdit,
-  .narrow .formFields select,
-  .narrow .formTitle {
+  .narrow .main-container .chzn-container,
+  .narrow .main-container .formFields input,
+  .narrow .main-container .formFields .richEdit,
+  .narrow .main-container .formFields select,
+  .narrow .main-container .formTitle {
     max-width: 438px; }
 
-  .narrow .chzn-container .chzn-drop {
+  .narrow .main-container .chzn-container .chzn-drop {
     max-width: 428px; }
 
-  .narrow .chzn-container-single .chzn-search input {
+  .narrow .main-container .chzn-container-single .chzn-search input {
     max-width: 418px; }
 
   #all h2 {
@@ -3259,20 +3288,20 @@ only screen and (max-width: 360px) {
   #all .formGroup {
     font-size: 0.75em; }
 
-  .narrow .chzn-container,
-  .narrow .formFields input,
-  .narrow .formFields .richEdit,
-  .narrow .formFields select,
-  .narrow .formTitle {
+  .narrow .main-container .chzn-container,
+  .narrow .main-container .formFields input,
+  .narrow .main-container .formFields .richEdit,
+  .narrow .main-container .formFields select,
+  .narrow .main-container .formTitle {
     max-width: 318px; }
 
-  .narrow .chzn-container .chzn-drop {
+  .narrow .main-container .chzn-container .chzn-drop {
     max-width: 308px; }
 
-  .narrow .chzn-container-single .chzn-search input {
+  .narrow .main-container .chzn-container-single .chzn-search input {
     max-width: 298px; }
 
-  .narrow .formTable .keylist label {
+  .narrow .main-container .formTable .keylist label {
     max-width: 159px; }
 
   #all h2 {
@@ -3299,20 +3328,20 @@ only screen and (max-width: 320px) {
     margin-left: 0%;
     font-size: 0.9em; }
 
-  .narrow .chzn-container,
-  .narrow .formFields input,
-  .narrow .formFields .richEdit,
-  .narrow .formFields select,
-  .narrow .formTitle {
+  .narrow .main-container .chzn-container,
+  .narrow .main-container .formFields input,
+  .narrow .main-container .formFields .richEdit,
+  .narrow .main-container .formFields select,
+  .narrow .main-container .formTitle {
     max-width: 278px; }
 
-  .formFields textarea {
+  .formFields .main-container textarea {
     min-width: 278px; }
 
-  .narrow .chzn-container .chzn-drop {
+  .narrow .main-container .chzn-container .chzn-drop {
     max-width: 268px; }
 
-  .narrow .chzn-container-single .chzn-search input {
+  .narrow .main-container .chzn-container-single .chzn-search input {
     max-width: 258px; }
 
   #all h2 {
@@ -3620,6 +3649,9 @@ only screen and (max-width: 320px) {
     display: table-row !important; }
   .printing .footerDocBlock {
     display: block !important; }
+  .printing .#fancybox-left,
+  .printing #fancybox-right {
+    background-color: transparent !important; }
 
 .narrow .printing .document {
   width: 850px; }
@@ -3650,8 +3682,8 @@ only screen and (max-width: 320px) {
   float: right;
   padding: 7px;
   background: #eeeeee;
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  margin-bottom: 20px; }
+  margin-bottom: 20px;
+  color: #333333; }
 
 .narrow .summary-block {
   margin-top: 10px;
@@ -3662,7 +3694,7 @@ only screen and (max-width: 320px) {
   border-collapse: separate; }
 
 .summary-block b {
-  color: #004488; }
+  color: #333333; }
 
 .summary-block b#count {
   margin-left: 5px; }
@@ -3671,7 +3703,11 @@ only screen and (max-width: 320px) {
   padding: 3px; }
 
 .summary-block td.summary-cell {
-  padding-left: 15px; }
+  padding-left: 15px;
+  font-weight: bold; }
+
+.summary-block .border-top td {
+  border-top: 1px solid #cccccc; }
 
 .narrow .summary-block b#count {
   margin-left: 3px; }
@@ -3769,6 +3805,37 @@ only screen and (max-width: 320px) {
   position: relative;
   top: 3px;
   margin-right: 10px; }
+
+.listTable .label-holder {
+  width: 95% !important;
+  overflow-x: auto !important;
+  height: auto !important;
+  _overflow: auto !important; }
+
+.preview-label {
+  margin-top: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #dddddd;
+  border-radius: 5px;
+  box-shadow: 0 0 1px #aaaaaa;
+  display: inline-block;
+  position: relative; }
+  .preview-label .legend {
+    position: absolute;
+    left: 20px;
+    top: -15px;
+    display: inline-block;
+    border: 1px solid #dddddd;
+    box-shadow: 0 0 1px #bbbbbb;
+    background-color: white;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -ms-border-radius: 5px;
+    border-radius: 5px;
+    padding: 5px 10px; }
+  .preview-label > div {
+    width: auto !important;
+    height: auto !important; }
 
 .cd-l1 {
   color: green; }

@@ -20,12 +20,8 @@ class page_Html extends core_ET {
      */
     function page_Html() {
         
-        $bodyClass = Mode::is('screenMode', 'narrow') ? "narrow" : "wide";
-        
-        if(Mode::is('screenMode', 'narrow') && Mode::get("checkNativeSupport")){
-        	$bodyClass .= ' narrow-scroll';
-        }
-        
+        $bodyClass = Mode::is('screenMode', 'narrow') ? "narrow narrow-scroll" : "wide";
+
         $this->core_ET(
             "<!doctype html>" .
             

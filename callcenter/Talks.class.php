@@ -22,7 +22,7 @@ class callcenter_Talks extends core_Master
     
     
     /**
-     * 
+     * Наименование на единичния обект
      */
     var $singleTitle = 'Разговор';
     
@@ -141,31 +141,9 @@ class callcenter_Talks extends core_Master
         $this->FLD('answerTime', 'datetime(format=smartTime)', 'allowEmpty, caption=Време->Отговор');
         $this->FLD('endTime', 'datetime(format=smartTime)', 'allowEmpty, caption=Време->Край');
         $this->FLD('callType', 'type_Enum(incoming=Входящ, outgoing=Изходящ)', 'allowEmpty, caption=Тип на разговора, hint=Тип на обаждането');
-        
-        $this->FNC('duration', 'time', 'caption=Време->Продължителност');
+        $this->FLD('duration', 'time', 'caption=Време->Продължителност');
         
         $this->setDbUnique('uniqId');
-    }
-    
-    
-    /**
-     * 
-     */
-    function on_CalcDuration($mvc, &$rec) 
-    {
-        // Ако е отговорено и затворено
-        if ($rec->answerTime && $rec->endTime) {
-            
-            // Продължителност на разговора
-            $duration = dt::secsBetween($rec->endTime, $rec->answerTime);
-            
-            // Ако има
-            if ($duration && $duration > 0) {
-                
-                // Добавяме към записа
-                $rec->duration = $duration;
-            }
-        }
     }
     
     
@@ -694,9 +672,13 @@ class callcenter_Talks extends core_Master
                 $errArr[] = 'Не е подаден статус на обаждането';
             }
             
-            // Добавяме в rec
-            $rec->answerTime = $answerTime;
-            $rec->endTime = $endTime;
+            if (trim($answerTime)) {
+                $rec->answerTime = $answerTime;
+            }
+            
+            if (trim($endTime)) {
+                $rec->endTime = $endTime;
+            }
             
             // Ако не е бил зададен отпреди
             if (!isset($rec->dialStatus)) {
@@ -706,6 +688,9 @@ class callcenter_Talks extends core_Master
                 // Отбелязваме обаждането като пренасочено
                 $rec->dialStatus = 'REDIRECTED';
             }
+            
+            // Определяме продължителнността на разговоря
+            $rec->duration = self::getDuration($rec->answerTime, $rec->endTime);
             
             // Обновяваме записа
             $savedId = static::save($rec, NULL, 'UPDATE');
@@ -725,6 +710,31 @@ class callcenter_Talks extends core_Master
         
         // Връщаме
         return TRUE;
+    }
+    
+    
+    /**
+     * Връща продълбителността на разговора
+     * 
+     * @param datetime $answerTime
+     * @param datetime $endTime
+     * 
+     * @return NULL|integer
+     */
+    public static function getDuration($answerTime, $endTime)
+    {
+        $duration = NULL;
+        if ($answerTime && $endTime) {
+                
+            $dateTime = cls::get('type_Datetime');
+            $defVal = $dateTime->defVal();
+            
+            if (($answerTime != $defVal) && ($endTime != $defVal)) {
+                $duration = dt::secsBetween($endTime, $answerTime);
+            }
+        }
+        
+        return $duration;
     }
     
     
@@ -1143,7 +1153,11 @@ class callcenter_Talks extends core_Master
             if($filter->usersSearch) {
                 
     			// Ако се търси по всички и има права admin или ceo
-    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo'))) {
+    			if (strpos($filter->usersSearch, '|-1|') !== FALSE) {
+    			    
+    			    if (!(haveRole('ceo'))) {
+                        $data->query->where("1=2");
+    			    }
     			    // Търсим всичко
                 } else {
                     
@@ -1322,9 +1336,6 @@ class callcenter_Talks extends core_Master
     	// Премахваме празните блокове
 		$tpl->removeBlocks();
 		$tpl->append2master();
-    	
-		// Добавяме CSS
-		$tpl->push('callcenter/css/callSummary.css', 'CSS');
     }
     
     

@@ -90,7 +90,9 @@ class type_Blob extends core_Type {
         
         $res = new ET("<pre style='font-family:Courier New;'>[#ROWS#]</pre>");
         
-        for($i = 0; $i<$len / $rowLen; $i++) {
+        $rowsCnt = $len / $rowLen;
+
+        for($i = 0; $i < $rowsCnt; $i++) {
             $offcet = sprintf("%0{$offsetLen}X", $i * $rowLen);
             $str = ''; $hex = '';
             

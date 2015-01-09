@@ -255,7 +255,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
             
             // Качваме файла в кофата и му вземаме манипулатора
             $fileHnd = $Fileman->addNewFile($script->outFilePath, 'fileIndex');
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Създаваме запис в модела за грешка
             fileman_Indexes::createError($params);

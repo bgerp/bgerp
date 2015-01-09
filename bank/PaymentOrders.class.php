@@ -68,7 +68,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Pn";
+    var $abbr = "Bpо";
     
     
     /**
@@ -324,7 +324,7 @@ class bank_PaymentOrders extends core_Master
         $origin = doc_Containers::getDocument($originId);
         
         // Може да се поражда само от приходен или разходен банков документ
-        return $origin->instance instanceof  bank_IncomeDocuments || $origin->instance instanceof bank_SpendingDocuments;
+        return $origin->getInstance() instanceof  bank_IncomeDocuments || $origin->getInstance() instanceof bank_SpendingDocuments;
     }
     
     

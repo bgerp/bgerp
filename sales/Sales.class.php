@@ -19,7 +19,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Заглавие
      */
-    public $title = 'Продажби';
+    public $title = 'Договори за продажба';
 
 
     /**
@@ -151,6 +151,7 @@ class sales_Sales extends deals_DealMaster
     	'paymentMethodId'    => 'clientCondition|lastDocUser|lastDoc',
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
+    	'dealerId'           => 'lastDocUser',
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc',
@@ -371,6 +372,10 @@ class sales_Sales extends deals_DealMaster
     {
     	$rec = &$data->rec;
     	
+    	if(empty($rec->threadId)){
+    		$rec->threadId = $mvc->fetchField($rec->id, 'threadId');
+    	}
+    	
     	if($rec->state == 'active'){
     		$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		
@@ -386,6 +391,7 @@ class sales_Sales extends deals_DealMaster
     		
     		// Ако протокол може да се добавя към треда и не се експедира на момента
     		if (sales_Services::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
+    			
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Пр. услуги', $serviceUrl, 'ef_icon = img/16/shipment.png,title=Продажба на услуги,order=9.22');
 	        }
@@ -561,23 +567,26 @@ class sales_Sales extends deals_DealMaster
             $p->uomId             = $dRec->uomId;
             
             $ProductMan = cls::get($p->classId);
+            $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);
             $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);
             $p->volume  = $ProductMan->getVolume($p->productId, $p->packagingId);
             
             $result->push('products', $p);
             
-            if (isset($actions['ship']) && !empty($dRec->packagingId)) {
+            if (!empty($p->packagingId)) {
             	$push = TRUE;
-            	$index = $dRec->classId . "|" . $dRec->productId;
+            	$index = $p->classId . "|" . $p->productId;
             	$shipped = $result->get('shippedPacks');
+            	
+            	$inPack = ($p->packagingId) ? $info->packagingRec->quantity : 1;
             	if($shipped && isset($shipped[$index])){
-            		if($shipped[$index]->inPack < $dRec->quantityInPack){
+            		if($shipped[$index]->inPack < $inPack){
             			$push = FALSE;
             		}
             	}
             	
             	if($push){
-            		$arr = (object)array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
+            		$arr = (object)array('packagingId' => $p->packagingId, 'inPack' => $inPack);
             		$result->push('shippedPacks', $arr, $index);
             	}
             }
@@ -712,5 +721,104 @@ class sales_Sales extends deals_DealMaster
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Разпределя платеното в брой по фактурите към продажбата, започва от първата фактура
+     * и разпределя сумата последнователно на всички фактури, докато има какво да се разпределя
+     * 
+     * @param int $id - ид на продажба
+     * @return void
+     */
+    private static function allocateCash($id)
+    {
+    	// Намираме останалите документи в треда на продажбата
+    	$desc = self::getDescendants($id);
+    	
+    	// Ако няма такива не правим нищо
+    	if(!count($desc)) return;
+    	
+    	// Отделяме всички активни фактури/ди/ки към продажбата
+    	$invoices = array();
+    	foreach ($desc as $desc){
+    		if($desc->getInstance() instanceof sales_Invoices){
+    			$recI = $desc->rec();
+    			if($recI->state == 'active'){
+    				$invoices[$desc->that] = $desc->rec();
+    			}
+    		}
+    	}
+    	
+    	// Ако няма фактури към продажбата не правим нищо
+    	if(!count($invoices)) return;
+    	
+    	// Колко е платеното в брой по продажбата (по сметка 501. Каси)
+    	$jRecs = acc_Journal::getEntries(array('sales_Sales', $id));
+    	$cashAmount = acc_Balances::getBlAmounts($jRecs, '501')->amount;
+    	
+    	// Третираме отрицателното платено (върнато) като 0
+    	$cashAmount = ($cashAmount <= 0) ? 0 : $cashAmount;
+    	$Invoices = cls::get('sales_Invoices');
+    	
+    	// За всяка фактура разпределяме платеното в брой според сумата на всяка фактура
+    	foreach ($invoices as &$invRec)
+    	{
+    		$total = round($invRec->dealValue + $invRec->vatAmount - $invRec->discountAmount, 2);
+    		
+    		// Ако има още платено в брой за разпределяне
+    		if($cashAmount != 0){
+    			
+    			// Ако платеното е по малко от сумата на ф-та взимаме него, иначе приемаме че цялата ф-ра е платена
+    			$amount = ($cashAmount < $total) ? $cashAmount : $total;
+    			$invRec->paymentType = 'cash';
+    			
+    			// Приспадаме разпределената сума от общоо платено
+    			$cashAmount -= $amount;
+    		} else {
+    			if(cond_PaymentMethods::isCOD($invRec->paymentMethodId)){
+    				$invRec->paymentType = 'cash';
+    			} else {
+    				$invRec->paymentType = 'bank';
+    			}
+    		}
+    		
+    		// Обновяваме сумата на платеното в брой на фактурата
+    		$Invoices->save_($invRec, 'paymentType');
+    	}
+    }
+    
+    
+    /**
+     * Разпределя платеното в брой на всяка фактура
+     */
+    public function allocateCashToInvoices($oldBefore = NULL)
+    {
+    	core_Debug::$isLogging = FALSE;
+    	
+    	// Избираме всички активни/приключени продажби, по които има промяна в определен интервал
+    	$query = $this->getQuery();
+    	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
+    	$query->where("#amountInvoiced IS NOT NULL");
+    	$query->where("#state = 'active' || #state = 'closed'");
+    	
+    	// Ако не е зададен интервал правим го на всички продажби
+    	if(!is_null($oldBefore)){
+    		$query->where("#threadModifiedOn >= '{$oldBefore}'");
+    	}
+    	
+    	$query->show('id');
+    	
+    	while($rec = $query->fetch()){
+    	
+    		// Преразпределяме платеното в брой на всички фактури
+    		try{
+    			self::allocateCash($rec->id);
+    		} catch(core_exception_Expect $e){
+    			$this->log("Проблем при разпределението на платеното в брой на фактурите; {$e->getMessage()}");
+    		}
+    	}
+    	
+    	core_Debug::$isLogging = TRUE;
     }
 }

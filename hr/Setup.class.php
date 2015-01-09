@@ -48,15 +48,16 @@ class hr_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
    var $managers = array(
+   		    'hr_Departments',
             'hr_WorkingCycles',
             'hr_WorkingCycleDetails',
             'hr_Shifts',
             'hr_ShiftDetails',
             'hr_Professions',
-            'hr_Departments',
-            'hr_Positions',
+			'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
+   			'migrate::updateMyOrganisation3'
         );
 
         
@@ -105,4 +106,21 @@ class hr_Setup extends core_ProtoSetup
         return $res;
     }
 
+    
+    /**
+     * Добавяме систем ид на департамента моята организация
+     */
+    protected function updateMyOrganisation3()
+    {
+    	$rec = hr_Departments::fetch("#name = 'Моята Организация ООД'");
+    	if($rec){
+    		$rec->name = 'Моята Организация';
+    		hr_Departments::save($rec, 'name');
+    	}
+    	
+    	if($rec2 = hr_Departments::fetch("#name = 'Моята Организация' || #name = 'Моята Организация ООД'")){
+    		$rec2->systemId = 'myOrganisation';
+    		hr_Departments::save($rec2, 'systemId');
+    	}
+    }
 }

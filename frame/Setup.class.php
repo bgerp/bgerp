@@ -9,9 +9,9 @@
  *
  *
  * @category  bgerp
- * @package   sens
+ * @package   frame
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -61,6 +61,21 @@ class frame_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = 'report,dashboard';
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array(
+    				'systemId' => "Activate Pending Reports",
+    				'description' => "Активиране на чакащи отчети",
+    				'controller' => "frame_Reports",
+    				'action' => "ActivateEarlyOn",
+    				'period' => 1440,
+    				'timeLimit' => 50
+    		),
+    );
     
     
     /**

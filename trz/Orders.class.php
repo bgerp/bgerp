@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Заповеди за отпуски
@@ -21,23 +21,23 @@ class trz_Orders extends core_Master
 	/**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     /**
      * Заглавие
      */
-    var $title = 'Заповеди';
+    public $title = 'Заповеди';
     
      /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Заповед за отпуск";
+    public $singleTitle = "Заповед за отпуск";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, trz_Wrapper, 
+    public $loadList = 'plg_RowTools, trz_Wrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
     				 plg_Printing, doc_plg_BusinessDoc,bgerp_plg_Blank';
     
@@ -45,103 +45,101 @@ class trz_Orders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, isPaid, amount';
+    public $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, isPaid, amount';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    //var $searchFields = 'description';
+    //public $searchFields = 'description';
 
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
-    var $rowToolsSingleField = 'personId';
+    public $rowToolsSingleField = 'personId';
     
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, trz';
+    public $canRead = 'ceo, trz';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,trz';
+	public $canList = 'ceo,trz';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,trz';
+	public $canSingle = 'ceo,trz';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, trz';
+    public $canEdit = 'ceo, trz';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, trz';
+    public $canAdd = 'ceo, trz';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo, trz';
+    public $canView = 'ceo, trz';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, trz';
+    public $canDelete = 'ceo, trz';
   
     /**
      * За плъгина acc_plg_DocumentSummary
      */
-    var $filterFieldDateFrom = 'leaveFrom';
-    var $filterFieldDateTo = 'leaveTo';
+    public $filterFieldDateFrom = 'leaveFrom';
+    public $filterFieldDateTo = 'leaveTo';
     
-    var $canOrders = 'ceo, trz';
     /**
-     * Икона за единичния изглед
+     * Enter description here ...
      */
-    //var $singleIcon = 'img/16/money.png';
-    
-    
+    public $canOrders = 'ceo, trz';
+
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'trz/tpl/SingleLayoutOrders.shtml';
+    public $singleLayoutFile = 'trz/tpl/SingleLayoutOrders.shtml';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Tor";
+    public $abbr = "Tor";
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "5.3|Човешки ресурси"; 
+    public $newBtnGroup = "5.3|Човешки ресурси"; 
 
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител');
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
@@ -157,7 +155,7 @@ class trz_Orders extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_BeforeSave($mvc, &$id, $rec)
+    public static function on_BeforeSave($mvc, &$id, $rec)
     {
         if($rec->leaveFrom &&  $rec->leaveTo){
         	$state = hr_EmployeeContracts::getQuery();
@@ -191,7 +189,7 @@ class trz_Orders extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
     	// Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
@@ -253,7 +251,7 @@ class trz_Orders extends core_Master
     /**
      * Проверява и допълва въведените данни от 'edit' формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = $form->rec;
 
@@ -266,9 +264,9 @@ class trz_Orders extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if(doc_Threads::haveRightFor('add', $data->rec->threadId) == FALSE){
+        if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
         
@@ -298,18 +296,11 @@ class trz_Orders extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        if ('crm_Persons' != $coverClass) {
-        	return FALSE;
-        }
-        
-        $personId = doc_Folders::fetchCoverId($folderId);
-        
-        $personRec = crm_Persons::fetch($personId);
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
-        
-        return keylist::isIn($emplGroupId, $personRec->groupList);
+       // Името на класа
+    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
+    	
+    	// Ако не е папка проект или контрагент, не може да се добави
+    	if ($coverClassName != 'crm_persons') return FALSE;
     }
     
     
@@ -319,7 +310,7 @@ class trz_Orders extends core_Master
      * @param int $id
      * @return stdClass $row
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
@@ -356,7 +347,7 @@ class trz_Orders extends core_Master
 	/**
      * Преди да се подготвят опциите на кориците, ако
      */
-    function getCoverOptions($coverClass)
+    public static function getCoverOptions($coverClass)
     {
     	
     	if($coverClass instanceof crm_Persons){

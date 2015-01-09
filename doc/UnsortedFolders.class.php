@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,128 +19,135 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'accda_DaFolderCoverIntf, price_PriceListFolderCoverIntf, trans_LinesFolderCoverIntf, frame_FolderCoverIntf';
+    public $interfaces = 'price_PriceListFolderCoverIntf, trans_LinesFolderCoverIntf, frame_FolderCoverIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search';
     
     
     /**
      * Да се създаде папка при създаване на нов запис
      */
-    var $autoCreateFolder = 'instant';
-    
+    public $autoCreateFolder = 'instant';
+   
     
     /**
      * Заглавие
      */
-    var $title = "Проекти";
+    public $title = "Проекти";
     
     
     /**
      * var $listFields = 'id,title,inCharge=Отговорник,threads=Нишки,last=Последно';
      */
-    var $oldClassName = 'email_Unsorted';
+    public $oldClassName = 'email_Unsorted';
     
     
     /**
-     * полета от БД по които ще се търси
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'name';
+    public $searchFields = 'name, description';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Проект';
+    public $singleTitle = 'Проект';
     
     
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/project-archive.png';
+    public $singleIcon = 'img/16/project-archive.png';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'doc/tpl/SingleLayoutUnsortedFolder.shtml';
+    public $singleLayoutFile = 'doc/tpl/SingleLayoutUnsortedFolder.shtml';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'id=№,name,description,inCharge,access,shared,createdOn,createdBy';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
     
     
     /**
      * Кой може да го види?
      */
-    var $canSingle = 'powerUser';
+    public $canSingle = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin,ceo';
+    public $canList = 'admin,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin';
+    public $canDelete = 'admin';
     
     
     /**
      * Кой може да го оттегли?
      */
-    var $canReject = 'powerUser';
+    public $canReject = 'powerUser';
     
     
     /**
      * Кой може да го възстанови?
      */
-    var $canRestore = 'powerUser';
+    public $canRestore = 'powerUser';
     
     
     /**
      * Кой има права Rip
      */
-    var $canWrite = 'powerUser';
+    public $canWrite = 'powerUser';
     
     
     /**
      * Кои полета можем да редактираме, ако записът е системен
      */
-    var $protectedSystemFields = 'none';
+    public $protectedSystemFields = 'none';
     
     
     /**  
      * Кой има право да променя системните данни?  
      */  
-    var $canEditsysdata = 'admin';
+    public $canEditsysdata = 'admin';
   
+    
     /**
      * масив с цветове
      */
@@ -200,7 +207,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Описание на полетата на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('description' , 'richtext(rows=3)', 'caption=Описание');
@@ -208,9 +215,49 @@ class doc_UnsortedFolders extends core_Master
         $this->setDbUnique('name');
     }
     
+   /** 
+    * Малко манипулации след подготвянето на формата за филтриране
+    *
+    * @param core_Mvc $mvc
+    * @param stdClass $data
+    */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	$cu = core_Users::getCurrent();
+    	
+    	$data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+    	
+    	// Задаваме стойността по подразбиране
+    	//$data->listFilter->setDefault('selectedUsers', $cu);
+    	
+    	$data->listFilter->view = 'horizontal';
+    	
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	// Показваме само това поле. Иначе и другите полета
+    	// на модела ще се появят
+    	$data->listFilter->showFields = 'search,selectedUsers';
+    	
+    	$rec = $data->listFilter->input('selectedUsers,search', 'silent');
+    	
+    	if(!$data->listFilter->rec->selectedUsers) {
+    		$data->listFilter->rec->selectedUsers = '|' . $cu . '|';
+    	}
+    	
+    	if(!$data->listFilter->rec->search) {
+    		$data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #inCharge, '|%')");
+    		$data->query->orLikeKeylist('shared', $data->listFilter->rec->selectedUsers);
+    		$data->title = 'Проектите на |*<span class="green">' .
+    				$data->listFilter->getFieldType('selectedUsers')->toVerbal($data->listFilter->rec->selectedUsers) . '</span>';
+    	} else {
+    		$data->title = 'Търсене на проект отговарящи на |*<span class="green">"' .
+    				$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
+    	}
+    	
+    	$data->query->orderBy('#createdOn=DESC');
+    }
     
     /**
-     *
      * След подготовка на тулбара на единичен изглед.
      * 
      * @param core_Mvc $mvc
@@ -282,12 +329,14 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Метод за Cron за зареждане на валутите
      */
-    function cron_SelfClosed()
+    static function cron_SelfClosed()
     {   
     	// сегашно време в секунди
     	$now = dt::mysql2timestamp(dt::now());
+    	
     	// заявка към текущата база
-    	$query = $this->getQuery();
+    	$query = static::getQuery();
+    	
     	// заявка към базата на "нишките"
     	$queryThread = doc_Threads::getQuery();
      	
@@ -312,9 +361,9 @@ class doc_UnsortedFolders extends core_Master
     
     
     /**
-     * Екшън за спиране
+     * Екшън изчертаване на Гант графика
      */
-    static public function act_Gant()
+    public static function act_Gant()
     {
     	$currUrl = getCurrentUrl();
         
@@ -368,10 +417,15 @@ class doc_UnsortedFolders extends core_Master
         return static::renderWrapping($tpl);
     }
     
-    
-    static public function prepareGantt ($folderData)
+    /**
+     * Подготовка на данните за Гант табличния изглед
+     * 
+     * @param StdClass $folderData
+     * @return StdClass
+     */
+    public static function prepareGantt ($folderData)
     {  
-            	
+           
     	$idTaskDoc = core_Classes::getId("cal_Tasks");
     	
     	// заявка към базата на "контейнерите"

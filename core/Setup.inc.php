@@ -26,10 +26,7 @@ if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
 // Колко време е валидно заключването - в секунди
 DEFINE ('SETUP_LOCK_PERIOD', 240);
 
-defIfNot('BGERP_GIT_BRANCH', 'dev');
-
 defIfNot('BGERP_GIT_PATH', strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? '"C:/Program Files (x86)/Git/bin/git.exe"' : 'git');
-
 
 if (setupKeyValid() && !setupProcess()) {
     // Опит за стартиране на сетъп
@@ -553,7 +550,7 @@ if($step == 2) {
         }
         
     
-    $texts['body'] = linksToHtml($links);// bp($texts['body']);
+    $texts['body'] = linksToHtml($links);
             
     // Статистика за различните класове съобщения
     $stat = array();
@@ -927,7 +924,7 @@ if($step == start) {
             $res = $ef->install();
             file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'Start OK ...' . $res);
         } catch (core_exception_Expect $e) {
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getAsHtml());
+            file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getMessage());
         }
     } catch (Exception $e) {
         file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
@@ -1226,11 +1223,11 @@ function gitRevertRepo($repoPath, &$log)
     
     $repoName = basename($repoPath);
     
-    $command = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard origin/" . BGERP_GIT_BRANCH ." 2>&1";
+    $command = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" reset --hard 2>&1";
     
     if (!gitExec($command, $arrRes)) {
         foreach ($arrRes as $val) {
-            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при reset --hard origin/" . BGERP_GIT_BRANCH ." :" . $val):"";
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при reset --hard :" . $val):"";
         }
         
         return FALSE;

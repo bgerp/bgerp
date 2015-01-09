@@ -509,8 +509,10 @@ class acc_Lists extends core_Manager {
      */
     private static function fetchItem($class, $objectId)
     {
-        expect($classId = core_Classes::getId($class));
-        $itemRec = acc_Items::fetch("#classId = {$classId} AND #objectId = {$objectId}");
+        expect($Class = cls::get($class));
+        $objectId = $Class->fetchRec($objectId)->id;
+        
+        $itemRec = acc_Items::fetch("#classId = {$Class->getClassId()} AND #objectId = {$objectId}");
         
         return $itemRec;
     }
@@ -575,28 +577,6 @@ class acc_Lists extends core_Manager {
     {
         $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $rec->regInterfaceId), 'id');
         $rec->state = 'active';
-    }
-    
-    
-    /**
-     * Връща списък с всички записи на даден мениджър,от дадена номенклатура
-     * @param mixed $class - име/ид/инстанция на класа
-     * @param varchar $sysId - систем ид на номенклатура
-     * @return array $res - списък с опции
-     */
-    public static function getItemsByList($class, $sysId)
-    {
-        $res = array();
-        expect($Class = cls::get($class));
-        expect($list = static::fetchBySystemId($sysId));
-        
-        if($items = acc_Items::getClassItems($Class, $list->id)){
-            foreach ($items as $id){
-                $res[$id] = $Class->getTitleById($id);
-            }
-        }
-        
-        return $res;
     }
     
     

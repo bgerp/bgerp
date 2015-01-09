@@ -13,12 +13,15 @@
  */
 class acc_journal_Entry
 {
+	
+	
     /**
      * Дебитна част на ред от счетоводна транзакция
      *
      * @var acc_journal_EntrySide
      */
     public $debit;
+    
     
     /**
      * Кредитна част на ред от счетоводна транзакция
@@ -27,6 +30,7 @@ class acc_journal_Entry
      */
     public $credit;
     
+    
     /**
      * Стойност на реда в основна валута
      *
@@ -34,10 +38,17 @@ class acc_journal_Entry
      */
     public $amount;
     
+    
     /**
      * @var acc_JournalDetails
      */
     public $JournalDetails;
+    
+    
+    /**
+     * @var int
+     */
+    public $reasonCode = NULL;
     
     
     /**
@@ -65,6 +76,10 @@ class acc_journal_Entry
     {
         $this->debit->initFromTransactionSource($data);
         $this->credit->initFromTransactionSource($data);
+        if(isset($data['reason'])){
+        	$this->reasonCode = acc_Operations::getIdByTitle($data['reason']);
+        }
+        
         
         return $this;
     }
@@ -118,7 +133,7 @@ class acc_journal_Entry
             // Количеството по кредита е задължително за сметки с размерна аналитичност
             acc_journal_Exception::expect(
                 isset($this->credit->quantity),
-                'Липсва количество при кредитиране на сметка с размерна аналитичност'
+                "Липсва количество при кредитиране на сметка с размерна аналитичност {$this->credit->account->rec->num}"
             );
         }
         
@@ -127,7 +142,7 @@ class acc_journal_Entry
             // Количеството по дебита е задължително за сметки с размерна аналитичност
             acc_journal_Exception::expect(
                 isset($this->debit->quantity),
-                'Липсва количество при дебитиране на сметка с размерна аналитичност'
+                "Липсва количество при дебитиране на сметка с размерна аналитичност  {$this->debit->account->rec->num}"
             );
             
             // Наличието на цена по дебита, за сметки с размерна аналитичност е
@@ -186,6 +201,27 @@ class acc_journal_Entry
         return $this->credit->amount;
     }
     
+    
+    /**
+     * @todo Чака за документация...
+     */
+    public function getRec($transactionId)
+    {
+    	$this->debit->forceItems();
+    	$this->credit->forceItems();
+    
+    	$entryRec = $this->debit->getData()
+    	+ $this->credit->getData()
+    	+ array(
+    			'journalId'   => $transactionId,
+    			'amount'      => $this->amount(),
+    			'reasonCode'  => $this->reasonCode,
+    	);
+    
+    	return (object)$entryRec;
+    }
+    
+    
     /**
      * @todo Чака за документация...
      */
@@ -198,7 +234,8 @@ class acc_journal_Entry
         + $this->credit->getData()
         + array(
             'journalId' => $transactionId,
-            'amount'    => $this->amount()
+            'amount'    => $this->amount(),
+        	'reasonCode'  => $this->reasonCode,
         );
         
         return $this->JournalDetails->save((object)$entryRec);

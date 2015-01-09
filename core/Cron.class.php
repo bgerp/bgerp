@@ -86,13 +86,99 @@ class core_Cron extends core_Manager
         $this->setDbUnique('systemId,offset,delay');
     }
     
-
+    
+    /**
+     * Връща максималното време за изпълнение
+     *
+     * @param $systemId
+     *
+     * @return int - време в секунди
+     */
+    public static function getTimeLimit($systemId = NULL)
+    {
+    	$rec = self::getRecForSystemId($systemId);
+    	
+    	return $rec->timeLimit;
+    }
+    
+    
+    /**
+     * Връща времето на последно стартиране на процес
+     * 
+     * @param $systemId
+     * 
+     * @return NULL|datetime
+     */
+    public static function getLastStartTime($systemId = NULL)
+    {
+        $query = self::getQuery();
+        $query->limit(1);
+        
+        if ($systemId) {
+            $query->where(array("#systemId = '[#1#]'", $systemId));
+        } else {
+            $query->where("#lastStart IS NOT NULL");
+            $query->orderBy('lastStart', 'DESC');
+        }
+        
+        $rec = $query->fetch();
+        
+        if ($rec) {
+            
+            return $rec->lastStart;
+        }
+    }
+    
+    
+    /**
+     * Връща периода на стартиране на процеса в секунду
+     * 
+     * @param string $systemId
+     * 
+     * @return integer
+     */
+    public static function getPeriod($systemId)
+    {
+        $rec = self::getRecForSystemId($systemId);
+        
+        if ($rec === FALSE) return ;
+        
+        $period = ($rec->period * 60) + ($rec->offset * 60);
+        
+        return $period;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $systemId
+     * 
+     * @return FALSE|object
+     */
+    public static function getRecForSystemId($systemId)
+    {
+        $rec = self::fetch(array("#systemId = '[#1#]'", $systemId));
+        
+        return $rec;
+    }
+    
     /**
      * Преди извличането на записите за листовия изглед
      */
     function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#period'); 
+    }
+    
+    
+    /**
+     * 
+     */
+    public static function on_AfterPrepareListRows($mvc, $data)
+    {
+        // Изчистваме нотификацията
+        bgerp_Notifications::clear(array('core_Cron'));  
     }
     
 
@@ -131,6 +217,9 @@ class core_Cron extends core_Manager
         
         // Коя е текущата минута?
         $timeStamp = time();
+        // Добавяме отместването във времето за timezone
+        $timeStamp += date('Z');
+        
         $currentMinute = round($timeStamp / 60);
         
         // Определяме всички процеси, които трябва да се стартират през тази минута
@@ -359,7 +448,7 @@ class core_Cron extends core_Manager
         $now = dt::mysql2timestamp(dt::verbal2mysql());
         
         if($rec->state == 'locked' ||
-            ($rec->state == 'free' && ($now - $mvc->refreshRowsTime / 1000-2) < dt::mysql2timestamp($rec->lastStart))) {
+            ($rec->lastStart && $rec->state == 'free' && (($now - $mvc->refreshRowsTime / 1000-2) < dt::mysql2timestamp($rec->lastStart)))) {
             
             $row->ROW_ATTR['style'] .= 'background-color:#ffa;';
         } elseif ($rec->state == 'free') {

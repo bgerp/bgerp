@@ -13,8 +13,6 @@
  */
 class callcenter_ListOperationsPlg extends core_Plugin
 {
-    
-    
     /**
      * След подготвяне на загалвието на листовия излглед
      * 
@@ -36,14 +34,18 @@ class callcenter_ListOperationsPlg extends core_Plugin
         // Вземаме стринга от номер
         $numberDial = drdata_PhoneType::getNumStrFromObj($numberArr[0], '00');
         $numberShow = drdata_PhoneType::getNumStrFromObj($numberArr[0], '+');
-        
-        $numberShow = drdata_PhoneType::escape($numberShow);
+
+        $numberShow = drdata_PhoneType::escape($numberShow) . " <small style='color:#666;'>({$numberArr[0]->country}/{$numberArr[0]->area})</small>";
         
         // Променяме полето за заглавеи
-        $data->title = 'Номер|*: ' . $numberShow;
+        $data->title = "|*<small style='color:#666;'>|Номер|*:</small> " . $numberShow;
                 
         // Добавяме бутон за избиране
-        $data->callLink = ht::createBtn('Избиране', "tel: {$numberDial}", FALSE, FALSE, array('ef_icon' => '/img/16/call.png', 'class' => 'out-btn'));
+        $data->callLink = ht::createBtn('Избиране', "tel: {$numberDial}", FALSE, FALSE, 'ef_icon=/img/16/call.png,class=out-btn,title=Набиране на този номер');
+        
+        // Преобразува номера в линк за търсене
+        $searchLink = self::getSearchQueryLink($numberArr);
+        $data->searchLink = ht::createBtn('Кой е?', $searchLink, FALSE, '_blank', 'ef_icon=/img/16/google-search-icon.png,title=Търсене в Google за този номер');
         
         // Ако има права за изпращане на факс
         if (email_FaxSent::haveRightFor('send')) {
@@ -51,14 +53,14 @@ class callcenter_ListOperationsPlg extends core_Plugin
             // URL, където да сочи бутона за нов факс
             $urlArr = email_FaxSent::getAddFaxUrl($numberDial);
             $urlArr['ret_url'] = TRUE;
-            $data->faxLink = ht::createBtn('Факс', $urlArr, FALSE, FALSE, array('ef_icon' => '/img/16/fax.png'));
+            $data->faxLink = ht::createBtn('Факс', $urlArr, FALSE, FALSE, 'ef_icon=/img/16/fax.png,title=Създаване на факс към този номер');
         }
         
         // Ако може да се създава SMS
-        if (callcenter_SMS::haveRightFor('add')) {
+        if (callcenter_SMS::haveRightFor('send')) {
             
             // Бутон за СМС
-            $data->smsLink = ht::createBtn('SMS', array('callcenter_SMS', 'add', 'mobileNum' => $numberDial, 'ret_url' => TRUE), FALSE, FALSE, array('ef_icon' => '/img/16/mobile2.png'));
+            $data->smsLink = ht::createBtn('SMS', array('callcenter_SMS', 'send', 'mobileNum' => $numberDial, 'ret_url' => TRUE), FALSE, FALSE, array('ef_icon' => '/img/16/mobile2.png'));
         }
     }
     
@@ -75,7 +77,6 @@ class callcenter_ListOperationsPlg extends core_Plugin
     {
         // Ако няма шаблон
         if (!$tpl) {
-            
             // Създаваме шаблон за титлата
             $tpl = new ET("<div class='listTitle'>[#1#]</div>", tr($data->title));
         }
@@ -85,10 +86,64 @@ class callcenter_ListOperationsPlg extends core_Plugin
         
         // Добавяме бутоните към заглавието
         $buttonTpl->append($data->callLink, 'listTitleParams');
+        $buttonTpl->append($data->searchLink, 'listTitleParams');
         $buttonTpl->append($data->faxLink, 'listTitleParams');
         $buttonTpl->append($data->smsLink, 'listTitleParams');
         
         // Добавяме към титлата
         $tpl->append($buttonTpl);
+    }
+    
+
+    /**
+     * Подготвя URL за търсене на телефонен номер
+     */
+    private static function getSearchQueryLink($numbersArr)
+    {
+        $numberObj = $numbersArr[0];
+        $countryCode = $numberObj->countryCode;
+        $areaCode    = $numberObj->areaCode;
+        $n = $numberObj->number;
+
+        $nArr[] = $n;
+        $res = array();
+        switch(strlen($n)) {
+            case 4:
+                $nArr[] = $n{0} . $n{1} . '_' . $n{2} . $n{3};
+                break;
+            case 5:
+                $nArr[] = $n{0} . '_' . $n{1} . $n{2} . '_' . $n{3} . $n{4};
+                $nArr[] = $n{0} . $n{1} . $n{2} . '_' . $n{3} . $n{4};
+                break;
+            case 6:
+                $nArr[] = $n{0} . $n{1} . '_' . $n{2} . $n{3} . '_' . $n{4} . $n{5};
+                $nArr[] = $n{0} . $n{1} . $n{2} . '_' . $n{3} . $n{4} . $n{5};
+                break;
+            case 7:
+                $nArr[] = $n{0} . $n{1} . $n{2} . $n{3} . '_' . $n{4} . $n{5} . $n{6};
+                $nArr[] = $n{0} . $n{1} . $n{2} . '_' . $n{3} . $n{4} . '_' . $n{5} . $n{6};
+                break;
+            case 8:
+                $nArr[] = $n{0} . $n{1} . '_'.  $n{2} . $n{3} . '_' . $n{4} . $n{5} . '_' . $n{6} . $n{7};
+                $nArr[] = $n{0} . $n{1} . $n{2} .'_' .  $n{3} . $n{4} . $n{5} . '_' . $n{6} . $n{7};
+                break;
+        }
+
+        foreach($nArr as $number) {
+            $variants["00{$countryCode}_{$areaCode}_{$number}"] = TRUE;
+            $variants["{$countryCode}_{$areaCode}_{$number}"] = TRUE;
+            $variants["0{$areaCode}_{$number}"] = TRUE;
+            $variants["{$countryCode}_{$areaCode}_{$number}"] = TRUE;
+        }
+        
+        $cnt = 1;
+        foreach($variants as $v => $true) {
+            $q .= ($q ? ' OR ' : '') . $v;
+            if($cnt++ > 32) break;
+        }
+
+        $url = "https://www.google.bg/search?q={$q}";
+
+        return $url;
     }
 }

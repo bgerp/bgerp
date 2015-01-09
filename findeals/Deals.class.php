@@ -472,7 +472,7 @@ class findeals_Deals extends deals_DealBase
     	try{
     		$DocType = cls::get($jRec->docType);
     		$row->docId = $DocType->getHyperLink($jRec->docId, TRUE);
-    	} catch(Exception $e){
+    	} catch(core_exception_Expect $e){
     		$row->docId = "<span style='color:red'>" . tr('Проблем при показването') . "</span>";
     	}
     	
@@ -586,6 +586,9 @@ class findeals_Deals extends deals_DealBase
     	$result->set('currency', $rec->currencyId);
     	$result->set('rate', $rec->currencyRate);
     	$result->set('contoActions', FALSE);
+    	
+    	//@TODO Временно, докато се премахне от фактурите
+    	$result->setIfNot('vatType', 'yes');
     }
     
     
@@ -655,7 +658,7 @@ class findeals_Deals extends deals_DealBase
     	$self = cls::get(__CLASS__);
     
     	if ($rec = self::fetch($objectId)) {
-    		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+    		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, FALSE);
     		$result = (object)array(
     				'num' => $self->abbr . $objectId,
     				'title' => static::getRecTitle($objectId),
@@ -815,7 +818,7 @@ class findeals_Deals extends deals_DealBase
     
     	// Ако папката е на контрагент
     	if($Cover->haveInterface('doc_ContragentDataIntf')){
-    		$groupList = $Cover->fetchField($Cover->instance->groupsField);
+    		$groupList = $Cover->fetchField($Cover->getInstance()->groupsField);
     		$debitGroupId = crm_Groups::fetchField("#sysId = 'debitors'");
     		$creditGroupId = crm_Groups::fetchField("#sysId = 'creditors'");
     		

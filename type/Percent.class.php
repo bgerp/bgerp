@@ -75,7 +75,9 @@ class type_Percent extends type_Double {
         if (!($this->error) && isset($value)) {
             $value = (100 * $value) . ' %';
         }
-        
+
+        setIfNot($attr['placeholder'], '%');
+
         return parent::renderInput_($name, $value, $attr);
     }
     

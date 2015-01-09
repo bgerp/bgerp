@@ -133,7 +133,7 @@ class fileman_Files extends core_Master
         if(!$rec->fileHnd) {
             do {
                 
-                if(16 < $i++) error('Unable to generate random file handler', $rec);
+                if(16 < $i++) error('@Unable to generate random file handler', $rec);
                 
                 $rec->fileHnd = str::getRand(FILEMAN_HANDLER_PTR);
             } while($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
@@ -611,7 +611,7 @@ class fileman_Files extends core_Master
                 //Вземема id'то на файла
                 try {
                     $id = static::fetchByFh($val, 'id');
-                } catch (Exception $e) {
+                } catch (core_exception_Expect $e) {
                     //Ако няма такъв fh, тогава прескачаме
                     continue;
                 }   
@@ -978,7 +978,7 @@ class fileman_Files extends core_Master
                 // Добавяме бутон в тулбара
                 $OcrInst->addOcrBtn($data->toolbar, $data->rec);
             }
-        } catch (Exception $e) { }
+        } catch (core_exception_Expect $e) { }
     }
     
     

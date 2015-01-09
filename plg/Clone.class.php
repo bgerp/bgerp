@@ -73,6 +73,14 @@ class plg_Clone extends core_Plugin
             // Инвокваме фунцкцията, ако някой иска да променя нещо
             $mvc->invoke('BeforeSaveCloneRec', array($rec, &$nRec));
             
+            // Да няма дублиране на уникални полета
+            if(!$mvc->isUnique($nRec, $fields)) {
+                $data->form->setError($fields, "Вече съществува запис със същите данни");
+            }
+        }
+        
+        // Ако формата е изпратена без грешки
+        if($form->isSubmitted()) {
             // Ако няма проблем пи записа
             if ($mvc->save($nRec)) {
                 
@@ -116,8 +124,8 @@ class plg_Clone extends core_Plugin
         }
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title=Запис на документа');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         // Добавяме титлата на формата
         $form->title = 'Клониране на запис в|* "' . $mvc->getTitle() . '"';
@@ -145,7 +153,7 @@ class plg_Clone extends core_Plugin
         
             // Това също се проверява и в plg_Created, но там се изисква canEditsysdata и canDeletesysdata
             // Ако записа е на системен потребител
-            if ($rec->createdBy == plg_Created::EF_SYS_USER_ID) {
+            if ($rec->createdBy == core_Users::SYSTEM_USER) {
                 
                 // Ако ще изтриваме или редактираме група
                 if ($action == 'delete' || $action == 'edit') {
@@ -159,7 +167,7 @@ class plg_Clone extends core_Plugin
             if ($action == 'clonerec') {
                 
                 // Ако е създаден от системния потребител
-                if ($rec->createdBy == plg_Created::EF_SYS_USER_ID) {
+                if ($rec->createdBy == core_Users::SYSTEM_USER) {
                     
                     // Проверява се дали има права да клонира системните данни
                     if (!$mvc->haveRightFor('clonesysdata', $rec)) {
@@ -242,7 +250,7 @@ class plg_Clone extends core_Plugin
         $cloneSbf = sbf("img/16/clone.png");
         
         // Ако не е подадено заглавиет, създаваме линк с иконата
-        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl);
+        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, NULL, 'title=Копиране');
     }
     
     

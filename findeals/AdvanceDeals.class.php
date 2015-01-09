@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Клас 'findeals_AdvanceDeals'
  *

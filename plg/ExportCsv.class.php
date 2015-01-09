@@ -57,7 +57,7 @@ class plg_ExportCsv extends core_Plugin
             $url = getCurrentUrl();
             $url['Export'] = 'csv';
             
-            $data->toolbar->addBtn('Експорт в CSV', $url, 'ef_icon = img/16/file_extension_xls.png');
+            $data->toolbar->addBtn('Експорт в CSV', $url, NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат');
         }
     }
     
@@ -96,7 +96,7 @@ class plg_ExportCsv extends core_Plugin
             $conf = core_Packs::getConfig('core');
             
             if(count($data->recs) > $conf->EF_MAX_EXPORT_CNT) {
-                error("Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT);
+                redirect(array($mvc), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
             }
             
             /* за всеки ред */

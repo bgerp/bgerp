@@ -78,7 +78,7 @@ class archive_Adapter
         try {
             // Вземаме съдържанието
             $entriesArr = $this->getEntries();
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Връщаме грешката
             return tr('Възникна грешка при показване на съдържанието на архива');
@@ -176,7 +176,7 @@ class archive_Adapter
             
             // Очакваме размера след декомпресия да е в допустимите граници
             expect($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT);
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Ако възникне грешка
             expect(FALSE, 'Възникна грешка при свалянето на файла');
@@ -189,7 +189,7 @@ class archive_Adapter
             
             // Вземаме пътя до файла в архива
             $path = $entry->getPath();
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Ако възникне грешка
             expect(FALSE, 'Не може да се определи пътя до файла.');
@@ -229,7 +229,7 @@ class archive_Adapter
             
             // Екстрактваме файла от архива и връщаме пътя във файловата система
             $path = $this->extractEntry($path);
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             // Ако възникне грешка
             expect(FALSE, 'Не може да се екстрактен файла от архива');

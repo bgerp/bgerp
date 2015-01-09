@@ -313,12 +313,10 @@ class catering_Menu extends core_Master
             $rec->day = substr($rec->day, 0, 10);
             $regexCond = "/^[0-3]{1}[0-9]{1}[-]{1}(01|02|03|04|05|06|07|08|09|10|11|12){1}[-]{1}(20){1}[0-9]{2}/";
             
-            if (preg_match($regexCond, $rec->day)) {
-                $rec->repeatDay = "0.OnlyOnThisDate";
-                $rec->date = dt::verbal2mysql($rec->day);
-            } else {
-                bp('Error in field \'Ден\'');
-            }
+            expect(preg_match($regexCond, $rec->day));
+
+            $rec->repeatDay = "0.OnlyOnThisDate";
+            $rec->date = dt::verbal2mysql($rec->day);
         }
     }
 }

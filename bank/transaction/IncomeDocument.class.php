@@ -12,7 +12,7 @@
  *
  * @see acc_TransactionSourceIntf
  */
-class bank_transaction_IncomeDocument
+class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
 {
     /**
      *
@@ -22,19 +22,11 @@ class bank_transaction_IncomeDocument
     
     
     /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
+     * В какво състояние да е документа след финализирането на транзакцията
+     *
+     * @var string
      */
-    public function finalizeTransaction($id)
-    {
-        $rec = $this->class->fetchRec($id);
-        $rec->state = 'closed';
-        
-        if($this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-    }
+    protected $finalizedState = 'closed';
     
     
     /**
@@ -61,7 +53,7 @@ class bank_transaction_IncomeDocument
         $result = (object)array(
             'reason' => $rec->reason,   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
-            'entries' => array($entry)
+            'entries' => $entry
         );
         
         return $result;
@@ -98,7 +90,7 @@ class bank_transaction_IncomeDocument
         
         $entry = array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr);
         
-        return $entry;
+        return array($entry);
     }
     
     

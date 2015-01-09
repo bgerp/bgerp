@@ -209,7 +209,7 @@ class email_Incomings extends core_Master
         $accQuery->orderBy('#order');
 
         while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
-            self::fetchAccount($accRec, $deadline);
+            self::fetchAccount($accRec, $deadline, $maxFetchingTime);
         }
     }
 
@@ -217,7 +217,7 @@ class email_Incomings extends core_Master
     /**
      * Извлича писмата от посочената сметка
      */
-    function fetchAccount($accRec, $deadline)
+    function fetchAccount($accRec, $deadline, $maxFetchingTime)
     { 
         // Заключваме тегленето от тази пощенска кутия
         $lockKey = 'Inbox:' . $accRec->id;
@@ -262,7 +262,7 @@ class email_Incomings extends core_Master
                     $status = 'fetching error';
                 }
 
-                if(($i % 100) == 1 || ( ($i - $firstUnreadMsg) < 100)) {
+                if(($i % 100) == 1 || ( ($i - $firstUnreadMsgNo) < 100)) {
                     $logMsg = "Fetching message {$i} from {$accRec->email}: {$status}";
                     $this->log($logMsg, NULL, 7);
                 }
@@ -374,10 +374,6 @@ class email_Incomings extends core_Master
                 
              } catch(core_exception_Expect $exp) {
                 // Не-парсируемо
-                if(Request::get('forced')) {
-                    echo $exp->getAsHtml();
-                    die;
-                }
                 email_Unparsable::add($rawEmail, $accId, $uid);
                 $status = 'misformatted';
             }
@@ -399,10 +395,6 @@ class email_Incomings extends core_Master
             }
         } catch (core_exception_Expect $exp) {
             // Обща грешка
-            if(Request::get('forced')) {
-                 echo $exp->getAsHtml();
-                die;
-            }
             $status = 'error';
         }
         
@@ -685,10 +677,9 @@ class email_Incomings extends core_Master
             }
             
             static::calcAllToAndCc($rec);
-
-            $row->allTo = email_Mime::emailListToVerbal($rec->allTo);
-            $row->allCc = email_Mime::emailListToVerbal($rec->allCc);
-
+            
+            $row->allTo = self::getVerbalEmail($rec->allTo);
+            $row->allCc = self::getVerbalEmail($rec->allCc);
         }
         
         if(!$rec->toBox) {
@@ -706,6 +697,42 @@ class email_Incomings extends core_Master
         if($fields['-list']) {
            // $row->textPart = mb_Substr($row->textPart, 0, 100);
         }
+    }
+    
+    
+    /**
+     * Връща вербалното предствяна на имейла
+     * 
+     * @param array $emailArr
+     * 
+     * @return string
+     */
+    protected static function getVerbalEmail($emailsArr)
+    {
+        // Масив само с имейлите
+        $allEmailToArr = array();
+        foreach ((array)$emailsArr as $emailArr) {
+            $allEmailToArr[] = $emailArr['address'];
+        }
+        
+        // Премахваме нашите имейлите
+        $otherAllEmailToArr = email_Inboxes::removeOurEmails($allEmailToArr);
+        
+        // Отбелязваме, кои имейли са външни
+        if ($otherAllEmailToArr) {
+            foreach ((array)$emailsArr as $key => $emailArr) {
+                if (!$emailArr['address']) continue;
+                
+                if (array_search($emailArr['address'], $otherAllEmailToArr) !== FALSE) {
+                    $emailsArr[$key]['isExternal'] = TRUE;
+                }
+            }
+        }
+        
+        // Вземаме вербалното представяне на имейлите
+        $emailRow = email_Mime::emailListToVerbal($emailsArr);
+        
+        return $emailRow;
     }
     
     
@@ -1425,8 +1452,8 @@ class email_Incomings extends core_Master
                         'fileman_Files',
                         'single',
                         'id' => fileman_Files::fetchField($data->rec->emlFile, 'fileHnd'),
-                    ),
-                'order=21', 'ef_icon = img/16/file_extension_eml.png');    
+                    ),NULL,
+                array('order'=>'21', 'ef_icon'=>'img/16/file_extension_eml.png', 'title'=>'Преглед на различните части на имейла'));    
             }
             
             // Ако е оттеглен, да не се препраща
@@ -1438,7 +1465,7 @@ class email_Incomings extends core_Master
                         'forward',
                         $data->rec->containerId,
                         'ret_url' => TRUE,
-                    ), 'order=20, row=2', 'ef_icon = img/16/email_forward.png'
+                    ), NULL, array('order'=>'20', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
                 );
             }
         }

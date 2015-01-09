@@ -6,9 +6,9 @@
  * Регистър за отношенията на потребители към тредове
  *
  * @category  bgerp
- * @package   bgerp
+ * @package   doc
  * @author    Dimiter Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -26,6 +26,12 @@ class doc_ThreadUsers extends core_Manager
      * Заглавие
      */
     var $title = 'Отношения на потребители, към тредове';
+    
+    
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = 'Отношениe на потребител, към тредове';
     
     
     /**
@@ -114,6 +120,8 @@ class doc_ThreadUsers extends core_Manager
      */
     static function getShared($threadId, $relation = 'shared')
     {
+        $res = array();
+        
         $query = self::getQuery();
         $query->show("userId");
         while($rec = $query->fetch(array("#threadId = [#1#] AND #relation = '[#2#]'", $threadId, $relation))) {

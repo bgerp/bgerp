@@ -14,6 +14,13 @@ defIfNot(BGERP_COMPANY_LOGO_EN, '');
 defIfNot(BGERP_COMPANY_LOGO, '');
 
 
+
+/**
+ * След колко време, ако не работи крона да бие нотификация
+ */
+defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
+
+
 /**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
@@ -59,6 +66,8 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_COMPANY_LOGO' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На български, customizeBy=powerUser'),
         
         'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
+        
+        'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
     );
     
     
@@ -67,7 +76,7 @@ class bgerp_Setup extends core_ProtoSetup {
      */
     var $systemActions = array(
         
-        'Поправка' => array ('doc_Folders', 'repair')
+        'Поправка' => array ('doc_Containers', 'repair', 'ret_url' => TRUE)
     
     );
     
@@ -111,7 +120,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $isFirstSetup = ($Packs->count() == 0);
         
         // Списък на основните модули на bgERP
-        $packs = "core,fileman,drdata,bglocal,editwatch,recently,thumb,custom,doc,acc,currency,cms,
+        $packs = "core,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,currency,cms,
                   email,crm, cat, trans, price, blast,rfid,hr,trz,lab,sales,mp,marketing,store,cond,cash,bank,
                   budget,purchase,accda,sens,cams,frame,cal,fconv,log,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,techno,
@@ -222,6 +231,9 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Инсталираме плъгина за прихващане на първото логване на потребител в системата
         $html .= $Plugins->installPlugin('First Login', 'bgerp_plg_FirstLogin', 'core_Users', 'private');
+        
+        // Инсталираме плъгина за проверка дали работи cron
+        $html .= $Plugins->installPlugin('Check cron', 'bgerp_plg_CheckCronOnLogin', 'core_Users', 'private');
         
         $Menu = cls::get('bgerp_Menu');
         
