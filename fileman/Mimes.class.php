@@ -145,6 +145,8 @@ class fileman_Mimes extends core_Mvc {
 
         if(count($extArr)) {
             
+            $oFileName = $fileName;
+            
             $ext = fileman_Files::getExt($fileName);
             
             $ext = mb_strtolower($ext);
@@ -162,11 +164,34 @@ class fileman_Mimes extends core_Mvc {
                 
                 if (!$ext || (!in_array($mime, $noTrustMimeArr)) && (!in_array($ext, $trustExtArr)) ) {
                     
-                    $fileName .= '.' . $extArr[0];    
+                    $useOldName = FALSE;
+                    
+                    if ($ext) {
+                        // Миме типовете на разширенията
+                        $extMime = self::getMimeByExt($ext);
+                        $newExtMime = self::getMimeByExt($extArr[0]);
+                        
+                        // Ако новото разширение няма mime или и на двете разширения е text, да не се променя
+                        if (!$newExtMime) {
+                            $useOldName = TRUE;
+                        } elseif ($extMime && $newExtMime) {
+                            list($extMimePart) = explode('/', $extMime);
+                            list($newExtMimePart) = explode('/', $newExtMime);
+                            if (($extMimePart == 'text') && ($extMimePart == $newExtMimePart)) {
+                                $useOldName = TRUE;
+                            }
+                        }
+                    }
+                    
+                    if ($useOldName) {
+                        $fileName = $oFileName;
+                    } else {
+                        $fileName .= '.' . $extArr[0];  
+                    }
                 }
             }
         }
-
+        
         return $fileName;
     }
     
