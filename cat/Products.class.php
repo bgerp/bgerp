@@ -221,9 +221,9 @@ class cat_Products extends core_Embedder {
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
 		$this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info,width=15em');
-        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=hidden,formOrder=4');
-        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,notSorting,input=hidden,formOrder=4');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=hidden,formOrder=4');
+        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none,formOrder=4');
+        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,notSorting,input=none,formOrder=4');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember,formOrder=100');
         
         $this->setDbUnique('code');
