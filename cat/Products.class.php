@@ -1143,15 +1143,14 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Връща подробното описанието на артикула
+     * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис
-     * @param datetime $time - към кое време
+     * @param enum $documentType (@see deals_DocumentTypes) - Константа от модела
      * @return mixed - описанието на артикула
      */
-    public function getProductDesc($id, $time = NULL)
+    public function getProductDesc($id, $documentType, $time = NULL)
     {
-    	//@TODO временно докато се сложи новия интерфейс
     	$rec = $this->fetchRec($id);
     	
     	return $rec->name;

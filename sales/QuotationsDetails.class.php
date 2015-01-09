@@ -472,14 +472,12 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		$ProductMan = cls::get($rec->classId);
     		
-    		if($ProductMan->isProductStandart($rec->productId)){
-    			$row->productId = $ProductMan->getProductTitle($rec->productId);
+    		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master->documentType, $modifiedOn);
     		
+    		if($ProductMan->isProductStandart($rec->productId)){
     			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     				$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId));
     			}
-    		} else {
-    			$row->productId = $ProductMan->getProductDesc($rec->productId, $modifiedOn);
     		}
     	}
     }
