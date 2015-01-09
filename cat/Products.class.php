@@ -1077,8 +1077,8 @@ class cat_Products extends core_Embedder {
     	if(!mp_ObjectResources::fetch("#classId = '{$this->getClassId()}' AND #objectId = {$id}")){
     		$pInfo = $this->getProductInfo($id);
     		
-    		// Може да се добавя ресурс само към Артикули, които са материали или ДА
-    		if(isset($pInfo->meta['materials']) || isset($pInfo->meta['fixedAsset'])){
+    		// Може да се добавя ресурс само към Артикули, които са материали, ДА или вложими
+    		if(isset($pInfo->meta['materials']) || isset($pInfo->meta['canConvert']) || isset($pInfo->meta['fixedAsset'])){
     			
     			return TRUE;
     		}
@@ -1111,7 +1111,7 @@ class cat_Products extends core_Embedder {
     	}
     	 
     	// Ако артикула е материал, ще може да се избират само ресурси - материали
-    	if(isset($pInfo->meta['materials'])){
+    	if(isset($pInfo->meta['materials']) || isset($pInfo->meta['canConvert'])){
     		$res->type = 'material';
     	}
     	
