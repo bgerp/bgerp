@@ -981,7 +981,7 @@ td.portal-date {
 .document .listTable th {
   white-space: nowrap; }
 
-.document  .listTable  tr > th:first-child {
+.document .rowtools-column {
   width: 1%; }
 
 .small-field {
