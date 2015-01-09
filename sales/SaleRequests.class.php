@@ -35,7 +35,7 @@ class sales_SaleRequests extends core_Master
      *
      * (@see deals_DocumentTypes)
      */
-    public $documentType = deals_DocumentTypes::CONTRACT;
+    public static $documentType = deals_DocumentTypes::CONTRACT;
     
     
     /**

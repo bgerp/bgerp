@@ -22,7 +22,7 @@ abstract class store_DocumentMaster extends core_Master
 	 *
 	 * (@see deals_DocumentTypes)
 	 */
-	public $documentType = deals_DocumentTypes::STANDARD;
+	public static $documentType = deals_DocumentTypes::STANDARD;
 	
 	
     /**

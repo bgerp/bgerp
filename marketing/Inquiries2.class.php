@@ -40,7 +40,7 @@ class marketing_Inquiries2 extends core_Embedder
      *
      * (@see deals_DocumentTypes)
      */
-    public $documentType = deals_DocumentTypes::INQUIRY;
+    public static $documentType = deals_DocumentTypes::INQUIRY;
     
     
     /**
