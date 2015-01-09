@@ -1089,41 +1089,35 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Какъв е дефолтната мярка на  ресурса
+     * Връща дефолт информация от източника на ресурса
      *
      * @param int $id - ид на обекта
+     * @return stdClass $res  - обект с информация
+     * 		o $res->name      - име
+     * 		o $res->measureId - име мярка на ресурса (@see cat_UoM)
+     * 		o $res->type      -  тип на ресурса (material,labor,equipment)
      */
-    public function getResourceMeasureId($id)
+    public function getResourceSourceInfo($id)
     {
+    	$res = new stdClass();
     	$pInfo = $this->getProductInfo($id);
     	
-    	return $pInfo->productRec->measureId;
-    }
-    
-    
-    /**
-     * Какъв е дефолтния тип ресурс на обекта
-     *
-     * @param int $id - ид на обекта
-     * @return enum(equipment=Оборудване,labor=Труд,material=Материал) - тип на ресурса
-     */
-    public function getResourceType($id)
-    {
-    	$pInfo = $this->getProductInfo($id);
+    	$res->name = $pInfo->productRec->name;
+    	$res->measureId = $pInfo->productRec->measureId;
     	
     	// Ако артикула е ДМА, ще може да се избират само ресурси - оборудване
     	if(isset($pInfo->meta['fixedAsset'])){
-    		
-    		return 'equipment';
+    		$res->type = 'equipment';
     	}
-    	
-    	// Ако артикула е материал, ще може да се избират само ресурси - materiali
+    	 
+    	// Ако артикула е материал, ще може да се избират само ресурси - материали
     	if(isset($pInfo->meta['materials'])){
-    	
-    		return 'material';
+    		$res->type = 'material';
     	}
     	
-    	return FALSE;
+    	$res->type = (empty($res->type)) ? FALSE : $res->type;
+    	
+    	return $res;
     }
     
     

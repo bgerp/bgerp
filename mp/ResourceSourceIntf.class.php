@@ -37,24 +37,16 @@ class mp_ResourceSourceIntf
 	
 	
 	/**
-	 * Какъв е дефолтната мярка на  ресурса
+	 * Връща дефолт информация от източника на ресурса
 	 *
 	 * @param int $id - ид на обекта
+	 * @return stdClass $res  - обект с информация
+	 * 		o $res->name      - име
+	 * 		o $res->measureId - име мярка на ресурса (@see cat_UoM)
+	 * 		o $res->type      -  тип на ресурса (material,labor,equipment)
 	 */
-	public function getResourceMeasureId($id)
+	public function getResourceSourceInfo($id)
 	{
-		$this->class->getResourceMeasureId($id);
-	}
-	
-	
-	/**
-	 * Какъв е дефолтния тип ресурс на обекта
-	 *
-	 * @param int $id - ид на обекта
-	 * @return enum(equipment=Оборудване,labor=Труд,material=Материал) - тип на ресурса
-	 */
-	public function getResourceType($id)
-	{
-		$this->class->getResourceType($id);
+		$this->class->getResourceSourceInfo($id);
 	}
 }

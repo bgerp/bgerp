@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на физическите лица
  *
@@ -9,7 +8,7 @@
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.12
  * @title     Физически лица
@@ -2366,24 +2365,27 @@ class crm_Persons extends core_Master
     
      
     /**
-     * Какъв е дефолтната мярка на  ресурса
+     * Връща дефолт информация от източника на ресурса
      *
      * @param int $id - ид на обекта
+     * @return stdClass $res  - обект с информация
+     * 		o $res->name      - име
+     * 		o $res->measureId - име мярка на ресурса (@see cat_UoM)
+     * 		o $res->type      -  тип на ресурса (material,labor,equipment)
      */
-    public function getResourceMeasureId($id)
+    public function getResourceSourceInfo($id)
     {
-    	return cat_UoM::fetchBySinonim('h')->id;
-    }
-    
-    
-    /**
-     * Какъв е дефолтния тип ресурс на обекта
-     *
-     * @param int $id - ид на обекта
-     * @return enum(equipment=Оборудване,labor=Труд,material=Материал) - тип на ресурса
-     */
-    public function getResourceType($id)
-    {
-    	return 'labor';
+    	$rec = $this->fetchRec($id);
+    	
+    	$res = new stdClass();
+    	$res->name = $rec->name;
+    	
+    	// Основната мярка на ресурса е 'час'
+    	$res->measureId = cat_UoM::fetchBySinonim('h')->id; 
+    	
+    	// Типа на ресурса ще е 'труд'
+    	$res->type = 'labor'; 
+    	
+    	return $res;
     }
 }

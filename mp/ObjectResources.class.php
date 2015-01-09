@@ -117,6 +117,11 @@ class mp_ObjectResources extends core_Manager
     	
     	$form->setDefault('classId', $classId);
     	$form->setDefault('objectId', $objectId);
+    	
+    	// По подразбиране името на новия ресурс съвпада с името на източника
+    	$sourceInfo = cls::get($form->rec->classId)->getResourceSourceInfo($form->rec->objectId);
+    	$form->setDefault('newResource', $sourceInfo->name);
+    	
     	$form->input();
     	
     	// Ако формата е събмитната
@@ -128,11 +133,7 @@ class mp_ObjectResources extends core_Manager
     		} else {
     			
     			// Създава нов запис и го свързва с обекта 
-    			$type = cls::get($form->rec->classId)->getResourceType($form->rec->objectId);
-    			$measureId = cls::get($form->rec->classId)->getResourceMeasureId($form->rec->objectId);
-    			
-    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $type, 'measureId' => $measureId));
-    			
+    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $sourceInfo->type, 'measureId' => $sourceInfo->measureId));
     			$nRec = (object)array('classId' => $classId, 'objectId' => $objectId, 'resourceId' => $resourceId);
     			
     			$this->save($nRec);
@@ -162,18 +163,17 @@ class mp_ObjectResources extends core_Manager
     	$rec = &$form->rec;
     	
     	$Class = cls::get($rec->classId);
-    	expect(cls::haveInterface('mp_ResourceSourceIntf', $Class));
     	
-    	$resourceType = $Class->getResourceType($rec->objectId);
+    	$sourceInfo = $Class->getResourceSourceInfo($rec->objectId);
     	
-    	$options = mp_Resources::makeArray4Select('title', array("#type = '{$resourceType}'"));
+    	$options = mp_Resources::makeArray4Select('title', array("#type = '{$sourceInfo->type}'"));
     	
     	if(count($options)){
     		$form->setOptions('resourceId', $options);
     	} else {
     		$form->setReadOnly('resourceId');
-    		$resourceType = cls::get('mp_Resources')->getFieldType('type')->toVerbal($resourceType);
-    		$form->info = tr("|Няма ресурси от тип|* <b>'{$resourceType}'</b>");
+    		$resourceType = cls::get('mp_Resources')->getFieldType('type')->toVerbal($sourceInfo->type);
+    		$form->info = tr("|Няма ресурси от тип|* <b>'{$sourceInfo->type}'</b>");
     	}
     }
     
@@ -197,7 +197,7 @@ class mp_ObjectResources extends core_Manager
     	 
     	if(!Mode::is('printing')) {
     		if(self::haveRightFor('add', (object)array('classId' => $classId, 'objectId' => $data->masterId))){
-    			$type = $data->masterMvc->getResourceType($data->masterId);
+    			$type = $data->masterMvc->getResourceSourceInfo($data->masterId)->type;
     			if(mp_Resources::fetch("#type = '{$type}'")){
     				$data->addUrl = array($this, 'add', 'classId' => $classId, 'objectId' => $data->masterId, 'ret_url' => TRUE);
     			}
