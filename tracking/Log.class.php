@@ -38,7 +38,7 @@ class tracking_Log extends core_Master {
      *
      * var string|array
      */
-    public $listFields = 'id,vehicleId, driverId, text, fixTime, remoteIp, createdOn';
+    public $listFields = 'id,vehicleId, driverId, text, location, fixTime, remoteIp, createdOn';
     
     /**
      * Описание на модела
@@ -47,7 +47,7 @@ class tracking_Log extends core_Master {
     {
         $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number, allowEmpty=true)', 'caption=Автомобил');
         $this->FLD('driverId', 'key(mvc=crm_Persons, select=name, allowEmpty=true)', 'caption=Водач');
-        $this->FLD('location', 'location_Type', 'caption=Локация');
+        $this->FLD('location', 'location_Type', 'caption=Локация, tdClass=large-field');
         
         $this->FLD('data', 'blob', 'caption=Данни');
         $this->FLD('fixTime', 'datetime()', 'caption=Време на засичне');
@@ -92,13 +92,11 @@ class tracking_Log extends core_Master {
         $data->query->orderBy('#fixTime', 'DESC');        
     }
     
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
+    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $data = self::parseTrackingData($rec->data);
-        $rec->location = self::DMSToDD($data['latitude'])
-            . "," . self::DMSToDD($data['longitude']);
         $l = cls::get('location_Type');
-        $row->location = $l->toVerbal($rec->location);
+        $row->location = $l->toVerbal(self::DMSToDD($data['latitude']) . "," . self::DMSToDD($data['longitude']));
     }
         
     protected function on_CalcText($mvc, $rec)
@@ -183,7 +181,7 @@ class tracking_Log extends core_Master {
      * @param string стринг с данните - GPRMC + другите от тракера
      * @return array с елементи от GPRMS
      */
-    private function parseTrackingData($data)
+    private static function parseTrackingData($data)
     {
         // Взимаме GPRMC sentence 
         $res['dataTracking'] = substr($data, 0, strpos($data, '*')); // до този знак е изречението, 2 знака след това - CRC-то
