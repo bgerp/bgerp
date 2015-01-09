@@ -653,13 +653,4 @@ abstract class deals_ClosedDeals extends core_Master
         // и връщаме най-голямата дата от тях
         return $date;
     }
-    
-    
-    /**
-     * След като се поготви заявката за модела
-     */
-    protected static function on_AfterGetQuery($mvc, $query)
-    {
-    	$query->where("#classId = {$mvc->getClassId()}");
-    }
 }
