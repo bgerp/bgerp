@@ -139,4 +139,21 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 		// Стигнем ли до тук значи има детайли, и всичките са ресурси
 		return TRUE;
 	}
+	
+	
+	/**
+	 * Обновява записа, за да се преизчисли полето 'isContable' (@see acc_plg_Contable)
+	 */
+	public function act_Resave()
+	{
+		$this->requireRightFor('write');
+		expect($id = Request::get('id', 'int'));
+		expect($rec = $this->fetchRec($id));
+		
+		$this->requireRightFor('write', $rec);
+		
+		$this->save($rec);
+		
+		redirect(array($this, 'single', $id));
+	}
 }
