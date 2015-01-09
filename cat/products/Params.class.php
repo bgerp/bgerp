@@ -218,7 +218,9 @@ class cat_products_Params extends core_Manager
     public static function renderDetail($data)
     {
         $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
+        $tpl->replace(get_called_class(), 'DetailName');
         $tpl->append(tr('Параметри'), 'TITLE');
+        
         if($data->noChange !== TRUE){
         	$tpl->append($data->changeBtn, 'TITLE');
         }
