@@ -74,6 +74,12 @@ class cat_products_Params extends core_Manager
     /**
      * Кой може да качва файлове
      */
+    var $canEdit = 'ceo,cat';
+    
+    
+    /**
+     * Кой може да качва файлове
+     */
     var $canDelete = 'ceo,cat';
     
     
