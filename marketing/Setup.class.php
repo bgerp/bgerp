@@ -81,7 +81,7 @@ class marketing_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.1, 'Търговия', 'Маркетинг', 'marketing_Inquiries', 'default', "sales, ceo, marketing"),
+            array(3.1, 'Търговия', 'Маркетинг', 'marketing_Inquiries', 'default', "ceo, marketing"),
         );
 
     

@@ -83,13 +83,13 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,sales,marketing';
+    public $canRead = 'ceo,marketing';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales,marketing';
+	public $canList = 'ceo,marketing';
 	
 	
 	/**
@@ -107,7 +107,7 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,sales,marketing';
+    public $canAdd = 'ceo,marketing';
     
     
     /**
@@ -119,7 +119,7 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Кой има право да създава визитки на лица?
      */
-    public $canMakeperson = 'ceo,sales,crm,marketing';
+    public $canMakeperson = 'ceo,crm,marketing';
     
     
     /**
