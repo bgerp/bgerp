@@ -22,7 +22,7 @@ abstract class deals_ServiceMaster extends core_Master
 	 *
 	 * (@see deals_DocumentTypes)
 	 */
-	public static $documentType = deals_DocumentTypes::STANDARD;
+	public $documentType = deals_DocumentTypes::STANDARD;
 	
 	
 	/**

@@ -22,7 +22,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	 *
 	 * (@see deals_DocumentTypes)
 	 */
-	public static $documentType = deals_DocumentTypes::INVOICE;
+	public $documentType = deals_DocumentTypes::INVOICE;
 	
 	
 	/**

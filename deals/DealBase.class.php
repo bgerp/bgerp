@@ -40,7 +40,7 @@ abstract class deals_DealBase extends core_Master
 	 * 
 	 * (@see deals_DocumentTypes)
 	 */
-	public static $documentType = deals_DocumentTypes::CONTRACT;
+	public $documentType = deals_DocumentTypes::CONTRACT;
 	
 	
 	/**
