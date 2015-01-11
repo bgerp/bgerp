@@ -28,6 +28,14 @@ class findeals_AdvanceReports extends core_Master
     public $title = 'Авансови отчети';
 
 
+	/**
+     * Към коя група документи спада класа
+     *
+     * (@see deals_DocumentTypes)
+     */
+    public $documentType = deals_DocumentTypes::STANDARD;
+    
+    
     /**
      * Абревиатура
      */

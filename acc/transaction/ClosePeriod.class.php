@@ -1,18 +1,20 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа acc_ClosePeriods
  *
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class acc_transaction_ClosePeriod
+class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
 {
 	
 	
@@ -211,20 +213,6 @@ class acc_transaction_ClosePeriod
     	}
     	
     	return $entries;
-    }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'active';
-    
-    	return $this->class->save($rec, 'state');
     }
     
     
@@ -501,30 +489,30 @@ class acc_transaction_ClosePeriod
      * 
      * Разходи за материали
      * 
-     * 		Dt: 611. Разходи за основна дейност
+     * 		Dt: 611. Разходи по Центрове и Ресурси
      * 		Ct: 601. Разходи за материали
      * 
      *  Разходи за Разходи за външни услуги
      *  
-     * 		Dt: 611. Разходи за основна дейност
+     * 		Dt: 611. Разходи по Центрове и Ресурси
      * 		Ct: 602. Разходи за външни услуги
      * 
      * Разходи за материали
      * 
-     * 		Dt: 611. Разходи за основна дейност
+     * 		Dt: 611. Разходи по Центрове и Ресурси
      * 		Ct: 603. Разходи за амортизация
      * 
      * Приключваме разхода като намаление на финансовия резултат за периода
      * 
      * 		Dt: 123. Печалби и загуби от текущата година
-     * 		Ct: 611. Разходи за основна дейност
+     * 		Ct: 611. Разходи по Центрове и Ресурси
      * 
      * Разходи за труд
      * 
-     * 		Dt: 611. Разходи за основна дейност
+     * 		Dt: 611. Разходи по Центрове и Ресурси
      * 		Ct: 604. Разходи за заплати (възнаграждения)
      * 
-     * 		Dt: 611. Разходи за основна дейност
+     * 		Dt: 611. Разходи по Центрове и Ресурси
      * 		Ct: 605. Разходи за осигуровки
      * 
      * Приключваме разхода като намаление на финансовия резултат за периода

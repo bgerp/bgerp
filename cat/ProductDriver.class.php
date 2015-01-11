@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Драйвър за нестандартен артикул
+ * Базов драйвер за драйвер на артикул
  *
  *
  * @category  bgerp
@@ -10,7 +10,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвър за нестандартен артикул
+ * @title     Базов драйвер за драйвер на артикул
  */
 abstract class cat_ProductDriver extends core_BaseClass
 {
@@ -23,16 +23,9 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Инстанция на класа имплементиращ интерфейса
-	 */
-	public $class;
-	
-	
-	
-	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectSource = 'ceo, cat';
+	public $canSelectSource = 'ceo, cat, techno';
 	
 	
 	/**
@@ -40,7 +33,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public $interfaces = 'cat_ProductDriverIntf';
 	
-
+	
 	/**
 	 * Вътрешната форма
 	 *
@@ -55,6 +48,36 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param mixed $innerState
 	 */
 	protected $innerState;
+
+	
+	/**
+	 * Мета данни по подразбиране
+	 * 
+	 * @param strint $defaultMetaData
+	 */
+	protected $defaultMetaData;
+	
+	
+	/**
+	 * Параметри
+	 *
+	 * @param array $driverParams
+	 */
+	protected $driverParams;
+	
+	
+	/**
+	 * Задава параметрите на обекта
+	 *
+	 * @param mixed $innerForm
+	 */
+	public function setParams($params)
+	{
+		$params = arr::make($params, TRUE);
+		if(count($params)){
+			$this->driverParams = arr::make($params, TRUE);
+		}
+	}
 	
 	
 	/**
@@ -86,7 +109,42 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function prepareEmbeddedForm(core_Form &$form)
 	{
-	
+		// Намираме полетата на формата
+		$fields = $form->selectFields();
+		
+		if(count($this->driverParams)){
+			
+			// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
+			foreach ($fields as $name => $fld){
+				if(isset($this->driverParams[$name])){
+					$form->setDefault($name, $this->driverParams[$name]);
+				}
+			}
+		}
+		
+		// Ако има полета
+		if(count($fields)){
+			
+			// За всички полета
+			foreach ($fields as $name => $fld){
+					
+				// Ако има атрибут display
+				$display = $form->getFieldParam($name, 'display');
+					
+				// Ако е 'hidden' и има зададена стойност, правим полето скрито
+				if($display === 'hidden'){
+					if(!is_null($form->rec->$name)){
+						$form->setField($name, 'input=hidden');
+					}
+				} elseif($display === 'readOnly'){
+			
+					// Ако е 'readOnly' и има зададена стойност, правим го 'само за четене'
+					if(!is_null($form->rec->$name)){
+						$form->setReadOnly($name);
+					}
+				}
+			}
+		}
 	}
 	
 	
@@ -127,51 +185,59 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public static function on_BeforeSave($mvc, &$is, $filter, $rec)
 	{
 		if(isset($filter)){
-			$is = clone $filter;
+			$is = is_object($filter) ? clone $filter : $filter;
 		}
+	}
+	
+	
+	/**
+	 * Променя ключовите думи от мениджъра
+	 */
+	public function alterSearchKeywords(&$searchKeywords)
+	{
+		
+	}
+	
+	
+	/**
+	 * Кои документи са използвани в полетата на драйвера
+	 */
+	public function getUsedDocs()
+	{
+		return FALSE;
 	}
 
 
 	/**
-	 * Връща масив с мета данните които ще се форсират на продукта
+	 * Кои опаковки поддържа продукта
+	 * 
+	 * @param array $metas - кои са дефолтните мета данни от ембедъра
+	 * @return array $metas - кои са дефолтните мета данни
 	 */
-	public function getDefaultMetas()
+	public function getDefaultMetas($metas)
 	{
-		return array();
+		// Взимаме дефолтните мета данни от ембедъра
+		$metas = arr::make($metas, TRUE);
+		
+		// Ако за драйвера има дефолтни мета данни, добавяме ги към тези от ембедъра
+		if(!empty($this->defaultMetaData)){
+			$metas = $metas + arr::make($this->defaultMetaData, TRUE);
+		}
+		
+		return $metas;
 	}
-
-
+	
+	
 	/**
-	 * Рендиране на параметрите
-	 *
-	 * @param данни за параметрите $paramData
-	 * @param core_ET $tpl - шаблон
+	 * Връща основната мярка, специфична за технолога
 	 */
-	public function renderParams($paramData, &$tpl, $short = FALSE)
+	public function getDriverUom($params)
 	{
-		$blockName = ($short) ? "SHORT" : "LONG";
-		$paramTpl = getTplFromFile('cat/tpl/Parameters.shtml')->getBlock($blockName);
-	
-		if(count($paramData->params)){
-			foreach ($paramData->params as $row){
-				$block = clone $paramTpl->getBlock('PARAMS');
-				$block->placeObject($row);
-				$block->removeBlocks();
-				$block->append2master();
-			}
-		} else{
-			$paramTpl = new ET("[#ADD#]");
-		}
-			
-		if($paramData->addParamUrl){
-			if(cat_Params::count()){
-				$btn = ht::createBtn('Нов параметър', $paramData->addParamUrl, NULL, NULL, 'ef_icon = img/16/star_2.png,title=Добавяне на нов параметър');
-			} else {
-				$btn = ht::createErrBtn('Нов параметър', 'Няма продуктови параметри');
-			}
-			$paramTpl->replace($btn, 'ADD');
+		if(empty($params['uom'])){
+			 
+			return cat_UoM::fetchBySysId('pcs')->id;
 		}
 	
-		$tpl->replace($paramTpl, 'PARAMS');
+		return cat_UoM::fetchBySinonim($params['uom']);
 	}
 }

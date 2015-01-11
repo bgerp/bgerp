@@ -7,15 +7,23 @@
  * @category  bgerp
  * @package   cash
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class cash_transaction_Pko
+class cash_transaction_Pko extends acc_DocumentTransactionSource
 {
+	
+	
+	/**
+	 * В какво състояние да е документа след финализирането на транзакцията
+	 *
+	 * @var string
+	 */
+	protected $finalizedState = 'closed';
 	
 	
     /**
@@ -23,24 +31,6 @@ class cash_transaction_Pko
      * @var cash_Pko
      */
     public $class;
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'closed';
-    
-    	if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
-    }
     
     
     /**

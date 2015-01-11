@@ -734,7 +734,12 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('emailsCc', $data->rec->emailCc);
         
         // Стойността на полето От, дефинирано в персонализацията на профилите
-        $defaultBoxFromId = static::getDefaultInboxId($data->rec->folderId);
+        $defaultBoxFromId = self::getDefaultInboxId($data->rec->folderId);
+        
+        if (!$defaultBoxFromId) {
+            email_Inboxes::redirect();
+        }
+        
         $data->form->setDefault('boxFrom', $defaultBoxFromId);
         
         // Ако имам папка

@@ -25,6 +25,12 @@ class budget_Balances extends core_Manager
     
     
     /**
+     * Заглавие в единствено число
+     */
+    public $singleTitle = "Баланс";
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_SaveAndNew, 

@@ -36,7 +36,7 @@ class hr_Departments extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '611';
+    public $balanceRefAccounts = '611,6112';
     
     
     /**
@@ -136,6 +136,12 @@ class hr_Departments extends core_Master
     public $listFields = 'id, name, type, staff, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
 
     
+    /**
+     * Дефолт достъп до новите корици
+     */
+    public $defaultAccess = 'public';
+    
+    
     // Подготвяме видовете графики 
     static $chartTypes = array(
         'List' => 'Tаблица',
@@ -202,7 +208,6 @@ class hr_Departments extends core_Master
         }
         
         $data->form->setOptions('staff', $opt);
-        //$data->form->setDefault('staff', 'organization');
     }
     
     
@@ -463,14 +468,13 @@ class hr_Departments extends core_Master
         
         foreach($arrData as $rec){ 
             // Ако имаме родител 
-             if($rec->staff == NULL && $rec->name !== 'Моята Организация ООД') {
+             if($rec->staff == NULL && $rec->systemId !== 'myOrganisation') {
                  $parent = '0';
                  // взимаме чистото име на наследника
                  $name = self::fetchField($rec->id, 'name');
              } else {
-                 // в противен случай, го взимаме
-                 // както е
-                 if ($rec->name == 'Моята Организация ООД'){
+                 // в противен случай, го взимаме както е
+                 if ($rec->systemId == 'myOrganisation'){
                      $name = $rec->name;
                      $oldId = $rec->id;
                      $rec->id = '0';
@@ -510,6 +514,7 @@ class hr_Departments extends core_Master
     			0 => "name",
     			1 => "activities",
     			2 => "systemId",
+    			3 => "type",
     	);
     	
     	// Импортираме данните от CSV файла.

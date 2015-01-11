@@ -25,18 +25,12 @@ class techno2_SpecTplCache extends core_Master
 	 * Необходими плъгини
 	 */
 	public $loadList = 'plg_RowTools, techno2_Wrapper';
-	
-	
-	/**
-	 * Заглавие
-	 */
-	public $singleTitle = 'История на изгледа на спецификацията';
 	 
 	
 	/**
 	 * Заглавие на мениджъра
 	 */
-	public $title = "Нестандартни артикули";
+	public $title = "Кеш на изгледа на нестандартните артикули";
 	
 	
 	/**
@@ -96,7 +90,6 @@ class techno2_SpecTplCache extends core_Master
 	public static function getTpl($id, $time)
 	{
 		$rec = techno2_SpecificationDoc::fetchRec($id);
-		
 		$cache = techno2_SpecTplCache::fetchField("#specId = {$rec->id} AND #time = '{$time}'", 'cache');
 		
 		return $cache;
@@ -111,5 +104,51 @@ class techno2_SpecTplCache extends core_Master
 		if(isset($fields['-single'])){
 			$row->cache = new ET($rec->cache);
 		}
+	}
+
+
+	/**
+	 * Подготовка на филтър формата
+	 */
+	public static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		$data->listFilter->FLD("docId", "key(mvc=techno2_SpecificationDoc,select=title,allowEmpty)", "input,caption=Спецификация");
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->showFields = 'docId';
+		
+		$data->listFilter->input(NULL, 'silent');
+		
+		if(isset($data->listFilter->rec->docId)){
+			$data->query->where("#specId = '{$data->listFilter->rec->docId}'");
+		}
+	}
+	
+	
+	/**
+	 * След подготовка на туклбара на списъчния изглед
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareListToolbar($mvc, &$data)
+	{
+		if(haveRole('admin,debug')){
+			$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+		}
+	}
+	
+	
+	/**
+	 * Изчиства записите в балансите
+	 */
+	public function act_Truncate()
+	{
+		requireRole('admin,debug');
+		 
+		// Изчистваме записите от моделите
+		self::truncate();
+		 
+		Redirect(array($this, 'list'), FALSE, 'Записите са изчистени успешно');
 	}
 }

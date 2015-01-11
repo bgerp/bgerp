@@ -1,0 +1,17 @@
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <!--ET_END header-->
+    <div>|За|*: [#originId#]</div>
+    <br>
+    [#DETAILS#]
+    
+    <!--ET_BEGIN notes-->
+    <br>
+    <div>|Забележки|*:</div>
+    <div>[#notes#]</div>
+    <!--ET_END notes-->
+</div>

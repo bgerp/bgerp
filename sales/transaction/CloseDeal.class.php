@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа sales_ClosedDeals
  *
@@ -12,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class sales_transaction_CloseDeal
+class sales_transaction_CloseDeal extends acc_DocumentTransactionSource
 {
     /**
      * 
@@ -37,26 +39,6 @@ class sales_transaction_CloseDeal
      * Дата
      */
     private $date;
-    
-    
-    /**
-     * Финализиране на транзакцията, изпълнява се ако всичко е ок
-     * 
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-        $rec = $this->class->fetchRec($id);
-        $rec->state = 'active';
-        
-    	if ($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
-    }
     
     
     /**

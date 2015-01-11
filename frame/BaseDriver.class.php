@@ -115,6 +115,15 @@ abstract class frame_BaseDriver extends core_BaseClass
 	
 	
 	/**
+	 * Връща дефолт заглавието на репорта
+	 */
+	public function getReportTitle()
+	{
+		return $this->title;
+	}
+	
+	
+	/**
 	 * Променя ключовите думи
 	 * 
 	 * @param string $searchKeywords
@@ -134,8 +143,31 @@ abstract class frame_BaseDriver extends core_BaseClass
 	}
 	
 	
+	/**
+	 * Коя е най-ранната дата когато може да се активира отчета
+	 * 
+	 * @return datetime
+	 */
 	public function getEarlyActivation()
 	{
+		return dt::now();
+	}
+	
+	
+	/**
+	 * Рендира вътрешната форма като статична форма в подадения шаблон
+	 * 
+	 * @param core_ET $tpl - шаблон
+	 * @param string $placeholder - плейсхолдър
+	 */
+	protected function prependStaticForm(core_ET &$tpl, $placeholder = NULL)
+	{
+		$form = cls::get('core_Form');
 		
+		$this->addEmbeddedFields($form);
+		$form->rec = $this->innerForm;
+		$form->class = 'simpleForm';
+		 
+		$tpl->prepend($form->renderStaticHtml(), $placeholder);
 	}
 }

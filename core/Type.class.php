@@ -42,6 +42,12 @@ class core_Type extends core_BaseClass
 	public $suggestions;
 	
 	
+	/**
+	 * 
+	 */
+	public $tdClass = '';
+	
+	
     /**
      * Конструктор. Дава възможност за инициализация
      */
@@ -103,6 +109,17 @@ class core_Type extends core_BaseClass
     function getTdClass()
     {
         return $this->tdClass;
+    }
+    
+    
+    /**
+     * Добавяне атрибута към стринга
+     * 
+     * @param string $class
+     */
+    function appendTdClass($class)
+    {
+        $this->tdClass .= ($this->tdClass) ? ' ' . $class : $class;
     }
     
     

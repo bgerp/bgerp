@@ -130,9 +130,6 @@ class frame_Reports extends core_Embedder
      */
     function description()
     {
-        // Име на отчета
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование, width=100%, notFilter, mandatory');
-
         // Singleton клас - източник на данните
         $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Източник,silent,mandatory,notFilter', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
 
@@ -144,15 +141,13 @@ class frame_Reports extends core_Embedder
  
         // Най-ранната дата когато отчета може да се активира
         $this->FLD('earlyActivationOn', 'datetime', 'input=none');
-       
-        $this->setDbUnique('name');
     }
 
     
     /**
      *  Обработки по вербалното представяне на данните
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		if($fields['-single']) {
 	    	
@@ -167,20 +162,6 @@ class frame_Reports extends core_Embedder
             	$rec->data = $Source->prepareInnerState();
             }
         }
-    }
-
-
-    /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $rec
-     */
-    public static function on_BeforeSave1(core_Manager $mvc, $res, $rec)
-    {
-    	if(isset($rec->state) && $rec->state == 'pending'){
-    		$rec->state = 'draft';
-    	}
     }
     
     
@@ -269,8 +250,11 @@ class frame_Reports extends core_Embedder
     public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
+    	
+    	$Driver = $this->getDriver($rec);
+    	
         $row = new stdClass();
-        $row->title = $this->singleTitle . " №{$id} {$rec->name}";
+        $row->title = $this->singleTitle . " №{$id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -299,9 +283,14 @@ class frame_Reports extends core_Embedder
     public function cron_ActivateEarlyOn()
     {
     	$now = dt::now();
+    	
+    	// Намираме всички отчети които са чакащи и им е пресрочена датата на активация
     	$query = $this->getQuery();
     	$query->where("#state = 'pending'");
-    	$query->where("#earlyActivationOn >= '{$now}'");
+    	$query->where("#earlyActivationOn <= '{$now}'");
+    	$query->orWhere("#earlyActivationOn IS NULL");
+    	
+    	// Активираме ги
     	while($rec = $query->fetch()){
     		$this->activate($rec, $now);
     	}
@@ -394,7 +383,8 @@ class frame_Reports extends core_Embedder
     	
     	// Ако отчета е чакащ, може да се редактира
     	if($action == 'edit' && isset($rec)){
-    		if($rec->state == 'pending'){
+    		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
+    		if($state == 'pending'){
     			$requiredRoles = $mvc->getRequiredRoles('edit');
     		}
     	}

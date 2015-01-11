@@ -1,5 +1,5 @@
 [#SingleToolbar#]
-<div class='document'>
+<div class='document specificationDoc'>
     <!--ET_BEGIN blank-->
     [#blank#]
     <!--ET_END blank-->
@@ -10,19 +10,19 @@
     <!--ET_END header-->
     <b>[#title#]</b><br>
     [#innerState#]
+    
     <!--ET_BEGIN meta-->
-    <table class='styled-table'>
-          <tr>
-              <td>|Свойства|*</td>
-              <td><i>[#meta#]</i></td>
-         </tr>
-    </table>
+    <fieldset class="detail-info">
+        <legend class="groupTitle">|Свойства|*</legend>
+        <div class="groupList">[#meta#]</div>
+    </fieldset>
    <!--ET_END meta-->
-   
-    <!--ET_BEGIN shareLog-->
-    <div class='sharing-history clearfix21'>
-        <span class='sharing-history-title'>|Споделяне|*</span>
-        [#shareLog#]
+    
+    <!--ET_BEGIN AccReports-->
+    <div class = 'specReport'>
+    [#AccReports#]
     </div>
-    <!--ET_END shareLog-->
+    <!--ET_END AccReports-->
+    
+    [#DETAILS#]
 </div>

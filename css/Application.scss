@@ -343,6 +343,9 @@ div.folder-cover {
 	.groupList {
 		font-size: 0.95em;
 		max-width: 725px;
+		.listTopContainer {
+		    min-width: 300px;
+		}
 		div.rowtools {
 		  display: inline-block;
 		  width: auto;
@@ -1014,6 +1017,9 @@ td.portal-date {
 			color: #000;	
 		}
 	}
+	.listTable {
+	   width: 100%;
+	}
 	.custom-ul {
 		margin: 0 0 0 20px;
 	}
@@ -1082,7 +1088,7 @@ td.portal-date {
 	white-space: nowrap;
 }
 
-.document  .listTable  tr > th:first-child{
+.document .rowtools-column {
     width:1%;
 }
 
@@ -3154,7 +3160,7 @@ body.narrow {
 	   @include border-radius4(10px, 0, 0, 0);
 	}
     
-    .wide .listBlock .listRows > table.listTable, .wide .listRowsDetail > table.listTable {
+    .wide .listBlock .listRows > table.listTable{
         min-width:760px;
     }
 }
@@ -4014,10 +4020,11 @@ body.narrow {
 
 .plus-icon{
 	display: inline-block; 
-	width: 12px; 
-	height: 12px;
+	position: relative;
+	top: 2px;
 }
-    
+
+
 .vislog {
 	white-space:nowrap;
 	display: inline;

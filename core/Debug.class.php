@@ -343,11 +343,13 @@ class core_Debug
 
     private static function arrayToString($arr)
     {
+        $nArr = array();
+        
         foreach ($arr as $i=>$v) {
-            $arr[$i] = self::formatValue($v);
+            $nArr[$i] = self::formatValue($v);
         }
 
-        return '[' . implode(', ', $arr) . ']';
+        return '[' . implode(', ', $nArr) . ']';
     }
 
 
@@ -440,6 +442,11 @@ class core_Debug
      */
     public static function getDebugPage($state)
     {
+        require_once(EF_APP_PATH . "/core/NT.class.php");
+        require_once(EF_APP_PATH . "/core/ET.class.php");
+        require_once(EF_APP_PATH . "/core/Sbf.class.php");
+        require_once(EF_APP_PATH . "/core/Html.class.php");
+        
         $data['tabContent'] = $data['tabNav'] = '';
         
         // Дъмп

@@ -251,6 +251,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     	
     	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
     	
+    	$this->prependStaticForm($tpl, 'FORM');
+    	
     	$tpl->placeObject($data->row);
     	
     	$tableMvc = new core_Mvc;
@@ -338,12 +340,6 @@ class acc_BalanceReportImpl extends frame_BaseDriver
    private function recToVerbal($data)
    {
    		$data->row = new stdClass();
-        $DateTime = cls::get('type_Datetime');
-        $DateTime->params['format'] = 'smartTime';
-        
-        $data->row->accountId = acc_Balances::getAccountLink($data->rec->accountId, NULL, TRUE, TRUE);
-        $data->row->from = $DateTime->toVerbal($data->rec->from);
-        $data->row->to = $DateTime->toVerbal($data->rec->to);
     	
         foreach (range(1, 3) as $i){
        		if(!empty($data->rec->{"ent{$i}Id"})){

@@ -178,7 +178,7 @@ class plg_Current extends core_Plugin
         } elseif($mvc->haveRightFor('select', $rec)) {
         	
         	// Ако записа не е текущия обект, но може да бъде избран добавяме бутон за избор
-            $row->currentPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()), NULL, NULL, 'ef_icon = img/16/key.png');
+            $row->currentPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()), NULL, NULL, 'ef_icon = img/16/key.png, title=Предпочитание за текущ');
             $row->ROW_ATTR['class'] .= ' state-closed';
         } else {
         	

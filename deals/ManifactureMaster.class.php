@@ -16,6 +16,15 @@
 abstract class deals_ManifactureMaster extends core_Master
 {
 
+
+	/**
+	 * Към коя група документи спада класа
+	 *
+	 * (@see deals_DocumentTypes)
+	 */
+	public $documentType = deals_DocumentTypes::STANDARD;
+	
+	
 	/**
 	 * Опашка от записи за записване в on_Shutdown
 	 */
@@ -25,7 +34,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
-	public $searchFields = 'activityCenterId, storeId, note';
+	public $searchFields = 'activityCenterId, storeId, note, folderId';
 	
 	
 	/**
@@ -170,10 +179,11 @@ abstract class deals_ManifactureMaster extends core_Master
 		$firstDoc = doc_Threads::getFirstDocument($threadId);
 		
 		// Може да се добавя само към нишка с начало документ 'Задание'
-		if($firstDoc->getInstance() instanceof mp_Jobs){
+		//@TODO да го откоментирам след мърдж
+		/*if($firstDoc->getInstance() instanceof mp_Jobs){
 			
 			return TRUE;
-		}
+		}*/
 		
 		return FALSE;
 	}
@@ -211,5 +221,40 @@ abstract class deals_ManifactureMaster extends core_Master
     	if($action == 'activate' && empty($rec->id)){
     		$requiredRoles = 'no_one';
     	}
+    }
+    
+    
+    /**
+     * След промяна в детайлите на обект от този клас
+     */
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    {
+    	// Запомняне кои документи трябва да се обновят
+    	$mvc->updated[$id] = $id;
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+    	if(count($mvc->updated)){
+    		foreach ($mvc->updated as $id) {
+    			$mvc->updateMaster($id);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Обновява информацията на документа
+     * @param int $id - ид на документа
+     */
+    public function updateMaster($id)
+    {
+    	// Обновяваме класа за всеки случай
+    	$rec = $this->fetchRec($id);
+    	$this->save($rec);
     }
 }

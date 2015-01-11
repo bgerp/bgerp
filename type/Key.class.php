@@ -64,6 +64,8 @@ class type_Key extends type_Int {
 
                 $rec = $mvc->fetch($value);
                 
+                if (!$rec && $value == 0) return NULL;
+                
                 if(!$rec) return '??????????????';
                 
                 $v = $mvc->getVerbal($rec, $part);

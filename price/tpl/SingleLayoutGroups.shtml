@@ -2,7 +2,7 @@
     [#SingleToolbar#]
     <h2 style="margin-top:10px">|Ценова група|* <b style="color:green">"[#SingleTitle#]"</b></h2>
     <div class='free-text'>[#description#]</div>
-    <div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+    <div><span class="title-style">|Създаване|*: </span>[#createdBy#], [#createdOn#]</div>
     <br>
     <div class='scrolling-holder'>
         [#DETAILS#]

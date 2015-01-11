@@ -124,6 +124,8 @@ class plg_RowTools extends core_Plugin
             $tpl->append($restoreLink, 'TOOLS');
         }
         $row->{$field} = $tpl;
+        
+        $row->{$field}->append('rowtools-column', 'COL_CLASS');
     }
     
     

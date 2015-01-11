@@ -45,6 +45,7 @@ class mp_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+    		'mp_Jobs',
             'mp_Tasks',
     		'mp_Resources',
     		'mp_Stages',
@@ -67,7 +68,7 @@ class mp_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'mp_Jobs', 'default', "mp, ceo"),
+            array(3.21, 'Производство', 'Планиране', 'mp_Resources', 'default', "mp, ceo"),
         );   
    
     

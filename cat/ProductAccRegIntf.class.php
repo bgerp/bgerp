@@ -183,14 +183,24 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща подробното описанието на артикула
+     * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис
+     * @param enum $documentType (@see deals_DocumentTypes) - Константа от модела
      * @param datetime $time - към кое време
      * @return mixed - описанието на артикула
      */
-    public function getProductDesc($id, $time = NULL)
+    public function getProductDesc($id, $documentType, $time = NULL)
     {
     	return $this->getProductDesc($id, $time);
+    }
+    
+    
+    /**
+     * Променя ключовите думи от мениджъра
+     */
+    public function alterSearchKeywords(&$searchKeywords)
+    {
+    	return $this->alterSearchKeywords($searchKeywords);
     }
 }

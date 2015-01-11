@@ -12,7 +12,7 @@
  *
  * @see acc_TransactionSourceIntf
  */
-class bank_transaction_IncomeDocument
+class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
 {
     /**
      *
@@ -22,21 +22,11 @@ class bank_transaction_IncomeDocument
     
     
     /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
+     * В какво състояние да е документа след финализирането на транзакцията
+     *
+     * @var string
      */
-    public function finalizeTransaction($id)
-    {
-        $rec = $this->class->fetchRec($id);
-        $rec->state = 'closed';
-        
-        if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
-    }
+    protected $finalizedState = 'closed';
     
     
     /**

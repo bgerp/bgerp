@@ -309,9 +309,7 @@ class core_Manager extends core_Mvc
      */
     function act_SetupMVC()
     {
-        $tpl = new ET(parent::setupMVC());
-        
-        $tpl->append(core_Classes::add($this));
+        $tpl = new ET(parent::act_SetupMVC());
         
         $tpl = $this->renderWrapping($tpl);
         

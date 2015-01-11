@@ -645,11 +645,12 @@ abstract class deals_ClosedDeals extends core_Master
         
         // Ако периода на избраната дата е затворен, вальора става датата на документа
         $pRec = acc_Periods::fetchByDate($date);
-        if($pRec->state == 'closed'){
+        if($pRec->state == 'closed' || empty($date)){
         	$date = $rec->createdOn;
         }
         
+        
         // и връщаме най-голямата дата от тях
-        return $dates[0];
+        return $date;
     }
 }

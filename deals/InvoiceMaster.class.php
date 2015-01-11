@@ -15,8 +15,16 @@
  */
 abstract class deals_InvoiceMaster extends core_Master
 {
-    
-    
+
+
+	/**
+	 * Към коя група документи спада класа
+	 *
+	 * (@see deals_DocumentTypes)
+	 */
+	public $documentType = deals_DocumentTypes::INVOICE;
+	
+	
 	/**
 	 * Поле за единичния изглед
 	 */

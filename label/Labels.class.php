@@ -464,6 +464,10 @@ class label_Labels extends core_Master
             }
             $perPageCnt++;
             
+            if (!isset($data->rows[$rowId])) {
+                $data->rows[$rowId] = array();
+            }
+            
             // Обхождаме масива с шаблоните
             foreach ((array)$placesArr as $place) {
                 
@@ -537,6 +541,26 @@ class label_Labels extends core_Master
             
             // Вкарваме CSS-a, като инлайн
             $template = label_Templates::addCssToTemplate($data->Label->rec->templateId, $template);
+            
+            $divStyle = '';
+            
+            $cCol = $n % $data->pageLayout->columnsCnt;
+            
+            // За всяка колона без първата и се добавя междината за колоните
+            if (isset($data->pageLayout->columnsDist) && ($n !== 0) && ($cCol != 0)) {
+                $divStyle =  "margin-left: {$data->pageLayout->columnsDist}; ";
+            }
+            
+            // За всеки ред без първия се добавя междината за редовете
+            if (isset($data->pageLayout->linesDist) && $n >= $data->pageLayout->columnsCnt) {
+                $divStyle .=  "margin-top: {$data->pageLayout->linesDist};";
+            }
+            
+            if ($divStyle) {
+                $divStyle = "style='{$divStyle}'";
+            }
+            
+            $template = "<div {$divStyle}>" . $template . "</div>";
             
             // Заместваме шаблона в таблицата на страницата
             $tpl->replace($template, $n);

@@ -14,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class cash_transaction_ExchangeDocument
+class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
 {
     
     
@@ -25,6 +25,14 @@ class cash_transaction_ExchangeDocument
     public $class;
 
 
+    /**
+     * В какво състояние да е документа след финализирането на транзакцията
+     *
+     * @var string
+     */
+    protected $finalizedState = 'closed';
+    
+    
     /**
      *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      *  Създава транзакция която се записва в Журнала, при контирането
@@ -78,23 +86,5 @@ class cash_transaction_ExchangeDocument
     	);
     
     	return $result;
-    }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'closed';
-    
-    	if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
     }
 }

@@ -10,7 +10,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвър за универсален артикул
+ * @title     Универсален артикул
  */
 class cat_GeneralProductDriver extends cat_ProductDriver
 {
@@ -20,12 +20,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
 	public $oldClassName = 'techno2_SpecificationBaseDriver';
-	
-	
+
+
 	/**
-	 * Инстанция на класа имплементиращ интерфейса
+	 * Дефолт мета данни за всички продукти
 	 */
-	public $class;
+	protected $defaultMetaData = 'canSell,canBuy,canStore';
 	
 	
 	/**
@@ -38,23 +38,21 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		// Добавя полетата само ако ги няма във формата
 		
 		if(!$form->getField('info', FALSE)){
-			$form->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory");
+			$form->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory,formOrder=4");
+		} else {
+			$form->setField('info', 'input');
 		}
 		
 		if(!$form->getField('measureId', FALSE)){
-			$form->FLD('measureId', 'key(mvc=cat_UoM, select=name)', "caption=Мярка,mandatory");
+			$form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', "caption=Мярка,mandatory,formOrder=4");
+		} else {
+			$form->setField('measureId', 'input');
 		}
 		
 		if(!$form->getField('image', FALSE)){
-			$form->FLD('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', "caption=Параметри->Изображение");
-		}
-    	
-		if(!$form->getField('code', FALSE)){
-			$form->FLD('code', 'varchar(64)', "caption=Параметри->Код,remember=info");
-		}
-		
-		if(!$form->getField('eanCode', FALSE)){
-			$form->FLD('eanCode', 'gs1_TypeEan', "input,caption=Параметри->EAN");
+			$form->FLD('image', 'fileman_FileType(bucket=pictures)', "caption=Изображение,formOrder=4");
+		} else {
+			$form->setField('image', 'input');
 		}
 	}
 	
@@ -69,7 +67,14 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml');
 		
 		$tpl->placeObject($data->row);
-		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
+		
+		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
+		if(!$this->EmbedderRec->haveInterface('cat_ProductAccRegIntf')){
+			$data->noChange = TRUE;
+		}
+		
+		$paramTpl = cat_products_Params::renderParams($data);
+		$tpl->append($paramTpl, 'PARAMS');
 		
 		return $tpl;
 	}
@@ -104,6 +109,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		$data->row = $row;
 		
+		$data->masterId = $this->EmbedderRec->rec()->id;
+		$data->masterClassId = $this->EmbedderRec->getClassId();
+		
+		cat_products_Params::prepareParams($data);
+		
 		return $data;
 	}
 	
@@ -122,13 +132,24 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$res->productRec = new stdClass();
 		
 		$res->productRec->name = ($innerState->title) ? $innerState->title : $innerState->name;
-		$res->productRec->code = $innerState->code;
 		$res->productRec->info = $innerState->info;
 		$res->productRec->measureId = $innerState->measureId;
-		 
-		(!$packagingId) ? $res->packagings = array() : $res = NULL;
+		
+		(!$packagingId) ? $res->packagings = array() : $res->packagingRec = new stdClass();
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Връща стойността на продукта отговаряща на параметъра
+	 * 
+	 * @param string $sysId - систем ид на параметър (@see cat_Params)
+	 * @return mixed - стойността на параметъра за продукта
+	 */
+	public function getParamValue($sysId)
+	{
+		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), $sysId);
 	}
 	
 	
@@ -142,18 +163,61 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Как да се рендира изгледа в друг документ
-	 * 
-	 * @param stdClass $data - дата
-	 * @return core_ET $tpl - шаблон
+	 * Връща счетоводните свойства на обекта
 	 */
-	public function renderDescription($data)
+	public function getFeatures()
 	{
-		$tpl = $this->renderEmbeddedData($data);
-		$this->renderParams($data->params, $tpl, TRUE);
-		$tpl->removeBlock('INTERNAL');
-		$tpl->push('cat/tpl/GeneralProductsStyles.css', 'CSS');
+		return cat_products_Params::getFeatures($this->EmbedderRec->getClassId(), $this->EmbedderRec->rec()->id);
+	}
+	
+	
+	/**
+	 * Връща описанието на артикула според драйвъра
+	 * 
+	 * @return core_ET
+	 */
+	public function getProductDescription()
+	{
+		$data = $this->prepareEmbeddedData();
+		$data->noChange = TRUE;
 		
-		return $tpl;
+		$tpl = $this->renderEmbeddedData($data);
+		
+		$title = ht::createLinkRef($this->EmbedderRec->getProductTitle(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
+		$tpl->removeBlock('INFORMATION');
+		$tpl->replace($title, "TITLE");
+		
+		// Ако няма параметри, премахваме блока им от шаблона
+		if(!count($data->params)){
+			$tpl->removeBlock('PARAMS');
+		}
+		
+		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
+		
+		$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
+		$wrapTpl->append($tpl, 'paramBody');
+		
+		return $wrapTpl;
+	}
+	
+	
+	/**
+	 * Кои документи са използвани в полетата на драйвера
+	 */
+	public function getUsedDocs()
+	{
+		// Мъчим се да извлечем използваните документи от описанието (ако има такива)
+		return doc_RichTextPlg::getAttachedDocs($this->innerState->info);
+	}
+	
+	
+	/**
+	 * Променя ключовите думи от мениджъра
+	 */
+	public function alterSearchKeywords(&$searchKeywords)
+	{
+		$RichText = cls::get('type_Richtext');
+		$info = strip_tags($RichText->toVerbal($this->innerForm->info));
+		$searchKeywords .= " " . plg_Search::normalizeText($info);
 	}
 }

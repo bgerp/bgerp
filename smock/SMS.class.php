@@ -44,6 +44,7 @@ class smock_SMS extends core_Manager
      */
     var $canList = 'admin';
     
+    
     /**
      * Кой има право да го изтрие?
      */
@@ -55,14 +56,16 @@ class smock_SMS extends core_Manager
 	 */
 	var $interfaces = 'callcenter_SentSMSIntf'; 
 	
-
 	
 	/**
 	 * 
 	 */
 	var $title = 'Smock';
             
-     
+    
+	/**
+	 * 
+	 */
     function description()
     {
         $this->FLD('number', 'varchar(32)', 'caption=Номер');
@@ -70,7 +73,8 @@ class smock_SMS extends core_Manager
         $this->FLD('sender', 'varchar(32)', 'caption=Изпращач');
 
     }
-
+    
+    
 	/**
      * Интерфейсен метод за изпращане на SMS' и
      * 
@@ -85,11 +89,14 @@ class smock_SMS extends core_Manager
      */
     function sendSMS($number, $message, $sender)
     {
+        $number = self::prepareNumberStr($number);
+        
         $rec = (object) array(
             'number'  => $number,
             'message' => $message,
             'sender'  => $sender,
             );
+        
         $this->save($rec);
         
         $nRes = array();
@@ -120,20 +127,19 @@ class smock_SMS extends core_Manager
         return $paramsArr;
     }
     
-        /**
+    
+	/**
      * Инрерфейсен метод
      * Подготвя номера на получателя
-     * @see callcenter_SentSMSIntf
      * 
      * @param string $number
      * 
      * @return string
      */
-    public function prepareNumberStr($number)
+    protected function prepareNumberStr($number)
     {
         $number = drdata_PhoneType::getNumberStr($number, 0, '');
         
         return $number;
     }
-
 }

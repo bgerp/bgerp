@@ -21,6 +21,14 @@ class sales_Quotations extends core_Master
 
 
     /**
+     * Към коя група документи спада класа
+     *
+     * (@see deals_DocumentTypes)
+     */
+    public $documentType = deals_DocumentTypes::CONTRACT;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Q';
@@ -41,8 +49,8 @@ class sales_Quotations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
        
     
     /**
@@ -225,8 +233,8 @@ class sales_Quotations extends core_Master
        		$data->form->setField('row1,row2,row3', 'input');
        		$origin = doc_Containers::getDocument($rec->originId);
        		
-       		if($origin->haveInterface('techno_ProductsIntf')){
-       			$price = $origin->getPriceInfo()->price;
+       		if($origin->haveInterface('cat_ProductAccRegIntf')){
+       			$price = $origin->getInstance()->getPriceInfo($rec->contragentClassId, $rec->contragentId, $origin->that, $origin->getInstance()->getClassId())->price;
 	       		
        			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
 	       		if(!$price){
@@ -497,11 +505,14 @@ class sales_Quotations extends core_Master
     {
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
-	    	if($origin->haveInterface('techno_ProductsIntf')){
+	    	if($origin->haveInterface('cat_ProductAccRegIntf')){
 	    		$originRec = $origin->fetch();
 	    		if($originRec->state == 'draft'){
 	    			$originRec->state = 'active';
 	    			$origin->getInstance()->save($originRec);
+	    			
+	    			$msg = "|Активиран е документ|* #{$origin->abbr}{$origin->that}";
+	    			core_Statuses::newStatus(tr($msg));
 	    		}		
 	    	}
     	}

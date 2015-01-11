@@ -297,6 +297,8 @@ div.folder-cover {
   div.folder-cover .groupList {
     font-size: 0.95em;
     max-width: 725px; }
+    div.folder-cover .groupList .listTopContainer {
+      min-width: 300px; }
     div.folder-cover .groupList div.rowtools {
       display: inline-block;
       width: auto;
@@ -923,6 +925,8 @@ td.portal-date {
     .document div.richtext-holder .richtext {
       display: inline;
       color: black; }
+  .document .listTable {
+    width: 100%; }
   .document .custom-ul {
     margin: 0 0 0 20px; }
   .document .header {
@@ -979,7 +983,7 @@ td.portal-date {
 .document .listTable th {
   white-space: nowrap; }
 
-.document  .listTable  tr > th:first-child {
+.document .rowtools-column {
   width: 1%; }
 
 .small-field {
@@ -2924,8 +2928,7 @@ only screen and (min-width: 1240px) {
     -webkit-border-radius: 10px 0 0 0;
     border-radius: 10px 0 0 0; }
 
-  .wide .listBlock .listRows > table.listTable,
-  .wide .listRowsDetail > table.listTable {
+  .wide .listBlock .listRows > table.listTable {
     min-width: 760px; } }
 
 @media handheld,
@@ -3753,8 +3756,8 @@ only screen and (max-width: 320px) {
 
 .plus-icon {
   display: inline-block;
-  width: 12px;
-  height: 12px; }
+  position: relative;
+  top: 2px; }
 
 .vislog {
   white-space: nowrap;

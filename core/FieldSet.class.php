@@ -467,8 +467,10 @@ class core_FieldSet extends core_BaseClass
     
     	$fieldType = $this->getFieldType($name);
     
-    	foreach ($params as $param => $value) {
-    		$fieldType->params[$param] = $value;
+    	if(count($params)){
+    		foreach ($params as $param => $value) {
+    			$fieldType->params[$param] = $value;
+    		}
     	}
     }
 }

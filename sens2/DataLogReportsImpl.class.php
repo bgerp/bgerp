@@ -88,11 +88,6 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     	if(!strpos($filter->to, ' ')) {
     		$filter->to .= ' 23:59:59';
     	}
-    	
-    	$data->row = new stdClass();
-    	$data->row->from = $DateTime->toVerbal($filter->from);
-    	$data->row->to = $DateTime->toVerbal($filter->to);
-    	$data->row->indicators = $KeyList->toVerbal($filter->indicators);
     	 
     	$query = sens2_DataLogs::getQuery();
     	 
@@ -120,7 +115,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     {
     	$layout = new ET(getFileContent('sens2/tpl/ReportLayout.shtml'));
     
-    	$layout->placeObject($data->row);
+    	$this->prependStaticForm($layout, 'FORM');
     
     	if(count($data->recs)) {
     		foreach($data->recs as $id => $rec) {
@@ -131,7 +126,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     		$this->invoke('AfterPrepareListRows', array($data, $data));
     	}
     		
-    	$table = cls::get('core_TableView');
+    	$table = cls::get('core_TableView', array('mvc' => cls::get('sens2_DataLogs')));
     
     	$layout->append($table->get($data->rows, 'time=Време,indicatorId=Индикатор,value=Стойност'), 'data');
     		

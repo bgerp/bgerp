@@ -76,7 +76,7 @@ class accda_Documents extends core_Master
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,accda';
+    var $canAdd = 'no_one';
     
     
     /**

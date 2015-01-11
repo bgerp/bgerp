@@ -37,8 +37,8 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Printing,acc_plg_Contable, acc_plg_DocumentSummary,
-     	plg_Sorting,doc_DocumentPlg, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
+    var $loadList = 'plg_RowTools, cash_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
+     	plg_Sorting,doc_DocumentPlg, plg_Printing, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
     
     
     /**
@@ -218,8 +218,8 @@ class cash_InternalMoneyTransfer extends core_Master
     	$form->FNC('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка)', 'input,caption=Операция');
     	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
     	$form->title = 'Нов вътрешен касов трансфер';
-        $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png');
-        $form->toolbar->addBtn('Отказ', toUrl(array('cash_InternalMoneyTransfer', 'list')),  'ef_icon = img/16/close16.png');
+        $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png, title=Продължете напред');
+        $form->toolbar->addBtn('Отказ', toUrl(array('cash_InternalMoneyTransfer', 'list')),  'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
        	$folderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
        	$form->setDefault('folderId', $folderId);
@@ -363,7 +363,7 @@ class cash_InternalMoneyTransfer extends core_Master
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->state == 'draft') {
-	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
+	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png, title=Създаване на вносна бележка');
     	}
     }
     

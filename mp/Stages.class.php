@@ -27,7 +27,13 @@ class mp_Stages extends core_Manager
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, mp_Wrapper, plg_Printing, plg_Sorting';
+	public $loadList = 'plg_RowTools, mp_Wrapper, plg_Printing, plg_LastUsedKeys, plg_Sorting';
+	
+	
+	/**
+	 * Кои ключове да се тракват, кога за последно са използвани
+	 */
+	public $lastUsedKeys = 'departmentId';
 	
 	
 	/**
@@ -113,7 +119,7 @@ class mp_Stages extends core_Manager
 	 */
 	protected static function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		$data->listFilter->FNC('department', 'key(mvc=mp_Stages,select=name,allowEmpty)', 'caption=Център на дейност,input');
+		$data->listFilter->FNC('department', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Център на дейност,input');
 		$data->listFilter->showFields = 'department';
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

@@ -126,7 +126,9 @@ class core_Mvc extends core_FieldSet
         core_Users::forceSystemUser();
 
         $res = $this->setupMVC();
-
+        
+        $res .= core_Classes::add($this);
+        
         // Де-форсираме системния потребител
         core_Users::cancelSystemUser();
 

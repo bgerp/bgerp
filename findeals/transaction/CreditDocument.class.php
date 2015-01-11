@@ -1,18 +1,20 @@
 <?php
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа findeals_CreditDocuments
  *
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class findeals_transaction_CreditDocument
+class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
 {
     /**
      * 
@@ -48,24 +50,6 @@ class findeals_transaction_CreditDocument
     	);
     	 
     	return $result;
-    }
-
-
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public function finalizeTransaction($id)
-    {
-    	$rec = $this->class->fetchRec($id);
-    	$rec->state = 'active';
-    
-    	if($id = $this->class->save($rec)) {
-            $this->class->invoke('AfterActivation', array($rec));
-        }
-        
-        return $id;
     }
     
     

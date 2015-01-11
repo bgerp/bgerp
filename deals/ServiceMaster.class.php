@@ -16,6 +16,15 @@
 abstract class deals_ServiceMaster extends core_Master
 {
 	
+	
+	/**
+	 * Към коя група документи спада класа
+	 *
+	 * (@see deals_DocumentTypes)
+	 */
+	public $documentType = deals_DocumentTypes::STANDARD;
+	
+	
 	/**
 	 * Опашка от записи за записване в on_Shutdown
 	 */

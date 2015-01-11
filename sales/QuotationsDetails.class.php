@@ -472,14 +472,12 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		$ProductMan = cls::get($rec->classId);
     		
-    		if($ProductMan->isProductStandart($rec->productId)){
-    			$row->productId = $ProductMan->getProductTitle($rec->productId);
+    		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master->documentType, $modifiedOn);
     		
+    		if($ProductMan->isProductStandart($rec->productId)){
     			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     				$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId));
     			}
-    		} else {
-    			$row->productId = $ProductMan->getProductDesc($rec->productId, $modifiedOn);
     		}
     	}
     }
@@ -537,19 +535,11 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public function insertFromSpecification($rec, $origin, $dRows = array())
     {
-    	$docClassId = $origin->getInstance()->getClassId();
-    	$docId = $origin->that;
-    
-    	if(!$specRec = techno_Specifications::fetchByDoc($docClassId, $docId)){
-    		$specId  = techno_Specifications::forceRec($origin->getInstance(), $origin->fetch());
-    		$specRec = techno_Specifications::fetch($specId);
-    	}
-    	
-    	$classId = techno_Specifications::getClassId();
-    	$ProductMan = cls::get($classId);
+    	$ProductMan = $origin->getInstance();
+    	$productRec = $origin->rec();
     	
     	// Изтриват се предишни записи на спецификацията в офертата
-    	$this->delete("#quotationId = {$rec->id} AND #productId = {$specRec->id} AND #classId = {$classId}");
+    	$this->delete("#quotationId = {$rec->id} AND #productId = {$productRec->id} AND #classId = {$ProductMan->getClassId()}");
     	
     	foreach ($dRows as $row) {
     		if(empty($row)) continue;
@@ -560,9 +550,9 @@ class sales_QuotationsDetails extends doc_Detail {
     		// Записва се нов детайл за всяко зададено к-во
     		$dRec = new stdClass();
     		$dRec->quotationId = $rec->id;
-    		$dRec->productId = $specRec->id;
+    		$dRec->productId = $productRec->id;
     		$dRec->quantity = $row['left'];
-    		$dRec->classId = $classId;
+    		$dRec->classId = $ProductMan->getClassId();
     		$dRec->vatPercent = $ProductMan->getVat($dRec->productId, $rec->date);
     		
     		// Ако полето от формата има дясна част, това е цената

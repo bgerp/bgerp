@@ -33,14 +33,14 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=mp_transaction_ProductionNote';
+	public $interfaces = 'acc_TransactionSourceIntf=mp_transaction_ConsumptionNote';
 	
 	
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, mp_Wrapper, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, doc_plg_BusinessDoc, plg_Search, doc_ActivatePlg';
+	public $loadList = 'plg_RowTools, mp_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary,
+                    doc_DocumentPlg, plg_Printing, doc_plg_BusinessDoc, plg_Search';
 	
 	
 	/**
@@ -111,5 +111,49 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
+	}
+	
+	
+	/**
+	 * Дали документа може да се активира
+	 */
+	public static function canActivate($rec)
+	{
+		if(empty($rec->id)) return FALSE;
+		
+		// Намираме му детайлите
+		$dQuery = mp_ConsumptionNoteDetails::getQuery();
+		$dQuery->where("#noteId = {$rec->id}");
+		
+		// Ако няма не може да се активира
+		if(!$dQuery->count()) return FALSE;
+		
+		// Ако поне един артикул не е ресурс не може
+		while($dRec = $dQuery->fetch()){
+			if(!mp_ObjectResources::getResource($dRec->classId, $dRec->productId)){
+				
+				return FALSE;
+			}
+		}
+		
+		// Стигнем ли до тук значи има детайли, и всичките са ресурси
+		return TRUE;
+	}
+	
+	
+	/**
+	 * Обновява записа, за да се преизчисли полето 'isContable' (@see acc_plg_Contable)
+	 */
+	public function act_Resave()
+	{
+		$this->requireRightFor('write');
+		expect($id = Request::get('id', 'int'));
+		expect($rec = $this->fetchRec($id));
+		
+		$this->requireRightFor('write', $rec);
+		
+		$this->save($rec);
+		
+		redirect(array($this, 'single', $id));
 	}
 }

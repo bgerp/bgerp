@@ -1272,8 +1272,14 @@ class blast_Emails extends core_Master
             $form->setOptions('perSrcObjectId', $perOptArr);
         }
         
-        // Само имейлите достъпни до потребителя да се показват
-        $emailOption = email_Inboxes::getFromEmailOptions($form->rec->folderId);
+        try {
+            // Само имейлите достъпни до потребителя да се показват
+            $emailOption = email_Inboxes::getFromEmailOptions($form->rec->folderId);
+        } catch (Exception $e) {
+            email_Inboxes::redirect();
+            $emailOption = array();
+        }
+        
         $form->setOptions('from', $emailOption);
         
         // Ако създаваме нов, тогава попълва данните за адресата по - подразбиране

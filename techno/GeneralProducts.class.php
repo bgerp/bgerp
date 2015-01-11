@@ -79,7 +79,7 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Кой може да променя?
      */
-    var $canWrite = 'ceo,techno';
+    var $canWrite = 'no_one';
     
     
     /**
@@ -91,7 +91,7 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'ceo,techno';
+    var $canAdd = 'no_one';
     
     
     /**

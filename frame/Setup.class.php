@@ -64,6 +64,21 @@ class frame_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array(
+    				'systemId' => "Activate Pending Reports",
+    				'description' => "Активиране на чакащи отчети",
+    				'controller' => "frame_Reports",
+    				'action' => "ActivateEarlyOn",
+    				'period' => 1440,
+    				'timeLimit' => 50
+    		),
+    );
+    
+    
+    /**
      * Де-инсталиране на пакета
      */
     function deinstall()

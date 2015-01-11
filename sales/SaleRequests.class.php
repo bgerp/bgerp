@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Документ "Заявка за продажба"
  *
@@ -8,12 +10,14 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class sales_SaleRequests extends core_Master
 {
+	
+	
     /**
      * Заглавие
      */
@@ -24,6 +28,14 @@ class sales_SaleRequests extends core_Master
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'sales_SaleRequest';
+    
+    
+    /**
+     * Към коя група документи спада класа
+     *
+     * (@see deals_DocumentTypes)
+     */
+    public $documentType = deals_DocumentTypes::CONTRACT;
     
     
     /**
@@ -41,7 +53,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, plg_Printing, doc_DocumentPlg, doc_ActivatePlg,
+    public $loadList = 'sales_Wrapper, doc_DocumentPlg, plg_Printing, doc_ActivatePlg,
     					bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Sorting, doc_plg_HidePrices';
     
     
@@ -552,9 +564,11 @@ class sales_SaleRequests extends core_Master
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	$data->toolbar->removeBtn('btnAdd');
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$data->toolbar->removeBtn('btnAdd');
+    	}
     }
     
     

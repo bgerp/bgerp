@@ -933,6 +933,19 @@ class core_Form extends core_FieldSet
     
     
     /**
+     * Рендира формата като статичен html
+     */
+    public function renderStaticHtml($fields = NULL, $vars = NULL)
+    {
+    	Mode::push('staticFormView', TRUE);
+    	$html = $this->renderHtml($fields, $vars);
+    	Mode::pop();
+    	
+    	return $html;
+    }
+    
+    
+    /**
      * Рендира формата
      */
     function renderHtml_($fields = NULL, $vars = NULL)
