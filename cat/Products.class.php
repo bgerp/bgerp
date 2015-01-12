@@ -307,6 +307,19 @@ class cat_Products extends core_Embedder {
     	
     	if(isset($rec->csv_groups) && strlen($rec->csv_groups) != 0){
     		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
+    		
+    		if(!cat_GeneralProductDriver::getClassId()){
+    			core_Classes::add('cat_GeneralProductDriver');
+    		}
+    		
+    		if(!cat_GeneralServiceDriver::getClassId()){
+    			core_Classes::add('cat_GeneralServiceDriver');
+    		}
+    		
+    		$meta = cat_Products::getMetaData($rec->groups);
+    		$meta = arr::make($meta, TRUE);
+    		
+    		$rec->innerClass = (isset($meta['canStore'])) ? cat_GeneralProductDriver::getClassId() : cat_GeneralServiceDriver::getClassId();
     	}
     	
     	if($rec->id){
