@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,74 +19,86 @@ class hr_ContractTypes extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Шаблони за трудови договори";
+    public $title = "Шаблони за трудови договори";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Шаблон";
+    public $singleTitle = "Шаблон";
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Персонал";
+    public $pageMenu = "Персонал";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, plg_Printing,
+    public $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, plg_Printing,
                      plg_SaveAndNew, WorkingCycles=hr_WorkingCycles, plg_Modified';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hr';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,hr';
+    public $canList = 'ceo,hr';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hr';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,hr';
+    public $canEdit = 'ceo,hr';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'ceo,hr';
+    public $canEditsysdata = 'ceo,hr';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name,createdBy,modifiedOn';
+    public $listFields = 'id, name,createdBy,modifiedOn';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'id';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory, width=100%');
         $this->FLD('script', 'text', "caption=Текст,column=none, width=100%");
@@ -175,7 +187,7 @@ class hr_ContractTypes extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         // Ако записът е създаден от системата
         if($data->rec->sysId){
@@ -192,7 +204,7 @@ class hr_ContractTypes extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
         
@@ -218,7 +230,7 @@ class hr_ContractTypes extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
         // Ако методът е редакция и вече имаме rec
         if($action == 'edit' && isset($rec)){
