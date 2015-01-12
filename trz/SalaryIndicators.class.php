@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Заплати
@@ -22,6 +22,13 @@ class trz_SalaryIndicators extends core_Manager
      * Заглавие
      */
     public $title = 'Показатели';
+    
+    
+    /**
+     * Заглавие в единично число
+     */
+    public $singleTitle = 'Показател';
+    
     
     
     /**
@@ -116,10 +123,10 @@ class trz_SalaryIndicators extends core_Manager
     	// Ако имаме права да видим визитката
     	if(crm_Persons::haveRightFor('single', $rec->personId)){
 	    	$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
-	    	$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId));
+	    	$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
     	}
     	
-    	// Ако имаме права да видим документа от Птемиите
+    	// Ако имаме права да видим документа от Премиите
     	if(trz_Bonuses::haveRightFor('single', $rec->docId)){
 	    	$name = trz_Bonuses::fetchField("#id = '{$rec->docId}'", 'type');
 	    	$row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
