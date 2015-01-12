@@ -175,7 +175,8 @@ class core_Embedder extends core_Master
 			$form->input(NULL, 'silent');
 			
 			// Източника модифицира формата при нужда
-			$Driver->prepareEmbeddedForm($form);
+			$documentType = (isset($mvc->documentType)) ? $mvc->documentType : deals_DocumentTypes::STANDARD;
+			$Driver->prepareEmbeddedForm($form, $documentType);
 		}
 		
 		$form->input(NULL, 'silent');

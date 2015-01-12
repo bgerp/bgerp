@@ -106,8 +106,9 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * Подготвя формата за въвеждане на данни за вътрешния обект
 	 *
 	 * @param core_Form $form
+	 * @param string $documentType - (@see deals_DocumentTypes)
 	 */
-	public function prepareEmbeddedForm(core_Form &$form)
+	public function prepareEmbeddedForm(core_Form &$form, $documentType)
 	{
 		// Намираме полетата на формата
 		$fields = $form->selectFields();
@@ -231,13 +232,15 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Връща основната мярка, специфична за технолога
 	 */
-	public function getDriverUom($params)
+	public function getDriverUom()
 	{
-		if(empty($params['uom'])){
+		$params = $this->driverParams;
+		
+		if(empty($params['measureId'])){
 			 
 			return cat_UoM::fetchBySysId('pcs')->id;
 		}
-	
-		return cat_UoM::fetchBySinonim($params['uom']);
+		
+		return $params['measureId'];
 	}
 }
