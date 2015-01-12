@@ -220,6 +220,21 @@ function getUserAgent()
 }
 
 
+/**
+ * Връща разликата в минути между часовите зони на Гринуич и местното време
+ */
+function getTimezoneOffset(){
+	var date = new Date();
+	
+	return date.getTimezoneOffset();
+}
+
+/**
+ * Връща часовата зона
+ */
+function getTimezone(){
+	return -getTimezoneOffset() / 60;
+}
 
 /**
  * Проверява дали браузърът е IE
