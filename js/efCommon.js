@@ -230,13 +230,6 @@ function getTimezoneOffset(){
 }
 
 /**
- * Връща часовата зона
- */
-function getTimezone(){
-	return -getTimezoneOffset() / 60;
-}
-
-/**
  * Проверява дали браузърът е IE
  */
 function isIE() 
