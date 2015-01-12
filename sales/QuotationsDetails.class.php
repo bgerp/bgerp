@@ -193,7 +193,17 @@ class sales_QuotationsDetails extends doc_Detail {
 	   		$products = array();
 	   		$products[$rec->productId] = $productName;
 	    } else {
-	    	$products = array('' => '') + $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
+	    	
+	    	// Кои са продаваемите продукти
+	    	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
+	    	
+	    	// Подсигуряваме се че ориджина винаги може да се добави
+	    	if($masterRec->originId){
+	    		$origin = doc_Containers::getDocument($masterRec->originId);
+	    		$products[$origin->that] = $origin->fetchField('title');
+	    	}
+	    	
+	    	$products = array('' => '') + $products;
 	    }
 	   
         $form->setDefault('optional', 'no');
@@ -289,7 +299,13 @@ class sales_QuotationsDetails extends doc_Detail {
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
             	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
-                
+            	
+            	// Добавяме ориджина като възможен избор, ако го няма
+            	if($masterRec->originId){
+            		$origin = doc_Containers::getDocument($masterRec->originId);
+            		$products[$origin->that] = $origin->fetchField('title');
+            	}
+            	
             	if(!count($products)){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
