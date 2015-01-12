@@ -282,7 +282,7 @@ class cat_products_Packagings extends cat_products_Detail
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
         if ($data->addUrl) {
-            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
+            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
             $tpl->append($addBtn, 'TITLE');
         }
     }
@@ -314,6 +314,7 @@ class cat_products_Packagings extends cat_products_Detail
     public function renderPackagings($data)
     {
     	if($data->hide === TRUE) return;
+    	
         return static::renderDetail($data);
     }
     

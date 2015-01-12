@@ -294,10 +294,10 @@ class cat_products_Params extends core_Manager
     public static function renderParams($data)
     {
         if($data->addUrl) {
-            $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
+            $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нов параметър');
         }
 
-        return  self::renderDetail($data);
+        return self::renderDetail($data);
     }
     
     

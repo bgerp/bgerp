@@ -648,7 +648,7 @@ class price_ListRules extends core_Detail
 		
 		$title = 'Себестойности';
 		if($data->priceLists->addUrl){
-			$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->priceLists->addUrl);
+			$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->priceLists->addUrl, FALSE, 'title=Добавяне на нова себестойност');
 		}
 		
         $wrapTpl->append($title, 'TITLE');
