@@ -178,9 +178,9 @@ class marketing_Inquiries2 extends core_Embedder
      */
     function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Заглавие,formOrder=48');
-    	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,formOrder=49');
-    	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,formOrder=49');
+    	$this->FLD('title', 'varchar', 'caption=Заглавие,formOrder=46');
+    	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,formOrder=47');
+    	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,formOrder=49');
     	
     	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Лице за връзка,contragentDataField=person,formOrder=50');
@@ -626,6 +626,12 @@ class marketing_Inquiries2 extends core_Embedder
     	
     	$Driver = $this->getDriver($form->rec);
     	$form->input();
+    	
+    	$uom = cat_Uom::getShortName($Driver->getDriverUom());
+    	$form->setField('quantity1', "unit={$uom}");
+    	$form->setField('quantity2', "unit={$uom}");
+    	$form->setField('quantity3', "unit={$uom}");
+    	
     	$Driver->checkEmbeddedForm($form);
     	
     	// След събмит на формата
