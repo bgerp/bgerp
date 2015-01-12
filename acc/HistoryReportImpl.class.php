@@ -16,6 +16,13 @@
 class acc_HistoryReportImpl extends frame_BaseDriver
 {
 	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_HistoryReport';
+	
+	
 	/**
 	 * Кой може да избира драйвъра
 	 */
