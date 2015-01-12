@@ -232,7 +232,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		if($documentType == deals_DocumentTypes::INQUIRY){
 			$form->setField('image', 'input=none');
-			$form->setDefault('measureId', $this->getDriverUom($params));
+			$form->setDefault('measureId', $this->getDriverUom());
 			$form->setField('measureId', 'display=hidden');
 		}
 		
