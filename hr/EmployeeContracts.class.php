@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,42 +19,42 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf, doc_DocumentIntf, bgerp_plg_Blank';
+    public $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf, doc_DocumentIntf, bgerp_plg_Blank';
     
     
     /**
      * Заглавие
      */
-    var $title = "Трудови договори";
+    public $title = "Трудови договори";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Трудов договор";
+    public $singleTitle = "Трудов договор";
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Персонал";
+    public $pageMenu = "Персонал";
     
     
     /**
      * За плъгина acc_plg_DocumentSummary
      */
-    var $filterFieldDateFrom = 'startFrom';
+    public $filterFieldDateFrom = 'startFrom';
     
     /**
      * @todo Чака за документация...
      */
-    var $filterFieldDateTo = 'endOn';
+    public $filterFieldDateTo = 'endOn';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
                      doc_plg_BusinessDoc,plg_AutoFilter,doc_SharablePlg';
     
@@ -62,61 +62,61 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Дали може да бъде само в началото на нишка
      */
-    var $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = TRUE;
     
     
     /**
      * Клас за елемента на обграждащия <div>
      */
-    var $cssClass = 'document';
+    public $cssClass = 'document';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hr';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,hr';
+    public $canList = 'ceo,hr';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canEdit = 'ceo,hr';
+    public $canEdit = 'ceo,hr';
     
     
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/report_user.png';
+    public $singleIcon = 'img/16/report_user.png';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Td";
+    public $abbr = "Td";
     
     
     /**
      * Поле за търсене
      */
-    var $searchFields = 'typeId,dateId, managerId, personId, specialty, 
+    public $searchFields = 'typeId,dateId, managerId, personId, specialty, 
                          departmentId, positionId, startFrom, 
                          endOn, folderId, threadId, containerId';
     
@@ -124,18 +124,18 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "5.1|Човешки ресурси";
+    public $newBtnGroup = "5.1|Човешки ресурси";
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,typeId,numId,dateId,personId=Имена,positionId=Позиция,startFrom,endOn';
+    public $listFields = 'id,typeId,numId,dateId,personId=Имена,positionId=Позиция,startFrom,endOn';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'typeId';
+    public $rowToolsSingleField = 'typeId';
     
     
     /**
@@ -145,13 +145,13 @@ class hr_EmployeeContracts extends core_Master
      * @see acc_plg_Registry
      * @var string
      */
-    var $autoList = 'workContracts';
+    public $autoList = 'workContracts';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('typeId', 'key(mvc=hr_ContractTypes,select=name)', "caption=Договор->Тип");
         
@@ -206,7 +206,7 @@ class hr_EmployeeContracts extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         // Ако нямаме права за писане в треда
         if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
@@ -252,7 +252,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Извиква се след изпълняването на екшън
      */
-    function on_AfterAction(&$invoker, &$tpl, $act)
+    public static function on_AfterAction(&$invoker, &$tpl, $act)
     {
         if (strtolower($act) == 'single' && haveRole('hr,ceo') && !Mode::is('printing')) {
             
@@ -288,7 +288,7 @@ class hr_EmployeeContracts extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
         
@@ -320,7 +320,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->personId = ht::createLink($row->personId, array('crm_Persons', 'Single', $rec->personId));
         
@@ -331,7 +331,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Подготвя иконата за единичния изглед
      */
-    static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $row = $data->row;
         
@@ -492,7 +492,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * След промяна на обект от регистър
      */
-    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    public static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
     	$position = self::fetchField($id, "positionId");
 
@@ -530,7 +530,7 @@ class hr_EmployeeContracts extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
-    static function on_BeforeRenderSingle($mvc, &$res, $data)
+    public static function on_BeforeRenderSingle($mvc, &$res, $data)
     {
         $row = $data->row;
         
@@ -560,7 +560,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Преди подготвяне на едит формата
      */
-    static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
         // Проверяваме дали имаме въведени позиции
         $query = hr_Positions::getQuery();
@@ -652,7 +652,7 @@ class hr_EmployeeContracts extends core_Master
      * Връща всички Всички лица, които могат да бъдат титуляри на сметка
      * тези включени в група "Управители"
      */
-    function getManagers()
+    public function getManagers()
     {
         $options = array();
         $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
@@ -674,7 +674,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * @todo Чака за документация...
      */
-    static public function getWorkingSchedule($id)
+    public static function getWorkingSchedule($id)
     {
         $departmentId = self::fetchField($id, 'departmentId');
         
@@ -688,7 +688,7 @@ class hr_EmployeeContracts extends core_Master
      * Изчислява седмичното натоварване според графика в секунди
      * @param int $id
      */
-    static public function houresForAWeek($id)
+    public static function houresForAWeek($id)
     {
         // Кой е графика
         $scheduleId = static::getWorkingSchedule($id);
@@ -733,7 +733,7 @@ class hr_EmployeeContracts extends core_Master
      *
      * Част от интерфейса: intf_Register
      */
-    function getItemRec($objectId)
+    public function getItemRec($objectId)
     {
         $result = NULL;
         
@@ -798,7 +798,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
