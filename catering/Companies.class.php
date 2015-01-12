@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   catering
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,13 +20,19 @@ class catering_Companies extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Фирми за кетъринг";
+    public $title = "Фирми за кетъринг";
+    
+    
+    /**
+     * Заглавие в единично число
+     */
+    public $singleTitle = "Фирмa за кетъринг";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,  plg_RowTools, plg_State,
+    public $loadList = 'plg_Created,  plg_RowTools, plg_State,
                              plg_Printing, catering_Wrapper, plg_Sorting,
                              CrmCompanies=crm_Companies';
     
@@ -34,33 +40,32 @@ class catering_Companies extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num, tools=Пулт, name=Фирма, address=Адрес, phones=Телефони';
+    public $listFields = 'id,name, address, phones';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'id';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'catering,ceo';
+    public $canWrite = 'catering,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'catering,ceo';
+    public $canRead = 'catering,ceo';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->FNC('num', 'int', 'caption=№, notSorting');
         $this->FLD('companyId', 'key(mvc=crm_Companies, select=name)', 'caption=Фирма');
         $this->FNC('name', 'varchar(255)', 'caption=Фирма');
         $this->FNC('address', 'varchar(255)', 'caption=Адрес, notSorting');
@@ -77,7 +82,7 @@ class catering_Companies extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if(!count($data->recs)) {
             $res = new ET('За да използвате услугата "Кетъринг" е необходимо да има дефинирана поне една компания за доставка на храна.<br/><br/>');
@@ -96,7 +101,7 @@ class catering_Companies extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $data->form->title = "Добавяне на запис във \"Фирми за кетъринг\"";
         $data->form->setDefault('state', 'active');
@@ -149,32 +154,35 @@ class catering_Companies extends core_Manager
     }
     
     
-    /**
-     * Промяна на данните от таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
-     */
-    static function on_AfterRecToVerbal ($mvc, $row, $rec)
+   /**
+    * След преобразуване на записа в четим за хора вид.
+    *
+    * @param core_Mvc $mvc
+    * @param stdClass $row Това ще се покаже
+    * @param stdClass $rec Това е записа в машинно представяне
+    */
+    public static function on_AfterRecToVerbal ($mvc, $row, $rec)
     {
-        // Prpare 'Num'
-        static $num;
-        $num += 1;
-        $row->num = $num;
-        
+       
         $queryCrmCompanies = $mvc->CrmCompanies->getQuery();
         
         while($cRec = $queryCrmCompanies->fetch("#id = {$rec->companyId}")) {
             $companyDetails = $cRec;
         }
         
-        $row->name = $mvc->getVerbal($companyDetails, 'name');
-        $row->address = type_Varchar::escape($companyDetails->pCode);
+        
+        // Ако имаме права да видим визитката
+        if(crm_Companies::haveRightFor('single', $rec->companyId)){
+       		$name = crm_Companies::fetchField("#id = '{$rec->companyId}'", 'name');
+        	$row->name = ht::createLink($name, array ('crm_Companies', 'single', 'id' => $rec->companyId), NULL, 'ef_icon = img/16/vcard.png');
+        }
+      
+       
+        /*$row->address = type_Varchar::escape($companyDetails->pCode);
         
         $row->address = type_Varchar::escape($companyDetails->pCode) . ", 
                         " . type_Varchar::escape($companyDetails->place) .
-        "<br/>" . type_Varchar::escape($companyDetails->address);
+        "<br>" . type_Varchar::escape($companyDetails->address);
         
         $row->phones = "<div class='contacts-row'>
                              <p class='clear_l w-80px gr'>телефон: </p>
@@ -183,7 +191,7 @@ class catering_Companies extends core_Manager
                              <p>" . type_Varchar::escape($companyDetails->mobile) . "</p>
                              <p class='clear_l w-80px gr'>факс: </p> 
                              <p>" . type_Varchar::escape($companyDetails->fax) . "</p>
-                         </div>";
+                         </div>";*/
     }
     
     
@@ -193,7 +201,7 @@ class catering_Companies extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListToolbar($mvc, $data)
+    public static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if(!count($data->recs)) {
             $data->toolbar->removeBtn('btnPrint');

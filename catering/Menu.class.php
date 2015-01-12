@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   catering
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,68 +20,74 @@ class catering_Menu extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Дневни менюта";
+    public $title = "Дневни менюта";
+    
+    
+    /**
+     * Заглавие в единично число
+     */
+    public $singleTitle = "Дневно меню";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_Sorting,
+    public $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_Sorting,
                      plg_Printing, Companies=catering_Companies, CrmCompanies=crm_Companies';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, date, repeatDay, companyName';
+    public $listFields = 'id,date, repeatDay, companyName';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'id';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'catering_MenuDetails';
+    public $details = 'catering_MenuDetails';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, catering';
+    public $canRead = 'ceo, catering';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, catering';
+    public $canEdit = 'ceo, catering';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, catering';
+    public $canAdd = 'ceo, catering';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, catering';
+    public $canDelete = 'ceo, catering';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'catering/tpl/SingleLayoutMenu.shtml';
+    public $singleLayoutFile = 'catering/tpl/SingleLayoutMenu.shtml';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         // Prepare day input
         $string = new type_Varchar();
@@ -120,9 +126,9 @@ class catering_Menu extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterRenderListTable($mvc, &$res, $data)
+    public static function on_AfterRenderListTable($mvc, &$res, $data)
     {
-        $res->append("<div></div>");
+        //$res->append("<div></div>");
     }
     
     
@@ -136,7 +142,7 @@ class catering_Menu extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Check wether the table has records
         $hasRecords = $mvc->fetchField("#id != 0", 'id');
@@ -190,7 +196,7 @@ class catering_Menu extends core_Master
      * @param string $date
      * @return string $selectedWeekDay
      */
-    function getRepeatDay($date) {
+   public function getRepeatDay($date) {
         $date = substr($date , 0, 10);
         
         list($year, $month, $day) = explode('-', $date);
@@ -232,7 +238,7 @@ class catering_Menu extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // 'companyName'
         $companyId = $mvc->Companies->fetchField("#id = '{$rec->companyId}'", 'companyId');
@@ -248,7 +254,7 @@ class catering_Menu extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if ($data->form->rec->id) {
             // Ако редактираме запис
@@ -274,7 +280,7 @@ class catering_Menu extends core_Master
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_BeforeSave($mvc, &$id, $rec)
+    public static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!$rec->day) {
             redirect(array('catering_Menu', 'edit'), TRUE, "Няма въведени данни в полето \"Ден\"");
