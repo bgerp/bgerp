@@ -290,19 +290,10 @@ class sales_QuotationsDetails extends doc_Detail {
             	$productMan = cls::get($manId);
             	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
                 
-            	// Ако е спецификация и офертата е генерирана от нейния драйвер
-            	// тази спецификация може винаги да се добавя в офертата
-            	// дори ако драйвера и е чернова
-            	if($productMan instanceof techno_Specifications){
-                	if($masterRec->originId && $origin = $mvc->Master->getOrigin($masterRec)){
-                		$originSpec = techno_Specifications::fetchByDoc($origin->getClassId(), $origin->that);
-                		$products[$originSpec->id] = $productMan->getTitleById($originSpec->id);
-                	}
-                }
-            	
             	if(!count($products)){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
+                
                 $productKind = mb_strtolower($productMan->singleTitle);
             	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
                     "id=btnAdd-{$manId},{$error},order=10", "ef_icon = img/16/shopping.png, title=Добавяне на {$productKind} към офертата");
