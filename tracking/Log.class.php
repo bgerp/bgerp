@@ -211,7 +211,7 @@ class tracking_Log extends core_Master {
      * @param string  - стринг с данните - в стил DMS ()
      * @return double  - decimal degrees
      */
-    private function DMSToDD($data)
+    private static function DMSToDD($data)
     {
         // Махаме последния символ
         $sign = substr($data, -1);
@@ -234,7 +234,7 @@ class tracking_Log extends core_Master {
      * @param string  - datetime - в UTC
      * @return string  - DateTime локално време в Mysql формат
      */
-    private function GMT2Local($date)
+    private static function GMT2Local($date)
     {
         return date("Y-m-d H:i:s", strtotime($date . " UTC"));
     }
