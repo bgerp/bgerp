@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   catering
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,13 +20,19 @@ class catering_Requests extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Заявки за кетаринг";
+    public $title = "Заявки за кетаринг";
+    
+    
+    /**
+     * Заглавие в единично число
+     */
+    public $singleTitle = "Заявкa за кетаринг";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_State2,
+    public $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_State2,
                              RequestDetails=catering_RequestDetails,
                              MenuDetails=catering_MenuDetails,
                              EmployeesList=catering_EmployeesList,
@@ -36,43 +42,49 @@ class catering_Requests extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'dateState, date, totalPrice, tools=Пулт, makeOrder=Поръчка';
+    public $listFields = 'id, dateState, date, totalPrice, makeOrder=Поръчка';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'id';
+    
+    
+    /**
+     * Поле за единичен изглед
+     */
+    public $rowToolsSingleField = 'date';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'catering_RequestDetails';
+    public $details = 'catering_RequestDetails';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'catering, ceo, user';
+    public $canWrite = 'catering, ceo, user';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'catering, ceo, user';
+    public $canRead = 'catering, ceo, user';
     
     
     /**
      * Шаблон за единичен изглед
      */
-    var $singleLayoutTpl = "[#SingleToolbar#]<h2>[#SingleTitle#]</h2>[#DETAILS#]";
+    public $singleLayoutTpl = "[#SingleToolbar#]<h2>[#SingleTitle#]</h2>[#DETAILS#]";
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('date', 'date', 'caption=Дата,  notNull, mandatory');
         $this->FLD('totalPrice', 'double(decimals=2)', 'caption=Сума за деня, input=none');
@@ -89,11 +101,11 @@ class catering_Requests extends core_Master
      * @param stdClass $data
      * @return stdClass $data
      */
-    function prepareSingleTitle_($data)
+    public function prepareSingleTitle_($data)
     {
-        $data->title = "Заявка за храна<br/>№ " . $data->rec->id . " / Дата: " . $data->row->date;
+       /* $data->title = "Заявка за храна<br>№ " . $data->rec->id . " / Дата: " . $data->row->date;
         
-        return $data;
+        return $data;*/
     }
     
     
@@ -104,13 +116,13 @@ class catering_Requests extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if(!count($data->recs)) {
+       /* if(!count($data->recs)) {
             $res = new ET('');
             
             return FALSE;
-        }
+        }*/
     }
     
     
@@ -121,11 +133,11 @@ class catering_Requests extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $data->form->title = "Добавяне на ден за столуване";
         
-        $data->form->setHidden('state', 'active');
+        //$data->form->setHidden('state', 'active');
     }
     
     
@@ -136,7 +148,7 @@ class catering_Requests extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Ако потребителя не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня 
         if (!haveRole('admin,catering')) {
@@ -222,7 +234,7 @@ class catering_Requests extends core_Master
      *
      * @param int $requestId
      */
-    function calcTotal($requestId)
+    public function calcTotal($requestId)
     {
         $queryRequestDetails = catering_RequestDetails::getQuery();
         $where = "#requestId = {$requestId}";
@@ -248,7 +260,7 @@ class catering_Requests extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#date', 'DESC');
         
@@ -279,7 +291,7 @@ class catering_Requests extends core_Master
     /**
      * Смяна статута на 'closed'
      */
-    function act_DeactivateRequest()
+    public function act_DeactivateRequest()
     {
         $id = Request::get('id', 'int');
         
@@ -297,7 +309,7 @@ class catering_Requests extends core_Master
     /**
      * Добавя и маха необходими бутони
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         $data->toolbar->removeBtn('btnEdit');
         
@@ -331,7 +343,7 @@ class catering_Requests extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if (!haveRole('ceo,catering')) {
             $data->toolbar->removeBtn('btnAdd');
