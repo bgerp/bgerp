@@ -235,6 +235,11 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	// Слагаме полето за драйвър да е 'remember'
+    	if($data->form->getField($mvc->innerClassField)){
+    		$data->form->setField($mvc->innerClassField, 'remember');
+    	}
+    	
     	if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             if ($newCode = str::increment($code)) {
             	
