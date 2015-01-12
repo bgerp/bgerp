@@ -17,7 +17,7 @@ defIfNot('CORE_ERROR_LOGGING_LEVEL', CORE_ERROR_REPORTING_LEVEL);
 // Колко секунди да е валидно cookie за дебъг режим?
 defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
 
-   
+
 /**
  * Клас 'core_Debug' ['Debug'] - Функции за дебъг и настройка на приложения
  *
