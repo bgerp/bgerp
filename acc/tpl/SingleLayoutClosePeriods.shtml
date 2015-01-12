@@ -56,9 +56,6 @@
         </tr>
         <!--ET_END amountVatGroup4-->
         <tr>
-            <td colspan="2"></td>
-        </tr>
-        <tr>
         	<td>|ДДС на продажбите без фактури|*</td>
         	<td class='aright'>[#amountWithoutInvoice#]</td>
         </tr>
