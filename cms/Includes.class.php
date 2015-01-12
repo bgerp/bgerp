@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,13 +19,19 @@ class cms_Includes extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Добавки към публичната страница";
+    public $title = "Добавки към публичната страница";
+    
+    
+    /**
+     * Заглавие в единично число
+     */
+    public $singleTitle = "Добавка към публична статия";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper';
+    public $loadList = 'plg_Created, plg_Modified, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper';
     
          
      
@@ -33,7 +39,7 @@ class cms_Includes extends core_Master
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('place', 'varchar(32)', 'caption=Място,mandatory,suggestions=HTTP_HEADER|HEAD|JS|CSS|META_DESCRIPTION|META_KEYWORDS|STYLES|PAGE_CONTENT|SCRIPTS');
         $this->FLD('mode', 'enum(append, prepend, replace, push)', 'caption=Метод');
@@ -44,7 +50,7 @@ class cms_Includes extends core_Master
     /**
      * Добавя кодовете в посочения шаблон
      */
-    static function insert($tpl)
+    public static function insert($tpl)
     {
         $query = self::getQuery();
         $query->where("#state = 'active'");
