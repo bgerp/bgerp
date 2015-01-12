@@ -92,6 +92,6 @@
     text-align: left !important;
 }
 
-.more-btn {
+input.more-btn {
     background-image: url(../../img/16/menu.png) !important;
 }
