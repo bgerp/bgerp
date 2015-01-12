@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Заплати
@@ -22,6 +22,12 @@ class trz_SalaryRules extends core_Manager
      * Заглавие
      */
     public $title = 'Правила';
+    
+    
+    /**
+     * Заглавие в единично число
+     */
+    public $singleTitle = 'Правило';
     
     
     /**
@@ -76,13 +82,13 @@ class trz_SalaryRules extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, personId, departmentId, positionId, conditionExpr, amountExpr';
+    public $listFields = 'id,personId, departmentId, positionId, conditionExpr, amountExpr';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    public $rowToolsField = 'tools';
+    public $rowToolsField = 'id';
     
     
     /**
@@ -128,6 +134,23 @@ class trz_SalaryRules extends core_Manager
 	            }
             }
         }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	// Ако имаме права да видим визитката
+    	if(crm_Persons::haveRightFor('single', $rec->personId)){
+    		$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
+    		$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
+    	}
     }
     
     
