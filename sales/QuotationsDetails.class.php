@@ -479,7 +479,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		$ProductMan = cls::get($rec->classId);
     		
-    		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master->documentType, $modifiedOn);
+    		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master, $modifiedOn);
     		
     		if($ProductMan->isProductStandart($rec->productId)){
     			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){

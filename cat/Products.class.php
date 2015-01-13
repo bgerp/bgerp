@@ -1164,10 +1164,10 @@ class cat_Products extends core_Embedder {
      * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис
-     * @param enum $documentType (@see deals_DocumentTypes) - Константа от модела
+     * @param enum $documentMvc - класа на документа
      * @return mixed - описанието на артикула
      */
-    public function getProductDesc($id, $documentType, $time = NULL)
+    public function getProductDesc($id, $documentMvc, $time = NULL)
     {
     	$rec = $this->fetchRec($id);
     	

@@ -775,13 +775,13 @@ class techno2_SpecificationDoc extends core_Embedder
      * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис
-     * @param enum $documentType (@see deals_DocumentTypes) - Константа от модела
+     * @param core_Mvc $documentMvc - модела
      * @return mixed - описанието на артикула
      */
-    public function getProductDesc($id, $documentType, $time = NULL)
+    public function getProductDesc($id, $documentMvc, $time = NULL)
     {
     	// Ако документа където ще се показва е договор, тогава показваме подробното описание
-    	if($documentType == deals_DocumentTypes::CONTRACT){
+    	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof mp_Jobs || $documentMvc instanceof sales_Quotations){
     		$tpl = self::cacheTpl($id, $time);
     		 
     		return $tpl;
@@ -889,7 +889,7 @@ class techno2_SpecificationDoc extends core_Embedder
     public function renderJobView($id, $time = NULL)
     {
     	//@TODO дали е удачно да се кешира изгледа
-    	return $this->getProductDesc($id, deals_DocumentTypes::CONTRACT, $time);
+    	return $this->getProductDesc($id, $this, $time);
     }
     
     

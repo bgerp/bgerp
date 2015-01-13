@@ -326,7 +326,7 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		$ProductManager = cls::get($rec->classId);
     		
-    		$row->productId = $ProductManager->getProductDesc($rec->productId, $mvc->Master->documentType, $modifiedOn);
+    		$row->productId = $ProductManager->getProductDesc($rec->productId, $mvc->Master, $modifiedOn);
     		
     		if($ProductManager->isProductStandart($rec->productId)){
     			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
