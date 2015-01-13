@@ -8,13 +8,19 @@
  * @category  bgerp
  * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno2_Maps extends core_Master
+class techno2_Boms extends core_Master
 {
    
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'techno2_Maps';
+	
 	
    /**
      * Какви интерфейси поддържа този мениджър
@@ -25,7 +31,7 @@ class techno2_Maps extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Технологични карти";
+    var $title = "Технологични рецепти";
     
     
     /**
@@ -55,7 +61,7 @@ class techno2_Maps extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Технологична карта';
+    var $singleTitle = 'Технологична рецепта';
     
     
     /**

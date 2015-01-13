@@ -32,7 +32,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Заглавие
      */
-    public $singleTitle = 'Нестандартен артикул';
+    public $singleTitle = 'Спецификация на артикул';
     
 
     /**
@@ -44,7 +44,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Нестандартни артикули";
+    public $title = "Спецификации на артикули";
 
     
     /**
@@ -366,11 +366,11 @@ class techno2_SpecificationDoc extends core_Embedder
     	}
     	
     	if($data->rec->state == 'active'){
-    		if(techno2_Maps::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
-    			if($qRec = techno2_Maps::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Техн. карта", array('techno2_Maps', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична карта');
+    		if(techno2_Boms::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
+    			if($qRec = techno2_Boms::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Рецепта", array('techno2_Boms', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична рецепта');
     			} else {
-    				$data->toolbar->addBtn("Техн. карта", array('techno2_Maps', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична карта');
+    				$data->toolbar->addBtn("Рецепта", array('techno2_Boms', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
     			}
     		}
     		
@@ -693,7 +693,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	}
     	
     	// Опитваме се да намерим цена според технологичната карта
-    	if($amounts = techno2_Maps::getTotalByOrigin($rec->containerId)){
+    	if($amounts = techno2_Boms::getTotalByOrigin($rec->containerId)){
     		
     		// Какви са максималната и минималната надценка за контрагента
     		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
@@ -855,7 +855,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$res = array();
     	
     	// Има ли активна карта за този ресурс
-    	if($mapId = techno2_Maps::fetchField("#originId = {$rec->containerId} AND #state = 'active'", 'id')){
+    	if($mapId = techno2_Boms::fetchField("#originId = {$rec->containerId} AND #state = 'active'", 'id')){
     		
     		// Намираме детайлите на картата
     		$mQuery = techno2_MapDetails::getQuery();

@@ -107,7 +107,7 @@ class techno2_MapDetails extends doc_Detail
      */
     function description()
     {
-    	$this->FLD('mapId', 'key(mvc=techno2_Maps)', 'column=none,input=hidden,silent');
+    	$this->FLD('mapId', 'key(mvc=techno2_Boms)', 'column=none,input=hidden,silent');
     	
     	$this->FLD("stageId", 'key(mvc=mp_Stages,select=name,allowEmpty)', 'caption=Етап');
     	
