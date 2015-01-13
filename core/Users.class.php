@@ -210,6 +210,7 @@ class core_Users extends core_Manager
         while ($uRec = $uQuery->fetch()) {
             $rolesArr = type_Keylist::toArray($uRec->roles);
             foreach ($rolesArr as $roleId) {
+                $usersRolesArr[0][$uRec->id] = $uRec->id;
                 $usersRolesArr[$roleId][$uRec->id] = $uRec->id;
             }
         }
