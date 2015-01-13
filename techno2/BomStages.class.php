@@ -20,7 +20,7 @@ class techno2_BomStages extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Втапи технологичните рецепти";
+    var $title = "Етапи технологичните рецепти";
     
     
     /**
@@ -152,7 +152,7 @@ class techno2_BomStages extends core_Master
     		
     		// Добавяме бутон за добавяне на детайл към този клас
     		if(techno2_BomStageDetails::haveRightFor('add', (object)array('bomstageId' => $dRec->id))){
-    			$row->addBtn = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE), FALSE, "ef_icon=img/16/add.png,title=Добавяне на ресурс");
+    			$row->addBtn = ht::createLink('Ресурс', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE), FALSE, "ef_icon=img/16/add.png,title=Добавяне на ресурс");
     		}
     		
     		$data->bomStageDetailRows[$dRec->id] = $detailData->rows;
@@ -200,6 +200,8 @@ class techno2_BomStages extends core_Master
     			$blockTpl->removeBlocks();
     			$blockTpl->append2Master();
     		}
+    	} else {
+    		$tpl->prepend("Рецептата е празна<br/>");
     	}
     	
     	// Добавяне на бутон за добавяне на нов етап
@@ -269,6 +271,20 @@ class techno2_BomStages extends core_Master
     {
     	if(empty($rec->stage)){
     		$row->stage = tr("< |без етап|* >");
+    	}
+    }
+    
+    
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	// Рет урл-то не сочи към мастъра само ако е натиснато 'Запис и Нов'
+    	if (isset($data->form) && ($data->form->cmd === 'save' || is_null($data->form->cmd))) {
+    
+    		// Променяма да сочи към single-a
+    		$data->retUrl = toUrl(array('techno2_Boms', 'single', $data->form->rec->bomId));
     	}
     }
 }

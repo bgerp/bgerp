@@ -50,7 +50,7 @@ class techno2_BomStageDetails extends core_Detail
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'dtools';
+    var $rowToolsField = 'RowNumb';
     
     
     /**
@@ -197,5 +197,20 @@ class techno2_BomStageDetails extends core_Detail
     	$url = array('techno2_Boms', 'single', $bomId);
     
     	return $url;
+    }
+    
+    
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	// Рет урл-то не сочи към мастъра само ако е натиснато 'Запис и Нов'
+    	if (isset($data->form) && ($data->form->cmd === 'save' || is_null($data->form->cmd))) {
+    
+    		// Променяма да сочи към single-a
+    		$bomId = techno2_BomStages::fetchField($data->form->rec->bomstageId, 'bomId');
+    		$data->retUrl = toUrl(array('techno2_Boms', 'single', $bomId));
+    	}
     }
 }

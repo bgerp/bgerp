@@ -7,7 +7,7 @@
 	<!--ET_BEGIN DROW-->
 	[#DROW#]
 	<tr>
-		<td style='width:1%'>[#RowNumb#][#dtools#]</td>
+		<td style='width:1%'>[#RowNumb#]</td>
 		<td>[#resourceId#]</td>
 		<td style='text-align:right;width:100px'>[#baseQuantity#]</td>
 		<td style='text-align:right;width:100px'>[#propQuantity#]</td>
