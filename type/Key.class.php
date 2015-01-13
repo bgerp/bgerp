@@ -7,7 +7,7 @@
  *
  * @category  ef
  * @package   type
- * @author    Milen Georgiev <milen@download.bg>
+ * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -33,7 +33,7 @@ class type_Key extends type_Int
     /**
      * Инициализиране на типа
      */
-    function getSelectFld()
+    protected function getSelectFld()
     {
         if(core_Lg::getCurrent() == 'bg' && $this->params['selectBg']) {
             
@@ -50,9 +50,7 @@ class type_Key extends type_Int
      */
     function toVerbal_($value)
     {
-        
         if($value === NULL || $value === '') return NULL;
-
         
         if($this->params['mvc']) {
             $mvc = &cls::get($this->params['mvc']);
@@ -93,6 +91,8 @@ class type_Key extends type_Int
     {
         if(empty($value)) return NULL;
         
+        $oValue = $value;
+        
         $mvc = &cls::get($this->params['mvc']);
         
         $maxSuggestions = $this->getMaxSuggestions();
@@ -117,16 +117,38 @@ class type_Key extends type_Int
         
         $value = (int) $value;
         
-        $rec = $mvc->fetch($value);
+        $rec = $this->fetchVal($value);
         
-        if(!$rec) {
-            $this->error = 'Несъществуващ обект';
+        if (!$rec) {
+            if (($this->params['allowEmpty']) && ($oValue == ' ')) {
+                
+                return $value;
+            } else {
+                $this->error = 'Несъществуващ обект';
+            }
             
             return FALSE;
         } else {
             
             return $value;
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $value
+     * 
+     * @return object
+     */
+    protected function fetchVal($value)
+    {
+        $mvc = &cls::get($this->params['mvc']);
+        
+        $rec = $mvc->fetch($value);
+        
+        return $rec;
     }
     
     
