@@ -92,7 +92,10 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
         
         parent::setDetailFields($this);
         
-        $this->FLD('selfValue', 'double', 'caption=С-ст,mandatory');
+        $this->FLD('jobId', 'key(mvc=mp_Jobs)', 'input=none');
+        $this->FLD('bomId', 'key(mvc=techno2_Boms)', 'input=none');
+        
+        $this->FLD('selfValue', 'double', 'caption=С-ст,input=hidden');
         $this->FNC('amount', 'double', 'caption=Сума');
         
         $this->setDbUnique('noteId,productId,classId');
@@ -115,13 +118,48 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-    	if($form->rec->productId){
+    	$rec = &$form->rec;
+    	
+    	// Да се показвали полети за себестойност
+    	$showSelfvalue = TRUE;
+    	
+    	if($rec->productId){
     		
-    		//@TODO да проверява имали цена от технологичната карта, ако има да не се показва полето
+    		if(cls::get($rec->classId) instanceof techno2_SpecificationDoc){
+    			
+    			// Имали активно задание за артикула ?
+    			if($jobId = techno2_SpecificationDoc::getLastActiveJob($rec->productId)->id){
+    				$rec->jobId = $jobId;
+    			}
+    			
+    			// Имали активна рецепта за артикула ?
+    			if($bomRec = techno2_SpecificationDoc::getLastActiveBom($rec->productId)){
+    				$rec->bomId = $bomRec->id;
+    			}
+    			
+    			// Не показваме полето за себестойност ако активна рецепта и задание
+    			if(isset($rec->jobId) && isset($rec->bomId)){
+    				$showSelfvalue = FALSE;
+    			}
+    		}
     		
     		$masterValior = $mvc->Master->fetchField($form->rec->noteId, 'valior');
-    		
     		$form->setField('selfValue', "unit=" . acc_Periods::getBaseCurrencyCode($masterValior));
+    		
+    		// Скриваме полето за себестойност при нужда
+    		if($showSelfvalue === FALSE){
+    			$form->setField('selfValue', 'input=none');
+    		} else {
+    			$form->setField('selfValue', 'input,mandatory');
+    		}
+    	}
+    	
+    	if($form->isSubmitted()){
+    		
+    		// Ако трябва да показваме с-та, но не е попълнена сетваме грешка
+    		if(empty($rec->selfValue) && $showSelfvalue === TRUE){
+    			$form->setError('selfValue', 'Непопълнено задължително поле|* <b>С-ст</b>');
+    		}
     	}
     }
 }
