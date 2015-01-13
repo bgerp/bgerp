@@ -889,7 +889,8 @@ class techno2_SpecificationDoc extends core_Embedder
     public function renderJobView($id, $time = NULL)
     {
     	//@TODO дали е удачно да се кешира изгледа
-    	return $this->getProductDesc($id, $this, $time);
+    	$Jobs = cls::get('mp_Jobs');
+    	return $this->getProductDesc($id, $Jobs, $time);
     }
     
     
