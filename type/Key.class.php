@@ -91,13 +91,11 @@ class type_Key extends type_Int
      */
     function fromVerbal_($value)
     {
-    	$conf = core_Packs::getConfig('core');
-    	
         if(empty($value)) return NULL;
         
         $mvc = &cls::get($this->params['mvc']);
         
-        setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
+        $maxSuggestions = $this->getMaxSuggestions();
         
         $options = $this->options;
         
@@ -136,7 +134,7 @@ class type_Key extends type_Int
      * 
      */
     public function prepareOptions()
-    {   
+    {
         Mode::push('text', 'plain');
         
         // Ако опциите вече са генерирани - не ги подготвяме отново
@@ -206,9 +204,7 @@ class type_Key extends type_Int
         
         setIfNot($this->handler, md5(json_encode($this->options)));
         
-        $conf = core_Packs::getConfig('core');
-        
-        setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
+        $maxSuggestions = $this->getMaxSuggestions();
         
         // Ако трябва да показваме combo-box
         if(count($options) > $maxSuggestions) {
@@ -250,6 +246,21 @@ class type_Key extends type_Int
         Mode::pop('text');
         
         return $this->options;
+    }
+    
+    
+    /**
+     * Връща броя на максимално допуситимите опции за показване
+     * 
+     * @return integer
+     */
+    public function getMaxSuggestions()
+    {
+        $conf = core_Packs::getConfig('core');
+        
+        $maxSuggestions = $this->params['maxSuggestions'] ? $this->params['maxSuggestions'] : $conf->TYPE_KEY_MAX_SUGGESTIONS;
+        
+        return $maxSuggestions;
     }
     
     
@@ -314,8 +325,7 @@ class type_Key extends type_Int
                 $options = arr::combine($placeHolder, $options);
             }
 
-            $conf = core_Packs::getConfig('core');
-            setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
+            $maxSuggestions = $this->getMaxSuggestions();
             
             parent::setFieldWidth($attr);
             
@@ -383,10 +393,7 @@ class type_Key extends type_Int
      * Връща списък е елементи <option> при ajax заявка
      */
     function act_ajax_GetOptions()
-    {   
-
-        $conf = core_Packs::getConfig('core');
-        
+    {    
         // Приключваме, ако няма заявка за търсене
         $hnd = Request::get('hnd');
         
@@ -403,8 +410,10 @@ class type_Key extends type_Int
                 'error' => 'Липсват допълнителни опции'
             );
         }
-       
-        setIfNot($maxSuggestions, Request::get('maxSugg', 'int'), $conf->TYPE_KEY_MAX_SUGGESTIONS);
+        
+        if (!($maxSuggestions = Request::get('maxSugg', 'int'))) {
+            $maxSuggestions = $this->getMaxSuggestions();
+        }
         
         $options = (array) unserialize(core_Cache::get('SelectOpt', $hnd));
         
