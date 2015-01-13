@@ -151,22 +151,6 @@ class mp_Stages extends core_Manager
 	
 	
 	/**
-	 * Поставя изискване да се селектират само активните записи
-	 */
-	public static function on_AfterMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
-	{
-		if(count($optArr)){
-			
-			// Към името на записа, добавяме и центъра му на дейност да могат да се различават
-			foreach ($optArr as $id => &$title){
-				$departmentVerbal = hr_Departments::getTitleById($mvc->fetchField($id, 'departmentId'), FALSE);
-				$title .= " ({$departmentVerbal})";
-			}
-		}
-	}
-	
-	
-	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
 	 *
 	 * @param core_Mvc $mvc
