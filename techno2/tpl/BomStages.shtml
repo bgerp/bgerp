@@ -1,0 +1,26 @@
+<!--ET_BEGIN ROW-->[#ROW#]
+<div>
+<table class='styled-table' style='width:100%'>
+	<tr>
+		<th colspan='5' style ='white-space:nowrap;padding-bottom:5px'>[#tools#]<span style='position:relative;display:inline-block;padding-left:10px'>[#stage#]</span></th>
+	</tr>
+	<!--ET_BEGIN DROW-->
+	[#DROW#]
+	<tr>
+		<td style='width:1%'>[#RowNumb#][#dtools#]</td>
+		<td>[#resourceId#]</td>
+		<td style='text-align:right;width:100px'>[#baseQuantity#]</td>
+		<td style='text-align:right;width:100px'>[#propQuantity#]</td>
+	</tr>
+	<!--ET_END DROW-->
+	<!--ET_BEGIN addBtn-->
+	<tr>
+		<td colspan='5'>[#addBtn#]</td>
+	</tr>
+	<!--ET_END addBtn-->
+	
+</table>
+[#toolbar#]
+</div>
+<!--ET_END ROW-->
+[#ADD_BTN#]

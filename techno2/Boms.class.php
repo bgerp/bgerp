@@ -55,7 +55,7 @@ class techno2_Boms extends core_Master
     /**
      * Детайла, на модела
      */
-    var $details = 'techno2_MapDetails';
+    var $details = 'Stages=techno2_BomStages';
     
     
     /**
@@ -182,8 +182,9 @@ class techno2_Boms extends core_Master
     		$res = 'no_one';
     	}
     	
+    	// Не може да се активира, ако няма избрани ресурси
     	if($action == 'activate' && isset($rec->id)){
-    		if(!techno2_MapDetails::fetchField("#mapId = {$rec->id}")){
+    		if(!count($mvc->getResourceInfo($rec->id))){
     			$res = 'no_one';
     		}
     	}
@@ -282,24 +283,68 @@ class techno2_Boms extends core_Master
     	// Ако няма, връщаме нулеви цени
     	if(empty($rec)) return FALSE;
     	
+    	// Кои ресурси участват в спецификацията
+    	$rInfo = static::getResourceInfo($rec);
+    	
     	$amounts = (object)array('base' => 0, 'prop' => 0);
     	
-    	// Намираме всички детайли на картата
-    	$query = techno2_MapDetails::getQuery();
-    	$query->where("#mapId = {$rec->id}");
-    	
-    	// За всеки запис
-    	while ($dRec = $query->fetch()){
-    		
-    		// Себестойността на ресурса (ако има)
-    		$selfValue = mp_Resources::fetchField($dRec->resourceId, 'selfValue');
-    		
-    		// Добавяме към началната сума и пропорционалната
-    		$amounts->base += $dRec->baseQuantity * $selfValue;
-    		$amounts->prop += $dRec->propQuantity * $selfValue;
+    	// За всеки ресурс
+    	if(count($rInfo)){
+    		foreach ($rInfo as $dRec){
+    			$selfValue = mp_Resources::fetchField($dRec->resourceId, 'selfValue');
+    			
+    			// Добавяме към началната сума и пропорционалната
+    			$amounts->base += $dRec->baseQuantity * $selfValue;
+    			$amounts->prop += $dRec->propQuantity * $selfValue;
+    		}
     	}
     	
-    	// Връщаме началната и пропорционалната сума
+    	// Връщаме изчислените суми
     	return $amounts;
+    }
+    
+    
+    /**
+     * Връща информация с ресурсите използвани в технологичната рецепта
+     *
+     * @param mixed $id - ид или запис
+     * @return array $res - масив с записи на участващите ресурси
+     * 			o $res->resourceId       - ид на ресурса
+     * 			o $res->activityCenterId - ид на центъра на дейност от производствения етап
+     * 			o $res->baseQuantity     - начално количество на ресурса
+     * 			o $res->propQuantity     - пропорционално количество на ресурса
+     */
+    public static function getResourceInfo($id)
+    {
+    	$resources = array();
+    	
+    	expect($rec = static::fetchRec($id));
+    	
+    	// Намираме всички етапи в рецептата
+    	$dQuery = techno2_BomStages::getQuery();
+    	$dQuery->where("#bomId = {$rec->id}");
+    	
+    	// За всеки етап
+    	while($dRec = $dQuery->fetch()){
+    		
+    		// Проверяваме имали вързани ресурси към него
+    		$sQuery = techno2_BomStageDetails::getQuery();
+    		$sQuery->where("#bomstageId = {$dRec->id}");
+    		while($sRec = $sQuery->fetch()){
+    			$arr = array();
+    			$arr['resourceId'] = $sRec->resourceId;
+    			if(isset($dRec->stage)){
+    				$arr['activityCenterId'] = mp_Stages::fetchField("#name = '{$dRec->stage}'", 'departmentId');
+    			}
+    			
+    			$arr['baseQuantity'] = $sRec->baseQuantity;
+    			$arr['propQuantity'] = $sRec->propQuantity;
+    			
+    			$resources[] = (object)$arr;
+    		}
+    	}
+    	
+    	// Връщаме намерените ресурси
+    	return $resources;
     }
 }

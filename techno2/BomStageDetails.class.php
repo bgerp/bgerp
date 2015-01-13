@@ -3,24 +3,24 @@
 
 
 /**
- * Мениджър на детайли на технологични карти
+ * Мениджър на детайли на детайлите етапи на технологичните рецепти
  *
  *
  * @category  bgerp
  * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno2_MapDetails extends doc_Detail
+class techno2_BomStageDetails extends core_Detail
 {
     
 	
     /**
      * Заглавие
      */
-    var $title = "Детайл на технологичните карти";
+    var $title = "Ресурси на технологичните рецепти";
     
     
     /**
@@ -32,13 +32,13 @@ class techno2_MapDetails extends doc_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'mapId';
+    var $masterKey = 'bomstageId';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_GroupByField, plg_RowTools, techno2_Wrapper, plg_LastUsedKeys, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals';
+    var $loadList = 'plg_Created, plg_RowTools, techno2_Wrapper, plg_LastUsedKeys, plg_RowNumbering, plg_AlignDecimals';
     
     
     /**
@@ -48,27 +48,15 @@ class techno2_MapDetails extends doc_Detail
     
     
     /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    var $lastUsedKeys = 'stageId,resourceId';
-    
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-    var $listFields = 'rowNumb=Пулт, stageId, resourceId, baseQuantity, propQuantity=Количество->Пропорц.';
-    
-    
-    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'rowNumb';
+    var $rowToolsField = 'dtools';
     
     
     /**
      * Активен таб
      */
-    //var $currentTab = 'Операции->Разлики';
+    var $currentTab = 'Рецепти';
     
     
     /**
@@ -92,7 +80,7 @@ class techno2_MapDetails extends doc_Detail
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,techno';
+    var $canList = 'no_one';
     
     
     /**
@@ -101,22 +89,34 @@ class techno2_MapDetails extends doc_Detail
     var $canDelete = 'ceo,techno';
     
     
-    
     /**
      * Описание на модела
      */
     function description()
     {
-    	$this->FLD('mapId', 'key(mvc=techno2_Boms)', 'column=none,input=hidden,silent');
-    	
-    	$this->FLD("stageId", 'key(mvc=mp_Stages,select=name,allowEmpty)', 'caption=Етап');
+    	$this->FLD('bomstageId', 'key(mvc=techno2_BomStages)', 'column=none,input=hidden,silent');
     	
     	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit();')));
     	$this->FLD("baseQuantity", 'double', 'caption=Количество->Начално,hint=Начално количество');
     	$this->FLD("propQuantity", 'double', 'caption=Количество->Пропорционално,hint=Пропорционално количество');
+    	
+    	$this->setDbUnique('bomstageId,resourceId');
+    }
     
-    	// Уникални индекси
-    	$this->setDbUnique('mapId,stageId,resourceId');
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	// Ако детайла е добавен към етап, показваме го в инфото
+    	$stage = $mvc->Master->getVerbal($data->form->rec->bomstageId, 'stage');
+    	if($stage != ''){
+    		$data->form->info = "<b>" . tr('Етап') . "</b>: {$stage}";
+    	}
     }
     
     
@@ -129,31 +129,20 @@ class techno2_MapDetails extends doc_Detail
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
-    	
+    	 
+    	// Ако има избран ресурс, добавяме му мярката до полетата за количества
     	if(isset($rec->resourceId)){
     		$uomId = mp_Resources::fetchField($rec->resourceId, 'measureId');
     		$uomName = cat_UoM::getShortName($uomId);
-    			
+    		 
     		$form->setField('baseQuantity', "unit={$uomName}");
     		$form->setField('propQuantity', "unit={$uomName}");
     	}
-    	
+    	 
+    	// Проверяваме дали е въведено поне едно количество
     	if($form->isSubmitted()){
     		if(empty($rec->baseQuantity) && empty($rec->propQuantity)){
     			$form->setError('baseQuantity,propQuantity', 'Трябва да е въведено поне едно количество');
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-    	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
-    		if($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft'){
-    			$requiredRoles = 'no_one';
     		}
     	}
     }
@@ -166,7 +155,7 @@ class techno2_MapDetails extends doc_Detail
     {
     	$uomId = mp_Resources::fetchField($rec->resourceId, 'measureId');
     	$row->resourceId .= " (" . cat_UoM::getShortName($uomId) . ")";
-    	
+    	 
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     		$row->resourceId = ht::createLinkRef($row->resourceId, array('mp_Resources', 'single', $rec->resourceId));
     	}
@@ -174,27 +163,39 @@ class techno2_MapDetails extends doc_Detail
     
     
     /**
-     * След извличане на записите от базата данни
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
      */
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(!count($data->recs)) return;
-    	
-    	$recs = &$data->recs;
-    	
-    	foreach ($recs as &$rec){
-    		if($rec->stageId){
-    			$rec->order = mp_Stages::fetchField($rec->stageId, 'order');
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
+    		if(empty($rec->bomstageId)){
+    			$requiredRoles = 'no_one';
     		} else {
-    			$rec->order = 0;
+    			$masterBomId = $mvc->Master->fetchField($rec->bomstageId, 'bomId');
+    			$masterState = techno2_Boms::fetchField($masterBomId, 'state');
+    			
+    			if($masterState != 'draft'){
+    				$requiredRoles = 'no_one';
+    			}
     		}
     	}
-    	
-    	// Сортираме по подредбата на производствения етап
-    	usort($recs, function($a, $b) {
-    		if($a->order == $b->order)  return 0;
-    		
-    		return ($a->order > $b->order) ? 1 : -1;
-    	});
+    }
+    
+    
+    /**
+     * Връща URL към единичния изглед на мастера
+     */
+    public function getRetUrl($rec)
+    {
+    	$bomId = $this->Master->fetchField($rec->bomstageId, 'bomId');
+    	$url = array('techno2_Boms', 'single', $bomId);
+    
+    	return $url;
     }
 }
