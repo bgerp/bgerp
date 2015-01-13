@@ -461,7 +461,7 @@ class core_FieldSet extends core_BaseClass
      * @param string $name
      * @param array $params
      */
-    function setFieldTypeParams($name, $params = array())
+    function setFieldTypeParams($name, $params=array())
     {
     	$params = arr::make($params, TRUE);
     

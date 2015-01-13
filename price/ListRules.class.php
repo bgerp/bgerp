@@ -508,7 +508,13 @@ class price_ListRules extends core_Detail
             }
         }
 
-        $mvc->setFieldTypeParams('price', array('smartRound' => 'smartRound'));
+        // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
+        if(strlen(substr(strrchr($rec->price, "."), 1) > 2)){
+        	$mvc->getFieldType('price')->params['decimals'] = 5;
+        } else {
+        	$mvc->getFieldType('price')->params['decimals'] = 2;
+        }
+        
         $price = $mvc->getFieldType('price')->toVerbal($rec->price);
         
         // Област
