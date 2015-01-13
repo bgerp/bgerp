@@ -138,7 +138,7 @@ class type_Key extends type_Int
         Mode::push('text', 'plain');
         
         // Ако опциите вече са генерирани - не ги подготвяме отново
-        if(!is_array($this->options) || !count($this->options)) {
+        if (!is_array($this->options) || !count($this->options)) {
         
             $mvc = cls::get($this->params['mvc']);
 
@@ -166,11 +166,18 @@ class type_Key extends type_Int
             if(!count($options)) {
                 
                 if (!is_array($this->options)) {
-                    $arrForSelect = (array) $mvc->makeArray4select($field, $where);
+                    
+                    $keyIndex = 'id';
+                    
+                    if ($this->params['keyIndex']) {
+                        $keyIndex = $this->params['keyIndex'];
+                    }
+                    
+                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex);
                     foreach($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
-                    $this->handler = md5($field . $where . $this->params['mvc']);
+                    $this->handler = md5($field . $where . $this->params['mvc'] . $keyIndex);
                 } else {
                     foreach($this->options as $id => $v) {
                         $options[$id] = $v;
