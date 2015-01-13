@@ -28,21 +28,6 @@ class type_Key extends type_Int
      * @var string
      */
     public $handler;
-    
-    
-    /**
-     * Инициализиране на типа
-     */
-    protected function getSelectFld()
-    {
-        if(core_Lg::getCurrent() == 'bg' && $this->params['selectBg']) {
-            
-            return $this->params['selectBg'];
-        } else {
-
-            return $this->params['select'];
-        }
-    }
 
     
     /**
@@ -50,14 +35,14 @@ class type_Key extends type_Int
      */
     function toVerbal_($value)
     {
-        if($value === NULL || $value === '') return NULL;
+        if ($value === NULL || $value === '') return NULL;
         
-        if($this->params['mvc']) {
+        if ($this->params['mvc']) {
             $mvc = &cls::get($this->params['mvc']);
             
             if(($part = $this->getSelectFld()) && $part != '*') {
-
-                $rec = $mvc->fetch($value);
+                
+                $rec = $this->fetchVal($value);
                 
                 if (!$rec && $value == 0) return NULL;
                 
@@ -136,6 +121,21 @@ class type_Key extends type_Int
     
     
     /**
+     * Инициализиране на типа
+     */
+    protected function getSelectFld()
+    {
+        if(core_Lg::getCurrent() == 'bg' && $this->params['selectBg']) {
+            
+            return $this->params['selectBg'];
+        } else {
+
+            return $this->params['select'];
+        }
+    }
+    
+    
+    /**
      * 
      * 
      * @param string $value
@@ -189,11 +189,7 @@ class type_Key extends type_Int
                 
                 if (!is_array($this->options)) {
                     
-                    $keyIndex = 'id';
-                    
-                    if ($this->params['keyIndex']) {
-                        $keyIndex = $this->params['keyIndex'];
-                    }
+                    $keyIndex = $this->getKeyField();
                     
                     $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex);
                     foreach($arrForSelect as $id => $v) {
@@ -275,6 +271,23 @@ class type_Key extends type_Int
         Mode::pop('text');
         
         return $this->options;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @return string
+     */
+    protected function getKeyField()
+    {
+        $keyField = 'id';
+        
+        if (!empty($this->params['key'])) {
+            $keyField = $this->params['key'];
+        }
+        
+        return $keyField;
     }
     
     
