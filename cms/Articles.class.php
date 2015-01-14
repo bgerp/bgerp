@@ -144,13 +144,13 @@ class cms_Articles extends core_Master
         $form->showFields = 'search, menuId';
         
         $form->input('search, menuId', 'silent');
- //bp($form->rec, self::getMenuOpt());
+
         $form->setOptions('menuId', $opt = self::getMenuOpt());
 
         if(!$opt[$form->rec->menuId]) {
             $form->rec->menuId = key($opt);
         }
-        //bp($form->rec, self::getMenuOpt());
+        
         $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
         
         $data->query->orderBy('#menuId,#level');
@@ -174,12 +174,12 @@ class cms_Articles extends core_Master
         $cQuery->orderBy('#menu');
         
         $options = array();
-        //bp( self::getClassId(), $cRec->id);
+    
         while($cRec = $cQuery->fetch(array("#source = [#1#]" , self::getClassId()))) {
-        	//bp($cRec);
+        	
             $options[$cRec->id] = $cRec->menu;
         }
-//bp($options);
+
         return $options;
     }
 
