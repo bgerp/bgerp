@@ -878,8 +878,8 @@ class doc_Folders extends core_Master
      * Добавя ограничение за дати на създаване/модифициране в заявката
      * 
      * @param core_Query $query
-     * @param datetime $from
-     * @param datetime $to
+     * @param datetime|NULL $from
+     * @param datetime|NULL $to
      * @param integer $delay
      */
     public static function prepareRepairDateQuery(&$query, $from, $to, $delay, $dateField='modifiedOn')
