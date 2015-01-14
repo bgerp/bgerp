@@ -437,6 +437,9 @@ class doc_Folders extends core_Master
                     // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
                     foreach((array)$notifyArr as $nUserId) {
                         
+                        // Ако текущия потребител, е някой от системните, няма да се нотифицира
+                        if ($nUserId < 1) continue; 
+                        
                         // Ако текущия потребител няма debug роля, да не получава нотификация за своите действия
                         if (!$haveDebug && ($currUserId == $nUserId)) continue;
                         
