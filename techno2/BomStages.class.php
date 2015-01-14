@@ -189,6 +189,7 @@ class techno2_BomStages extends core_Master
     			$table = cls::get('core_TableView', array('mvc' => cls::get('techno2_BomStageDetails')));
     			$listFields = array('RowNumb'        => 'Пулт', 
     							    'resourceId'     => 'Ресурс',
+    								'measureId'	   => 'Мярка',
     								'baseQuantity' => 'Начално к-во',
     							    'propQuantity' => 'Пропор. к-во',
     			);

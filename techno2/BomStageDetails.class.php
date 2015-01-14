@@ -154,7 +154,7 @@ class techno2_BomStageDetails extends core_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$uomId = mp_Resources::fetchField($rec->resourceId, 'measureId');
-    	$row->resourceId .= " (" . cat_UoM::getShortName($uomId) . ")";
+    	$row->measureId = cat_UoM::getTitleById($uomId);
     	 
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     		$row->resourceId = ht::createLinkRef($row->resourceId, array('mp_Resources', 'single', $rec->resourceId));
