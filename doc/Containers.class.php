@@ -496,7 +496,8 @@ class doc_Containers extends core_Manager
         
         // id на текущия потребител
         $currUserId = core_Users::getCurrent();
-        
+        $haveDebug = haveRole('debug', $currUserId);
+            
         // Ако заглавието на нишката не е определяна преди
         if (!$threadTitleArr[$rec->threadId]) {
             
@@ -515,6 +516,9 @@ class doc_Containers extends core_Manager
             
             // Ако текущия потребител, е някой от системните, няма да се нотифицира
             if ($userId < 1) continue; 
+            
+            // Ако текущия потребител няма debug роля, да не получава нотификация за своите действия
+            if (!$haveDebug && ($currUserId == $userId)) continue;
             
             // Ако потребителя, вече е бил нотифициран
             if ($notifiedUsersArr[$userId]) continue;
