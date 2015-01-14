@@ -419,9 +419,12 @@ class core_Browser extends core_Manager
         Mode::setPermanent('windowWidth', $w = Request::get('winW', 'int'));
         Mode::setPermanent('windowHeight', Request::get('winH', 'int'));
         Mode::setPermanent('getUserAgent', Request::get('browserCheck'));
-        Mode::setPermanent('timezoneOffset', Request::get('timezoneInfo'));
-   
-           
+        
+        $timezoneOffset = Request::get('timezoneInfo');
+        $timezoneOffset *= 60;
+        $timezoneDiff = $timezoneOffset + date('Z');
+        Mode::setPermanent('timezoneDiff', $timezoneDiff);
+        
         if($w > 1000 && !Mode::is("ScreenModeFromScreenSize")) {
             Mode::setPermanent('screenMode', 'wide');
             Mode::setPermanent("ScreenModeFromScreenSize");

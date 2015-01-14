@@ -233,6 +233,36 @@ class core_DateTime
     
     
     /**
+     * Връща разликата в секунди от timezone на сървъра и на потребителя
+     */
+    public static function getTimezoneDiff()
+    {
+        $timeZoneDiff = Mode::get('timezoneDiff');
+        
+        if (!isset($timeZoneDiff)) {
+            
+            // Опитваме се да определим разликата от IP-то на потребителя
+            if (function_exists('geoip_time_zone_by_country_and_region')) {
+                $ipAdd = core_Users::getRealIpAddr();
+                $countryCode = drdata_IpToCountry::get($ipAdd);
+                if ($region = geoip_time_zone_by_country_and_region($countryCode)) {
+                    
+                    $timezoneOffsetServer = date('Z');
+                    
+                    $Date = new DateTimeZone($region);
+                    $datetime = new DateTime();
+                    $timezoneOffsetUser = $Date->getOffset($datetime);
+                    
+                    $timeZoneDiff = $timezoneOffsetUser - $timezoneOffsetServer;
+                }
+            }
+        }
+        
+        return $timeZoneDiff;
+    }
+    
+    
+    /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
     static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL)
@@ -255,7 +285,9 @@ class core_DateTime
         $mysqlDate = str_replace("''", ":", $mysqlDate);
         $mysqlDate = str_replace("'", ":", $mysqlDate);
         
+        $timeZoneDiff = self::getTimezoneDiff();
         $time = strtotime($mysqlDate);
+        $time += $timeZoneDiff;
         
         $year = date('y', $time);
         $yearNow = date('y', time());
