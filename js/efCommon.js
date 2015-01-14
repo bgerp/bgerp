@@ -1291,6 +1291,8 @@ function setFormElementsWidth() {
     } else {
     	 $('.formTable label').each(function() {
              $(this).parent().css('white-space', "nowrap");
+             $(this).parent().css('width', "1%");
+             
              // ако етикета е много широк, режем го и слагаме хинт
              if ($(this).width() > 450){
             	 $(this).css('max-width', "450px");
