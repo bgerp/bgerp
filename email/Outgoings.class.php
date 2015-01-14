@@ -2406,6 +2406,54 @@ class email_Outgoings extends core_Master
         
         $form->FNC('userEmail', 'email', 'input=input,silent,caption=Имейл->Адрес,width=100%,recently');
         
+        // Заявка за извличане на потребителите
+        $personsQuery = crm_Persons::getQuery();
+        
+        // Да извлече само достъпните
+        crm_Persons::applyAccessQuery($personsQuery);
+        
+        // Обхождаме всички откити резултати
+        while ($personsRec = $personsQuery->fetch()) {
+            
+            // Добавяме в масива
+            $personsArr[$personsRec->id] = crm_Persons::getVerbal($personsRec, 'name');
+        }
+        
+        // Ако има открити стойности
+        if (count($personsArr)) {
+            
+            // Добавяме ги в комбобокса
+            $form->setOptions('personId', $personsArr);
+        } else {
+            
+            // Добавяме празен стринг, за да не се покажат всичките записи
+            $form->setOptions('personId', array('' => ''));
+        }
+        
+        // Заявка за извличане на фирмите
+        $companyQuery = crm_Companies::getQuery();
+        
+        // Да извлече само достъпните
+        crm_Companies::applyAccessQuery($companyQuery);
+        
+        // Обхождаме всички откити резултати
+        while ($companiesRec = $companyQuery->fetch()) {
+            
+            // Добавяме в масива
+            $companiesArr[$companiesRec->id] = crm_Companies::getVerbal($companiesRec, 'name');
+        }
+        
+        // Ако има открити стойности
+        if (count($companiesArr)) {
+            
+            // Добавяме ги в комбобокса
+            $form->setOptions('companyId', $companiesArr);
+        } else {
+            
+            // Добавяме празен стринг, за да не се покажат всичките записи
+            $form->setOptions('companyId', array('' => ''));
+        }
+        
         $form->input();
         
         // Проверка за грешки
@@ -2471,54 +2519,6 @@ class email_Outgoings extends core_Master
                         'forward' => 'forward',
                         'ret_url' => $retUrl,
                     )));
-        }
-        
-        // Заявка за извличане на потребителите
-        $personsQuery = crm_Persons::getQuery();
-        
-        // Да извлече само достъпните
-        crm_Persons::applyAccessQuery($personsQuery);
-        
-        // Обхождаме всички откити резултати
-        while ($personsRec = $personsQuery->fetch()) {
-            
-            // Добавяме в масива
-            $personsArr[$personsRec->id] = crm_Persons::getVerbal($personsRec, 'name');
-        }
-        
-        // Ако има открити стойности
-        if (count($personsArr)) {
-            
-            // Добавяме ги в комбобокса
-            $form->setOptions('personId', $personsArr);
-        } else {
-            
-            // Добавяме празен стринг, за да не се покажат всичките записи
-            $form->setOptions('personId', array('' => ''));
-        }
-        
-        // Заявка за извличане на фирмите
-        $companyQuery = crm_Companies::getQuery();
-        
-        // Да извлече само достъпните
-        crm_Companies::applyAccessQuery($companyQuery);
-        
-        // Обхождаме всички откити резултати
-        while ($companiesRec = $companyQuery->fetch()) {
-            
-            // Добавяме в масива
-            $companiesArr[$companiesRec->id] = crm_Companies::getVerbal($companiesRec, 'name');
-        }
-        
-        // Ако има открити стойности
-        if (count($companiesArr)) {
-            
-            // Добавяме ги в комбобокса
-            $form->setOptions('companyId', $companiesArr);
-        } else {
-            
-            // Добавяме празен стринг, за да не се покажат всичките записи
-            $form->setOptions('companyId', array('' => ''));
         }
         
         // Подготвяме лентата с инструменти на формата
