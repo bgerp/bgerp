@@ -459,6 +459,40 @@ div.folder-cover {
 }
 /*край на стилове за корици*/
 
+.fieldset-holder {
+	border:none;
+	padding:0 0 20px;
+	background:transparent;
+	.listTable{
+		border: none;
+		th{
+			background: #f1f1f1 !important;
+			border: 1px solid white !important;
+			display: table-cell !important;
+			visibility: visible !important;
+			vertical-align: middle !important;
+		}
+		td {
+			border: none !important;
+			border-top: dotted 1px #cccccc !important;
+			vertical-align: top !important;
+		}
+	}
+	legend {
+	padding: 0 5px;
+		div.rowtools{
+	       white-space: nowrap;
+	       width: auto;
+	       display: inline-block;
+	    }
+	    .add-btn {
+	       position: relative;
+	       top: -4px;
+	       display: inline-block;
+	    }
+	}
+}
+
 /*потребителски профил*/
 .user-profile {
 	max-width: 760px;

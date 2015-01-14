@@ -6,14 +6,12 @@
     </div>
     <!--ET_END header-->
     <div>|За|*: [#originId#]</div>
-    <br>
     [#Stages#]
-     <br>
     [#DETAILS#]
     
     <!--ET_BEGIN notes-->
-    <br>
-    <div>|Забележки|*:</div>
+  
+    <div style='margin-top: 20px;'>|Забележки|*:</div>
     <div>[#notes#]</div>
     <!--ET_END notes-->
 </div>
