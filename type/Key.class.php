@@ -108,8 +108,6 @@ class type_Key extends type_Int
             }
         }
         
-        $value = (int) $value;
-        
         $rec = $this->fetchVal($value);
         
         if (!$rec) {
@@ -154,7 +152,7 @@ class type_Key extends type_Int
     {
         $mvc = &cls::get($this->params['mvc']);
         
-        $rec = $mvc->fetch($value);
+        $rec = $mvc->fetch((int)$value);
         
         return $rec;
     }
