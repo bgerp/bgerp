@@ -233,6 +233,8 @@ class doc_Setup extends core_ProtoSetup
     {
         $conf = core_Packs::getConfig('doc');
         $res .= '';
+        
+        $repArr = array();
         $repArr['folder'] = doc_Folders::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
         $repArr['thread'] = doc_Threads::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
         $repArr['container'] = doc_Containers::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
