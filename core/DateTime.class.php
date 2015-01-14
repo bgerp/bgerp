@@ -401,7 +401,7 @@ class core_DateTime
  
         if($dist < 0) {
             $dist =  1 - $dist / (24 * 60 * 60);
-            $g = round(max(4, 11 - $dist * $dist));
+            $g = round(max(4, 9 - $dist * $dist));
             $color = "0" . dechex($g) . "0";
         } else {
             
