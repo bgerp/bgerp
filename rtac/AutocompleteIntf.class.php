@@ -31,7 +31,7 @@ class rtac_AutocompleteIntf
      * Стартира autocomplete-а за добавяне на потребители
      * 
      * @param core_Et $tpl
-     * @param string $id
+     * @param string $rtId
      */
     function runAutocompleteUsers(&$tpl, $rtId)
     {
@@ -44,7 +44,7 @@ class rtac_AutocompleteIntf
      * Стартира autocomplete-а за добавяне на текст
      * 
      * @param core_Et $tpl
-     * @param string $id
+     * @param string $rtId
      */
     function runAutocompleteText(&$tpl, $rtId)
     {
