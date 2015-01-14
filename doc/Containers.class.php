@@ -1136,7 +1136,7 @@ class doc_Containers extends core_Manager
      * @param $params['Act'] - Действието
      * @param $params['id'] - id' то на сингъла
      * 
-     * @return $res - Линк
+     * @return core_ET - Линк
      */
     static function getVerbalLink($params)
     {
@@ -1202,6 +1202,7 @@ class doc_Containers extends core_Manager
         } else {
             
             //Атрибути на линка
+            $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = "background-image:url({$sbfIcon});";    
             $attr['target'] = '_blank';    
@@ -1506,6 +1507,7 @@ class doc_Containers extends core_Manager
         }
         
         // Атрибутеите на линка
+        $attr = array();
         $attr['class'] = 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
         $attr['title'] = tr('Документ') . ': ' . $docRow->title;
@@ -1676,6 +1678,8 @@ class doc_Containers extends core_Manager
         // Групираме по създаване и състояние
         $query->groupBy('createdBy, state');
         
+        $authorTemasArr = array();
+        
         while ($rec = $query->fetch()) {
             
             // Масив с екипите на съответния потребител
@@ -1771,6 +1775,8 @@ class doc_Containers extends core_Manager
     	$userQuery = core_Users::getQuery();
     	$userQuery->show('id');
     	
+    	$authorTemasArr = array();
+    	
     	// За всеки потребител
     	while($uRec = $userQuery->fetch()){
     		$notArr = array();
@@ -1863,6 +1869,8 @@ class doc_Containers extends core_Manager
                 $form->rec->to = $from;
             }
             
+            $repArr = array();
+            
             // В зависимост от избраната стойност поправяме документите
             if ($form->rec->repair == 'folders' || $form->rec->repair == 'all') {
                 $repArr['folders'] = doc_Folders::repair($form->rec->from, $form->rec->to, $conf->DOC_REPAIR_DELAY);
@@ -1928,6 +1936,7 @@ class doc_Containers extends core_Manager
         
         $conf = core_Packs::getConfig('doc');
         
+        $repArr = array();
         $repArr['folders'] = doc_Folders::repair($from, $to, $conf->DOC_REPAIR_DELAY);
         $repArr['threads'] = doc_Threads::repair($from, $to, $conf->DOC_REPAIR_DELAY);
         $repArr['containers'] = doc_Containers::repair($from, $to, $conf->DOC_REPAIR_DELAY);
