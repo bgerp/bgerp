@@ -68,7 +68,7 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, measureId, quantity, selfValue, amount';
+    public $listFields = 'productId, jobId, bomId, measureId, quantity, selfValue,amount';
     
         
     /**
@@ -92,8 +92,8 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
         
         parent::setDetailFields($this);
         
-        $this->FLD('jobId', 'key(mvc=mp_Jobs)', 'input=none');
-        $this->FLD('bomId', 'key(mvc=techno2_Boms)', 'input=none');
+        $this->FLD('jobId', 'key(mvc=mp_Jobs)', 'input=none,caption=Задание');
+        $this->FLD('bomId', 'key(mvc=techno2_Boms)', 'input=none,caption=Рецепта');
         
         $this->FLD('selfValue', 'double', 'caption=С-ст,input=hidden');
         $this->FNC('amount', 'double', 'caption=Сума');
@@ -159,6 +159,60 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     		// Ако трябва да показваме с-та, но не е попълнена сетваме грешка
     		if(empty($rec->selfValue) && $showSelfvalue === TRUE){
     			$form->setError('selfValue', 'Непопълнено задължително поле|* <b>С-ст</b>');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	if(isset($rec->jobId)){
+    		$row->jobId = "#" . cls::get('mp_Jobs')->getHandle($rec->jobId);
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    			$row->jobId = ht::createLink($row->jobId, array('mp_Jobs', 'single', $rec->jobId));
+    		}
+    	}
+    	
+    	if(isset($rec->bomId)){
+    		$row->bomId = "#" . cls::get('techno2_Boms')->getHandle($rec->bomId);
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    			$row->bomId = ht::createLink($row->bomId, array('techno2_Boms', 'single', $rec->bomId));
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$res)
+    {
+    	$rows = &$res->rows;
+    	$recs = &$res->recs;
+    
+    	$hasBomFld = $hasJobFld = FALSE;
+    	
+    	if (count($recs)) {
+    		foreach ($recs as $id=>$rec) {
+    			$row = &$rows[$id];
+    
+    			$hasJobFld = !empty($rec->jobId) ? TRUE : $hasJobFld;
+    			$hasBomFld = !empty($rec->bomId) ? TRUE : $hasBomFld;
+    		}
+    		 
+    		if($hasJobFld === FALSE){
+    			unset($res->listFields['jobId']);
+    		}
+    		
+    		if($hasBomFld === FALSE){
+    			unset($res->listFields['bomId']);
     		}
     	}
     }
