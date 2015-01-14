@@ -491,6 +491,12 @@ div.folder-cover {
 	       display: inline-block;
 	    }
 	}
+	tr.row-added {
+        background-color: #e6ffe0;
+    }
+	tr.row-removed {
+	    background-color: #fed6d6;
+	}
 }
 
 /*потребителски профил*/
