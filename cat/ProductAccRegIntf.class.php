@@ -203,4 +203,28 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->alterSearchKeywords($searchKeywords);
     }
+    
+    
+    /**
+     * Намира последното активно задание за артикула
+     * 
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на заданието или FALSE ако няма
+     */
+    public function getLastActiveJob($id)
+    {
+    	return $this->getLastActiveJob($id);
+    }
+    
+    
+    /**
+     * Намира последната активна технологична рецепта за артикула
+     *
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на рецептата или FALSE ако няма
+     */
+    public function getLastActiveBom($id)
+    {
+    	return $this->getLastActiveBom($id);
+    }
 }

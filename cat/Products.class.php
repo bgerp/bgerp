@@ -1173,4 +1173,30 @@ class cat_Products extends core_Embedder {
     	
     	return $rec->name;
     }
+    
+    
+    /**
+     * Връща последното активно задание за спецификацията
+     *
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на заданието или FALSE ако няма
+     */
+    public static function getLastActiveJob($id)
+    {
+    	//@TODO временно
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Намира последната активна технологична рецепта за артикула
+     *
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на рецептата или FALSE ако няма
+     */
+    public static function getLastActiveBom($id)
+    {
+    	//@TODO временно
+    	return FALSE;
+    }
 }
