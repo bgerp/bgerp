@@ -108,7 +108,7 @@ class core_ObjectReference
     /**
      * Инстанция на класа на обекта, към който сочи този указател
      * 
-     * @return int key(mvc=core_Classes)
+     * @return object
      */
     public function getInstance()
     {
