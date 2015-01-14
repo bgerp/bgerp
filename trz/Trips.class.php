@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Командировки
@@ -187,7 +187,7 @@ class trz_Trips extends core_Master
         $rec = $data->form->rec;
         
         if ($rec->folderId) {
-	        $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
 	        $data->form->setReadonly('personId');
         }
     }
@@ -288,7 +288,7 @@ class trz_Trips extends core_Master
      * @param int $id
      * @return stdClass $row
      */
-    public static function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         

@@ -93,7 +93,7 @@ class bgerp_PersonalizationSourceIntf
      * за съответния запис,
      * които са достъпни за посочения потребител
      * 
-     * @param integer $id
+     * @param integer $srcId
      * 
      * @return array
      */

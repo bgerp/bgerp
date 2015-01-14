@@ -115,8 +115,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$error = "error=Няма {$text} {$productMan->title}";
 				}
 	
+				$title = mb_strtolower($productMan->singleTitle);
 				$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
-						"id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+						"id=btnAdd-{$manId},{$error},order=10,title=Добавяне на {$title}", 'ef_icon = img/16/shopping.png');
 				unset($error);
 			}
 	
@@ -209,7 +210,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$ProductMan = cls::get($rec->classId);
-		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master->documentType);
+		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master);
 	
 		if($rec->note){
 			$varchar = cls::get('type_Varchar');

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Заплати
@@ -22,6 +22,12 @@ class trz_SalaryPayroll extends core_Manager
      * Заглавие
      */
     public $title = 'Ведомост';
+    
+    
+    /**
+     * Заглавието в единично число
+     */
+    public $singleTitle = 'Ведомост';
     
     
     /**
@@ -76,13 +82,13 @@ class trz_SalaryPayroll extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, periodId, ruleId, personId, amount';
+    public $listFields = 'id,periodId, ruleId, personId, amount';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    public $rowToolsField = 'tools';
+    public $rowToolsField = 'id';
     
     
     /**

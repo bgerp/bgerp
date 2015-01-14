@@ -48,6 +48,12 @@ class core_Type extends core_BaseClass
 	public $tdClass = '';
 	
 	
+	/**
+	 * 
+	 */
+	public $error = '';
+	
+	
     /**
      * Конструктор. Дава възможност за инициализация
      */

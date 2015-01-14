@@ -24,7 +24,13 @@ class cms_Content extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Публично съдържание";
+    public $title = "Публично съдържание";
+    
+    
+    /**
+     * Заглавие в единично число
+     */
+    public $singleTitle = "Публично съдържание";
     
     
     /**

@@ -118,7 +118,7 @@ class cms_Articles extends core_Master
     function description()
     {
         $this->FLD('level', 'order', 'caption=Номер,mandatory');
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent,autoFilter');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes)', 'caption=Текст,column=none');
 
@@ -144,13 +144,13 @@ class cms_Articles extends core_Master
         $form->showFields = 'search, menuId';
         
         $form->input('search, menuId', 'silent');
-
+ //bp($form->rec, self::getMenuOpt());
         $form->setOptions('menuId', $opt = self::getMenuOpt());
 
         if(!$opt[$form->rec->menuId]) {
             $form->rec->menuId = key($opt);
         }
-
+        //bp($form->rec, self::getMenuOpt());
         $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
         
         $data->query->orderBy('#menuId,#level');
@@ -168,17 +168,18 @@ class cms_Articles extends core_Master
         }
         
         $cQuery = cms_Content::getQuery();
- 
+     
         $cQuery->where("#lang = '{$lang}'");
          
         $cQuery->orderBy('#menu');
         
         $options = array();
-        
+        //bp( self::getClassId(), $cRec->id);
         while($cRec = $cQuery->fetch(array("#source = [#1#]" , self::getClassId()))) {
+        	//bp($cRec);
             $options[$cRec->id] = $cRec->menu;
         }
-
+//bp($options);
         return $options;
     }
 

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Болнични листи
@@ -205,12 +205,11 @@ class trz_Sickdays extends core_Master
         }
         
         $rec = $data->form->rec;
-        if($rec->folderId){
-	        $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
-	        $data->form->setReadonly('personId');
-        }
-
         
+        if($rec->folderId){
+	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
+	        $data->form->setReadonly('personId');
+        } 
     }
     
     
@@ -256,7 +255,7 @@ class trz_Sickdays extends core_Master
     {
         if($mvc->haveRightFor('accruals') && $data->rec->state == 'draft') {
             
-            $data->toolbar->addBtn('Начисления', array($mvc, 'add', 'id' => $data->rec->id, 'accruals' => TRUE), 'ef_icon=img/16/calculator.png');
+            //$data->toolbar->addBtn('Начисления', array($mvc, 'add', 'id' => $data->rec->id, 'accruals' => TRUE), 'ef_icon=img/16/calculator.png');
         }
         
     }

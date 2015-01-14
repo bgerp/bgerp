@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Молби за отпуски
@@ -254,7 +254,7 @@ class trz_Requests extends core_Master
     	
     	$rec = $data->form->rec;
         if($rec->folderId){
-	        $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
 	        $data->form->setReadonly('personId');
         }
     }
@@ -308,7 +308,7 @@ class trz_Requests extends core_Master
         if(haveRole('trz, ceo') && $data->rec->state == 'active') {
             
         	// Добавяме бутон
-            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon = img/16/btn-order.png');
+            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска');
         }
         
         // Ако нямаме права за писане в треда

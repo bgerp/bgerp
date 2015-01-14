@@ -1,28 +1,25 @@
 <?php
 
 
-
-
-
 /**
  * Клас  'type_Key' - Ключ към ред от MVC модел
  *
  *
  * @category  ef
  * @package   type
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @link
  */
-class type_Key extends type_Int {
+class type_Key extends type_Int
+{
     
     
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
-    var $tdClass = '';
+    public $tdClass = '';
     
     
     /**
@@ -34,35 +31,24 @@ class type_Key extends type_Int {
     
     
     /**
-     * Инициализиране на типа
+     * Параметър определящ максималната широчина на полето
      */
-    function getSelectFld()
-    {
-        if(core_Lg::getCurrent() == 'bg' && $this->params['selectBg']) {
-            
-            return $this->params['selectBg'];
-        } else {
-
-            return $this->params['select'];
-        }
-    }
-
+    public $maxFieldSize = 0;
+    
     
     /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
     function toVerbal_($value)
     {
+        if ($value === NULL || $value === '') return NULL;
         
-        if($value === NULL || $value === '') return NULL;
-
-        
-        if($this->params['mvc']) {
+        if ($this->params['mvc']) {
             $mvc = &cls::get($this->params['mvc']);
             
             if(($part = $this->getSelectFld()) && $part != '*') {
-
-                $rec = $mvc->fetch($value);
+                
+                $rec = $this->fetchVal($value);
                 
                 if (!$rec && $value == 0) return NULL;
                 
@@ -94,57 +80,43 @@ class type_Key extends type_Int {
      */
     function fromVerbal_($value)
     {
-    	$conf = core_Packs::getConfig('core');
-    	
         if(empty($value)) return NULL;
+        
+        $oValue = $value;
         
         $mvc = &cls::get($this->params['mvc']);
         
-        setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
+        $maxSuggestions = $this->getMaxSuggestions();
         
         $options = $this->options;
         
         if(($field = $this->getSelectFld()) && (!count($options))) {
             $options = $this->prepareOptions();
         }
-        if(!is_numeric($value) && count($options)) {
-            foreach($options as $id => $v) {
-                if (!is_string($v)) {
-                    if(!$v->group) {
-                        $optionsR[trim($v->title)] = $id;
-                        $optionsR[trim($v->title) . " ({$id})"] = $id;
-                    }
-                } else {
-                    
-                    /**
-                     * $v (косвено) се сравнява с субмитнатата чрез HTML `<select>` елемент
-                     * стойност $value. Оказа се, че (поне при някои браузъри) специалните HTML
-                     * символи (`&amp;`, `&nbsp` и пр.) биват декодирани при такъв субмит. Така
-                     * ако $v съдържа такива символи, сравнението ще пропадне, въпреки, че
-                     * стойностите може да изглеждат визуално еднакви. Напр. ако
-                     *
-                     *  $v = "Тестов&nbsp;пример"; $value = "Тестов пример"
-                     *
-                     *  очевидно $v != $value
-                     *
-                     *  По тази причина декодираме специалните символи предварително.
-                     *
-                     */
-                    //$v = html_entity_decode($v, ENT_NOQUOTES, 'UTF-8');
-                    $optionsR[trim($v)] = $id;
-                    $optionsR[trim($v) . " ({$id})"] = $id;
+        
+        $selOptCache = (array) unserialize(core_Cache::get('SelectOpt', $this->handler));
+        
+        if(count($selOptCache)) {
+            foreach($selOptCache as $id => $titleArr) {
+                
+                if ($value == $titleArr['title']) {
+                    $value = $id;
+                    break;
                 }
             }
-            
-            $value = $optionsR[trim($value)];
         }
         
         $value = (int) $value;
         
-        $rec = $mvc->fetch($value);
+        $rec = $this->fetchVal($value);
         
-        if(!$rec) {
-            $this->error = 'Несъществуващ обект';
+        if (!$rec) {
+            if (($this->params['allowEmpty']) && ($oValue == ' ')) {
+                
+                return $value;
+            } else {
+                $this->error = 'Несъществуващ обект';
+            }
             
             return FALSE;
         } else {
@@ -153,13 +125,48 @@ class type_Key extends type_Int {
         }
     }
     
+    
+    /**
+     * Инициализиране на типа
+     */
+    protected function getSelectFld()
+    {
+        if(core_Lg::getCurrent() == 'bg' && $this->params['selectBg']) {
+            
+            return $this->params['selectBg'];
+        } else {
 
+            return $this->params['select'];
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $value
+     * 
+     * @return object
+     */
+    protected function fetchVal($value)
+    {
+        $mvc = &cls::get($this->params['mvc']);
+        
+        $rec = $mvc->fetch($value);
+        
+        return $rec;
+    }
+    
+    
+    /**
+     * 
+     */
     public function prepareOptions()
-    {   
+    {
         Mode::push('text', 'plain');
         
         // Ако опциите вече са генерирани - не ги подготвяме отново
-        if(!is_array($this->options) || !count($this->options)) {
+        if (!is_array($this->options) || !count($this->options)) {
         
             $mvc = cls::get($this->params['mvc']);
 
@@ -187,41 +194,83 @@ class type_Key extends type_Int {
             if(!count($options)) {
                 
                 if (!is_array($this->options)) {
-                    $arrForSelect = (array) $mvc->makeArray4select($field, $where);
+                    
+                    $keyIndex = $this->getKeyField();
+                    
+                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex);
                     foreach($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
-                    $this->handler = md5($field . $where . $this->params['mvc']);
+                    $this->handler = md5($field . $where . $this->params['mvc'] . $keyIndex);
                 } else {
                     foreach($this->options as $id => $v) {
                         $options[$id] = $v;
                     }
                 }
             }
-
             
             // Правим титлите на опциите да са уникални и изчисляваме най-дългото заглавие
-            $this->maxFieldSize = 0;
             if(is_array($options)) {
                 
                 $titles = array();
                 
                 foreach($options as $id => &$title) {
+                    
                     if(is_object($title)) continue;
-                    if($titles[$title]) {
-                        $title .= " ({$id})";
+                    
+                    if ($titles[$title]) {
+                        $title = self::getUniqTitle($title, $id);
                     }
+                    
                     $titles[$title] = TRUE;
                     $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
                 }
             }
-      
+            
             $this->options = &$options;
 
             $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
         }
         
         setIfNot($this->handler, md5(json_encode($this->options)));
+        
+        $maxSuggestions = $this->getMaxSuggestions();
+        
+        // Ако трябва да показваме combo-box
+        if(count($options) > $maxSuggestions) {
+ 
+            if(is_object($options[''])) {
+                $options['']->title = '';
+            }
+            
+            $cacheOpt = array();
+            
+            $titles = array();
+            
+            foreach($options as $key => $v) {
+                
+                $title = self::getOptionTitle($v);
+                if ($titles[$title]) {
+                    $title = self::getUniqTitle($title, $key);
+                }
+                
+                $titles[$title] = TRUE;
+                
+                $vNorm = self::normalizeKey($title);
+                
+                if (is_object($v)) {
+                    $v->title = $title;
+                } else {
+                    $v = $title;
+                }
+                
+                $cacheOpt[$key]['title'] = $v;
+                $cacheOpt[$key]['id'] = $vNorm;
+            }
+            
+            core_Cache::set('SelectOpt', $this->handler, serialize($cacheOpt), 20, array($this->params['mvc']));
+        }
+        
         Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
         
         Mode::pop('text');
@@ -229,22 +278,83 @@ class type_Key extends type_Int {
         return $this->options;
     }
     
+    
+    /**
+     * 
+     * 
+     * @return string
+     */
+    protected function getKeyField()
+    {
+        $keyField = 'id';
+        
+        if (!empty($this->params['key'])) {
+            $keyField = $this->params['key'];
+        }
+        
+        return $keyField;
+    }
+    
+    
+    /**
+     * Връща броя на максимално допуситимите опции за показване
+     * 
+     * @return integer
+     */
+    public function getMaxSuggestions()
+    {
+        $conf = core_Packs::getConfig('core');
+        
+        $maxSuggestions = $this->params['maxSuggestions'] ? $this->params['maxSuggestions'] : $conf->TYPE_KEY_MAX_SUGGESTIONS;
+        
+        return $maxSuggestions;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $title
+     * @param integer $id
+     * 
+     * @return string
+     */
+    protected static function getUniqTitle($title, $id)
+    {
+        
+        return $title . " ({$id})";
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $val
+     * 
+     * @return string
+     */
+    protected static function normalizeKey($val)
+    {
+        $val = trim(strtolower(str::utf2ascii(trim($val))));
+        
+        return $val;
+    }
+    
+    
     /**
      * Рендира HTML поле за въвеждане на данни чрез форма
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $conf = core_Packs::getConfig('core');
-        
         expect($this->params['mvc']);
-        
+        $selOpt = array();
         $mvc = cls::get($this->params['mvc']);
         
-        if(!$value) {
+        if (!$value) {
             $value = $attr['value'];
         }
         
-        if($this->getSelectFld() || count($this->options)) {
+        if ($this->getSelectFld() || count($this->options)) {
             
             $options = $this->prepareOptions();
             
@@ -262,93 +372,54 @@ class type_Key extends type_Int {
                 $options = arr::combine($placeHolder, $options);
             }
 
-            setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
-
+            $maxSuggestions = $this->getMaxSuggestions();
+            
             parent::setFieldWidth($attr);
-
-            // Ако трябва да показваме combo-box
-            if(count($options) > $maxSuggestions) {
-
-                if(is_object($options[''])) {
-                    $options['']->title = '';
-                }
+            
+            if (count($options) > $maxSuggestions) {
                 
-                // Генериране на cacheOpt ако не са в кеша
-            	$cacheOpt = core_Cache::get('SelectOpt', $this->handler, 20, array($this->params['mvc']));
-            	  
-                if(FALSE === $cacheOpt || 1) {
-                    
-                    $cacheOpt = array();
-
-                    foreach($options as $key => $v) {
-                        
-                        $title = self::getOptionTitle($v);
-                        
-                        if ($title && $key) {
-                            $title = "{$title} ({$key})";
-                        } 
-                            
-                        $vNorm = strtolower(str::utf2ascii(trim($title)));
-                        
-                        if(is_object($v)) {
-                            $v->title = $title;
-                        } else {
-                            $v = $title;
-                        }
-                        
-                        $cacheOpt[$vNorm] = $v;
-                    }
- 
-                    core_Cache::set('SelectOpt', $this->handler, serialize($cacheOpt), 20, array($this->params['mvc']));
-                } else {
-                	$cacheOpt = (array) unserialize($cacheOpt);
-                }
-                
-
+                $selOptCache = (array) unserialize(core_Cache::get('SelectOpt', $this->handler));
                 
                 if($this->suggestions) {
                     $suggestions = $this->suggestions;
                 } else {
-                    $suggestions = array_slice($cacheOpt, 0, $maxSuggestions, TRUE);
+                    $suggestions = array_slice($this->options, 0, $maxSuggestions, TRUE);
                 }
-               
-                foreach($suggestions as $key => $v) {
+                
+                foreach((array)$suggestions as $key => $v) {
                    
                     $key = self::getOptionTitle($v);
                     
-                    
-                    
                     $selOpt[trim($key)] = $v;
                 }
-
-                $title = self::getOptionTitle($options[$value]);
-
-                $selOpt[$title] =  $options[$value];
-                 
+                
                 $this->options = $selOpt;
-
+                
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key\"" .
                 ", Act:\"ajax_GetOptions\", hnd:\"{$this->handler}\", maxSugg:\"{$maxSuggestions}\", ajax_mode:1}";
                 
                 // Ако е id определяме стойността която ще се показва, като вербализираме
                 // Иначе - запазваме предходния вариянт. Работил ли е някога?
-                $setVal = self::getOptionTitle($options[$value]);
-
+                $setVal = self::getOptionTitle($selOptCache[$value]['title']);
+                
                 if(!$setVal && is_numeric($value)) {
                     $setVal = $this->toVerbal($value); 
-                }  
-
-                $tpl = ht::createCombo($name, $setVal, $attr, $selOpt);  
-            } else {
+                }
                 
-                if(count($options) == 0 && $mvc->haveRightFor('list')) {
-                    $msg = "Липсва избор за |* \"" . $mvc->title . "\".";
+                // Най-отгоре да е стойността по подразбиране
+                unset($selOpt[$setVal]);
+                $selOpt = array($setVal => $setVal) + $selOpt;
+                
+                $tpl = ht::createCombo($name, $setVal, $attr, $selOpt);
+            } else {
+                if (count($options) == 0 && $mvc->haveRightFor('list')) {
+                    $msg = '|Липсва избор за|* "' . $mvc->title . '".';
                     
-                    if(!$mvc->fetch("1=1")) {
-                        $msg .= " Моля въведете началните данни.";
+                    if (!$mvc->fetch("1=1")) {
+                        $msg .= " |Моля въведете началните данни.";
                     }
                     
-                    return new Redirect(array($mvc, 'list'), tr($msg));
+                    return new Redirect(array($mvc, 'list'), $msg);
                 }
                 
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,
@@ -359,7 +430,6 @@ class type_Key extends type_Int {
         } else {
             
             error(NULL, $this);
-
         }
         
         return $tpl;
@@ -370,10 +440,7 @@ class type_Key extends type_Int {
      * Връща списък е елементи <option> при ajax заявка
      */
     function act_ajax_GetOptions()
-    {   
-
-        $conf = core_Packs::getConfig('core');
-        
+    {    
         // Приключваме, ако няма заявка за търсене
         $hnd = Request::get('hnd');
         
@@ -390,8 +457,10 @@ class type_Key extends type_Int {
                 'error' => 'Липсват допълнителни опции'
             );
         }
-       
-        setIfNot($maxSuggestions, Request::get('maxSugg', 'int'), $conf->TYPE_KEY_MAX_SUGGESTIONS);
+        
+        if (!($maxSuggestions = Request::get('maxSugg', 'int'))) {
+            $maxSuggestions = $this->getMaxSuggestions();
+        }
         
         $options = (array) unserialize(core_Cache::get('SelectOpt', $hnd));
         
@@ -402,13 +471,18 @@ class type_Key extends type_Int {
         }
         
         $cnt = 0;
- 
+        
         if (is_array($options)) {
             
-            foreach ($options as $id => $title) {
+            $openGroup = FALSE;
+            
+            foreach ($options as $key => $titleArr) {
+                
+                $title = $titleArr['title'];
+                $id = $titleArr['id'];
                 
                 $attr = array();
-         
+                
                 if((!is_object($title) && !isset($title->group)) && $q && (!preg_match($q, ' ' . $id)) ) continue;
                 
                 $element = 'option';
@@ -443,9 +517,6 @@ class type_Key extends type_Int {
                 
                 $attr['value'] = self::getOptionTitle($title);
                 
-                if ($attr['value'] == $selected) {
-                    $attr['selected'] = 'selected';
-                }
                 $option = ht::createElement($element, $attr, $title);
                 $select->append($option);
                 

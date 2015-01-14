@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -32,7 +32,7 @@ class acc_JournalDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, Accounts=acc_Accounts';
+    var $loadList = 'plg_Created, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, Accounts=acc_Accounts, plg_AlignDecimals2';
     
     
     /**
@@ -67,7 +67,7 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('debitItem1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 1');
         $this->FLD('debitItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 2');
         $this->FLD('debitItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 3');
-        $this->FLD('debitQuantity', 'double(smartRound)', 'caption=Дебит->К-во');
+        $this->FLD('debitQuantity', 'double(minDecimals=0)', 'caption=Дебит->К-во');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         // Кредитна аналитична сметка
@@ -76,12 +76,12 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('creditItem1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 1');
         $this->FLD('creditItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 2');
         $this->FLD('creditItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 3');
-        $this->FLD('creditQuantity', 'double(smartRound)', 'caption=Кредит->К-во');
+        $this->FLD('creditQuantity', 'double(minDecimals=0)', 'caption=Кредит->К-во');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
         // Обща сума на транзакцията
         $this->FLD('reasonCode', 'key(mvc=acc_Operations,select=title)', 'input=none,caption=Операция');
-        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
+        $this->FLD('amount', 'double(minDecimals=2)', 'caption=Сума');
     }
     
     

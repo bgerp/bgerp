@@ -187,7 +187,7 @@ abstract class deals_DealBase extends core_Master
     /**
      * Кои сделки ще могатд а се приключат с документа
      *
-     * @param int $id - ид на документа
+     * @param object $rec
      * @return array $options - опции
      */
     public function getDealsToCloseWith($rec)

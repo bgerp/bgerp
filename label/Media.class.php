@@ -22,6 +22,12 @@ class label_Media extends core_Manager
     
     
     /**
+     * Заглавие в единично число
+     */
+    public $singleTitle = 'Медия';
+    
+    
+    /**
      * Кой има право да чете?
      */
     public $canRead = 'labelMaster, admin, ceo';

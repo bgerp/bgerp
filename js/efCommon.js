@@ -220,6 +220,14 @@ function getUserAgent()
 }
 
 
+/**
+ * Връща разликата в минути между часовите зони на Гринуич и местното време
+ */
+function getTimezoneOffset(){
+	var date = new Date();
+	
+	return date.getTimezoneOffset();
+}
 
 /**
  * Проверява дали браузърът е IE
@@ -1235,53 +1243,64 @@ function setMinHeightExt() {
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
  */
 function setFormElementsWidth() {
-    var winWidth = parseInt($(window).width());
-
-    // Приемаме, че най-малкият екран е 320px
-    if (winWidth < 320) {
-        winWidth = 320;
-    }
-    // разстояние около формата
-    var outsideWidth = 42;
-    if($('#all').length) {
-    	outsideWidth = 30;
-    }
     
-    // предпочитана ширина в em
-    var preferredSizeInEm = 42;
 
-    // изчислена максимална ширина формата
-    var formElWidth = winWidth - outsideWidth;
+    if ($('body').hasClass('narrow')){
+    	var winWidth = parseInt($(window).width());
+    	// Приемаме, че най-малкият екран е 320px
+        if (winWidth < 320) {
+            winWidth = 320;
+        }
+       
+        // предпочитана ширина в em
+        var preferredSizeInEm = 42;
 
-    // колко ЕМ е широка страницата
-    var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));
-    if (!currentEm) {
-        currentEm = parseFloat($(".formTable select").first().css("font-size"));
-    }
+        // изчислена максимална ширина формата
+        var formElWidth = winWidth - outsideWidth;
 
-    var sizeInEm = winWidth / currentEm;
-
-    // колко РХ е 1 ЕМ
-    var em = parseInt(winWidth / sizeInEm);
-
-    // изчислена ширина, равна на ширината в ем, която предпочитаме
-    var preferredSizeInPx = preferredSizeInEm * em;
-
-    if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
-
-    $('.formTable label').each(function() {
-        var colsInRow = parseInt($(this).attr('data-colsInRow'));
-        if (!colsInRow) {
-            colsInRow = 1;
+        // колко ЕМ е широка страницата
+        var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));
+        if (!currentEm) {
+            currentEm = parseFloat($(".formTable select").first().css("font-size"));
         }
 
-        $(this).css('maxWidth', parseInt((formElWidth - 50) / colsInRow));
-    });
+        var sizeInEm = winWidth / currentEm;
 
-    $('.formSection').css('width', formElWidth);
-    $('.formTable textarea').css('width', formElWidth);
-    $('.formTable .chzn-container').css('maxWidth', formElWidth);
-    $('.formTable select').css('maxWidth', formElWidth);
+        // колко РХ е 1 ЕМ
+        var em = parseInt(winWidth / sizeInEm);
+
+        // изчислена ширина, равна на ширината в ем, която предпочитаме
+        var preferredSizeInPx = preferredSizeInEm * em;
+
+        if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
+
+        $('.formTable label').each(function() {
+            var colsInRow = parseInt($(this).attr('data-colsInRow'));
+            if (!colsInRow) {
+                colsInRow = 1;
+            }
+
+            $(this).css('maxWidth', parseInt((formElWidth - 50) / colsInRow));
+            $(this).attr('title', $(this).text());
+        });
+
+        $('.formSection').css('width', formElWidth);
+        $('.formTable textarea').css('width', formElWidth);
+        $('.formTable .chzn-container').css('maxWidth', formElWidth);
+        $('.formTable select').css('maxWidth', formElWidth);
+    } else {
+    	 $('.formTable label').each(function() {
+             $(this).parent().css('white-space', "nowrap");
+             // ако етикета е много широк, режем го и слагаме хинт
+             if ($(this).width() > 450){
+            	 $(this).css('max-width', "450px");
+                 $(this).css('position', "relative");
+                 $(this).css('top', "3px");
+                 $(this).css('overflow', "hidden");
+                 $(this).attr('title', $(this).text());
+             }
+         });
+    }
 }
 
 

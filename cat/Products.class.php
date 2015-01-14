@@ -25,7 +25,7 @@ class cat_Products extends core_Embedder {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,techno_SpecificationFolderCoverIntf,mp_ResourceSourceIntf,accda_DaFolderCoverIntf';
+    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,mp_ResourceSourceIntf,accda_DaFolderCoverIntf';
     
     
     /**
@@ -235,6 +235,11 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	// Слагаме полето за драйвър да е 'remember'
+    	if($data->form->getField($mvc->innerClassField)){
+    		$data->form->setField($mvc->innerClassField, 'remember');
+    	}
+    	
     	if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             if ($newCode = str::increment($code)) {
             	
@@ -302,6 +307,19 @@ class cat_Products extends core_Embedder {
     	
     	if(isset($rec->csv_groups) && strlen($rec->csv_groups) != 0){
     		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
+    		
+    		if(!cat_GeneralProductDriver::getClassId()){
+    			core_Classes::add('cat_GeneralProductDriver');
+    		}
+    		
+    		if(!cat_GeneralServiceDriver::getClassId()){
+    			core_Classes::add('cat_GeneralServiceDriver');
+    		}
+    		
+    		$meta = cat_Products::getMetaData($rec->groups);
+    		$meta = arr::make($meta, TRUE);
+    		
+    		$rec->innerClass = (isset($meta['canStore'])) ? cat_GeneralProductDriver::getClassId() : cat_GeneralServiceDriver::getClassId();
     	}
     	
     	if($rec->id){
@@ -367,7 +385,7 @@ class cat_Products extends core_Embedder {
         	
         	// извличане на мета данните според групите
     		if($meta = $mvc->getMetaData($rec->groups)){
-    			$Groups = cls::get(cat_Groups);
+    			$Groups = cls::get('cat_Groups');
         		$row->meta = $Groups->getFieldType('meta')->toVerbal($meta);
     		}
         }
@@ -435,7 +453,7 @@ class cat_Products extends core_Embedder {
         	$pInfo = $Driver->getProductInfo();
         	
         	$result = (object)array(
-                'num'      => "A" . $pInfo->productRec->code,
+                'num'      => "A" . $rec->code,
                 'title'    => $pInfo->productRec->name,
                 'uomId'    => $pInfo->productRec->measureId,
                 'features' => array()
@@ -1146,13 +1164,39 @@ class cat_Products extends core_Embedder {
      * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис
-     * @param enum $documentType (@see deals_DocumentTypes) - Константа от модела
+     * @param enum $documentMvc - класа на документа
      * @return mixed - описанието на артикула
      */
-    public function getProductDesc($id, $documentType, $time = NULL)
+    public function getProductDesc($id, $documentMvc, $time = NULL)
     {
     	$rec = $this->fetchRec($id);
     	
     	return $rec->name;
+    }
+    
+    
+    /**
+     * Връща последното активно задание за спецификацията
+     *
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на заданието или FALSE ако няма
+     */
+    public static function getLastActiveJob($id)
+    {
+    	//@TODO временно
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Намира последната активна технологична рецепта за артикула
+     *
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на рецептата или FALSE ако няма
+     */
+    public static function getLastActiveBom($id)
+    {
+    	//@TODO временно
+    	return FALSE;
     }
 }

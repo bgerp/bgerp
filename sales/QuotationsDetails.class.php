@@ -193,7 +193,17 @@ class sales_QuotationsDetails extends doc_Detail {
 	   		$products = array();
 	   		$products[$rec->productId] = $productName;
 	    } else {
-	    	$products = array('' => '') + $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
+	    	
+	    	// Кои са продаваемите продукти
+	    	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
+	    	
+	    	// Подсигуряваме се че ориджина винаги може да се добави
+	    	if($masterRec->originId){
+	    		$origin = doc_Containers::getDocument($masterRec->originId);
+	    		$products[$origin->that] = $origin->fetchField('title');
+	    	}
+	    	
+	    	$products = array('' => '') + $products;
 	    }
 	   
         $form->setDefault('optional', 'no');
@@ -289,20 +299,17 @@ class sales_QuotationsDetails extends doc_Detail {
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
             	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
-                
-            	// Ако е спецификация и офертата е генерирана от нейния драйвер
-            	// тази спецификация може винаги да се добавя в офертата
-            	// дори ако драйвера и е чернова
-            	if($productMan instanceof techno_Specifications){
-                	if($masterRec->originId && $origin = $mvc->Master->getOrigin($masterRec)){
-                		$originSpec = techno_Specifications::fetchByDoc($origin->getClassId(), $origin->that);
-                		$products[$originSpec->id] = $productMan->getTitleById($originSpec->id);
-                	}
-                }
+            	
+            	// Добавяме ориджина като възможен избор, ако го няма
+            	if($masterRec->originId){
+            		$origin = doc_Containers::getDocument($masterRec->originId);
+            		$products[$origin->that] = $origin->fetchField('title');
+            	}
             	
             	if(!count($products)){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
+                
                 $productKind = mb_strtolower($productMan->singleTitle);
             	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
                     "id=btnAdd-{$manId},{$error},order=10", "ef_icon = img/16/shopping.png, title=Добавяне на {$productKind} към офертата");
@@ -472,7 +479,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		$ProductMan = cls::get($rec->classId);
     		
-    		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master->documentType, $modifiedOn);
+    		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master, $modifiedOn);
     		
     		if($ProductMan->isProductStandart($rec->productId)){
     			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){

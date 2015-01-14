@@ -98,7 +98,7 @@ class acc_Accounts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,title,type,lists=Номенклатури,systemId,lastUseOn,state,tools=Пулт';
+    var $listFields = 'num,title,type,lists=Номенклатури,systemId,state,tools=Пулт';
     
     
     /**

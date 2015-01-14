@@ -16,6 +16,13 @@
 class acc_HistoryReportImpl extends frame_BaseDriver
 {
 	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_HistoryReport';
+	
+	
 	/**
 	 * Кой може да избира драйвъра
 	 */
@@ -70,8 +77,9 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 * Подготвя формата за въвеждане на данни за вътрешния обект
 	 *
 	 * @param core_Form $form
+	 * @param string $documentType - (@see deals_DocumentTypes)
 	 */
-	public function prepareEmbeddedForm(core_Form &$form)
+	public function prepareEmbeddedForm(core_Form &$form, $documentType)
 	{
 		$op = $this->History->getBalancePeriods();
 		 

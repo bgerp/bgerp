@@ -22,8 +22,7 @@ class marketing_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('marketing_Inquiries', 'Запитвания', 'ceo,marketing');
-        $this->TAB('marketing_Inquiries2', 'Запитвания 2', 'ceo,marketing');
+        $this->TAB('marketing_Inquiries2', 'Запитвания', 'ceo,marketing');
         
         $this->title = 'Маркетинг « Търговия';
         Mode::set('menuPage', 'Търговия:Маркетинг');

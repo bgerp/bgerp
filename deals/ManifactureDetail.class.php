@@ -124,8 +124,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
 					$error = "error=Няма {$productMan->title}";
 				}
 	
+				$title = mb_strtolower($productMan->singleTitle);
 				$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', $mvc->masterKey => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
-						"id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+						"id=btnAdd-{$manId},{$error},order=10,title=Добавяне на {$title}", 'ef_icon = img/16/shopping.png');
 				unset($error);
 			}
 	

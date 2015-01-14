@@ -186,13 +186,13 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис
-     * @param enum $documentType (@see deals_DocumentTypes) - Константа от модела
+     * @param core_Mvc $documentMvc - модела
      * @param datetime $time - към кое време
      * @return mixed - описанието на артикула
      */
-    public function getProductDesc($id, $documentType, $time = NULL)
+    public function getProductDesc($id, $documentMvc, $time = NULL)
     {
-    	return $this->getProductDesc($id, $time);
+    	return $this->getProductDesc($id, $documentMvc, $time);
     }
     
     
@@ -202,5 +202,29 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     public function alterSearchKeywords(&$searchKeywords)
     {
     	return $this->alterSearchKeywords($searchKeywords);
+    }
+    
+    
+    /**
+     * Намира последното активно задание за артикула
+     * 
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на заданието или FALSE ако няма
+     */
+    public function getLastActiveJob($id)
+    {
+    	return $this->getLastActiveJob($id);
+    }
+    
+    
+    /**
+     * Намира последната активна технологична рецепта за артикула
+     *
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на рецептата или FALSE ако няма
+     */
+    public function getLastActiveBom($id)
+    {
+    	return $this->getLastActiveBom($id);
     }
 }

@@ -431,8 +431,17 @@ class doc_Folders extends core_Master
                         }
                     }
                     
+                    $currUserId = core_Users::getCurrent();
+                    $haveDebug = haveRole('debug', $currUserId);
+                    
                     // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
                     foreach((array)$notifyArr as $nUserId) {
+                        
+                        // Ако текущия потребител, е някой от системните, няма да се нотифицира
+                        if ($nUserId < 1) continue; 
+                        
+                        // Ако текущия потребител няма debug роля, да не получава нотификация за своите действия
+                        if (!$haveDebug && ($currUserId == $nUserId)) continue;
                         
                         if (!doc_Folders::haveRightFor('single', $id, $nUserId)) continue;
                         
@@ -869,8 +878,8 @@ class doc_Folders extends core_Master
      * Добавя ограничение за дати на създаване/модифициране в заявката
      * 
      * @param core_Query $query
-     * @param datetime $from
-     * @param datetime $to
+     * @param datetime|NULL $from
+     * @param datetime|NULL $to
      * @param integer $delay
      */
     public static function prepareRepairDateQuery(&$query, $from, $to, $delay, $dateField='modifiedOn')

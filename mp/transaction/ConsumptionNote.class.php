@@ -58,8 +58,11 @@ class mp_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		$dQuery->where("#noteId = {$rec->id}");
 		while($dRec = $dQuery->fetch()){
 			$resourceRec = mp_ObjectResources::getResource($dRec->classId, $dRec->productId);
-			
-			acc_journal_Exception::expect($resourceRec, 'Трябва да е ресурс');
+			if(!$resourceRec){
+				core_Statuses::newStatus(tr('Някой от артикулите, вече не е ресурс'), 'error');
+				
+				redirect(array('mp_ConsumptionNotes', 'single', $rec->id));
+			}
 			
 			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
 			 
