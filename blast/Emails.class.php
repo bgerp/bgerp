@@ -1368,6 +1368,7 @@ class blast_Emails extends core_Master
             $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
             
             // Масив с данни от плейсхолдера
+            $nRecArr = array();
             $nRecArr['recipient'] = $recArr['recipient'];
             $nRecArr['attn'] = $recArr['attn'];
             $nRecArr['email'] = $recArr['email'];
@@ -1420,6 +1421,8 @@ class blast_Emails extends core_Master
             
             // Премахваме дублиращите се плейсхолдери
             $allPlaceHolder = array_unique($allPlaceHolder);
+            
+            $warningPlaceHolderArr = array();
             
             // Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
