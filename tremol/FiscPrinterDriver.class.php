@@ -57,7 +57,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
     /**
      * Връща съдържанието на файла
      * 
-     * @param int $id - ид на бележка
+     * @param object $data
      * @return string - съдържанието на бъдещия файл
      */
     private function makeFileContent($data)
@@ -164,7 +164,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
      *  );
      * 
      * 
-     * @param int $id - ид на бележка
+     * @param object $data
      * @return void
      */
     public function createFile($data)
