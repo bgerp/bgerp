@@ -124,23 +124,21 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     	$showSelfvalue = TRUE;
     	
     	if($rec->productId){
+    		$ProductMan = cls::getClassName($rec->classId);
     		
-    		if(cls::get($rec->classId) instanceof techno2_SpecificationDoc){
+    		// Имали активно задание за артикула ?
+    		if($jobId = $ProductMan::getLastActiveJob($rec->productId)->id){
+    			$rec->jobId = $jobId;
+    		}
     			
-    			// Имали активно задание за артикула ?
-    			if($jobId = techno2_SpecificationDoc::getLastActiveJob($rec->productId)->id){
-    				$rec->jobId = $jobId;
-    			}
+    		// Имали активна рецепта за артикула ?
+    		if($bomRec = $ProductMan::getLastActiveBom($rec->productId)){
+    			$rec->bomId = $bomRec->id;
+    		}
     			
-    			// Имали активна рецепта за артикула ?
-    			if($bomRec = techno2_SpecificationDoc::getLastActiveBom($rec->productId)){
-    				$rec->bomId = $bomRec->id;
-    			}
-    			
-    			// Не показваме полето за себестойност ако активна рецепта и задание
-    			if(isset($rec->jobId) && isset($rec->bomId)){
-    				$showSelfvalue = FALSE;
-    			}
+    		// Не показваме полето за себестойност ако активна рецепта и задание
+    		if(isset($rec->jobId) && isset($rec->bomId)){
+    			$showSelfvalue = FALSE;
     		}
     		
     		$masterValior = $mvc->Master->fetchField($form->rec->noteId, 'valior');
