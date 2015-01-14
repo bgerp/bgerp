@@ -46,7 +46,7 @@ class rtac_yuku_Textcomplete extends core_Manager
      * Стартира autocomplete-а за добавяне на потребители
      * 
      * @param core_Et $tpl
-     * @param string $id
+     * @param string $rtId
      * @see rtac_AutocompleteIntf::runAutocompleteUsers(&$tpl, $rtId)
      */
     static function runAutocompleteUsers(&$tpl, $rtId)
@@ -83,7 +83,7 @@ class rtac_yuku_Textcomplete extends core_Manager
      * Стартира autocomplete-а за добавяне на текст
      * 
      * @param core_Et $tpl
-     * @param string $id
+     * @param string $textId
      * @see rtac_AutocompleteIntf::runAutocompleteUsers(&$tpl, $rtId)
      */
     static function runAutocompleteText(&$tpl, $textId)
