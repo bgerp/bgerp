@@ -431,8 +431,14 @@ class doc_Folders extends core_Master
                         }
                     }
                     
+                    $currUserId = core_Users::getCurrent();
+                    $haveDebug = haveRole('debug', $currUserId);
+                    
                     // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
                     foreach((array)$notifyArr as $nUserId) {
+                        
+                        // Ако текущия потребител няма debug роля, да не получава нотификация за своите действия
+                        if (!$haveDebug && ($currUserId == $nUserId)) continue;
                         
                         if (!doc_Folders::haveRightFor('single', $id, $nUserId)) continue;
                         
