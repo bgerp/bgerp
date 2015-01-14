@@ -239,25 +239,6 @@ class core_DateTime
     {
         $timeZoneDiff = Mode::get('timezoneDiff');
         
-        if (!isset($timeZoneDiff)) {
-            
-            // Опитваме се да определим разликата от IP-то на потребителя
-            if (function_exists('geoip_time_zone_by_country_and_region')) {
-                $ipAdd = core_Users::getRealIpAddr();
-                $countryCode = drdata_IpToCountry::get($ipAdd);
-                if ($region = geoip_time_zone_by_country_and_region($countryCode)) {
-                    
-                    $timezoneOffsetServer = date('Z');
-                    
-                    $Date = new DateTimeZone($region);
-                    $datetime = new DateTime();
-                    $timezoneOffsetUser = $Date->getOffset($datetime);
-                    
-                    $timeZoneDiff = $timezoneOffsetUser - $timezoneOffsetServer;
-                }
-            }
-        }
-        
         return $timeZoneDiff;
     }
     
