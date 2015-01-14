@@ -247,6 +247,7 @@ class crm_Profiles extends core_Master
                         reset($userTeams);
                         $userId = key($userTeams);
                         
+                        $attr = array();
                         $attr['class'] = 'linkWithIcon';
         		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
         		        $attr['title'] = tr('Логин лог за потребителя');
@@ -871,7 +872,7 @@ class crm_Profiles extends core_Master
 	/**
      * Връща ключа за персонална настройка
      * 
-     * @param integer $id
+     * @param integer $userId
      * 
      * @return string
      */
