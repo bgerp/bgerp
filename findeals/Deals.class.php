@@ -837,8 +837,9 @@ class findeals_Deals extends deals_DealBase
     /**
      * Кои сделки ще могатд а се приключат с документа
      * 
-     * @param int $id - ид на документа
-     * @return array $options - опции
+     * @param findeals_Deals $mvc
+     * @param array $res
+     * @param object $rec
      */
     public static function on_AfterGetDealsToCloseWith($mvc, &$res, $rec)
     {
