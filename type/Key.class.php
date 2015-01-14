@@ -90,8 +90,10 @@ class type_Key extends type_Int
         
         $options = $this->options;
         
-        if(($field = $this->getSelectFld()) && (!count($options))) {
-            $options = $this->prepareOptions();
+        $pOptions = $this->prepareOptions();
+        
+        if (($field = $this->getSelectFld()) && (!count($options))) {
+            $options = $pOptions;
         }
         
         $selOptCache = (array) unserialize(core_Cache::get('SelectOpt', $this->handler));
@@ -191,7 +193,7 @@ class type_Key extends type_Int
             
             $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this));
 
-            if(!count($options)) {
+            if (!count($options)) {
                 
                 if (!is_array($this->options)) {
                     
@@ -230,6 +232,8 @@ class type_Key extends type_Int
             $this->options = &$options;
 
             $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
+        } else {
+            $options = $this->options;
         }
         
         setIfNot($this->handler, md5(json_encode($this->options)));
@@ -275,7 +279,7 @@ class type_Key extends type_Int
         
         Mode::pop('text');
         
-        return $this->options;
+        return $options;
     }
     
     
@@ -354,9 +358,14 @@ class type_Key extends type_Int
             $value = $attr['value'];
         }
         
-        if ($this->getSelectFld() || count($this->options)) {
+        $options = $this->options;
+        
+        $pOptions = $this->prepareOptions();
+        
+        if ($this->getSelectFld() || count($options)) {
             
-            $options = $this->prepareOptions();
+            $options = $pOptions;
+            
             
             if(!is_array($options)) {
                 $options = $this->options;
