@@ -85,18 +85,21 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 			//@TODO да се използва интерфейсен метод а не тази проверка
 	
 			// Взимаме к-то от последното активно задание за артикула, ако има
-			$quantityJob = ($productRef->getInstance() instanceof techno2_SpecificationDoc) ? $productRef->getLastActiveJob()->quantity : NULL;
+			//
 			
 			$usesResources = FALSE;
 	
 			// Ако има к-во от задание
-			if(isset($quantityJob)){
-
+			if(isset($dRec->jobId)){
+				$quantityJob = mp_Jobs::fetchField($dRec->jobId, 'quantity');
+				
 				// Проверяваме имали активна технологична карта, и извличаме ресурсите от нея
-				if($bomRec = ($productRef->getInstance() instanceof techno2_SpecificationDoc) ? $productRef->getLastActiveBom() : NULL){
+				if(isset($dRec->bomId)){
 					$usesResources = TRUE;
 					
-					$mapArr = techno2_Boms::getResourceInfo($bomRec->id);
+					$bomId = mp_Jobs::fetchField($dRec->bomId, 'id');
+					$mapArr = techno2_Boms::getResourceInfo($bomId);
+					
 					// За всеки ресурс от картата
 					foreach ($mapArr as $index => $resInfo){
 						
