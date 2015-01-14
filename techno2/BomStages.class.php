@@ -152,7 +152,7 @@ class techno2_BomStages extends core_Master
     		
     		// Добавяме бутон за добавяне на детайл към този клас
     		if(techno2_BomStageDetails::haveRightFor('add', (object)array('bomstageId' => $dRec->id))){
-    			$row->addBtn = ht::createLink('Ресурс', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE), FALSE, "ef_icon=img/16/add.png,title=Добавяне на ресурс");
+    			$row->addBtn = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE), FALSE, "ef_icon=img/16/add.png,title=Добавяне на ресурс");
     		}
     		
     		$data->bomStageDetailRows[$dRec->id] = $detailData->rows;
@@ -176,7 +176,7 @@ class techno2_BomStages extends core_Master
     public function renderStages($data)
     {
     	// Взимаме шаблона
-    	$tpl = getTplFromFile("techno2/tpl/BomStages.shtml");
+    	$tpl = getTplFromFile("techno2/tpl/SingleBomStages.shtml");
     	
     	// Ако има записи, обхождаме ги
     	if(count($data->rows)){
@@ -186,17 +186,16 @@ class techno2_BomStages extends core_Master
     			$blockTpl = clone $tpl->getBlock('ROW');
     			$blockTpl->placeObject($row);
     			
-    			// Ако етапа също има детайли, поставяме ги и тях
-    			if(count($data->bomStageDetailRows[$id])){
-    				foreach ($data->bomStageDetailRows[$id] as $dId => $dRow){
-    					$cloneTpl = clone $blockTpl->getBlock('DROW');
-    					$cloneTpl->placeObject($dRow);
-    					$cloneTpl->removeBlocks();
-    					$cloneTpl->append2Master();
-    				}
-    			}
+    			$table = cls::get('core_TableView', array('mvc' => cls::get('techno2_BomStageDetails')));
+    			$listFields = array('RowNumb'        => 'Пулт', 
+    							    'resourceId'     => 'Ресурс',
+    								'baseQuantity' => 'Начално к-во',
+    							    'propQuantity' => 'Пропор. к-во',
+    			);
     			
-    			// Добавяме блока към шаблона
+    			// Ако сумите на крайното салдо са отрицателни - оцветяваме ги
+    			$details = $table->get($data->bomStageDetailRows[$id], $listFields);
+    			$blockTpl->replace($details, 'TABLE');
     			$blockTpl->removeBlocks();
     			$blockTpl->append2Master();
     		}

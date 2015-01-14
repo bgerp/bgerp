@@ -687,7 +687,8 @@ class techno2_SpecificationDoc extends core_Embedder
     	$price = (object)array('price' => NULL);
     	
     	// Ако има к-во в активно задание за спецификацията, да се вземе
-    	$quantityJob = $this->getQuantityFromLastActiveJob($rec);
+    	
+    	$quantityJob = $this->getLastActiveJob($rec)->quantity;
     	if(isset($quantityJob)){
     		$quantity = $quantityJob;
     	}
@@ -820,64 +821,34 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
-     * Връща количеството от последното активно задание за спецификацията
+     * Връща последното активно задание за спецификацията
      * 
      * @param mixed $id - ид или запис
-     * @return double|NULL $quantity - количеството
+     * @return mixed $res - записа на заданието или FALSE ако няма
      */
-    public static function getQuantityFromLastActiveJob($id)
+    public static function getLastActiveJob($id)
     {
     	$rec = self::fetchRec($id);
     	
     	// Какво е к-то от последното активно задание
-    	$quantity = mp_Jobs::fetchField("#originId = {$rec->containerId} AND #state = 'active'", 'quantity');
-    	
-    	// Връщаме количеството
-    	return $quantity;
+    	return mp_Jobs::fetch("#originId = {$rec->containerId} AND #state = 'active'");
     }
     
     
     /**
-     * Връща ресурсите от последната активна технологична карта на спецификацията, 
-     * с информация за количествата, с които участват и в кой център на дейност
+     * Връща последната активна рецепта на спецификацията
      *
      * @param mixed $id - ид или запис
-     * @return array $res - масив с записи на участващите ресурси
-     * 			o $res->resourceId       - ид на ресурса
-     * 			o $res->activityCenterId - ид на центъра на дейност от производствения етап
-     * 			o $res->baseQuantity     - начално количество на ресурса
-     * 			o $res->propQuantity     - пропорционално количество на ресурса
+     * @return mixed $res - записа на рецептата или FALSE ако няма
      */
-    public static function getResourcesFromMap($id)
+    public static function getLastActiveBom($id)
     {
     	$rec = self::fetchRec($id);
-    	
-    	$res = array();
-    	
-    	// Има ли активна карта за този ресурс
-    	if($mapId = techno2_Boms::fetchField("#originId = {$rec->containerId} AND #state = 'active'", 'id')){
-    		
-    		// Намираме детайлите на картата
-    		$mQuery = techno2_MapDetails::getQuery();
-    		$mQuery->where("#mapId = {$mapId}");
-    		while($mRec = $mQuery->fetch()){
-    			$arr = array();
-    			$arr['resourceId'] = $mRec->resourceId;
-    			if(isset($mRec->stageId)){
-    				$arr['activityCenterId'] = mp_Stages::fetchField($mRec->stageId, 'departmentId');
-    			}
-    			
-    			$arr['baseQuantity'] = $mRec->baseQuantity;
-    			$arr['propQuantity'] = $mRec->propQuantity;
-    			
-    			$res[] = (object)$arr;
-    		}
-    	}
-    	
-    	// Връщаме наличната информация
-    	return $res;
+    	 
+    	// Какво е к-то от последното активно задание
+    	return techno2_Boms::fetch("#originId = {$rec->containerId} AND #state = 'active'");
     }
-    
+
     
     /**
      * Рендира изглед за задание

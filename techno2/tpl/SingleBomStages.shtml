@@ -1,0 +1,12 @@
+<div class = 'detail-info portal' style ='border:none;padding:0 0 20px;background:transparent;'>
+<!--ET_BEGIN ROW-->
+<fieldset class="detail-info">
+    <legend class="groupTitle"><b>[#stage#]</b> [#tools#] <span style='position:relative;top:-4px'>[#addBtn#]</span></legend>
+        <div class="groupList">
+        	[#TABLE#]
+        </div>
+</fieldset>
+<!--ET_END ROW-->
+</div>
+
+[#ADD_BTN#]
