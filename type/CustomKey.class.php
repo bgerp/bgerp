@@ -59,7 +59,7 @@ class type_CustomKey extends type_Key
      * 
      * @see type_Int::init()
      */
-    function init($params)
+    function init($params = NULL)
     {
         parent::init($params);
         
