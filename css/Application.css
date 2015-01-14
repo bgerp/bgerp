@@ -422,10 +422,10 @@ div.folder-cover {
       position: relative;
       top: -4px;
       display: inline-block; }
-  .fieldset-holder tr.state-added {
+  .fieldset-holder tr.row-added {
     background-color: #e6ffe0; }
-  .fieldset-holder tr.state-removed {
-    background-color: #fed6d6; }
+  .fieldset-holder tr.row-removed {
+    background-color: #cce3fe; }
 
 /*
  * потребителски профил
