@@ -187,17 +187,32 @@ class core_BaseClass
         for ($i = 0; $i < count($args); $i++) {
             $args1[] = & $args[$i];
         }
-
+        $return = FALSE;
         if(isset($this->_listenerCache[$method])) {
+            
+            $calledClass = get_called_class();
+            
             foreach($this->_listenerCache[$method] as $subject) {
                 if(call_user_func_array(array($subject, $method),  $args1) === FALSE) return FALSE;
+                
+                if ($subject instanceof $calledClass) {
+                    
+                    $return = TRUE;
+                }
+                
                 $status = TRUE;
             }
-
-            return $status;
+            
+            if ($return) {
+                
+                return $status;
+            }
         }
-
-        $this->_listenerCache[$method] = array();
+        
+        if (!$this->_listenerCache[$method]) {
+            $this->_listenerCache[$method] = array();
+        }
+        
 
         // Проверяваме дали имаме плъгин(и), който да обработва това събитие
         if (count($this->_plugins)) {
