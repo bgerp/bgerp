@@ -1009,7 +1009,7 @@ class core_Manager extends core_Mvc
             return "<span style='color:red;'>&nbsp;- - -</span>";
         }
 
-        if ($me->haveRightFor('single', $id)) {
+        if (method_exists($me, 'act_Single') && $me->haveRightFor('single', $id)) {
             $title = ht::createLink($title,
                 array($me, 'single', $id),
                 NULL,
