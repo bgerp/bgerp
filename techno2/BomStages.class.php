@@ -101,10 +101,58 @@ class techno2_BomStages extends core_Master
     function description()
     {
     	$this->FLD('bomId', 'key(mvc=techno2_Boms)', 'column=none,input=hidden,silent,oldFieldName=mapId');
-    	$this->FLD("stage", 'varchar', 'caption=Етап');
-    	//$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Център на дейност,mandatory');
+    	$this->FLD("stage", 'key(mvc=mp_Stages,select=name,allowEmpty)', 'caption=Етап,mandatory');
+    	$this->FLD("description", 'richtext(rows=2)', 'caption=Описание');
+    	$this->FNC("exitResource", 'varchar', 'input,caption=Изходящ ресурс->Име,placeholder=ресурс,hint=създай нов изходящ ресурс');
+    	$this->FNC('resourceQuantity', 'double', 'input,column=none,caption=Изходящ ресурс->К-во');
+    	$this->FNC('toStage', 'key(mvc=mp_Stages,select=name,allowEmpty)', 'input,column=none,caption=Изходящ ресурс->Етап');
     	
     	$this->setDbUnique('bomId,stage');
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		
+    		// Ако ще създаваме нов изходящ ресурс, той трябва да е уникален
+    		if($form->rec->exitResource){
+    			if(mp_Resources::fetch(array("#title = '[#1#]'", $form->rec->exitResource))){
+    				$form->setError('exitResource', 'Има вече ресурс с това име');
+    			}
+    			
+    			if(empty($form->rec->toStage)){
+    				$form->setError('toStage', 'Трябва да е избрана дестинация за изходящия ресурс');
+    			}
+    			
+    			if(empty($form->rec->resourceQuantity)){
+    				$form->setError('resourceQuantity', 'Трябва да е зададено количество');
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if($rec->exitResource){
+    		if($newResourceId = mp_Resources::save((object)array("title" => $rec->exitResource, 'type' => 'material', 'bomId' => $rec->bomId))){
+    			techno2_BomStageDetails::save((object)array('bomstageId' => $rec->id, 'resourceId' => $newResourceId, 'type' => 'popResource', 'propQuantity' => 0, 'toStage' => $rec->toStage, 'propQuantity' => $rec->resourceQuantity));
+    		}
+    	}
     }
     
     
@@ -116,9 +164,20 @@ class techno2_BomStages extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$suggestions = cls::get('mp_Stages')->makeArray4Select('name');
-    	$suggestions = arr::make($suggestions, TRUE);
-    	$data->form->setSuggestions('stage', array('' => '') + $suggestions);
+    	$form = &$data->form;
+    	 
+    	if(isset($form->rec->id)){
+    		$form->setReadOnly('stage');
+    	}
+    	
+    	// Задаваме възможните етапи
+    	$stages = techno2_Boms::makeStagesOptions($form->rec->bomId, $form->rec->stage);
+    	 
+    	if(count($stages)){
+    		$form->setOptions('toStage', $stages);
+    	} else {
+    		$form->setReadOnly('toStage');
+    	}
     }
     
     
@@ -135,6 +194,8 @@ class techno2_BomStages extends core_Master
     	// Намираме тези записи обвързани с рецептата
     	$dQuery = $this->getQuery();
     	$dQuery->where("#bomId = '{$data->masterId}'");
+    	$dQuery->EXT('stageOrder', 'mp_Stages', 'externalName=order,externalKey=stage');
+    	$dQuery->orderBy('stageOrder');
     	
     	$count = 1;
     	while($dRec = $dQuery->fetch()){
@@ -152,7 +213,9 @@ class techno2_BomStages extends core_Master
     		
     		// Добавяме бутон за добавяне на детайл към този клас
     		if(techno2_BomStageDetails::haveRightFor('add', (object)array('bomstageId' => $dRec->id))){
-    			$row->addBtn = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE), FALSE, "ef_icon=img/16/add.png,title=Добавяне на ресурс");
+    			$row->addBtn = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'input'), FALSE, "ef_icon=img/16/add.png,title=Добавяне на ресурс");
+    			$row->addBtnRem = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'popResource'), FALSE, "ef_icon=img/16/remove-icon.png,title=Добавяне на изходен ресурс");
+    			$row->addBtnRemProd = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'popProduct'), FALSE, "ef_icon=img/16/A-icon.png,title=Добавяне на изходен артикул");
     		}
     		
     		$data->bomStageDetailRows[$dRec->id] = $detailData->rows;
@@ -226,6 +289,8 @@ class techno2_BomStages extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+    	if($requiredRoles == 'no_one') return;
+    	
     	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
     		
     		// Ако няма ид на рецепта, никой няма права
@@ -241,6 +306,27 @@ class techno2_BomStages extends core_Master
     			}
     		}
     	}
+    	
+    	if($action == 'delete' && isset($rec)){
+    		
+    		// Ако има поне един детайл обвързан към етапа, не може да се изтрива
+    		if(techno2_BomStageDetails::fetchField("#bomstageId = {$rec->id}")){
+    			$requiredRoles = 'no_one';
+    		}
+    		
+    		// Ако текущия етап е избран като изходящ в някой от детайлите на рецептата, не може да се изтрива
+    		$dQuery = techno2_BomStages::getQuery();
+    		$dQuery->where("#bomId = {$rec->bomId}");
+    		$dQuery->show('id');
+    			
+    		$query2 = techno2_BomStageDetails::getQuery();
+    		$query2->in("bomstageId", arr::make(array_keys($dQuery->fetchAll()), TRUE));
+    		$query2->where("#toStage = {$rec->stage}");
+    			
+    		if($query2->fetch()){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
     
     
@@ -249,6 +335,8 @@ class techno2_BomStages extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
+    	$rec = static::fetchRec($rec);
+    	
     	return techno2_Boms::getRecTitle(techno2_Boms::fetch($rec->bomId), $escaped);
     }
     
