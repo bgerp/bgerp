@@ -1342,27 +1342,9 @@ class email_Incomings extends core_Master
      */
     static function getDefaultEmailBody($id, $forward)
     {
-        //Вземаме датата от базата от данни
-        $rec = email_Incomings::fetch($id, 'date');
+        $mvc = cls::get('email_Incomings');
         
-        if ($forward) {
-            
-            // Инстанция към документа
-            $incomingInst = cls::get('email_Incomings');
-            
-            // Манипулатора на документа
-            $handle = $incomingInst->getHandle($id);
-            
-            // Текстова част
-            $text = tr("Моля запознайте се с препратения имейл|* #{$handle}.");    
-        } else {
-            
-            //Вербализираме датата
-            $date = dt::mysql2verbal($rec->date, 'd-M H:i');
-            
-            //Създаваме шаблона
-            $text = tr('Благодаря за имейла от') . " {$date}.\n" ;    
-        }
+        $text = email_Outgoings::prepareDefaultEmailBodyText($mvc, $id, 'date', $forward);
         
         return $text;
     }

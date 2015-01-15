@@ -122,6 +122,30 @@ defIfNot('EMAIL_OUTGOING_FOOTER_TEXT_EN', "Best regards,\n[#name#]\n[#company#]\
 
 
 /**
+ * Текст по подрабиране при отговор на имейл
+ */
+defIfNot('EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY', "Благодаря за имейла от [#DATETIME#]");
+
+
+/**
+ * Текст по подрабиране при отговор на имейл - на английски
+ */
+defIfNot('EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN', "Thanks for the email on [#DATETIME#]");
+
+
+/**
+ * Текст по подрабиране при препращане на имейл
+ */
+defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING', "Моля запознайте се с препратения имейл [#MSG#]");
+
+
+/**
+ * Текст по подрабиране при препращане на имейл - на английски
+ */
+defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN', "Please read the forwarded email [#MSG#]");
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -221,6 +245,14 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Подпис EN, customizeBy=powerUser'),
     
             'EMAIL_SALUTATION_EMAIL_TIME_LIMIT' => array ('time(suggestions=30 дни|90 дни|180 дни)', 'caption=След колко време да не се използват обръщеният по имейл за нова нишка->Време'),
+            
+            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY' => array ('varchar', 'caption=Текст по подрабиране при отговор на имейл->Текст, customizeBy=powerUser'),
+            
+            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN' => array ('varchar', 'caption=Текст по подрабиране при отговор на имейл->Текст EN, customizeBy=powerUser'),
+    
+            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING' => array ('varchar', 'caption=Текст по подрабиране при препращане на имейл->Текст, customizeBy=powerUser'),
+    
+            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array ('varchar', 'caption=Текст по подрабиране при препращане на имейл->Текст EN, customizeBy=powerUser'),
         );
         
         
