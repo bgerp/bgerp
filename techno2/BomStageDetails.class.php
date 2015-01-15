@@ -162,6 +162,10 @@ class techno2_BomStageDetails extends core_Detail
     		$form->setField('productId', 'input');
     		$form->setField('specId', 'input');
     		$form->setField('toStore', 'input,mandatory');
+    		
+    		$form->setOptions('productId', cat_Products::getByProperty('canManifacture'));
+    		$form->setOptions('specId', techno2_SpecificationDoc::getByProperty('canManifacture'));
+    		
     		$form->title = $act . tr(" |на|* ") . tr('изходен артикул') . tr(' |към|* ') . "|*<b style='color:#ffffcc;'>{$mTitle}</span>";
     	}
     }
@@ -213,8 +217,20 @@ class techno2_BomStageDetails extends core_Detail
     		}
     		
     		if($rec->type == 'popResource'){
-    			//$bQuery = techno2_Boms::getDetailQuery($masterRec->bomId);
-    			//bp($masterRec, $bQuery->fetchAll(), $rec);
+    			$thisStageOrder = mp_Stages::fetchField($masterRec->stage, 'order');
+    			$toStageOrder = mp_Stages::fetchField($rec->toStage, 'order');
+    			
+    			if($toStageOrder <= $thisStageOrder){
+    				$form->setError('toStage', 'Не може да прехвърлите ресурса към по преден етап');
+    			}
+    			
+    			if($mId = mp_Resources::fetchField(array("#title = '[#1#]'", $rec->resource))){
+    				$dQuery = techno2_Boms::getDetailQuery($masterRec->bomId);
+    				$dQuery->where("#resourceId = {$mId} AND #type='popResource'");
+    				if($dQuery->fetch()){
+    					$form->setError('resource', 'Ресурса вече е добавен като изходен в друг етап');
+    				}
+    			}
     		}
     		
 			if(!$form->gotErrors()){
@@ -336,6 +352,7 @@ class techno2_BomStageDetails extends core_Detail
     {
     	$rows = &$data->rows;
     	
+    	$img = ht::createElement('img', array('src' => sbf('img/16/move.png', ''), 'style' => 'position:relative;top:2px'));
     	$query = techno2_Boms::getDetailQuery($data->masterData->bomId);
     	
     	$addedRows = array();
@@ -345,6 +362,9 @@ class techno2_BomStageDetails extends core_Detail
     		$fRow->resourceId = $mvc->getFieldType('resourceId')->toVerbal($dRec->resourceId);
     		$fRow->propQuantity = $mvc->getFieldType('propQuantity')->toVerbal($dRec->propQuantity);
     		$fRow->ROW_ATTR['class'] = 'row-added';
+    		$stage = techno2_BomStages::fetchField($dRec->bomstageId, 'stage');
+    		
+    		$fRow->resourceId = mp_Stages::getTitleById($stage) . "&nbsp; {$img} &nbsp;" . $fRow->resourceId;
     		
     		$addedRows[] = $fRow;
     	}
