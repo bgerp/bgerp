@@ -104,8 +104,6 @@ class techno2_BomStageDetails extends core_Detail
     	$this->FLD('toStage', 'key(mvc=mp_Stages,select=name,allowEmpty)', 'column=none,input=none,caption=Към->Етап');
     	$this->FLD('type', 'enum(input=Добавяне,popProduct=Изкарване,popResource=Изкарване2)', 'column=none,input=hidden,silent');
     	
-    	
-    	
     	$this->setDbUnique('bomstageId,resourceId');
     }
     
@@ -134,6 +132,7 @@ class techno2_BomStageDetails extends core_Detail
     		$form->FNC('resource', 'varchar', 'input,mandatory,caption=Ресурс,before=baseQuantity');
     		$form->setField('toStage', 'input,mandatory');
     		$form->setField('baseQuantity', 'input=none');
+    		$form->setField('propQuantity', 'mandatory,caption=Пропорц. к-во');
     		
     		$resourceArr = techno2_Boms::makeResourceOptions($masterRec->bomId, TRUE);
     		$form->setSuggestions('resource', $resourceArr);
@@ -211,6 +210,11 @@ class techno2_BomStageDetails extends core_Detail
     			if(isset($rec->productId) && isset($rec->specId)){
     				$form->setError('productId,specId', 'Трябва да е избран точно един артикул');
     			}
+    		}
+    		
+    		if($rec->type == 'popResource'){
+    			//$bQuery = techno2_Boms::getDetailQuery($masterRec->bomId);
+    			//bp($masterRec, $bQuery->fetchAll(), $rec);
     		}
     		
 			if(!$form->gotErrors()){
@@ -322,5 +326,35 @@ class techno2_BomStageDetails extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	$data->query->orderBy("type");
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows(core_Mvc $mvc, &$data)
+    {
+    	$rows = &$data->rows;
+    	
+    	$query = techno2_Boms::getDetailQuery($data->masterData->bomId);
+    	
+    	$addedRows = array();
+    	$query->where("#toStage = {$data->masterData->stage}");
+    	while($dRec = $query->fetch()){
+    		$fRow = new stdClass();
+    		$fRow->resourceId = $mvc->getFieldType('resourceId')->toVerbal($dRec->resourceId);
+    		$fRow->propQuantity = $mvc->getFieldType('propQuantity')->toVerbal($dRec->propQuantity);
+    		$fRow->ROW_ATTR['class'] = 'row-added';
+    		
+    		$addedRows[] = $fRow;
+    	}
+    	
+    	if(count($addedRows)){
+    		if(count($rows)){
+    			$rows = $addedRows + $rows;
+    		} else {
+    			$rows = $addedRows;
+    		}
+    	}
     }
 }

@@ -315,15 +315,10 @@ class techno2_BomStages extends core_Master
     		}
     		
     		// Ако текущия етап е избран като изходящ в някой от детайлите на рецептата, не може да се изтрива
-    		$dQuery = techno2_BomStages::getQuery();
-    		$dQuery->where("#bomId = {$rec->bomId}");
-    		$dQuery->show('id');
-    			
-    		$query2 = techno2_BomStageDetails::getQuery();
-    		$query2->in("bomstageId", arr::make(array_keys($dQuery->fetchAll()), TRUE));
-    		$query2->where("#toStage = {$rec->stage}");
-    			
-    		if($query2->fetch()){
+    		$query = techno2_Boms::getDetailQuery($rec->bomId);
+    		$query->where("#toStage = {$rec->stage}");
+    		
+    		if($query->fetch()){
     			$requiredRoles = 'no_one';
     		}
     	}

@@ -403,15 +403,26 @@ class techno2_Boms extends core_Master
      * Връща позволените опции за избор на етапи вече участващи към рецептата
      * 
      * @param int $id - ид на запис
-     * @param string $except - коя опция да изключим
+     * @param string $except - етапите след кой етап да покажем
      * @return array $stages - Масив с достъпните опции
      */
-    public static function makeStagesOptions($id, $except = NULL)
+    public static function makeStagesOptions($id, $stage = NULL)
     {
     	// Добавяме за налични етапи само тези избрани в рецептата (без текущия)
     	$stages = array();
     	$mQuery = techno2_BomStages::getQuery();
     	$mQuery->where("#bomId = {$id}");
+    	$mQuery->EXT('order', 'mp_Stages', 'externalName=order,externalKey=stage');
+    	
+    	// Ако е зададен етап
+    	if(isset($stage)){
+    		
+    		// Оставяме тези етапи, които са след подадения и са различни от него
+    		$mQuery->where("#stage != {$stage}");
+    		$stageOrder = mp_Stages::fetchField($stage, 'order');
+    		$mQuery->where("#order > {$stageOrder}");
+    	}
+    	
     	while($mRec = $mQuery->fetch()){
     		$stages[$mRec->stage] = mp_Stages::fetchField($mRec->stage, 'name');
     	}
@@ -423,5 +434,29 @@ class techno2_Boms extends core_Master
     	}
     	
     	return $stages;
+    }
+    
+    
+    /**
+     * Връща заявка за извличане на всички ресурси използвани в тази рецепта
+     * 
+     * @param mixed $bomId - ид или запис на рецепта
+     * @return core_Query - готовата заявка
+     */
+    public static function getDetailQuery($id)
+    {
+    	$rec = static::fetchRec($id);
+    	
+    	// Намираме всички етапи в тази рецепта
+    	$dQuery = techno2_BomStages::getQuery();
+    	$dQuery->where("#bomId = '{$rec->id}'");
+    	$dQuery->show('id');
+    	
+    	// След това намираме всички детайли на етапите на рецептата
+    	$query2 = techno2_BomStageDetails::getQuery();
+    	$query2->in("bomstageId", arr::make(array_keys($dQuery->fetchAll()), TRUE));
+    	
+    	// Връщаме заявката
+    	return $query2;
     }
 }
