@@ -1739,19 +1739,35 @@ function checkForHiddenGroups() {
 
 
 /**
- * Показване и скриване на keylist групи
+ * В зависимост от натиснатия елемент, се определя какво действие трябва да се извърши с кейлист полетата
+ */
+function keylistActions(el) {
+	 $('.keylistCategory').on('click', function(e) {
+		 // ако натиснем бутона за инвертиране на чекбоксовете
+		  if ($(e.target).is(".invert-checkbox")) {
+			  // ако групата е затворена я отваряме
+			  var category = $(e.target).closest('.keylistCategory');
+			  if ($(category).hasClass('closed')) {
+				  toggleKeylistGroups(category);
+			  }
+			  //инвертираме
+			  inverseCheckBox(e.target);
+		  } else {
+			  // в противен случай затваряме/отваряме групата
+			  toggleKeylistGroups(e.target);
+			    
+		  }
+	 });
+}
+
+/**
+ *  скриваме/показваме прилежащата на елемента група
  */
 function toggleKeylistGroups(el) {
-    //намираме id-то на елемента, на който е кликнато
+	//в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
+    var trItems = findElementKeylistGroup(el);
     var element = $(el).closest("tr.keylistCategory");
-
-    var trId = element.attr("id");
-
-    //намираме keylist таблицата, в която се намира
-    var tableHolder = $(element).closest("table.keylist");
-
-    //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
-    var trItems = tableHolder.find("tr." + trId);
+    
     if (trItems.length) {
         //и ги скриваме
         trItems.toggle("slow");
@@ -1760,6 +1776,44 @@ function toggleKeylistGroups(el) {
         element.toggleClass('closed');
         element.toggleClass('opened');
     }
+	
+}
+
+/**
+ *  намираме прилежащата на елемента група
+ */
+function findElementKeylistGroup(el){
+	  var element = $(el).closest("tr.keylistCategory");
+
+	    var trId = element.attr("id");
+
+	    //намираме keylist таблицата, в която се намира
+	    var tableHolder = $(element).closest("table.keylist");
+
+	    //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
+	    var keylistGroups = tableHolder.find("tr." + trId);
+	    
+	    return keylistGroups;
+}
+
+
+/**
+ *  инвертираме чекбоксовете в групата на елемента
+ */
+function inverseCheckBox(el){
+	// сменяме иконката
+	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
+	
+	var trItems = findElementKeylistGroup(el);
+	
+	//инвертираме
+	$(trItems).find('.checkbox').each(function() {
+		if( $(this).attr('checked') == 'checked') {
+			$(this).removeAttr('checked');
+		} else {
+			$(this).attr('checked', 'checked');
+		}
+	});
 }
 
 
