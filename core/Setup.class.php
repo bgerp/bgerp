@@ -375,6 +375,8 @@ class core_Setup extends core_ProtoSetup {
         
         if (!$inst->db->tableExists($inst->dbTableName)) return ;
         
+        $dataArr = array();
+        
         // Взема всички записи и общите ги обядинява в един
         $cQuery = custom_Settings::getQuery();
         while ($cRec = $cQuery->fetch()) {
