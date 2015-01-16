@@ -307,19 +307,6 @@ class cat_Products extends core_Embedder {
     	
     	if(isset($rec->csv_groups) && strlen($rec->csv_groups) != 0){
     		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
-    		
-    		if(!cat_GeneralProductDriver::getClassId()){
-    			core_Classes::add('cat_GeneralProductDriver');
-    		}
-    		
-    		if(!cat_GeneralServiceDriver::getClassId()){
-    			core_Classes::add('cat_GeneralServiceDriver');
-    		}
-    		
-    		$meta = cat_Products::getMetaData($rec->groups);
-    		$meta = arr::make($meta, TRUE);
-    		
-    		$rec->innerClass = (isset($meta['canStore'])) ? cat_GeneralProductDriver::getClassId() : cat_GeneralServiceDriver::getClassId();
     	}
     	
     	if($rec->id){
@@ -333,14 +320,6 @@ class cat_Products extends core_Embedder {
     	
     	if(isset($rec->csv_name)){
     		$rec->name = $rec->csv_name;
-    		$metas = $mvc->getMetaData($rec->groups);
-    		
-    		$rec->innerForm = (object)array('measureId' => $rec->measureId);
-    		if(isset($metas['canStore'])){
-    			$rec->innerClass = cat_GeneralProductDriver::getClassId();
-    		} else {
-    			$rec->innerClass = cat_GeneralServiceDriver::getClassId();
-    		}
     	}
     }
     
@@ -810,7 +789,8 @@ class cat_Products extends core_Embedder {
 	    	1 => "code", 
 	    	2 => "csv_measureId", 
 	    	3 => "csv_groups",
-	    	4 => "access");
+	    	4 => "access",
+    		5 => "innerClass",);
     	
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	$res .= $cntObj->html;
@@ -1198,5 +1178,15 @@ class cat_Products extends core_Embedder {
     {
     	//@TODO временно
     	return FALSE;
+    }
+    
+    
+    /**
+     * Обработка, преди импортиране на запис при начално зареждане
+     */
+    public static function on_BeforeImportRec($mvc, $rec)
+    {
+    	expect(cls::haveInterface('cat_ProductDriverIntf', $rec->innerClass));
+    	$rec->innerClass = cls::get($rec->innerClass)->getClassId();
     }
 }
