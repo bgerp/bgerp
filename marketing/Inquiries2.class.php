@@ -602,7 +602,7 @@ class marketing_Inquiries2 extends core_Embedder
     		cms_Content::setLang($lg);
     		core_Lg::push($lg);
     	}
-    	 
+    	
     	$Source = new core_ObjectReference($inqCls, $inqId);
     	expect($Source->haveInterface('marketing_InquirySourceIntf'));
     	$params = $Source->getCustomizationParams();
@@ -615,11 +615,15 @@ class marketing_Inquiries2 extends core_Embedder
     	$Driver->setParams($params);
     	
     	parent::on_AfterPrepareEditForm($this, $data);
-    	
+    	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
     	$Driver = $this->getDriver($form->rec);
     	$form->input();
     	
-    	$uom = cat_Uom::getShortName($Driver->getDriverUom());
+    	if(isset($form->rec->title)){
+    		$form->setField('title', 'input=hidden');
+    	}
+    	
+    	$uom = cat_UoM::getShortName($Driver->getDriverUom());
     	$form->setField('quantity1', "unit={$uom}");
     	$form->setField('quantity2', "unit={$uom}");
     	$form->setField('quantity3', "unit={$uom}");
