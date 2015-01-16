@@ -328,6 +328,7 @@ class cal_Calendar extends core_Master
         }
        
         // TODO
+        $attr = array();
         $attr['class'] = 'linkWithIcon';
         if($rec->type == 'leave'){
         	$attr['style'] = 'background-image:url(' . sbf("img/16/leaves.png") . ');';
@@ -556,6 +557,7 @@ class cal_Calendar extends core_Master
         $Calendar->prepareListToolbar($state);
 
         if (is_array($state->recs)) {
+            $data = array();
             foreach($state->recs as $id => $rec) {
             
                 if($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
