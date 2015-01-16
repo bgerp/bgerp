@@ -1781,14 +1781,72 @@ class email_Outgoings extends core_Master
         // Ако препращаме
         if ($forward) {
             
-            // Манипулатора на документа
-            $handle = static::getHandle($id);
-            
-            // Текстова част
-            $text = tr("Моля запознайте се с препратения имейл|* #{$handle}.");
+            $mvc = cls::get('email_Outgoings');
+        
+            $text = email_Outgoings::prepareDefaultEmailBodyText($mvc, $id, 'createdOn', $forward);
         }
         
         return $text;
+    }
+    
+    
+    /**
+     * Подготвя текст за тялото на имейла при отговор и препращане
+     * 
+     * @param core_Mvc $class
+     * @param integer $id
+     * @param string $dateField
+     * @param boolean $forward
+     * 
+     * @return core_ET
+     */
+    public static function prepareDefaultEmailBodyText($class, $id, $dateField = 'date', $forward = FALSE)
+    {
+        //Вземаме датата от базата от данни
+        $date = $class->fetchField($id, $dateField);
+        
+        if ($forward) {
+            $key = 'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING';
+        } else {
+            $key = 'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY';
+        }
+        
+        $text = core_Packs::getConfigValue('email', $key);
+        
+        $textTpl = new ET($text);
+        
+        $placeArr = $textTpl->getPlaceholders();
+        
+        $valArr = array();
+        
+        foreach ((array)$placeArr as $placeHolder) {
+            
+            $placeHolderU = strtoupper($placeHolder);
+            
+            switch ($placeHolderU) {
+                case 'DATETIME':
+                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M H:i');
+                break;
+                
+                case 'DATE':
+                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M');
+                break;
+                
+                case 'MSG':
+                    // Манипулатора на документа
+                    $valArr[$placeHolder] = '#' . $class->getHandle($id);
+                break;
+                
+                default:
+                    ;
+                break;
+            }
+        }
+        
+        $textTpl->placeArray($valArr);
+        
+        return $textTpl;
+        
     }
     
     

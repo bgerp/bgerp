@@ -266,9 +266,13 @@ class core_DateTime
         $mysqlDate = str_replace("''", ":", $mysqlDate);
         $mysqlDate = str_replace("'", ":", $mysqlDate);
         
-        $timeZoneDiff = self::getTimezoneDiff();
         $time = strtotime($mysqlDate);
-        $time += $timeZoneDiff;
+        
+        $conf = core_Packs::getConfig('core');
+        if ($conf->EF_DATE_USE_TIMEOFFSET == 'yes') {
+            $timeZoneDiff = self::getTimezoneDiff();
+            $time += $timeZoneDiff;
+        }
         
         $year = date('y', $time);
         $yearNow = date('y', time());

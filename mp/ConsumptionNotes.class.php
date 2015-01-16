@@ -156,4 +156,59 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 		
 		redirect(array($this, 'single', $id));
 	}
+	
+	
+	private function stopAction($id)
+	{
+		$rec = $this->fetchRec($id);
+		
+		$dQuery = mp_ConsumptionNoteDetails::getQuery();
+		$dQuery->where("#noteId = {$rec->id}");
+		while($dRec = $dQuery->fetch()){
+			if(!mp_ObjectResources::getResource($dRec->classId, $dRec->productId)){
+				return 'Някой от артикулите не е ресурс';
+			}
+		}
+		
+		return FALSE;
+	}
+	
+	
+	/**
+	 * Изпълнява се преди контиране на документа
+	 */
+	public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+	{
+		if($msg = $mvc->stopAction($id)){
+			core_Statuses::newStatus(tr($msg), 'error');
+	
+			return FALSE;
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се преди възстановяването на документа
+	 */
+	public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+	{
+		if($msg = $mvc->stopAction($id)){
+			core_Statuses::newStatus(tr($msg), 'error');
+	
+			return FALSE;
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се преди оттеглянето на документа
+	 */
+	public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+	{
+		if($msg = $mvc->stopAction($id)){
+			core_Statuses::newStatus(tr($msg), 'error');
+	
+			return FALSE;
+		}
+	}
 }

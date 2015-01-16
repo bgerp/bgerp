@@ -334,7 +334,7 @@ class techno2_Boms extends core_Master
     			$arr = array();
     			$arr['resourceId'] = $sRec->resourceId;
     			if(isset($dRec->stage)){
-    				$arr['activityCenterId'] = mp_Stages::fetchField("#name = '{$dRec->stage}'", 'departmentId');
+    				$arr['activityCenterId'] = mp_Stages::fetchField($dRec->stage, 'departmentId');
     			}
     			
     			$arr['baseQuantity'] = $sRec->baseQuantity;
@@ -346,5 +346,117 @@ class techno2_Boms extends core_Master
     	
     	// Връщаме намерените ресурси
     	return $resources;
+    }
+
+
+    /**
+     * Връща ресурсите които могат да се добавят към дадена рецепта, това са тези, които вече не са добавени
+     *
+     * @param int $bomId - ид
+     * @param boolean $notIntKeys - дали ключовете да са естествени числа
+     * @return array - свободните за добавяне ресурси
+     */
+    public static function makeResourceOptions($bomId, $notIntKeys = FALSE)
+    {
+    	$usedRes = array();
+    	 
+    	// Намираме всички ресурси, които са използвани в рецептата
+    	$query = techno2_BomStages::getQuery();
+    	$query->where("#bomId = {$bomId}");
+    	while($qRec = $query->fetch()){
+    		$dQuery = techno2_BomStageDetails::getQuery();
+    		$dQuery->where("#bomstageId = {$qRec->id}");
+    		while($dRec = $dQuery->fetch()){
+    			$usedRes[$dRec->resourceId] = mp_Resources::getTitleById($dRec->resourceId, FALSE);
+    		}
+    	}
+    	 
+    	// Намираме всички стандартни ресурси
+    	$allResources = cls::get('mp_Resources')->makeArray4Select('title', array("#bomId IS NULL && state NOT IN ('rejected')"));
+    	
+    	// Намираме ресурсите, които са заготовки за тази рецепта
+    	$bomResources = cls::get('mp_Resources')->makeArray4Select('title', array("#bomId IS NOT NULL && state NOT IN ('rejected') && #bomId = {$bomId}"));
+    	
+    	if($notIntKeys === TRUE){
+    		$allResources = arr::make($allResources, TRUE);
+    		$bomResources = arr::make($bomResources, TRUE);
+    	}
+    	
+    	// Добавяме ги към списъка, ако има
+    	if(count($bomResources)){
+    		$allResources[0] = (object)array(
+    				'title' => 'Заготовки',
+    				'group' => TRUE,
+    		);
+    		$allResources = $allResources + $bomResources;
+    	}
+    	
+    	// Намираме тези ресурси, които не са използвани в рецептата
+    	$diffArr = array_diff_key($allResources, $usedRes);
+    	
+    	// Връщаме масива
+    	return $diffArr;
+    }
+    
+    
+    /**
+     * Връща позволените опции за избор на етапи вече участващи към рецептата
+     * 
+     * @param int $id - ид на запис
+     * @param string $except - етапите след кой етап да покажем
+     * @return array $stages - Масив с достъпните опции
+     */
+    public static function makeStagesOptions($id, $stage = NULL)
+    {
+    	// Добавяме за налични етапи само тези избрани в рецептата (без текущия)
+    	$stages = array();
+    	$mQuery = techno2_BomStages::getQuery();
+    	$mQuery->where("#bomId = {$id}");
+    	$mQuery->EXT('order', 'mp_Stages', 'externalName=order,externalKey=stage');
+    	
+    	// Ако е зададен етап
+    	if(isset($stage)){
+    		
+    		// Оставяме тези етапи, които са след подадения и са различни от него
+    		$mQuery->where("#stage != {$stage}");
+    		$stageOrder = mp_Stages::fetchField($stage, 'order');
+    		$mQuery->where("#order > {$stageOrder}");
+    	}
+    	
+    	while($mRec = $mQuery->fetch()){
+    		$stages[$mRec->stage] = mp_Stages::fetchField($mRec->stage, 'name');
+    	}
+    	
+    	if(isset($except)){
+    		
+    		// Премахваме от опциите, текущия етап
+    		unset($stages[$except]);
+    	}
+    	
+    	return $stages;
+    }
+    
+    
+    /**
+     * Връща заявка за извличане на всички ресурси използвани в тази рецепта
+     * 
+     * @param mixed $bomId - ид или запис на рецепта
+     * @return core_Query - готовата заявка
+     */
+    public static function getDetailQuery($id)
+    {
+    	$rec = static::fetchRec($id);
+    	
+    	// Намираме всички етапи в тази рецепта
+    	$dQuery = techno2_BomStages::getQuery();
+    	$dQuery->where("#bomId = '{$rec->id}'");
+    	$dQuery->show('id');
+    	
+    	// След това намираме всички детайли на етапите на рецептата
+    	$query2 = techno2_BomStageDetails::getQuery();
+    	$query2->in("bomstageId", arr::make(array_keys($dQuery->fetchAll()), TRUE));
+    	
+    	// Връщаме заявката
+    	return $query2;
     }
 }

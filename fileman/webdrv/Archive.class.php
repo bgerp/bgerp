@@ -111,13 +111,8 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
      */
     static function uploadFileFromArchive($fRec, $index)
     {
-        try {
-            // Инстанция на класа
-            $inst = static::getArchiveInst($fRec);
-        } catch (fileman_Exception $e) {
-            
-            return $e->getMessage();
-        }
+        // Инстанция на класа
+        $inst = static::getArchiveInst($fRec);
         
         // Качваме съответния файл
         $fh = $inst->getFile($index);

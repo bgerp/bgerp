@@ -35,7 +35,7 @@ class fileman_webdrv_ImageT extends fileman_webdrv_Image
      * 
      * @param object $fRec - Записите за файла
      * 
-     * @return core_Et - Шаблон с превюто на файла
+     * @return core_Et|string - Шаблон с превюто на файла
      * 
      * @Override
      * @see fileman_webdrv_Image::getThumbPrev

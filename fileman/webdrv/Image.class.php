@@ -295,7 +295,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
      * 
      * @param object $fRec - Записите за файла
      * 
-     * @return core_Et - Шаблон с превюто на файла
+     * @return core_Et|string - Шаблон с превюто на файла
      */
     static function getThumbPrev($fRec)
     {

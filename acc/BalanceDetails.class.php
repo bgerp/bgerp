@@ -655,7 +655,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,style=margin-top:6px;');
-        $form->toolbar->addSbBtn('Групирай', 'group', 'id=filterGr', 'ef_icon = img/16/funnel.png,style=margin-top:6px;');
+        $form->toolbar->addSbBtn('Групирай', 'group', 'id=filterGr', 'ef_icon = img/16/sum2.png,style=margin-top:6px;');
         
         return $form;
     }

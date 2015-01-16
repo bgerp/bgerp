@@ -248,6 +248,8 @@ class label_Labels extends core_Master
             // Вземаме функционалните полета за типа
             label_TemplateFormats::addFieldForTemplate($fncForm, $form->rec->templateId);
             
+            $dataArr = array();
+            
             // Обхождаме масива
             foreach ((array)$fncForm->fields as $fieldName => $dummy) {
                 

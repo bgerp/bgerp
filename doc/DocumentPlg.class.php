@@ -885,6 +885,8 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->invoke('AfterPrepareDocumentLocation', array($data->form));
         
         $userListRolesArr = array();
+        $userListFieldsArr = array();
+        $richTextFieldsArr = array();
         
         // Обхождаме всичко полета в модела
         foreach ((array)$mvc->fields as $fieldName => $field) {

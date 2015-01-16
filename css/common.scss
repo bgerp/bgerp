@@ -1513,11 +1513,16 @@ td.keylist-group{
 	    margin-top: 1px;
 	    cursor: pointer; 
 	    img {
-	    	display: none;
 	    	margin-right: 5px;
 	    	top: 2px;
 	    	position: relative;
 	    } 
+	    .invert-checkbox {
+	       float: right;
+	    }
+	    .hidden {
+	       display: none;
+	    }
     }
 }
 
