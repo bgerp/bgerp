@@ -92,7 +92,7 @@ class email_Accounts extends core_Master
      */
     function description()
     {
-        $this->FLD("email", "email(link=no)", "caption=Имейл,mandatory,width=100%", array('hint' => 'Имейл адреса, съответстващ на сметката'));
+        $this->FLD("email", "email(link=no)", "caption=Имейл,mandatory,width=100%", array('hint' => 'Имейл адреса, съответстващ на сметката', 'attr' => array('onblur' => "mailServerSettings();", 'id' => 'email')));
         
         // Дали да се рутират писмата, получени на този акаунт
         $this->FLD('applyRouting', 'enum(no=Без рутиране, yes=С рутиране)', 'notNull,caption=Рутиране,maxRadio=2');
@@ -104,12 +104,12 @@ class email_Accounts extends core_Master
         $this->FLD('type', 'enum(single=Самостоятелна,common=Събирателна,corporate=Корпоративна)', 'notNull,caption=Тип');
         
         // Входящо получаване
-        $this->FLD("server", "varchar(128)", 'caption=Получаване->Сървър,width=100%');
-        $this->FLD("protocol", "enum(imap=IMAP, pop3=POP3)", 'caption=Получаване->Протокол,notNull');
-        $this->FLD('security', 'enum(default=По подразбиране,tls=TLS,notls=No TLS,ssl=SSL)', 'caption=Получаване->Сигурност,notNull');
-        $this->FLD('cert', 'enum(noValidate=Без валидиране,validate=С валидиране)', 'caption=Получаване->Сертификат,notNull');
-        $this->FLD('folder', 'varchar(64)', 'caption=Получаване->IMAP папка,value=INBOX');
-        $this->FLD('user', 'varchar', 'caption=Получаване->Потребител,width=100%');
+        $this->FLD("server", "varchar(128)", 'caption=Получаване->Сървър,width=100%', array('attr' => array('id' => 'server')));
+        $this->FLD("protocol", "enum(imap=IMAP, pop3=POP3)", 'caption=Получаване->Протокол,notNull', array('attr' => array('id' => 'protocol')));
+        $this->FLD('security', 'enum(default=По подразбиране,tls=TLS,notls=No TLS,ssl=SSL)', 'caption=Получаване->Сигурност,notNull', array('attr' => array('id' => 'security')));
+        $this->FLD('cert', 'enum(noValidate=Без валидиране,validate=С валидиране)', 'caption=Получаване->Сертификат,notNull', array('attr' => array('id' => 'cert')));
+        $this->FLD('folder', 'varchar(64)', 'caption=Получаване->IMAP папка,value=INBOX', array('attr' => array('id' => 'folder')));
+        $this->FLD('user', 'varchar', 'caption=Получаване->Потребител,width=100%', array('attr' => array('id' => 'user')));
         $this->FLD('password', 'password(64,autocomplete=off)', 'caption=Получаване->Парола,width=100%,crypt');
         
         // Изтегляне
@@ -120,10 +120,10 @@ class email_Accounts extends core_Master
             'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
         
         // Изпращане
-        $this->FLD('smtpServer', 'varchar', 'caption=Изпращане->SMTP сървър,width=100%,oldFieldName=smtp');
-        $this->FLD('smtpSecure', 'enum(no=Без криптиране,tls=TLS,ssl=SSL)', 'caption=Изпращане->Сигурност');
-        $this->FLD('smtpAuth', 'enum(no=Не се изисква,LOGIN=Изисква се,NTLM=MS NTLM)', 'caption=Изпращане->Аутентикация');
-        $this->FLD('smtpUser', 'varchar', 'caption=Изпращане->Потребител,width=100%');
+        $this->FLD('smtpServer', 'varchar', 'caption=Изпращане->SMTP сървър,width=100%,oldFieldName=smtp', array('attr' => array('id' => 'smtpServer')));
+        $this->FLD('smtpSecure', 'enum(no=Без криптиране,tls=TLS,ssl=SSL)', 'caption=Изпращане->Сигурност', array('attr' => array('id' => 'smtpSecure')));
+        $this->FLD('smtpAuth', 'enum(no=Не се изисква,LOGIN=Изисква се,NTLM=MS NTLM)', 'caption=Изпращане->Аутентикация', array('attr' => array('id' => 'smtpAuth')));
+        $this->FLD('smtpUser', 'varchar', 'caption=Изпращане->Потребител,width=100%', array('attr' => array('id' => 'smtpUser')));
         $this->FLD('smtpPassword', 'password(64,autocomplete=off)', 'caption=Изпращане->Парола,width=100%,crypt');
 
         $this->setDbUnique('email');
@@ -257,9 +257,10 @@ class email_Accounts extends core_Master
     /**
      * Преди рендиране на формата за редактиране
      */
-    static function on_AfterPrepareEditForm($mvc, &$data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $data->form->setDefault('access', 'private');
+         
     }
 
 

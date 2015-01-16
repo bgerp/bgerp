@@ -1291,8 +1291,6 @@ function setFormElementsWidth() {
     } else {
     	 $('.formTable label').each(function() {
              $(this).parent().css('white-space', "nowrap");
-             $(this).parent().css('width', "1%");
-             
              // ако етикета е много широк, режем го и слагаме хинт
              if ($(this).width() > 450){
             	 $(this).css('max-width', "450px");
@@ -1784,35 +1782,19 @@ function checkForHiddenGroups() {
 
 
 /**
- * В зависимост от натиснатия елемент, се определя какво действие трябва да се извърши с кейлист полетата
- */
-function keylistActions(el) {
-	 $('.keylistCategory').on('click', function(e) {
-		 // ако натиснем бутона за инвертиране на чекбоксовете
-		  if ($(e.target).is(".invert-checkbox")) {
-			  // ако групата е затворена я отваряме
-			  var category = $(e.target).closest('.keylistCategory');
-			  if ($(category).hasClass('closed')) {
-				  toggleKeylistGroups(category);
-			  }
-			  //инвертираме
-			  inverseCheckBox(e.target);
-		  } else {
-			  // в противен случай затваряме/отваряме групата
-			  toggleKeylistGroups(e.target);
-			    
-		  }
-	 });
-}
-
-/**
- *  скриваме/показваме прилежащата на елемента група
+ * Показване и скриване на keylist групи
  */
 function toggleKeylistGroups(el) {
-	//в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
-    var trItems = findElementKeylistGroup(el);
+    //намираме id-то на елемента, на който е кликнато
     var element = $(el).closest("tr.keylistCategory");
-    
+
+    var trId = element.attr("id");
+
+    //намираме keylist таблицата, в която се намира
+    var tableHolder = $(element).closest("table.keylist");
+
+    //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
+    var trItems = tableHolder.find("tr." + trId);
     if (trItems.length) {
         //и ги скриваме
         trItems.toggle("slow");
@@ -1821,44 +1803,6 @@ function toggleKeylistGroups(el) {
         element.toggleClass('closed');
         element.toggleClass('opened');
     }
-	
-}
-
-/**
- *  намираме прилежащата на елемента група
- */
-function findElementKeylistGroup(el){
-	  var element = $(el).closest("tr.keylistCategory");
-
-	    var trId = element.attr("id");
-
-	    //намираме keylist таблицата, в която се намира
-	    var tableHolder = $(element).closest("table.keylist");
-
-	    //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
-	    var keylistGroups = tableHolder.find("tr." + trId);
-	    
-	    return keylistGroups;
-}
-
-
-/**
- *  инвертираме чекбоксовете в групата на елемента
- */
-function inverseCheckBox(el){
-	// сменяме иконката
-	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
-	
-	var trItems = findElementKeylistGroup(el);
-	
-	//инвертираме
-	$(trItems).find('.checkbox').each(function() {
-		if( $(this).attr('checked') == 'checked') {
-			$(this).removeAttr('checked');
-		} else {
-			$(this).attr('checked', 'checked');
-		}
-	});
 }
 
 
@@ -3277,6 +3221,93 @@ $.fn.scrollView = function () {
                         }, 500);
                     });
 }
+
+function mailServerSettings() {
+    var email = document.getElementById('email');
+    var server = document.getElementById('server');
+    var protocol = document.getElementById('protocol');
+    var security = document.getElementById('security');
+    var cert = document.getElementById('cert');
+    var folder = document.getElementById('folder');
+    var user = document.getElementById('user');
+    var smtpServer = document.getElementById('smtpServer');
+    var smtpSecure = document.getElementById('smtpSecure');
+    var smtpAuth = document.getElementById('smtpAuth');
+    var smtpUser = document.getElementById('smtpUser');
+   
+    n = email.value.search("@"); 
+    
+    provider = email.value.substr(n+1)
+    userAccountt = email.value.substr(0,n)
+    
+    if (server.value == "") {
+		switch (provider) {
+		    case "abv.bg":
+		    	server.value = "pop3.abv.bg:995";
+			    protocol.value = "pop3";
+			    security.value = "ssl";
+			    cert.value = "validate";
+			    smtpServer.value = "smtp.abv.bg:465";
+			    smtpSecure.value = "tls";
+			    smtpAuth.value = "LOGIN";
+			    user.value = userAccountt;
+			    smtpUser.value = userAccountt;
+		    	break;
+		    case "gmail.com":
+		    	server.value = "imap.gmail.com:993";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp.gmail.com:587";
+		    	smtpSecure.value = "tls";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;
+		        break;
+		    case "yahoo.com":
+		    	server.value = "imap.mail.yahoo.com:993";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp.mail.yahoo.com:465";
+		    	smtpSecure.value = "ssl";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;
+		        break;
+		    case "outlook.com":
+		    	server.value = "imap-mail.outlook.com:993";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp-mail.outlook.com:587";
+		    	smtpSecure.value = "tls";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;;
+		        break;
+		    case "mail.bg":
+		    	server.value = " imap.mail.bg:143";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp.mail.bg:25";
+		    	smtpSecure.value = "tls";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;
+		        break;
+	
+		    default:
+		    	protocol.value = "imap";
+		    	security.value = "default";
+		    	cert.value = "noValidate";
+		    	smtpSecure.value = "no";
+		    	smtpAuth.value = "no";
+		}
+
+    }
+};
 
 runOnLoad(showTooltip);
 runOnLoad(removeNarrowScroll);
