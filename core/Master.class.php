@@ -531,4 +531,40 @@ class core_Master extends core_Manager
         
         return $link;
     }
+    
+    
+    /**
+     * Създава хиперлинк към единичния изглед
+     * 
+     * @param int $id - ид на запис
+     * @param boolean $icon - дали линка да е с икона
+     * @return string|core_ET - линк към единичния изглед или името ако потребителя няма права
+     */
+    public static function getHyperlink($id, $icon = FALSE)
+    {
+    	$me = cls::get(get_called_class());
+    
+    	$title = $me->getTitleById($id);
+    
+    	if($icon === TRUE) {
+    		$icon = 'ef_icon=' . $me->singleIcon;
+    	} elseif($icon) {
+    		$icon = 'ef_icon=' . $icon;
+    	}
+    
+    	if(!$id) {
+    		return "<span style='color:red;'>&nbsp;- - -</span>";
+    	}
+    
+    	// Ако потребителя има достъп до единичния изглед, правим заглавието линк
+    	if ($me->haveRightFor('single', $id)) {
+    		$title = ht::createLink($title,
+    				array($me, 'single', $id),
+    				NULL,
+    				$icon
+    		);
+    	}
+    
+    	return $title;
+    }
 }
