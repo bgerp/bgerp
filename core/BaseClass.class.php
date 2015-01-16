@@ -342,28 +342,4 @@ class core_BaseClass
     {
     	return $this->_plugins;
     }
-}лас-имплементация
-     */
-    public function declareInterface($interface, $implementationClass = NULL)
-    {
-        if (!isset($implementationClass)) {
-            $implementationClass = $interface;
-        }
-        
-        if ($this->getInterface($interface) !== FALSE) {
-            return;
-        }
-        
-        $this->interfaces[$interface] = $implementationClass;
-    }
-    
-    
-    /**
-     * Връща масив от заредените инстанции на плъгини
-     * @return array - масив от инстанции на плъгини
-     */
-    public function getPlugins()
-    {
-    	return $this->_plugins;
-    }
 }
